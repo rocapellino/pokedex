@@ -36,16 +36,22 @@ def main():
     parser.add_argument("--duration", type=int, default=60, help="Duración máxima en segundos")
     args = parser.parse_args()
 
+    if sys.stdout.encoding != 'utf-8':
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
     print("=" * 70)
-    print("🔥 Iniciando Prueba de Carga para Autoescalado HPA en Kubernetes")
-    print(f"🎯 URL Objetivo:       {args.url}")
-    print(f"👥 Concurrencia:       {args.concurrency} hilos simultáneos")
-    print(f"📦 Peticiones totales: {args.total_requests}")
-    print(f"⏱️  Duración máxima:   {args.duration}s")
+    print("[*] Iniciando Prueba de Carga para Autoescalado HPA en Kubernetes")
+    print(f"[-] URL Objetivo:       {args.url}")
+    print(f"[-] Concurrencia:       {args.concurrency} hilos simultáneos")
+    print(f"[-] Peticiones totales: {args.total_requests}")
+    print(f"[-] Duracion maxima:    {args.duration}s")
     print("=" * 70)
-    print("💡 Tip: En otra terminal, ejecuta:")
-    print("   kubectl get hpa -n pokemon-app -w")
-    print("   kubectl get pods -n pokemon-app -l app=pokemon-web -w")
+    print("[!] Tip: En otra terminal, ejecuta:")
+    print("    kubectl get hpa -n pokemon-app -w")
+    print("    kubectl get pods -n pokemon-app -w")
     print("=" * 70)
 
     success_count = 0
@@ -75,7 +81,7 @@ def main():
                 print(f"[{elapsed:.1f}s] Progreso: {completed}/{args.total_requests} reqs | Exitosas: {success_count} | Fallidas: {fail_count} | RPS: {rps:.1f}")
 
             if time.time() - start_all > args.duration:
-                print("⏱️ Tiempo límite alcanzado. Finalizando envío de carga...")
+                print("[!] Tiempo limite alcanzado. Finalizando envio de carga...")
                 break
 
     total_elapsed = time.time() - start_all
@@ -83,12 +89,12 @@ def main():
     throughput = (success_count + fail_count) / total_elapsed if total_elapsed > 0 else 0
 
     print("\n" + "=" * 70)
-    print("📊 RESULTADOS DE LA PRUEBA DE CARGA")
-    print(f"✅ Total Peticiones Exitosas (200 OK): {success_count}")
-    print(f"❌ Total Peticiones Fallidas:          {fail_count}")
-    print(f"⏱️  Tiempo Total Transcurrido:          {total_elapsed:.2f}s")
-    print(f"⚡ Rendimiento Promedio:                {throughput:.1f} req/s")
-    print(f"📈 Latencia Promedio:                   {avg_latency:.2f} ms")
+    print("[+] RESULTADOS DE LA PRUEBA DE CARGA")
+    print(f"[OK] Total Peticiones Exitosas (200 OK): {success_count}")
+    print(f"[ERR] Total Peticiones Fallidas:          {fail_count}")
+    print(f"[TIME] Tiempo Total Transcurrido:          {total_elapsed:.2f}s")
+    print(f"[PERF] Rendimiento Promedio:                {throughput:.1f} req/s")
+    print(f"[LAT] Latencia Promedio:                   {avg_latency:.2f} ms")
     print("=" * 70)
 
 if __name__ == '__main__':
