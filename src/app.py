@@ -1,6 +1,12 @@
-from flask import Flask, jsonify, request
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+app.json.ensure_ascii = False
 
 # Base de datos en memoria
 pokemons = [
@@ -47,7 +53,10 @@ def buscar_pokemon_por_id(pokemon_id):
 
 @app.route('/', methods=['GET'])
 def index():
-    """Ruta raíz de bienvenida."""
+    """Ruta raíz de bienvenida (Servir HTML para navegadores, JSON para API)."""
+    accept = request.headers.get('Accept', '')
+    if 'text/html' in accept:
+        return render_template('index.html')
     return jsonify({
         "mensaje": "¡Bienvenido a la API REST de Pokémon!",
         "rutas_disponibles": {
@@ -58,6 +67,12 @@ def index():
             "DELETE /pokemons/<id>": "Elimina un Pokémon por ID"
         }
     }), 200
+
+
+@app.route('/gui', methods=['GET'])
+def gui():
+    """Interfaz gráfica visual Web Dashboard."""
+    return render_template('index.html')
 
 
 @app.route('/pokemons', methods=['GET'])

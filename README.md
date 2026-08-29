@@ -16,7 +16,12 @@ tarea_grupal_1/
 ├── README.md                # Documentación del proyecto
 ├── src/                     # Código fuente de producción
 │   ├── __init__.py
-│   └── app.py               # Lógica de la API y endpoints en Flask
+│   ├── app.py               # Lógica de la API y endpoints en Flask
+│   ├── static/
+│   │   └── css/
+│   │       └── style.css    # Estilos CSS con diseño Glassmorphic Dark
+│   └── templates/
+│       └── index.html       # Dashboard web interactivo para la API
 ├── tests/                   # Pruebas unitarias automatizadas
 │   └── test_app.py          # Pruebas con pytest
 └── scripts/                 # Scripts individuales de prueba HTTP
@@ -91,7 +96,7 @@ pip install -r requirements.txt
 Para iniciar el servidor Flask:
 
 ```bash
-.venv\Scripts\python.exe app.py
+.venv/Scripts/python.exe app.py
 ```
 
 La API estará corriendo por defecto en: `http://127.0.0.1:5000`
@@ -103,11 +108,11 @@ La API estará corriendo por defecto en: `http://127.0.0.1:5000`
 **Ejecutar Scripts CRUD**
 
 ```bash
-.venv\Scripts\python.exe .\scripts\test_get_all.py    # Probar GET /pokemons
-.venv\Scripts\python.exe .\scripts\test_get_id.py     # Probar GET /pokemons/<id>
-.venv\Scripts\python.exe .\scripts\test_post.py       # Probar POST /pokemons (Crear)
-.venv\Scripts\python.exe .\scripts\test_put.py        # Probar PUT /pokemons/<id> (Actualizar)
-.venv\Scripts\python.exe .\scripts\test_delete.py     # Probar DELETE /pokemons/<id> (Eliminar)
+.venv/Scripts/python.exe ./scripts/test_get_all.py    # Probar GET /pokemons
+.venv/Scripts/python.exe ./scripts/test_get_id.py     # Probar GET /pokemons/<id>
+.venv/Scripts/python.exe ./scripts/test_post.py       # Probar POST /pokemons (Crear)
+.venv/Scripts/python.exe ./scripts/test_put.py        # Probar PUT /pokemons/<id> (Actualizar)
+.venv/Scripts/python.exe ./scripts/test_delete.py     # Probar DELETE /pokemons/<id> (Eliminar)
 ```
 
 ---
