@@ -7,8 +7,26 @@ param (
 )
 
 $ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
 
 Write-Host "🚀 Iniciando despliegue de Pokémon App en Kubernetes..." -ForegroundColor Cyan
+
+# 0. Verificar conectividad con el clúster de Kubernetes
+Write-Host "🔍 Verificando conexión con el clúster de Kubernetes..." -ForegroundColor Yellow
+try {
+    $clusterInfo = kubectl cluster-info 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw $clusterInfo
+    }
+    Write-Host "✅ Clúster Kubernetes detectado y conectado." -ForegroundColor Green
+} catch {
+    Write-Host "❌ Error: No se puede conectar a ningún clúster de Kubernetes activo." -ForegroundColor Red
+    Write-Host "📌 Para solucionarlo en Docker Desktop:" -ForegroundColor Yellow
+    Write-Host "   1. Abre Docker Desktop -> Settings (ícono de engranaje) -> Kubernetes."
+    Write-Host "   2. Marca la casilla 'Enable Kubernetes' y haz clic en 'Apply & restart'."
+    Write-Host "   3. Alternativamente, puedes usar Minikube ejecutando: minikube start"
+    exit 1
+}
 
 # 1. Construcción de imágenes locales si se solicita
 if ($BuildImages) {
