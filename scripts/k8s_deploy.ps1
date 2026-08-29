@@ -31,7 +31,15 @@ if ($BuildImages) {
     Write-Host ">>> Construyendo imagenes Docker locales..." -ForegroundColor Yellow
     docker build -t pokemon-api:latest -f apps/api/Dockerfile .
     docker build -t pokemon-web:latest -f apps/web/Dockerfile .
-    Write-Host "[OK] Imagenes construidas exitosamente." -ForegroundColor Green
+    
+    # Si estamos en Docker Desktop con nodo containerd, sincronizar imagenes
+    $node = docker ps --filter "name=desktop-control-plane" -q
+    if ($node) {
+        Write-Host ">>> Importando imagenes al nodo Kubernetes (containerd)..." -ForegroundColor Yellow
+        docker save pokemon-api:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>$null
+        docker save pokemon-web:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>$null
+    }
+    Write-Host "[OK] Imagenes construidas y sincronizadas exitosamente." -ForegroundColor Green
 }
 
 # 2. Aplicar manifiestos con Kustomize
