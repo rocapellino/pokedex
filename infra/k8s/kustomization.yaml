@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pokemon-app
+
+resources:
+  - 00-namespace.yaml
+  - 01-config-and-secrets.yaml
+  - 01b-postgres-init-configmap.yaml
+  - 02-postgres-statefulset.yaml
+  - 02b-pgbouncer.yaml
+  - 03-redis-deployment.yaml
+  - 04-api-deployment.yaml
+  - 05-web-deployment.yaml
+  - 06-hpa-autoscaling.yaml
+  - 07-ingress.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: pokemon-platform
+  app.kubernetes.io/managed-by: kustomize

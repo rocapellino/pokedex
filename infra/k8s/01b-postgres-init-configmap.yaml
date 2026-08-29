@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+  namespace: pokemon-app
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS generations (
+        id SERIAL PRIMARY KEY,
+        roman_name VARCHAR(10) NOT NULL UNIQUE,
+        region_name VARCHAR(50) NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS types (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(30) NOT NULL UNIQUE,
+        color_hex VARCHAR(10) NOT NULL,
+        icon_url VARCHAR(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS abilities (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL UNIQUE,
+        description TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS pokemons (
+        id SERIAL PRIMARY KEY,
+        national_number INT NOT NULL UNIQUE,
+        name_es VARCHAR(80) NOT NULL,
+        name_en VARCHAR(80),
+        height_m NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+        weight_kg NUMERIC(6, 2) NOT NULL DEFAULT 0.0,
+        habitat VARCHAR(50) DEFAULT 'Desconocido',
+        generation_id INT REFERENCES generations(id) ON DELETE SET NULL,
+        image_url VARCHAR(500) NOT NULL,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS pokemon_types (
+        pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
+        type_id INT NOT NULL REFERENCES types(id) ON DELETE CASCADE,
+        slot INT NOT NULL DEFAULT 1,
+        PRIMARY KEY (pokemon_id, type_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS pokemon_abilities (
+        pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
+        ability_id INT NOT NULL REFERENCES abilities(id) ON DELETE CASCADE,
+        is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
+        slot INT NOT NULL DEFAULT 1,
+        PRIMARY KEY (pokemon_id, ability_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS pokemon_stats (
+        pokemon_id INT PRIMARY KEY REFERENCES pokemons(id) ON DELETE CASCADE,
+        hp INT NOT NULL DEFAULT 0,
+        attack INT NOT NULL DEFAULT 0,
+        defense INT NOT NULL DEFAULT 0,
+        sp_attack INT NOT NULL DEFAULT 0,
+        sp_defense INT NOT NULL DEFAULT 0,
+        speed INT NOT NULL DEFAULT 0,
+        bst INT GENERATED ALWAYS AS (hp + attack + defense + sp_attack + sp_defense + speed) STORED
+    );
+
+    CREATE TABLE IF NOT EXISTS evolutions (
+        id SERIAL PRIMARY KEY,
+        pre_evolution_id INT REFERENCES pokemons(id) ON DELETE CASCADE,
+        post_evolution_id INT REFERENCES pokemons(id) ON DELETE CASCADE,
+        trigger_type VARCHAR(50) NOT NULL DEFAULT 'Nivel',
+        min_level INT,
+        item_name VARCHAR(80)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_pokemons_national_number ON pokemons(national_number);
+    CREATE INDEX IF NOT EXISTS idx_pokemons_name_es ON pokemons(name_es);
+    CREATE INDEX IF NOT EXISTS idx_pokemons_generation ON pokemons(generation_id);
+    CREATE INDEX IF NOT EXISTS idx_pokemon_stats_bst ON pokemon_stats(bst);
+
+    INSERT INTO generations (id, roman_name, region_name) VALUES
+    (1, 'Gen I', 'Kanto'),
+    (2, 'Gen II', 'Johto'),
+    (3, 'Gen III', 'Hoenn'),
+    (4, 'Gen IV', 'Sinnoh'),
+    (5, 'Gen V', 'Teselia'),
+    (6, 'Gen VI', 'Kalos'),
+    (7, 'Gen VII', 'Alola'),
+    (8, 'Gen VIII', 'Galar'),
+    (9, 'Gen IX', 'Paldea')
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO types (name, color_hex) VALUES
+    ('Eléctrico', '#FACC15'),
+    ('Fuego', '#EF4444'),
+    ('Agua', '#3B82F6'),
+    ('Planta', '#10B981'),
+    ('Psíquico', '#EC4899'),
+    ('Roca', '#B45309'),
+    ('Tierra', '#D97706'),
+    ('Hielo', '#06B6D4'),
+    ('Fantasma', '#8B5CF6'),
+    ('Dragón', '#6366F1'),
+    ('Normal', '#6B7280'),
+    ('Lucha', '#DC2626'),
+    ('Veneno', '#A855F7'),
+    ('Bicho', '#84CC16'),
+    ('Volador', '#38BDF8'),
+    ('Acero', '#94A3B8'),
+    ('Siniestro', '#334155'),
+    ('Hada', '#F472B6')
+    ON CONFLICT (name) DO NOTHING;
