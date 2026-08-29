@@ -6,6 +6,15 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 from flask import Flask, jsonify, request, render_template
 
+try:
+    from apps.api.src.db import fetch_pokemons_from_db, invalidate_cache
+except ImportError:
+    try:
+        from src.db import fetch_pokemons_from_db, invalidate_cache
+    except ImportError:
+        fetch_pokemons_from_db = lambda: None
+        invalidate_cache = lambda: None
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 app = Flask(
     __name__,
@@ -15,7 +24,7 @@ app = Flask(
 app.config['JSON_AS_ASCII'] = False
 app.json.ensure_ascii = False
 
-# Base de datos en memoria
+# Base de datos en memoria (Fallback / Testing)
 pokemons = [
     {
         "id": 1,
@@ -84,7 +93,10 @@ def gui():
 
 @app.route('/pokemons', methods=['GET'])
 def get_pokemons():
-    """Obtiene la lista de todos los Pokémon."""
+    """Obtiene la lista de todos los Pokémon desde BD (con fallback en memoria)."""
+    db_pokemons = fetch_pokemons_from_db()
+    if db_pokemons and len(db_pokemons) > 0 and not app.config.get('TESTING'):
+        return jsonify(db_pokemons), 200
     return jsonify(pokemons), 200
 
 
@@ -135,6 +147,7 @@ def create_pokemon():
 
     pokemons.append(nuevo_pokemon)
     current_id += 1
+    invalidate_cache()
 
     return jsonify(nuevo_pokemon), 201
 
@@ -171,6 +184,7 @@ def update_pokemon(id):
     if "habitat" in data:
         pokemon["habitat"] = str(data["habitat"])
 
+    invalidate_cache()
     return jsonify(pokemon), 200
 
 
@@ -182,6 +196,7 @@ def delete_pokemon(id):
         return jsonify({"error": f"Pokémon con id {id} no encontrado"}), 404
 
     pokemons.remove(pokemon)
+    invalidate_cache()
     return jsonify({"mensaje": f"Pokémon con id {id} eliminado correctamente", "pokemon_eliminado": pokemon}), 200
 
 

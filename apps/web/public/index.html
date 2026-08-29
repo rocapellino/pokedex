@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex Web App - Fullstack DevOps</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Navbar Header -->
+    <header class="navbar">
+      <a href="/" class="brand">
+        <svg class="pokeball-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="#EF4444" stroke-width="8" fill="#111827"/>
+          <path d="M4 50H32M68 50H96" stroke="#EF4444" stroke-width="8" stroke-linecap="round"/>
+          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#EF4444"/>
+          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#EF4444" stroke-width="6"/>
+          <circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+        </svg>
+        <span class="brand-title">Pokédex Web App</span>
+        <span class="brand-badge">Fullstack</span>
+      </a>
+
+      <div class="nav-actions">
+        <div class="api-status">
+          <span class="status-dot"></span>
+          <span>Nginx + Flask + PostgreSQL + Redis</span>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('create')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nuevo Pokémon
+        </button>
+      </div>
+    </header>
+
+    <!-- Controls & Stats Bar -->
+    <section class="controls-bar">
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, tipo o habilidad..." oninput="filterPokemons()">
+      </div>
+    </section>
+
+    <!-- Stats Summary Matrix -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Pokémon</span>
+        <span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Fuerza Máxima</span>
+        <span class="stat-value" id="statMaxForce">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Peso Promedio</span>
+        <span class="stat-value" id="statAvgWeight">0 kg</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Tipos Registrados</span>
+        <span class="stat-value" id="statTypesCount">0</span>
+      </div>
+    </div>
+
+    <!-- Pokémon Grid Container -->
+    <main class="pokemon-grid" id="pokemonGrid">
+      <!-- Pokémon Cards will be rendered dynamically via JS -->
+    </main>
+  </div>
+
+  <!-- Modal Dialog (Crear / Editar Pokémon) -->
+  <div class="modal-overlay" id="pokemonModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Nuevo Pokémon</h3>
+        <button class="btn-icon" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="pokemonForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="pokemonId">
+
+        <div class="form-group">
+          <label class="form-label" for="nombre">Nombre</label>
+          <input type="text" id="nombre" class="form-control" placeholder="Ej: Pikachu" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imagen">URL Imagen (Artwork / Sprite)</label>
+          <input type="url" id="imagen" class="form-control" placeholder="https://raw.githubusercontent.com/..." required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="tipo">Tipo Principal</label>
+            <select id="tipo" class="form-control" required>
+              <option value="Eléctrico">Eléctrico</option>
+              <option value="Fuego">Fuego</option>
+              <option value="Agua">Agua</option>
+              <option value="Planta">Planta</option>
+              <option value="Psíquico">Psíquico</option>
+              <option value="Roca">Roca</option>
+              <option value="Tierra">Tierra</option>
+              <option value="Hielo">Hielo</option>
+              <option value="Fantasma">Fantasma</option>
+              <option value="Dragón">Dragón</option>
+              <option value="Normal">Normal</option>
+              <option value="Lucha">Lucha</option>
+              <option value="Veneno">Veneno</option>
+              <option value="Bicho">Bicho</option>
+              <option value="Volador">Volador</option>
+              <option value="Acero">Acero</option>
+              <option value="Siniestro">Siniestro</option>
+              <option value="Hada">Hada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="habitat">Hábitat</label>
+            <input type="text" id="habitat" class="form-control" placeholder="Ej: Bosques" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="peso">Peso (kg)</label>
+            <input type="number" step="0.1" id="peso" class="form-control" placeholder="6.0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="altura">Altura (m)</label>
+            <input type="number" step="0.1" id="altura" class="form-control" placeholder="0.4" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="fuerza">Fuerza / Ataque Base</label>
+            <input type="number" id="fuerza" class="form-control" placeholder="55" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edad">Edad / Nivel</label>
+            <input type="number" id="edad" class="form-control" placeholder="5" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="habilidades">Habilidades (separadas por coma)</label>
+          <input type="text" id="habilidades" class="form-control" placeholder="Impactrueno, Cola férrea" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Pokémon</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
