@@ -9,6 +9,7 @@ Bienvenido al centro de documentación del monorepo **Pokémon DevOps**. Aquí s
 ### 1. 🏗️ Arquitectura y Decisiones de Diseño ([`docs/architecture/`](./architecture/))
 * 📊 [**DATABASE_ANALYSIS.md**](./architecture/DATABASE_ANALYSIS.md): Análisis de persistencia de datos (SQL relacional vs NoSQL vs Híbrido), modelado entidad-relación basado en WikiDex y almacenamiento de assets multimedia.
 * ☸️ [**KUBERNETES_SCALING_ANALYSIS.md**](./architecture/KUBERNETES_SCALING_ANALYSIS.md): Diseño de autoescalado horizontal (**HPA v2**), garantía de consistencia de base de datos única y análisis comparativo entre Load Balancer (L4) e Ingress Controller (L7).
+* 🛡️ [**SECURITY_AND_NETWORK_ISOLATION.md**](./architecture/SECURITY_AND_NETWORK_ISOLATION.md): Modelo de defensa en profundidad, segmentación DMZ de 3 capas y políticas de red (NetworkPolicies) para aislamiento estricto de base de datos y caché.
 
 ---
 

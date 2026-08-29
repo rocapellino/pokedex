@@ -14,6 +14,7 @@ resources:
   - 05-web-deployment.yaml
   - 06-hpa-autoscaling.yaml
   - 07-ingress.yaml
+  - 09-network-policies.yaml
 
 labels:
   - pairs:

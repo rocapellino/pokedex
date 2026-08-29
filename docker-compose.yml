@@ -1,6 +1,6 @@
 services:
   # ============================================================================
-  # 1. Frontend Web (Nginx + Reverse Proxy)
+  # 1. Frontend Web (Nginx + Reverse Proxy) - DMZ Pública
   # ============================================================================
   web:
     build:
@@ -9,12 +9,12 @@ services:
     container_name: pokemon-web
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "8080:80"  # Único punto de entrada público expuesto al usuario/host
     depends_on:
       api:
         condition: service_healthy
     networks:
-      - pokemon-net
+      - frontend-net
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz || exit 1"]
       interval: 15s
@@ -23,7 +23,7 @@ services:
       start_period: 5s
 
   # ============================================================================
-  # 2. Backend API (Flask + Gunicorn WSGI)
+  # 2. Backend API (Flask + Gunicorn WSGI) - Capa de Aplicación
   # ============================================================================
   api:
     build:
@@ -31,8 +31,8 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: pokemon-api
     restart: unless-stopped
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"  # Solo accesible internamente por 'web' en frontend-net
     environment:
       PYTHONUNBUFFERED: "1"
       PORT: "5000"
@@ -45,7 +45,8 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - pokemon-net
+      - frontend-net
+      - backend-net
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
       interval: 20s
@@ -54,7 +55,7 @@ services:
       start_period: 10s
 
   # ============================================================================
-  # 3. Base de Datos Relacional (PostgreSQL 16)
+  # 3. Base de Datos Relacional (PostgreSQL 16) - Capa de Datos Aislada
   # ============================================================================
   postgres:
     image: postgres:16-alpine
@@ -64,13 +65,13 @@ services:
       POSTGRES_DB: pokedex_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
-      - pokemon-net
+      - backend-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d pokedex_db"]
       interval: 10s
@@ -79,18 +80,18 @@ services:
       start_period: 10s
 
   # ============================================================================
-  # 4. Base de Datos en Memoria / Caché (Redis 7)
+  # 4. Base de Datos en Memoria / Caché (Redis 7) - Capa de Datos Aislada
   # ============================================================================
   redis:
     image: redis:7-alpine
     container_name: pokemon-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:
       - redis_data:/data
     networks:
-      - pokemon-net
+      - backend-net
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -99,7 +100,7 @@ services:
       start_period: 5s
 
   # ============================================================================
-  # 5. Object Storage para Imágenes y Artwork (MinIO S3 Compatible)
+  # 5. Object Storage (MinIO S3 Compatible) - Capa de Almacenamiento Interno
   # ============================================================================
   minio:
     image: minio/minio:latest
@@ -109,13 +110,13 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose:
+      - "9000"
+      - "9001"
     volumes:
       - minio_data:/data
     networks:
-      - pokemon-net
+      - backend-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -124,11 +125,15 @@ services:
       start_period: 10s
 
 # ==============================================================================
-# Redes y Volúmenes Persistentes
+# Segmentación de Redes (DMZ Architecture) y Volúmenes Persistentes
 # ==============================================================================
 networks:
-  pokemon-net:
+  frontend-net:
     driver: bridge
+    internal: false  # Permite al contenedor web publicar el puerto hacia el host
+  backend-net:
+    driver: bridge
+    internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
 
 volumes:
   postgres_data:
