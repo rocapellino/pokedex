@@ -263,11 +263,11 @@ def invalidate_redis_cache():
 
 
 def main():
-    total_limit = int(os.getenv('POKEMON_LIMIT', '151'))
-    logger.info(f"🚀 Iniciando carga masiva de los primeros {total_limit} Pokémon de WikiDex / Pokédex...")
+    total_limit = int(os.getenv('POKEMON_LIMIT', '1025'))
+    logger.info(f"🚀 Iniciando carga masiva de los {total_limit} Pokémon de WikiDex / Pokédex (Generaciones I a IX)...")
 
     results = []
-    with ThreadPoolExecutor(max_workers=25) as executor:
+    with ThreadPoolExecutor(max_workers=30) as executor:
         futures = {executor.submit(fetch_pokemon_details, i): i for i in range(1, total_limit + 1)}
         for future in as_completed(futures):
             res = future.result()

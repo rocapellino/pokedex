@@ -22,6 +22,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: pokemon-config
+          env:
+            - name: POKEMON_LIMIT
+              value: "1025"
           resources:
             requests:
               cpu: 200m
