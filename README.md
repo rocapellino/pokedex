@@ -8,13 +8,12 @@ Este repositorio implementa una solución completa de ingeniería **DevOps y Clo
 
 ## 📑 Tabla de Contenidos
 1. [Resumen General y Arquitectura](#1-resumen-general-y-arquitectura)
-2. [Estructura del Monorepo](#2-estructura-del-monorepo)
-3. [Stack Tecnológico](#3-stack-tecnológico)
-4. [Inicio Rápido (Quickstart)](#4-inicio-rápido-quickstart)
+2. [Stack Tecnológico](#2-stack-tecnológico)
+3. [Inicio Rápido (Quickstart)](#3-inicio-rápido-quickstart)
    * [Opción A: Despliegue en Kubernetes (Recomendado)](#opción-a-despliegue-en-kubernetes-recomendado)
    * [Opción B: Despliegue con Docker Compose](#opción-b-despliegue-con-docker-compose)
-5. [Pruebas Automatizadas y Validación](#5-pruebas-automatizadas-y-validación)
-6. [Centro de Documentación (`docs/`)](#6-centro-de-documentación-docs)
+4. [Pruebas Automatizadas y Validación](#4-pruebas-automatizadas-y-validación)
+5. [Centro de Documentación (`docs/`)](#5-centro-de-documentación-docs)
 
 ---
 
@@ -63,60 +62,7 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 ---
 
-## 2. Estructura del Monorepo
-
-El repositorio sigue una separación modular por dominios funcionales:
-
-```text
-test_prueba/
-├── .github/                      # Automatizaciones de CI/CD (GitHub Actions)
-│   ├── workflows/                # Pipelines de build, test y validación
-│   └── pull_request_template.md  # Plantilla estándar para PRs
-├── apps/                         # Aplicaciones y código fuente
-│   ├── api/                      # Backend REST API (Flask + Gunicorn)
-│   │   ├── src/                  # Lógica de negocio, rutas y conexión a BD
-│   │   ├── tests/                # Suite de pruebas unitarias y de integración
-│   │   ├── scripts/              # Script de siembra masiva (1025 Pokémon)
-│   │   ├── requirements.txt      # Dependencias de Python
-│   │   └── Dockerfile            # Construcción multi-stage segura (non-root)
-│   └── web/                      # Frontend Web (Nginx + SPA Pokédex)
-│       ├── public/               # Assets estáticos (HTML5, CSS3, JS Vanilla)
-│       ├── nginx.conf            # Configuración de proxy inverso y caché
-│       └── Dockerfile            # Imagen ligera Nginx Alpine
-├── infra/                        # Infraestructura como Código (IaC) y Manifiestos
-│   ├── docker/                   # Scripts de inicialización (init.sql PostgreSQL)
-│   ├── k8s/                      # Manifiestos declarativos de Kubernetes (Kustomize)
-│   │   ├── 00-namespace.yaml
-│   │   ├── 01-config-and-secrets.yaml
-│   │   ├── 01b-postgres-init-configmap.yaml
-│   │   ├── 02-postgres-statefulset.yaml
-│   │   ├── 02b-pgbouncer.yaml
-│   │   ├── 03-redis-deployment.yaml
-│   │   ├── 04-api-deployment.yaml
-│   │   ├── 05-web-deployment.yaml
-│   │   ├── 06-hpa-autoscaling.yaml
-│   │   ├── 07-ingress.yaml
-│   │   ├── 08-db-seed-job.yaml
-│   │   └── kustomization.yaml
-│   └── terraform/                # Módulos y ambientes de Terraform
-├── docs/                         # Documentación técnica centralizada
-│   ├── README.md                 # Índice general de documentación
-│   ├── architecture/             # Diseños de persistencia y autoescalado K8s
-│   ├── best-practices/           # Guías de Git Flow y Dockerfiles seguros
-│   ├── api/                      # Especificación de endpoints y contratos
-│   └── runbooks/                 # Manuales operativos y pruebas de estrés
-├── scripts/                      # Scripts de automatización y herramientas
-│   ├── k8s_deploy.ps1            # Despliegue automatizado en K8s (PowerShell)
-│   ├── k8s_deploy.sh             # Despliegue automatizado en K8s (Bash)
-│   └── k8s_load_test.py          # Simulador de carga concurrente y estrés HPA
-├── docker-compose.yml            # Orquestación local para desarrollo
-├── pytest.ini                    # Configuración de pruebas Pytest
-└── requirements.txt              # Dependencias globales del monorepo
-```
-
----
-
-## 3. Stack Tecnológico
+## 2. Stack Tecnológico
 
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
@@ -129,7 +75,7 @@ test_prueba/
 
 ---
 
-## 4. Inicio Rápido (Quickstart)
+## 3. Inicio Rápido (Quickstart)
 
 ### Opción A: Despliegue en Kubernetes (Recomendado)
 
@@ -161,7 +107,7 @@ docker-compose ps
 
 ---
 
-## 5. Pruebas Automatizadas y Validación
+## 4. Pruebas Automatizadas y Validación
 
 ### Ejecutar Suite de Tests Unitarios (Pytest):
 ```bash
@@ -175,10 +121,11 @@ python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concu
 
 ---
 
-## 6. Centro de Documentación (`docs/`)
+## 5. Centro de Documentación (`docs/`)
 
 Para profundizar en los aspectos técnicos, consulta la documentación detallada:
 
+* 📂 [**Estructura del Monorepo y Organización por Dominios**](file:///docs/architecture/MONOREPO_STRUCTURE.md)
 * 📊 [**Análisis de Base de Datos (SQL vs NoSQL)**](file:///docs/architecture/DATABASE_ANALYSIS.md)
 * ☸️ [**Análisis de Escalado en Kubernetes, HPA y Balanceadores**](file:///docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)
 * 🛡️ [**Arquitectura de Seguridad, DMZ y Aislamiento de Red**](file:///docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md)
