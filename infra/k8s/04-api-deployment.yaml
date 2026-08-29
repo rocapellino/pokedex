@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-api-svc
+  namespace: pokemon-app
+  labels:
+    app: pokemon-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      targetPort: 5000
+      name: http
+  selector:
+    app: pokemon-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-api
+  namespace: pokemon-app
+  labels:
+    app: pokemon-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pokemon-api
+  template:
+    metadata:
+      labels:
+        app: pokemon-api
+    spec:
+      containers:
+        - name: api
+          image: pokemon-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: pokemon-config
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
