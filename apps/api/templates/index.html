@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex REST API - Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Custom Modern Glassmorphic CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Navbar Header -->
+    <header class="navbar">
+      <a href="/" class="brand">
+        <svg class="pokeball-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="#EF4444" stroke-width="8" fill="#111827"/>
+          <path d="M4 50H32M68 50H96" stroke="#EF4444" stroke-width="8" stroke-linecap="round"/>
+          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#EF4444"/>
+          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#EF4444" stroke-width="6"/>
+          <circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+        </svg>
+        <span class="brand-title">Pokédex REST API</span>
+        <span class="brand-badge">v1.0</span>
+      </a>
+
+      <div class="nav-actions">
+        <div class="api-status">
+          <span class="status-dot"></span>
+          <span>API Online (Flask)</span>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('create')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nuevo Pokémon
+        </button>
+      </div>
+    </header>
+
+    <!-- Controls & Stats Bar -->
+    <section class="controls-bar">
+      <div class="search-box">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, tipo o habilidad..." oninput="filterPokemons()">
+      </div>
+    </section>
+
+    <!-- Stats Summary Matrix -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Pokémon</span>
+        <span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Fuerza Máxima</span>
+        <span class="stat-value" id="statMaxForce">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Peso Promedio</span>
+        <span class="stat-value" id="statAvgWeight">0 kg</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Tipos Registrados</span>
+        <span class="stat-value" id="statTypesCount">0</span>
+      </div>
+    </div>
+
+    <!-- Pokémon Grid Container -->
+    <main class="pokemon-grid" id="pokemonGrid">
+      <!-- Pokémon Cards will be rendered dynamically via JS -->
+    </main>
+  </div>
+
+  <!-- Modal Dialog (Crear / Editar Pokémon) -->
+  <div class="modal-overlay" id="pokemonModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Nuevo Pokémon</h3>
+        <button class="btn-icon" onclick="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="pokemonForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="pokemonId">
+
+        <div class="form-group">
+          <label class="form-label" for="nombre">Nombre</label>
+          <input type="text" id="nombre" class="form-control" placeholder="Ej: Pikachu" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imagen">URL Imagen</label>
+          <input type="url" id="imagen" class="form-control" placeholder="https://raw.githubusercontent.com/..." required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="tipo">Tipo</label>
+            <input type="text" id="tipo" class="form-control" placeholder="Ej: Eléctrico" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="habitat">Hábitat</label>
+            <input type="text" id="habitat" class="form-control" placeholder="Ej: Bosques" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="peso">Peso (kg)</label>
+            <input type="number" step="0.1" id="peso" class="form-control" placeholder="6.0" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="altura">Altura (m)</label>
+            <input type="number" step="0.1" id="altura" class="form-control" placeholder="0.4" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="fuerza">Fuerza</label>
+            <input type="number" id="fuerza" class="form-control" placeholder="55" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edad">Edad</label>
+            <input type="number" id="edad" class="form-control" placeholder="5" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="habilidades">Habilidades (separadas por coma)</label>
+          <input type="text" id="habilidades" class="form-control" placeholder="Impactrueno, Cola férrea" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSave">Guardar Pokémon</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Frontend Logic -->
+  <script>
+    let allPokemons = [];
+
+    const typeColors = {
+      'eléctrico': '#f59e0b',
+      'fuego': '#ef4444',
+      'agua': '#3b82f6',
+      'planta': '#10b981',
+      'psíquico': '#ec4899',
+      'roca': '#b45309',
+      'hielo': '#06b6d4',
+      'fantasma': '#8b5cf6',
+      'dragón': '#6366f1',
+      'normal': '#6b7280'
+    };
+
+    function getTypeColor(tipo) {
+      const normalized = (tipo || '').toLowerCase();
+      for (const [key, color] of Object.entries(typeColors)) {
+        if (normalized.includes(key)) return color;
+      }
+      return '#ef4444';
+    }
+
+    async function loadPokemons() {
+      try {
+        const res = await fetch('/pokemons');
+        if (!res.ok) throw new Error('Error al consultar /pokemons');
+        allPokemons = await res.json();
+        renderPokemons(allPokemons);
+        updateStats(allPokemons);
+      } catch (err) {
+        showToast('Error cargando Pokémon: ' + err.message, true);
+      }
+    }
+
+    function renderPokemons(pokemons) {
+      const grid = document.getElementById('pokemonGrid');
+      if (!pokemons || pokemons.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3 class="empty-title">No se encontraron Pokémon</h3>
+            <p class="empty-subtitle">Intenta cambiar el término de búsqueda o crea uno nuevo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = pokemons.map(p => {
+        const typeColor = getTypeColor(p.tipo);
+        const habilidades = Array.isArray(p.habilidades) ? p.habilidades : [p.habilidades];
+        const car = p.caracteristicas || {};
+
+        return `
+          <article class="pokemon-card" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25;">
+            <div class="card-header">
+              <span class="pokemon-id">#${String(p.id).padStart(3, '0')}</span>
+              <div class="card-actions">
+                <button class="btn-icon" title="Editar" onclick="openModal('edit', ${p.id})">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="btn-icon btn-icon-danger" title="Eliminar" onclick="deletePokemon(${p.id})">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="image-container">
+              <img src="${p.imagen}" alt="${p.nombre}" class="pokemon-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+            </div>
+
+            <h2 class="pokemon-name">${p.nombre}</h2>
+            <div>
+              <span class="type-badge" style="background-color: ${typeColor};">
+                ${p.tipo}
+              </span>
+            </div>
+
+            <div class="stats-matrix">
+              <div class="stat-item">
+                <span class="stat-item-label">Peso</span>
+                <span class="stat-item-val">${car.peso || 0} kg</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-item-label">Altura</span>
+                <span class="stat-item-val">${car.altura || 0} m</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-item-label">Fuerza</span>
+                <span class="stat-item-val">${car.fuerza || 0}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-item-label">Hábitat</span>
+                <span class="stat-item-val">${p.habitat || '-'}</span>
+              </div>
+            </div>
+
+            <div class="skills-container">
+              ${habilidades.map(h => `<span class="skill-pill">⚡ ${h}</span>`).join('')}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function updateStats(pokemons) {
+      document.getElementById('statTotal').innerText = pokemons.length;
+      if (pokemons.length === 0) {
+        document.getElementById('statMaxForce').innerText = 0;
+        document.getElementById('statAvgWeight').innerText = '0 kg';
+        document.getElementById('statTypesCount').innerText = 0;
+        return;
+      }
+
+      const maxForce = Math.max(...pokemons.map(p => (p.caracteristicas?.fuerza || 0)));
+      const avgWeight = (pokemons.reduce((acc, p) => acc + (p.caracteristicas?.peso || 0), 0) / pokemons.length).toFixed(1);
+      const uniqueTypes = new Set(pokemons.map(p => p.tipo));
+
+      document.getElementById('statMaxForce').innerText = maxForce;
+      document.getElementById('statAvgWeight').innerText = `${avgWeight} kg`;
+      document.getElementById('statTypesCount').innerText = uniqueTypes.size;
+    }
+
+    function filterPokemons() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) {
+        renderPokemons(allPokemons);
+        return;
+      }
+
+      const filtered = allPokemons.filter(p => {
+        const nombre = (p.nombre || '').toLowerCase();
+        const tipo = (p.tipo || '').toLowerCase();
+        const habs = (p.habilidades || []).join(' ').toLowerCase();
+        return nombre.includes(q) || tipo.includes(q) || habs.includes(q);
+      });
+
+      renderPokemons(filtered);
+    }
+
+    function openModal(mode, id = null) {
+      const modal = document.getElementById('pokemonModal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('pokemonForm');
+      form.reset();
+
+      if (mode === 'create') {
+        title.innerText = 'Nuevo Pokémon';
+        document.getElementById('pokemonId').value = '';
+      } else if (mode === 'edit' && id) {
+        title.innerText = 'Editar Pokémon';
+        const p = allPokemons.find(item => item.id === id);
+        if (p) {
+          document.getElementById('pokemonId').value = p.id;
+          document.getElementById('nombre').value = p.nombre;
+          document.getElementById('imagen').value = p.imagen;
+          document.getElementById('tipo').value = p.tipo;
+          document.getElementById('habitat').value = p.habitat;
+          document.getElementById('peso').value = p.caracteristicas?.peso || '';
+          document.getElementById('altura').value = p.caracteristicas?.altura || '';
+          document.getElementById('fuerza').value = p.caracteristicas?.fuerza || '';
+          document.getElementById('edad').value = p.caracteristicas?.edad || '';
+          document.getElementById('habilidades').value = (p.habilidades || []).join(', ');
+        }
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('pokemonModal').classList.remove('active');
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('pokemonId').value;
+      const habsInput = document.getElementById('habilidades').value;
+      const habsArray = habsInput.split(',').map(s => s.trim()).filter(Boolean);
+
+      const payload = {
+        nombre: document.getElementById('nombre').value,
+        imagen: document.getElementById('imagen').value,
+        tipo: document.getElementById('tipo').value,
+        habitat: document.getElementById('habitat').value,
+        caracteristicas: {
+          peso: parseFloat(document.getElementById('peso').value),
+          altura: parseFloat(document.getElementById('altura').value),
+          fuerza: parseInt(document.getElementById('fuerza').value),
+          edad: parseInt(document.getElementById('edad').value)
+        },
+        habilidades: habsArray
+      };
+
+      try {
+        let res;
+        if (id) {
+          // PUT
+          res = await fetch(`/pokemons/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // POST
+          res = await fetch('/pokemons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Error procesando solicitud');
+        }
+
+        showToast(id ? 'Pokémon actualizado con éxito' : 'Pokémon creado con éxito');
+        closeModal();
+        loadPokemons();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    async function deletePokemon(id) {
+      if (!confirm(`¿Estás seguro de eliminar el Pokémon con ID #${id}?`)) return;
+
+      try {
+        const res = await fetch(`/pokemons/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Error al eliminar Pokémon');
+
+        showToast(`Pokémon #${id} eliminado correctamente`);
+        loadPokemons();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'toast-error' : ''}`;
+      toast.innerHTML = `
+        <span>${isError ? '⚠️' : '✅'}</span>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // Load initial pokemons
+    loadPokemons();
+  </script>
+</body>
+</html>

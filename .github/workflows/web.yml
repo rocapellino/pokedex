@@ -1,0 +1,17 @@
+# Workflow de frontend del monorepo
+name: web
+
+on:
+  push:
+    paths:
+      - 'apps/web/**'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo 'Frontend listo para integrarse en el monorepo'

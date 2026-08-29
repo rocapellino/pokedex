@@ -1,1 +1,3 @@
-# Paquete principal de la aplicación API Pokémon
+from apps.api.src.app import app
+
+__all__ = ["app"]

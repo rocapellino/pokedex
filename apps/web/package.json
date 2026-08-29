@@ -1,0 +1,9 @@
+{
+  "name": "pokemon-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Frontend del monorepo pokemon",
+  "scripts": {
+    "dev": "echo 'Frontend no configurado aún. Preparado para evolución a Vite/React/Next.'"
+  }
+}

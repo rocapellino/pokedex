@@ -2,10 +2,10 @@ import sys
 import os
 import pytest
 
-# Compatibilidad con el monorepo: la app real vive en apps/api/src/app.py
+# Agregar el directorio raíz al path para importar src.app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from apps.api.src.app import app, pokemons
+from src.app import app, pokemons
 
 
 @pytest.fixture

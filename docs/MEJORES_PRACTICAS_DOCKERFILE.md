@@ -244,9 +244,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Crear usuario y grupo sin privilegios con directorio home asignado
+# Crear usuario y grupo sin privilegios de root (Seguridad)
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 --ingroup appgroup --home /home/appuser --shell /bin/false appuser
+    adduser --system --uid 1001 --ingroup appgroup --no-create-home appuser
 
 # Copiar dependencias instaladas desde la etapa builder
 COPY --from=builder /install /usr/local

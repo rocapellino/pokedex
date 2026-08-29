@@ -1,0 +1,23 @@
+# Workflow de backend del monorepo
+name: api
+
+on:
+  push:
+    paths:
+      - 'apps/api/**'
+      - 'requirements.txt'
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'requirements.txt'
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r apps/api/requirements.txt
+      - run: pytest -q apps/api/tests

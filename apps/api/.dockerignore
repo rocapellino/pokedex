@@ -14,7 +14,7 @@ env/
 ENV/
 
 # ==============================================================================
-# Caché y artefactos de Python y Node
+# Caché y artefactos de Python
 # ==============================================================================
 __pycache__/
 *.py[cod]
@@ -25,7 +25,6 @@ __pycache__/
 htmlcov/
 .tox/
 .nox/
-node_modules/
 
 # ==============================================================================
 # Archivos de entorno y secretos
@@ -41,7 +40,6 @@ node_modules/
 tests/
 scripts/
 docs/
-infra/
 *.md
 .vscode/
 .idea/
