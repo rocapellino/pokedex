@@ -260,3 +260,4 @@ function showToast(message, isError = false) {
 }
 
 document.addEventListener('DOMContentLoaded', loadPokemons);
+

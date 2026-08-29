@@ -180,3 +180,4 @@ INSERT INTO pokemon_stats (pokemon_id, hp, attack, defense, sp_attack, sp_defens
 (8, 100, 135, 115, 85, 100, 135),
 (9, 100, 85, 100, 135, 115, 135)
 ON CONFLICT DO NOTHING;
+
