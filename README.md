@@ -1,4 +1,6 @@
-# Mini Proyecto Python - Pokémon
+# Mini Proyecto Python - Pokémon API 🚀
+
+API RESTful desarrollada en **Python (Flask)** para gestión del catálogo de Pokémon, con pruebas automatizadas, dashboard web interactivo y contenerización lista para producción bajo estándares **DevOps**.
 
 ### 👥 Integrantes - Grupo 3
 
@@ -11,140 +13,154 @@
 
 ```text
 tarea_grupal_1/
-├── app.py                   # Punto de entrada principal
-├── requirements.txt         # Dependencias del proyecto (Flask, pytest)
-├── README.md                # Documentación del proyecto
-├── src/                     # Código fuente de producción
+├── .github/
+│   ├── workflows/
+│   │   └── ci.yml                   # Pipeline de CI/CD (Tests + Docker Build)
+│   └── pull_request_template.md     # Plantilla estándar para Pull Requests
+├── src/                             # Código fuente de producción
 │   ├── __init__.py
-│   ├── app.py               # Lógica de la API y endpoints en Flask
+│   ├── app.py                       # Lógica de la API REST y endpoints en Flask
 │   ├── static/
 │   │   └── css/
-│   │       └── style.css    # Estilos CSS con diseño Glassmorphic Dark
+│   │       └── style.css            # Estilos CSS con diseño Glassmorphic Dark
 │   └── templates/
-│       └── index.html       # Dashboard web interactivo para la API
-├── tests/                   # Pruebas unitarias automatizadas
-│   └── test_app.py          # Pruebas con pytest
-└── scripts/                 # Scripts individuales de prueba HTTP
-    ├── test_get_all.py      # Prueba GET /pokemons
-    ├── test_get_id.py       # Prueba GET /pokemons/<id>
-    ├── test_post.py         # Prueba POST /pokemons
-    ├── test_put.py          # Prueba PUT /pokemons/<id>
-    ├── test_delete.py       # Prueba DELETE /pokemons/<id>
-    └── run_all_scripts.py   # Orquestador que ejecuta todas las pruebas
+│       └── index.html               # Dashboard web interactivo para la API
+├── tests/                           # Pruebas unitarias automatizadas
+│   └── test_app.py                  # Pruebas con pytest
+├── scripts/                         # Scripts individuales de prueba HTTP
+│   ├── test_get_all.py              # Prueba GET /pokemons
+│   ├── test_get_id.py               # Prueba GET /pokemons/<id>
+│   ├── test_post.py                 # Prueba POST /pokemons
+│   ├── test_put.py                  # Prueba PUT /pokemons/<id>
+│   ├── test_delete.py               # Prueba DELETE /pokemons/<id>
+│   └── run_all_scripts.py           # Orquestador de pruebas HTTP
+├── .dockerignore                    # Exclusiones de contexto para Docker
+├── .env.example                     # Plantilla de variables de entorno
+├── .gitignore                       # Exclusiones de control de versiones Git
+├── .pre-commit-config.yaml          # Configuración de Git Hooks
+├── Dockerfile                       # Construcción multi-stage de imagen Docker
+├── MEJORES_PRACTICAS_DOCKERFILE.md  # Guía de estándares para Docker
+├── MEJORES_PRACTICAS_GIT.md         # Guía de estándares para Git y flujo de trabajo
+├── README.md                        # Documentación principal
+├── app.py                           # Punto de entrada para desarrollo local
+└── requirements.txt                 # Dependencias (Flask, pytest, gunicorn)
 ```
+
+---
+
+## 📚 Guías de Mejores Prácticas Incluidas
+
+- 🐳 [**Guía de Mejores Prácticas para Dockerfile**](./MEJORES_PRACTICAS_DOCKERFILE.md): Arquitectura multi-stage, usuarios no-root, caché de capas, healthchecks y optimización de seguridad.
+- 🌿 [**Guía de Mejores Prácticas para Git**](./MEJORES_PRACTICAS_GIT.md): Conventional Commits, GitHub Flow, protección de ramas, plantillas de PR y versionado semántico (SemVer).
 
 ---
 
 ## 📋 Requisitos Previos
 
-- **Python 3.8+** instalado en el sistema.
+- **Python 3.8+** (para ejecución local en entorno virtual)
+- **Docker Desktop** (para ejecución contenerizada)
 
 ---
 
-## 🚀 Configuración e Instalación (usando Virtual Environment `venv`)
+## 🐳 Ejecución con Docker (Recomendado para Producción)
 
-### 1. Acceder al directorio del proyecto
+### 1. Construir la Imagen Docker
 
 ```bash
-cd tarea_grupal_1
+docker build -t pokemon-api:1.0.0 -t pokemon-api:latest .
 ```
 
-### 2. Crear el Entorno Virtual (`venv`)
+### 2. Ejecutar el Contenedor
+
+```bash
+docker run -d \
+  --name pokemon-app \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  pokemon-api:latest
+```
+
+### 3. Verificar Estado y Logs
+
+```bash
+# Ver estado del contenedor y Healthcheck
+docker ps
+
+# Ver logs de la aplicación
+docker logs -f pokemon-app
+
+# Detener y eliminar el contenedor
+docker stop pokemon-app && docker rm pokemon-app
+```
+
+---
+
+## 🚀 Ejecución Local con Virtual Environment (`venv`)
+
+### 1. Crear el Entorno Virtual
 
 **En Windows:**
-
 ```powershell
 python -m venv .venv
 ```
 
 **En Linux / macOS:**
-
 ```bash
 python3 -m venv .venv
 ```
 
-### 3. Activar el Entorno Virtual
+### 2. Activar el Entorno Virtual
 
 **En Windows (PowerShell):**
-
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-**En Windows (CMD):**
-
-```cmd
-.\.venv\Scripts\activate.bat
-```
-
 **En Linux / macOS:**
-
 ```bash
 source .venv/bin/activate
 ```
 
-### 4. Instalar Dependencias
+### 3. Instalar Dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 🏃 Ejecución de la API
-
-Para iniciar el servidor Flask:
+### 4. Iniciar el Servidor
 
 ```bash
-.venv/Scripts/python.exe app.py
+python app.py
 ```
 
-La API estará corriendo por defecto en: `http://127.0.0.1:5000`
+Acceder en el navegador a: `http://127.0.0.1:5000` o `http://127.0.0.1:5000/gui`
 
 ---
 
-## 🧪 Pruebas Unitarias y Scripts de Prueba
+## 🧪 Pruebas Automatizadas
 
-**Ejecutar Scripts CRUD**
+### Ejecutar Pruebas Unitarias con Pytest
 
 ```bash
-.venv/Scripts/python.exe ./scripts/test_get_all.py    # Probar GET /pokemons
-.venv/Scripts/python.exe ./scripts/test_get_id.py     # Probar GET /pokemons/<id>
-.venv/Scripts/python.exe ./scripts/test_post.py       # Probar POST /pokemons (Crear)
-.venv/Scripts/python.exe ./scripts/test_put.py        # Probar PUT /pokemons/<id> (Actualizar)
-.venv/Scripts/python.exe ./scripts/test_delete.py     # Probar DELETE /pokemons/<id> (Eliminar)
+pytest -v tests/
+```
+
+### Ejecutar Scripts de Prueba HTTP CRUD
+
+```bash
+python scripts/run_all_scripts.py
 ```
 
 ---
 
-## 📖 Documentación de Rutas (API Endpoints)
+## 📖 Documentación de la API (Endpoints)
 
-### Estructura del Objeto Pokémon JSON
-
-```json
-{
-  "id": 1,
-  "nombre": "Pikachu",
-  "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
-  "caracteristicas": {
-    "peso": 6.0,
-    "altura": 0.4,
-    "fuerza": 55,
-    "edad": 5
-  },
-  "habilidades": ["Impactrueno", "Cola férrea"],
-  "tipo": "Eléctrico",
-  "habitat": "Bosques"
-}
-```
-
----
-
-### Endpoints
-
-1. **Ruta Raíz / Bienvenida:** `GET /`
-2. **Listar todos los Pokémon:** `GET /pokemons`
-3. **Obtener Pokémon por ID:** `GET /pokemons/<id>`
-4. **Crear nuevo Pokémon:** `POST /pokemons`
-5. **Actualizar Pokémon por ID:** `PUT /pokemons/<id>`
-6. **Eliminar Pokémon por ID:** `DELETE /pokemons/<id>`
+| Método | Endpoint | Descripción |
+| :--- | :--- | :--- |
+| `GET` | `/` | Bienvenida (JSON) o Dashboard Web (Navegador) |
+| `GET` | `/gui` | Interfaz Web Gráfica |
+| `GET` | `/pokemons` | Lista todos los Pokémon |
+| `GET` | `/pokemons/<id>` | Obtiene un Pokémon por ID |
+| `POST` | `/pokemons` | Crea un nuevo Pokémon |
+| `PUT` | `/pokemons/<id>` | Actualiza un Pokémon existente |
+| `DELETE` | `/pokemons/<id>` | Elimina un Pokémon por ID |
