@@ -34,3 +34,14 @@ ehthumbs.db
 
 # Logs
 *.log
+
+# Secretos y Variables de Entorno
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+.tools/

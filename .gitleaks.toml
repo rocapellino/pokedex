@@ -1,0 +1,16 @@
+# ==============================================================================
+# Configuración de Gitleaks para Detección de Fuga de Secretos
+# ==============================================================================
+
+title = "Gitleaks Config - Pokémon DevOps Platform"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Permitir archivos de ejemplo, documentación y mocks de pruebas"
+paths = [
+  '''^\.env\.example$''',
+  '''^docs/.*''',
+  '''^apps/api/tests/.*''',
+]

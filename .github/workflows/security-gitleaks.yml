@@ -1,0 +1,28 @@
+name: 🔐 Security Scan (Gitleaks)
+
+on:
+  push:
+    branches: [ main, master, 'feature/**', 'fix/**' ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  gitleaks:
+    name: 🛡️ Gitleaks Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Detector
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_SUMMARY: true

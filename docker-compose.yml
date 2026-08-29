@@ -9,7 +9,7 @@ services:
     container_name: pokemon-web
     restart: unless-stopped
     ports:
-      - "8080:80"  # Único punto de entrada público expuesto al usuario/host
+      - "${WEB_PORT:-8080}:80"  # Único punto de entrada público expuesto al usuario/host
     depends_on:
       api:
         condition: service_healthy
@@ -32,13 +32,13 @@ services:
     container_name: pokemon-api
     restart: unless-stopped
     expose:
-      - "5000"  # Solo accesible internamente por 'web' en frontend-net
+      - "${PORT:-5000}"  # Solo accesible internamente por 'web' en frontend-net
     environment:
       PYTHONUNBUFFERED: "1"
-      PORT: "5000"
-      FLASK_ENV: "production"
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/pokedex_db"
-      REDIS_URL: "redis://redis:6379/0"
+      PORT: "${PORT:-5000}"
+      FLASK_ENV: "${FLASK_ENV:-production}"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres_secure_password_k8s@postgres:5432/pokedex_db}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,9 +62,9 @@ services:
     container_name: pokemon-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: pokedex_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: "${POSTGRES_DB:-pokedex_db}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres_secure_password_k8s}"
     expose:
       - "5432"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:
@@ -108,8 +108,8 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin_secure_password}"
     expose:
       - "9000"
       - "9001"
