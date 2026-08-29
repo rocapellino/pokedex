@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docker: Up",
+      "type": "shell",
+      "command": "docker compose up --build -d",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Compila y levanta todos los contenedores con Docker Compose en segundo plano."
+    },
+    {
+      "label": "Docker: Down",
+      "type": "shell",
+      "command": "docker compose down",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Detiene y elimina todos los contenedores y redes creados por Docker Compose."
+    },
+    {
+      "label": "Kubernetes: Up",
+      "type": "shell",
+      "command": "kubectl apply -k infra/k8s/",
+      "windows": {
+        "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\k8s_deploy.ps1 -BuildImages"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Compila imágenes y despliega la infraestructura completa en Kubernetes (Deployments, Services, HPA e Ingress)."
+    },
+    {
+      "label": "Kubernetes: Down",
+      "type": "shell",
+      "command": "kubectl delete -k infra/k8s/",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Elimina todos los recursos y despliegues de la aplicación en el clúster de Kubernetes."
+    }
+  ]
+}
