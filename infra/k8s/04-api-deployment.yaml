@@ -14,6 +14,22 @@ spec:
   selector:
     app: pokemon-api
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: pokemon-app
+  labels:
+    app: pokemon-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      targetPort: 5000
+      name: http
+  selector:
+    app: pokemon-api
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

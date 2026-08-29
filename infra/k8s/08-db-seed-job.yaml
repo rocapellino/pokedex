@@ -18,7 +18,7 @@ spec:
         - name: db-seeder
           image: pokemon-api:latest
           imagePullPolicy: IfNotPresent
-          command: ["python", "scripts/bulk_load_pokemons.py"]
+          command: ["python", "apps/api/scripts/bulk_load_pokemons.py"]
           envFrom:
             - configMapRef:
                 name: pokemon-config
