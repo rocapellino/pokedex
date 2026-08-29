@@ -34,4 +34,4 @@ spec:
               service:
                 name: pokemon-web-svc
                 port:
-                  number: 80
+                  number: 8080

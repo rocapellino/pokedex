@@ -6,9 +6,9 @@ metadata:
   labels:
     app: pokemon-web
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
-    - port: 80
+    - port: 8080
       targetPort: 80
       name: http
   selector:
