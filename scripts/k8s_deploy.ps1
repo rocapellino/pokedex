@@ -46,6 +46,13 @@ if ($BuildImages) {
 Write-Host ">>> Aplicando manifiestos declarativos en el cluster..." -ForegroundColor Yellow
 kubectl apply -k infra/k8s/
 
+# Forzar reinicio de Pods para descartar imagenes y procesos cacheados
+if ($BuildImages) {
+    Write-Host ">>> Forzando recreacion de Pods con las imagenes actualizadas..." -ForegroundColor Yellow
+    kubectl rollout restart deployment/pokemon-api -n pokemon-app
+    kubectl rollout restart deployment/pokemon-web -n pokemon-app
+}
+
 # 3. Esperar a que la base de datos este lista
 Write-Host ">>> Esperando inicializacion de PostgreSQL StatefulSet..." -ForegroundColor Yellow
 kubectl rollout status statefulset/postgres -n pokemon-app --timeout=120s
