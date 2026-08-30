@@ -16,18 +16,20 @@ jobs:
     name: 🛡️ Gitleaks Secret Detection
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: 1. Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install Gitleaks CLI
+      - name: 2. Install Gitleaks CLI
         env:
           GITLEAKS_VERSION: "8.24.2"
         run: |
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o "$RUNNER_TEMP/gitleaks.tar.gz"
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
-          "$RUNNER_TEMP/gitleaks" version
+          sudo mv "$RUNNER_TEMP/gitleaks" /usr/local/bin/gitleaks
+          gitleaks version
 
-      - name: Run Gitleaks Detector
-        run: "$RUNNER_TEMP/gitleaks" dir . --redact --verbose --exit-code 1
+      - name: 3. Run Gitleaks Detector
+        run: |
+          gitleaks detect --source=. --config=.gitleaks.toml --verbose --redact
