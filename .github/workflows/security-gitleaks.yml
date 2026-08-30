@@ -1,0 +1,33 @@
+name: 🔐 Security Scan (Gitleaks)
+
+on:
+  push:
+    branches: [ main, master, 'feature/**', 'fix/**' ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  gitleaks:
+    name: 🛡️ Gitleaks Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Gitleaks CLI
+        env:
+          GITLEAKS_VERSION: "8.24.2"
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o "$RUNNER_TEMP/gitleaks.tar.gz"
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" version
+
+      - name: Run Gitleaks Detector
+        run: "$RUNNER_TEMP/gitleaks" dir . --redact --verbose --exit-code 1
