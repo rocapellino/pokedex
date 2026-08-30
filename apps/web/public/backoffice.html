@@ -32,6 +32,10 @@
       </a>
 
       <div class="nav-actions">
+        <div class="api-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="backendStatus">Conectado: Kubernetes, Postgres & Redis</span>
+        </div>
         <button class="btn btn-sync" onclick="invalidateCache()" title="Refrescar e invalidar Redis">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
           Sincronizar Caché
