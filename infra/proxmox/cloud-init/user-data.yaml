@@ -65,5 +65,5 @@ runcmd:
 
   # 5. Clonar y desplegar la plataforma Pokédex
   - mkdir -p /opt/pokedex
-  - git clone https://github.com/rocapellino/tarea_grupal_1.git /opt/pokedex || true
+  - git clone https://github.com/rocapellino/pokedex.git /opt/pokedex || true
   - cd /opt/pokedex && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build

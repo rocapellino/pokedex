@@ -7,7 +7,7 @@
   become: true
   vars:
     app_dir: /opt/pokedex
-    repo_url: https://github.com/rocapellino/tarea_grupal_1.git
+    repo_url: https://github.com/rocapellino/pokedex.git
     deploy_env: prod
 
   tasks:
