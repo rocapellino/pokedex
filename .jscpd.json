@@ -1,0 +1,17 @@
+{
+  "threshold": 0,
+  "reporters": ["console", "json"],
+  "output": "./reports/jscpd",
+  "ignore": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/__pycache__/**",
+    "**/.git/**",
+    "**/reports/**",
+    "**/*.json",
+    "**/*.md"
+  ],
+  "format": ["javascript", "python", "css", "html"],
+  "minLines": 5,
+  "minTokens": 40
+}

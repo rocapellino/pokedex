@@ -1,0 +1,97 @@
+---
+# ==============================================================================
+# Playbook: Preparación de Nodos para Kubernetes y Docker Engine
+# ==============================================================================
+- name: Aprovisionamiento y Configuración Base de Nodos
+  hosts: all
+  become: true
+  tasks:
+    - name: Actualizar caché de repositorios apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Instalar paquetes base esenciales
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - htop
+          - jq
+          - git
+          - ufw
+        state: present
+
+    - name: Desactivar memoria Swap (Requerido por Kubernetes)
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Comentar entrada de Swap en /etc/fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^(\s*)([^#\n]+\s+swap\s+.*)$'
+        replace: '# \2'
+
+    - name: Cargar módulos del kernel requeridos para Networking en K8s/Docker
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+
+    - name: Configurar persistencia de módulos de kernel
+      copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Configurar parámetros sysctl para networking de contenedores
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+        reload: yes
+      loop:
+        - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+        - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { key: 'net.ipv4.ip_forward', value: '1' }
+
+    - name: Agregar clave GPG oficial de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Agregar repositorio oficial de Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Instalar Docker Engine y Containerd
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Habilitar y arrancar servicio Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Agregar usuario al grupo docker
+      user:
+        name: "{{ ansible_user | default('ubuntu') }}"
+        groups: docker
+        append: yes

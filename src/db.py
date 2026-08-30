@@ -1,7 +1,7 @@
-import os
 import json
 import logging
-from typing import List, Optional, Dict, Any
+import os
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -70,17 +70,32 @@ def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
                         (SELECT t.name FROM types t JOIN pokemon_types pt ON t.id = pt.type_id WHERE pt.pokemon_id = p.id ORDER BY pt.slot LIMIT 1),
                         'Normal'
                     ) AS tipo,
+                    COALESCE(
+                        (SELECT array_agg(t.name ORDER BY pt.slot) FROM types t JOIN pokemon_types pt ON t.id = pt.type_id WHERE pt.pokemon_id = p.id),
+                        ARRAY['Normal']::varchar[]
+                    ) AS tipos,
                     p.habitat,
                     json_build_object(
                         'peso', p.weight_kg::float,
                         'altura', p.height_m::float,
                         'fuerza', COALESCE(s.attack, 50),
-                        'edad', COALESCE((p.metadata->>'edad')::int, 5)
+                        'edad', COALESCE((p.metadata->>'edad')::int, 5),
+                        'categoria', COALESCE(p.metadata->>'categoria', p.habitat),
+                        'descripcion', p.metadata->>'descripcion'
                     ) AS caracteristicas,
+                    json_build_object(
+                        'hp', COALESCE(s.hp, 45),
+                        'attack', COALESCE(s.attack, 49),
+                        'defense', COALESCE(s.defense, 49),
+                        'sp_attack', COALESCE(s.sp_attack, 65),
+                        'sp_defense', COALESCE(s.sp_defense, 65),
+                        'speed', COALESCE(s.speed, 45)
+                    ) AS stats,
                     COALESCE(
                         (SELECT array_agg(a.name) FROM abilities a JOIN pokemon_abilities pa ON a.id = pa.ability_id WHERE pa.pokemon_id = p.id),
-                        ARRAY['Combate']::varchar[]
-                    ) AS habilidades
+                        ARRAY['Espesura']::varchar[]
+                    ) AS habilidades,
+                    COALESCE(p.metadata->'evoluciones', '[]'::jsonb) AS evoluciones
                 FROM pokemons p
                 LEFT JOIN pokemon_stats s ON p.id = s.pokemon_id
                 ORDER BY p.id ASC;
@@ -111,3 +126,4 @@ def invalidate_cache():
             redis_cli.delete('pokemons_all')
         except Exception:
             pass
+

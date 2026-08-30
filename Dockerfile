@@ -23,9 +23,9 @@ RUN pip install --prefix=/install --no-warn-script-location -r requirements.txt
 FROM python:3.11-slim AS runner
 
 # Metadatos del contenedor
-LABEL maintainer="Grupo 3 - UTEC DevOps" \
-      version="1.0.0" \
-      description="API REST Pokémon Flask Containerizada con mejores prácticas"
+LABEL maintainer="@rocapellino" \
+    version="1.0.0" \
+    description="API REST Pokémon"
 
 # Variables de entorno de runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \

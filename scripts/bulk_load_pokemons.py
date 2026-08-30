@@ -1,7 +1,6 @@
-import os
-import sys
 import json
 import logging
+import os
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -95,16 +94,16 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode('utf-8'))
-            
+
             raw_name = data['name'].capitalize()
             height_m = round(data['height'] / 10.0, 2)
             weight_kg = round(data['weight'] / 10.0, 2)
-            
+
             types = []
             for t in sorted(data['types'], key=lambda x: x['slot']):
                 type_name = TYPE_TRANSLATIONS.get(t['type']['name'], t['type']['name'].capitalize())
                 types.append(type_name)
-                
+
             abilities = []
             for a in data['abilities']:
                 abilities.append({
@@ -112,19 +111,19 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
                     "is_hidden": a['is_hidden'],
                     "slot": a['slot']
                 })
-                
+
             stats = {}
             for s in data['stats']:
                 stats[s['stat']['name']] = s['base_stat']
-                
+
             artwork_url = (
                 data.get('sprites', {})
                     .get('other', {})
                     .get('official-artwork', {})
-                    .get('front_default') or 
+                    .get('front_default') or
                 f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
             )
-            
+
             gen_id = get_generation_id(pokemon_id)
             region = get_generation_region(gen_id)
 
@@ -228,7 +227,7 @@ def bulk_load_to_postgres(pokemons_data: list):
                     VALUES (%s, %s)
                     ON CONFLICT (name) DO NOTHING;
                 """, (ab['name'], f"Habilidad especial de combate: {ab['name']}"))
-                
+
                 cur.execute("SELECT id FROM abilities WHERE name = %s;", (ab['name'],))
                 row = cur.fetchone()
                 if row:

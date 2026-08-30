@@ -8,9 +8,10 @@ y verificar el escalado dinámico de réplicas en Kubernetes.
 import argparse
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 def send_request(url: str, request_id: int):
     start_time = time.time()

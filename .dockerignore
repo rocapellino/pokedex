@@ -14,18 +14,22 @@ env/
 ENV/
 
 # ==============================================================================
-# Caché y artefactos de Python y Node
+# Caché y artefactos de Python, Linters y Node
 # ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.ruff_cache/
+.mypy_cache/
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
 .nox/
 node_modules/
+reports/
+jscpd-report/
 
 # ==============================================================================
 # Archivos de entorno y secretos
@@ -34,9 +38,12 @@ node_modules/
 *.env.local
 *.pem
 *.key
+*.cert
+*.crt
+secrets/
 
 # ==============================================================================
-# Archivos de desarrollo, pruebas y documentación innecesarios en runtime
+# Archivos de desarrollo, auditoría, pruebas y documentación (No requeridos en Prod)
 # ==============================================================================
 tests/
 scripts/
@@ -46,7 +53,20 @@ infra/
 .vscode/
 .idea/
 .pre-commit-config.yaml
+.gitleaks.toml
 .github/
+.gitlab-ci.yml
+Jenkinsfile
+requirements-dev.txt
+ruff.toml
+.jscpd.json
+
+# ==============================================================================
+# Terraform y herramientas de infraestructura
+# ==============================================================================
+**/.terraform/
+*.tfstate*
+*.tfvars
 
 # ==============================================================================
 # Logs del sistema y temporales
@@ -56,4 +76,3 @@ infra/
 *.bak
 .DS_Store
 Thumbs.db
-

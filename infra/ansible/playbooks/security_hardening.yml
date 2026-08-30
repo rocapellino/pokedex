@@ -1,0 +1,70 @@
+---
+# ==============================================================================
+# Playbook: Hardening de Seguridad de Servidores
+# ==============================================================================
+- name: Hardening de Seguridad y Reglas de Firewall
+  hosts: all
+  become: true
+  tasks:
+    - name: Configurar política por defecto de UFW (Denegar entrada)
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Configurar política por defecto de UFW (Permitir salida)
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Permitir puerto SSH (22)
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Permitir tráfico Web HTTP (80) y HTTPS (443)
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - '80'
+        - '443'
+        - '8080'
+
+    - name: Permitir puertos de Kubernetes API y Kubelet en nodos del clúster
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - '6443'   # Kubernetes API Server
+        - '10250'  # Kubelet API
+        - '2379:2380' # etcd server client API
+      when: "'k8s_cluster' in group_names"
+
+    - name: Habilitar Firewall UFW
+      ufw:
+        state: enabled
+
+    - name: Deshabilitar login de Root por SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin prohibit-password'
+        state: present
+      notify: Reiniciar SSH
+
+    - name: Deshabilitar autenticación con contraseña vacía en SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitEmptyPasswords'
+        line: 'PermitEmptyPasswords no'
+        state: present
+      notify: Reiniciar SSH
+
+  handlers:
+    - name: Reiniciar SSH
+      service:
+        name: sshd
+        state: restarted

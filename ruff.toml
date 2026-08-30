@@ -1,0 +1,17 @@
+# Configuración de Ruff (Linter & Performance Optimizer)
+line-length = 120
+target-version = "py311"
+
+[lint]
+# Reglas seleccionadas:
+# E/W: Errores y Warnings de estilo
+# F: Pyflakes (Bugs y variables no usadas)
+# I: Isort (Orden óptimo de imports)
+# B: Bugbear (Patrones propensos a errores)
+# SIM: Simplificación de código
+# PERF: Optimizaciones de rendimiento (Perflint)
+select = ["E", "F", "W", "I", "B", "SIM", "PERF"]
+ignore = ["E501"]
+
+[lint.mccabe]
+max-complexity = 10

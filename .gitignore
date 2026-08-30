@@ -1,4 +1,6 @@
+# ==============================================================================
 # Entornos Virtuales de Python
+# ==============================================================================
 .venv/
 venv/
 env/
@@ -6,36 +8,55 @@ ENV/
 env.bak/
 venv.bak/
 
-# Caché de Python y Bytecode
+# ==============================================================================
+# Caché de Python, Bytecode y Linters
+# ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.ruff_cache/
+.mypy_cache/
 
-# Caché de Pruebas (Pytest, Coverage)
+# ==============================================================================
+# Caché de Pruebas, Cobertura y Reportes de Auditoría
+# ==============================================================================
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
 .nox/
+reports/
+jscpd-report/
 
-# Archivos de configuración de IDEs y Editores
+# ==============================================================================
+# Archivos de Configuración de IDEs y Editores
+# ==============================================================================
 .idea/
-.vscode/
 *.swp
 *.swo
 *.tmp
 *.bak
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/launch.json
 
+# ==============================================================================
 # Archivos del Sistema Operativo
+# ==============================================================================
 .DS_Store
 Thumbs.db
 ehthumbs.db
 
-# Logs
+# ==============================================================================
+# Logs del Sistema
+# ==============================================================================
 *.log
 
-# Secretos y Variables de Entorno
+# ==============================================================================
+# Secretos, Claves y Variables de Entorno
+# ==============================================================================
 .env
 .env.*
 !.env.example
@@ -45,3 +66,26 @@ ehthumbs.db
 *.crt
 secrets/
 .tools/
+
+# ==============================================================================
+# Terraform (Infraestructura como Código)
+# ==============================================================================
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# ==============================================================================
+# Ansible
+# ==============================================================================
+*.retry

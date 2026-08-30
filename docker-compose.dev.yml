@@ -1,0 +1,37 @@
+# ==============================================================================
+# Docker Compose - Modo Desarrollo (Hot-Reload, Puertos de Depuración y Auditoría)
+# ==============================================================================
+services:
+  web:
+    volumes:
+      - ./apps/web/public:/usr/share/nginx/html:ro
+
+  api:
+    command: ["uvicorn", "apps.api.src.app:app", "--host", "0.0.0.0", "--port", "5000", "--reload", "--access-log"]
+    environment:
+      ENVIRONMENT: "development"
+      DEBUG: "true"
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./requirements-dev.txt:/app/requirements-dev.txt
+    ports:
+      - "5000:5000"  # Acceso directo para depuración de la API
+
+  postgres:
+    ports:
+      - "5432:5432"  # Puerto abierto al host para herramientas SQL (DBeaver, pgAdmin)
+
+  redis:
+    ports:
+      - "6379:6379"  # Puerto abierto al host para depuración de caché (RedisInsight)
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # Consola administrativa MinIO en el host
+
+networks:
+  backend-net:
+    internal: false  # Habilitar forwarding de puertos en local para desarrollo

@@ -3,10 +3,9 @@
    ========================================================================== */
 
 .backoffice-body {
-  background-color: #0b0f19;
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+  background-color: var(--bg-primary);
+  background-image: var(--body-bg-gradient);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 .badge-admin {
@@ -43,9 +42,9 @@
 }
 
 .kpi-card {
-  background: rgba(17, 24, 39, 0.75);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   padding: 1.25rem 1.5rem;
   display: flex;
@@ -68,7 +67,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-glass);
 }
 
 .kpi-details {
@@ -113,9 +112,9 @@
 
 /* Table Design */
 .table-responsive {
-  background: rgba(17, 24, 39, 0.8);
+  background: var(--bg-card);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   overflow-x: auto;
   box-shadow: var(--shadow-card);
@@ -130,43 +129,43 @@
 }
 
 .admin-table th {
-  background: rgba(15, 23, 42, 0.9);
+  background: var(--bg-glass);
   color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.5px;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-glass);
   white-space: nowrap;
 }
 
 .admin-table td {
   padding: 0.9rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--border-glass);
   vertical-align: middle;
 }
 
 .admin-table tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-glass-hover);
 }
 
 .id-tag {
   font-family: 'Space Grotesk', monospace;
   font-weight: 700;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 
 .avatar-cell {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-glass);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
 }
 
 .table-avatar {
@@ -187,7 +186,8 @@
 
 .pokemon-table-name {
   font-size: 1rem;
-  color: #fff;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .habilidades-preview {
@@ -206,9 +206,10 @@
 .force-bar-wrapper {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass);
   border-radius: var(--radius-full);
   overflow: hidden;
+  border: 1px solid var(--border-glass);
 }
 
 .force-bar {
@@ -222,6 +223,7 @@
   font-weight: 700;
   font-size: 0.85rem;
   min-width: 28px;
+  color: var(--text-primary);
 }
 
 .weight-height-cell {
@@ -233,11 +235,12 @@
 }
 
 .habitat-tag {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-glass);
   padding: 0.25rem 0.6rem;
   border-radius: var(--radius-full);
   font-size: 0.8rem;
-  color: #d1d5db;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
 }
 
 /* Action Buttons */

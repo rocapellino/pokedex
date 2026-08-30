@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokédex Nacional - DevOps Cloud-Native Edition</title>
+  <title>Pokédex</title>
+  <!-- Favicons (Pokébola Oficial) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.ico">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
   <!-- CSS -->
   <link rel="stylesheet" href="css/style.css?v=2.0">
+  <!-- Theme Manager Script (Zero-FOUC) -->
+  <script src="js/theme.js"></script>
 </head>
+
 <body>
 
   <div class="app-container">
@@ -18,26 +28,68 @@
     <header class="navbar">
       <a href="/" class="brand">
         <svg class="pokeball-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="46" stroke="#EF4444" stroke-width="8" fill="#111827"/>
-          <path d="M4 50H32M68 50H96" stroke="#EF4444" stroke-width="8" stroke-linecap="round"/>
-          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#EF4444"/>
-          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#EF4444" stroke-width="6"/>
-          <circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+          <circle cx="50" cy="50" r="46" stroke="#EF4444" stroke-width="8" fill="#111827" />
+          <path d="M4 50H32M68 50H96" stroke="#EF4444" stroke-width="8" stroke-linecap="round" />
+          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#EF4444" />
+          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#EF4444" stroke-width="6" />
+          <circle cx="50" cy="50" r="8" fill="#FFFFFF" />
         </svg>
         <div>
-          <span class="brand-title">Pokédex Nacional</span>
-          <span class="brand-badge">Pública</span>
+          <span class="brand-title">Pokédex</span>
         </div>
       </a>
 
-      <!-- Sin enlaces internos ni monitoreo en la vista pública por seguridad -->
+      <!-- Theme Switcher Control (Claro, Oscuro, Sistema) -->
+      <div class="nav-actions">
+        <div class="theme-switch-group" role="radiogroup" aria-label="Seleccionar tema">
+          <button type="button" class="theme-btn" data-theme-val="light" onclick="setTheme('light')" title="Modo Claro"
+            aria-label="Modo Claro">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <span class="theme-label">Claro</span>
+          </button>
+          <button type="button" class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')" title="Modo Oscuro"
+            aria-label="Modo Oscuro">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span class="theme-label">Oscuro</span>
+          </button>
+          <button type="button" class="theme-btn" data-theme-val="system" onclick="setTheme('system')"
+            title="Igual al Sistema" aria-label="Igual al Sistema">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span class="theme-label">Sistema</span>
+          </button>
+        </div>
+      </div>
     </header>
 
     <!-- Controls & Filters Bar -->
     <section class="controls-bar">
       <div class="search-box">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, tipo, habilidad o hábitat..." oninput="handleSearch()">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input type="text" id="searchInput" class="search-input"
+          placeholder="Buscar por nombre, tipo, habilidad o hábitat..." oninput="handleSearch()">
       </div>
 
       <div class="filter-group">
@@ -121,7 +173,9 @@
       <div class="modal-header">
         <h3 class="modal-title" id="detailTitle">Ficha Pokémon</h3>
         <button class="btn-icon" onclick="closeDetailModal()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </button>
       </div>
       <div class="modal-body" id="detailContent">
@@ -136,4 +190,5 @@
   <!-- JavaScript -->
   <script src="js/pokedex.js?v=2.0"></script>
 </body>
+
 </html>

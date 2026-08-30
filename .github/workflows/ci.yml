@@ -1,0 +1,62 @@
+# ==============================================================================
+# Workflow Principal de CI / CD Integrador del Monorepo
+# ==============================================================================
+name: 🚀 Monorepo Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  code-quality:
+    name: 🔍 Auditoría de Calidad y Complejidad
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 3. Instalar Dependencias de Calidad
+        run: |
+          pip install -r requirements.txt
+          pip install ruff radon xenon
+
+      - name: 4. Ejecutar Script de Auditoría
+        run: |
+          python scripts/audit_code_quality.py
+
+  docker-build-test:
+    name: 🐳 Docker Multi-Stage Build Check
+    runs-on: ubuntu-latest
+    needs: code-quality
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 3. Compilar Imagen de API (FastAPI)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: false
+          tags: pokedex-api:test
+
+      - name: 4. Compilar Imagen de Web (Nginx)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          push: false
+          tags: pokedex-web:test

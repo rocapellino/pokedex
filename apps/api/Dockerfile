@@ -51,7 +51,7 @@ COPY --chown=appuser:appgroup apps/ ./apps/
 
 # Monitoreo de salud del contenedor
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')" || exit 1
 
 # Exponer el puerto de la aplicación
 EXPOSE 5000
@@ -59,5 +59,5 @@ EXPOSE 5000
 # Cambiar a usuario no-root
 USER appuser
 
-# Comando de inicio usando servidor de producción Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "apps.api.src.app:app"]
+# Comando de inicio usando servidor ASGI de alto rendimiento Uvicorn
+CMD ["uvicorn", "apps.api.src.app:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "4", "--access-log"]

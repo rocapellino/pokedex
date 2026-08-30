@@ -23,7 +23,7 @@ services:
       start_period: 5s
 
   # ============================================================================
-  # 2. Backend API (Flask + Gunicorn WSGI) - Capa de Aplicación
+  # 2. Backend API (FastAPI + Uvicorn ASGI) - Capa de Aplicación
   # ============================================================================
   api:
     build:
@@ -36,7 +36,6 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       PORT: "${PORT:-5000}"
-      FLASK_ENV: "${FLASK_ENV:-production}"
       DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres_secure_password_k8s@postgres:5432/pokedex_db}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
     depends_on:
@@ -48,7 +47,7 @@ services:
       - frontend-net
       - backend-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')"]
       interval: 20s
       timeout: 5s
       retries: 3
@@ -129,9 +128,11 @@ services:
 # ==============================================================================
 networks:
   frontend-net:
+    name: pokedex-frontend-net
     driver: bridge
     internal: false  # Permite al contenedor web publicar el puerto hacia el host
   backend-net:
+    name: pokedex-backend-net
     driver: bridge
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
 

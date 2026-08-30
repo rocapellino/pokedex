@@ -1,0 +1,69 @@
+#cloud-config
+# ==============================================================================
+# Cloud-Init User Data para Despliegue Automatizado en Proxmox VE (VM / LXC)
+# ==============================================================================
+
+hostname: pokedex-prod
+manage_etc_hosts: true
+
+users:
+  - name: devops
+    gecos: DevOps Engineer
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: [docker, sudo]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyDevOpsProxmoxPokédex user@proxmox"
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - ufw
+  - htop
+  - net-tools
+
+write_files:
+  - path: /etc/sysctl.d/99-kubernetes-docker.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.ipv4.ip_forward                 = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+
+runcmd:
+  # 1. Configurar módulos de kernel
+  - modprobe overlay
+  - modprobe br_netfilter
+  - sysctl --system
+
+  # 2. Instalar Docker Engine oficial y Docker Compose Plugin
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - chmod a+r /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+  # 3. Habilitar y arrancar Docker
+  - systemctl enable --now docker
+
+  # 4. Hardening de Firewall (UFW)
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp comment 'SSH'
+  - ufw allow 8080/tcp comment 'Pokédex Web DMZ'
+  - ufw allow 9090/tcp comment 'Prometheus'
+  - ufw allow 3000/tcp comment 'Grafana'
+  - ufw --force enable
+
+  # 5. Clonar y desplegar la plataforma Pokédex
+  - mkdir -p /opt/pokedex
+  - git clone https://github.com/rocapellino/tarea_grupal_1.git /opt/pokedex || true
+  - cd /opt/pokedex && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build

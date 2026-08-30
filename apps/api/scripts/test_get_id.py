@@ -1,8 +1,8 @@
-import sys
-import os
 import json
-import urllib.request
+import os
+import sys
 import urllib.error
+import urllib.request
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')

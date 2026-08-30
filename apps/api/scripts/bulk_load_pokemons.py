@@ -1,7 +1,6 @@
-import os
-import sys
 import json
 import logging
+import os
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -95,16 +94,16 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode('utf-8'))
-            
+
             raw_name = data['name'].capitalize()
             height_m = round(data['height'] / 10.0, 2)
             weight_kg = round(data['weight'] / 10.0, 2)
-            
+
             types = []
             for t in sorted(data['types'], key=lambda x: x['slot']):
                 type_name = TYPE_TRANSLATIONS.get(t['type']['name'], t['type']['name'].capitalize())
                 types.append(type_name)
-                
+
             abilities = []
             for a in data['abilities']:
                 abilities.append({
@@ -112,19 +111,19 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
                     "is_hidden": a['is_hidden'],
                     "slot": a['slot']
                 })
-                
+
             stats = {}
             for s in data['stats']:
                 stats[s['stat']['name']] = s['base_stat']
-                
+
             artwork_url = (
                 data.get('sprites', {})
                     .get('other', {})
                     .get('official-artwork', {})
-                    .get('front_default') or 
+                    .get('front_default') or
                 f"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/{pokemon_id}.png"
             )
-            
+
             gen_id = get_generation_id(pokemon_id)
             region = get_generation_region(gen_id)
 
@@ -156,7 +155,6 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
 
 def bulk_load_to_postgres(pokemons_data: list):
     import psycopg2
-    from psycopg2.extras import execute_batch
 
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
@@ -174,12 +172,18 @@ def bulk_load_to_postgres(pokemons_data: list):
         cur.execute("SELECT id, name FROM types;")
         types_map = {name: id for id, name in cur.fetchall()}
 
-        # Insertar / Actualizar Pokemons
-        pokemon_records = []
+        # Truncar tabla para sincronización limpia de la carga masiva
+        cur.execute("TRUNCATE TABLE pokemons CASCADE;")
+
+        # Insertar Pokemons
         for p in pokemons_data:
             if not p:
                 continue
-            pokemon_records.append((
+
+            cur.execute("""
+                INSERT INTO pokemons (id, national_number, name_es, name_en, height_m, weight_kg, habitat, generation_id, image_url, metadata)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb);
+            """, (
                 p['id'],
                 p['national_number'],
                 p['name_es'],
@@ -189,28 +193,15 @@ def bulk_load_to_postgres(pokemons_data: list):
                 p['habitat'],
                 p['generation_id'],
                 p['image_url'],
-                json.dumps({"fuerza": p['stats']['attack'], "edad": max(1, p['id'] % 10)})
+                json.dumps({"fuerza": p['stats']['attack'], "edad": max(1, p['national_number'] % 10)})
             ))
 
-        execute_batch(cur, """
-            INSERT INTO pokemons (id, national_number, name_es, name_en, height_m, weight_kg, habitat, generation_id, image_url, metadata)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-            ON CONFLICT (id) DO UPDATE SET
-                name_es = EXCLUDED.name_es,
-                height_m = EXCLUDED.height_m,
-                weight_kg = EXCLUDED.weight_kg,
-                habitat = EXCLUDED.habitat,
-                image_url = EXCLUDED.image_url,
-                metadata = EXCLUDED.metadata;
-        """, pokemon_records)
-
-        # Insertar Stats
-        stats_records = []
-        for p in pokemons_data:
-            if not p:
-                continue
+            # Insertar Stats
             st = p['stats']
-            stats_records.append((
+            cur.execute("""
+                INSERT INTO pokemon_stats (pokemon_id, hp, attack, defense, sp_attack, sp_defense, speed)
+                VALUES (%s, %s, %s, %s, %s, %s, %s);
+            """, (
                 p['id'],
                 st['hp'],
                 st['attack'],
@@ -220,56 +211,37 @@ def bulk_load_to_postgres(pokemons_data: list):
                 st['speed']
             ))
 
-        execute_batch(cur, """
-            INSERT INTO pokemon_stats (pokemon_id, hp, attack, defense, sp_attack, sp_defense, speed)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (pokemon_id) DO UPDATE SET
-                hp = EXCLUDED.hp,
-                attack = EXCLUDED.attack,
-                defense = EXCLUDED.defense,
-                sp_attack = EXCLUDED.sp_attack,
-                sp_defense = EXCLUDED.sp_defense,
-                speed = EXCLUDED.speed;
-        """, stats_records)
-
-        # Insertar Tipos de Pokémon
-        type_records = []
-        for p in pokemons_data:
-            if not p:
-                continue
+            # Insertar Tipos
             for slot, type_name in enumerate(p['types'], 1):
                 type_id = types_map.get(type_name)
                 if type_id:
-                    type_records.append((p['id'], type_id, slot))
+                    cur.execute("""
+                        INSERT INTO pokemon_types (pokemon_id, type_id, slot)
+                        VALUES (%s, %s, %s);
+                    """, (p['id'], type_id, slot))
 
-        execute_batch(cur, """
-            INSERT INTO pokemon_types (pokemon_id, type_id, slot)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (pokemon_id, type_id) DO NOTHING;
-        """, type_records)
-
-        # Insertar Habilidades
-        for p in pokemons_data:
-            if not p:
-                continue
+            # Insertar Habilidades
             for ab in p['abilities']:
                 cur.execute("""
                     INSERT INTO abilities (name, description)
                     VALUES (%s, %s)
                     ON CONFLICT (name) DO NOTHING;
                 """, (ab['name'], f"Habilidad especial de combate: {ab['name']}"))
-                
+
                 cur.execute("SELECT id FROM abilities WHERE name = %s;", (ab['name'],))
-                ability_id = cur.fetchone()[0]
+                row = cur.fetchone()
+                if row:
+                    ability_id = row[0]
+                    cur.execute("""
+                        INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden, slot)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT DO NOTHING;
+                    """, (p['id'], ability_id, ab['is_hidden'], ab['slot']))
 
-                cur.execute("""
-                    INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden, slot)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (pokemon_id, ability_id) DO NOTHING;
-                """, (p['id'], ability_id, ab['is_hidden'], ab['slot']))
-
+        # Actualizar secuencia de IDs
+        cur.execute("SELECT setval('pokemons_id_seq', (SELECT COALESCE(MAX(id), 1) FROM pokemons));")
         conn.commit()
-        logger.info(f"✅ Se insertaron/actualizaron {len(pokemon_records)} Pokémon en PostgreSQL con éxito.")
+        logger.info(f"✅ Se insertaron {len(pokemons_data)} Pokémon en PostgreSQL con éxito.")
     except Exception as e:
         conn.rollback()
         logger.error(f"Error durante bulk load en PostgreSQL: {e}")

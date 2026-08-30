@@ -1,0 +1,26 @@
+# ==============================================================================
+# Prometheus Configuration - Pokédex Monitoring
+# ==============================================================================
+
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+  scrape_timeout: 5s
+
+scrape_configs:
+  # 1. Scraping de métricas de la API Flask Pokédex
+  - job_name: 'pokedex-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api:5000', 'host.docker.internal:5000']
+        labels:
+          app: 'pokedex'
+          service: 'api'
+          env: 'production'
+
+  # 2. Scraping propio de Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'monitoring'

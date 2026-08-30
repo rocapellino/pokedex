@@ -1,5 +1,7 @@
-# Workflow de infraestructura del monorepo
-name: infra
+# ==============================================================================
+# Workflow de CI para Infraestructura (Kubernetes, Terraform y Ansible)
+# ==============================================================================
+name: ⚙️ Infrastructure & IaC CI
 
 on:
   push:
@@ -12,8 +14,31 @@ on:
       - '.github/workflows/infra.yml'
 
 jobs:
-  validate-infra:
+  validate-iac:
+    name: ☸️ K8s & Terraform Validation
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - run: echo 'Validación de infraestructura pendiente'
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: 2. Validar Manifiestos Kustomize de Kubernetes
+        run: |
+          kubectl kustomize infra/k8s/ > /dev/null
+          echo "✅ Manifiestos de Kubernetes Kustomize válidos."
+
+      - name: 3. Validar Sintaxis de Módulos Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: 4. Ejecutar Terraform Validate
+        run: |
+          for dir in infra/terraform/modules/*; do
+            if [ -d "$dir" ]; then
+              echo "Validando $dir..."
+              terraform -chdir="$dir" init -backend=false
+              terraform -chdir="$dir" validate
+            fi
+          done
+          echo "✅ Módulos de Terraform validados correctamente."

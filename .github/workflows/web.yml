@@ -1,17 +1,42 @@
-# Workflow de frontend del monorepo
-name: web
+# ==============================================================================
+# Workflow de CI para el Frontend (Nginx + JS Vanilla + HTML5 + CSS3)
+# ==============================================================================
+name: 🌐 Frontend Web CI
 
 on:
   push:
     paths:
       - 'apps/web/**'
+      - '.github/workflows/web.yml'
   pull_request:
     paths:
       - 'apps/web/**'
+      - '.github/workflows/web.yml'
 
 jobs:
-  placeholder:
+  validate-web:
+    name: 🎨 Lint & Nginx Validation
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - run: echo 'Frontend listo para integrarse en el monorepo'
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: 2. Validar Sintaxis de JavaScript
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Verificar Archivos JS con Node Syntax Checker
+        run: |
+          node -c apps/web/public/js/pokedex.js
+          node -c apps/web/public/js/theme.js
+          echo "✅ Sintaxis JavaScript correcta y sin errores."
+
+      - name: 4. Validar Configuración de Nginx
+        run: |
+          docker run --rm -t \
+            -v ${{ github.workspace }}/apps/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+            -v ${{ github.workspace }}/apps/web/public:/usr/share/nginx/html:ro \
+            nginx:1.27-alpine nginx -t
+          echo "✅ Configuración de Nginx válida."

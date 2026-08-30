@@ -1,0 +1,44 @@
+---
+# ==============================================================================
+# Playbook: Despliegue Automatizado de la Pokédex (Docker Compose / K8s)
+# ==============================================================================
+- name: Despliegue de la Aplicación Pokédex en Servidores Standalone
+  hosts: standalone_servers
+  become: true
+  vars:
+    app_directory: /opt/pokedex
+  tasks:
+    - name: Asegurar que el directorio de la aplicación existe
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user | default('ubuntu') }}"
+
+    - name: Sincronizar archivos del proyecto
+      synchronize:
+        src: "{{ playbook_dir }}/../../../"
+        dest: "{{ app_directory }}/"
+        delete: no
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=.venv"
+          - "--exclude=__pycache__"
+
+    - name: Levantar o actualizar contenedores con Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_directory }}"
+        state: present
+        build: always
+        pull: always
+      environment:
+        FLASK_ENV: "{{ env | default('production') }}"
+
+    - name: Verificar salud del servicio Web
+      uri:
+        url: "http://localhost:8080/healthz"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 5
+      delay: 5

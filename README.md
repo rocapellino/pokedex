@@ -66,12 +66,13 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
-| **Frontend Web** | HTML5, CSS3, JS Vanilla, Nginx 1.27 | Interfaz de usuario interactiva y proxy inverso local. |
-| **Backend API** | Python 3.11, Flask, Gunicorn WSGI | Microservicio REST para gestión del catálogo Pokémon. |
-| **Base de Datos** | PostgreSQL 16 Alpine | Persistencia relacional con esquema estructurado (WikiDex). |
+| **Frontend Web** | HTML5, CSS3, JS Vanilla, Nginx 1.27 | Interfaz de usuario interactiva, temas dinámicos y proxy inverso local. |
+| **Backend API** | Python 3.11, FastAPI, Uvicorn ASGI | Microservicio REST asíncrono, OpenAPI Swagger (`/docs`) y Pydantic v2. |
+| **Base de Datos** | PostgreSQL 16 Alpine | Persistencia relacional con esquema estructurado (WikiDex / PKParaíso). |
 | **Connection Pooling**| PgBouncer | Gestión eficiente de conexiones ante escalado masivo de pods. |
-| **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes e invalidación inteligente. |
+| **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes (< 3ms) e invalidación inteligente. |
 | **Orquestación Cloud**| Kubernetes (Kind / Docker Desktop / Cloud) | Autoescalado horizontal (**HPA v2**), Service Discovery y self-healing. |
+| **Observabilidad** | Prometheus & Grafana | Scraping de métricas en tiempo real (`/metrics`) y dashboards de salud. |
 
 ---
 
@@ -91,33 +92,51 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 3. **Abrir en tu navegador:**
    * 🖥️ **Web:** [http://localhost:8080/](http://localhost:8080/)
-   * 🔌 **API:** [http://localhost:8080/api/pokemons](http://localhost:8080/api/pokemons)
+   * 🔌 **API Docs:** [http://localhost:8080/docs](http://localhost:8080/docs)
 
 ---
 
-### Opción B: Despliegue con Docker Compose
+### Opción B: Despliegue con Docker Compose (Multi-Entorno)
 
-```bash
-# Iniciar todos los servicios (Postgres, Redis, MinIO, API y Web)
-docker-compose up -d --build
-
-# Verificar estado de los contenedores
-docker-compose ps
-```
-
----
-
-## 4. Pruebas Automatizadas y Validación
-
-### Ejecutar Suite de Tests Unitarios (Pytest):
-```bash
-pytest -v
-```
-
-### Ejecutar Prueba de Estrés para Validar Autoescalado (HPA):
+#### 🟢 Modo Desarrollo (Hot-Reload & Puertos Abiertos):
 ```powershell
-python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concurrency 60 --total-requests 3000
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
+
+#### 🌐 Modo Producción (Limpio & Endurecido):
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+---
+
+### Opción C: Despliegue en Proxmox VE (On-Premises / Homelab)
+
+```powershell
+# Despliegue automatizado en contenedor LXC o VM de Proxmox
+.\scripts\proxmox_deploy.ps1 -ProxmoxHost "192.168.1.150" -User "root"
+```
+
+---
+
+## 4. Pruebas Automatizadas y Auditoría de Código
+
+Para ver el detalle exhaustivo de todas las pruebas implementadas y cómo ejecutarlas, consulta la [**Guía Completa de Pruebas (`docs/testing-guide.md`)**](file:///docs/testing-guide.md).
+
+### Ejecución Rápida:
+* **Suite de Pruebas Unitarias (Pytest):**
+  ```powershell
+  .\.venv\Scripts\python -m pytest -v
+  ```
+* **Auditoría de Calidad, Duplicación y Complejidad:**
+  ```powershell
+  .\.venv\Scripts\python scripts/audit_code_quality.py
+  ```
+* **Prueba de Carga y Autoescalado (HPA):**
+  ```powershell
+  .\.venv\Scripts\python scripts/k8s_load_test.py
+  ```
+* **Vía Tareas de VS Code:** Presiona `Ctrl + Shift + P` -> `Tasks: Run Task` y selecciona la prueba a ejecutar.
 
 ---
 
@@ -125,6 +144,11 @@ python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concu
 
 Para profundizar en los aspectos técnicos, consulta la documentación detallada:
 
+* 🤖 [**Guía Completa de Workflows de GitHub Actions**](file:///docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
+* 🖥️ [**Guía de Despliegue en Proxmox VE (LXC & VM)**](file:///docs/architecture/PROXMOX_DEPLOYMENT_GUIDE.md)
+* ☁️ [**Diseño de Arquitectura en la Nube (Cloud Design)**](file:///docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
+* 🧪 [**Guía Completa de Pruebas y Validación (Testing Guide)**](file:///docs/testing-guide.md)
+* 🛠️ [**Guía de Herramientas DevOps (DevOps Guide)**](file:///docs/devops-guide.md)
 * 📂 [**Estructura del Monorepo y Organización por Dominios**](file:///docs/architecture/MONOREPO_STRUCTURE.md)
 * 📊 [**Análisis de Base de Datos (SQL vs NoSQL)**](file:///docs/architecture/DATABASE_ANALYSIS.md)
 * ☸️ [**Análisis de Escalado en Kubernetes, HPA y Balanceadores**](file:///docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)

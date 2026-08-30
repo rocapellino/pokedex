@@ -1,16 +1,16 @@
-import sys
 import os
+import sys
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from test_delete import run_test_delete
 from test_get_all import run_test_get_all
 from test_get_id import run_test_get_id
 from test_post import run_test_post
 from test_put import run_test_put
-from test_delete import run_test_delete
 
 
 def main():

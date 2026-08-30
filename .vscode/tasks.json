@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Docker: Up",
+      "label": "🚀 Docker: Dev Up (Hot-Reload & Debug)",
       "type": "shell",
-      "command": "docker compose up --build -d",
+      "command": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -18,12 +18,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Compila y levanta todos los contenedores con Docker Compose en segundo plano."
+      "detail": "Levanta el entorno de Desarrollo con hot-reload en vivo, puertos SQL/Redis expuestos y volúmenes montados."
     },
     {
-      "label": "Docker: Down",
+      "label": "🛑 Docker: Dev Down",
       "type": "shell",
-      "command": "docker compose down",
+      "command": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -33,14 +33,45 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Detiene y elimina todos los contenedores y redes creados por Docker Compose."
+      "detail": "Detiene y elimina los contenedores y redes del entorno de desarrollo."
     },
     {
-      "label": "Kubernetes: Up",
+      "label": "🌐 Docker: Prod Up (Limpio & Endurecido)",
       "type": "shell",
-      "command": "kubectl apply -k infra/k8s/",
-      "windows": {
-        "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\k8s_deploy.ps1 -BuildImages"
+      "command": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Levanta el entorno de Producción aislado, con límites de RAM/CPU y sin herramientas de desarrollo."
+    },
+    {
+      "label": "🛑 Docker: Prod Down",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Detiene y elimina los contenedores del entorno de producción."
+    },
+    {
+      "label": "🧪 Tests: Ejecutar Pytest",
+      "type": "shell",
+      "command": ".\\.venv\\Scripts\\python -m pytest",
+      "group": {
+        "kind": "test",
+        "isDefault": true
       },
       "problemMatcher": [],
       "presentation": {
@@ -51,10 +82,85 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Compila imágenes y despliega la infraestructura completa en Kubernetes (Deployments, Services, HPA e Ingress)."
+      "detail": "Ejecuta la suite completa de 14 pruebas unitarias con pytest."
     },
     {
-      "label": "Kubernetes: Down",
+      "label": "🔍 Auditoría: Calidad, Duplicación y Rendimiento",
+      "type": "shell",
+      "command": ".\\.venv\\Scripts\\python scripts/audit_code_quality.py",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Ejecuta Ruff, Radon (complejidad ciclomática) y el detector de duplicación en todo el repositorio."
+    },
+    {
+      "label": "📊 Monitoreo: Iniciar Prometheus & Grafana",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.monitoring.yml up -d",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Levanta la pila de observabilidad con Prometheus (9090) y Grafana (3000)."
+    },
+    {
+      "label": "🛑 Monitoreo: Detener",
+      "type": "shell",
+      "command": "docker compose -f docker-compose.monitoring.yml down",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Detiene la pila de observabilidad."
+    },
+    {
+      "label": "🧹 Docker: Limpieza General (Down + Orphans)",
+      "type": "shell",
+      "command": "docker compose down --remove-orphans",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Elimina todos los contenedores y redes huérfanas activas."
+    },
+    {
+      "label": "☸️ Kubernetes: Up",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\k8s_deploy.ps1 -BuildImages",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Compila imágenes y despliega la infraestructura en Kubernetes (Deployments, Services, HPA e Ingress)."
+    },
+    {
+      "label": "☸️ Kubernetes: Down",
       "type": "shell",
       "command": "kubectl delete -k infra/k8s/",
       "problemMatcher": [],
@@ -66,7 +172,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Elimina todos los recursos y despliegues de la aplicación en el clúster de Kubernetes."
+      "detail": "Elimina los recursos y despliegues en el clúster de Kubernetes."
     }
   ]
 }

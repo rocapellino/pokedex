@@ -114,16 +114,19 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 
 ---
 
-## 3. Endpoints del Sistema y Monitoreo
+## 3. Endpoints del Sistema, Documentación y Monitoreo
 
 | Endpoint | Método | Descripción | Respuesta |
 | :--- | :--- | :--- | :--- |
-| `/` | `GET` | Información base del microservicio y estado de conexión a DB | `{"status": "API Pokémon Online", "version": "1.0.0"}` |
+| `/` | `GET` | Información base del microservicio y rutas disponibles | `{"mensaje": "¡Bienvenido...", "version": "2.0.0"}` |
+| `/docs` | `GET` | Documentación interactiva Swagger UI | Interfaz web interactiva OpenAPI |
+| `/redoc` | `GET` | Especificación y documentación en formato ReDoc | Interfaz web ReDoc OpenAPI |
 | `/healthz` | `GET` | Liveness & Readiness probe para Nginx y Kubernetes | `200 "healthy\n"` |
+| `/metrics` | `GET` | Exportador de métricas en formato estándar de Prometheus | Plaintext con contadores y latencias |
 
 ---
 
-## 4. Estructura del Objeto Pokémon (JSON Schema)
+## 4. Estructura del Objeto Pokémon (Pydantic / JSON Schema)
 
 ```json
 {
@@ -134,7 +137,8 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
   "properties": {
     "id": { "type": "integer", "description": "Número nacional de Pokédex" },
     "nombre": { "type": "string", "description": "Nombre en español" },
-    "tipo": { "type": "string", "description": "Tipo elemental principal o dual" },
+    "tipo": { "type": "string", "description": "Tipo elemental principal" },
+    "tipos": { "type": "array", "items": { "type": "string" }, "description": "Tipos elementales duales" },
     "habilidades": { "type": "array", "items": { "type": "string" } },
     "habitat": { "type": "string" },
     "imagen": { "type": "string", "format": "uri" },
@@ -144,8 +148,25 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
         "altura": { "type": "number" },
         "peso": { "type": "number" },
         "fuerza": { "type": "integer" },
-        "edad": { "type": "integer" }
+        "edad": { "type": "integer" },
+        "categoria": { "type": "string" },
+        "descripcion": { "type": "string" }
       }
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "hp": { "type": "integer" },
+        "attack": { "type": "integer" },
+        "defense": { "type": "integer" },
+        "sp_attack": { "type": "integer" },
+        "sp_defense": { "type": "integer" },
+        "speed": { "type": "integer" }
+      }
+    },
+    "evoluciones": {
+      "type": "object",
+      "description": "Árbol evolutivo jerárquico y lineal con soporte para ramificaciones"
     }
   }
 }
@@ -159,6 +180,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 | :--- | :--- | :--- |
 | **`200 OK`** | Éxito | Consulta de lista o detalle de Pokémon exitosa. |
 | **`201 Created`** | Creado | Registro de nuevo Pokémon persistido en base de datos. |
-| **`400 Bad Request`** | Petición Inválida | Payload malformado o campos obligatorios ausentes. |
+| **`400 Bad Request`** | Petición Inválida | Payload JSON malformado. |
 | **`404 Not Found`** | No Encontrado | El ID de Pokémon consultado no existe en la base de datos. |
+| **`422 Unprocessable Entity`** | Error de Validación | Parámetros o campos incompatibles con los esquemas Pydantic. |
 | **`500 Internal Server Error`** | Error de Servidor | Falla en conexión a PostgreSQL / Redis no controlada. |

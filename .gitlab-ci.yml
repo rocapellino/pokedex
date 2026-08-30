@@ -1,0 +1,107 @@
+# ==============================================================================
+# GitLab CI/CD Pipeline - Pokédex Project
+# ==============================================================================
+
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy_staging
+  - deploy_production
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  API_IMAGE: $CI_REGISTRY_IMAGE/api:$IMAGE_TAG
+  WEB_IMAGE: $CI_REGISTRY_IMAGE/web:$IMAGE_TAG
+
+default:
+  image: python:3.11-slim
+
+# ------------------------------------------------------------------------------
+# 1. Stage: Lint & Code Quality
+# ------------------------------------------------------------------------------
+flake8_lint:
+  stage: lint
+  script:
+    - pip install --no-cache-dir flake8
+    - flake8 apps/api/src/ --max-line-length=120 --count --statistics
+
+# ------------------------------------------------------------------------------
+# 2. Stage: Unit Tests
+# ------------------------------------------------------------------------------
+pytest_unit_tests:
+  stage: test
+  script:
+    - pip install --no-cache-dir -r requirements.txt
+    - pytest --verbose --junitxml=report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+
+# ------------------------------------------------------------------------------
+# 3. Stage: Security Scan
+# ------------------------------------------------------------------------------
+gitleaks_secret_scan:
+  stage: security
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --verbose --source .
+
+# ------------------------------------------------------------------------------
+# 4. Stage: Docker Build & Push
+# ------------------------------------------------------------------------------
+docker_build:
+  stage: build
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build -t $API_IMAGE -f apps/api/Dockerfile .
+    - docker build -t $WEB_IMAGE -f apps/web/Dockerfile .
+    - docker push $API_IMAGE
+    - docker push $WEB_IMAGE
+  only:
+    - main
+    - develop
+
+# ------------------------------------------------------------------------------
+# 5. Stage: Deploy Staging
+# ------------------------------------------------------------------------------
+deploy_staging:
+  stage: deploy_staging
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl config set-cluster k8s-staging --server=$K8S_STAGING_SERVER
+    - kubectl apply -k infra/k8s/
+    - kubectl rollout status deployment/pokedex-api --timeout=60s
+  environment:
+    name: staging
+    url: https://staging.pokedex.internal
+  only:
+    - develop
+
+# ------------------------------------------------------------------------------
+# 6. Stage: Deploy Production (Manual Approval)
+# ------------------------------------------------------------------------------
+deploy_production:
+  stage: deploy_production
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl config set-cluster k8s-prod --server=$K8S_PROD_SERVER
+    - kubectl set image deployment/pokedex-api api=$API_IMAGE --record
+    - kubectl set image deployment/pokedex-web web=$WEB_IMAGE --record
+    - kubectl rollout status deployment/pokedex-api --timeout=120s
+  environment:
+    name: production
+    url: https://pokedex.empresa.com
+  when: manual
+  only:
+    - main
