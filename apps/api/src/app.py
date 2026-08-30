@@ -9,10 +9,9 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 try:
@@ -58,17 +57,17 @@ async def metrics_middleware(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
     duration = time.time() - start_time
-    
+
     endpoint = request.url.path
     method = request.method
     status_code = response.status_code
-    
+
     key = (method, endpoint, status_code)
     _HTTP_REQUESTS_TOTAL[key] += 1
     dur_key = (method, endpoint)
     _HTTP_REQUEST_DURATION_SECONDS[dur_key] += duration
     _HTTP_REQUEST_COUNT[dur_key] += 1
-    
+
     return response
 
 
@@ -213,7 +212,7 @@ async def get_pokemon_by_id(id: int):
 @app.post("/pokemons", status_code=status.HTTP_201_CREATED, summary="Crear un nuevo Pokémon")
 async def create_pokemon(payload: PokemonCreateSchema):
     global current_id
-    
+
     nuevo_pokemon = {
         "id": current_id,
         "nombre": payload.nombre,

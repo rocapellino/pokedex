@@ -62,7 +62,7 @@ def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
         import psycopg2.extras
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             query = """
-                SELECT 
+                SELECT
                     p.id,
                     p.name_es AS nombre,
                     p.image_url AS imagen,
@@ -106,10 +106,9 @@ def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
 
             # 3. Guardar en Redis con TTL de 300 segundos
             if redis_cli and result:
-                try:
+                import contextlib
+                with contextlib.suppress(Exception):
                     redis_cli.setex('pokemons_all', 300, json.dumps(result))
-                except Exception:
-                    pass
 
             return result
     except Exception as err:
@@ -122,8 +121,7 @@ def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
 def invalidate_cache():
     redis_cli = get_redis_client()
     if redis_cli:
-        try:
+        import contextlib
+        with contextlib.suppress(Exception):
             redis_cli.delete('pokemons_all')
-        except Exception:
-            pass
 

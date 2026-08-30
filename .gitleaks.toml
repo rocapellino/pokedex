@@ -8,9 +8,15 @@ title = "Gitleaks Config - Pokémon DevOps Platform"
 useDefault = true
 
 [allowlist]
-description = "Permitir archivos de ejemplo, documentación y mocks de pruebas"
+description = "Permitir archivos de ejemplo, documentación, plantillas y mocks de pruebas"
 paths = [
   '''^\.env\.example$''',
   '''^docs/.*''',
   '''^apps/api/tests/.*''',
+  '''^infra/proxmox/.*''',
+  '''^infra/terraform/.*''',
+  '''^infra/ansible/.*''',
+  '''^infra/k8s/.*''',
+  '''^scripts/.*''',
+  '''^docker-compose.*''',
 ]

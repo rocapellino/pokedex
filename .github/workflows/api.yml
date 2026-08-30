@@ -43,5 +43,7 @@ jobs:
           ruff check apps/api/src apps/api/tests
 
       - name: 5. Ejecutar Suite de Pruebas con Pytest
+        env:
+          PYTHONPATH: .
         run: |
           pytest -v apps/api/tests/test_app.py
