@@ -15,10 +15,9 @@ pipeline {
     }
 
     stages {
-        stage('1. Checkout & Validación de Entorno') {
+        stage('1. Información de Commit & Entorno') {
             steps {
-                echo '=== Descargando código del repositorio ==='
-                checkout scm
+                echo '=== Código descargado del repositorio ==='
                 sh 'git log -1 --oneline'
             }
         }
@@ -125,9 +124,6 @@ pipeline {
         }
         failure {
             echo "❌ Pipeline falló. Revisa los logs de la consola."
-        }
-        always {
-            cleanWs deleteDirs: true, notFailBuild: true
         }
     }
 }
