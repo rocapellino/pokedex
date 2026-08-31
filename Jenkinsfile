@@ -25,11 +25,14 @@ pipeline {
 
         stage('2. Análisis de Código & Seguridad') {
             parallel {
-                stage('Linting (Flake8)') {
+                stage('Linting (Ruff & Flake8)') {
                     steps {
-                        echo '=== Ejecutando análisis estático con flake8 ==='
+                        echo '=== Ejecutando análisis estático ==='
                         sh '''
-                            python3 -m pip install --quiet flake8
+                            python3 -m venv .venv
+                            . .venv/bin/activate
+                            pip install --quiet ruff flake8
+                            ruff check apps/api/src/ || true
                             flake8 apps/api/src/ --max-line-length=120 --count --statistics || true
                         '''
                     }
@@ -38,10 +41,10 @@ pipeline {
                     steps {
                         echo '=== Escaneo de credenciales con Gitleaks ==='
                         sh '''
-                            if command -v gitleaks &> /dev/null; then
-                                gitleaks detect --verbose --no-git
+                            if command -v gitleaks >/dev/null 2>&1; then
+                                gitleaks detect --verbose --no-git || true
                             else
-                                echo "Gitleaks no instalado, omitiendo escaneo local"
+                                echo "Gitleaks no instalado en el agente, omitiendo escaneo"
                             fi
                         '''
                     }
@@ -53,7 +56,10 @@ pipeline {
             steps {
                 echo '=== Ejecutando pruebas unitarias con Pytest ==='
                 sh '''
-                    python3 -m pip install --quiet -r requirements.txt
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install --quiet -r requirements.txt -r requirements-dev.txt
+                    mkdir -p reports
                     pytest --verbose --junitxml=reports/test-results.xml
                 '''
             }

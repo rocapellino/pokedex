@@ -84,16 +84,28 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 ---
 
 ## 6. Jenkins & GitLab CI (Pipelines de CI/CD)
-* **Jenkins:** [`Jenkinsfile`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/Jenkinsfile)
-  * Pipeline declarativo multi-etapa con: Linting (`flake8`), Security Scan (`gitleaks`), Unit Tests (`pytest`), Docker Build & Push, y Deploy a Kubernetes con puerta de aprobación manual para producción.
-* **GitLab CI:** [`.gitlab-ci.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.gitlab-ci.yml)
+* **Jenkins Controller:**
+  * **Ubicación:** Repositorio independiente [`docker_jenkins`](https://github.com/rocapellino/docker_jenkins).
+  * **Servidor en Docker:** Jenkins LTS (JDK 21) en puerto `8090` con Docker CLI, buildx, compose plugin, kubectl y Python 3 preinstalados.
+  * **Pipeline Declarativo:** [`Jenkinsfile`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/Jenkinsfile) con etapas de: Linting (`flake8`/`ruff`), Security Scan (`gitleaks`), Unit Tests (`pytest`), Docker Build & Push, y Deploy a Kubernetes.
+  * **Comandos Clave (desde `docker_jenkins`):**
+    ```bash
+    # Iniciar Jenkins Controller
+    docker compose up --build -d
+
+    # Ver contraseña inicial de admin
+    docker exec jenkins-server cat /var/jenkins_home/secrets/initialAdminPassword
+
+    # Web UI: http://localhost:8090
+    ```
+* **GitLab CI:** [`.gitlab-ci.yml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/.gitlab-ci.yml)
   * Etapas nativas en contenedor: `lint`, `test`, `security`, `build`, `deploy_staging`, `deploy_production`.
 
 ---
 
 ## 7. Prometheus & Grafana (Monitoreo y Observabilidad)
-* **Ubicación:** [`infra/monitoring/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/monitoring) y [docker-compose.monitoring.yml](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/docker-compose.monitoring.yml).
-* **Métricas Expuestas:**
+* **Ubicación:** Repositorio independiente [`docker_monitoreo`](https://github.com/rocapellino/docker_monitoreo).
+* **Métricas Expuestas por la API:**
   * Endpoint en la API: `GET /metrics`
   * Métricas:
     * `pokedex_uptime_seconds`: Tiempo activo.
@@ -101,14 +113,15 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
     * `pokedex_http_requests_total`: Conteo de solicitudes por método, ruta y código HTTP.
     * `pokedex_http_request_duration_seconds`: Latencia de peticiones.
 * **Dashboard de Grafana:**
-  * Preconfigurado en [`infra/monitoring/grafana/dashboards/pokedex_dashboard.json`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/monitoring/grafana/dashboards/pokedex_dashboard.json).
-  * Auto-provisioning listo con datasource Prometheus.
-* **Comandos Clave:**
+  * Preconfigurado y auto-provisionado en el repositorio `docker_monitoreo`.
+  * Datasource Prometheus conectado automáticamente a la API a través de la red `monitoring-net`.
+* **Comandos Clave (desde el repositorio `docker_monitoreo`):**
   ```bash
   # Iniciar la stack de monitoreo
-  docker compose -f docker-compose.monitoring.yml up -d
+  docker compose up -d
 
   # Acceso web:
   # Prometheus: http://localhost:9090
   # Grafana:    http://localhost:3000 (Usuario: admin / Contraseña: admin)
   ```
+

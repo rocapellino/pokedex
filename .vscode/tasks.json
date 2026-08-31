@@ -102,7 +102,10 @@
     {
       "label": "📊 Monitoreo: Iniciar Prometheus & Grafana",
       "type": "shell",
-      "command": "docker compose -f docker-compose.monitoring.yml up -d",
+      "command": "docker compose up -d",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker_monitoreo"
+      },
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -117,7 +120,10 @@
     {
       "label": "🛑 Monitoreo: Detener",
       "type": "shell",
-      "command": "docker compose -f docker-compose.monitoring.yml down",
+      "command": "docker compose down",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker_monitoreo"
+      },
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -128,6 +134,57 @@
         "clear": false
       },
       "detail": "Detiene la pila de observabilidad."
+    },
+    {
+      "label": "🏗️ Jenkins: Iniciar Servidor CI/CD",
+      "type": "shell",
+      "command": "docker compose up --build -d",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker_jenkins"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Construye la imagen personalizada y levanta el servidor Jenkins Controller (puerto 8090)."
+    },
+    {
+      "label": "🛑 Jenkins: Detener",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": {
+        "cwd": "${workspaceFolder}/../docker_jenkins"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Detiene el servidor Jenkins."
+    },
+    {
+      "label": "🔑 Jenkins: Ver Contraseña Inicial de Admin",
+      "type": "shell",
+      "command": "docker exec jenkins-server cat /var/jenkins_home/secrets/initialAdminPassword",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Obtiene la contraseña inicial de instalación de Jenkins desde el contenedor."
     },
     {
       "label": "🧹 Docker: Limpieza General (Down + Orphans)",

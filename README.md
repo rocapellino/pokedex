@@ -72,7 +72,8 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 | **Connection Pooling**| PgBouncer | Gestión eficiente de conexiones ante escalado masivo de pods. |
 | **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes (< 3ms) e invalidación inteligente. |
 | **Orquestación Cloud**| Kubernetes (Kind / Docker Desktop / Cloud) | Autoescalado horizontal (**HPA v2**), Service Discovery y self-healing. |
-| **Observabilidad** | Prometheus & Grafana | Scraping de métricas en tiempo real (`/metrics`) y dashboards de salud. |
+| **CI/CD Pipelines**   | [docker_jenkins](https://github.com/rocapellino/docker_jenkins) / GitLab CI | Automatización de testing, escaneo de seguridad y despliegues continuos. |
+| **Observabilidad**    | [docker_monitoreo](https://github.com/rocapellino/docker_monitoreo) (Prometheus & Grafana) | Scraping de métricas en tiempo real (`/metrics`) y dashboards de salud (desacoplado global). |
 
 ---
 

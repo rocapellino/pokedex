@@ -48,6 +48,7 @@ services:
     networks:
       - frontend-net
       - backend-net
+      - monitoring-net
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')"]
       interval: 20s
@@ -137,6 +138,9 @@ networks:
     name: pokedex-backend-net
     driver: bridge
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
+  monitoring-net:
+    name: monitoring-net
+    driver: bridge   # Red compartida global para observabilidad y métricas
 
 volumes:
   postgres_data:
