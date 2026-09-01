@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 app = FastAPI(
     title="Pokédex REST API",
     description="API REST de Alto Rendimiento para Pokédex con soporte asíncrono, OpenAPI y observabilidad.",
-    version="2.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
