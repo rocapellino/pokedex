@@ -15,7 +15,7 @@ def find_duplicates(directory, extensions=('.py', '.js', '.css', '.html')):
     total_files = 0
 
     for root, _, files in os.walk(directory):
-        if any(ign in root for ign in ['.git', '.venv', '__pycache__', 'node_modules', 'reports']):
+        if any(ign in root for ign in ['.git', '.venv', '__pycache__', 'node_modules', 'reports', '.pytest_cache', '.ruff_cache']):
             continue
         for file in files:
             if file.endswith(extensions):
@@ -51,27 +51,25 @@ def run_cmd(cmd, description):
 
 
 def main():
-    print("🚀 Iniciando Auditoría Completa de Código, Duplicación y Rendimiento...")
+    print("🚀 Iniciando Auditoría Completa de Código, Duplicación, Rendimiento y Seguridad...")
 
-    python_path = sys.executable
-    venv_bin = os.path.dirname(python_path)
-
-    ruff_cli = os.path.join(venv_bin, 'ruff')
-    radon_cli = os.path.join(venv_bin, 'radon')
-    xenon_cli = os.path.join(venv_bin, 'xenon')
+    py = f'"{sys.executable}"'
 
     # 1. Análisis Estático y Rendimiento con Ruff
-    run_cmd(f'"{ruff_cli}" check apps/ src/ scripts/ --statistics', "1. Análisis de Calidad y Rendimiento con Ruff (Perflint / Bugbear)")
+    run_cmd(f'{py} -m ruff check apps/ src/ scripts/ --statistics', "1. Análisis de Calidad y Rendimiento con Ruff (Perflint / Bugbear)")
 
     # 2. Complejidad Ciclomática con Radon
-    run_cmd(f'"{radon_cli}" cc apps/api/src src/ -s -a', "2. Análisis de Complejidad Ciclomática con Radon (A = Excelente)")
+    run_cmd(f'{py} -m radon cc apps/api/src src/ -s -a', "2. Análisis de Complejidad Ciclomática con Radon (A = Excelente)")
 
     # 3. Índice de Mantenibilidad con Radon
-    run_cmd(f'"{radon_cli}" mi apps/api/src src/ -s', "3. Índice de Mantenibilidad (MI) con Radon (A = Alta Mantenibilidad)")
+    run_cmd(f'{py} -m radon mi apps/api/src src/ -s', "3. Índice de Mantenibilidad (MI) con Radon (A = Alta Mantenibilidad)")
 
-    # 4. Auditoría de Duplicación de Código
+    # 4. Análisis Estático de Seguridad (SAST) con Bandit
+    run_cmd(f'{py} -m bandit -r apps/api/src src/ -ll -q', "4. Análisis de Seguridad SAST con Bandit (Detección de vulnerabilidades)")
+
+    # 5. Auditoría de Duplicación de Código
     print(f"\n{'='*70}")
-    print("🔍 4. Detección de Código y Archivos Duplicados (Hash & AST)")
+    print("🔍 5. Detección de Código y Archivos Duplicados (Hash & AST)")
     print(f"{'='*70}")
     duplicates, total = find_duplicates(".")
     print(f"Archivos analizados: {total}")

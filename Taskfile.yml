@@ -1,0 +1,59 @@
+# https://taskfile.dev
+version: '3'
+
+tasks:
+  default:
+    desc: "Muestra la lista de tareas disponibles"
+    cmds:
+      - task --list
+
+  install:
+    desc: "Instala dependencias de producción y desarrollo en Python"
+    cmds:
+      - pip install -r requirements.txt
+      - pip install -r requirements-dev.txt
+
+  dev:
+    desc: "Inicia la API FastAPI en modo desarrollo con recarga automática"
+    cmds:
+      - uvicorn apps.api.src.app:app --reload --host 0.0.0.0 --port 8000
+
+  test:
+    desc: "Ejecuta las pruebas unitarias con Pytest y reporte de cobertura"
+    cmds:
+      - pytest -v --cov=apps/api/src --cov-report=term-missing
+
+  lint:
+    desc: "Ejecuta el linter Ruff en todo el código"
+    cmds:
+      - ruff check apps/ src/ scripts/
+
+  format:
+    desc: "Formatea el código automáticamente con Ruff"
+    cmds:
+      - ruff format apps/ src/ scripts/
+
+  audit:
+    desc: "Ejecuta la auditoría integral (Ruff, Radon, Bandit y Duplicados)"
+    cmds:
+      - python scripts/audit_code_quality.py
+
+  security:
+    desc: "Ejecuta análisis de seguridad SAST (Bandit)"
+    cmds:
+      - bandit -r apps/api/src src/ -ll
+
+  perf:
+    desc: "Ejecuta pruebas de rendimiento y estrés con k6"
+    cmds:
+      - k6 run tests/performance/k6_stress_test.js
+
+  docker:up:
+    desc: "Levanta todos los servicios con Docker Compose (API + Web + DB + Redis)"
+    cmds:
+      - docker-compose up -d --build
+
+  docker:down:
+    desc: "Detiene todos los contenedores de Docker Compose"
+    cmds:
+      - docker-compose down
