@@ -13,8 +13,9 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
    * [3.3. ⚙️ `infra.yml` (Infrastructure & IaC CI)](#33-️-infrayml-infrastructure--iac-ci)
    * [3.4. 🔐 `security-gitleaks.yml` (Secret Scanning)](#34--security-gitleaksyml-secret-scanning)
    * [3.5. 🚀 `ci.yml` (Monorepo CI Integrador)](#35--ciyml-monorepo-ci-integrador)
-4. [Diagrama de Ejecución y Flujo de Decisión](#4-diagrama-de-ejecución-y-flujo-de-decisión)
-5. [Cómo Interpretar y Solucionar Errores en GitHub](#5-cómo-interpretar-y-solucionar-errores-en-github)
+4. [Integración con Linear (Issue Tracking)](#4-integración-con-linear-issue-tracking)
+5. [Diagrama de Ejecución y Flujo de Decisión](#5-diagrama-de-ejecución-y-flujo-de-decisión)
+6. [Cómo Interpretar y Solucionar Errores en GitHub](#6-cómo-interpretar-y-solucionar-errores-en-github)
 
 ---
 
@@ -43,7 +44,7 @@ Por eso utilizamos **Path Filtering**:
 
 ## 3. Catálogo de Workflows del Proyecto
 
-### 3.1. 🐍 [`api.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/api.yml) (Backend API CI)
+### 3.1. 🐍 [`api.yml`](file:///.github/workflows/api.yml) (Backend API CI)
 * **¿Cuándo se activa?** Cuando hay cambios en `apps/api/**`, `src/**` o `requirements.txt`.
 * **¿Qué hace paso a paso?**
   1. Descarga el código en una máquina Ubuntu limpia.
@@ -54,7 +55,7 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.2. 🌐 [`web.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/web.yml) (Frontend Web CI)
+### 3.2. 🌐 [`web.yml`](file:///.github/workflows/web.yml) (Frontend Web CI)
 * **¿Cuándo se activa?** Cuando hay cambios en `apps/web/**` (HTML, CSS, JS, Nginx).
 * **¿Qué hace paso a paso?**
   1. Configura un entorno Node.js para validar sintaxis de JavaScript (`node -c apps/web/public/js/*.js`).
@@ -63,7 +64,7 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.3. ⚙️ [`infra.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/infra.yml) (Infrastructure & IaC CI)
+### 3.3. ⚙️ [`infra.yml`](file:///.github/workflows/infra.yml) (Infrastructure & IaC CI)
 * **¿Cuándo se activa?** Cuando hay cambios en `infra/**` (Kubernetes, Terraform, Ansible).
 * **¿Qué hace paso a paso?**
   1. Ejecuta `kubectl kustomize infra/k8s/` para comprobar que todos los manifiestos YAML de Kubernetes sean sintácticamente válidos.
@@ -72,7 +73,7 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.4. 🔐 [`security-gitleaks.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/security-gitleaks.yml) (Secret Scanning)
+### 3.4. 🔐 [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) (Secret Scanning)
 * **¿Cuándo se activa?** En **todos** los commits y Pull Requests.
 * **¿Qué hace paso a paso?**
   1. Inspecciona el historial de Git y los archivos modificados con **Gitleaks**.
@@ -81,7 +82,7 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.5. 🚀 [`ci.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/ci.yml) (Monorepo CI Integrador)
+### 3.5. 🚀 [`ci.yml`](file:///.github/workflows/ci.yml) (Monorepo CI Integrador)
 * **¿Cuándo se activa?** Al hacer `push` o `Pull Request` hacia la rama principal (`main` o `master`).
 * **¿Qué hace paso a paso?**
   1. **Auditoría Global:** Ejecuta `scripts/audit_code_quality.py` (complejidad ciclomática, duplicación y linting).
@@ -90,11 +91,35 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-## 4. Diagrama de Ejecución y Flujo de Decisión
+## 4. Integración con Linear (Issue Tracking)
+
+El proyecto está conectado bidireccionalmente con **[Linear](https://linear.app)** para la gestión ágil de tareas, bugs y features.
+
+### 4.1. Convención de Ramas
+El formato configurado para las ramas sigue el estándar:
+```bash
+<username>/<identificador-issue>-<descripcion-corta>
+```
+* **Ejemplo:** `rocapellino/PER-5-configurar-plantilla-pr`
+* **Acceso rápido:** En Linear, presiona `Ctrl + Shift + .` en cualquier ticket para copiar el nombre de rama automáticamente.
+
+### 4.2. Plantilla de Pull Request (`.github/pull_request_template.md`)
+Cada PR creado en GitHub se precarga con la sección para referenciar el ticket de Linear:
+* **Vinculación:** Al abrir un PR con la rama del issue, el bot de Linear comenta el link al ticket y cambia su estado a **In Progress** / **In Review**.
+* **Autocierre:** Al mergear el PR a `main`, Linear detecta la referencia y marca el ticket como **Done**.
+
+---
+
+## 5. Diagrama de Ejecución y Flujo de Decisión
 
 ```mermaid
 graph TD
-    A[git push / Pull Request] --> B{¿Qué archivos cambiaron?}
+    LIN[📋 Ticket en Linear / Backlog] -->|Copiar rama: Ctrl+Shift+.| BR[🌿 git checkout -b user/ID-tarea]
+    BR --> DEV[💻 Desarrollo & Commit local]
+    DEV --> PUSH[🚀 git push & abrir PR en GitHub]
+    
+    PUSH --> BOT[🤖 Linear Bot comenta PR & pasa a In Review]
+    PUSH --> B{¿Qué archivos cambiaron?}
     
     B -->|apps/api/**| C[🐍 api.yml: Lint + Pytest]
     B -->|apps/web/**| D[🌐 web.yml: JS Syntax + Nginx Test]
@@ -106,13 +131,15 @@ graph TD
     E --> G
     F --> G
     
-    G -->|✅ Sí| H[Permitir Merge / Despliegue]
-    G -->|❌ No| I[Bloquear Commit y Notificar Error]
+    G -->|❌ No| I[Bloquear PR y Corregir Errores]
+    G -->|✅ Sí| H[Aprobar & Merge a main]
+    
+    H --> DONE[🎉 Linear actualiza ticket a Done]
 ```
 
 ---
 
-## 5. Cómo Interpretar y Solucionar Errores en GitHub
+## 6. Cómo Interpretar y Solucionar Errores en GitHub
 
 1. En tu repositorio de GitHub, ve a la pestaña **Actions**.
 2. Verás la lista de ejecuciones con un icono:
