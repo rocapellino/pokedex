@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -33,7 +33,7 @@ jobs:
           release_branches: "main"
 
       - name: 3. Crear Release en GitHub con Changelog Automático
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: steps.tag_version.outputs.new_tag
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
