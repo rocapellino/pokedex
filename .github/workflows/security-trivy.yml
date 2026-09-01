@@ -42,7 +42,8 @@ jobs:
 
       - name: 3. Construir Imagen Backend para Escaneo
         run: |
-          docker build -t pokedex-api:test -f apps/api/Dockerfile apps/api
+          docker build -t pokedex-api:test -f Dockerfile .
+
 
       - name: 4. Escaneo de Imagen Docker Backend
         uses: aquasecurity/trivy-action@master
