@@ -26,23 +26,29 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Backend** | **SQLAlchemy** | ORM para interactuar con la base de datos PostgreSQL | `apps/api/database.py` |
 | **Frontend** | **Vanilla JS / HTML5 / CSS3** | Interfaz de usuario interactiva y responsiva para consultar la Pokédex | [`apps/web/`](file:///apps/web) |
 | **Frontend Server** | **Nginx (Alpine)** | Servidor web proxy inverso y entrega de estáticos | `apps/web/nginx.conf` |
-| **Testing** | **Pytest** | Suite de pruebas unitarias y de integración para la API | [`pytest.ini`](file:///pytest.ini), `apps/api/tests/` |
+| **Testing & Cobertura** | **Pytest + Pytest-Cov** | Suite de pruebas unitarias y reporte de cobertura de código (>75%) | [`pytest.ini`](file:///pytest.ini), `apps/api/tests/` |
 | **Linter / Formatter** | **Ruff** | Linter y formateador ultrarrápido para Python (PEP8, imports, code quality) | [`ruff.toml`](file:///ruff.toml) |
+| **Seguridad SAST** | **Bandit** | Análisis estático de seguridad y prevención de vulnerabilidades en Python | [`scripts/audit_code_quality.py`](file:///scripts/audit_code_quality.py) |
+| **Seguridad SCA** | **Trivy (Aqua Security)** | Escaneo de vulnerabilidades en imágenes Docker y librerías | [`.github/workflows/security-trivy.yml`](file:///.github/workflows/security-trivy.yml) |
 | **Complejidad** | **Radon** | Análisis de complejidad ciclomática de funciones | [`scripts/audit_code_quality.py`](file:///scripts/audit_code_quality.py) |
 | **Duplicación** | **JSCPD** | Detección de código duplicado (*Copy-Paste Detector*) | [`.jscpd.json`](file:///.jscpd.json) |
 | **Hooks Git** | **Pre-commit** | Ejecución de validaciones automáticas antes de cada commit local | [`.pre-commit-config.yaml`](file:///.pre-commit-config.yaml) |
 | **Secret Scanning** | **Gitleaks** | Detección preventiva de credenciales, tokens y secretos en el historial git | [`.gitleaks.toml`](file:///.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) |
 | **Secretos K8s** | **Sealed Secrets (`kubeseal`)** | Encriptación asimétrica de secretos para guardarlos de forma segura en Git | [`.tools/kubeseal.exe`](file:///.tools/kubeseal.exe), [`scripts/seal_secret.ps1`](file:///scripts/seal_secret.ps1) |
+| **Performance Testing** | **k6 (Grafana k6)** | Pruebas de estrés y benchmarking de endpoints de la API como código | [`tests/performance/k6_stress_test.js`](file:///tests/performance/k6_stress_test.js) |
 | **Contenedores** | **Docker & Buildx** | Empaquetado en imágenes ligeras multi-stage (desarrollo y producción) | [`Dockerfile`](file:///Dockerfile), `apps/*/Dockerfile` |
 | **Composición local** | **Docker Compose** | Orquestación local multicontenedor (API + Web + Postgres + Redis) | [`docker-compose.yml`](file:///docker-compose.yml), `docker-compose.dev.yml` |
 | **Orquestación** | **Kubernetes (K8s)** | Despliegue en clúster con manifiestos declarativos y Kustomize | [`infra/k8s/`](file:///infra/k8s) |
 | **IaC** | **Terraform** | Aprovisionamiento declarativo de infraestructura en la nube y virtualización | [`infra/terraform/`](file:///infra/terraform) |
 | **Config Management** | **Ansible** | Automatización de configuración de servidores y aprovisionamiento | [`infra/ansible/`](file:///infra/ansible) |
 | **Virtualización** | **Proxmox VE** | Infraestructura de nodos/VMs on-premise con scripts de automatización | [`infra/proxmox/`](file:///infra/proxmox), `scripts/proxmox_deploy.sh` |
-| **CI/CD** | **GitHub Actions** | Pipelines automatizados por paths (`api`, `web`, `infra`, `security`, `ci`) | [`.github/workflows/`](file:///.github/workflows) |
+| **CI/CD** | **GitHub Actions** | Pipelines automatizados por paths (`api`, `web`, `infra`, `security`, `ci`, `trivy`) | [`.github/workflows/`](file:///.github/workflows) |
 | **CI/CD** | **Jenkins** | Pipeline declarativo alternativo enterprise con stages de build/test/audit | [`Jenkinsfile`](file:///Jenkinsfile) |
 | **CI/CD** | **GitLab CI** | Pipeline multiplataforma para GitLab | [`.gitlab-ci.yml`](file:///.gitlab-ci.yml) |
+| **Actualizaciones Auto** | **Dependabot** | Apertura automática de PRs consolidados (Grouped Updates) para pip, docker y actions | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
+| **Automatización DX** | **Taskfile & Makefile** | Comandos unificados cross-platform (`task test`, `task dev`, `task audit`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml), [`Makefile`](file:///Makefile) |
 | **Gestión Ágil** | **Linear** | Gestión de tickets, ciclos, ramas automatizadas y PR linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
+
 
 ---
 
