@@ -1,0 +1,44 @@
+# ==============================================================================
+# Workflow de Versionado Semántico y Creación Automática de Releases / Tags
+# ==============================================================================
+name: 🏷️ Automated Semantic Release & Tag
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag-and-release:
+    name: 🚀 Bump Version & Create GitHub Release
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'chore(release)')"
+
+    steps:
+      - name: 1. Descargar Código Fuente con Historial Completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 2. Determinar Versión Semántica y Generar Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          tag_prefix: "v"
+          release_branches: "main"
+
+      - name: 3. Crear Release en GitHub con Changelog Automático
+        uses: softprops/action-gh-release@v2
+        if: steps.tag_version.outputs.new_tag
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
