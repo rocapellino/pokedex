@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 2. Configurar Python 3.11
         uses: actions/setup-python@v5
@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 2. Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3

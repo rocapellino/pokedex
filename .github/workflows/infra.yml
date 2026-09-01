@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 2. Validar Manifiestos Kustomize de Kubernetes
         run: |
