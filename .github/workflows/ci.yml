@@ -46,7 +46,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: 3. Compilar Imagen de API (FastAPI)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./apps/api/Dockerfile
@@ -54,7 +54,7 @@ jobs:
           tags: pokedex-api:test
 
       - name: 4. Compilar Imagen de Web (Nginx)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./apps/web/Dockerfile
