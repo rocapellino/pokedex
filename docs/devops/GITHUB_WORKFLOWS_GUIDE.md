@@ -51,7 +51,7 @@ Por eso utilizamos **Path Filtering**:
 * **¿Cuándo se activa?** Cuando hay cambios en `apps/api/**`, `src/**` o `requirements.txt`.
 * **¿Qué hace paso a paso?**
   1. Descarga el código en una máquina Ubuntu limpia.
-  2. Instala Python 3.11 y las dependencias de `requirements.txt` y `requirements-dev.txt`.
+  2. Instala Python 3.13 y las dependencias de `requirements.txt` y `requirements-dev.txt`.
   3. Ejecuta **Ruff** para verificar que no haya errores de sintaxis, variables sin usar o patrones lentos.
   4. Ejecuta análisis de seguridad SAST con **Bandit**.
   5. Ejecuta la suite de pruebas unitarias con reporte de cobertura (**Pytest-Cov**).

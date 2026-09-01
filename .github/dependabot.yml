@@ -29,6 +29,9 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(deps-docker)"
+    ignore:
+      - dependency-name: "python"
+        versions: ["3.14*"]
     groups:
       docker-images:
         patterns:

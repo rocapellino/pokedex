@@ -21,7 +21,7 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 
 | Categoría | Herramienta | Uso en el Proyecto | Archivo / Configuración |
 |---|---|---|---|
-| **Backend** | **Python 3.11** / **FastAPI** | Framework API REST asíncrono para endpoints de Pokémon, tipos y evoluciones | [`apps/api/`](file:///apps/api) |
+| **Backend** | **Python 3.13** / **FastAPI** | Framework API REST asíncrono para endpoints de Pokémon, tipos y evoluciones | [`apps/api/`](file:///apps/api) |
 | **Backend** | **Pydantic** | Validación de tipos, schemas y serialización de datos | `apps/api/schemas/` |
 | **Backend** | **SQLAlchemy** | ORM para interactuar con la base de datos PostgreSQL | `apps/api/database.py` |
 | **Frontend** | **Vanilla JS / HTML5 / CSS3** | Interfaz de usuario interactiva y responsiva para consultar la Pokédex | [`apps/web/`](file:///apps/web) |
