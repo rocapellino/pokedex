@@ -5,53 +5,64 @@ Este documento define los lineamientos, flujos de trabajo y estándares de desar
 ---
 
 ## 📑 Tabla de Contenidos
-1. [Estrategia de Ramas (Branching Strategy)](#1-estrategia-de-ramas-branching-strategy)
+1. [Estrategia de Ramas & Integración con Linear](#1-estrategia-de-ramas-branching-strategy--integración-con-linear)
 2. [Estándar de Commits (Conventional Commits)](#2-estándar-de-commits-conventional-commits)
 3. [Higiene del Repositorio y `.gitignore`](#3-higiene-del-repositorio-y-gitignore)
 4. [Flujo de Pull Requests (PR) y Revisiones](#4-flujo-de-pull-requests-pr-y-revisiones)
-5. [Estrategias de Integración (Merge vs Squash vs Rebase)](#5-estrategias-de-integración-merge-vs-squash-vs-rebase)
-6. [Versionado Semántico y Git Tags](#6-versionado-semántico-y-git-tags)
-7. [Seguridad y Prevención de Fuga de Secretos](#7-seguridad-y-prevención-de-fuga-de-secretos)
-8. [Automatización con Git Hooks (`pre-commit`)](#8-automatización-con-git-hooks-pre-commit)
+5. [Proceso de Verificación y Validación Local (Shift-Left Testing)](#5-proceso-de-verificación-y-validación-local-shift-left-testing)
+6. [Estrategias de Integración (Merge vs Squash vs Rebase)](#6-estrategias-de-integración-merge-vs-squash-vs-rebase)
+7. [Versionado Semántico y Git Tags](#7-versionado-semántico-y-git-tags)
+8. [Seguridad y Prevención de Fuga de Secretos](#8-seguridad-y-prevención-de-fuga-de-secretos)
 9. [Guía Rápida de Comandos para el Equipo](#9-guía-rápida-de-comandos-para-el-equipo)
 
 ---
 
-## 1. Estrategia de Ramas (Branching Strategy)
+## 1. Estrategia de Ramas (Branching Strategy) & Integración con Linear
 
-Para equipos ágiles y proyectos DevOps se recomienda **GitHub Flow** (o Trunk-Based con ramas cortas), garantizando que la rama principal siempre esté en un estado desplegable y estable.
+Para el proyecto utilizamos **GitHub Flow** combinado con la gestión ágil de tickets en **[Linear](https://linear.app)**, garantizando que la rama principal `main` siempre esté protegida y en estado desplegable.
 
 ```mermaid
 gitGraph
-    commit id: "v1.0.0"
-    branch feature/add-type-filter
-    checkout feature/add-type-filter
-    commit id: "feat: add type query"
-    commit id: "test: test type filter"
+    commit id: "v1.1.0"
+    branch rocapellino/PER-5-plantilla-pr
+    checkout rocapellino/PER-5-plantilla-pr
+    commit id: "feat: add pr template"
+    commit id: "test: pytest cov 90%"
     checkout main
-    merge feature/add-type-filter id: "PR #1 Merged"
-    branch bugfix/fix-404-error
-    checkout bugfix/fix-404-error
-    commit id: "fix: return json on 404"
+    merge rocapellino/PER-5-plantilla-pr id: "PR #1 Merged (Linear Done)"
+    branch rocapellino/PER-6-filtro-tipo
+    checkout rocapellino/PER-6-filtro-tipo
+    commit id: "feat: filter by type"
     checkout main
-    merge bugfix/fix-404-error id: "PR #2 Merged"
-    commit id: "v1.1.0" tag: "v1.1.0"
+    merge rocapellino/PER-6-filtro-tipo id: "PR #2 Merged"
+    commit id: "v1.2.0" tag: "v1.2.0"
 ```
 
-### 1.1. Reglas de Ramas
-- `main`: Rama de producción protegida. **Nunca se hace commit directo** ni `push --force`. Todo cambio entra vía Pull Request aprobado.
-- `feature/<nombre-descriptivo>`: Nuevas funcionalidades (ej. `feature/filtro-por-tipo`, `feature/docker-setup`).
-- `bugfix/<nombre-descriptivo>`: Corrección de errores en desarrollo (ej. `bugfix/validar-campos-post`).
-- `hotfix/<nombre-descriptivo>`: Corrección urgente para producción.
-- `docs/<nombre-descriptivo>`: Modificaciones exclusivas de documentación (ej. `docs/actualizar-readme`).
-- `test/<nombre-descriptivo>`: Adición o refactorización de tests (ej. `test/cobertura-rutas`).
+### 1.1. Convención de Nomenclatura de Ramas
+El formato de ramas está sincronizado con Linear bajo el patrón:
+```text
+<usuario>/<identificador-ticket>-<descripcion-corta>
+```
+* **Ejemplos:**
+  - `rocapellino/PER-5-configurar-plantilla-pr` (Feature asociada al ticket PER-5 de Linear)
+  - `rocapellino/PER-12-fix-cache-ttl` (Bugfix asociado al ticket PER-12)
+  - `rocapellino/PER-20-k6-stress-tests` (Pruebas de rendimiento)
+* **Atajo en Linear:** Presiona `Ctrl + Shift + .` en cualquier ticket de Linear para copiar el nombre de rama automáticamente.
 
-### 1.2. Protección de Ramas (Branch Protection)
-En la configuración de GitHub/GitLab se debe activar:
-1. **Require a pull request before merging.**
-2. **Require status checks to pass before merging** (Tests automáticos con Pytest y Linters).
-3. **Require approvals** (Al menos 1 aprobación de un compañero de equipo).
-4. **Dismiss stale pull request approvals when new commits are pushed.**
+---
+
+### 1.2. Protección de la Rama Principal (`main-protection` Ruleset)
+La rama `main` cuenta con un **GitHub Ruleset Activo** ([`main-protection.json`](file:///main-protection.json)) que impone las siguientes políticas de seguridad:
+
+1. 🚫 **Bloqueo de Deletions:** Imposible borrar la rama `main`.
+2. 🚫 **Bloqueo de Force Pushes (`non_fast_forward`):** Prohibido `git push --force`.
+3. 📋 **Pull Request Obligatorio:** Ningún cambio puede ser subido directamente a `main`.
+4. 💬 **Resolución Obligatoria de Conversaciones:** Todos los comentarios de revisión (humanos o de IA Copilot) deben marcarse como resueltos.
+5. 🛡️ **Quality Gates Obligatorios (Status Checks Estrictos):**
+   * `🧪 Lint, Security & Unit Tests` (Pytest + Cobertura + Ruff + Bandit).
+   * `🛡️ Gitleaks Secret Detection` (Detección de credenciales/secretos).
+   * La rama debe estar sincronizada y actualizada con `main` antes de autorizar el merge.
+
 
 ---
 
@@ -114,36 +125,61 @@ git push origin <rama>
 
 ## 4. Flujo de Pull Requests (PR) y Revisiones
 
-Todo cambio debe integrarse mediante Pull Requests con una descripción clara.
+Todo cambio debe integrarse mediante Pull Requests con una descripción clara y asociado a un ticket de Linear.
 
-### 4.1. Plantilla de Pull Request (`.github/pull_request_template.md`)
-Crear este archivo en el repositorio para estandarizar la creación de PRs:
+### 4.1. Plantilla de Pull Request ([`.github/pull_request_template.md`](file:///.github/pull_request_template.md))
+Al abrir un PR en GitHub, la plantilla se carga automáticamente:
 
 ```markdown
-## 📌 Tipo de Cambio
-- [ ] 🚀 Nueva funcionalidad (`feat`)
-- [ ] 🐛 Corrección de error (`fix`)
-- [ ] 📝 Documentación (`docs`)
-- [ ] 🧪 Pruebas (`test`)
-- [ ] 🔧 Configuración / CI/CD (`ci` / `chore`)
+## 📌 Issues Vinculados
+- **Linear:** <!-- Ejemplo: PER-5 / POK-12 -->
+- **GitHub (opcional):** Closes #<!-- 123 -->
 
-## 📋 Descripción del Cambio
-Explica brevemente qué se modificó y cuál era la motivación del cambio.
+## 📝 Resumen de Cambios
+<!-- Breve descripción de qué se implementó, refactorizó o corrigió -->
+
+## 📦 Componentes Afectados
+- [ ] `apps/api` (Backend FastAPI)
+- [ ] `apps/web` (Frontend Web / Nginx)
+- [ ] `infra` (Docker Compose / Monitorización)
+- [ ] `docs` / Configuración CI/CD
 
 ## 🧪 Pruebas Realizadas
-- [ ] Pruebas unitarias ejecutadas (`pytest`) con resultado exitoso.
-- [ ] Pruebas de integración con scripts HTTP (`scripts/run_all_scripts.py`).
-- [ ] Verificación manual en navegador / Postman.
+- [ ] Tests unitarios ejecutados (`pytest`)
+- [ ] Linters y formato verificados (`ruff`)
+- [ ] Verificado localmente en entorno Docker
 
-## 🔍 Checklist de Calidad
-- [ ] El código sigue las guías de estilo PEP 8.
-- [ ] No se subieron credenciales ni archivos temporales (`.venv`, `__pycache__`).
-- [ ] La documentación (`README.md` o docstrings) fue actualizada si correspondía.
+---
+> *Tip:* Si tienes habilitada la integración de Linear con GitHub, usar el formato de rama sugerido por Linear (`username/identifier-title`) vinculará automáticamente el PR al ticket.
 ```
 
 ---
 
-## 5. Estrategias de Integración (Merge vs Squash vs Rebase)
+## 5. Proceso de Verificación y Validación Local (*Shift-Left Testing*)
+
+Antes de hacer `git push` y abrir el PR, el desarrollador debe ejecutar la batería de herramientas de validación local mediante el **Taskfile** o **Makefile**:
+
+```mermaid
+flowchart LR
+    A[Código Modificado] --> B[1. task lint / ruff]
+    B --> C[2. task test / pytest + cov]
+    C --> D[3. task security / bandit]
+    D --> E[4. task audit / global]
+    E --> F[🚀 git push seguro]
+```
+
+### Comandos de Validación Local:
+| Validación | Comando con Task | Comando con Make | ¿Qué valida? |
+|---|---|---|---|
+| **Linter & Formato** | `task lint` / `task format` | `make lint` / `make format` | Errores de sintaxis PEP8, imports y reglas de rendimiento con Ruff. |
+| **Pruebas + Cobertura** | `task test` | `make test` | Suite de 14 pruebas con Pytest y reporte de cobertura (`pytest-cov`). |
+| **Seguridad SAST** | `task security` | `make security` | Detección estática de vulnerabilidades e inyecciones con Bandit. |
+| **Auditoría Global** | `task audit` | `make audit` | Ruff + Radon (Complejidad y Mantenibilidad) + Bandit + Duplicados. |
+| **Pruebas de Estrés** | `task perf` | `make perf` | Benchmarking de endpoints y validación de SLAs con k6. |
+
+---
+
+## 6. Estrategias de Integración (Merge vs Squash vs Rebase)
 
 Al fusionar un Pull Request en `main`, existen tres opciones:
 
@@ -152,124 +188,83 @@ flowchart TD
     subgraph Opciones["Estrategias de Merge"]
         A["Squash and Merge (Recomendado)"] -->|Combina todos los commits del PR en uno solo| D["Historial lineal y limpio en main"]
         B["Rebase and Merge"] -->|Reaplica commits individualmente| E["Mantiene commits individuales pero lineal"]
-        C["Merge Commit"] -->|Crea un commit de merge| F["Preserva grafo ramificado (puede generar ruido)"]
+        C["Merge Commit"] -->|Crea un commit de merge| F["Preserva grafo ramificado"]
     end
 ```
 
 > [!TIP]
 > **Recomendación para este proyecto:**
-> - Usar **Squash and Merge** para PRs de características (`feature/`) para que cada funcionalidad represente un único commit limpio y atómico en `main`.
-> - Mantener la opción **Automatically delete head branches** activada en GitHub para eliminar ramas fusionadas y evitar acumulación de ramas obsoletas (*stale branches*).
+> - Usar **Squash and Merge** o **Merge Commit** según la magnitud de la feature.
+> - Mantener la opción **Automatically delete head branches** activada en GitHub para eliminar ramas fusionadas y evitar ramas obsoletas (*stale branches*).
 
 ---
 
-## 6. Versionado Semántico y Git Tags
+## 7. Versionado Semántico y Git Tags
 
-Seguir la especificación [SemVer 2.0.0](https://semver.org/lang/es/): `vMAYOR.MENOR.PARCHE` (ej. `v1.2.3`).
+Seguir la especificación [SemVer 2.0.0](https://semver.org/lang/es/): `vMAYOR.MENOR.PARCHE` (ej. `v1.1.0`).
 
 - **MAYOR:** Cambios incompatibles con versiones anteriores (Breaking Changes en la API).
-- **MENOR:** Nuevas funcionalidades retrocompatibles (nuevos endpoints o parámetros).
+- **MENOR:** Nuevas funcionalidades retrocompatibles (herramientas de seguridad, testing, nuevos endpoints).
 - **PARCHE:** Correcciones de errores retrocompatibles.
 
-### 6.1. Creación de Tags Anotados
+### 7.1. Creación de Tags Anotados
 ```bash
 # Crear un tag anotado para una versión estable
-git tag -a v1.0.0 -m "Release v1.0.0: Versión inicial de la API Pokémon con pruebas completas"
+git tag -a v1.1.0 -m "Release v1.1.0: Linear integration, DevOps pipelines, Security SCA/SAST, Pytest-Cov, k6 perf tests and DX tooling"
 
-# Subir los tags al repositorio remoto
-git push origin v1.0.0
-
-# Subir todos los tags pendientes
-git push origin --tags
+# Subir el tag al repositorio remoto
+git push origin v1.1.0
 ```
 
 ---
 
-## 7. Seguridad y Prevención de Fuga de Secretos
+## 8. Seguridad y Prevención de Fuga de Secretos
 
 1. **Nunca commitear credenciales:** Tokens de GitHub, contraseñas de BD, claves JWT o API keys privadas jamás deben entrar al historial.
-2. **Plantilla de variables (`.env.example`):** Proveer un archivo de ejemplo sin datos reales:
-   ```ini
-   FLASK_ENV=development
-   PORT=5000
-   SECRET_KEY=cambiar_en_produccion_por_valor_seguro
-   ```
-3. **Escaneo Automático:** Integrar herramientas como `gitleaks` o `trufflehog` en los flujos de CI para bloquear PRs que contengan credenciales.
-
-> [!CAUTION]
-> Si se commitea un secreto por error a una rama pública o remota:
-> 1. **Revocar y rotar la clave inmediatamente.** Asumir que la clave fue comprometida.
-> 2. No basta con hacer un commit borrando el secreto; queda en el historial. Se debe usar `git filter-repo` o `BFG Repo-Cleaner` para purgarlo del historial.
-
----
-
-## 8. Automatización con Git Hooks (`pre-commit`)
-
-Para asegurar que ningún commit entre al repositorio con errores de sintaxis o tests rotos, se recomienda configurar el framework `pre-commit`.
-
-### 8.1. Archivo `.pre-commit-config.yaml`
-```yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
-      - id: check-added-large-files
-        args: ['--maxkb=500']
-      - id: detect-private-key
-
-  - repo: https://github.com/psf/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-        language_version: python3
-```
+2. **Plantilla de variables (`.env.example`):** Proveer un archivo de ejemplo sin datos reales.
+3. **Escaneo Automático:**
+   - **Gitleaks:** Inspecciona commits en pre-commit y GitHub Actions.
+   - **Bitnami Sealed Secrets (`kubeseal`):** Encripta credenciales antes de subirlas a Git.
+   - **Trivy:** Escaneo de vulnerabilidades en imágenes Docker y librerías.
 
 ---
 
 ## 9. Guía Rápida de Comandos para el Equipo
 
-### Iniciar una nueva tarea:
+### 1. Iniciar una nueva tarea desde Linear:
 ```bash
 # 1. Asegurar tener la última versión de main
 git checkout main
 git pull origin main
 
-# 2. Crear y moverse a la nueva rama
-git checkout -b feature/nombre-de-la-tarea
+# 2. Crear la rama copiando el formato de Linear (Ctrl + Shift + .)
+git checkout -b rocapellino/PER-10-nuevo-endpoint-berries
 ```
 
-### Trabajar y guardar cambios:
+### 2. Trabajar y validar localmente antes de subir:
 ```bash
-# Ver estado de archivos modificados
-git status
+# Ejecutar validaciones locales
+task lint
+task test
+task audit
 
-# Añadir cambios específicos
-git add src/app.py tests/test_app.py
-
-# Crear commit estructurado
-git commit -m "feat(api): validar campos requeridos en endpoint POST"
+# Si todo pasa en verde, añadir y commitear
+git add .
+git commit -m "feat(api): add berries endpoint and unit tests (PER-10)"
 ```
 
-### Mantener tu rama al día con `main` antes del PR:
+### 3. Mantener tu rama al día con `main` antes del PR:
 ```bash
-# Traer cambios recientes de main sin ensuciar con merge commits innecesarios
 git fetch origin
 git rebase origin/main
-
-# Si hay conflictos, resolverlos en el código y continuar:
-git add <archivos_resueltos>
-git rebase --continue
 ```
 
-### Publicar rama y abrir Pull Request:
+### 4. Publicar rama y abrir Pull Request:
 ```bash
-# Subir la rama al remoto
-git push -u origin feature/nombre-de-la-tarea
+git push -u origin rocapellino/PER-10-nuevo-endpoint-berries
 ```
+> Al abrir el PR en GitHub, se cargará la plantilla, el bot de Linear lo vinculará automáticamente y se dispararán los **Quality Gates** (`🧪 Lint, Security & Unit Tests` y `🛡️ Gitleaks`).
+
 
 ### Deshacer cambios locales de forma segura:
 ```bash
