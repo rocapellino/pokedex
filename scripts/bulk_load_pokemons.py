@@ -7,9 +7,26 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configuración de base de datos
-DATABASE_URL = os.getenv('DATABASE_URL') or "postgresql://postgres:postgres@localhost:5432/pokedex_db"
-REDIS_URL = os.getenv('REDIS_URL') or "redis://localhost:6379/0"
+def get_database_url() -> str:
+    """Construye la URL de conexión a PostgreSQL a partir de variables de entorno seguras."""
+    if os.getenv("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
+    host = os.getenv("POSTGRES_HOST", "localhost")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB", "pokedex_db")
+    return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+
+
+def get_redis_url() -> str:
+    """Construye la URL de conexión a Redis a partir de variables de entorno."""
+    if os.getenv("REDIS_URL"):
+        return os.environ["REDIS_URL"]
+    host = os.getenv("REDIS_HOST", "localhost")
+    port = os.getenv("REDIS_PORT", "6379")
+    return f"redis://{host}:{port}/0"
+
 
 # Mapeo de tipos en español (WikiDex)
 TYPE_TRANSLATIONS = {
@@ -156,7 +173,7 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
 def bulk_load_to_postgres(pokemons_data: list):
     import psycopg2
 
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(get_database_url())
     cur = conn.cursor()
 
     try:
@@ -254,7 +271,7 @@ def bulk_load_to_postgres(pokemons_data: list):
 def invalidate_redis_cache():
     try:
         import redis
-        r = redis.from_url(REDIS_URL)
+        r = redis.from_url(get_redis_url())
         r.delete('pokemons_all')
         logger.info("⚡ Caché de Redis invalidada correctamente.")
     except Exception as e:
