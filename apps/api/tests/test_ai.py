@@ -3,15 +3,16 @@
 # ==============================================================================
 import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import src.app as app_module
 from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup, get_ai_client
+
+import src.app as app_module
 from src.app import app
 
 

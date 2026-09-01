@@ -4,7 +4,6 @@
 # ==============================================================================
 import argparse
 import base64
-import os
 import sys
 from pathlib import Path
 
@@ -80,7 +79,7 @@ def handle_image(args):
     b64_data = result.get("image_base64")
     out_path = Path(args.output or "generated_pokemon_art.png")
     out_path.write_bytes(base64.b64decode(b64_data))
-    print(f"✅ ¡Imagen generada exitosamente!")
+    print("✅ ¡Imagen generada exitosamente!")
     print(f"💾 Guardada en: {out_path.resolve()}")
 
 
