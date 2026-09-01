@@ -1,0 +1,71 @@
+# ==============================================================================
+# Workflow: Crear Ticket Dinámico e Incremental en Linear ante PRs de Dependabot
+# ==============================================================================
+name: 📌 Sync Dependabot PRs to Linear
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  create-linear-ticket:
+    name: 🎫 Generate Incremental Linear Issue
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Crear Issue Incremental en Linear vía GraphQL API
+        id: linear_sync
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$LINEAR_API_KEY" ]; then
+            echo "⚠️ Secret LINEAR_API_KEY no encontrado. Omitiendo sincronización con Linear."
+            exit 0
+          fi
+
+          # 1. Obtener dinámicamente el equipo de Linear (sin hardcodear IDs)
+          TEAM_RESPONSE=$(curl -s -X POST https://api.linear.app/graphql \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -d '{"query": "{ teams { nodes { id key name } } }"}')
+
+          TEAM_ID=$(echo "$TEAM_RESPONSE" | jq -r '.data.teams.nodes[0].id')
+          TEAM_KEY=$(echo "$TEAM_RESPONSE" | jq -r '.data.teams.nodes[0].key')
+
+          echo "Equipo detectado dinámicamente en Linear: $TEAM_KEY ($TEAM_ID)"
+
+          # 2. Formatear título y descripción con referencia al PR
+          ISSUE_TITLE="Dependabot: $PR_TITLE (PR #$PR_NUMBER)"
+          ISSUE_DESC="Dependabot ha detectado actualizaciones de dependencias.\n\n🔗 **Pull Request en GitHub:** $PR_URL\n\n> *Nota:* Valida que los checks de CI pasen en verde antes de mergear."
+
+          # 3. Crear el issue (Linear genera automáticamente el código incremental consecutivo)
+          MUTATION_PAYLOAD=$(jq -n \
+            --arg teamId "$TEAM_ID" \
+            --arg title "$ISSUE_TITLE" \
+            --arg desc "$ISSUE_DESC" \
+            '{
+              query: "mutation CreateIssue($teamId: String!, $title: String!, $desc: String!) { issueCreate(input: { teamId: $teamId, title: $title, description: $desc }) { success issue { id identifier title url } } }",
+              variables: { teamId: $teamId, title: $title, desc: $desc }
+            }')
+
+          ISSUE_RESPONSE=$(curl -s -X POST https://api.linear.app/graphql \
+            -H "Content-Type: application/json" \
+            -H "Authorization: $LINEAR_API_KEY" \
+            -d "$MUTATION_PAYLOAD")
+
+          LINEAR_IDENTIFIER=$(echo "$ISSUE_RESPONSE" | jq -r '.data.issueCreate.issue.identifier')
+          LINEAR_URL=$(echo "$ISSUE_RESPONSE" | jq -r '.data.issueCreate.issue.url')
+
+          echo "✅ Ticket incremental generado automáticamente por Linear: $LINEAR_IDENTIFIER"
+          echo "🔗 URL del Ticket: $LINEAR_URL"
+          echo "linear_identifier=$LINEAR_IDENTIFIER" >> $GITHUB_OUTPUT
+          echo "linear_url=$LINEAR_URL" >> $GITHUB_OUTPUT
