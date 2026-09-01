@@ -29,3 +29,10 @@ Bienvenido al centro de documentación del monorepo **Pokémon DevOps**. Aquí s
 ### 4. 📖 Manuales Operativos y Runbooks ([`docs/runbooks/`](./runbooks/))
 * 🚀 [**KUBERNETES_AUTOSCALING_GUIDE.md**](./runbooks/KUBERNETES_AUTOSCALING_GUIDE.md): Manual paso a paso para el despliegue de la infraestructura en Kubernetes, siembra de datos y diagnóstico.
 * 🧪 [**STRESS_TESTING_GUIDE.md**](./runbooks/STRESS_TESTING_GUIDE.md): Guía de ejecución de pruebas de estrés, benchmark de concurrencia y validación del comportamiento dinámico del HPA.
+
+---
+
+### 5. 🤖 DevOps, CI/CD y Herramientas ([`docs/devops/`](./devops/))
+* 🤖 [**GITHUB_WORKFLOWS_GUIDE.md**](./devops/GITHUB_WORKFLOWS_GUIDE.md): Guía completa de pipelines de CI/CD (GitHub Actions), path filtering y flujo con Linear.
+* 🛠️ [**TOOLS_AND_TECH_STACK.md**](./devops/TOOLS_AND_TECH_STACK.md): Catálogo exhaustivo de herramientas utilizadas en el proyecto y propuestas de mejora/optimización.
+
