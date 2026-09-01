@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 2. Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: 3. Compilar Imagen de API (FastAPI)
         uses: docker/build-push-action@v5
