@@ -57,3 +57,19 @@ tasks:
     desc: "Detiene todos los contenedores de Docker Compose"
     cmds:
       - docker-compose down
+
+  ai:diagram:
+    desc: "Genera un diagrama Mermaid con Google AI Studio (Gemini 2.0 Flash)"
+    cmds:
+      - python scripts/ai_tools.py diagram {{.CLI_ARGS}}
+
+  ai:mock:
+    desc: "Genera un mockup UI frontend con Google AI Studio (Gemini 2.0 Flash)"
+    cmds:
+      - python scripts/ai_tools.py mock {{.CLI_ARGS}}
+
+  ai:image:
+    desc: "Genera una imagen artística con Google AI Studio (Imagen 3)"
+    cmds:
+      - python scripts/ai_tools.py image {{.CLI_ARGS}}
+
