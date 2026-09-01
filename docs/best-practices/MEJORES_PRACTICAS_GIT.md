@@ -5,7 +5,7 @@ Este documento define los lineamientos, flujos de trabajo y estándares de desar
 ---
 
 ## 📑 Tabla de Contenidos
-1. [Estrategia de Ramas & Integración con Linear](#1-estrategia-de-ramas-branching-strategy--integración-con-linear)
+1. [Estrategia de Ramas & Integración con Linear](#1-estrategia-de-ramas--integración-con-linear)
 2. [Estándar de Commits (Conventional Commits)](#2-estándar-de-commits-conventional-commits)
 3. [Higiene del Repositorio y `.gitignore`](#3-higiene-del-repositorio-y-gitignore)
 4. [Flujo de Pull Requests (PR) y Revisiones](#4-flujo-de-pull-requests-pr-y-revisiones)
@@ -52,7 +52,7 @@ El formato de ramas está sincronizado con Linear bajo el patrón:
 ---
 
 ### 1.2. Protección de la Rama Principal (`main-protection` Ruleset)
-La rama `main` cuenta con un **GitHub Ruleset Activo** ([`main-protection.json`](file:///main-protection.json)) que impone las siguientes políticas de seguridad:
+La rama `main` cuenta con un **GitHub Ruleset Activo** ([`main-protection.json`](/.github/rulesets/main-protection.json)) que impone las siguientes políticas de seguridad:
 
 1. 🚫 **Bloqueo de Deletions:** Imposible borrar la rama `main`.
 2. 🚫 **Bloqueo de Force Pushes (`non_fast_forward`):** Prohibido `git push --force`.
@@ -127,7 +127,7 @@ git push origin <rama>
 
 Todo cambio debe integrarse mediante Pull Requests con una descripción clara y asociado a un ticket de Linear.
 
-### 4.1. Plantilla de Pull Request ([`.github/pull_request_template.md`](file:///.github/pull_request_template.md))
+### 4.1. Plantilla de Pull Request ([`.github/pull_request_template.md`](/.github/pull_request_template.md))
 Al abrir un PR en GitHub, la plantilla se carga automáticamente:
 
 ```markdown
