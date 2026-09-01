@@ -36,5 +36,7 @@ Bienvenido al centro de documentación del monorepo **Pokémon DevOps**. Aquí s
 
 ### 5. 🤖 DevOps, CI/CD y Herramientas ([`docs/devops/`](./devops/))
 * 🤖 [**GITHUB_WORKFLOWS_GUIDE.md**](./devops/GITHUB_WORKFLOWS_GUIDE.md): Guía completa de pipelines de CI/CD (GitHub Actions), path filtering y flujo con Linear.
+* 🌿 [**GIT_BRANCHING_AND_MERGE_WORKFLOW.md**](./devops/GIT_BRANCHING_AND_MERGE_WORKFLOW.md): Guía y diagramas de creación de ramas, Conventional Commits, Pull Requests, merge a `main` y limpieza.
 * 🛠️ [**TOOLS_AND_TECH_STACK.md**](./devops/TOOLS_AND_TECH_STACK.md): Catálogo exhaustivo de herramientas utilizadas en el proyecto y propuestas de mejora/optimización.
+
 

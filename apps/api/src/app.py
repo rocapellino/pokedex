@@ -25,12 +25,25 @@ except ImportError:
         def invalidate_cache():
             pass
 
+try:
+    from apps.api.src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup
+except ImportError:
+    try:
+        from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup
+    except ImportError:
+        def generate_flowchart(prompt: str, diagram_type: str = "flowchart"):
+            return {"success": False, "error": "AI service unavailable", "mermaid_code": None}
+        def generate_ui_mockup(prompt: str, framework: str = "html/css"):
+            return {"success": False, "error": "AI service unavailable", "html_code": None}
+        def generate_image_asset(prompt: str, aspect_ratio: str = "1:1"):
+            return {"success": False, "error": "AI service unavailable", "image_base64": None}
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
     title="Pokédex REST API",
-    description="API REST de Alto Rendimiento para Pokédex con soporte asíncrono, OpenAPI y observabilidad.",
-    version="1.1.0",
+    description="API REST de Alto Rendimiento para Pokédex con soporte asíncrono, OpenAPI, observabilidad y Google AI Studio.",
+    version="1.2.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -104,6 +117,30 @@ class PokemonUpdateSchema(BaseModel):
     habitat: Optional[str] = None
     tipos: Optional[List[str]] = None
     stats: Optional[Dict[str, int]] = None
+
+
+# ==============================================================================
+# Modelos Pydantic para Google AI Studio (Gemini & Imagen 3)
+# ==============================================================================
+class AIDiagramRequest(BaseModel):
+    prompt: str = Field(..., description="Descripción del flujo o arquitectura a diagramar")
+    diagram_type: Optional[str] = Field("flowchart", description="Tipo de diagrama Mermaid (flowchart, sequence, classDiagram)")
+
+
+class AIMockupRequest(BaseModel):
+    prompt: str = Field(..., description="Descripción del componente o interfaz a generar")
+    framework: Optional[str] = Field("html/css", description="Framework de estilos (html/css, tailwind, react)")
+
+
+class AIImageRequest(BaseModel):
+    prompt: str = Field(..., description="Descripción del Pokémon o asset visual a generar con Imagen 3")
+    aspect_ratio: str = Field(
+        "1:1",
+        pattern=r"^(1:1|16:9|9:16|4:3|3:4)$",
+        description="Relación de aspecto de la imagen (1:1, 16:9, 9:16, 4:3, 3:4)",
+    )
+
+
 
 
 # Base de datos en memoria (Fallback / Testing)
@@ -321,3 +358,40 @@ async def prometheus_metrics():
         lines.append(f'pokedex_http_request_duration_seconds_count{{method="{method}",endpoint="{endpoint}"}} {count}')
 
     return PlainTextResponse("\n".join(lines) + "\n")
+
+
+# ==============================================================================
+# Endpoints de Google AI Studio (Gemini 2.0 Flash & Imagen 3)
+# ==============================================================================
+@app.post("/api/v1/ai/diagram", summary="Generar Diagrama de Flujo (Mermaid) con Gemini")
+async def ai_generate_diagram(payload: AIDiagramRequest):
+    result = generate_flowchart(prompt=payload.prompt, diagram_type=payload.diagram_type or "flowchart")
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=result.get("error", "Error generando diagrama con Gemini")
+        )
+    return result
+
+
+@app.post("/api/v1/ai/mock", summary="Generar Mockup Frontend / UI con Gemini")
+async def ai_generate_mock(payload: AIMockupRequest):
+    result = generate_ui_mockup(prompt=payload.prompt, framework=payload.framework or "html/css")
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=result.get("error", "Error generando mockup con Gemini")
+        )
+    return result
+
+
+@app.post("/api/v1/ai/image", summary="Generar Imagen Pokémon con Imagen 3")
+async def ai_generate_image(payload: AIImageRequest):
+    result = generate_image_asset(prompt=payload.prompt, aspect_ratio=payload.aspect_ratio or "1:1")
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=result.get("error", "Error generando imagen con Imagen 3")
+        )
+    return result
+
