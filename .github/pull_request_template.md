@@ -1,5 +1,6 @@
-## 📌 Linear Issue
-- Closes / Fixes: <!-- Ejemplo: LIN-12 o POK-12 -->
+## 📌 Issues Vinculados
+- **Linear:** <!-- Ejemplo: PER-5 / POK-12 -->
+- **GitHub (opcional):** Closes #<!-- 123 -->
 
 ## 📝 Resumen de Cambios
 <!-- Breve descripción de qué se implementó, refactorizó o corrigió -->
@@ -16,4 +17,4 @@
 - [ ] Verificado localmente en entorno Docker
 
 ---
-> *Tip:* Si utilizas el formato de rama sugerido por Linear (`username/identifier-title`), el PR se vinculará de forma automática.
+> *Tip:* Si tienes habilitada la integración de Linear con GitHub, usar el formato de rama sugerido por Linear (`username/identifier-title`) vinculará automáticamente el PR al ticket.
