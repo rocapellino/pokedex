@@ -38,8 +38,8 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       PORT: "${PORT:-5000}"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_secure_password_k8s}@postgres:5432/${POSTGRES_DB:-pokedex_db}"
-      REDIS_URL: "redis://redis:6379/0"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_secure_password_k8s}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
     depends_on:
       postgres:
         condition: service_healthy

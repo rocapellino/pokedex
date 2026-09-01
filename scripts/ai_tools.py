@@ -77,7 +77,7 @@ def handle_image(args):
         sys.exit(1)
 
     b64_data = result.get("image_base64")
-    out_path = Path(args.output or "generated_pokemon_art.png")
+    out_path = Path(args.output)
     out_path.write_bytes(base64.b64decode(b64_data))
     print("✅ ¡Imagen generada exitosamente!")
     print(f"💾 Guardada en: {out_path.resolve()}")

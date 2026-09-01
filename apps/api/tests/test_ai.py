@@ -104,3 +104,10 @@ def test_ai_image_endpoint(mock_image, client):
     data = response.json()
     assert data["success"] is True
     assert "image_base64" in data
+
+
+def test_ai_image_endpoint_invalid_aspect_ratio(client):
+    """Verifica que un aspect_ratio inválido retorne error 422 de validación Pydantic."""
+    response = client.post("/api/v1/ai/image", json={"prompt": "Charizard", "aspect_ratio": "invalid_ratio"})
+    assert response.status_code == 422
+

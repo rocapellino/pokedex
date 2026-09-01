@@ -134,7 +134,12 @@ class AIMockupRequest(BaseModel):
 
 class AIImageRequest(BaseModel):
     prompt: str = Field(..., description="Descripción del Pokémon o asset visual a generar con Imagen 3")
-    aspect_ratio: Optional[str] = Field("1:1", description="Relación de aspecto de la imagen (1:1, 16:9, 9:16, 4:3, 3:4)")
+    aspect_ratio: str = Field(
+        "1:1",
+        pattern=r"^(1:1|16:9|9:16|4:3|3:4)$",
+        description="Relación de aspecto de la imagen (1:1, 16:9, 9:16, 4:3, 3:4)",
+    )
+
 
 
 
