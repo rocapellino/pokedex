@@ -37,7 +37,61 @@ El proyecto utiliza un modelo ágil basado en **GitHub Flow**:
 
 ```mermaid
 flowchart TD
-    %% Estilo General
+    %% Definición de Nodos
+    Start(["Inicio: Nueva Tarea / Requerimiento"])
+    
+    subgraph Planificacion ["1. Planificación en Linear"]
+        LinearIssue["Identificar Ticket en Linear<br/>Ej: PER-7 / rocapellino/per-7-..."]
+    end
+
+    subgraph DesarrolloLocal ["2. Entorno Local Git"]
+        SyncMain["git checkout main<br/>git pull origin main"]
+        CreateBranch["git checkout -b rocapellino/per-7-upgrade-python-3-13"]
+        Coding["Desarrollo de código y pruebas locales"]
+        LocalAudit["task test && task lint"]
+        CommitChanges["git add .<br/>git commit -m 'feat(scope): mensaje'"]
+        PushRemote["git push -u origin nombre-rama"]
+    end
+
+    subgraph RevisionGitHub ["3. GitHub Pull Request & CI/CD"]
+        OpenPR["Abrir Pull Request en GitHub"]
+        CIWorkflow["Disparo automático de GitHub Actions<br/>api.yml / security-gitleaks.yml"]
+        CheckCI{"¿Pasan todos<br/>los checks de CI?"}
+        FixLocally["Corregir localmente y hacer git push"]
+        ReviewCopilot{"Code Review &<br/>Aprobación"}
+        MergeToMain["Squash and Merge hacia main"]
+    end
+
+    subgraph PostMerge ["4. Automatización Post-Merge"]
+        AutoTag["release-tag.yml genera Tag SemVer<br/>v1.2.0 y GitHub Release"]
+        LinearClose["Linear cierra ticket automáticamente<br/>(Done / Completed)"]
+        CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d rama"]
+    end
+
+    Finish(["Tarea Integrada con Éxito"])
+
+    %% Conexiones
+    Start --> LinearIssue
+    LinearIssue --> SyncMain
+    SyncMain --> CreateBranch
+    CreateBranch --> Coding
+    Coding --> LocalAudit
+    LocalAudit --> CommitChanges
+    CommitChanges --> PushRemote
+    PushRemote --> OpenPR
+    OpenPR --> CIWorkflow
+    CIWorkflow --> CheckCI
+    CheckCI -- "No (Fallo)" --> FixLocally
+    FixLocally --> CIWorkflow
+    CheckCI -- "Sí (Éxito)" --> ReviewCopilot
+    ReviewCopilot -- "Cambios requeridos" --> FixLocally
+    ReviewCopilot -- "Aprobado" --> MergeToMain
+    MergeToMain --> AutoTag
+    MergeToMain --> LinearClose
+    MergeToMain --> CleanLocal
+    CleanLocal --> Finish
+
+    %% Estilos
     classDef startEnd fill:#1e293b,stroke:#0ea5e9,stroke-width:2px,color:#fff;
     classDef gitAction fill:#0f172a,stroke:#38bdf8,stroke-width:1px,color:#f8fafc;
     classDef linearStep fill:#581c87,stroke:#c084fc,stroke-width:1px,color:#fff;
@@ -45,41 +99,12 @@ flowchart TD
     classDef success fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
     classDef fail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
 
-    Start([📌 Inicio: Nueva Tarea / Requerimiento]) :::startEnd
-    
-    subgraph Planificacion ["1. Planificación en Linear"]
-        Start --> LinearIssue[Identificar Ticket en Linear<br/>Ej: PER-7 / rocapellino/per-7-...]:::linearStep
-    end
-
-    subgraph DesarrolloLocal ["2. Entorno Local Git"]
-        LinearIssue --> SyncMain["git checkout main<br/>git pull origin main"]:::gitAction
-        SyncMain --> CreateBranch["git checkout -b rocapellino/per-7-upgrade-python-3-13"]:::gitAction
-        CreateBranch --> Coding["Desarrollo de código y pruebas locales"]:::gitAction
-        Coding --> LocalAudit["task test && task lint"]:::gitAction
-        LocalAudit --> CommitChanges["git add .<br/>git commit -m 'feat(scope): mensaje'"]:::gitAction
-        CommitChanges --> PushRemote["git push -u origin &lt;nombre-rama&gt;"]:::gitAction
-    end
-
-    subgraph RevisionGitHub ["3. GitHub Pull Request & CI/CD"]
-        PushRemote --> OpenPR[Abrir Pull Request en GitHub]:::gitAction
-        OpenPR --> CIWorkflow[Disparo automático de GitHub Actions<br/>api.yml / security-gitleaks.yml / etc.]:::gitAction
-        
-        CIWorkflow --> CheckCI{¿Pasan todos<br/>los checks de CI?}:::decision
-        CheckCI -- No ❌ --> FixLocally[Corregir localmente y hacer git push]:::fail
-        FixLocally --> CIWorkflow
-        
-        CheckCI -- Sí ✅ --> ReviewCopilot{Code Review &<br/>Aprobación}:::decision
-        ReviewCopilot -- Cambios Solicitados --> FixLocally
-        ReviewCopilot -- Aprobado ✅ --> MergeToMain[Squash and Merge hacia 'main']:::success
-    end
-
-    subgraph PostMerge ["4. Automatización Post-Merge"]
-        MergeToMain --> AutoTag[release-tag.yml genera Tag SemVer<br/>v1.2.0 y GitHub Release]:::gitAction
-        MergeToMain --> LinearClose[Linear cierra ticket automáticamente<br/>(Done / Completed)]:::linearStep
-        MergeToMain --> CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d &lt;rama&gt;"]:::gitAction
-    end
-
-    CleanLocal --> Finish([🎉 Tarea Integrada con Éxito]) :::startEnd
+    class Start,Finish startEnd;
+    class LinearIssue,LinearClose linearStep;
+    class SyncMain,CreateBranch,Coding,LocalAudit,CommitChanges,PushRemote,OpenPR,CIWorkflow,AutoTag,CleanLocal gitAction;
+    class CheckCI,ReviewCopilot decision;
+    class MergeToMain success;
+    class FixLocally fail;
 ```
 
 ---
