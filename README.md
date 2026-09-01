@@ -1,6 +1,6 @@
 # ⚡ Plataforma Pokémon DevOps: Monorepo & Cloud-Native Architecture
 
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/) [![Nginx](https://img.shields.io/badge/Nginx-1.27-009639?style=flat&logo=nginx&logoColor=white)](https://nginx.org/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/) [![Nginx](https://img.shields.io/badge/Nginx-1.27-009639?style=flat&logo=nginx&logoColor=white)](https://nginx.org/)
 
 Este repositorio implementa una solución completa de ingeniería **DevOps y Cloud-Native** para la plataforma **Pokédex API**, diseñada bajo una arquitectura de **Monorepo por dominios**, contenerización segura multi-stage, autoescalado elástico horizontal (**HPA en Kubernetes**) y consistencia transaccional centralizada.
 
@@ -67,7 +67,7 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
 | **Frontend Web** | HTML5, CSS3, JS Vanilla, Nginx 1.27 | Interfaz de usuario interactiva, temas dinámicos y proxy inverso local. |
-| **Backend API** | Python 3.11, FastAPI, Uvicorn ASGI | Microservicio REST asíncrono, OpenAPI Swagger (`/docs`) y Pydantic v2. |
+| **Backend API** | Python 3.13, FastAPI, Uvicorn ASGI | Microservicio REST asíncrono, OpenAPI Swagger (`/docs`) y Pydantic v2. |
 | **Base de Datos** | PostgreSQL 16 Alpine | Persistencia relacional con esquema estructurado (WikiDex / PKParaíso). |
 | **Connection Pooling**| PgBouncer | Gestión eficiente de conexiones ante escalado masivo de pods. |
 | **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes (< 3ms) e invalidación inteligente. |

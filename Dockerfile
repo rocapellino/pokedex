@@ -1,7 +1,7 @@
 # ==============================================================================
 # ETAPA 1: Builder (Compilación e instalación de dependencias en prefijo aislado)
 # ==============================================================================
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Configurar variables de entorno para pip y optimización de Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,7 +20,7 @@ RUN pip install --prefix=/install --no-warn-script-location -r requirements.txt
 # ==============================================================================
 # ETAPA 2: Runner (Imagen final ligera y segura para producción)
 # ==============================================================================
-FROM python:3.11-slim AS runner
+FROM python:3.13-slim AS runner
 
 # Metadatos del contenedor
 LABEL maintainer="@rocapellino" \
