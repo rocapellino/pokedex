@@ -48,6 +48,8 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Actualizaciones Auto** | **Dependabot** | Apertura automática de PRs consolidados (Grouped Updates) para pip, docker y actions | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
 | **Automatización DX** | **Taskfile & Makefile** | Comandos unificados cross-platform (`task test`, `task dev`, `task audit`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml), [`Makefile`](file:///Makefile) |
 | **Gestión Ágil** | **Linear** | Gestión de tickets, ciclos, ramas automatizadas y PR linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
+| **Inteligencia Artificial** | **Google AI Studio (Gemini & Imagen)** | Generación de diagramas de arquitectura, mockups UI y assets visuales | [`apps/api/src/ai_service.py`](file:///apps/api/src/ai_service.py), [`scripts/ai_tools.py`](file:///scripts/ai_tools.py) |
+
 
 
 ---

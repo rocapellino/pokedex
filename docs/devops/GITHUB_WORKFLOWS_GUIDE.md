@@ -19,6 +19,8 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 4. [Integración con Linear (Issue Tracking)](#4-integración-con-linear-issue-tracking)
 5. [Diagrama de Ejecución y Flujo de Decisión](#5-diagrama-de-ejecución-y-flujo-de-decisión)
 6. [Cómo Interpretar y Solucionar Errores en GitHub](#6-cómo-interpretar-y-solucionar-errores-en-github)
+7. [🌿 Guía de Creación de Ramas y Merge a Main](GIT_BRANCHING_AND_MERGE_WORKFLOW.md)
+
 
 ---
 

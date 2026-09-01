@@ -5,12 +5,26 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Configuración de base de datos
-DATABASE_URL = os.getenv('DATABASE_URL') or (
-    f"postgresql://{os.getenv('POSTGRES_USER', 'postgres')}:{os.getenv('POSTGRES_PASSWORD', 'postgres')}@"
-    f"{os.getenv('POSTGRES_HOST', 'postgres')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'pokedex_db')}"
-)
-REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+def get_database_url() -> str:
+    """Construye la URL de conexión a PostgreSQL a partir de variables de entorno seguras."""
+    if os.getenv("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
+    host = os.getenv("POSTGRES_HOST", "postgres")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB", "pokedex_db")
+    return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+
+
+def get_redis_url() -> str:
+    """Construye la URL de conexión a Redis a partir de variables de entorno."""
+    if os.getenv("REDIS_URL"):
+        return os.environ["REDIS_URL"]
+    host = os.getenv("REDIS_HOST", "redis")
+    port = os.getenv("REDIS_PORT", "6379")
+    return f"redis://{host}:{port}/0"
+
 
 _redis_client = None
 
@@ -21,7 +35,8 @@ def get_redis_client():
         return _redis_client
     try:
         import redis
-        client = redis.from_url(REDIS_URL, decode_responses=True, socket_connect_timeout=2)
+        client = redis.from_url(get_redis_url(), decode_responses=True, socket_connect_timeout=2)
+
         client.ping()
         _redis_client = client
         return _redis_client
@@ -34,7 +49,7 @@ def get_db_connection():
     try:
         import psycopg2
         import psycopg2.extras
-        conn = psycopg2.connect(DATABASE_URL, connect_timeout=3)
+        conn = psycopg2.connect(get_database_url(), connect_timeout=3)
         return conn
     except Exception as e:
         logger.debug(f"PostgreSQL no disponible ({e}), operando en memoria.")
