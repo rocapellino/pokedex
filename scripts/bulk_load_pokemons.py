@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 # Configuración de base de datos
-DATABASE_URL = os.getenv('DATABASE_URL') or "postgresql://postgres:postgres@localhost:5432/pokedex_db"
-REDIS_URL = os.getenv('REDIS_URL') or "redis://localhost:6379/0"
+DATABASE_URL = os.getenv('DATABASE_URL') or "postgresql://postgres:postgres_secure_password_k8s@postgres:5432/pokedex_db"
+REDIS_URL = os.getenv('REDIS_URL') or "redis://redis:6379/0"
 
 # Mapeo de tipos en español (WikiDex)
 TYPE_TRANSLATIONS = {
