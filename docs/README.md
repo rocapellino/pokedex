@@ -7,6 +7,8 @@ Bienvenido al centro de documentación del monorepo **Pokémon DevOps**. Aquí s
 ## 📑 Mapa de la Documentación
 
 ### 1. 🏗️ Arquitectura y Decisiones de Diseño ([`docs/architecture/`](./architecture/))
+* 🎨 [**MOCKUPS_Y_DISENO_UI.md**](./architecture/MOCKUPS_Y_DISENO_UI.md): **Mockups visuales de alta fidelidad** del Catálogo Público, Ficha de Detalle de Pokémon y Panel Backoffice CRUD, acompañados de tokens de diseño y directrices de accesibilidad.
+* 🔬 [**ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md**](./architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md): **Análisis técnico de lenguajes (TypeScript vs. Python vs. Go)**, evaluación de cambios de stack, arquitectura limpia y mejores prácticas de ingeniería de software.
 * 🔄 [**APPLICATION_LIFECYCLE.md**](./architecture/APPLICATION_LIFECYCLE.md): **Ciclo de vida integral (SDLC & DevOps)** de la aplicación con diagrama de flujo de punta a punta (Linear, Git, CI/CD, SemVer Auto-Release, K8s y Dependabot).
 * 📂 [**MONOREPO_STRUCTURE.md**](./architecture/MONOREPO_STRUCTURE.md): Estructura detallada de directorios, convención de organización por dominios (`apps/`, `infra/`, `docs/`, `scripts/`) y responsabilidades de cada componente.
 * 📊 [**DATABASE_ANALYSIS.md**](./architecture/DATABASE_ANALYSIS.md): Análisis de persistencia de datos (SQL relacional vs NoSQL vs Híbrido), modelado entidad-relación basado en WikiDex y almacenamiento de assets multimedia.

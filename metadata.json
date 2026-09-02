@@ -1,0 +1,6 @@
+{
+  "name": "Pokédex",
+  "description": "Pokédex web application with public catalog, backoffice management, REST API, and Google AI Studio capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

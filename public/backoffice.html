@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokédex Backoffice - Panel de Administración CRUD</title>
+  <meta name="description" content="Pokédex web application with public catalog, backoffice management, REST API, and Google AI Studio capabilities.">
+  <!-- Favicons (Pokébola Oficial) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/backoffice.css">
+  <!-- Theme Manager Script (Zero-FOUC) -->
+  <script src="js/theme.js"></script>
+</head>
+<body class="backoffice-body">
+
+  <div class="app-container">
+    <!-- Navbar Header -->
+    <header class="navbar admin-navbar">
+      <a href="/admin" class="brand">
+        <svg class="pokeball-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="#3B82F6" stroke-width="8" fill="#111827"/>
+          <path d="M4 50H32M68 50H96" stroke="#3B82F6" stroke-width="8" stroke-linecap="round"/>
+          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#3B82F6"/>
+          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#3B82F6" stroke-width="6"/>
+          <circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+        </svg>
+        <div>
+          <span class="brand-title">Pokédex Backoffice</span>
+          <span class="brand-badge badge-admin">Panel CRUD</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <!-- Theme Switcher Control (Claro, Oscuro, Sistema) -->
+        <div class="theme-switch-group" role="radiogroup" aria-label="Seleccionar tema">
+          <button type="button" class="theme-btn" data-theme-val="light" onclick="setTheme('light')" title="Modo Claro" aria-label="Modo Claro">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <span class="theme-label">Claro</span>
+          </button>
+          <button type="button" class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')" title="Modo Oscuro" aria-label="Modo Oscuro">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span class="theme-label">Oscuro</span>
+          </button>
+          <button type="button" class="theme-btn" data-theme-val="system" onclick="setTheme('system')" title="Igual al Sistema" aria-label="Igual al Sistema">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span class="theme-label">Sistema</span>
+          </button>
+        </div>
+
+        <div class="api-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="backendStatus">Conectado: Kubernetes, Postgres & Redis</span>
+        </div>
+        <button class="btn btn-sync" onclick="invalidateCache()" title="Refrescar e invalidar Redis">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Sincronizar Caché
+        </button>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Crear Nuevo Pokémon
+        </button>
+        <a href="/" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Ir a Pokédex Pública
+        </a>
+      </div>
+    </header>
+
+    <!-- Admin KPI Cards -->
+    <div class="admin-kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon icon-blue">📊</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Total en Base de Datos</span>
+          <span class="kpi-value" id="kpiTotal">0</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon icon-red">⚔️</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Fuerza Promedio</span>
+          <span class="kpi-value" id="kpiAvgForce">0 pts</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon icon-green">🏷️</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Tipos Diferentes</span>
+          <span class="kpi-value" id="kpiTypesCount">0</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon icon-yellow">⚡</div>
+        <div class="kpi-details">
+          <span class="kpi-label">Estado de Caché</span>
+          <span class="kpi-value" id="kpiCacheStatus" style="font-size: 1.1rem; color: #10b981;">Activo en Redis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Toolbar -->
+    <section class="table-toolbar">
+      <div class="search-box table-search">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="adminSearchInput" class="search-input" placeholder="Filtrar por ID, Nombre o Tipo..." oninput="handleAdminSearch()">
+      </div>
+
+      <div class="toolbar-actions">
+        <select id="adminTypeFilter" class="select-filter" onchange="handleAdminTypeFilter()">
+          <option value="all">Todos los Tipos</option>
+          <option value="Planta">Planta</option>
+          <option value="Fuego">Fuego</option>
+          <option value="Agua">Agua</option>
+          <option value="Eléctrico">Eléctrico</option>
+          <option value="Psíquico">Psíquico</option>
+          <option value="Roca">Roca</option>
+          <option value="Tierra">Tierra</option>
+          <option value="Hielo">Hielo</option>
+          <option value="Dragón">Dragón</option>
+          <option value="Fantasma">Fantasma</option>
+          <option value="Veneno">Veneno</option>
+          <option value="Bicho">Bicho</option>
+          <option value="Volador">Volador</option>
+          <option value="Lucha">Lucha</option>
+          <option value="Acero">Acero</option>
+          <option value="Siniestro">Siniestro</option>
+          <option value="Hada">Hada</option>
+          <option value="Normal">Normal</option>
+        </select>
+
+        <select id="adminPageSize" class="select-filter" onchange="handlePageSizeChange()">
+          <option value="25">25 por página</option>
+          <option value="50" selected>50 por página</option>
+          <option value="100">100 por página</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Admin CRUD Table Container -->
+    <main class="table-responsive">
+      <table class="admin-table" id="adminTable">
+        <thead>
+          <tr>
+            <th width="80">ID</th>
+            <th width="80">Avatar</th>
+            <th>Nombre del Pokémon</th>
+            <th>Tipo Primario</th>
+            <th>Fuerza</th>
+            <th>Peso / Altura</th>
+            <th>Hábitat</th>
+            <th width="140" style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="8" class="table-loading">
+              <div class="spinner"></div>
+              <span>Cargando registros desde PostgreSQL...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+
+    <!-- Table Pagination -->
+    <div class="pagination-container" id="adminPagination">
+      <button class="btn btn-secondary" id="adminBtnPrev" onclick="changeAdminPage(-1)">← Anterior</button>
+      <span class="page-info" id="adminPageInfo">Cargando...</span>
+      <button class="btn btn-secondary" id="adminBtnNext" onclick="changeAdminPage(1)">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- Modal Crear / Editar Pokémon -->
+  <div class="modal-overlay" id="crudModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="crudModalTitle">Nuevo Pokémon</h3>
+        <button class="btn-icon" onclick="closeCrudModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="crudForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="formPokemonId">
+
+        <div class="form-group">
+          <label class="form-label" for="nombre">Nombre</label>
+          <input type="text" id="nombre" class="form-control" placeholder="Ej: Pikachu" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imagen">URL Imagen (Artwork Oficial)</label>
+          <input type="url" id="imagen" class="form-control" placeholder="https://raw.githubusercontent.com/..." required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="tipo">Tipo Principal</label>
+            <select id="tipo" class="form-control" required>
+              <option value="Eléctrico">Eléctrico</option>
+              <option value="Fuego">Fuego</option>
+              <option value="Agua">Agua</option>
+              <option value="Planta">Planta</option>
+              <option value="Psíquico">Psíquico</option>
+              <option value="Roca">Roca</option>
+              <option value="Tierra">Tierra</option>
+              <option value="Hielo">Hielo</option>
+              <option value="Dragón">Dragón</option>
+              <option value="Fantasma">Fantasma</option>
+              <option value="Veneno">Veneno</option>
+              <option value="Bicho">Bicho</option>
+              <option value="Volador">Volador</option>
+              <option value="Lucha">Lucha</option>
+              <option value="Acero">Acero</option>
+              <option value="Siniestro">Siniestro</option>
+              <option value="Hada">Hada</option>
+              <option value="Normal">Normal</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="fuerza">Fuerza de Combate</label>
+            <input type="number" id="fuerza" class="form-control" min="1" max="999" value="50" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="peso">Peso (kg)</label>
+            <input type="number" step="0.1" id="peso" class="form-control" min="0.1" max="9999" value="6.0" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="altura">Altura (m)</label>
+            <input type="number" step="0.1" id="altura" class="form-control" min="0.1" max="99" value="0.4" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="habitat">Hábitat / Región</label>
+          <input type="text" id="habitat" class="form-control" placeholder="Ej: Bosque / Kanto" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="habilidades">Habilidades (separadas por coma)</label>
+          <input type="text" id="habilidades" class="form-control" placeholder="Ej: Static, Lightning Rod" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitForm">Guardar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Confirmación de Eliminación -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-card modal-delete-card">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
+        <button class="btn-icon" onclick="closeDeleteModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 1rem 0;">
+        <p>¿Estás seguro de que deseas eliminar a <strong id="deletePokemonName" style="color: #fff;"></strong> (#<span id="deletePokemonId"></span>) de la base de datos?</p>
+        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.9rem;">Esta acción no se puede deshacer y se invalidará automáticamente la caché de Redis.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDelete" onclick="executeDelete()">Sí, Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JavaScript -->
+  <script src="js/backoffice.js"></script>
+</body>
+</html>
