@@ -30,12 +30,12 @@
 ---
 
 ## 🧪 Pruebas y Verificaciones Realizadas
-- [ ] **Tests unitarios:** `pytest` ejecutado con cobertura (`make test`)
-- [ ] **Linters y formato:** `ruff check` y `ruff format` sin advertencias (`make lint`)
-- [ ] **Auditoría de calidad:** `python scripts/audit_code_quality.py` (`make audit`)
+- [ ] **Tests unitarios:** `pytest` ejecutado con cobertura (`task test`)
+- [ ] **Linters y formato:** `ruff check` y `ruff format` sin advertencias (`task lint`)
+- [ ] **Auditoría de calidad:** `python scripts/audit_code_quality.py` (`task audit`)
 - [ ] **Validación IaC:** Manifiestos de K8s / Terraform validados (`infra/`)
-- [ ] **Seguridad:** Verificado con Bandit / Gitleaks (`make security`)
-- [ ] **Entorno local:** Probado en contenedores Docker (`make docker-up`)
+- [ ] **Seguridad:** Verificado con Bandit / Gitleaks (`task security`)
+- [ ] **Entorno local:** Probado en contenedores Docker (`task docker:up`)
 
 ---
 
