@@ -97,7 +97,7 @@ flowchart TD
 
 ### Fase 2: Desarrollo Local y Quality Gates (DX)
 * El desarrollador crea la rama local y trabaja en el código de `apps/api`, `apps/web` o `infra/`.
-* Utiliza el task runner unificado (`task test`, `task audit` o `make audit`) para verificar:
+* Utiliza el task runner multiplataforma (`task test`, `task audit`) para verificar:
   * Pruebas unitarias con Pytest.
   * Análisis de cobertura de código (>75%).
   * Linting y formato con Ruff.

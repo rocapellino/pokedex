@@ -73,3 +73,31 @@ tasks:
     cmds:
       - python scripts/ai_tools.py image {{.CLI_ARGS}}
 
+  # ----------------------------------------------------------------------------
+  # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK)
+  # ----------------------------------------------------------------------------
+  ts:install:
+    desc: "Instala dependencias de Node.js / TypeScript con npm"
+    cmds:
+      - npm install
+
+  ts:dev:
+    desc: "Inicia el servidor Express TypeScript con recarga rápida (tsx)"
+    cmds:
+      - npm run dev
+
+  ts:build:
+    desc: "Compila el bundle de producción del servidor TypeScript (esbuild)"
+    cmds:
+      - npm run build
+
+  ts:start:
+    desc: "Ejecuta el bundle de producción compilado (dist/server.cjs)"
+    cmds:
+      - npm start
+
+  ts:lint:
+    desc: "Verifica tipos de TypeScript sin emitir código (tsc --noEmit)"
+    cmds:
+      - npm run lint
+
