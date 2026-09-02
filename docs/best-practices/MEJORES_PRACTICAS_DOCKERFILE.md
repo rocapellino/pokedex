@@ -1,6 +1,6 @@
-# 🐳 Guía de Mejores Prácticas para Dockerfile (Proyecto Python / Flask)
+# 🐳 Guía de Mejores Prácticas para Dockerfile (Proyecto Python / FastAPI)
 
-Este documento establece las mejores prácticas y estándares de la industria para la contenerización del proyecto **Pokémon API (Flask)**, optimizando **seguridad**, **rendimiento**, **tamaño de imagen** y **mantenibilidad**.
+Este documento establece las mejores prácticas y estándares de la industria para la contenerización del proyecto **Pokémon API (FastAPI + Uvicorn)**, optimizando **seguridad**, **rendimiento**, **tamaño de imagen** y **mantenibilidad**.
 
 ---
 
@@ -9,7 +9,7 @@ Este documento establece las mejores prácticas y estándares de la industria pa
 2. [Estructura del `.dockerignore`](#2-estructura-del-dockerignore)
 3. [Optimización de Capas y Caché](#3-optimización-de-capas-y-caché)
 4. [Seguridad: Usuario No-Root y Escaneo](#4-seguridad-usuario-no-root-y-escaneo)
-5. [Servidor de Producción (WSGI vs Development Server)](#5-servidor-de-producción-wsgi-vs-development-server)
+5. [Servidor de Producción (ASGI vs Development Server)](#5-servidor-de-producción-asgi-vs-development-server)
 6. [Multi-Stage Builds (Construcción Multietapa)](#6-multi-stage-builds-construcción-multietapa)
 7. [Manejo de Señales y Healthchecks](#7-manejo-de-señales-y-healthchecks)
 8. [Dockerfile de Referencia para el Repositorio](#8-dockerfile-de-referencia-para-el-repositorio)
@@ -20,10 +20,10 @@ Este documento establece las mejores prácticas y estándares de la industria pa
 ## 1. Principios Fundamentales
 
 ### 1.1. Seleccionar la Imagen Base Adecuada
-- ❌ **Evitar:** `python:latest` o imágenes genéricas completas (`python:3.11` pesa ~1 GB).
-- ❌ **Cuidado con Alpine:** Aunque `python:3.11-alpine` es pequeña, usa `musl libc` en vez de `glibc`, lo que puede requerir compilar dependencias C desde cero y hacer builds lentos.
-- ✅ **Recomendado:** `python:3.11-slim` o `python:3.12-slim` (~150 MB). Basadas en Debian Slim, compatibles con binarios precompilados (wheels) de Python y con un balance ideal entre ligereza y estabilidad.
-- ✅ **Fijar versiones específicas:** Utilizar versiones semánticas fijas (ej. `python:3.11.9-slim-bookworm`) para garantizar reproducibilidad en CI/CD y producción.
+- ❌ **Evitar:** `python:latest` o imágenes genéricas completas (`python:3.13` pesa ~1 GB).
+- ❌ **Cuidado con Alpine:** Aunque `python:3.13-alpine` es pequeña, usa `musl libc` en vez de `glibc`, lo que puede requerir compilar dependencias C desde cero y hacer builds lentos.
+- ✅ **Recomendado:** `python:3.13-slim` (~150 MB). Basada en Debian Slim, compatible con binarios precompilados (wheels) de Python y con un balance ideal entre ligereza y estabilidad.
+- ✅ **Fijar versiones específicas:** Utilizar versiones semánticas fijas (ej. `python:3.13-slim`) para garantizar reproducibilidad en CI/CD y producción.
 
 ### 1.2. Variables de Entorno de Python
 Configurar variables estándar para entornos contenerizados:
@@ -137,28 +137,24 @@ USER appuser
 
 ---
 
-## 5. Servidor de Producción (WSGI vs Development Server)
+## 5. Servidor de Producción (ASGI vs Development Server)
 
-El archivo `app.py` actual contiene:
-```python
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
-```
-> [!WARNING]
-> El servidor integrado de Flask (`app.run`) es **únicamente para desarrollo** local; es de un solo hilo por defecto y no está preparado para soportar cargas de producción concurrentes ni ataques DoS.
+La API Pokémon utiliza **FastAPI**, un framework asíncrono basado en el estándar **ASGI** (*Asynchronous Server Gateway Interface*). En desarrollo local se puede utilizar recarga en vivo con `uvicorn --reload`, pero en contenedores de producción se debe ejecutar con configuración robusta de workers:
 
-### 5.1. Implementación con Gunicorn (WSGI)
-Para producción, se debe añadir `gunicorn` al `requirements.txt`:
+### 5.1. Implementación con Uvicorn (ASGI)
+Las dependencias requeridas se definen en `requirements.txt`:
 ```text
-Flask>=3.0.0
-pytest>=8.0.0
-gunicorn>=21.2.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
 ```
 
-Y ejecutar la aplicación utilizando el servidor WSGI:
+Y el contenedor ejecuta la aplicación mediante el servidor ASGI:
 ```dockerfile
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "src.app:app"]
+CMD ["uvicorn", "apps.api.src.app:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "4", "--access-log"]
 ```
+* **`--workers 4`**: Ajustable según la fórmula recomendada `(2 x CPU_CORES) + 1` o fijado para balanceo dentro de pods de Kubernetes con límites de CPU asignados.
+* **`--access-log`**: Garantiza que las solicitudes HTTP se registren en `stdout` para la recolección de logs por Fluentd, Loki o CloudWatch.
 
 ---
 
@@ -170,13 +166,13 @@ El patrón **Multi-Stage Build** permite separar el entorno de compilación/inst
 
 ```mermaid
 flowchart LR
-    subgraph Stage1["Etapa 1: Builder (python:3.11-slim)"]
-        A[Instalar paquetes de build] --> B[pip install wheels]
+    subgraph Stage1["Etapa 1: Builder (python:3.13-slim)"]
+        A[Instalar paquetes de build] --> B[pip install wheels en /install]
     end
-    subgraph Stage2["Etapa 2: Runner (python:3.11-slim)"]
-        C[Copiar wheels/site-packages] --> D[Copiar código fuente]
-        D --> E[Usuario No-Root]
-        E --> F[CMD Gunicorn]
+    subgraph Stage2["Etapa 2: Runner (python:3.13-slim)"]
+        C[Copiar dependencias /install] --> D[Copiar código fuente apps/]
+        D --> E[Usuario No-Root appuser]
+        E --> F[CMD Uvicorn ASGI]
     end
     Stage1 -->|Copia dependencias limpias| Stage2
 ```
@@ -208,11 +204,11 @@ A continuación se presenta el `Dockerfile` completo optimizado con todas las bu
 
 ```dockerfile
 # ==============================================================================
-# ETAPA 1: Builder (Compilación e instalación de dependencias)
+# ETAPA 1: Builder (Compilación e instalación de dependencias en prefijo aislado)
 # ==============================================================================
-FROM python:3.11.9-slim-bookworm AS builder
+FROM python:3.13-slim AS builder
 
-# Configurar variables de entorno para pip y Python
+# Configurar variables de entorno para pip y optimización de Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -220,44 +216,45 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /build
 
-# Copiar manifiesto de dependencias
+# Copiar manifiesto de dependencias primero para aprovechar la caché de capas
 COPY requirements.txt .
 
-# Crear wheels y empaquetar dependencias
+# Instalar dependencias en /install
 RUN pip install --prefix=/install --no-warn-script-location -r requirements.txt
 
 # ==============================================================================
 # ETAPA 2: Runner (Imagen final ligera y segura para producción)
 # ==============================================================================
-FROM python:3.11.9-slim-bookworm AS runner
+FROM python:3.13-slim AS runner
 
 # Metadatos del contenedor
 LABEL maintainer="Grupo 3 - UTEC DevOps" \
       version="1.0.0" \
-      description="API REST Pokémon Flask Containerizada"
+      description="API REST Pokémon FastAPI Containerizada con mejores prácticas"
 
 # Variables de entorno de runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=5000 \
-    FLASK_ENV=production
+    PYTHONPATH=/app \
+    HOME=/home/appuser
 
 WORKDIR /app
 
-# Crear usuario y grupo sin privilegios de root (Seguridad)
+# Crear usuario y grupo sin privilegios con directorio home asignado (Seguridad)
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 --ingroup appgroup --no-create-home appuser
+    adduser --system --uid 1001 --ingroup appgroup --home /home/appuser --shell /bin/false appuser
 
 # Copiar dependencias instaladas desde la etapa builder
 COPY --from=builder /install /usr/local
 
-# Copiar únicamente el código necesario para producción
+# Copiar el código de la aplicación
 COPY --chown=appuser:appgroup app.py .
-COPY --chown=appuser:appgroup src/ ./src/
+COPY --chown=appuser:appgroup apps/ ./apps/
 
 # Monitoreo de salud del contenedor
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')" || exit 1
 
 # Exponer el puerto de la aplicación
 EXPOSE 5000
@@ -265,8 +262,8 @@ EXPOSE 5000
 # Cambiar a usuario no-root
 USER appuser
 
-# Comando de inicio usando servidor WSGI de producción
-CMD ["python", "app.py"]
+# Comando de inicio usando servidor ASGI de alto rendimiento Uvicorn
+CMD ["uvicorn", "apps.api.src.app:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "4", "--access-log"]
 ```
 
 ---

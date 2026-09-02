@@ -112,8 +112,8 @@ flowchart TD
    - Todos los pods API leen y escriben en la misma instancia primaria de PostgreSQL mediante una URL centralizada (`postgresql://user:pass@postgres-service:5432/pokedex_db`).
    - Las sesiones o tokens no se guardan en memoria local del pod, sino en **Redis** centralizado o vía JWT sin estado.
 3. **Manejo del Límite de Conexiones (*Connection Exhaustion*):**
-   - Al escalar de 2 a 15 pods API, cada proceso Gunicorn/Flask abre conexiones a la BD.
-   - **Solución:** Implementar **PgBouncer** como Connection Pooler intermedio o configurar `pool_size` y `max_overflow` adecuados en SQLAlchemy para no superar el límite de `max_connections` de PostgreSQL.
+   - Al escalar de 2 a 15 pods API, cada proceso Uvicorn/FastAPI abre conexiones a la BD.
+   - **Solución:** Implementar **PgBouncer** como Connection Pooler intermedio (desplegado en `infra/k8s/02b-pgbouncer.yaml`) o configurar un pool de conexiones adecuado en el driver nativo `psycopg2` para no superar el límite de `max_connections` de PostgreSQL.
 4. **Almacenamiento de Multimedia Compartido:**
    - Sprites y assets de Pokémon residen en un bucket centralizado (MinIO / AWS S3 / Google Cloud Storage) con volumen persistente respaldado por un `PersistentVolumeClaim (PVC)`.
 

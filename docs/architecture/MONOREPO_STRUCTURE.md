@@ -24,23 +24,28 @@ El monorepo está organizado siguiendo una separación estricta de responsabilid
 ## 2. Árbol de Directorios Detallado
 
 ```text
-test_prueba/
+pokedex/
 ├── .github/                      # Automatizaciones de CI/CD (GitHub Actions)
 │   ├── workflows/                # Pipelines de build, test y validación
 │   └── pull_request_template.md  # Plantilla estándar para PRs
 ├── .vscode/                      # Configuración del editor y tareas automatizadas
 │   └── tasks.json                # Tasks de Docker y Kubernetes Up/Down
-├── apps/                         # Aplicaciones y código fuente
-│   ├── api/                      # Backend REST API (Flask + Gunicorn)
-│   │   ├── src/                  # Lógica de negocio, rutas y conexión a BD
+├── apps/                         # Aplicaciones y código fuente por servicios
+│   ├── api/                      # Backend REST API activo (Python 3.13 + FastAPI + Uvicorn)
+│   │   ├── src/                  # Lógica de negocio, rutas asíncronas y conexión a BD
 │   │   ├── tests/                # Suite de pruebas unitarias y de integración
 │   │   ├── scripts/              # Script de siembra masiva (1025 Pokémon)
 │   │   ├── requirements.txt      # Dependencias de Python
 │   │   └── Dockerfile            # Construcción multi-stage segura (non-root)
-│   └── web/                      # Frontend Web (Nginx + SPA Pokédex)
+│   └── web/                      # Frontend Web Nginx (SPA Pokédex)
 │       ├── public/               # Assets estáticos (HTML5, CSS3, JS Vanilla)
 │       ├── nginx.conf            # Configuración de proxy inverso y caché
 │       └── Dockerfile            # Imagen ligera Nginx Alpine
+├── src/                          # Dominio TypeScript y módulo de datos unificado
+│   ├── pokemonData.ts            # Interfaces TypeScript (Pokemon, Stats) y dataset Gen I-IX
+│   └── [legacy python]           # Archivos históricos (app.py, db.py) pendientes de deprecación
+├── server.ts                     # Servidor unificado en TypeScript (Express + Gemini SDK)
+├── public/                       # Frontend web modernizado (Catálogo interactivo + Backoffice CRUD)
 ├── infra/                        # Infraestructura como Código (IaC) y Manifiestos
 │   ├── docker/                   # Scripts de inicialización (init.sql PostgreSQL)
 │   ├── k8s/                      # Manifiestos declarativos de Kubernetes (Kustomize)
@@ -57,10 +62,14 @@ test_prueba/
 │   │   ├── 08-db-seed-job.yaml
 │   │   ├── 09-network-policies.yaml
 │   │   └── kustomization.yaml
-│   └── terraform/                # Módulos y ambientes de Terraform
+│   ├── terraform/                # Módulos y ambientes de Terraform
+│   ├── ansible/                  # Playbooks de aprovisamiento y hardening
+│   └── proxmox/                  # Templates LXC y cloud-init
 ├── docs/                         # Documentación técnica centralizada
 │   ├── README.md                 # Índice general de documentación
-│   ├── architecture/             # Diseños de arquitectura, seguridad y monorepo
+│   ├── architecture/             # Diseños de arquitectura, seguridad, UI y monorepo
+│   │   ├── ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md
+│   │   ├── MOCKUPS_Y_DISENO_UI.md
 │   │   ├── DATABASE_ANALYSIS.md
 │   │   ├── KUBERNETES_SCALING_ANALYSIS.md
 │   │   ├── SECURITY_AND_NETWORK_ISOLATION.md
@@ -80,18 +89,25 @@ test_prueba/
 │   └── bulk_load_pokemons.py     # Script de carga masiva de datos (1.025 Pokémon)
 ├── docker-compose.yml            # Orquestación local para desarrollo con DMZ
 ├── pytest.ini                    # Configuración de pruebas Pytest
-└── requirements.txt              # Dependencias globales del monorepo
+├── package.json                  # Manifiesto y scripts para el entorno TypeScript
+└── requirements.txt              # Dependencias globales del monorepo Python
 ```
 
 ---
 
 ## 3. Descripción por Módulos y Dominios
 
-### `apps/api/` (Backend)
-Microservicio desarrollado en Python 3.11 con Flask y Gunicorn. Implementa consultas con caché en Redis, conexión a PostgreSQL a través de PgBouncer y endpoints REST para la consulta y filtrado de Pokémon.
+### `apps/api/` (Backend Principal Python)
+Microservicio desarrollado en Python 3.13 con **FastAPI** y servidor ASGI **Uvicorn**. Implementa consultas parametrizadas con caché en Redis, conexión a PostgreSQL mediante driver nativo `psycopg2` / PgBouncer, esquemas Pydantic v2 y endpoints REST asíncronos para la consulta, mutación y filtrado de Pokémon.
 
-### `apps/web/` (Frontend)
+### `apps/web/` (Frontend Legacy Nginx)
 Interfaz Single Page Application (SPA) en Vanilla HTML5/CSS3/JS, servida por Nginx 1.27. Actúa como proxy inverso local para enrutar las peticiones `/api/*` hacia el microservicio backend.
+
+### `src/` (Directorio Raíz: Tipos TypeScript y Código Legado)
+> [!WARNING]
+> **Aclaración sobre `src/` raíz:**
+> * **Código Activo:** Aloja [`src/pokemonData.ts`](file:///src/pokemonData.ts) con las interfaces de TypeScript (`Pokemon`, `PokemonStats`, etc.) que alimentan el servidor unificado `server.ts`.
+> * **Código Legado:** Los archivos Python en la raíz de `src/` (`src/app.py`, `src/db.py`, `src/static/`, `src/templates/`) corresponden a una versión previa no modularizada. El backend Python oficial y activo del monorepo se encuentra exclusivamente en `apps/api/src/`. No se deben realizar modificaciones en `src/app.py` legacy.
 
 ### `infra/k8s/` (Kubernetes Manifests)
 Manifiestos organizados y gestionados con Kustomize para desplegar StatefulSets (PostgreSQL), Deployments con autoescalado elástico HPA v2 (API y Web), PgBouncer, Redis, Ingress y NetworkPolicies de seguridad DMZ.
