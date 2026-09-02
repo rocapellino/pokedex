@@ -88,9 +88,11 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 * **Ruta:** `POST /pokemons` o `POST /api/pokemons`
 * **Descripción:** Registra un nuevo Pokémon en la base de datos PostgreSQL e invalida el caché de Redis.
 * **Cuerpo de la Petición (Request Body):**
+  > [!NOTE]
+  > El campo `id` es asignado automáticamente de forma secuencial por el servidor; cualquier valor de `id` enviado en el cuerpo de la petición es omitido e ignorado.
+
   ```json
   {
-    "id": 1026,
     "nombre": "Pecharunt",
     "tipo": "Veneno / Fantasma",
     "habilidades": ["Poison Puppeteer"],

@@ -22,8 +22,8 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | Categoría | Herramienta | Uso en el Proyecto | Archivo / Configuración |
 |---|---|---|---|
 | **Backend** | **Python 3.13** / **FastAPI** | Framework API REST asíncrono para endpoints de Pokémon, tipos y evoluciones | [`apps/api/`](file:///apps/api) |
-| **Backend** | **Pydantic** | Validación de tipos, schemas y serialización de datos | `apps/api/schemas/` |
-| **Backend** | **SQLAlchemy** | ORM para interactuar con la base de datos PostgreSQL | `apps/api/database.py` |
+| **Backend** | **Pydantic v2** | Validación de tipos, schemas y serialización de datos (definidos inline en el módulo principal) | `apps/api/src/app.py` |
+| **Backend** | **psycopg2 (driver nativo)** | Acceso directo a PostgreSQL sin ORM, con consultas parametrizadas y caché en Redis | `apps/api/src/db.py` |
 | **Frontend** | **Vanilla JS / HTML5 / CSS3** | Interfaz de usuario interactiva y responsiva para consultar la Pokédex | [`apps/web/`](file:///apps/web) |
 | **Frontend Server** | **Nginx (Alpine)** | Servidor web proxy inverso y entrega de estáticos | `apps/web/nginx.conf` |
 | **Testing & Cobertura** | **Pytest + Pytest-Cov** | Suite de pruebas unitarias y reporte de cobertura de código (>75%) | [`pytest.ini`](file:///pytest.ini), `apps/api/tests/` |
