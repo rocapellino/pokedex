@@ -15,7 +15,7 @@ def find_duplicates(directory, extensions=('.py', '.js', '.css', '.html')):
     total_files = 0
 
     for root, _, files in os.walk(directory):
-        if any(ign in root for ign in ['.git', '.venv', '__pycache__', 'node_modules', 'reports', '.pytest_cache', '.ruff_cache']):
+        if any(ign in root for ign in ['.git', '.venv', '__pycache__', 'node_modules', 'reports', '.pytest_cache', '.ruff_cache', 'experiments']):
             continue
         for file in files:
             if file.endswith(extensions):
@@ -56,16 +56,16 @@ def main():
     py = f'"{sys.executable}"'
 
     # 1. Análisis Estático y Rendimiento con Ruff
-    run_cmd(f'{py} -m ruff check apps/ src/ scripts/ --statistics', "1. Análisis de Calidad y Rendimiento con Ruff (Perflint / Bugbear)")
+    run_cmd(f'{py} -m ruff check apps/ scripts/ --statistics', "1. Análisis de Calidad y Rendimiento con Ruff (Perflint / Bugbear)")
 
     # 2. Complejidad Ciclomática con Radon
-    run_cmd(f'{py} -m radon cc apps/api/src src/ -s -a', "2. Análisis de Complejidad Ciclomática con Radon (A = Excelente)")
+    run_cmd(f'{py} -m radon cc apps/api/src -s -a', "2. Análisis de Complejidad Ciclomática con Radon (A = Excelente)")
 
     # 3. Índice de Mantenibilidad con Radon
-    run_cmd(f'{py} -m radon mi apps/api/src src/ -s', "3. Índice de Mantenibilidad (MI) con Radon (A = Alta Mantenibilidad)")
+    run_cmd(f'{py} -m radon mi apps/api/src -s', "3. Índice de Mantenibilidad (MI) con Radon (A = Alta Mantenibilidad)")
 
     # 4. Análisis Estático de Seguridad (SAST) con Bandit
-    run_cmd(f'{py} -m bandit -r apps/api/src src/ -ll -q', "4. Análisis de Seguridad SAST con Bandit (Detección de vulnerabilidades)")
+    run_cmd(f'{py} -m bandit -r apps/api/src -ll -q', "4. Análisis de Seguridad SAST con Bandit (Detección de vulnerabilidades)")
 
     # 5. Auditoría de Duplicación de Código
     print(f"\n{'='*70}")
@@ -75,7 +75,7 @@ def main():
     print(f"Archivos analizados: {total}")
     if duplicates:
         print(f"⚠️  Se encontraron {len(duplicates)} grupos de archivos idénticos/duplicados:")
-        for idx, (h, paths) in enumerate(duplicates.items(), 1):
+        for idx, (_h, paths) in enumerate(duplicates.items(), 1):
             print(f"\n  [Grupo {idx}] ({len(paths)} copias idénticas):")
             for p in paths:
                 print(f"    📄 {p}")

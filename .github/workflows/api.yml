@@ -1,5 +1,5 @@
 # ==============================================================================
-# Workflow de CI para el Backend (FastAPI + Python 3.11)
+# Workflow de CI para el Backend (FastAPI + Python 3.13)
 # ==============================================================================
 name: 🐍 Backend API CI
 
@@ -7,7 +7,6 @@ on:
   push:
     paths:
       - 'apps/api/**'
-      - 'src/**'
       - 'requirements.txt'
       - 'requirements-dev.txt'
       - 'pytest.ini'
@@ -15,7 +14,6 @@ on:
   pull_request:
     paths:
       - 'apps/api/**'
-      - 'src/**'
       - 'requirements.txt'
       - 'requirements-dev.txt'
       - 'pytest.ini'
@@ -48,7 +46,7 @@ jobs:
 
       - name: 5. Análisis de Seguridad SAST con Bandit
         run: |
-          bandit -r apps/api/src src/ -ll -q
+          bandit -r apps/api/src -ll -q
 
       - name: 6. Ejecutar Suite de Pruebas con Cobertura (Pytest-Cov)
         env:

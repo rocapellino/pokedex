@@ -104,13 +104,14 @@ def fetch_pokemon_details(pokemon_id: int) -> dict:
                 type_name = TYPE_TRANSLATIONS.get(t['type']['name'], t['type']['name'].capitalize())
                 types.append(type_name)
 
-            abilities = []
-            for a in data['abilities']:
-                abilities.append({
+            abilities = [
+                {
                     "name": a['ability']['name'].replace('-', ' ').title(),
                     "is_hidden": a['is_hidden'],
-                    "slot": a['slot']
-                })
+                    "slot": a['slot'],
+                }
+                for a in data['abilities']
+            ]
 
             stats = {}
             for s in data['stats']:

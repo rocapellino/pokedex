@@ -5,15 +5,16 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 def get_database_url() -> str:
     """Construye la URL de conexión a PostgreSQL a partir de variables de entorno seguras."""
     if os.getenv("DATABASE_URL"):
         return os.environ["DATABASE_URL"]
     user = os.getenv("POSTGRES_USER", "postgres")
     password = os.getenv("POSTGRES_PASSWORD", "postgres")
-    host = os.getenv("POSTGRES_HOST", "postgres")
-    port = os.getenv("POSTGRES_PORT", "5432")
-    db = os.getenv("POSTGRES_DB", "pokedex_db")
+    host = os.getenv("POSTGRES_HOST") or os.getenv("DATABASE_HOST", "postgres")
+    port = os.getenv("POSTGRES_PORT") or os.getenv("DATABASE_PORT", "5432")
+    db = os.getenv("POSTGRES_DB") or os.getenv("DATABASE_NAME", "pokedex_db")
     return f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
 
@@ -36,12 +37,11 @@ def get_redis_client():
     try:
         import redis
         client = redis.from_url(get_redis_url(), decode_responses=True, socket_connect_timeout=2)
-
         client.ping()
         _redis_client = client
         return _redis_client
     except Exception as e:
-        logger.debug(f"Redis no disponible ({e}), omitiendo caché.")
+        logger.warning("Redis no disponible (%s), omitiendo capa de caché.", e)
         return None
 
 
@@ -52,8 +52,23 @@ def get_db_connection():
         conn = psycopg2.connect(get_database_url(), connect_timeout=3)
         return conn
     except Exception as e:
-        logger.debug(f"PostgreSQL no disponible ({e}), operando en memoria.")
+        logger.error("CRITICAL: PostgreSQL no disponible (%s), operando en modo degradado en memoria.", e)
         return None
+
+
+def check_db_health() -> bool:
+    """Comprueba la conectividad real con PostgreSQL para health checks."""
+    conn = get_db_connection()
+    if conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1;")
+            return True
+        except Exception:
+            return False
+        finally:
+            conn.close()
+    return False
 
 
 def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
@@ -127,7 +142,7 @@ def fetch_pokemons_from_db() -> Optional[List[Dict[str, Any]]]:
 
             return result
     except Exception as err:
-        logger.error(f"Error consultando PostgreSQL: {err}")
+        logger.error("Error consultando PostgreSQL: %s", err)
         return None
     finally:
         conn.close()
@@ -139,4 +154,3 @@ def invalidate_cache():
         import contextlib
         with contextlib.suppress(Exception):
             redis_cli.delete('pokemons_all')
-

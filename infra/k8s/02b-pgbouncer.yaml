@@ -20,8 +20,6 @@ data:
     reserve_pool_size = 5
     reserve_pool_timeout = 5
     max_db_connections = 50
-  userlist.txt: |
-    "postgres" "postgres_secure_password_k8s"
 ---
 apiVersion: v1
 kind: Service

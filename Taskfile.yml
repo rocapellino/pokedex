@@ -26,7 +26,7 @@ tasks:
   test:api:
     desc: "Ejecuta la secuencia de pruebas funcionales de endpoints CRUD de la API"
     cmds:
-      - python scripts/run_all_scripts.py
+      - python apps/api/scripts/run_all_scripts.py
 
   test:load:
     desc: "Ejecuta prueba de carga concurrente en Python (HPA / estrés)"
@@ -36,17 +36,17 @@ tasks:
   seed:
     desc: "Ejecuta la carga masiva de datos (1025 Pokémon) en PostgreSQL y Redis"
     cmds:
-      - python scripts/bulk_load_pokemons.py {{.CLI_ARGS}}
+      - python apps/api/scripts/bulk_load_pokemons.py {{.CLI_ARGS}}
 
   lint:
     desc: "Ejecuta el linter Ruff en todo el código"
     cmds:
-      - ruff check apps/ src/ scripts/
+      - ruff check apps/ scripts/
 
   format:
     desc: "Formatea el código automáticamente con Ruff"
     cmds:
-      - ruff format apps/ src/ scripts/
+      - ruff format apps/ scripts/
 
   audit:
     desc: "Ejecuta la auditoría integral (Ruff, Radon, Bandit y Duplicados)"
@@ -56,7 +56,7 @@ tasks:
   security:
     desc: "Ejecuta análisis de seguridad SAST (Bandit)"
     cmds:
-      - bandit -r apps/api/src src/ -ll
+      - bandit -r apps/api/src -ll
 
   perf:
     desc: "Ejecuta pruebas de rendimiento y estrés con k6"

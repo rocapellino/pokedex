@@ -6,6 +6,7 @@ namespace: pokemon-app
 resources:
   - 00-namespace.yaml
   - 01-config-and-secrets.yaml
+  - 01-sealed-secrets.yaml
   - 01b-postgres-init-configmap.yaml
   - 02-postgres-statefulset.yaml
   - 02b-pgbouncer.yaml

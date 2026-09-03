@@ -1,3 +1,1 @@
-from .app import app
-
-__all__ = ["app"]
+"""Módulo principal del backend Pokédex API."""

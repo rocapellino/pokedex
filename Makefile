@@ -15,16 +15,16 @@ test: ## Ejecuta pruebas unitarias con cobertura de código (pytest-cov)
 	pytest -v --cov=apps/api/src --cov-report=term-missing
 
 lint: ## Ejecuta análisis de calidad y linting con Ruff
-	ruff check apps/ src/ scripts/
+	ruff check apps/ scripts/
 
 format: ## Aplica formateo automático con Ruff
-	ruff format apps/ src/ scripts/
+	ruff format apps/ scripts/
 
 audit: ## Ejecuta auditoría completa (Ruff + Radon + Bandit + Duplicados)
 	python scripts/audit_code_quality.py
 
 security: ## Ejecuta análisis estático de seguridad SAST con Bandit
-	bandit -r apps/api/src src/ -ll
+	bandit -r apps/api/src -ll
 
 perf: ## Ejecuta pruebas de carga y estrés con k6
 	k6 run tests/performance/k6_stress_test.js

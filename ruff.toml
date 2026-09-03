@@ -1,6 +1,6 @@
 # Configuración de Ruff (Linter & Performance Optimizer)
 line-length = 120
-target-version = "py311"
+target-version = "py313"
 
 [lint]
 # Reglas seleccionadas:

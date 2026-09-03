@@ -217,10 +217,7 @@ def is_branched_tree(tree_node: dict) -> bool:
         return False
     if len(tree_node.get('evolves_to', [])) > 1:
         return True
-    for child in tree_node.get('evolves_to', []):
-        if is_branched_tree(child):
-            return True
-    return False
+    return any(is_branched_tree(child) for child in tree_node.get('evolves_to', []))
 
 
 def fetch_chain(chain_id: int):
@@ -244,9 +241,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=30) as executor:
         futures = {executor.submit(fetch_chain, cid): cid for cid in range(1, 550)}
-        completed = 0
-        for future in as_completed(futures):
-            completed += 1
+        for completed, future in enumerate(as_completed(futures), 1):
             if completed % 100 == 0:
                 logger.info(f"Progreso de descarga de árboles: {completed}/550...")
             tree = future.result()
@@ -293,10 +288,10 @@ def main():
             for pid in member_ids:
                 if pid in db_names and pid <= 1025:
                     cur.execute("""
-                        UPDATE pokemons 
+                        UPDATE pokemons
                         SET metadata = jsonb_set(
-                            COALESCE(metadata, '{}'::jsonb), 
-                            '{evoluciones}', 
+                            COALESCE(metadata, '{}'::jsonb),
+                            '{evoluciones}',
                             %s::jsonb
                         )
                         WHERE id = %s;

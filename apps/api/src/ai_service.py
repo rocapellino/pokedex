@@ -6,8 +6,12 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
-from google import genai
-from google.genai import types
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    genai = None  # type: ignore
+    types = None  # type: ignore
 
 # Modelos recomendados con fallback automático ante picos de demanda
 TEXT_MODELS: List[str] = [
@@ -24,30 +28,34 @@ IMAGE_MODELS: List[str] = [
 ]
 
 
-def get_ai_client() -> Optional[genai.Client]:
+def get_ai_client() -> Optional[Any]:
     """Obtiene el cliente de Google GenAI usando la variable de entorno GEMINI_API_KEY."""
+    if genai is None:
+        return None
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or api_key == "your_google_ai_studio_api_key_here":
         return None
     return genai.Client(api_key=api_key)
 
 
-def _generate_with_fallback(client: genai.Client, prompt: str, system_instruction: str, temperature: float = 0.2) -> Dict[str, Any]:
+def _generate_with_fallback(client: Any, prompt: str, system_instruction: str, temperature: float = 0.2) -> Dict[str, Any]:
     """Ejecuta generate_content intentando la lista de modelos en cascada."""
     last_error = ""
     for model_name in TEXT_MODELS:
         try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
+            kwargs: Dict[str, Any] = {
+                "model": model_name,
+                "contents": prompt,
+            }
+            if types is not None:
+                kwargs["config"] = types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     temperature=temperature,
-                ),
-            )
+                )
+            response = client.models.generate_content(**kwargs)
             return {
                 "success": True,
-                "text": response.text or "",
+                "text": getattr(response, "text", "") or "",
                 "model": model_name,
             }
         except Exception as e:
@@ -167,15 +175,17 @@ def generate_image_asset(prompt: str, aspect_ratio: str = "1:1") -> Dict[str, An
     last_err = ""
     for model_name in IMAGE_MODELS:
         try:
-            result = client.models.generate_images(
-                model=model_name,
-                prompt=f"Pokémon inspired high quality art: {prompt}, 4k resolution, clean render",
-                config=types.GenerateImagesConfig(
+            kwargs: Dict[str, Any] = {
+                "model": model_name,
+                "prompt": f"Pokémon inspired high quality art: {prompt}, 4k resolution, clean render",
+            }
+            if types is not None:
+                kwargs["config"] = types.GenerateImagesConfig(
                     number_of_images=1,
-                    aspect_ratio=aspect_ratio,
                     output_mime_type="image/png",
-                ),
-            )
+                    aspect_ratio=aspect_ratio,
+                )
+            result = client.models.generate_images(**kwargs)
 
             if result.generated_images:
                 image_bytes = result.generated_images[0].image.image_bytes

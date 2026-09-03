@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { GoogleGenAI } from "@google/genai";
-import { INITIAL_POKEMONS, Pokemon } from "./src/pokemonData.js";
+import { INITIAL_POKEMONS, Pokemon } from "./pokemonData.js";
 
 const app = express();
 const PORT = 3000;
