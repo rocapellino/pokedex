@@ -169,14 +169,14 @@ flowchart LR
 ```
 
 ### Comandos de Validación Local con Task:
-| Validación | Comando con Task | ¿Qué valida? |
+| Validación | Comando con Task (`task`) | ¿Qué valida? |
 |---|---|---|
 | **Linter & Formato** | `task lint` / `task format` | Errores de sintaxis PEP8, imports y reglas de rendimiento con Ruff. |
-| **Pruebas + Cobertura** | `task test` | Suite de pruebas unitarias con Pytest y reporte de cobertura (`pytest-cov`). |
+| **Pruebas + Cobertura** | `task test` | Suite completa con Pytest y reporte de cobertura (`pytest-cov`). |
 | **Seguridad SAST** | `task security` | Detección estática de vulnerabilidades e inyecciones con Bandit. |
 | **Auditoría Global** | `task audit` | Ruff + Radon (Complejidad y Mantenibilidad) + Bandit + Duplicados. |
 | **Pruebas de Estrés** | `task perf` | Benchmarking de endpoints y validación de SLAs con k6. |
-| **Ecosistema TypeScript** | `task ts:lint` / `task ts:build` | Verificación de tipado estricto y compilación con esbuild. |
+| **Ecosistema TypeScript** | `task ts:lint` / `task ts:build` | Verificación de tipado y prototipos en experiments/ con esbuild. |
 
 ---
 

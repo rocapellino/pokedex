@@ -1,3 +1,5 @@
+import logging
+import os
 import sys
 import time
 from collections import defaultdict
@@ -9,21 +11,25 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
+logger = logging.getLogger(__name__)
+
 try:
-    from apps.api.src.db import fetch_pokemons_from_db, invalidate_cache
+    from apps.api.src.db import check_db_health, fetch_pokemons_from_db, invalidate_cache
 except ImportError:
     try:
-        from src.db import fetch_pokemons_from_db, invalidate_cache
+        from src.db import check_db_health, fetch_pokemons_from_db, invalidate_cache
     except ImportError:
         def fetch_pokemons_from_db():
             return None
         def invalidate_cache():
             pass
+        def check_db_health():
+            return False
 
 try:
     from apps.api.src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup
@@ -48,21 +54,34 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configuración de CORS
+# Configuración de CORS segura con lista explícita de orígenes permitidos
+cors_origins_env = os.getenv("CORS_ORIGINS")
+if cors_origins_env:
+    allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Métricas Prometheus en memoria
+# Métricas Prometheus en memoria y estado operativo
 _APP_START_TIME = time.time()
 _HTTP_REQUESTS_TOTAL = defaultdict(int)
 _HTTP_REQUEST_DURATION_SECONDS = defaultdict(float)
 _HTTP_REQUEST_COUNT = defaultdict(int)
 _IS_TESTING = False
+_IS_DEGRADED_MODE = False
 
 
 @app.middleware("http")
@@ -108,15 +127,25 @@ class PokemonCreateSchema(BaseModel):
     evoluciones: Optional[Any] = None
 
 
+class CaracteristicasUpdateSchema(BaseModel):
+    peso: Optional[float] = Field(None, description="Peso en kilogramos")
+    altura: Optional[float] = Field(None, description="Altura en metros")
+    fuerza: Optional[int] = Field(None, description="Puntos de fuerza de combate")
+    edad: Optional[int] = Field(None, description="Edad estimada")
+    categoria: Optional[str] = None
+    descripcion: Optional[str] = None
+
+
 class PokemonUpdateSchema(BaseModel):
-    nombre: Optional[str] = None
-    imagen: Optional[str] = None
-    caracteristicas: Optional[Dict[str, Any]] = None
+    nombre: Optional[str] = Field(None, min_length=1, description="Nombre en español del Pokémon")
+    imagen: Optional[str] = Field(None, description="URL oficial del artwork o sprite")
+    caracteristicas: Optional[CaracteristicasUpdateSchema] = None
     habilidades: Optional[List[str]] = None
     tipo: Optional[str] = None
     habitat: Optional[str] = None
     tipos: Optional[List[str]] = None
     stats: Optional[Dict[str, int]] = None
+    evoluciones: Optional[Any] = None
 
 
 # ==============================================================================
@@ -139,8 +168,6 @@ class AIImageRequest(BaseModel):
         pattern=r"^(1:1|16:9|9:16|4:3|3:4)$",
         description="Relación de aspecto de la imagen (1:1, 16:9, 9:16, 4:3, 3:4)",
     )
-
-
 
 
 # Base de datos en memoria (Fallback / Testing)
@@ -199,40 +226,92 @@ def buscar_pokemon_por_id(pokemon_id: int) -> Optional[Dict[str, Any]]:
 # Endpoints de la API
 # ==============================================================================
 @app.get("/", summary="Bienvenida / Rutas disponibles")
-async def root(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        index_html_path = BASE_DIR / "templates" / "index.html"
-        if index_html_path.exists():
-            return HTMLResponse(content=index_html_path.read_text(encoding="utf-8"))
+async def root():
     return {
         "mensaje": "¡Bienvenido a la API REST de Pokémon (FastAPI Engine)!",
         "version": "2.0.0",
         "docs": "/docs",
         "rutas_disponibles": {
-            "GET /pokemons": "Lista todos los Pokémon",
+            "GET /pokemons": "Lista y filtra todos los Pokémon",
             "GET /pokemons/{id}": "Obtiene un Pokémon por ID",
             "POST /pokemons": "Crea un nuevo Pokémon",
             "PUT /pokemons/{id}": "Actualiza un Pokémon por ID",
             "DELETE /pokemons/{id}": "Elimina un Pokémon por ID",
+            "GET /healthz": "Comprobación de vida (liveness)",
+            "GET /readyz": "Comprobación de dependencias (readiness)",
             "GET /metrics": "Exportador de métricas Prometheus"
         }
     }
 
 
-@app.get("/healthz", summary="Healthcheck del Servicio")
+@app.get("/healthz", summary="Healthcheck Liveness del Servicio")
 async def healthz():
     return PlainTextResponse("healthy\n", status_code=status.HTTP_200_OK)
 
 
-@app.get("/pokemons", summary="Listar todos los Pokémon")
-async def get_pokemons():
-    global _IS_TESTING
+@app.get("/readyz", summary="Healthcheck Readiness con verificación de Base de Datos")
+async def readyz():
+    global _IS_DEGRADED_MODE
+    db_ok = check_db_health()
+    if db_ok:
+        _IS_DEGRADED_MODE = False
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"status": "ready", "database": "connected", "degraded_mode": False}
+        )
+    _IS_DEGRADED_MODE = True
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"status": "degraded", "database": "disconnected", "degraded_mode": True}
+    )
+
+
+@app.get("/pokemons", summary="Listar y filtrar Pokémon")
+async def get_pokemons(
+    tipo: Optional[str] = Query(None, description="Filtra por tipo elemental en español"),
+    nombre: Optional[str] = Query(None, description="Búsqueda por coincidencia de nombre"),
+    limit: Optional[int] = Query(None, ge=1, le=1025, description="Límite máximo de resultados"),
+    offset: int = Query(0, ge=0, description="Desplazamiento para paginación"),
+):
+    global _IS_TESTING, _IS_DEGRADED_MODE
+    pokemons_list: List[Dict[str, Any]] = []
+
     if not _IS_TESTING:
         db_pokemons = fetch_pokemons_from_db()
         if db_pokemons and len(db_pokemons) > 0:
-            return db_pokemons
-    return pokemons
+            _IS_DEGRADED_MODE = False
+            pokemons_list = db_pokemons
+        else:
+            _IS_DEGRADED_MODE = True
+            logger.error("ADVERTENCIA CRÍTICA: Fallo al consultar PostgreSQL/Redis. Operando en modo degradado en memoria.")
+            pokemons_list = pokemons
+    else:
+        pokemons_list = pokemons
+
+    # Filtro por tipo elemental
+    if tipo:
+        tipo_lower = tipo.strip().lower()
+        pokemons_list = [
+            p for p in pokemons_list
+            if p.get("tipo", "").lower() == tipo_lower
+            or any(t.lower() == tipo_lower for t in p.get("tipos", []))
+        ]
+
+    # Filtro por coincidencia en nombre
+    if nombre:
+        nombre_lower = nombre.strip().lower()
+        pokemons_list = [
+            p for p in pokemons_list
+            if nombre_lower in p.get("nombre", "").lower()
+        ]
+
+    # Paginación (offset y limit)
+    if offset > 0:
+        pokemons_list = pokemons_list[offset:]
+    if limit is not None:
+        pokemons_list = pokemons_list[:limit]
+
+    return pokemons_list
 
 
 @app.get("/pokemons/{id}", summary="Obtener Pokémon por ID")
@@ -278,7 +357,7 @@ async def create_pokemon(payload: PokemonCreateSchema):
 
 
 @app.put("/pokemons/{id}", summary="Actualizar Pokémon existente")
-async def update_pokemon(id: int, payload: Dict[str, Any]):
+async def update_pokemon(id: int, payload: PokemonUpdateSchema):
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
@@ -286,26 +365,38 @@ async def update_pokemon(id: int, payload: Dict[str, Any]):
             detail=f"Pokémon con id {id} no encontrado"
         )
 
-    if "nombre" in payload and payload["nombre"] is not None:
-        pokemon["nombre"] = str(payload["nombre"])
-    if "imagen" in payload and payload["imagen"] is not None:
-        pokemon["imagen"] = str(payload["imagen"])
-    if "caracteristicas" in payload and isinstance(payload["caracteristicas"], dict):
-        car = payload["caracteristicas"]
-        if "peso" in car:
+    data = payload.model_dump(exclude_unset=True)
+
+    if "nombre" in data and data["nombre"] is not None:
+        pokemon["nombre"] = str(data["nombre"])
+    if "imagen" in data and data["imagen"] is not None:
+        pokemon["imagen"] = str(data["imagen"])
+    if "caracteristicas" in data and isinstance(data["caracteristicas"], dict):
+        car = data["caracteristicas"]
+        if "peso" in car and car["peso"] is not None:
             pokemon["caracteristicas"]["peso"] = float(car["peso"])
-        if "altura" in car:
+        if "altura" in car and car["altura"] is not None:
             pokemon["caracteristicas"]["altura"] = float(car["altura"])
-        if "fuerza" in car:
+        if "fuerza" in car and car["fuerza"] is not None:
             pokemon["caracteristicas"]["fuerza"] = int(car["fuerza"])
-        if "edad" in car:
+        if "edad" in car and car["edad"] is not None:
             pokemon["caracteristicas"]["edad"] = int(car["edad"])
-    if "habilidades" in payload and payload["habilidades"] is not None:
-        pokemon["habilidades"] = list(payload["habilidades"])
-    if "tipo" in payload and payload["tipo"] is not None:
-        pokemon["tipo"] = str(payload["tipo"])
-    if "habitat" in payload and payload["habitat"] is not None:
-        pokemon["habitat"] = str(payload["habitat"])
+        if "categoria" in car:
+            pokemon["caracteristicas"]["categoria"] = car["categoria"]
+        if "descripcion" in car:
+            pokemon["caracteristicas"]["descripcion"] = car["descripcion"]
+    if "habilidades" in data and data["habilidades"] is not None:
+        pokemon["habilidades"] = list(data["habilidades"])
+    if "tipo" in data and data["tipo"] is not None:
+        pokemon["tipo"] = str(data["tipo"])
+    if "habitat" in data and data["habitat"] is not None:
+        pokemon["habitat"] = str(data["habitat"])
+    if "tipos" in data and data["tipos"] is not None:
+        pokemon["tipos"] = list(data["tipos"])
+    if "stats" in data and data["stats"] is not None:
+        pokemon["stats"] = dict(data["stats"])
+    if "evoluciones" in data and data["evoluciones"] is not None:
+        pokemon["evoluciones"] = data["evoluciones"]
 
     invalidate_cache()
     return pokemon
@@ -338,6 +429,10 @@ async def prometheus_metrics():
         "# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados.",
         "# TYPE pokedex_total_pokemons gauge",
         f"pokedex_total_pokemons {len(pokemons)}",
+        "",
+        "# HELP pokedex_degraded_mode Indica si el backend opera en modo degradado (en memoria).",
+        "# TYPE pokedex_degraded_mode gauge",
+        f"pokedex_degraded_mode {1 if _IS_DEGRADED_MODE else 0}",
         "",
         "# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas.",
         "# TYPE pokedex_http_requests_total counter"
@@ -394,4 +489,3 @@ async def ai_generate_image(payload: AIImageRequest):
             detail=result.get("error", "Error generando imagen con Imagen 3")
         )
     return result
-

@@ -9,13 +9,11 @@ on:
       - main
       - master
     paths:
-      - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'requirements.txt'
       - '.github/workflows/security-trivy.yml'
   pull_request:
     paths:
-      - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'requirements.txt'
       - '.github/workflows/security-trivy.yml'
@@ -42,7 +40,7 @@ jobs:
 
       - name: 3. Construir Imagen Backend para Escaneo
         run: |
-          docker build -t pokedex-api:test -f Dockerfile .
+          docker build -t pokedex-api:test -f apps/api/Dockerfile .
 
 
       - name: 4. Escaneo de Imagen Docker Backend

@@ -22,6 +22,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: pokemon-config
+            - secretRef:
+                name: pokemon-secrets
           env:
             - name: POKEMON_LIMIT
               value: "1025"

@@ -24,8 +24,8 @@ FROM python:3.13-slim AS runner
 
 # Metadatos del contenedor
 LABEL maintainer="Grupo 3 - UTEC DevOps" \
-      version="1.0.0" \
-      description="API REST Pokémon Flask Containerizada con mejores prácticas"
+      version="1.1.0" \
+      description="API REST Pokémon FastAPI Containerizada con mejores prácticas"
 
 # Variables de entorno de runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -33,7 +33,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=5000 \
     PYTHONPATH=/app \
     HOME=/home/appuser \
-    FLASK_ENV=production
+    ENVIRONMENT=production
 
 WORKDIR /app
 
@@ -46,7 +46,6 @@ COPY --from=builder /install /usr/local
 
 # Copiar el código de la aplicación
 COPY --chown=appuser:appgroup app.py .
-COPY --chown=appuser:appgroup src/ ./src/
 COPY --chown=appuser:appgroup apps/ ./apps/
 
 # Monitoreo de salud del contenedor

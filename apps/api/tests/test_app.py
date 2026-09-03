@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 # Agregar el directorio raíz al path para importar src.app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import copy
+
 import src.app as app_module
 from src.app import app
 
@@ -14,8 +16,12 @@ from src.app import app
 @pytest.fixture
 def client():
     app_module._IS_TESTING = True
+    saved_pokemons = copy.deepcopy(app_module.pokemons)
+    saved_id = app_module.current_id
     with TestClient(app) as test_client:
         yield test_client
+    app_module.pokemons = saved_pokemons
+    app_module.current_id = saved_id
     app_module._IS_TESTING = False
 
 
@@ -160,3 +166,60 @@ def test_get_pokemons_includes_evoluciones(client):
     assert len(data) > 0
     first_pk = data[0]
     assert 'evoluciones' in first_pk
+
+
+def test_get_pokemons_filter_by_tipo(client):
+    """Prueba GET /pokemons?tipo=Fuego."""
+    response = client.get('/pokemons?tipo=Fuego')
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    assert all(p['tipo'] == 'Fuego' or 'Fuego' in p.get('tipos', []) for p in data)
+
+
+def test_get_pokemons_filter_by_nombre(client):
+    """Prueba GET /pokemons?nombre=pika."""
+    response = client.get('/pokemons?nombre=pika')
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) >= 1
+    assert any('pikachu' in p['nombre'].lower() for p in data)
+
+
+def test_get_pokemons_pagination(client):
+    """Prueba GET /pokemons con limit y offset."""
+    response = client.get('/pokemons?limit=1&offset=0')
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+
+    response_offset = client.get('/pokemons?limit=1&offset=1')
+    assert response_offset.status_code == 200
+    data_offset = response_offset.json()
+    assert len(data_offset) == 1
+    assert data[0]['id'] != data_offset[0]['id']
+
+
+def test_update_pokemon_pydantic_validation(client):
+    """Prueba que PUT /pokemons/<id> valide tipos numéricos en caracteristicas."""
+    # Enviar un valor inválido para peso (string no convertible)
+    response = client.put('/pokemons/1', json={"caracteristicas": {"peso": "no-es-un-numero"}})
+    assert response.status_code == 422
+
+
+def test_readyz_endpoint(client):
+    """Prueba GET /readyz para verificación de dependencias."""
+    response = client.get('/readyz')
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert "database" in data
+
+
+def test_prometheus_metrics_degraded_mode(client):
+    """Prueba que GET /metrics contenga la métrica pokedex_degraded_mode."""
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert "pokedex_degraded_mode" in response.text
+

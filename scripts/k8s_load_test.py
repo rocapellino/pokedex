@@ -6,6 +6,7 @@ y verificar el escalado dinámico de réplicas en Kubernetes.
 """
 
 import argparse
+import contextlib
 import sys
 import time
 import urllib.error
@@ -38,10 +39,8 @@ def main():
     args = parser.parse_args()
 
     if sys.stdout.encoding != 'utf-8':
-        try:
+        with contextlib.suppress(Exception):
             sys.stdout.reconfigure(encoding='utf-8')
-        except Exception:
-            pass
 
     print("=" * 70)
     print("[*] Iniciando Prueba de Carga para Autoescalado HPA en Kubernetes")
@@ -66,10 +65,8 @@ def main():
             for i in range(args.total_requests)
         ]
 
-        completed = 0
-        for future in as_completed(futures):
+        for completed, future in enumerate(as_completed(futures), 1):
             success, code, duration = future.result()
-            completed += 1
             if success and code == 200:
                 success_count += 1
             else:

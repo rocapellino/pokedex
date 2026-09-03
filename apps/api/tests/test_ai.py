@@ -10,9 +10,8 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup, get_ai_client
-
 import src.app as app_module
+from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup, get_ai_client
 from src.app import app
 
 
@@ -110,4 +109,21 @@ def test_ai_image_endpoint_invalid_aspect_ratio(client):
     """Verifica que un aspect_ratio inválido retorne error 422 de validación Pydantic."""
     response = client.post("/api/v1/ai/image", json={"prompt": "Charizard", "aspect_ratio": "invalid_ratio"})
     assert response.status_code == 422
+
+
+@patch("src.ai_service.get_ai_client")
+def test_generate_flowchart_end_to_end_mock(mock_get_client):
+    """Prueba de integración simulada con SDK de Google GenAI retornando bloque Mermaid."""
+    from unittest.mock import MagicMock
+
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.text = "```mermaid\ngraph TD;\n    A[Inicio] --> B[Fin];\n```"
+    mock_client.models.generate_content.return_value = mock_response
+    mock_get_client.return_value = mock_client
+
+    result = generate_flowchart("Flujo de autenticación", diagram_type="flowchart")
+    assert result["success"] is True
+    assert result["mermaid_code"] == "graph TD;\n    A[Inicio] --> B[Fin];"
+    assert result["model"] == "gemini-3.6-flash"
 

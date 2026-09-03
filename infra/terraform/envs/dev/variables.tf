@@ -15,10 +15,9 @@ variable "region" {
 }
 
 variable "db_password" {
-  description = "Contraseña maestra de PostgreSQL"
+  description = "Contraseña maestra de PostgreSQL (inyectada de forma segura vía tfvars o secret manager)"
   type        = string
   sensitive   = true
-  default     = "pokedex_secure_dev_pass_2026"
 }
 
 variable "container_image" {
