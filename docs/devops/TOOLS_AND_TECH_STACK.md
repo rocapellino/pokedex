@@ -46,7 +46,7 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **CI/CD** | **Jenkins** | Pipeline declarativo alternativo enterprise con stages de build/test/audit | [`Jenkinsfile`](file:///Jenkinsfile) |
 | **CI/CD** | **GitLab CI** | Pipeline multiplataforma para GitLab | [`.gitlab-ci.yml`](file:///.gitlab-ci.yml) |
 | **Actualizaciones Auto** | **Dependabot** | Apertura automática de PRs consolidados (Grouped Updates) para pip, docker y actions | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
-| **Automatización DX** | **Taskfile** | Comandos unificados cross-platform (`task test`, `task dev`, `task audit`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml) |
+| **Automatización DX** | **Taskfile (go-task)** | Comandos unificados 100% cross-platform (`task test`, `task dev`, `task audit`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml) |
 | **Gestión Ágil** | **Linear** | Gestión de tickets, ciclos, ramas automatizadas y PR linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
 | **Inteligencia Artificial** | **Google AI Studio (Gemini & Imagen)** | Generación de diagramas de arquitectura, mockups UI y assets visuales | [`apps/api/src/ai_service.py`](file:///apps/api/src/ai_service.py), [`scripts/ai_tools.py`](file:///scripts/ai_tools.py) |
 
@@ -102,7 +102,7 @@ A continuación se presentan herramientas de alto impacto divididas por área qu
 ---
 
 ### ⚡ 6. Experiencia de Desarrollo (DX)
-* **Taskfile (`task`):**
-  * *¿Para qué sirve?* Unificar comandos largos entre Windows y Linux (ej: `task dev`, `task test`, `task lint`, `task docker:build`) evitando recordar sintaxis de PowerShell y Bash por separado.
+* **Taskfile (`task` - go-task):**
+  * *¿Para qué sirve?* Unificar comandos largos entre Windows, Linux y macOS (ej: `task dev`, `task test`, `task lint`, `task docker:up`) mediante un único ejecutable sin dependencias de shells UNIX ni emuladores.
 * **Linear MCP Server:**
   * *¿Para qué sirve?* Conectar Linear mediante Model Context Protocol para crear y consultar tickets directamente desde el asistente de IA en el IDE.

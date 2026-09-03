@@ -157,7 +157,7 @@ Al abrir un PR en GitHub, la plantilla se carga automáticamente:
 
 ## 5. Proceso de Verificación y Validación Local (*Shift-Left Testing*)
 
-Antes de hacer `git push` y abrir el PR, el desarrollador debe ejecutar la batería de herramientas de validación local mediante el **Taskfile** (`Taskfile.yml`):
+Antes de hacer `git push` y abrir el PR, el desarrollador debe ejecutar la batería de herramientas de validación local mediante el **Taskfile** (`task`):
 
 ```mermaid
 flowchart LR
@@ -168,7 +168,7 @@ flowchart LR
     E --> F[🚀 git push seguro]
 ```
 
-### Comandos de Validación Local:
+### Comandos de Validación Local con Task:
 | Validación | Comando con Task (`task`) | ¿Qué valida? |
 |---|---|---|
 | **Linter & Formato** | `task lint` / `task format` | Errores de sintaxis PEP8, imports y reglas de rendimiento con Ruff. |
@@ -176,6 +176,7 @@ flowchart LR
 | **Seguridad SAST** | `task security` | Detección estática de vulnerabilidades e inyecciones con Bandit. |
 | **Auditoría Global** | `task audit` | Ruff + Radon (Complejidad y Mantenibilidad) + Bandit + Duplicados. |
 | **Pruebas de Estrés** | `task perf` | Benchmarking de endpoints y validación de SLAs con k6. |
+| **Ecosistema TypeScript** | `task ts:lint` / `task ts:build` | Verificación de tipado y prototipos en experiments/ con esbuild. |
 
 ---
 
