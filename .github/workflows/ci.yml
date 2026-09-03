@@ -33,6 +33,26 @@ jobs:
         run: |
           python scripts/audit_code_quality.py
 
+  sast-semgrep:
+    name: 🛡️ SAST Multi-Lenguaje (Semgrep)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v7
+
+      - name: 2. Escaneo SAST con Semgrep OSS
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/python
+            p/javascript
+            p/dockerfile
+          auditOn: push
+        continue-on-error: true
+
   docker-build-test:
     name: 🐳 Docker Multi-Stage Build Check
     runs-on: ubuntu-latest

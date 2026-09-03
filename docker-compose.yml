@@ -104,31 +104,6 @@ services:
       retries: 3
       start_period: 5s
 
-  # ============================================================================
-  # 5. Object Storage (MinIO S3 Compatible) - Capa de Almacenamiento Interno
-  # ============================================================================
-  minio:
-    image: minio/minio:latest
-    container_name: pokemon-minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minioadmin}"
-      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minioadmin_secure_password}"
-    expose:
-      - "9000"
-      - "9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - backend-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
 # ==============================================================================
 # Segmentación de Redes (DMZ Architecture) y Volúmenes Persistentes
 # ==============================================================================
@@ -152,6 +127,4 @@ volumes:
   redis_data:
     name: pokedex_redis_data
     driver: local
-  minio_data:
-    name: pokedex_minio_data
-    driver: local
+
