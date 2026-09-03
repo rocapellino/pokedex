@@ -272,4 +272,40 @@ def test_cache_headers_and_etag(client):
     assert response_cached.status_code == 304
 
 
+def test_openapi_contract_specification(client):
+    """Prueba exhaustiva de conformidad del contrato OpenAPI 3.1."""
+    res = client.get('/openapi.json')
+    assert res.status_code == 200
+    schema = res.json()
+
+    # 1. Metadatos de la especificación
+    assert "openapi" in schema
+    assert "Pokédex" in schema["info"]["title"]
+    assert "paths" in schema
+    assert "components" in schema
+
+    # 2. Rutas requeridas del contrato
+    paths = schema["paths"]
+    assert "/pokemons" in paths
+    assert "/pokemons/{id}" in paths
+    assert "/healthz" in paths
+    assert "/readyz" in paths
+    assert "/metrics" in paths
+
+    # 3. Métodos HTTP del contrato
+    assert "get" in paths["/pokemons"]
+    assert "post" in paths["/pokemons"]
+    assert "get" in paths["/pokemons/{id}"]
+    assert "put" in paths["/pokemons/{id}"]
+    assert "delete" in paths["/pokemons/{id}"]
+
+    # 4. Esquemas de datos (Schemas Pydantic)
+    schemas = schema["components"].get("schemas", {})
+    assert "PokemonCreateSchema" in schemas
+    assert "PokemonUpdateSchema" in schemas
+    assert "CaracteristicasSchema" in schemas
+
+
+
+
 
