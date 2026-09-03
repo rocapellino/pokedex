@@ -157,7 +157,7 @@ Al abrir un PR en GitHub, la plantilla se carga automáticamente:
 
 ## 5. Proceso de Verificación y Validación Local (*Shift-Left Testing*)
 
-Antes de hacer `git push` y abrir el PR, el desarrollador debe ejecutar la batería de herramientas de validación local mediante el **Taskfile** o **Makefile**:
+Antes de hacer `git push` y abrir el PR, el desarrollador debe ejecutar la batería de herramientas de validación local mediante el **Taskfile** (`Taskfile.yml`):
 
 ```mermaid
 flowchart LR
@@ -169,13 +169,13 @@ flowchart LR
 ```
 
 ### Comandos de Validación Local:
-| Validación | Comando con Task | Comando con Make | ¿Qué valida? |
-|---|---|---|---|
-| **Linter & Formato** | `task lint` / `task format` | `make lint` / `make format` | Errores de sintaxis PEP8, imports y reglas de rendimiento con Ruff. |
-| **Pruebas + Cobertura** | `task test` | `make test` | Suite de 14 pruebas con Pytest y reporte de cobertura (`pytest-cov`). |
-| **Seguridad SAST** | `task security` | `make security` | Detección estática de vulnerabilidades e inyecciones con Bandit. |
-| **Auditoría Global** | `task audit` | `make audit` | Ruff + Radon (Complejidad y Mantenibilidad) + Bandit + Duplicados. |
-| **Pruebas de Estrés** | `task perf` | `make perf` | Benchmarking de endpoints y validación de SLAs con k6. |
+| Validación | Comando con Task (`task`) | ¿Qué valida? |
+|---|---|---|
+| **Linter & Formato** | `task lint` / `task format` | Errores de sintaxis PEP8, imports y reglas de rendimiento con Ruff. |
+| **Pruebas + Cobertura** | `task test` | Suite completa con Pytest y reporte de cobertura (`pytest-cov`). |
+| **Seguridad SAST** | `task security` | Detección estática de vulnerabilidades e inyecciones con Bandit. |
+| **Auditoría Global** | `task audit` | Ruff + Radon (Complejidad y Mantenibilidad) + Bandit + Duplicados. |
+| **Pruebas de Estrés** | `task perf` | Benchmarking de endpoints y validación de SLAs con k6. |
 
 ---
 
