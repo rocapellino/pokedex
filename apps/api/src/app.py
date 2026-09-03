@@ -11,9 +11,11 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
+import hashlib
+import json
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security import APIKeyHeader
@@ -346,10 +348,18 @@ async def readyz():
     )
 
 
+def calculate_etag(data: Any) -> str:
+    """Calcula una cabecera ETag determinista basada en SHA-256."""
+    serialized = json.dumps(data, sort_keys=True, default=str).encode("utf-8")
+    return f'"{hashlib.sha256(serialized).hexdigest()[:16]}"'
+
+
+
 @app.get("/pokemons", summary="Listar y filtrar Pokémon")
 @limiter.limit("300/minute")
 async def get_pokemons(
     request: Request,
+    response: Response,
     tipo: Optional[str] = Query(None, description="Filtra por tipo elemental en español"),
     nombre: Optional[str] = Query(None, description="Búsqueda por coincidencia de nombre"),
     limit: Optional[int] = Query(None, ge=1, le=1025, description="Límite máximo de resultados"),
@@ -393,18 +403,36 @@ async def get_pokemons(
     if limit is not None:
         pokemons_list = pokemons_list[:limit]
 
+    # Gestión de Caché HTTP (ETag & Cache-Control)
+    etag = calculate_etag(pokemons_list)
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match and if_none_match.strip() == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers={"ETag": etag})
+
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
     return pokemons_list
 
 
 @app.get("/pokemons/{id}", summary="Obtener Pokémon por ID")
-async def get_pokemon_by_id(id: int):
+async def get_pokemon_by_id(request: Request, response: Response, id: int):
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Pokémon con id {id} no encontrado"
         )
+
+    # Gestión de Caché HTTP (ETag & Cache-Control)
+    etag = calculate_etag(pokemon)
+    if_none_match = request.headers.get("if-none-match")
+    if if_none_match and if_none_match.strip() == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers={"ETag": etag})
+
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
     return pokemon
+
 
 
 @app.post(

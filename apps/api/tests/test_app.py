@@ -259,3 +259,17 @@ async def test_db_pool_and_async_health():
     await close_db_pool()
 
 
+def test_cache_headers_and_etag(client):
+    """Prueba que GET /pokemons devuelva Cache-Control, ETag y soporte 304 Not Modified."""
+    response = client.get('/pokemons')
+    assert response.status_code == 200
+    assert "etag" in response.headers
+    assert "cache-control" in response.headers
+    etag = response.headers["etag"]
+
+    # Segunda petición enviando If-None-Match con el mismo ETag
+    response_cached = client.get('/pokemons', headers={"If-None-Match": etag})
+    assert response_cached.status_code == 304
+
+
+

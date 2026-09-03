@@ -16,6 +16,7 @@ resources:
   - 06-hpa-autoscaling.yaml
   - 07-ingress.yaml
   - 09-network-policies.yaml
+  - 10-pod-disruption-budgets.yaml
 
 labels:
   - pairs:
