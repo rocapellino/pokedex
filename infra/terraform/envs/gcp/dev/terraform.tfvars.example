@@ -1,0 +1,6 @@
+# Variables de Ejemplo para Despliegue en Google Cloud Platform (Entorno Dev)
+project_name    = "pokedex"
+gcp_project_id  = "pokedex-devops-dev"
+region          = "us-east1"
+db_password     = "CambiarPorPasswordSegura123!"
+container_image = "gcr.io/pokedex-devops-dev/pokedex-api:latest"

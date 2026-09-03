@@ -89,30 +89,20 @@ Este documento describe formalmente la estructura de objetos, servicios administ
 
 ---
 
-## 5. Estructura del Código Terraform
+## 5. Estructura del Código Terraform Multi-Cloud
 
 ```
 infra/terraform/
+├── README.md                         <- Guía Multi-Cloud, paridad de providers y comandos
 ├── envs/
-│   └── dev/                  <- Configuración del entorno de desarrollo
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
+│   ├── gcp/dev/                      <- Entorno de desarrollo en Google Cloud
+│   ├── aws/dev/                      <- Entorno de desarrollo en Amazon Web Services
+│   ├── azure/dev/                    <- Entorno de desarrollo en Microsoft Azure
+│   └── proxmox/dev/                  <- Entorno de desarrollo en Proxmox VE (On-Premises)
 └── modules/
-    ├── networking/           <- VPC, Subnets, NAT, Firewall
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    ├── compute/              <- Cloud Run, VPC Connector, Autoescalado
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    ├── database/             <- Cloud SQL PostgreSQL, Memorystore Redis
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    └── storage/              <- Cloud Storage Buckets, Cloud CDN
-        ├── main.tf
-        ├── variables.tf
-        └── outputs.tf
+    ├── gcp/                          <- Módulos Google Cloud (VPC, Cloud Run, Cloud SQL, GCS)
+    ├── aws/                          <- Módulos AWS (VPC, App Runner, RDS PostgreSQL, S3)
+    ├── azure/                        <- Módulos Azure (VNet, Container Apps, PostgreSQL, Storage)
+    └── proxmox/                      <- Módulo Proxmox VE (Contenedor LXC para Docker/K8s)
 ```
+

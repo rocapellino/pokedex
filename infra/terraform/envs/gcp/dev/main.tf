@@ -15,14 +15,14 @@ provider "google" {
 
 # 1. Capa de Redes y Aislamiento (DMZ / Zero-Trust)
 module "networking" {
-  source       = "../../modules/networking"
+  source       = "../../../modules/gcp/networking"
   project_name = var.project_name
   environment  = "dev"
 }
 
 # 2. Capa de Datos (Cloud SQL PostgreSQL + Memorystore Redis)
 module "database" {
-  source                   = "../../modules/database"
+  source                   = "../../../modules/gcp/database"
   project_name             = var.project_name
   environment              = "dev"
   vpc_id                   = module.networking.vpc_id
@@ -34,14 +34,14 @@ module "database" {
 
 # 3. Capa de Almacenamiento Estático y CDN (Frontend + MinIO Cloud)
 module "storage" {
-  source       = "../../modules/storage"
+  source       = "../../../modules/gcp/storage"
   project_name = var.project_name
   environment  = "dev"
 }
 
 # 4. Capa de Cómputo Elástico Serverless (FastAPI API Engine)
 module "compute" {
-  source          = "../../modules/compute"
+  source          = "../../../modules/gcp/compute"
   project_name    = var.project_name
   environment     = "dev"
   vpc_id          = module.networking.vpc_id

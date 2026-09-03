@@ -32,13 +32,11 @@ jobs:
         with:
           terraform_version: 1.8.0
 
-      - name: 4. Ejecutar Terraform Validate
+      - name: 4. Ejecutar Terraform Validate en Módulos Multi-Cloud
         run: |
-          for dir in infra/terraform/modules/*; do
-            if [ -d "$dir" ]; then
-              echo "Validando $dir..."
-              terraform -chdir="$dir" init -backend=false
-              terraform -chdir="$dir" validate
-            fi
+          find infra/terraform/modules -name "*.tf" -exec dirname {} + | sort -u | while read -r dir; do
+            echo "Validando módulo en $dir..."
+            terraform -chdir="$dir" init -backend=false
+            terraform -chdir="$dir" validate
           done
-          echo "✅ Módulos de Terraform validados correctamente."
+          echo "✅ Todos los módulos multi-cloud de Terraform validados correctamente."

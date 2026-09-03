@@ -52,16 +52,24 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 
 ---
 
-## 4. Terraform (Infraestructura como Código - IaC)
-* **Ubicación:** [`infra/terraform/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/terraform).
-* **Módulos:**
-  * Creación de VPC, subredes públicas/privadas, clúster gestionado (EKS/GKE) y almacenamiento.
-* **Comandos Clave:**
+## 4. Terraform (Infraestructura como Código - IaC Multi-Cloud)
+* **Ubicación:** [`infra/terraform/`](file:///infra/terraform).
+* **Módulos Multi-Cloud:**
+  * Soporte desacoplado para **Google Cloud (GCP)**, **Amazon Web Services (AWS)**, **Microsoft Azure** y **Proxmox VE**.
+  * Aprovisionamiento de VPC/VNet, cómputo serverless de contenedores, PostgreSQL administrado, Redis en caché y almacenamiento de objetos/CDN.
+* **Comandos Clave por Nube:**
   ```bash
-  cd infra/terraform/envs/dev
-  terraform init
-  terraform plan
-  terraform apply
+  # Despliegue en GCP
+  cd infra/terraform/envs/gcp/dev && terraform init && terraform plan
+
+  # Despliegue en AWS
+  cd infra/terraform/envs/aws/dev && terraform init && terraform plan
+
+  # Despliegue en Azure
+  cd infra/terraform/envs/azure/dev && terraform init && terraform plan
+
+  # Despliegue en Proxmox VE
+  cd infra/terraform/envs/proxmox/dev && terraform init && terraform plan
   ```
 
 ---
