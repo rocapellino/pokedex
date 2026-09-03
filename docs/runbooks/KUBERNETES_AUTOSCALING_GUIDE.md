@@ -31,15 +31,14 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
 
 ## 2. Despliegue de la Infraestructura en Kubernetes
 
-### Opción A: Despliegue con Script Automatizado
-* **PowerShell (Windows):**
-  ```powershell
-  .\scripts\k8s_deploy.ps1 -BuildImages -SeedDatabase
-  ```
-* **Bash (Linux/Mac):**
+### Opción A: Despliegue con Taskfile o Script Automatizado
+* **Vía Taskfile (Recomendado y Multiplataforma):**
   ```bash
-  chmod +x scripts/k8s_deploy.sh
-  ./scripts/k8s_deploy.sh
+  task k8s:up
+  ```
+* **Vía Script Automatizado (Bash / CI/CD):**
+  ```bash
+  bash scripts/k8s_deploy.sh --build --seed
   ```
 
 ### Opción B: Despliegue Manual con Kustomize

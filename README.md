@@ -81,13 +81,17 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 ### Opción A: Despliegue en Kubernetes (Recomendado)
 
-1. **Construir imágenes y desplegar con el script automatizado:**
-   ```powershell
-   .\scripts\k8s_deploy.ps1 -BuildImages -SeedDatabase
+1. **Construir imágenes y desplegar con Taskfile o script automatizado:**
+   ```bash
+   # Vía Taskfile
+   task k8s:up
+
+   # O con el script automatizado (construir imágenes y sembrar base de datos)
+   bash scripts/k8s_deploy.sh --build --seed
    ```
 
 2. **Habilitar acceso local:**
-   ```powershell
+   ```bash
    kubectl port-forward svc/pokemon-web-svc 8080:8080 -n pokemon-app
    ```
 
@@ -100,12 +104,12 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 ### Opción B: Despliegue con Docker Compose (Multi-Entorno)
 
 #### 🟢 Modo Desarrollo (Hot-Reload & Puertos Abiertos):
-```powershell
+```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
 #### 🌐 Modo Producción (Limpio & Endurecido):
-```powershell
+```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
@@ -113,9 +117,11 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 ### Opción C: Despliegue en Proxmox VE (On-Premises / Homelab)
 
-```powershell
+```bash
 # Despliegue automatizado en contenedor LXC o VM de Proxmox
-.\scripts\proxmox_deploy.ps1 -ProxmoxHost "192.168.1.150" -User "root"
+bash scripts/proxmox_deploy.sh "192.168.1.150" "root" 22
+# O vía Taskfile
+task deploy:proxmox -- "192.168.1.150" "root"
 ```
 
 ---
@@ -124,20 +130,25 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 Para ver el detalle exhaustivo de todas las pruebas implementadas y cómo ejecutarlas, consulta la [**Guía Completa de Pruebas (`docs/testing-guide.md`)**](file:///docs/testing-guide.md).
 
-### Ejecución Rápida:
-* **Suite de Pruebas Unitarias (Pytest):**
-  ```powershell
-  .\.venv\Scripts\python -m pytest -v
-  ```
-* **Auditoría de Calidad, Duplicación y Complejidad:**
-  ```powershell
-  .\.venv\Scripts\python scripts/audit_code_quality.py
-  ```
-* **Prueba de Carga y Autoescalado (HPA):**
-  ```powershell
-  .\.venv\Scripts\python scripts/k8s_load_test.py
-  ```
-* **Vía Tareas de VS Code:** Presiona `Ctrl + Shift + P` -> `Tasks: Run Task` y selecciona la prueba a ejecutar.
+### Ejecución Rápida con Taskfile (Recomendado):
+* **Pruebas Unitarias con Cobertura:** `task test`
+* **Carga Masiva de Datos (1.025 Pokémon):** `task seed`
+* **Secuencia Funcional de la API (CRUD):** `task test:api`
+* **Pruebas de Carga Concurrente (HPA):** `task test:load`
+* **Pruebas de Rendimiento k6:** `task perf`
+* **Auditoría Integral (Ruff + Radon + Bandit):** `task audit`
+
+### Ejecución Directa con Python:
+```bash
+# Pruebas unitarias
+pytest -v --cov=apps/api/src
+
+# Carga masiva de datos (Seeding)
+python scripts/bulk_load_pokemons.py
+
+# Pruebas de estrés concurrente
+python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concurrency 50 --total-requests 3000
+```
 
 ---
 

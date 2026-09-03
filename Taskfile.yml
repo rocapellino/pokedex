@@ -23,6 +23,21 @@ tasks:
     cmds:
       - pytest -v --cov=apps/api/src --cov-report=term-missing
 
+  test:api:
+    desc: "Ejecuta la secuencia de pruebas funcionales de endpoints CRUD de la API"
+    cmds:
+      - python scripts/run_all_scripts.py
+
+  test:load:
+    desc: "Ejecuta prueba de carga concurrente en Python (HPA / estrés)"
+    cmds:
+      - python scripts/k8s_load_test.py {{.CLI_ARGS}}
+
+  seed:
+    desc: "Ejecuta la carga masiva de datos (1025 Pokémon) en PostgreSQL y Redis"
+    cmds:
+      - python scripts/bulk_load_pokemons.py {{.CLI_ARGS}}
+
   lint:
     desc: "Ejecuta el linter Ruff en todo el código"
     cmds:
@@ -57,6 +72,38 @@ tasks:
     desc: "Detiene todos los contenedores de Docker Compose"
     cmds:
       - docker-compose down
+
+  k8s:up:
+    desc: "Aplica los manifiestos declarativos de Kubernetes (Kustomize)"
+    cmds:
+      - kubectl apply -k infra/k8s/
+
+  k8s:down:
+    desc: "Elimina los recursos de Kubernetes del namespace pokemon-app"
+    cmds:
+      - kubectl delete -k infra/k8s/
+
+  k8s:status:
+    desc: "Muestra el estado de Pods, Servicios, HPA e Ingress en Kubernetes"
+    cmds:
+      - kubectl get pods,svc,hpa,ingress -n pokemon-app
+
+  k8s:seed:
+    desc: "Dispara el Job de siembra masiva de Pokémon en Kubernetes"
+    cmds:
+      - kubectl delete job pokemon-db-seed-job -n pokemon-app --ignore-not-found
+      - kubectl apply -f infra/k8s/08-db-seed-job.yaml
+      - kubectl wait --for=condition=complete --timeout=300s job/pokemon-db-seed-job -n pokemon-app
+
+  secrets:seal:
+    desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/k8s/01-sealed-secrets.yaml"
+    cmds:
+      - python scripts/seal_secret.py
+
+  deploy:proxmox:
+    desc: "Despliega el stack en Proxmox VE (LXC/VM) vía SSH y Docker Compose"
+    cmds:
+      - bash scripts/proxmox_deploy.sh {{.CLI_ARGS}}
 
   ai:diagram:
     desc: "Genera un diagrama Mermaid con Google AI Studio (Gemini 2.0 Flash)"
