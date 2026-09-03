@@ -3,7 +3,6 @@
 # ==============================================================================
 import logging
 import os
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +39,11 @@ def setup_telemetry(app, service_name: str = "pokedex-api") -> bool:
         )
 
         provider = TracerProvider(resource=resource)
-        
+
         # Endpoint gRPC para Tempo (ej. http://tempo:4317)
         insecure = not otlp_endpoint.startswith("https://")
         clean_endpoint = otlp_endpoint.replace("http://", "").replace("https://", "")
-        
+
         exporter = OTLPSpanExporter(
             endpoint=clean_endpoint,
             insecure=insecure
