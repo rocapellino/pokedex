@@ -14,7 +14,6 @@ variable "proxmox_api_token_secret" {
   description = "Secret del Token de la API de Proxmox"
   type        = string
   sensitive   = true
-  default     = "00000000-0000-0000-0000-000000000000"
 }
 
 variable "target_node" {

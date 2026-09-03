@@ -1,0 +1,6 @@
+# Variables de Ejemplo para Despliegue en Proxmox VE (Entorno Dev)
+proxmox_api_url          = "https://192.168.1.100:8006/api2/json"
+proxmox_api_token_id     = "root@pam!terraform"
+proxmox_api_token_secret = "00000000-0000-0000-0000-000000000000"
+target_node              = "pve"
+container_vmid           = 201

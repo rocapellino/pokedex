@@ -121,6 +121,37 @@ tasks:
       - python scripts/ai_tools.py image {{.CLI_ARGS}}
 
   # ----------------------------------------------------------------------------
+  # Infraestructura como Código (IaC) Multi-Cloud con Terraform
+  # ----------------------------------------------------------------------------
+  tf:plan:gcp:
+    desc: "Ejecuta terraform plan para Google Cloud Platform (Dev)"
+    dir: infra/terraform/envs/gcp/dev
+    cmds:
+      - terraform init
+      - terraform plan
+
+  tf:plan:aws:
+    desc: "Ejecuta terraform plan para Amazon Web Services (Dev)"
+    dir: infra/terraform/envs/aws/dev
+    cmds:
+      - terraform init
+      - terraform plan
+
+  tf:plan:azure:
+    desc: "Ejecuta terraform plan para Microsoft Azure (Dev)"
+    dir: infra/terraform/envs/azure/dev
+    cmds:
+      - terraform init
+      - terraform plan
+
+  tf:plan:proxmox:
+    desc: "Ejecuta terraform plan para Proxmox VE (Dev)"
+    dir: infra/terraform/envs/proxmox/dev
+    cmds:
+      - terraform init
+      - terraform plan
+
+  # ----------------------------------------------------------------------------
   # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK)
   # ----------------------------------------------------------------------------
   ts:install:
