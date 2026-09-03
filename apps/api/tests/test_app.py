@@ -223,3 +223,39 @@ def test_prometheus_metrics_degraded_mode(client):
     assert response.status_code == 200
     assert "pokedex_degraded_mode" in response.text
 
+
+def test_admin_auth_rejected_with_invalid_key(client):
+    """Prueba que mutaciones con X-API-Key inválida sean rechazadas con 401."""
+    headers = {"X-API-Key": "clave-completamente-invalida"}
+    response = client.delete('/pokemons/1', headers=headers)
+    assert response.status_code == 401
+    assert "Credencial de autenticación inválida" in response.json()["detail"]
+
+
+def test_admin_auth_accepted_with_valid_key(client):
+    """Prueba que mutaciones con X-API-Key correcta sean permitidas."""
+    valid_key = os.getenv("ADMIN_API_KEY", "pokedex-super-admin-key-2026")
+    headers = {"X-API-Key": valid_key}
+    nuevo = {
+        "nombre": "Mewtwo",
+        "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
+        "caracteristicas": {"peso": 122.0, "altura": 2.0, "fuerza": 110, "edad": 10, "categoria": "Genético"},
+        "habilidades": ["Presión"],
+        "tipo": "Psíquico",
+        "habitat": "Raro"
+    }
+    response = client.post('/pokemons', json=nuevo, headers=headers)
+    assert response.status_code == 201
+    assert response.json()["nombre"] == "Mewtwo"
+
+
+@pytest.mark.anyio
+async def test_db_pool_and_async_health():
+    """Prueba de inicialización y cierre del pool asíncrono sin colisiones."""
+    from apps.api.src.db import check_db_health_async, close_db_pool, init_db_pool
+    await init_db_pool()
+    healthy = await check_db_health_async()
+    assert isinstance(healthy, bool)
+    await close_db_pool()
+
+

@@ -11,24 +11,46 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
-from fastapi import FastAPI, HTTPException, Query, Request, status
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
 try:
-    from apps.api.src.db import check_db_health, fetch_pokemons_from_db, invalidate_cache
+    from apps.api.src.db import (
+        check_db_health_async,
+        close_db_pool,
+        fetch_pokemons_from_db_async,
+        init_db_pool,
+        invalidate_cache_async,
+    )
 except ImportError:
     try:
-        from src.db import check_db_health, fetch_pokemons_from_db, invalidate_cache
+        from src.db import (
+            check_db_health_async,
+            close_db_pool,
+            fetch_pokemons_from_db_async,
+            init_db_pool,
+            invalidate_cache_async,
+        )
     except ImportError:
-        def fetch_pokemons_from_db():
+        async def init_db_pool():
             return None
-        def invalidate_cache():
+        async def close_db_pool():
             pass
-        def check_db_health():
+        async def fetch_pokemons_from_db_async():
+            return None
+        async def invalidate_cache_async():
+            pass
+        async def check_db_health_async():
             return False
 
 try:
@@ -55,16 +77,62 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==============================================================================
+# Ciclo de Vida Asíncrono (Pool de Base de Datos) & Rate Limiting
+# ==============================================================================
+@asynccontextmanager
+async def lifespan(app_instance: FastAPI):
+    # Startup: Inicializar pool de conexiones asyncpg
+    if not _IS_TESTING:
+        await init_db_pool()
+    yield
+    # Shutdown: Cerrar pool de conexiones limpiamente
+    if not _IS_TESTING:
+        await close_db_pool()
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
 app = FastAPI(
     title="Pokédex REST API",
     description="API REST de Alto Rendimiento para Pokédex con soporte asíncrono, OpenAPI, observabilidad y Google AI Studio.",
     version="1.2.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Inicialización de Trazabilidad Distribuida (APM) con OpenTelemetry y Grafana Tempo
 setup_telemetry(app)
+
+# ==============================================================================
+# Seguridad: Autenticación por Cabecera X-API-Key para Endpoints de Mutación
+# ==============================================================================
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "pokedex-super-admin-key-2026")
+
+
+async def verify_admin_key(
+    api_key: Optional[str] = Security(api_key_header),
+):
+    """
+    Verifica que la petición incluya una cabecera X-API-Key válida.
+    En testing (_IS_TESTING=True) permite el paso si la cabecera no se envió,
+    pero rechaza con 401 si se envía una clave explícitamente incorrecta.
+    """
+    if _IS_TESTING and api_key is None:
+        return True
+    if not api_key or api_key != ADMIN_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credencial de autenticación inválida o faltante en la cabecera X-API-Key",
+            headers={"WWW-Authenticate": "ApiKey"}
+        )
+    return True
+
 
 # Configuración de CORS segura con lista explícita de orígenes permitidos
 cors_origins_env = os.getenv("CORS_ORIGINS")
@@ -264,7 +332,7 @@ async def healthz():
 @app.get("/readyz", summary="Healthcheck Readiness con verificación de Base de Datos")
 async def readyz():
     global _IS_DEGRADED_MODE
-    db_ok = check_db_health()
+    db_ok = await check_db_health_async()
     if db_ok:
         _IS_DEGRADED_MODE = False
         return JSONResponse(
@@ -279,7 +347,9 @@ async def readyz():
 
 
 @app.get("/pokemons", summary="Listar y filtrar Pokémon")
+@limiter.limit("300/minute")
 async def get_pokemons(
+    request: Request,
     tipo: Optional[str] = Query(None, description="Filtra por tipo elemental en español"),
     nombre: Optional[str] = Query(None, description="Búsqueda por coincidencia de nombre"),
     limit: Optional[int] = Query(None, ge=1, le=1025, description="Límite máximo de resultados"),
@@ -289,7 +359,7 @@ async def get_pokemons(
     pokemons_list: List[Dict[str, Any]] = []
 
     if not _IS_TESTING:
-        db_pokemons = fetch_pokemons_from_db()
+        db_pokemons = await fetch_pokemons_from_db_async()
         if db_pokemons and len(db_pokemons) > 0:
             _IS_DEGRADED_MODE = False
             pokemons_list = db_pokemons
@@ -337,8 +407,14 @@ async def get_pokemon_by_id(id: int):
     return pokemon
 
 
-@app.post("/pokemons", status_code=status.HTTP_201_CREATED, summary="Crear un nuevo Pokémon")
-async def create_pokemon(payload: PokemonCreateSchema):
+@app.post(
+    "/pokemons",
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear un nuevo Pokémon",
+    dependencies=[Depends(verify_admin_key)]
+)
+@limiter.limit("30/minute")
+async def create_pokemon(request: Request, payload: PokemonCreateSchema):
     global current_id
 
     nuevo_pokemon = {
@@ -363,13 +439,18 @@ async def create_pokemon(payload: PokemonCreateSchema):
 
     pokemons.append(nuevo_pokemon)
     current_id += 1
-    invalidate_cache()
+    await invalidate_cache_async()
 
     return nuevo_pokemon
 
 
-@app.put("/pokemons/{id}", summary="Actualizar Pokémon existente")
-async def update_pokemon(id: int, payload: PokemonUpdateSchema):
+@app.put(
+    "/pokemons/{id}",
+    summary="Actualizar Pokémon existente",
+    dependencies=[Depends(verify_admin_key)]
+)
+@limiter.limit("30/minute")
+async def update_pokemon(request: Request, id: int, payload: PokemonUpdateSchema):
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
@@ -410,12 +491,17 @@ async def update_pokemon(id: int, payload: PokemonUpdateSchema):
     if "evoluciones" in data and data["evoluciones"] is not None:
         pokemon["evoluciones"] = data["evoluciones"]
 
-    invalidate_cache()
+    await invalidate_cache_async()
     return pokemon
 
 
-@app.delete("/pokemons/{id}", summary="Eliminar Pokémon por ID")
-async def delete_pokemon(id: int):
+@app.delete(
+    "/pokemons/{id}",
+    summary="Eliminar Pokémon por ID",
+    dependencies=[Depends(verify_admin_key)]
+)
+@limiter.limit("30/minute")
+async def delete_pokemon(request: Request, id: int):
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
@@ -424,11 +510,12 @@ async def delete_pokemon(id: int):
         )
 
     pokemons.remove(pokemon)
-    invalidate_cache()
+    await invalidate_cache_async()
     return {
         "mensaje": f"Pokémon con id {id} eliminado correctamente",
         "pokemon_eliminado": pokemon
     }
+
 
 
 @app.get("/metrics", summary="Métricas estándar de Prometheus")
