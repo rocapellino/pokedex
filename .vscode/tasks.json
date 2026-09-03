@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "🚀 Docker: Dev Up (Hot-Reload & Debug)",
+      "label": "🚀 Docker: Dev Up",
       "type": "shell",
       "command": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d",
       "group": {
@@ -36,7 +36,7 @@
       "detail": "Detiene y elimina los contenedores y redes del entorno de desarrollo."
     },
     {
-      "label": "🌐 Docker: Prod Up (Limpio & Endurecido)",
+      "label": "🌐 Docker: Prod Up",
       "type": "shell",
       "command": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
       "problemMatcher": [],
@@ -204,7 +204,7 @@
     {
       "label": "☸️ Kubernetes: Up",
       "type": "shell",
-      "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\k8s_deploy.ps1 -BuildImages",
+      "command": "kubectl apply -k infra/k8s/",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

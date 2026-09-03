@@ -51,12 +51,12 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 2. Selecciona `Tasks: Run Task` -> **`🚀 Proxmox: Desplegar en Servidor Proxmox VE`**.
 3. Ingresa la IP o Hostname de tu servidor o contenedor LXC (ej: `192.168.1.150`).
 
-### Opción B: Vía PowerShell (Windows):
-```powershell
-.\scripts\proxmox_deploy.ps1 -ProxmoxHost "192.168.1.150" -User "root"
+### Opción B: Vía Taskfile (Recomendado y Multiplataforma):
+```bash
+task deploy:proxmox -- "192.168.1.150" "root" 22
 ```
 
-### Opción C: Vía Bash (Linux / Mac):
+### Opción C: Vía Bash (Linux / macOS / CI/CD):
 ```bash
 chmod +x scripts/proxmox_deploy.sh
 ./scripts/proxmox_deploy.sh 192.168.1.150 root 22
@@ -66,7 +66,7 @@ chmod +x scripts/proxmox_deploy.sh
 
 ## 3. Método 2: Aprovisionamiento con Terraform
 
-El módulo en [`infra/terraform/modules/proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/terraform/modules/proxmox) utiliza el provider oficial `bpg/proxmox` para crear el contenedor LXC con Docker preconfigurado.
+El módulo en [`infra/terraform/modules/proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/terraform/modules/proxmox) utiliza el provider oficial `bpg/proxmox` para crear el contenedor LXC con Docker preconfigurado:
 
 ```bash
 cd infra/terraform/modules/proxmox

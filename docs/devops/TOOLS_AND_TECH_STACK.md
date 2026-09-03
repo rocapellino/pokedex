@@ -34,7 +34,7 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Duplicación** | **JSCPD** | Detección de código duplicado (*Copy-Paste Detector*) | [`.jscpd.json`](file:///.jscpd.json) |
 | **Hooks Git** | **Pre-commit** | Ejecución de validaciones automáticas antes de cada commit local | [`.pre-commit-config.yaml`](file:///.pre-commit-config.yaml) |
 | **Secret Scanning** | **Gitleaks** | Detección preventiva de credenciales, tokens y secretos en el historial git | [`.gitleaks.toml`](file:///.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) |
-| **Secretos K8s** | **Sealed Secrets (`kubeseal`)** | Encriptación asimétrica de secretos para guardarlos de forma segura en Git | [`.tools/kubeseal.exe`](file:///.tools/kubeseal.exe), [`scripts/seal_secret.ps1`](file:///scripts/seal_secret.ps1) |
+| **Secretos K8s** | **Sealed Secrets (`kubeseal`)** | Encriptación asimétrica de secretos para guardarlos de forma segura en Git | [`scripts/seal_secret.py`](file:///scripts/seal_secret.py), [`scripts/seal_secret.sh`](file:///scripts/seal_secret.sh) |
 | **Performance Testing** | **k6 (Grafana k6)** | Pruebas de estrés y benchmarking de endpoints de la API como código | [`tests/performance/k6_stress_test.js`](file:///tests/performance/k6_stress_test.js) |
 | **Contenedores** | **Docker & Buildx** | Empaquetado en imágenes ligeras multi-stage (desarrollo y producción) | [`Dockerfile`](file:///Dockerfile), `apps/*/Dockerfile` |
 | **Composición local** | **Docker Compose** | Orquestación local multicontenedor (API + Web + Postgres + Redis) | [`docker-compose.yml`](file:///docker-compose.yml), `docker-compose.dev.yml` |

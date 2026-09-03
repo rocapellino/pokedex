@@ -83,8 +83,10 @@ pokedex/
 │       ├── KUBERNETES_AUTOSCALING_GUIDE.md
 │       └── STRESS_TESTING_GUIDE.md
 ├── scripts/                      # Scripts de automatización y herramientas
-│   ├── k8s_deploy.ps1            # Despliegue automatizado en K8s (PowerShell)
 │   ├── k8s_deploy.sh             # Despliegue automatizado en K8s (Bash)
+│   ├── proxmox_deploy.sh         # Despliegue automatizado en Proxmox VE (Bash)
+│   ├── seal_secret.py            # Cifrado de secretos con Sealed Secrets (Python)
+│   ├── seal_secret.sh            # Cifrado de secretos con Sealed Secrets (Bash)
 │   ├── k8s_load_test.py          # Simulador de carga concurrente y estrés HPA
 │   └── bulk_load_pokemons.py     # Script de carga masiva de datos (1.025 Pokémon)
 ├── docker-compose.yml            # Orquestación local para desarrollo con DMZ

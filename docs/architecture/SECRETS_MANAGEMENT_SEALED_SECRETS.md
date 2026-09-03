@@ -70,15 +70,26 @@ En Kubernetes, los `Secrets` nativos solo están codificados en Base64, lo que n
 
 ## 4. Flujo de Trabajo Operativo para Desarrolladores
 
-### Sellar un Secreto Nuevo o Modificado (PowerShell):
-Se incluye el script automatizado [`scripts/seal_secret.ps1`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/scripts/seal_secret.ps1) que descarga la CLI `kubeseal` y genera el manifiesto cifrado:
+### Sellar un Secreto Nuevo o Modificado:
+Se incluyen utilidades automatizadas multiplataforma para generar el manifiesto cifrado:
 
-```powershell
-.\scripts\seal_secret.ps1 -SecretName "pokemon-secrets" -Namespace "pokemon-app"
-```
+* **Vía Taskfile (Recomendado):**
+  ```bash
+  task secrets:seal
+  ```
+
+* **Vía Python (Multiplataforma Windows / Linux / macOS):**
+  ```bash
+  python scripts/seal_secret.py --name pokemon-secrets --namespace pokemon-app
+  ```
+
+* **Vía Bash (Linux / macOS):**
+  ```bash
+  bash scripts/seal_secret.sh pokemon-secrets pokemon-app
+  ```
 
 ### Aplicar en el Clúster:
-```powershell
+```bash
 # Aplicar el SealedSecret en Kubernetes:
 kubectl apply -f infra/k8s/01-sealed-secrets.yaml
 
