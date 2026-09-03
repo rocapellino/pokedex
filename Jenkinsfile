@@ -22,28 +22,29 @@ pipeline {
             }
         }
 
-        stage('2. Análisis de Código & Seguridad') {
+        stage('2. Análisis de Código & Seguridad (SAST)') {
             parallel {
-                stage('Linting (Ruff & Flake8)') {
+                stage('Linting (Ruff)') {
                     steps {
-                        echo '=== Ejecutando análisis estático ==='
+                        echo '=== Ejecutando análisis estático con Ruff ==='
                         sh '''
                             python3 -m venv .venv
                             . .venv/bin/activate
-                            pip install --quiet ruff flake8
-                            ruff check apps/api/src/ || true
-                            flake8 apps/api/src/ --max-line-length=120 --count --statistics || true
+                            pip install --quiet ruff
+                            ruff check apps/api/src/ apps/api/tests/
                         '''
                     }
                 }
-                stage('Secret Scanning (Gitleaks)') {
+                stage('Security Audit (Bandit & Gitleaks)') {
                     steps {
-                        echo '=== Escaneo de credenciales con Gitleaks ==='
+                        echo '=== Escaneo SAST con Bandit y detección de secretos ==='
                         sh '''
+                            python3 -m venv .venv
+                            . .venv/bin/activate
+                            pip install --quiet bandit
+                            bandit -r apps/api/src/ -ll -q || true
                             if command -v gitleaks >/dev/null 2>&1; then
                                 gitleaks detect --verbose --no-git || true
-                            else
-                                echo "Gitleaks no instalado en el agente, omitiendo escaneo"
                             fi
                         '''
                     }
@@ -57,7 +58,7 @@ pipeline {
                 sh '''
                     python3 -m venv .venv
                     . .venv/bin/activate
-                    pip install --quiet -r requirements.txt -r requirements-dev.txt
+                    pip install --quiet -r requirements.txt -r apps/api/requirements.txt
                     mkdir -p reports
                     pytest --verbose --junitxml=reports/test-results.xml
                 '''
@@ -84,11 +85,11 @@ pipeline {
                 branch 'develop'
             }
             steps {
-                echo '=== Desplegando en clúster Kubernetes (Namespace: staging) ==='
+                echo '=== Desplegando en clúster Kubernetes (Namespace: pokemon-app) ==='
                 sh '''
                     kubectl apply -k infra/k8s/
-                    kubectl rollout status deployment/pokedex-api -n default --timeout=60s
-                    kubectl rollout status deployment/pokedex-web -n default --timeout=60s
+                    kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=90s
+                    kubectl rollout status deployment/pokemon-web -n pokemon-app --timeout=90s
                 '''
             }
         }
@@ -109,10 +110,10 @@ pipeline {
             steps {
                 echo '=== Desplegando en Producción con Kubernetes ==='
                 sh '''
-                    kubectl set image deployment/pokedex-api api=${DOCKER_REGISTRY}/pokedex-api:${IMAGE_TAG} --record
-                    kubectl set image deployment/pokedex-web web=${DOCKER_REGISTRY}/pokedex-web:${IMAGE_TAG} --record
-                    kubectl rollout status deployment/pokedex-api --timeout=120s
-                    kubectl rollout status deployment/pokedex-web --timeout=120s
+                    kubectl set image deployment/pokemon-api pokemon-api=${DOCKER_REGISTRY}/pokedex-api:${IMAGE_TAG} -n pokemon-app
+                    kubectl set image deployment/pokemon-web pokemon-web=${DOCKER_REGISTRY}/pokedex-web:${IMAGE_TAG} -n pokemon-app
+                    kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=120s
+                    kubectl rollout status deployment/pokemon-web -n pokemon-app --timeout=120s
                 '''
             }
         }

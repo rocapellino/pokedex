@@ -1,0 +1,45 @@
+# ==============================================================================
+# Workflow de Pruebas de Carga y Performance Gate (Grafana k6)
+# ==============================================================================
+name: ⚡ Performance & Load Testing (k6)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL base del entorno objetivo"
+        required: false
+        default: "http://127.0.0.1:5000"
+  schedule:
+    - cron: "0 3 * * 1" # Ejecución semanal los lunes a las 03:00 UTC
+
+jobs:
+  k6-load-test:
+    name: 🎯 k6 Performance Gate & SLO Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@v7
+
+      - name: 2. Configurar Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: 3. Instalar Dependencias de la API
+        run: |
+          pip install -r apps/api/requirements.txt
+
+      - name: 4. Iniciar API FastAPI en Segundo Plano
+        run: |
+          python -m uvicorn apps.api.src.app:app --host 127.0.0.1 --port 5000 &
+          sleep 5
+          curl -f http://127.0.0.1:5000/healthz
+
+      - name: 5. Ejecutar Pruebas de Carga con Grafana k6
+        uses: grafana/k6-action@v0.4.0
+        with:
+          filename: tests/performance/k6_stress_test.js
+          flags: --env TARGET_URL=${{ github.event.inputs.target_url || 'http://127.0.0.1:5000' }}

@@ -1,0 +1,35 @@
+# ==============================================================================
+# ArgoCD Application Manifest - Despliegue Declarativo GitOps
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pokedex-platform
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: pokedex
+    app.kubernetes.io/part-of: pokemon-platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rocapellino/pokedex.git
+    targetRevision: main
+    path: infra/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pokemon-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

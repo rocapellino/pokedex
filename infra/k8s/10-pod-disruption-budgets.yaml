@@ -1,0 +1,28 @@
+# ==============================================================================
+# PodDisruptionBudgets (PDB) - Alta Disponibilidad y Resiliencia en Drenado
+# ==============================================================================
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pokemon-api-pdb
+  namespace: pokemon-app
+  labels:
+    app: pokemon-api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: pokemon-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pokemon-web-pdb
+  namespace: pokemon-app
+  labels:
+    app: pokemon-web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: pokemon-web
