@@ -45,6 +45,11 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **CI/CD** | **GitHub Actions** | Pipelines automatizados por paths (`api`, `web`, `infra`, `security`, `ci`, `trivy`) | [`.github/workflows/`](file:///.github/workflows) |
 | **CI/CD** | **Jenkins** | Pipeline declarativo alternativo enterprise con stages de build/test/audit | [`Jenkinsfile`](file:///Jenkinsfile) |
 | **CI/CD** | **GitLab CI** | Pipeline multiplataforma para GitLab | [`.gitlab-ci.yml`](file:///.gitlab-ci.yml) |
+| **Observabilidad & Métricas** | **Prometheus + cAdvisor + Exporters** | Métricas de API, contenedores, PostgreSQL (`postgres_exporter`) y Redis (`redis_exporter`) | `docker_monitoreo/` |
+| **Logs Centralizados** | **Grafana Loki + Promtail** | Agregación e indexación de logs de stdout/stderr de contenedores con consultas LogQL | `docker_monitoreo/` |
+| **Alertas & Notificaciones** | **Prometheus Alertmanager** | Detección proactiva de caídas, modo degradado, saturación de conexiones y alta memoria | `docker_monitoreo/alertmanager/` |
+| **Trazabilidad & APM** | **OpenTelemetry + Grafana Tempo** | Trazas distribuidas end-to-end (FastAPI, SQL, Redis, Gemini) exportadas vía OTLP gRPC | `apps/api/src/telemetry.py`, `docker_monitoreo/tempo/` |
+| **Visualización Unificada** | **Grafana (Dashboards multi-capa)** | Tableros unificados con métricas HTTP, recursos Docker, estado de BD, trazas y logs | `docker_monitoreo/grafana/` |
 | **Actualizaciones Auto** | **Dependabot** | Apertura automática de PRs consolidados (Grouped Updates) para pip, docker y actions | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
 | **Automatización DX** | **Taskfile (go-task)** | Comandos unificados 100% cross-platform (`task test`, `task dev`, `task audit`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml) |
 | **Gestión Ágil** | **Linear** | Gestión de tickets, ciclos, ramas automatizadas y PR linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |

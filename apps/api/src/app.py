@@ -44,6 +44,15 @@ except ImportError:
         def generate_image_asset(prompt: str, aspect_ratio: str = "1:1"):
             return {"success": False, "error": "AI service unavailable", "image_base64": None}
 
+try:
+    from apps.api.src.telemetry import setup_telemetry
+except ImportError:
+    try:
+        from src.telemetry import setup_telemetry
+    except ImportError:
+        def setup_telemetry(app, service_name: str = "pokedex-api"):
+            return False
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
@@ -53,6 +62,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Inicialización de Trazabilidad Distribuida (APM) con OpenTelemetry y Grafana Tempo
+setup_telemetry(app)
 
 # Configuración de CORS segura con lista explícita de orígenes permitidos
 cors_origins_env = os.getenv("CORS_ORIGINS")
