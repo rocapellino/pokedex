@@ -27,11 +27,7 @@ services:
     ports:
       - "6379:6379"  # Puerto abierto al host para depuración de caché (RedisInsight)
 
-  minio:
-    ports:
-      - "9000:9000"
-      - "9001:9001"  # Consola administrativa MinIO en el host
-
 networks:
   backend-net:
     internal: false  # Habilitar forwarding de puertos en local para desarrollo
+
