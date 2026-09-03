@@ -8,7 +8,7 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 * **Ubicación:** Raíz del proyecto.
 * **Buenas Prácticas:**
   * Flujo de ramas: *Trunk-Based Development* (`main` para producción, `feature/*` para nuevas funcionalidades).
-  * Hooks de pre-commit activos: [`.pre-commit-config.yaml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.pre-commit-config.yaml) y [`.gitleaks.toml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.gitleaks.toml) para evitar fuga de credenciales.
+  * Hooks de pre-commit activos: [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) y [`.gitleaks.toml`](../.gitleaks.toml) para evitar fuga de credenciales.
 * **Comandos Clave:**
   ```bash
   git checkout -b feature/nueva-mejora
@@ -18,13 +18,12 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 ---
 
 ## 2. Docker (Contenedores y Multi-Stage Builds)
-* **Ubicación:** [docker-compose.yml](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/docker-compose.yml), [`docker-compose.dev.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/docker-compose.dev.yml), [`docker-compose.prod.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/docker-compose.prod.yml), [`apps/web/Dockerfile`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/apps/web/Dockerfile), [`apps/api/Dockerfile`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/apps/api/Dockerfile).
+* **Ubicación:** [`docker-compose.yml`](../docker-compose.yml), [`docker-compose.dev.yml`](../docker-compose.dev.yml), [`docker-compose.prod.yml`](../docker-compose.prod.yml), [`apps/web/Dockerfile`](../apps/web/Dockerfile), [`apps/api/Dockerfile`](../apps/api/Dockerfile).
 * **Arquitectura:**
   * `web`: Nginx Reverse Proxy (DMZ pública en `:8080`).
   * `api`: FastAPI ASGI Backend (`:5000` interno con Uvicorn).
   * `postgres`: PostgreSQL 16 Alpine con almacenamiento persistente.
   * `redis`: Redis 7 Alpine para caché de alta velocidad.
-  * `minio`: Object Storage S3 compatible para backups y assets.
 * **Comandos Clave:**
   ```powershell
   # Modo Desarrollo con Hot-Reload y puertos abiertos
@@ -37,7 +36,7 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 ---
 
 ## 3. Kubernetes (Orquestación, HPA y NetworkPolicies)
-* **Ubicación:** [`infra/k8s/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/k8s).
+* **Ubicación:** [`infra/k8s/`](../infra/k8s).
 * **Manifiestos Destacados:**
   * `02-postgres-statefulset.yaml`: Persistencia de datos mediante PVCs.
   * `04-api-deployment.yaml` & `05-web-deployment.yaml`: Replicación y rolling updates.
@@ -53,7 +52,7 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 ---
 
 ## 4. Terraform (Infraestructura como Código - IaC Multi-Cloud)
-* **Ubicación:** [`infra/terraform/`](file:///infra/terraform).
+* **Ubicación:** [`infra/terraform/`](../infra/terraform).
 * **Módulos Multi-Cloud:**
   * Soporte desacoplado para **Google Cloud (GCP)**, **Amazon Web Services (AWS)**, **Microsoft Azure** y **Proxmox VE**.
   * Aprovisionamiento de VPC/VNet, cómputo serverless de contenedores, PostgreSQL administrado, Redis en caché y almacenamiento de objetos/CDN.
@@ -75,13 +74,13 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 ---
 
 ## 5. Ansible (Gestión de Configuración y Aprovisionamiento)
-* **Ubicación:** [`infra/ansible/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible).
+* **Ubicación:** [`infra/ansible/`](../infra/ansible).
 * **Estructura:**
-  * [`ansible.cfg`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible/ansible.cfg): Configuración de conexiones SSH y escalamiento sudo.
-  * [`inventory/hosts.ini`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible/inventory/hosts.ini): Inventario de nodos K8s y servidores de aplicación.
-  * [`playbooks/setup_nodes.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible/playbooks/setup_nodes.yml): Instalación de Docker/containerd, módulos de kernel (`overlay`, `br_netfilter`) y apagado de Swap.
-  * [`playbooks/security_hardening.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible/playbooks/security_hardening.yml): Configuración de UFW Firewall y hardening de SSH.
-  * [`playbooks/deploy_app.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/infra/ansible/playbooks/deploy_app.yml): Despliegue automatizado con Docker Compose.
+  * [`ansible.cfg`](../infra/ansible/ansible.cfg): Configuración de conexiones SSH y escalamiento sudo.
+  * [`inventory/hosts.ini`](../infra/ansible/inventory/hosts.ini): Inventario de nodos K8s y servidores de aplicación.
+  * [`playbooks/setup_nodes.yml`](../infra/ansible/playbooks/setup_nodes.yml): Instalación de Docker/containerd, módulos de kernel (`overlay`, `br_netfilter`) y apagado de Swap.
+  * [`playbooks/security_hardening.yml`](../infra/ansible/playbooks/security_hardening.yml): Configuración de UFW Firewall y hardening de SSH.
+  * [`playbooks/deploy_app.yml`](../infra/ansible/playbooks/deploy_app.yml): Despliegue automatizado con Docker Compose.
 * **Comandos Clave:**
   ```bash
   ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_nodes.yml
@@ -95,8 +94,8 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 * **Jenkins Controller:**
   * **Ubicación:** Repositorio independiente [`docker_jenkins`](https://github.com/rocapellino/docker_jenkins).
   * **Servidor en Docker:** Jenkins LTS (JDK 21) en puerto `8090` con Docker CLI, buildx, compose plugin, kubectl y Python 3 preinstalados.
-  * **Pipeline Declarativo:** [`Jenkinsfile`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/Jenkinsfile) con etapas de: Linting (`flake8`/`ruff`), Security Scan (`gitleaks`), Unit Tests (`pytest`), Docker Build & Push, y Deploy a Kubernetes.
-  * **Comandos Clave (desde `docker_jenkins`):**
+  * **Pipeline Declarativo:** [`Jenkinsfile`](../Jenkinsfile) con etapas de: Linting (`flake8`/`ruff`), Security Scan (`gitleaks`), Unit Tests (`pytest`), Docker Build & Push, y Deploy a Kubernetes.
+  * **Comandos Clave (desde el repositorio `docker_jenkins`):**
     ```bash
     # Iniciar Jenkins Controller
     docker compose up --build -d
@@ -106,30 +105,56 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 
     # Web UI: http://localhost:8090
     ```
-* **GitLab CI:** [`.gitlab-ci.yml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/.gitlab-ci.yml)
+* **GitLab CI:** [`.gitlab-ci.yml`](../.gitlab-ci.yml)
   * Etapas nativas en contenedor: `lint`, `test`, `security`, `build`, `deploy_staging`, `deploy_production`.
 
 ---
 
-## 7. Prometheus & Grafana (Monitoreo y Observabilidad)
+## 7. Stack de Observabilidad (Prometheus, Grafana, Loki, Tempo y más)
+
 * **Ubicación:** Repositorio independiente [`docker_monitoreo`](https://github.com/rocapellino/docker_monitoreo).
-* **Métricas Expuestas por la API:**
-  * Endpoint en la API: `GET /metrics`
-  * Métricas:
-    * `pokedex_uptime_seconds`: Tiempo activo.
-    * `pokedex_total_pokemons`: Cantidad total de Pokémon.
-    * `pokedex_http_requests_total`: Conteo de solicitudes por método, ruta y código HTTP.
-    * `pokedex_http_request_duration_seconds`: Latencia de peticiones.
-* **Dashboard de Grafana:**
-  * Preconfigurado y auto-provisionado en el repositorio `docker_monitoreo`.
-  * Datasource Prometheus conectado automáticamente a la API a través de la red `monitoring-net`.
-* **Comandos Clave (desde el repositorio `docker_monitoreo`):**
-  ```bash
-  # Iniciar la stack de monitoreo
-  docker compose up -d
+* **Documentación completa:** [`docker_monitoreo/docs/componentes.md`](https://github.com/rocapellino/monitoreo/blob/main/docs/componentes.md)
 
-  # Acceso web:
-  # Prometheus: http://localhost:9090
-  # Grafana:    http://localhost:3000 (Usuario: admin / Contraseña: admin)
-  ```
+### Componentes del Stack (10 servicios)
 
+| Servicio | Puerto | Rol |
+|---|---|---|
+| **Prometheus** | `9090` | TSDB — recolecta métricas de todas las apps vía scrape cada 10s |
+| **Alertmanager** | `9093` | Gestiona, agrupa y enruta alertas (Slack, email, webhooks) |
+| **Grafana** | `3000` | Dashboards unificados de métricas, logs y trazas |
+| **Node Exporter** | `9100` | Métricas de hardware y SO del host (CPU, RAM, disco, red) |
+| **cAdvisor** | `8085` | Métricas de consumo por contenedor Docker individual |
+| **Loki** | `3100` | Base de datos de logs centralizada (como Prometheus pero para logs) |
+| **Promtail** | — | Recolector de logs: detecta contenedores automáticamente vía Docker socket |
+| **Grafana Tempo** | `3200/4317/4318` | Almacén de trazas distribuidas OpenTelemetry (OTLP) |
+| **PostgreSQL Exporter** | `9187` | Traduce estadísticas internas de PostgreSQL a métricas Prometheus |
+| **Redis Exporter** | `9121` | Traduce estadísticas de Redis (hit ratio, memoria, comandos) a métricas Prometheus |
+
+### Métricas Expuestas por la API Pokédex
+
+Endpoint en la API: `GET /metrics`
+
+* `pokedex_uptime_seconds` — Tiempo activo de la API.
+* `pokedex_total_pokemons` — Cantidad total de Pokémon en la base de datos.
+* `pokedex_http_requests_total` — Conteo de solicitudes por método, ruta y código HTTP.
+* `pokedex_http_request_duration_seconds` — Histograma de latencia de peticiones.
+
+### Integración con el Stack de Monitoreo
+
+La Pokédex está integrada con el stack de monitoreo a través de:
+1. **Red `monitoring-net`** — Los contenedores de la API, PostgreSQL y Redis son accesibles desde el stack de monitoreo vía esta red compartida.
+2. **Target dinámico en Prometheus** — Configurado en `docker_monitoreo/prometheus/targets/pokedex.yml`, detectado automáticamente sin reiniciar Prometheus.
+3. **Logs automáticos en Loki** — Promtail detecta y recolecta los logs de todos los contenedores de Pokédex sin ninguna configuración adicional.
+4. **Dashboard de Grafana provisionado** — `Pokédex DevOps - Monitor Unificado de Rendimiento & Observabilidad` disponible en http://localhost:3000 al levantar el stack de monitoreo.
+
+### Comandos Clave (desde el repositorio `docker_monitoreo`)
+```bash
+# Iniciar el stack de monitoreo
+docker compose up -d
+
+# Acceso web:
+# Grafana:      http://localhost:3000  (admin / admin)
+# Prometheus:   http://localhost:9090
+# Alertmanager: http://localhost:9093
+# cAdvisor:     http://localhost:8085
+```
