@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
         - name: pgbouncer
-          image: edoburu/pgbouncer:latest
+          image: edoburu/pgbouncer:1.23.1
           ports:
             - containerPort: 6432
               name: pgbouncer

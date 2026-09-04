@@ -2,6 +2,20 @@
  * Pokédex Pública - Visualizador Dinámico de Pokémon
  */
 
+/**
+ * Sanitiza una cadena para evitar XSS al insertar datos del backend en innerHTML.
+ * Siempre usar esta función en template literals con datos del servidor.
+ */
+function escapeHTML(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let allPokemons = [];
 let filteredPokemons = [];
 let currentPage = 1;
@@ -154,7 +168,7 @@ function renderPokemons() {
       if (Array.isArray(p.evoluciones) && p.evoluciones.length > 0) {
         const myNode = p.evoluciones.find(x => x.id === p.id);
         if (myNode && myNode.etapa) {
-          stageBadge = `<span class="stage-badge">${myNode.etapa}</span>`;
+          stageBadge = `<span class="stage-badge">${escapeHTML(myNode.etapa)}</span>`;
         }
       } else if (p.evoluciones.arbol) {
         const findStageInTree = (n) => {
@@ -168,7 +182,7 @@ function renderPokemons() {
         };
         const stage = findStageInTree(p.evoluciones.arbol);
         if (stage) {
-          stageBadge = `<span class="stage-badge">${stage}</span>`;
+          stageBadge = `<span class="stage-badge">${escapeHTML(stage)}</span>`;
         }
       }
     }
@@ -184,14 +198,14 @@ function renderPokemons() {
         </div>
 
         <div class="image-container">
-          <img src="${p.imagen}" alt="${p.nombre}" class="pokemon-img" loading="lazy" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+          <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="pokemon-img" loading="lazy" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
         </div>
 
-        <h2 class="pokemon-name">${p.nombre}</h2>
+        <h2 class="pokemon-name">${escapeHTML(p.nombre)}</h2>
         
         <div style="text-align: center; margin-bottom: 0.5rem;">
           <span class="type-badge" style="background-color: ${typeColor};">
-            ${p.tipo}
+            ${escapeHTML(p.tipo)}
           </span>
         </div>
 
@@ -210,7 +224,7 @@ function renderPokemons() {
           </div>
           <div class="stat-item">
             <span class="stat-item-label">Región</span>
-            <span class="stat-item-val">${car.habitat || 'Kanto'}</span>
+            <span class="stat-item-val">${escapeHTML(car.habitat || 'Kanto')}</span>
           </div>
         </div>
 
@@ -564,7 +578,7 @@ function openDetailModal(id) {
     <!-- Top Header Notched Bar -->
     <div class="pokedex-notched-header">
       <h2 class="pokedex-notched-title">
-        ${p.nombre} <span class="pokedex-notched-number">N.º ${formattedId}</span>
+        ${escapeHTML(p.nombre)} <span class="pokedex-notched-number">N.º ${escapeHTML(formattedId)}</span>
       </h2>
       <button class="btn-icon" style="position: absolute; right: 1rem;" onclick="closeDetailModal()">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -576,7 +590,7 @@ function openDetailModal(id) {
       <!-- Columna Izquierda: Arte y Puntos de Base -->
       <div class="pokedex-left-col">
         <div class="pokedex-artwork-box">
-          <img src="${p.imagen}" alt="${p.nombre}" class="pokedex-artwork-img">
+          <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="pokedex-artwork-img">
         </div>
 
         <div class="pokedex-stats-panel">
@@ -589,7 +603,7 @@ function openDetailModal(id) {
 
       <!-- Columna Derecha: Lore, Info Azul, Tipos y Debilidades -->
       <div class="pokedex-right-col">
-        <p class="pokedex-description-text">${desc}</p>
+        <p class="pokedex-description-text">${escapeHTML(desc)}</p>
 
         <!-- Tarjeta Azul de Atributos -->
         <div class="pokedex-blue-card">
@@ -599,7 +613,7 @@ function openDetailModal(id) {
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Categoría</span>
-            <span class="blue-card-value">${car.categoria || p.habitat || 'Kanto'}</span>
+            <span class="blue-card-value">${escapeHTML(car.categoria || p.habitat || 'Kanto')}</span>
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Peso</span>
@@ -608,7 +622,7 @@ function openDetailModal(id) {
           <div class="blue-card-item">
             <span class="blue-card-label">Habilidad</span>
             <span class="blue-card-value">
-              ${habilidadPrincipal}
+              ${escapeHTML(habilidadPrincipal)}
             </span>
           </div>
           <div class="blue-card-item" style="grid-column: 1 / -1;">
@@ -621,7 +635,7 @@ function openDetailModal(id) {
         <div class="type-section-group">
           <h4 class="type-group-title">Tipo</h4>
           <div class="type-pill-badges-row">
-            ${tipos.map(t => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(t)}">${t}</span>`).join('')}
+            ${tipos.map(t => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(t)}">${escapeHTML(t)}</span>`).join('')}
           </div>
         </div>
 
@@ -629,7 +643,7 @@ function openDetailModal(id) {
         <div class="type-section-group">
           <h4 class="type-group-title">Debilidad</h4>
           <div class="type-pill-badges-row">
-            ${weaknesses.map(w => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(w)}">${w}</span>`).join('')}
+            ${weaknesses.map(w => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(w)}">${escapeHTML(w)}</span>`).join('')}
           </div>
         </div>
       </div>

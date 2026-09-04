@@ -6,6 +6,9 @@ pipeline {
         APP_NAME = 'pokedex'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         PYTHONUNBUFFERED = '1'
+        TESTING = 'true'
+        ADMIN_API_KEY = 'jenkins-ci-test-admin-key'
+        AI_API_KEY = 'jenkins-ci-test-ai-key'
     }
 
     options {
@@ -42,9 +45,9 @@ pipeline {
                             python3 -m venv .venv
                             . .venv/bin/activate
                             pip install --quiet bandit
-                            bandit -r apps/api/src/ -ll -q || true
+                            bandit -r apps/api/src/ -ll -q
                             if command -v gitleaks >/dev/null 2>&1; then
-                                gitleaks detect --verbose --no-git || true
+                                gitleaks detect --verbose --no-git
                             fi
                         '''
                     }

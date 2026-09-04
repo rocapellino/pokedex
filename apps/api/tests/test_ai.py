@@ -10,6 +10,10 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Definir las variables requeridas antes de importar el módulo (falla en startup si no están)
+os.environ.setdefault("ADMIN_API_KEY", "test-admin-key-do-not-use-in-production")
+os.environ.setdefault("AI_API_KEY", "test-ai-key-do-not-use-in-production")
+
 import src.app as app_module
 from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup, get_ai_client
 from src.app import app
@@ -17,10 +21,11 @@ from src.app import app
 
 @pytest.fixture
 def client():
-    app_module._IS_TESTING = True
+    os.environ["TESTING"] = "true"
+    app.dependency_overrides[app_module.verify_ai_key] = lambda: True
     with TestClient(app) as test_client:
         yield test_client
-    app_module._IS_TESTING = False
+    app.dependency_overrides.clear()
 
 
 def test_ai_client_missing_key(monkeypatch):

@@ -8,15 +8,28 @@ title = "Gitleaks Config - Pokémon DevOps Platform"
 useDefault = true
 
 [allowlist]
-description = "Permitir archivos de ejemplo, documentación, plantillas y mocks de pruebas"
+description = "Permitir archivos de ejemplo, documentación y mocks de pruebas conocidos"
 paths = [
-  '''^\.env\.example$''',
-  '''^docs/.*''',
-  '''^apps/api/tests/.*''',
-  '''^infra/proxmox/.*''',
-  '''^infra/terraform/.*''',
-  '''^infra/ansible/.*''',
-  '''^infra/k8s/.*''',
-  '''^scripts/.*''',
-  '''^docker-compose.*''',
+  # Variables de entorno de ejemplo (nunca contienen valores reales)
+  '''(?i)^\.env\.example$''',
+  # Documentación — puede contener fragmentos de código con placeholders
+  '''(?i)^docs/.*''',
+  # Tests — mocks de prueba con claves ficticias
+  '''(?i)^apps/api/tests/.*''',
+  # Terraform — solo archivos de declaración de variables (no valores reales)
+  '''(?i)^infra/terraform/.*/variables\.tf$''',
+  '''(?i)^infra/terraform/.*/outputs\.tf$''',
+  # K8s — SealedSecrets (cifrados con la clave pública del controlador)
+  '''(?i)infra/k8s/01-sealed-secrets\.ya?ml''',
+  # Ansible — solo inventario de ejemplo
+  '''(?i)^infra/ansible/inventory/hosts\.ini$''',
+  # Scripts de sellado documentados (contienen solo placeholders)
+  '''(?i)^scripts/seal_secret\.(sh|py)$''',
+  # Docker Compose — referencias a variables de entorno, no valores reales
+  '''(?i)^docker-compose.*''',
 ]
+fingerprints = [
+  # Commit histórico de SealedSecret cifrado en el clúster
+  "5d8c13701df243f209de41388cdc1a5d77f536d2:infra/k8s/01-sealed-secrets.yaml:generic-api-key:10",
+]
+
