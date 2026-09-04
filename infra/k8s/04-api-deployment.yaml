@@ -8,9 +8,12 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 5000
-      targetPort: 5000
+    - port: 3000
+      targetPort: 3000
       name: http
+    - port: 5000
+      targetPort: 3000
+      name: http-compat
   selector:
     app: pokemon-api
 ---
@@ -24,9 +27,12 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 5000
-      targetPort: 5000
+    - port: 3000
+      targetPort: 3000
       name: http
+    - port: 5000
+      targetPort: 3000
+      name: http-compat
   selector:
     app: pokemon-api
 ---
@@ -45,7 +51,7 @@ spec:
   template:
     metadata:
       labels:
-        app: pokemon-api
+         app: pokemon-api
     spec:
       securityContext:
         runAsNonRoot: true
@@ -56,7 +62,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: api
-          image: pokemon-api:1.2.0
+          image: pokedex-server:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -64,7 +70,7 @@ spec:
               drop:
                 - ALL
           ports:
-            - containerPort: 5000
+            - containerPort: 3000
               name: http
           envFrom:
             - configMapRef:
@@ -81,14 +87,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 5000
+              port: 3000
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /readyz
-              port: 5000
+              port: 3000
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3

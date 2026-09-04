@@ -13,13 +13,13 @@ global:
 api:
   replicaCount: 1
   image:
-    repository: pokemon-api
-    tag: "1.2.0"
+    repository: pokedex-server
+    tag: "latest"
     pullPolicy: IfNotPresent
-  port: 5000
+  port: 3000
   service:
     type: ClusterIP
-    port: 5000
+    port: 3000
   resources:
     limits:
       cpu: "500m"
@@ -176,14 +176,14 @@ ingress:
             service:
               name: pokemon-api-svc
               port:
-                number: 5000
+                number: 3000
         - path: /pokemons
           pathType: Prefix
           backend:
             service:
               name: pokemon-api-svc
               port:
-                number: 5000
+                number: 3000
         - path: /
           pathType: Prefix
           backend:

@@ -7,17 +7,16 @@ services:
       - ./apps/web/public:/usr/share/nginx/html:ro
 
   api:
-    command: ["uvicorn", "apps.api.src.app:app", "--host", "0.0.0.0", "--port", "5000", "--reload", "--access-log"]
     environment:
       ENVIRONMENT: "development"
       DEBUG: "true"
+      NODE_ENV: "development"
     volumes:
-      - ./apps/api:/app/apps/api
+      - ./server.ts:/app/server.ts
       - ./src:/app/src
-      - ./scripts:/app/scripts
-      - ./requirements-dev.txt:/app/requirements-dev.txt
+      - ./apps/web/public:/app/apps/web/public
     ports:
-      - "5000:5000"  # Acceso directo para depuración de la API
+      - "3000:3000"  # Acceso directo para depuración del backend Node.js
 
   postgres:
     ports:

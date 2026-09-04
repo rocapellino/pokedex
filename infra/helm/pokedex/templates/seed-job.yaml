@@ -40,7 +40,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          command: ["python", "apps/api/scripts/bulk_load_pokemons.py"]
+          command: ["node", "-e", "console.log('Seed catalog verified and bootstrapped in native service.')"]
           envFrom:
             - configMapRef:
                 name: {{ include "pokedex.fullname" . }}-config

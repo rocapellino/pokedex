@@ -25,26 +25,25 @@ services:
       start_period: 5s
 
   # ============================================================================
-  # 2. Backend API (FastAPI + Uvicorn ASGI) - Capa de Aplicación
+  # 2. Backend API (Node.js + TypeScript Full-Stack) - Capa de Aplicación
   # ============================================================================
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile
     container_name: pokemon-api
     restart: unless-stopped
     expose:
-      - "${PORT:-5000}"  # Solo accesible internamente por 'web' en frontend-net
+      - "${PORT:-3000}"  # Solo accesible internamente por 'web' en frontend-net
     environment:
-      PYTHONUNBUFFERED: "1"
-      PORT: "${PORT:-5000}"
+      NODE_ENV: "production"
+      PORT: "${PORT:-3000}"
       DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}"
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
       AI_API_KEY: "${AI_API_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
-      CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,11 +54,11 @@ services:
       - backend-net
       - monitoring-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/healthz')"]
-      interval: 20s
-      timeout: 5s
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/healthz || exit 1"]
+      interval: 15s
+      timeout: 3s
       retries: 3
-      start_period: 10s
+      start_period: 5s
 
   # ============================================================================
   # 3. Base de Datos Relacional (PostgreSQL 16) - Capa de Datos Aislada

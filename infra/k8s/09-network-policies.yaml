@@ -50,6 +50,8 @@ spec:
         - namespaceSelector: {} # Permite tráfico desde ingress-nginx namespace
       ports:
         - protocol: TCP
+          port: 3000
+        - protocol: TCP
           port: 5000
 ---
 # ==============================================================================
