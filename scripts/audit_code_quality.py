@@ -53,23 +53,9 @@ def run_cmd(cmd, description):
 def main():
     print("🚀 Iniciando Auditoría Completa de Código, Duplicación, Rendimiento y Seguridad...")
 
-    py = f'"{sys.executable}"'
-
-    # 1. Análisis Estático y Rendimiento con Ruff
-    run_cmd(f'{py} -m ruff check apps/ scripts/ --statistics', "1. Análisis de Calidad y Rendimiento con Ruff (Perflint / Bugbear)")
-
-    # 2. Complejidad Ciclomática con Radon
-    run_cmd(f'{py} -m radon cc apps/api/src -s -a', "2. Análisis de Complejidad Ciclomática con Radon (A = Excelente)")
-
-    # 3. Índice de Mantenibilidad con Radon
-    run_cmd(f'{py} -m radon mi apps/api/src -s', "3. Índice de Mantenibilidad (MI) con Radon (A = Alta Mantenibilidad)")
-
-    # 4. Análisis Estático de Seguridad (SAST) con Bandit
-    run_cmd(f'{py} -m bandit -r apps/api/src -ll -q', "4. Análisis de Seguridad SAST con Bandit (Detección de vulnerabilidades)")
-
-    # 5. Auditoría de Duplicación de Código
+    # 1. Auditoría de Duplicación de Código
     print(f"\n{'='*70}")
-    print("🔍 5. Detección de Código y Archivos Duplicados (Hash & AST)")
+    print("🔍 1. Detección de Código y Archivos Duplicados (Hash & AST)")
     print(f"{'='*70}")
     duplicates, total = find_duplicates(".")
     print(f"Archivos analizados: {total}")

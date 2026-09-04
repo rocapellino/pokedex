@@ -9,13 +9,15 @@ on:
       - main
       - master
     paths:
+      - 'Dockerfile'
       - 'apps/**/Dockerfile'
-      - 'requirements.txt'
+      - 'package*.json'
       - '.github/workflows/security-trivy.yml'
   pull_request:
     paths:
+      - 'Dockerfile'
       - 'apps/**/Dockerfile'
-      - 'requirements.txt'
+      - 'package*.json'
       - '.github/workflows/security-trivy.yml'
   schedule:
     - cron: '0 4 * * 1' # Escaneo semanal los lunes a las 04:00 UTC
@@ -27,7 +29,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: 2. Escaneo del Repositorio y Dependencias (SCA / FS)
         uses: aquasecurity/trivy-action@master
@@ -36,17 +38,17 @@ jobs:
           scan-ref: '.'
           format: 'table'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0' # Permite visibilidad en el reporte sin bloquear builds en caso de falsos positivos iniciales
+          exit-code: '0'
 
       - name: 3. Construir Imagen Backend para Escaneo
         run: |
-          docker build -t pokedex-api:test -f apps/api/Dockerfile .
-
+          docker build -t pokedex-server:test -f Dockerfile .
 
       - name: 4. Escaneo de Imagen Docker Backend
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'pokedex-api:test'
+          image-ref: 'pokedex-server:test'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '0'
+

@@ -16,22 +16,30 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
-      - name: 2. Configurar Python 3.13
-        uses: actions/setup-python@v7
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci
+
+      - name: 4. Análisis de Tipos y Calidad con TypeScript
+        run: npm run lint
+
+      - name: 5. Compilación y Build con esbuild
+        run: npm run build
+
+      - name: 6. Configurar Python para Auditoría
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-          cache: 'pip'
 
-      - name: 3. Instalar Dependencias de Calidad
-        run: |
-          pip install -r requirements.txt
-          pip install ruff radon xenon
-
-      - name: 4. Ejecutar Script de Auditoría
-        run: |
-          python scripts/audit_code_quality.py
+      - name: 7. Ejecutar Auditoría de Duplicación e Integridad
+        run: python scripts/audit_code_quality.py
 
   sast-semgrep:
     name: 🛡️ SAST Multi-Lenguaje (Semgrep)
@@ -39,7 +47,7 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: 2. Escaneo SAST con Semgrep OSS
         uses: semgrep/semgrep-action@v1
@@ -60,21 +68,21 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: 2. Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@v3
 
-      - name: 3. Compilar Imagen de API (FastAPI)
-        uses: docker/build-push-action@v7
+      - name: 3. Compilar Imagen Pokédex Full-Stack (Node.js & TS)
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/api/Dockerfile
+          file: ./Dockerfile
           load: true
-          tags: pokedex-api:test
+          tags: pokedex-server:test
 
       - name: 4. Compilar Imagen de Web (Nginx)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./apps/web/Dockerfile
@@ -84,6 +92,7 @@ jobs:
       - name: 5. Generar SBOM con Anchore Syft (SPDX)
         uses: anchore/sbom-action@v0
         with:
-          image: pokedex-api:test
+          image: pokedex-server:test
           format: spdx-json
-          output-file: pokedex-api-sbom.spdx.json
+          output-file: pokedex-server-sbom.spdx.json
+
