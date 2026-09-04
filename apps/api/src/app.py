@@ -466,6 +466,29 @@ def calculate_etag(data: Any) -> str:
 
 
 
+def filter_pokemons_list(
+    items: List[Dict[str, Any]],
+    tipo: Optional[str] = None,
+    nombre: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Filtra la lista de Pokémon en memoria por tipo elemental y coincidencia de nombre."""
+    result = items
+    if tipo:
+        tipo_lower = tipo.strip().lower()
+        result = [
+            p for p in result
+            if p.get("tipo", "").lower() == tipo_lower
+            or any(t.lower() == tipo_lower for t in p.get("tipos", []))
+        ]
+    if nombre:
+        nombre_lower = nombre.strip().lower()
+        result = [
+            p for p in result
+            if nombre_lower in p.get("nombre", "").lower()
+        ]
+    return result
+
+
 @app.get("/pokemons", summary="Listar y filtrar Pokémon")
 @limiter.limit("300/minute")
 async def get_pokemons(
@@ -491,22 +514,8 @@ async def get_pokemons(
     else:
         pokemons_list = pokemons
 
-    # Filtro por tipo elemental
-    if tipo:
-        tipo_lower = tipo.strip().lower()
-        pokemons_list = [
-            p for p in pokemons_list
-            if p.get("tipo", "").lower() == tipo_lower
-            or any(t.lower() == tipo_lower for t in p.get("tipos", []))
-        ]
-
-    # Filtro por coincidencia en nombre
-    if nombre:
-        nombre_lower = nombre.strip().lower()
-        pokemons_list = [
-            p for p in pokemons_list
-            if nombre_lower in p.get("nombre", "").lower()
-        ]
+    # Filtros desacoplados
+    pokemons_list = filter_pokemons_list(pokemons_list, tipo=tipo, nombre=nombre)
 
     # Paginación (offset y limit)
     if offset > 0:
@@ -523,6 +532,7 @@ async def get_pokemons(
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
     return pokemons_list
+
 
 
 @app.get("/pokemons/{id}", summary="Obtener Pokémon por ID")
@@ -589,9 +599,46 @@ async def create_pokemon(request: Request, payload: PokemonCreateSchema):
     return nuevo_pokemon
 
 
+def _update_caracteristicas(pokemon_car: Dict[str, Any], car_updates: Dict[str, Any]) -> None:
+    """Actualiza y castea subcampos de características físicas y descriptivas."""
+    type_casters = {
+        "peso": float,
+        "altura": float,
+        "fuerza": int,
+        "edad": int,
+    }
+    for key, val in car_updates.items():
+        if val is not None:
+            caster = type_casters.get(key)
+            pokemon_car[key] = caster(val) if caster else val
+        elif key in ("categoria", "descripcion"):
+            pokemon_car[key] = val
+
+
+def apply_pokemon_updates(pokemon: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+    """Aplica de forma declarativa las actualizaciones a un diccionario de Pokémon existente."""
+    for field in ("nombre", "imagen", "tipo", "habitat", "evoluciones"):
+        if field in data and data[field] is not None:
+            pokemon[field] = data[field]
+
+    for field in ("habilidades", "tipos"):
+        if field in data and data[field] is not None:
+            pokemon[field] = list(data[field])
+
+    if "stats" in data and data["stats"] is not None:
+        pokemon["stats"] = dict(data["stats"])
+
+    if "caracteristicas" in data and isinstance(data["caracteristicas"], dict):
+        pokemon.setdefault("caracteristicas", {})
+        _update_caracteristicas(pokemon["caracteristicas"], data["caracteristicas"])
+
+    return pokemon
+
+
+
 @app.put(
     "/pokemons/{id}",
-    summary="Actualizar Pokémon existente",
+    summary="Actualizar Pokémon por ID",
     dependencies=[Depends(verify_admin_key)]
 )
 @limiter.limit("30/minute")
@@ -612,40 +659,13 @@ async def update_pokemon(request: Request, id: int, payload: PokemonUpdateSchema
         )
 
     data = payload.model_dump(exclude_unset=True)
-
-    if "nombre" in data and data["nombre"] is not None:
-        pokemon["nombre"] = str(data["nombre"])
-    if "imagen" in data and data["imagen"] is not None:
-        pokemon["imagen"] = str(data["imagen"])
-    if "caracteristicas" in data and isinstance(data["caracteristicas"], dict):
-        car = data["caracteristicas"]
-        if "peso" in car and car["peso"] is not None:
-            pokemon["caracteristicas"]["peso"] = float(car["peso"])
-        if "altura" in car and car["altura"] is not None:
-            pokemon["caracteristicas"]["altura"] = float(car["altura"])
-        if "fuerza" in car and car["fuerza"] is not None:
-            pokemon["caracteristicas"]["fuerza"] = int(car["fuerza"])
-        if "edad" in car and car["edad"] is not None:
-            pokemon["caracteristicas"]["edad"] = int(car["edad"])
-        if "categoria" in car:
-            pokemon["caracteristicas"]["categoria"] = car["categoria"]
-        if "descripcion" in car:
-            pokemon["caracteristicas"]["descripcion"] = car["descripcion"]
-    if "habilidades" in data and data["habilidades"] is not None:
-        pokemon["habilidades"] = list(data["habilidades"])
-    if "tipo" in data and data["tipo"] is not None:
-        pokemon["tipo"] = str(data["tipo"])
-    if "habitat" in data and data["habitat"] is not None:
-        pokemon["habitat"] = str(data["habitat"])
-    if "tipos" in data and data["tipos"] is not None:
-        pokemon["tipos"] = list(data["tipos"])
-    if "stats" in data and data["stats"] is not None:
-        pokemon["stats"] = dict(data["stats"])
-    if "evoluciones" in data and data["evoluciones"] is not None:
-        pokemon["evoluciones"] = data["evoluciones"]
+    apply_pokemon_updates(pokemon, data)
 
     await invalidate_cache_async()
     return pokemon
+
+
+
 
 
 @app.delete(

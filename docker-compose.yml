@@ -122,7 +122,9 @@ networks:
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
   monitoring-net:
     name: monitoring-net
-    driver: bridge   # Red compartida global para observabilidad y métricas
+    driver: bridge
+    attachable: true   # Permite la conexión dinámica de exporters y stack de observabilidad
+
 
 volumes:
   postgres_data:
