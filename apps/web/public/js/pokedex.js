@@ -16,6 +16,19 @@ function escapeHTML(str) {
     .replace(/'/g, '&#039;');
 }
 
+/**
+ * Normaliza cadenas removiendo acentos, espacios y convirtiendo a minúsculas.
+ * Garantiza coincidencia robusta (ej: 'Eléctrico' === 'electrico', 'Dragón' === 'dragon').
+ */
+function normalizeStr(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
 let allPokemons = [];
 let filteredPokemons = [];
 let currentPage = 1;
@@ -47,7 +60,7 @@ const TYPE_COLORS = {
 
 function getTypeColor(tipo) {
   if (!tipo) return '#6b7280';
-  const match = Object.keys(TYPE_COLORS).find(k => k.toLowerCase() === tipo.toLowerCase().trim());
+  const match = Object.keys(TYPE_COLORS).find(k => normalizeStr(k) === normalizeStr(tipo));
   return match ? TYPE_COLORS[match] : '#6b7280';
 }
 
@@ -64,6 +77,7 @@ function getGeneration(id) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initInteractiveListeners();
   loadPokemons();
 });
 
@@ -94,18 +108,24 @@ async function loadPokemons() {
 }
 
 function applyFilters() {
+  const term = normalizeStr(searchQuery);
+  const targetType = normalizeStr(currentType);
+
   filteredPokemons = allPokemons.filter(p => {
-    // 1. Filtro de búsqueda
-    const term = searchQuery.toLowerCase().trim();
+    // 1. Filtro de búsqueda insensible a tildes y mayúsculas
     const matchesSearch = !term || 
-      p.nombre.toLowerCase().includes(term) ||
-      (p.tipo && p.tipo.toLowerCase().includes(term)) ||
-      (Array.isArray(p.habilidades) && p.habilidades.some(h => h.toLowerCase().includes(term))) ||
-      (p.caracteristicas && p.caracteristicas.habitat && p.caracteristicas.habitat.toLowerCase().includes(term)) ||
+      normalizeStr(p.nombre).includes(term) ||
+      normalizeStr(p.tipo).includes(term) ||
+      (Array.isArray(p.tipos) && p.tipos.some(t => normalizeStr(t).includes(term))) ||
+      (Array.isArray(p.habilidades) && p.habilidades.some(h => normalizeStr(h).includes(term))) ||
+      (p.caracteristicas && p.caracteristicas.habitat && normalizeStr(p.caracteristicas.habitat).includes(term)) ||
+      (p.habitat && normalizeStr(p.habitat).includes(term)) ||
       String(p.id).includes(term);
 
-    // 2. Filtro de tipo
-    const matchesType = currentType === 'all' || (p.tipo && p.tipo.toLowerCase() === currentType.toLowerCase());
+    // 2. Filtro de tipo (soporta tipo principal y secundarios)
+    const matchesType = currentType === 'all' || 
+      normalizeStr(p.tipo) === targetType ||
+      (Array.isArray(p.tipos) && p.tipos.some(t => normalizeStr(t) === targetType));
 
     // 3. Filtro de generación
     const gen = getGeneration(p.id);
@@ -120,20 +140,25 @@ function applyFilters() {
 }
 
 function handleSearch() {
-  searchQuery = document.getElementById('searchInput').value;
+  const input = document.getElementById('searchInput');
+  searchQuery = input ? input.value : '';
   applyFilters();
 }
 
 function selectTypeFilter(type) {
   currentType = type;
+  const targetTypeNorm = normalizeStr(type);
   document.querySelectorAll('.type-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+    const btnType = btn.getAttribute('data-type');
+    const isActive = (type === 'all' && btnType === 'all') || (normalizeStr(btnType) === targetTypeNorm);
+    btn.classList.toggle('active', isActive);
   });
   applyFilters();
 }
 
 function handleGenerationChange() {
-  currentGeneration = document.getElementById('generationFilter').value;
+  const select = document.getElementById('generationFilter');
+  currentGeneration = select ? select.value : 'all';
   applyFilters();
 }
 
@@ -188,7 +213,7 @@ function renderPokemons() {
     }
 
     return `
-      <article class="pokemon-card" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25;" onclick="openDetailModal(${p.id})">
+      <article class="pokemon-card" data-pokemon-id="${p.id}" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25; cursor: pointer;" onclick="openDetailModal(${p.id})">
         <div class="card-header">
           <span class="pokemon-id">#${formattedId}</span>
           <div style="display: flex; gap: 0.35rem; align-items: center;">
@@ -411,7 +436,7 @@ function renderSingleEvolutionNode(node, currentId, showMethod = false) {
     : '';
 
   return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" onclick="openDetailModal(${nodeId})" title="${isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre}">
+    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" onclick="openDetailModal(${nodeId})" title="${isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre}">
       <div class="evolution-circle-frame">
         <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
       </div>
@@ -684,3 +709,87 @@ function showToast(message, isError = false) {
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+function initInteractiveListeners() {
+  // 1. Buscador en tiempo real (teclado, pegado o borrado)
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('keyup', handleSearch);
+    searchInput.addEventListener('search', handleSearch);
+  }
+
+  // 2. Filtro de generación
+  const generationFilter = document.getElementById('generationFilter');
+  if (generationFilter) {
+    generationFilter.addEventListener('change', handleGenerationChange);
+  }
+
+  // 3. Filtro de tipo con píldoras (delegación de clics sobre el contenedor)
+  const typePillsContainer = document.getElementById('typePillsContainer');
+  if (typePillsContainer) {
+    typePillsContainer.addEventListener('click', (e) => {
+      const pill = e.target.closest('.type-pill');
+      if (pill) {
+        e.preventDefault();
+        const type = pill.getAttribute('data-type');
+        if (type) selectTypeFilter(type);
+      }
+    });
+  }
+
+  // 4. Apertura de modal en cuadrícula de Pokémon (delegación)
+  const pokemonGrid = document.getElementById('pokemonGrid');
+  if (pokemonGrid) {
+    pokemonGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.pokemon-card');
+      if (card) {
+        const id = Number(card.getAttribute('data-pokemon-id'));
+        if (id) openDetailModal(id);
+      }
+    });
+  }
+
+  // 5. Cierre y navegación en Modal de Detalle
+  const detailModal = document.getElementById('detailModal');
+  if (detailModal) {
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal || e.target.closest('.btn-icon') || e.target.closest('[data-close-modal]')) {
+        closeDetailModal();
+      }
+    });
+  }
+
+  const detailContent = document.getElementById('detailContent');
+  if (detailContent) {
+    detailContent.addEventListener('click', (e) => {
+      const node = e.target.closest('.evolution-node-item');
+      if (node) {
+        const evolId = Number(node.getAttribute('data-evol-id'));
+        if (evolId) openDetailModal(evolId);
+      }
+    });
+  }
+
+  // 6. Controles de paginación
+  const btnPrev = document.getElementById('btnPrevPage');
+  if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
+  const btnNext = document.getElementById('btnNextPage');
+  if (btnNext) btnNext.addEventListener('click', () => changePage(1));
+
+  // 7. Cerrar modal con tecla Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDetailModal();
+  });
+}
+
+// Exponer funciones globales en window para total compatibilidad
+window.openDetailModal = openDetailModal;
+window.closeDetailModal = closeDetailModal;
+window.selectTypeFilter = selectTypeFilter;
+window.handleSearch = handleSearch;
+window.handleGenerationChange = handleGenerationChange;
+window.changePage = changePage;
+window.loadPokemons = loadPokemons;
+window.showToast = showToast;
+window.initInteractiveListeners = initInteractiveListeners;
