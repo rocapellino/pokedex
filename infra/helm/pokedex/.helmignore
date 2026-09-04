@@ -1,18 +1,46 @@
+# ==============================================================================
+# Helm Chart .helmignore - Pokédex
+# Patrones excluidos al empaquetar con 'helm package'
+# ==============================================================================
+
+# Archivos del SO
 .DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Control de versiones
 .git/
 .gitignore
+.gitattributes
 .bzr/
 .bzrignore
 .hg/
 .hgignore
 .svn/
+
+# Editores e IDEs
+.project
+.idea/
+.vscode/
 *.swp
+*.swo
+
+# Archivos de respaldo y temporales
 *.bak
 *.tmp
 *.orig
 *~
-.project
-.idea
-.vscode/
+*.log
+
+# Paquetes y archivos comprimidos
+*.tgz
+*.tar.gz
+*.zip
+
+# Secretos y credenciales
 *.secrets
 .env*
+*.pem
+*.key
+*.cert
+*.crt

@@ -1,64 +1,33 @@
 # ==============================================================================
-# Entornos Virtuales de Python
+# Node.js & TypeScript (Core Stack)
 # ==============================================================================
-.venv/
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
+node_modules/
+dist/
+build/
+.npm/
+*.tsbuildinfo
+dist-ssr/
+
+# Logs de gestores de paquetes
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # ==============================================================================
-# Caché de Python, Bytecode y Linters
+# Pruebas, Cobertura y Reportes
 # ==============================================================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.ruff_cache/
-.mypy_cache/
-
-# ==============================================================================
-# Caché de Pruebas, Cobertura y Reportes de Auditoría
-# ==============================================================================
+coverage/
+.nyc_output/
+reports/
+*.lcov
 .pytest_cache/
 .coverage
 .coverage.*
-coverage.xml
-htmlcov/
-.tox/
-.nox/
-reports/
-jscpd-report/
-
 
 # ==============================================================================
-# Archivos de Configuración de IDEs y Editores
-# ==============================================================================
-.idea/
-*.swp
-*.swo
-*.tmp
-*.bak
-.vscode/*
-!.vscode/tasks.json
-!.vscode/settings.json
-!.vscode/launch.json
-
-# ==============================================================================
-# Archivos del Sistema Operativo
-# ==============================================================================
-.DS_Store
-Thumbs.db
-ehthumbs.db
-
-# ==============================================================================
-# Logs del Sistema
-# ==============================================================================
-*.log
-
-# ==============================================================================
-# Secretos, Claves y Variables de Entorno
+# Secretos, Claves y Variables de Entorno (Zero-Trust)
 # ==============================================================================
 .env
 .env.*
@@ -68,6 +37,7 @@ ehthumbs.db
 *.cert
 *.crt
 secrets/
+*.secrets
 .tools/
 
 # ==============================================================================
@@ -89,21 +59,12 @@ override.tf.json
 terraform.rc
 
 # ==============================================================================
-# Node.js & Builds
+# Helm & Empaquetado Cloud-Native
 # ==============================================================================
-node_modules/
-dist/
-.npm/
-
-# ==============================================================================
-# Ansible
-# ==============================================================================
-*.retry
-
-# ==============================================================================
-# Taskfile (go-task) Caché Interna
-# ==============================================================================
-.task/
+infra/helm/pokedex/*.tgz
+infra/helm/dist/
+*.tgz
+*.tar.gz
 
 # ==============================================================================
 # Volúmenes y Persistencia Local de Docker
@@ -113,3 +74,48 @@ postgres_data/
 redis_data/
 minio_data/
 
+# ==============================================================================
+# Taskfile (go-task) y Herramientas Locales
+# ==============================================================================
+.task/
+
+# ==============================================================================
+# Entornos Virtuales y Caché Residual de Python
+# ==============================================================================
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.ruff_cache/
+.mypy_cache/
+
+# ==============================================================================
+# Configuración de IDEs y Editores
+# ==============================================================================
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.tmp
+*.bak
+*~
+
+# ==============================================================================
+# Archivos del Sistema Operativo (Windows / macOS / Linux)
+# ==============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+
+# Logs generales
+*.log

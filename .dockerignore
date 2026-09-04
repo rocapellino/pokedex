@@ -1,78 +1,98 @@
 # ==============================================================================
-# Control de versiones
+# Control de versiones y metadatos de Git
 # ==============================================================================
 .git/
 .gitignore
 .gitattributes
+.github/
 
 # ==============================================================================
-# Entornos virtuales locales
+# Node.js & Dependencias locales (Se instalan limpiamente en el contenedor)
 # ==============================================================================
-.venv/
-venv/
-env/
-ENV/
-
-# ==============================================================================
-# Caché y artefactos de Python, Linters y Node
-# ==============================================================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.ruff_cache/
-.mypy_cache/
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
 node_modules/
-reports/
-jscpd-report/
+dist/
+build/
+.npm/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # ==============================================================================
-# Archivos de entorno y secretos
+# Secretos y variables de entorno (Nunca incluir en imágenes de contenedor)
 # ==============================================================================
 .env
-*.env.local
+.env.*
+!.env.example
 *.pem
 *.key
 *.cert
 *.crt
 secrets/
+*.secrets
 
 # ==============================================================================
-# Archivos de desarrollo, auditoría, pruebas y documentación (No requeridos en Prod)
+# Documentación y archivos de diseño (No requeridos en runtime)
 # ==============================================================================
+docs/
+*.md
+LICENSE
+
+# ==============================================================================
+# Infraestructura, Pruebas y Herramientas Locales
+# ==============================================================================
+infra/
 tests/
 scripts/
-docs/
-infra/
-*.md
-.vscode/
-.idea/
+Taskfile.yml
+.task/
+Jenkinsfile
 .pre-commit-config.yaml
 .gitleaks.toml
-.github/
-.gitlab-ci.yml
-Jenkinsfile
-requirements-dev.txt
-ruff.toml
-.jscpd.json
 
 # ==============================================================================
-# Terraform y herramientas de infraestructura
+# Artefactos de pruebas, cobertura y reportes
 # ==============================================================================
-**/.terraform/
-*.tfstate*
-*.tfvars
+coverage/
+.nyc_output/
+reports/
+*.lcov
+.pytest_cache/
 
 # ==============================================================================
-# Logs del sistema y temporales
+# Entornos virtuales y caché residual de Python
+# ==============================================================================
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.mypy_cache/
+
+# ==============================================================================
+# Configuración de IDEs y Editores
+# ==============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================================================================
+# Paquetes y archivos comprimidos
+# ==============================================================================
+*.tgz
+*.tar.gz
+*.zip
+
+# ==============================================================================
+# Logs del sistema y temporales del SO
 # ==============================================================================
 *.log
 *.tmp
 *.bak
+*~
 .DS_Store
 Thumbs.db
+[Dd]esktop.ini
