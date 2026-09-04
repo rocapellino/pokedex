@@ -274,9 +274,9 @@ graph TD
     EXPOSE 3000
     CMD ["node", "dist/server.cjs"]
     ```
-* **Impacto en Kubernetes (`infra/k8s/`):**
-  * Permite unificar `04-api-deployment.yaml` y `05-web-deployment.yaml` en un solo manifiesto `04-pokedex-deployment.yaml` que escuche en el puerto `3000`.
-  * Simplifica el `07-ingress.yaml`, ya que no se requiere bifurcar el tráfico entre rutas de API (`/api/*`) y estáticos (`/*`), reduciendo las reglas de ruteo y timeouts.
+* **Impacto en Kubernetes & Helm (`infra/helm/pokedex/`):**
+  * Permite parametrizar el deployment de Node.js en el puerto `3000` con `api.port: 3000`.
+  * Simplifica las reglas de Ingress, reduciendo reglas de ruteo y timeouts.
 
 ---
 

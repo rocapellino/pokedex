@@ -38,7 +38,7 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Performance Testing** | **k6 (Grafana k6)** | Pruebas de estrés y benchmarking de endpoints de la API como código | [`tests/performance/k6_stress_test.js`](file:///tests/performance/k6_stress_test.js) |
 | **Contenedores** | **Docker & Buildx** | Empaquetado en imágenes ligeras multi-stage (desarrollo y producción) | [`Dockerfile`](file:///Dockerfile), `apps/*/Dockerfile` |
 | **Composición local** | **Docker Compose** | Orquestación local multicontenedor (API + Web + Postgres + Redis) | [`docker-compose.yml`](file:///docker-compose.yml), `docker-compose.dev.yml` |
-| **Orquestación** | **Kubernetes (K8s)** | Despliegue en clúster con manifiestos declarativos y Kustomize | [`infra/k8s/`](file:///infra/k8s) |
+| **Orquestación** | **Kubernetes & Helm 3** | Despliegue unificado en clúster con Helm Chart parametrizado (`values.yaml`, `values.prod.yaml`) | [`infra/helm/pokedex/`](file:///infra/helm/pokedex) |
 | **IaC** | **Terraform** | Aprovisionamiento declarativo de infraestructura en la nube y virtualización | [`infra/terraform/`](file:///infra/terraform) |
 | **Config Management** | **Ansible** | Automatización de configuración de servidores y aprovisionamiento | [`infra/ansible/`](file:///infra/ansible) |
 | **Virtualización** | **Proxmox VE** | Infraestructura de nodos/VMs on-premise con scripts de automatización | [`infra/proxmox/`](file:///infra/proxmox), `scripts/proxmox_deploy.sh` |
@@ -92,7 +92,7 @@ A continuación se presentan herramientas de alto impacto divididas por área qu
 
 ### 🔄 4. GitOps & Entrega Continua (CD)
 * **Argo CD:**
-  * *¿Para qué sirve?* Sincronización automática y declarativa del clúster de Kubernetes con la carpeta `infra/k8s/` del repositorio (Git como única fuente de verdad).
+  * *¿Para qué sirve?* Sincronización automática y declarativa del clúster de Kubernetes con el Chart de Helm en `infra/helm/pokedex/` (`argocd-helm-application.yaml`).
 * **TFLint & Checkov / tfsec:**
   * *¿Para qué sirve?* Linter de mejores prácticas de Terraform y escáner de seguridad para IaC (detecta puertos abiertos, permisos excesivos en K8s o buckets inseguros).
 

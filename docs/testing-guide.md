@@ -221,12 +221,13 @@ docker compose down
 
 Para validar cargas de datos y autoescalado en un entorno orquestado:
 
-1. **Carga masiva declarativa (Job de Kubernetes):**
+1. **Carga masiva declarativa (Job de Kubernetes vía Helm):**
    ```bash
-   kubectl apply -f infra/k8s/08-db-seed-job.yaml
+   task k8s:seed
    
-   # Inspeccionar logs del proceso de carga masiva
-   kubectl logs -f job/pokemon-db-seed-job -n pokemon-app
+   # O directamente mediante Helm template:
+   helm template pokedex ./infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
+   kubectl logs -f job/pokedex-db-seed -n pokemon-app
    ```
 
 2. **Validación de autoescalado elástico bajo estrés:**

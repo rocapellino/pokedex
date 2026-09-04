@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script Multiplataforma para Sellar Secretos con Bitnami Sealed Secrets.
-Genera el secreto temporal en memoria y ejecuta kubeseal para producir infra/k8s/01-sealed-secrets.yaml.
+Genera el secreto temporal en memoria y ejecuta kubeseal para producir infra/helm/pokedex/templates/sealed-secrets.yaml.
 """
 
 import argparse
@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description="Sella secretos con Bitnami Sealed Secrets")
     parser.add_argument("--name", default="pokemon-secrets", help="Nombre del Secret de Kubernetes")
     parser.add_argument("--namespace", default="pokemon-app", help="Namespace de destino")
-    parser.add_argument("--output", default="infra/k8s/01-sealed-secrets.yaml", help="Ruta del archivo de salida")
+    parser.add_argument("--output", default="infra/helm/pokedex/templates/sealed-secrets.yaml", help="Ruta del archivo de salida")
     args = parser.parse_args()
 
     kubeseal_bin = shutil.which("kubeseal") or shutil.which("kubeseal.exe")
