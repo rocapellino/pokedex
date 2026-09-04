@@ -1,0 +1,21 @@
+apiVersion: v2
+name: pokedex
+description: Helm Chart oficial para la plataforma Pokédex (FastAPI, Nginx, PostgreSQL, Redis, PgBouncer)
+type: application
+version: 1.0.0
+appVersion: "1.9.5"
+icon: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png
+keywords:
+  - pokemon
+  - pokedex
+  - fastapi
+  - nginx
+  - postgresql
+  - redis
+  - devops
+home: https://github.com/rocapellino/pokedex
+sources:
+  - https://github.com/rocapellino/pokedex
+maintainers:
+  - name: Rodrigo Capellino
+    email: ro.capellino@gmail.com
