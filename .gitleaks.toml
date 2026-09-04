@@ -11,20 +11,25 @@ useDefault = true
 description = "Permitir archivos de ejemplo, documentación y mocks de pruebas conocidos"
 paths = [
   # Variables de entorno de ejemplo (nunca contienen valores reales)
-  '''^\\.env\\.example$''',
+  '''(?i)^\.env\.example$''',
   # Documentación — puede contener fragmentos de código con placeholders
-  '''^docs/.*''',
+  '''(?i)^docs/.*''',
   # Tests — mocks de prueba con claves ficticias
-  '''^apps/api/tests/.*''',
+  '''(?i)^apps/api/tests/.*''',
   # Terraform — solo archivos de declaración de variables (no valores reales)
-  '''^infra/terraform/.*/variables\\.tf$''',
-  '''^infra/terraform/.*/outputs\\.tf$''',
+  '''(?i)^infra/terraform/.*/variables\.tf$''',
+  '''(?i)^infra/terraform/.*/outputs\.tf$''',
   # K8s — SealedSecrets (cifrados con la clave pública del controlador)
-  '''^infra/k8s/01-sealed-secrets\\.yaml$''',
+  '''(?i)infra/k8s/01-sealed-secrets\.ya?ml''',
   # Ansible — solo inventario de ejemplo
-  '''^infra/ansible/inventory/hosts\\.ini$''',
+  '''(?i)^infra/ansible/inventory/hosts\.ini$''',
   # Scripts de sellado documentados (contienen solo placeholders)
-  '''^scripts/seal_secret\\.(sh|py)$''',
+  '''(?i)^scripts/seal_secret\.(sh|py)$''',
   # Docker Compose — referencias a variables de entorno, no valores reales
-  '''^docker-compose.*''',
+  '''(?i)^docker-compose.*''',
 ]
+fingerprints = [
+  # Commit histórico de SealedSecret cifrado en el clúster
+  "5d8c13701df243f209de41388cdc1a5d77f536d2:infra/k8s/01-sealed-secrets.yaml:generic-api-key:10",
+]
+
