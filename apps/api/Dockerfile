@@ -11,6 +11,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /build
 
+# Instalar dependencias del sistema requeridas para compilar extensiones C (PostgreSQL libpq)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copiar manifiesto de dependencias primero para aprovechar la caché de capas
 COPY requirements.txt .
 
@@ -36,6 +41,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT=production
 
 WORKDIR /app
+
+# Instalar runtime nativo libpq5 y certificados raíz
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Crear usuario y grupo sin privilegios con directorio home asignado
 RUN addgroup --system --gid 1001 appgroup && \

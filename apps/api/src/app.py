@@ -13,6 +13,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 
 import hashlib
 import json
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, Security, status
@@ -147,8 +148,9 @@ async def verify_admin_key(
 ):
     """
     Verifica que la petición incluya una cabecera X-API-Key válida para endpoints de mutación CRUD.
+    Utiliza secrets.compare_digest para mitigar ataques de temporización (timing attacks).
     """
-    if not api_key or api_key != ADMIN_API_KEY:
+    if not api_key or not secrets.compare_digest(api_key, ADMIN_API_KEY):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credencial de autenticación inválida o faltante en la cabecera X-API-Key",
@@ -163,8 +165,9 @@ async def verify_ai_key(
     """
     Verifica que la petición incluya la cabecera X-API-Key con la clave de IA.
     Clave separada de ADMIN_API_KEY para limitar el scope de acceso.
+    Utiliza secrets.compare_digest para mitigar ataques de temporización (timing attacks).
     """
-    if not api_key or api_key != AI_API_KEY:
+    if not api_key or not secrets.compare_digest(api_key, AI_API_KEY):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credencial de IA inválida o faltante en la cabecera X-API-Key",
@@ -345,17 +348,17 @@ class PokemonUpdateSchema(BaseModel):
 # Modelos Pydantic para Google AI Studio (Gemini & Imagen 3)
 # ==============================================================================
 class AIDiagramRequest(BaseModel):
-    prompt: str = Field(..., description="Descripción del flujo o arquitectura a diagramar")
+    prompt: str = Field(..., min_length=3, max_length=1000, description="Descripción del flujo o arquitectura a diagramar")
     diagram_type: Optional[str] = Field("flowchart", description="Tipo de diagrama Mermaid (flowchart, sequence, classDiagram)")
 
 
 class AIMockupRequest(BaseModel):
-    prompt: str = Field(..., description="Descripción del componente o interfaz a generar")
+    prompt: str = Field(..., min_length=3, max_length=1000, description="Descripción del componente o interfaz a generar")
     framework: Optional[str] = Field("html/css", description="Framework de estilos (html/css, tailwind, react)")
 
 
 class AIImageRequest(BaseModel):
-    prompt: str = Field(..., description="Descripción del Pokémon o asset visual a generar con Imagen 3")
+    prompt: str = Field(..., min_length=3, max_length=1000, description="Descripción del Pokémon o asset visual a generar con Imagen 3")
     aspect_ratio: str = Field(
         "1:1",
         pattern=r"^(1:1|16:9|9:16|4:3|3:4)$",
@@ -700,7 +703,23 @@ async def delete_pokemon(request: Request, id: int):
 
 
 @app.get("/metrics", summary="Métricas estándar de Prometheus")
-async def prometheus_metrics():
+async def prometheus_metrics(request: Request):
+    # Defensa en profundidad: Si METRICS_BEARER_TOKEN está configurado, exigir autenticación
+    metrics_token = os.getenv("METRICS_BEARER_TOKEN")
+    if metrics_token:
+        auth_header = request.headers.get("Authorization", "")
+        token = (
+            auth_header[7:].strip()
+            if auth_header.startswith("Bearer ")
+            else request.headers.get("X-API-Key", "")
+        )
+        if not token or not secrets.compare_digest(token, metrics_token):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Acceso no autorizado al endpoint de métricas",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+
     lines = [
         "# HELP pokedex_uptime_seconds Tiempo que la aplicación ha estado activa en segundos.",
         "# TYPE pokedex_uptime_seconds gauge",

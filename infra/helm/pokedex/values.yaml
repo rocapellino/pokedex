@@ -161,7 +161,36 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-  host: localhost
+    # Bloqueo explícito de métricas en Ingress público (solo scraping interno de Prometheus)
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location /metrics {
+        deny all;
+        return 403;
+      }
+  hosts:
+    - host: pokedex.local
+      paths:
+        - path: /api/
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 5000
+        - path: /pokemons
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 5000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-web-svc
+              port:
+                number: 8080
   tls: []
 
 # ------------------------------------------------------------------------------

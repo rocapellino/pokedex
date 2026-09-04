@@ -163,6 +163,29 @@ def test_prometheus_metrics_endpoint(client):
     assert "pokedex_uptime_seconds" in content
 
 
+def test_prometheus_metrics_with_bearer_token(client, monkeypatch):
+    """Prueba que si METRICS_BEARER_TOKEN está configurado, /metrics exija token."""
+    monkeypatch.setenv("METRICS_BEARER_TOKEN", "super-secret-metrics-token")
+
+    # 1. Sin token -> 401
+    res_no_token = client.get('/metrics')
+    assert res_no_token.status_code == 401
+
+    # 2. Con token inválido -> 401
+    res_bad = client.get('/metrics', headers={"Authorization": "Bearer bad-token"})
+    assert res_bad.status_code == 401
+
+    # 3. Con token válido en Bearer header -> 200
+    res_ok = client.get('/metrics', headers={"Authorization": "Bearer super-secret-metrics-token"})
+    assert res_ok.status_code == 200
+    assert "pokedex_total_pokemons" in res_ok.text
+
+    # 4. Con token válido en X-API-Key header -> 200
+    res_key = client.get('/metrics', headers={"X-API-Key": "super-secret-metrics-token"})
+    assert res_key.status_code == 200
+
+
+
 def test_get_pokemons_includes_evoluciones(client):
     """Prueba que el endpoint /pokemons devuelva la estructura de evoluciones."""
     response = client.get('/pokemons')
@@ -262,6 +285,37 @@ def test_admin_auth_accepted_with_valid_key(client):
         assert response.json()["nombre"] == "Mewtwo"
     finally:
         app.dependency_overrides[app_module.verify_admin_key] = lambda: True
+
+
+def test_ai_key_verification_timing_safe(client):
+    """Prueba que los endpoints de IA rechacen claves inválidas y acepten AI_API_KEY válida."""
+    from unittest.mock import patch
+
+    import src.app as app_module
+    app.dependency_overrides.pop(app_module.verify_ai_key, None)
+    try:
+        # Clave incorrecta (diferentes longitudes y prefijos similares)
+        res_bad = client.post("/api/v1/ai/diagram", json={"prompt": "Diagrama de flujo"}, headers={"X-API-Key": "wrong-key"})
+        assert res_bad.status_code == 401
+        assert "Credencial de IA inválida" in res_bad.json()["detail"]
+
+        # Sin cabecera
+        res_missing = client.post("/api/v1/ai/diagram", json={"prompt": "Diagrama de flujo"})
+        assert res_missing.status_code == 401
+
+        # Clave correcta con mock del generador
+        valid_ai_key = os.environ["AI_API_KEY"]
+        with patch("src.app.generate_flowchart") as mock_gen:
+            mock_gen.return_value = {"success": True, "diagram_type": "flowchart", "mermaid_code": "graph TD; A-->B;", "model": "test"}
+            res_good = client.post(
+                "/api/v1/ai/diagram",
+                json={"prompt": "Diagrama de flujo"},
+                headers={"X-API-Key": valid_ai_key}
+            )
+            assert res_good.status_code == 200
+    finally:
+        app.dependency_overrides[app_module.verify_ai_key] = lambda: True
+
 
 
 @pytest.mark.anyio
