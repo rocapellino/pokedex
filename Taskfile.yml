@@ -33,14 +33,14 @@ tasks:
       - npm run lint
 
   audit:
-    desc: "Ejecuta la auditoría integral (Ruff, Radon, Bandit y Duplicados)"
+    desc: "Ejecuta la auditoría de duplicación e integridad de archivos"
     cmds:
       - python scripts/audit_code_quality.py
 
   security:
-    desc: "Ejecuta análisis de seguridad SAST (Bandit)"
+    desc: "Ejecuta análisis de vulnerabilidades en dependencias (npm audit)"
     cmds:
-      - bandit -r apps/api/src -ll
+      - npm audit --audit-level=high
 
   perf:
     desc: "Ejecuta pruebas de rendimiento y estrés con k6"
@@ -94,20 +94,6 @@ tasks:
     cmds:
       - bash scripts/proxmox_deploy.sh {{.CLI_ARGS}}
 
-  ai:diagram:
-    desc: "Genera un diagrama Mermaid con Google AI Studio (Gemini 2.0 Flash)"
-    cmds:
-      - python scripts/ai_tools.py diagram {{.CLI_ARGS}}
-
-  ai:mock:
-    desc: "Genera un mockup UI frontend con Google AI Studio (Gemini 2.0 Flash)"
-    cmds:
-      - python scripts/ai_tools.py mock {{.CLI_ARGS}}
-
-  ai:image:
-    desc: "Genera una imagen artística con Google AI Studio (Imagen 3)"
-    cmds:
-      - python scripts/ai_tools.py image {{.CLI_ARGS}}
 
   # ----------------------------------------------------------------------------
   # Infraestructura como Código (IaC) Multi-Cloud con Terraform

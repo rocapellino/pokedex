@@ -248,10 +248,9 @@ graph TD
 
 ### 4.5. Coexistencia con la Infraestructura Monorepo y DevOps
 
-* **Convivencia con código preexistente:** Los directorios legados `apps/api/` (Python) y `apps/web/` (Nginx) se mantienen intactos dentro del monorepo, lo que permite una transición progresiva y segura sin pérdida de código histórico ni dependencias de pipelines actuales.
-* **Impacto en Contenedores (`Dockerfile`):**
-  * El repositorio conserva su `Dockerfile` original orientado a Python.
-  * Para poner en producción la implementación de TypeScript de AI Studio, se debe agregar un `Dockerfile` multi-stage para Node.js/Bun:
+* **Migración Completada:** La API backend ha sido migrada exitosamente a TypeScript unificado con Node.js 22 LTS (`server.ts`), eliminando la antigua dependencia de Python y unificando el SDK `@google/genai`.
+* **Contenedores de Producción (`Dockerfile`):**
+  * El repositorio cuenta con un `Dockerfile` multi-stage optimizado para Node.js 22 Alpine con esbuild y usuario sin privilegios (`appuser`).
     ```dockerfile
     # Etapa 1: Build
     FROM node:22-alpine AS builder

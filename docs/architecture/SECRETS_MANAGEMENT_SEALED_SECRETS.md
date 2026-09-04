@@ -15,7 +15,7 @@ Este documento describe la arquitectura y los estándares implementados en el re
 ## 1. Estrategia de Secretos en Entornos Locales (`.env.example`)
 
 * **Regla de Oro:** Ningún archivo `.env` con credenciales reales debe commitearse en Git.
-* **Plantilla Versionada:** El repositorio incluye [`.env.example`](../../.env.example) y [`apps/api/.env.example`](../../apps/api/.env.example) con la estructura de variables y valores por defecto para desarrollo local.
+* **Plantilla Versionada:** El repositorio incluye [`.env.example`](../../.env.example) con la estructura de variables y valores por defecto para desarrollo local.
 * **Variables Críticas Obligatorias:**
   * `ADMIN_API_KEY`: Clave administrativa requerida para operaciones de escritura (`POST`, `PUT`, `DELETE`).
   * `AI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Gemini e Imagen 3).

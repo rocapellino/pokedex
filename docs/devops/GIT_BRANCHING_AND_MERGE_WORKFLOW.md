@@ -187,13 +187,12 @@ Realiza los cambios necesarios en el código. Antes de commitear, ejecuta las pr
 # Ver archivos modificados
 git status
 
-# Ejecutar pruebas unitarias y cobertura
-task test
-# (o equivalente: pytest -v --cov=apps/api/src)
-
-# Ejecutar auditoría y linter
+# Ejecutar verificación de tipos y compilación
 task lint
-# (o equivalente: ruff check apps/api/src apps/api/tests scripts/)
+# (o equivalente: npm run lint && npm run build)
+
+# Ejecutar auditoría de archivos duplicados y seguridad
+task audit
 ```
 
 ---
@@ -203,7 +202,7 @@ Organiza los cambios en commits claros siguiendo la especificación [Conventiona
 
 ```bash
 # Agregar archivos específicos al área de preparación (staging)
-git add apps/api/src/ai_service.py apps/api/tests/test_ai.py
+git add server.ts src/services/ai.ts
 
 # Crear el commit con mensaje semántico
 git commit -m "feat(ai): add google ai studio flowchart generator"
