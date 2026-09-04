@@ -184,3 +184,27 @@ tasks:
     cmds:
       - npm run lint
 
+  # ----------------------------------------------------------------------------
+  # Gestión de Empaquetado y Despliegue con Helm
+  # ----------------------------------------------------------------------------
+  helm:lint:
+    desc: "Valida la sintaxis y buenas prácticas del Chart de Helm con linter"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 lint /apps/infra/helm/pokedex
+
+  helm:template:
+    desc: "Renderiza los manifiestos de Kubernetes generados por el Chart de Helm"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex {{.CLI_ARGS}}
+
+  helm:template:prod:
+    desc: "Renderiza los manifiestos de Kubernetes con el perfil de producción (values.prod.yaml)"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.prod.yaml
+
+  helm:package:
+    desc: "Empaqueta el Chart de Helm en un archivo .tgz listo para distribución"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 package /apps/infra/helm/pokedex -d /apps/dist
+
+

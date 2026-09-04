@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pokemon-config
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+data:
+  POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
+  POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
+  POSTGRES_HOST: {{ if .Values.pgbouncer.enabled }}"pgbouncer-service"{{ else }}"postgres-service"{{ end }}
+  POSTGRES_PORT: {{ if .Values.pgbouncer.enabled }}"6432"{{ else }}{{ .Values.postgresql.port | quote }}{{ end }}
+  REDIS_HOST: "pokemon-redis-svc"
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+  PORT: {{ .Values.api.port | quote }}
+  WEB_PORT: {{ .Values.web.service.port | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.api.env.otelEndpoint | quote }}
+  CORS_ORIGINS: {{ .Values.api.env.corsOrigins | quote }}

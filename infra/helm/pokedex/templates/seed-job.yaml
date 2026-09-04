@@ -1,0 +1,59 @@
+{{- if .Values.seedJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "pokedex.fullname" . }}-db-seed
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db-seeder
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "pokedex.selectorLabels" . | nindent 8 }}
+        app: pokemon-db-seed
+        app.kubernetes.io/component: db-seeder
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: db-seeder
+          image: "{{ .Values.seedJob.image.repository }}:{{ .Values.seedJob.image.tag | default "1.0.0" }}"
+          imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          command: ["python", "apps/api/scripts/bulk_load_pokemons.py"]
+          envFrom:
+            - configMapRef:
+                name: {{ include "pokedex.fullname" . }}-config
+            - secretRef:
+                name: {{ include "pokedex.fullname" . }}-secrets
+          env:
+            - name: POKEMON_LIMIT
+              value: "1025"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+{{- end }}

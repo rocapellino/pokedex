@@ -1,6 +1,6 @@
 # ⚡ Plataforma Pokémon DevOps: Monorepo & Cloud-Native Architecture
 
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/) [![Nginx](https://img.shields.io/badge/Nginx-1.27-009639?style=flat&logo=nginx&logoColor=white)](https://nginx.org/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/) [![Nginx](https://img.shields.io/badge/Nginx-1.27-009639?style=flat&logo=nginx&logoColor=white)](https://nginx.org/)
 
 Este repositorio implementa una solución completa de ingeniería **DevOps y Cloud-Native** para la plataforma **Pokédex API**, diseñada bajo una arquitectura de **Monorepo por dominios**, contenerización segura multi-stage, autoescalado elástico horizontal (**HPA en Kubernetes**) y consistencia transaccional centralizada.
 
@@ -10,8 +10,10 @@ Este repositorio implementa una solución completa de ingeniería **DevOps y Clo
 1. [Resumen General y Arquitectura](#1-resumen-general-y-arquitectura)
 2. [Stack Tecnológico](#2-stack-tecnológico)
 3. [Inicio Rápido (Quickstart)](#3-inicio-rápido-quickstart)
-   * [Opción A: Despliegue en Kubernetes (Recomendado)](#opción-a-despliegue-en-kubernetes-recomendado)
-   * [Opción B: Despliegue con Docker Compose](#opción-b-despliegue-con-docker-compose)
+   * [Opción A: Despliegue en Kubernetes con Kustomize (Recomendado)](#opción-a-despliegue-en-kubernetes-con-kustomize-recomendado)
+   * [Opción B: Despliegue con Helm (Cloud Native & GitOps)](#opción-b-despliegue-con-helm-cloud-native--gitops)
+   * [Opción C: Despliegue con Docker Compose](#opción-c-despliegue-con-docker-compose-multi-entorno)
+   * [Opción D: Despliegue en Proxmox VE](#opción-d-despliegue-en-proxmox-ve-on-premises--homelab)
 4. [Pruebas Automatizadas y Validación](#4-pruebas-automatizadas-y-validación)
 5. [Centro de Documentación (`docs/`)](#5-centro-de-documentación-docs)
 
@@ -72,6 +74,7 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 | **Connection Pooling**| PgBouncer | Gestión eficiente de conexiones ante escalado masivo de pods. |
 | **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes (< 3ms) e invalidación inteligente. |
 | **Orquestación Cloud**| Kubernetes (Kind / Docker Desktop / Cloud) | Autoescalado horizontal (**HPA v2**), Service Discovery y self-healing. |
+| **Empaquetado Cloud** | Helm 3 | Chart modular parametrizable, versionado y soporte GitOps con ArgoCD. |
 | **CI/CD Pipelines**   | [docker_jenkins](https://github.com/rocapellino/docker_jenkins) / GitLab CI | Automatización de testing, escaneo de seguridad y despliegues continuos. |
 | **Observabilidad**    | [docker_monitoreo](https://github.com/rocapellino/docker_monitoreo) (Prometheus & Grafana) | Scraping de métricas en tiempo real (`/metrics`) y dashboards de salud (desacoplado global). |
 
@@ -95,7 +98,7 @@ cp .env.example .env
 
 ---
 
-### Opción A: Despliegue en Kubernetes (Recomendado)
+### Opción A: Despliegue en Kubernetes con Kustomize (Recomendado)
 
 1. **Construir imágenes y desplegar con Taskfile o script automatizado:**
    ```bash
@@ -119,7 +122,39 @@ cp .env.example .env
 
 ---
 
-### Opción B: Despliegue con Docker Compose (Multi-Entorno)
+### Opción B: Despliegue con Helm (Cloud Native & GitOps)
+
+1. **Validar y previsualizar manifiestos con Taskfile:**
+   ```bash
+   # Validar Chart con linter
+   task helm:lint
+
+   # Renderizar manifiestos para desarrollo o producción
+   task helm:template
+   task helm:template:prod
+   ```
+
+2. **Instalar el release con Helm CLI:**
+   ```bash
+   # Entorno de desarrollo / local
+   helm install pokedex ./infra/helm/pokedex --namespace pokemon-app --create-namespace
+
+   # O entorno de producción con alta disponibilidad y overrides
+   helm install pokedex ./infra/helm/pokedex -n pokemon-app --values ./infra/helm/pokedex/values.prod.yaml
+   ```
+
+3. **GitOps con ArgoCD:**
+   ```bash
+   # Despliegue continuo declarativo gestionado por ArgoCD
+   kubectl apply -f infra/helm/argocd-helm-application.yaml
+   ```
+
+> [!TIP]
+> Consulta la [**Guía de Despliegue y Operación con Helm (`docs/runbooks/HELM_DEPLOYMENT_GUIDE.md`)**](file:///docs/runbooks/HELM_DEPLOYMENT_GUIDE.md) para detalles sobre rollbacks, hooks y parametrización avanzada.
+
+---
+
+### Opción C: Despliegue con Docker Compose (Multi-Entorno)
 
 #### 🟢 Modo Desarrollo (Hot-Reload & Puertos Abiertos):
 ```bash
@@ -133,7 +168,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 ---
 
-### Opción C: Despliegue en Proxmox VE (On-Premises / Homelab)
+### Opción D: Despliegue en Proxmox VE (On-Premises / Homelab)
 
 ```bash
 # Despliegue automatizado en contenedor LXC o VM de Proxmox
@@ -174,6 +209,7 @@ python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concu
 
 Para profundizar en los aspectos técnicos, consulta la documentación detallada:
 
+* ⎈ [**Guía de Despliegue y Operación con Helm (Helm Guide)**](file:///docs/runbooks/HELM_DEPLOYMENT_GUIDE.md)
 * 🤖 [**Guía Completa de Workflows de GitHub Actions**](file:///docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
 * 🖥️ [**Guía de Despliegue en Proxmox VE (LXC & VM)**](file:///docs/architecture/PROXMOX_DEPLOYMENT_GUIDE.md)
 * ☁️ [**Diseño de Arquitectura en la Nube (Cloud Design)**](file:///docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
