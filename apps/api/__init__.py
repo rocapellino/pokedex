@@ -1,1 +1,0 @@
-"""Aplicación backend del monorepo."""

@@ -16,23 +16,24 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 
 ## 1. Información General y Autenticación
 
-* **Base URL Local (Docker / K8s):** `http://localhost:8080/api` o `http://localhost:5000`
+* **Base URL Local:** `http://localhost:3000` (Servicio Full-Stack Node.js & TypeScript)
 * **Formato de Comunicación:** `application/json; charset=utf-8`
-* **Estrategia de Caché:** Capa de lectura acelerada por **Redis 7** (Invalidación automática ante escrituras y soporte para cabeceras HTTP `ETag` y `Cache-Control`).
-* **Persistencia:** **PostgreSQL 16** con pooling mediante **PgBouncer** y fallback controlado en modo degradado.
+* **Estrategia de Caché:** Catálogo indexado en memoria con resolución $O(1)$ por ID vía `Map<number, Pokemon>` y validación condicional mediante cabeceras HTTP `ETag` y `Cache-Control: public, max-age=60, stale-while-revalidate=300`.
+* **Límite de Payload:** Máximo de 250 KB por solicitud para prevenir ataques de denegación de servicio por agotamiento de memoria.
 
-### 🔐 Mecanismo de Autenticación (`X-API-Key`)
+### 🔐 Mecanismo de Autenticación (`Authorization: Bearer` / `X-API-Key`)
 
-Las operaciones de mutación y los servicios de Inteligencia Artificial requieren autenticación obligatoria mediante la cabecera HTTP `X-API-Key`:
+Las operaciones de mutación (CRUD) y los servicios de Inteligencia Artificial cuentan con verificación de credenciales endurecida contra **ataques de canal lateral basados en tiempo (Timing Attacks)** mediante `crypto.timingSafeEqual` con hashes SHA-256 de longitud fija:
 
-| Rol / Ámbito | Cabecera | Variable de Entorno | Endpoints Protegidos | Rate Limit |
+| Rol / Ámbito | Cabeceras Soportadas | Variable de Entorno | Endpoints Protegidos | Rate Limit |
 | :--- | :--- | :--- | :--- | :--- |
-| **Administrador** | `X-API-Key: <ADMIN_API_KEY>` | `ADMIN_API_KEY` | `POST /pokemons`<br>`PUT /pokemons/{id}`<br>`DELETE /pokemons/{id}` | 30 peticiones/minuto |
-| **Servicios IA** | `X-API-Key: <AI_API_KEY>` | `AI_API_KEY` | `POST /api/v1/ai/diagram`<br>`POST /api/v1/ai/mock`<br>`POST /api/v1/ai/image` | 5 peticiones/minuto |
-| **Público (Lectura)** | *Ninguna requerida* | — | `GET /pokemons`<br>`GET /pokemons/{id}`<br>`GET /healthz`<br>`GET /readyz`<br>`GET /metrics` | 300 peticiones/minuto |
+| **Administrador** | `Authorization: Bearer <ADMIN_API_KEY>`<br>`X-API-Key: <ADMIN_API_KEY>` | `ADMIN_API_KEY` | `POST /pokemons`<br>`PUT /pokemons/:id`<br>`DELETE /pokemons/:id` | 30 peticiones/minuto |
+| **Servicios IA** | `Authorization: Bearer <AI_API_KEY>`<br>`X-API-Key: <AI_API_KEY>` | `AI_API_KEY` / `ADMIN_API_KEY` | `POST /api/v1/ai/diagram`<br>`POST /api/v1/ai/mock`<br>`POST /api/v1/ai/image` | 10 peticiones/minuto |
+| **Público (Lectura)** | *Ninguna requerida* | — | `GET /pokemons`<br>`GET /pokemons/:id`<br>`GET /healthz`<br>`GET /readyz`<br>`GET /metrics` | Ilimitado (cacheado) |
 
 > [!IMPORTANT]
-> Si la cabecera `X-API-Key` no se proporciona o su valor no coincide de forma constante con la clave configurada en el entorno del servidor, la API denegará la petición inmediatamente con código **`401 Unauthorized`**.
+> Si la credencial no se proporciona o no supera la comparación segura, el servidor responde inmediatamente con **`401 Unauthorized`**.
+> Si se excede la tasa de solicitudes configurada, el servidor responde con **`429 Too Many Requests`** e incluye la cabecera estándar **`Retry-After: <segundos>`**.
 
 ---
 

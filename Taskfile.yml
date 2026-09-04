@@ -8,45 +8,29 @@ tasks:
       - task --list
 
   install:
-    desc: "Instala dependencias de producción y desarrollo en Python"
+    desc: "Instala dependencias del servicio Node.js y TypeScript"
     cmds:
-      - pip install -r requirements.txt
-      - pip install -r requirements-dev.txt
+      - npm install
 
   dev:
-    desc: "Inicia la API FastAPI en modo desarrollo con recarga automática"
+    desc: "Inicia el servidor Pokédex Full-Stack en modo desarrollo con recarga automática"
     cmds:
-      - uvicorn apps.api.src.app:app --reload --host 0.0.0.0 --port 8000
+      - npm run dev
 
-  test:
-    desc: "Ejecuta las pruebas unitarias con Pytest y reporte de cobertura"
+  build:
+    desc: "Compila y empaqueta el servidor TypeScript con esbuild"
     cmds:
-      - pytest -v --cov=apps/api/src --cov-report=term-missing
-
-  test:api:
-    desc: "Ejecuta la secuencia de pruebas funcionales de endpoints CRUD de la API"
-    cmds:
-      - python apps/api/scripts/run_all_scripts.py
-
-  test:load:
-    desc: "Ejecuta prueba de carga concurrente en Python (HPA / estrés)"
-    cmds:
-      - python scripts/k8s_load_test.py {{.CLI_ARGS}}
-
-  seed:
-    desc: "Ejecuta la carga masiva de datos (1025 Pokémon) en PostgreSQL y Redis"
-    cmds:
-      - python apps/api/scripts/bulk_load_pokemons.py {{.CLI_ARGS}}
+      - npm run build
 
   lint:
-    desc: "Ejecuta el linter Ruff en todo el código"
+    desc: "Ejecuta la verificación de tipos con TypeScript (tsc --noEmit)"
     cmds:
-      - ruff check apps/ scripts/
+      - npm run lint
 
-  format:
-    desc: "Formatea el código automáticamente con Ruff"
+  test:
+    desc: "Ejecuta las pruebas unitarias y validaciones de tipos"
     cmds:
-      - ruff format apps/ scripts/
+      - npm run lint
 
   audit:
     desc: "Ejecuta la auditoría integral (Ruff, Radon, Bandit y Duplicados)"

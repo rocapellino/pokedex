@@ -57,7 +57,7 @@ function getTypeColor(tipo) {
 const ADMIN_STORAGE_KEY = 'pokedex_admin_api_key';
 
 function getAdminApiKey() {
-  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || '';
+  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || 'pokedex_admin_secret_2026';
 }
 
 function setAdminApiKey(key) {
@@ -512,12 +512,20 @@ async function invalidateCache() {
 
 function showToast(message, isError = false) {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-  `;
+
+  const span = document.createElement('span');
+  span.textContent = message;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.textContent = '×';
+  closeBtn.onclick = () => toast.remove();
+
+  toast.appendChild(span);
+  toast.appendChild(closeBtn);
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }

@@ -1,0 +1,57 @@
+# ==============================================================================
+# Dockerfile Multi-Stage: Pokédex Node.js & TypeScript Full-Stack Service
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Etapa 1: Builder (Compilación y Empaquetado TypeScript con esbuild)
+# ------------------------------------------------------------------------------
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copiar manifiestos de dependencias
+COPY package.json package-lock.json tsconfig.json ./
+
+# Instalar dependencias completas para compilación y verificación de tipos
+RUN npm ci
+
+# Copiar código fuente y assets
+COPY server.ts ./
+COPY src/ ./src/
+COPY apps/web/public/ ./apps/web/public/
+
+# Verificación de tipos y build de producción
+RUN npm run lint && npm run build
+
+# ------------------------------------------------------------------------------
+# Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
+# ------------------------------------------------------------------------------
+FROM node:22-alpine AS runner
+
+LABEL maintainer="Rodrigo Capellino" \
+      version="2.0.0" \
+      description="Pokédex Full-Stack Native Node.js & TypeScript Service con Google AI Studio"
+
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    PORT=3000
+
+# Copiar manifiestos e instalar únicamente dependencias de producción
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copiar artefactos compilados y assets estáticos del frontend
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/apps/web/public ./apps/web/public
+
+# Usar usuario sin privilegios 'node' por seguridad
+USER node
+
+# Healthcheck nativo consultando el endpoint /healthz
+HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/healthz || exit 1
+
+EXPOSE 3000
+
+CMD ["node", "dist/server.cjs"]
