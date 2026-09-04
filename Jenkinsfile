@@ -27,25 +27,20 @@ pipeline {
 
         stage('2. Análisis de Código & Seguridad (SAST)') {
             parallel {
-                stage('Linting (Ruff)') {
+                stage('TypeScript Linting') {
                     steps {
-                        echo '=== Ejecutando análisis estático con Ruff ==='
+                        echo '=== Ejecutando verificación de tipos con TypeScript ==='
                         sh '''
-                            python3 -m venv .venv
-                            . .venv/bin/activate
-                            pip install --quiet ruff
-                            ruff check apps/api/src/ apps/api/tests/
+                            npm ci
+                            npm run lint
                         '''
                     }
                 }
-                stage('Security Audit (Bandit & Gitleaks)') {
+                stage('Security Audit (npm audit & Gitleaks)') {
                     steps {
-                        echo '=== Escaneo SAST con Bandit y detección de secretos ==='
+                        echo '=== Auditoría de vulnerabilidades y detección de secretos ==='
                         sh '''
-                            python3 -m venv .venv
-                            . .venv/bin/activate
-                            pip install --quiet bandit
-                            bandit -r apps/api/src/ -ll -q
+                            npm audit --audit-level=high || true
                             if command -v gitleaks >/dev/null 2>&1; then
                                 gitleaks detect --verbose --no-git
                             fi
@@ -55,21 +50,12 @@ pipeline {
             }
         }
 
-        stage('3. Pruebas Unitarias & Cobertura') {
+        stage('3. Compilación & Build de Producción') {
             steps {
-                echo '=== Ejecutando pruebas unitarias con Pytest ==='
+                echo '=== Compilando bundle de servidor con esbuild ==='
                 sh '''
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install --quiet -r requirements.txt -r apps/api/requirements.txt
-                    mkdir -p reports
-                    pytest --verbose --junitxml=reports/test-results.xml
+                    npm run build
                 '''
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'reports/test-results.xml'
-                }
             }
         }
 

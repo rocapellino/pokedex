@@ -40,24 +40,25 @@ Un **Workflow** es un proceso automatizado compuesto por uno o más **Jobs** que
 Como este proyecto es un **Monorepo** (aloja frontend, backend, infraestructura y scripts en un solo repositorio), ejecutar todas las pruebas en cada commit desperdiciaría minutos de servidor y demoraría el trabajo.
 
 Por eso utilizamos **Path Filtering**:
-* Si modificas solo `apps/api/`, **únicamente se ejecuta `api.yml`**.
-* Si modificas solo `apps/web/`, **únicamente se ejecuta `web.yml`**.
-* Si modificas solo `infra/`, **únicamente se ejecuta `infra.yml`**.
+* Si modificas el backend (`server.ts`, `src/**`, `package.json`), **se ejecuta `api.yml`**.
+* Si modificas solo el frontend (`apps/web/**`), **se ejecuta `web.yml`**.
+* Si modificas solo la infraestructura (`infra/**`), **se ejecuta `infra.yml`**.
 * Si modificas la rama `main`, **se ejecuta `ci.yml` para validar todo el proyecto integrado**.
 
 ---
 
 ## 3. Catálogo de Workflows del Proyecto
 
-### 3.1. 🐍 [`api.yml`](/.github/workflows/api.yml) (Backend API CI)
-* **¿Cuándo se activa?** Cuando hay cambios en `apps/api/**`, `src/**` o `requirements.txt`.
+### 3.1. ⚙️ [`api.yml`](/.github/workflows/api.yml) (Backend API CI)
+* **¿Cuándo se activa?** Cuando hay cambios en `server.ts`, `src/**`, `package.json`, `package-lock.json` o `tsconfig.json`.
 * **¿Qué hace paso a paso?**
   1. Descarga el código en una máquina Ubuntu limpia.
-  2. Instala Python 3.13 y las dependencias de `requirements.txt` y `requirements-dev.txt`.
-  3. Ejecuta **Ruff** para verificar que no haya errores de sintaxis, variables sin usar o patrones lentos.
-  4. Ejecuta análisis de seguridad SAST con **Bandit**.
-  5. Ejecuta la suite de pruebas unitarias con reporte de cobertura (**Pytest-Cov**).
-* **Objetivo:** Garantizar que los endpoints REST de FastAPI funcionen al 100% con alta cobertura y sin fallas de seguridad.
+  2. Configura Node.js 22 LTS con caché optimizada para npm.
+  3. Instala dependencias deterministas mediante `npm ci`.
+  4. Ejecuta análisis de tipos y calidad estricto con TypeScript (`npm run lint`).
+  5. Compila el bundle de producción con **esbuild** (`npm run build`).
+  6. Ejecuta auditoría de seguridad de dependencias con `npm audit --audit-level=high`.
+* **Objetivo:** Garantizar que el servidor Express y servicios de IA compilen sin errores de tipado y sin vulnerabilidades en dependencias.
 
 ---
 
@@ -92,8 +93,8 @@ Por eso utilizamos **Path Filtering**:
 ### 3.5. 🚀 [`ci.yml`](/.github/workflows/ci.yml) (Monorepo CI Integrador)
 * **¿Cuándo se activa?** Al hacer `push` o `Pull Request` hacia la rama principal (`main` o `master`).
 * **¿Qué hace paso a paso?**
-  1. **Auditoría Global:** Ejecuta `scripts/audit_code_quality.py` (complejidad ciclomática, duplicación, seguridad SAST y linting).
-  2. **Compilación Multi-Stage:** Compila las imágenes Docker de `apps/api/Dockerfile` y `apps/web/Dockerfile` con Buildx para verificar que el build de producción no falle.
+  1. **Auditoría Global:** Ejecuta análisis estático con TypeScript (`tsc --noEmit`), compilación con esbuild y auditoría de archivos duplicados (`scripts/audit_code_quality.py`).
+  2. **Compilación Multi-Stage:** Compila las imágenes Docker del servidor (`Dockerfile`) y frontend (`apps/web/Dockerfile`) con Buildx y genera el SBOM (Software Bill of Materials).
 * **Objetivo:** Puerta de calidad final (*Quality Gate*) antes de desplegar a producción.
 
 ---
@@ -156,9 +157,9 @@ graph TD
     PUSH --> BOT[🤖 Linear Bot comenta PR & pasa a In Review]
     PUSH --> B{¿Qué archivos cambiaron?}
     
-    B -->|apps/api/**| C[🐍 api.yml: Lint + Pytest]
+    B -->|server.ts / src/**| C[⚙️ api.yml: TypeScript Lint + Build + Audit]
     B -->|apps/web/**| D[🌐 web.yml: JS Syntax + Nginx Test]
-    B -->|infra/**| E[⚙️ infra.yml: K8s Kustomize + Terraform]
+    B -->|infra/**| E[⚙️ infra.yml: Helm 3 Lint + Terraform]
     B -->|Cualquier archivo| F[🔐 security-gitleaks.yml: Scan de Secretos]
     
     C --> G{¿Pasaron todos los checks?}

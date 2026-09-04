@@ -96,14 +96,14 @@ flowchart TD
 * Al copiar el nombre de la rama desde Linear (`Ctrl + Shift + .`), se asegura la convención estándar `rocapellino/PER-X-descripcion`.
 
 ### Fase 2: Desarrollo Local y Quality Gates (DX)
-* El desarrollador crea la rama local y trabaja en el código de `apps/api`, `apps/web` o `infra/`.
-* Utiliza el task runner multiplataforma (`task test`, `task audit`) para verificar:
-  * Pruebas unitarias con Pytest.
-  * Análisis de cobertura de código (>75%).
-  * Linting y formato con Ruff.
-  * Análisis de seguridad estático SAST con Bandit.
-  * Complejidad ciclomática con Radon.
-  * Detección de duplicación con JSCPD.
+* El desarrollador crea la rama local y trabaja en el código de backend (`server.ts`, `src/`), frontend (`apps/web/`) o infraestructura (`infra/`).
+* Utiliza el task runner multiplataforma (`task dev`, `task lint`, `task audit`) para verificar:
+  * Verificación estricta de tipos con TypeScript (`tsc --noEmit`).
+  * Compilación y empaquetado con esbuild (`npm run build`).
+  * Detección de duplicación y archivos idénticos (`task audit`).
+  * Auditoría de seguridad de dependencias (`npm audit`).
+  * Validación de Helm Chart y manifiestos de Kubernetes (`task helm:lint`).
+  * Detección de duplicación y archivos idénticos (`scripts/audit_code_quality.py`).
 * Los **Hooks de Pre-commit** impiden commits locales si existen secretos o código no formateado.
 
 ### Fase 3: Integración Continua y Validación (GitHub Actions)

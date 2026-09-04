@@ -15,9 +15,9 @@ Este documento detalla la estructura de directorios, convención de organizació
 
 El monorepo está organizado siguiendo una separación estricta de responsabilidades:
 * **`apps/`**: Aloja exclusivamente el código fuente de las aplicaciones y servicios ejecutables (Frontend y Backend).
-* **`infra/`**: Contiene la Infraestructura como Código (IaC), manifiestos declarativos de Kubernetes (`k8s/`), scripts de base de datos (`docker/`) y aprovisionamiento con Terraform (`terraform/`).
+* **`infra/`**: Contiene la Infraestructura como Código (IaC), Chart de orquestación en Kubernetes (**`helm/`**), scripts de base de datos (`docker/`), aprovisionamiento con Terraform (`terraform/`) y playbooks de Ansible (`ansible/`).
 * **`docs/`**: Centraliza toda la documentación técnica, diseños de arquitectura, guías de buenas prácticas y manuales operativos.
-* **`scripts/`**: Scripts auxiliares de automatización (despliegues K8s, pruebas de estrés concurrentes, siembra de datos).
+* **`scripts/`**: Scripts auxiliares de automatización (pruebas de estrés concurrentes, siembra de datos, sellado de secretos).
 
 ---
 
@@ -31,12 +31,12 @@ pokedex/
 ├── .vscode/                      # Configuración del editor y tareas automatizadas
 │   └── tasks.json                # Tasks automatizadas
 ├── apps/                         # Aplicaciones y código fuente por servicios
-│   └── web/                      # Frontend Web (SPA Pokédex + Backoffice)
+│   └── web/                      # Frontend Web (Nginx Alpine + SPA Pokédex + Backoffice)
 │       └── public/               # Assets estáticos (HTML5, CSS3, JS Vanilla con protección XSS)
 │           ├── index.html        # Catálogo público interactivo
 │           ├── backoffice.html   # Consola de administración CRUD
 │           ├── css/              # Estilos visuales y diseño Bento
-│           └── js/               # Lógica de cliente, modales y toasts sanitizados
+│           └── js/               # Lógica de cliente, modales y selector de tema
 ├── src/                          # Módulos de dominio y servicios TypeScript
 │   ├── types.ts                  # Interfaces nativas (Pokemon, Characteristics, Stats, EvolutionNode)
 │   ├── data/
@@ -51,10 +51,9 @@ pokedex/
 ├── Taskfile.yml                  # Automatización de tareas de desarrollo y operaciones
 ├── infra/                        # Infraestructura como Código (IaC) y Manifiestos
 │   ├── docker/                   # Scripts de inicialización
-│   ├── k8s/                      # Manifiestos declarativos de Kubernetes (Kustomize)
-│   ├── helm/                     # Chart de Helm para despliegue Cloud-Native
-│   ├── terraform/                # Módulos y ambientes de Terraform
-│   ├── ansible/                  # Playbooks de aprovisamiento y hardening
+│   ├── helm/                     # Chart de Helm 3 estandarizado (Deployments, HPA, Services, PDB)
+│   ├── terraform/                # Módulos y ambientes de Terraform Multi-Cloud
+│   ├── ansible/                  # Playbooks de aprovisionamiento y hardening
 │   └── proxmox/                  # Templates LXC y cloud-init
 ├── docs/                         # Documentación técnica centralizada
 │   ├── README.md                 # Índice general de documentación
