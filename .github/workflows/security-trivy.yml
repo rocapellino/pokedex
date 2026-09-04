@@ -14,6 +14,9 @@ on:
       - 'package*.json'
       - '.github/workflows/security-trivy.yml'
   pull_request:
+    branches:
+      - main
+      - master
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
@@ -21,6 +24,10 @@ on:
       - '.github/workflows/security-trivy.yml'
   schedule:
     - cron: '0 4 * * 1' # Escaneo semanal los lunes a las 04:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   trivy-scan:
