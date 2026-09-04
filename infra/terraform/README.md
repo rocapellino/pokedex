@@ -11,7 +11,7 @@ Para garantizar paridad y portabilidad entre nubes, los módulos implementan los
 | Capa Arquitectónica | Google Cloud (GCP) | Amazon Web Services (AWS) | Microsoft Azure | On-Premises (Proxmox VE) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Networking** | VPC, Subnets, Cloud NAT | VPC, Public/Private Subnets, IGW, NAT Gateway | Virtual Network (VNet), Subnets delegadas | Linux Bridge (`vmbr0`), VLANs |
-| **Compute** | Cloud Run (FastAPI Serverless) | AWS App Runner (Serverless Container) | Azure Container Apps (ACA) | Contenedor LXC con Docker Engine |
+| **Compute** | Cloud Run (Node.js/TS Container) | AWS App Runner (Serverless Container) | Azure Container Apps (ACA) | Contenedor LXC con Docker Engine |
 | **Database & Cache** | Cloud SQL (PostgreSQL) + Memorystore (Redis) | RDS PostgreSQL + ElastiCache Redis | Azure Database for PostgreSQL (Flexible Server) + Azure Cache for Redis | PostgreSQL + Redis sobre Docker |
 | **Storage & CDN** | Cloud Storage (GCS) + Cloud CDN | S3 Bucket + Access Block + CORS | Azure Storage Account + Blob Container | MinIO S3-compatible |
 

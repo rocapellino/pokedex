@@ -1,21 +1,27 @@
 # ==============================================================================
-# Pokédex Frontend (Web) - Docker Ignore Configuration
+# Pokédex Frontend (Web) - Docker Ignore
 # ==============================================================================
 
 # Control de versiones
 .git/
 .gitignore
+.gitattributes
 
 # Node & dependencias locales
 node_modules/
+dist/
 .npm/
 
 # Documentación
-README.md
+*.md
 
-# Archivos de entorno y secretos
+# Secretos y variables de entorno
 .env
 .env.*
+*.pem
+*.key
+*.cert
+*.crt
 
 # IDEs y Editores
 .vscode/
@@ -23,8 +29,11 @@ README.md
 *.swp
 *.swo
 
-# Archivos del Sistema Operativo
+# Archivos del Sistema Operativo y Temporales
 .DS_Store
 Thumbs.db
+ehthumbs.db
 *.tmp
 *.bak
+*~
+*.log
