@@ -15,7 +15,10 @@ Este documento describe la arquitectura y los estándares implementados en el re
 ## 1. Estrategia de Secretos en Entornos Locales (`.env.example`)
 
 * **Regla de Oro:** Ningún archivo `.env` con credenciales reales debe commitearse en Git.
-* **Plantilla Versionada:** El repositorio incluye [`.env.example`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.env.example) con la estructura de variables y valores por defecto para desarrollo local.
+* **Plantilla Versionada:** El repositorio incluye [`.env.example`](../../.env.example) y [`apps/api/.env.example`](../../apps/api/.env.example) con la estructura de variables y valores por defecto para desarrollo local.
+* **Variables Críticas Obligatorias:**
+  * `ADMIN_API_KEY`: Clave administrativa requerida para operaciones de escritura (`POST`, `PUT`, `DELETE`).
+  * `AI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Gemini e Imagen 3).
 * **Protección en `.gitignore`:** Se configuraron reglas estrictas para ignorar `.env`, `.env.*`, claves privadas (`*.pem`, `*.key`) y certificados.
 
 ### Uso con Docker Compose:
@@ -33,12 +36,14 @@ docker compose up -d
 
 Para garantizar que ningún desarrollador comitee accidentalmente tokens, API keys o contraseñas, se implementó:
 
-1. **Configuración de Reglas ([`.gitleaks.toml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.gitleaks.toml)):**
+1. **Configuración de Reglas ([`.gitleaks.toml`](../../.gitleaks.toml)):**
    * Activa las reglas base de detección de entropía y patrones conocidos (AWS, GitHub Tokens, Postgres, etc.).
-   * Añade allowlists específicas para archivos de ejemplo (`.env.example`) y mocks de pruebas unitarias.
-2. **Pipeline de GitHub Actions ([`security-gitleaks.yml`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows/security-gitleaks.yml)):**
+   * Añade allowlists específicas para archivos de ejemplo (`.env.example`), documentación y mocks de pruebas unitarias.
+2. **Hooks de Pre-Commit ([`.pre-commit-config.yaml`](../../.pre-commit-config.yaml)):**
+   * Escaneo automático en cada commit local previniendo que secretos salgan del entorno de desarrollo.
+3. **Pipeline de CI/CD (GitHub Actions, Jenkins, GitLab CI):**
    * Se ejecuta automáticamente en cada `push` y `pull_request` analizando el historial completo de commits (`fetch-depth: 0`).
-   * Bloquea el merge del Pull Request si detecta alguna credencial sin cifrar.
+   * Bloquea el merge del Pull Request de forma estricta ante cualquier credencial expuesta.
 
 ---
 
@@ -71,7 +76,7 @@ En Kubernetes, los `Secrets` nativos solo están codificados en Base64, lo que n
 ## 4. Flujo de Trabajo Operativo para Desarrolladores
 
 ### Sellar un Secreto Nuevo o Modificado:
-Se incluyen utilidades automatizadas multiplataforma para generar el manifiesto cifrado:
+Se incluyen utilidades automatizadas multiplataforma para generar el manifiesto cifrado con claves aleatorias seguras (`secrets.token_urlsafe(32)`):
 
 * **Vía Taskfile (Recomendado):**
   ```bash

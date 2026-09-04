@@ -79,6 +79,22 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 ## 3. Inicio Rápido (Quickstart)
 
+### 🔑 Paso Previo: Configuración de Variables de Entorno y Secretos
+
+Antes de iniciar cualquier despliegue (Docker o Kubernetes), crea tu archivo `.env` a partir de la plantilla y define claves con alta entropía:
+
+```bash
+cp .env.example .env
+
+# Generar tokens criptográficos para las claves de administración y servicios de IA
+# (En Linux/macOS: openssl rand -base64 32 | En Windows PowerShell: [Convert]::ToBase64String((1..32 | % { Get-Random -Max 256 })))
+```
+
+> [!IMPORTANT]
+> `ADMIN_API_KEY` y `AI_API_KEY` son obligatorias. Si no están configuradas, el contenedor de la API detendrá su arranque de forma preventiva (`RuntimeError`).
+
+---
+
 ### Opción A: Despliegue en Kubernetes (Recomendado)
 
 1. **Construir imágenes y desplegar con Taskfile o script automatizado:**
@@ -96,8 +112,10 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
    ```
 
 3. **Abrir en tu navegador:**
-   * 🖥️ **Web:** [http://localhost:8080/](http://localhost:8080/)
-   * 🔌 **API Docs:** [http://localhost:8080/docs](http://localhost:8080/docs)
+   * 🖥️ **Web Pokédex:** [http://localhost:8080/](http://localhost:8080/)
+   * 🛠️ **Backoffice Admin:** [http://localhost:8080/backoffice](http://localhost:8080/backoffice) *(requiere ingresar `ADMIN_API_KEY` en el modal de sesión)*
+   * 🔌 **API Docs (Swagger):** [http://localhost:8080/docs](http://localhost:8080/docs)
+   * 🩺 **Health Probes:** [http://localhost:8080/healthz](http://localhost:8080/healthz) & [http://localhost:8080/readyz](http://localhost:8080/readyz)
 
 ---
 
