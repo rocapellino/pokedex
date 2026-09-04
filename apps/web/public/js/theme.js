@@ -72,8 +72,23 @@
   // Initial apply
   window.initTheme();
 
-  // Re-sync UI when DOM is fully loaded in case buttons were created later
+  function setupThemeClickHandlers() {
+    window.initTheme();
+    document.querySelectorAll('.theme-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const theme = btn.getAttribute('data-theme-val');
+        if (theme) {
+          window.setTheme(theme);
+        }
+      });
+    });
+  }
+
+  // Re-sync UI and attach click listeners when DOM is fully loaded
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.initTheme);
+    document.addEventListener('DOMContentLoaded', setupThemeClickHandlers);
+  } else {
+    setupThemeClickHandlers();
   }
 })();
