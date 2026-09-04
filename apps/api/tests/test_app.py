@@ -166,7 +166,7 @@ def test_prometheus_metrics_endpoint(client):
 def test_prometheus_metrics_with_bearer_token(client, monkeypatch):
     """Prueba que si METRICS_BEARER_TOKEN está configurado, /metrics exija token."""
     monkeypatch.setenv("METRICS_BEARER_TOKEN", "super-secret-metrics-token")
-    
+
     # 1. Sin token -> 401
     res_no_token = client.get('/metrics')
     assert res_no_token.status_code == 401
@@ -289,8 +289,9 @@ def test_admin_auth_accepted_with_valid_key(client):
 
 def test_ai_key_verification_timing_safe(client):
     """Prueba que los endpoints de IA rechacen claves inválidas y acepten AI_API_KEY válida."""
-    import src.app as app_module
     from unittest.mock import patch
+
+    import src.app as app_module
     app.dependency_overrides.pop(app_module.verify_ai_key, None)
     try:
         # Clave incorrecta (diferentes longitudes y prefijos similares)
