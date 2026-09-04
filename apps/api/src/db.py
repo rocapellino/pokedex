@@ -186,6 +186,16 @@ POKEMONS_SQL_QUERY = """
 """
 
 
+def _deserialize_json_fields(item: Dict[str, Any]) -> Dict[str, Any]:
+    """Deserializa campos JSON si el motor de base de datos los devuelve como string plano."""
+    for key in ('caracteristicas', 'stats', 'evoluciones'):
+        val = item.get(key)
+        if isinstance(val, str):
+            with contextlib.suppress(Exception):
+                item[key] = json.loads(val)
+    return item
+
+
 async def fetch_pokemons_from_db_async() -> Optional[List[Dict[str, Any]]]:
     """Obtiene la lista de Pokémon de forma asíncrona desde Redis o PostgreSQL con pool."""
     # 1. Intentar lectura en Redis asíncrono
@@ -206,16 +216,7 @@ async def fetch_pokemons_from_db_async() -> Optional[List[Dict[str, Any]]]:
     try:
         async with pool.acquire() as conn:
             rows = await conn.fetch(POKEMONS_SQL_QUERY)
-            result: List[Dict[str, Any]] = []
-
-            for r in rows:
-                item = dict(r)
-                # asyncpg puede devolver JSON o string dependiendo de la versión
-                for key in ('caracteristicas', 'stats', 'evoluciones'):
-                    if isinstance(item.get(key), str):
-                        with contextlib.suppress(Exception):
-                            item[key] = json.loads(item[key])
-                result.append(item)
+            result = [_deserialize_json_fields(dict(r)) for r in rows]
 
             # 3. Guardar en Redis asíncrono con TTL de 300 segundos
             if redis_cli and result:
@@ -223,6 +224,7 @@ async def fetch_pokemons_from_db_async() -> Optional[List[Dict[str, Any]]]:
                     await redis_cli.setex('pokemons_all', 300, json.dumps(result))
 
             return result
+
     except Exception as err:
         logger.error("[DB Async] Error consultando PostgreSQL: %s", err)
         return None
