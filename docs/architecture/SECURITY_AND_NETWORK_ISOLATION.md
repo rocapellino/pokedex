@@ -116,11 +116,11 @@ networks:
 
 ## 5. Aislamiento en Kubernetes (`NetworkPolicies`)
 
-Implementado en [`infra/k8s/09-network-policies.yaml`](file:///infra/k8s/09-network-policies.yaml):
+Implementado en el template [`infra/helm/pokedex/templates/network-policies.yaml`](file:///infra/helm/pokedex/templates/network-policies.yaml):
 
 * **`default-deny-all-ingress`:** Bloquea por defecto todo tráfico no autorizado en el namespace `pokemon-app`.
 * **`allow-web-ingress`:** Permite tráfico HTTP al puerto 80 de los pods `pokemon-web`.
-* **`allow-api-ingress`:** Permite tráfico al puerto 5000 de `pokemon-api` exclusivamente desde pods con etiqueta `app: pokemon-web` e Ingress.
+* **`allow-api-ingress`:** Permite tráfico al puerto 3000 de `pokemon-api` exclusivamente desde pods con etiqueta `app: pokemon-web` e Ingress.
 * **`allow-postgres-ingress`:** Permite tráfico al puerto 5432 de PostgreSQL únicamente desde `pokemon-api`.
 * **`allow-redis-ingress`:** Permite tráfico al puerto 6379 de Redis únicamente desde `pokemon-api`.
 

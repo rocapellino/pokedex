@@ -95,8 +95,8 @@ Se incluyen utilidades automatizadas multiplataforma para generar el manifiesto 
 
 ### Aplicar en el Clúster:
 ```bash
-# Aplicar el SealedSecret en Kubernetes:
-kubectl apply -f infra/k8s/01-sealed-secrets.yaml
+# Aplicar el SealedSecret en Kubernetes (o dejar que Helm/ArgoCD lo sincronice):
+kubectl apply -f infra/helm/pokedex/templates/sealed-secrets.yaml
 
 # Verificar que el controlador creó el Secret descifrado:
 kubectl get secret pokemon-secrets -n pokemon-app

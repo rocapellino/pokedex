@@ -73,9 +73,10 @@ Por eso utilizamos **Path Filtering**:
 ### 3.3. ⚙️ [`infra.yml`](/.github/workflows/infra.yml) (Infrastructure & IaC CI)
 * **¿Cuándo se activa?** Cuando hay cambios en `infra/**` (Kubernetes, Terraform, Ansible).
 * **¿Qué hace paso a paso?**
-  1. Ejecuta `kubectl kustomize infra/k8s/` para comprobar que todos los manifiestos YAML de Kubernetes sean sintácticamente válidos.
+  1. Configura Helm CLI y ejecuta `helm lint` y `helm template` (para perfiles dev y prod) sobre `infra/helm/pokedex` para comprobar que las plantillas y valores sean sintácticamente válidos.
   2. Ejecuta `terraform validate` sobre cada módulo en `infra/terraform/modules/` para validar la sintaxis HCL.
-* **Objetivo:** Prevenir que un error en un archivo YAML o HCL rompa el clúster de Kubernetes o el aprovisionamiento en la nube.
+  3. Ejecuta auditoría de seguridad IaC con Checkov.
+* **Objetivo:** Prevenir que un error en el Chart de Helm o en un archivo HCL rompa el clúster de Kubernetes o el aprovisionamiento en la nube.
 
 ---
 

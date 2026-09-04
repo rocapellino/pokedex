@@ -41,10 +41,10 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
   bash scripts/k8s_deploy.sh --build --seed
   ```
 
-### Opción B: Despliegue Manual con Kustomize
+### Opción B: Despliegue con Helm 3
 ```bash
-# 1. Aplicar todos los manifiestos
-kubectl apply -k infra/k8s/
+# 1. Aplicar Chart de Helm (o perfil producción con -f infra/helm/pokedex/values.prod.yaml)
+helm upgrade --install pokedex ./infra/helm/pokedex -n pokemon-app --create-namespace
 
 # 2. Verificar que los pods estén en estado Running
 kubectl get pods -n pokemon-app -w
@@ -56,12 +56,15 @@ kubectl get pods -n pokemon-app -w
 
 Todos los pods de la API y de la Web consultan la misma base de datos PostgreSQL respaldada por un `PersistentVolumeClaim`.
 
-Para ejecutar la siembra de los **1.025 Pokémon**:
+Para ejecutar la verificación/siembra del catálogo:
 ```bash
-kubectl apply -f infra/k8s/08-db-seed-job.yaml
+task k8s:seed
+
+# O directamente mediante Helm template:
+helm template pokedex ./infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
 
 # Seguir los logs del Job
-kubectl logs -n pokemon-app job/pokemon-db-seed-job -f
+kubectl logs -n pokemon-app job/pokedex-db-seed -f
 ```
 
 ---

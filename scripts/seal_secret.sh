@@ -6,7 +6,7 @@ set -euo pipefail
 
 SECRET_NAME="${1:-pokemon-secrets}"
 NAMESPACE="${2:-pokemon-app}"
-OUTPUT_FILE="${3:-infra/k8s/01-sealed-secrets.yaml}"
+OUTPUT_FILE="${3:-infra/helm/pokedex/templates/sealed-secrets.yaml}"
 
 echo "🔐 Generando Secret temporal y sellando con Sealed Secrets..."
 

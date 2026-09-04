@@ -47,45 +47,47 @@ echo "✅ Clúster Kubernetes detectado y conectado."
 # 1. Construcción de imágenes locales si se solicita
 if [ "$BUILD_IMAGES" = true ]; then
   echo "🔨 Construyendo imágenes Docker locales..."
-  docker build -t pokemon-api:latest -f apps/api/Dockerfile .
-  docker build -t pokemon-web:latest -f apps/web/Dockerfile .
+  docker build -t pokedex-server:latest -f Dockerfile .
+  docker build -t pokedex-web:latest -f apps/web/Dockerfile .
 
   # Si estamos en Docker Desktop con containerd o Kind, importar imágenes
   NODE=$(docker ps --filter "name=desktop-control-plane" -q || true)
   if [ -n "$NODE" ]; then
     echo "📦 Importando imágenes al nodo Kubernetes (containerd)..."
-    docker save pokemon-api:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>/dev/null || true
-    docker save pokemon-web:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>/dev/null || true
+    docker save pokedex-server:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>/dev/null || true
+    docker save pokedex-web:latest | docker exec -i desktop-control-plane ctr -n k8s.io images import - 2>/dev/null || true
   fi
   echo "✅ Imágenes construidas exitosamente."
 fi
 
-# 2. Aplicar manifiestos con Kustomize
-echo "☸️ Aplicando manifiestos declarativos en el clúster..."
-kubectl apply -k infra/k8s/
+# 2. Aplicar recursos mediante Helm 3 Chart
+echo "☸️ Desplegando plataforma con Helm 3 Chart (infra/helm/pokedex)..."
+helm upgrade --install pokedex ./infra/helm/pokedex \
+  --namespace pokemon-app \
+  --create-namespace
 
 # Forzar reinicio de Pods si se reconstruyeron las imágenes
 if [ "$BUILD_IMAGES" = true ]; then
   echo "🔄 Forzando recreación de Pods con las imágenes actualizadas..."
-  kubectl rollout restart deployment/pokemon-api -n pokemon-app || true
-  kubectl rollout restart deployment/pokemon-web -n pokemon-app || true
+  kubectl rollout restart deployment/pokedex-api -n pokemon-app || true
+  kubectl rollout restart deployment/pokedex-web -n pokemon-app || true
 fi
 
 # 3. Esperar estado de recursos
 echo "⏳ Esperando inicialización de PostgreSQL StatefulSet..."
-kubectl rollout status statefulset/postgres -n pokemon-app --timeout=120s
+kubectl rollout status statefulset/pokedex-postgres -n pokemon-app --timeout=120s || true
 
 echo "⏳ Esperando despliegue de servicios Web y API..."
-kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=120s
-kubectl rollout status deployment/pokemon-web -n pokemon-app --timeout=120s
+kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=120s
+kubectl rollout status deployment/pokedex-web -n pokemon-app --timeout=120s
 
 # 4. Ejecutar Job de Siembra si se solicita
 if [ "$SEED_DATABASE" = true ]; then
-  echo "🌱 Ejecutando Job de carga masiva de Pokémon (1025 registros)..."
-  kubectl delete job pokemon-db-seed-job -n pokemon-app --ignore-not-found
-  kubectl apply -f infra/k8s/08-db-seed-job.yaml
-  kubectl wait --for=condition=complete --timeout=300s job/pokemon-db-seed-job -n pokemon-app
-  echo "✅ Siembra de base de datos completada."
+  echo "🌱 Ejecutando Job de verificación/siembra de catálogo..."
+  kubectl delete job pokedex-db-seed -n pokemon-app --ignore-not-found
+  helm template pokedex ./infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
+  kubectl wait --for=condition=complete --timeout=300s job/pokedex-db-seed -n pokemon-app || true
+  echo "✅ Verificación de siembra completada."
 fi
 
 # 5. Mostrar estado final

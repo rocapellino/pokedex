@@ -35,18 +35,24 @@ Esta guía documenta la integración de las **7 herramientas esenciales de DevOp
 
 ---
 
-## 3. Kubernetes (Orquestación, HPA y NetworkPolicies)
-* **Ubicación:** [`infra/k8s/`](../infra/k8s).
-* **Manifiestos Destacados:**
-  * `02-postgres-statefulset.yaml`: Persistencia de datos mediante PVCs.
-  * `04-api-deployment.yaml` & `05-web-deployment.yaml`: Replicación y rolling updates.
-  * `06-hpa-autoscaling.yaml`: Autoescalado horizontal de pods ante picos de CPU.
-  * `09-network-policies.yaml`: Aislamiento de capas (Zero-Trust networking).
+## 3. Kubernetes & Helm 3 (Orquestación, HPA, GitOps y NetworkPolicies)
+* **Ubicación:** [`infra/helm/pokedex/`](../infra/helm/pokedex).
+* **Componentes Principales (Templates):**
+  * `postgres-statefulset.yaml`: Persistencia de datos mediante PVCs.
+  * `api-deployment.yaml` & `web-deployment.yaml`: Replicación y rolling updates.
+  * `api-hpa.yaml` & `web-hpa.yaml`: Autoescalado horizontal de pods ante picos de CPU y memoria.
+  * `network-policies.yaml`: Aislamiento estricto de capas (Zero-Trust networking).
+  * `values.yaml` / `values.prod.yaml`: Parametrización desacoplada por entorno.
 * **Comandos Clave:**
   ```bash
-  kubectl apply -k infra/k8s/
-  kubectl get pods -w
-  kubectl get hpa
+  # Despliegue / Actualización con Helm
+  helm upgrade --install pokedex ./infra/helm/pokedex -n pokemon-app --create-namespace
+
+  # Despliegue con perfil de producción
+  helm upgrade --install pokedex ./infra/helm/pokedex -n pokemon-app -f ./infra/helm/pokedex/values.prod.yaml
+
+  # Monitoreo de estado
+  kubectl get pods,svc,hpa,ingress -n pokemon-app
   ```
 
 ---

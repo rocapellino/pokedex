@@ -77,22 +77,22 @@ pipeline {
             steps {
                 echo '=== Construyendo imágenes de producción con Docker ==='
                 sh '''
-                    docker build -t ${DOCKER_REGISTRY}/pokedex-api:${IMAGE_TAG} -t ${DOCKER_REGISTRY}/pokedex-api:latest -f apps/api/Dockerfile .
+                    docker build -t ${DOCKER_REGISTRY}/pokedex-api:${IMAGE_TAG} -t ${DOCKER_REGISTRY}/pokedex-api:latest -f Dockerfile .
                     docker build -t ${DOCKER_REGISTRY}/pokedex-web:${IMAGE_TAG} -t ${DOCKER_REGISTRY}/pokedex-web:latest -f apps/web/Dockerfile .
                 '''
             }
         }
 
-        stage('5. Despliegue en Staging (Kubernetes)') {
+        stage('5. Despliegue en Staging (Kubernetes con Helm)') {
             when {
                 branch 'develop'
             }
             steps {
-                echo '=== Desplegando en clúster Kubernetes (Namespace: pokemon-app) ==='
+                echo '=== Desplegando en clúster Kubernetes con Helm (Namespace: pokemon-app) ==='
                 sh '''
-                    kubectl apply -k infra/k8s/
-                    kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=90s
-                    kubectl rollout status deployment/pokemon-web -n pokemon-app --timeout=90s
+                    helm upgrade --install pokedex ./infra/helm/pokedex --namespace pokemon-app --create-namespace --set api.image.tag=${IMAGE_TAG} --set web.image.tag=${IMAGE_TAG}
+                    kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=90s
+                    kubectl rollout status deployment/pokedex-web -n pokemon-app --timeout=90s
                 '''
             }
         }
@@ -106,17 +106,16 @@ pipeline {
             }
         }
 
-        stage('7. Despliegue en Producción (Kubernetes)') {
+        stage('7. Despliegue en Producción (Kubernetes con Helm)') {
             when {
                 branch 'main'
             }
             steps {
-                echo '=== Desplegando en Producción con Kubernetes ==='
+                echo '=== Desplegando en Producción con Helm (values.prod.yaml) ==='
                 sh '''
-                    kubectl set image deployment/pokemon-api pokemon-api=${DOCKER_REGISTRY}/pokedex-api:${IMAGE_TAG} -n pokemon-app
-                    kubectl set image deployment/pokemon-web pokemon-web=${DOCKER_REGISTRY}/pokedex-web:${IMAGE_TAG} -n pokemon-app
-                    kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=120s
-                    kubectl rollout status deployment/pokemon-web -n pokemon-app --timeout=120s
+                    helm upgrade --install pokedex ./infra/helm/pokedex --namespace pokemon-app --create-namespace -f ./infra/helm/pokedex/values.prod.yaml --set api.image.tag=${IMAGE_TAG} --set web.image.tag=${IMAGE_TAG}
+                    kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=120s
+                    kubectl rollout status deployment/pokedex-web -n pokemon-app --timeout=120s
                 '''
             }
         }

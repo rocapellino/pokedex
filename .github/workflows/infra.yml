@@ -5,13 +5,19 @@ name: ⚙️ Infrastructure & IaC CI
 
 on:
   push:
+    branches: [ main, master ]
     paths:
       - 'infra/**'
       - '.github/workflows/infra.yml'
   pull_request:
+    branches: [ main, master ]
     paths:
       - 'infra/**'
       - '.github/workflows/infra.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-iac:
@@ -22,17 +28,12 @@ jobs:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@v7
 
-      - name: 2. Validar Manifiestos Kustomize de Kubernetes
-        run: |
-          kubectl kustomize infra/k8s/ > /dev/null
-          echo "✅ Manifiestos de Kubernetes Kustomize válidos."
-
-      - name: 2b. Configurar Helm CLI
+      - name: 2. Configurar Helm CLI
         uses: azure/setup-helm@v4
         with:
           version: v3.17.0
 
-      - name: 2c. Validar y Renderizar Helm Chart
+      - name: 2b. Validar y Renderizar Helm Chart (Dev & Prod)
         run: |
           helm lint infra/helm/pokedex
           helm template pokedex infra/helm/pokedex > /dev/null

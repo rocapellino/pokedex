@@ -113,7 +113,7 @@ flowchart TD
    - Las sesiones o tokens no se guardan en memoria local del pod, sino en **Redis** centralizado o vía JWT sin estado.
 3. **Manejo del Límite de Conexiones (*Connection Exhaustion*):**
    - Al escalar de 2 a 15 pods API, cada proceso Uvicorn/FastAPI abre conexiones a la BD.
-   - **Solución:** Implementar **PgBouncer** como Connection Pooler intermedio (desplegado en `infra/k8s/02b-pgbouncer.yaml`) o configurar un pool de conexiones adecuado en el driver nativo `psycopg2` para no superar el límite de `max_connections` de PostgreSQL.
+   - **Solución:** Implementar **PgBouncer** como Connection Pooler intermedio (desplegado en `infra/helm/pokedex/templates/pgbouncer-deployment.yaml`) o configurar un pool de conexiones adecuado en el driver nativo para no superar el límite de `max_connections` de PostgreSQL.
 4. **Almacenamiento de Multimedia Compartido:**
    - Sprites y assets de Pokémon residen en un bucket centralizado (MinIO / AWS S3 / Google Cloud Storage) con volumen persistente respaldado por un `PersistentVolumeClaim (PVC)`.
 
@@ -190,20 +190,26 @@ Internet (Usuarios)
 
 ---
 
-## 6. Manifiestos y Configuración de Referencia
+## 6. Manifiestos y Configuración de Referencia (Helm 3 Chart)
 
-Se han estructurado los manifiestos declarativos en el directorio `infra/k8s/`:
+Se ha unificado y estructurado la orquestación en el Chart oficial de Helm (`infra/helm/pokedex/`):
 
 ```
-infra/k8s/
-├── 00-namespace.yaml             # Namespace dedicado (pokemon-app)
-├── 01-config-and-secrets.yaml    # ConfigMap y Secrets de Base de Datos y Redis
-├── 02-postgres-statefulset.yaml  # PostgreSQL con PVC persistente y ClusterIP Service
-├── 03-redis-deployment.yaml      # Redis Cache con ClusterIP Service
-├── 04-api-deployment.yaml        # Deployment Backend Flask/Gunicorn + Service
-├── 05-web-deployment.yaml        # Deployment Frontend Nginx + Service
-├── 06-hpa-autoscaling.yaml       # HPA v2 para Web y API (CPU y Memoria)
-└── 07-ingress.yaml               # Ingress Controller (Rutas / y /api)
+infra/helm/pokedex/
+├── Chart.yaml                     # Metadatos del Chart y versionado semántico
+├── values.yaml                    # Configuración por defecto (desarrollo/local)
+├── values.prod.yaml               # Overrides endurecidos de producción (alta disponibilidad)
+└── templates/
+    ├── configmap.yaml             # ConfigMap de variables de entorno del clúster
+    ├── secret.yaml                # Secret de credenciales (PostgreSQL, API keys)
+    ├── postgres-statefulset.yaml  # PostgreSQL con PVC persistente y ClusterIP Service
+    ├── pgbouncer-deployment.yaml  # Pooler de conexiones PgBouncer
+    ├── redis-deployment.yaml      # Redis Cache con ClusterIP Service
+    ├── api-deployment.yaml        # Deployment Backend Node.js/Express + Service
+    ├── web-deployment.yaml        # Deployment Frontend Nginx + Reverse Proxy + Service
+    ├── api-hpa.yaml & web-hpa.yaml# HPA v2 para Web y API (CPU y Memoria)
+    ├── ingress.yaml               # Ingress Controller (Rutas / y /api/)
+    └── network-policies.yaml      # Políticas Zero-Trust entre microservicios
 ```
 
 ### 6.1. Ejemplo de Configuración HPA (`hpa-autoscaling.yaml`)

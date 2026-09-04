@@ -144,11 +144,7 @@ Variables esenciales:
 
 ---
 
-### Opción 3: Despliegue en Kubernetes y Helm
-
----
-
-### Opción B: Despliegue con Helm (Cloud Native & GitOps)
+### Opción 3: Despliegue en Kubernetes con Helm (Cloud Native & GitOps)
 
 1. **Validar y previsualizar manifiestos con Taskfile:**
    ```bash

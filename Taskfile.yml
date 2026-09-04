@@ -58,14 +58,14 @@ tasks:
       - docker compose down
 
   k8s:up:
-    desc: "Aplica los manifiestos declarativos de Kubernetes (Kustomize)"
+    desc: "Despliega o actualiza la plataforma en Kubernetes mediante Helm 3"
     cmds:
-      - kubectl apply -k infra/k8s/
+      - helm upgrade --install pokedex infra/helm/pokedex --namespace pokemon-app --create-namespace
 
   k8s:down:
-    desc: "Elimina los recursos de Kubernetes del namespace pokemon-app"
+    desc: "Desinstala el release de Helm pokedex del namespace pokemon-app"
     cmds:
-      - kubectl delete -k infra/k8s/
+      - helm uninstall pokedex -n pokemon-app --ignore-not-found
 
   k8s:status:
     desc: "Muestra el estado de Pods, Servicios, HPA e Ingress en Kubernetes"
@@ -75,9 +75,9 @@ tasks:
   k8s:seed:
     desc: "Dispara el Job de siembra masiva de Pokémon en Kubernetes"
     cmds:
-      - kubectl delete job pokemon-db-seed-job -n pokemon-app --ignore-not-found
-      - kubectl apply -f infra/k8s/08-db-seed-job.yaml
-      - kubectl wait --for=condition=complete --timeout=300s job/pokemon-db-seed-job -n pokemon-app
+      - kubectl delete job pokedex-db-seed -n pokemon-app --ignore-not-found
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
+      - kubectl wait --for=condition=complete --timeout=300s job/pokedex-db-seed -n pokemon-app
 
   secrets:scan:
     desc: "Escanea el repositorio en busca de secretos expuestos con Gitleaks"
@@ -85,7 +85,7 @@ tasks:
       - gitleaks detect --verbose --no-git
 
   secrets:seal:
-    desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/k8s/01-sealed-secrets.yaml"
+    desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/helm/pokedex/templates/sealed-secrets.yaml"
     cmds:
       - python scripts/seal_secret.py
 

@@ -25,8 +25,8 @@
     kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "pokedex.fullname" . }}-web-svc 8080:{{ .Values.web.service.port }}
     Navegar a: http://localhost:8080/
   - API:
-    kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "pokedex.fullname" . }}-api-svc 5000:{{ .Values.api.service.port }}
-    Navegar a: http://localhost:5000/healthz
+    kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "pokedex.fullname" . }}-api-svc 3000:{{ .Values.api.service.port }}
+    Navegar a: http://localhost:3000/healthz
 {{- end }}
 
 2. Monitoreo y Verificación de Pods:

@@ -5,6 +5,7 @@ name: 🐍 Backend API CI
 
 on:
   push:
+    branches: [ main, master ]
     paths:
       - 'server.ts'
       - 'src/**'
@@ -13,6 +14,7 @@ on:
       - 'tsconfig.json'
       - '.github/workflows/api.yml'
   pull_request:
+    branches: [ main, master ]
     paths:
       - 'server.ts'
       - 'src/**'
@@ -20,6 +22,10 @@ on:
       - 'package-lock.json'
       - 'tsconfig.json'
       - '.github/workflows/api.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-and-lint:
