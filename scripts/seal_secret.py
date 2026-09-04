@@ -5,6 +5,8 @@ Genera el secreto temporal en memoria y ejecuta kubeseal para producir infra/k8s
 """
 
 import argparse
+import os
+import secrets
 import shutil
 import subprocess
 import sys
@@ -31,6 +33,14 @@ def main():
 
     print("🔐 Generando Secret temporal y cifrando con Sealed Secrets...")
 
+    # Obtener credenciales desde variables de entorno o generar valores criptográficamente seguros
+    postgres_user = os.getenv("POSTGRES_USER", "postgres")
+    postgres_password = os.getenv("POSTGRES_PASSWORD") or secrets.token_urlsafe(24)
+    minio_root_user = os.getenv("MINIO_ROOT_USER", "minioadmin")
+    minio_root_password = os.getenv("MINIO_ROOT_PASSWORD") or secrets.token_urlsafe(24)
+    admin_api_key = os.getenv("ADMIN_API_KEY") or secrets.token_urlsafe(32)
+    ai_api_key = os.getenv("AI_API_KEY") or secrets.token_urlsafe(32)
+
     secret_yaml = f"""apiVersion: v1
 kind: Secret
 metadata:
@@ -38,10 +48,12 @@ metadata:
   namespace: {args.namespace}
 type: Opaque
 stringData:
-  POSTGRES_USER: "postgres"
-  POSTGRES_PASSWORD: "postgres_secure_password_k8s"
-  MINIO_ROOT_USER: "minioadmin"
-  MINIO_ROOT_PASSWORD: "minioadmin_secure_password"
+  POSTGRES_USER: "{postgres_user}"
+  POSTGRES_PASSWORD: "{postgres_password}"
+  MINIO_ROOT_USER: "{minio_root_user}"
+  MINIO_ROOT_PASSWORD: "{minio_root_password}"
+  ADMIN_API_KEY: "{admin_api_key}"
+  AI_API_KEY: "{ai_api_key}"
 """
 
     cmd = [

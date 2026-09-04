@@ -7,6 +7,10 @@ from fastapi.testclient import TestClient
 # Agregar el directorio raíz al path para importar src.app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Definir las variables requeridas antes de importar el módulo (falla en startup si no están)
+os.environ.setdefault("ADMIN_API_KEY", "test-admin-key-do-not-use-in-production")
+os.environ.setdefault("AI_API_KEY", "test-ai-key-do-not-use-in-production")
+
 import copy
 
 import src.app as app_module
@@ -15,14 +19,16 @@ from src.app import app
 
 @pytest.fixture
 def client():
-    app_module._IS_TESTING = True
+    os.environ["TESTING"] = "true"
     saved_pokemons = copy.deepcopy(app_module.pokemons)
     saved_id = app_module.current_id
+    # Bypass de autenticación seguro en tests mediante dependency_overrides
+    app.dependency_overrides[app_module.verify_admin_key] = lambda: True
     with TestClient(app) as test_client:
         yield test_client
+    app.dependency_overrides.clear()
     app_module.pokemons = saved_pokemons
     app_module.current_id = saved_id
-    app_module._IS_TESTING = False
 
 
 def test_root_index(client):
@@ -226,27 +232,36 @@ def test_prometheus_metrics_degraded_mode(client):
 
 def test_admin_auth_rejected_with_invalid_key(client):
     """Prueba que mutaciones con X-API-Key inválida sean rechazadas con 401."""
-    headers = {"X-API-Key": "clave-completamente-invalida"}
-    response = client.delete('/pokemons/1', headers=headers)
-    assert response.status_code == 401
-    assert "Credencial de autenticación inválida" in response.json()["detail"]
+    # Remover override para probar la autenticación real
+    app.dependency_overrides.pop(app_module.verify_admin_key, None)
+    try:
+        headers = {"X-API-Key": "clave-completamente-invalida"}
+        response = client.delete('/pokemons/1', headers=headers)
+        assert response.status_code == 401
+        assert "Credencial de autenticación inválida" in response.json()["detail"]
+    finally:
+        app.dependency_overrides[app_module.verify_admin_key] = lambda: True
 
 
 def test_admin_auth_accepted_with_valid_key(client):
     """Prueba que mutaciones con X-API-Key correcta sean permitidas."""
-    valid_key = os.getenv("ADMIN_API_KEY", "pokedex-super-admin-key-2026")
-    headers = {"X-API-Key": valid_key}
-    nuevo = {
-        "nombre": "Mewtwo",
-        "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
-        "caracteristicas": {"peso": 122.0, "altura": 2.0, "fuerza": 110, "edad": 10, "categoria": "Genético"},
-        "habilidades": ["Presión"],
-        "tipo": "Psíquico",
-        "habitat": "Raro"
-    }
-    response = client.post('/pokemons', json=nuevo, headers=headers)
-    assert response.status_code == 201
-    assert response.json()["nombre"] == "Mewtwo"
+    app.dependency_overrides.pop(app_module.verify_admin_key, None)
+    try:
+        valid_key = os.environ["ADMIN_API_KEY"]
+        headers = {"X-API-Key": valid_key}
+        nuevo = {
+            "nombre": "Mewtwo",
+            "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
+            "caracteristicas": {"peso": 122.0, "altura": 2.0, "fuerza": 110, "edad": 10, "categoria": "Genético"},
+            "habilidades": ["Presión"],
+            "tipo": "Psíquico",
+            "habitat": "Raro"
+        }
+        response = client.post('/pokemons', json=nuevo, headers=headers)
+        assert response.status_code == 201
+        assert response.json()["nombre"] == "Mewtwo"
+    finally:
+        app.dependency_overrides[app_module.verify_admin_key] = lambda: True
 
 
 @pytest.mark.anyio
@@ -304,6 +319,67 @@ def test_openapi_contract_specification(client):
     assert "PokemonCreateSchema" in schemas
     assert "PokemonUpdateSchema" in schemas
     assert "CaracteristicasSchema" in schemas
+
+
+def test_create_pokemon_xss_injection_rejected(client):
+    """Prueba que intentos de inyección HTML/XSS en campos sean rechazados con 422."""
+    valid_key = os.environ["ADMIN_API_KEY"]
+    headers = {"X-API-Key": valid_key}
+
+    # Intento con script/img en el nombre
+    payload_xss_nombre = {
+        "nombre": "<img src=x onerror=alert(document.cookie)>",
+        "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+        "caracteristicas": {"peso": 6.0, "altura": 0.4, "fuerza": 55, "edad": 5},
+        "habilidades": ["Impactrueno"],
+        "tipo": "Eléctrico",
+        "habitat": "Bosque"
+    }
+    res = client.post("/pokemons", json=payload_xss_nombre, headers=headers)
+    assert res.status_code == 422
+
+    # Intento con URL javascript: en imagen
+    payload_xss_img = {
+        "nombre": "PikachuSeguro",
+        "imagen": "javascript:alert(1)",
+        "caracteristicas": {"peso": 6.0, "altura": 0.4, "fuerza": 55, "edad": 5},
+        "habilidades": ["Impactrueno"],
+        "tipo": "Eléctrico",
+        "habitat": "Bosque"
+    }
+    res2 = client.post("/pokemons", json=payload_xss_img, headers=headers)
+    assert res2.status_code == 422
+
+
+def test_mutations_rejected_in_degraded_mode(client):
+    """Verifica que en modo degradado (DB no disponible en producción) se rechacen mutaciones con 503."""
+    import src.app as app_module
+    valid_key = os.environ["ADMIN_API_KEY"]
+    headers = {"X-API-Key": valid_key}
+
+    original_degraded = app_module._IS_DEGRADED_MODE
+    original_testing = os.environ.get("TESTING")
+    try:
+        app_module._IS_DEGRADED_MODE = True
+        os.environ["TESTING"] = "false"
+
+        res = client.post("/pokemons", json={
+            "nombre": "TestDegraded",
+            "imagen": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
+            "caracteristicas": {"peso": 1.0, "altura": 1.0, "fuerza": 10, "edad": 1},
+            "habilidades": ["Test"],
+            "tipo": "Normal",
+            "habitat": "Prueba"
+        }, headers=headers)
+        assert res.status_code == 503
+        assert "degradado" in res.json()["detail"]
+    finally:
+        app_module._IS_DEGRADED_MODE = original_degraded
+        if original_testing is not None:
+            os.environ["TESTING"] = original_testing
+        else:
+            os.environ.pop("TESTING", None)
+
 
 
 

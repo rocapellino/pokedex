@@ -8,15 +8,23 @@ title = "Gitleaks Config - Pokémon DevOps Platform"
 useDefault = true
 
 [allowlist]
-description = "Permitir archivos de ejemplo, documentación, plantillas y mocks de pruebas"
+description = "Permitir archivos de ejemplo, documentación y mocks de pruebas conocidos"
 paths = [
-  '''^\.env\.example$''',
+  # Variables de entorno de ejemplo (nunca contienen valores reales)
+  '''^\\.env\\.example$''',
+  # Documentación — puede contener fragmentos de código con placeholders
   '''^docs/.*''',
+  # Tests — mocks de prueba con claves ficticias
   '''^apps/api/tests/.*''',
-  '''^infra/proxmox/.*''',
-  '''^infra/terraform/.*''',
-  '''^infra/ansible/.*''',
-  '''^infra/k8s/.*''',
-  '''^scripts/.*''',
+  # Terraform — solo archivos de declaración de variables (no valores reales)
+  '''^infra/terraform/.*/variables\\.tf$''',
+  '''^infra/terraform/.*/outputs\\.tf$''',
+  # K8s — SealedSecrets (cifrados con la clave pública del controlador)
+  '''^infra/k8s/01-sealed-secrets\\.yaml$''',
+  # Ansible — solo inventario de ejemplo
+  '''^infra/ansible/inventory/hosts\\.ini$''',
+  # Scripts de sellado documentados (contienen solo placeholders)
+  '''^scripts/seal_secret\\.(sh|py)$''',
+  # Docker Compose — referencias a variables de entorno, no valores reales
   '''^docker-compose.*''',
 ]

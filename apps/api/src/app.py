@@ -19,7 +19,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, S
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -79,17 +79,25 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def is_test_environment() -> bool:
+    """Detecta si el proceso corre bajo ambiente de pruebas automáticas."""
+    return (
+        os.getenv("TESTING", "").lower() in ("true", "1")
+        or os.getenv("ENVIRONMENT", "").lower() == "test"
+    )
+
+
 # ==============================================================================
 # Ciclo de Vida Asíncrono (Pool de Base de Datos) & Rate Limiting
 # ==============================================================================
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
-    # Startup: Inicializar pool de conexiones asyncpg
-    if not _IS_TESTING:
+    # Startup: Inicializar pool de conexiones asyncpg (excepto en tests aislados)
+    if not is_test_environment():
         await init_db_pool()
     yield
     # Shutdown: Cerrar pool de conexiones limpiamente
-    if not _IS_TESTING:
+    if not is_test_environment():
         await close_db_pool()
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
@@ -114,23 +122,52 @@ setup_telemetry(app)
 # ==============================================================================
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
-ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "pokedex-super-admin-key-2026")
+
+# ADMIN_API_KEY — requerida para endpoints de mutación CRUD (POST/PUT/DELETE /pokemons)
+# La API falla en el arranque si no está definida para evitar claves por defecto en producción.
+ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY")
+if not ADMIN_API_KEY:
+    raise RuntimeError(
+        "ADMIN_API_KEY environment variable is not set. "
+        "Set a secure random value before starting the API."
+    )
+
+# AI_API_KEY — clave separada para endpoints de IA (POST /api/v1/ai/*)
+# Permite autorizar uso de IA sin otorgar acceso de escritura a la BD.
+AI_API_KEY = os.environ.get("AI_API_KEY")
+if not AI_API_KEY:
+    raise RuntimeError(
+        "AI_API_KEY environment variable is not set. "
+        "Set a secure random value before starting the API."
+    )
 
 
 async def verify_admin_key(
     api_key: Optional[str] = Security(api_key_header),
 ):
     """
-    Verifica que la petición incluya una cabecera X-API-Key válida.
-    En testing (_IS_TESTING=True) permite el paso si la cabecera no se envió,
-    pero rechaza con 401 si se envía una clave explícitamente incorrecta.
+    Verifica que la petición incluya una cabecera X-API-Key válida para endpoints de mutación CRUD.
     """
-    if _IS_TESTING and api_key is None:
-        return True
     if not api_key or api_key != ADMIN_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credencial de autenticación inválida o faltante en la cabecera X-API-Key",
+            headers={"WWW-Authenticate": "ApiKey"}
+        )
+    return True
+
+
+async def verify_ai_key(
+    api_key: Optional[str] = Security(api_key_header),
+):
+    """
+    Verifica que la petición incluya la cabecera X-API-Key con la clave de IA.
+    Clave separada de ADMIN_API_KEY para limitar el scope de acceso.
+    """
+    if not api_key or api_key != AI_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credencial de IA inválida o faltante en la cabecera X-API-Key",
             headers={"WWW-Authenticate": "ApiKey"}
         )
     return True
@@ -162,7 +199,6 @@ _APP_START_TIME = time.time()
 _HTTP_REQUESTS_TOTAL = defaultdict(int)
 _HTTP_REQUEST_DURATION_SECONDS = defaultdict(float)
 _HTTP_REQUEST_COUNT = defaultdict(int)
-_IS_TESTING = False
 _IS_DEGRADED_MODE = False
 
 
@@ -186,8 +222,28 @@ async def metrics_middleware(request: Request, call_next):
 
 
 # ==============================================================================
-# Modelos Pydantic (Validación y Serialización)
+# Modelos Pydantic (Validación y Serialización) con Sanitización Anti-XSS
 # ==============================================================================
+def sanitize_text(v: Optional[str]) -> Optional[str]:
+    """Rechaza cadenas con etiquetas HTML para prevenir XSS almacenado."""
+    if v is None:
+        return None
+    cleaned = v.strip()
+    if "<" in cleaned or ">" in cleaned:
+        raise ValueError("El campo contiene caracteres no permitidos ('<' o '>'). No se permiten etiquetas HTML.")
+    return cleaned
+
+
+def validate_image_url(v: Optional[str]) -> Optional[str]:
+    """Valida que la URL de la imagen no contenga secuencias maliciosas ni esquemas javascript:."""
+    if v is None:
+        return None
+    cleaned = v.strip()
+    if "<" in cleaned or ">" in cleaned or cleaned.lower().startswith("javascript:"):
+        raise ValueError("URL de imagen inválida o potencialmente insegura.")
+    return cleaned
+
+
 class CaracteristicasSchema(BaseModel):
     peso: float = Field(..., description="Peso en kilogramos")
     altura: float = Field(..., description="Altura en metros")
@@ -195,6 +251,11 @@ class CaracteristicasSchema(BaseModel):
     edad: int = Field(5, description="Edad estimada")
     categoria: Optional[str] = None
     descripcion: Optional[str] = None
+
+    @field_validator("categoria", "descripcion", mode="after")
+    @classmethod
+    def sanitize_fields(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v)
 
 
 class PokemonCreateSchema(BaseModel):
@@ -208,6 +269,29 @@ class PokemonCreateSchema(BaseModel):
     stats: Optional[Dict[str, int]] = None
     evoluciones: Optional[Any] = None
 
+    @field_validator("nombre", "tipo", "habitat", mode="after")
+    @classmethod
+    def validate_strings(cls, v: str) -> str:
+        res = sanitize_text(v)
+        if not res:
+            raise ValueError("El campo no puede estar vacío.")
+        return res
+
+    @field_validator("imagen", mode="after")
+    @classmethod
+    def check_image(cls, v: str) -> str:
+        return validate_image_url(v)
+
+    @field_validator("habilidades", mode="after")
+    @classmethod
+    def validate_habilidades(cls, v: List[str]) -> List[str]:
+        cleaned = []
+        for item in v:
+            val = sanitize_text(item)
+            if val:
+                cleaned.append(val)
+        return cleaned
+
 
 class CaracteristicasUpdateSchema(BaseModel):
     peso: Optional[float] = Field(None, description="Peso en kilogramos")
@@ -216,6 +300,11 @@ class CaracteristicasUpdateSchema(BaseModel):
     edad: Optional[int] = Field(None, description="Edad estimada")
     categoria: Optional[str] = None
     descripcion: Optional[str] = None
+
+    @field_validator("categoria", "descripcion", mode="after")
+    @classmethod
+    def sanitize_fields(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v)
 
 
 class PokemonUpdateSchema(BaseModel):
@@ -228,6 +317,28 @@ class PokemonUpdateSchema(BaseModel):
     tipos: Optional[List[str]] = None
     stats: Optional[Dict[str, int]] = None
     evoluciones: Optional[Any] = None
+
+    @field_validator("nombre", "tipo", "habitat", mode="after")
+    @classmethod
+    def validate_strings_opt(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v)
+
+    @field_validator("imagen", mode="after")
+    @classmethod
+    def check_image_opt(cls, v: Optional[str]) -> Optional[str]:
+        return validate_image_url(v)
+
+    @field_validator("habilidades", mode="after")
+    @classmethod
+    def validate_habilidades_opt(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return None
+        cleaned = []
+        for item in v:
+            val = sanitize_text(item)
+            if val:
+                cleaned.append(val)
+        return cleaned
 
 
 # ==============================================================================
@@ -365,10 +476,10 @@ async def get_pokemons(
     limit: Optional[int] = Query(None, ge=1, le=1025, description="Límite máximo de resultados"),
     offset: int = Query(0, ge=0, description="Desplazamiento para paginación"),
 ):
-    global _IS_TESTING, _IS_DEGRADED_MODE
+    global _IS_DEGRADED_MODE
     pokemons_list: List[Dict[str, Any]] = []
 
-    if not _IS_TESTING:
+    if not is_test_environment():
         db_pokemons = await fetch_pokemons_from_db_async()
         if db_pokemons and len(db_pokemons) > 0:
             _IS_DEGRADED_MODE = False
@@ -443,7 +554,13 @@ async def get_pokemon_by_id(request: Request, response: Response, id: int):
 )
 @limiter.limit("30/minute")
 async def create_pokemon(request: Request, payload: PokemonCreateSchema):
-    global current_id
+    global current_id, _IS_DEGRADED_MODE
+
+    if _IS_DEGRADED_MODE and not is_test_environment():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="La base de datos se encuentra temporalmente inaccesible. Operaciones de modificación restringidas en modo degradado."
+        )
 
     nuevo_pokemon = {
         "id": current_id,
@@ -479,6 +596,14 @@ async def create_pokemon(request: Request, payload: PokemonCreateSchema):
 )
 @limiter.limit("30/minute")
 async def update_pokemon(request: Request, id: int, payload: PokemonUpdateSchema):
+    global _IS_DEGRADED_MODE
+
+    if _IS_DEGRADED_MODE and not is_test_environment():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="La base de datos se encuentra temporalmente inaccesible. Operaciones de modificación restringidas en modo degradado."
+        )
+
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
@@ -530,6 +655,14 @@ async def update_pokemon(request: Request, id: int, payload: PokemonUpdateSchema
 )
 @limiter.limit("30/minute")
 async def delete_pokemon(request: Request, id: int):
+    global _IS_DEGRADED_MODE
+
+    if _IS_DEGRADED_MODE and not is_test_environment():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="La base de datos se encuentra temporalmente inaccesible. Operaciones de modificación restringidas en modo degradado."
+        )
+
     pokemon = buscar_pokemon_por_id(id)
     if pokemon is None:
         raise HTTPException(
@@ -583,36 +716,52 @@ async def prometheus_metrics():
 
 
 # ==============================================================================
-# Endpoints de Google AI Studio (Gemini 2.0 Flash & Imagen 3)
+# Endpoints de Google AI Studio (Gemini & Imagen 3)
+# Protegidos con AI_API_KEY (separada de ADMIN_API_KEY) y rate limit de 5/minuto.
 # ==============================================================================
-@app.post("/api/v1/ai/diagram", summary="Generar Diagrama de Flujo (Mermaid) con Gemini")
-async def ai_generate_diagram(payload: AIDiagramRequest):
+@app.post(
+    "/api/v1/ai/diagram",
+    summary="Generar Diagrama de Flujo (Mermaid) con Gemini",
+    dependencies=[Depends(verify_ai_key)]
+)
+@limiter.limit("5/minute")
+async def ai_generate_diagram(request: Request, payload: AIDiagramRequest):
     result = generate_flowchart(prompt=payload.prompt, diagram_type=payload.diagram_type or "flowchart")
     if not result.get("success"):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.get("error", "Error generando diagrama con Gemini")
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="El servicio de IA no está disponible en este momento. Intenta más tarde."
         )
     return result
 
 
-@app.post("/api/v1/ai/mock", summary="Generar Mockup Frontend / UI con Gemini")
-async def ai_generate_mock(payload: AIMockupRequest):
+@app.post(
+    "/api/v1/ai/mock",
+    summary="Generar Mockup Frontend / UI con Gemini",
+    dependencies=[Depends(verify_ai_key)]
+)
+@limiter.limit("5/minute")
+async def ai_generate_mock(request: Request, payload: AIMockupRequest):
     result = generate_ui_mockup(prompt=payload.prompt, framework=payload.framework or "html/css")
     if not result.get("success"):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.get("error", "Error generando mockup con Gemini")
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="El servicio de IA no está disponible en este momento. Intenta más tarde."
         )
     return result
 
 
-@app.post("/api/v1/ai/image", summary="Generar Imagen Pokémon con Imagen 3")
-async def ai_generate_image(payload: AIImageRequest):
+@app.post(
+    "/api/v1/ai/image",
+    summary="Generar Imagen Pokémon con Imagen 3",
+    dependencies=[Depends(verify_ai_key)]
+)
+@limiter.limit("5/minute")
+async def ai_generate_image(request: Request, payload: AIImageRequest):
     result = generate_image_asset(prompt=payload.prompt, aspect_ratio=payload.aspect_ratio or "1:1")
     if not result.get("success"):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result.get("error", "Error generando imagen con Imagen 3")
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="El servicio de IA no está disponible en este momento. Intenta más tarde."
         )
     return result

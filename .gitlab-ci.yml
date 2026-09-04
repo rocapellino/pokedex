@@ -34,6 +34,10 @@ ruff_lint:
 # ------------------------------------------------------------------------------
 pytest_unit_tests:
   stage: test
+  variables:
+    TESTING: "true"
+    ADMIN_API_KEY: "gitlab-ci-test-admin-key"
+    AI_API_KEY: "gitlab-ci-test-ai-key"
   script:
     - pip install --no-cache-dir -r requirements.txt -r apps/api/requirements.txt
     - pytest --verbose --junitxml=report.xml

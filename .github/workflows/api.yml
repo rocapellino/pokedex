@@ -52,5 +52,8 @@ jobs:
       - name: 6. Ejecutar Suite de Pruebas con Cobertura (Pytest-Cov)
         env:
           PYTHONPATH: .
+          TESTING: "true"
+          ADMIN_API_KEY: "ci-test-admin-api-key"
+          AI_API_KEY: "ci-test-ai-api-key"
         run: |
           pytest -v --cov=apps/api/src --cov-report=term-missing --cov-report=xml

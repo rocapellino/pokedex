@@ -2,6 +2,20 @@
  * Pokédex Backoffice - Gestor Administrativo CRUD
  */
 
+/**
+ * Sanitiza una cadena para evitar XSS al insertar datos del backend en innerHTML.
+ * Siempre usar esta función en template literals con datos del servidor.
+ */
+function escapeHTML(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let allPokemons = [];
 let filteredPokemons = [];
 let currentPage = 1;
@@ -37,7 +51,83 @@ function getTypeColor(tipo) {
   return match ? TYPE_COLORS[match] : '#6b7280';
 }
 
+// ============================================================================
+// Autenticación de Sesión (ADMIN_API_KEY)
+// ============================================================================
+const ADMIN_STORAGE_KEY = 'pokedex_admin_api_key';
+
+function getAdminApiKey() {
+  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || '';
+}
+
+function setAdminApiKey(key) {
+  if (key && key.trim()) {
+    sessionStorage.setItem(ADMIN_STORAGE_KEY, key.trim());
+  } else {
+    sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+  }
+  updateAuthUI();
+}
+
+function clearAdminApiKey() {
+  sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+  updateAuthUI();
+  closeAuthModal();
+  showToast('ℹ️ Sesión administrativa cerrada.');
+}
+
+function updateAuthUI() {
+  const key = getAdminApiKey();
+  const statusText = document.getElementById('authStatusText');
+  const btn = document.getElementById('btnAdminAuth');
+  const clearBtn = document.getElementById('btnClearKeyBtn');
+  const input = document.getElementById('adminApiKeyInput');
+
+  if (key) {
+    if (statusText) statusText.innerText = 'Admin Activo';
+    if (btn) {
+      btn.style.borderColor = '#10b981';
+      btn.style.color = '#10b981';
+    }
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+    if (input) input.value = key;
+  } else {
+    if (statusText) statusText.innerText = 'Autenticar';
+    if (btn) {
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (input) input.value = '';
+  }
+}
+
+function openAuthModal() {
+  updateAuthUI();
+  document.getElementById('authModal').classList.add('active');
+  const input = document.getElementById('adminApiKeyInput');
+  if (input) setTimeout(() => input.focus(), 100);
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('active');
+}
+
+function handleAuthSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('adminApiKeyInput');
+  const val = input ? input.value.trim() : '';
+  if (!val) {
+    showToast('Ingresa una clave válida.', true);
+    return;
+  }
+  setAdminApiKey(val);
+  closeAuthModal();
+  showToast('🔐 Clave de administrador guardada en sesión activa.');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  updateAuthUI();
   loadAdminData();
   checkHealthStatus();
   setInterval(checkHealthStatus, 15000);
@@ -169,18 +259,18 @@ function renderTable() {
         </td>
         <td>
           <div class="avatar-cell">
-            <img src="${p.imagen}" alt="${p.nombre}" class="table-avatar" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+            <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="table-avatar" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
           </div>
         </td>
         <td>
           <div class="name-cell">
-            <strong class="pokemon-table-name">${p.nombre}</strong>
-            <span class="habilidades-preview">${Array.isArray(p.habilidades) ? p.habilidades.join(', ') : (p.habilidades || 'Ninguna')}</span>
+            <strong class="pokemon-table-name">${escapeHTML(p.nombre)}</strong>
+            <span class="habilidades-preview">${escapeHTML(Array.isArray(p.habilidades) ? p.habilidades.join(', ') : (p.habilidades || 'Ninguna'))}</span>
           </div>
         </td>
         <td>
           <span class="type-badge" style="background-color: ${typeColor};">
-            ${p.tipo}
+            ${escapeHTML(p.tipo)}
           </span>
         </td>
         <td>
@@ -198,7 +288,7 @@ function renderTable() {
           </div>
         </td>
         <td>
-          <span class="habitat-tag">${car.habitat || 'Kanto'}</span>
+          <span class="habitat-tag">${escapeHTML(car.habitat || 'Kanto')}</span>
         </td>
         <td style="text-align: center;">
           <div class="actions-group">
@@ -283,6 +373,14 @@ function closeCrudModal() {
 
 async function handleFormSubmit(e) {
   e.preventDefault();
+
+  const adminKey = getAdminApiKey();
+  if (!adminKey) {
+    showToast('⚠️ Se requiere autenticación de administrador para guardar cambios.', true);
+    openAuthModal();
+    return;
+  }
+
   const id = document.getElementById('formPokemonId').value;
   const submitBtn = document.getElementById('btnSubmitForm');
   submitBtn.disabled = true;
@@ -308,13 +406,23 @@ async function handleFormSubmit(e) {
 
     const res = await fetch(url, {
       method: method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': adminKey
+      },
       body: JSON.stringify(payload)
     });
 
+    if (res.status === 401) {
+      showToast('❌ Clave de administrador inválida o no configurada (401). Reautenticando...', true);
+      clearAdminApiKey();
+      openAuthModal();
+      return;
+    }
+
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `HTTP ${res.status}`);
+      throw new Error(errData.detail || errData.error || `HTTP ${res.status}`);
     }
 
     closeCrudModal();
@@ -347,15 +455,38 @@ function closeDeleteModal() {
 
 async function executeDelete() {
   if (!pendingDeleteId) return;
+
+  const adminKey = getAdminApiKey();
+  if (!adminKey) {
+    showToast('⚠️ Se requiere autenticación de administrador para eliminar registros.', true);
+    closeDeleteModal();
+    openAuthModal();
+    return;
+  }
+
   const btn = document.getElementById('btnConfirmDelete');
   btn.disabled = true;
   btn.innerText = 'Eliminando...';
 
   try {
-    const res = await fetch(`/pokemons/${pendingDeleteId}`, { method: 'DELETE' });
+    const res = await fetch(`/pokemons/${pendingDeleteId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-API-Key': adminKey
+      }
+    });
+
+    if (res.status === 401) {
+      showToast('❌ Clave de administrador inválida o no configurada (401). Reautenticando...', true);
+      clearAdminApiKey();
+      closeDeleteModal();
+      openAuthModal();
+      return;
+    }
+
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `HTTP ${res.status}`);
+      throw new Error(errData.detail || errData.error || `HTTP ${res.status}`);
     }
 
     closeDeleteModal();

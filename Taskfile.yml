@@ -66,12 +66,12 @@ tasks:
   docker:up:
     desc: "Levanta todos los servicios con Docker Compose (API + Web + DB + Redis)"
     cmds:
-      - docker-compose up -d --build
+      - docker compose up -d --build
 
   docker:down:
     desc: "Detiene todos los contenedores de Docker Compose"
     cmds:
-      - docker-compose down
+      - docker compose down
 
   k8s:up:
     desc: "Aplica los manifiestos declarativos de Kubernetes (Kustomize)"
@@ -94,6 +94,11 @@ tasks:
       - kubectl delete job pokemon-db-seed-job -n pokemon-app --ignore-not-found
       - kubectl apply -f infra/k8s/08-db-seed-job.yaml
       - kubectl wait --for=condition=complete --timeout=300s job/pokemon-db-seed-job -n pokemon-app
+
+  secrets:scan:
+    desc: "Escanea el repositorio en busca de secretos expuestos con Gitleaks"
+    cmds:
+      - gitleaks detect --verbose --no-git
 
   secrets:seal:
     desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/k8s/01-sealed-secrets.yaml"

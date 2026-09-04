@@ -47,10 +47,22 @@ spec:
       labels:
         app: pokemon-api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
-          image: pokemon-api:latest
+          image: pokemon-api:1.2.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 5000
               name: http
@@ -75,7 +87,7 @@ spec:
             timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /readyz
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 5

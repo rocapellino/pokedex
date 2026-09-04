@@ -74,6 +74,10 @@
           <span class="status-dot" id="statusDot"></span>
           <span id="backendStatus">Conectado: Kubernetes, Postgres & Redis</span>
         </div>
+        <button class="btn btn-secondary" id="btnAdminAuth" onclick="openAuthModal()" title="Gestionar clave de administrador (ADMIN_API_KEY)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span id="authStatusText">Autenticar</span>
+        </button>
         <button class="btn btn-sync" onclick="invalidateCache()" title="Refrescar e invalidar Redis">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
           Sincronizar Caché
@@ -294,6 +298,34 @@
         <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
         <button type="button" class="btn btn-danger" id="btnConfirmDelete" onclick="executeDelete()">Sí, Eliminar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal de Autenticación de Administrador -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="authModalTitle">🔐 Autenticación de Administrador</h3>
+        <button class="btn-icon" onclick="closeAuthModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div style="padding: 1rem 0;">
+          <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;">
+            Ingresa la clave de administrador (<code style="color: var(--primary, #3b82f6);">ADMIN_API_KEY</code>) para habilitar operaciones de creación, edición y eliminación. Esta credencial se conserva únicamente en tu sesión actual de navegador (<code style="color: var(--text-muted, #9ca3af);">sessionStorage</code>).
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="adminApiKeyInput">Clave de Administrador (X-API-Key)</label>
+            <input type="password" id="adminApiKeyInput" class="form-control" placeholder="Introduce la clave secreta..." autocomplete="current-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnClearKeyBtn" onclick="clearAdminApiKey()" style="display: none;">Cerrar Sesión Admin</button>
+          <button type="button" class="btn btn-secondary" onclick="closeAuthModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveKey">Guardar en Sesión</button>
+        </div>
+      </form>
     </div>
   </div>
 

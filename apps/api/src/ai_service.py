@@ -2,9 +2,12 @@
 # Servicio de Inteligencia Artificial con Google AI Studio (Gemini & Imagen)
 # ==============================================================================
 import base64
+import logging
 import os
 import re
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     from google import genai
@@ -60,11 +63,13 @@ def _generate_with_fallback(client: Any, prompt: str, system_instruction: str, t
             }
         except Exception as e:
             last_error = str(e)
+            logger.warning(f"Error generando texto con modelo {model_name}: {e}")
             continue
 
+    logger.error(f"Fallo completo en generador de texto IA: {last_error}")
     return {
         "success": False,
-        "error": f"Error invocando modelos de Google AI Studio: {last_error}",
+        "error": "El servicio de IA no está disponible en este momento. Intenta más tarde.",
         "text": "",
         "model": None,
     }
@@ -199,10 +204,12 @@ def generate_image_asset(prompt: str, aspect_ratio: str = "1:1") -> Dict[str, An
                 }
         except Exception as e:
             last_err = str(e)
+            logger.warning(f"Error en modelo {model_name}: {e}")
             continue
 
+    logger.error(f"Fallo completo al generar imagen: {last_err}")
     return {
         "success": False,
-        "error": f"No se pudo generar la imagen con los modelos disponibles: {last_err}",
+        "error": "No se pudo generar la imagen con los modelos disponibles en este momento. Intenta más tarde.",
         "image_base64": None,
     }
