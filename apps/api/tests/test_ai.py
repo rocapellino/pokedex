@@ -15,7 +15,13 @@ os.environ.setdefault("ADMIN_API_KEY", "test-admin-key-do-not-use-in-production"
 os.environ.setdefault("AI_API_KEY", "test-ai-key-do-not-use-in-production")
 
 import src.app as app_module
-from src.ai_service import generate_flowchart, generate_image_asset, generate_ui_mockup, get_ai_client
+from src.ai_service import (
+    generate_flowchart,
+    generate_image_asset,
+    generate_ui_mockup,
+    get_ai_client,
+    sanitize_ai_html,
+)
 from src.app import app
 
 
@@ -131,4 +137,46 @@ def test_generate_flowchart_end_to_end_mock(mock_get_client):
     assert result["success"] is True
     assert result["mermaid_code"] == "graph TD;\n    A[Inicio] --> B[Fin];"
     assert result["model"] == "gemini-3.6-flash"
+
+
+def test_sanitize_ai_html_removes_dangerous_tags_and_events():
+    """Verifica que el sanitizador elimine scripts, eventos on*, iframes y pseudo-URLs javascript:."""
+    malicious_input = (
+        "<div class='pokemon-card' onclick=\"alert('hack')\">"
+        "<h3>Pikachu</h3>"
+        "<script>stealTokens();</script>"
+        "<img src='poke.png' onerror='maliciousCode()' />"
+        "<iframe src='http://evil.com'></iframe>"
+        "<a href='javascript:exploit()'>Detalles</a>"
+        "</div>"
+    )
+    cleaned = sanitize_ai_html(malicious_input)
+    assert "<script" not in cleaned
+    assert "stealTokens" not in cleaned
+    assert "onclick" not in cleaned
+    assert "onerror" not in cleaned
+    assert "<iframe" not in cleaned
+    assert "javascript:" not in cleaned
+    assert "<div class='pokemon-card'" in cleaned
+    assert "<h3>Pikachu</h3>" in cleaned
+
+
+def test_ai_diagram_endpoint_prompt_length_validation(client):
+    """Verifica rechazo con 422 si el prompt es menor a 3 caracteres o excede 1000."""
+    res_short = client.post("/api/v1/ai/diagram", json={"prompt": "hi"})
+    assert res_short.status_code == 422
+
+    long_prompt = "A" * 1001
+    res_long = client.post("/api/v1/ai/diagram", json={"prompt": long_prompt})
+    assert res_long.status_code == 422
+
+
+def test_ai_mock_endpoint_prompt_length_validation(client):
+    """Verifica rechazo con 422 si el prompt de mockup es menor a 3 caracteres o mayor a 1000."""
+    res_short = client.post("/api/v1/ai/mock", json={"prompt": "ab"})
+    assert res_short.status_code == 422
+
+    res_long = client.post("/api/v1/ai/mock", json={"prompt": "A" * 1001})
+    assert res_long.status_code == 422
+
 
