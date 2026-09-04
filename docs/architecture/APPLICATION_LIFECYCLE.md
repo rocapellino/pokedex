@@ -103,7 +103,7 @@ flowchart TD
   * Detección de duplicación y archivos idénticos (`task audit`).
   * Auditoría de seguridad de dependencias (`npm audit`).
   * Validación de Helm Chart y manifiestos de Kubernetes (`task helm:lint`).
-  * Detección de duplicación con JSCPD.
+  * Detección de duplicación y archivos idénticos (`scripts/audit_code_quality.py`).
 * Los **Hooks de Pre-commit** impiden commits locales si existen secretos o código no formateado.
 
 ### Fase 3: Integración Continua y Validación (GitHub Actions)
