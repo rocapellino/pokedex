@@ -9,5 +9,5 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist"
   },
-  "include": ["experiments/typescript-prototype/**/*"]
+  "include": ["server.ts", "src/**/*"]
 }

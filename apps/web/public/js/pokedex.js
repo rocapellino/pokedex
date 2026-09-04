@@ -384,11 +384,12 @@ function renderTransitionConnector(node) {
   if (!node || !node.metodo) {
     return `<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
   }
+  const safeMetodo = escapeHTML(node.metodo);
   return `
     <div class="evolution-transition-connector">
-      <div class="evolution-trigger-badge" title="${node.metodo}">
+      <div class="evolution-trigger-badge" title="${safeMetodo}">
         <span>${getTriggerIcon(node.metodo)}</span>
-        <span>${node.metodo}</span>
+        <span>${safeMetodo}</span>
       </div>
       <div class="evolution-chevron-arrow">&gt;</div>
     </div>
@@ -396,26 +397,30 @@ function renderTransitionConnector(node) {
 }
 
 function renderSingleEvolutionNode(node, currentId, showMethod = false) {
-  const isCurrent = (node.id === currentId);
-  const formattedId = String(node.id).padStart(4, '0');
-  const targetPk = allPokemons.find(x => x.id === node.id);
+  const nodeId = Number(node.id) || 0;
+  const isCurrent = (nodeId === currentId);
+  const formattedId = String(nodeId).padStart(4, '0');
+  const targetPk = allPokemons.find(x => x.id === nodeId);
   const nodeTypes = targetPk && targetPk.tipos ? targetPk.tipos : (targetPk ? [targetPk.tipo] : ['Normal']);
+  const safeNombre = escapeHTML(node.nombre || 'Pokémon');
+  const safeImagen = escapeHTML(node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png');
+  const safeMetodo = node.metodo ? escapeHTML(node.metodo) : '';
 
   const methodBadge = (showMethod && node.metodo) 
-    ? `<div class="evolution-method-tag" title="${node.metodo}">${getTriggerIcon(node.metodo)} ${node.metodo}</div>` 
+    ? `<div class="evolution-method-tag" title="${safeMetodo}">${getTriggerIcon(node.metodo)} ${safeMetodo}</div>` 
     : '';
 
   return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" onclick="openDetailModal(${node.id})" title="${isCurrent ? 'Estás viendo a ' + node.nombre : 'Ver ficha de ' + node.nombre}">
+    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" onclick="openDetailModal(${nodeId})" title="${isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre}">
       <div class="evolution-circle-frame">
-        <img src="${node.imagen}" alt="${node.nombre}" class="evolution-circle-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
       </div>
       <div class="evolution-name-tag">
-        ${node.nombre} <span class="evolution-number-sub">N.º ${formattedId}</span>
+        ${safeNombre} <span class="evolution-number-sub">N.º ${escapeHTML(formattedId)}</span>
       </div>
       ${methodBadge}
       <div class="evolution-types-row">
-        ${nodeTypes.map(t => `<span class="evolution-type-mini" style="background-color: ${getOfficialTypeColor(t)}">${t}</span>`).join('')}
+        ${nodeTypes.map(t => `<span class="evolution-type-mini" style="background-color: ${getOfficialTypeColor(t)}">${escapeHTML(t)}</span>`).join('')}
       </div>
     </div>
   `;
@@ -662,12 +667,20 @@ function closeDetailModal() {
 
 function showToast(message, isError = false) {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-  `;
+  
+  const span = document.createElement('span');
+  span.textContent = message;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.textContent = '×';
+  closeBtn.onclick = () => toast.remove();
+  
+  toast.appendChild(span);
+  toast.appendChild(closeBtn);
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }

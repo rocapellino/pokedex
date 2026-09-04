@@ -1,65 +1,57 @@
 # ⚡ Plataforma Pokémon DevOps: Monorepo & Cloud-Native Architecture
 
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/) [![Nginx](https://img.shields.io/badge/Nginx-1.27-009639?style=flat&logo=nginx&logoColor=white)](https://nginx.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Express](https://img.shields.io/badge/Express-4.21+-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/) [![Google AI Studio](https://img.shields.io/badge/Google_AI_Studio-Gemini_2.5-4285F4?style=flat&logo=google&logoColor=white)](https://aistudio.google.com/) [![Docker](https://img.shields.io/badge/Docker-29.0+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/) [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.36+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/)
 
-Este repositorio implementa una solución completa de ingeniería **DevOps y Cloud-Native** para la plataforma **Pokédex API**, diseñada bajo una arquitectura de **Monorepo por dominios**, contenerización segura multi-stage, autoescalado elástico horizontal (**HPA en Kubernetes**) y consistencia transaccional centralizada.
+Este repositorio implementa una solución completa de ingeniería **DevOps, Full-Stack y Cloud-Native** para la plataforma **Pokédex**, migrada a un servicio nativo de alto rendimiento en **Node.js y TypeScript** con integración a **Google AI Studio (Gemini)**, catálogo indexado en memoria $O(1)$, contenerización multi-stage y un esquema riguroso de **Hardening de Seguridad** (defensa contra XSS, timing attacks y DoS).
 
 ---
 
 ## 📑 Tabla de Contenidos
 1. [Resumen General y Arquitectura](#1-resumen-general-y-arquitectura)
 2. [Stack Tecnológico](#2-stack-tecnológico)
-3. [Inicio Rápido (Quickstart)](#3-inicio-rápido-quickstart)
-   * [Opción A: Despliegue en Kubernetes con Kustomize (Recomendado)](#opción-a-despliegue-en-kubernetes-con-kustomize-recomendado)
-   * [Opción B: Despliegue con Helm (Cloud Native & GitOps)](#opción-b-despliegue-con-helm-cloud-native--gitops)
-   * [Opción C: Despliegue con Docker Compose](#opción-c-despliegue-con-docker-compose-multi-entorno)
-   * [Opción D: Despliegue en Proxmox VE](#opción-d-despliegue-en-proxmox-ve-on-premises--homelab)
-4. [Pruebas Automatizadas y Validación](#4-pruebas-automatizadas-y-validación)
-5. [Centro de Documentación (`docs/`)](#5-centro-de-documentación-docs)
+3. [Seguridad y Hardening Implementado](#3-seguridad-y-hardening-implementado)
+4. [Inicio Rápido (Quickstart)](#4-inicio-rápido-quickstart)
+   * [Opción 1: Ejecución Nativa con Node.js (Recomendado para Desarrollo)](#opción-1-ejecución-nativa-con-nodejs-recomendado-para-desarrollo)
+   * [Opción 2: Ejecución con Docker Multi-Stage](#opción-2-ejecución-con-docker-multi-stage)
+   * [Opción 3: Despliegue en Kubernetes y Helm](#opción-3-despliegue-en-kubernetes-y-helm)
+5. [Pruebas Automatizadas y Validación](#5-pruebas-automatizadas-y-validación)
+6. [Centro de Documentación (`docs/`)](#6-centro-de-documentación-docs)
 
 ---
 
 ## 1. Resumen General y Arquitectura
 
-La plataforma separa claramente las capas de cómputo elástico sin estado (*Stateless*) de la capa de persistencia única (*Stateful*), resolviendo la concurrencia masiva y los picos de demanda:
+El ecosistema unifica el backend REST, el proxy de servicios y la entrega de frontend en un único microservicio reactivo y seguro:
 
 ```
-                                  [ Usuarios / Internet ]
-                                             │
-                                             ▼
-                        ┌─────────────────────────────────────────┐
-                        │    External Load Balancer (Capa 4/7)    │
-                        └────────────────────┬────────────────────┘
-                                             │
-                                             ▼
-                        ┌─────────────────────────────────────────┐
-                        │    Ingress Controller (Proxy Inverso)   │
-                        └────────────┬───────────────┬────────────┘
-                                     │               │
-                            (Ruta /) │               │ (Ruta /api)
-                                     ▼               ▼
-                        ┌─────────────────┐     ┌─────────────────┐
-                        │ pokemon-web-svc │     │ pokemon-api-svc │
-                        └────────┬────────┘     └────────┬────────┘
-                                 │                       │
-                     ┌───────────┴──────────┐┌───────────┴──────────┐
-                     ▼                      ▼▼                      ▼
-               ┌───────────┐          ┌───────────┐           ┌───────────┐
-               │  Web Pod  │          │  API Pod  │ ◄── (HPA) │  API Pod  │
-               └───────────┘          └─────┬─────┘           └─────┬─────┘
-                                            │                       │
-                                            └───────────┬───────────┘
-                                                        ▼
-                                                ┌───────────────┐
-                                                │   PgBouncer   │ (Connection Pooler)
-                                                └───────┬───────┘
-                                                        │
-                                    ┌───────────────────┴───────────────────┐
-                                    ▼                                       ▼
-                         ┌─────────────────────┐                 ┌─────────────────────┐
-                         │    PostgreSQL 16    │                 │       Redis 7       │
-                         │ (StatefulSet + PVC) │                 │  (Caché Compartido) │
-                         └─────────────────────┘                 └─────────────────────┘
+                              [ Usuarios / Navegadores ]
+                                          │
+                                          ▼
+                     ┌─────────────────────────────────────────┐
+                     │    External Load Balancer / Ingress     │
+                     └────────────────────┬────────────────────┘
+                                          │
+                                          ▼ (Puerto 3000)
+                     ┌─────────────────────────────────────────┐
+                     │   Pokédex Full-Stack Server (Express)   │
+                     │  • Rate Limiting (Ventana Deslizante)   │
+                     │  • Timing-Safe Auth (crypto SHA-256)    │
+                     │  • Security Headers & Input Bounds      │
+                     └─────────┬───────────────────┬───────────┘
+                               │                   │
+                ┌──────────────┴─────────┐         │ (SDK @google/genai)
+                ▼                        ▼         ▼
+     ┌─────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
+     │   Public Catalog    │  │ Backoffice Management │  │   Google AI Studio    │
+     │  (Vanilla JS + CSS) │  │  (CRUD + Observability│  │   (Gemini 2.5 Flash)  │
+     └─────────────────────┘  └───────────────────────┘  └───────────────────────┘
+                │                        │
+                └──────────────┬─────────┘
+                               ▼
+     ┌────────────────────────────────────────────────────────┐
+     │  In-Memory Fast Store & Map Indexing O(1) con ETags    │
+     │  (/healthz • /readyz • /metrics Prometheus)            │
+     └────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -68,57 +60,91 @@ La plataforma separa claramente las capas de cómputo elástico sin estado (*Sta
 
 | Capa | Tecnología | Propósito |
 | :--- | :--- | :--- |
-| **Frontend Web** | HTML5, CSS3, JS Vanilla, Nginx 1.27 | Interfaz de usuario interactiva, temas dinámicos y proxy inverso local. |
-| **Backend API** | Python 3.13, FastAPI, Uvicorn ASGI | Microservicio REST asíncrono, OpenAPI Swagger (`/docs`) y Pydantic v2. |
-| **Base de Datos** | PostgreSQL 16 Alpine | Persistencia relacional con esquema estructurado (WikiDex / PKParaíso). |
-| **Connection Pooling**| PgBouncer | Gestión eficiente de conexiones ante escalado masivo de pods. |
-| **Caché en Memoria** | Redis 7 Alpine | Aceleración de lecturas frecuentes (< 3ms) e invalidación inteligente. |
-| **Orquestación Cloud**| Kubernetes (Kind / Docker Desktop / Cloud) | Autoescalado horizontal (**HPA v2**), Service Discovery y self-healing. |
-| **Empaquetado Cloud** | Helm 3 | Chart modular parametrizable, versionado y soporte GitOps con ArgoCD. |
-| **CI/CD Pipelines**   | [docker_jenkins](https://github.com/rocapellino/docker_jenkins) / GitLab CI | Automatización de testing, escaneo de seguridad y despliegues continuos. |
-| **Observabilidad**    | [docker_monitoreo](https://github.com/rocapellino/docker_monitoreo) (Prometheus & Grafana) | Scraping de métricas en tiempo real (`/metrics`) y dashboards de salud (desacoplado global). |
+| **Full-Stack Runtime** | Node.js 22 LTS / TypeScript 5.7 | Servidor unificado de alto rendimiento compilado con esbuild. |
+| **Framework Web** | Express 4.21 | Ruteo REST, middlewares de seguridad, rate limiting y servido estático. |
+| **Frontend & UI** | HTML5, CSS3 Tokens, JS Vanilla | Catálogo Pokédex dinámico y Backoffice CRUD con sanitización XSS. |
+| **Inteligencia Artificial**| `@google/genai` (Gemini 2.5 Flash) | Generación asistida de diagramas Mermaid, mockups UI e ilustraciones. |
+| **Almacenamiento** | In-Memory Data Store & `Map<number, Pokemon>` | Consultas $O(1)$ por ID, validación de caché condicional vía ETag. |
+| **Observabilidad** | Prometheus Metrics (`/metrics`) | Exportador nativo de métricas de rendimiento, uptime y peticiones HTTP. |
+| **Contenerización** | Docker Multi-Stage (Alpine) | Imagen ultra-ligera (<150 MB) con ejecución bajo usuario sin privilegios `node`. |
+| **Orquestación Cloud**| Kubernetes / Helm 3 | Despliegue elástico, autoescalado horizontal (HPA) y manifiestos declarativos. |
 
 ---
 
-## 3. Inicio Rápido (Quickstart)
+## 3. Seguridad y Hardening Implementado
 
-### 🔑 Paso Previo: Configuración de Variables de Entorno y Secretos
+Tras una auditoría exhaustiva de seguridad, se incorporaron las siguientes protecciones en la arquitectura:
 
-Antes de iniciar cualquier despliegue (Docker o Kubernetes), crea tu archivo `.env` a partir de la plantilla y define claves con alta entropía:
+* 🛡️ **Prevención Estricta de XSS:** Sanitización con `escapeHTML()` de todos los nodos del árbol de evoluciones y refactorización a `textContent` en notificaciones Toast.
+* ⏱️ **Protección contra Timing Attacks:** Validación de claves administrativas y de IA mediante hashes SHA-256 de longitud fija y comparación en tiempo constante con `crypto.timingSafeEqual`.
+* 🚦 **Rate Limiting Adaptativo:** Ventana deslizante de 60 segundos (10 req/min para IA, 30 req/min para mutaciones CRUD), respondiendo con código HTTP `429` y cabecera estándar `Retry-After`.
+* 📦 **Límites de Payload y Validación de Carga:** Parser JSON restringido a 250 KB y validación exhaustiva de rangos, caracteres (nombres ≤ 60, descripciones ≤ 1.000) y atributos físicos positivos.
+* 🔒 **Cabeceras de Defensa en Profundidad:** Deshabilitación de `X-Powered-By`, activación de `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin` y CORS configurable por lista blanca.
+
+---
+
+## 4. Inicio Rápido (Quickstart)
+
+### 🔑 Paso Previo: Configuración de Variables de Entorno
+
+Copia el archivo de plantilla `.env.example` a `.env` y configura tus credenciales:
 
 ```bash
 cp .env.example .env
-
-# Generar tokens criptográficos para las claves de administración y servicios de IA
-# (En Linux/macOS: openssl rand -base64 32 | En Windows PowerShell: [Convert]::ToBase64String((1..32 | % { Get-Random -Max 256 })))
 ```
 
-> [!IMPORTANT]
-> `ADMIN_API_KEY` y `AI_API_KEY` son obligatorias. Si no están configuradas, el contenedor de la API detendrá su arranque de forma preventiva (`RuntimeError`).
+Variables esenciales:
+* `ADMIN_API_KEY`: Clave para operaciones administrativas en el Backoffice.
+* `GEMINI_API_KEY`: Clave de Google AI Studio para endpoints generativos.
+* `PORT`: Puerto de escucha del servidor (por defecto: `3000`).
 
 ---
 
-### Opción A: Despliegue en Kubernetes con Kustomize (Recomendado)
+### Opción 1: Ejecución Nativa con Node.js (Recomendado para Desarrollo)
 
-1. **Construir imágenes y desplegar con Taskfile o script automatizado:**
+1. **Instalar dependencias:**
    ```bash
-   # Vía Taskfile
-   task k8s:up
-
-   # O con el script automatizado (construir imágenes y sembrar base de datos)
-   bash scripts/k8s_deploy.sh --build --seed
+   npm install
+   # O mediante Taskfile:
+   task install
    ```
 
-2. **Habilitar acceso local:**
+2. **Iniciar servidor en modo desarrollo (recarga en caliente):**
    ```bash
-   kubectl port-forward svc/pokemon-web-svc 8080:8080 -n pokemon-app
+   npm run dev
+   # O con Taskfile:
+   task dev
    ```
 
-3. **Abrir en tu navegador:**
-   * 🖥️ **Web Pokédex:** [http://localhost:8080/](http://localhost:8080/)
-   * 🛠️ **Backoffice Admin:** [http://localhost:8080/backoffice](http://localhost:8080/backoffice) *(requiere ingresar `ADMIN_API_KEY` en el modal de sesión)*
-   * 🔌 **API Docs (Swagger):** [http://localhost:8080/docs](http://localhost:8080/docs)
-   * 🩺 **Health Probes:** [http://localhost:8080/healthz](http://localhost:8080/healthz) & [http://localhost:8080/readyz](http://localhost:8080/readyz)
+3. **Verificación de tipos y compilación:**
+   ```bash
+   npm run lint   # Chequeo estricto TypeScript
+   npm run build  # Empaquetado optimizado en dist/server.cjs
+   ```
+
+4. **Acceder a la aplicación:**
+   * 🖥️ **Catálogo Pokédex:** [http://localhost:3000/](http://localhost:3000/)
+   * 🛠️ **Backoffice Admin:** [http://localhost:3000/backoffice](http://localhost:3000/backoffice)
+   * 🩺 **Health Probes:** [http://localhost:3000/healthz](http://localhost:3000/healthz) & [http://localhost:3000/readyz](http://localhost:3000/readyz)
+   * 📊 **Métricas Prometheus:** [http://localhost:3000/metrics](http://localhost:3000/metrics)
+
+---
+
+### Opción 2: Ejecución con Docker Multi-Stage
+
+1. **Construir la imagen de producción:**
+   ```bash
+   docker build -t pokedex-server:latest .
+   ```
+
+2. **Ejecutar el contenedor:**
+   ```bash
+   docker run -d --name pokedex-app -p 3000:3000 --env-file .env pokedex-server:latest
+   ```
+
+---
+
+### Opción 3: Despliegue en Kubernetes y Helm
 
 ---
 
@@ -179,28 +205,26 @@ task deploy:proxmox -- "192.168.1.150" "root"
 
 ---
 
-## 4. Pruebas Automatizadas y Auditoría de Código
+## 5. Pruebas Automatizadas y Auditoría de Código
 
 Para ver el detalle exhaustivo de todas las pruebas implementadas y cómo ejecutarlas, consulta la [**Guía Completa de Pruebas (`docs/testing-guide.md`)**](file:///docs/testing-guide.md).
 
-### Ejecución Rápida con Taskfile (Recomendado):
-* **Pruebas Unitarias con Cobertura:** `task test`
-* **Carga Masiva de Datos (1.025 Pokémon):** `task seed`
-* **Secuencia Funcional de la API (CRUD):** `task test:api`
-* **Pruebas de Carga Concurrente (HPA):** `task test:load`
-* **Pruebas de Rendimiento k6:** `task perf`
-* **Auditoría Integral (Ruff + Radon + Bandit):** `task audit`
+### Ejecución Rápida con Taskfile:
+* **Verificación de Tipos Estáticos (TypeScript):** `task lint` o `npm run lint`
+* **Compilación y Empaquetado:** `task build` o `npm run build`
+* **Pruebas de Rendimiento k6:** `task perf` (o `k6 run tests/performance/k6_stress_test.js`)
+* **Escaneo de Secretos (Gitleaks):** `task secrets:scan`
 
-### Ejecución Directa con Python:
+### Ejecución Directa con npm:
 ```bash
-# Pruebas unitarias
-pytest -v --cov=apps/api/src
+# Verificación de tipos TypeScript estricta (cero errores)
+npm run lint
 
-# Carga masiva de datos (Seeding)
-python scripts/bulk_load_pokemons.py
+# Empaquetado de producción con esbuild
+npm run build
 
-# Pruebas de estrés concurrente
-python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concurrency 50 --total-requests 3000
+# Ejecución del bundle compilado
+npm start
 ```
 
 ---
