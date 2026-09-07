@@ -5,6 +5,15 @@ import crypto from 'crypto';
 import { initialPokemons } from './src/data/initialPokemons.js';
 import { Pokemon } from './src/types.js';
 import { generateDiagram, generateMockup, generateImage } from './src/services/ai.js';
+import {
+  initStorage,
+  getAllPokemons,
+  getPokemonById,
+  savePokemon,
+  deletePokemon,
+  getNextPokemonId,
+  getStorageHealth,
+} from './src/services/db.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -298,11 +307,13 @@ app.get('/healthz', (_req: Request, res: Response) => {
 });
 
 app.get('/readyz', (_req: Request, res: Response) => {
+  const health = getStorageHealth();
   res.status(200).json({
     status: 'ready',
-    database: 'in-memory-map',
-    degraded_mode: false,
-    pokemons_count: pokemons.length,
+    database: health.database,
+    postgres_connected: health.postgres_connected,
+    redis_connected: health.redis_connected,
+    pokemons_count: health.total_records,
   });
 });
 
@@ -363,38 +374,23 @@ app.get('/metrics', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes
 // ---------------------------------------------------------------------------
-app.get('/pokemons', (req: Request, res: Response) => {
-  let list = pokemons;
-
+// ---------------------------------------------------------------------------
+// Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
+// ---------------------------------------------------------------------------
+app.get('/pokemons', async (req: Request, res: Response) => {
   const { tipo, nombre, limit, offset } = req.query;
 
-  if (typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all') {
-    const t = tipo.trim().toLowerCase();
-    list = list.filter(p =>
-      p.tipo.toLowerCase() === t ||
-      (Array.isArray(p.tipos) && p.tipos.some(x => x.toLowerCase() === t))
-    );
-  }
+  const parsedLimit = limit ? Math.max(1, parseInt(limit as string, 10) || 20) : 50;
+  const parsedOffset = offset ? Math.max(0, parseInt(offset as string, 10) || 0) : 0;
+  const typeStr = typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all' ? tipo.trim() : undefined;
+  const searchStr = typeof nombre === 'string' && nombre.trim() ? nombre.trim() : undefined;
 
-  if (typeof nombre === 'string' && nombre.trim()) {
-    const query = nombre.trim().toLowerCase();
-    list = list.filter(p =>
-      p.nombre.toLowerCase().includes(query) ||
-      p.tipo.toLowerCase().includes(query) ||
-      (p.caracteristicas?.habitat && p.caracteristicas.habitat.toLowerCase().includes(query)) ||
-      String(p.id).includes(query)
-    );
-  }
-
-  if (offset) {
-    const skip = Math.max(0, parseInt(offset as string, 10) || 0);
-    list = list.slice(skip);
-  }
-
-  if (limit) {
-    const take = Math.max(1, parseInt(limit as string, 10) || list.length);
-    list = list.slice(0, take);
-  }
+  const { total, pokemons: list } = await getAllPokemons({
+    limit: parsedLimit,
+    offset: parsedOffset,
+    type: typeStr,
+    search: searchStr,
+  });
 
   const etag = calculateETag(list);
   if (req.headers['if-none-match'] === etag) {
@@ -406,14 +402,14 @@ app.get('/pokemons', (req: Request, res: Response) => {
   return res.json(list);
 });
 
-// Búsqueda instantánea O(1) vía Map
-app.get('/pokemons/:id', (req: Request, res: Response) => {
+// Búsqueda instantánea vía PostgreSQL / Redis con ETag
+app.get('/pokemons/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
   }
 
-  const found = pokemonMap.get(id);
+  const found = await getPokemonById(id);
   if (!found) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
@@ -428,15 +424,15 @@ app.get('/pokemons/:id', (req: Request, res: Response) => {
   return res.json(found);
 });
 
-// Creación con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Creación persistente con rate limiter, autenticación y validación
+app.post('/pokemons', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
     return res.status(422).json({ detail: validation.error });
   }
 
   const body = req.body;
-  const newId = nextId++;
+  const newId = await getNextPokemonId();
   const rawDesc = body.caracteristicas?.descripcion || `${body.nombre} registrado recientemente en la Pokédex.`;
 
   const newPokemon: Pokemon = {
@@ -470,21 +466,20 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, (req: Request, res: Resp
     evoluciones: body.evoluciones || [],
   };
 
-  pokemons.push(newPokemon);
-  pokemonMap.set(newPokemon.id, newPokemon);
+  await savePokemon(newPokemon);
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${newPokemon.id} - ${newPokemon.nombre}`);
   return res.status(201).json(newPokemon);
 });
 
-// Edición con validación
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Edición persistente con validación e invalidación de caché
+app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
-  const existing = pokemonMap.get(id);
+  const existing = await getPokemonById(id);
   if (!existing) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
@@ -517,36 +512,30 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: R
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
   };
 
-  // Actualizar en memoria y Map
-  const index = pokemons.findIndex(p => p.id === id);
-  if (index !== -1) {
-    pokemons[index] = updated;
-  }
-  pokemonMap.set(id, updated);
+  await savePokemon(updated);
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${id} - ${updated.nombre}`);
   return res.json(updated);
 });
 
-// Eliminación
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Eliminación persistente
+app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
-  const index = pokemons.findIndex(p => p.id === id);
-  if (index === -1) {
+  const existing = await getPokemonById(id);
+  if (!existing) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
 
-  const [removed] = pokemons.splice(index, 1);
-  pokemonMap.delete(id);
+  await deletePokemon(id);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${id} - ${removed.nombre}`);
+  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${id} - ${existing.nombre}`);
   return res.json({
     mensaje: `Pokémon con id ${id} eliminado correctamente`,
-    pokemon_eliminado: removed,
+    pokemon_eliminado: existing,
   });
 });
 
@@ -623,8 +612,11 @@ app.get('*', (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
-  console.log(`[Pokédex Server] Loaded ${pokemons.length} Pokémon records in indexed memory.`);
+// Start Server tras inicializar la capa de persistencia y caché
+initStorage().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    const health = getStorageHealth();
+    console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
+    console.log(`[Pokédex Server] Storage: ${health.database.toUpperCase()} (PG: ${health.postgres_connected}, Redis: ${health.redis_connected}).`);
+  });
 });
