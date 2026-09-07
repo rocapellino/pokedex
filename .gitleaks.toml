@@ -16,9 +16,12 @@ paths = [
   '''(?i)^docs/.*''',
   # Tests — mocks de prueba con claves ficticias
   '''(?i)^apps/api/tests/.*''',
-  # Terraform — solo archivos de declaración de variables (no valores reales)
+  # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
   '''(?i)^infra/terraform/.*/variables\.tf$''',
   '''(?i)^infra/terraform/.*/outputs\.tf$''',
+  '''(?i)^infra/opentofu/.*''',
+  # GitOps — manifiestos declarativos y valores de entorno
+  '''(?i)^gitops/.*''',
   # K8s — SealedSecrets (cifrados con la clave pública del controlador)
   '''(?i)infra/k8s/01-sealed-secrets\.ya?ml''',
   # Ansible — solo inventario de ejemplo

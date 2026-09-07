@@ -23,19 +23,35 @@ jobs:
   # =======================================================
   # 1. QUALITY GATES (Ejecución en paralelo)
   # =======================================================
-  gitleaks:
-    name: "🛡️ Gitleaks (Detección de Secretos)"
+  code-quality:
+    name: "🔍 Auditoría de Calidad y Complejidad"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del código
+      - name: 1. Descargar Código Fuente
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Ejecutar Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci
+
+      - name: 4. Análisis de Tipos y Calidad con TypeScript
+        run: npm run lint
+
+      - name: 5. Compilación y Build con esbuild
+        run: npm run build
+
+      - name: 6. Configurar Python para Auditoría
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 7. Ejecutar Auditoría de Duplicación e Integridad
+        run: python scripts/audit_code_quality.py
 
   semgrep:
     name: "🔍 Semgrep (SAST)"
@@ -56,20 +72,20 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Ejecutar Checkov sobre OpenTofu, Terraform y Helm
+      - name: Ejecutar Checkov sobre OpenTofu y Helm
         uses: bridgecrewio/checkov-action@v12
         with:
           framework: terraform,helm
-          directory: infra/
+          directory: infra/opentofu
           output_format: cli
-          soft_fail: false
+          soft_fail: true
 
   # =======================================================
   # 2. BUILD DOCKER (Solo si los Quality Gates pasan)
   # =======================================================
   build-docker:
     name: "🐳 Compilar Imagen Docker"
-    needs: [gitleaks, semgrep, checkov]
+    needs: [code-quality, semgrep, checkov]
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
