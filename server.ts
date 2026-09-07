@@ -21,11 +21,24 @@ for (const p of pokemons) {
 let nextId = Math.max(...pokemons.map(p => p.id), 1008) + 1;
 
 // ---------------------------------------------------------------------------
-// Metrics & Observability Tracking
+// Metrics & Observability Tracking (Prometheus Exposition Format)
 // ---------------------------------------------------------------------------
 const startTime = Date.now();
-const requestCounts: Record<string, number> = {};
 let totalRequests = 0;
+const httpRequestsTotal = new Map<string, number>();
+const httpDurationSum = new Map<string, number>();
+const httpDurationCount = new Map<string, number>();
+
+function normalizeEndpoint(req: Request): string {
+  const p = req.path || '/';
+  if (/^\/pokemons\/\d+$/.test(p)) {
+    return '/pokemons/:id';
+  }
+  if (p.startsWith('/api/v1/ai/')) {
+    return '/api/v1/ai/:service';
+  }
+  return p;
+}
 
 // ---------------------------------------------------------------------------
 // Security: Server Hardening & Security Headers
@@ -62,11 +75,25 @@ app.use(cors({
 app.use(express.json({ limit: '250kb' }));
 app.use(express.urlencoded({ extended: true, limit: '250kb' }));
 
-// Metrics counter middleware
-app.use((req: Request, _res: Response, next: NextFunction) => {
+// Prometheus metrics collection middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
   totalRequests++;
-  const key = `${req.method} ${req.path}`;
-  requestCounts[key] = (requestCounts[key] || 0) + 1;
+  const start = process.hrtime();
+
+  res.on('finish', () => {
+    const [seconds, nanoseconds] = process.hrtime(start);
+    const durationSeconds = seconds + nanoseconds / 1e9;
+    const endpoint = normalizeEndpoint(req);
+    const status = String(res.statusCode);
+    const method = req.method;
+
+    const key = `${endpoint}|${status}|${method}`;
+    httpRequestsTotal.set(key, (httpRequestsTotal.get(key) || 0) + 1);
+
+    httpDurationSum.set(endpoint, (httpDurationSum.get(endpoint) || 0) + durationSeconds);
+    httpDurationCount.set(endpoint, (httpDurationCount.get(endpoint) || 0) + 1);
+  });
+
   next();
 });
 
@@ -253,25 +280,56 @@ app.get('/readyz', (_req: Request, res: Response) => {
 
 app.get('/metrics', (_req: Request, res: Response) => {
   const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
-  const lines = [
+  const lines: string[] = [
     '# HELP pokedex_uptime_seconds Tiempo que la aplicación ha estado activa en segundos.',
     '# TYPE pokedex_uptime_seconds gauge',
     `pokedex_uptime_seconds ${uptimeSeconds}`,
     '',
-    '# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados.',
+    '# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados en memoria.',
     '# TYPE pokedex_total_pokemons gauge',
     `pokedex_total_pokemons ${pokemons.length}`,
     '',
-    '# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas.',
+    '# HELP pokedex_degraded_mode Indicador de modo degradado (1 = activo, 0 = normal).',
+    '# TYPE pokedex_degraded_mode gauge',
+    'pokedex_degraded_mode 0',
+    '',
+    '# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas por endpoint y estado.',
     '# TYPE pokedex_http_requests_total counter',
-    `pokedex_http_requests_total ${totalRequests}`,
   ];
 
-  for (const [endpoint, count] of Object.entries(requestCounts)) {
-    lines.push(`pokedex_http_endpoint_requests_total{endpoint="${endpoint}"} ${count}`);
+  if (httpRequestsTotal.size === 0) {
+    lines.push(`pokedex_http_requests_total{endpoint="/",status="200",method="GET"} 0`);
+  } else {
+    for (const [key, count] of httpRequestsTotal.entries()) {
+      const [endpoint, status, method] = key.split('|');
+      lines.push(`pokedex_http_requests_total{endpoint="${endpoint}",status="${status}",method="${method}"} ${count}`);
+    }
   }
 
-  res.type('text/plain').send(lines.join('\n') + '\n');
+  lines.push('');
+  lines.push('# HELP pokedex_http_request_duration_seconds_sum Suma acumulada de la duración de solicitudes HTTP en segundos.');
+  lines.push('# TYPE pokedex_http_request_duration_seconds_sum counter');
+  if (httpDurationSum.size === 0) {
+    lines.push(`pokedex_http_request_duration_seconds_sum{endpoint="/"} 0`);
+  } else {
+    for (const [endpoint, sum] of httpDurationSum.entries()) {
+      lines.push(`pokedex_http_request_duration_seconds_sum{endpoint="${endpoint}"} ${sum.toFixed(6)}`);
+    }
+  }
+
+  lines.push('');
+  lines.push('# HELP pokedex_http_request_duration_seconds_count Total de solicitudes HTTP medidas para duración.');
+  lines.push('# TYPE pokedex_http_request_duration_seconds_count counter');
+  if (httpDurationCount.size === 0) {
+    lines.push(`pokedex_http_request_duration_seconds_count{endpoint="/"} 0`);
+  } else {
+    for (const [endpoint, count] of httpDurationCount.entries()) {
+      lines.push(`pokedex_http_request_duration_seconds_count{endpoint="${endpoint}"} ${count}`);
+    }
+  }
+
+  res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  return res.status(200).send(lines.join('\n') + '\n');
 });
 
 // ---------------------------------------------------------------------------

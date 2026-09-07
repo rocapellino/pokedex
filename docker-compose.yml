@@ -121,8 +121,8 @@ networks:
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
   monitoring-net:
     name: monitoring-net
-    driver: bridge
-    attachable: true   # Permite la conexión dinámica de exporters y stack de observabilidad
+    external: true
+
 
 
 volumes:

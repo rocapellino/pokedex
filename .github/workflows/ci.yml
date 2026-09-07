@@ -1,23 +1,31 @@
 # ==============================================================================
-# Workflow Principal de CI / CD Integrador del Monorepo
+# Pipeline de CI/CD - Quality Gates, Build, Security Scan y Publicación OCI
 # ==============================================================================
-name: 🚀 Monorepo Continuous Integration (CI)
+name: 🚀 CI/CD Pipeline - Quality Gates & Release
 
 on:
-  push:
-    branches: [ main, master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+  push:
+    branches: [ main ]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CHART_PATH: infra/helm/pokedex
 
 jobs:
+  # =======================================================
+  # 1. QUALITY GATES (Ejecución en paralelo)
+  # =======================================================
   code-quality:
-    name: 🔍 Auditoría de Calidad y Complejidad
+    name: "🔍 Auditoría de Calidad y Complejidad"
     runs-on: ubuntu-latest
-
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@v4
@@ -45,58 +53,147 @@ jobs:
       - name: 7. Ejecutar Auditoría de Duplicación e Integridad
         run: python scripts/audit_code_quality.py
 
-  sast-semgrep:
-    name: 🛡️ SAST Multi-Lenguaje (Semgrep)
+  semgrep:
+    name: "🔍 Semgrep (SAST)"
     runs-on: ubuntu-latest
-
+    container:
+      image: returntocorp/semgrep:latest
     steps:
-      - name: 1. Descargar Código Fuente
+      - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: 2. Escaneo SAST con Semgrep OSS
-        uses: semgrep/semgrep-action@v1
+      - name: Escanear código fuente
+        run: semgrep scan --config auto --error src/
+
+  checkov:
+    name: "🏗️ Checkov (Seguridad IaC / Helm)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Ejecutar Checkov sobre OpenTofu y Helm
+        uses: bridgecrewio/checkov-action@v12
         with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/python
-            p/javascript
-            p/dockerfile
-          auditOn: push
-        continue-on-error: true
+          framework: terraform,helm
+          directory: infra/opentofu
+          output_format: cli
+          soft_fail: true
 
-  docker-build-test:
-    name: 🐳 Docker Multi-Stage Build & SBOM
+  # =======================================================
+  # 2. BUILD DOCKER (Solo si los Quality Gates pasan)
+  # =======================================================
+  build-docker:
+    name: "🐳 Compilar Imagen Docker"
+    needs: [code-quality, semgrep, checkov]
     runs-on: ubuntu-latest
-    needs: code-quality
-
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
     steps:
-      - name: 1. Descargar Código Fuente
+      - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: 2. Configurar Docker Buildx
+      - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 3. Compilar Imagen Pokédex Full-Stack (Node.js & TS)
+      - name: Extraer metadata y etiquetas
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Compilar y exportar imagen local
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           load: true
-          tags: pokedex-server:test
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: 4. Compilar Imagen de Web (Nginx)
-        uses: docker/build-push-action@v6
+      - name: Guardar imagen Docker en archivo tar
+        run: |
+          docker save ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} -o /tmp/image.tar
+
+      - name: Subir artefacto de imagen para escaneo
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          file: ./apps/web/Dockerfile
-          load: true
-          tags: pokedex-web:test
+          name: docker-image
+          path: /tmp/image.tar
+          retention-days: 1
 
-      - name: 5. Generar SBOM con Anchore Syft (SPDX)
-        uses: anchore/sbom-action@v0
+  # =======================================================
+  # 3. TRIVY (Escaneo de Vulnerabilidades)
+  # =======================================================
+  trivy-scan:
+    name: "🔒 Trivy (SCA & Vulnerabilidades de Contenedor)"
+    needs: build-docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar artefacto de la imagen
+        uses: actions/download-artifact@v4
         with:
-          image: pokedex-server:test
-          format: spdx-json
-          output-file: pokedex-server-sbom.spdx.json
+          name: docker-image
+          path: /tmp
 
+      - name: Cargar imagen al Docker daemon
+        run: |
+          docker load -i /tmp/image.tar
+
+      - name: Escanear imagen con Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          format: 'table'
+          exit-code: '1' # Falla si detecta vulnerabilidades CRITICAL o HIGH
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  # =======================================================
+  # 4. PUBLISH (Solo en rama main tras pasar Trivy)
+  # =======================================================
+  publish:
+    name: "📦 Publicar Imagen y Helm Chart a GHCR"
+    needs: [build-docker, trivy-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Iniciar sesión en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Descargar imagen y hacer Push a GHCR
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Push de imagen Docker a GHCR
+        run: |
+          docker load -i /tmp/image.tar
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Configurar Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.0'
+
+      - name: Empaquetar y publicar Helm Chart como OCI
+        run: |
+          # Empaquetar chart en /tmp
+          helm package ${{ env.CHART_PATH }} --destination /tmp
+          
+          # Autenticación con OCI registry en GHCR y push
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts

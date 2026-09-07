@@ -1,15 +1,14 @@
 # ==============================================================================
-# ArgoCD Application Manifest - Despliegue Declarativo GitOps con Helm
+# ArgoCD Application - Despliegue en Nube Pública (EKS / GKE / AKS)
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pokedex-helm-platform
+  name: pokedex-cloud
   namespace: argocd
   labels:
     app.kubernetes.io/name: pokedex
-    app.kubernetes.io/part-of: pokemon-platform
-    app.kubernetes.io/managed-by: argocd
+    environment: public-cloud
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -19,11 +18,13 @@ spec:
     targetRevision: main
     path: infra/helm/pokedex
     helm:
+      releaseName: pokedex-cloud
       valueFiles:
         - values.yaml
-        - values.prod.yaml
+        - ../../../gitops/environments/cloud/values.yaml
   destination:
-    server: https://kubernetes.default.svc
+    # Endpoint o nombre del clúster de Kubernetes en Nube registrado en ArgoCD
+    server: https://k8s-cloud-cluster.privatelink.us-east-1.eks.amazonaws.com
     namespace: pokemon-app
   syncPolicy:
     automated:

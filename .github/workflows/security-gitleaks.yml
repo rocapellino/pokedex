@@ -1,3 +1,6 @@
+# ==============================================================================
+# Workflow Oficial de Detección de Secretos con Gitleaks (Required Status Check)
+# ==============================================================================
 name: 🔐 Security Scan (Gitleaks)
 
 on:

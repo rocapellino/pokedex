@@ -1,0 +1,41 @@
+# ==============================================================================
+# ArgoCD Application - Despliegue On-Premise (Clúster Proxmox VE)
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pokedex-proxmox
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: pokedex
+    environment: onprem-proxmox
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rocapellino/pokedex.git
+    targetRevision: main
+    path: infra/helm/pokedex
+    helm:
+      releaseName: pokedex-proxmox
+      valueFiles:
+        - values.yaml
+        - ../../../gitops/environments/proxmox/values.yaml
+  destination:
+    # URL o nombre del clúster de Kubernetes en Proxmox registrado en ArgoCD
+    server: https://k8s-proxmox.internal.lan:6443
+    namespace: pokemon-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

@@ -13,10 +13,11 @@ services:
       NODE_ENV: "development"
     volumes:
       - ./server.ts:/app/server.ts
+      - ./dist:/app/dist
       - ./src:/app/src
       - ./apps/web/public:/app/apps/web/public
     ports:
-      - "3000:3000"  # Acceso directo para depuración del backend Node.js
+      - "${API_DEV_PORT:-3001}:3000"  # Acceso directo para depuración (3001 por defecto para evitar colisión con Grafana en 3000)
 
   postgres:
     ports:

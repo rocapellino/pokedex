@@ -9,12 +9,15 @@ Este directorio centraliza la **Infraestructura como Código (IaC)**, orquestaci
 ```text
 infra/
 ├── helm/                    # Helm 3 Chart oficial y orquestación unificada en Kubernetes
-│   ├── pokedex/             # Chart parametrizable (Deployments, HPA, Services, PDB, Ingress)
-│   │   ├── templates/       # Plantillas Kubernetes estandarizadas
-│   │   ├── values.yaml      # Configuración base / desarrollo local
-│   │   └── values.prod.yaml # Perfil endurecido de producción
-│   └── argocd-helm-application.yaml # Manifiesto GitOps para Argo CD
-├── terraform/               # Aprovisionamiento declarativo Multi-Cloud
+│   └── pokedex/             # Chart parametrizable (Deployments, HPA, Services, PDB, Ingress)
+│       ├── templates/       # Plantillas Kubernetes estandarizadas
+│       ├── values.yaml      # Configuración base / desarrollo local
+│       └── values.prod.yaml # Perfil endurecido de producción
+├── opentofu/                # Aprovisionamiento con OpenTofu para entorno híbrido
+│   └── environments/
+│       ├── proxmox/         # Provisión de VMs Kubernetes en Proxmox VE
+│       └── cloud/           # Provisión de clúster EKS gestionado en AWS
+├── terraform/               # Aprovisionamiento declarativo Multi-Cloud legacy
 │   ├── envs/                # Ambientes por proveedor (aws, azure, gcp, proxmox)
 │   └── modules/             # Módulos reutilizables (compute, database, networking, storage)
 ├── ansible/                 # Playbooks de automatización y hardening
@@ -27,6 +30,9 @@ infra/
     └── postgres/init.sql    # Schema inicial de PostgreSQL
 ```
 
+> [!NOTE]
+> Los manifiestos declarativos de **ArgoCD** para la arquitectura híbrida (Proxmox y Cloud) y los `values.yaml` específicos de cada ambiente se encuentran centralizados en el directorio raíz [`gitops/`](../gitops/).
+
 ---
 
 ## 🚀 Componentes Principales
@@ -36,7 +42,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 * **Servicios:** API backend (`pokedex-api`), Frontend proxy (`pokedex-web`), PostgreSQL StatefulSet con persistencia PVC y Redis caché.
 * **Resiliencia & Escalamiento:** Horizontal Pod Autoscaler (**HPA v2**) para web y API, Pod Disruption Budgets (**PDB**) y NetworkPolicies Zero-Trust.
 * **Gestión de Entornos:** `values.yaml` para desarrollo local y `values.prod.yaml` para entornos de producción.
-* **GitOps:** Integración nativa con Argo CD (`argocd-helm-application.yaml`).
+* **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
 ### 2. Infraestructura Multi-Cloud con Terraform (`infra/terraform/`)
 * Soporte para **AWS**, **Microsoft Azure**, **Google Cloud Platform (GCP)** y **Proxmox VE**.

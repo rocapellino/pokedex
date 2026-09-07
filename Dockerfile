@@ -37,9 +37,14 @@ WORKDIR /app
 ENV NODE_ENV=production \
     PORT=3000
 
+# Actualizar librerías del sistema para mitigar CVEs en OpenSSL y paquetes base
+RUN apk upgrade --no-cache
+
 # Copiar manifiestos e instalar únicamente dependencias de producción
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev \
+    && npm cache clean --force \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
 
 # Copiar artefactos compilados y assets estáticos del frontend
 COPY --from=builder /app/dist ./dist
