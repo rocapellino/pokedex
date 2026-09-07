@@ -1,0 +1,56 @@
+# ==============================================================================
+# Sobrescritura de Values para Entorno On-Premise (Proxmox VE / K8s Interno)
+# ==============================================================================
+
+global:
+  environment: onprem-proxmox
+  namespace: pokemon-app
+
+api:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/rocapellino/pokedex-server
+    tag: latest
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  autoscaling:
+    enabled: false  # En Proxmox mantenemos capacidad fija garantizada
+
+web:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/rocapellino/pokedex-web
+    tag: latest
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "64Mi"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "internal-ca-issuer"
+  hosts:
+    - host: pokedex.proxmox.internal.lan
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web
+        - path: /api
+          pathType: Prefix
+          service: api
+  tls:
+    - secretName: pokedex-internal-tls
+      hosts:
+        - pokedex.proxmox.internal.lan

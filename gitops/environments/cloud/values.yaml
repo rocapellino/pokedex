@@ -1,0 +1,66 @@
+# ==============================================================================
+# Sobrescritura de Values para Entorno de Nube Pública (AWS / GCP / Azure)
+# ==============================================================================
+
+global:
+  environment: public-cloud
+  namespace: pokemon-app
+
+api:
+  replicaCount: 3
+  image:
+    repository: ghcr.io/rocapellino/pokedex-server
+    tag: latest
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "1500m"
+      memory: "2Gi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+web:
+  replicaCount: 3
+  image:
+    repository: ghcr.io/rocapellino/pokedex-web
+    tag: latest
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+
+ingress:
+  enabled: true
+  className: "alb" # o gce / traefik según el proveedor de nube
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/target-type: "ip"
+  hosts:
+    - host: pokedex.cloud.rodrigo.dev
+      paths:
+        - path: /
+          pathType: Prefix
+          service: web
+        - path: /api
+          pathType: Prefix
+          service: api
+  tls:
+    - secretName: pokedex-cloud-cert
+      hosts:
+        - pokedex.cloud.rodrigo.dev

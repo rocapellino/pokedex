@@ -40,17 +40,17 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Contenedores** | **Docker & Buildx** | Empaquetado en imágenes ligeras multi-stage (desarrollo y producción) | [`Dockerfile`](file:///Dockerfile), [`apps/web/Dockerfile`](file:///apps/web/Dockerfile) |
 | **Composición local** | **Docker Compose** | Orquestación local multicontenedor (API + Web + Postgres + Redis) | [`docker-compose.yml`](file:///docker-compose.yml), `docker-compose.dev.yml` |
 | **Orquestación K8s** | **Helm 3** | Despliegue estandarizado en clúster con Chart parametrizado (`values.yaml`, `values.prod.yaml`) | [`infra/helm/pokedex/`](file:///infra/helm/pokedex/) |
-| **GitOps** | **Argo CD** | Sincronización continua declarativa del Chart de Helm en Kubernetes | [`infra/helm/argocd-helm-application.yaml`](file:///infra/helm/argocd-helm-application.yaml) |
-| **IaC** | **Terraform** | Aprovisionamiento declarativo Multi-Cloud (AWS, GCP, Azure, Proxmox) | [`infra/terraform/`](file:///infra/terraform/) |
+| **GitOps** | **Argo CD** | Sincronización continua declarativa del Chart de Helm en Kubernetes (Proxmox y Cloud) | [`gitops/apps/`](file:///gitops/apps/) |
+| **IaC** | **OpenTofu & Terraform** | Aprovisionamiento declarativo híbrido (Proxmox VE y AWS Cloud con OpenTofu; Multi-Cloud con TF) | [`infra/opentofu/`](file:///infra/opentofu/), [`infra/terraform/`](file:///infra/terraform/) |
 | **Config Management** | **Ansible** | Automatización de configuración de servidores y hardening UFW/SSH | [`infra/ansible/`](file:///infra/ansible/) |
 | **Virtualización** | **Proxmox VE** | Infraestructura de nodos y contenedores LXC con Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/), [`scripts/proxmox_deploy.sh`](file:///scripts/proxmox_deploy.sh) |
-| **CI/CD** | **GitHub Actions** | Pipelines automatizados por paths (`api`, `web`, `infra`, `security`, `ci`, `trivy`) | [`.github/workflows/`](file:///.github/workflows/) |
+| **CI/CD** | **GitHub Actions** | Pipelines automatizados con Quality Gates paralelos (Gitleaks, Semgrep, Checkov) y escaneo Trivy | [`.github/workflows/`](file:///.github/workflows/) |
 | **CI/CD Alternativo** | **Jenkins** | Pipeline declarativo enterprise adaptado a Node.js, Docker y Helm | [`Jenkinsfile`](file:///Jenkinsfile) |
 | **Observabilidad & Métricas** | **Prometheus + Exporters** | Métricas nativas de la API (`/metrics`), contenedores y base de datos | `docker_monitoreo/` |
 | **Logs Centralizados** | **Grafana Loki + Promtail** | Agregación e indexación de logs de stdout/stderr de contenedores con consultas LogQL | `docker_monitoreo/` |
 | **Alertas & Notificaciones** | **Prometheus Alertmanager** | Detección proactiva de caídas, modo degradado y latencias altas | `docker_monitoreo/alertmanager/` |
 | **Dashboards Unificados** | **Grafana** | Tableros unificados con métricas HTTP, recursos Docker y estado de BD | `docker_monitoreo/grafana/` |
-| **Actualizaciones Auto** | **Dependabot** | Apertura automática de PRs consolidados (Grouped Updates) para npm, docker y actions | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
+| **Actualizaciones Auto** | **Renovate Bot** | Detección y apertura de PRs agrupados con auto-merge (Docker, Helm, OpenTofu, Node) | [`renovate.json`](file:///renovate.json) |
 | **Automatización DX** | **Taskfile (go-task)** | Comandos unificados 100% cross-platform (`task dev`, `task build`, `task k8s:up`, etc.) | [`Taskfile.yml`](file:///Taskfile.yml) |
 | **Gestión Ágil** | **Linear** | Gestión de tickets, ciclos, ramas automatizadas y PR linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
 | **Inteligencia Artificial** | **Google AI Studio (`@google/genai`)** | Integración nativa en backend con Gemini 2.5 Flash para mockups y diagramas | [`src/services/ai.ts`](file:///src/services/ai.ts) |
@@ -92,7 +92,7 @@ A continuación se presentan herramientas de alto impacto divididas por área qu
 
 ### 🔄 4. GitOps & Entrega Continua (CD)
 * **Argo CD:**
-  * *¿Para qué sirve?* Sincronización automática y declarativa del clúster de Kubernetes con el Chart de Helm en `infra/helm/pokedex/` (`argocd-helm-application.yaml`).
+  * *¿Para qué sirve?* Sincronización automática y declarativa del clúster de Kubernetes con el Chart de Helm en `infra/helm/pokedex/` soportando entornos híbridos con [`gitops/apps/app-proxmox.yaml`](file:///gitops/apps/app-proxmox.yaml) y [`gitops/apps/app-cloud.yaml`](file:///gitops/apps/app-cloud.yaml).
 * **TFLint & Checkov / tfsec:**
   * *¿Para qué sirve?* Linter de mejores prácticas de Terraform y escáner de seguridad para IaC (detecta puertos abiertos, permisos excesivos en K8s o buckets inseguros).
 

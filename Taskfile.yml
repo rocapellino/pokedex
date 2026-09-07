@@ -47,8 +47,14 @@ tasks:
     cmds:
       - k6 run tests/performance/k6_stress_test.js
 
+  network:
+    desc: "Asegura la existencia de la red compartida monitoring-net"
+    cmds:
+      - docker network create monitoring-net 2>nul || docker network create monitoring-net 2>/dev/null || true
+
   docker:up:
     desc: "Levanta todos los servicios con Docker Compose (API + Web + DB + Redis)"
+    deps: [network]
     cmds:
       - docker compose up -d --build
 
@@ -56,6 +62,62 @@ tasks:
     desc: "Detiene todos los contenedores de Docker Compose"
     cmds:
       - docker compose down
+
+  monitoring:up:
+    desc: "Inicia el stack global de observabilidad (Prometheus, Grafana, Loki, cAdvisor)"
+    dir: ../docker_monitoreo
+    cmds:
+      - task up
+
+  monitoring:down:
+    desc: "Detiene el stack global de observabilidad"
+    dir: ../docker_monitoreo
+    cmds:
+      - task down
+
+  monitoring:status:
+    desc: "Muestra el estado y healthcheck de los servicios del stack de observabilidad"
+    dir: ../docker_monitoreo
+    cmds:
+      - task status
+
+  monitoring:targets:
+    desc: "Consulta los targets activos registrados en Prometheus"
+    dir: ../docker_monitoreo
+    cmds:
+      - task targets
+
+  jenkins:up:
+    desc: "Inicia el servidor Jenkins CI/CD en segundo plano"
+    dir: ../docker_jenkins
+    cmds:
+      - task up
+
+  jenkins:down:
+    desc: "Detiene el servidor Jenkins CI/CD"
+    dir: ../docker_jenkins
+    cmds:
+      - task down
+
+  jenkins:status:
+    desc: "Muestra el estado y healthcheck del contenedor Jenkins"
+    dir: ../docker_jenkins
+    cmds:
+      - task status
+
+  jenkins:password:
+    desc: "Obtiene la clave inicial de administrador de Jenkins"
+    dir: ../docker_jenkins
+    cmds:
+      - task password
+
+  jenkins:logs:
+    desc: "Muestra los logs en tiempo real del servidor Jenkins"
+    dir: ../docker_jenkins
+    cmds:
+      - task logs
+
+
 
   k8s:up:
     desc: "Despliega o actualiza la plataforma en Kubernetes mediante Helm 3"

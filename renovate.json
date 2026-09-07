@@ -1,0 +1,51 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Configuración de Renovate para arquitectura híbrida Pokédex (App, Helm, Docker, OpenTofu)",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "timezone": "America/Argentina/Buenos_Aires",
+  "enabledManagers": [
+    "dockerfile",
+    "github-actions",
+    "helm-values",
+    "helmv3",
+    "npm",
+    "terraform"
+  ],
+  "packageRules": [
+    {
+      "description": "Agrupación y auto-merge de actualizaciones menores y parches",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "todas las dependencias no-major",
+      "groupSlug": "minor-and-patch-updates",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true,
+      "ignoreTests": false
+    },
+    {
+      "description": "Las actualizaciones MAJOR requieren revisión manual y no se auto-mergean",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major-update", "breaking-change"]
+    },
+    {
+      "description": "Escanear y mantener proveedores y módulos de OpenTofu/Terraform",
+      "matchManagers": ["terraform"],
+      "matchFileNames": ["infra/opentofu/**", "infra/terraform/**"]
+    },
+    {
+      "description": "Escanear dependencias de Helm Charts",
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["infra/helm/**", "gitops/environments/**"]
+    },
+    {
+      "description": "Escanear imágenes en Dockerfiles",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["Dockerfile", "apps/**/Dockerfile"]
+    }
+  ]
+}

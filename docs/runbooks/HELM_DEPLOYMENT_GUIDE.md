@@ -25,7 +25,6 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 
 ```text
 infra/helm/
-├── argocd-helm-application.yaml       # Manifiesto declarativo para GitOps con ArgoCD
 └── pokedex/
     ├── Chart.yaml                     # Metadatos del Chart (versión 1.0.0, appVersion 1.9.5)
     ├── .helmignore                    # Patrones de exclusión de empaquetado
@@ -124,14 +123,18 @@ helm rollback pokedex 1 -n pokemon-app
 ---
 
 ## 6. Integración GitOps con ArgoCD
-
-Para sincronización continua y despliegue declarativo, aplica el manifiesto de ArgoCD:
-
+ 
+Para sincronización continua y despliegue declarativo en la arquitectura híbrida, aplica los manifiestos de ArgoCD según corresponda:
+ 
 ```bash
-kubectl apply -f infra/helm/argocd-helm-application.yaml
-```
+# Despliegue en clúster On-Premise (Proxmox VE):
+kubectl apply -f gitops/apps/app-proxmox.yaml
 
-ArgoCD sincronizará automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores de `values.yaml` y `values.prod.yaml`, manteniendo el cluster en estado idéntico al repositorio git.
+# Despliegue en clúster Nube Pública (EKS / GKE / AKS):
+kubectl apply -f gitops/apps/app-cloud.yaml
+```
+ 
+ArgoCD sincronizará automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores de `values.yaml` combinados con la sobrescritura del entorno (`gitops/environments/proxmox/values.yaml` o `gitops/environments/cloud/values.yaml`).
 
 ---
 
