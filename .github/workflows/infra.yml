@@ -26,22 +26,22 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: 2. Configurar Helm CLI
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
         with:
           version: v3.17.0
 
       - name: 2b. Validar y Renderizar Helm Chart (Dev & Prod)
         run: |
           helm lint infra/helm/pokedex
-          helm template pokedex infra/helm/pokedex > /dev/null
-          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
+          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
           echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
 
       - name: 3. Configurar OpenTofu CLI
-        uses: opentofu/setup-opentofu@v1
+        uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: 1.8.8
 
@@ -55,7 +55,7 @@ jobs:
           echo "✅ Todos los entornos híbridos de OpenTofu validados correctamente."
 
       - name: 5. Auditoría de Seguridad IaC con Checkov
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           framework: terraform,kubernetes
           directory: infra/

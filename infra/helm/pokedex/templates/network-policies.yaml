@@ -45,7 +45,6 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: web
-        - namespaceSelector: {}
       ports:
         - protocol: TCP
           port: {{ .Values.api.port }}

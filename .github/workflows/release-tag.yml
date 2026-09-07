@@ -19,13 +19,13 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
       - name: 2. Determinar Versión Semántica y Generar Tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
+        uses: mathieudutour/github-tag-action@d28fa2ccfbd16e871a4bdf35e11b3ad1bd56c0c1 # v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
@@ -33,7 +33,7 @@ jobs:
           release_branches: "main"
 
       - name: 3. Crear Release en GitHub con Changelog Automático
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@c95fe148935b9c7a181378960e043777f6c41c10 # v2.2.1
         if: steps.tag_version.outputs.new_tag
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}

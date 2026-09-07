@@ -50,17 +50,22 @@ spec:
         app: pokemon-api
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
       securityContext:
-        {{- toYaml .Values.api.securityContext | nindent 8 }}
+        runAsNonRoot: {{ .Values.api.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.api.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.api.securityContext.runAsGroup }}
+        seccompProfile:
+          {{- toYaml .Values.api.securityContext.seccompProfile | nindent 10 }}
       containers:
         - name: api
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           securityContext:
-            allowPrivilegeEscalation: false
+            allowPrivilegeEscalation: {{ .Values.api.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.api.securityContext.readOnlyRootFilesystem }}
             capabilities:
-              drop:
-                - ALL
+              {{- toYaml .Values.api.securityContext.capabilities | nindent 14 }}
           ports:
             - containerPort: {{ .Values.api.port }}
               name: http
@@ -71,6 +76,9 @@ spec:
                 name: pokemon-secrets
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
           livenessProbe:
             httpGet:
               path: /healthz
@@ -85,3 +93,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
