@@ -38,7 +38,7 @@ resource "proxmox_virtual_environment_vm" "k8s_nodes" {
     }
     user_account {
       username = "devops"
-      keys     = [file("~/.ssh/id_rsa.pub")]
+      keys     = [var.ssh_public_key]
     }
   }
 
