@@ -11,7 +11,8 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = "1.30"
 
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access       = true
+  cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
 
   vpc_id                   = "vpc-0123456789abcdef0"
   subnet_ids               = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]

@@ -17,6 +17,7 @@ import {
 } from './src/services/db.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
 import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
+import { generateSessionToken, verifySessionToken } from './src/services/auth.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -66,16 +67,28 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Configured or dynamic CORS
+// Configured or dynamic CORS (Fail-closed en producción contra abusos)
+const isProduction = process.env.NODE_ENV === 'production';
 const configuredCorsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
   : null;
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Permitir solicitudes sin origin (como herramientas internas, curl, mismo dominio)
-    if (!origin || !configuredCorsOrigins || configuredCorsOrigins.includes('*')) {
+    // Permitir solicitudes sin origin (como herramientas internas, curl, llamadas entre servicios locales)
+    if (!origin) {
       return callback(null, true);
+    }
+    // En producción, si no hay orígenes configurados explícitamente, denegar por defecto (fail-closed)
+    if (!configuredCorsOrigins || configuredCorsOrigins.length === 0) {
+      if (isProduction) {
+        return callback(new Error('Bloqueado por directiva de seguridad CORS: CORS_ORIGINS no configurado en producción'));
+      }
+      return callback(null, true);
+    }
+    // La especificación CORS y navegadores modernos prohíben wildcard '*' con credentials: true
+    if (configuredCorsOrigins.includes('*')) {
+      return callback(new Error('Directiva CORS inválida: no se permite wildcard (*) combinado con credentials: true'));
     }
     if (configuredCorsOrigins.includes(origin)) {
       return callback(null, true);
@@ -190,6 +203,8 @@ function safeCompareKeys(provided: string, expected: string): boolean {
   }
 }
 
+export { generateSessionToken, verifySessionToken };
+
 function extractApiKey(req: Request): string {
   const authHeader = (req.headers['authorization'] || '') as string;
   if (authHeader.startsWith('Bearer ')) {
@@ -199,7 +214,7 @@ function extractApiKey(req: Request): string {
 }
 
 function verifyAdmin(req: Request, res: Response, next: NextFunction) {
-  const adminKey = extractApiKey(req);
+  const credential = extractApiKey(req);
   const configuredKey = process.env.ADMIN_API_KEY;
 
   if (!configuredKey) {
@@ -209,18 +224,24 @@ function verifyAdmin(req: Request, res: Response, next: NextFunction) {
     });
   }
 
-  if (!adminKey) {
+  if (!credential) {
     return res.status(401).json({
       detail: 'Credencial de autenticación faltante en la cabecera X-API-Key / Authorization',
     });
   }
 
-  if (safeCompareKeys(adminKey, configuredKey)) {
+  // 1. Validar si la credencial es un token de sesión firmado de corta duración
+  if (verifySessionToken(credential)) {
+    return next();
+  }
+
+  // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
+  if (safeCompareKeys(credential, configuredKey)) {
     return next();
   }
 
   return res.status(401).json({
-    detail: 'Credencial de autenticación administrativa inválida',
+    detail: 'Credencial de autenticación administrativa inválida o sesión expirada',
   });
 }
 
@@ -264,6 +285,33 @@ function calculateETag(data: unknown): string {
   const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex').substring(0, 16);
   return `"${hash}"`;
 }
+
+// ---------------------------------------------------------------------------
+// Autenticación de Operador: Emisión de Tokens de Sesión de Corta Duración
+// ---------------------------------------------------------------------------
+app.post('/api/v1/auth/session', mutationRateLimiter, (req: Request, res: Response) => {
+  const { apiKey } = req.body || {};
+  const configuredKey = process.env.ADMIN_API_KEY;
+
+  if (!configuredKey) {
+    return res.status(503).json({
+      detail: 'Servicio de autenticación no disponible: ADMIN_API_KEY no configurada en el servidor.',
+    });
+  }
+
+  if (!apiKey || typeof apiKey !== 'string' || !safeCompareKeys(apiKey.trim(), configuredKey)) {
+    return res.status(401).json({
+      detail: 'Clave administrativa inválida.',
+    });
+  }
+
+  const { token, expiresIn } = generateSessionToken();
+  return res.status(200).json({
+    token,
+    token_type: 'Bearer',
+    expires_in: expiresIn,
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Healthcheck & Observability Endpoints
@@ -350,8 +398,34 @@ app.get('/metrics', (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-// Pokémon REST API Routes
+// Endpoint de Autenticación de Administrador (Session Token HMAC)
 // ---------------------------------------------------------------------------
+app.post('/api/v1/auth/session', (req: Request, res: Response) => {
+  const { apiKey } = req.body || {};
+  const configuredKey = process.env.ADMIN_API_KEY;
+
+  if (!configuredKey) {
+    return res.status(503).json({
+      error: 'Servicio de autenticación no disponible: ADMIN_API_KEY no configurada en el servidor.',
+    });
+  }
+
+  if (!apiKey || typeof apiKey !== 'string') {
+    return res.status(400).json({
+      error: 'Campo apiKey es requerido.',
+    });
+  }
+
+  if (!safeCompareKeys(apiKey.trim(), configuredKey)) {
+    return res.status(401).json({
+      error: 'Clave de administrador inválida.',
+    });
+  }
+
+  const session = generateSessionToken();
+  return res.status(200).json(session);
+});
+
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
 // ---------------------------------------------------------------------------
@@ -616,10 +690,14 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Start Server tras inicializar la capa de persistencia y caché
-initStorage().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    const health = getStorageHealth();
-    console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
-    console.log(`[Pokédex Server] Storage: ${health.database.toUpperCase()} (PG: ${health.postgres_connected}, Redis: ${health.redis_connected}).`);
+if (process.env.NODE_ENV !== 'test') {
+  initStorage().then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      const health = getStorageHealth();
+      console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
+      console.log(`[Pokédex Server] Storage: ${health.database.toUpperCase()} (PG: ${health.postgres_connected}, Redis: ${health.redis_connected}).`);
+    });
   });
-});
+}
+
+export { app };

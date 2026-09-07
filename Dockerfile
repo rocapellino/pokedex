@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación y Empaquetado TypeScript con esbuild)
 # ------------------------------------------------------------------------------
-FROM node:22-alpine AS builder
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ RUN npm run lint && npm run build
 # ------------------------------------------------------------------------------
 # Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
 # ------------------------------------------------------------------------------
-FROM node:22-alpine AS runner
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runner
 
 LABEL maintainer="Rodrigo Capellino" \
       version="2.0.0" \

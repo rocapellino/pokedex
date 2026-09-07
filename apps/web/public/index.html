@@ -42,7 +42,7 @@
       <!-- Theme Switcher Control (Claro, Oscuro, Sistema) -->
       <div class="nav-actions">
         <div class="theme-switch-group" role="radiogroup" aria-label="Seleccionar tema">
-          <button type="button" class="theme-btn" data-theme-val="light" onclick="setTheme('light')" title="Modo Claro"
+          <button type="button" class="theme-btn" data-theme-val="light" title="Modo Claro"
             aria-label="Modo Claro">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +58,7 @@
             </svg>
             <span class="theme-label">Claro</span>
           </button>
-          <button type="button" class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')" title="Modo Oscuro"
+          <button type="button" class="theme-btn" data-theme-val="dark" title="Modo Oscuro"
             aria-label="Modo Oscuro">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -66,7 +66,7 @@
             </svg>
             <span class="theme-label">Oscuro</span>
           </button>
-          <button type="button" class="theme-btn" data-theme-val="system" onclick="setTheme('system')"
+          <button type="button" class="theme-btn" data-theme-val="system"
             title="Igual al Sistema" aria-label="Igual al Sistema">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -89,11 +89,11 @@
           <path d="m21 21-4.3-4.3" />
         </svg>
         <input type="text" id="searchInput" class="search-input"
-          placeholder="Buscar por nombre, tipo, habilidad o hábitat..." oninput="handleSearch()">
+          placeholder="Buscar por nombre, tipo, habilidad o hábitat...">
       </div>
 
       <div class="filter-group">
-        <select id="generationFilter" class="select-filter" onchange="handleGenerationChange()">
+        <select id="generationFilter" class="select-filter">
           <option value="all">🌐 Todas las Generaciones (I a IX)</option>
           <option value="1">Gen I: Kanto (1-151)</option>
           <option value="2">Gen II: Johto (152-251)</option>
@@ -110,25 +110,25 @@
 
     <!-- Type Pills Filter Bar -->
     <div class="type-filter-bar" id="typePillsContainer">
-      <button class="type-pill active" data-type="all" onclick="selectTypeFilter('all')">Todos</button>
-      <button class="type-pill" data-type="Planta" onclick="selectTypeFilter('Planta')">🌿 Planta</button>
-      <button class="type-pill" data-type="Fuego" onclick="selectTypeFilter('Fuego')">🔥 Fuego</button>
-      <button class="type-pill" data-type="Agua" onclick="selectTypeFilter('Agua')">💧 Agua</button>
-      <button class="type-pill" data-type="Eléctrico" onclick="selectTypeFilter('Eléctrico')">⚡ Eléctrico</button>
-      <button class="type-pill" data-type="Psíquico" onclick="selectTypeFilter('Psíquico')">🔮 Psíquico</button>
-      <button class="type-pill" data-type="Roca" onclick="selectTypeFilter('Roca')">🪨 Roca</button>
-      <button class="type-pill" data-type="Tierra" onclick="selectTypeFilter('Tierra')">🏜️ Tierra</button>
-      <button class="type-pill" data-type="Hielo" onclick="selectTypeFilter('Hielo')">❄️ Hielo</button>
-      <button class="type-pill" data-type="Dragón" onclick="selectTypeFilter('Dragón')">🐉 Dragón</button>
-      <button class="type-pill" data-type="Fantasma" onclick="selectTypeFilter('Fantasma')">👻 Fantasma</button>
-      <button class="type-pill" data-type="Veneno" onclick="selectTypeFilter('Veneno')">☠️ Veneno</button>
-      <button class="type-pill" data-type="Bicho" onclick="selectTypeFilter('Bicho')">🐛 Bicho</button>
-      <button class="type-pill" data-type="Volador" onclick="selectTypeFilter('Volador')">🦅 Volador</button>
-      <button class="type-pill" data-type="Lucha" onclick="selectTypeFilter('Lucha')">🥊 Lucha</button>
-      <button class="type-pill" data-type="Acero" onclick="selectTypeFilter('Acero')">⚙️ Acero</button>
-      <button class="type-pill" data-type="Siniestro" onclick="selectTypeFilter('Siniestro')">🌑 Siniestro</button>
-      <button class="type-pill" data-type="Hada" onclick="selectTypeFilter('Hada')">✨ Hada</button>
-      <button class="type-pill" data-type="Normal" onclick="selectTypeFilter('Normal')">⚪ Normal</button>
+      <button class="type-pill active" data-type="all">Todos</button>
+      <button class="type-pill" data-type="Planta">🌿 Planta</button>
+      <button class="type-pill" data-type="Fuego">🔥 Fuego</button>
+      <button class="type-pill" data-type="Agua">💧 Agua</button>
+      <button class="type-pill" data-type="Eléctrico">⚡ Eléctrico</button>
+      <button class="type-pill" data-type="Psíquico">🔮 Psíquico</button>
+      <button class="type-pill" data-type="Roca">🪨 Roca</button>
+      <button class="type-pill" data-type="Tierra">🏜️ Tierra</button>
+      <button class="type-pill" data-type="Hielo">❄️ Hielo</button>
+      <button class="type-pill" data-type="Dragón">🐉 Dragón</button>
+      <button class="type-pill" data-type="Fantasma">👻 Fantasma</button>
+      <button class="type-pill" data-type="Veneno">☠️ Veneno</button>
+      <button class="type-pill" data-type="Bicho">🐛 Bicho</button>
+      <button class="type-pill" data-type="Volador">🦅 Volador</button>
+      <button class="type-pill" data-type="Lucha">🥊 Lucha</button>
+      <button class="type-pill" data-type="Acero">⚙️ Acero</button>
+      <button class="type-pill" data-type="Siniestro">🌑 Siniestro</button>
+      <button class="type-pill" data-type="Hada">✨ Hada</button>
+      <button class="type-pill" data-type="Normal">⚪ Normal</button>
     </div>
 
     <!-- Stats Summary Matrix -->
@@ -161,9 +161,9 @@
 
     <!-- Pagination Controls -->
     <div class="pagination-container" id="paginationBar" style="display: none;">
-      <button class="btn btn-secondary" id="btnPrevPage" onclick="changePage(-1)">← Anterior</button>
+      <button class="btn btn-secondary" id="btnPrevPage">← Anterior</button>
       <span class="page-info" id="pageInfo">Página 1 de 1</span>
-      <button class="btn btn-secondary" id="btnNextPage" onclick="changePage(1)">Siguiente →</button>
+      <button class="btn btn-secondary" id="btnNextPage">Siguiente →</button>
     </div>
   </div>
 
@@ -172,7 +172,7 @@
     <div class="modal-card detail-modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="detailTitle">Ficha Pokémon</h3>
-        <button class="btn-icon" onclick="closeDetailModal()">
+        <button class="btn-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>

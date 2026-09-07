@@ -1,0 +1,6 @@
+# Rutas y directorios ignorados por Semgrep SAST
+node_modules/
+dist/
+coverage/
+scripts/
+.git/

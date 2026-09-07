@@ -1,37 +1,32 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokédex Backoffice - Panel de Administración CRUD</title>
-  <!-- Favicons (Pokébola Oficial) -->
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="alternate icon" type="image/png" href="favicon.png">
-  <link rel="shortcut icon" href="favicon.ico">
-  <!-- Google Fonts -->
+  <title>Pokédex Backoffice | Gestión Integral del Ecosistema</title>
+  <meta name="description" content="Panel de administración y control CRUD para el ecosistema Pokédex en Kubernetes.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23ef4444' stroke='%231f2937' stroke-width='8'/><path d='M 4 50 A 46 46 0 0 0 96 50 Z' fill='%23ffffff'/><circle cx='50' cy='50' r='14' fill='%23ffffff' stroke='%231f2937' stroke-width='8'/><circle cx='50' cy='50' r='6' fill='%231f2937'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/pokedex.css">
   <link rel="stylesheet" href="css/backoffice.css">
-  <!-- Theme Manager Script (Zero-FOUC) -->
   <script src="js/theme.js"></script>
 </head>
 <body class="backoffice-body">
-
-  <div class="app-container">
-    <!-- Navbar Header -->
-    <header class="navbar admin-navbar">
-      <a href="/admin" class="brand">
-        <svg class="pokeball-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="46" stroke="#3B82F6" stroke-width="8" fill="#111827"/>
-          <path d="M4 50H32M68 50H96" stroke="#3B82F6" stroke-width="8" stroke-linecap="round"/>
-          <path d="M4 50C4 24.5949 24.5949 4 50 4C75.4051 4 96 24.5949 96 50H4Z" fill="#3B82F6"/>
-          <circle cx="50" cy="50" r="16" fill="#111827" stroke="#3B82F6" stroke-width="6"/>
-          <circle cx="50" cy="50" r="8" fill="#FFFFFF"/>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-inner container">
+      <a href="/backoffice" class="brand-link">
+        <svg class="brand-pokeball" viewBox="0 0 100 100" width="36" height="36" aria-hidden="true">
+          <circle cx="50" cy="50" r="48" fill="#EF4444" />
+          <path d="M 2 50 Q 50 50 98 50 A 48 48 0 0 1 2 50 Z" fill="#F8FAFC" />
+          <line x1="2" y1="50" x2="98" y2="50" stroke="#0F172A" stroke-width="8" />
+          <circle cx="50" cy="50" r="18" fill="#0F172A" />
+          <circle cx="50" cy="50" r="12" fill="#F8FAFC" />
+          <circle cx="50" cy="50" r="6" fill="#0F172A" />
         </svg>
-        <div>
+        <div class="brand-text">
           <span class="brand-title">Pokédex Backoffice</span>
           <span class="brand-badge badge-admin">Panel CRUD</span>
         </div>
@@ -40,7 +35,7 @@
       <div class="nav-actions">
         <!-- Theme Switcher Control (Claro, Oscuro, Sistema) -->
         <div class="theme-switch-group" role="radiogroup" aria-label="Seleccionar tema">
-          <button type="button" class="theme-btn" data-theme-val="light" onclick="setTheme('light')" title="Modo Claro" aria-label="Modo Claro">
+          <button type="button" class="theme-btn" data-theme-val="light" title="Modo Claro" aria-label="Modo Claro">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -54,13 +49,13 @@
             </svg>
             <span class="theme-label">Claro</span>
           </button>
-          <button type="button" class="theme-btn" data-theme-val="dark" onclick="setTheme('dark')" title="Modo Oscuro" aria-label="Modo Oscuro">
+          <button type="button" class="theme-btn" data-theme-val="dark" title="Modo Oscuro" aria-label="Modo Oscuro">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
             <span class="theme-label">Oscuro</span>
           </button>
-          <button type="button" class="theme-btn" data-theme-val="system" onclick="setTheme('system')" title="Igual al Sistema" aria-label="Igual al Sistema">
+          <button type="button" class="theme-btn" data-theme-val="system" title="Igual al Sistema" aria-label="Igual al Sistema">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
               <line x1="8" y1="21" x2="16" y2="21"></line>
@@ -78,15 +73,15 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>Descargar ZIP</span>
         </a>
-        <button class="btn btn-secondary" id="btnAdminAuth" onclick="openAuthModal()" title="Gestionar clave de administrador (ADMIN_API_KEY)">
+        <button class="btn btn-secondary" id="btnAdminAuth" title="Gestionar sesión de administrador">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
           <span id="authStatusText">Autenticar</span>
         </button>
-        <button class="btn btn-sync" onclick="invalidateCache()" title="Refrescar e invalidar Redis">
+        <button class="btn btn-sync" id="btnSyncCache" title="Refrescar e invalidar Redis">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
           Sincronizar Caché
         </button>
-        <button class="btn btn-primary" onclick="openCreateModal()">
+        <button class="btn btn-primary" id="btnOpenCreate">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Crear Nuevo Pokémon
         </button>
@@ -98,95 +93,91 @@
     </header>
 
     <!-- Admin KPI Cards -->
-    <div class="admin-kpi-grid">
+    <div class="kpi-grid container">
       <div class="kpi-card">
-        <div class="kpi-icon icon-blue">📊</div>
-        <div class="kpi-details">
-          <span class="kpi-label">Total en Base de Datos</span>
-          <span class="kpi-value" id="kpiTotal">0</span>
+        <div class="kpi-header">
+          <span class="kpi-title">Registros en Catálogo</span>
+          <span class="kpi-icon">📦</span>
         </div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-meta">Sincronizados en PostgreSQL 16</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon icon-red">⚔️</div>
-        <div class="kpi-details">
-          <span class="kpi-label">Fuerza Promedio</span>
-          <span class="kpi-value" id="kpiAvgForce">0 pts</span>
+        <div class="kpi-header">
+          <span class="kpi-title">Tipos Diferentes</span>
+          <span class="kpi-icon">🧬</span>
         </div>
+        <div class="kpi-value" id="kpiTypes">0</div>
+        <div class="kpi-meta">Categorización elemental activa</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon icon-green">🏷️</div>
-        <div class="kpi-details">
-          <span class="kpi-label">Tipos Diferentes</span>
-          <span class="kpi-value" id="kpiTypesCount">0</span>
+        <div class="kpi-header">
+          <span class="kpi-title">Fuerza Promedio</span>
+          <span class="kpi-icon">⚡</span>
         </div>
+        <div class="kpi-value" id="kpiAvgPower">0</div>
+        <div class="kpi-meta">Equilibrio competitivo general</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon icon-yellow">⚡</div>
-        <div class="kpi-details">
-          <span class="kpi-label">Estado de Caché</span>
-          <span class="kpi-value" id="kpiCacheStatus" style="font-size: 1.1rem; color: #10b981;">Activo en Redis</span>
+        <div class="kpi-header">
+          <span class="kpi-title">Caché Redis Activa</span>
+          <span class="kpi-icon">🚀</span>
         </div>
+        <div class="kpi-value" id="kpiCacheStatus">Activo</div>
+        <div class="kpi-meta">Invalidación en tiempo real</div>
       </div>
     </div>
 
-    <!-- Table Toolbar -->
-    <section class="table-toolbar">
-      <div class="search-box table-search">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="adminSearchInput" class="search-input" placeholder="Filtrar por ID, Nombre o Tipo..." oninput="handleAdminSearch()">
+    <!-- Main Table Container -->
+    <main class="table-card container">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="adminSearch" class="search-input" placeholder="Buscar por ID, nombre o habilidad...">
+        </div>
+        <div class="filter-controls">
+          <select id="adminTypeFilter" class="filter-select">
+            <option value="all">Todos los Tipos</option>
+            <option value="Eléctrico">Eléctrico</option>
+            <option value="Fuego">Fuego</option>
+            <option value="Agua">Agua</option>
+            <option value="Planta">Planta</option>
+            <option value="Psíquico">Psíquico</option>
+            <option value="Roca">Roca</option>
+            <option value="Tierra">Tierra</option>
+            <option value="Hielo">Hielo</option>
+            <option value="Dragón">Dragón</option>
+            <option value="Fantasma">Fantasma</option>
+            <option value="Veneno">Veneno</option>
+            <option value="Bicho">Bicho</option>
+            <option value="Volador">Volador</option>
+            <option value="Lucha">Lucha</option>
+            <option value="Acero">Acero</option>
+            <option value="Siniestro">Siniestro</option>
+            <option value="Hada">Hada</option>
+            <option value="Normal">Normal</option>
+          </select>
+        </div>
       </div>
 
-      <div class="toolbar-actions">
-        <select id="adminTypeFilter" class="select-filter" onchange="handleAdminTypeFilter()">
-          <option value="all">Todos los Tipos</option>
-          <option value="Planta">Planta</option>
-          <option value="Fuego">Fuego</option>
-          <option value="Agua">Agua</option>
-          <option value="Eléctrico">Eléctrico</option>
-          <option value="Psíquico">Psíquico</option>
-          <option value="Roca">Roca</option>
-          <option value="Tierra">Tierra</option>
-          <option value="Hielo">Hielo</option>
-          <option value="Dragón">Dragón</option>
-          <option value="Fantasma">Fantasma</option>
-          <option value="Veneno">Veneno</option>
-          <option value="Bicho">Bicho</option>
-          <option value="Volador">Volador</option>
-          <option value="Lucha">Lucha</option>
-          <option value="Acero">Acero</option>
-          <option value="Siniestro">Siniestro</option>
-          <option value="Hada">Hada</option>
-          <option value="Normal">Normal</option>
-        </select>
-
-        <select id="adminPageSize" class="select-filter" onchange="handlePageSizeChange()">
-          <option value="25">25 por página</option>
-          <option value="50" selected>50 por página</option>
-          <option value="100">100 por página</option>
-        </select>
-      </div>
-    </section>
-
-    <!-- Admin CRUD Table Container -->
-    <main class="table-responsive">
-      <table class="admin-table" id="adminTable">
+      <table class="admin-table">
         <thead>
           <tr>
-            <th width="80">ID</th>
-            <th width="80">Avatar</th>
-            <th>Nombre del Pokémon</th>
-            <th>Tipo Primario</th>
+            <th style="width: 80px;">ID</th>
+            <th style="width: 90px;">Miniatura</th>
+            <th>Nombre</th>
+            <th>Tipo Principal</th>
             <th>Fuerza</th>
-            <th>Peso / Altura</th>
+            <th>Métricas Físicas</th>
             <th>Hábitat</th>
-            <th width="140" style="text-align: center;">Acciones</th>
+            <th style="text-align: center; width: 170px;">Acciones</th>
           </tr>
         </thead>
-        <tbody id="tableBody">
+        <tbody id="adminTableBody">
           <tr>
-            <td colspan="8" class="table-loading">
-              <div class="spinner"></div>
-              <span>Cargando registros desde PostgreSQL...</span>
+            <td colspan="8" style="text-align: center; padding: 3rem;">
+              <div class="spinner" style="margin: 0 auto 1rem;"></div>
+              <p class="text-muted">Cargando base de datos desde PostgreSQL...</p>
             </td>
           </tr>
         </tbody>
@@ -195,9 +186,9 @@
 
     <!-- Table Pagination -->
     <div class="pagination-container" id="adminPagination">
-      <button class="btn btn-secondary" id="adminBtnPrev" onclick="changeAdminPage(-1)">← Anterior</button>
+      <button class="btn btn-secondary" id="adminBtnPrev">← Anterior</button>
       <span class="page-info" id="adminPageInfo">Cargando...</span>
-      <button class="btn btn-secondary" id="adminBtnNext" onclick="changeAdminPage(1)">Siguiente →</button>
+      <button class="btn btn-secondary" id="adminBtnNext">Siguiente →</button>
     </div>
   </div>
 
@@ -206,12 +197,12 @@
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="crudModalTitle">Nuevo Pokémon</h3>
-        <button class="btn-icon" onclick="closeCrudModal()">
+        <button class="btn-icon" data-close-crud="true" aria-label="Cerrar modal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <form id="crudForm" onsubmit="handleFormSubmit(event)">
+      <form id="crudForm">
         <input type="hidden" id="formPokemonId">
 
         <div class="form-group">
@@ -278,7 +269,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeCrudModal()">Cancelar</button>
+          <button type="button" class="btn btn-secondary" data-close-crud="true">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="btnSubmitForm">Guardar Registro</button>
         </div>
       </form>
@@ -290,7 +281,7 @@
     <div class="modal-card modal-delete-card">
       <div class="modal-header">
         <h3 class="modal-title" style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
-        <button class="btn-icon" onclick="closeDeleteModal()">
+        <button class="btn-icon" data-close-delete="true" aria-label="Cerrar modal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -299,8 +290,8 @@
         <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.9rem;">Esta acción no se puede deshacer y se invalidará automáticamente la caché de Redis.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="btnConfirmDelete" onclick="executeDelete()">Sí, Eliminar</button>
+        <button type="button" class="btn btn-secondary" data-close-delete="true">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="btnConfirmDelete">Sí, Eliminar</button>
       </div>
     </div>
   </div>
@@ -310,24 +301,24 @@
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="authModalTitle">🔐 Autenticación de Administrador</h3>
-        <button class="btn-icon" onclick="closeAuthModal()">
+        <button class="btn-icon" data-close-auth="true" aria-label="Cerrar modal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <form id="authForm">
         <div style="padding: 1rem 0;">
           <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;">
-            Ingresa la clave de administrador (<code style="color: var(--primary, #3b82f6);">ADMIN_API_KEY</code>) para habilitar operaciones de creación, edición y eliminación. Esta credencial se conserva únicamente en tu sesión actual de navegador (<code style="color: var(--text-muted, #9ca3af);">sessionStorage</code>).
+            Ingresa la clave de administrador para obtener un token de sesión de corta duración (<code style="color: var(--primary, #3b82f6);">HMAC Token</code>). Por seguridad, la clave secreta maestra nunca se almacena en el navegador.
           </p>
           <div class="form-group">
-            <label class="form-label" for="adminApiKeyInput">Clave de Administrador (X-API-Key)</label>
-            <input type="password" id="adminApiKeyInput" class="form-control" placeholder="Introduce la clave secreta..." autocomplete="current-password">
+            <label class="form-label" for="adminApiKeyInput">Clave de Administrador (ADMIN_API_KEY)</label>
+            <input type="password" id="adminApiKeyInput" class="form-control" placeholder="Introduce la clave secreta..." autocomplete="current-password" required>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btnClearKeyBtn" onclick="clearAdminApiKey()" style="display: none;">Cerrar Sesión Admin</button>
-          <button type="button" class="btn btn-secondary" onclick="closeAuthModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btnSaveKey">Guardar en Sesión</button>
+          <button type="button" class="btn btn-secondary" id="btnClearKeyBtn" style="display: none;">Cerrar Sesión Admin</button>
+          <button type="button" class="btn btn-secondary" data-close-auth="true">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveKey">Autenticar Sesión</button>
         </div>
       </form>
     </div>

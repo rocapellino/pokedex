@@ -146,6 +146,8 @@ redis:
     tag: "7-alpine"
     pullPolicy: IfNotPresent
   port: 6379
+  auth:
+    password: ""
   service:
     port: 6379
   resources:

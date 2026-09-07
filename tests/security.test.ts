@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
+import { generateSessionToken, verifySessionToken } from '../src/services/auth.js';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -144,3 +145,40 @@ test('⚡ Escalabilidad: cálculo de nextId con reduce soporta grandes coleccion
   const nextId = largeCollection.reduce((max, p) => Math.max(max, p.id), 1008) + 1;
   assert.equal(nextId, 5001);
 });
+
+test('🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado', () => {
+  const session = generateSessionToken();
+  assert.ok(session.token);
+  assert.ok(session.expiresIn > 0);
+  assert.ok(session.expiresAt > Date.now());
+  assert.equal(verifySessionToken(session.token), true);
+});
+
+test('🔐 Auth Session: verifySessionToken rechaza tokens expirados', async () => {
+  // Generar token con TTL de 10ms
+  const expiredSession = generateSessionToken(10);
+  await new Promise(r => setTimeout(r, 25));
+  assert.equal(verifySessionToken(expiredSession.token), false);
+});
+
+test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados', () => {
+  const session = generateSessionToken();
+  const [b64Payload, signature] = session.token.split('.');
+  
+  // Alterar firma
+  const tamperedSig = signature.slice(0, -2) + 'aa';
+  assert.equal(verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
+
+  // Alterar payload decodificado
+  const tamperedPayload = Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 100000 })).toString('base64url');
+  assert.equal(verifySessionToken(`${tamperedPayload}.${signature}`), false);
+});
+
+test('🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos o nulos', () => {
+  assert.equal(verifySessionToken(''), false);
+  assert.equal(verifySessionToken('not-a-token'), false);
+  assert.equal(verifySessionToken('header.payload.signature'), false);
+  assert.equal(verifySessionToken(null as any), false);
+  assert.equal(verifySessionToken(undefined as any), false);
+});
+

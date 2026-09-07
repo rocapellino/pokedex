@@ -12,14 +12,15 @@ description = "Permitir archivos de ejemplo, documentación y mocks de pruebas c
 paths = [
   # Variables de entorno de ejemplo (nunca contienen valores reales)
   '''(?i)^\.env\.example$''',
-  # Documentación — puede contener fragmentos de código con placeholders
-  '''(?i)^docs/.*''',
+  # Documentación técnica con snippets ilustrativos y diagramas
+  '''(?i)^docs/architecture/.*\.md$''',
+  '''(?i)^docs/ci-cd/.*\.md$''',
   # Tests — mocks de prueba con claves ficticias
   '''(?i)^apps/api/tests/.*''',
+  '''(?i)^tests/.*''',
   # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
-  '''(?i)^infra/terraform/.*/variables\.tf$''',
-  '''(?i)^infra/terraform/.*/outputs\.tf$''',
-  '''(?i)^infra/opentofu/.*''',
+  '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
+  '''(?i)^infra/opentofu/.*/(variables|outputs|main|providers)\.tf$''',
   # K8s — SealedSecrets (cifrados con la clave pública del controlador)
   '''(?i)infra/k8s/01-sealed-secrets\.ya?ml''',
   # Ansible — solo inventario de ejemplo
