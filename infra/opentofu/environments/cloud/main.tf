@@ -4,7 +4,8 @@
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  version = "20.8.5"
+  #checkov:skip=CKV_TF_2: "Versión semántica fija de módulo oficial EKS"
 
   cluster_name    = var.cluster_name
   cluster_version = "1.30"
