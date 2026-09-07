@@ -40,6 +40,12 @@ export async function initStorage(): Promise<void> {
         connectionTimeoutMillis: 2000,
       });
 
+      // Manejar errores imprevistos en clientes inactivos del pool
+      pgPool.on('error', (err) => {
+        console.error('[Storage: PostgreSQL Error] Idle client error:', err.message);
+        isPgConnected = false;
+      });
+
       // Validar conexión y crear tabla si no existe
       const client = await pgPool.connect();
       try {
@@ -291,11 +297,21 @@ export async function invalidateCache(id?: number): Promise<void> {
       keysToDelete.push(`pokedex:item:${id}`);
     }
 
-    // Buscar y borrar claves de listados
-    const listKeys = await redisClient.keys('pokedex:list:*');
-    if (listKeys.length > 0) {
-      keysToDelete.push(...listKeys);
-    }
+    // Escanear y borrar claves de listados de forma no bloqueante con SCAN
+    let cursor = '0';
+    do {
+      const [nextCursor, matchedKeys] = await redisClient.scan(
+        cursor,
+        'MATCH',
+        'pokedex:list:*',
+        'COUNT',
+        50
+      );
+      cursor = nextCursor;
+      if (matchedKeys.length > 0) {
+        keysToDelete.push(...matchedKeys);
+      }
+    } while (cursor !== '0');
 
     if (keysToDelete.length > 0) {
       await redisClient.del(...keysToDelete);
