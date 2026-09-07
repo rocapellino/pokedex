@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
-import { generateSessionToken, verifySessionToken } from '../src/services/auth.js';
+import { generateSessionToken, verifySessionToken, getSessionSecret } from '../src/services/auth.js';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -203,5 +203,49 @@ test('🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos 
   assert.equal(verifySessionToken('header.payload.signature'), false);
   assert.equal(verifySessionToken(null as any), false);
   assert.equal(verifySessionToken(undefined as any), false);
+});
+
+test('🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSecret = process.env.ADMIN_SESSION_SECRET;
+  const originalKey = process.env.ADMIN_API_KEY;
+
+  try {
+    delete process.env.ADMIN_SESSION_SECRET;
+    delete process.env.ADMIN_API_KEY;
+    process.env.NODE_ENV = 'production';
+
+    assert.throws(() => {
+      getSessionSecret();
+    }, /Configuración de seguridad crítica faltante/);
+  } finally {
+    process.env.NODE_ENV = originalEnv;
+    if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
+    if (originalKey) process.env.ADMIN_API_KEY = originalKey;
+  }
+});
+
+test('🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSecret = process.env.ADMIN_SESSION_SECRET;
+  const originalKey = process.env.ADMIN_API_KEY;
+
+  try {
+    delete process.env.ADMIN_SESSION_SECRET;
+    delete process.env.ADMIN_API_KEY;
+    process.env.NODE_ENV = 'development';
+
+    const key1 = getSessionSecret();
+    const key2 = getSessionSecret();
+
+    assert.ok(key1 && typeof key1 === 'string');
+    assert.equal(key1.length, 64); // 32 bytes hex
+    assert.equal(key1, key2); // Mismo secreto por ciclo de vida
+    assert.notEqual(key1, 'pokedex-internal-hmac-session-secret-entropy');
+  } finally {
+    process.env.NODE_ENV = originalEnv;
+    if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
+    if (originalKey) process.env.ADMIN_API_KEY = originalKey;
+  }
 });
 

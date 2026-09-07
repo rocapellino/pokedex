@@ -38,8 +38,8 @@ services:
     environment:
       NODE_ENV: "production"
       PORT: "${PORT:-3000}"
-      DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
-      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-pokedex_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
+      REDIS_URL: "${REDIS_URL:-redis://:${REDIS_PASSWORD:-redis_dev_secret_password}@redis:6379/0}"
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
       AI_API_KEY: "${AI_API_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
@@ -69,7 +69,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-pokedex_db}"
-      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_USER: "${POSTGRES_USER:-pokedex_app}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Error: Variable POSTGRES_PASSWORD requerida en .env}"
     expose:
       - "5432"  # Aislado en backend-net: NO expuesto al host ni al frontend web
@@ -79,7 +79,7 @@ services:
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-pokedex_db}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-pokedex_app} -d $${POSTGRES_DB:-pokedex_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -92,6 +92,10 @@ services:
     image: redis:7-alpine
     container_name: pokemon-redis
     restart: unless-stopped
+    command: >
+      sh -c "exec redis-server --requirepass \"$${REDIS_PASSWORD}\""
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_secret_password}
     expose:
       - "6379"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:
@@ -99,7 +103,7 @@ services:
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$${REDIS_PASSWORD}\" redis-cli ping"]
       interval: 10s
       timeout: 3s
       retries: 3
