@@ -13,13 +13,10 @@ infra/
 │       ├── templates/       # Plantillas Kubernetes estandarizadas
 │       ├── values.yaml      # Configuración base / desarrollo local
 │       └── values.prod.yaml # Perfil endurecido de producción
-├── opentofu/                # Aprovisionamiento con OpenTofu para entorno híbrido
+├── opentofu/                # Aprovisionamiento declarativo híbrido con OpenTofu
 │   └── environments/
 │       ├── proxmox/         # Provisión de VMs Kubernetes en Proxmox VE
 │       └── cloud/           # Provisión de clúster EKS gestionado en AWS
-├── terraform/               # Aprovisionamiento declarativo Multi-Cloud legacy
-│   ├── envs/                # Ambientes por proveedor (aws, azure, gcp, proxmox)
-│   └── modules/             # Módulos reutilizables (compute, database, networking, storage)
 ├── ansible/                 # Playbooks de automatización y hardening
 │   ├── inventory/hosts.ini  # Inventario de servidores y nodos de clúster
 │   └── playbooks/           # Configuración de nodos, seguridad UFW y despliegue
@@ -44,9 +41,10 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 * **Gestión de Entornos:** `values.yaml` para desarrollo local y `values.prod.yaml` para entornos de producción.
 * **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
-### 2. Infraestructura Multi-Cloud con Terraform (`infra/terraform/`)
-* Soporte para **AWS**, **Microsoft Azure**, **Google Cloud Platform (GCP)** y **Proxmox VE**.
-* Módulos desacoplados para Redes (VPC/VNet), Cómputo (Serverless/VMs), Almacenamiento (S3/GCS/Blob) y Bases de Datos gestionadas.
+### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)
+* **Proxmox VE (On-Premise):** Provisión de máquinas virtuales Debian/Ubuntu con Cloud-Init y cloud-image para nodos Kubernetes.
+* **AWS Cloud (Pública):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS.
+* Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
 
 ### 3. Automatización con Ansible (`infra/ansible/`)
 * Hardening de seguridad con cortafuegos UFW y configuración SSH.
@@ -69,9 +67,12 @@ task k8s:up
 # Ver estado de los recursos desplegados
 task k8s:status
 
-# Validar planes de Terraform por nube
-task tf:plan:gcp
-task tf:plan:aws
-task tf:plan:azure
-task tf:plan:proxmox
+# Validar sintaxis de entornos OpenTofu
+task tofu:validate
+
+# Planificar aprovisionamiento en Proxmox VE
+task tofu:plan:proxmox
+
+# Planificar aprovisionamiento en AWS EKS
+task tofu:plan:cloud
 ```

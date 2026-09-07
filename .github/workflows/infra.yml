@@ -1,5 +1,5 @@
 # ==============================================================================
-# Workflow de CI para Infraestructura (Kubernetes, Terraform y Ansible)
+# Workflow de CI para Infraestructura (Kubernetes, OpenTofu y Helm)
 # ==============================================================================
 name: ⚙️ Infrastructure & IaC CI
 
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   validate-iac:
-    name: ☸️ K8s & Terraform Validation & Security
+    name: ☸️ K8s & OpenTofu Validation & Security
     runs-on: ubuntu-latest
 
     steps:
@@ -40,19 +40,19 @@ jobs:
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
           echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
 
-      - name: 3. Validar Sintaxis de Módulos Terraform
-        uses: hashicorp/setup-terraform@v4
+      - name: 3. Configurar OpenTofu CLI
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: 1.8.0
+          tofu_version: 1.8.8
 
-      - name: 4. Ejecutar Terraform Validate en Módulos Multi-Cloud
+      - name: 4. Ejecutar OpenTofu Validate en Entornos (Proxmox y Cloud)
         run: |
-          find infra/terraform/modules -name "*.tf" -exec dirname {} + | sort -u | while read -r dir; do
-            echo "Validando módulo en $dir..."
-            terraform -chdir="$dir" init -backend=false
-            terraform -chdir="$dir" validate
+          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/cloud; do
+            echo "Validando entorno OpenTofu en $dir..."
+            tofu -chdir="$dir" init -backend=false
+            tofu -chdir="$dir" validate
           done
-          echo "✅ Todos los módulos multi-cloud de Terraform validados correctamente."
+          echo "✅ Todos los entornos híbridos de OpenTofu validados correctamente."
 
       - name: 5. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@master

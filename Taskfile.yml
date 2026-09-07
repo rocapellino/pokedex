@@ -153,35 +153,51 @@ tasks:
 
 
   # ----------------------------------------------------------------------------
-  # Infraestructura como Código (IaC) Multi-Cloud con Terraform
+  # Infraestructura como Código (IaC) Híbrida con OpenTofu
   # ----------------------------------------------------------------------------
-  tf:plan:gcp:
-    desc: "Ejecuta terraform plan para Google Cloud Platform (Dev)"
-    dir: infra/terraform/envs/gcp/dev
+  tofu:init:proxmox:
+    desc: "Inicializa el entorno OpenTofu para Proxmox VE on-premise"
+    dir: infra/opentofu/environments/proxmox
     cmds:
-      - terraform init
-      - terraform plan
+      - tofu init
 
-  tf:plan:aws:
-    desc: "Ejecuta terraform plan para Amazon Web Services (Dev)"
-    dir: infra/terraform/envs/aws/dev
+  tofu:plan:proxmox:
+    desc: "Ejecuta tofu plan para el entorno on-premise Proxmox VE"
+    dir: infra/opentofu/environments/proxmox
     cmds:
-      - terraform init
-      - terraform plan
+      - tofu plan
 
-  tf:plan:azure:
-    desc: "Ejecuta terraform plan para Microsoft Azure (Dev)"
-    dir: infra/terraform/envs/azure/dev
+  tofu:apply:proxmox:
+    desc: "Aplica la infraestructura en Proxmox VE con OpenTofu"
+    dir: infra/opentofu/environments/proxmox
     cmds:
-      - terraform init
-      - terraform plan
+      - tofu apply
 
-  tf:plan:proxmox:
-    desc: "Ejecuta terraform plan para Proxmox VE (Dev)"
-    dir: infra/terraform/envs/proxmox/dev
+  tofu:init:cloud:
+    desc: "Inicializa el entorno OpenTofu para AWS EKS en la nube"
+    dir: infra/opentofu/environments/cloud
     cmds:
-      - terraform init
-      - terraform plan
+      - tofu init
+
+  tofu:plan:cloud:
+    desc: "Ejecuta tofu plan para el clúster AWS EKS en la nube"
+    dir: infra/opentofu/environments/cloud
+    cmds:
+      - tofu plan
+
+  tofu:apply:cloud:
+    desc: "Aplica la infraestructura AWS EKS con OpenTofu"
+    dir: infra/opentofu/environments/cloud
+    cmds:
+      - tofu apply
+
+  tofu:validate:
+    desc: "Valida la sintaxis de todos los entornos híbridos de OpenTofu"
+    cmds:
+      - tofu -chdir=infra/opentofu/environments/proxmox init -backend=false
+      - tofu -chdir=infra/opentofu/environments/proxmox validate
+      - tofu -chdir=infra/opentofu/environments/cloud init -backend=false
+      - tofu -chdir=infra/opentofu/environments/cloud validate
 
   # ----------------------------------------------------------------------------
   # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK)
