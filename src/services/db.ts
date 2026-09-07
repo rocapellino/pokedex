@@ -28,12 +28,14 @@ for (const p of initialPokemons) {
 let inMemorySequence = initialPokemons.reduce((max, p) => Math.max(max, p.id), 1008);
 
 // ------------------------------------------------------------------------------
-// 2. Inicialización de Clientes
+// 2. Inicialización de Clientes & Reconexión Resiliente
 // ------------------------------------------------------------------------------
-export async function initStorage(): Promise<void> {
-  // Inicialización de PostgreSQL
-  if (DATABASE_URL) {
-    try {
+let heartbeatTimer: NodeJS.Timeout | null = null;
+
+async function connectPg(): Promise<boolean> {
+  if (!DATABASE_URL) return false;
+  try {
+    if (!pgPool) {
       pgPool = new Pool({
         connectionString: DATABASE_URL,
         max: 10,
@@ -41,66 +43,64 @@ export async function initStorage(): Promise<void> {
         connectionTimeoutMillis: 2000,
       });
 
-      // Manejar errores imprevistos en clientes inactivos del pool
       pgPool.on('error', (err) => {
         console.error('[Storage: PostgreSQL Error] Idle client error:', err.message);
         isPgConnected = false;
       });
-
-      // Validar conexión y crear tabla si no existe
-      const client = await pgPool.connect();
-      try {
-        await client.query(`
-          CREATE TABLE IF NOT EXISTS pokedex_entries (
-            id INT PRIMARY KEY,
-            nombre VARCHAR(100) NOT NULL,
-            tipo VARCHAR(50) NOT NULL,
-            data JSONB NOT NULL,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-          );
-          CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
-          CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
-          CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
-        `);
-
-        // Sembrar datos iniciales si la tabla está vacía
-        const countRes = await client.query('SELECT COUNT(*) FROM pokedex_entries');
-        const count = parseInt(countRes.rows[0].count, 10);
-        if (count === 0) {
-          console.log('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
-          for (const p of initialPokemons) {
-            await client.query(
-              'INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
-              [p.id, p.nombre, p.tipo, JSON.stringify(p)]
-            );
-          }
-        }
-
-        // Sincronizar secuencia con el ID máximo actual
-        await client.query(`
-          SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008));
-        `);
-        isPgConnected = true;
-        console.log('[Storage: PostgreSQL] ✅ Conectado, tabla y secuencia pokedex_id_seq sincronizadas.');
-      } finally {
-        client.release();
-      }
-    } catch (err: any) {
-      console.warn(`[Storage: PostgreSQL] ⚠️ No disponible (${err.message}). Operando con almacén en memoria.`);
-      isPgConnected = false;
     }
-  } else {
-    console.log('[Storage] DATABASE_URL no definida. Operando en memoria.');
-  }
 
-  // Inicialización de Redis
-  if (REDIS_URL) {
+    const client = await pgPool.connect();
     try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS pokedex_entries (
+          id INT PRIMARY KEY,
+          nombre VARCHAR(100) NOT NULL,
+          tipo VARCHAR(50) NOT NULL,
+          data JSONB NOT NULL,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
+        CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
+        CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
+      `);
+
+      const countRes = await client.query('SELECT COUNT(*) FROM pokedex_entries');
+      const count = parseInt(countRes.rows[0].count, 10);
+      if (count === 0) {
+        console.log('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
+        for (const p of initialPokemons) {
+          await client.query(
+            'INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
+            [p.id, p.nombre, p.tipo, JSON.stringify(p)]
+          );
+        }
+      }
+
+      await client.query(`
+        SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008));
+      `);
+      isPgConnected = true;
+      console.log('[Storage: PostgreSQL] ✅ Conectado, tabla y secuencia pokedex_id_seq sincronizadas.');
+      return true;
+    } finally {
+      client.release();
+    }
+  } catch (err: any) {
+    console.warn(`[Storage: PostgreSQL] ⚠️ No disponible (${err.message}). Operando con almacén en memoria.`);
+    isPgConnected = false;
+    return false;
+  }
+}
+
+async function connectRedis(): Promise<boolean> {
+  if (!REDIS_URL) return false;
+  try {
+    if (!redisClient) {
       redisClient = new Redis(REDIS_URL, {
         maxRetriesPerRequest: 1,
         enableOfflineQueue: false,
         connectTimeout: 2000,
-        retryStrategy: () => null, // No bloquear si no está disponible
+        retryStrategy: () => null,
       });
 
       redisClient.on('connect', () => {
@@ -108,18 +108,47 @@ export async function initStorage(): Promise<void> {
         console.log('[Cache: Redis] ✅ Conexión activa a Redis.');
       });
 
-      redisClient.on('error', (err) => {
+      redisClient.on('error', () => {
         isRedisConnected = false;
       });
-
-      // Ping de prueba
-      await redisClient.ping();
-      isRedisConnected = true;
-    } catch (err: any) {
-      console.warn(`[Cache: Redis] ⚠️ No disponible (${err.message}). Caching en memoria desactivado.`);
-      isRedisConnected = false;
     }
+
+    await redisClient.ping();
+    isRedisConnected = true;
+    return true;
+  } catch (err: any) {
+    console.warn(`[Cache: Redis] ⚠️ No disponible (${err.message}). Caching en memoria desactivado.`);
+    isRedisConnected = false;
+    return false;
   }
+}
+
+export function startStorageHeartbeat(intervalMs = 5000): void {
+  if (heartbeatTimer) return;
+  heartbeatTimer = setInterval(async () => {
+    if (DATABASE_URL && !isPgConnected) {
+      await connectPg();
+    }
+    if (REDIS_URL && !isRedisConnected) {
+      await connectRedis();
+    }
+  }, intervalMs);
+
+  if (heartbeatTimer.unref) {
+    heartbeatTimer.unref();
+  }
+}
+
+export function stopStorageHeartbeat(): void {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+export async function initStorage(): Promise<void> {
+  await Promise.all([connectPg(), connectRedis()]);
+  startStorageHeartbeat();
 }
 
 // ------------------------------------------------------------------------------

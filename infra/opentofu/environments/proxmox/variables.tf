@@ -29,3 +29,9 @@ variable "ssh_public_key" {
   default     = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGeneratedKeyForCIValidationOnly1234567890 devops@pokedex"
   description = "Clave pública SSH para inyectar en las instancias creadas en Proxmox"
 }
+
+variable "proxmox_insecure" {
+  type        = bool
+  default     = false
+  description = "Permitir certificados TLS autofirmados o no confiables al conectar con la API de Proxmox VE (establecer en false para producción)"
+}

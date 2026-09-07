@@ -52,45 +52,63 @@ function getTypeColor(tipo) {
 }
 
 // ============================================================================
-// Autenticación de Sesión (ADMIN_API_KEY)
+// Autenticación de Sesión de Administrador (HMAC Session Token)
 // ============================================================================
-const ADMIN_STORAGE_KEY = 'pokedex_admin_api_key';
+const ADMIN_TOKEN_KEY = 'pokedex_admin_session_token';
+const ADMIN_EXPIRES_KEY = 'pokedex_admin_session_expires';
 
-function getAdminApiKey() {
-  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || '';
+function getAdminSessionToken() {
+  const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+  const expiresAt = sessionStorage.getItem(ADMIN_EXPIRES_KEY);
+  if (!token) return '';
+
+  if (expiresAt && Date.now() > Number(expiresAt)) {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+    updateAuthUI();
+    return '';
+  }
+
+  return token;
 }
 
-function setAdminApiKey(key) {
-  if (key && key.trim()) {
-    sessionStorage.setItem(ADMIN_STORAGE_KEY, key.trim());
+function setAdminSession(token, expiresAt) {
+  if (token && token.trim()) {
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, token.trim());
+    if (expiresAt) {
+      sessionStorage.setItem(ADMIN_EXPIRES_KEY, String(expiresAt));
+    }
   } else {
-    sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
   }
   updateAuthUI();
 }
 
-function clearAdminApiKey() {
-  sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+function clearAdminSession() {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
   updateAuthUI();
   closeAuthModal();
   showToast('ℹ️ Sesión administrativa cerrada.');
 }
 
 function updateAuthUI() {
-  const key = getAdminApiKey();
+  const token = getAdminSessionToken();
   const statusText = document.getElementById('authStatusText');
   const btn = document.getElementById('btnAdminAuth');
   const clearBtn = document.getElementById('btnClearKeyBtn');
   const input = document.getElementById('adminApiKeyInput');
 
-  if (key) {
+  if (input) input.value = '';
+
+  if (token) {
     if (statusText) statusText.innerText = 'Admin Activo';
     if (btn) {
       btn.style.borderColor = '#10b981';
       btn.style.color = '#10b981';
     }
     if (clearBtn) clearBtn.style.display = 'inline-block';
-    if (input) input.value = key;
   } else {
     if (statusText) statusText.innerText = 'Autenticar';
     if (btn) {
@@ -98,7 +116,6 @@ function updateAuthUI() {
       btn.style.color = '';
     }
     if (clearBtn) clearBtn.style.display = 'none';
-    if (input) input.value = '';
   }
 }
 
@@ -113,25 +130,47 @@ function closeAuthModal() {
   document.getElementById('authModal').classList.remove('active');
 }
 
-function handleAuthSubmit(e) {
+async function handleAuthSubmit(e) {
   e.preventDefault();
   const input = document.getElementById('adminApiKeyInput');
+  const submitBtn = document.getElementById('btnSaveKey');
   const val = input ? input.value.trim() : '';
+
   if (!val) {
     showToast('Ingresa una clave válida.', true);
     return;
   }
-  setAdminApiKey(val);
-  closeAuthModal();
-  showToast('🔐 Clave de administrador guardada en sesión activa.');
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-  updateAuthUI();
-  loadAdminData();
-  checkHealthStatus();
-  setInterval(checkHealthStatus, 15000);
-});
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Verificando...';
+  }
+
+  try {
+    const res = await fetch('/api/v1/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: val })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}: Clave no autorizada`);
+    }
+
+    const data = await res.json();
+    setAdminSession(data.token, data.expiresAt);
+    closeAuthModal();
+    showToast('🔐 Sesión administrativa autenticada (token HMAC emitido).');
+  } catch (err) {
+    showToast(`❌ Error de autenticación: ${err.message}`, true);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Autenticar Sesión';
+    }
+  }
+}
 
 async function checkHealthStatus() {
   const statusEl = document.getElementById('backendStatus');
@@ -259,7 +298,7 @@ function renderTable() {
         </td>
         <td>
           <div class="avatar-cell">
-            <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="table-avatar" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+            <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="table-avatar">
           </div>
         </td>
         <td>
@@ -292,11 +331,11 @@ function renderTable() {
         </td>
         <td style="text-align: center;">
           <div class="actions-group">
-            <button class="btn-action btn-edit" title="Editar Pokémon" onclick="openEditModal(${p.id})">
+            <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="${p.id}">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
               Editar
             </button>
-            <button class="btn-action btn-delete" title="Eliminar Pokémon" onclick="openDeleteModal(${p.id})">
+            <button class="btn-action btn-delete" title="Eliminar Pokémon" data-delete-id="${p.id}">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>
@@ -374,8 +413,8 @@ function closeCrudModal() {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
-  const adminKey = getAdminApiKey();
-  if (!adminKey) {
+  const token = getAdminSessionToken();
+  if (!token) {
     showToast('⚠️ Se requiere autenticación de administrador para guardar cambios.', true);
     openAuthModal();
     return;
@@ -408,14 +447,14 @@ async function handleFormSubmit(e) {
       method: method,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': adminKey
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
 
     if (res.status === 401) {
-      showToast('❌ Clave de administrador inválida o no configurada (401). Reautenticando...', true);
-      clearAdminApiKey();
+      showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
+      clearAdminSession();
       openAuthModal();
       return;
     }
@@ -456,8 +495,8 @@ function closeDeleteModal() {
 async function executeDelete() {
   if (!pendingDeleteId) return;
 
-  const adminKey = getAdminApiKey();
-  if (!adminKey) {
+  const token = getAdminSessionToken();
+  if (!token) {
     showToast('⚠️ Se requiere autenticación de administrador para eliminar registros.', true);
     closeDeleteModal();
     openAuthModal();
@@ -472,13 +511,13 @@ async function executeDelete() {
     const res = await fetch(`/pokemons/${pendingDeleteId}`, {
       method: 'DELETE',
       headers: {
-        'X-API-Key': adminKey
+        'Authorization': `Bearer ${token}`
       }
     });
 
     if (res.status === 401) {
-      showToast('❌ Clave de administrador inválida o no configurada (401). Reautenticando...', true);
-      clearAdminApiKey();
+      showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
+      clearAdminSession();
       closeDeleteModal();
       openAuthModal();
       return;
@@ -522,10 +561,96 @@ function showToast(message, isError = false) {
   const closeBtn = document.createElement('button');
   closeBtn.className = 'toast-close';
   closeBtn.textContent = '×';
-  closeBtn.onclick = () => toast.remove();
+  closeBtn.addEventListener('click', () => toast.remove());
 
   toast.appendChild(span);
   toast.appendChild(closeBtn);
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+// Respaldo global para imágenes rotas sin usar handlers inline (conforme a CSP)
+window.addEventListener('error', (event) => {
+  if (event.target && event.target.tagName === 'IMG') {
+    const fallback = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+    if (event.target.src !== fallback) {
+      event.target.src = fallback;
+    }
+  }
+}, true);
+
+function initEventListeners() {
+  const crudForm = document.getElementById('crudForm');
+  if (crudForm) crudForm.addEventListener('submit', handleFormSubmit);
+
+  const authForm = document.getElementById('authForm');
+  if (authForm) authForm.addEventListener('submit', handleAuthSubmit);
+
+  const btnAdminAuth = document.getElementById('btnAdminAuth');
+  if (btnAdminAuth) btnAdminAuth.addEventListener('click', openAuthModal);
+
+  const btnSyncCache = document.getElementById('btnSyncCache');
+  if (btnSyncCache) btnSyncCache.addEventListener('click', invalidateCache);
+
+  const btnOpenCreate = document.getElementById('btnOpenCreate');
+  if (btnOpenCreate) btnOpenCreate.addEventListener('click', openCreateModal);
+
+  const btnClearKeyBtn = document.getElementById('btnClearKeyBtn');
+  if (btnClearKeyBtn) btnClearKeyBtn.addEventListener('click', clearAdminSession);
+
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  if (btnConfirmDelete) btnConfirmDelete.addEventListener('click', executeDelete);
+
+  const adminBtnPrev = document.getElementById('adminBtnPrev');
+  if (adminBtnPrev) adminBtnPrev.addEventListener('click', () => changeAdminPage(-1));
+
+  const adminBtnNext = document.getElementById('adminBtnNext');
+  if (adminBtnNext) adminBtnNext.addEventListener('click', () => changeAdminPage(1));
+
+  const adminSearchInput = document.getElementById('adminSearchInput');
+  if (adminSearchInput) adminSearchInput.addEventListener('input', handleAdminSearch);
+
+  const adminTypeFilter = document.getElementById('adminTypeFilter');
+  if (adminTypeFilter) adminTypeFilter.addEventListener('change', handleAdminTypeFilter);
+
+  const adminPageSize = document.getElementById('adminPageSize');
+  if (adminPageSize) adminPageSize.addEventListener('change', handlePageSizeChange);
+
+  document.querySelectorAll('[data-close-crud]').forEach(el => {
+    el.addEventListener('click', closeCrudModal);
+  });
+
+  document.querySelectorAll('[data-close-delete]').forEach(el => {
+    el.addEventListener('click', closeDeleteModal);
+  });
+
+  document.querySelectorAll('[data-close-auth]').forEach(el => {
+    el.addEventListener('click', closeAuthModal);
+  });
+
+  const tableBody = document.getElementById('tableBody');
+  if (tableBody) {
+    tableBody.addEventListener('click', (e) => {
+      const editBtn = e.target.closest('[data-edit-id]');
+      if (editBtn) {
+        const id = Number(editBtn.dataset.editId);
+        if (!isNaN(id)) openEditModal(id);
+        return;
+      }
+      const deleteBtn = e.target.closest('[data-delete-id]');
+      if (deleteBtn) {
+        const id = Number(deleteBtn.dataset.deleteId);
+        if (!isNaN(id)) openDeleteModal(id);
+        return;
+      }
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initEventListeners();
+  updateAuthUI();
+  loadAdminData();
+  checkHealthStatus();
+  setInterval(checkHealthStatus, 15000);
+});

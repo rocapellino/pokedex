@@ -22,11 +22,27 @@ spec:
       app.kubernetes.io/component: web
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from: []
       ports:
         - protocol: TCP
           port: 80
+  egress:
+    # Permitir resolución DNS
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Permitir proxy inverso hacia el backend API
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: api
+      ports:
+        - protocol: TCP
+          port: {{ .Values.api.port }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -40,6 +56,7 @@ spec:
       app.kubernetes.io/component: api
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
@@ -48,6 +65,38 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.api.port }}
+  egress:
+    # Permitir resolución DNS
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Permitir tráfico hacia base de datos (PostgreSQL directo o PgBouncer)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+        {{- if .Values.pgbouncer.enabled }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: pgbouncer
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Permitir tráfico hacia Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    # Permitir tráfico HTTPS saliente para servicios externos (ej. Gemini AI, PokeAPI)
+    - ports:
+        - protocol: TCP
+          port: 443
 ---
 {{- if .Values.pgbouncer.enabled }}
 apiVersion: networking.k8s.io/v1
@@ -62,6 +111,7 @@ spec:
       app.kubernetes.io/component: pgbouncer
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
@@ -70,6 +120,19 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: db-seeder
+      ports:
+        - protocol: TCP
+          port: 5432
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
       ports:
         - protocol: TCP
           port: 5432

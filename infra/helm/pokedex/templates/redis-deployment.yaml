@@ -47,10 +47,34 @@ spec:
         app: redis
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: redis
           image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
           imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - "sh"
+            - "-c"
+            - "exec redis-server --requirepass \"$REDIS_PASSWORD\" --port {{ .Values.redis.port }}"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pokemon-secrets
+                  key: REDIS_PASSWORD
           ports:
             - containerPort: {{ .Values.redis.port }}
               name: redis
@@ -58,12 +82,20 @@ spec:
             {{- toYaml .Values.redis.resources | nindent 12 }}
           livenessProbe:
             exec:
-              command: ["redis-cli", "ping"]
+              command:
+                - "sh"
+                - "-c"
+                - "redis-cli -a \"$REDIS_PASSWORD\" ping"
             initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 3
           readinessProbe:
             exec:
-              command: ["redis-cli", "ping"]
+              command:
+                - "sh"
+                - "-c"
+                - "redis-cli -a \"$REDIS_PASSWORD\" ping"
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 3
 {{- end }}

@@ -101,7 +101,7 @@ async function loadPokemons() {
         <div class="empty-icon">⚠️</div>
         <h3 class="empty-title">Error al conectar con el backend</h3>
         <p class="empty-subtitle">${err.message}</p>
-        <button class="btn btn-primary" onclick="loadPokemons()" style="margin-top: 1rem;">Reintentar Conexión</button>
+        <button class="btn btn-primary" id="btnRetryConnection" style="margin-top: 1rem;">Reintentar Conexión</button>
       </div>
     `;
   }
@@ -213,7 +213,7 @@ function renderPokemons() {
     }
 
     return `
-      <article class="pokemon-card" data-pokemon-id="${p.id}" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25; cursor: pointer;" onclick="openDetailModal(${p.id})">
+      <article class="pokemon-card" data-pokemon-id="${p.id}" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25; cursor: pointer;">
         <div class="card-header">
           <span class="pokemon-id">#${formattedId}</span>
           <div style="display: flex; gap: 0.35rem; align-items: center;">
@@ -223,7 +223,7 @@ function renderPokemons() {
         </div>
 
         <div class="image-container">
-          <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="pokemon-img" loading="lazy" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+          <img src="${escapeHTML(p.imagen)}" alt="${escapeHTML(p.nombre)}" class="pokemon-img" loading="lazy">
         </div>
 
         <h2 class="pokemon-name">${escapeHTML(p.nombre)}</h2>
@@ -436,9 +436,9 @@ function renderSingleEvolutionNode(node, currentId, showMethod = false) {
     : '';
 
   return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" onclick="openDetailModal(${nodeId})" title="${isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre}">
+    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" title="${isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre}">
       <div class="evolution-circle-frame">
-        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'">
+        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img">
       </div>
       <div class="evolution-name-tag">
         ${safeNombre} <span class="evolution-number-sub">N.º ${escapeHTML(formattedId)}</span>
@@ -610,7 +610,7 @@ function openDetailModal(id) {
       <h2 class="pokedex-notched-title">
         ${escapeHTML(p.nombre)} <span class="pokedex-notched-number">N.º ${escapeHTML(formattedId)}</span>
       </h2>
-      <button class="btn-icon" style="position: absolute; right: 1rem;" onclick="closeDetailModal()">
+      <button class="btn-icon" style="position: absolute; right: 1rem;" aria-label="Cerrar modal">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
@@ -702,13 +702,23 @@ function showToast(message, isError = false) {
   const closeBtn = document.createElement('button');
   closeBtn.className = 'toast-close';
   closeBtn.textContent = '×';
-  closeBtn.onclick = () => toast.remove();
+  closeBtn.addEventListener('click', () => toast.remove());
   
   toast.appendChild(span);
   toast.appendChild(closeBtn);
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+// Respaldo global para imágenes rotas sin usar handlers inline (conforme a CSP)
+window.addEventListener('error', (event) => {
+  if (event.target && event.target.tagName === 'IMG') {
+    const fallback = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+    if (event.target.src !== fallback) {
+      event.target.src = fallback;
+    }
+  }
+}, true);
 
 function initInteractiveListeners() {
   // 1. Buscador en tiempo real (teclado, pegado o borrado)
@@ -738,10 +748,15 @@ function initInteractiveListeners() {
     });
   }
 
-  // 4. Apertura de modal en cuadrícula de Pokémon (delegación)
+  // 4. Apertura de modal en cuadrícula de Pokémon y reintento (delegación)
   const pokemonGrid = document.getElementById('pokemonGrid');
   if (pokemonGrid) {
     pokemonGrid.addEventListener('click', (e) => {
+      const retryBtn = e.target.closest('#btnRetryConnection');
+      if (retryBtn) {
+        loadPokemons();
+        return;
+      }
       const card = e.target.closest('.pokemon-card');
       if (card) {
         const id = Number(card.getAttribute('data-pokemon-id'));
