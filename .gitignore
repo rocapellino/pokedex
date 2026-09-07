@@ -41,9 +41,10 @@ secrets/
 .tools/
 
 # ==============================================================================
-# Terraform (Infraestructura como Código)
+# OpenTofu & IaC (Infraestructura como Código)
 # ==============================================================================
 **/.terraform/*
+**/.tofu/*
 *.tfstate
 *.tfstate.*
 crash.log
@@ -57,6 +58,7 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+.tofurc
 
 # ==============================================================================
 # Helm & Empaquetado Cloud-Native

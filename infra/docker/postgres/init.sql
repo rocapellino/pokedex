@@ -1,183 +1,54 @@
 -- ==============================================================================
 -- Schema Initialization: Pokédex Database (PostgreSQL 16)
--- Basado en el modelo de datos de WikiDex (Generaciones I a IX)
+-- Modelo unificado y sincronizado con el backend Node.js / TypeScript
 -- ==============================================================================
 
-CREATE TABLE IF NOT EXISTS generations (
-    id SERIAL PRIMARY KEY,
-    roman_name VARCHAR(10) NOT NULL UNIQUE,
-    region_name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS types (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(30) NOT NULL UNIQUE,
-    color_hex VARCHAR(10) NOT NULL,
-    icon_url VARCHAR(255)
-);
-
-CREATE TABLE IF NOT EXISTS abilities (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT
-);
-
-CREATE TABLE IF NOT EXISTS pokemons (
-    id SERIAL PRIMARY KEY,
-    national_number INT NOT NULL UNIQUE,
-    name_es VARCHAR(80) NOT NULL,
-    name_en VARCHAR(80),
-    height_m NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
-    weight_kg NUMERIC(6, 2) NOT NULL DEFAULT 0.0,
-    habitat VARCHAR(50) DEFAULT 'Desconocido',
-    generation_id INT REFERENCES generations(id) ON DELETE SET NULL,
-    image_url VARCHAR(500) NOT NULL,
-    metadata JSONB DEFAULT '{}'::jsonb,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS pokedex_entries (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    data JSONB NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS pokemon_types (
-    pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
-    type_id INT NOT NULL REFERENCES types(id) ON DELETE CASCADE,
-    slot INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (pokemon_id, type_id)
-);
+CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
+CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
 
-CREATE TABLE IF NOT EXISTS pokemon_abilities (
-    pokemon_id INT NOT NULL REFERENCES pokemons(id) ON DELETE CASCADE,
-    ability_id INT NOT NULL REFERENCES abilities(id) ON DELETE CASCADE,
-    is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
-    slot INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (pokemon_id, ability_id)
-);
-
-CREATE TABLE IF NOT EXISTS pokemon_stats (
-    pokemon_id INT PRIMARY KEY REFERENCES pokemons(id) ON DELETE CASCADE,
-    hp INT NOT NULL DEFAULT 0,
-    attack INT NOT NULL DEFAULT 0,
-    defense INT NOT NULL DEFAULT 0,
-    sp_attack INT NOT NULL DEFAULT 0,
-    sp_defense INT NOT NULL DEFAULT 0,
-    speed INT NOT NULL DEFAULT 0,
-    bst INT GENERATED ALWAYS AS (hp + attack + defense + sp_attack + sp_defense + speed) STORED
-);
-
-CREATE TABLE IF NOT EXISTS evolutions (
-    id SERIAL PRIMARY KEY,
-    pre_evolution_id INT REFERENCES pokemons(id) ON DELETE CASCADE,
-    post_evolution_id INT REFERENCES pokemons(id) ON DELETE CASCADE,
-    trigger_type VARCHAR(50) NOT NULL DEFAULT 'Nivel',
-    min_level INT,
-    item_name VARCHAR(80)
-);
-
--- ==============================================================================
--- Índices para optimización de consultas y filtros
--- ==============================================================================
-CREATE INDEX IF NOT EXISTS idx_pokemons_national_number ON pokemons(national_number);
-CREATE INDEX IF NOT EXISTS idx_pokemons_name_es ON pokemons(name_es);
-CREATE INDEX IF NOT EXISTS idx_pokemons_generation ON pokemons(generation_id);
-CREATE INDEX IF NOT EXISTS idx_pokemon_stats_bst ON pokemon_stats(bst);
-
--- ==============================================================================
--- Seed Data: Generaciones, Tipos, Habilidades y Pokémon Actualizados (WikiDex)
--- ==============================================================================
-INSERT INTO generations (id, roman_name, region_name) VALUES
-(1, 'Gen I', 'Kanto'),
-(2, 'Gen II', 'Johto'),
-(3, 'Gen III', 'Hoenn'),
-(4, 'Gen IV', 'Sinnoh'),
-(5, 'Gen V', 'Teselia'),
-(6, 'Gen VI', 'Kalos'),
-(7, 'Gen VII', 'Alola'),
-(8, 'Gen VIII', 'Galar'),
-(9, 'Gen IX', 'Paldea')
+-- Sembrado inicial del catálogo oficial Pokédex
+INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
+(1, 'Bulbasaur', 'Planta', '{"id":1,"nombre":"Bulbasaur","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png","tipo":"Planta","tipos":["Planta","Veneno"],"habitat":"Praderas","fuerza":49,"caracteristicas":{"peso":6.9,"altura":0.7,"fuerza":49,"edad":3,"categoria":"Semilla","descripcion":"A Bulbasaur es fácil verle echándose una siesta al sol. La semilla que tiene en el lomo va creciendo cada vez más a medida que absorbe los rayos del sol.","habitat":"Praderas"},"habilidades":["Espesura","Clorofila"],"stats":{"hp":45,"attack":49,"defense":49,"sp_attack":65,"sp_defense":65,"speed":45},"evoluciones":[{"id":1,"nombre":"Bulbasaur","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"},{"id":2,"nombre":"Ivysaur","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png"},{"id":3,"nombre":"Venusaur","etapa":"Fase 2","metodo":"Nivel 32","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png"}]}'::jsonb),
+(2, 'Ivysaur', 'Planta', '{"id":2,"nombre":"Ivysaur","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png","tipo":"Planta","tipos":["Planta","Veneno"],"habitat":"Praderas","fuerza":62,"caracteristicas":{"peso":13,"altura":1,"fuerza":62,"edad":4,"categoria":"Semilla","descripcion":"Este Pokémon tiene un bulbo en el lomo. Dicen que, al absorber nutrientes, el bulbo se transforma en una flor grande.","habitat":"Praderas"},"habilidades":["Espesura","Clorofila"],"stats":{"hp":60,"attack":62,"defense":63,"sp_attack":80,"sp_defense":80,"speed":60},"evoluciones":[{"id":1,"nombre":"Bulbasaur","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"},{"id":2,"nombre":"Ivysaur","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png"},{"id":3,"nombre":"Venusaur","etapa":"Fase 2","metodo":"Nivel 32","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png"}]}'::jsonb),
+(3, 'Venusaur', 'Planta', '{"id":3,"nombre":"Venusaur","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png","tipo":"Planta","tipos":["Planta","Veneno"],"habitat":"Praderas","fuerza":82,"caracteristicas":{"peso":100,"altura":2,"fuerza":82,"edad":7,"categoria":"Semilla","descripcion":"La flor que tiene en el lomo libera un aroma embriagador que calma los ánimos de aquellos que están librando un combate.","habitat":"Praderas"},"habilidades":["Espesura","Clorofila"],"stats":{"hp":80,"attack":82,"defense":83,"sp_attack":100,"sp_defense":100,"speed":80},"evoluciones":[{"id":1,"nombre":"Bulbasaur","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"},{"id":2,"nombre":"Ivysaur","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png"},{"id":3,"nombre":"Venusaur","etapa":"Fase 2","metodo":"Nivel 32","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png"}]}'::jsonb),
+(4, 'Charmander', 'Fuego', '{"id":4,"nombre":"Charmander","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png","tipo":"Fuego","tipos":["Fuego"],"habitat":"Montañas","fuerza":52,"caracteristicas":{"peso":8.5,"altura":0.6,"fuerza":52,"edad":3,"categoria":"Lagartija","descripcion":"La llama que tiene en la punta de la cola arde según sus sentimientos. Llamea levemente si está alegre y arde con fuerza si se enfada.","habitat":"Montañas"},"habilidades":["Mar llamas","Poder solar"],"stats":{"hp":39,"attack":52,"defense":43,"sp_attack":60,"sp_defense":50,"speed":65},"evoluciones":[{"id":4,"nombre":"Charmander","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png"},{"id":5,"nombre":"Charmeleon","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png"},{"id":6,"nombre":"Charizard","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png"}]}'::jsonb),
+(5, 'Charmeleon', 'Fuego', '{"id":5,"nombre":"Charmeleon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png","tipo":"Fuego","tipos":["Fuego"],"habitat":"Montañas","fuerza":64,"caracteristicas":{"peso":19,"altura":1.1,"fuerza":64,"edad":4,"categoria":"Llama","descripcion":"Tiene una naturaleza agresiva. En combate agita su cola llameante y arremete con afiladas garras.","habitat":"Montañas"},"habilidades":["Mar llamas","Poder solar"],"stats":{"hp":58,"attack":64,"defense":58,"sp_attack":80,"sp_defense":65,"speed":80},"evoluciones":[{"id":4,"nombre":"Charmander","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png"},{"id":5,"nombre":"Charmeleon","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png"},{"id":6,"nombre":"Charizard","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png"}]}'::jsonb),
+(6, 'Charizard', 'Fuego', '{"id":6,"nombre":"Charizard","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png","tipo":"Fuego","tipos":["Fuego","Volador"],"habitat":"Montañas","fuerza":84,"caracteristicas":{"peso":90.5,"altura":1.7,"fuerza":84,"edad":8,"categoria":"Llama","descripcion":"Escupe un fuego tan caliente que funde las rocas. Causa incendios forestales sin querer.","habitat":"Montañas"},"habilidades":["Mar llamas","Poder solar"],"stats":{"hp":78,"attack":84,"defense":78,"sp_attack":109,"sp_defense":85,"speed":100},"evoluciones":[{"id":4,"nombre":"Charmander","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png"},{"id":5,"nombre":"Charmeleon","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png"},{"id":6,"nombre":"Charizard","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png"}]}'::jsonb),
+(7, 'Squirtle', 'Agua', '{"id":7,"nombre":"Squirtle","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png","tipo":"Agua","tipos":["Agua"],"habitat":"Ríos y Lagos","fuerza":48,"caracteristicas":{"peso":9,"altura":0.5,"fuerza":48,"edad":3,"categoria":"Tortuguita","descripcion":"Cuando se siente amenazado, esconde las extremidades en el caparazón y dispara agua a presión.","habitat":"Ríos y Lagos"},"habilidades":["Torrente","Cura lluvia"],"stats":{"hp":44,"attack":48,"defense":65,"sp_attack":50,"sp_defense":64,"speed":43},"evoluciones":[{"id":7,"nombre":"Squirtle","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png"},{"id":8,"nombre":"Wartortle","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png"},{"id":9,"nombre":"Blastoise","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png"}]}'::jsonb),
+(8, 'Wartortle', 'Agua', '{"id":8,"nombre":"Wartortle","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png","tipo":"Agua","tipos":["Agua"],"habitat":"Ríos y Lagos","fuerza":63,"caracteristicas":{"peso":22.5,"altura":1,"fuerza":63,"edad":5,"categoria":"Tortuga","descripcion":"Se le considera un símbolo de longevidad. El pelaje de su cola va oscureciéndose con la edad.","habitat":"Ríos y Lagos"},"habilidades":["Torrente","Cura lluvia"],"stats":{"hp":59,"attack":63,"defense":80,"sp_attack":65,"sp_defense":80,"speed":58},"evoluciones":[{"id":7,"nombre":"Squirtle","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png"},{"id":8,"nombre":"Wartortle","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png"},{"id":9,"nombre":"Blastoise","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png"}]}'::jsonb),
+(9, 'Blastoise', 'Agua', '{"id":9,"nombre":"Blastoise","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png","tipo":"Agua","tipos":["Agua"],"habitat":"Ríos y Lagos","fuerza":83,"caracteristicas":{"peso":85.5,"altura":1.6,"fuerza":83,"edad":9,"categoria":"Armazón","descripcion":"Dispara potentes chorros de agua por los cañones de su caparazón con una fuerza capaz de perforar el acero macizo.","habitat":"Ríos y Lagos"},"habilidades":["Torrente","Cura lluvia"],"stats":{"hp":79,"attack":83,"defense":100,"sp_attack":85,"sp_defense":105,"speed":78},"evoluciones":[{"id":7,"nombre":"Squirtle","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png"},{"id":8,"nombre":"Wartortle","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png"},{"id":9,"nombre":"Blastoise","etapa":"Fase 2","metodo":"Nivel 36","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png"}]}'::jsonb),
+(25, 'Pikachu', 'Eléctrico', '{"id":25,"nombre":"Pikachu","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png","tipo":"Eléctrico","tipos":["Eléctrico"],"habitat":"Bosques","fuerza":55,"caracteristicas":{"peso":6,"altura":0.4,"fuerza":55,"edad":5,"categoria":"Ratón","descripcion":"Las bolsas de las mejillas están llenas de electricidad que libera cuando se asusta o cuando ataca.","habitat":"Bosques"},"habilidades":["Electricidad estática","Pararrayos"],"stats":{"hp":35,"attack":55,"defense":40,"sp_attack":50,"sp_defense":50,"speed":90},"evoluciones":[{"id":172,"nombre":"Pichu","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/172.png"},{"id":25,"nombre":"Pikachu","etapa":"Fase 1","metodo":"Amistad alta + Nivel","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"},{"id":26,"nombre":"Raichu","etapa":"Fase 2","metodo":"Usar Piedra Trueno","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png"}]}'::jsonb),
+(26, 'Raichu', 'Eléctrico', '{"id":26,"nombre":"Raichu","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png","tipo":"Eléctrico","tipos":["Eléctrico"],"habitat":"Bosques","fuerza":90,"caracteristicas":{"peso":30,"altura":0.8,"fuerza":90,"edad":6,"categoria":"Ratón","descripcion":"Su larga cola le sirve de toma de tierra para protegerse de sus propias e intensas descargas eléctricas.","habitat":"Bosques"},"habilidades":["Electricidad estática","Pararrayos"],"stats":{"hp":60,"attack":90,"defense":55,"sp_attack":90,"sp_defense":80,"speed":110},"evoluciones":[{"id":172,"nombre":"Pichu","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/172.png"},{"id":25,"nombre":"Pikachu","etapa":"Fase 1","metodo":"Amistad alta + Nivel","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"},{"id":26,"nombre":"Raichu","etapa":"Fase 2","metodo":"Usar Piedra Trueno","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png"}]}'::jsonb),
+(94, 'Gengar', 'Fantasma', '{"id":94,"nombre":"Gengar","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png","tipo":"Fantasma","tipos":["Fantasma","Veneno"],"habitat":"Cuevas","fuerza":65,"caracteristicas":{"peso":40.5,"altura":1.5,"fuerza":65,"edad":7,"categoria":"Sombra","descripcion":"Para quitarle la vida a su presa, se desliza en su sombra y espera su oportunidad en silencio sepulcral.","habitat":"Cuevas"},"habilidades":["Cuerpo maldito"],"stats":{"hp":60,"attack":65,"defense":60,"sp_attack":130,"sp_defense":75,"speed":110},"evoluciones":[{"id":92,"nombre":"Gastly","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/92.png"},{"id":93,"nombre":"Haunter","etapa":"Fase 1","metodo":"Nivel 25","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/93.png"},{"id":94,"nombre":"Gengar","etapa":"Fase 2","metodo":"Intercambio","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png"}]}'::jsonb),
+(133, 'Eevee', 'Normal', '{"id":133,"nombre":"Eevee","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png","tipo":"Normal","tipos":["Normal"],"habitat":"Praderas","fuerza":55,"caracteristicas":{"peso":6.5,"altura":0.3,"fuerza":55,"edad":2,"categoria":"Evolución","descripcion":"Su genética es tan irregular que contiene la clave para evolucionar en multitud de formas diferentes según su entorno.","habitat":"Praderas"},"habilidades":["Fuga","Adaptable","Anticipación"],"stats":{"hp":55,"attack":55,"defense":50,"sp_attack":45,"sp_defense":65,"speed":55},"evoluciones":{"arbol":{"id":133,"nombre":"Eevee","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png","evolves_to":[{"id":134,"nombre":"Vaporeon","etapa":"Fase 1","metodo":"Usar Piedra Agua","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/134.png"},{"id":135,"nombre":"Jolteon","etapa":"Fase 1","metodo":"Usar Piedra Trueno","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/135.png"},{"id":136,"nombre":"Flareon","etapa":"Fase 1","metodo":"Usar Piedra Fuego","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/136.png"}]}}}'::jsonb),
+(143, 'Snorlax', 'Normal', '{"id":143,"nombre":"Snorlax","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png","tipo":"Normal","tipos":["Normal"],"habitat":"Montañas","fuerza":110,"caracteristicas":{"peso":460,"altura":2.1,"fuerza":110,"edad":10,"categoria":"Dormilón","descripcion":"No se siente satisfecho hasta que se zampa 400 kilos de comida cada día. Cuando termina, se queda dormido de golpe.","habitat":"Montañas"},"habilidades":["Inmunidad","Sebo","Gula"],"stats":{"hp":160,"attack":110,"defense":65,"sp_attack":65,"sp_defense":110,"speed":30}}'::jsonb),
+(150, 'Mewtwo', 'Psíquico', '{"id":150,"nombre":"Mewtwo","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png","tipo":"Psíquico","tipos":["Psíquico"],"habitat":"Área Cero","fuerza":110,"caracteristicas":{"peso":122,"altura":2,"fuerza":110,"edad":20,"categoria":"Genético","descripcion":"Fue creado por científicos manipulando los genes de Mew. Dicen que posee el corazón más salvaje de entre todos los Pokémon.","habitat":"Área Cero"},"habilidades":["Presión","Nerviosismo"],"stats":{"hp":106,"attack":110,"defense":90,"sp_attack":154,"sp_defense":90,"speed":130}}'::jsonb),
+(172, 'Pichu', 'Eléctrico', '{"id":172,"nombre":"Pichu","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/172.png","tipo":"Eléctrico","tipos":["Eléctrico"],"habitat":"Bosques","fuerza":40,"caracteristicas":{"peso":2,"altura":0.3,"fuerza":40,"edad":1,"categoria":"Ratón Pequeño","descripcion":"Aún no domina el almacenamiento eléctrico. Ante cualquier susto o sorpresa, libera una pequeña descarga involuntaria.","habitat":"Bosques"},"habilidades":["Electricidad estática","Pararrayos"],"stats":{"hp":20,"attack":40,"defense":15,"sp_attack":35,"sp_defense":35,"speed":60},"evoluciones":[{"id":172,"nombre":"Pichu","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/172.png"},{"id":25,"nombre":"Pikachu","etapa":"Fase 1","metodo":"Amistad alta + Nivel","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"},{"id":26,"nombre":"Raichu","etapa":"Fase 2","metodo":"Usar Piedra Trueno","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png"}]}'::jsonb),
+(155, 'Cyndaquil', 'Fuego', '{"id":155,"nombre":"Cyndaquil","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/155.png","tipo":"Fuego","tipos":["Fuego"],"habitat":"Montañas","fuerza":52,"caracteristicas":{"peso":7.9,"altura":0.5,"fuerza":52,"edad":2,"categoria":"Ratón Fuego","descripcion":"Es tímido y suele enroscarse en una bola. Cuando se asusta, las llamas de su lomo arden con más intensidad.","habitat":"Montañas"},"habilidades":["Mar llamas","Absorbe fuego"],"stats":{"hp":39,"attack":52,"defense":43,"sp_attack":60,"sp_defense":50,"speed":65}}'::jsonb),
+(158, 'Totodile', 'Agua', '{"id":158,"nombre":"Totodile","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/158.png","tipo":"Agua","tipos":["Agua"],"habitat":"Ríos y Lagos","fuerza":65,"caracteristicas":{"peso":9.5,"altura":0.6,"fuerza":65,"edad":2,"categoria":"Fauces","descripcion":"A pesar de su menudo tamaño, sus mandíbulas son muy poderosas. Muerde cualquier cosa que se mueva por puro juego.","habitat":"Ríos y Lagos"},"habilidades":["Torrente","Potencia bruta"],"stats":{"hp":50,"attack":65,"defense":64,"sp_attack":44,"sp_defense":48,"speed":43}}'::jsonb),
+(248, 'Tyranitar', 'Roca', '{"id":248,"nombre":"Tyranitar","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/248.png","tipo":"Roca","tipos":["Roca","Siniestro"],"habitat":"Montañas","fuerza":134,"caracteristicas":{"peso":202,"altura":2,"fuerza":134,"edad":15,"categoria":"Coraza","descripcion":"Tan imponente que puede destruir una montaña entera con una sola pata para hacer allí su nido.","habitat":"Montañas"},"habilidades":["Chorro arena","Nerviosismo"],"stats":{"hp":100,"attack":134,"defense":110,"sp_attack":95,"sp_defense":100,"speed":61}}'::jsonb),
+(254, 'Sceptile', 'Planta', '{"id":254,"nombre":"Sceptile","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/254.png","tipo":"Planta","tipos":["Planta"],"habitat":"Bosques","fuerza":85,"caracteristicas":{"peso":52.2,"altura":1.7,"fuerza":85,"edad":8,"categoria":"Monte","descripcion":"Las hojas que le crecen en los brazos son tan afiladas como katanas. Se mueve de rama en rama con una agilidad pasmosa.","habitat":"Bosques"},"habilidades":["Espesura","Liviano"],"stats":{"hp":70,"attack":85,"defense":65,"sp_attack":105,"sp_defense":85,"speed":120}}'::jsonb),
+(257, 'Blaziken', 'Fuego', '{"id":257,"nombre":"Blaziken","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/257.png","tipo":"Fuego","tipos":["Fuego","Lucha"],"habitat":"Praderas","fuerza":120,"caracteristicas":{"peso":52,"altura":1.9,"fuerza":120,"edad":9,"categoria":"Llameante","descripcion":"En combate, desprende llamas abrasadoras por las muñecas y propina patadas devastadoras a sus oponentes.","habitat":"Praderas"},"habilidades":["Mar llamas","Impulso"],"stats":{"hp":80,"attack":120,"defense":70,"sp_attack":110,"sp_defense":70,"speed":80}}'::jsonb),
+(384, 'Rayquaza', 'Dragón', '{"id":384,"nombre":"Rayquaza","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png","tipo":"Dragón","tipos":["Dragón","Volador"],"habitat":"Cielos","fuerza":150,"caracteristicas":{"peso":206.5,"altura":7,"fuerza":150,"edad":1000,"categoria":"Cielo","descripcion":"Vive en la capa de ozono desde hace cientos de millones de años, alimentándose de meteoritos y partículas en el aire.","habitat":"Cielos"},"habilidades":["Bucle aire"],"stats":{"hp":105,"attack":150,"defense":90,"sp_attack":150,"sp_defense":90,"speed":95}}'::jsonb),
+(448, 'Lucario', 'Lucha', '{"id":448,"nombre":"Lucario","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/448.png","tipo":"Lucha","tipos":["Lucha","Acero"],"habitat":"Montañas","fuerza":110,"caracteristicas":{"peso":54,"altura":1.2,"fuerza":110,"edad":6,"categoria":"Aura","descripcion":"Capta el aura de todas las cosas. Es capaz de comprender los sentimientos humanos a través de ella.","habitat":"Montañas"},"habilidades":["Impasible","Foco interno","Justiciero"],"stats":{"hp":70,"attack":110,"defense":70,"sp_attack":115,"sp_defense":70,"speed":90}}'::jsonb),
+(445, 'Garchomp', 'Dragón', '{"id":445,"nombre":"Garchomp","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/445.png","tipo":"Dragón","tipos":["Dragón","Tierra"],"habitat":"Cuevas","fuerza":130,"caracteristicas":{"peso":95,"altura":1.9,"fuerza":130,"edad":10,"categoria":"Mach","descripcion":"Vuela a velocidades supersónicas plegando sus alas. Nunca deja escapar a su presa en combate.","habitat":"Cuevas"},"habilidades":["Velo arena","Piel tosca"],"stats":{"hp":108,"attack":130,"defense":95,"sp_attack":80,"sp_defense":85,"speed":102}}'::jsonb),
+(571, 'Zoroark', 'Siniestro', '{"id":571,"nombre":"Zoroark","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/571.png","tipo":"Siniestro","tipos":["Siniestro"],"habitat":"Bosques","fuerza":105,"caracteristicas":{"peso":81.1,"altura":1.6,"fuerza":105,"edad":7,"categoria":"Disfrazorro","descripcion":"Crea ilusiones tan vívidas que resultan indistinguibles de la realidad para engañar y proteger su manada.","habitat":"Bosques"},"habilidades":["Ilusión"],"stats":{"hp":60,"attack":105,"defense":60,"sp_attack":120,"sp_defense":60,"speed":105}}'::jsonb),
+(609, 'Chandelure', 'Fantasma', '{"id":609,"nombre":"Chandelure","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/609.png","tipo":"Fantasma","tipos":["Fantasma","Fuego"],"habitat":"Zonas Urbanas","fuerza":55,"caracteristicas":{"peso":34.3,"altura":1,"fuerza":55,"edad":8,"categoria":"Señuelo","descripcion":"Absorbe las almas de sus víctimas para alimentar sus extrañas llamas espectrales.","habitat":"Zonas Urbanas"},"habilidades":["Absorbe fuego","Cuerpo llama","Allanamiento"],"stats":{"hp":60,"attack":55,"defense":90,"sp_attack":145,"sp_defense":90,"speed":80}}'::jsonb),
+(658, 'Greninja', 'Agua', '{"id":658,"nombre":"Greninja","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png","tipo":"Agua","tipos":["Agua","Siniestro"],"habitat":"Zonas Húmedas","fuerza":95,"caracteristicas":{"peso":40,"altura":1.5,"fuerza":95,"edad":5,"categoria":"Ninja","descripcion":"Comprime agua para crear shurikens que lanza a gran velocidad. Desaparece y reaparece cual ninja veloz.","habitat":"Zonas Húmedas"},"habilidades":["Torrente","Mutatipo","Fuerte afecto"],"stats":{"hp":72,"attack":95,"defense":67,"sp_attack":103,"sp_defense":71,"speed":122}}'::jsonb),
+(700, 'Sylveon', 'Hada', '{"id":700,"nombre":"Sylveon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/700.png","tipo":"Hada","tipos":["Hada"],"habitat":"Praderas","fuerza":65,"caracteristicas":{"peso":23.5,"altura":1,"fuerza":65,"edad":4,"categoria":"Vínculo","descripcion":"Envía ondas tranquilizadoras mediante sus apéndices sensitivos para disipar cualquier hostilidad.","habitat":"Praderas"},"habilidades":["Gran encanto","Piel feérica"],"stats":{"hp":95,"attack":65,"defense":65,"sp_attack":110,"sp_defense":130,"speed":60}}'::jsonb),
+(724, 'Decidueye', 'Planta', '{"id":724,"nombre":"Decidueye","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/724.png","tipo":"Planta","tipos":["Planta","Fantasma"],"habitat":"Bosques","fuerza":107,"caracteristicas":{"peso":36.6,"altura":1.6,"fuerza":107,"edad":6,"categoria":"Pluma Flecha","descripcion":"Dispara sus plumas como flechas con una puntería milimétrica. Oculta su presencia en la espesura del follaje.","habitat":"Bosques"},"habilidades":["Espesura","Remoto"],"stats":{"hp":78,"attack":107,"defense":75,"sp_attack":100,"sp_defense":100,"speed":70}}'::jsonb),
+(778, 'Mimikyu', 'Fantasma', '{"id":778,"nombre":"Mimikyu","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/778.png","tipo":"Fantasma","tipos":["Fantasma","Hada"],"habitat":"Zonas Urbanas","fuerza":90,"caracteristicas":{"peso":0.7,"altura":0.2,"fuerza":90,"edad":4,"categoria":"Disfraz","descripcion":"Lleva un disfraz hecho a mano parecido a Pikachu porque se siente solitario y busca el afecto humano.","habitat":"Zonas Urbanas"},"habilidades":["Disfraz"],"stats":{"hp":55,"attack":90,"defense":80,"sp_attack":50,"sp_defense":105,"speed":96}}'::jsonb),
+(815, 'Cinderace', 'Fuego', '{"id":815,"nombre":"Cinderace","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/815.png","tipo":"Fuego","tipos":["Fuego"],"habitat":"Campos","fuerza":116,"caracteristicas":{"peso":33,"altura":1.4,"fuerza":116,"edad":5,"categoria":"Delantero","descripcion":"Convierte piedras en balones ígneos con sus increíbles habilidades de regate y remate.","habitat":"Campos"},"habilidades":["Mar llamas","Líbero"],"stats":{"hp":80,"attack":116,"defense":75,"sp_attack":65,"sp_defense":75,"speed":119}}'::jsonb),
+(887, 'Dragapult', 'Dragón', '{"id":887,"nombre":"Dragapult","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/887.png","tipo":"Dragón","tipos":["Dragón","Fantasma"],"habitat":"Mares y Cielos","fuerza":120,"caracteristicas":{"peso":50,"altura":3,"fuerza":120,"edad":12,"categoria":"Sigiloso","descripcion":"Lleva dos Dreepy en sus cuernos y los dispara a velocidad de combate como torpedos vivos.","habitat":"Mares y Cielos"},"habilidades":["Cuerpo puro","Allanamiento","Bucle aire"],"stats":{"hp":88,"attack":120,"defense":75,"sp_attack":100,"sp_defense":75,"speed":142}}'::jsonb),
+(906, 'Sprigatito', 'Planta', '{"id":906,"nombre":"Sprigatito","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/906.png","tipo":"Planta","tipos":["Planta"],"habitat":"Praderas","fuerza":61,"caracteristicas":{"peso":4.1,"altura":0.4,"fuerza":61,"edad":2,"categoria":"Gato Planta","descripcion":"Frotar sus patas delanteras libera un dulce aroma relajante que calma a quienes están a su alrededor.","habitat":"Praderas"},"habilidades":["Espesura","Mutatipo"],"stats":{"hp":40,"attack":61,"defense":54,"sp_attack":45,"sp_defense":45,"speed":65}}'::jsonb),
+(1007, 'Koraidon', 'Lucha', '{"id":1007,"nombre":"Koraidon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1007.png","tipo":"Lucha","tipos":["Lucha","Dragón"],"habitat":"Área Cero","fuerza":135,"caracteristicas":{"peso":303,"altura":2.5,"fuerza":135,"edad":100,"categoria":"Paradoja","descripcion":"Conocido como el Rey Alado en libros ancestrales. Parte la tierra con sus garras e invoca el sol más radiante.","habitat":"Área Cero"},"habilidades":["Latido paleo"],"stats":{"hp":100,"attack":135,"defense":115,"sp_attack":85,"sp_defense":100,"speed":135}}'::jsonb),
+(1008, 'Miraidon', 'Eléctrico', '{"id":1008,"nombre":"Miraidon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1008.png","tipo":"Eléctrico","tipos":["Eléctrico","Dragón"],"habitat":"Área Cero","fuerza":85,"caracteristicas":{"peso":240,"altura":2.8,"fuerza":85,"edad":100,"categoria":"Paradoja","descripcion":"Conocido como la Serpiente Férrea. Surca el aire a propulsión electromagnética generando rayos de energía pura.","habitat":"Área Cero"},"habilidades":["Motor hadrónico"],"stats":{"hp":100,"attack":85,"defense":100,"sp_attack":135,"sp_defense":115,"speed":135}}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO types (name, color_hex) VALUES
-('Eléctrico', '#FACC15'),
-('Fuego', '#EF4444'),
-('Agua', '#3B82F6'),
-('Planta', '#10B981'),
-('Psíquico', '#EC4899'),
-('Roca', '#B45309'),
-('Tierra', '#D97706'),
-('Hielo', '#06B6D4'),
-('Fantasma', '#8B5CF6'),
-('Dragón', '#6366F1'),
-('Normal', '#6B7280'),
-('Lucha', '#DC2626'),
-('Veneno', '#A855F7'),
-('Bicho', '#84CC16'),
-('Volador', '#38BDF8'),
-('Acero', '#94A3B8'),
-('Siniestro', '#334155'),
-('Hada', '#F472B6')
-ON CONFLICT (name) DO NOTHING;
-
-INSERT INTO abilities (name, description) VALUES
-('Electricidad estática', 'Puede paralizar al contacto físico.'),
-('Pararrayos', 'Atrae ataques de tipo eléctrico y aumenta el ataque especial.'),
-('Mar llamas', 'Potencia los ataques de tipo fuego en situaciones de peligro.'),
-('Espesura', 'Potencia los ataques de tipo planta en situaciones de peligro.'),
-('Torrente', 'Potencia los ataques de tipo agua en situaciones de peligro.'),
-('Cuerpo maldito', 'Puede anular el movimiento del atacante tras recibir daño.'),
-('Impasible', 'Aumenta la velocidad tras retroceder.'),
-('Mutatipo', 'Cambia el tipo del usuario al del movimiento que va a usar.'),
-('Lanza paleo', 'Potencia la estadística más alta bajo sol o con energía paleo.'),
-('Motor hadrónico', 'Crea un campo eléctrico al entrar en combate y potencia el ataque especial.')
-ON CONFLICT (name) DO NOTHING;
-
--- Inserción de Pokémon emblemáticos (WikiDex / Artwork Oficial)
-INSERT INTO pokemons (id, national_number, name_es, name_en, height_m, weight_kg, habitat, generation_id, image_url, metadata) VALUES
-(1, 25, 'Pikachu', 'Pikachu', 0.4, 6.0, 'Bosques', 1, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png', '{"edad": 5, "categoria": "Ratón"}'::jsonb),
-(2, 4, 'Charmander', 'Charmander', 0.6, 8.5, 'Montañas', 1, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png', '{"edad": 4, "categoria": "Lagartija"}'::jsonb),
-(3, 1, 'Bulbasaur', 'Bulbasaur', 0.7, 6.9, 'Praderas', 1, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png', '{"edad": 3, "categoria": "Semilla"}'::jsonb),
-(4, 7, 'Squirtle', 'Squirtle', 0.5, 9.0, 'Ríos y Lagos', 1, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png', '{"edad": 3, "categoria": "Tortuguita"}'::jsonb),
-(5, 94, 'Gengar', 'Gengar', 1.5, 40.5, 'Cuevas', 1, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png', '{"edad": 7, "categoria": "Sombra"}'::jsonb),
-(6, 448, 'Lucario', 'Lucario', 1.2, 54.0, 'Montañas', 4, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/448.png', '{"edad": 6, "categoria": "Aura"}'::jsonb),
-(7, 658, 'Greninja', 'Greninja', 1.5, 40.0, 'Zonas Húmedas', 6, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png', '{"edad": 5, "categoria": "Ninja"}'::jsonb),
-(8, 1007, 'Koraidon', 'Koraidon', 2.5, 303.0, 'Área Cero', 9, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1007.png', '{"edad": 100, "categoria": "Paradoja"}'::jsonb),
-(9, 1008, 'Miraidon', 'Miraidon', 2.8, 240.0, 'Área Cero', 9, 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1008.png', '{"edad": 100, "categoria": "Paradoja"}'::jsonb)
-ON CONFLICT (id) DO NOTHING;
-
--- Tipos de los Pokémon
-INSERT INTO pokemon_types (pokemon_id, type_id, slot) VALUES
-(1, 1, 1), -- Pikachu: Eléctrico
-(2, 2, 1), -- Charmander: Fuego
-(3, 4, 1), (3, 13, 2), -- Bulbasaur: Planta / Veneno
-(4, 3, 1), -- Squirtle: Agua
-(5, 9, 1), (5, 13, 2), -- Gengar: Fantasma / Veneno
-(6, 12, 1), (6, 16, 2), -- Lucario: Lucha / Acero
-(7, 3, 1), (7, 17, 2), -- Greninja: Agua / Siniestro
-(8, 12, 1), (8, 10, 2), -- Koraidon: Lucha / Dragón
-(9, 1, 1), (9, 10, 2)   -- Miraidon: Eléctrico / Dragón
-ON CONFLICT DO NOTHING;
-
--- Habilidades
-INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden, slot) VALUES
-(1, 1, false, 1), (1, 2, true, 2),
-(2, 3, false, 1),
-(3, 4, false, 1),
-(4, 5, false, 1),
-(5, 6, false, 1),
-(6, 7, false, 1),
-(7, 8, true, 1),
-(8, 9, false, 1),
-(9, 10, false, 1)
-ON CONFLICT DO NOTHING;
-
--- Estadísticas Base
-INSERT INTO pokemon_stats (pokemon_id, hp, attack, defense, sp_attack, sp_defense, speed) VALUES
-(1, 35, 55, 40, 50, 50, 90),
-(2, 39, 52, 43, 60, 50, 65),
-(3, 45, 49, 49, 65, 65, 45),
-(4, 44, 48, 65, 50, 64, 43),
-(5, 60, 65, 60, 130, 75, 110),
-(6, 70, 110, 70, 115, 70, 90),
-(7, 72, 95, 67, 103, 71, 122),
-(8, 100, 135, 115, 85, 100, 135),
-(9, 100, 85, 100, 135, 115, 135)
-ON CONFLICT DO NOTHING;
-

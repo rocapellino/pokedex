@@ -27,7 +27,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.TARGET_URL || 'http://localhost:8000';
+const BASE_URL = __ENV.TARGET_URL || 'http://localhost:8080';
 
 export default function () {
   // 1. Healthcheck Endpoint
