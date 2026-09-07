@@ -9,6 +9,22 @@ export interface ValidationResult {
   error?: string;
 }
 
+export function validateImageUrl(value: unknown): boolean {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
+  }
+  const val = value.trim();
+  if (val.startsWith('/')) {
+    return !SCRIPT_PATTERN.test(val);
+  }
+  try {
+    const parsed = new URL(val);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export function validatePokemonPayload(body: any): ValidationResult {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { valid: false, error: 'El cuerpo de la petición debe ser un objeto JSON válido' };
@@ -38,7 +54,14 @@ export function validatePokemonPayload(body: any): ValidationResult {
     return { valid: false, error: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)' };
   }
 
-  // 3. Validación de Tipos Adicionales
+  // 3. Validación Estricta de URL de Imagen
+  if (body.imagen !== undefined && body.imagen !== null && body.imagen !== '') {
+    if (!validateImageUrl(body.imagen)) {
+      return { valid: false, error: 'El campo imagen debe ser una URL válida con protocolo http o https' };
+    }
+  }
+
+  // 4. Validación de Tipos Adicionales
   if (body.tipos !== undefined) {
     if (!Array.isArray(body.tipos)) {
       return { valid: false, error: 'El campo tipos debe ser un arreglo de nombres de tipos' };
@@ -56,7 +79,7 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
-  // 4. Métricas Físicas: Peso y Altura
+  // 5. Métricas Físicas: Peso y Altura
   const rawPeso = body.caracteristicas?.peso ?? body.peso;
   if (rawPeso !== undefined && rawPeso !== null) {
     const peso = parseFloat(rawPeso);
@@ -73,7 +96,7 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
-  // 5. Fuerza y Edad
+  // 6. Fuerza y Edad
   const rawFuerza = body.fuerza ?? body.caracteristicas?.fuerza;
   if (rawFuerza !== undefined && rawFuerza !== null) {
     const fuerza = parseInt(rawFuerza, 10);
@@ -90,8 +113,19 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
-  // 6. Características Textuales
-  if (body.caracteristicas && typeof body.caracteristicas === 'object') {
+  // 7. Características Textuales & Whitelist Anti Mass-Assignment
+  if (body.caracteristicas !== undefined && body.caracteristicas !== null) {
+    if (typeof body.caracteristicas !== 'object' || Array.isArray(body.caracteristicas)) {
+      return { valid: false, error: 'El campo caracteristicas debe ser un objeto válido' };
+    }
+
+    const allowedCaractKeys = ['peso', 'altura', 'fuerza', 'edad', 'categoria', 'descripcion', 'habitat'];
+    for (const k of Object.keys(body.caracteristicas)) {
+      if (!allowedCaractKeys.includes(k)) {
+        return { valid: false, error: `El campo caracteristicas contiene una propiedad no permitida: '${k}'` };
+      }
+    }
+
     if (body.caracteristicas.descripcion !== undefined) {
       const desc = String(body.caracteristicas.descripcion);
       if (desc.length > 1000) {
@@ -123,7 +157,7 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
-  // 7. Validación de Habilidades
+  // 8. Validación de Habilidades
   if (body.habilidades !== undefined) {
     if (Array.isArray(body.habilidades)) {
       if (body.habilidades.length > 10) {
@@ -149,18 +183,19 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
-  // 8. Validación de Stats
+  // 9. Validación Estricta de Stats (Whitelist cerrado)
   if (body.stats !== undefined) {
     if (typeof body.stats !== 'object' || body.stats === null || Array.isArray(body.stats)) {
       return { valid: false, error: 'El campo stats debe ser un objeto numérico' };
     }
     const validKeys = ['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed'];
-    for (const key of validKeys) {
-      if (body.stats[key] !== undefined) {
-        const val = parseInt(body.stats[key], 10);
-        if (isNaN(val) || val < 0 || val > 1000) {
-          return { valid: false, error: `El stat '${key}' debe ser un entero entre 0 y 1.000` };
-        }
+    for (const key of Object.keys(body.stats)) {
+      if (!validKeys.includes(key)) {
+        return { valid: false, error: `El campo stats contiene una clave no permitida: '${key}'` };
+      }
+      const val = parseInt(body.stats[key], 10);
+      if (isNaN(val) || val < 0 || val > 1000) {
+        return { valid: false, error: `El stat '${key}' debe ser un entero entre 0 y 1.000` };
       }
     }
   }

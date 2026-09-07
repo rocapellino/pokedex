@@ -8,13 +8,13 @@ global:
   namespace: pokemon-app
 
 # ------------------------------------------------------------------------------
-# 1. Backend Microservice (FastAPI ASGI)
+# 1. Backend Microservice (FastAPI / Express Node.js)
 # ------------------------------------------------------------------------------
 api:
   replicaCount: 1
   image:
     repository: pokedex-server
-    tag: "latest"
+    tag: "v2.0.0"
     pullPolicy: IfNotPresent
   port: 3000
   service:
@@ -38,7 +38,7 @@ api:
     runAsUser: 10001
     runAsGroup: 10001
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
@@ -80,7 +80,7 @@ web:
     runAsUser: 101
     runAsGroup: 101
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
@@ -100,7 +100,7 @@ postgresql:
   auth:
     database: pokedex_db
     username: postgres
-    password: postgres_secure_password_k8s
+    password: ""
   persistence:
     enabled: true
     size: 1Gi
@@ -203,12 +203,12 @@ ingress:
 # 7. Credenciales y Secretos de Aplicación
 # ------------------------------------------------------------------------------
 secrets:
-  # Claves por defecto para entorno local (SOBRESESCRIBIR EN PRODUCCIÓN)
-  adminApiKey: "pokedex-super-admin-entropy-key-change-me"
-  aiApiKey: "pokedex-ai-service-entropy-key-change-me"
+  # Credenciales seguras (DEBEN ser provistas vía --set o Secret externo en CI/CD/Producción)
+  adminApiKey: ""
+  aiApiKey: ""
   geminiApiKey: ""
-  minioRootUser: "minioadmin"
-  minioRootPassword: "minioadmin_secure_password"
+  minioRootUser: ""
+  minioRootPassword: ""
 
 # ------------------------------------------------------------------------------
 # 8. Políticas de Seguridad Zero-Trust y Resiliencia

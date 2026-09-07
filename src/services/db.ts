@@ -25,6 +25,7 @@ const memoryMap = new Map<number, Pokemon>();
 for (const p of initialPokemons) {
   memoryMap.set(p.id, JSON.parse(JSON.stringify(p)));
 }
+let inMemorySequence = initialPokemons.reduce((max, p) => Math.max(max, p.id), 1008);
 
 // ------------------------------------------------------------------------------
 // 2. Inicialización de Clientes
@@ -274,7 +275,11 @@ export async function getNextPokemonId(): Promise<number> {
     }
   }
 
-  return Array.from(memoryMap.keys()).reduce((max, id) => Math.max(max, id), 1008) + 1;
+  inMemorySequence = Math.max(
+    inMemorySequence,
+    Array.from(memoryMap.keys()).reduce((max, id) => Math.max(max, id), 1008)
+  ) + 1;
+  return inMemorySequence;
 }
 
 // ------------------------------------------------------------------------------

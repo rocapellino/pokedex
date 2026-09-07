@@ -20,6 +20,7 @@ spec:
         app: pokemon-web
         app.kubernetes.io/component: web
     spec:
+      automountServiceAccountToken: false
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -37,6 +38,7 @@ spec:
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: {{ .Values.web.securityContext.readOnlyRootFilesystem }}
             capabilities:
               drop:
                 - ALL
@@ -44,6 +46,13 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+            - mountPath: /var/cache/nginx
+              name: cache-volume
+            - mountPath: /var/run
+              name: run-volume
           livenessProbe:
             httpGet:
               path: /healthz
@@ -60,6 +69,13 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        - name: cache-volume
+          emptyDir: {}
+        - name: run-volume
+          emptyDir: {}
       {{- with .Values.web.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

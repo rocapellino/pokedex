@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: 2. Configurar Node.js 22 LTS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: "22"
           cache: "npm"
@@ -39,7 +39,7 @@ jobs:
           curl -f http://127.0.0.1:3000/healthz
 
       - name: 5. Ejecutar Pruebas de Carga con Grafana k6
-        uses: grafana/k6-action@v0.4.0
+        uses: grafana/k6-action@a54ec436a599ec51a629b359f1be038ae19ff92c # v0.4.0
         with:
           filename: tests/performance/k6_stress_test.js
           flags: --env TARGET_URL=${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}

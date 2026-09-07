@@ -16,6 +16,7 @@ import {
   consumeDistributedRateLimit,
 } from './src/services/db.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
+import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -273,7 +274,17 @@ app.get('/healthz', (_req: Request, res: Response) => {
 
 app.get('/readyz', (_req: Request, res: Response) => {
   const health = getStorageHealth();
-  res.status(200).json({
+  if (!health.postgres_connected) {
+    return res.status(503).json({
+      status: 'unready',
+      database: health.database,
+      postgres_connected: health.postgres_connected,
+      redis_connected: health.redis_connected,
+      pokemons_count: health.total_records,
+      detail: 'PostgreSQL no está conectado o el servicio está en modo degradado',
+    });
+  }
+  return res.status(200).json({
     status: 'ready',
     database: health.database,
     postgres_connected: health.postgres_connected,
@@ -284,18 +295,20 @@ app.get('/readyz', (_req: Request, res: Response) => {
 
 app.get('/metrics', (_req: Request, res: Response) => {
   const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+  const health = getStorageHealth();
+  const degradedMode = health.postgres_connected ? 0 : 1;
   const lines: string[] = [
     '# HELP pokedex_uptime_seconds Tiempo que la aplicación ha estado activa en segundos.',
     '# TYPE pokedex_uptime_seconds gauge',
     `pokedex_uptime_seconds ${uptimeSeconds}`,
     '',
-    '# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados en memoria.',
+    '# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados en memoria o base de datos.',
     '# TYPE pokedex_total_pokemons gauge',
-    `pokedex_total_pokemons ${pokemons.length}`,
+    `pokedex_total_pokemons ${health.total_records}`,
     '',
     '# HELP pokedex_degraded_mode Indicador de modo degradado (1 = activo, 0 = normal).',
     '# TYPE pokedex_degraded_mode gauge',
-    'pokedex_degraded_mode 0',
+    `pokedex_degraded_mode ${degradedMode}`,
     '',
     '# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas por endpoint y estado.',
     '# TYPE pokedex_http_requests_total counter',
@@ -342,21 +355,12 @@ app.get('/metrics', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
 // ---------------------------------------------------------------------------
-const MAX_PAGE_SIZE = 100;
-const MAX_OFFSET = 10000;
-
 app.get('/pokemons', async (req: Request, res: Response) => {
   const { tipo, nombre, limit, offset } = req.query;
 
   // Límite de paginación estricto contra abusos de DoS y saturación de base de datos
-  const parsedLimit = Math.min(
-    MAX_PAGE_SIZE,
-    Math.max(1, parseInt(String(limit ?? 50), 10) || 50)
-  );
-  const parsedOffset = Math.min(
-    MAX_OFFSET,
-    Math.max(0, parseInt(String(offset ?? 0), 10) || 0)
-  );
+  const parsedLimit = parsePaginationLimit(limit as string | number | undefined);
+  const parsedOffset = parsePaginationOffset(offset as string | number | undefined);
   const typeStr = typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all' ? tipo.trim() : undefined;
   const searchStr = typeof nombre === 'string' && nombre.trim() ? nombre.trim() : undefined;
 
@@ -466,7 +470,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, 
   }
 
   const updated: Pokemon = {
-    ...existing,
+    id: existing.id,
     nombre: body.nombre ? String(body.nombre).trim().slice(0, 60) : existing.nombre,
     imagen: body.imagen || existing.imagen,
     tipo: body.tipo ? String(body.tipo).trim().slice(0, 30) : existing.tipo,
@@ -479,11 +483,22 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, 
       ? (Array.isArray(body.habilidades) ? body.habilidades.map((h: any) => String(h).slice(0, 50)) : [String(body.habilidades)])
       : existing.habilidades,
     caracteristicas: {
-      ...existing.caracteristicas,
-      ...(body.caracteristicas || {}),
-      fuerza: body.fuerza !== undefined ? parseInt(body.fuerza, 10) : (body.caracteristicas?.fuerza || existing.caracteristicas.fuerza),
+      peso: body.caracteristicas?.peso !== undefined ? parseFloat(body.caracteristicas.peso) : existing.caracteristicas.peso,
+      altura: body.caracteristicas?.altura !== undefined ? parseFloat(body.caracteristicas.altura) : existing.caracteristicas.altura,
+      fuerza: body.fuerza !== undefined ? parseInt(body.fuerza, 10) : (body.caracteristicas?.fuerza !== undefined ? parseInt(body.caracteristicas.fuerza, 10) : existing.caracteristicas.fuerza),
+      edad: body.caracteristicas?.edad !== undefined ? parseInt(body.caracteristicas.edad, 10) : existing.caracteristicas.edad,
+      categoria: body.caracteristicas?.categoria !== undefined ? String(body.caracteristicas.categoria).slice(0, 60) : existing.caracteristicas.categoria,
+      descripcion: body.caracteristicas?.descripcion !== undefined ? String(body.caracteristicas.descripcion).slice(0, 1000) : existing.caracteristicas.descripcion,
+      habitat: body.habitat !== undefined ? String(body.habitat).slice(0, 50) : (body.caracteristicas?.habitat !== undefined ? String(body.caracteristicas.habitat).slice(0, 50) : existing.caracteristicas.habitat),
     },
-    stats: body.stats || existing.stats,
+    stats: body.stats ? {
+      hp: body.stats.hp !== undefined ? parseInt(body.stats.hp, 10) : existing.stats.hp,
+      attack: body.stats.attack !== undefined ? parseInt(body.stats.attack, 10) : existing.stats.attack,
+      defense: body.stats.defense !== undefined ? parseInt(body.stats.defense, 10) : existing.stats.defense,
+      sp_attack: body.stats.sp_attack !== undefined ? parseInt(body.stats.sp_attack, 10) : existing.stats.sp_attack,
+      sp_defense: body.stats.sp_defense !== undefined ? parseInt(body.stats.sp_defense, 10) : existing.stats.sp_defense,
+      speed: body.stats.speed !== undefined ? parseInt(body.stats.speed, 10) : existing.stats.speed,
+    } : existing.stats,
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
   };
 

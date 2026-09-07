@@ -41,10 +41,25 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           {
-            "context": "🧪 Lint, Security & Unit Tests"
+            "context": "🔍 Auditoría de Calidad y Complejidad"
+          },
+          {
+            "context": "🔍 Semgrep (SAST)"
+          },
+          {
+            "context": "🏗️ Checkov (Seguridad IaC / Helm)"
+          },
+          {
+            "context": "🐳 Compilar Imagen Docker"
+          },
+          {
+            "context": "🔒 Trivy (SCA & Vulnerabilidades de Contenedor)"
           },
           {
             "context": "🛡️ Gitleaks Secret Detection"
+          },
+          {
+            "context": "🧪 Lint, Security & Unit Tests"
           }
         ]
       }
