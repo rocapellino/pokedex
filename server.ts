@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import crypto from 'crypto';
 import { initialPokemons } from './src/data/initialPokemons.js';
 import { Pokemon } from './src/types.js';
@@ -73,6 +74,14 @@ const configuredCorsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
   : null;
 
+// Orígenes locales seguros permitidos por defecto en entorno de desarrollo
+const DEFAULT_DEV_CORS_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:8080',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:8080',
+];
+
 app.use(cors({
   origin: (origin, callback) => {
     // Permitir solicitudes sin origin (como herramientas internas, curl, llamadas entre servicios locales)
@@ -84,7 +93,11 @@ app.use(cors({
       if (isProduction) {
         return callback(new Error('Bloqueado por directiva de seguridad CORS: CORS_ORIGINS no configurado en producción'));
       }
-      return callback(null, true);
+      // En desarrollo sin CORS_ORIGINS explícito, restringir estrictamente a orígenes locales reconocidos
+      if (DEFAULT_DEV_CORS_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Bloqueado por directiva de seguridad CORS: Origen no permitido en entorno de desarrollo'));
     }
     // La especificación CORS y navegadores modernos prohíben wildcard '*' con credentials: true
     if (configuredCorsOrigins.includes('*')) {
@@ -398,35 +411,6 @@ app.get('/metrics', (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-// Endpoint de Autenticación de Administrador (Session Token HMAC)
-// ---------------------------------------------------------------------------
-app.post('/api/v1/auth/session', (req: Request, res: Response) => {
-  const { apiKey } = req.body || {};
-  const configuredKey = process.env.ADMIN_API_KEY;
-
-  if (!configuredKey) {
-    return res.status(503).json({
-      error: 'Servicio de autenticación no disponible: ADMIN_API_KEY no configurada en el servidor.',
-    });
-  }
-
-  if (!apiKey || typeof apiKey !== 'string') {
-    return res.status(400).json({
-      error: 'Campo apiKey es requerido.',
-    });
-  }
-
-  if (!safeCompareKeys(apiKey.trim(), configuredKey)) {
-    return res.status(401).json({
-      error: 'Clave de administrador inválida.',
-    });
-  }
-
-  const session = generateSessionToken();
-  return res.status(200).json(session);
-});
-
-// ---------------------------------------------------------------------------
 // Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
 // ---------------------------------------------------------------------------
 app.get('/pokemons', async (req: Request, res: Response) => {
@@ -637,10 +621,13 @@ app.post('/api/v1/ai/image', aiRateLimiter, verifyAIKey, async (req: Request, re
 });
 
 // ---------------------------------------------------------------------------
-// Download Repository ZIP Endpoint
+// Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
 // ---------------------------------------------------------------------------
-app.get(['/download', '/download-zip', '/download/repo'], (_req: Request, res: Response) => {
+app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
   const zipPath = path.join(PUBLIC_DIR, 'pokedex-updated.zip');
+  if (!fs.existsSync(zipPath)) {
+    return res.status(404).json({ error: 'El archivo ZIP del repositorio no está disponible en este entorno.' });
+  }
   res.download(zipPath, 'pokedex-v2-migrated.zip', (err) => {
     if (err) {
       console.error('[Download] Error serving zip:', err);
@@ -652,10 +639,8 @@ app.get(['/download', '/download-zip', '/download/repo'], (_req: Request, res: R
 });
 
 // ---------------------------------------------------------------------------
-// Static Assets & Single Page Application Routing
+// Control de Acceso por IP para el Backoffice Administrativo
 // ---------------------------------------------------------------------------
-app.use(express.static(PUBLIC_DIR));
-
 const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
   const allowed = process.env.ADMIN_ALLOWED_IPS;
   if (allowed) {
@@ -668,9 +653,26 @@ const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-app.get(['/admin', '/backoffice'], adminIpRestricted, (_req: Request, res: Response) => {
+// Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
+// antes de que express.static sirva cualquier archivo estático
+app.get(['/admin', '/backoffice', '/backoffice.html'], adminIpRestricted, (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
 });
+
+// Prevenir bypass mediante acceso directo a /backoffice.html a través de express.static
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.path === '/backoffice.html' || req.path.endsWith('/backoffice.html')) {
+    return adminIpRestricted(req, res, () => {
+      res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
+    });
+  }
+  next();
+});
+
+// ---------------------------------------------------------------------------
+// Static Assets & Single Page Application Routing
+// ---------------------------------------------------------------------------
+app.use(express.static(PUBLIC_DIR));
 
 app.get('*', (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));

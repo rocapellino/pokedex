@@ -8,27 +8,31 @@ title = "Gitleaks Config - Pokémon DevOps Platform"
 useDefault = true
 
 [allowlist]
-description = "Permitir archivos de ejemplo, documentación y mocks de pruebas conocidos"
+description = "Permitir archivos de plantilla y placeholders de prueba conocidos"
 paths = [
-  # Variables de entorno de ejemplo (nunca contienen valores reales)
-  '''(?i)^\.env\.example$''',
-  # Documentación técnica con snippets ilustrativos y diagramas
-  '''(?i)^docs/architecture/.*\.md$''',
-  '''(?i)^docs/ci-cd/.*\.md$''',
-  # Tests — mocks de prueba con claves ficticias
-  '''(?i)^apps/api/tests/.*''',
-  '''(?i)^tests/.*''',
+  # Variables de entorno locales y de ejemplo (no versionadas o plantilla)
+  '''(?i)(^|/)\.env(\..*)?$''',
   # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
   '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
-  '''(?i)^infra/opentofu/.*/(variables|outputs|main|providers)\.tf$''',
-  # K8s — SealedSecrets (cifrados con la clave pública del controlador)
-  '''(?i)infra/k8s/01-sealed-secrets\.ya?ml''',
-  # Ansible — solo inventario de ejemplo
+  '''(?i)^infra/opentofu/.*/(variables|outputs)\.tf$''',
+  # K8s — SealedSecrets cifrados con clave pública del controlador
+  '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
+  # Ansible — inventario de ejemplo
   '''(?i)^infra/ansible/inventory/hosts\.ini$''',
-  # Scripts de sellado documentados (contienen solo placeholders)
-  '''(?i)^scripts/seal_secret\.(sh|py)$''',
-  # Docker Compose — referencias a variables de entorno, no valores reales
-  '''(?i)^docker-compose.*''',
+]
+regexes = [
+  # Placeholders de CI/CD, desarrollo local y pruebas documentadas
+  '''(?i)pokedex-super-admin-entropy-key-change-me''',
+  '''(?i)pokedex-ai-service-entropy-key-change-me''',
+  '''(?i)pokedex-internal-hmac-session-secret-entropy''',
+  '''(?i)redis_secure_password_k8s''',
+  '''(?i)redis_dev_secret_password''',
+  '''(?i)minioadmin_secure_password''',
+  '''(?i)ci-validation-dummy-pass''',
+  '''(?i)ci-key''',
+  '''(?i)ci-pass''',
+  '''(?i)dummy-pass''',
+  '''(?i)mock-key''',
 ]
 fingerprints = [
   # Commit histórico de SealedSecret cifrado en el clúster

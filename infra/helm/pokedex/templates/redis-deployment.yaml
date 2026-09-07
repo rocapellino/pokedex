@@ -14,21 +14,6 @@ spec:
   selector:
     app: redis
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis-service
-  labels:
-    {{- include "pokedex.labels" . | nindent 4 }}
-    app: redis
-spec:
-  ports:
-    - port: {{ .Values.redis.service.port }}
-      targetPort: {{ .Values.redis.port }}
-      name: redis
-  selector:
-    app: redis
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,7 +53,7 @@ spec:
           command:
             - "sh"
             - "-c"
-            - "exec redis-server --requirepass \"$REDIS_PASSWORD\" --port {{ .Values.redis.port }}"
+            - "printf 'port %s\\nrequirepass %s\\n' '{{ .Values.redis.port }}' \"$REDIS_PASSWORD\" > /tmp/redis.conf && exec redis-server /tmp/redis.conf"
           env:
             - name: REDIS_PASSWORD
               valueFrom:
@@ -85,7 +70,7 @@ spec:
               command:
                 - "sh"
                 - "-c"
-                - "redis-cli -a \"$REDIS_PASSWORD\" ping"
+                - "REDISCLI_AUTH=\"$REDIS_PASSWORD\" redis-cli ping"
             initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 3
@@ -94,7 +79,7 @@ spec:
               command:
                 - "sh"
                 - "-c"
-                - "redis-cli -a \"$REDIS_PASSWORD\" ping"
+                - "REDISCLI_AUTH=\"$REDIS_PASSWORD\" redis-cli ping"
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
