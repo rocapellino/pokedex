@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS pokedex_entries (
 CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
 CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
 
+-- Secuencia para generación atómica y concurrente de IDs
+CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
+
 -- Sembrado inicial del catálogo oficial Pokédex
 INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
 (1, 'Bulbasaur', 'Planta', '{"id":1,"nombre":"Bulbasaur","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png","tipo":"Planta","tipos":["Planta","Veneno"],"habitat":"Praderas","fuerza":49,"caracteristicas":{"peso":6.9,"altura":0.7,"fuerza":49,"edad":3,"categoria":"Semilla","descripcion":"A Bulbasaur es fácil verle echándose una siesta al sol. La semilla que tiene en el lomo va creciendo cada vez más a medida que absorbe los rayos del sol.","habitat":"Praderas"},"habilidades":["Espesura","Clorofila"],"stats":{"hp":45,"attack":49,"defense":49,"sp_attack":65,"sp_defense":65,"speed":45},"evoluciones":[{"id":1,"nombre":"Bulbasaur","etapa":"Base","metodo":null,"imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"},{"id":2,"nombre":"Ivysaur","etapa":"Fase 1","metodo":"Nivel 16","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png"},{"id":3,"nombre":"Venusaur","etapa":"Fase 2","metodo":"Nivel 32","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png"}]}'::jsonb),
@@ -52,3 +55,6 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
 (1007, 'Koraidon', 'Lucha', '{"id":1007,"nombre":"Koraidon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1007.png","tipo":"Lucha","tipos":["Lucha","Dragón"],"habitat":"Área Cero","fuerza":135,"caracteristicas":{"peso":303,"altura":2.5,"fuerza":135,"edad":100,"categoria":"Paradoja","descripcion":"Conocido como el Rey Alado en libros ancestrales. Parte la tierra con sus garras e invoca el sol más radiante.","habitat":"Área Cero"},"habilidades":["Latido paleo"],"stats":{"hp":100,"attack":135,"defense":115,"sp_attack":85,"sp_defense":100,"speed":135}}'::jsonb),
 (1008, 'Miraidon', 'Eléctrico', '{"id":1008,"nombre":"Miraidon","imagen":"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1008.png","tipo":"Eléctrico","tipos":["Eléctrico","Dragón"],"habitat":"Área Cero","fuerza":85,"caracteristicas":{"peso":240,"altura":2.8,"fuerza":85,"edad":100,"categoria":"Paradoja","descripcion":"Conocido como la Serpiente Férrea. Surca el aire a propulsión electromagnética generando rayos de energía pura.","habitat":"Área Cero"},"habilidades":["Motor hadrónico"],"stats":{"hp":100,"attack":85,"defense":100,"sp_attack":135,"sp_defense":115,"speed":135}}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
+
+-- Sincronizar el valor inicial de la secuencia con el ID más alto registrado
+SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008));

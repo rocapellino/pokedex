@@ -59,6 +59,7 @@ export async function initStorage(): Promise<void> {
           );
           CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
           CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
+          CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
         `);
 
         // Sembrar datos iniciales si la tabla está vacía
@@ -73,8 +74,13 @@ export async function initStorage(): Promise<void> {
             );
           }
         }
+
+        // Sincronizar secuencia con el ID máximo actual
+        await client.query(`
+          SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008));
+        `);
         isPgConnected = true;
-        console.log('[Storage: PostgreSQL] ✅ Conectado y tabla pokedex_entries sincronizada.');
+        console.log('[Storage: PostgreSQL] ✅ Conectado, tabla y secuencia pokedex_id_seq sincronizadas.');
       } finally {
         client.release();
       }
@@ -219,54 +225,41 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
 }
 
 export async function savePokemon(pokemon: Pokemon): Promise<void> {
-  // 1. Guardar en memoria siempre
-  memoryMap.set(pokemon.id, pokemon);
-
-  // 2. Guardar en PostgreSQL
+  // 1. Guardar primero en PostgreSQL (Source of Truth)
   if (isPgConnected && pgPool) {
-    try {
-      await pgPool.query(
-        `INSERT INTO pokedex_entries (id, nombre, tipo, data, updated_at)
-         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
-         ON CONFLICT (id) DO UPDATE
-         SET nombre = EXCLUDED.nombre,
-             tipo = EXCLUDED.tipo,
-             data = EXCLUDED.data,
-             updated_at = CURRENT_TIMESTAMP`,
-        [pokemon.id, pokemon.nombre, pokemon.tipo, JSON.stringify(pokemon)]
-      );
-    } catch (err) {
-      console.error('[Storage: PostgreSQL Error] Fallo guardando Pokémon en BD:', err);
-    }
+    await pgPool.query(
+      `INSERT INTO pokedex_entries (id, nombre, tipo, data, updated_at)
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+       ON CONFLICT (id) DO UPDATE
+       SET nombre = EXCLUDED.nombre,
+           tipo = EXCLUDED.tipo,
+           data = EXCLUDED.data,
+           updated_at = CURRENT_TIMESTAMP`,
+      [pokemon.id, pokemon.nombre, pokemon.tipo, JSON.stringify(pokemon)]
+    );
   }
 
-  // 3. Invalidar caché en Redis
+  // 2. Actualizar réplica en memoria y caché tras éxito en BD (o si BD está ausente en modo local)
+  memoryMap.set(pokemon.id, pokemon);
   await invalidateCache(pokemon.id);
 }
 
 export async function deletePokemon(id: number): Promise<boolean> {
   let deleted = false;
 
-  // 1. Borrar de memoria
-  if (memoryMap.has(id)) {
-    memoryMap.delete(id);
-    deleted = true;
-  }
-
-  // 2. Borrar de PostgreSQL
+  // 1. Eliminar primero en PostgreSQL (Source of Truth)
   if (isPgConnected && pgPool) {
-    try {
-      const res = await pgPool.query('DELETE FROM pokedex_entries WHERE id = $1', [id]);
-      if (res.rowCount && res.rowCount > 0) {
-        deleted = true;
-      }
-    } catch (err) {
-      console.error('[Storage: PostgreSQL Error] Fallo eliminando de BD:', err);
-    }
+    const res = await pgPool.query('DELETE FROM pokedex_entries WHERE id = $1', [id]);
+    deleted = (res.rowCount !== null && res.rowCount > 0);
+  } else {
+    deleted = memoryMap.has(id);
   }
 
-  // 3. Invalidar caché
-  await invalidateCache(id);
+  // 2. Si la eliminación en BD fue exitosa, remover de memoria y desalojar caché
+  if (deleted) {
+    memoryMap.delete(id);
+    await invalidateCache(id);
+  }
 
   return deleted;
 }
@@ -274,10 +267,10 @@ export async function deletePokemon(id: number): Promise<boolean> {
 export async function getNextPokemonId(): Promise<number> {
   if (isPgConnected && pgPool) {
     try {
-      const res = await pgPool.query('SELECT COALESCE(MAX(id), 1008) AS max_id FROM pokedex_entries');
-      return parseInt(res.rows[0].max_id, 10) + 1;
-    } catch {
-      // fallback
+      const res = await pgPool.query("SELECT nextval('pokedex_id_seq') AS next_id");
+      return parseInt(res.rows[0].next_id, 10);
+    } catch (err) {
+      console.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId:', err);
     }
   }
 
@@ -321,6 +314,35 @@ export async function invalidateCache(id?: number): Promise<void> {
   }
 }
 
+// Rate limiter distribuido respaldado por Redis con TTL atómico
+export async function consumeDistributedRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<{ allowed: boolean; retryAfterSeconds: number; remaining: number } | null> {
+  if (!isRedisConnected || !redisClient) {
+    return null; // Fallback a ventana local en memoria
+  }
+
+  try {
+    const redisKey = `ratelimit:${key}`;
+    const count = await redisClient.incr(redisKey);
+    if (count === 1) {
+      await redisClient.pexpire(redisKey, windowMs);
+    }
+    const pttl = await redisClient.pttl(redisKey);
+    const retryAfterSeconds = pttl > 0 ? Math.ceil(pttl / 1000) : Math.ceil(windowMs / 1000);
+
+    if (count > limit) {
+      return { allowed: false, retryAfterSeconds, remaining: 0 };
+    }
+
+    return { allowed: true, retryAfterSeconds, remaining: limit - count };
+  } catch (err) {
+    return null; // Degradación elegante ante errores temporales de Redis
+  }
+}
+
 export function getStorageHealth(): {
   database: 'postgresql' | 'memory';
   postgres_connected: boolean;
@@ -334,3 +356,4 @@ export function getStorageHealth(): {
     total_records: memoryMap.size,
   };
 }
+

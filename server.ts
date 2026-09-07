@@ -13,7 +13,9 @@ import {
   deletePokemon,
   getNextPokemonId,
   getStorageHealth,
+  consumeDistributedRateLimit,
 } from './src/services/db.js';
+import { validatePokemonPayload } from './src/validation/pokemon.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -53,7 +55,8 @@ function normalizeEndpoint(req: Request): string {
 // Security: Server Hardening & Security Headers
 // ---------------------------------------------------------------------------
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
+// Confianza explícita únicamente en proxies de infraestructura local (loopback / linklocal / RFC1918)
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
 app.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -108,7 +111,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ---------------------------------------------------------------------------
-// Rate Limiter en Memoria (Ventana Deslizante)
+// Rate Limiter Híbrido (Redis Distribuido con Fallback a Memoria Local)
 // ---------------------------------------------------------------------------
 interface RateLimitEntry {
   count: number;
@@ -118,7 +121,7 @@ interface RateLimitEntry {
 function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 'Servicio') {
   const clients = new Map<string, RateLimitEntry>();
 
-  // Limpieza periódica de IPs inactivas
+  // Limpieza periódica de IPs inactivas en el almacén local
   setInterval(() => {
     const now = Date.now();
     for (const [ip, entry] of clients.entries()) {
@@ -128,9 +131,25 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
     }
   }, windowMs * 2);
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
     const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
+
+    // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
+    const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
+    if (distResult !== null) {
+      if (!distResult.allowed) {
+        res.setHeader('Retry-After', distResult.retryAfterSeconds);
+        return res.status(429).json({
+          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
+          retry_after_seconds: distResult.retryAfterSeconds,
+        });
+      }
+      return next();
+    }
+
+    // 2. Fallback resiliente a memoria local si Redis no está configurado o está temporalmente offline
     const now = Date.now();
     const entry = clients.get(ip);
 
@@ -234,62 +253,8 @@ function verifyAIKey(req: Request, res: Response, next: NextFunction) {
 }
 
 // ---------------------------------------------------------------------------
-// Validación Robusta de Datos de Entrada (Sanitización y Límites Anti-XSS)
+// Helper: ETag Seguro
 // ---------------------------------------------------------------------------
-const XSS_REGEX = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script/i;
-
-function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
-  if (!body || typeof body !== 'object') {
-    return { valid: false, error: 'El cuerpo de la petición debe ser un objeto JSON válido' };
-  }
-
-  if (typeof body.nombre !== 'string' || !body.nombre.trim()) {
-    return { valid: false, error: 'El campo nombre es requerido y no puede estar vacío' };
-  }
-  if (body.nombre.trim().length > 60) {
-    return { valid: false, error: 'El nombre no puede exceder los 60 caracteres' };
-  }
-  if (XSS_REGEX.test(body.nombre)) {
-    return { valid: false, error: 'El campo nombre contiene código HTML o scripts no permitidos (prevención XSS)' };
-  }
-
-  if (typeof body.tipo !== 'string' || !body.tipo.trim()) {
-    return { valid: false, error: 'El campo tipo es requerido' };
-  }
-  if (body.tipo.trim().length > 30) {
-    return { valid: false, error: 'El tipo no puede exceder los 30 caracteres' };
-  }
-  if (XSS_REGEX.test(body.tipo)) {
-    return { valid: false, error: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)' };
-  }
-
-  const peso = parseFloat(body.caracteristicas?.peso ?? body.peso ?? 10);
-  if (isNaN(peso) || peso <= 0 || peso > 10000) {
-    return { valid: false, error: 'El peso debe ser un número positivo menor o igual a 10.000 kg' };
-  }
-
-  const altura = parseFloat(body.caracteristicas?.altura ?? body.altura ?? 1);
-  if (isNaN(altura) || altura <= 0 || altura > 200) {
-    return { valid: false, error: 'La altura debe ser un número positivo menor o igual a 200 m' };
-  }
-
-  const fuerza = parseInt(body.fuerza ?? body.caracteristicas?.fuerza ?? 50, 10);
-  if (isNaN(fuerza) || fuerza < 0 || fuerza > 1000) {
-    return { valid: false, error: 'La fuerza debe ser un número entero entre 0 y 1.000' };
-  }
-
-  if (body.caracteristicas?.descripcion) {
-    const desc = String(body.caracteristicas.descripcion);
-    if (desc.length > 1000) {
-      return { valid: false, error: 'La descripción no puede exceder los 1.000 caracteres' };
-    }
-    if (XSS_REGEX.test(desc)) {
-      return { valid: false, error: 'La descripción contiene código HTML o scripts no permitidos (prevención XSS)' };
-    }
-  }
-
-  return { valid: true };
-}
 
 // ---------------------------------------------------------------------------
 // Helper: ETag Seguro
@@ -377,11 +342,21 @@ app.get('/metrics', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
 // ---------------------------------------------------------------------------
+const MAX_PAGE_SIZE = 100;
+const MAX_OFFSET = 10000;
+
 app.get('/pokemons', async (req: Request, res: Response) => {
   const { tipo, nombre, limit, offset } = req.query;
 
-  const parsedLimit = limit ? Math.max(1, parseInt(limit as string, 10) || 20) : 50;
-  const parsedOffset = offset ? Math.max(0, parseInt(offset as string, 10) || 0) : 0;
+  // Límite de paginación estricto contra abusos de DoS y saturación de base de datos
+  const parsedLimit = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, parseInt(String(limit ?? 50), 10) || 50)
+  );
+  const parsedOffset = Math.min(
+    MAX_OFFSET,
+    Math.max(0, parseInt(String(offset ?? 0), 10) || 0)
+  );
   const typeStr = typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all' ? tipo.trim() : undefined;
   const searchStr = typeof nombre === 'string' && nombre.trim() ? nombre.trim() : undefined;
 
@@ -610,6 +585,19 @@ app.get(['/admin', '/backoffice'], adminIpRestricted, (_req: Request, res: Respo
 
 app.get('*', (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
+// ---------------------------------------------------------------------------
+// Middleware Global de Manejo de Errores (Express Error Boundary)
+// ---------------------------------------------------------------------------
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[Unhandled Server Error]:', err?.message || err);
+  if (res.headersSent) {
+    return;
+  }
+  res.status(500).json({
+    error: 'Error interno del servidor. La solicitud no pudo ser procesada de forma segura.',
+  });
 });
 
 // Start Server tras inicializar la capa de persistencia y caché

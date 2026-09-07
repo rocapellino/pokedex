@@ -21,5 +21,6 @@ data:
 
     CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
     CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
+    CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
 {{- end }}
 
