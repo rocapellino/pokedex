@@ -11,7 +11,7 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@google/genai": "latest",
+    "@google/genai": "2.21.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "ioredis": "^6.0.0",

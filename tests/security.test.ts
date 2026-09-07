@@ -1,42 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-
-// Test XSS prevention regex pattern
-const XSS_REGEX = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script/i;
-
-function testValidatePokemon(payload: any) {
-  if (!payload || typeof payload !== 'object') {
-    return { valid: false, error: 'JSON inválido' };
-  }
-  if (typeof payload.nombre !== 'string' || !payload.nombre.trim()) {
-    return { valid: false, error: 'Nombre requerido' };
-  }
-  if (XSS_REGEX.test(payload.nombre)) {
-    return { valid: false, error: 'XSS en nombre' };
-  }
-  if (typeof payload.tipo !== 'string' || !payload.tipo.trim()) {
-    return { valid: false, error: 'Tipo requerido' };
-  }
-  if (XSS_REGEX.test(payload.tipo)) {
-    return { valid: false, error: 'XSS en tipo' };
-  }
-  if (payload.caracteristicas?.descripcion && XSS_REGEX.test(String(payload.caracteristicas.descripcion))) {
-    return { valid: false, error: 'XSS en descripcion' };
-  }
-  return { valid: true };
-}
+import { validatePokemonPayload } from '../src/validation/pokemon.js';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
-  const result = testValidatePokemon({
+  const result = validatePokemonPayload({
     nombre: '<script>alert("xss")</script>',
     tipo: 'Fuego',
   });
   assert.equal(result.valid, false);
-  assert.equal(result.error, 'XSS en nombre');
+  assert.match(result.error || '', /código HTML o scripts no permitidos/);
 });
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS con onerror en descripción', () => {
-  const result = testValidatePokemon({
+  const result = validatePokemonPayload({
     nombre: 'Pikachu',
     tipo: 'Electrico',
     caracteristicas: {
@@ -44,16 +20,65 @@ test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS con oner
     },
   });
   assert.equal(result.valid, false);
-  assert.equal(result.error, 'XSS en descripcion');
+  assert.match(result.error || '', /código HTML o scripts no permitidos/);
 });
 
-test('🛡️ Seguridad: validatePokemonPayload acepta payloads legítimos', () => {
-  const result = testValidatePokemon({
+test('🛡️ Seguridad: validatePokemonPayload rechaza javascript: pseudo-protocolo en tipos', () => {
+  const result = validatePokemonPayload({
+    nombre: 'Mew',
+    tipo: 'Psíquico',
+    tipos: ['Psíquico', 'javascript:alert(1)'],
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.error || '', /scripts no permitidos/);
+});
+
+test('🛡️ Validación: rechaza payloads no válidos (null, strings, arrays)', () => {
+  assert.equal(validatePokemonPayload(null).valid, false);
+  assert.equal(validatePokemonPayload('invalid string').valid, false);
+  assert.equal(validatePokemonPayload([1, 2, 3]).valid, false);
+});
+
+test('🛡️ Validación: rechaza pesos y alturas físicas desmedidas o negativas', () => {
+  const negPeso = validatePokemonPayload({
+    nombre: 'Snorlax',
+    tipo: 'Normal',
+    caracteristicas: { peso: -5 },
+  });
+  assert.equal(negPeso.valid, false);
+
+  const overflowAltura = validatePokemonPayload({
+    nombre: 'Wailord',
+    tipo: 'Agua',
+    caracteristicas: { altura: 999 },
+  });
+  assert.equal(overflowAltura.valid, false);
+});
+
+test('🛡️ Validación: rechaza stats fuera del rango 0-1000', () => {
+  const invalidStat = validatePokemonPayload({
+    nombre: 'Mewtwo',
+    tipo: 'Psíquico',
+    stats: { attack: 5000 },
+  });
+  assert.equal(invalidStat.valid, false);
+  assert.match(invalidStat.error || '', /El stat 'attack' debe ser un entero entre 0 y 1.000/);
+});
+
+test('🛡️ Seguridad: validatePokemonPayload acepta payloads legítimos completos', () => {
+  const result = validatePokemonPayload({
     nombre: 'Charizard',
     tipo: 'Fuego',
+    tipos: ['Fuego', 'Volador'],
+    fuerza: 84,
     caracteristicas: {
+      peso: 90.5,
+      altura: 1.7,
       descripcion: 'Un Pokémon noble que escupe llamas intensas.',
+      habitat: 'Montañas',
     },
+    habilidades: ['Mar llamas', 'Poder solar'],
+    stats: { hp: 78, attack: 84, defense: 78, sp_attack: 109, sp_defense: 85, speed: 100 },
   });
   assert.equal(result.valid, true);
 });

@@ -1,5 +1,6 @@
 # ==============================================================================
 # Pipeline de CI/CD - Quality Gates, Build, Security Scan y Publicación OCI
+# Hardened con SHA pinning y principio de mínimo privilegio en GITHUB_TOKEN
 # ==============================================================================
 name: 🚀 CI/CD Pipeline - Quality Gates & Release
 
@@ -9,10 +10,9 @@ on:
   push:
     branches: [ main ]
 
+# Permiso mínimo global por defecto (solo lectura)
 permissions:
   contents: read
-  packages: write
-  security-events: write
 
 env:
   REGISTRY: ghcr.io
@@ -26,12 +26,14 @@ jobs:
   code-quality:
     name: "🔍 Auditoría de Calidad y Complejidad"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: 2. Configurar Node.js 22 LTS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832e0b1 # v4.0.3
         with:
           node-version: '22'
           cache: 'npm'
@@ -46,7 +48,7 @@ jobs:
         run: npm run build
 
       - name: 6. Configurar Python para Auditoría
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: '3.13'
 
@@ -56,11 +58,13 @@ jobs:
   semgrep:
     name: "🔍 Semgrep (SAST)"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     container:
       image: returntocorp/semgrep:latest
     steps:
       - name: Checkout del código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Escanear código fuente
         run: semgrep scan --config auto --error src/
@@ -68,9 +72,11 @@ jobs:
   checkov:
     name: "🏗️ Checkov (Seguridad IaC / Helm)"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout del código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Ejecutar Checkov sobre OpenTofu y Helm
         uses: bridgecrewio/checkov-action@v12
@@ -78,7 +84,7 @@ jobs:
           framework: terraform,helm
           directory: infra/opentofu
           output_format: cli
-          soft_fail: true
+          soft_fail: false
 
   # =======================================================
   # 2. BUILD DOCKER (Solo si los Quality Gates pasan)
@@ -87,18 +93,20 @@ jobs:
     name: "🐳 Compilar Imagen Docker"
     needs: [code-quality, semgrep, checkov]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
       - name: Checkout del código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
       - name: Extraer metadata y etiquetas
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -106,7 +114,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Compilar y exportar imagen local
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
         with:
           context: .
           file: ./Dockerfile
@@ -120,7 +128,7 @@ jobs:
           docker save ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} -o /tmp/image.tar
 
       - name: Subir artefacto de imagen para escaneo
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: docker-image
           path: /tmp/image.tar
@@ -133,9 +141,11 @@ jobs:
     name: "🔒 Trivy (SCA & Vulnerabilidades de Contenedor)"
     needs: build-docker
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Descargar artefacto de la imagen
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: docker-image
           path: /tmp
@@ -145,7 +155,7 @@ jobs:
           docker load -i /tmp/image.tar
 
       - name: Escanear imagen con Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
           format: 'table'
@@ -162,19 +172,22 @@ jobs:
     needs: [build-docker, trivy-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout del código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Iniciar sesión en GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Descargar imagen y hacer Push a GHCR
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         with:
           name: docker-image
           path: /tmp
@@ -185,7 +198,7 @@ jobs:
           docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Configurar Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
         with:
           version: 'v3.15.0'
 
