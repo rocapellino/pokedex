@@ -87,35 +87,30 @@ tasks:
     cmds:
       - task targets
 
-  jenkins:up:
-    desc: "Inicia el servidor Jenkins CI/CD en segundo plano"
-    dir: ../docker_jenkins
+  # ----------------------------------------------------------------------------
+  # GitOps & CD (ArgoCD & Kubernetes)
+  # ----------------------------------------------------------------------------
+  gitops:apps:
+    desc: "Aplica las aplicaciones declarativas de ArgoCD (Proxmox y Cloud)"
     cmds:
-      - task up
+      - kubectl apply -f gitops/apps/app-proxmox.yaml
+      - kubectl apply -f gitops/apps/app-cloud.yaml
 
-  jenkins:down:
-    desc: "Detiene el servidor Jenkins CI/CD"
-    dir: ../docker_jenkins
+  gitops:sync:proxmox:
+    desc: "Sincroniza la aplicación ArgoCD para el entorno on-premise Proxmox"
     cmds:
-      - task down
+      - argocd app sync pokedex-proxmox || echo "Usando manifiesto directo..." && kubectl apply -f gitops/apps/app-proxmox.yaml
 
-  jenkins:status:
-    desc: "Muestra el estado y healthcheck del contenedor Jenkins"
-    dir: ../docker_jenkins
+  gitops:sync:cloud:
+    desc: "Sincroniza la aplicación ArgoCD para el entorno público Cloud (AWS EKS)"
     cmds:
-      - task status
+      - argocd app sync pokedex-cloud || echo "Usando manifiesto directo..." && kubectl apply -f gitops/apps/app-cloud.yaml
 
-  jenkins:password:
-    desc: "Obtiene la clave inicial de administrador de Jenkins"
-    dir: ../docker_jenkins
+  gitops:status:
+    desc: "Consulta el estado de sincronización y salud de las aplicaciones ArgoCD"
     cmds:
-      - task password
+      - kubectl get applications -n argocd
 
-  jenkins:logs:
-    desc: "Muestra los logs en tiempo real del servidor Jenkins"
-    dir: ../docker_jenkins
-    cmds:
-      - task logs
 
 
 

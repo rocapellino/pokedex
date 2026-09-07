@@ -36,8 +36,7 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
 | **Backend API (`pokemon-api`)**| `pokedex` | `pokedex-frontend-net`<br>`pokedex-backend-net`<br>`monitoring-net` | `5000` | `5000` *(dev)* | `pokemon-web`<br>`prometheus` (`/metrics`) | Acceso directo sin proxy en producción |
 | **PostgreSQL 16** | `pokedex` | `pokedex-backend-net` | `5432` | `5432` *(dev)* | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo` |
 | **Redis 7** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo` |
-| **MinIO Storage** | `pokedex` | `pokedex-backend-net` | `9000`, `9001` | `9000`, `9001` *(dev)* | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo`, `docker_jenkins` |
-| **Jenkins Controller** | `docker_jenkins` | `jenkins-net` | `8080`, `50000` | `8090`, `50000` | Host / CI Admins / Agentes | `pokedex-backend-net` (accede vía DooD socket) |
+| **MinIO Storage** | `pokedex` | `pokedex-backend-net` | `9000`, `9001` | `9000`, `9001` *(dev)* | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo` |
 | **Prometheus** | `docker_monitoreo` | `monitoring-local-net`<br>`monitoring-net` | `9090` | `9090` | Host, `grafana` | `pokedex-backend-net`, `pokedex-frontend-net` |
 | **Grafana** | `docker_monitoreo` | `monitoring-local-net` | `3000` | `3000` | Host / Usuarios | `pokedex-backend-net`, `pokedex-frontend-net`, `pokemon-api` |
 
