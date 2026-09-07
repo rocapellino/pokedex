@@ -22,24 +22,24 @@ jobs:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@v4
 
-      - name: 2. Configurar Python 3.13
-        uses: actions/setup-python@v5
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.13"
-          cache: "pip"
+          node-version: "22"
+          cache: "npm"
 
-      - name: 3. Instalar Dependencias de la API
-        run: |
-          pip install -r apps/api/requirements.txt
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci
 
-      - name: 4. Iniciar API FastAPI en Segundo Plano
+      - name: 4. Compilar y Levantar Servidor Pokédex Node.js
         run: |
-          python -m uvicorn apps.api.src.app:app --host 127.0.0.1 --port 5000 &
-          sleep 5
-          curl -f http://127.0.0.1:5000/healthz
+          npm run build
+          node dist/server.cjs &
+          sleep 4
+          curl -f http://127.0.0.1:3000/healthz
 
       - name: 5. Ejecutar Pruebas de Carga con Grafana k6
         uses: grafana/k6-action@v0.4.0
         with:
           filename: tests/performance/k6_stress_test.js
-          flags: --env TARGET_URL=${{ github.event.inputs.target_url || 'http://127.0.0.1:5000' }}
+          flags: --env TARGET_URL=${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}

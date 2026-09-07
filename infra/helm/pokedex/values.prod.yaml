@@ -51,3 +51,9 @@ ingress:
     - secretName: pokedex-tls
       hosts:
         - pokedex.example.com
+
+# ------------------------------------------------------------------------------
+# Secretos de Producción: Se exige inyección segura mediante SealedSecrets o --set
+# ------------------------------------------------------------------------------
+secrets:
+  adminApiKey: "" # Forzar inyección obligatoria en producción mediante --set o sealed-secrets

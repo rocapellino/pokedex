@@ -5,6 +5,15 @@ import crypto from 'crypto';
 import { initialPokemons } from './src/data/initialPokemons.js';
 import { Pokemon } from './src/types.js';
 import { generateDiagram, generateMockup, generateImage } from './src/services/ai.js';
+import {
+  initStorage,
+  getAllPokemons,
+  getPokemonById,
+  savePokemon,
+  deletePokemon,
+  getNextPokemonId,
+  getStorageHealth,
+} from './src/services/db.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -18,7 +27,7 @@ const pokemonMap = new Map<number, Pokemon>();
 for (const p of pokemons) {
   pokemonMap.set(p.id, p);
 }
-let nextId = Math.max(...pokemons.map(p => p.id), 1008) + 1;
+let nextId = pokemons.reduce((max, p) => Math.max(max, p.id), 1008) + 1;
 
 // ---------------------------------------------------------------------------
 // Metrics & Observability Tracking (Prometheus Exposition Format)
@@ -44,6 +53,7 @@ function normalizeEndpoint(req: Request): string {
 // Security: Server Hardening & Security Headers
 // ---------------------------------------------------------------------------
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
 app.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -119,7 +129,8 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
   }, windowMs * 2);
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || '127.0.0.1';
+    // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
+    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
     const now = Date.now();
     const entry = clients.get(ip);
 
@@ -171,48 +182,62 @@ function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   const adminKey = extractApiKey(req);
   const configuredKey = process.env.ADMIN_API_KEY;
 
-  const validKeys = [
-    'pokedex_admin_secret_2026',
-    'your_secure_random_admin_key_here',
-  ];
-  if (configuredKey) {
-    validKeys.push(configuredKey);
+  if (!configuredKey) {
+    console.error('[Security Warning] Intento de acceso a ruta protegida pero ADMIN_API_KEY no está configurada.');
+    return res.status(503).json({
+      detail: 'Servicio administrativo no disponible: ADMIN_API_KEY no configurada en el servidor.',
+    });
   }
 
-  const isValid = validKeys.some(key => safeCompareKeys(adminKey, key));
+  if (!adminKey) {
+    return res.status(401).json({
+      detail: 'Credencial de autenticación faltante en la cabecera X-API-Key / Authorization',
+    });
+  }
 
-  if (isValid) {
+  if (safeCompareKeys(adminKey, configuredKey)) {
     return next();
   }
 
   return res.status(401).json({
-    detail: 'Credencial de autenticación inválida o faltante en la cabecera X-API-Key / Authorization',
+    detail: 'Credencial de autenticación administrativa inválida',
   });
 }
 
 function verifyAIKey(req: Request, res: Response, next: NextFunction) {
-  const expectedAiKey = process.env.AI_API_KEY;
+  const expectedAiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
   const configuredAdminKey = process.env.ADMIN_API_KEY;
 
-  // Si no se definió una clave de IA o es la clave de plantilla por defecto, permitir uso bajo rate limiter
-  if (!expectedAiKey || expectedAiKey === 'your_google_ai_studio_api_key_here' || expectedAiKey === 'your_ai_service_api_key_here') {
-    return next();
+  if (!expectedAiKey) {
+    return res.status(503).json({
+      detail: 'Servicio de IA no disponible: AI_API_KEY no configurada en el servidor.',
+    });
   }
 
   const providedKey = extractApiKey(req);
-  const validKeys = [expectedAiKey, 'pokedex_admin_secret_2026', 'your_secure_random_admin_key_here'];
-  if (configuredAdminKey) validKeys.push(configuredAdminKey);
+  if (!providedKey) {
+    return res.status(401).json({
+      detail: 'Acceso no autorizado al servicio de IA: se requiere clave en X-API-Key / Authorization.',
+    });
+  }
 
-  if (validKeys.some(k => safeCompareKeys(providedKey, k))) {
+  const isAiValid = safeCompareKeys(providedKey, expectedAiKey);
+  const isAdminValid = configuredAdminKey ? safeCompareKeys(providedKey, configuredAdminKey) : false;
+
+  if (isAiValid || isAdminValid) {
     return next();
   }
 
-  return res.status(401).json({ detail: 'Acceso no autorizado al servicio de IA. Se requiere clave válida.' });
+  return res.status(401).json({
+    detail: 'Acceso no autorizado al servicio de IA: clave proporcionada inválida.',
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Validación Robusta de Datos de Entrada (Sanitización y Límites)
+// Validación Robusta de Datos de Entrada (Sanitización y Límites Anti-XSS)
 // ---------------------------------------------------------------------------
+const XSS_REGEX = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script/i;
+
 function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'El cuerpo de la petición debe ser un objeto JSON válido' };
@@ -224,12 +249,18 @@ function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
   if (body.nombre.trim().length > 60) {
     return { valid: false, error: 'El nombre no puede exceder los 60 caracteres' };
   }
+  if (XSS_REGEX.test(body.nombre)) {
+    return { valid: false, error: 'El campo nombre contiene código HTML o scripts no permitidos (prevención XSS)' };
+  }
 
   if (typeof body.tipo !== 'string' || !body.tipo.trim()) {
     return { valid: false, error: 'El campo tipo es requerido' };
   }
   if (body.tipo.trim().length > 30) {
     return { valid: false, error: 'El tipo no puede exceder los 30 caracteres' };
+  }
+  if (XSS_REGEX.test(body.tipo)) {
+    return { valid: false, error: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)' };
   }
 
   const peso = parseFloat(body.caracteristicas?.peso ?? body.peso ?? 10);
@@ -247,8 +278,14 @@ function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
     return { valid: false, error: 'La fuerza debe ser un número entero entre 0 y 1.000' };
   }
 
-  if (body.caracteristicas?.descripcion && String(body.caracteristicas.descripcion).length > 1000) {
-    return { valid: false, error: 'La descripción no puede exceder los 1.000 caracteres' };
+  if (body.caracteristicas?.descripcion) {
+    const desc = String(body.caracteristicas.descripcion);
+    if (desc.length > 1000) {
+      return { valid: false, error: 'La descripción no puede exceder los 1.000 caracteres' };
+    }
+    if (XSS_REGEX.test(desc)) {
+      return { valid: false, error: 'La descripción contiene código HTML o scripts no permitidos (prevención XSS)' };
+    }
   }
 
   return { valid: true };
@@ -270,11 +307,13 @@ app.get('/healthz', (_req: Request, res: Response) => {
 });
 
 app.get('/readyz', (_req: Request, res: Response) => {
+  const health = getStorageHealth();
   res.status(200).json({
     status: 'ready',
-    database: 'in-memory-map',
-    degraded_mode: false,
-    pokemons_count: pokemons.length,
+    database: health.database,
+    postgres_connected: health.postgres_connected,
+    redis_connected: health.redis_connected,
+    pokemons_count: health.total_records,
   });
 });
 
@@ -335,38 +374,23 @@ app.get('/metrics', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes
 // ---------------------------------------------------------------------------
-app.get('/pokemons', (req: Request, res: Response) => {
-  let list = pokemons;
-
+// ---------------------------------------------------------------------------
+// Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
+// ---------------------------------------------------------------------------
+app.get('/pokemons', async (req: Request, res: Response) => {
   const { tipo, nombre, limit, offset } = req.query;
 
-  if (typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all') {
-    const t = tipo.trim().toLowerCase();
-    list = list.filter(p =>
-      p.tipo.toLowerCase() === t ||
-      (Array.isArray(p.tipos) && p.tipos.some(x => x.toLowerCase() === t))
-    );
-  }
+  const parsedLimit = limit ? Math.max(1, parseInt(limit as string, 10) || 20) : 50;
+  const parsedOffset = offset ? Math.max(0, parseInt(offset as string, 10) || 0) : 0;
+  const typeStr = typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all' ? tipo.trim() : undefined;
+  const searchStr = typeof nombre === 'string' && nombre.trim() ? nombre.trim() : undefined;
 
-  if (typeof nombre === 'string' && nombre.trim()) {
-    const query = nombre.trim().toLowerCase();
-    list = list.filter(p =>
-      p.nombre.toLowerCase().includes(query) ||
-      p.tipo.toLowerCase().includes(query) ||
-      (p.caracteristicas?.habitat && p.caracteristicas.habitat.toLowerCase().includes(query)) ||
-      String(p.id).includes(query)
-    );
-  }
-
-  if (offset) {
-    const skip = Math.max(0, parseInt(offset as string, 10) || 0);
-    list = list.slice(skip);
-  }
-
-  if (limit) {
-    const take = Math.max(1, parseInt(limit as string, 10) || list.length);
-    list = list.slice(0, take);
-  }
+  const { total, pokemons: list } = await getAllPokemons({
+    limit: parsedLimit,
+    offset: parsedOffset,
+    type: typeStr,
+    search: searchStr,
+  });
 
   const etag = calculateETag(list);
   if (req.headers['if-none-match'] === etag) {
@@ -378,14 +402,14 @@ app.get('/pokemons', (req: Request, res: Response) => {
   return res.json(list);
 });
 
-// Búsqueda instantánea O(1) vía Map
-app.get('/pokemons/:id', (req: Request, res: Response) => {
+// Búsqueda instantánea vía PostgreSQL / Redis con ETag
+app.get('/pokemons/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
   }
 
-  const found = pokemonMap.get(id);
+  const found = await getPokemonById(id);
   if (!found) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
@@ -400,15 +424,15 @@ app.get('/pokemons/:id', (req: Request, res: Response) => {
   return res.json(found);
 });
 
-// Creación con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Creación persistente con rate limiter, autenticación y validación
+app.post('/pokemons', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
-    return res.status(400).json({ detail: validation.error });
+    return res.status(422).json({ detail: validation.error });
   }
 
   const body = req.body;
-  const newId = nextId++;
+  const newId = await getNextPokemonId();
   const rawDesc = body.caracteristicas?.descripcion || `${body.nombre} registrado recientemente en la Pokédex.`;
 
   const newPokemon: Pokemon = {
@@ -442,21 +466,20 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, (req: Request, res: Resp
     evoluciones: body.evoluciones || [],
   };
 
-  pokemons.push(newPokemon);
-  pokemonMap.set(newPokemon.id, newPokemon);
+  await savePokemon(newPokemon);
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${newPokemon.id} - ${newPokemon.nombre}`);
   return res.status(201).json(newPokemon);
 });
 
-// Edición con validación
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Edición persistente con validación e invalidación de caché
+app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
-  const existing = pokemonMap.get(id);
+  const existing = await getPokemonById(id);
   if (!existing) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
@@ -464,7 +487,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: R
   const body = req.body;
   const validation = validatePokemonPayload({ ...existing, ...body });
   if (!validation.valid) {
-    return res.status(400).json({ detail: validation.error });
+    return res.status(422).json({ detail: validation.error });
   }
 
   const updated: Pokemon = {
@@ -489,36 +512,30 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: R
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
   };
 
-  // Actualizar en memoria y Map
-  const index = pokemons.findIndex(p => p.id === id);
-  if (index !== -1) {
-    pokemons[index] = updated;
-  }
-  pokemonMap.set(id, updated);
+  await savePokemon(updated);
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${id} - ${updated.nombre}`);
   return res.json(updated);
 });
 
-// Eliminación
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
+// Eliminación persistente
+app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
-  const index = pokemons.findIndex(p => p.id === id);
-  if (index === -1) {
+  const existing = await getPokemonById(id);
+  if (!existing) {
     return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
   }
 
-  const [removed] = pokemons.splice(index, 1);
-  pokemonMap.delete(id);
+  await deletePokemon(id);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${id} - ${removed.nombre}`);
+  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${id} - ${existing.nombre}`);
   return res.json({
     mensaje: `Pokémon con id ${id} eliminado correctamente`,
-    pokemon_eliminado: removed,
+    pokemon_eliminado: existing,
   });
 });
 
@@ -575,11 +592,19 @@ app.get(['/download', '/download-zip', '/download/repo'], (_req: Request, res: R
 // ---------------------------------------------------------------------------
 app.use(express.static(PUBLIC_DIR));
 
-app.get('/admin', (_req: Request, res: Response) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
-});
+const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
+  const allowed = process.env.ADMIN_ALLOWED_IPS;
+  if (allowed) {
+    const list = allowed.split(',').map(s => s.trim()).filter(Boolean);
+    const clientIp = req.ip || req.socket.remoteAddress || '';
+    if (list.length > 0 && !list.includes(clientIp) && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+      return res.status(403).json({ error: 'Acceso restringido: IP no autorizada para el panel de administración' });
+    }
+  }
+  next();
+};
 
-app.get('/backoffice', (_req: Request, res: Response) => {
+app.get(['/admin', '/backoffice'], adminIpRestricted, (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
 });
 
@@ -587,8 +612,11 @@ app.get('*', (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
-  console.log(`[Pokédex Server] Loaded ${pokemons.length} Pokémon records in indexed memory.`);
+// Start Server tras inicializar la capa de persistencia y caché
+initStorage().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    const health = getStorageHealth();
+    console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
+    console.log(`[Pokédex Server] Storage: ${health.database.toUpperCase()} (PG: ${health.postgres_connected}, Redis: ${health.redis_connected}).`);
+  });
 });
