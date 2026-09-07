@@ -35,9 +35,9 @@ jobs:
 
       - name: 2b. Validar y Renderizar Helm Chart (Dev & Prod)
         run: |
-          helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key
-          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
-          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
+          helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set redis.auth.password=ci-validation-dummy-pass
+          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-dev.yaml
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-prod.yaml
           echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
 
       - name: 3. Configurar OpenTofu CLI
@@ -57,7 +57,7 @@ jobs:
       - name: 5. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
         with:
-          framework: terraform,kubernetes
+          framework: terraform,kubernetes,helm
           directory: infra/
           soft_fail: false
           output_format: cli

@@ -99,7 +99,7 @@ postgresql:
   port: 5432
   auth:
     database: pokedex_db
-    username: postgres
+    username: pokedex_app
     password: ""
   persistence:
     enabled: true

@@ -9,17 +9,70 @@ export interface ValidationResult {
   error?: string;
 }
 
+/**
+ * Valida de forma estricta si un valor es un número finito real.
+ * Rechaza cadenas con caracteres extra tipo '100abc' o valores NaN/Infinity.
+ */
+function parseStrictFiniteNumber(val: unknown): number | null {
+  if (typeof val === 'number') {
+    return Number.isFinite(val) ? val : null;
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!/^-?\d+(\.\d+)?$/.test(trimmed)) {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+/**
+ * Valida de forma estricta si un valor es un entero seguro.
+ */
+function parseStrictInteger(val: unknown): number | null {
+  if (typeof val === 'number') {
+    return Number.isInteger(val) ? val : null;
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!/^-?\d+$/.test(trimmed)) {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+/**
+ * Valida que una URL de imagen sea segura:
+ * - Rechaza pseudo-protocolos y scripts
+ * - Rechaza URLs protocol-relative ('//evil.com')
+ * - Acepta rutas relativas locales puras ('/static/...')
+ * - Exige HTTPS para orígenes externos (HTTP solo para localhost de desarrollo)
+ */
 export function validateImageUrl(value: unknown): boolean {
   if (typeof value !== 'string' || !value.trim()) {
     return false;
   }
   const val = value.trim();
+  
+  if (val.startsWith('//')) {
+    return false;
+  }
+  
   if (val.startsWith('/')) {
     return !SCRIPT_PATTERN.test(val);
   }
+  
   try {
     const parsed = new URL(val);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    }
+    return parsed.protocol === 'https:';
   } catch {
     return false;
   }
@@ -57,7 +110,7 @@ export function validatePokemonPayload(body: any): ValidationResult {
   // 3. Validación Estricta de URL de Imagen
   if (body.imagen !== undefined && body.imagen !== null && body.imagen !== '') {
     if (!validateImageUrl(body.imagen)) {
-      return { valid: false, error: 'El campo imagen debe ser una URL válida con protocolo http o https' };
+      return { valid: false, error: 'El campo imagen debe ser una URL válida con protocolo https o ruta relativa segura' };
     }
   }
 
@@ -82,16 +135,16 @@ export function validatePokemonPayload(body: any): ValidationResult {
   // 5. Métricas Físicas: Peso y Altura
   const rawPeso = body.caracteristicas?.peso ?? body.peso;
   if (rawPeso !== undefined && rawPeso !== null) {
-    const peso = parseFloat(rawPeso);
-    if (isNaN(peso) || peso <= 0 || peso > 10000) {
+    const peso = parseStrictFiniteNumber(rawPeso);
+    if (peso === null || peso <= 0 || peso > 10000) {
       return { valid: false, error: 'El peso debe ser un número positivo menor o igual a 10.000 kg' };
     }
   }
 
   const rawAltura = body.caracteristicas?.altura ?? body.altura;
   if (rawAltura !== undefined && rawAltura !== null) {
-    const altura = parseFloat(rawAltura);
-    if (isNaN(altura) || altura <= 0 || altura > 200) {
+    const altura = parseStrictFiniteNumber(rawAltura);
+    if (altura === null || altura <= 0 || altura > 200) {
       return { valid: false, error: 'La altura debe ser un número positivo menor o igual a 200 m' };
     }
   }
@@ -99,16 +152,16 @@ export function validatePokemonPayload(body: any): ValidationResult {
   // 6. Fuerza y Edad
   const rawFuerza = body.fuerza ?? body.caracteristicas?.fuerza;
   if (rawFuerza !== undefined && rawFuerza !== null) {
-    const fuerza = parseInt(rawFuerza, 10);
-    if (isNaN(fuerza) || fuerza < 0 || fuerza > 1000) {
+    const fuerza = parseStrictInteger(rawFuerza);
+    if (fuerza === null || fuerza < 0 || fuerza > 1000) {
       return { valid: false, error: 'La fuerza debe ser un número entero entre 0 y 1.000' };
     }
   }
 
   const rawEdad = body.caracteristicas?.edad ?? body.edad;
   if (rawEdad !== undefined && rawEdad !== null) {
-    const edad = parseInt(rawEdad, 10);
-    if (isNaN(edad) || edad < 0 || edad > 10000) {
+    const edad = parseStrictInteger(rawEdad);
+    if (edad === null || edad < 0 || edad > 10000) {
       return { valid: false, error: 'La edad debe ser un número entero positivo razonable (máx 10.000)' };
     }
   }
@@ -193,8 +246,8 @@ export function validatePokemonPayload(body: any): ValidationResult {
       if (!validKeys.includes(key)) {
         return { valid: false, error: `El campo stats contiene una clave no permitida: '${key}'` };
       }
-      const val = parseInt(body.stats[key], 10);
-      if (isNaN(val) || val < 0 || val > 1000) {
+      const val = parseStrictInteger(body.stats[key]);
+      if (val === null || val < 0 || val > 1000) {
         return { valid: false, error: `El stat '${key}' debe ser un entero entre 0 y 1.000` };
       }
     }

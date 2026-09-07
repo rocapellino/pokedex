@@ -69,7 +69,7 @@
     {
       "actor_id": 1,
       "actor_type": "RepositoryRole",
-      "bypass_mode": "always"
+      "bypass_mode": "pull_requests_only"
     }
   ]
 }
