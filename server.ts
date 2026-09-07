@@ -18,7 +18,7 @@ const pokemonMap = new Map<number, Pokemon>();
 for (const p of pokemons) {
   pokemonMap.set(p.id, p);
 }
-let nextId = Math.max(...pokemons.map(p => p.id), 1008) + 1;
+let nextId = pokemons.reduce((max, p) => Math.max(max, p.id), 1008) + 1;
 
 // ---------------------------------------------------------------------------
 // Metrics & Observability Tracking (Prometheus Exposition Format)
@@ -44,6 +44,7 @@ function normalizeEndpoint(req: Request): string {
 // Security: Server Hardening & Security Headers
 // ---------------------------------------------------------------------------
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
 app.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -119,7 +120,8 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
   }, windowMs * 2);
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || '127.0.0.1';
+    // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
+    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
     const now = Date.now();
     const entry = clients.get(ip);
 
@@ -171,48 +173,62 @@ function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   const adminKey = extractApiKey(req);
   const configuredKey = process.env.ADMIN_API_KEY;
 
-  const validKeys = [
-    'pokedex_admin_secret_2026',
-    'your_secure_random_admin_key_here',
-  ];
-  if (configuredKey) {
-    validKeys.push(configuredKey);
+  if (!configuredKey) {
+    console.error('[Security Warning] Intento de acceso a ruta protegida pero ADMIN_API_KEY no está configurada.');
+    return res.status(503).json({
+      detail: 'Servicio administrativo no disponible: ADMIN_API_KEY no configurada en el servidor.',
+    });
   }
 
-  const isValid = validKeys.some(key => safeCompareKeys(adminKey, key));
+  if (!adminKey) {
+    return res.status(401).json({
+      detail: 'Credencial de autenticación faltante en la cabecera X-API-Key / Authorization',
+    });
+  }
 
-  if (isValid) {
+  if (safeCompareKeys(adminKey, configuredKey)) {
     return next();
   }
 
   return res.status(401).json({
-    detail: 'Credencial de autenticación inválida o faltante en la cabecera X-API-Key / Authorization',
+    detail: 'Credencial de autenticación administrativa inválida',
   });
 }
 
 function verifyAIKey(req: Request, res: Response, next: NextFunction) {
-  const expectedAiKey = process.env.AI_API_KEY;
+  const expectedAiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
   const configuredAdminKey = process.env.ADMIN_API_KEY;
 
-  // Si no se definió una clave de IA o es la clave de plantilla por defecto, permitir uso bajo rate limiter
-  if (!expectedAiKey || expectedAiKey === 'your_google_ai_studio_api_key_here' || expectedAiKey === 'your_ai_service_api_key_here') {
-    return next();
+  if (!expectedAiKey) {
+    return res.status(503).json({
+      detail: 'Servicio de IA no disponible: AI_API_KEY no configurada en el servidor.',
+    });
   }
 
   const providedKey = extractApiKey(req);
-  const validKeys = [expectedAiKey, 'pokedex_admin_secret_2026', 'your_secure_random_admin_key_here'];
-  if (configuredAdminKey) validKeys.push(configuredAdminKey);
+  if (!providedKey) {
+    return res.status(401).json({
+      detail: 'Acceso no autorizado al servicio de IA: se requiere clave en X-API-Key / Authorization.',
+    });
+  }
 
-  if (validKeys.some(k => safeCompareKeys(providedKey, k))) {
+  const isAiValid = safeCompareKeys(providedKey, expectedAiKey);
+  const isAdminValid = configuredAdminKey ? safeCompareKeys(providedKey, configuredAdminKey) : false;
+
+  if (isAiValid || isAdminValid) {
     return next();
   }
 
-  return res.status(401).json({ detail: 'Acceso no autorizado al servicio de IA. Se requiere clave válida.' });
+  return res.status(401).json({
+    detail: 'Acceso no autorizado al servicio de IA: clave proporcionada inválida.',
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Validación Robusta de Datos de Entrada (Sanitización y Límites)
+// Validación Robusta de Datos de Entrada (Sanitización y Límites Anti-XSS)
 // ---------------------------------------------------------------------------
+const XSS_REGEX = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script/i;
+
 function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'El cuerpo de la petición debe ser un objeto JSON válido' };
@@ -224,12 +240,18 @@ function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
   if (body.nombre.trim().length > 60) {
     return { valid: false, error: 'El nombre no puede exceder los 60 caracteres' };
   }
+  if (XSS_REGEX.test(body.nombre)) {
+    return { valid: false, error: 'El campo nombre contiene código HTML o scripts no permitidos (prevención XSS)' };
+  }
 
   if (typeof body.tipo !== 'string' || !body.tipo.trim()) {
     return { valid: false, error: 'El campo tipo es requerido' };
   }
   if (body.tipo.trim().length > 30) {
     return { valid: false, error: 'El tipo no puede exceder los 30 caracteres' };
+  }
+  if (XSS_REGEX.test(body.tipo)) {
+    return { valid: false, error: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)' };
   }
 
   const peso = parseFloat(body.caracteristicas?.peso ?? body.peso ?? 10);
@@ -247,8 +269,14 @@ function validatePokemonPayload(body: any): { valid: boolean; error?: string } {
     return { valid: false, error: 'La fuerza debe ser un número entero entre 0 y 1.000' };
   }
 
-  if (body.caracteristicas?.descripcion && String(body.caracteristicas.descripcion).length > 1000) {
-    return { valid: false, error: 'La descripción no puede exceder los 1.000 caracteres' };
+  if (body.caracteristicas?.descripcion) {
+    const desc = String(body.caracteristicas.descripcion);
+    if (desc.length > 1000) {
+      return { valid: false, error: 'La descripción no puede exceder los 1.000 caracteres' };
+    }
+    if (XSS_REGEX.test(desc)) {
+      return { valid: false, error: 'La descripción contiene código HTML o scripts no permitidos (prevención XSS)' };
+    }
   }
 
   return { valid: true };
@@ -404,7 +432,7 @@ app.get('/pokemons/:id', (req: Request, res: Response) => {
 app.post('/pokemons', mutationRateLimiter, verifyAdmin, (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
-    return res.status(400).json({ detail: validation.error });
+    return res.status(422).json({ detail: validation.error });
   }
 
   const body = req.body;
@@ -464,7 +492,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, (req: Request, res: R
   const body = req.body;
   const validation = validatePokemonPayload({ ...existing, ...body });
   if (!validation.valid) {
-    return res.status(400).json({ detail: validation.error });
+    return res.status(422).json({ detail: validation.error });
   }
 
   const updated: Pokemon = {
@@ -575,11 +603,19 @@ app.get(['/download', '/download-zip', '/download/repo'], (_req: Request, res: R
 // ---------------------------------------------------------------------------
 app.use(express.static(PUBLIC_DIR));
 
-app.get('/admin', (_req: Request, res: Response) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
-});
+const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
+  const allowed = process.env.ADMIN_ALLOWED_IPS;
+  if (allowed) {
+    const list = allowed.split(',').map(s => s.trim()).filter(Boolean);
+    const clientIp = req.ip || req.socket.remoteAddress || '';
+    if (list.length > 0 && !list.includes(clientIp) && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+      return res.status(403).json({ error: 'Acceso restringido: IP no autorizada para el panel de administración' });
+    }
+  }
+  next();
+};
 
-app.get('/backoffice', (_req: Request, res: Response) => {
+app.get(['/admin', '/backoffice'], adminIpRestricted, (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
 });
 

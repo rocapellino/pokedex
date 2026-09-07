@@ -57,7 +57,7 @@ function getTypeColor(tipo) {
 const ADMIN_STORAGE_KEY = 'pokedex_admin_api_key';
 
 function getAdminApiKey() {
-  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || 'pokedex_admin_secret_2026';
+  return sessionStorage.getItem(ADMIN_STORAGE_KEY) || '';
 }
 
 function setAdminApiKey(key) {
