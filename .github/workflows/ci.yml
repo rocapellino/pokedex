@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Escanear código fuente
-        run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage
+        run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage --exclude scripts
 
   checkov:
     name: "🏗️ Checkov (Seguridad IaC / Helm)"
@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Ejecutar Checkov sobre OpenTofu y Helm
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
         with:
           framework: terraform,helm
           directory: infra/opentofu

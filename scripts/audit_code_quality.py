@@ -34,20 +34,7 @@ def find_duplicates(directory, extensions=('.py', '.js', '.css', '.html')):
     return duplicates, total_files
 
 
-def run_cmd(cmd, description):
-    print(f"\n{'='*70}")
-    print(f"🔍 {description}")
-    print(f"{'='*70}")
-    try:
-        res = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-        if res.stdout:
-            print(res.stdout.strip())
-        if res.stderr and res.returncode != 0:
-            print(res.stderr.strip())
-        return res.returncode
-    except Exception as e:
-        print(f"Error ejecutando {cmd}: {e}")
-        return 1
+
 
 
 def main():

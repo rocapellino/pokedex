@@ -16,12 +16,20 @@ COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 # Copiar assets estáticos del frontend (HTML, CSS, JS)
 COPY apps/web/public/ /usr/share/nginx/html/
 
+# Instalar libcap para permitir enlazar puerto 80 como usuario no root 'nginx'
+RUN apk add --no-cache libcap && \
+    setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx && \
+    apk del --no-cache libcap
+
 # Ajustar permisos para usuario no privilegiado de Nginx
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
+
+# Usar usuario sin privilegios 'nginx'
+USER nginx
 
 # Healthcheck interno de Nginx
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -30,4 +38,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
-
