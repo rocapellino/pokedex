@@ -16,7 +16,7 @@ Bienvenido al centro de documentación del monorepo **Pokémon DevOps Platform**
 * 🛡️ [**SECURITY_AND_NETWORK_ISOLATION.md**](./architecture/SECURITY_AND_NETWORK_ISOLATION.md): Modelo de defensa en profundidad, segmentación DMZ de 3 capas y políticas de red (NetworkPolicies) para aislamiento estricto de base de datos y caché.
 * 🔐 [**SECRETS_MANAGEMENT_SEALED_SECRETS.md**](./architecture/SECRETS_MANAGEMENT_SEALED_SECRETS.md): Gestión de secretos sin texto plano en Git, plantillas `.env.example`, detección con Gitleaks y cifrado asimétrico con Bitnami Sealed Secrets.
 * 🖥️ [**PROXMOX_DEPLOYMENT_GUIDE.md**](./architecture/PROXMOX_DEPLOYMENT_GUIDE.md): Guía de virtualización y despliegue on-premise en Proxmox VE (LXC y Cloud-Init).
-* ☁️ [**CLOUD_INFRASTRUCTURE_DESIGN.md**](./architecture/CLOUD_INFRASTRUCTURE_DESIGN.md): Arquitectura Multi-Cloud con Terraform para AWS, GCP y Azure.
+* ☁️ [**CLOUD_INFRASTRUCTURE_DESIGN.md**](./architecture/CLOUD_INFRASTRUCTURE_DESIGN.md): Arquitectura de infraestructura en la nube y aprovisionamiento híbrido con OpenTofu (AWS EKS y Proxmox VE).
 
 ---
 

@@ -24,7 +24,7 @@ Este repositorio implementa una solución completa de ingeniería **DevOps, Full
    * [Opción 2: Ejecución con Docker Compose](#opción-2-ejecución-con-docker-compose-multi-contenedor)
    * [Opción 3: Despliegue en Kubernetes con Helm 3](#opción-3-despliegue-en-kubernetes-con-helm-3)
    * [Opción 4: Despliegue en Proxmox VE](#opción-4-despliegue-en-proxmox-ve-on-premises)
-   * [Opción 5: Aprovisionamiento Multi-Cloud con Terraform](#opción-5-aprovisionamiento-multi-cloud-con-terraform)
+   * [Opción 5: Aprovisionamiento Híbrido con OpenTofu](#opción-5-aprovisionamiento-híbrido-con-opentofu)
 5. [Pruebas Automatizadas y Auditoría de Código](#5-pruebas-automatizadas-y-auditoría-de-código)
 6. [Gestión Segura de Secretos](#6-gestión-segura-de-secretos)
 7. [Centro de Documentación Técnica (`docs/`)](#7-centro-de-documentación-técnica-docs)
@@ -82,7 +82,7 @@ El ecosistema aplica el principio de **Defensa en Profundidad (DMZ de 3 capas)**
 | **Persistencia & Caché** | PostgreSQL 16 & Redis 7 | Base de datos relacional y caching en memoria con fallback resiliente. |
 | **Orquestación Cloud** | Kubernetes & Helm 3 | Despliegue estandarizado, HPA v2, PDB y NetworkPolicies. |
 | **GitOps & CD** | ArgoCD | Sincronización continua declarativa en Proxmox y Cloud (`gitops/apps/`). |
-| **Infraestructura (IaC)** | OpenTofu, Terraform & Ansible | Aprovisionamiento declarativo híbrido (Proxmox y AWS con OpenTofu; Multi-Cloud con TF). |
+| **Infraestructura (IaC)** | OpenTofu & Ansible | Aprovisionamiento declarativo híbrido (Proxmox VE on-premise y AWS EKS cloud) y hardening. |
 | **Testing & Rendimiento** | Node Test Runner & Grafana k6 | Pruebas unitarias nativas y pruebas de estrés de carga concurrente. |
 | **Seguridad & SAST/SCA** | Semgrep, Gitleaks, Checkov & Trivy | Quality Gates paralelos en CI para código, secretos, IaC e imágenes. |
 | **Dependencias** | Renovate Bot | Automatización de PRs y auto-merge seguro multi-manager. |
@@ -187,17 +187,14 @@ task deploy:proxmox -- "<PROXMOX_HOST>" "<REMOTE_USER>"
 
 ---
 
-### Opción 5: Aprovisionamiento Multi-Cloud con Terraform
+### Opción 5: Aprovisionamiento Híbrido con OpenTofu
 
 ```bash
-# Google Cloud Platform (GCP)
-cd infra/terraform/envs/gcp/dev && terraform init && terraform plan
+# Entorno On-Premise (Proxmox VE)
+cd infra/opentofu/environments/proxmox && tofu init && tofu plan
 
-# Amazon Web Services (AWS)
-cd infra/terraform/envs/aws/dev && terraform init && terraform plan
-
-# Microsoft Azure
-cd infra/terraform/envs/azure/dev && terraform init && terraform plan
+# Entorno Cloud Pública (AWS EKS)
+cd infra/opentofu/environments/cloud && tofu init && tofu plan
 ```
 
 ---

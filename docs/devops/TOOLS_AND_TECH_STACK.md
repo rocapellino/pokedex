@@ -41,7 +41,7 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Composición local** | **Docker Compose** | Orquestación local multicontenedor (API + Web + Postgres + Redis) | [`docker-compose.yml`](file:///docker-compose.yml), `docker-compose.dev.yml` |
 | **Orquestación K8s** | **Helm 3** | Despliegue estandarizado en clúster con Chart parametrizado (`values.yaml`, `values.prod.yaml`) | [`infra/helm/pokedex/`](file:///infra/helm/pokedex/) |
 | **GitOps** | **Argo CD** | Sincronización continua declarativa del Chart de Helm en Kubernetes (Proxmox y Cloud) | [`gitops/apps/`](file:///gitops/apps/) |
-| **IaC** | **OpenTofu & Terraform** | Aprovisionamiento declarativo híbrido (Proxmox VE y AWS Cloud con OpenTofu; Multi-Cloud con TF) | [`infra/opentofu/`](file:///infra/opentofu/), [`infra/terraform/`](file:///infra/terraform/) |
+| **IaC** | **OpenTofu** | Aprovisionamiento declarativo híbrido open-source (Proxmox VE on-premise y AWS EKS cloud) | [`infra/opentofu/`](file:///infra/opentofu/) |
 | **Config Management** | **Ansible** | Automatización de configuración de servidores y hardening UFW/SSH | [`infra/ansible/`](file:///infra/ansible/) |
 | **Virtualización** | **Proxmox VE** | Infraestructura de nodos y contenedores LXC con Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/), [`scripts/proxmox_deploy.sh`](file:///scripts/proxmox_deploy.sh) |
 | **CI/CD** | **GitHub Actions** | Pipelines automatizados con Quality Gates paralelos (Gitleaks, Semgrep, Checkov) y escaneo Trivy | [`.github/workflows/`](file:///.github/workflows/) |

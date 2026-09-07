@@ -1,6 +1,0 @@
-# Variables de Ejemplo para Despliegue en Microsoft Azure (Entorno Dev)
-project_name    = "pokedex"
-environment     = "dev"
-azure_location  = "eastus"
-db_password     = "CambiarPorPasswordSeguraAzure123!"
-container_image = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"

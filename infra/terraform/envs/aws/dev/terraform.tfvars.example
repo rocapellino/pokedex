@@ -1,6 +1,0 @@
-# Variables de Ejemplo para Despliegue en AWS (Entorno Dev)
-project_name    = "pokedex"
-environment     = "dev"
-aws_region      = "us-east-1"
-db_password     = "CambiarPorPasswordSeguraAWS123!"
-container_image = "public.ecr.aws/docker/library/python:3.13-slim"

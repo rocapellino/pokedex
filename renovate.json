@@ -33,9 +33,9 @@
       "labels": ["major-update", "breaking-change"]
     },
     {
-      "description": "Escanear y mantener proveedores y módulos de OpenTofu/Terraform",
+      "description": "Escanear y mantener proveedores y módulos de OpenTofu",
       "matchManagers": ["terraform"],
-      "matchFileNames": ["infra/opentofu/**", "infra/terraform/**"]
+      "matchFileNames": ["infra/opentofu/**"]
     },
     {
       "description": "Escanear dependencias de Helm Charts",
