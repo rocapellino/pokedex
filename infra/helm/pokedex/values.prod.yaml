@@ -14,6 +14,8 @@ api:
   autoscaling:
     minReplicas: 2
     maxReplicas: 10
+  env:
+    corsOrigins: "https://pokedex.example.com"
 
 web:
   replicaCount: 2
@@ -26,6 +28,8 @@ web:
       memory: "128Mi"
 
 postgresql:
+  auth:
+    username: pokedex_app
   persistence:
     size: 10Gi
     storageClass: "standard"
@@ -46,7 +50,30 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  host: pokedex.example.com
+  hosts:
+    - host: pokedex.example.com
+      paths:
+        - path: /api/
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /pokemons
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-web-svc
+              port:
+                number: 8080
   tls:
     - secretName: pokedex-tls
       hosts:

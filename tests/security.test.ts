@@ -40,11 +40,34 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   assert.equal(validateImageUrl('vbscript:msgbox(1)'), false);
   assert.equal(validateImageUrl('ftp://evil.com/img.png'), false);
   assert.equal(validateImageUrl('not-a-valid-url'), false);
+  assert.equal(validateImageUrl('//evil.com/image.png'), false);
+  assert.equal(validateImageUrl('http://evil.com/image.png'), false);
 
   assert.equal(validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'), true);
   assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), true);
+  assert.equal(validateImageUrl('http://127.0.0.1:3000/images/pokemon.png'), true);
   assert.equal(validateImageUrl('/static/pokemon.png'), true);
 });
+
+test('🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto', () => {
+  const basePayload = {
+    nombre: 'Pikachu',
+    tipo: 'Eléctrico',
+  };
+
+  // Caracteristicas con string corrupto tipo '100abc'
+  assert.equal(validatePokemonPayload({ ...basePayload, peso: '100abc' as any }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, altura: '50px' as any }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, fuerza: '10foo' as any }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, caracteristicas: { peso: '200kg' as any } }).valid, false);
+
+  // Stats con string corrupto tipo '500xyz' o decimales donde debe ser entero
+  assert.equal(validatePokemonPayload({ ...basePayload, stats: { hp: '100abc' as any } }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, stats: { attack: 55.5 } }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, stats: { defense: NaN } }).valid, false);
+  assert.equal(validatePokemonPayload({ ...basePayload, stats: { speed: Infinity } }).valid, false);
+});
+
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza URL maliciosa en campo imagen', () => {
   const result = validatePokemonPayload({

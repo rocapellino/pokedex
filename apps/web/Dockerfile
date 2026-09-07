@@ -7,6 +7,9 @@ LABEL maintainer="Grupo 3 - UTEC DevOps" \
       version="1.0.0" \
       description="Frontend Web Pokédex servido con Nginx y Proxy Inverso a la API"
 
+# Actualizar paquetes base de Alpine para mitigar vulnerabilidades y CVEs del SO
+RUN apk upgrade --no-cache
+
 # Eliminar configuración por defecto de Nginx
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 
