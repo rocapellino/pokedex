@@ -37,7 +37,7 @@ jobs:
         run: |
           helm lint infra/helm/pokedex
           helm template pokedex infra/helm/pokedex > /dev/null
-          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /dev/null
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set secrets.adminApiKey=ci-validation-dummy-key > /dev/null
           echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
 
       - name: 3. Validar Sintaxis de Módulos Terraform
