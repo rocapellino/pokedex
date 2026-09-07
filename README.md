@@ -79,10 +79,13 @@ El ecosistema aplica el principio de **Defensa en Profundidad (DMZ de 3 capas)**
 | **Frontend Web** | HTML5, CSS3 Tokens, JS Vanilla | Catálogo interactivo, selector de tema (Claro/Oscuro/Sistema) y modales. |
 | **Proxy & Web Server** | Nginx 1.27 Alpine | Proxy inverso, compresión gzip, CSP estricto y usuario no-root. |
 | **Inteligencia Artificial**| `@google/genai` (Gemini 2.5 Flash) | Generación de diagramas Mermaid y mockups UI con fallbacks resilientes. |
-| **Orquestación Cloud** | Kubernetes & Helm 3 | Despliegue estandarizado, HPA v2, PDB, NetworkPolicies y GitOps. |
-| **Infraestructura (IaC)** | Terraform & Ansible | Aprovisionamiento Multi-Cloud (AWS, GCP, Azure, Proxmox) y hardening. |
-| **Testing & Rendimiento** | Grafana k6 & Python Simulator | Pruebas de estrés concurrentes y validación dinámica de autoescalado. |
-| **Seguridad & SAST/SCA** | Gitleaks & Trivy | Escaneo continuo de secretos en Git y auditoría de vulnerabilidades en imágenes. |
+| **Persistencia & Caché** | PostgreSQL 16 & Redis 7 | Base de datos relacional y caching en memoria con fallback resiliente. |
+| **Orquestación Cloud** | Kubernetes & Helm 3 | Despliegue estandarizado, HPA v2, PDB y NetworkPolicies. |
+| **GitOps & CD** | ArgoCD | Sincronización continua declarativa en Proxmox y Cloud (`gitops/apps/`). |
+| **Infraestructura (IaC)** | OpenTofu, Terraform & Ansible | Aprovisionamiento declarativo híbrido (Proxmox y AWS con OpenTofu; Multi-Cloud con TF). |
+| **Testing & Rendimiento** | Node Test Runner & Grafana k6 | Pruebas unitarias nativas y pruebas de estrés de carga concurrente. |
+| **Seguridad & SAST/SCA** | Semgrep, Gitleaks, Checkov & Trivy | Quality Gates paralelos en CI para código, secretos, IaC e imágenes. |
+| **Dependencias** | Renovate Bot | Automatización de PRs y auto-merge seguro multi-manager. |
 
 ---
 

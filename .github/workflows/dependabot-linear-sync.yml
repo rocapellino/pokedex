@@ -13,7 +13,7 @@ permissions:
 jobs:
   create-linear-ticket:
     name: 🎫 Generate Incremental Linear Issue
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' || github.actor == 'renovate[bot]'
     runs-on: ubuntu-latest
 
     steps:

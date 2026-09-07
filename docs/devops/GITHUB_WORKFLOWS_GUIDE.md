@@ -90,17 +90,23 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.5. 🚀 [`ci.yml`](/.github/workflows/ci.yml) (Monorepo CI Integrador)
+### 3.5. 🚀 [`ci.yml`](/.github/workflows/ci.yml) (Monorepo CI Integrador & Quality Gates)
 * **¿Cuándo se activa?** Al hacer `push` o `Pull Request` hacia la rama principal (`main` o `master`).
 * **¿Qué hace paso a paso?**
-  1. **Auditoría Global:** Ejecuta análisis estático con TypeScript (`tsc --noEmit`), compilación con esbuild y auditoría de archivos duplicados (`scripts/audit_code_quality.py`).
-  2. **Compilación Multi-Stage:** Compila las imágenes Docker del servidor (`Dockerfile`) y frontend (`apps/web/Dockerfile`) con Buildx y genera el SBOM (Software Bill of Materials).
-* **Objetivo:** Puerta de calidad final (*Quality Gate*) antes de desplegar a producción.
+  1. **Quality Gates Paralelos:**
+     - `🔍 Auditoría de Calidad y Complejidad`: Verificación de tipos TypeScript (`tsc --noEmit`), compilación esbuild y auditoría de archivos duplicados.
+     - `🛡️ Gitleaks Secret Detection`: Escaneo estricto de secretos y tokens expuestos.
+     - `🔍 Semgrep (SAST)`: Detección estática de vulnerabilidades OWASP Top 10 y malas prácticas de código.
+     - `🛡️ Checkov (Seguridad IaC / Helm)`: Auditoría de seguridad sobre infraestructura declarativa y plantillas Helm.
+  2. **Compilación Multi-Stage:** Compila la imagen Docker del servidor (`Dockerfile`) y genera el SBOM.
+  3. **Escaneo Trivy:** Inspecciona la imagen construida garantizando 0 vulnerabilidades CRITICAL/HIGH.
+  4. **Publicación OCI (Solo en main):** Publica la imagen firmada en GitHub Container Registry (`ghcr.io`).
+* **Objetivo:** Puerta de calidad integral obligatoria (*Quality Gate*) antes de desplegar a producción.
 
 ---
 
 ### 3.6. 🛡️ [`security-trivy.yml`](/.github/workflows/security-trivy.yml) (Vulnerability Scan SCA & Container)
-* **¿Cuándo se activa?** En cambios a `Dockerfile`, `requirements.txt` o cron semanal.
+* **¿Cuándo se activa?** En cambios a `Dockerfile`, `package.json`, `package-lock.json` o cron semanal.
 * **¿Qué hace paso a paso?**
   1. Escanea el código y dependencias con Trivy en busca de CVEs críticos.
   2. Construye la imagen Docker y escanea sus capas y paquetes del sistema operativo base.
@@ -118,8 +124,8 @@ Por eso utilizamos **Path Filtering**:
 
 ---
 
-### 3.8. 📌 [`dependabot-linear-sync.yml`](/.github/workflows/dependabot-linear-sync.yml) (Dependabot to Linear Sync)
-* **¿Cuándo se activa?** Cada vez que Dependabot abre un nuevo Pull Request de actualización.
+### 3.8. 📌 [`dependabot-linear-sync.yml`](/.github/workflows/dependabot-linear-sync.yml) (Dependency Bots to Linear Sync)
+* **¿Cuándo se activa?** Cada vez que Dependabot o Renovate Bot abre un nuevo Pull Request de actualización.
 * **¿Qué hace paso a paso?**
   1. Obtiene dinámicamente el equipo de Linear del usuario.
   2. Crea automáticamente un **ticket consecutivo/incremental** en Linear (ej. `PER-16`, `PER-17`) con el título y enlace directo al PR de GitHub.

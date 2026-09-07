@@ -45,7 +45,6 @@ Este documento describe todas las tecnologías, utilidades, frameworks y servici
 | **Config Management** | **Ansible** | Automatización de configuración de servidores y hardening UFW/SSH | [`infra/ansible/`](file:///infra/ansible/) |
 | **Virtualización** | **Proxmox VE** | Infraestructura de nodos y contenedores LXC con Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/), [`scripts/proxmox_deploy.sh`](file:///scripts/proxmox_deploy.sh) |
 | **CI/CD** | **GitHub Actions** | Pipelines automatizados con Quality Gates paralelos (Gitleaks, Semgrep, Checkov) y escaneo Trivy | [`.github/workflows/`](file:///.github/workflows/) |
-| **CI/CD Alternativo** | **Jenkins** | Pipeline declarativo enterprise adaptado a Node.js, Docker y Helm | [`Jenkinsfile`](file:///Jenkinsfile) |
 | **Observabilidad & Métricas** | **Prometheus + Exporters** | Métricas nativas de la API (`/metrics`), contenedores y base de datos | `docker_monitoreo/` |
 | **Logs Centralizados** | **Grafana Loki + Promtail** | Agregación e indexación de logs de stdout/stderr de contenedores con consultas LogQL | `docker_monitoreo/` |
 | **Alertas & Notificaciones** | **Prometheus Alertmanager** | Detección proactiva de caídas, modo degradado y latencias altas | `docker_monitoreo/alertmanager/` |
