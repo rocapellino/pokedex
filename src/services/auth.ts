@@ -96,7 +96,18 @@ export function verifyTokenSignature(token: string): {
       return { valid: false, reason: 'invalid_signature' };
     }
     const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
-    if (payload.role !== 'admin' || typeof payload.exp !== 'number' || !payload.jti) {
+    
+    // Validación estricta de límites de payload (role, jti y exp)
+    if (
+      payload.role !== 'admin' ||
+      typeof payload.jti !== 'string' ||
+      !/^[a-f0-9]{16,64}$/i.test(payload.jti) ||
+      typeof payload.exp !== 'number' ||
+      !Number.isFinite(payload.exp) ||
+      !Number.isInteger(payload.exp) ||
+      payload.exp <= 0 ||
+      payload.exp > 4102444800000 // Límite razonable (año 2100) contra desbordamientos numéricos
+    ) {
       return { valid: false, reason: 'invalid_signature' };
     }
     return { valid: true, payload };
@@ -111,6 +122,8 @@ export function verifyTokenSignature(token: string): {
  * inyección de claves apócrifas en Redis.
  * Registra el jti en Redis con un TTL exacto al tiempo de vida restante.
  * Retorna resultado detallado para permitir que la API responda 400 ante firmas apócrifas o 503 ante caída de Redis.
+ * Consistencia distribuida: si REDIS_URL está configurado, Redis es la única fuente de verdad (Source of Truth).
+ * Si la escritura en Redis falla, NO se almacena en memoria local para evitar desincronizaciones asimétricas entre pods.
  */
 export async function revokeSessionTokenDetailed(token: string): Promise<RevokeSessionResult> {
   const verified = verifyTokenSignature(token);
@@ -128,15 +141,20 @@ export async function revokeSessionTokenDetailed(token: string): Promise<RevokeS
 
   const remainingSeconds = Math.max(1, Math.ceil((exp - Date.now()) / 1000));
 
-  // 1. Guardar en mapa local con timestamp de expiración (fallback)
-  localRevokedTokens.set(jti, exp);
-
-  // 2. Guardar en Redis distribuido con TTL automático
-  const redisOk = await setRevokedJti(jti, remainingSeconds);
-  if (!redisOk && Boolean(process.env.REDIS_URL)) {
-    console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (jti: ${jti}) en Redis. Operación distribuida no garantizada.`);
-    return { success: false, reason: 'service_unavailable' };
+  // 1. Si REDIS_URL está configurado, Redis es la fuente única de verdad distribuida (Multi-Pod)
+  if (Boolean(process.env.REDIS_URL)) {
+    const redisOk = await setRevokedJti(jti, remainingSeconds);
+    if (!redisOk) {
+      console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (jti: ${jti}) en Redis. Operación distribuida no garantizada.`);
+      return { success: false, reason: 'service_unavailable' };
+    }
+    // Solo tras confirmar la persistencia en el clúster distribuido, actualizar la caché local del pod
+    localRevokedTokens.set(jti, exp);
+    return { success: true };
   }
+
+  // 2. Fallback local: Si REDIS_URL no está configurado (entorno monoproceso / standalone)
+  localRevokedTokens.set(jti, exp);
   return { success: true };
 }
 

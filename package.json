@@ -9,7 +9,8 @@
     "seed": "tsx src/seed.ts",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
-    "test": "tsx --test tests/**/*.test.ts"
+    "test": "tsx --test tests/**/*.test.ts",
+    "test:fuzz": "tsx --test tests/fuzzing.test.ts"
   },
   "dependencies": {
     "@google/genai": "2.21.0",

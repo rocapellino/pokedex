@@ -308,14 +308,15 @@ function validateEvolutionNode(node: unknown, depth: number = 0): ValidationResu
   if (n.imagen !== undefined && n.imagen !== null && !validateImageUrl(n.imagen)) {
     return { valid: false, error: 'La URL de imagen en el nodo de evolución no es segura o es inválida' };
   }
-  if (n.evolves_to !== undefined) {
-    if (!Array.isArray(n.evolves_to)) {
-      return { valid: false, error: 'El campo evolves_to debe ser una lista de evoluciones' };
+  const children = n.evolves_to ?? n.evoluciones;
+  if (children !== undefined) {
+    if (!Array.isArray(children)) {
+      return { valid: false, error: 'Las evoluciones hijas deben ser una lista' };
     }
-    if (n.evolves_to.length > 10) {
+    if (children.length > 10) {
       return { valid: false, error: 'Un nodo de evolución no puede ramificarse en más de 10 evoluciones directas' };
     }
-    for (const child of n.evolves_to) {
+    for (const child of children) {
       const childRes = validateEvolutionNode(child, depth + 1);
       if (!childRes.valid) return childRes;
     }

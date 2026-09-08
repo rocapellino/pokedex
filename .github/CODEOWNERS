@@ -10,6 +10,7 @@
 .github/ @rocapellino
 .github/workflows/ @rocapellino
 SECURITY.md @rocapellino
+SECURITY_RUNBOOK.md @rocapellino
 .gitleaks.toml @rocapellino
 renovate.json @rocapellino
 

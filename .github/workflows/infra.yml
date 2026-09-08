@@ -45,14 +45,16 @@ jobs:
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Validate en Entornos (Proxmox y Cloud)
+      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox y Cloud)
         run: |
           for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/cloud; do
+            echo "Verificando formato OpenTofu (fmt -check) en $dir..."
+            tofu -chdir="$dir" fmt -check
             echo "Validando entorno OpenTofu en $dir..."
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate
           done
-          echo "✅ Todos los entornos híbridos de OpenTofu validados correctamente."
+          echo "✅ Todos los entornos híbridos de OpenTofu verificados y validados correctamente."
 
       - name: 5. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0

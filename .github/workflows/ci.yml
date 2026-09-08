@@ -55,6 +55,12 @@ jobs:
       - name: 7. Ejecutar Auditoría de Duplicación e Integridad
         run: python scripts/audit_code_quality.py
 
+      - name: 8. Ejecutar Tests de Unidad, Pentest y Seguridad
+        run: npm test
+
+      - name: 9. Ejecutar Suite Dinámica de API Fuzzing (DAST)
+        run: npm run test:fuzz
+
   semgrep:
     name: "🔍 Semgrep (SAST)"
     runs-on: ubuntu-latest
@@ -232,12 +238,15 @@ jobs:
         with:
           version: 'v3.15.0'
 
-      - name: Empaquetar y publicar Helm Chart como OCI
+      - name: Validar, empaquetar y publicar Helm Chart como OCI
         run: |
-          # Empaquetar chart en /tmp
+          # 1. Validar sintaxis y templates del Chart
+          helm lint ${{ env.CHART_PATH }}
+          
+          # 2. Empaquetar chart en /tmp
           helm package ${{ env.CHART_PATH }} --destination /tmp
           
-          # Autenticación con OCI registry en GHCR y push
+          # 3. Autenticación con OCI registry en GHCR y push
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
           helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
 
@@ -251,6 +260,11 @@ jobs:
       - name: Firmar imagen Docker con Cosign (Keyless Sigstore OIDC)
         run: |
           cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+
+      - name: Firmar Helm Chart OCI con Cosign (Keyless Sigstore OIDC)
+        run: |
+          CHART_VERSION=$(grep '^version:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
+          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/pokedex:${CHART_VERSION}
 
       - name: Descargar artefacto SBOM para adjuntar
         uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
