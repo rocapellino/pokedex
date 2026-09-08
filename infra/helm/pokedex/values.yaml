@@ -14,7 +14,8 @@ api:
   replicaCount: 1
   image:
     repository: pokedex-api
-    tag: "latest"
+    tag: "1.9.5"
+    digest: ""
     pullPolicy: IfNotPresent
   port: 3000
   service:
@@ -55,7 +56,8 @@ web:
   replicaCount: 1
   image:
     repository: pokedex-web
-    tag: "latest"
+    tag: "1.9.5"
+    digest: ""
     pullPolicy: IfNotPresent
   port: 8080
   service:
@@ -121,7 +123,7 @@ pgbouncer:
   replicaCount: 1
   image:
     repository: pgbouncer/pgbouncer
-    tag: "latest@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516"
+    tag: "1.22.0@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516"
     pullPolicy: IfNotPresent
   port: 5432
   poolMode: transaction
@@ -235,6 +237,10 @@ externalSecrets:
 # ------------------------------------------------------------------------------
 networkPolicies:
   enabled: true
+  egress:
+    antiSsrf: true
+    externalHttps: true
+    allowedExternalCidrs: []
 
 podDisruptionBudget:
   enabled: true
