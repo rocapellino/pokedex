@@ -37,22 +37,24 @@ jobs:
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass
           helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-dev.yaml
-          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-prod.yaml
-          echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
+          echo "✅ Helm Chart validado y renderizado con éxito para dev y prod (prod desacoplado con existingSecret)."
 
       - name: 3. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Validate en Entornos (Proxmox y Cloud)
+      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox y Cloud)
         run: |
           for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/cloud; do
+            echo "Verificando formato OpenTofu (fmt -check) en $dir..."
+            tofu -chdir="$dir" fmt -check
             echo "Validando entorno OpenTofu en $dir..."
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate
           done
-          echo "✅ Todos los entornos híbridos de OpenTofu validados correctamente."
+          echo "✅ Todos los entornos híbridos de OpenTofu verificados y validados correctamente."
 
       - name: 5. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0

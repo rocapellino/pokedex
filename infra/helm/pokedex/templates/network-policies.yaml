@@ -29,13 +29,18 @@ spec:
         - protocol: TCP
           port: {{ .Values.web.port }}
   egress:
-    # Permitir resolución DNS
-    - ports:
+    # Permitir resolución DNS interna únicamente
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
           port: 53
-    # Permitir proxy inverso hacia el backend API
+    # Permitir proxy inverso hacia el backend API únicamente
     - to:
         - podSelector:
             matchLabels:
@@ -66,26 +71,37 @@ spec:
         - protocol: TCP
           port: {{ .Values.api.port }}
   egress:
-    # Permitir resolución DNS
-    - ports:
+    # Permitir resolución DNS interna únicamente
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
           port: 53
-    # Permitir tráfico hacia base de datos (PostgreSQL directo o PgBouncer)
+    # Permitir tráfico hacia base de datos:
+    # Si PgBouncer está habilitado, la API SOLO puede comunicarse con PgBouncer (Zero Trust isolation)
+    {{- if .Values.pgbouncer.enabled }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: pgbouncer
+      ports:
+        - protocol: TCP
+          port: 5432
+    {{- else }}
     - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: database
-        {{- if .Values.pgbouncer.enabled }}
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/component: pgbouncer
-        {{- end }}
       ports:
         - protocol: TCP
           port: 5432
-    # Permitir tráfico hacia Redis
+    {{- end }}
+    # Permitir tráfico hacia Redis únicamente
     - to:
         - podSelector:
             matchLabels:
@@ -94,9 +110,27 @@ spec:
         - protocol: TCP
           port: 6379
     # Permitir tráfico HTTPS saliente para servicios externos (ej. Gemini AI, PokeAPI)
-    - ports:
+    # Endurecido con Anti-SSRF: Bloquea endpoints de metadatos de nube y redes privadas RFC1918
+    {{- if and .Values.networkPolicies.egress (or .Values.networkPolicies.egress.externalHttps .Values.networkPolicies.egress.antiSsrf) }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32 # AWS/GCP/Azure IMDS Metadata Endpoint (Anti-SSRF)
+              - 10.0.0.0/8         # RFC1918 Red Privada
+              - 172.16.0.0/12      # RFC1918 Red Privada / K8s internal subnets
+              - 192.168.0.0/16     # RFC1918 Red Privada
+              - 127.0.0.0/8        # Loopback
+        {{- if .Values.networkPolicies.egress.allowedExternalCidrs }}
+        {{- range .Values.networkPolicies.egress.allowedExternalCidrs }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+        {{- end }}
+      ports:
         - protocol: TCP
           port: 443
+    {{- end }}
 ---
 {{- if .Values.pgbouncer.enabled }}
 apiVersion: networking.k8s.io/v1
@@ -124,7 +158,12 @@ spec:
         - protocol: TCP
           port: 5432
   egress:
-    - ports:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
@@ -152,12 +191,15 @@ spec:
     - Ingress
   ingress:
     - from:
+        {{- if .Values.pgbouncer.enabled }}
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: pgbouncer
+        {{- else }}
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: api
+        {{- end }}
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: db-seeder

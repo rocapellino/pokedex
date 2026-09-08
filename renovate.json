@@ -17,20 +17,27 @@
   ],
   "packageRules": [
     {
-      "description": "Agrupación y auto-merge de actualizaciones menores y parches",
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "groupName": "todas las dependencias no-major",
-      "groupSlug": "minor-and-patch-updates",
+      "description": "Auto-merge estricto únicamente para parches de dependencias npm (semver patch)",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "npm patch updates",
+      "groupSlug": "npm-patch-updates",
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true,
       "ignoreTests": false
     },
     {
-      "description": "Las actualizaciones MAJOR requieren revisión manual y no se auto-mergean",
-      "matchUpdateTypes": ["major"],
+      "description": "Actualizaciones que requieren revisión manual obligatoria (minor, major, digests, pins)",
+      "matchUpdateTypes": ["minor", "major", "pin", "digest"],
       "automerge": false,
-      "labels": ["major-update", "breaking-change"]
+      "labels": ["manual-review-required"]
+    },
+    {
+      "description": "Ecosistemas críticos de infraestructura y supply chain requieren revisión humana obligatoria",
+      "matchManagers": ["dockerfile", "github-actions", "helmv3", "helm-values", "terraform"],
+      "automerge": false,
+      "labels": ["infra-supply-chain-review"]
     },
     {
       "description": "Escanear y mantener proveedores y módulos de OpenTofu",
