@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 2. Configurar Helm CLI
-        uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           version: v3.17.0
 
@@ -37,11 +37,11 @@ jobs:
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass
           helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-dev.yaml
-          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-prod.yaml
-          echo "✅ Helm Chart validado y renderizado con éxito para dev y prod."
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
+          echo "✅ Helm Chart validado y renderizado con éxito para dev y prod (prod desacoplado con existingSecret)."
 
       - name: 3. Configurar OpenTofu CLI
-        uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1.0.8
+        uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
           tofu_version: 1.8.8
 

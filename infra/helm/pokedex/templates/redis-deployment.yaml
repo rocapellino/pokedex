@@ -59,7 +59,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: pokemon-secrets
+                  name: {{ include "pokedex.secretName" . }}
                   key: REDIS_PASSWORD
           ports:
             - containerPort: {{ .Values.redis.port }}

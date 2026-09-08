@@ -75,7 +75,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: pokemon-secrets
+                  name: {{ include "pokedex.secretName" . }}
                   key: POSTGRES_PASSWORD
             - name: DB_NAME
               valueFrom:

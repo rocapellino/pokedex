@@ -237,7 +237,7 @@
     {
       "label": "☸️ Kubernetes: Up (Helm)",
       "type": "shell",
-      "command": "helm upgrade --install pokedex infra/helm/pokedex --namespace pokemon-app --create-namespace",
+      "command": "if (Get-Command helm -ErrorAction SilentlyContinue) { helm upgrade --install pokedex infra/helm/pokedex --namespace pokemon-app --create-namespace } else { kubectl create namespace pokemon-app --dry-run=client -o yaml | kubectl apply -f - ; docker run --rm -v \"${PWD}:/apps\" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex --namespace pokemon-app | kubectl apply -n pokemon-app -f - }",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -247,12 +247,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Despliega o actualiza la plataforma en Kubernetes con Helm (Deployments, Services, HPA, NetworkPolicies)."
+      "detail": "Despliega o actualiza la plataforma en Kubernetes con Helm local o vía contenedor si Helm no está en el PATH."
     },
     {
       "label": "☸️ Kubernetes: Down",
       "type": "shell",
-      "command": "helm uninstall pokedex -n pokemon-app",
+      "command": "if (Get-Command helm -ErrorAction SilentlyContinue) { helm uninstall pokedex -n pokemon-app --ignore-not-found } else { kubectl delete namespace pokemon-app --ignore-not-found }",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -262,7 +262,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Desinstala el release de Helm pokedex del namespace pokemon-app."
+      "detail": "Detiene y elimina todos los recursos de la plataforma en el namespace pokemon-app (Helm / kubectl)."
     },
     {
       "label": "☸️ Kubernetes: Status",
