@@ -1,190 +1,150 @@
-# 🤖 Guía Completa de Workflows de GitHub Actions
+# 🤖 Guía Completa de Workflows de GitHub Actions y DevSecOps
 
-Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** los pipelines de Integración Continua (CI/CD) configurados en el directorio [`.github/workflows/`](file:///c:/Users/Rodrigo/Documents/Git/introducci%C3%B3n_devops/test_prueba/.github/workflows) de este repositorio.
+Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** los pipelines de Integración Continua, Entrega Continua y Seguridad de la Cadena de Suministro (CI/CD/DevSecOps) configurados en [`.github/workflows/`](file:///.github/workflows/) de este repositorio.
 
 ---
 
 ## 📑 Tabla de Contenidos
-1. [¿Qué es un Workflow de GitHub Actions?](#1-qué-es-un-workflow-de-github-actions)
-2. [Estrategia de Monorepo y Filtrado por Rutas (`paths`)](#2-estrategia-de-monorepo-y-filtrado-por-rutas-paths)
+1. [Estrategia de Monorepo y Filtrado por Rutas (`paths`)](#1-estrategia-de-monorepo-y-filtrado-por-rutas-paths)
+2. [Diagrama de Ejecución y Flujo DevSecOps de Punta a Punta](#2-diagrama-de-ejecución-y-flujo-devsecops-de-punta-a-punta)
 3. [Catálogo de Workflows del Proyecto](#3-catálogo-de-workflows-del-proyecto)
-   * [3.1. 🐍 `api.yml` (Backend API CI)](#31--apiyml-backend-api-ci)
+   * [3.1. ⚙️ `api.yml` (Backend API CI)](#31--apiyml-backend-api-ci)
    * [3.2. 🌐 `web.yml` (Frontend Web CI)](#32--webyml-frontend-web-ci)
    * [3.3. ⚙️ `infra.yml` (Infrastructure & IaC CI)](#33-️-infrayml-infrastructure--iac-ci)
    * [3.4. 🔐 `security-gitleaks.yml` (Secret Scanning)](#34--security-gitleaksyml-secret-scanning)
-   * [3.5. 🚀 `ci.yml` (Monorepo CI Integrador)](#35--ciyml-monorepo-ci-integrador)
+   * [3.5. 🚀 `ci.yml` (Monorepo CI, SBOM, Cosign & Supply Chain)](#35--ciyml-monorepo-ci-sbom-cosign--supply-chain)
    * [3.6. 🛡️ `security-trivy.yml` (Vulnerability Scan SCA & Container)](#36-️-security-trivyyml-vulnerability-scan-sca--container)
    * [3.7. 🏷️ `release-tag.yml` (Automated Semantic Release)](#37-️-release-tagyml-automated-semantic-release)
-   * [3.8. 📌 `dependabot-linear-sync.yml` (Dependabot to Linear Sync)](#38--dependabot-linear-syncyml-dependabot-to-linear-sync)
+   * [3.8. 📌 `dependabot-linear-sync.yml` (Bot PRs to Linear Sync)](#38--dependabot-linear-syncyml-bot-prs-to-linear-sync)
 4. [Integración con Linear (Issue Tracking)](#4-integración-con-linear-issue-tracking)
-5. [Diagrama de Ejecución y Flujo de Decisión](#5-diagrama-de-ejecución-y-flujo-de-decisión)
-6. [Cómo Interpretar y Solucionar Errores en GitHub](#6-cómo-interpretar-y-solucionar-errores-en-github)
-7. [🌿 Guía de Creación de Ramas y Merge a Main](GIT_BRANCHING_AND_MERGE_WORKFLOW.md)
-
+5. [Resolución de Errores y Diagnóstico en CI](#5-resolución-de-errores-y-diagnóstico-en-ci)
 
 ---
 
-## 1. ¿Qué es un Workflow de GitHub Actions?
+## 1. Estrategia de Monorepo y Filtrado por Rutas (`paths`)
 
-Un **Workflow** es un proceso automatizado compuesto por uno o más **Jobs** que se ejecutan automáticamente en servidores en la nube de GitHub (*Runners*) cuando ocurre un evento en el repositorio (por ejemplo, al hacer un `git push` o abrir un `Pull Request`).
-
-### Conceptos Clave:
-* **`on` (Eventos/Triggers):** Cuándo se ejecuta el pipeline (ej. al subir código a `main` o cambiar un archivo específico).
-* **`jobs` (Trabajos):** Conjunto de pasos que se ejecutan en una máquina virtual limpia (ej. `ubuntu-latest`).
-* **`steps` (Pasos):** Tareas individuales secuenciales, como descargar el código (`actions/checkout`), instalar dependencias o correr pruebas.
+Como este proyecto aloja backend (`server.ts`, `src/`), frontend (`apps/web/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo, se implementa **Path Filtering** inteligente:
+* **Cambios en Backend:** Activan exclusivamente [`api.yml`](file:///.github/workflows/api.yml).
+* **Cambios en Frontend:** Activan exclusivamente [`web.yml`](file:///.github/workflows/web.yml).
+* **Cambios en Infraestructura / Helm:** Activan exclusivamente [`infra.yml`](file:///.github/workflows/infra.yml).
+* **Cambios transversales o Pull Requests a `main`:** Disparan [`ci.yml`](file:///.github/workflows/ci.yml) ejecutando la suite completa de calidad, seguridad y firmado.
+* **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml).
 
 ---
 
-## 2. Estrategia de Monorepo y Filtrado por Rutas (`paths`)
+## 2. Diagrama de Ejecución y Flujo DevSecOps de Punta a Punta
 
-Como este proyecto es un **Monorepo** (aloja frontend, backend, infraestructura y scripts en un solo repositorio), ejecutar todas las pruebas en cada commit desperdiciaría minutos de servidor y demoraría el trabajo.
+```mermaid
+flowchart TD
+    DEV(["👨‍💻 Desarrollador"]) -->|git push| GH["🚀 GitHub Repository"]
+    
+    subgraph TRIGGER_ROUTER ["🔀 Enrutador por Rutas (Path Filtering)"]
+        GH --> CHK_PATH{"¿Qué archivos cambiaron?"}
+        CHK_PATH -->|apps/web/**| WF_WEB["🌐 web.yml\n• JS Syntax Check\n• Nginx Config Lint"]
+        CHK_PATH -->|server.ts, src/**| WF_API["⚙️ api.yml\n• TypeScript Compile\n• esbuild bundle\n• npm test"]
+        CHK_PATH -->|infra/**, gitops/**| WF_INFRA["⚙️ infra.yml\n• Helm Lint & Template\n• OpenTofu Validate\n• Checkov IaC"]
+        CHK_PATH -->|Cualquier archivo| WF_LEAKS["🔐 security-gitleaks.yml\n• Escaneo estricto de secretos"]
+    end
 
-Por eso utilizamos **Path Filtering**:
-* Si modificas el backend (`server.ts`, `src/**`, `package.json`), **se ejecuta `api.yml`**.
-* Si modificas solo el frontend (`apps/web/**`), **se ejecuta `web.yml`**.
-* Si modificas solo la infraestructura (`infra/**`), **se ejecuta `infra.yml`**.
-* Si modificas la rama `main`, **se ejecuta `ci.yml` para validar todo el proyecto integrado**.
+    subgraph CI_PIPELINE ["🛡️ ci.yml: Pipeline Central Integrador (PR y main)"]
+        GH --> GATES_PARALLEL["Ejecución de Quality Gates en Paralelo"]
+        GATES_PARALLEL --> QG1["🔍 TypeScript Lint & Tests (54 tests)"]
+        GATES_PARALLEL --> QG2["🛡️ Semgrep (SAST OWASP Top 10)"]
+        GATES_PARALLEL --> QG3["🔐 Gitleaks (Secret Detection)"]
+        GATES_PARALLEL --> QG4["⚙️ Checkov (IaC & Helm Hardening)"]
+        GATES_PARALLEL --> QG5["📦 Trivy (Vulnerabilidades SCA)"]
+        
+        QG1 & QG2 & QG3 & QG4 & QG5 --> GATE_DECISION{"¿Todos los Gates Aprobados?"}
+        GATE_DECISION -->|❌ Fallo| BLOCK_PR["🚫 Bloquear Merge en GitHub"]
+        GATE_DECISION -->|✅ Aprobado| MERGE_MAIN["Merge a rama 'main'"]
+    end
+
+    subgraph SUPPLY_CHAIN ["📦 Supply Chain Security & Release (Solo en main)"]
+        MERGE_MAIN --> BUMP["🏷️ release-tag.yml (SemVer Auto-Bump)"]
+        MERGE_MAIN --> DOCKER_BUILD["🐳 Build Imagen Docker Multi-Stage"]
+        DOCKER_BUILD --> SYFT_SBOM["📋 Generar SBOM CycloneDX (Syft)"]
+        SYFT_SBOM --> COSIGN_SIGN["✍️ Cosign Keyless Signing (Sigstore OIDC)"]
+        COSIGN_SIGN --> REKOR["📜 Transparencia en Rekor Ledger"]
+        COSIGN_SIGN --> PUSH_GHCR["📦 Publicar Imagen + Firma + SBOM en GHCR"]
+    end
+
+    subgraph DEPLOYMENT ["☸️ Despliegue GitOps & Control de Admisión"]
+        PUSH_GHCR --> ARGO["☸️ ArgoCD Sincronización"]
+        ARGO --> K8S["☸️ Clúster Kubernetes"]
+        K8S --> KYVERNO{"🛡️ Kyverno ClusterPolicy\n(Verificar firma Cosign)"}
+        KYVERNO -->|Firma OIDC legítima de main| DEPLOY_OK["🚀 Pods Desplegados Exitosamente"]
+        KYVERNO -->|Sin firma o manipulada| DEPLOY_FAIL["🚫 Despliegue Rechazado"]
+    end
+
+    classDef normal fill:#3b82f6,stroke:#1d4ed8,color:#fff;
+    classDef gate fill:#f59e0b,stroke:#d97706,color:#fff;
+    classDef success fill:#10b981,stroke:#047857,color:#fff;
+    classDef error fill:#ef4444,stroke:#b91c1c,color:#fff;
+
+    class WF_WEB,WF_API,WF_INFRA,WF_LEAKS normal;
+    class GATES_PARALLEL,GATE_DECISION,KYVERNO gate;
+    class MERGE_MAIN,PUSH_GHCR,DEPLOY_OK success;
+    class BLOCK_PR,DEPLOY_FAIL error;
+```
 
 ---
 
 ## 3. Catálogo de Workflows del Proyecto
 
-### 3.1. ⚙️ [`api.yml`](/.github/workflows/api.yml) (Backend API CI)
-* **¿Cuándo se activa?** Cuando hay cambios en `server.ts`, `src/**`, `package.json`, `package-lock.json` o `tsconfig.json`.
-* **¿Qué hace paso a paso?**
-  1. Descarga el código en una máquina Ubuntu limpia.
-  2. Configura Node.js 22 LTS con caché optimizada para npm.
-  3. Instala dependencias deterministas mediante `npm ci`.
-  4. Ejecuta análisis de tipos y calidad estricto con TypeScript (`npm run lint`).
-  5. Compila el bundle de producción con **esbuild** (`npm run build`).
-  6. Ejecuta auditoría de seguridad de dependencias con `npm audit --audit-level=high`.
-* **Objetivo:** Garantizar que el servidor Express y servicios de IA compilen sin errores de tipado y sin vulnerabilidades en dependencias.
+### 3.1. ⚙️ [`api.yml`](file:///.github/workflows/api.yml) (Backend API CI)
+* **Triggers:** Cambios en `server.ts`, `src/**`, `package.json`, `package-lock.json`, `tsconfig.json`.
+* **Pasos:** Checkout, configuración de Node.js 22 LTS, `npm ci`, verificación de tipos (`tsc --noEmit`), compilación esbuild (`npm run build`), ejecución de tests (`npm test`) y auditoría de seguridad `npm audit --audit-level=high`.
 
----
+### 3.2. 🌐 [`web.yml`](file:///.github/workflows/web.yml) (Frontend Web CI)
+* **Triggers:** Cambios en `apps/web/**`.
+* **Pasos:** Chequeo estricto de sintaxis de JavaScript (`node -c apps/web/public/js/*.js`), validación de configuración de Nginx (`nginx -t`).
 
-### 3.2. 🌐 [`web.yml`](/.github/workflows/web.yml) (Frontend Web CI)
-* **¿Cuándo se activa?** Cuando hay cambios en `apps/web/**` (HTML, CSS, JS, Nginx).
-* **¿Qué hace paso a paso?**
-  1. Configura un entorno Node.js para validar sintaxis de JavaScript (`node -c apps/web/public/js/*.js`).
-  2. Levanta un contenedor efímero de **Nginx** para validar que `nginx.conf` no tenga directivas inválidas (`nginx -t`).
-* **Objetivo:** Evitar que un error tipográfico en JavaScript congele la Pokédex en el navegador o que Nginx falle al iniciar.
+### 3.3. ⚙️ [`infra.yml`](file:///.github/workflows/infra.yml) (Infrastructure & IaC CI)
+* **Triggers:** Cambios en `infra/**`, `gitops/**`.
+* **Pasos:** Helm CLI lint (`helm lint infra/helm/pokedex`), renderizado de templates con valores de desarrollo y producción (`helm template`), validación de sintaxis OpenTofu/Terraform y auditoría IaC con Checkov.
 
----
+### 3.4. 🔐 [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) (Secret Scanning)
+* **Triggers:** Todos los commits y PRs.
+* **Pasos:** Ejecuta Gitleaks con reglas de [`.gitleaks.toml`](file:///.gitleaks.toml) para detectar claves privadas, tokens y credenciales expuestas en el historial.
 
-### 3.3. ⚙️ [`infra.yml`](/.github/workflows/infra.yml) (Infrastructure & IaC CI)
-* **¿Cuándo se activa?** Cuando hay cambios en `infra/**` (Kubernetes, Terraform, Ansible).
-* **¿Qué hace paso a paso?**
-  1. Configura Helm CLI y ejecuta `helm lint` y `helm template` (para perfiles dev y prod) sobre `infra/helm/pokedex` para comprobar que las plantillas y valores sean sintácticamente válidos.
-  2. Ejecuta `terraform validate` sobre cada módulo en `infra/terraform/modules/` para validar la sintaxis HCL.
-  3. Ejecuta auditoría de seguridad IaC con Checkov.
-* **Objetivo:** Prevenir que un error en el Chart de Helm o en un archivo HCL rompa el clúster de Kubernetes o el aprovisionamiento en la nube.
+### 3.5. 🚀 [`ci.yml`](file:///.github/workflows/ci.yml) (Monorepo CI, SBOM, Cosign & Supply Chain)
+* **Triggers:** Pull Requests y pushes a `main`.
+* **Etapas:**
+  1. **Auditoría de Calidad y Complejidad:** Ejecuta `tsc`, compilación `esbuild` y `npm test`.
+  2. **Análisis Estático SAST:** Ejecuta **Semgrep** para detectar fallas OWASP Top 10.
+  3. **Seguridad IaC:** Ejecuta **Checkov** sobre manifiestos de Kubernetes y Helm.
+  4. **Construcción y Escaneo de Contenedores:** Construye la imagen Docker y la escanea con **Trivy** (falla si hay vulnerabilidades CRITICAL/HIGH).
+  5. **Firmado Criptográfico (Solo en `main`):**
+     * Genera el **SBOM CycloneDX** con **Syft**.
+     * Firma la imagen en modo Keyless con **Cosign** usando la identidad OIDC de GitHub Actions (`ci.yml@refs/heads/main`).
+     * Registra la transparencia en el ledger público **Rekor** (`https://rekor.sigstore.dev`).
+     * Publica imagen, firma y atestaciones en **GHCR**.
 
----
+### 3.6. 🛡️ [`security-trivy.yml`](file:///.github/workflows/security-trivy.yml) (Escaneo Periódico de CVEs)
+* **Triggers:** Cambios en dependencias o ejecución programada semanal.
 
-### 3.4. 🔐 [`security-gitleaks.yml`](/.github/workflows/security-gitleaks.yml) (Secret Scanning)
-* **¿Cuándo se activa?** En **todos** los commits y Pull Requests.
-* **¿Qué hace paso a paso?**
-  1. Inspecciona el historial de Git y los archivos modificados con **Gitleaks**.
-  2. Busca patrones de claves privadas SSH, contraseñas hardcodeadas, tokens de AWS/GCP o API Keys.
-* **Objetivo:** Bloquear inmediatamente el commit si algún desarrollador subió accidentalmente una contraseña o clave privada.
+### 3.7. 🏷️ [`release-tag.yml`](file:///.github/workflows/release-tag.yml) (Versionado Semántico Automático)
+* **Triggers:** Push directo / merge a `main`.
+* **Pasos:** Analiza commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer y publica el **GitHub Release** con Git Tag asociado.
 
----
-
-### 3.5. 🚀 [`ci.yml`](/.github/workflows/ci.yml) (Monorepo CI Integrador & Quality Gates)
-* **¿Cuándo se activa?** Al hacer `push` o `Pull Request` hacia la rama principal (`main` o `master`).
-* **¿Qué hace paso a paso?**
-  1. **Quality Gates Paralelos:**
-     - `🔍 Auditoría de Calidad y Complejidad`: Verificación de tipos TypeScript (`tsc --noEmit`), compilación esbuild y auditoría de archivos duplicados.
-     - `🛡️ Gitleaks Secret Detection`: Escaneo estricto de secretos y tokens expuestos.
-     - `🔍 Semgrep (SAST)`: Detección estática de vulnerabilidades OWASP Top 10 y malas prácticas de código.
-     - `🛡️ Checkov (Seguridad IaC / Helm)`: Auditoría de seguridad sobre infraestructura declarativa y plantillas Helm.
-  2. **Compilación Multi-Stage:** Compila la imagen Docker del servidor (`Dockerfile`) y genera el SBOM.
-  3. **Escaneo Trivy:** Inspecciona la imagen construida garantizando 0 vulnerabilidades CRITICAL/HIGH.
-  4. **Publicación OCI (Solo en main):** Publica la imagen firmada en GitHub Container Registry (`ghcr.io`).
-* **Objetivo:** Puerta de calidad integral obligatoria (*Quality Gate*) antes de desplegar a producción.
-
----
-
-### 3.6. 🛡️ [`security-trivy.yml`](/.github/workflows/security-trivy.yml) (Vulnerability Scan SCA & Container)
-* **¿Cuándo se activa?** En cambios a `Dockerfile`, `package.json`, `package-lock.json` o cron semanal.
-* **¿Qué hace paso a paso?**
-  1. Escanea el código y dependencias con Trivy en busca de CVEs críticos.
-  2. Construye la imagen Docker y escanea sus capas y paquetes del sistema operativo base.
-* **Objetivo:** Prevenir que dependencias o imágenes base con vulnerabilidades conocidas lleguen a producción.
-
----
-
-### 3.7. 🏷️ [`release-tag.yml`](/.github/workflows/release-tag.yml) (Automated Semantic Release)
-* **¿Cuándo se activa?** Al hacer `merge` / `push` directo en la rama `main`.
-* **¿Qué hace paso a paso?**
-  1. Analiza los commits convencionales mergeados (`feat`, `fix`, `chore(deps)`).
-  2. Calcula el siguiente incremento SemVer (`vMAJOR.MINOR.PATCH`).
-  3. Crea el **Git Tag** y publica un **GitHub Release** con el changelog detallado.
-* **Objetivo:** Automatizar el versionado continuo y trazabilidad sin intervención manual.
-
----
-
-### 3.8. 📌 [`dependabot-linear-sync.yml`](/.github/workflows/dependabot-linear-sync.yml) (Dependency Bots to Linear Sync)
-* **¿Cuándo se activa?** Cada vez que Dependabot o Renovate Bot abre un nuevo Pull Request de actualización.
-* **¿Qué hace paso a paso?**
-  1. Obtiene dinámicamente el equipo de Linear del usuario.
-  2. Crea automáticamente un **ticket consecutivo/incremental** en Linear (ej. `PER-16`, `PER-17`) con el título y enlace directo al PR de GitHub.
-* **Objetivo:** Centralizar la validación de dependencias y actualizaciones directamente en el tablero de Linear.
+### 3.8. 📌 [`dependabot-linear-sync.yml`](file:///.github/workflows/dependabot-linear-sync.yml) (Sincronización con Linear)
+* **Triggers:** Apertura de PR por bots de dependencias (Renovate / Dependabot).
+* **Pasos:** Crea un ticket correlativo en Linear (`PER-X`) vinculado al PR para seguimiento centralizado.
 
 ---
 
 ## 4. Integración con Linear (Issue Tracking)
 
-El proyecto está conectado bidireccionalmente con **[Linear](https://linear.app)** para la gestión ágil de tareas, bugs y features.
-
-### 4.1. Convención de Ramas
-El formato configurado para las ramas sigue el estándar:
-```bash
-<username>/<identificador-issue>-<descripcion-corta>
-```
-* **Ejemplo:** `rocapellino/PER-5-configurar-plantilla-pr`
-* **Acceso rápido:** En Linear, presiona `Ctrl + Shift + .` en cualquier ticket para copiar el nombre de rama automáticamente.
-
-### 4.2. Plantilla de Pull Request (`.github/pull_request_template.md`)
-Cada PR creado en GitHub se precarga con la sección para referenciar el ticket de Linear:
-* **Vinculación:** Al abrir un PR con la rama del issue, el bot de Linear comenta el link al ticket y cambia su estado a **In Progress** / **In Review**.
-* **Autocierre:** Al mergear el PR a `main`, Linear detecta la referencia y marca el ticket como **Done**.
+* **Convención de Ramas:** `<usuario>/<ticket-id>-<descripcion>` (ej: `rocapellino/PER-12-cosign-hardening`).
+* **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
 
 ---
 
-## 5. Diagrama de Ejecución y Flujo de Decisión
+## 5. Resolución de Errores y Diagnóstico en CI
 
-```mermaid
-graph TD
-    LIN[📋 Ticket en Linear / Backlog] -->|Copiar rama: Ctrl+Shift+.| BR[🌿 git checkout -b user/ID-tarea]
-    BR --> DEV[💻 Desarrollo & Commit local]
-    DEV --> PUSH[🚀 git push & abrir PR en GitHub]
-    
-    PUSH --> BOT[🤖 Linear Bot comenta PR & pasa a In Review]
-    PUSH --> B{¿Qué archivos cambiaron?}
-    
-    B -->|server.ts / src/**| C[⚙️ api.yml: TypeScript Lint + Build + Audit]
-    B -->|apps/web/**| D[🌐 web.yml: JS Syntax + Nginx Test]
-    B -->|infra/**| E[⚙️ infra.yml: Helm 3 Lint + Terraform]
-    B -->|Cualquier archivo| F[🔐 security-gitleaks.yml: Scan de Secretos]
-    
-    C --> G{¿Pasaron todos los checks?}
-    D --> G
-    E --> G
-    F --> G
-    
-    G -->|❌ No| I[Bloquear PR y Corregir Errores]
-    G -->|✅ Sí| H[Aprobar & Merge a main]
-    
-    H --> DONE[🎉 Linear actualiza ticket a Done]
-```
-
----
-
-## 6. Cómo Interpretar y Solucionar Errores en GitHub
-
-1. En tu repositorio de GitHub, ve a la pestaña **Actions**.
-2. Verás la lista de ejecuciones con un icono:
-   * 🟢 **Verde (Check):** Todas las pruebas y validaciones pasaron con éxito.
-   * 🔴 **Rojo (Cruz):** Algún paso falló (ej. un test fallido o un secreto detectado).
-3. Haz clic en el workflow en rojo para ver el registro (*log*) exacto con el número de línea y mensaje de error.
+1. **Error en Quality Gate `Auditoría de Calidad`:**
+   * Ejecutar localmente `npm run lint` y `npm test` para reproducir el fallo de tipado o prueba unitaria.
+2. **Error en `Gitleaks`:**
+   * Un archivo contiene un patrón similar a un secreto. Revisar el log para identificar el archivo y eliminar la credencial.
+3. **Error en `Cosign / Kyverno`:**
+   * Comprobar que el Pod en Kubernetes esté intentando descargar una imagen construida desde `main` con firma válida registrada en Rekor.
