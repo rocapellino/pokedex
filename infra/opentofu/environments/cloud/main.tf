@@ -4,7 +4,7 @@
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.8.5"
+  version = "21.25.0"
   #checkov:skip=CKV_TF_1: "El módulo oficial EKS se descarga del registro con versión semántica fija"
   #checkov:skip=CKV_TF_2: "Versión semántica fija de módulo oficial EKS"
 
