@@ -233,3 +233,31 @@ seedJob:
     repository: pokemon-db-seed
     tag: "1.0.0"
     pullPolicy: IfNotPresent
+
+# ------------------------------------------------------------------------------
+# 10. Gobernanza de Recursos del Namespace (ResourceQuota & LimitRange)
+# ------------------------------------------------------------------------------
+resourceQuota:
+  enabled: true
+  hard:
+    requestsCpu: "4"
+    requestsMemory: "4Gi"
+    limitsCpu: "8"
+    limitsMemory: "8Gi"
+    pods: "30"
+    services: "10"
+
+limitRange:
+  enabled: true
+  default:
+    cpu: "500m"
+    memory: "512Mi"
+  defaultRequest:
+    cpu: "100m"
+    memory: "128Mi"
+  max:
+    cpu: "2"
+    memory: "2Gi"
+  min:
+    cpu: "50m"
+    memory: "64Mi"

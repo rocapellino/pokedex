@@ -1,0 +1,84 @@
+# ==============================================================================
+# Reglas de Alerta para Prometheus / Alertmanager: Pokédex DevOps Platform
+# ==============================================================================
+groups:
+  - name: pokedex-platform-alerts
+    rules:
+      # --------------------------------------------------------------------------
+      # 1. Almacenamiento y Modo Degradado (Alta Severidad)
+      # --------------------------------------------------------------------------
+      - alert: PokedexPostgresDisconnected
+        expr: pokedex_storage_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: pokedex-api
+        annotations:
+          summary: "PostgreSQL desconectado en Pokédex API"
+          description: "La base de datos PostgreSQL está inaccesible. Las operaciones de mutación están bloqueadas en modo fail-closed (HTTP 503)."
+
+      - alert: PokedexRedisDisconnected
+        expr: pokedex_redis_status == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: pokedex-api
+        annotations:
+          summary: "Redis fuera de línea en Pokédex API"
+          description: "Redis no responde. La revocación de sesiones distribuidas y cuotas de IA están bloqueadas preventivamente (fail-closed)."
+
+      # --------------------------------------------------------------------------
+      # 2. Rendimiento y Tasas de Error HTTP
+      # --------------------------------------------------------------------------
+      - alert: PokedexHighErrorRate5xx
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.01
+        for: 3m
+        labels:
+          severity: critical
+          service: pokedex-api
+        annotations:
+          summary: "Tasa elevada de errores HTTP 5xx (> 1%)"
+          description: "Más del 1% de las peticiones HTTP están fallando con códigos 5xx durante los últimos 5 minutos."
+
+      - alert: PokedexHighLatencyP99
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          service: pokedex-api
+        annotations:
+          summary: "Latencia P99 superior a 2.0 segundos"
+          description: "El percentil 99 de tiempo de respuesta de la API supera los 2 segundos sostenidos durante 5 minutos."
+
+      # --------------------------------------------------------------------------
+      # 3. Saturación de Recursos y Resiliencia en Kubernetes
+      # --------------------------------------------------------------------------
+      - alert: PokedexHpaMaxReplicasReached
+        expr: |
+          kube_horizontalpodautoscaler_status_current_replicas{namespace="pokemon-app"}
+          >=
+          kube_horizontalpodautoscaler_spec_max_replicas{namespace="pokemon-app"}
+        for: 15m
+        labels:
+          severity: warning
+          service: pokedex-hpa
+        annotations:
+          summary: "HPA al límite máximo de réplicas"
+          description: "El autoescalador HPA ha alcanzado el número máximo de réplicas configuradas durante más de 15 minutos continuos."
+
+      - alert: PokedexContainerRestartLoop
+        expr: |
+          increase(kube_pod_container_status_restarts_total{namespace="pokemon-app"}[15m]) > 2
+        for: 5m
+        labels:
+          severity: critical
+          service: pokedex-k8s
+        annotations:
+          summary: "Contenedores reiniciándose frecuentemente en pokemon-app"
+          description: "Se han detectado múltiples reinicios de Pods en el namespace pokemon-app en los últimos 15 minutos."
