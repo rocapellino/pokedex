@@ -1,7 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
-import { generateSessionToken, verifySessionToken, revokeSessionToken, getSessionSecret } from '../src/services/auth.js';
+import {
+  generateSessionToken,
+  verifySessionToken,
+  revokeSessionToken,
+  getSessionSecret,
+  verifyTokenSignature,
+} from '../src/services/auth.js';
+import crypto from 'crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -215,6 +222,52 @@ test('🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos 
   assert.equal(await verifySessionToken('header.payload.signature'), false);
   assert.equal(await verifySessionToken(null as any), false);
   assert.equal(await verifySessionToken(undefined as any), false);
+});
+
+test('🔐 Auth Session: verifyTokenSignature rechaza límites y tipos anómalos en payload (exp, jti, role)', async () => {
+  const secret = getSessionSecret();
+
+  const sign = (payload: any) => {
+    const pB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const sig = crypto.createHmac('sha256', secret).update(pB64).digest('base64url');
+    return `${pB64}.${sig}`;
+  };
+
+  // 1. exp = Infinity
+  const tokenInf = sign({ role: 'admin', exp: Infinity, jti: '0123456789abcdef0123456789abcdef' });
+  assert.equal(verifyTokenSignature(tokenInf).valid, false);
+  assert.equal(await verifySessionToken(tokenInf), false);
+
+  // 2. exp descomunal (> año 2100)
+  const tokenOverYear2100 = sign({ role: 'admin', exp: 999999999999999999, jti: '0123456789abcdef0123456789abcdef' });
+  assert.equal(verifyTokenSignature(tokenOverYear2100).valid, false);
+  assert.equal(await verifySessionToken(tokenOverYear2100), false);
+
+  // 3. exp negativo o cero
+  const tokenNeg = sign({ role: 'admin', exp: -500, jti: '0123456789abcdef0123456789abcdef' });
+  assert.equal(verifyTokenSignature(tokenNeg).valid, false);
+  assert.equal(await verifySessionToken(tokenNeg), false);
+
+  // 4. exp float no entero
+  const tokenFloat = sign({ role: 'admin', exp: 1725800000.5, jti: '0123456789abcdef0123456789abcdef' });
+  assert.equal(verifyTokenSignature(tokenFloat).valid, false);
+  assert.equal(await verifySessionToken(tokenFloat), false);
+
+  // 5. jti excesivamente largo (>64 chars)
+  const hugeJti = 'a'.repeat(256);
+  const tokenHugeJti = sign({ role: 'admin', exp: Date.now() + 60000, jti: hugeJti });
+  assert.equal(verifyTokenSignature(tokenHugeJti).valid, false);
+  assert.equal(await verifySessionToken(tokenHugeJti), false);
+
+  // 6. jti no hexadecimal
+  const tokenNonHexJti = sign({ role: 'admin', exp: Date.now() + 60000, jti: 'not-hex-characters-!!!' });
+  assert.equal(verifyTokenSignature(tokenNonHexJti).valid, false);
+  assert.equal(await verifySessionToken(tokenNonHexJti), false);
+
+  // 7. role apócrifo
+  const tokenUserRole = sign({ role: 'user', exp: Date.now() + 60000, jti: '0123456789abcdef0123456789abcdef' });
+  assert.equal(verifyTokenSignature(tokenUserRole).valid, false);
+  assert.equal(await verifySessionToken(tokenUserRole), false);
 });
 
 test('🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados', () => {
