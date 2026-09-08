@@ -42,6 +42,7 @@ postgresql:
       memory: "512Mi"
 
 pgbouncer:
+  enabled: true
   replicaCount: 2
   maxClientConn: 500
   defaultPoolSize: 50
@@ -80,11 +81,21 @@ ingress:
         - pokedex.example.com
 
 # ------------------------------------------------------------------------------
-# Secretos de Producción: Se exige inyección segura mediante SealedSecrets o --set
+# Gestión de Secretos en Producción (Zero-Trust & Desacoplamiento de Helm)
 # ------------------------------------------------------------------------------
+# En producción, Helm NO debe generar secretos con valores planos ni utilizar --set.
+# Los secretos se gestionan de forma desacoplada vía External Secrets Operator (Vault, AWS Secrets Manager, GCP)
+# o mediante un Secret preexistente inyectado en el clúster.
 secrets:
-  adminApiKey: "" # Forzar inyección obligatoria en producción mediante --set o sealed-secrets
-  adminSessionSecret: ""
+  existingSecret: "pokedex-prod-secrets"
+
+externalSecrets:
+  enabled: false
+  secretStoreRef:
+    name: "vault-backend"
+    kind: "ClusterSecretStore"
+  remoteRef:
+    key: "pokedex/production"
 
 resourceQuota:
   enabled: true
@@ -95,4 +106,11 @@ resourceQuota:
     limitsMemory: "16Gi"
     pods: "50"
     services: "15"
+
+networkPolicies:
+  enabled: true
+  egress:
+    antiSsrf: true
+    externalHttps: true
+    allowedExternalCidrs: []
 

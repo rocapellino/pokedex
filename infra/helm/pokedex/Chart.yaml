@@ -1,6 +1,6 @@
 apiVersion: v2
 name: pokedex
-description: Helm Chart oficial para la plataforma Pokédex (FastAPI, Nginx, PostgreSQL, Redis, PgBouncer)
+description: Helm Chart oficial para la plataforma Pokédex (Node.js/Express, TypeScript, Nginx, PostgreSQL, Redis, PgBouncer)
 type: application
 version: 1.0.0
 appVersion: "1.9.5"
@@ -8,7 +8,9 @@ icon: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/pok
 keywords:
   - pokemon
   - pokedex
-  - fastapi
+  - nodejs
+  - express
+  - typescript
   - nginx
   - postgresql
   - redis
