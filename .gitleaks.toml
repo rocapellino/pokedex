@@ -10,13 +10,13 @@ useDefault = true
 [allowlist]
 description = "Permitir archivos de plantilla y placeholders de prueba conocidos"
 paths = [
-  # Variables de entorno locales y de ejemplo (no versionadas o plantilla)
-  '''(?i)(^|/)\.env(\..*)?$''',
+  # Variables de entorno de ejemplo documentadas
+  '''(?i)(^|/)\.env\.example$''',
   # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
   '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/opentofu/.*/(variables|outputs)\.tf$''',
-  # K8s — SealedSecrets cifrados con clave pública del controlador
-  '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
+  # K8s / Helm — SealedSecrets cifrados con clave pública del controlador
+  '''(?i)^infra/helm/pokedex/templates/sealed-secrets\.ya?ml$''',
   # Ansible — inventario de ejemplo
   '''(?i)^infra/ansible/inventory/hosts\.ini$''',
 ]

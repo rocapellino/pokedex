@@ -18,6 +18,7 @@ RUN npm ci
 # Copiar código fuente y assets
 COPY server.ts ./
 COPY src/ ./src/
+COPY scripts/ ./scripts/
 COPY apps/web/public/ ./apps/web/public/
 
 # Verificación de tipos y build de producción

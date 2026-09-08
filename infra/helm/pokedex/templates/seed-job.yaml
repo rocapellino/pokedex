@@ -40,7 +40,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          command: ["node", "-e", "console.log('Seed catalog verified and bootstrapped in native service.')"]
+          command: ["node", "dist/seed.cjs"]
           envFrom:
             - configMapRef:
                 name: {{ include "pokedex.fullname" . }}-config

@@ -196,7 +196,8 @@ async function checkHealthStatus() {
 }
 
 async function loadAdminData() {
-  const tbody = document.getElementById('tableBody');
+  const tbody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
+  if (!tbody) return;
   try {
     tbody.innerHTML = `
       <tr>
@@ -219,15 +220,17 @@ async function loadAdminData() {
   } catch (err) {
     console.error('Error al conectar con la API:', err);
     showToast(`Error al cargar datos: ${err.message}`, true);
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" class="table-empty">
-          <div style="color: #ef4444; font-size: 1.5rem; margin-bottom: 0.5rem;">⚠️</div>
-          <strong>Error de conexión con la API</strong>
-          <p class="text-muted">${err.message}</p>
-        </td>
-      </tr>
-    `;
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="table-empty">
+            <div style="color: #ef4444; font-size: 1.5rem; margin-bottom: 0.5rem;">⚠️</div>
+            <strong>Error de conexión con la API</strong>
+            <p class="text-muted">${err.message}</p>
+          </td>
+        </tr>
+      `;
+    }
   }
 }
 
@@ -250,24 +253,28 @@ function applyAdminFilters() {
 }
 
 function handleAdminSearch() {
-  currentSearch = document.getElementById('adminSearchInput').value;
+  const input = document.getElementById('adminSearch') || document.getElementById('adminSearchInput');
+  currentSearch = input ? input.value : '';
   applyAdminFilters();
 }
 
 function handleAdminTypeFilter() {
-  currentType = document.getElementById('adminTypeFilter').value;
+  const select = document.getElementById('adminTypeFilter');
+  currentType = select ? select.value : 'all';
   applyAdminFilters();
 }
 
 function handlePageSizeChange() {
-  pageSize = parseInt(document.getElementById('adminPageSize').value, 10);
+  const sizeEl = document.getElementById('adminPageSize');
+  pageSize = sizeEl ? parseInt(sizeEl.value, 10) || 50 : 50;
   currentPage = 1;
   renderTable();
 }
 
 function renderTable() {
-  const tbody = document.getElementById('tableBody');
+  const tbody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   const pagination = document.getElementById('adminPagination');
+  if (!tbody) return;
 
   if (filteredPokemons.length === 0) {
     tbody.innerHTML = `
@@ -365,15 +372,19 @@ function changeAdminPage(delta) {
 }
 
 function updateKPIs() {
-  document.getElementById('kpiTotal').innerText = allPokemons.length;
+  const totalEl = document.getElementById('kpiTotal');
+  if (totalEl) totalEl.innerText = allPokemons.length;
   if (allPokemons.length === 0) return;
 
   const totalForce = allPokemons.reduce((acc, p) => acc + (p.fuerza || 0), 0);
   const avgForce = Math.round(totalForce / allPokemons.length);
   const uniqueTypes = new Set(allPokemons.map(p => p.tipo).filter(Boolean));
 
-  document.getElementById('kpiAvgForce').innerText = `${avgForce} pts`;
-  document.getElementById('kpiTypesCount').innerText = uniqueTypes.size;
+  const avgPowerEl = document.getElementById('kpiAvgPower') || document.getElementById('kpiAvgForce');
+  if (avgPowerEl) avgPowerEl.innerText = `${avgForce} pts`;
+
+  const typesEl = document.getElementById('kpiTypes') || document.getElementById('kpiTypesCount');
+  if (typesEl) typesEl.innerText = uniqueTypes.size;
 }
 
 // ============================================================================
@@ -607,7 +618,7 @@ function initEventListeners() {
   const adminBtnNext = document.getElementById('adminBtnNext');
   if (adminBtnNext) adminBtnNext.addEventListener('click', () => changeAdminPage(1));
 
-  const adminSearchInput = document.getElementById('adminSearchInput');
+  const adminSearchInput = document.getElementById('adminSearch') || document.getElementById('adminSearchInput');
   if (adminSearchInput) adminSearchInput.addEventListener('input', handleAdminSearch);
 
   const adminTypeFilter = document.getElementById('adminTypeFilter');
@@ -628,7 +639,7 @@ function initEventListeners() {
     el.addEventListener('click', closeAuthModal);
   });
 
-  const tableBody = document.getElementById('tableBody');
+  const tableBody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   if (tableBody) {
     tableBody.addEventListener('click', (e) => {
       const editBtn = e.target.closest('[data-edit-id]');

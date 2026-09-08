@@ -39,7 +39,7 @@ services:
       NODE_ENV: "production"
       PORT: "${PORT:-3000}"
       DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-pokedex_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
-      REDIS_URL: "${REDIS_URL:-redis://:${REDIS_PASSWORD:-redis_dev_secret_password}@redis:6379/0}"
+      REDIS_URL: "${REDIS_URL:-redis://:${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}@redis:6379/0}"
       ADMIN_API_KEY: "${ADMIN_API_KEY}"
       AI_API_KEY: "${AI_API_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
@@ -95,7 +95,7 @@ services:
     command: >
       sh -c "exec redis-server --requirepass \"$${REDIS_PASSWORD}\""
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_secret_password}
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}"
     expose:
       - "6379"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:

@@ -253,5 +253,69 @@ export function validatePokemonPayload(body: any): ValidationResult {
     }
   }
 
+  // 10. Validación Estricta del Campo Evoluciones (anti-DoS, profundidad máxima y URLs seguras)
+  if (body.evoluciones !== undefined && body.evoluciones !== null) {
+    if (Array.isArray(body.evoluciones)) {
+      if (body.evoluciones.length > 20) {
+        return { valid: false, error: 'La lista de evoluciones no puede exceder los 20 elementos' };
+      }
+      for (const node of body.evoluciones) {
+        const evoRes = validateEvolutionNode(node, 0);
+        if (!evoRes.valid) return evoRes;
+      }
+    } else if (typeof body.evoluciones === 'object') {
+      const arbol = (body.evoluciones as any).arbol;
+      if (arbol) {
+        const evoRes = validateEvolutionNode(arbol, 0);
+        if (!evoRes.valid) return evoRes;
+      }
+    } else {
+      return { valid: false, error: 'El campo evoluciones debe ser una lista o un objeto con árbol de evoluciones' };
+    }
+  }
+
+  return { valid: true };
+}
+
+function validateEvolutionNode(node: unknown, depth: number = 0): ValidationResult {
+  if (depth > 5) {
+    return { valid: false, error: 'El árbol de evoluciones excede la profundidad máxima permitida de 5 niveles' };
+  }
+  if (!node || typeof node !== 'object' || Array.isArray(node)) {
+    return { valid: false, error: 'Cada nodo de evolución debe ser un objeto' };
+  }
+  const n = node as Record<string, any>;
+  if (n.id !== undefined) {
+    const id = parseStrictInteger(n.id);
+    if (id === null || id <= 0) {
+      return { valid: false, error: 'El ID en nodo de evolución debe ser un entero positivo' };
+    }
+  }
+  if (n.nombre !== undefined) {
+    if (typeof n.nombre !== 'string' || !n.nombre.trim() || n.nombre.length > 60 || SCRIPT_PATTERN.test(n.nombre)) {
+      return { valid: false, error: 'El nombre en evolución no es válido o contiene caracteres peligrosos' };
+    }
+  }
+  if (n.etapa !== undefined && (typeof n.etapa !== 'string' || n.etapa.length > 50 || SCRIPT_PATTERN.test(n.etapa))) {
+    return { valid: false, error: 'El campo etapa en evolución contiene caracteres no permitidos' };
+  }
+  if (n.metodo !== undefined && n.metodo !== null && (typeof n.metodo !== 'string' || n.metodo.length > 100 || SCRIPT_PATTERN.test(n.metodo))) {
+    return { valid: false, error: 'El método de evolución contiene caracteres no permitidos' };
+  }
+  if (n.imagen !== undefined && n.imagen !== null && !validateImageUrl(n.imagen)) {
+    return { valid: false, error: 'La URL de imagen en el nodo de evolución no es segura o es inválida' };
+  }
+  if (n.evolves_to !== undefined) {
+    if (!Array.isArray(n.evolves_to)) {
+      return { valid: false, error: 'El campo evolves_to debe ser una lista de evoluciones' };
+    }
+    if (n.evolves_to.length > 10) {
+      return { valid: false, error: 'Un nodo de evolución no puede ramificarse en más de 10 evoluciones directas' };
+    }
+    for (const child of n.evolves_to) {
+      const childRes = validateEvolutionNode(child, depth + 1);
+      if (!childRes.valid) return childRes;
+    }
+  }
   return { valid: true };
 }

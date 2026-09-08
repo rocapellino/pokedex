@@ -49,7 +49,7 @@ flowchart TD
   - El dominio Pokémon es inherentemente **relacional**: los tipos, habilidades, movimientos y cadenas evolutivas están fuertemente interconectados.
   - Permite consultas analíticas precisas: *"Listar todos los Pokémon de Generación 3 con tipo dual Fuego/Volador y velocidad > 90"*.
   - Evita anomalías de actualización: si se corrige la descripción de una habilidad o el color de un tipo, se actualiza en una sola fila.
-  - PostgreSQL ofrece soporte nativo para columnas `JSONB` y búsqueda全文 (Full-Text Search) sobre descripciones de la Pokédex.
+  - PostgreSQL ofrece soporte nativo para columnas `JSONB` y búsqueda de texto completo (Full-Text Search) sobre descripciones de la Pokédex.
 - ❌ **Puntos Débiles:**
   - Requiere ejecutar `JOINs` entre múltiples tablas para armar la respuesta completa de un Pokémon.
 

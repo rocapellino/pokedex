@@ -3,7 +3,6 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { initialPokemons } from './src/data/initialPokemons.js';
 import { Pokemon } from './src/types.js';
 import { generateDiagram, generateMockup, generateImage } from './src/services/ai.js';
 import {
@@ -18,21 +17,20 @@ import {
 } from './src/services/db.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
 import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
-import { generateSessionToken, verifySessionToken } from './src/services/auth.js';
+import { generateSessionToken, verifySessionToken, revokeSessionToken } from './src/services/auth.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const PUBLIC_DIR = path.join(process.cwd(), 'apps', 'web', 'public');
 
 // ---------------------------------------------------------------------------
-// In-Memory Data Store & Indexed Lookup Map
+// Error Boundary Helper: Async Handler para Express 4.x
+// Reenvía automáticamente los rechazos de promesas al middleware global de errores
 // ---------------------------------------------------------------------------
-let pokemons: Pokemon[] = JSON.parse(JSON.stringify(initialPokemons));
-const pokemonMap = new Map<number, Pokemon>();
-for (const p of pokemons) {
-  pokemonMap.set(p.id, p);
-}
-let nextId = pokemons.reduce((max, p) => Math.max(max, p.id), 1008) + 1;
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
 
 // ---------------------------------------------------------------------------
 // Metrics & Observability Tracking (Prometheus Exposition Format)
@@ -158,49 +156,52 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
     }
   }, windowMs * 2);
 
-  return async (req: Request, res: Response, next: NextFunction) => {
-    // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
-    const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
-    const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
+  return (req: Request, res: Response, next: NextFunction) => {
+    (async () => {
+      // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
+      const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+      const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
 
-    // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
-    const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
-    if (distResult !== null) {
-      if (!distResult.allowed) {
-        res.setHeader('Retry-After', distResult.retryAfterSeconds);
+      // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
+      const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
+      if (distResult !== null) {
+        if (!distResult.allowed) {
+          res.setHeader('Retry-After', distResult.retryAfterSeconds);
+          return res.status(429).json({
+            detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
+            retry_after_seconds: distResult.retryAfterSeconds,
+          });
+        }
+        return next();
+      }
+
+      // 2. Fallback resiliente a memoria local si Redis no está configurado o está temporalmente offline
+      const now = Date.now();
+      const entry = clients.get(ip);
+
+      if (!entry || now > entry.resetTime) {
+        clients.set(ip, { count: 1, resetTime: now + windowMs });
+        return next();
+      }
+
+      if (entry.count >= maxRequests) {
+        const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
+        res.setHeader('Retry-After', retryAfter);
         return res.status(429).json({
-          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
-          retry_after_seconds: distResult.retryAfterSeconds,
+          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${retryAfter} segundos.`,
+          retry_after_seconds: retryAfter,
         });
       }
-      return next();
-    }
 
-    // 2. Fallback resiliente a memoria local si Redis no está configurado o está temporalmente offline
-    const now = Date.now();
-    const entry = clients.get(ip);
-
-    if (!entry || now > entry.resetTime) {
-      clients.set(ip, { count: 1, resetTime: now + windowMs });
-      return next();
-    }
-
-    if (entry.count >= maxRequests) {
-      const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-      res.setHeader('Retry-After', retryAfter);
-      return res.status(429).json({
-        detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${retryAfter} segundos.`,
-        retry_after_seconds: retryAfter,
-      });
-    }
-
-    entry.count++;
-    next();
+      entry.count++;
+      next();
+    })().catch(next);
   };
 }
 
 const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA');
 const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
+const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 
 // ---------------------------------------------------------------------------
 // Security: Verificación de Clave con Prevención de Timing Attacks
@@ -215,8 +216,6 @@ function safeCompareKeys(provided: string, expected: string): boolean {
     return false;
   }
 }
-
-export { generateSessionToken, verifySessionToken };
 
 function extractApiKey(req: Request): string {
   const authHeader = (req.headers['authorization'] || '') as string;
@@ -302,7 +301,7 @@ function calculateETag(data: unknown): string {
 // ---------------------------------------------------------------------------
 // Autenticación de Operador: Emisión de Tokens de Sesión de Corta Duración
 // ---------------------------------------------------------------------------
-app.post('/api/v1/auth/session', mutationRateLimiter, (req: Request, res: Response) => {
+app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) => {
   const { apiKey } = req.body || {};
   const configuredKey = process.env.ADMIN_API_KEY;
 
@@ -323,6 +322,16 @@ app.post('/api/v1/auth/session', mutationRateLimiter, (req: Request, res: Respon
     token,
     token_type: 'Bearer',
     expires_in: expiresIn,
+  });
+});
+
+app.post('/api/v1/auth/logout', authRateLimiter, (req: Request, res: Response) => {
+  const token = extractApiKey(req);
+  if (token) {
+    revokeSessionToken(token);
+  }
+  return res.status(200).json({
+    detail: 'Sesión finalizada y token revocado correctamente.',
   });
 });
 
@@ -413,7 +422,7 @@ app.get('/metrics', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
 // ---------------------------------------------------------------------------
-app.get('/pokemons', async (req: Request, res: Response) => {
+app.get('/pokemons', asyncHandler(async (req: Request, res: Response) => {
   const { tipo, nombre, limit, offset } = req.query;
 
   // Límite de paginación estricto contra abusos de DoS y saturación de base de datos
@@ -437,10 +446,10 @@ app.get('/pokemons', async (req: Request, res: Response) => {
   res.setHeader('ETag', etag);
   res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   return res.json(list);
-});
+}));
 
 // Búsqueda instantánea vía PostgreSQL / Redis con ETag
-app.get('/pokemons/:id', async (req: Request, res: Response) => {
+app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
@@ -459,10 +468,10 @@ app.get('/pokemons/:id', async (req: Request, res: Response) => {
   res.setHeader('ETag', etag);
   res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   return res.json(found);
-});
+}));
 
 // Creación persistente con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
+app.post('/pokemons', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
     return res.status(422).json({ detail: validation.error });
@@ -507,10 +516,10 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, async (req: Request, res
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${newPokemon.id} - ${newPokemon.nombre}`);
   return res.status(201).json(newPokemon);
-});
+}));
 
 // Edición persistente con validación e invalidación de caché
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
+app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -550,12 +559,12 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, 
       habitat: body.habitat !== undefined ? String(body.habitat).slice(0, 50) : (body.caracteristicas?.habitat !== undefined ? String(body.caracteristicas.habitat).slice(0, 50) : existing.caracteristicas.habitat),
     },
     stats: body.stats ? {
-      hp: body.stats.hp !== undefined ? parseInt(body.stats.hp, 10) : existing.stats.hp,
-      attack: body.stats.attack !== undefined ? parseInt(body.stats.attack, 10) : existing.stats.attack,
-      defense: body.stats.defense !== undefined ? parseInt(body.stats.defense, 10) : existing.stats.defense,
-      sp_attack: body.stats.sp_attack !== undefined ? parseInt(body.stats.sp_attack, 10) : existing.stats.sp_attack,
-      sp_defense: body.stats.sp_defense !== undefined ? parseInt(body.stats.sp_defense, 10) : existing.stats.sp_defense,
-      speed: body.stats.speed !== undefined ? parseInt(body.stats.speed, 10) : existing.stats.speed,
+      hp: body.stats.hp !== undefined ? parseInt(body.stats.hp, 10) : (existing.stats?.hp ?? 50),
+      attack: body.stats.attack !== undefined ? parseInt(body.stats.attack, 10) : (existing.stats?.attack ?? 50),
+      defense: body.stats.defense !== undefined ? parseInt(body.stats.defense, 10) : (existing.stats?.defense ?? 50),
+      sp_attack: body.stats.sp_attack !== undefined ? parseInt(body.stats.sp_attack, 10) : (existing.stats?.sp_attack ?? 50),
+      sp_defense: body.stats.sp_defense !== undefined ? parseInt(body.stats.sp_defense, 10) : (existing.stats?.sp_defense ?? 50),
+      speed: body.stats.speed !== undefined ? parseInt(body.stats.speed, 10) : (existing.stats?.speed ?? 50),
     } : existing.stats,
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
   };
@@ -564,10 +573,10 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, 
 
   console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${id} - ${updated.nombre}`);
   return res.json(updated);
-});
+}));
 
 // Eliminación persistente
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Request, res: Response) => {
+app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -585,12 +594,12 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, async (req: Reques
     mensaje: `Pokémon con id ${id} eliminado correctamente`,
     pokemon_eliminado: existing,
   });
-});
+}));
 
 // ---------------------------------------------------------------------------
 // Google AI Studio (Gemini) Endpoints con Rate Limit y Auth
 // ---------------------------------------------------------------------------
-app.post('/api/v1/ai/diagram', aiRateLimiter, verifyAIKey, async (req: Request, res: Response) => {
+app.post('/api/v1/ai/diagram', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, diagram_type } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -598,9 +607,9 @@ app.post('/api/v1/ai/diagram', aiRateLimiter, verifyAIKey, async (req: Request, 
   const cleanPrompt = prompt.trim().slice(0, 1000);
   const result = await generateDiagram(cleanPrompt, diagram_type);
   res.json(result);
-});
+}));
 
-app.post('/api/v1/ai/mock', aiRateLimiter, verifyAIKey, async (req: Request, res: Response) => {
+app.post('/api/v1/ai/mock', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, framework } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -608,9 +617,9 @@ app.post('/api/v1/ai/mock', aiRateLimiter, verifyAIKey, async (req: Request, res
   const cleanPrompt = prompt.trim().slice(0, 1000);
   const result = await generateMockup(cleanPrompt, framework);
   res.json(result);
-});
+}));
 
-app.post('/api/v1/ai/image', aiRateLimiter, verifyAIKey, async (req: Request, res: Response) => {
+app.post('/api/v1/ai/image', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, aspect_ratio } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -618,7 +627,7 @@ app.post('/api/v1/ai/image', aiRateLimiter, verifyAIKey, async (req: Request, re
   const cleanPrompt = prompt.trim().slice(0, 1000);
   const result = await generateImage(cleanPrompt, aspect_ratio);
   res.json(result);
-});
+}));
 
 // ---------------------------------------------------------------------------
 // Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
