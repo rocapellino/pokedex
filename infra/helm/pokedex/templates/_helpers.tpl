@@ -48,3 +48,16 @@ Selector labels
 app.kubernetes.io/name: {{ include "pokedex.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Nombre del secret a utilizar (existingSecret, externalSecrets o predeterminado)
+*/}}
+{{- define "pokedex.secretName" -}}
+{{- if .Values.secrets.existingSecret -}}
+{{- .Values.secrets.existingSecret -}}
+{{- else if and .Values.externalSecrets .Values.externalSecrets.enabled -}}
+{{- default "pokemon-secrets" .Values.externalSecrets.targetSecretName -}}
+{{- else -}}
+{{- default "pokemon-secrets" .Values.secrets.secretName -}}
+{{- end -}}
+{{- end }}
