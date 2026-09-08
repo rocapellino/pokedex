@@ -1,0 +1,2 @@
+# Gitleaks ignore file (fingerprints)
+5d8c13701df243f209de41388cdc1a5d77f536d2:infra/k8s/01-sealed-secrets.yaml:generic-api-key:10
