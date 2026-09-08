@@ -78,6 +78,16 @@ function isLocallyRevoked(jti: string): boolean {
  * Registra el jti en Redis con un TTL exacto al tiempo de vida restante,
  * eliminando memory leaks y permitiendo revocación distribuida en clúster multi-pod.
  */
+export type VerifySessionResult =
+  | { valid: true }
+  | { valid: false; reason: 'invalid_format' | 'invalid_signature' | 'expired' | 'revoked' | 'service_unavailable' };
+
+/**
+ * Revoca explícitamente un token de sesión antes de su expiración natural.
+ * Registra el jti en Redis con un TTL exacto al tiempo de vida restante,
+ * eliminando memory leaks y permitiendo revocación distribuida en clúster multi-pod.
+ * Si REDIS_URL está configurado y la escritura en Redis falla, retorna false (Fail-Closed).
+ */
 export async function revokeSessionToken(token: string): Promise<boolean> {
   if (!token || typeof token !== 'string') return false;
   const payload = decodeTokenPayload(token);
@@ -91,7 +101,11 @@ export async function revokeSessionToken(token: string): Promise<boolean> {
   localRevokedTokens.set(payload.jti, payload.exp);
 
   // 2. Guardar en Redis distribuido con TTL automático
-  await setRevokedJti(payload.jti, remainingSeconds);
+  const redisOk = await setRevokedJti(payload.jti, remainingSeconds);
+  if (!redisOk && Boolean(process.env.REDIS_URL)) {
+    console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (jti: ${payload.jti}) en Redis. Operación distribuida no garantizada.`);
+    return false;
+  }
   return true;
 }
 
@@ -126,37 +140,51 @@ export function generateSessionToken(ttlMs: number = SESSION_TOKEN_TTL_MS): Sess
 }
 
 /**
- * Valida la firma HMAC, expiración y estado de revocación de un token de sesión de administrador.
- * Primero valida la firma criptográfica y expiración (CPU puro sin I/O), y solo si es válido
- * consulta el estado de revocación en Redis.
+ * Valida detalladamente la firma HMAC, expiración y estado de revocación en Redis.
+ * Aplica política Fail-Closed: si REDIS_URL está configurado pero Redis está fuera de línea,
+ * rechaza el token con reason: 'service_unavailable' para proteger operaciones multi-pod.
  */
-export async function verifySessionToken(token: string): Promise<boolean> {
-  if (!token || typeof token !== 'string') return false;
+export async function verifySessionTokenDetailed(token: string): Promise<VerifySessionResult> {
+  if (!token || typeof token !== 'string') return { valid: false, reason: 'invalid_format' };
   const cleanToken = token.trim();
 
   const parts = cleanToken.split('.');
-  if (parts.length !== 2) return false;
+  if (parts.length !== 2) return { valid: false, reason: 'invalid_format' };
   const [payloadBase64, signature] = parts;
   try {
     const expectedSig = crypto.createHmac('sha256', getSessionSecret()).update(payloadBase64).digest('base64url');
-    if (signature.length !== expectedSig.length) return false;
+    if (signature.length !== expectedSig.length) return { valid: false, reason: 'invalid_signature' };
     if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
-      return false;
+      return { valid: false, reason: 'invalid_signature' };
     }
     const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
-    if (payload.role !== 'admin') return false;
-    if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return false;
+    if (payload.role !== 'admin') return { valid: false, reason: 'invalid_signature' };
+    if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return { valid: false, reason: 'expired' };
 
     // Verificación de revocación por jti
     if (payload.jti) {
-      if (isLocallyRevoked(payload.jti)) return false;
+      if (isLocallyRevoked(payload.jti)) return { valid: false, reason: 'revoked' };
       const redisRevoked = await isJtiRevokedInRedis(payload.jti);
-      if (redisRevoked === true) return false;
+      if (redisRevoked === true) return { valid: false, reason: 'revoked' };
+      // Fail-Closed: si REDIS_URL está configurado pero Redis está caído, denegar por seguridad
+      if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
+        return { valid: false, reason: 'service_unavailable' };
+      }
     }
 
-    return true;
+    return { valid: true };
   } catch {
-    return false;
+    return { valid: false, reason: 'invalid_format' };
   }
+}
+
+/**
+ * Valida la firma HMAC, expiración y estado de revocación de un token de sesión de administrador.
+ * Primero valida la firma criptográfica y expiración (CPU puro sin I/O), y solo si es válido
+ * consulta el estado de revocación en Redis. Falla cerrado si Redis está inaccesible.
+ */
+export async function verifySessionToken(token: string): Promise<boolean> {
+  const result = await verifySessionTokenDetailed(token);
+  return result.valid;
 }
 

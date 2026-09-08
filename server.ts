@@ -14,10 +14,16 @@ import {
   getNextPokemonId,
   getStorageHealth,
   consumeDistributedRateLimit,
+  isWritableStorageAvailable,
 } from './src/services/db.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
 import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
-import { generateSessionToken, verifySessionToken, revokeSessionToken } from './src/services/auth.js';
+import {
+  generateSessionToken,
+  verifySessionToken,
+  verifySessionTokenDetailed,
+  revokeSessionToken,
+} from './src/services/auth.js';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -243,8 +249,16 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   }
 
   // 1. Validar si la credencial es un token de sesión firmado de corta duración
-  if (await verifySessionToken(credential)) {
+  const sessionCheck = await verifySessionTokenDetailed(credential);
+  if (sessionCheck.valid) {
     return next();
+  }
+
+  // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
+  if (sessionCheck.reason === 'service_unavailable') {
+    return res.status(503).json({
+      detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
+    });
   }
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
@@ -255,6 +269,15 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   return res.status(401).json({
     detail: 'Credencial de autenticación administrativa inválida o sesión expirada',
   });
+}
+
+function requireWritableStorage(_req: Request, res: Response, next: NextFunction) {
+  if (!isWritableStorageAvailable()) {
+    return res.status(503).json({
+      detail: 'Almacenamiento persistente (PostgreSQL) no disponible. Operaciones de escritura suspendidas para prevenir pérdida de datos.',
+    });
+  }
+  next();
 }
 
 function verifyAIKey(req: Request, res: Response, next: NextFunction) {
@@ -328,7 +351,12 @@ app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) 
 app.post('/api/v1/auth/logout', authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
   const token = extractApiKey(req);
   if (token) {
-    await revokeSessionToken(token);
+    const revoked = await revokeSessionToken(token);
+    if (!revoked && Boolean(process.env.REDIS_URL)) {
+      return res.status(503).json({
+        detail: 'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
+      });
+    }
   }
   return res.status(200).json({
     detail: 'Sesión finalizada y token revocado correctamente.',
@@ -350,6 +378,8 @@ app.get('/readyz', (_req: Request, res: Response) => {
       database: health.database,
       postgres_connected: health.postgres_connected,
       redis_connected: health.redis_connected,
+      postgres_total_records: health.postgres_total_records,
+      memory_total_records: health.memory_total_records,
       pokemons_count: health.total_records,
       detail: 'PostgreSQL no está conectado o el servicio está en modo degradado',
     });
@@ -359,6 +389,8 @@ app.get('/readyz', (_req: Request, res: Response) => {
     database: health.database,
     postgres_connected: health.postgres_connected,
     redis_connected: health.redis_connected,
+    postgres_total_records: health.postgres_total_records,
+    memory_total_records: health.memory_total_records,
     pokemons_count: health.total_records,
   });
 });
@@ -471,7 +503,7 @@ app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Creación persistente con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
+app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
     return res.status(422).json({ detail: validation.error });
@@ -519,7 +551,7 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, asyncHandler(async (req:
 }));
 
 // Edición persistente con validación e invalidación de caché
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
+app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -576,7 +608,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, asyncHandler(async (r
 }));
 
 // Eliminación persistente
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, asyncHandler(async (req: Request, res: Response) => {
+app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
