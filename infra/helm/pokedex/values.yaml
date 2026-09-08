@@ -94,7 +94,7 @@ postgresql:
   enabled: true
   image:
     repository: postgres
-    tag: "16-alpine"
+    tag: "16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685"
     pullPolicy: IfNotPresent
   port: 5432
   auth:
@@ -120,8 +120,8 @@ pgbouncer:
   enabled: false
   replicaCount: 1
   image:
-    repository: edoburu/pgbouncer
-    tag: "1.22.0"
+    repository: pgbouncer/pgbouncer
+    tag: "latest@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516"
     pullPolicy: IfNotPresent
   port: 5432
   poolMode: transaction
@@ -143,7 +143,7 @@ redis:
   replicaCount: 1
   image:
     repository: redis
-    tag: "7-alpine"
+    tag: "7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf"
     pullPolicy: IfNotPresent
   port: 6379
   auth:

@@ -1,0 +1,38 @@
+# ==============================================================================
+# GitHub CODEOWNERS - Asignación de Responsabilidades por Capas (DevSecOps)
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# ==============================================================================
+
+# Ownership global por defecto
+* @rocapellino
+
+# 1. DevSecOps, Seguridad de la Cadena de Suministro y CI/CD
+.github/ @rocapellino
+.github/workflows/ @rocapellino
+SECURITY.md @rocapellino
+.gitleaks.toml @rocapellino
+renovate.json @rocapellino
+
+# 2. Infraestructura, Helm Charts, Políticas Kubernetes (IaC / GitOps)
+infra/ @rocapellino
+infra/helm/ @rocapellino
+infra/k8s/ @rocapellino
+infra/opentofu/ @rocapellino
+gitops/ @rocapellino
+Dockerfile @rocapellino
+apps/web/Dockerfile @rocapellino
+docker-compose*.yml @rocapellino
+
+# 3. Aplicación Backend, Lógica de Dominio y Contratos
+src/ @rocapellino
+server.ts @rocapellino
+package.json @rocapellino
+package-lock.json @rocapellino
+tsconfig.json @rocapellino
+
+# 4. Frontend Web SPA & Configuración Nginx
+apps/web/ @rocapellino
+apps/web/nginx.conf @rocapellino
+
+# 5. Suite de Pruebas Unitarias, Integración y Pentest Lógico
+tests/ @rocapellino
