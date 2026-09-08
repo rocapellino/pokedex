@@ -73,41 +73,86 @@ function isLocallyRevoked(jti: string): boolean {
   return true;
 }
 
+export type RevokeSessionResult =
+  | { success: true }
+  | { success: false; reason: 'invalid_format' | 'invalid_signature' | 'service_unavailable' };
+
 /**
- * Revoca explícitamente un token de sesión antes de su expiración natural.
- * Registra el jti en Redis con un TTL exacto al tiempo de vida restante,
- * eliminando memory leaks y permitiendo revocación distribuida en clúster multi-pod.
+ * Valida criptográficamente la firma HMAC y estructura de un token de sesión sin I/O.
  */
-export type VerifySessionResult =
-  | { valid: true }
-  | { valid: false; reason: 'invalid_format' | 'invalid_signature' | 'expired' | 'revoked' | 'service_unavailable' };
+export function verifyTokenSignature(token: string): {
+  valid: boolean;
+  payload?: SessionTokenPayload;
+  reason?: 'invalid_format' | 'invalid_signature';
+} {
+  if (!token || typeof token !== 'string') return { valid: false, reason: 'invalid_format' };
+  const parts = token.trim().split('.');
+  if (parts.length !== 2) return { valid: false, reason: 'invalid_format' };
+  const [payloadBase64, signature] = parts;
+  try {
+    const expectedSig = crypto.createHmac('sha256', getSessionSecret()).update(payloadBase64).digest('base64url');
+    if (signature.length !== expectedSig.length) return { valid: false, reason: 'invalid_signature' };
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+      return { valid: false, reason: 'invalid_signature' };
+    }
+    const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
+    if (payload.role !== 'admin' || typeof payload.exp !== 'number' || !payload.jti) {
+      return { valid: false, reason: 'invalid_signature' };
+    }
+    return { valid: true, payload };
+  } catch {
+    return { valid: false, reason: 'invalid_format' };
+  }
+}
 
 /**
  * Revoca explícitamente un token de sesión antes de su expiración natural.
- * Registra el jti en Redis con un TTL exacto al tiempo de vida restante,
- * eliminando memory leaks y permitiendo revocación distribuida en clúster multi-pod.
+ * Valida primero criptográficamente la firma HMAC para evitar ataques de polución o
+ * inyección de claves apócrifas en Redis.
+ * Registra el jti en Redis con un TTL exacto al tiempo de vida restante.
+ * Retorna resultado detallado para permitir que la API responda 400 ante firmas apócrifas o 503 ante caída de Redis.
+ */
+export async function revokeSessionTokenDetailed(token: string): Promise<RevokeSessionResult> {
+  const verified = verifyTokenSignature(token);
+  if (!verified.valid || !verified.payload) {
+    return { success: false, reason: verified.reason || 'invalid_signature' };
+  }
+
+  const { exp, jti } = verified.payload;
+
+  // Si el token ya expiró cronológicamente, ya no es válido en el sistema;
+  // se considera revocado sin necesidad de escribir en Redis
+  if (Date.now() > exp) {
+    return { success: true };
+  }
+
+  const remainingSeconds = Math.max(1, Math.ceil((exp - Date.now()) / 1000));
+
+  // 1. Guardar en mapa local con timestamp de expiración (fallback)
+  localRevokedTokens.set(jti, exp);
+
+  // 2. Guardar en Redis distribuido con TTL automático
+  const redisOk = await setRevokedJti(jti, remainingSeconds);
+  if (!redisOk && Boolean(process.env.REDIS_URL)) {
+    console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (jti: ${jti}) en Redis. Operación distribuida no garantizada.`);
+    return { success: false, reason: 'service_unavailable' };
+  }
+  return { success: true };
+}
+
+/**
+ * Revoca explícitamente un token de sesión antes de su expiración natural.
+ * Valida primero criptográficamente la firma HMAC del token.
  * Si REDIS_URL está configurado y la escritura en Redis falla, retorna false (Fail-Closed).
  */
 export async function revokeSessionToken(token: string): Promise<boolean> {
-  if (!token || typeof token !== 'string') return false;
-  const payload = decodeTokenPayload(token);
-  if (!payload || !payload.jti || typeof payload.exp !== 'number') {
-    return false;
-  }
-
-  const remainingSeconds = Math.max(1, Math.ceil((payload.exp - Date.now()) / 1000));
-
-  // 1. Guardar en mapa local con timestamp de expiración (fallback)
-  localRevokedTokens.set(payload.jti, payload.exp);
-
-  // 2. Guardar en Redis distribuido con TTL automático
-  const redisOk = await setRevokedJti(payload.jti, remainingSeconds);
-  if (!redisOk && Boolean(process.env.REDIS_URL)) {
-    console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (jti: ${payload.jti}) en Redis. Operación distribuida no garantizada.`);
-    return false;
-  }
-  return true;
+  const res = await revokeSessionTokenDetailed(token);
+  return res.success;
 }
+
+export type VerifySessionResult =
+  | { valid: true }
+  | { valid: false; reason: 'invalid_format' | 'invalid_signature' | 'expired' | 'revoked' | 'service_unavailable' };
 
 /**
  * Verifica si un token ha sido revocado en memoria local o en Redis.
@@ -145,37 +190,27 @@ export function generateSessionToken(ttlMs: number = SESSION_TOKEN_TTL_MS): Sess
  * rechaza el token con reason: 'service_unavailable' para proteger operaciones multi-pod.
  */
 export async function verifySessionTokenDetailed(token: string): Promise<VerifySessionResult> {
-  if (!token || typeof token !== 'string') return { valid: false, reason: 'invalid_format' };
-  const cleanToken = token.trim();
-
-  const parts = cleanToken.split('.');
-  if (parts.length !== 2) return { valid: false, reason: 'invalid_format' };
-  const [payloadBase64, signature] = parts;
-  try {
-    const expectedSig = crypto.createHmac('sha256', getSessionSecret()).update(payloadBase64).digest('base64url');
-    if (signature.length !== expectedSig.length) return { valid: false, reason: 'invalid_signature' };
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
-      return { valid: false, reason: 'invalid_signature' };
-    }
-    const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
-    if (payload.role !== 'admin') return { valid: false, reason: 'invalid_signature' };
-    if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return { valid: false, reason: 'expired' };
-
-    // Verificación de revocación por jti
-    if (payload.jti) {
-      if (isLocallyRevoked(payload.jti)) return { valid: false, reason: 'revoked' };
-      const redisRevoked = await isJtiRevokedInRedis(payload.jti);
-      if (redisRevoked === true) return { valid: false, reason: 'revoked' };
-      // Fail-Closed: si REDIS_URL está configurado pero Redis está caído, denegar por seguridad
-      if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
-        return { valid: false, reason: 'service_unavailable' };
-      }
-    }
-
-    return { valid: true };
-  } catch {
-    return { valid: false, reason: 'invalid_format' };
+  const verified = verifyTokenSignature(token);
+  if (!verified.valid || !verified.payload) {
+    return { valid: false, reason: verified.reason || 'invalid_signature' };
   }
+  const payload = verified.payload;
+  if (Date.now() > payload.exp) {
+    return { valid: false, reason: 'expired' };
+  }
+
+  // Verificación de revocación por jti
+  if (payload.jti) {
+    if (isLocallyRevoked(payload.jti)) return { valid: false, reason: 'revoked' };
+    const redisRevoked = await isJtiRevokedInRedis(payload.jti);
+    if (redisRevoked === true) return { valid: false, reason: 'revoked' };
+    // Fail-Closed: si REDIS_URL está configurado pero Redis está caído, denegar por seguridad
+    if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
+      return { valid: false, reason: 'service_unavailable' };
+    }
+  }
+
+  return { valid: true };
 }
 
 /**

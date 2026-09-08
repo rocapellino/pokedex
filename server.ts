@@ -23,6 +23,7 @@ import {
   verifySessionToken,
   verifySessionTokenDetailed,
   revokeSessionToken,
+  revokeSessionTokenDetailed,
 } from './src/services/auth.js';
 
 const app = express();
@@ -149,7 +150,16 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 'Servicio') {
+export interface RateLimiterOptions {
+  failClosedOnRedisOutage?: boolean;
+}
+
+export function createRateLimiter(
+  maxRequests: number,
+  windowMs: number,
+  serviceName = 'Servicio',
+  options: RateLimiterOptions = {}
+) {
   const clients = new Map<string, RateLimitEntry>();
 
   // Limpieza periódica de IPs inactivas en el almacén local
@@ -160,7 +170,7 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
         clients.delete(ip);
       }
     }
-  }, windowMs * 2);
+  }, windowMs * 2).unref();
 
   return (req: Request, res: Response, next: NextFunction) => {
     (async () => {
@@ -181,7 +191,16 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
         return next();
       }
 
-      // 2. Fallback resiliente a memoria local si Redis no está configurado o está temporalmente offline
+      // Fail-Closed: para endpoints de alto costo o consumo de cuotas externas (ej. IA Gemini),
+      // si Redis está configurado pero temporalmente fuera de línea, denegar con 503
+      // para prevenir agotamiento de cuota o evasión del límite distribuido entre pods.
+      if (options.failClosedOnRedisOutage && Boolean(process.env.REDIS_URL)) {
+        return res.status(503).json({
+          detail: `Servicio temporalmente no disponible: el limitador de tasa distribuido para ${serviceName} requiere conectividad con Redis.`,
+        });
+      }
+
+      // 2. Fallback resiliente a memoria local si Redis no está configurado o para endpoints públicos
       const now = Date.now();
       const entry = clients.get(ip);
 
@@ -205,7 +224,7 @@ function createRateLimiter(maxRequests: number, windowMs: number, serviceName = 
   };
 }
 
-const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA');
+const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { failClosedOnRedisOutage: true });
 const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
 const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 
@@ -351,11 +370,18 @@ app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) 
 app.post('/api/v1/auth/logout', authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
   const token = extractApiKey(req);
   if (token) {
-    const revoked = await revokeSessionToken(token);
-    if (!revoked && Boolean(process.env.REDIS_URL)) {
-      return res.status(503).json({
-        detail: 'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
-      });
+    const revokeResult = await revokeSessionTokenDetailed(token);
+    if (!revokeResult.success) {
+      if (revokeResult.reason === 'invalid_signature' || revokeResult.reason === 'invalid_format') {
+        return res.status(400).json({
+          detail: 'Token de sesión inválido o firma HMAC apócrifa.',
+        });
+      }
+      if (revokeResult.reason === 'service_unavailable') {
+        return res.status(503).json({
+          detail: 'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
+        });
+      }
     }
   }
   return res.status(200).json({
@@ -732,8 +758,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start Server tras inicializar la capa de persistencia y caché
-if (process.env.NODE_ENV !== 'test') {
+// Start Server tras inicializar la capa de persistencia y caché (solo si no es test runner)
+const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
+if (!isRunningTests) {
   initStorage().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       const health = getStorageHealth();
