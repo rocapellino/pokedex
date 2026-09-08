@@ -692,8 +692,14 @@ app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, as
 
 // ---------------------------------------------------------------------------
 // Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
+// DevSecOps Hardening: En producción, deshabilitado por defecto para reducir superficie de ataque
 // ---------------------------------------------------------------------------
 app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_REPO_DOWNLOAD !== 'true') {
+    return res.status(403).json({
+      error: 'Acceso denegado: La descarga del código fuente del repositorio se encuentra deshabilitada en producción por directivas de seguridad.'
+    });
+  }
   const zipPath = path.join(PUBLIC_DIR, 'pokedex-updated.zip');
   if (!fs.existsSync(zipPath)) {
     return res.status(404).json({ error: 'El archivo ZIP del repositorio no está disponible en este entorno.' });

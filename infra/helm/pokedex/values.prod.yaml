@@ -85,3 +85,14 @@ ingress:
 secrets:
   adminApiKey: "" # Forzar inyección obligatoria en producción mediante --set o sealed-secrets
   adminSessionSecret: ""
+
+resourceQuota:
+  enabled: true
+  hard:
+    requestsCpu: "8"
+    requestsMemory: "8Gi"
+    limitsCpu: "16"
+    limitsMemory: "16Gi"
+    pods: "50"
+    services: "15"
+

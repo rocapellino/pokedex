@@ -37,11 +37,21 @@ async function connectPg(): Promise<boolean> {
   if (!DATABASE_URL) return false;
   try {
     if (!pgPool) {
+      const isProduction = process.env.NODE_ENV === 'production';
+      const isLoopback = DATABASE_URL.includes('localhost') || DATABASE_URL.includes('127.0.0.1');
+      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || DATABASE_URL.includes('sslmode=require');
+      const shouldUseSsl = isSslExplicitlyRequired || (isProduction && process.env.DB_SSL !== 'false' && !isLoopback);
+
+      const sslConfig = shouldUseSsl
+        ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' }
+        : undefined;
+
       pgPool = new Pool({
         connectionString: DATABASE_URL,
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 2000,
+        ssl: sslConfig,
       });
 
       pgPool.on('error', (err) => {

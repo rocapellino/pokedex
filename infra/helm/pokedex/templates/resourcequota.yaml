@@ -1,0 +1,17 @@
+{{- if .Values.resourceQuota.enabled }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "pokedex.fullname" . }}-quota
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  hard:
+    requests.cpu: {{ .Values.resourceQuota.hard.requestsCpu | default "4" | quote }}
+    requests.memory: {{ .Values.resourceQuota.hard.requestsMemory | default "4Gi" | quote }}
+    limits.cpu: {{ .Values.resourceQuota.hard.limitsCpu | default "8" | quote }}
+    limits.memory: {{ .Values.resourceQuota.hard.limitsMemory | default "8Gi" | quote }}
+    pods: {{ .Values.resourceQuota.hard.pods | default "30" | quote }}
+    services: {{ .Values.resourceQuota.hard.services | default "10" | quote }}
+{{- end }}
