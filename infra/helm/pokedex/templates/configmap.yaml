@@ -15,3 +15,4 @@ data:
   WEB_PORT: {{ .Values.web.service.port | quote }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.api.env.otelEndpoint | quote }}
   CORS_ORIGINS: {{ .Values.api.env.corsOrigins | quote }}
+  DB_SSL: {{ .Values.postgresql.ssl | default "false" | quote }}

@@ -66,9 +66,9 @@
       "detail": "Detiene y elimina los contenedores del entorno de producción."
     },
     {
-      "label": "🧪 Tests: Ejecutar Pytest",
+      "label": "🧪 Tests: Suite Completa & Pentest (npm test)",
       "type": "shell",
-      "command": ".\\.venv\\Scripts\\python -m pytest",
+      "command": "npm test",
       "group": {
         "kind": "test",
         "isDefault": true
@@ -82,7 +82,40 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Ejecuta la suite completa de 14 pruebas unitarias con pytest."
+      "detail": "Ejecuta la suite completa de 55 pruebas unitarias, de integración, resiliencia y pentest con Node.js."
+    },
+    {
+      "label": "🔍 Lint: Verificación de Tipos (TypeScript)",
+      "type": "shell",
+      "command": "npm run lint",
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Verifica tipos de TypeScript en modo estricto sin emitir código (tsc --noEmit)."
+    },
+    {
+      "label": "⚡ Build: Compilar Servidor TypeScript (esbuild)",
+      "type": "shell",
+      "command": "npm run build",
+      "group": {
+        "kind": "build"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Compila el bundle de producción del servidor Express y script de seed con esbuild."
     },
     {
       "label": "🔍 Auditoría: Calidad, Duplicación y Rendimiento",
@@ -202,9 +235,9 @@
       "detail": "Elimina todos los contenedores y redes huérfanas activas."
     },
     {
-      "label": "☸️ Kubernetes: Up",
+      "label": "☸️ Kubernetes: Up (Helm)",
       "type": "shell",
-      "command": "kubectl apply -k infra/k8s/",
+      "command": "helm upgrade --install pokedex infra/helm/pokedex --namespace pokemon-app --create-namespace",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -214,12 +247,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Compila imágenes y despliega la infraestructura en Kubernetes (Deployments, Services, HPA e Ingress)."
+      "detail": "Despliega o actualiza la plataforma en Kubernetes con Helm (Deployments, Services, HPA, NetworkPolicies)."
     },
     {
       "label": "☸️ Kubernetes: Down",
       "type": "shell",
-      "command": "kubectl delete -k infra/k8s/",
+      "command": "helm uninstall pokedex -n pokemon-app",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -229,7 +262,67 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Elimina los recursos y despliegues en el clúster de Kubernetes."
+      "detail": "Desinstala el release de Helm pokedex del namespace pokemon-app."
+    },
+    {
+      "label": "☸️ Kubernetes: Status",
+      "type": "shell",
+      "command": "kubectl get pods,svc,pvc,hpa -n pokemon-app",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Muestra el estado de pods, servicios, almacenamiento y autoescalado en Kubernetes."
+    },
+    {
+      "label": "☸️ Kubernetes: Port Forward Web (8080)",
+      "type": "shell",
+      "command": "kubectl port-forward -n pokemon-app svc/pokemon-web-svc 8080:8080",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Reenvía el puerto 8080 del frontend Nginx hacia localhost:8080."
+    },
+    {
+      "label": "☸️ Kubernetes: Port Forward API (3000)",
+      "type": "shell",
+      "command": "kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Reenvía el puerto 3000 del backend API hacia localhost:3000."
+    },
+    {
+      "label": "☸️ Kubernetes: Test Endpoints",
+      "type": "shell",
+      "command": "kubectl exec -n pokemon-app deploy/pokemon-api -- wget -qO- http://127.0.0.1:3000/readyz",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Valida el endpoint de preparación /readyz de la API dentro del clúster."
     }
   ]
 }

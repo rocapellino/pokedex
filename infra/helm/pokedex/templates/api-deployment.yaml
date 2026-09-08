@@ -14,6 +14,22 @@ spec:
   selector:
     app: pokemon-api
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app: pokemon-api
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+    - port: {{ .Values.api.service.port }}
+      targetPort: {{ .Values.api.port }}
+      name: http
+  selector:
+    app: pokemon-api
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,6 +48,7 @@ spec:
     metadata:
       labels:
         app: pokemon-api
+        app.kubernetes.io/component: api
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false

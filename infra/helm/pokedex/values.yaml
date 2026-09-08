@@ -13,8 +13,8 @@ global:
 api:
   replicaCount: 1
   image:
-    repository: pokedex-server
-    tag: "v2.0.0"
+    repository: pokedex-api
+    tag: "latest"
     pullPolicy: IfNotPresent
   port: 3000
   service:
@@ -54,14 +54,14 @@ api:
 web:
   replicaCount: 1
   image:
-    repository: pokemon-web
-    tag: "1.2.0"
+    repository: pokedex-web
+    tag: "latest"
     pullPolicy: IfNotPresent
-  port: 80
+  port: 8080
   service:
     type: ClusterIP
     port: 8080
-    targetPort: 80
+    targetPort: 8080
   resources:
     limits:
       cpu: "250m"
@@ -117,7 +117,7 @@ postgresql:
 # 4. Connection Pooler (PgBouncer)
 # ------------------------------------------------------------------------------
 pgbouncer:
-  enabled: true
+  enabled: false
   replicaCount: 1
   image:
     repository: edoburu/pgbouncer

@@ -30,6 +30,7 @@ spec:
     metadata:
       labels:
         app: redis
+        app.kubernetes.io/component: redis
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false
