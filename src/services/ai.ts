@@ -15,6 +15,27 @@ function getAIClient(): GoogleGenAI | null {
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
+export const AI_TIMEOUT_MS = 12000;
+
+/**
+ * Envoltorio de resiliencia con cancelación preventiva ante demoras extremas del proveedor de IA.
+ * Previene acumulación de conexiones abiertas y garantiza degradación elegante hacia fallback local.
+ */
+export async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Timeout de servicio IA: la llamada excedió el límite de ${timeoutMs}ms`));
+    }, timeoutMs).unref();
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
 export async function generateDiagram(prompt: string, diagramType: string = 'flowchart') {
   const client = getAIClient();
   const fallbackDiagram = {
@@ -30,14 +51,17 @@ export async function generateDiagram(prompt: string, diagramType: string = 'flo
 
   try {
     const systemInstruction = `Eres un arquitecto de software experto en diagramación con Mermaid.js. Genera únicamente código Mermaid válido sin bloques markdown adicionales ni texto explicativo.`;
-    const response = await client.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: `Crea un diagrama de tipo ${diagramType} para: ${prompt}`,
-      config: {
-        systemInstruction,
-        temperature: 0.2,
-      },
-    });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: `Crea un diagrama de tipo ${diagramType} para: ${prompt}`,
+        config: {
+          systemInstruction,
+          temperature: 0.2,
+          maxOutputTokens: 1024,
+        },
+      })
+    );
 
     const text = response.text || '';
     const cleanMermaid = text.replace(/```mermaid/gi, '').replace(/```/g, '').trim();
@@ -72,14 +96,17 @@ export async function generateMockup(prompt: string, framework: string = 'html/c
 
   try {
     const systemInstruction = `Eres un diseñador de UI frontend. Genera componentes limpios y seguros en ${framework}. No incluyas etiquetas <script> ni estilos vulnerables. Devuelve únicamente el fragmento HTML/CSS del componente.`;
-    const response = await client.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: `Diseña un componente para: ${prompt}`,
-      config: {
-        systemInstruction,
-        temperature: 0.3,
-      },
-    });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: `Diseña un componente para: ${prompt}`,
+        config: {
+          systemInstruction,
+          temperature: 0.3,
+          maxOutputTokens: 1024,
+        },
+      })
+    );
 
     const text = (response.text || '').replace(/```html/gi, '').replace(/```/g, '').trim();
     return {
@@ -109,10 +136,15 @@ export async function generateImage(prompt: string, aspectRatio: string = '1:1')
   }
 
   try {
-    const response = await client.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: `Describe en detalle artístico el siguiente Pokémon o criatura para generar su arte conceptual: ${prompt}`,
-    });
+    const response = await withTimeout(
+      client.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: `Describe en detalle artístico el siguiente Pokémon o criatura para generar su arte conceptual: ${prompt}`,
+        config: {
+          maxOutputTokens: 1024,
+        },
+      })
+    );
 
     return {
       success: true,

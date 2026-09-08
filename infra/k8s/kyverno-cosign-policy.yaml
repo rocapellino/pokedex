@@ -28,4 +28,6 @@ spec:
             - entries:
                 - keyless:
                     issuer: "https://token.actions.githubusercontent.com"
-                    subject: "https://github.com/rocapellino/pokedex/.github/workflows/deploy.yml@refs/heads/main"
+                    subject: "https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main"
+                    rekor:
+                      url: "https://rekor.sigstore.dev"
