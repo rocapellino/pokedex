@@ -10,15 +10,20 @@ useDefault = true
 [allowlist]
 description = "Permitir archivos de plantilla y placeholders de prueba conocidos"
 paths = [
-  # Variables de entorno locales y de ejemplo (no versionadas o plantilla)
-  '''(?i)(^|/)\.env(\..*)?$''',
+  # Variables de entorno de ejemplo documentadas
+  '''(?i)(^|/)\.env\.example$''',
   # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
   '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/opentofu/.*/(variables|outputs)\.tf$''',
-  # K8s — SealedSecrets cifrados con clave pública del controlador
+  # K8s / Helm — SealedSecrets cifrados con clave pública del controlador (actual e histórico)
+  '''(?i)^infra/helm/pokedex/templates/sealed-secrets\.ya?ml$''',
   '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
   # Ansible — inventario de ejemplo
   '''(?i)^infra/ansible/inventory/hosts\.ini$''',
+]
+commits = [
+  # Commit histórico de SealedSecret cifrado en clúster
+  "5d8c13701df243f209de41388cdc1a5d77f536d2",
 ]
 regexes = [
   # Placeholders de CI/CD, desarrollo local y pruebas documentadas

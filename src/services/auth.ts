@@ -27,6 +27,7 @@ export function getSessionSecret(): string {
 export interface SessionTokenPayload {
   role: 'admin';
   exp: number;
+  jti?: string;
 }
 
 export interface SessionTokenResult {
@@ -35,12 +36,34 @@ export interface SessionTokenResult {
   expiresAt: number;
 }
 
+// Registro en memoria para revocación instantánea
+const revokedTokensSet = new Set<string>();
+
+/**
+ * Revoca explícitamente un token de sesión antes de su expiración natural.
+ */
+export function revokeSessionToken(token: string): boolean {
+  if (!token || typeof token !== 'string') return false;
+  revokedTokensSet.add(token.trim());
+  return true;
+}
+
+/**
+ * Verifica si un token ha sido revocado.
+ */
+export function isTokenRevoked(token: string): boolean {
+  if (!token || typeof token !== 'string') return false;
+  return revokedTokensSet.has(token.trim());
+}
+
 /**
  * Genera un token de sesión firmado con HMAC SHA-256 para administradores.
+ * Incluye un identificador criptográfico único (jti) para posibilitar revocación.
  */
 export function generateSessionToken(ttlMs: number = SESSION_TOKEN_TTL_MS): SessionTokenResult {
   const expiresAt = Date.now() + ttlMs;
-  const payload: SessionTokenPayload = { role: 'admin', exp: expiresAt };
+  const jti = crypto.randomBytes(16).toString('hex');
+  const payload: SessionTokenPayload = { role: 'admin', exp: expiresAt, jti };
   const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
   const signature = crypto.createHmac('sha256', getSessionSecret()).update(payloadBase64).digest('base64url');
   return {
@@ -51,11 +74,14 @@ export function generateSessionToken(ttlMs: number = SESSION_TOKEN_TTL_MS): Sess
 }
 
 /**
- * Valida la firma HMAC y expiración de un token de sesión de administrador.
+ * Valida la firma HMAC, expiración y estado de revocación de un token de sesión de administrador.
  */
 export function verifySessionToken(token: string): boolean {
   if (!token || typeof token !== 'string') return false;
-  const parts = token.split('.');
+  const cleanToken = token.trim();
+  if (isTokenRevoked(cleanToken)) return false;
+
+  const parts = cleanToken.split('.');
   if (parts.length !== 2) return false;
   const [payloadBase64, signature] = parts;
   try {

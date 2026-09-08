@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
-import { generateSessionToken, verifySessionToken, getSessionSecret } from '../src/services/auth.js';
+import { generateSessionToken, verifySessionToken, revokeSessionToken, getSessionSecret } from '../src/services/auth.js';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -248,4 +248,45 @@ test('🔐 Auth Session: getSessionSecret genera clave efímera segura en modo d
     if (originalKey) process.env.ADMIN_API_KEY = originalKey;
   }
 });
+
+test('🔐 Auth Session: revokeSessionToken revoca el token y verifySessionToken lo rechaza inmediatamente', () => {
+  const { token } = generateSessionToken();
+  assert.equal(verifySessionToken(token), true);
+
+  revokeSessionToken(token);
+  assert.equal(verifySessionToken(token), false);
+});
+
+test('🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones', () => {
+  const validPayload = {
+    nombre: 'Charmander',
+    tipo: 'Fuego',
+    evoluciones: [
+      { id: 5, nombre: 'Charmeleon', etapa: 'Fase 1' },
+      { id: 6, nombre: 'Charizard', etapa: 'Fase 2' },
+    ],
+  };
+  assert.equal(validatePokemonPayload(validPayload).valid, true);
+
+  // Rechaza inyección XSS en nombre de evolución
+  const xssEvolution = {
+    nombre: 'Charmander',
+    tipo: 'Fuego',
+    evoluciones: [
+      { id: 5, nombre: '<script>alert("xss")</script>' },
+    ],
+  };
+  assert.equal(validatePokemonPayload(xssEvolution).valid, false);
+
+  // Rechaza URL insegura en imagen de evolución
+  const badImgEvolution = {
+    nombre: 'Charmander',
+    tipo: 'Fuego',
+    evoluciones: [
+      { id: 5, nombre: 'Charmeleon', imagen: 'javascript:alert(1)' },
+    ],
+  };
+  assert.equal(validatePokemonPayload(badImgEvolution).valid, false);
+});
+
 

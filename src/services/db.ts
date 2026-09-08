@@ -163,7 +163,22 @@ export async function getAllPokemons(options: {
 } = {}): Promise<{ total: number; pokemons: Pokemon[] }> {
   const { limit = 20, offset = 0, type, search } = options;
 
-  // 1. Intentar consultar PostgreSQL
+  // 1. Intentar consultar caché de Redis para listados
+  const listCacheKey = `pokedex:list:${(type || 'all').toLowerCase()}:${(search || 'all').toLowerCase()}:${limit}:${offset}`;
+  if (isRedisConnected && redisClient) {
+    try {
+      const cached = await redisClient.get(listCacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch {
+      // Degradar silenciosamente ante fallo de lectura de Redis
+    }
+  }
+
+  let resultData: { total: number; pokemons: Pokemon[] } | null = null;
+
+  // 2. Intentar consultar PostgreSQL
   if (isPgConnected && pgPool) {
     try {
       let query = 'SELECT data FROM pokedex_entries WHERE 1=1';
@@ -193,25 +208,33 @@ export async function getAllPokemons(options: {
       const result = await pgPool.query(query, params);
       const pokemons = result.rows.map(r => r.data as Pokemon);
 
-      return { total, pokemons };
+      resultData = { total, pokemons };
     } catch (err) {
       console.error('[Storage: PostgreSQL Error] Fallback a memoria:', err);
     }
   }
 
-  // 2. Fallback a Memoria
-  let list = Array.from(memoryMap.values());
-  if (type) {
-    list = list.filter(p => p.tipo.toLowerCase() === type.toLowerCase() || p.tipos?.some(t => t.toLowerCase() === type.toLowerCase()));
+  // 3. Fallback a Memoria si PostgreSQL no respondió
+  if (!resultData) {
+    let list = Array.from(memoryMap.values());
+    if (type) {
+      list = list.filter(p => p.tipo.toLowerCase() === type.toLowerCase() || p.tipos?.some(t => t.toLowerCase() === type.toLowerCase()));
+    }
+    if (search) {
+      list = list.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
+    }
+    list.sort((a, b) => a.id - b.id);
+    const total = list.length;
+    const pokemons = list.slice(offset, offset + limit);
+    resultData = { total, pokemons };
   }
-  if (search) {
-    list = list.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
-  }
-  list.sort((a, b) => a.id - b.id);
-  const total = list.length;
-  const pokemons = list.slice(offset, offset + limit);
 
-  return { total, pokemons };
+  // 4. Poblar caché de Redis con TTL de 60 segundos
+  if (isRedisConnected && redisClient && resultData) {
+    redisClient.setex(listCacheKey, 60, JSON.stringify(resultData)).catch(() => {});
+  }
+
+  return resultData;
 }
 
 export async function getPokemonById(id: number): Promise<Pokemon | null> {
