@@ -19,6 +19,7 @@ let redisClient: Redis | null = null;
 
 let isPgConnected = false;
 let isRedisConnected = false;
+let lastKnownPgCount: number | null = null;
 
 // Almacén en memoria sincronizado como fallback resiliente
 const memoryMap = new Map<number, Pokemon>();
@@ -74,10 +75,13 @@ async function connectPg(): Promise<boolean> {
             [p.id, p.nombre, p.tipo, JSON.stringify(p)]
           );
         }
+        lastKnownPgCount = count;
+      } else {
+        lastKnownPgCount = count;
       }
 
       await client.query(`
-        SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008));
+        SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true);
       `);
       isPgConnected = true;
       console.log('[Storage: PostgreSQL] ✅ Conectado, tabla y secuencia pokedex_id_seq sincronizadas.');
@@ -277,7 +281,19 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
   return found;
 }
 
+export function isWritableStorageAvailable(): boolean {
+  if (Boolean(process.env.DATABASE_URL)) {
+    return isPgConnected && pgPool !== null;
+  }
+  return true;
+}
+
 export async function savePokemon(pokemon: Pokemon): Promise<void> {
+  // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar la escritura para evitar pérdida de datos
+  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool)) {
+    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para escritura. Operación cancelada.');
+  }
+
   // 1. Guardar primero en PostgreSQL (Source of Truth)
   if (isPgConnected && pgPool) {
     await pgPool.query(
@@ -290,6 +306,9 @@ export async function savePokemon(pokemon: Pokemon): Promise<void> {
            updated_at = CURRENT_TIMESTAMP`,
       [pokemon.id, pokemon.nombre, pokemon.tipo, JSON.stringify(pokemon)]
     );
+    if (lastKnownPgCount !== null && !memoryMap.has(pokemon.id)) {
+      lastKnownPgCount++;
+    }
   }
 
   // 2. Actualizar réplica en memoria y caché tras éxito en BD (o si BD está ausente en modo local)
@@ -298,12 +317,20 @@ export async function savePokemon(pokemon: Pokemon): Promise<void> {
 }
 
 export async function deletePokemon(id: number): Promise<boolean> {
+  // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar eliminación
+  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool)) {
+    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para eliminación. Operación cancelada.');
+  }
+
   let deleted = false;
 
   // 1. Eliminar primero en PostgreSQL (Source of Truth)
   if (isPgConnected && pgPool) {
     const res = await pgPool.query('DELETE FROM pokedex_entries WHERE id = $1', [id]);
     deleted = (res.rowCount !== null && res.rowCount > 0);
+    if (deleted && lastKnownPgCount !== null && lastKnownPgCount > 0) {
+      lastKnownPgCount--;
+    }
   } else {
     deleted = memoryMap.has(id);
   }
@@ -453,13 +480,18 @@ export function getStorageHealth(): {
   database: 'postgresql' | 'memory';
   postgres_connected: boolean;
   redis_connected: boolean;
+  postgres_total_records: number | null;
+  memory_total_records: number;
   total_records: number;
 } {
+  const effectivePgCount = isPgConnected ? (lastKnownPgCount ?? memoryMap.size) : null;
   return {
     database: isPgConnected ? 'postgresql' : 'memory',
     postgres_connected: isPgConnected,
     redis_connected: isRedisConnected,
-    total_records: memoryMap.size,
+    postgres_total_records: effectivePgCount,
+    memory_total_records: memoryMap.size,
+    total_records: effectivePgCount ?? memoryMap.size,
   };
 }
 
