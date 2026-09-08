@@ -30,7 +30,7 @@ jobs:
       contents: read
     steps:
       - name: 1. Descargar Código Fuente
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 2. Configurar Node.js 22 LTS
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -70,7 +70,7 @@ jobs:
       image: returntocorp/semgrep@sha256:d8338657666af859e8562f367a9b9af24659c005f5a8677e6fca116b402d1a3d
     steps:
       - name: Checkout del código
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Escanear código fuente
         run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage --exclude scripts
@@ -82,7 +82,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout del código
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Ejecutar Checkov sobre Infraestructura, OpenTofu y Helm
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
@@ -100,7 +100,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout del código
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Escanear dependencias con Dependency Review
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
@@ -120,7 +120,7 @@ jobs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
       - name: Checkout del código
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
@@ -213,7 +213,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout del código
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Iniciar sesión en GitHub Container Registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
