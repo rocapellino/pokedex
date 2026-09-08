@@ -178,13 +178,15 @@ export function createRateLimiter(
       const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
       const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
 
+      const unit = windowMs >= 24 * 3600 * 1000 ? 'día' : (windowMs >= 3600 * 1000 ? 'hora' : 'min');
+
       // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
       const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
       if (distResult !== null) {
         if (!distResult.allowed) {
           res.setHeader('Retry-After', distResult.retryAfterSeconds);
           return res.status(429).json({
-            detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
+            detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/${unit}). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
             retry_after_seconds: distResult.retryAfterSeconds,
           });
         }
@@ -213,7 +215,7 @@ export function createRateLimiter(
         const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
         res.setHeader('Retry-After', retryAfter);
         return res.status(429).json({
-          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/min). Por favor intenta de nuevo en ${retryAfter} segundos.`,
+          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/${unit}). Por favor intenta de nuevo en ${retryAfter} segundos.`,
           retry_after_seconds: retryAfter,
         });
       }
@@ -225,6 +227,7 @@ export function createRateLimiter(
 }
 
 const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { failClosedOnRedisOutage: true });
+const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', { failClosedOnRedisOutage: true });
 const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
 const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 
@@ -655,9 +658,9 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableSto
 }));
 
 // ---------------------------------------------------------------------------
-// Google AI Studio (Gemini) Endpoints con Rate Limit y Auth
+// Google AI Studio (Gemini) Endpoints con Rate Limit Minuto, Cuota Diaria y Auth
 // ---------------------------------------------------------------------------
-app.post('/api/v1/ai/diagram', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/diagram', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, diagram_type } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -667,7 +670,7 @@ app.post('/api/v1/ai/diagram', aiRateLimiter, verifyAIKey, asyncHandler(async (r
   res.json(result);
 }));
 
-app.post('/api/v1/ai/mock', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/mock', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, framework } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -677,7 +680,7 @@ app.post('/api/v1/ai/mock', aiRateLimiter, verifyAIKey, asyncHandler(async (req:
   res.json(result);
 }));
 
-app.post('/api/v1/ai/image', aiRateLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, aspect_ratio } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });

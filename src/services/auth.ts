@@ -12,12 +12,12 @@ let ephemeralDevSecret: string | null = null;
  * en memoria, eliminando cualquier secreto estático quemado en el repositorio.
  */
 export function getSessionSecret(): string {
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_API_KEY;
+  const secret = process.env.ADMIN_SESSION_SECRET;
   if (secret && secret.trim()) {
     return secret.trim();
   }
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('Configuración de seguridad crítica faltante: ADMIN_SESSION_SECRET o ADMIN_API_KEY es obligatorio en producción.');
+    throw new Error('Configuración de seguridad crítica faltante: ADMIN_SESSION_SECRET es obligatorio en producción para el firmado y verificación de sesiones.');
   }
   if (!ephemeralDevSecret) {
     ephemeralDevSecret = crypto.randomBytes(32).toString('hex');

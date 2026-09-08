@@ -207,6 +207,7 @@ ingress:
 secrets:
   # Credenciales seguras (DEBEN ser provistas vía --set o Secret externo en CI/CD/Producción)
   adminApiKey: ""
+  adminSessionSecret: ""
   aiApiKey: ""
   geminiApiKey: ""
   minioRootUser: ""

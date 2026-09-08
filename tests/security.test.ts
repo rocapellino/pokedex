@@ -237,6 +237,26 @@ test('🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay
   }
 });
 
+test('🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SECRET y no acepta ADMIN_API_KEY como fallback', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSecret = process.env.ADMIN_SESSION_SECRET;
+  const originalKey = process.env.ADMIN_API_KEY;
+
+  try {
+    delete process.env.ADMIN_SESSION_SECRET;
+    process.env.ADMIN_API_KEY = 'super-secret-api-key-only';
+    process.env.NODE_ENV = 'production';
+
+    assert.throws(() => {
+      getSessionSecret();
+    }, /ADMIN_SESSION_SECRET es obligatorio en producción/);
+  } finally {
+    process.env.NODE_ENV = originalEnv;
+    if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
+    if (originalKey) process.env.ADMIN_API_KEY = originalKey;
+  }
+});
+
 test('🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test', () => {
   const originalEnv = process.env.NODE_ENV;
   const originalSecret = process.env.ADMIN_SESSION_SECRET;
