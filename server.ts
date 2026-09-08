@@ -225,7 +225,7 @@ function extractApiKey(req: Request): string {
   return ((req.headers['x-api-key'] || authHeader) as string).trim();
 }
 
-function verifyAdmin(req: Request, res: Response, next: NextFunction) {
+async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   const credential = extractApiKey(req);
   const configuredKey = process.env.ADMIN_API_KEY;
 
@@ -243,7 +243,7 @@ function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   }
 
   // 1. Validar si la credencial es un token de sesión firmado de corta duración
-  if (verifySessionToken(credential)) {
+  if (await verifySessionToken(credential)) {
     return next();
   }
 
@@ -325,15 +325,15 @@ app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) 
   });
 });
 
-app.post('/api/v1/auth/logout', authRateLimiter, (req: Request, res: Response) => {
+app.post('/api/v1/auth/logout', authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
   const token = extractApiKey(req);
   if (token) {
-    revokeSessionToken(token);
+    await revokeSessionToken(token);
   }
   return res.status(200).json({
     detail: 'Sesión finalizada y token revocado correctamente.',
   });
-});
+}));
 
 // ---------------------------------------------------------------------------
 // Healthcheck & Observability Endpoints

@@ -70,7 +70,10 @@ export function validateImageUrl(value: unknown): boolean {
   try {
     const parsed = new URL(val);
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
-      return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+      if (parsed.protocol === 'http:') {
+        return process.env.NODE_ENV !== 'production';
+      }
+      return parsed.protocol === 'https:';
     }
     return parsed.protocol === 'https:';
   } catch {

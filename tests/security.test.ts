@@ -44,9 +44,21 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   assert.equal(validateImageUrl('http://evil.com/image.png'), false);
 
   assert.equal(validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'), true);
+  assert.equal(validateImageUrl('/static/pokemon.png'), true);
+
+  // localhost en desarrollo/test (HTTP permitido para tooling local)
   assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), true);
   assert.equal(validateImageUrl('http://127.0.0.1:3000/images/pokemon.png'), true);
-  assert.equal(validateImageUrl('/static/pokemon.png'), true);
+
+  // localhost en producción (exige HTTPS o rutas locales relativas, rechazando HTTP inseguro)
+  const prevEnv = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), false);
+    assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), true);
+  } finally {
+    process.env.NODE_ENV = prevEnv;
+  }
 });
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto', () => {
@@ -169,40 +181,40 @@ test('⚡ Escalabilidad: cálculo de nextId con reduce soporta grandes coleccion
   assert.equal(nextId, 5001);
 });
 
-test('🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado', () => {
+test('🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado', async () => {
   const session = generateSessionToken();
   assert.ok(session.token);
   assert.ok(session.expiresIn > 0);
   assert.ok(session.expiresAt > Date.now());
-  assert.equal(verifySessionToken(session.token), true);
+  assert.equal(await verifySessionToken(session.token), true);
 });
 
 test('🔐 Auth Session: verifySessionToken rechaza tokens expirados', async () => {
   // Generar token con TTL de 10ms
   const expiredSession = generateSessionToken(10);
   await new Promise(r => setTimeout(r, 25));
-  assert.equal(verifySessionToken(expiredSession.token), false);
+  assert.equal(await verifySessionToken(expiredSession.token), false);
 });
 
-test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados', () => {
+test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados', async () => {
   const session = generateSessionToken();
   const [b64Payload, signature] = session.token.split('.');
   
   // Alterar firma
   const tamperedSig = signature.slice(0, -2) + 'aa';
-  assert.equal(verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
+  assert.equal(await verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
 
   // Alterar payload decodificado
-  const tamperedPayload = Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 100000 })).toString('base64url');
-  assert.equal(verifySessionToken(`${tamperedPayload}.${signature}`), false);
+  const tamperedPayload = Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 100000, jti: 'test' })).toString('base64url');
+  assert.equal(await verifySessionToken(`${tamperedPayload}.${signature}`), false);
 });
 
-test('🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos o nulos', () => {
-  assert.equal(verifySessionToken(''), false);
-  assert.equal(verifySessionToken('not-a-token'), false);
-  assert.equal(verifySessionToken('header.payload.signature'), false);
-  assert.equal(verifySessionToken(null as any), false);
-  assert.equal(verifySessionToken(undefined as any), false);
+test('🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos o nulos', async () => {
+  assert.equal(await verifySessionToken(''), false);
+  assert.equal(await verifySessionToken('not-a-token'), false);
+  assert.equal(await verifySessionToken('header.payload.signature'), false);
+  assert.equal(await verifySessionToken(null as any), false);
+  assert.equal(await verifySessionToken(undefined as any), false);
 });
 
 test('🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados', () => {
@@ -249,12 +261,27 @@ test('🔐 Auth Session: getSessionSecret genera clave efímera segura en modo d
   }
 });
 
-test('🔐 Auth Session: revokeSessionToken revoca el token y verifySessionToken lo rechaza inmediatamente', () => {
+test('🔐 Auth Session: revokeSessionToken revoca el token por jti y verifySessionToken lo rechaza inmediatamente', async () => {
   const { token } = generateSessionToken();
-  assert.equal(verifySessionToken(token), true);
+  assert.equal(await verifySessionToken(token), true);
 
-  revokeSessionToken(token);
-  assert.equal(verifySessionToken(token), false);
+  const revoked = await revokeSessionToken(token);
+  assert.equal(revoked, true);
+  assert.equal(await verifySessionToken(token), false);
+});
+
+test('🔐 Auth Session: revokeSessionToken con token de corta duración expira y se autolimpia', async () => {
+  // Generar token con 30ms de validez
+  const { token } = generateSessionToken(30);
+  assert.equal(await verifySessionToken(token), true);
+
+  await revokeSessionToken(token);
+  assert.equal(await verifySessionToken(token), false);
+
+  // Esperar a que el token expire naturalmente
+  await new Promise(r => setTimeout(r, 50));
+  // Debe seguir siendo rechazado por haber expirado
+  assert.equal(await verifySessionToken(token), false);
 });
 
 test('🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones', () => {

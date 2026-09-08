@@ -19,9 +19,24 @@ async function main() {
     const { total } = await getAllPokemons({ limit: 1, offset: 0 });
     console.log(`📊 [Seed Job] Registros actualmente en base de datos: ${total}.`);
 
-    if (total >= initialPokemons.length && !process.env.FORCE_SEED) {
-      console.log('✅ [Seed Job] El catálogo ya se encuentra completo y sincronizado. No se requieren cambios.');
-      process.exit(0);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const forceSeedRaw = (process.env.FORCE_SEED || '').trim();
+    const isForceSeedRequested = forceSeedRaw === 'true' || forceSeedRaw === '1' || forceSeedRaw === 'OVERRIDE_PRODUCTION_CONFIRMED';
+
+    if (total >= initialPokemons.length) {
+      if (!isForceSeedRequested) {
+        console.log('✅ [Seed Job] El catálogo ya se encuentra completo y sincronizado. No se requieren cambios.');
+        process.exit(0);
+      }
+
+      // En entornos de producción se requiere la confirmación explícita para evitar sobreescrituras accidentales
+      if (isProduction && forceSeedRaw !== 'OVERRIDE_PRODUCTION_CONFIRMED') {
+        console.warn('⚠️ [Seed Job: Seguridad] FORCE_SEED bloqueado en producción: no se permite reactivación accidental con true/1.');
+        console.warn('⚠️ [Seed Job: Seguridad] Para forzar la resiembra deliberada en producción configure FORCE_SEED="OVERRIDE_PRODUCTION_CONFIRMED".');
+        process.exit(0);
+      }
+
+      console.warn('⚠️ [Seed Job: Advertencia] FORCE_SEED activado explícitamente: se sincronizarán y actualizarán los registros del catálogo base.');
     }
 
     console.log(`🚀 [Seed Job] Sembrando/sincronizando ${initialPokemons.length} entradas en almacenamiento persistente...`);

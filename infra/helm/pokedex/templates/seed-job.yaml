@@ -49,6 +49,8 @@ spec:
           env:
             - name: POKEMON_LIMIT
               value: "1025"
+            - name: FORCE_SEED
+              value: {{ .Values.seedJob.forceSeed | default false | quote }}
           resources:
             requests:
               cpu: 200m

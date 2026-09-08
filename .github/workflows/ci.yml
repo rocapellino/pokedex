@@ -164,6 +164,20 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
+      - name: Generar SBOM (Software Bill of Materials) con Trivy
+        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          format: 'cyclonedx'
+          output: 'pokedex-sbom.json'
+
+      - name: Subir artefacto SBOM
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: sbom-cyclonedx
+          path: pokedex-sbom.json
+          retention-days: 14
+
   # =======================================================
   # 4. PUBLISH (Solo en rama main tras pasar Trivy)
   # =======================================================
@@ -175,6 +189,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     steps:
       - name: Checkout del código
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -210,3 +225,24 @@ jobs:
           # Autenticación con OCI registry en GHCR y push
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
           helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
+
+      - name: Instalar Cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+
+      - name: Iniciar sesión en Cosign para GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+
+      - name: Firmar imagen Docker con Cosign (Keyless Sigstore OIDC)
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+
+      - name: Descargar artefacto SBOM para adjuntar
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: sbom-cyclonedx
+          path: /tmp
+
+      - name: Adjuntar SBOM a la imagen en GHCR con Cosign
+        run: |
+          cosign attach sbom --sbom /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
