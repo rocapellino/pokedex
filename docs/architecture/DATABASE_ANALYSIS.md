@@ -1,17 +1,18 @@
-# 📊 Análisis Arquitectónico de Base de Datos: Persistencia Híbrida y Caché Distribuida
+# 📊 Análisis Arquitectónico de Base de Datos: Persistencia Híbrida, PgBouncer y Caché Distribuida
 
-Este documento presenta el análisis técnico, diseño e implementación real de la arquitectura de persistencia de datos para la **Pokédex API**, evaluando el compromiso entre modelos relacionales (SQL), documentales (NoSQL/JSONB) y sistemas de aceleración en memoria (Redis).
+Este documento presenta el análisis técnico, diseño e implementación real de la arquitectura de persistencia de datos para la **Pokédex API**, evaluando el compromiso entre modelos relacionales (SQL), documentales (NoSQL/JSONB), connection pooling transaccional (PgBouncer) y sistemas de aceleración en memoria (Redis).
 
 ---
 
 ## 📑 Tabla de Contenidos
 1. [Naturaleza y Estructura de los Datos](#1-naturaleza-y-estructura-de-los-datos)
 2. [Evaluación de Paradigmas de Bases de Datos](#2-evaluación-de-paradigmas-de-bases-de-datos)
-3. [Arquitectura Implementada: Híbrida Relacional + JSONB + Redis](#3-arquitectura-implementada-híbrida-relacional--jsonb--redis)
+3. [Arquitectura Implementada: Híbrida Relacional + JSONB + PgBouncer + Redis](#3-arquitectura-implementada-híbrida-relacional--jsonb--pgbouncer--redis)
 4. [Diagrama de Flujo: Flujos de Lectura y Escritura de Datos](#4-diagrama-de-flujo-flujos-de-lectura-y-escritura-de-datos)
 5. [Esquema de Base de Datos y Secuencia Atómica](#5-esquema-de-base-de-datos-y-secuencia-atómica)
-6. [Estrategia de Caché, Revocación y Rate Limiting en Redis](#6-estrategia-de-caché-revocación-y-rate-limiting-en-redis)
-7. [Manejo de Assets Multimedia y CDN](#7-manejo-de-assets-multimedia-y-cdn)
+6. [Connection Pooling Transaccional con PgBouncer](#6-connection-pooling-transaccional-con-pgbouncer)
+7. [Estrategia de Caché, Revocación y Rate Limiting en Redis](#7-estrategia-de-caché-revocación-y-rate-limiting-en-redis)
+8. [Manejo de Assets Multimedia y CDN](#8-manejo-de-assets-multimedia-y-cdn)
 
 ---
 
@@ -26,24 +27,28 @@ El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Gene
 
 ## 2. Evaluación de Paradigmas de Bases de Datos
 
-| Criterio | Relacional Puro (SQL Normalizado) | NoSQL Puro (Documental / MongoDB) | Arquitectura Híbrida Implementada (PostgreSQL + JSONB + Redis) |
+| Criterio | Relacional Puro (SQL Normalizado) | NoSQL Puro (Documental / MongoDB) | Arquitectura Híbrida Implementada (PostgreSQL + JSONB + PgBouncer + Redis) |
 | :--- | :--- | :--- | :--- |
 | **Garantías ACID** | Completas con claves foráneas estrictas | Eventuales por colección | **Completas en PostgreSQL con transacciones ACID** |
 | **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas indexadas (`id`, `nombre`, `tipo`) + columna `data JSONB`** |
 | **Rendimiento de Lectura** | Requiere múltiples JOINs para armar el JSON | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
+| **Escalabilidad de Conexiones** | Saturación de memoria por proceso en Postgres | Agrupamiento por driver | **PgBouncer multiplexa miles de clientes en un pool de 20-50 sockets reales** |
 | **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` a partir de 1008+** |
 | **Coordinación Distribuida** | No aplicable para rate limiting / sesiones | No optimizado para llaves volátiles | **Redis atómico con scripts Lua y TTL exactos para tokens y cuotas** |
 
 ---
 
-## 3. Arquitectura Implementada: Híbrida Relacional + JSONB + Redis
+## 3. Arquitectura Implementada: Híbrida Relacional + JSONB + PgBouncer + Redis
 
 La solución implementada combina lo mejor de ambos mundos:
 1. **PostgreSQL 16 (Fuente de la Verdad / Persistencia Duradera):**
    * Almacena registros en la tabla `pokedex_entries`.
    * Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
    * Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
-2. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
+2. **PgBouncer (Connection Pooling y Aislamiento de Red):**
+   * Opera en modo `pool_mode = transaction`.
+   * En producción actúa como **mediador estricto de seguridad**: la NetworkPolicy bloquea cualquier conexión directa entre los Pods de la API y PostgreSQL; la API solo puede conectarse a PgBouncer (puerto 5432).
+3. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
    * **Caché de Listados:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 300 segundos.
    * **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
    * **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
@@ -58,7 +63,8 @@ flowchart TD
     subgraph READ_PATH["📖 Flujo de Lectura de Catálogo (GET /pokemons)"]
         R_REQ["Petición Cliente GET /pokemons?tipo=Fuego&limit=20"] --> R_REDIS{"¿Existe en Caché Redis?\npokedex:list:tipo=Fuego:limit=20"}
         R_REDIS -->|Cache Hit| R_HIT["⚡ Retorno Inmediato desde Redis\nLatencia sub-3ms"]
-        R_REDIS -->|Cache Miss| R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
+        R_REDIS -->|Cache Miss| R_PGB["🛡️ Conexión multiplexada a PgBouncer"]
+        R_PGB --> R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
         R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 300s"]
         R_SET_REDIS --> R_RESP["Retornar JSON al Cliente con cabecera ETag"]
         R_HIT --> R_RESP
@@ -71,7 +77,7 @@ flowchart TD
         W_CHECK_DB -->|Conectada| W_VAL["Validación de Payload y Sanitización XSS"]
         W_VAL -->|Contiene HTML/<script>| W_ERR_422["❌ 422 Unprocessable Entity"]
         W_VAL -->|Válido| W_SEQ["Asignar ID Atómico:\nSELECT nextval('pokedex_id_seq')"]
-        W_SEQ --> W_INSERT[("💾 Transacción SQL:\nINSERT INTO pokedex_entries (id, nombre, tipo, data)\nVALUES ($1, $2, $3, $4)")]
+        W_SEQ --> W_INSERT[("💾 Transacción SQL (vía PgBouncer):\nINSERT INTO pokedex_entries (id, nombre, tipo, data)\nVALUES ($1, $2, $3, $4)")]
         W_INSERT --> W_INV_CACHE["⚡ Invalidar Caché Redis:\nDEL pokedex:list:*"]
         W_INV_CACHE --> W_RESP["✅ Retornar 201 Created con entidad"]
     end
@@ -83,7 +89,7 @@ flowchart TD
 
     class R_HIT,W_RESP success;
     class W_ERR_503,W_ERR_422 error;
-    class R_REQ,W_REQ,W_VAL,W_SEQ step;
+    class R_REQ,W_REQ,W_VAL,W_SEQ,R_PGB step;
     class R_PG,W_INSERT,R_SET_REDIS,W_INV_CACHE storage;
 ```
 
@@ -122,7 +128,18 @@ SELECT setval(
 
 ---
 
-## 6. Estrategia de Caché, Revocación y Rate Limiting en Redis
+## 6. Connection Pooling Transaccional con PgBouncer
+
+En entornos con múltiples réplicas de la API (HPA) atendiendo tráfico concurrente:
+1. **Problema de PostgreSQL sin Pooler:** Cada worker o réplica que abre un pool de 10-20 conexiones satura la memoria del motor PostgreSQL (cada conexión en Postgres es un proceso independiente con ~10 MB de overhead).
+2. **Solución con PgBouncer (`pool_mode: transaction`):**
+   * Los Pods de la API abren conexiones contra PgBouncer.
+   * PgBouncer mantiene un grupo reducido de sockets activos contra PostgreSQL y los asigna dinámicamente a las peticiones durante la transacción, liberándolos inmediatamente al completarse.
+3. **Hardening de Seguridad:** En producción, la NetworkPolicy bloquea cualquier intento de la API de comunicarse directamente con PostgreSQL en el puerto 5432, canalizando el 100% de las consultas a través de PgBouncer.
+
+---
+
+## 7. Estrategia de Caché, Revocación y Rate Limiting en Redis
 
 1. **Caché de Consultas Frecuentes:**
    * Clave: `pokedex:list:<query_hash>`
@@ -145,7 +162,7 @@ SELECT setval(
 
 ---
 
-## 7. Manejo de Assets Multimedia y CDN
+## 8. Manejo de Assets Multimedia y CDN
 
 Las imágenes, sprites y artwork oficial **nunca se almacenan como binarios (BLOB/Base64) en PostgreSQL**:
 * **Ubicación de Assets:** Se sirven como URLs canónicas hacia el repositorio de artwork oficial de GitHub / CDN global (`https://raw.githubusercontent.com/PokeAPI/sprites/...`).

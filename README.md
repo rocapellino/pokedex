@@ -220,6 +220,7 @@ flowchart LR
     subgraph S1["1. Código & Dependencias"]
         GITLEAKS["🛡️ Gitleaks\n(Secret Scanning)"]
         SEMGREP["🔍 Semgrep\n(SAST OWASP)"]
+        DEP_REV["📦 Dependency Review\n(Bloqueo HIGH+)"]
         NPM_AUDIT["📦 npm audit\n(SCA)"]
     end
 
@@ -232,23 +233,35 @@ flowchart LR
 
     subgraph S3["3. Kubernetes Runtime"]
         KYVERNO["☸️ Kyverno Policy\n(Verifica firma de imagen)"]
-        SEALED["🔐 Sealed Secrets\n(Cifrado asimétrico)"]
-        NETPOL["🛡️ NetworkPolicies\n(Aislamiento DMZ)"]
+        ESO["🔐 External Secrets\n& Sealed Secrets"]
+        NETPOL["🛡️ Zero-Trust NetPols\n(Anti-SSRF & PgBouncer)"]
     end
 
     S1 --> S2 --> S3
 ```
 
-1. **Supply Chain Security:**
+1. **Supply Chain Security & CI/CD Gates:**
    * **Firmado Criptográfico Keyless:** Las imágenes OCI en `ghcr.io/rocapellino/pokedex` son firmadas automáticamente en GitHub Actions mediante **Cosign** y **Sigstore** usando el token OIDC del pipeline de `main`.
-   * **Atestación SBOM:** Se genera un catálogo SBOM en formato CycloneDX mediante Syft y se adjunta como atestación a la imagen.
+   * **Atestación SBOM:** Se genera un catálogo SBOM en formato CycloneDX mediante Syft y se adjunta como atestación inmutable a la imagen.
    * **Control de Admisión Kyverno:** En el clúster de Kubernetes, una [`ClusterPolicy`](file:///infra/k8s/kyverno-cosign-policy.yaml) en modo `Enforce` bloquea cualquier Pod cuya imagen no esté debidamente firmada por el workflow oficial de GitHub Actions verificado contra Rekor.
+   * **Gates Bloqueantes:** SAST estricto con **Semgrep** (OWASP Top 10), **Dependency Review** para vulnerabilidades de dependencias (HIGH+) y escaneo de IaC con **Checkov**.
+   * **SHA Pinning Inmutable:** Anclaje por digest criptográfico en todas las GitHub Actions y en imágenes base críticas (Nginx Alpine, PgBouncer).
+   * **Gobernanza Automatizada:** Renovate Bot con auto-merge restringido a parches de npm y Dependabot con 7 días de cooldown.
 
 2. **Seguridad en Aplicación:**
    * **Desacoplamiento Estricto de Secretos:** `ADMIN_API_KEY` se emplea únicamente para llamadas administrativas directas o intercambio de sesión; `ADMIN_SESSION_SECRET` firma y verifica los tokens HMAC SHA-256 de sesión.
    * **Fail-Closed Architecture:** Si Redis no está disponible, el sistema deniega el logout y el rate limiting de IA en lugar de continuar de forma insegura. Si PostgreSQL no está accesible, se bloquean todas las mutaciones de escritura (`503 Service Unavailable`).
    * **Comparación Timing-Safe:** Todas las comparaciones criptográficas utilizan `crypto.timingSafeEqual` con hashes SHA-256 de longitud fija para prevenir ataques de canal lateral basados en tiempo.
    * **Sanitización contra XSS:** Filtro estricto que rechaza payloads que contengan tags HTML (`<...>` o `</...>`) o esquemas `javascript:`, retornando `422 Unprocessable Entity`.
+
+3. **Zero-Trust Network Isolation & Anti-SSRF:**
+   * **Egress Anti-SSRF:** Regla `ipBlock` en NetworkPolicy que descarta tráfico saliente hacia Cloud Metadata IMDS (`169.254.169.254/32`), subredes privadas RFC 1918 y loopback.
+   * **Aislamiento Estricto con PgBouncer:** PostgreSQL solo admite tráfico proveniente de `pgbouncer` y `db-seeder`; los pods de la API no tienen ruta directa de red hacia la base de datos.
+   * **Egress DNS Restringido:** Salida en puerto 53 UDP/TCP acotada exclusivamente a pods con etiqueta `k8s-app: kube-dns`.
+
+4. **Gestión de Secretos Desacoplada:**
+   * Helm soporta el **External Secrets Operator** y el flag `existingSecret: "pokedex-prod-secrets"`, evitando almacenar contraseñas en Git o pasarlas por `--set`.
+   * Soporte para **Bitnami Sealed Secrets** en clústeres on-premise (Proxmox VE).
 
 ---
 
@@ -290,8 +303,9 @@ task dev
 task audit
 task ts:lint
 
-# Ejecutar suite de pruebas unitarias y pentesting
+# Ejecutar suite de pruebas unitarias, pentesting y fuzzing
 npm test
+npm run test:fuzz
 ```
 
 ---
