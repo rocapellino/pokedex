@@ -137,6 +137,37 @@ tasks:
       - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
       - kubectl wait --for=condition=complete --timeout=300s job/pokedex-db-seed -n pokemon-app
 
+  k8s:test:
+    desc: "Ejecuta pruebas de salud e integración sobre los pods y servicios de Kubernetes"
+    cmds:
+      - kubectl exec -n pokemon-app deploy/pokemon-api -- wget -qO- http://127.0.0.1:3000/readyz
+      - kubectl exec -n pokemon-app deploy/pokedex-web -- wget -qO- http://127.0.0.1:8080/api/readyz
+
+  k8s:port-forward:web:
+    desc: "Inicia port-forwarding local hacia el frontend Web (http://localhost:8080)"
+    cmds:
+      - kubectl port-forward -n pokemon-app svc/pokemon-web-svc 8080:8080
+
+  k8s:port-forward:api:
+    desc: "Inicia port-forwarding local hacia la API backend (http://localhost:3000)"
+    cmds:
+      - kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000
+
+  k8s:logs:api:
+    desc: "Muestra y sigue los logs en tiempo real del pod backend API"
+    cmds:
+      - kubectl logs -n pokemon-app deploy/pokemon-api -f
+
+  k8s:logs:web:
+    desc: "Muestra y sigue los logs en tiempo real del pod frontend Web (Nginx)"
+    cmds:
+      - kubectl logs -n pokemon-app deploy/pokedex-web -f
+
+  k8s:logs:db:
+    desc: "Muestra y sigue los logs en tiempo real del pod PostgreSQL"
+    cmds:
+      - kubectl logs -n pokemon-app postgres-0 -f
+
   secrets:scan:
     desc: "Escanea el repositorio en busca de secretos expuestos con Gitleaks"
     cmds:

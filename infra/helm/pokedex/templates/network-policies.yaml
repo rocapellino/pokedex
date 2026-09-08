@@ -24,20 +24,10 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Permitir tráfico exclusivamente desde el Ingress Controller o namespaces de Gateway
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: ingress-nginx
-      ports:
+    # Permitir tráfico HTTP al frontend web (Ingress Controller, LoadBalancer o servicios perimetrales)
+    - ports:
         - protocol: TCP
-          port: 80
+          port: {{ .Values.web.port }}
   egress:
     # Permitir resolución DNS
     - ports:

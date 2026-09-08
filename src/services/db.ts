@@ -11,8 +11,16 @@ const { Pool } = pg;
 // ------------------------------------------------------------------------------
 // 1. Configuración de Conexiones
 // ------------------------------------------------------------------------------
-const DATABASE_URL = process.env.DATABASE_URL;
-const REDIS_URL = process.env.REDIS_URL;
+const DATABASE_URL = process.env.DATABASE_URL || (
+  process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
+    ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
+    : undefined
+);
+const REDIS_URL = process.env.REDIS_URL || (
+  process.env.REDIS_HOST
+    ? `redis://${process.env.REDIS_PASSWORD ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@` : ''}${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
+    : undefined
+);
 
 let pgPool: pg.Pool | null = null;
 let redisClient: Redis | null = null;
@@ -112,7 +120,7 @@ async function connectRedis(): Promise<boolean> {
     if (!redisClient) {
       redisClient = new Redis(REDIS_URL, {
         maxRetriesPerRequest: 1,
-        enableOfflineQueue: false,
+        lazyConnect: true,
         connectTimeout: 2000,
         retryStrategy: () => null,
       });
@@ -125,6 +133,12 @@ async function connectRedis(): Promise<boolean> {
       redisClient.on('error', () => {
         isRedisConnected = false;
       });
+
+      redisClient.on('close', () => {
+        isRedisConnected = false;
+      });
+
+      await redisClient.connect();
     }
 
     await redisClient.ping();
@@ -132,6 +146,10 @@ async function connectRedis(): Promise<boolean> {
     return true;
   } catch (err: any) {
     console.warn(`[Cache: Redis] ⚠️ No disponible (${err.message}). Caching en memoria desactivado.`);
+    if (redisClient) {
+      try { redisClient.disconnect(); } catch {}
+      redisClient = null;
+    }
     isRedisConnected = false;
     return false;
   }
@@ -195,31 +213,32 @@ export async function getAllPokemons(options: {
   // 2. Intentar consultar PostgreSQL
   if (isPgConnected && pgPool) {
     try {
-      let query = 'SELECT data FROM pokedex_entries WHERE 1=1';
+      let countQuery = 'SELECT COUNT(*) FROM pokedex_entries WHERE 1=1';
+      let dataQuery = 'SELECT data FROM pokedex_entries WHERE 1=1';
       const params: any[] = [];
       let paramIndex = 1;
 
       if (type) {
-        query += ` AND LOWER(tipo) = LOWER($${paramIndex++})`;
+        const ph = `$${paramIndex++}`;
+        countQuery += ` AND LOWER(tipo) = LOWER(${ph})`;
+        dataQuery += ` AND LOWER(tipo) = LOWER(${ph})`;
         params.push(type);
       }
       if (search) {
-        query += ` AND LOWER(nombre) LIKE LOWER($${paramIndex++})`;
+        const ph = `$${paramIndex++}`;
+        countQuery += ` AND LOWER(nombre) LIKE LOWER(${ph})`;
+        dataQuery += ` AND LOWER(nombre) LIKE LOWER(${ph})`;
         params.push(`%${search}%`);
       }
 
-      query += ' ORDER BY id ASC';
-
-      const countResult = await pgPool.query(
-        query.replace('SELECT data FROM', 'SELECT COUNT(*) FROM'),
-        params
-      );
+      const countResult = await pgPool.query(countQuery, params);
       const total = parseInt(countResult.rows[0].count, 10);
 
-      query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
-      params.push(limit, offset);
+      dataQuery += ' ORDER BY id ASC';
+      dataQuery += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+      const dataParams = [...params, limit, offset];
 
-      const result = await pgPool.query(query, params);
+      const result = await pgPool.query(dataQuery, dataParams);
       const pokemons = result.rows.map(r => r.data as Pokemon);
 
       resultData = { total, pokemons };
