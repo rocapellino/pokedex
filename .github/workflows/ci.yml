@@ -149,7 +149,7 @@ jobs:
           docker save ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} -o /tmp/image.tar
 
       - name: Subir artefacto de imagen para escaneo
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: docker-image
           path: /tmp/image.tar
@@ -193,7 +193,7 @@ jobs:
           output: 'pokedex-sbom.json'
 
       - name: Subir artefacto SBOM
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sbom-cyclonedx
           path: pokedex-sbom.json

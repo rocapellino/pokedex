@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: web
-          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.web.image.repository }}{{ if .Values.web.image.digest }}@{{ .Values.web.image.digest }}{{ else }}:{{ .Values.web.image.tag | default .Chart.AppVersion }}{{ end }}"
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
