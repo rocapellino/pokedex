@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Escanear dependencias con Dependency Review
-        uses: actions/dependency-review-action@5a5051d8be077d180aae4fa53b82d3b5f3b4a225 # v4.5.0
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: high
 
