@@ -1,264 +1,152 @@
-# 📊 Análisis Arquitectónico de Base de Datos: Pokémon API (Referencia WikiDex)
+# 📊 Análisis Arquitectónico de Base de Datos: Persistencia Híbrida y Caché Distribuida
 
-Este documento presenta el análisis técnico y de diseño de persistencia de datos para la **Pokédex API**, evaluando si se requiere una base de datos **Relacional (SQL)**, **No Relacional (NoSQL)** o una **Arquitectura Híbrida**, considerando la naturaleza de los datos extraídos de [WikiDex (Lista de Pokémon)](https://www.wikidex.net/wiki/Lista_de_Pok%C3%A9mon) y el manejo de assets multimedia (imágenes, sprites y artwork).
+Este documento presenta el análisis técnico, diseño e implementación real de la arquitectura de persistencia de datos para la **Pokédex API**, evaluando el compromiso entre modelos relacionales (SQL), documentales (NoSQL/JSONB) y sistemas de aceleración en memoria (Redis).
 
 ---
 
 ## 📑 Tabla de Contenidos
-1. [Naturaleza y Estructura de los Datos (WikiDex)](#1-naturaleza-y-estructura-de-los-datos-wikidex)
+1. [Naturaleza y Estructura de los Datos](#1-naturaleza-y-estructura-de-los-datos)
 2. [Evaluación de Paradigmas de Bases de Datos](#2-evaluación-de-paradigmas-de-bases-de-datos)
-3. [Estrategia de Almacenamiento de Imágenes y Multimedia](#3-estrategia-de-almacenamiento-de-imágenes-y-multimedia)
-4. [Veredicto y Arquitectura Recomendada](#4-veredicto-y-arquitectura-recomendada)
-5. [Modelo Entidad-Relación (ER) Propuesto](#5-modelo-entidad-relación-er-propuesto)
-6. [Diseño del Documento NoSQL Alternativo (MongoDB)](#6-diseño-del-documento-nosql-alternativo-mongodb)
+3. [Arquitectura Implementada: Híbrida Relacional + JSONB + Redis](#3-arquitectura-implementada-híbrida-relacional--jsonb--redis)
+4. [Diagrama de Flujo: Flujos de Lectura y Escritura de Datos](#4-diagrama-de-flujo-flujos-de-lectura-y-escritura-de-datos)
+5. [Esquema de Base de Datos y Secuencia Atómica](#5-esquema-de-base-de-datos-y-secuencia-atómica)
+6. [Estrategia de Caché, Revocación y Rate Limiting en Redis](#6-estrategia-de-caché-revocación-y-rate-limiting-en-redis)
+7. [Manejo de Assets Multimedia y CDN](#7-manejo-de-assets-multimedia-y-cdn)
 
 ---
 
-## 1. Naturaleza y Estructura de los Datos (WikiDex)
+## 1. Naturaleza y Estructura de los Datos
 
-Analizando la información oficial de WikiDex para los más de 1.025 Pokémon (Generaciones I a IX), los datos se dividen en las siguientes entidades e interconexiones:
-
-| Dimensión de Datos | Atributos | Tipo de Relación / Cardinalidad |
-| :--- | :--- | :--- |
-| **Identidad Base** | Número nacional, Nombre (ES/EN/JA), Generación, Categoría | Entidad Principal (1:1) |
-| **Tipos Elementales** | Fuego, Agua, Planta, Dragón, etc. (18 tipos existentes) | **N:M (Muchos a Muchos)**: Un Pokémon tiene 1 o 2 tipos; un tipo agrupa cientos de Pokémon. |
-| **Habilidades** | Primaria, Secundaria, Oculta (Efecto en combate) | **N:M**: Un Pokémon tiene hasta 3 habilidades; una habilidad pertenece a múltiples Pokémon. |
-| **Estadísticas Base** | PS, Ataque, Defensa, Atq. Especial, Def. Especial, Velocidad, Total (BST) | **1:1**: Valores numéricos cuantitativos estructurados. |
-| **Líneas Evolutivas** | Pre-evolución, Evolución, Nivel, Piedra, Intercambio, Felicidad | **Grafo / Jerarquía (1:N y N:M)**: Cadenas lineales (Charmander) o ramificadas (Eevee, Tyrogue). |
-| **Características Físicas** | Altura (m), Peso (kg), Ratio de Género, Grupo Huevo, Hábitat, Color | Atributos mixtos y relaciones **N:M** (Grupos huevo). |
-| **Formas Alternativas** | Variantes regionales (Alola, Galar, Paldea), Megaevoluciones, Gigamax | **1:N**: Un número de Pokédex puede tener múltiples formas con stats/tipos distintos. |
-| **Imágenes / Media** | Artwork Oficial Ken Sugimori, Sprites (frente/espalda/shiny), Iconos | **1:N**: Archivos binarios de imágenes en alta y media resolución. |
+El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Generaciones I a IX), caracterizados por:
+* **Identidad Base Estructurada:** Número nacional único (`id`), nombre, tipo principal y tipos secundarios.
+* **Atributos Dinámicos y Jerárquicos:** Estadísticas base (HP, Attack, Defense, etc.), características físicas (peso, altura, descripciones de Pokédex), habilidades y árboles evolutivos lineales o ramificados (ej: Eevee, Tyrogue).
+* **Patrón de Carga:** Altamente asimétrico: **99% lecturas** (exploración de catálogo, filtrado, consultas de detalle) frente a **1% escrituras** (mutaciones administrativas en Backoffice).
 
 ---
 
 ## 2. Evaluación de Paradigmas de Bases de Datos
 
-### Opción A: Base de Datos Relacional (PostgreSQL / MySQL)
+| Criterio | Relacional Puro (SQL Normalizado) | NoSQL Puro (Documental / MongoDB) | Arquitectura Híbrida Implementada (PostgreSQL + JSONB + Redis) |
+| :--- | :--- | :--- | :--- |
+| **Garantías ACID** | Completas con claves foráneas estrictas | Eventuales por colección | **Completas en PostgreSQL con transacciones ACID** |
+| **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas indexadas (`id`, `nombre`, `tipo`) + columna `data JSONB`** |
+| **Rendimiento de Lectura** | Requiere múltiples JOINs para armar el JSON | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
+| **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` a partir de 1008+** |
+| **Coordinación Distribuida** | No aplicable para rate limiting / sesiones | No optimizado para llaves volátiles | **Redis atómico con scripts Lua y TTL exactos para tokens y cuotas** |
+
+---
+
+## 3. Arquitectura Implementada: Híbrida Relacional + JSONB + Redis
+
+La solución implementada combina lo mejor de ambos mundos:
+1. **PostgreSQL 16 (Fuente de la Verdad / Persistencia Duradera):**
+   * Almacena registros en la tabla `pokedex_entries`.
+   * Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
+   * Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
+2. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
+   * **Caché de Listados:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 300 segundos.
+   * **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
+   * **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
+
+---
+
+## 4. Diagrama de Flujo: Flujos de Lectura y Escritura de Datos
 
 ```mermaid
 flowchart TD
-    subgraph RDBMS["RDBMS (PostgreSQL) - Ventajas"]
-        A1["Integridad Referencial Estricta (FKs)"]
-        A2["Normalización (Sin duplicar descripciones de Tipos/Habilidades)"]
-        A3["Consultas Complejas y Agregaciones (GROUP BY, Filtros por BST/Tipo)"]
-        A4["Soporte Híbrido JSONB (Campos dinámicos en columnas JSON)"]
+    %% FLUJO DE LECTURA
+    subgraph READ_PATH["📖 Flujo de Lectura de Catálogo (GET /pokemons)"]
+        R_REQ["Petición Cliente GET /pokemons?tipo=Fuego&limit=20"] --> R_REDIS{"¿Existe en Caché Redis?\npokedex:list:tipo=Fuego:limit=20"}
+        R_REDIS -->|Cache Hit| R_HIT["⚡ Retorno Inmediato desde Redis\nLatencia sub-3ms"]
+        R_REDIS -->|Cache Miss| R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
+        R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 300s"]
+        R_SET_REDIS --> R_RESP["Retornar JSON al Cliente con cabecera ETag"]
+        R_HIT --> R_RESP
     end
-```
 
-- ✅ **Puntos Fuertes:**
-  - El dominio Pokémon es inherentemente **relacional**: los tipos, habilidades, movimientos y cadenas evolutivas están fuertemente interconectados.
-  - Permite consultas analíticas precisas: *"Listar todos los Pokémon de Generación 3 con tipo dual Fuego/Volador y velocidad > 90"*.
-  - Evita anomalías de actualización: si se corrige la descripción de una habilidad o el color de un tipo, se actualiza en una sola fila.
-  - PostgreSQL ofrece soporte nativo para columnas `JSONB` y búsqueda de texto completo (Full-Text Search) sobre descripciones de la Pokédex.
-- ❌ **Puntos Débiles:**
-  - Requiere ejecutar `JOINs` entre múltiples tablas para armar la respuesta completa de un Pokémon.
-
----
-
-### Opción B: Base de Datos No Relacional / Documental (MongoDB / Firestore)
-
-```mermaid
-flowchart TD
-    subgraph NoSQL["NoSQL (MongoDB) - Ventajas"]
-        B1["Documentos JSON Autocontenidos (Sin JOINs)"]
-        B2["Lectura Ultrarrápida para APIs REST (1 consulta = 1 payload)"]
-        B3["Esquema Flexible (Variaciones entre formas normales y regionales)"]
+    %% FLUJO DE ESCRITURA
+    subgraph WRITE_PATH["💾 Flujo de Mutación CRUD (POST / PUT / DELETE)"]
+        W_REQ["Petición Autenticada POST /pokemons"] --> W_CHECK_DB{"¿PostgreSQL Writable?\nisWritableStorageAvailable()"}
+        W_CHECK_DB -->|Base de Datos Caída| W_ERR_503["❌ 503 Service Unavailable (Fail-Closed)\nEscrituras bloqueadas preventivamente"]
+        W_CHECK_DB -->|Conectada| W_VAL["Validación de Payload y Sanitización XSS"]
+        W_VAL -->|Contiene HTML/<script>| W_ERR_422["❌ 422 Unprocessable Entity"]
+        W_VAL -->|Válido| W_SEQ["Asignar ID Atómico:\nSELECT nextval('pokedex_id_seq')"]
+        W_SEQ --> W_INSERT[("💾 Transacción SQL:\nINSERT INTO pokedex_entries (id, nombre, tipo, data)\nVALUES ($1, $2, $3, $4)")]
+        W_INSERT --> W_INV_CACHE["⚡ Invalidar Caché Redis:\nDEL pokedex:list:*"]
+        W_INV_CACHE --> W_RESP["✅ Retornar 201 Created con entidad"]
     end
-```
 
-- ✅ **Puntos Fuertes:**
-  - Ideal para lectura directa de la API: el documento se almacena exactamente con la estructura JSON que consume el frontend (`index.html`).
-  - Excelente rendimiento de lectura directa por clave/ID.
-  - Esquema dinámico: permite añadir campos específicos a formas Gigamax o Mega sin alterar el esquema global.
-- ❌ **Puntos Débiles:**
-  - **Duplicación de datos:** La información de tipos, colores y habilidades se repite en cientos de documentos.
-  - **Pérdida de integridad:** Modificar una habilidad requiere actualizar miles de documentos en segundo plano.
-  - Mayor complejidad para modelar árboles evolutivos complejos o grafos de debilidades de tipos.
+    classDef success fill:#10b981,stroke:#047857,color:#fff;
+    classDef error fill:#ef4444,stroke:#b91c1c,color:#fff;
+    classDef step fill:#3b82f6,stroke:#1d4ed8,color:#fff;
+    classDef storage fill:#8b5cf6,stroke:#6d28d9,color:#fff;
 
----
-
-## 3. Estrategia de Almacenamiento de Imágenes y Multimedia
-
-Un error común en el diseño de persistencia es almacenar imágenes dentro de la base de datos en formato `BLOB` / `BYTEA` o `Base64`.
-
-> [!CAUTION]
-> **Por qué NUNCA almacenar binarios de imágenes directamente en SQL/NoSQL:**
-> - **Degradación de Rendimiento:** La Pokédex contiene más de 1.025 Pokémon. Con Artwork HD + Sprites normales + Sprites Shiny + Iconos, existen más de **5.000 imágenes (~3 a 8 GB)**.
-> - **Saturación del Buffer Pool:** Los binarios expulsan de la memoria RAM los índices y datos tabulares críticos.
-> - **Backups Inmanejables:** Los respaldos (`pg_dump` o `mongodump`) se vuelven lentos y pesados.
-
-### ✅ Solución Estándar de la Industria: Object Storage + CDN
-
-```mermaid
-flowchart LR
-    Cliente["Cliente Web (Frontend)"] -->|1. Solicita datos API| API["Flask REST API"]
-    API -->|2. Consulta metadatos y URLs| DB[("PostgreSQL / MongoDB")]
-    API -->|3. Responde JSON con URLs| Cliente
-    Cliente -->|4. Descarga directa de imágenes| CDN["Cloudflare CDN / CloudFront"]
-    CDN -->|Caché en Edge| Storage["Object Storage (S3 / MinIO / GCS)"]
-```
-
-1. **Almacenamiento de Archivos:** Las imágenes se almacenan en un bucket de **Object Storage** (Amazon S3, Google Cloud Storage, o **MinIO** en entornos locales contenerizados con Docker).
-2. **Distribución (CDN):** Se utiliza una red de entrega de contenido (Cloudflare / CloudFront) para comprimir automáticamente a formatos modernos (**WebP** o **AVIF**) y entregar las imágenes con latencia mínima.
-3. **Persistencia en Base de Datos:** En la base de datos se almacena **únicamente la URL canónica o ruta relativa** del recurso (ej: `https://assets.pokemon.com/artwork/0025.webp`).
-
----
-
-## 4. Veredicto y Arquitectura Recomendada
-
-### 🏆 Recomendación: **Arquitectura Híbrida (Relacional + Object Storage + Cache)**
-
-Para el proyecto Pokémon basado en los datos de WikiDex se recomienda implementar:
-
-1. **Capa Principal de Datos (Source of Truth): `PostgreSQL` (Relacional)**
-   - Garantiza la integridad de tipos, habilidades, evoluciones y generaciones.
-   - Utiliza campos `JSONB` para almacenar características secundarias o metadatos dinámicos.
-2. **Capa de Almacenamiento Multimedia: `Object Storage (MinIO / S3)`**
-   - Aloja los assets de imágenes optimizados en formato WebP.
-3. **Capa de Aceleración y Caché: `Redis` (In-Memory)**
-   - Almacena en caché las respuestas JSON de listados masivos (`GET /pokemons`) y resultados de filtros frecuentes, reduciendo la carga sobre la base de datos a casi cero.
-
----
-
-## 5. Modelo Entidad-Relación (ER) Propuesto
-
-```mermaid
-erDiagram
-    GENERATIONS ||--o{ POKEMONS : "contiene"
-    POKEMONS ||--|{ POKEMON_STATS : "tiene"
-    POKEMONS ||--o{ POKEMON_TYPES : "posee"
-    TYPES ||--o{ POKEMON_TYPES : "clasifica"
-    POKEMONS ||--o{ POKEMON_ABILITIES : "posee"
-    ABILITIES ||--o{ POKEMON_ABILITIES : "describe"
-    POKEMONS ||--o{ POKEMON_IMAGES : "tiene"
-    POKEMONS ||--o{ EVOLUTIONS : "evoluciona_en"
-
-    GENERATIONS {
-        int id PK
-        string roman_name
-        string region_name
-    }
-
-    POKEMONS {
-        int id PK
-        int national_number UK
-        string name_es
-        string name_en
-        float height_m
-        float weight_kg
-        string habitat
-        int generation_id FK
-        jsonb metadata
-    }
-
-    TYPES {
-        int id PK
-        string name UK
-        string color_hex
-        string icon_url
-    }
-
-    POKEMON_TYPES {
-        int pokemon_id FK
-        int type_id FK
-        int slot
-    }
-
-    ABILITIES {
-        int id PK
-        string name UK
-        string description
-    }
-
-    POKEMON_ABILITIES {
-        int pokemon_id FK
-        int ability_id FK
-        boolean is_hidden
-        int slot
-    }
-
-    POKEMON_STATS {
-        int pokemon_id PK,FK
-        int hp
-        int attack
-        int defense
-        int sp_attack
-        int sp_defense
-        int speed
-        int bst
-    }
-
-    POKEMON_IMAGES {
-        int id PK
-        int pokemon_id FK
-        string image_type
-        string image_url
-        boolean is_shiny
-    }
-
-    EVOLUTIONS {
-        int id PK
-        int pre_evolution_id FK
-        int post_evolution_id FK
-        string trigger_type
-        int min_level
-        string item_name
-    }
+    class R_HIT,W_RESP success;
+    class W_ERR_503,W_ERR_422 error;
+    class R_REQ,W_REQ,W_VAL,W_SEQ step;
+    class R_PG,W_INSERT,R_SET_REDIS,W_INV_CACHE storage;
 ```
 
 ---
 
-## 6. Diseño del Documento NoSQL Alternativo (MongoDB)
+## 5. Esquema de Base de Datos y Secuencia Atómica
 
-Si el equipo optara por una solución puramente NoSQL, la estructura de documento desnormalizada para la colección `pokemons` sería la siguiente:
+Implementado en [`src/services/db.ts`](file:///src/services/db.ts):
 
-```json
-{
-  "_id": "64f8a1b2c3d4e5f6a7b8c9d0",
-  "national_number": 25,
-  "nombre": {
-    "es": "Pikachu",
-    "en": "Pikachu",
-    "ja": "ピカチュウ"
-  },
-  "generacion": 1,
-  "region": "Kanto",
-  "tipos": [
-    {
-      "nombre": "Eléctrico",
-      "color": "#FACC15",
-      "slot": 1
-    }
-  ],
-  "caracteristicas": {
-    "altura": 0.4,
-    "peso": 6.0,
-    "habitat": "Bosques",
-    "color": "Amarillo",
-    "ratio_genero": { "macho": 50.0, "hembra": 50.0 }
-  },
-  "estadisticas": {
-    "ps": 35,
-    "ataque": 55,
-    "defensa": 40,
-    "ataque_especial": 50,
-    "defensa_especial": 50,
-    "velocidad": 90,
-    "total_bst": 320
-  },
-  "habilidades": [
-    { "nombre": "Electricidad estática", "es_oculta": false },
-    { "nombre": "Pararrayos", "es_oculta": true }
-  ],
-  "imagenes": {
-    "artwork": "https://assets.pokemon.com/artwork/0025.webp",
-    "sprite_frente": "https://assets.pokemon.com/sprites/0025.png",
-    "sprite_shiny": "https://assets.pokemon.com/sprites/shiny/0025.png"
-  },
-  "evolucion": {
-    "pre_evolucion": { "id": 172, "nombre": "Pichu", "metodo": "Felicidad" },
-    "post_evolucion": { "id": 26, "nombre": "Raichu", "metodo": "Piedra Trueno" }
-  }
-}
+### Definición DDL de Tabla
+```sql
+CREATE TABLE IF NOT EXISTS pokedex_entries (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
+CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
+CREATE INDEX IF NOT EXISTS idx_pokedex_data ON pokedex_entries USING GIN (data);
 ```
 
+### Inicialización Dinámica de Secuencia Atómica
+Para permitir la inserción de nuevos Pokémon sin conflictos de clave primaria y preservando la numeración oficial histórica:
+```sql
+CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq;
+
+-- Sincroniza la secuencia para que inicie en el valor máximo existente o al menos en 1008
+SELECT setval(
+    'pokedex_id_seq',
+    GREATEST((SELECT COALESCE(MAX(id), 0) FROM pokedex_entries), 1007)
+);
+```
+
+---
+
+## 6. Estrategia de Caché, Revocación y Rate Limiting en Redis
+
+1. **Caché de Consultas Frecuentes:**
+   * Clave: `pokedex:list:<query_hash>`
+   * TTL: **300 segundos** (5 minutos).
+   * Invalidación proactiva: Cada operación `savePokemon()` o `deletePokemon()` invoca un escaneo e invalidación de claves coincidentes con `pokedex:list:*`.
+2. **Revocación Distribuida de Sesiones:**
+   * Clave: `revoked:<jti>`
+   * Valor: `"1"`
+   * TTL: Tiempo restante para la expiración del token (`payload.exp - now`).
+   * Al recibir una solicitud autenticada, el backend consulta `EXISTS revoked:<jti>`. Si la clave existe, deniega el acceso con `401 Unauthorized`.
+3. **Rate Limiting Atómico vía Script Lua:**
+   * Previene condiciones de carrera (*race conditions*) en entornos multi-Pod mediante ejecución atómica en el motor mono-hilo de Redis:
+   ```lua
+   local current = redis.call('INCR', KEYS[1])
+   if current == 1 then
+     redis.call('PEXPIRE', KEYS[1], ARGV[1])
+   end
+   return current
+   ```
+
+---
+
+## 7. Manejo de Assets Multimedia y CDN
+
+Las imágenes, sprites y artwork oficial **nunca se almacenan como binarios (BLOB/Base64) en PostgreSQL**:
+* **Ubicación de Assets:** Se sirven como URLs canónicas hacia el repositorio de artwork oficial de GitHub / CDN global (`https://raw.githubusercontent.com/PokeAPI/sprites/...`).
+* **Optimización en Producción:** En entornos cloud, se interpone un proxy perimetral (Cloudflare / CloudFront) que convierte dinámicamente los formatos a **WebP** y almacena en caché en el Edge.
