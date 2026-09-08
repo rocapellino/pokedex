@@ -58,10 +58,12 @@ graph TD
      --from-literal=admin-session-secret="$NEW_SESSION_SECRET" \
      --dry-run=client -o yaml | kubectl apply -f -
    ```
-3. **Purgar todas las sesiones activas en Redis:**
-   Como el secreto cambió, todos los tokens firmados con la clave anterior serán inmediatamente rechazados por `crypto.timingSafeEqual` con `invalid_signature`. Limpiar claves de sesión residuales:
+3. **Invalidación Criptográfica y Limpieza Granular de Sesiones en Redis:**
+   Como `ADMIN_SESSION_SECRET` cambió, **todos los tokens firmados con el secreto anterior quedan inmediatamente invalidados a nivel criptográfico** (`crypto.timingSafeEqual` falla con `invalid_signature`) en cuanto los pods carguen la nueva clave, sin necesidad de vaciar la base de datos completa.
+   Para limpiar claves huérfanas de revocación de forma no destructiva (preservando contadores de rate limiting distribuido y cuotas de IA):
    ```bash
-   kubectl exec -it deployment/redis -n pokedex -- redis-cli FLUSHDB
+   # Limpieza granular selectiva (NO usar FLUSHDB para evitar pérdida de métricas/rate-limits):
+   kubectl exec -it deployment/redis -n pokedex -- sh -c "redis-cli --scan --pattern 'pokedex:revoked:*' | xargs -r redis-cli del"
    ```
 4. **Reiniciar los Pods de la API para cargar las nuevas credenciales:**
    ```bash

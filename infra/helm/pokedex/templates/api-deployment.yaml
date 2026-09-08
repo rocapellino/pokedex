@@ -74,7 +74,7 @@ spec:
             - configMapRef:
                 name: pokemon-config
             - secretRef:
-                name: pokemon-secrets
+                name: {{ include "pokedex.secretName" . }}
           resources:
             {{- toYaml .Values.api.resources | nindent 12 }}
           volumeMounts:

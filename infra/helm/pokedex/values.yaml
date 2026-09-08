@@ -205,13 +205,30 @@ ingress:
 # 7. Credenciales y Secretos de Aplicación
 # ------------------------------------------------------------------------------
 secrets:
-  # Credenciales seguras (DEBEN ser provistas vía --set o Secret externo en CI/CD/Producción)
+  # Nombre de un Secret preexistente en el clúster (Recomendado en Producción para desacoplar Helm de secretos)
+  # Si se define, Helm NO creará el recurso Secret y los Pods consumirán este Secret existente.
+  existingSecret: ""
+  secretName: "pokemon-secrets"
+  # Credenciales para desarrollo local (si existingSecret no está definido)
   adminApiKey: ""
   adminSessionSecret: ""
   aiApiKey: ""
   geminiApiKey: ""
   minioRootUser: ""
   minioRootPassword: ""
+
+# ------------------------------------------------------------------------------
+# 7b. External Secrets Operator (ESO - Sincronización automática con Vault / AWS / GCP)
+# ------------------------------------------------------------------------------
+externalSecrets:
+  enabled: false
+  refreshInterval: "1h"
+  targetSecretName: "pokemon-secrets"
+  secretStoreRef:
+    name: "vault-backend"
+    kind: "ClusterSecretStore"
+  remoteRef:
+    key: "pokedex/production"
 
 # ------------------------------------------------------------------------------
 # 8. Políticas de Seguridad Zero-Trust y Resiliencia
