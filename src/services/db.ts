@@ -371,7 +371,7 @@ export async function invalidateCache(id?: number): Promise<void> {
   }
 }
 
-// Rate limiter distribuido respaldado por Redis con TTL atómico
+// Rate limiter distribuido respaldado por Redis con script Lua 100% atómico
 export async function consumeDistributedRateLimit(
   key: string,
   limit: number,
@@ -383,11 +383,19 @@ export async function consumeDistributedRateLimit(
 
   try {
     const redisKey = `ratelimit:${key}`;
-    const count = await redisClient.incr(redisKey);
-    if (count === 1) {
-      await redisClient.pexpire(redisKey, windowMs);
-    }
-    const pttl = await redisClient.pttl(redisKey);
+    // Script Lua atómico: incrementa, asigna PEXPIRE si es la primera petición y retorna {count, pttl}
+    // Previene condiciones de carrera o claves huérfanas si el proceso se reinicia entre comandos.
+    const luaScript = `
+      local current = redis.call('INCR', KEYS[1])
+      if current == 1 then
+        redis.call('PEXPIRE', KEYS[1], ARGV[1])
+      end
+      local pttl = redis.call('PTTL', KEYS[1])
+      return {current, pttl}
+    `;
+    const result = (await redisClient.eval(luaScript, 1, redisKey, windowMs)) as [number, number];
+    const count = Number(result[0]);
+    const pttl = Number(result[1]);
     const retryAfterSeconds = pttl > 0 ? Math.ceil(pttl / 1000) : Math.ceil(windowMs / 1000);
 
     if (count > limit) {
@@ -398,6 +406,47 @@ export async function consumeDistributedRateLimit(
   } catch (err) {
     return null; // Degradación elegante ante errores temporales de Redis
   }
+}
+
+// ------------------------------------------------------------------------------
+// 5. Gestión Distribuida de Revocación de Sesiones (Redis)
+// ------------------------------------------------------------------------------
+
+/**
+ * Registra un identificador de token (jti) como revocado en Redis con TTL automático.
+ */
+export async function setRevokedJti(jti: string, ttlSeconds: number): Promise<boolean> {
+  if (!isRedisConnected || !redisClient || !jti) {
+    return false;
+  }
+  try {
+    const key = `revoked:${jti}`;
+    const safeTtl = Math.max(1, Math.floor(ttlSeconds));
+    await redisClient.set(key, '1', 'EX', safeTtl);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Consulta si un identificador de token (jti) ha sido revocado en Redis.
+ * Retorna true si está revocado, false si es válido, o null si Redis no está disponible.
+ */
+export async function isJtiRevokedInRedis(jti: string): Promise<boolean | null> {
+  if (!isRedisConnected || !redisClient || !jti) {
+    return null;
+  }
+  try {
+    const exists = await redisClient.exists(`revoked:${jti}`);
+    return exists === 1;
+  } catch {
+    return null;
+  }
+}
+
+export function getRedisClient(): Redis | null {
+  return isRedisConnected ? redisClient : null;
 }
 
 export function getStorageHealth(): {

@@ -227,6 +227,7 @@ podDisruptionBudget:
 # ------------------------------------------------------------------------------
 seedJob:
   enabled: false
+  forceSeed: false
   image:
     repository: pokemon-db-seed
     tag: "1.0.0"
