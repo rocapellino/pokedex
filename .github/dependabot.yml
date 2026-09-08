@@ -1,0 +1,112 @@
+# ==============================================================================
+# GitHub Dependabot Configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# ==============================================================================
+version: 2
+updates:
+  # 1. Dependencias Node.js / TypeScript (npm)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "nodejs"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # 2. GitHub Actions CI/CD Workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:30"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "ci-cd"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+
+  # 3. Dockerfile Backend API
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # 4. Dockerfile Frontend Web Nginx
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "docker"
+      - "web"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # 5. OpenTofu / Terraform Proxmox
+  - package-ecosystem: "terraform"
+    directory: "/infra/opentofu/environments/proxmox"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "iac"
+      - "opentofu"
+    commit-message:
+      prefix: "chore(iac)"
+
+  # 6. OpenTofu / Terraform Cloud (AWS EKS)
+  - package-ecosystem: "terraform"
+    directory: "/infra/opentofu/environments/cloud"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:30"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "iac"
+      - "opentofu"
+    commit-message:
+      prefix: "chore(iac)"
