@@ -63,7 +63,17 @@ runcmd:
   - ufw allow 3000/tcp comment 'Grafana'
   - ufw --force enable
 
-  # 5. Clonar y desplegar la plataforma Pokédex
+  # 5. Clonar, configurar entorno seguro y desplegar la plataforma Pokédex
   - mkdir -p /opt/pokedex
-  - git clone https://github.com/rocapellino/pokedex.git /opt/pokedex || true
-  - cd /opt/pokedex && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+  - git clone https://github.com/rocapellino/pokedex.git /opt/pokedex || (cd /opt/pokedex && git pull)
+  - |
+    if [ ! -f /opt/pokedex/.env ]; then
+      cp /opt/pokedex/.env.example /opt/pokedex/.env
+      sed -i "s/ADMIN_SESSION_SECRET=.*/ADMIN_SESSION_SECRET=$(openssl rand -hex 32)/" /opt/pokedex/.env
+      sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" /opt/pokedex/.env
+      sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$(openssl rand -hex 16)/" /opt/pokedex/.env
+      sed -i "s/ADMIN_API_KEY=.*/ADMIN_API_KEY=$(openssl rand -hex 24)/" /opt/pokedex/.env
+      chmod 600 /opt/pokedex/.env
+      chown devops:docker /opt/pokedex/.env
+    fi
+  - cd /opt/pokedex && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans

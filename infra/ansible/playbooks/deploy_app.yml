@@ -15,15 +15,33 @@
         mode: '0755'
         owner: "{{ ansible_user | default('ubuntu') }}"
 
-    - name: Sincronizar archivos del proyecto
+    - name: Sincronizar archivos del proyecto (excluyendo secretos locales)
       synchronize:
         src: "{{ playbook_dir }}/../../../"
         dest: "{{ app_directory }}/"
         delete: no
         rsync_opts:
           - "--exclude=.git"
+          - "--exclude=.env"
+          - "--exclude=.env.*"
+          - "--include=.env.example"
           - "--exclude=.venv"
           - "--exclude=__pycache__"
+          - "--exclude=node_modules"
+          - "--exclude=.ruff_cache"
+
+    - name: Asegurar archivo .env seguro en el host remoto si no existe
+      shell: |
+        if [ ! -f {{ app_directory }}/.env ]; then
+          cp {{ app_directory }}/.env.example {{ app_directory }}/.env
+          sed -i "s/ADMIN_SESSION_SECRET=.*/ADMIN_SESSION_SECRET=$(openssl rand -hex 32)/" {{ app_directory }}/.env
+          sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" {{ app_directory }}/.env
+          sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$(openssl rand -hex 16)/" {{ app_directory }}/.env
+          sed -i "s/ADMIN_API_KEY=.*/ADMIN_API_KEY=$(openssl rand -hex 24)/" {{ app_directory }}/.env
+          chmod 0600 {{ app_directory }}/.env
+        fi
+      args:
+        creates: "{{ app_directory }}/.env"
 
     - name: Levantar o actualizar contenedores con Docker Compose
       community.docker.docker_compose_v2:
@@ -32,7 +50,7 @@
         build: always
         pull: always
       environment:
-        FLASK_ENV: "{{ env | default('production') }}"
+        NODE_ENV: "{{ env | default('production') }}"
 
     - name: Verificar salud del servicio Web
       uri:
