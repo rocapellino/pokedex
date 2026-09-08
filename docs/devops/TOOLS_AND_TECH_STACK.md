@@ -9,9 +9,9 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 2. [Matriz Exhaustiva de Herramientas del Proyecto](#2-matriz-exhaustiva-de-herramientas-del-proyecto)
    * [2.1. Core, Backend & Runtime](#21-core-backend--runtime)
    * [2.2. Frontend Web](#22-frontend-web)
-   * [2.3. Persistencia, Caché & Estado](#23-persistencia-caché--estado)
+   * [2.3. Persistencia, Caché & Connection Pooling](#23-persistencia-caché--connection-pooling)
    * [2.4. Inteligencia Artificial Generativa](#24-inteligencia-artificial-generativa)
-   * [2.5. Calidad de Código & Testing](#25-calidad-de-código--testing)
+   * [2.5. Calidad de Código, Testing & Fuzzing](#25-calidad-de-código-testing--fuzzing)
    * [2.6. Seguridad & Supply Chain](#26-seguridad--supply-chain)
    * [2.7. Contenedores, Orquestación & GitOps](#27-contenedores-orquestación--gitops)
    * [2.8. Infraestructura como Código (IaC) & Virtualización](#28-infraestructura-como-código-iac--virtualización)
@@ -32,13 +32,14 @@ flowchart LR
         TS["🟦 TypeScript 5.7\nNode.js 22 LTS"]
         ESBUILD["⚡ esbuild"]
         TASK["⚙️ Taskfile\n(go-task)"]
-        TESTS["🧪 Node Test Runner\n(54 Tests)"]
+        TESTS["🧪 Node Test Runner\n(63 Tests + 7 Fuzz Tests)"]
     end
 
     subgraph SECURE_BUILD["3. Build & Supply Chain"]
         DOCKER["🐳 Docker 27+"]
         GITLEAKS["🔐 Gitleaks"]
         SEMGREP["🔍 Semgrep SAST"]
+        DEP_REV["📦 Dependency Review"]
         TRIVY["🛡️ Trivy SCA"]
         SYFT["📋 Syft (SBOM)"]
         COSIGN["✍️ Cosign Keyless\n(Sigstore OIDC)"]
@@ -49,11 +50,12 @@ flowchart LR
         ARGO["☸️ ArgoCD"]
         HELM["⎈ Helm 3.17"]
         KYVERNO["🛡️ Kyverno Enforcer"]
-        SEALED["🔐 Sealed Secrets"]
+        ESO["🔐 External Secrets Operator\n& Sealed Secrets"]
     end
 
     subgraph RUNTIME["5. Runtime & Observe"]
         K8S["☸️ K8s 1.30+ / Proxmox"]
+        PGB["🛡️ PgBouncer 1.22"]
         PG["🗄️ PostgreSQL 16"]
         REDIS["⚡ Redis 7"]
         PROM["📊 Prometheus"]
@@ -92,12 +94,13 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **HTML5 / CSS3 / Vanilla JS** | Estándar W3C | Interfaz reactiva sin dependencias pesadas, modo oscuro/claro y filtros | [`apps/web/public/`](file:///apps/web/public/) |
-| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip y cabeceras CSP | [`apps/web/nginx.conf`](file:///apps/web/nginx.conf), [`apps/web/Dockerfile`](file:///apps/web/Dockerfile) |
+| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/web/nginx.conf`](file:///apps/web/nginx.conf), [`apps/web/Dockerfile`](file:///apps/web/Dockerfile) |
 
-### 2.3. Persistencia, Caché & Estado
+### 2.3. Persistencia, Caché & Connection Pooling
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`src/services/db.ts`](file:///src/services/db.ts), [`docker-compose.yml`](file:///docker-compose.yml) |
+| **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](file:///infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
 | **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`src/services/db.ts`](file:///src/services/db.ts), [`src/services/auth.ts`](file:///src/services/auth.ts) |
 
 ### 2.4. Inteligencia Artificial Generativa
@@ -105,10 +108,11 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Google AI Studio (`@google/genai`)** | SDK oficial | Integración nativa con **Gemini 2.5 Flash** para diagramas y mockups | [`src/services/ai.ts`](file:///src/services/ai.ts) |
 
-### 2.5. Calidad de Código & Testing
+### 2.5. Calidad de Código, Testing & Fuzzing
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 54 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](file:///tests/) |
+| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](file:///tests/) |
+| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/`](file:///tests/fuzz/) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](file:///tests/performance/k6_stress_test.js) |
 | **TypeScript Compiler (`tsc`)** | `5.7+` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](file:///package.json) |
 
@@ -119,9 +123,11 @@ flowchart LR
 | **Kyverno** | `1.12+` | Control de admisión en Kubernetes para exigir imágenes firmadas válidas | [`infra/k8s/kyverno-cosign-policy.yaml`](file:///infra/k8s/kyverno-cosign-policy.yaml) |
 | **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
 | **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](file:///.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) |
-| **Semgrep** | Latest | Análisis estático SAST para detección de vulnerabilidades OWASP Top 10 | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en capas de contenedores | [`.github/workflows/security-trivy.yml`](file:///.github/workflows/security-trivy.yml) |
-| **Bitnami Sealed Secrets** | Latest | Cifrado asimétrico de secretos en Git para Kubernetes | [`scripts/seal_secret.py`](file:///scripts/seal_secret.py), [`scripts/seal_secret.sh`](file:///scripts/seal_secret.sh) |
+| **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
+| **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
+| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](file:///.github/workflows/security-trivy.yml) |
+| **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](file:///infra/helm/pokedex/templates/externalsecret.yaml) |
+| **Bitnami Sealed Secrets** | Latest | Cifrado asimétrico de secretos en Git para clústeres on-premise | [`scripts/seal_secret.py`](file:///scripts/seal_secret.py), [`scripts/seal_secret.sh`](file:///scripts/seal_secret.sh) |
 
 ### 2.7. Contenedores, Orquestación & GitOps
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
@@ -135,6 +141,7 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **OpenTofu / Terraform** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](file:///infra/opentofu/), [`infra/terraform/`](file:///infra/terraform/) |
+| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yml`](file:///.github/workflows/infra.yml), [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
 | **Proxmox VE** | `8.x` | Virtualización on-premise mediante contenedores LXC y Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/) |
 | **Ansible** | `2.16+` | Automatización de configuración de nodos y hardening de firewall UFW | [`infra/ansible/`](file:///infra/ansible/) |
 
@@ -151,4 +158,5 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](file:///Taskfile.yml) |
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
-| **Renovate Bot** | Latest | Actualizaciones automáticas de dependencias agrupadas con auto-merge | [`renovate.json`](file:///renovate.json) |
+| **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](file:///renovate.json) |
+| **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |

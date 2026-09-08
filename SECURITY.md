@@ -18,7 +18,7 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 Únicamente la versión más reciente en la rama principal (`main`) y los releases oficiales etiquetados reciben parches de seguridad activos:
 
 | Versión / Rama | Estado de Soporte | Runtime Base |
-| :--- | :---: | :--- |
+| :--- | :--- :--- | :--- |
 | **`main` (Latest)** | ✅ Con soporte activo | Node.js 22 LTS / Docker Alpine |
 | **`v2.x` Releases** | ✅ Con soporte activo | Node.js 22 LTS / Kubernetes 1.30+ |
 | **`< v2.0.0`** | ❌ Fin de ciclo de vida (EOL) | Versiones anteriores |
@@ -82,13 +82,28 @@ Nos comprometemos con los siguientes plazos de atención ante reportes válidos:
 
 El repositorio cuenta con defensas en profundidad integradas en el pipeline y en runtime:
 
-1. **Supply Chain Security:**
+1. **Supply Chain Security & CI/CD Gates:**
    * Firma criptográfica **Keyless** con **Cosign** y atestación de **SBOM CycloneDX** mediante **Syft**.
    * Control de admisión en Kubernetes con **Kyverno** (`ClusterPolicy: Enforce`) exigiendo imágenes firmadas por GitHub Actions verificadas en Rekor.
+   * **SAST Bloqueante con Semgrep:** Detección de fallas OWASP Top 10 en cada Pull Request.
+   * **Dependency Review Gate:** Bloqueo automático de dependencias con vulnerabilidades HIGH+.
+   * **SHA Pinning Estricto:** Anclaje por digest inmutable en GitHub Actions y contenedores Docker (Nginx, PgBouncer).
+   * **Gobernanza Automatizada:** Renovate Bot con auto-merge limitado a parches npm y Dependabot con 7 días de cooldown.
+
 2. **Defensas en Aplicación (Fail-Closed):**
    * Verificación de credenciales segura contra ataques de canal lateral basados en tiempo (`crypto.timingSafeEqual`).
    * Tokens de sesión firmados con HMAC SHA-256 independientes (`ADMIN_SESSION_SECRET`).
    * Revocación distribuida en Redis con política *fail-closed* ante caídas de infraestructura.
+   * Sanitización contra XSS en payloads y respuestas (`422 Unprocessable Entity`).
    * Restricción estricta de descarga del código fuente (`/download/repo`) deshabilitada por defecto en producción.
-3. **Aislamiento de Red:**
-   * Redes internas Docker con `internal: true` y Kubernetes NetworkPolicies con política `default-deny-all-ingress`.
+
+3. **Zero-Trust Network Isolation & Anti-SSRF:**
+   * **Egress Anti-SSRF:** Filtrado estricto `ipBlock` que bloquea peticiones salientes a endpoints de metadatos Cloud IMDS (`169.254.169.254/32`), subredes privadas RFC 1918 y loopback.
+   * **Mediación Forzosa con PgBouncer:** En producción, PostgreSQL rechaza conexiones directas de los pods de la API; toda consulta se canaliza a través de PgBouncer.
+   * **Egress DNS Restringido:** Resolución DNS acotada exclusivamente a pods con selector `k8s-app: kube-dns`.
+   * **Redes Internas Docker:** Aislamiento con `internal: true` en Docker Compose.
+
+4. **Gestión de Secretos Desacoplada:**
+   * Soporte para **External Secrets Operator** y modo `existingSecret: "pokedex-prod-secrets"` en Helm para prevenir contraseñas en Git o flags CLI.
+   * Manifiestos cifrados con **Bitnami Sealed Secrets** para entornos on-premise.
+   * Escaneo preventivo continuo con **Gitleaks**.
