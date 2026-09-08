@@ -76,15 +76,32 @@
         state: directory
         mode: '0755'
 
-    - name: 6. Sincronizar archivos del proyecto a Proxmox
+    - name: 6. Sincronizar archivos del proyecto a Proxmox (sin secretos locales)
       synchronize:
         src: "{{ playbook_dir }}/../../../"
         dest: "{{ app_dir }}"
         rsync_opts:
           - "--exclude=.git"
+          - "--exclude=.env"
+          - "--exclude=.env.*"
+          - "--include=.env.example"
           - "--exclude=.venv"
           - "--exclude=__pycache__"
           - "--exclude=node_modules"
+          - "--exclude=.ruff_cache"
+
+    - name: 6.1. Inicializar archivo .env seguro en Proxmox si no existe
+      shell: |
+        if [ ! -f {{ app_dir }}/.env ]; then
+          cp {{ app_dir }}/.env.example {{ app_dir }}/.env
+          sed -i "s/ADMIN_SESSION_SECRET=.*/ADMIN_SESSION_SECRET=$(openssl rand -hex 32)/" {{ app_dir }}/.env
+          sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" {{ app_dir }}/.env
+          sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$(openssl rand -hex 16)/" {{ app_dir }}/.env
+          sed -i "s/ADMIN_API_KEY=.*/ADMIN_API_KEY=$(openssl rand -hex 24)/" {{ app_dir }}/.env
+          chmod 0600 {{ app_dir }}/.env
+        fi
+      args:
+        creates: "{{ app_dir }}/.env"
 
     - name: 7. Desplegar Contenedores en Modo Producción con Docker Compose
       command:

@@ -1,0 +1,17 @@
+# ==============================================================================
+# Lista Canónica de Exclusiones para Empaquetado y Despliegue (Tar / Rsync)
+# Evita la transferencia accidental de secretos locales (.env), artefactos de CI,
+# dependencias y directorios de control de versiones.
+# ==============================================================================
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+.venv
+__pycache__
+.ruff_cache
+dist
+tmp
+tests

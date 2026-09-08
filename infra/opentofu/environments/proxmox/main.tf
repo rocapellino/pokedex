@@ -25,15 +25,15 @@ resource "proxmox_virtual_environment_vm" "k8s_nodes" {
   }
 
   network_device {
-    bridge = "vmbr0"
+    bridge = var.network_bridge
     model  = "virtio"
   }
 
   initialization {
     ip_config {
       ipv4 {
-        address = "192.168.1.${100 + count.index + 1}/24"
-        gateway = "192.168.1.1"
+        address = "${var.network_base_ip}${100 + count.index + 1}${var.network_cidr_mask}"
+        gateway = var.network_gateway
       }
     }
     user_account {

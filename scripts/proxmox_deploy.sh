@@ -8,6 +8,8 @@ PROXMOX_HOST="${1:-192.168.1.100}"
 USER="${2:-root}"
 PORT="${3:-22}"
 REMOTE_DIR="/opt/pokedex"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EXCLUDES_FILE="${SCRIPT_DIR}/deploy_excludes.txt"
 
 echo "============================================================"
 echo "🚀 Iniciando Despliegue de Pokédex en Proxmox VE: $PROXMOX_HOST"
@@ -17,21 +19,32 @@ echo "============================================================"
 echo "📁 1. Preparando directorio en $PROXMOX_HOST:$REMOTE_DIR..."
 ssh -p "$PORT" "$USER@$PROXMOX_HOST" "mkdir -p $REMOTE_DIR"
 
-# 2. Empaquetar y transferir archivos
+# 2. Empaquetar y transferir archivos excluyendo estrictamente secretos locales
 echo "📦 2. Empaquetando y transfiriendo archivos del repositorio..."
-tar --exclude='.git' \
-    --exclude='.venv' \
-    --exclude='__pycache__' \
-    --exclude='node_modules' \
-    --exclude='.ruff_cache' \
-    -czf /tmp/pokedex_deploy.tar.gz .
+TAR_OPTS=()
+if [ -f "$EXCLUDES_FILE" ]; then
+    TAR_OPTS+=("--exclude-from=$EXCLUDES_FILE")
+fi
+# Exclusiones explícitas de seguridad mandatarias
+TAR_OPTS+=(
+    "--exclude=.git"
+    "--exclude=.env"
+    "--exclude=.env.*"
+    "--exclude=.venv"
+    "--exclude=__pycache__"
+    "--exclude=node_modules"
+    "--exclude=.ruff_cache"
+)
+
+tar "${TAR_OPTS[@]}" -czf /tmp/pokedex_deploy.tar.gz .
 
 scp -P "$PORT" /tmp/pokedex_deploy.tar.gz "$USER@$PROXMOX_HOST:$REMOTE_DIR/pokedex_deploy.tar.gz"
 rm -f /tmp/pokedex_deploy.tar.gz
 
-# 3. Desempaquetar y levantar contenedores
+# 3. Desempaquetar, configurar entorno seguro y levantar contenedores
 echo "🐳 3. Compilando y levantando contenedores con Docker Compose..."
 ssh -p "$PORT" "$USER@$PROXMOX_HOST" << 'EOF'
+set -e
 cd /opt/pokedex
 tar -xzf pokedex_deploy.tar.gz
 rm -f pokedex_deploy.tar.gz
@@ -40,6 +53,21 @@ if ! command -v docker &> /dev/null; then
     echo "Instalando Docker Engine..."
     curl -fsSL https://get.docker.com | sh
     systemctl enable --now docker
+fi
+
+# Inicializar .env en el host remoto si no existe (previene fallos de variables obligatorias)
+if [ ! -f /opt/pokedex/.env ]; then
+    echo "⚙️ Inicializando /opt/pokedex/.env con credenciales seguras autogeneradas..."
+    cp /opt/pokedex/.env.example /opt/pokedex/.env
+    ADMIN_SECRET=$(openssl rand -hex 32)
+    PG_PASS=$(openssl rand -hex 16)
+    REDIS_PASS=$(openssl rand -hex 16)
+    ADMIN_KEY=$(openssl rand -hex 24)
+    sed -i "s/ADMIN_SESSION_SECRET=.*/ADMIN_SESSION_SECRET=${ADMIN_SECRET}/" /opt/pokedex/.env
+    sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${PG_PASS}/" /opt/pokedex/.env
+    sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=${REDIS_PASS}/" /opt/pokedex/.env
+    sed -i "s/ADMIN_API_KEY=.*/ADMIN_API_KEY=${ADMIN_KEY}/" /opt/pokedex/.env
+    chmod 600 /opt/pokedex/.env
 fi
 
 echo "Iniciando stack de producción..."
@@ -52,5 +80,5 @@ EOF
 echo "============================================================"
 echo "🎉 Despliegue en Proxmox finalizado!"
 echo "🌐 Web: http://$PROXMOX_HOST:8080/"
-echo "🔌 Docs: http://$PROXMOX_HOST:8080/docs"
+echo "🔌 Healthz: http://$PROXMOX_HOST:8080/healthz"
 echo "============================================================"
