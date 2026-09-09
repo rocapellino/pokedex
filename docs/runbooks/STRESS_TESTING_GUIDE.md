@@ -6,7 +6,7 @@ Este documento detalla el procedimiento de ejecución, análisis y validación d
 
 ## 📑 Tabla de Contenidos
 1. [Objetivo de la Prueba](#1-objetivo-de-la-prueba)
-2. [Herramienta de Carga (`scripts/k8s_load_test.py`)](#2-herramienta-de-carga-scriptsk8s_load_testpy)
+2. [Herramienta de Carga (`tests/performance/k6_stress_test.js`)](#2-herramienta-de-carga-testsperformancek6_stress_testjs)
 3. [Procedimiento de Ejecución Paso a Paso](#3-procedimiento-de-ejecución-paso-a-paso)
 4. [Métricas Clave y Umbrales de Autoescalado](#4-métricas-clave-y-umbrales-de-autoescalado)
 5. [Resultados Obtenidos y Benchmark de Rendimiento](#5-resultados-obtenidos-y-benchmark-de-rendimiento)
@@ -22,17 +22,19 @@ Este documento detalla el procedimiento de ejecución, análisis y validación d
 
 ---
 
-## 2. Herramienta de Carga (`scripts/k8s_load_test.py`)
+## 2. Herramienta de Carga (`tests/performance/k6_stress_test.js`)
 
-El script utiliza un pool de hilos (`concurrent.futures.ThreadPoolExecutor`) para emitir peticiones HTTP de alta frecuencia contra el backend y frontend.
+El proyecto utiliza **k6** (Grafana k6) para ejecutar pruebas de estrés declarativas y reproducibles contra los endpoints del backend y frontend.
 
-### Parámetros Disponibles:
-| Parámetro | Valor por Defecto | Descripción |
-| :--- | :--- | :--- |
-| `--url` | `http://localhost:8080/api/pokemons` | Endpoint objetivo a estresar |
-| `--concurrency` | `50` | Número de hilos simultáneos concurrentes |
-| `--total-requests` | `3000` | Cantidad total de peticiones a enviar |
-| `--duration` | `60` | Tiempo máximo de la prueba en segundos |
+### Ejecución estándar:
+```powershell
+task perf
+```
+
+O invocando directamente el motor k6:
+```powershell
+k6 run tests/performance/k6_stress_test.js
+```
 
 ---
 
@@ -53,10 +55,10 @@ Abre dos terminales adicionales para observar la reacción de Kubernetes en tiem
 ---
 
 ### Paso 2: Lanzar la Prueba de Estrés
-Ejecuta el script desde la terminal principal:
+Ejecuta la prueba desde la terminal principal:
 
 ```powershell
-python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concurrency 60 --total-requests 3000 --duration 60
+task perf
 ```
 
 ---
