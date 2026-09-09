@@ -29,7 +29,7 @@ jobs:
           cache: "npm"
 
       - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: 4. Compilar y Levantar Servidor Pokédex Node.js
         run: |

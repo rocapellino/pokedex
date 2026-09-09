@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getNextPokemonId } from '../src/services/db.js';
+import { getNextPokemonId } from '../apps/backend/src/services/db.js';
 
 test('⚡ Concurrencia: llamadas paralelas a getNextPokemonId generan IDs estrictamente únicos', async () => {
   const NUM_REQUESTS = 50;

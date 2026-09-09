@@ -7,22 +7,18 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'server.ts'
-      - 'src/**'
+      - 'apps/backend/**'
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
-      - 'tsconfig.json'
       - '.github/workflows/api.yml'
   pull_request:
     branches: [ main, master ]
     paths:
-      - 'server.ts'
-      - 'src/**'
+      - 'apps/backend/**'
       - 'tests/**'
       - 'package.json'
       - 'package-lock.json'
-      - 'tsconfig.json'
       - '.github/workflows/api.yml'
 
 concurrency:
@@ -45,7 +41,7 @@ jobs:
           cache: 'npm'
 
       - name: 3. Instalar Dependencias
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: 4. Análisis Estático y Tipado con TypeScript
         run: npm run lint

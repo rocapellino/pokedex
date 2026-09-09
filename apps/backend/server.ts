@@ -13,9 +13,11 @@ import {
   deletePokemon,
   getNextPokemonId,
   getStorageHealth,
+  getPostgresVersion,
   consumeDistributedRateLimit,
   isWritableStorageAvailable,
 } from './src/services/db.js';
+import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
 import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
 import {
@@ -27,8 +29,15 @@ import {
 } from './src/services/auth.js';
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-const PUBLIC_DIR = path.join(process.cwd(), 'apps', 'web', 'public');
+const PORT = Number(process.env.PORT) || 3000;
+
+const candidatePublicDirs = [
+  path.join(process.cwd(), 'apps', 'frontend', 'public'),
+  path.join(process.cwd(), '..', 'frontend', 'public'),
+  path.join(process.cwd(), 'public'),
+];
+const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'public');
+
 
 // ---------------------------------------------------------------------------
 // Error Boundary Helper: Async Handler para Express 4.x
@@ -424,6 +433,28 @@ app.get('/readyz', (_req: Request, res: Response) => {
   });
 });
 
+app.get(['/version', '/api/v1/version'], asyncHandler(async (_req: Request, res: Response) => {
+  const health = getStorageHealth();
+  const postgresVersion = await getPostgresVersion();
+  const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+
+  return res.status(200).json({
+    app: 'pokedex',
+    version: process.env.APP_VERSION || '1.0.0',
+    git_sha: process.env.GIT_SHA || process.env.COMMIT_SHA || 'unknown',
+    node_version: process.version,
+    uptime_seconds: Number.parseFloat(uptimeSeconds),
+    environment: process.env.NODE_ENV || 'development',
+    database: {
+      engine: health.database,
+      postgres_connected: health.postgres_connected,
+      postgres_version: postgresVersion ?? (health.postgres_connected ? 'available' : 'unavailable'),
+      redis_connected: health.redis_connected,
+      mode: health.postgres_connected ? 'normal' : 'degraded',
+    },
+  });
+}));
+
 app.get('/metrics', (_req: Request, res: Response) => {
   const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
   const health = getStorageHealth();
@@ -770,6 +801,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 // Start Server tras inicializar la capa de persistencia y caché (solo si no es test runner)
 const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
 if (!isRunningTests) {
+  checkRequiredEnvVars();
   initStorage().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       const health = getStorageHealth();

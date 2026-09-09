@@ -33,6 +33,37 @@ tasks:
       - npm run lint
       - npm test
 
+  test:e2e:
+    desc: "Ejecuta las pruebas E2E multi-dispositivo con Playwright"
+    cmds:
+      - npm run test:e2e
+
+  test:a11y:
+    desc: "Ejecuta la auditoría automatizada de accesibilidad WCAG con Axe-core"
+    cmds:
+      - npm run test:a11y
+
+  test:coverage:
+    desc: "Ejecuta la suite de pruebas unitarias y genera reporte de cobertura LCOV"
+    cmds:
+      - npm run test:coverage
+
+  perf:lighthouse:
+    desc: "Ejecuta la auditoría de rendimiento y Web Vitals con Lighthouse CI"
+    cmds:
+      - npx @lhci/cli autorun
+
+  lint:mega:
+    desc: "Ejecuta MegaLinter localmente mediante Docker"
+    cmds:
+      - docker run --rm -v "${PWD}:/tmp/lint:ro" -e MEGALINTER_CONFIG=.mega-linter.yml oxsecurity/megalinter-cupcake:v8.4.2
+
+  sonar:
+    desc: "Ejecuta SonarScanner localmente mediante contenedor Docker"
+    cmds:
+      - docker run --rm -v "${PWD}:/usr/src" -e SONAR_TOKEN="${SONAR_TOKEN}" sonarsource/sonar-scanner-cli:latest
+
+
   audit:
     desc: "Ejecuta la auditoría de duplicación e integridad de archivos"
     cmds:

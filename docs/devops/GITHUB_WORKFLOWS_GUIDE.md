@@ -27,7 +27,7 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 
 ## 1. Estrategia de Monorepo y Filtrado por Rutas (`paths`)
 
-Como este proyecto aloja backend (`server.ts`, `src/`), frontend (`apps/web/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo, se implementa **Path Filtering** inteligente:
+Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo estructurado con npm workspaces, se implementa **Path Filtering** inteligente:
 * **Cambios en Backend:** Activan exclusivamente [`api.yml`](file:///.github/workflows/api.yml).
 * **Cambios en Frontend:** Activan exclusivamente [`web.yml`](file:///.github/workflows/web.yml).
 * **Cambios en Infraestructura / Helm:** Activan exclusivamente [`infra.yml`](file:///.github/workflows/infra.yml).
@@ -44,8 +44,8 @@ flowchart TD
     
     subgraph TRIGGER_ROUTER ["🔀 Enrutador por Rutas (Path Filtering)"]
         GH --> CHK_PATH{"¿Qué archivos cambiaron?"}
-        CHK_PATH -->|apps/web/**| WF_WEB["🌐 web.yml\n• JS Syntax Check\n• Nginx Config Lint"]
-        CHK_PATH -->|server.ts, src/**| WF_API["⚙️ api.yml\n• TypeScript Compile\n• esbuild bundle\n• npm test (63 tests)"]
+        CHK_PATH -->|apps/frontend/**| WF_WEB["🌐 web.yml\n• JS Syntax Check\n• Nginx Config Lint"]
+        CHK_PATH -->|apps/backend/**| WF_API["⚙️ api.yml\n• TypeScript Compile\n• esbuild bundle\n• npm test"]
         CHK_PATH -->|infra/**, gitops/**| WF_INFRA["⚙️ infra.yml\n• Helm Lint & Template\n• OpenTofu Validate\n• Checkov IaC"]
         CHK_PATH -->|Cualquier archivo| WF_LEAKS["🔐 security-gitleaks.yml\n• Escaneo estricto de secretos"]
     end
@@ -97,12 +97,12 @@ flowchart TD
 ## 3. Catálogo de Workflows del Proyecto
 
 ### 3.1. ⚙️ [`api.yml`](file:///.github/workflows/api.yml) (Backend API CI)
-* **Triggers:** Cambios en `server.ts`, `src/**`, `package.json`, `package-lock.json`, `tsconfig.json`.
-* **Pasos:** Checkout con SHA pinned, Node.js 22 LTS, `npm ci`, verificación de tipos (`tsc --noEmit`), compilación esbuild (`npm run build`), ejecución de tests (`npm test` - 63 tests) y auditoría `npm audit --audit-level=high`.
+* **Triggers:** Cambios en `apps/backend/**`, `package.json`, `package-lock.json`, `tsconfig.json`.
+* **Pasos:** Checkout con SHA pinned, Node.js 22 LTS, `npm ci`, verificación de tipos (`tsc --noEmit`), compilación esbuild (`npm run build`), ejecución de tests (`npm test`) y auditoría `npm audit --audit-level=high`.
 
 ### 3.2. 🌐 [`web.yml`](file:///.github/workflows/web.yml) (Frontend Web CI)
-* **Triggers:** Cambios en `apps/web/**`.
-* **Pasos:** Chequeo de sintaxis JavaScript en archivos estáticos (`node -c apps/web/public/js/*.js`) y validación de configuración de Nginx (`nginx -t`).
+* **Triggers:** Cambios en `apps/frontend/**`.
+* **Pasos:** Chequeo de sintaxis JavaScript en archivos estáticos (`node -c apps/frontend/public/js/*.js`) y validación de configuración de Nginx (`nginx -t`).
 
 ### 3.3. ⚙️ [`infra.yml`](file:///.github/workflows/infra.yml) (Infrastructure & IaC CI)
 * **Triggers:** Cambios en `infra/**`, `gitops/**`.

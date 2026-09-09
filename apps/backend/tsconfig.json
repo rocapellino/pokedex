@@ -9,5 +9,5 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist"
   },
-  "include": ["apps/backend/server.ts", "apps/backend/src/**/*", "scripts/**/*"]
+  "include": ["server.ts", "src/**/*"]
 }

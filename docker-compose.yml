@@ -7,7 +7,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/frontend/Dockerfile
     container_name: pokemon-web
     restart: unless-stopped
     ports:
@@ -30,7 +30,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/backend/Dockerfile
     container_name: pokemon-api
     restart: unless-stopped
     expose:

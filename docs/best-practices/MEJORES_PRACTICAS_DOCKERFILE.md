@@ -20,8 +20,8 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 ## 1. Arquitectura de Contenedores del Repositorio
 
 El proyecto utiliza dos contenedores especializados:
-- **Backend API (`Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
-- **Frontend Web (`apps/web/Dockerfile`)**: Servidor web Nginx 1.27 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, JS Vanilla).
+- **Backend API (`apps/backend/Dockerfile` / `Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
+- **Frontend Web (`apps/frontend/Dockerfile`)**: Servidor web Nginx 1.27 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, JS Vanilla).
 
 ---
 
@@ -103,10 +103,11 @@ Permiten a Docker y Kubernetes orquestar reinicios automáticos y evitar enviar 
 FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/backend/tsconfig.json ./apps/backend/
 RUN npm ci
-COPY server.ts ./
-COPY src/ ./src/
-COPY apps/web/public/ ./apps/web/public/
+COPY apps/backend/ ./apps/backend/
+COPY apps/frontend/public/ ./apps/frontend/public/
 RUN npm run lint && npm run build
 
 # Etapa 2: Runner
@@ -115,16 +116,17 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 RUN apk upgrade --no-cache
 COPY package.json package-lock.json ./
+COPY apps/backend/package.json ./apps/backend/
 RUN npm ci --omit=dev \
     && npm cache clean --force \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
 USER node
 HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/healthz || exit 1
 EXPOSE 3000
-CMD ["node", "dist/server.cjs"]
+CMD ["node", "apps/backend/dist/server.cjs"]
 ```
 
 ---
@@ -135,8 +137,8 @@ CMD ["node", "dist/server.cjs"]
 FROM nginx:1.27-alpine AS runner
 RUN apk upgrade --no-cache
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-COPY apps/web/public/ /usr/share/nginx/html/
+COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/frontend/public/ /usr/share/nginx/html/
 RUN apk add --no-cache libcap && \
     setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx && \
     apk del --no-cache libcap
@@ -158,8 +160,8 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ```bash
 # Compilar backend y frontend
-docker build -t pokedex-server:test -f Dockerfile .
-docker build -t pokedex-web:test -f apps/web/Dockerfile .
+docker build -t pokedex-server:test -f apps/backend/Dockerfile .
+docker build -t pokedex-web:test -f apps/frontend/Dockerfile .
 
 # Escanear vulnerabilidades con Trivy (debe dar 0 hallazgos CRITICAL/HIGH)
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity CRITICAL,HIGH --exit-code 1 pokedex-server:test

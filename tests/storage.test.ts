@@ -7,8 +7,8 @@ import {
   deletePokemon,
   getNextPokemonId,
   getStorageHealth
-} from '../src/services/db.js';
-import { Pokemon } from '../src/types.js';
+} from '../apps/backend/src/services/db.js';
+import { Pokemon } from '../apps/backend/src/types.js';
 
 test('📦 Storage Layer: getStorageHealth reporta estado por defecto', () => {
   const health = getStorageHealth();

@@ -62,8 +62,8 @@ test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default har
   assert.ok(!varBlock.includes('default'), 'variable "ssh_public_key" no debe tener un valor default hardcodeado');
 });
 
-test('🛡️ Nginx Security: apps/web/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
-  const filePath = path.join(ROOT_DIR, 'apps/web/nginx.conf');
+test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
+  const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
   assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');
   const content = fs.readFileSync(filePath, 'utf-8');
   

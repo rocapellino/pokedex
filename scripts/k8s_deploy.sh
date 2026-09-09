@@ -48,7 +48,7 @@ echo "✅ Clúster Kubernetes detectado y conectado."
 if [ "$BUILD_IMAGES" = true ]; then
   echo "🔨 Construyendo imágenes Docker locales..."
   docker build -t pokedex-server:latest -f Dockerfile .
-  docker build -t pokedex-web:latest -f apps/web/Dockerfile .
+  docker build -t pokedex-web:latest -f apps/frontend/Dockerfile .
 
   # Si estamos en Docker Desktop con containerd o Kind, importar imágenes
   NODE=$(docker ps --filter "name=desktop-control-plane" -q || true)

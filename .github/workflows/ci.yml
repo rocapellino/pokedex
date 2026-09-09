@@ -39,7 +39,7 @@ jobs:
           cache: 'npm'
 
       - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: 4. Análisis de Tipos y Calidad con TypeScript
         run: npm run lint
@@ -106,6 +106,37 @@ jobs:
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high
+
+  sonarcloud:
+    name: "📊 SonarCloud (Calidad de Código & Deuda Técnica)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    continue-on-error: true
+    steps:
+      - name: 1. Descargar Código Fuente con Historial Completo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Ejecutar Tests y Generar Reporte de Cobertura LCOV
+        run: npm run test:coverage
+
+      - name: 5. Análisis de Calidad y Deuda con SonarCloud
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarcloud-github-action@383f7e52eae3ab0510c3cb0e7d9d150bbaeab838 # v3.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # =======================================================
   # 2. BUILD DOCKER (Solo si los Quality Gates pasan)

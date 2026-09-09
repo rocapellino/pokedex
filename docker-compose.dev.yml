@@ -4,7 +4,7 @@
 services:
   web:
     volumes:
-      - ./apps/web/public:/usr/share/nginx/html:ro
+      - ./apps/frontend/public:/usr/share/nginx/html:ro
 
   api:
     environment:
@@ -12,10 +12,10 @@ services:
       DEBUG: "true"
       NODE_ENV: "development"
     volumes:
-      - ./server.ts:/app/server.ts
-      - ./dist:/app/dist
-      - ./src:/app/src
-      - ./apps/web/public:/app/apps/web/public
+      - ./apps/backend/server.ts:/app/apps/backend/server.ts
+      - ./apps/backend/dist:/app/apps/backend/dist
+      - ./apps/backend/src:/app/apps/backend/src
+      - ./apps/frontend/public:/app/apps/frontend/public
     ports:
       - "${API_DEV_PORT:-3001}:3000"  # Acceso directo para depuración (3001 por defecto para evitar colisión con Grafana en 3000)
 

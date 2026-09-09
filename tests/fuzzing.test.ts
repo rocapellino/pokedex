@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'crypto';
-import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
-import { parsePaginationLimit, parsePaginationOffset } from '../src/utils/pagination.js';
+import { validatePokemonPayload, validateImageUrl } from '../apps/backend/src/validation/pokemon.js';
+import { parsePaginationLimit, parsePaginationOffset } from '../apps/backend/src/utils/pagination.js';
 import {
   verifyTokenSignature,
   verifySessionTokenDetailed,
   verifySessionToken,
   revokeSessionTokenDetailed,
   getSessionSecret,
-} from '../src/services/auth.js';
+} from '../apps/backend/src/services/auth.js';
 
 /**
  * Suite de API Fuzzing & Resiliencia Dinámica
