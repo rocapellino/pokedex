@@ -1,6 +1,14 @@
+# ==============================================================================
 # Rutas y directorios ignorados por Semgrep SAST
+# ==============================================================================
 node_modules/
 dist/
+**/dist/
 coverage/
 scripts/
 .git/
+test-results/
+playwright-report/
+lighthouse-results/
+.scannerwork/
+.mega-linter-reports/
