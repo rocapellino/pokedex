@@ -36,10 +36,6 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
   ```bash
   task k8s:up
   ```
-* **Vía Script Automatizado (Bash / CI/CD):**
-  ```bash
-  bash scripts/k8s_deploy.sh --build --seed
-  ```
 
 ### Opción B: Despliegue con Helm 3
 ```bash
@@ -85,9 +81,11 @@ kubectl get pods -n pokemon-app -l app=pokemon-web -w
 ```
 
 ### Paso 2: Ejecutar la Carga Concurrente
-Ejecuta el script de estrés:
+Ejecuta la prueba de estrés declarativa con k6:
 ```bash
-python scripts/k8s_load_test.py --url http://localhost:8080/api/pokemons --concurrency 50 --total-requests 4000
+task perf
+# O directamente invocando el script de k6:
+k6 run tests/performance/k6_stress_test.js
 ```
 
 ### Paso 3: Observación del Comportamiento
