@@ -313,4 +313,9 @@ tasks:
     cmds:
       - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 package /apps/infra/helm/pokedex -d /apps/dist
 
+  linear:sonar-sync:
+    desc: "Sincroniza el estado de SonarCloud y genera tickets en Linear ante Quality Gate fallido o vulnerabilidades"
+    cmds:
+      - npx tsx scripts/sonar-linear-sync.ts
+
 
