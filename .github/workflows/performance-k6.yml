@@ -38,8 +38,9 @@ jobs:
           sleep 4
           curl -f http://127.0.0.1:3000/healthz
 
-      - name: 5. Ejecutar Pruebas de Carga con Grafana k6
-        uses: grafana/k6-action@a54ec436a599ec51a629b359f1be038ae19ff92c # v0.4.0
-        with:
-          filename: tests/performance/k6_stress_test.js
-          flags: --env TARGET_URL=${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
+      - name: 5. Instalar Grafana k6 CLI
+        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065 # v1.2.1
+
+      - name: 6. Ejecutar Pruebas de Carga con Grafana k6
+        run: |
+          k6 run tests/performance/k6_stress_test.js --env TARGET_URL="${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}"
