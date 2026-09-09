@@ -26,7 +26,7 @@ DISABLE_LINTERS:
   - MARKDOWN_MARKDOWN_LINK_CHECK
 
 # Patrones globales de exclusión
-FILTER_REGEX_EXCLUDE: "(node_modules|dist|coverage|\\.scannerwork|\\.git|\\.venv|reports|test-results|playwright-report|\\.mega-linter-reports)"
+FILTER_REGEX_EXCLUDE: "(node_modules|dist|coverage|\\.scannerwork|\\.git|\\.venv|reports|test-results|playwright-report|lighthouse-results|\\.mega-linter-reports)"
 
 # Optimización de ejecución en Pull Requests
 DEFAULT_BRANCH: main

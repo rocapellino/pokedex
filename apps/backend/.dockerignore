@@ -1,5 +1,5 @@
 # ==============================================================================
-# Pokédex Frontend (Web) - Docker Ignore
+# Pokédex Backend (Node.js & TypeScript) - Docker Ignore
 # ==============================================================================
 
 # Control de versiones
@@ -10,7 +10,9 @@
 # Node & dependencias locales
 node_modules/
 dist/
+build/
 .npm/
+*.tsbuildinfo
 
 # Pruebas, cobertura y reportes
 coverage/

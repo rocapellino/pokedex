@@ -59,6 +59,16 @@ coverage/
 reports/
 *.lcov
 .pytest_cache/
+test-results/
+playwright-report/
+lighthouse-results/
+.scannerwork/
+.mega-linter-reports/
+sonar-project.properties
+playwright.config.ts
+lighthouserc.json
+commitlint.config.js
+.mega-linter.yml
 
 # ==============================================================================
 # Entornos virtuales y caché residual de Python
