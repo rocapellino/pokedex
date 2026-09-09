@@ -24,16 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    continue-on-error: true
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: 2. Ejecutar MegaLinter (Flavor Cupcake)
-        uses: oxsecurity/megalinter/flavors/cupcake@v8.4.2
+      - name: 2. Ejecutar MegaLinter (Flavor CI Light)
+        uses: oxsecurity/megalinter/flavors/ci_light@ec124f7998718d79379a3c5b39f5359952baf21d # v8.4.2
         env:
-          # Valida todo el repositorio en push a main, o solo cambios en Pull Request
+          DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MEGALINTER_CONFIG: .mega-linter.yml

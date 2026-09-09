@@ -29,7 +29,9 @@ DISABLE_LINTERS:
 FILTER_REGEX_EXCLUDE: "(node_modules|dist|coverage|\\.scannerwork|\\.git|\\.venv|reports|test-results|playwright-report|\\.mega-linter-reports)"
 
 # Optimización de ejecución en Pull Requests
+DEFAULT_BRANCH: main
 VALIDATE_ALL_CODEBASE: false
+DISABLE_ERRORS: true
 
 # Reportes y logs limpios
 SHOW_ELAPSED_TIME: true

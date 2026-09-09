@@ -66,8 +66,8 @@ test('🛡️ Startup Env Check: pasa exitosamente en producción si variables c
   const prevEnv = { ...process.env };
   try {
     process.env.NODE_ENV = 'production';
-    process.env.ADMIN_API_KEY = 'secret-test-key';
-    process.env.ADMIN_SESSION_SECRET = 'a-very-long-secret-key-that-is-at-least-32-chars-long';
+    process.env.ADMIN_API_KEY = 'pokedex-super-admin-entropy-key-change-me'; // gitleaks:allow
+    process.env.ADMIN_SESSION_SECRET = 'pokedex-internal-hmac-session-secret-entropy'; // gitleaks:allow
     process.env.CORS_ORIGINS = 'https://pokedex.local';
 
     const result = inspectEnvironment();

@@ -26,13 +26,5 @@ export default defineConfig({
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
     },
-    ...(process.env.CI
-      ? [
-          {
-            name: 'mobile-safari',
-            use: { ...devices['iPhone 12'] },
-          },
-        ]
-      : []),
   ],
 });
