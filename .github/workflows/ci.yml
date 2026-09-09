@@ -102,6 +102,7 @@ jobs:
   sonarcloud:
     name: "📊 SonarCloud (Calidad de Código & Deuda Técnica)"
     runs-on: ubuntu-latest
+    if: ${{ secrets.SONAR_TOKEN != '' }}
     permissions:
       contents: read
     continue-on-error: true
