@@ -2,7 +2,15 @@
 // Módulo de Validación Estructurada & Sanitización de Datos (Pokédex API)
 // ==============================================================================
 
-const SCRIPT_PATTERN = /<[^>]*>|javascript:|onerror=|onload=|eval\(|<script/i;
+const FORBIDDEN_TOKENS_PATTERN = /javascript:|onerror=|onload=|eval\(|<script/i;
+
+export const SCRIPT_PATTERN = {
+  test(val: unknown): boolean {
+    if (typeof val !== 'string') return false;
+    if (val.includes('<') && val.includes('>')) return true;
+    return FORBIDDEN_TOKENS_PATTERN.test(val);
+  },
+};
 
 export interface ValidationResult {
   valid: boolean;

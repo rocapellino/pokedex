@@ -8,9 +8,11 @@ api:
     limits:
       cpu: "1000m"
       memory: "1Gi"
+      ephemeral-storage: "1Gi"
     requests:
       cpu: "250m"
       memory: "256Mi"
+      ephemeral-storage: "256Mi"
   autoscaling:
     minReplicas: 2
     maxReplicas: 10
@@ -23,9 +25,11 @@ web:
     limits:
       cpu: "500m"
       memory: "512Mi"
+      ephemeral-storage: "512Mi"
     requests:
       cpu: "100m"
       memory: "128Mi"
+      ephemeral-storage: "128Mi"
 
 postgresql:
   auth:
@@ -37,9 +41,11 @@ postgresql:
     limits:
       cpu: "1000m"
       memory: "1Gi"
+      ephemeral-storage: "2Gi"
     requests:
       cpu: "250m"
       memory: "512Mi"
+      ephemeral-storage: "512Mi"
 
 pgbouncer:
   enabled: true

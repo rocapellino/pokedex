@@ -84,7 +84,7 @@ async function connectPg(): Promise<boolean> {
       `);
 
       const countRes = await client.query('SELECT COUNT(*) FROM pokedex_entries');
-      const count = parseInt(countRes.rows[0].count, 10);
+      const count = Number.parseInt(countRes.rows[0].count, 10);
       if (count === 0) {
         console.log('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
         for (const p of initialPokemons) {
@@ -232,7 +232,7 @@ export async function getAllPokemons(options: {
       }
 
       const countResult = await pgPool.query(countQuery, params);
-      const total = parseInt(countResult.rows[0].count, 10);
+      const total = Number.parseInt(countResult.rows[0].count, 10);
 
       dataQuery += ' ORDER BY id ASC';
       dataQuery += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
@@ -377,7 +377,7 @@ export async function getNextPokemonId(): Promise<number> {
   if (isPgConnected && pgPool) {
     try {
       const res = await pgPool.query("SELECT nextval('pokedex_id_seq') AS next_id");
-      return parseInt(res.rows[0].next_id, 10);
+      return Number.parseInt(res.rows[0].next_id, 10);
     } catch (err) {
       console.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId:', err);
     }

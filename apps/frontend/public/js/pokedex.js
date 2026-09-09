@@ -129,7 +129,7 @@ function applyFilters() {
 
     // 3. Filtro de generación
     const gen = getGeneration(p.id);
-    const matchesGen = currentGeneration === 'all' || gen === parseInt(currentGeneration, 10);
+    const matchesGen = currentGeneration === 'all' || gen === Number.parseInt(currentGeneration, 10);
 
     return matchesSearch && matchesType && matchesGen;
   });

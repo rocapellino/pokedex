@@ -49,6 +49,15 @@ const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => P
   };
 
 // ---------------------------------------------------------------------------
+// Security Helper: Prevención de Log Injection / CWE-117 (tssecurity:S5145)
+// Sanitiza saltos de línea y caracteres de control antes de escribir al log
+// ---------------------------------------------------------------------------
+function sanitizeLogString(val: unknown): string {
+  if (val === undefined || val === null) return '';
+  return String(val).replace(/[\r\n\t]/g, '_').slice(0, 100);
+}
+
+// ---------------------------------------------------------------------------
 // Metrics & Observability Tracking (Prometheus Exposition Format)
 // ---------------------------------------------------------------------------
 const startTime = Date.now();
@@ -542,8 +551,8 @@ app.get('/pokemons', asyncHandler(async (req: Request, res: Response) => {
 
 // Búsqueda instantánea vía PostgreSQL / Redis con ETag
 app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
   }
 
@@ -580,12 +589,12 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
     tipo: String(body.tipo).trim().slice(0, 30),
     tipos: Array.isArray(body.tipos) ? body.tipos.map((t: any) => String(t).slice(0, 30)) : [String(body.tipo).trim()],
     habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
-    fuerza: parseInt(body.fuerza || body.caracteristicas?.fuerza || 50, 10),
+    fuerza: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
     caracteristicas: {
-      peso: parseFloat(body.caracteristicas?.peso || 10.0),
-      altura: parseFloat(body.caracteristicas?.altura || 1.0),
-      fuerza: parseInt(body.fuerza || body.caracteristicas?.fuerza || 50, 10),
-      edad: parseInt(body.caracteristicas?.edad || 5, 10),
+      peso: Number.parseFloat(String(body.caracteristicas?.peso || 10.0)),
+      altura: Number.parseFloat(String(body.caracteristicas?.altura || 1.0)),
+      fuerza: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
+      edad: Number.parseInt(String(body.caracteristicas?.edad || 5), 10),
       categoria: String(body.caracteristicas?.categoria || 'Descubierto').slice(0, 60),
       descripcion: String(rawDesc).slice(0, 1000),
       habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
@@ -595,7 +604,7 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
       : [String(body.habilidades || 'Adaptable').slice(0, 50)],
     stats: body.stats || {
       hp: 50,
-      attack: parseInt(body.fuerza || body.caracteristicas?.fuerza || 50, 10),
+      attack: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
       defense: 50,
       sp_attack: 50,
       sp_defense: 50,
@@ -606,14 +615,14 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
 
   await savePokemon(newPokemon);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${newPokemon.id} - ${newPokemon.nombre}`);
+  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${Number(newPokemon.id)} - ${sanitizeLogString(newPokemon.nombre)}`);
   return res.status(201).json(newPokemon);
 }));
 
 // Edición persistente con validación e invalidación de caché
 app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
@@ -637,40 +646,40 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorag
       ? (Array.isArray(body.tipos) ? body.tipos.map((t: any) => String(t).slice(0, 30)) : [String(body.tipos)])
       : existing.tipos,
     habitat: body.habitat ? String(body.habitat).slice(0, 50) : existing.habitat,
-    fuerza: body.fuerza !== undefined ? parseInt(body.fuerza, 10) : existing.fuerza,
+    fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : existing.fuerza,
     habilidades: body.habilidades
       ? (Array.isArray(body.habilidades) ? body.habilidades.map((h: any) => String(h).slice(0, 50)) : [String(body.habilidades)])
       : existing.habilidades,
     caracteristicas: {
-      peso: body.caracteristicas?.peso !== undefined ? parseFloat(body.caracteristicas.peso) : existing.caracteristicas.peso,
-      altura: body.caracteristicas?.altura !== undefined ? parseFloat(body.caracteristicas.altura) : existing.caracteristicas.altura,
-      fuerza: body.fuerza !== undefined ? parseInt(body.fuerza, 10) : (body.caracteristicas?.fuerza !== undefined ? parseInt(body.caracteristicas.fuerza, 10) : existing.caracteristicas.fuerza),
-      edad: body.caracteristicas?.edad !== undefined ? parseInt(body.caracteristicas.edad, 10) : existing.caracteristicas.edad,
+      peso: body.caracteristicas?.peso !== undefined ? Number.parseFloat(String(body.caracteristicas.peso)) : existing.caracteristicas.peso,
+      altura: body.caracteristicas?.altura !== undefined ? Number.parseFloat(String(body.caracteristicas.altura)) : existing.caracteristicas.altura,
+      fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : (body.caracteristicas?.fuerza !== undefined ? Number.parseInt(String(body.caracteristicas.fuerza), 10) : existing.caracteristicas.fuerza),
+      edad: body.caracteristicas?.edad !== undefined ? Number.parseInt(String(body.caracteristicas.edad), 10) : existing.caracteristicas.edad,
       categoria: body.caracteristicas?.categoria !== undefined ? String(body.caracteristicas.categoria).slice(0, 60) : existing.caracteristicas.categoria,
       descripcion: body.caracteristicas?.descripcion !== undefined ? String(body.caracteristicas.descripcion).slice(0, 1000) : existing.caracteristicas.descripcion,
       habitat: body.habitat !== undefined ? String(body.habitat).slice(0, 50) : (body.caracteristicas?.habitat !== undefined ? String(body.caracteristicas.habitat).slice(0, 50) : existing.caracteristicas.habitat),
     },
     stats: body.stats ? {
-      hp: body.stats.hp !== undefined ? parseInt(body.stats.hp, 10) : (existing.stats?.hp ?? 50),
-      attack: body.stats.attack !== undefined ? parseInt(body.stats.attack, 10) : (existing.stats?.attack ?? 50),
-      defense: body.stats.defense !== undefined ? parseInt(body.stats.defense, 10) : (existing.stats?.defense ?? 50),
-      sp_attack: body.stats.sp_attack !== undefined ? parseInt(body.stats.sp_attack, 10) : (existing.stats?.sp_attack ?? 50),
-      sp_defense: body.stats.sp_defense !== undefined ? parseInt(body.stats.sp_defense, 10) : (existing.stats?.sp_defense ?? 50),
-      speed: body.stats.speed !== undefined ? parseInt(body.stats.speed, 10) : (existing.stats?.speed ?? 50),
+      hp: body.stats.hp !== undefined ? Number.parseInt(String(body.stats.hp), 10) : (existing.stats?.hp ?? 50),
+      attack: body.stats.attack !== undefined ? Number.parseInt(String(body.stats.attack), 10) : (existing.stats?.attack ?? 50),
+      defense: body.stats.defense !== undefined ? Number.parseInt(String(body.stats.defense), 10) : (existing.stats?.defense ?? 50),
+      sp_attack: body.stats.sp_attack !== undefined ? Number.parseInt(String(body.stats.sp_attack), 10) : (existing.stats?.sp_attack ?? 50),
+      sp_defense: body.stats.sp_defense !== undefined ? Number.parseInt(String(body.stats.sp_defense), 10) : (existing.stats?.sp_defense ?? 50),
+      speed: body.stats.speed !== undefined ? Number.parseInt(String(body.stats.speed), 10) : (existing.stats?.speed ?? 50),
     } : existing.stats,
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
   };
 
   await savePokemon(updated);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${id} - ${updated.nombre}`);
+  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${Number(id)} - ${sanitizeLogString(updated.nombre)}`);
   return res.json(updated);
 }));
 
 // Eliminación persistente
 app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) {
+  const id = Number.parseInt(req.params.id, 10);
+  if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
 
@@ -681,7 +690,7 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableSto
 
   await deletePokemon(id);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${id} - ${existing.nombre}`);
+  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${Number(id)} - ${sanitizeLogString(existing.nombre)}`);
   return res.json({
     mensaje: `Pokémon con id ${id} eliminado correctamente`,
     pokemon_eliminado: existing,

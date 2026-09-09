@@ -65,9 +65,9 @@ tasks:
 
 
   audit:
-    desc: "Ejecuta la auditoría de duplicación e integridad de archivos"
+    desc: "Auditoría de calidad, duplicación de código y deuda técnica con SonarQube"
     cmds:
-      - python scripts/audit_code_quality.py
+      - task: sonar
 
   security:
     desc: "Ejecuta análisis de vulnerabilidades en dependencias (npm audit)"

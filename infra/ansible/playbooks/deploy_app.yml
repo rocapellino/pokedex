@@ -12,7 +12,7 @@
       file:
         path: "{{ app_directory }}"
         state: directory
-        mode: '0755'
+        mode: '0750'
         owner: "{{ ansible_user | default('ubuntu') }}"
 
     - name: Sincronizar archivos del proyecto (excluyendo secretos locales)
