@@ -34,7 +34,7 @@ jobs:
       - name: 4. Compilar y Levantar Servidor Pokédex Node.js
         run: |
           npm run build
-          node dist/server.cjs &
+          node apps/backend/dist/server.cjs &
           sleep 4
           curl -f http://127.0.0.1:3000/healthz
 
@@ -42,5 +42,7 @@ jobs:
         uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065 # v1.2.1
 
       - name: 6. Ejecutar Pruebas de Carga con Grafana k6
+        env:
+          TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
         run: |
-          k6 run tests/performance/k6_stress_test.js --env TARGET_URL="${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}"
+          k6 run tests/performance/k6_stress_test.js --env TARGET_URL="$TARGET_URL"

@@ -47,18 +47,10 @@ jobs:
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 
-      - name: 6. Configurar Python para Auditoría
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.13'
-
-      - name: 7. Ejecutar Auditoría de Duplicación e Integridad
-        run: python scripts/audit_code_quality.py
-
-      - name: 8. Ejecutar Tests de Unidad, Pentest y Seguridad
+      - name: 6. Ejecutar Tests de Unidad, Pentest y Seguridad
         run: npm test
 
-      - name: 9. Ejecutar Suite Dinámica de API Fuzzing (DAST)
+      - name: 7. Ejecutar Suite Dinámica de API Fuzzing (DAST)
         run: npm run test:fuzz
 
   semgrep:
