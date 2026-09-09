@@ -24,9 +24,11 @@ paths = [
 commits = [
   # Commit histórico de SealedSecret cifrado en clúster
   "5d8c13701df243f209de41388cdc1a5d77f536d2",
+  "5b1d60f7eae4d0c6ef57ef69e5a8a4ed6862a8fb",
 ]
 regexes = [
   # Placeholders de CI/CD, desarrollo local y pruebas documentadas
+  '''(?i)a-very-long-secret-key-that-is-at-least-32-chars-long''',
   '''(?i)pokedex-super-admin-entropy-key-change-me''',
   '''(?i)pokedex-ai-service-entropy-key-change-me''',
   '''(?i)pokedex-internal-hmac-session-secret-entropy''',
