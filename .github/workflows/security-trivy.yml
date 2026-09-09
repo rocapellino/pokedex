@@ -11,7 +11,7 @@ on:
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
-      - 'apps/web/**'
+      - 'apps/frontend/**'
       - 'package*.json'
       - '.github/workflows/security-trivy.yml'
   pull_request:
@@ -21,7 +21,7 @@ on:
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
-      - 'apps/web/**'
+      - 'apps/frontend/**'
       - 'package*.json'
       - '.github/workflows/security-trivy.yml'
   workflow_dispatch:
@@ -64,7 +64,7 @@ jobs:
 
       - name: 5. Construir Imagen Frontend Web para Escaneo
         run: |
-          docker build -t pokedex-web:test -f apps/web/Dockerfile .
+          docker build -t pokedex-web:test -f apps/frontend/Dockerfile .
 
       - name: 6. Escaneo de Imagen Docker Frontend Web
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)

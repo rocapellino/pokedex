@@ -15,7 +15,7 @@ COPY apps/backend/package*.json ./apps/backend/
 COPY apps/backend/tsconfig.json ./apps/backend/
 
 # Instalar dependencias para compilación
-RUN npm ci --workspace=@pokedex/backend
+RUN npm ci --workspace=@pokedex/backend --ignore-scripts
 
 # Copiar código fuente
 COPY apps/backend/server.ts ./apps/backend/
@@ -48,7 +48,7 @@ RUN apk upgrade --no-cache
 # Copiar manifiestos e instalar únicamente dependencias de producción
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
-RUN npm ci --workspace=@pokedex/backend --omit=dev \
+RUN npm ci --workspace=@pokedex/backend --omit=dev --ignore-scripts \
     && npm cache clean --force \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
 
