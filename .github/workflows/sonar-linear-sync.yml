@@ -1,0 +1,51 @@
+# ==============================================================================
+# Workflow: Sincronización Automática entre SonarCloud y Linear
+# ==============================================================================
+name: 📌 Sync SonarCloud Quality & Issues to Linear
+
+on:
+  workflow_run:
+    workflows: ["🚀 CI/CD Pipeline - Quality Gates & Release"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Ejecutar en modo de prueba (DRY_RUN: no crea tickets reales en Linear)"
+        type: boolean
+        default: false
+      team_key:
+        description: "Clave del equipo en Linear (por defecto PER)"
+        type: string
+        default: "PER"
+
+permissions:
+  contents: read
+
+jobs:
+  sync-to-linear:
+    name: 🎫 Sync Sonar Quality to Linear Tickets
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Proyecto
+        run: npm ci --ignore-scripts
+
+      - name: 4. Ejecutar Sincronización SonarCloud ➔ Linear
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: "rocapellino_pokedex"
+          LINEAR_TEAM_KEY: ${{ inputs.team_key || 'PER' }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: npx --no-install tsx scripts/sonar-linear-sync.ts
