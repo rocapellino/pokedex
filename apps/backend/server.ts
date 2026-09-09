@@ -443,7 +443,7 @@ app.get(['/version', '/api/v1/version'], asyncHandler(async (_req: Request, res:
     version: process.env.APP_VERSION || '1.0.0',
     git_sha: process.env.GIT_SHA || process.env.COMMIT_SHA || 'unknown',
     node_version: process.version,
-    uptime_seconds: parseFloat(uptimeSeconds),
+    uptime_seconds: Number.parseFloat(uptimeSeconds),
     environment: process.env.NODE_ENV || 'development',
     database: {
       engine: health.database,
