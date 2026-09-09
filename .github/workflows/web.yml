@@ -58,13 +58,11 @@ jobs:
           npm run build
 
       - name: 6. Instalar Navegadores de Playwright
-        run: npx --package=@playwright/test playwright install --with-deps chromium
+        run: npm run playwright:install
 
       - name: 7. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
         run: npm run test:e2e
 
       - name: 8. Auditoría de Core Web Vitals con Lighthouse CI
-        run: |
-          npm install --no-save --ignore-scripts @lhci/cli@0.14.0
-          npx --package=@lhci/cli lhci autorun
+        run: npm run perf:lighthouse
 
