@@ -270,6 +270,8 @@ jobs:
           version: 'v3.15.0'
 
       - name: Validar, empaquetar y publicar Helm Chart como OCI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # 1. Validar sintaxis y templates del Chart
           helm lint ${{ env.CHART_PATH }}
@@ -278,15 +280,17 @@ jobs:
           helm package ${{ env.CHART_PATH }} --destination /tmp
           
           # 3. Autenticación con OCI registry en GHCR y push
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          echo "$GITHUB_TOKEN" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
           helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
 
       - name: Instalar Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Iniciar sesión en Cosign para GHCR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          echo "$GITHUB_TOKEN" | cosign login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
 
       - name: Firmar imagen Docker con Cosign (Keyless Sigstore OIDC)
         run: |

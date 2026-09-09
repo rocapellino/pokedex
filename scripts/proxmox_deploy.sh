@@ -22,7 +22,7 @@ ssh -p "$PORT" "$USER@$PROXMOX_HOST" "mkdir -p $REMOTE_DIR"
 # 2. Empaquetar y transferir archivos excluyendo estrictamente secretos locales
 echo "📦 2. Empaquetando y transfiriendo archivos del repositorio..."
 TAR_OPTS=()
-if [ -f "$EXCLUDES_FILE" ]; then
+if [[ -f "$EXCLUDES_FILE" ]]; then
     TAR_OPTS+=("--exclude-from=$EXCLUDES_FILE")
 fi
 # Exclusiones explícitas de seguridad mandatarias
@@ -56,7 +56,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Inicializar .env en el host remoto si no existe (previene fallos de variables obligatorias)
-if [ ! -f /opt/pokedex/.env ]; then
+if [[ ! -f /opt/pokedex/.env ]]; then
     echo "⚙️ Inicializando /opt/pokedex/.env con credenciales seguras autogeneradas..."
     cp /opt/pokedex/.env.example /opt/pokedex/.env
     ADMIN_SECRET=$(openssl rand -hex 32)
@@ -77,8 +77,9 @@ sleep 4
 curl -fsSL http://localhost:8080/healthz || true
 EOF
 
+PROTO="${PROXMOX_PROTOCOL:-https}"
 echo "============================================================"
 echo "🎉 Despliegue en Proxmox finalizado!"
-echo "🌐 Web: http://$PROXMOX_HOST:8080/"
-echo "🔌 Healthz: http://$PROXMOX_HOST:8080/healthz"
+echo "🌐 Web: ${PROTO}://$PROXMOX_HOST:8080/"
+echo "🔌 Healthz: ${PROTO}://$PROXMOX_HOST:8080/healthz"
 echo "============================================================"

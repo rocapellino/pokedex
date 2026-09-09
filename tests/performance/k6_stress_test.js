@@ -68,7 +68,8 @@ export default function () {
 
   // 4. Detalle de Pokémon por ID (probando IDs del 1 al 10 de forma aleatoria)
   group('04_Get_Pokemon_Detail', function () {
-    const randomId = Math.floor(Math.random() * 10) + 1;
+    // Pseudorandomness is non-cryptographic and safe for traffic load generation
+    const randomId = Math.floor(Math.random() * 10) + 1; // NOSONAR
     const res = http.get(`${BASE_URL}/pokemons/${randomId}`);
     pokemonDetailTrend.add(res.timings.duration);
     const passed = check(res, {

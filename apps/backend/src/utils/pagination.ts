@@ -10,8 +10,8 @@ export function parsePaginationLimit(limit: unknown): number {
   if (limit === undefined || limit === null || limit === '') {
     return DEFAULT_PAGE_SIZE;
   }
-  const parsed = parseInt(String(limit), 10);
-  if (isNaN(parsed)) {
+  const parsed = Number.parseInt(String(limit), 10);
+  if (Number.isNaN(parsed)) {
     return DEFAULT_PAGE_SIZE;
   }
   return Math.min(MAX_PAGE_SIZE, Math.max(1, parsed || DEFAULT_PAGE_SIZE));
@@ -21,8 +21,8 @@ export function parsePaginationOffset(offset: unknown): number {
   if (offset === undefined || offset === null || offset === '') {
     return 0;
   }
-  const parsed = parseInt(String(offset), 10);
-  if (isNaN(parsed) || parsed < 0) {
+  const parsed = Number.parseInt(String(offset), 10);
+  if (Number.isNaN(parsed) || parsed < 0) {
     return 0;
   }
   return Math.min(MAX_OFFSET, parsed);

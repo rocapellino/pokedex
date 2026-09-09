@@ -30,6 +30,7 @@ playwright-report/
 lighthouse-results/
 .scannerwork/
 .mega-linter-reports/
+.sonarlint/
 
 # ==============================================================================
 # Secretos, Claves y Variables de Entorno (Zero-Trust)

@@ -266,7 +266,7 @@ function handleAdminTypeFilter() {
 
 function handlePageSizeChange() {
   const sizeEl = document.getElementById('adminPageSize');
-  pageSize = sizeEl ? parseInt(sizeEl.value, 10) || 50 : 50;
+  pageSize = sizeEl ? Number.parseInt(sizeEl.value, 10) || 50 : 50;
   currentPage = 1;
   renderTable();
 }
@@ -440,11 +440,11 @@ async function handleFormSubmit(e) {
     nombre: document.getElementById('nombre').value.trim(),
     imagen: document.getElementById('imagen').value.trim(),
     tipo: document.getElementById('tipo').value,
-    fuerza: parseInt(document.getElementById('fuerza').value, 10),
+    fuerza: Number.parseInt(document.getElementById('fuerza').value, 10),
     habilidades: document.getElementById('habilidades').value.split(',').map(s => s.trim()).filter(Boolean),
     caracteristicas: {
-      peso: parseFloat(document.getElementById('peso').value),
-      altura: parseFloat(document.getElementById('altura').value),
+      peso: Number.parseFloat(document.getElementById('peso').value),
+      altura: Number.parseFloat(document.getElementById('altura').value),
       habitat: document.getElementById('habitat').value.trim()
     }
   };
@@ -645,13 +645,13 @@ function initEventListeners() {
       const editBtn = e.target.closest('[data-edit-id]');
       if (editBtn) {
         const id = Number(editBtn.dataset.editId);
-        if (!isNaN(id)) openEditModal(id);
+        if (!Number.isNaN(id)) openEditModal(id);
         return;
       }
       const deleteBtn = e.target.closest('[data-delete-id]');
       if (deleteBtn) {
         const id = Number(deleteBtn.dataset.deleteId);
-        if (!isNaN(id)) openDeleteModal(id);
+        if (!Number.isNaN(id)) openDeleteModal(id);
         return;
       }
     });

@@ -74,7 +74,7 @@
       file:
         path: "{{ app_dir }}"
         state: directory
-        mode: '0755'
+        mode: '0750'
 
     - name: 6. Sincronizar archivos del proyecto a Proxmox (sin secretos locales)
       synchronize:
@@ -125,4 +125,4 @@
 
     - name: 10. Confirmación de Despliegue Exitoso
       debug:
-        msg: "🎉 Pokédex desplegada y operativa en Proxmox: http://{{ ansible_default_ipv4.address }}:8080/"
+        msg: "🎉 Pokédex desplegada y operativa en Proxmox: https://{{ ansible_default_ipv4.address }}:8080/"
