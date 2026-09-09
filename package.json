@@ -18,7 +18,7 @@
     "test:fuzz": "tsx --test tests/fuzzing.test.ts",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test -g @a11y",
-    "playwright:install": "playwright install --with-deps chromium",
+    "playwright:install": "playwright install chromium",
     "perf:lighthouse": "lhci autorun",
     "commitlint": "commitlint --edit"
   },
