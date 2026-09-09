@@ -207,7 +207,7 @@ tasks:
   secrets:seal:
     desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/helm/pokedex/templates/sealed-secrets.yaml"
     cmds:
-      - python scripts/seal_secret.py
+      - npx tsx scripts/seal-secret.ts
 
   deploy:proxmox:
     desc: "Despliega el stack en Proxmox VE (LXC/VM) vía SSH y Docker Compose"
