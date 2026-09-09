@@ -61,6 +61,10 @@ interface LinearIssueNode {
   };
 }
 
+function sanitize(input: unknown): string {
+  return String(input ?? '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
+}
+
 const LINEAR_API_URL = 'https://api.linear.app/graphql';
 const SONAR_API_BASE = 'https://sonarcloud.io/api';
 
@@ -138,7 +142,7 @@ async function getLinearTeamId(teamKey: string): Promise<string> {
     throw new Error(`No se encontró ningún equipo en Linear (buscado: ${teamKey}).`);
   }
 
-  console.log(`📌 Equipo Linear seleccionado: ${selected.name} (${selected.key}) - ID: ${selected.id}`);
+  console.log(`📌 Equipo Linear seleccionado: ${sanitize(selected.name)} (${sanitize(selected.key)}) - ID: ${sanitize(selected.id)}`);
   return selected.id;
 }
 
@@ -213,18 +217,18 @@ async function createLinearIssue(teamId: string, title: string, description: str
   );
 
   if (result.issueCreate?.success) {
-    console.log(`✅ Ticket creado exitosamente en Linear: ${result.issueCreate.issue.identifier}`);
-    console.log(`   🔗 URL: ${result.issueCreate.issue.url}`);
+    console.log(`✅ Ticket creado exitosamente en Linear: ${sanitize(result.issueCreate.issue.identifier)}`);
+    console.log(`   🔗 URL: ${sanitize(result.issueCreate.issue.url)}`);
   } else {
-    console.error(`❌ Falló la creación del ticket en Linear para "${title}".`);
+    console.error(`❌ Falló la creación del ticket en Linear para "${sanitize(title)}".`);
   }
 }
 
 export async function syncSonarToLinear(): Promise<void> {
   console.log('======================================================');
   console.log('🚀 Iniciando Sincronización SonarCloud ➔ Linear');
-  console.log(`📁 Proyecto SonarCloud: ${SONAR_PROJECT_KEY}`);
-  console.log(`🏷️ Equipo Linear Objetivo: ${TARGET_TEAM_KEY}`);
+  console.log(`📁 Proyecto SonarCloud: ${sanitize(SONAR_PROJECT_KEY)}`);
+  console.log(`🏷️ Equipo Linear Objetivo: ${sanitize(TARGET_TEAM_KEY)}`);
   if (IS_DRY_RUN) console.log('⚠️ Modo DRY_RUN activado (solo lectura)');
   console.log('======================================================');
 
@@ -244,7 +248,7 @@ export async function syncSonarToLinear(): Promise<void> {
     );
 
     const qgStatus = qgData.projectStatus.status;
-    console.log(`Quality Gate Status: ${qgStatus}`);
+    console.log(`Quality Gate Status: ${sanitize(qgStatus)}`);
 
     if (qgStatus === 'ERROR') {
       qualityGateFailed = true;
@@ -281,7 +285,7 @@ export async function syncSonarToLinear(): Promise<void> {
       `/issues/search?projectKeys=${encodeURIComponent(SONAR_PROJECT_KEY)}&resolved=false&types=VULNERABILITY,BUG&ps=10`
     );
 
-    console.log(`Total de incidencias activas detectadas: ${issuesData.total}`);
+    console.log(`Total de incidencias activas detectadas: ${sanitize(issuesData.total)}`);
 
     for (const issue of issuesData.issues || []) {
       const searchKey = `[SonarCloud] ${issue.type}: ${issue.message.substring(0, 60)}`;
@@ -300,7 +304,7 @@ export async function syncSonarToLinear(): Promise<void> {
           `🔗 **Enlace directo a SonarCloud:** [Abrir Incidencia](https://sonarcloud.io/project/issues?id=${encodeURIComponent(SONAR_PROJECT_KEY)}&issues=${issue.key}&open=${issue.key})\n\n` +
           `> *Generado automáticamente por el workflow de integración SonarCloud ➔ Linear.*`;
 
-        console.log(`🎫 Creando ticket para ${issue.type} (${issue.severity}): ${title}`);
+        console.log(`🎫 Creando ticket para ${sanitize(issue.type)} (${sanitize(issue.severity)}): ${sanitize(title)}`);
         await createLinearIssue(teamId, title, desc, priority);
       }
     }
