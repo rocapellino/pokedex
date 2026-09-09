@@ -3,14 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend"
+  ],
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/seed.ts --bundle --platform=node --format=cjs --packages=external --outfile=dist/seed.cjs",
-    "seed": "tsx src/seed.ts",
-    "start": "node dist/server.cjs",
-    "lint": "tsc --noEmit",
+    "dev": "npm run dev --workspace=@pokedex/backend",
+    "build": "npm run build --workspace=@pokedex/backend",
+    "seed": "npm run seed --workspace=@pokedex/backend",
+    "start": "npm run start --workspace=@pokedex/backend",
+    "lint": "npm run lint --workspace=@pokedex/backend && tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
-    "test:fuzz": "tsx --test tests/fuzzing.test.ts"
+    "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info tests/**/*.test.ts",
+    "test:fuzz": "tsx --test tests/fuzzing.test.ts",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test -g @a11y",
+    "commitlint": "commitlint --edit"
   },
   "dependencies": {
     "@google/genai": "2.21.0",
@@ -23,6 +31,10 @@
     "qs": "^6.14.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@playwright/test": "^1.63.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^26.4.1",

@@ -7,7 +7,7 @@ Este directorio aloja la aplicación web cliente de la **Pokédex**, empaquetada
 ## 📑 Estructura
 
 ```text
-apps/web/
+apps/frontend/
 ├── Dockerfile          # Imagen de producción Nginx Alpine multi-stage no-root
 ├── nginx.conf          # Configuración de Nginx (Reverse Proxy a la API, compresión gzip y headers CSP)
 └── public/             # Assets estáticos servidos al navegador

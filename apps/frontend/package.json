@@ -1,0 +1,8 @@
+{
+  "name": "@pokedex/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "node -c public/js/pokedex.js && node -c public/js/theme.js"
+  }
+}

@@ -1,4 +1,4 @@
 // ==============================================================================
 // Script CLI de Siembra Masiva del Catálogo Pokédex (Wrapper Local)
 // ==============================================================================
-import '../src/seed.js';
+import '../apps/backend/src/seed.js';

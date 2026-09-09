@@ -7,12 +7,15 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'apps/web/**'
+      - 'apps/frontend/**'
       - '.github/workflows/web.yml'
   pull_request:
     branches: [ main, master ]
     paths:
-      - 'apps/web/**'
+      - 'apps/frontend/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.ts'
+      - 'lighthouserc.json'
       - '.github/workflows/web.yml'
 
 concurrency:
@@ -21,29 +24,45 @@ concurrency:
 
 jobs:
   validate-web:
-    name: 🎨 Lint & Nginx Validation
+    name: 🎨 Lint, E2E, A11y & Lighthouse
     runs-on: ubuntu-latest
 
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: 2. Validar Sintaxis de JavaScript
+      - name: 2. Configurar Node.js 22 LTS
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: 'npm'
 
       - name: 3. Verificar Archivos JS con Node Syntax Checker
         run: |
-          node -c apps/web/public/js/pokedex.js
-          node -c apps/web/public/js/theme.js
+          node -c apps/frontend/public/js/pokedex.js
+          node -c apps/frontend/public/js/theme.js
           echo "✅ Sintaxis JavaScript correcta y sin errores."
 
       - name: 4. Validar Configuración de Nginx
         run: |
           docker run --rm -t \
             --add-host=api:127.0.0.1 \
-            -v ${{ github.workspace }}/apps/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
-            -v ${{ github.workspace }}/apps/web/public:/usr/share/nginx/html:ro \
+            -v ${{ github.workspace }}/apps/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+            -v ${{ github.workspace }}/apps/frontend/public:/usr/share/nginx/html:ro \
             nginx:1.27-alpine nginx -t
           echo "✅ Configuración de Nginx válida."
+
+      - name: 5. Instalar Dependencias y Compilar Backend
+        run: |
+          npm ci
+          npm run build
+
+      - name: 6. Instalar Navegadores de Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: 7. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
+        run: npm run test:e2e
+
+      - name: 8. Auditoría de Core Web Vitals con Lighthouse CI
+        run: npx @lhci/cli@0.14.x autorun
+

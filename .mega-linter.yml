@@ -1,0 +1,40 @@
+# ==============================================================================
+# MegaLinter Configuration File - Pokédex Monorepo
+# https://megalinter.io/latest/config-file/
+# ==============================================================================
+
+# Linters activados selectivamente (Cubren vacíos no cubiertos por Semgrep/Checkov/tsc)
+ENABLE_LINTERS:
+  - DOCKERFILE_HADOLINT
+  - BASH_SHELLCHECK
+  - ACTION_ACTIONLINT
+  - YAML_YAMLLINT
+  - JSON_JSONLINT
+
+# Desactivación explícita de analizadores redundantes
+DISABLE_LINTERS:
+  - TYPESCRIPT_ESLINT
+  - TYPESCRIPT_STANDARD
+  - JAVASCRIPT_ESLINT
+  - JAVASCRIPT_STANDARD
+  - REPOSITORY_SECRETS
+  - REPOSITORY_GITLEAKS
+  - REPOSITORY_CHECKOV
+  - REPOSITORY_SEMGREP
+  - REPOSITORY_TRIVY
+  - MARKDOWN_MARKDOWNLINT
+  - MARKDOWN_MARKDOWN_LINK_CHECK
+
+# Patrones globales de exclusión
+FILTER_REGEX_EXCLUDE: "(node_modules|dist|coverage|\\.scannerwork|\\.git|\\.venv|reports|test-results|playwright-report|\\.mega-linter-reports)"
+
+# Optimización de ejecución en Pull Requests
+VALIDATE_ALL_CODEBASE: false
+
+# Reportes y logs limpios
+SHOW_ELAPSED_TIME: true
+FILEIO_REPORTER: false
+SARIF_REPORTER: true
+JSON_REPORTER: true
+TEXT_REPORTER: false
+PRINT_ADDITIONAL_OBJECTS: false

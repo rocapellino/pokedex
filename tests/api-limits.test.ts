@@ -6,7 +6,7 @@ import {
   parsePagination,
   MAX_PAGE_SIZE,
   MAX_OFFSET,
-} from '../src/utils/pagination.js';
+} from '../apps/backend/src/utils/pagination.js';
 
 test('🛡️ API Limits: parsePaginationLimit limita estrictamente al MAX_PAGE_SIZE de 100', () => {
   assert.equal(MAX_PAGE_SIZE, 100);

@@ -78,10 +78,10 @@ El siguiente diagrama detalla el ciclo de vida de una solicitud HTTP en el siste
 
 ```mermaid
 flowchart TD
-    CLI(["👤 Cliente / Navegador"]) -->|HTTP 8080| NGINX["🌐 Nginx Reverse Proxy (DMZ)\napps/web"]
+    CLI(["👤 Cliente / Navegador"]) -->|HTTP 8080| NGINX["🌐 Nginx Reverse Proxy (DMZ)\napps/frontend"]
     
     NGINX -->|GET / /index.html /css /js| STATIC[("📁 Assets Estáticos\nHTML5, CSS3, JS")]
-    NGINX -->|Proxy /api/*, /pokemons, /healthz| BACKEND["⚙️ Backend Express + TypeScript\nserver.ts :3000"]
+    NGINX -->|Proxy /api/*, /pokemons, /healthz| BACKEND["⚙️ Backend Express + TypeScript\napps/backend :3000"]
     
     subgraph BACKEND_PIPELINE ["🛡️ Pipeline de Middleware del Backend"]
         BACKEND --> MW_SEC["1. Cabeceras de Seguridad\n(nosniff, SAMEORIGIN, CSP)"]

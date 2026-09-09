@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePokemonPayload, validateImageUrl } from '../src/validation/pokemon.js';
+import { validatePokemonPayload, validateImageUrl } from '../apps/backend/src/validation/pokemon.js';
 import {
   generateSessionToken,
   verifySessionToken,
   revokeSessionToken,
   getSessionSecret,
   verifyTokenSignature,
-} from '../src/services/auth.js';
+} from '../apps/backend/src/services/auth.js';
 import crypto from 'crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {

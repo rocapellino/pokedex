@@ -14,10 +14,10 @@ RUN apk upgrade --no-cache
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 
 # Copiar configuración personalizada de Nginx
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copiar assets estáticos del frontend (HTML, CSS, JS)
-COPY apps/web/public/ /usr/share/nginx/html/
+COPY apps/frontend/public/ /usr/share/nginx/html/
 
 # Ajustar permisos para usuario no privilegiado de Nginx
 RUN chown -R nginx:nginx /usr/share/nginx/html && \

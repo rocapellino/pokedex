@@ -250,7 +250,7 @@ body {
 
 [data-theme="light"] .theme-btn.active {
   background: #ffffff;
-  color: var(--accent-red);
+  color: #b91c1c;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 

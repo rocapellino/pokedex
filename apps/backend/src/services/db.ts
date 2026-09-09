@@ -524,3 +524,20 @@ export function getStorageHealth(): {
   };
 }
 
+/**
+ * Consulta y parsea la versión activa de PostgreSQL para endpoints de diagnóstico.
+ * Si PostgreSQL no está conectado, retorna null.
+ */
+export async function getPostgresVersion(): Promise<string | null> {
+  if (!isPgConnected || !pgPool) return null;
+  try {
+    const res = await pgPool.query('SELECT version()');
+    const raw = (res.rows[0]?.version as string) || '';
+    const match = raw.match(/^PostgreSQL\s+\S+/);
+    return match ? match[0] : (raw || null);
+  } catch {
+    return null;
+  }
+}
+
+

@@ -25,6 +25,11 @@ reports/
 .pytest_cache/
 .coverage
 .coverage.*
+test-results/
+playwright-report/
+lighthouse-results/
+.scannerwork/
+.mega-linter-reports/
 
 # ==============================================================================
 # Secretos, Claves y Variables de Entorno (Zero-Trust)
