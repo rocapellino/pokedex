@@ -54,15 +54,17 @@ jobs:
 
       - name: 5. Instalar Dependencias y Compilar Backend
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm run build
 
       - name: 6. Instalar Navegadores de Playwright
-        run: npx playwright install --with-deps chromium
+        run: npx --no-install playwright install --with-deps chromium
 
       - name: 7. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
         run: npm run test:e2e
 
       - name: 8. Auditoría de Core Web Vitals con Lighthouse CI
-        run: npx @lhci/cli@0.14.x autorun
+        run: |
+          npm install --no-save --ignore-scripts @lhci/cli@0.14.0
+          npx --no-install lhci autorun
 

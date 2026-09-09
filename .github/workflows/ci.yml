@@ -39,7 +39,7 @@ jobs:
           cache: 'npm'
 
       - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: 4. Análisis de Tipos y Calidad con TypeScript
         run: npm run lint
@@ -126,7 +126,7 @@ jobs:
           cache: 'npm'
 
       - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: 4. Ejecutar Tests y Generar Reporte de Cobertura LCOV
         run: npm run test:coverage
