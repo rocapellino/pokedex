@@ -53,6 +53,14 @@
       "description": "Escanear imágenes en Dockerfiles",
       "matchManagers": ["dockerfile"],
       "matchFileNames": ["Dockerfile", "apps/**/Dockerfile"]
+    },
+    {
+      "description": "Bloquear upgrades major de TypeScript (TS7 experimental) hasta revisión manual explícita",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "minimumReleaseAge": false,
+      "labels": ["typescript-major-manual-review"]
     }
   ]
 }
