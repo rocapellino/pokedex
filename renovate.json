@@ -59,6 +59,7 @@
       "matchPackageNames": ["typescript"],
       "matchUpdateTypes": ["major"],
       "enabled": false,
+      "minimumReleaseAge": false,
       "labels": ["typescript-major-manual-review"]
     }
   ]
