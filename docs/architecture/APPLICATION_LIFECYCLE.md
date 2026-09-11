@@ -5,9 +5,10 @@ Este documento describe el flujo de vida completo de la plataforma **Pokédex**,
 ---
 
 ## 📑 Índice
+
 1. [Diagrama de Flujo del Ciclo de Vida](#1-diagrama-de-flujo-del-ciclo-de-vida)
 2. [Fases Detalladas del Ciclo](#2-fases-detalladas-del-ciclo)
-   * [Fase 1: Planificación y Gestión Ágil (Linear)](#fase-1-planificación-y-gestión-ágil-linear)
+   * [Fase 1: Planificación y Gestión Ágil (Linear & Slack)](#fase-1-planificación-y-gestión-ágil-linear--slack)
    * [Fase 2: Desarrollo Local y Quality Gates (DX)](#fase-2-desarrollo-local-y-quality-gates-dx)
    * [Fase 3: Integración Continua y DevSecOps (GitHub Actions)](#fase-3-integración-continua-y-devsecops-github-actions)
    * [Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)](#fase-4-revisión-de-código-y-quality-gate-github-rulesets)
@@ -106,12 +107,14 @@ flowchart TD
 ## 2. Fases Detalladas del Ciclo
 
 ### Fase 1: Planificación y Gestión Ágil (Linear & Slack)
+
 * Toda nueva funcionalidad, mejora técnica o parche de seguridad se origina como un issue en **Linear** dentro del equipo `PEX`.
 * Cada ticket recibe automáticamente un identificador incremental (`PEX-1`, `PEX-2`, ..., `PEX-X`).
 * **Integración con Slack (ChatOps):** La creación, asignación y comentarios de issues emiten notificaciones en tiempo real al canal de ingeniería en Slack a través de la aplicación oficial de Linear, asegurando visibilidad inmediata en el equipo sin necesidad de revisar activamente el backlog.
 * Al presionar `Ctrl + Shift + .` en Linear, se copia el nombre normalizado de la rama en el portapapeles según la convención `rocapellino/PEX-X-descripcion-corta`.
 
 ### Fase 2: Desarrollo Local y Quality Gates (DX)
+
 * El desarrollador crea su rama local y realiza los cambios en backend (`server.ts`, `src/`), frontend (`apps/web/`) o infraestructura (`infra/`, `gitops/`).
 * Mediante el orquestador multiplataforma **Taskfile** (`task`) ejecuta verificaciones tempranas:
   * `task ts:lint`: Chequeo estricto de tipos con TypeScript (`tsc --noEmit`).
@@ -122,6 +125,7 @@ flowchart TD
 * Los **Hooks de Pre-commit** impiden commits si se detectan secretos o código mal formateado.
 
 ### Fase 3: Integración Continua y DevSecOps (GitHub Actions)
+
 * Al realizar `git push` y abrir un Pull Request:
   * El bot de Linear vincula el PR al ticket y actualiza el estado a **In Progress** / **In Review**.
   * Se ejecutan pipelines paralelos protegidos:
@@ -132,12 +136,14 @@ flowchart TD
     * **`security-gitleaks.yml`**: Detección estricta de credenciales en commits.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)
+
 * Las reglas de protección de rama (`main-protection`) bloquean el merge directo:
   * Exigen que todos los checks obligatorios de CI estén en verde (✅).
   * Exigen que todas las conversaciones de revisión de código estén resueltas.
   * Bloquean `git push --force` y eliminaciones accidentales de `main`.
 
 ### Fase 5: Merge, Versionado Semántico y Firmado OCI (Cosign)
+
 * Al fusionar el PR en `main`:
   * El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
   * El workflow **`release-tag.yml`** analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`) y calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`), creando el **Git Tag** y el **GitHub Release** oficial.
@@ -149,6 +155,7 @@ flowchart TD
     5. Publica la imagen, su firma y el SBOM en GitHub Container Registry (`ghcr.io/rocapellino/pokedex`).
 
 ### Fase 6: Despliegue GitOps y Control de Admisión (ArgoCD & Kyverno)
+
 * **ArgoCD** detecta los cambios en el directorio `gitops/`:
   * **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox.yaml`](file:///gitops/apps/app-proxmox.yaml) aplicando `values.yaml` específicos.
   * **Cloud Pública (AWS EKS)**: [`gitops/apps/app-cloud.yaml`](file:///gitops/apps/app-cloud.yaml) aplicando `values.prod.yaml`.
@@ -158,6 +165,7 @@ flowchart TD
   * Cualquier imagen manipulada, sin firmar o construida fuera de `main` es rechazada inmediatamente en el API Server de Kubernetes.
 
 ### Fase 7: Mantenimiento Continuo con Renovate Bot
+
 * **Renovate Bot** (`renovate.json`) audita continuamente dependencias multi-gestor (`npm`, `dockerfile`, `helm-values`, `github-actions`, `opentofu`).
 * Agrupa parches de seguridad en PRs y aplica **automerge** automático una vez superados los Quality Gates.
 * Los workflows de automatización ([`dependabot-linear-sync.yml`](file:///.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](file:///.github/workflows/sonar-linear-sync.yml)) gestionan el ciclo completo del ticket en Linear:
