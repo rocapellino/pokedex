@@ -93,9 +93,9 @@ updates:
     commit-message:
       prefix: "chore(iac)"
 
-  # 6. OpenTofu / Terraform Cloud (AWS EKS)
+  # 6. OpenTofu / Terraform AWS (AWS EKS)
   - package-ecosystem: "terraform"
-    directory: "/infra/opentofu/environments/cloud"
+    directory: "/infra/opentofu/environments/aws"
     schedule:
       interval: "weekly"
       day: "monday"
