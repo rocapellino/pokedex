@@ -251,6 +251,38 @@ networkPolicies:
     antiSsrf: true
     externalHttps: true
     allowedExternalCidrs: []
+    useEgressGateway: false
+
+# Aislamiento de Capa 7 (L7 Egress) mediante Cilium eBPF FQDN NetworkPolicy
+ciliumNetworkPolicy:
+  enabled: false
+  fqdnAllowlist:
+    - matchName: "generativelanguage.googleapis.com"
+    - matchPattern: "*.githubusercontent.com"
+    - matchPattern: "*.pokeapi.co"
+
+# Egress Gateway perimetral (Envoy Forward Proxy) para clústeres sin Cilium
+egressGateway:
+  enabled: false
+  replicaCount: 1
+  port: 10000
+  image:
+    repository: envoyproxy/envoy
+    tag: "v1.31.0-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+      ephemeral-storage: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+      ephemeral-storage: "64Mi"
+  allowedDomains:
+    - generativelanguage.googleapis.com
+    - raw.githubusercontent.com
+    - pokeapi.co
 
 podDisruptionBudget:
   enabled: true

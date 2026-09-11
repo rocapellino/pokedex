@@ -161,11 +161,21 @@ Para prevenir ataques de Server-Side Request Forgery (SSRF) dirigidos a endpoint
           - 127.0.0.0/8         # Loopback
 ```
 
-> [!NOTE]
-> **Limitación de Egress L3/L4 y Roadmap a FQDN Allowlist:**
-> La primitiva nativa de Kubernetes `NetworkPolicy` (`networking.k8s.io/v1`) opera exclusivamente en capas 3 y 4 (IP/CIDR y Puertos). Al no disponer de inspección de capa 7 a nivel de nombre de dominio (FQDN), la regla actual excluye rangos privados y metadatos IMDS (`0.0.0.0/0 except`), lo que bloquea eficazmente el SSRF interno pero mantiene abierto el puerto 443 hacia cualquier IP pública (necesario para la API externa de Gemini AI y PokeAPI). Para neutralizar el vector residual de exfiltración de datos hacia servidores externos del atacante, el roadmap contempla implementar un **Egress Gateway dedicado** (o *Cilium NetworkPolicy* con `toFQDNs: [{matchName: "generativelanguage.googleapis.com"}]`).
+```
 
-### 5.4. Restricción de Tráfico DNS a CoreDNS
+### 5.4. Aislamiento L7 Egress: Cilium FQDN NetworkPolicy & Egress Gateway
+Para neutralizar por completo el riesgo de exfiltración externa de datos y ataques Command and Control (C2), se implementa una arquitectura dual de control de salida en Capa 7:
+
+1. **Cilium eBPF con FQDN Allowlist (`CiliumNetworkPolicy`):**
+   En clústeres equipados con Cilium CNI (`ciliumNetworkPolicy.enabled: true`), el kernel eBPF inspecciona el tráfico de salida y autoriza exclusivamente conexiones a nombres de dominio plenamente cualificados autorizados:
+   - `generativelanguage.googleapis.com` (API de Google Gemini)
+   - `*.githubusercontent.com` / `raw.githubusercontent.com` (Sprites y avatares oficiales)
+   - `*.pokeapi.co` / `pokeapi.co` (Datos públicos de Pokémon)
+
+2. **Egress Gateway Perimetral (`egressGateway.enabled: true`):**
+   Para clústeres Kubernetes estándar sin Cilium, se despliega un proxy perimetral Envoy endurecido (`app.kubernetes.io/component: egress-gateway`) que centraliza la salida HTTP/TLS y deniega por defecto cualquier destino fuera de la allowlist. La API redirige su tráfico exclusivamente a este gateway en el puerto 10000 (`networkPolicies.egress.useEgressGateway: true`), revocando el acceso directo a `0.0.0.0/0`.
+
+### 5.5. Restricción de Tráfico DNS a CoreDNS
 La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cualquier IP externa; está restringida exclusivamente a los pods del clúster etiquetados con `k8s-app: kube-dns`.
 
 ---

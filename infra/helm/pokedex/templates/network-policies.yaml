@@ -110,8 +110,17 @@ spec:
         - protocol: TCP
           port: 6379
     # Permitir tráfico HTTPS saliente para servicios externos (ej. Gemini AI, PokeAPI)
+    # Si Egress Gateway está habilitado, la API canaliza todo tráfico externo a través del proxy perimetral (puerto 10000)
+    {{- if and .Values.networkPolicies.egress .Values.networkPolicies.egress.useEgressGateway }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: egress-gateway
+      ports:
+        - protocol: TCP
+          port: {{ .Values.egressGateway.port | default 10000 }}
+    {{- else if and .Values.networkPolicies.egress (or .Values.networkPolicies.egress.externalHttps .Values.networkPolicies.egress.antiSsrf) }}
     # Endurecido con Anti-SSRF: Bloquea endpoints de metadatos de nube y redes privadas RFC1918
-    {{- if and .Values.networkPolicies.egress (or .Values.networkPolicies.egress.externalHttps .Values.networkPolicies.egress.antiSsrf) }}
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0

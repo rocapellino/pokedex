@@ -135,3 +135,55 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(hostsContent.includes('k8s_cluster_cidr='), 'hosts.ini debe definir k8s_cluster_cidr');
 });
 
+test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta', () => {
+  const ciliumNpPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
+  assert.ok(fs.existsSync(ciliumNpPath), 'cilium-network-policies.yaml debe existir');
+  const content = fs.readFileSync(ciliumNpPath, 'utf-8');
+
+  assert.ok(content.includes('cilium.io/v2'), 'Debe utilizar la API cilium.io/v2');
+  assert.ok(content.includes('kind: CiliumNetworkPolicy'), 'Debe definir un recurso CiliumNetworkPolicy');
+  assert.ok(content.includes('toFQDNs:'), 'Debe definir reglas de salida L7 toFQDNs');
+
+  const templateLines = content.split(/\r?\n/).map(line => line.trim());
+  assert.ok(
+    templateLines.some(line => line.includes('matchName') && line.includes('generativelanguage')),
+    'Debe incluir en la allowlist a Google Gemini API'
+  );
+  assert.ok(
+    templateLines.some(line => line.includes('matchPattern') && line.includes('githubusercontent')),
+    'Debe incluir en la allowlist el dominio de assets de GitHub'
+  );
+  assert.ok(
+    templateLines.some(line => line.includes('matchPattern') && line.includes('pokeapi')),
+    'Debe incluir en la allowlist el dominio de PokeAPI'
+  );
+  assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir resolución DNS interna hacia CoreDNS');
+});
+
+test('🛡️ Helm Security: Egress Gateway (Envoy) implementa forward proxy seguro y NetworkPolicy perimetral', () => {
+  const egPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/egress-gateway.yaml');
+  assert.ok(fs.existsSync(egPath), 'egress-gateway.yaml debe existir');
+  const content = fs.readFileSync(egPath, 'utf-8');
+
+  // Verificar despliegue endurecido de Envoy
+  assert.ok(content.includes('app.kubernetes.io/component: egress-gateway'), 'Debe etiquetar los componentes como egress-gateway');
+  assert.ok(content.includes('runAsNonRoot: true'), 'El contenedor de Egress Gateway debe correr como no root');
+  assert.ok(content.includes('readOnlyRootFilesystem: true'), 'El contenedor debe tener sistema de archivos de solo lectura');
+  assert.ok(content.includes('- ALL'), 'Debe descartar todas las capacidades del kernel');
+
+  // Verificar NetworkPolicy perimetral del Gateway con Anti-SSRF
+  assert.ok(content.includes('169.254.169.254/32'), 'NetworkPolicy del Gateway debe bloquear IMDS Cloud Metadata');
+  assert.ok(content.includes('10.0.0.0/8'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase A');
+  assert.ok(content.includes('172.16.0.0/12'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase B');
+  assert.ok(content.includes('192.168.0.0/16'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase C');
+});
+
+test('🛡️ Helm Security: network-policies.yaml soporta enrutamiento exclusivo por Egress Gateway', () => {
+  const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
+  const content = fs.readFileSync(npPath, 'utf-8');
+
+  assert.ok(content.includes('useEgressGateway'), 'Debe incluir condicional para useEgressGateway');
+  assert.ok(content.includes('app.kubernetes.io/component: egress-gateway'), 'Debe dirigir el tráfico hacia egress-gateway cuando useEgressGateway está activo');
+});
+
+
