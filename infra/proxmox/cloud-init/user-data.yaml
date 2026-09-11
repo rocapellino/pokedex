@@ -1,9 +1,14 @@
 #cloud-config
 # ==============================================================================
-# Cloud-Init User Data para Despliegue Automatizado en Proxmox VE (VM / LXC)
+# Cloud-Init User Data para Aprovisionamiento Base de Nodo en Proxmox VE (VM / LXC)
+# ==============================================================================
+# NOTA ARQUITECTÓNICA:
+# Este template aprovisiona exclusivamente el sistema operativo base, runtime
+# de contenedores y hardening de red. La configuración y unión al clúster se
+# delegan a Ansible (host_baseline.yml) y el despliegue de la app a Kubernetes/Helm.
 # ==============================================================================
 
-hostname: pokedex-prod
+hostname: pokedex-node
 manage_etc_hosts: true
 
 users:
@@ -28,52 +33,39 @@ packages:
   - git
   - ufw
   - htop
+  - python3
+  - python3-apt
   - net-tools
 
 write_files:
-  - path: /etc/sysctl.d/99-kubernetes-docker.conf
+  - path: /etc/sysctl.d/99-kubernetes.conf
     content: |
       net.bridge.bridge-nf-call-iptables  = 1
       net.ipv4.ip_forward                 = 1
       net.bridge.bridge-nf-call-ip6tables = 1
 
 runcmd:
-  # 1. Configurar módulos de kernel
+  # 1. Configurar módulos de kernel para Kubernetes / Containers
   - modprobe overlay
   - modprobe br_netfilter
   - sysctl --system
 
-  # 2. Instalar Docker Engine oficial y Docker Compose Plugin
+  # 2. Instalar Container Runtime (Docker CE / containerd)
   - install -m 0755 -d /etc/apt/keyrings
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   - chmod a+r /etc/apt/keyrings/docker.gpg
   - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
   - apt-get update -y
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - apt-get install -y docker-ce docker-ce-cli containerd.io
 
-  # 3. Habilitar y arrancar Docker
+  # 3. Habilitar y arrancar servicio de contenedores
   - systemctl enable --now docker
 
-  # 4. Hardening de Firewall (UFW)
+  # 4. Hardening Perimetral de Firewall (UFW)
   - ufw default deny incoming
   - ufw default allow outgoing
-  - ufw allow 22/tcp comment 'SSH'
-  - ufw allow 8080/tcp comment 'Pokédex Web DMZ'
-  - ufw allow 9090/tcp comment 'Prometheus'
-  - ufw allow 3000/tcp comment 'Grafana'
+  - ufw allow 22/tcp comment 'SSH Gestión'
   - ufw --force enable
 
-  # 5. Clonar, configurar entorno seguro y desplegar la plataforma Pokédex
-  - mkdir -p /opt/pokedex
-  - git clone https://github.com/rocapellino/pokedex.git /opt/pokedex || (cd /opt/pokedex && git pull)
-  - |
-    if [ ! -f /opt/pokedex/.env ]; then
-      cp /opt/pokedex/.env.example /opt/pokedex/.env
-      sed -i "s/ADMIN_SESSION_SECRET=.*/ADMIN_SESSION_SECRET=$(openssl rand -hex 32)/" /opt/pokedex/.env
-      sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" /opt/pokedex/.env
-      sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$(openssl rand -hex 16)/" /opt/pokedex/.env
-      sed -i "s/ADMIN_API_KEY=.*/ADMIN_API_KEY=$(openssl rand -hex 24)/" /opt/pokedex/.env
-      chmod 600 /opt/pokedex/.env
-      chown devops:docker /opt/pokedex/.env
-    fi
-  - cd /opt/pokedex && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
+  # 5. Registro de inicialización completada
+  - echo "✅ Nodo Proxmox aprovisionado con éxito. Listo para Ansible baseline y Kubernetes." > /var/log/pokedex-bootstrap.log

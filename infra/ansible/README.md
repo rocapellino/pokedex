@@ -34,9 +34,8 @@ Para mantener una separación clara de incumbencias (*separation of concerns*):
 | Capa / Herramienta | Responsabilidad Primaria | Fuera de Alcance |
 | :--- | :--- | :--- |
 | **OpenTofu** | Provisión de máquinas virtuales, LXC, redes e infraestructura cloud. | Configuración interna de paquetes y usuarios de OS. |
-| **Ansible** | Configuración base del SO, módulos de kernel, sysctl, Docker runtime y firewall UFW. | Despliegue productivo de la aplicación (reservado a GitOps). |
+| **Ansible** | Configuración base del SO, módulos de kernel, sysctl, container runtime y firewall UFW. | Despliegue de la aplicación (reservado a Kubernetes/Helm/GitOps). |
 | **Kubernetes (Helm / ArgoCD)** | Orquestación, configuración de réplicas, balanceo, HPA y despliegues continuos. | Aprovisionamiento de VMs o tuning a nivel de kernel de nodos. |
-| **Docker Compose (`deploy_*.yml`)** | *Fallback* standalone / DR para nodos individuales sin clúster K8s activo. | No sustituye el pipeline GitOps principal de producción. |
 
 ---
 
@@ -52,9 +51,7 @@ infra/ansible/
 └── playbooks/
     ├── host_baseline.yml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
     ├── security_hardening.yml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
-    ├── setup_nodes.yml        # Preparación de nodos para clúster Kubernetes
-    ├── deploy_proxmox.yml     # Bootstrap standalone para Proxmox VE (modo fallback/DR)
-    └── deploy_app.yml         # Despliegue standalone con Compose (modo fallback/DR)
+    └── setup_nodes.yml        # Preparación de nodos para clúster Kubernetes
 ```
 
 ---
