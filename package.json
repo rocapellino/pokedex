@@ -21,6 +21,7 @@
     "test:e2e": "playwright test",
     "test:a11y": "playwright test -g @a11y",
     "playwright:install": "playwright install chromium",
+    "perf:lighthouse": "lhci autorun",
     "commitlint": "commitlint --edit",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
