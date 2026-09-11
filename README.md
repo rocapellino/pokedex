@@ -272,38 +272,49 @@ flowchart LR
 * [Docker](https://www.docker.com/) 24+ y Docker Compose
 * [Task](https://taskfile.dev/) (opcional, pero recomendado para automatización)
 
-### Despliegue con Docker Compose (Recomendado)
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/rocapellino/pokedex.git
-cd pokedex
+### Perfiles de Desarrollo Local (Dual-Profile DX)
 
-# 2. Configurar variables de entorno desde la plantilla
+La plataforma ofrece dos perfiles de ejecución local según el objetivo de trabajo:
+
+#### Opción A — Perfil Rápido (Docker Compose)
+Ideal para desarrollo interactivo ágil y pruebas rápidas de componentes:
+```bash
+# 1. Configurar variables de entorno desde la plantilla
 cp .env.example .env
 
-# 3. Iniciar todos los servicios (API, Web, PostgreSQL 16, Redis 7)
-docker compose up -d
+# 2. Iniciar todos los servicios con Compose
+task dev:compose   # o: docker compose up -d
 
-# 4. Verificar salud del backend
+# 3. Verificar salud del backend
 curl http://localhost:3000/readyz
 # Respuesta: {"status":"ready","database":"connected","redis":"connected"}
 ```
 Accede a la interfaz web en: **`http://localhost:8080`**  
 Accede al panel Backoffice en: **`http://localhost:8080/backoffice.html`**
 
-### Desarrollo Local con Taskfile
+#### Opción B — Perfil Kubernetes Local (Kind + Helm)
+Ideal para validar el entorno idéntico a producción (Ingress, NetworkPolicies, Helm Hooks, Probes y RBAC):
+```bash
+# 1. Crear clúster Kind local y desplegar Helm chart oficial
+task dev:k8s:up
+
+# 2. Consultar estado de los recursos de Kubernetes
+task dev:k8s:status
+
+# 3. Destruir el clúster local al finalizar
+task dev:k8s:down
+```
+
+### Comandos de Calidad y Pruebas con Taskfile
 ```bash
 # Instalar dependencias
 npm ci
 
-# Ejecutar en modo desarrollo con recarga en caliente
-task dev
-
 # Ejecutar auditorías de calidad y linting
 task audit
-task ts:lint
+task lint
 
-# Ejecutar suite de pruebas unitarias, pentesting y fuzzing
+# Ejecutar suite completa de 95 pruebas (unitarias, pentesting, fuzzing, IaC security)
 npm test
 npm run test:fuzz
 ```

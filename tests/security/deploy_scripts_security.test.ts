@@ -181,4 +181,28 @@ test('🛡️ Helm Security: network-policies.yaml soporta enrutamiento exclusiv
   assert.ok(content.includes('app.kubernetes.io/component: egress-gateway'), 'Debe dirigir el tráfico hacia egress-gateway cuando useEgressGateway está activo');
 });
 
+test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
+  const kindPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');
+  assert.ok(fs.existsSync(kindPath), 'kind-cluster.yaml debe existir');
+  const content = fs.readFileSync(kindPath, 'utf-8');
+
+  assert.ok(content.includes('kind: Cluster'), 'Debe definir kind: Cluster');
+  assert.ok(content.includes('name: pokedex-local'), 'Debe definir el clúster pokedex-local');
+  assert.ok(content.includes('ingress-ready=true'), 'Debe etiquetar el nodo con ingress-ready=true');
+  assert.ok(content.includes('containerPort: 80'), 'Debe mapear el puerto Ingress HTTP 80');
+  assert.ok(content.includes('containerPort: 443'), 'Debe mapear el puerto Ingress HTTPS 443');
+});
+
+test('🛡️ Dev DX: Taskfile.yml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)', () => {
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yml debe existir');
+  const content = fs.readFileSync(taskfilePath, 'utf-8');
+
+  assert.ok(content.includes('dev:compose:'), 'Taskfile debe definir tarea dev:compose');
+  assert.ok(content.includes('dev:k8s:up:'), 'Taskfile debe definir tarea dev:k8s:up');
+  assert.ok(content.includes('dev:k8s:down:'), 'Taskfile debe definir tarea dev:k8s:down');
+  assert.ok(content.includes('dev:k8s:status:'), 'Taskfile debe definir tarea dev:k8s:status');
+});
+
+
 

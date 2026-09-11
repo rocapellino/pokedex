@@ -84,16 +84,50 @@ tasks:
     cmds:
       - docker network create monitoring-net 2>nul || docker network create monitoring-net 2>/dev/null || true
 
-  docker:up:
-    desc: "Levanta todos los servicios con Docker Compose (API + Web + DB + Redis)"
+  # ----------------------------------------------------------------------------
+  # Perfiles de Desarrollo Local (Dual-Profile DX)
+  # ----------------------------------------------------------------------------
+  dev:compose:
+    desc: "Perfil Rápido: Levanta stack de desarrollo interactivo con Docker Compose"
     deps: [network]
     cmds:
       - docker compose up -d --build
 
-  docker:down:
-    desc: "Detiene todos los contenedores de Docker Compose"
+  dev:compose:down:
+    desc: "Perfil Rápido: Detiene stack interactivo de Docker Compose"
     cmds:
       - docker compose down
+
+  dev:k8s:up:
+    desc: "Perfil Kubernetes: Crea clúster Kind local y despliega Helm chart idéntico a producción"
+    cmds:
+      - kind create cluster --config infra/k8s/kind-cluster.yaml || echo "El cluster kind ya existe."
+      - docker build -t pokedex-api:local -f apps/backend/Dockerfile .
+      - docker build -t pokedex-web:local -f apps/frontend/Dockerfile apps/frontend
+      - kind load docker-image pokedex-api:local --name pokedex-local
+      - kind load docker-image pokedex-web:local --name pokedex-local
+      - helm upgrade --install pokedex infra/helm/pokedex -n pokemon-app --create-namespace -f infra/helm/pokedex/values.yaml --set api.image.repository=pokedex-api --set api.image.tag=local --set web.image.repository=pokedex-web --set web.image.tag=local
+
+  dev:k8s:down:
+    desc: "Perfil Kubernetes: Destruye el clúster Kind local"
+    cmds:
+      - kind delete cluster --name pokedex-local
+
+  dev:k8s:status:
+    desc: "Perfil Kubernetes: Consulta estado de pods, servicios e ingress en pokemon-app"
+    cmds:
+      - kubectl get pods,svc,ingress -n pokemon-app -o wide
+
+  docker:up:
+    desc: "Levanta todos los servicios con Docker Compose (Alias de dev:compose)"
+    deps: [network]
+    cmds:
+      - task: dev:compose
+
+  docker:down:
+    desc: "Detiene todos los contenedores de Docker Compose (Alias de dev:compose:down)"
+    cmds:
+      - task: dev:compose:down
 
   monitoring:up:
     desc: "Inicia el stack global de observabilidad (Prometheus, Grafana, Loki, cAdvisor)"
