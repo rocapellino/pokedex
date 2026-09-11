@@ -106,7 +106,7 @@ flowchart TD
 
 ### 3.3. ⚙️ [`infra.yml`](file:///.github/workflows/infra.yml) (Infrastructure & IaC CI)
 * **Triggers:** Cambios en `infra/**`, `gitops/**`.
-* **Pasos:** Helm CLI lint (`helm lint infra/helm/pokedex`), renderizado de templates con valores de desarrollo y producción con validación Zero-Trust (`helm template`), validación de sintaxis OpenTofu/Terraform y auditoría IaC con Checkov.
+* **Pasos:** Helm CLI lint (`helm lint infra/helm/pokedex`), renderizado de templates con valores de desarrollo y producción con validación Zero-Trust (`helm template`), validación de sintaxis OpenTofu y auditoría IaC con Checkov.
 
 ### 3.4. 🔐 [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) (Secret Scanning)
 * **Triggers:** Todos los commits y PRs.

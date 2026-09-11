@@ -7,9 +7,9 @@ Este documento describe formalmente la arquitectura de infraestructura, topolog�
 ## 📑 Tabla de Contenidos
 1. [Estructura de Capas en la Nube](#1-estructura-de-capas-en-la-nube)
 2. [Diagrama de Flujo: Aprovisionamiento y Despliegue Híbrido GitOps](#2-diagrama-de-flujo-aprovisionamiento-y-despliegue-híbrido-gitops)
-3. [Matriz de Objetos Cloud Implementados (IaC con OpenTofu / Terraform)](#3-matriz-de-objetos-cloud-implementados-iac-con-opentofu--terraform)
+3. [Matriz de Objetos Cloud Implementados (IaC con OpenTofu)](#3-matriz-de-objetos-cloud-implementados-iac-con-opentofu)
 4. [Topología de Red y Aislamiento (Zero-Trust)](#4-topología-de-red-y-aislamiento-zero-trust)
-5. [Estructura del Código IaC Multi-Cloud](#5-estructura-del-código-iac-multi-cloud)
+5. [Estructura del Código IaC Híbrido](#5-estructura-del-código-iac-híbrido)
 
 ---
 
@@ -66,7 +66,7 @@ flowchart TD
         COSIGN_SIGN --> GHCR["📦 GitHub Container Registry (GHCR)\nghcr.io/rocapellino/pokedex"]
     end
 
-    subgraph IAC_ENGINE["🏗️ OpenTofu / Terraform IaC"]
+    subgraph IAC_ENGINE["🏗️ OpenTofu IaC"]
         TOFU_DIR --> TOFU_APPLY["tofu apply"]
         TOFU_APPLY --> PROX_INFRA["🖥️ Nodos Proxmox VE (LXC)"]
         TOFU_APPLY --> CLOUD_INFRA["☁️ AWS VPC, EKS, RDS, ElastiCache"]
@@ -94,7 +94,7 @@ flowchart TD
 
 ---
 
-## 3. Matriz de Objetos Cloud Implementados (IaC con OpenTofu / Terraform)
+## 3. Matriz de Objetos Cloud Implementados (IaC con OpenTofu)
 
 | Objeto Cloud | Módulo IaC | Propósito Arquitectónico | SLA / Ventaja |
 | :--- | :--- | :--- | :--- |
@@ -118,18 +118,12 @@ flowchart TD
 
 ---
 
-## 5. Estructura del Código IaC Multi-Cloud
+## 5. Estructura del Código IaC Híbrido
 
 ```text
 infra/
-├── opentofu/                         # Aprovisionamiento declarativo OpenTofu
-│   ├── envs/
-│   │   ├── cloud/                    # Entorno AWS EKS de producción
-│   │   └── proxmox/                  # Entorno Proxmox VE on-premise
-│   └── modules/
-│       ├── aws/                      # Módulos VPC, EKS, RDS, ElastiCache
-│       └── proxmox/                  # Módulos LXC, Cloud-Init, Networking
-└── terraform/                        # Módulos históricos compatibles
-    ├── envs/
-    └── modules/
+└── opentofu/                         # Aprovisionamiento declarativo OpenTofu
+    └── environments/
+        ├── cloud/                    # Entorno AWS EKS de producción
+        └── proxmox/                  # Entorno Proxmox VE on-premise
 ```

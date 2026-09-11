@@ -1,8 +1,13 @@
 ---
 # ==============================================================================
-# Playbook de Ansible para Despliegue Automatizado en Proxmox VE (LXC / VM)
+# Playbook: Bootstrap Standalone en Proxmox VE (LXC / VM Fallback)
 # ==============================================================================
-- name: Desplegar Plataforma Pokédex en Proxmox VE
+# NOTA ARQUITECTÓNICA:
+# El despliegue productivo principal se realiza vía GitOps (Helm + ArgoCD).
+# Este playbook se mantiene como aprovisionamiento standalone / disaster recovery
+# para nodos individuales de Proxmox con Docker Compose.
+# ==============================================================================
+- name: Desplegar Plataforma Pokédex en Proxmox VE (Modo Standalone)
   hosts: proxmox_nodes:all
   become: true
   vars:

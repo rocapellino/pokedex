@@ -171,11 +171,11 @@ flowchart TD
 │   ├── validation/pokemon.ts        # Sanitizador contra inyecciones XSS y validador de esquema
 │   └── seed.ts                      # Script CLI y función de inicialización de la base de datos
 ├── infra/
-│   ├── ansible/                     # Hardening de servidores y configuración UFW/SSH
+│   ├── ansible/                     # Hardening de servidores, configuración UFW/SSH y baseline de nodos
 │   ├── helm/pokedex/                # Helm Chart 3 parametrizado (HPA, Sealed Secrets, NetworkPolicies)
 │   ├── k8s/                         # Políticas Kyverno para verificación de firmas Cosign
 │   ├── opentofu/                    # Infraestructura como Código (Proxmox VE + AWS EKS)
-│   └── terraform/                   # Módulos Multi-Cloud (GCP, AWS, Azure, Proxmox)
+│   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC on-premise
 ├── gitops/
 │   ├── apps/                        # Definición de Applications de ArgoCD (app-proxmox, app-cloud)
 │   └── environments/                # Values parametrizados para cada clúster

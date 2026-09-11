@@ -125,7 +125,7 @@ flowchart TD
     * **`ci.yml`**: Calidad y complejidad, tests unitarios, Semgrep SAST, Gitleaks, Checkov IaC y escaneo de vulnerabilidades Trivy.
     * **`api.yml`**: Verificación estricta de compilación y tipado en Node.js 22 LTS.
     * **`web.yml`**: Validación de sintaxis de JavaScript y configuración de servidor Nginx.
-    * **`infra.yml`**: Linting de Helm Charts y validación HCL de OpenTofu/Terraform.
+    * **`infra.yml`**: Linting de Helm Charts y validación HCL de OpenTofu con Checkov.
     * **`security-gitleaks.yml`**: Detección estricta de credenciales en commits.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)

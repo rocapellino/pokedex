@@ -5,6 +5,10 @@
 - name: Hardening de Seguridad y Reglas de Firewall
   hosts: all
   become: true
+  vars:
+    # Restricción de subredes para acceso administrativo y clúster interno
+    mgmt_network: "{{ mgmt_cidr | default('192.168.1.0/24') }}"
+    k8s_network: "{{ k8s_cluster_cidr | default('192.168.1.0/24') }}"
   tasks:
     - name: Configurar política por defecto de UFW (Denegar entrada)
       ufw:
@@ -16,13 +20,14 @@
         direction: outgoing
         policy: allow
 
-    - name: Permitir puerto SSH (22)
+    - name: Permitir puerto SSH (22) únicamente desde red de administración
       ufw:
         rule: allow
         port: '22'
         proto: tcp
+        src: "{{ mgmt_network }}"
 
-    - name: Permitir tráfico Web HTTP (80) y HTTPS (443)
+    - name: Permitir tráfico Web público HTTP (80) y HTTPS (443)
       ufw:
         rule: allow
         port: "{{ item }}"
@@ -30,17 +35,24 @@
       loop:
         - '80'
         - '443'
-        - '8080'
 
-    - name: Permitir puertos de Kubernetes API y Kubelet en nodos del clúster
+    - name: Permitir puerto de desarrollo/proxy local (8080) solo desde red administrativa
       ufw:
         rule: allow
-        port: "{{ item }}"
+        port: '8080'
         proto: tcp
+        src: "{{ mgmt_network }}"
+
+    - name: Permitir puertos de Kubernetes API, Kubelet y etcd restringido a nodos del clúster
+      ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: tcp
+        src: "{{ k8s_network }}"
       loop:
-        - '6443'   # Kubernetes API Server
-        - '10250'  # Kubelet API
-        - '2379:2380' # etcd server client API
+        - { port: '6443', comment: 'Kubernetes API Server' }
+        - { port: '10250', comment: 'Kubelet API' }
+        - { port: '2379:2380', comment: 'etcd server client API' }
       when: "'k8s_cluster' in group_names"
 
     - name: Habilitar Firewall UFW

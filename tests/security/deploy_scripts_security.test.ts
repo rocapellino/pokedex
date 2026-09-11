@@ -105,3 +105,26 @@ test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Z
   assert.ok(redisSection.includes('- Egress'), 'Redis NetworkPolicy debe incluir Egress en policyTypes');
   assert.ok(redisSection.includes('egress: []'), 'Redis NetworkPolicy debe definir egress: [] (aislamiento total de salida)');
 });
+
+test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
+  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yml');
+  assert.ok(fs.existsSync(playbookPath), 'security_hardening.yml debe existir');
+  const content = fs.readFileSync(playbookPath, 'utf-8');
+
+  // SSH no debe estar abierto a any sin src
+  assert.ok(content.includes('src: "{{ mgmt_network }}"'), 'Regla SSH (22) debe restringir el origen a la red de administración');
+
+  // Puertos Kubernetes deben estar restringidos al CIDR del clúster
+  assert.ok(content.includes('src: "{{ k8s_network }}"'), 'Puertos K8s y etcd deben restringir origen a la red del clúster');
+  assert.ok(content.includes('6443'), 'Debe incluir puerto 6443 (API Server)');
+  assert.ok(content.includes('10250'), 'Debe incluir puerto 10250 (Kubelet)');
+  assert.ok(content.includes('2379:2380'), 'Debe incluir puerto 2379:2380 (etcd)');
+
+  // hosts.ini debe proveer los defaults de red
+  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini');
+  assert.ok(fs.existsSync(hostsPath), 'hosts.ini debe existir');
+  const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
+  assert.ok(hostsContent.includes('mgmt_cidr='), 'hosts.ini debe definir mgmt_cidr');
+  assert.ok(hostsContent.includes('k8s_cluster_cidr='), 'hosts.ini debe definir k8s_cluster_cidr');
+});
+
