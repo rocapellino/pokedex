@@ -34,11 +34,13 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 const candidatePublicDirs = [
+  path.join(process.cwd(), 'apps', 'frontend', 'dist'),
   path.join(process.cwd(), 'apps', 'frontend', 'public'),
+  path.join(process.cwd(), '..', 'frontend', 'dist'),
   path.join(process.cwd(), '..', 'frontend', 'public'),
   path.join(process.cwd(), 'public'),
 ];
-const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'public');
+const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'dist');
 
 
 // ---------------------------------------------------------------------------
