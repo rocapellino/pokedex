@@ -5,6 +5,7 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 ---
 
 ## 📑 Índice
+
 1. [Diagrama de Flujo del Ecosistema de Herramientas](#1-diagrama-de-flujo-del-ecosistema-de-herramientas)
 2. [Matriz Exhaustiva de Herramientas del Proyecto](#2-matriz-exhaustiva-de-herramientas-del-proyecto)
    * [2.1. Core, Backend & Runtime](#21-core-backend--runtime)
