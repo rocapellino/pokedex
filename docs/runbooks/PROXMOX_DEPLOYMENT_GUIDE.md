@@ -1,6 +1,6 @@
 # 🖥️ Guía de Despliegue en Proxmox VE (On-Premise & Private Cloud)
 
-Esta guía detalla los métodos para desplegar la plataforma Pokédex en servidores **Proxmox Virtual Environment (PVE)** utilizando contenedores **LXC** (Linux Containers) de alto rendimiento o **Máquinas Virtuales (QEMU/KVM)** con inicialización automatizada mediante **Cloud-Init**, **Ansible** u **OpenTofu**.
+Esta guía detalla los métodos para desplegar y configurar la infraestructura de Pokédex en servidores **Proxmox Virtual Environment (PVE)** utilizando contenedores **LXC** (Linux Containers) de alto rendimiento o **Máquinas Virtuales (QEMU/KVM)** con inicialización automatizada mediante **Cloud-Init**, **Ansible** u **OpenTofu**, orquestando la aplicación sobre Kubernetes con **Helm**.
 
 ---
 
@@ -9,9 +9,9 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 1. [Arquitectura de Despliegue en Proxmox](#1-arquitectura-de-despliegue-en-proxmox)
 2. [Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)](#2-gestión-segura-de-secretos-en-proxmox-cero-fugas-locales)
 3. [Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile](#3-método-1-aprovisionamiento-y-hardening-automatizado-con-ansible--taskfile)
-4. [Método 2: Despliegue Automatizado con Cloud-Init (VM / LXC)](#4-método-2-despliegue-automatizado-con-cloud-init-vm--lxc)
+4. [Método 2: Aprovisionamiento Base con Cloud-Init (VM / LXC)](#4-método-2-aprovisionamiento-base-con-cloud-init-vm--lxc)
 5. [Método 3: Aprovisionamiento con OpenTofu](#5-método-3-aprovisionamiento-con-opentofu)
-6. [Método 4: Orquestación y Hardening con Ansible](#6-método-4-orquestación-y-hardening-con-ansible)
+6. [Método 4: Hardening de Nodos y Cortafuegos con Ansible](#6-método-4-hardening-de-nodos-y-cortafuegos-con-ansible)
 7. [Configuración de LXC con Docker (Nesting & Keyctl)](#7-configuración-de-lxc-con-docker-nesting--keyctl)
 
 ---
@@ -36,11 +36,11 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
                      └─────────────────────┬─────────────────────┘
                                            ▼
                      ┌───────────────────────────────────────────┐
-                     │          Docker Compose Production        │
-                     │  • Web Nginx Reverse Proxy (:8080)        │
+                     │          Kubernetes Runtime (K3s/k8s)     │
+                     │  • Web Nginx Ingress Controller (:8080)   │
                      │  • Node.js 22 LTS / Express (:3000)       │
-                     │  • PostgreSQL 16 Alpine (:5432)           │
-                     │  • Redis 7 Alpine In-Memory Cache (:6379) │
+                     │  • PostgreSQL 16 StatefulSet (:5432)      │
+                     │  • Redis 7 In-Memory Cache (:6379)        │
                      │  • Prometheus & Grafana Monitoring        │
                      └───────────────────────────────────────────┘
 ```
@@ -49,19 +49,15 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 
 ## 2. Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)
 
-* **Exclusión de Secretos en Tránsito:** Los playbooks de Ansible (`deploy_proxmox.yml`, `deploy_app.yml` y `host_baseline.yml`) aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se empaqueten ni viajen al host remoto**.
-* **Inicialización Segura en Remoto:** Al desplegarse por primera vez en Proxmox (vía Ansible o Cloud-Init), el sistema detecta si `/opt/pokedex/.env` existe:
-  * Si no existe: copia `/opt/pokedex/.env.example` y autogenera credenciales criptográficamente seguras con `openssl rand`:
+* **Exclusión de Secretos en Tránsito:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se transfieran a hosts remotos**.
+* **Gestión de Secretos en Producción:** En Kubernetes, los secretos se inyectan desacopladamente mediante **External Secrets Operator** o **Sealed Secrets**, evitando la presencia de archivos `.env` en claro en el servidor.
+* **Inicialización Segura en Nodos Standalone / Fallback:**
+  * Si se aprovisiona un entorno aislado fuera de Kubernetes, las credenciales se autogeneran con `openssl rand`:
     * `ADMIN_SESSION_SECRET` (64 caracteres hex / 256 bits).
     * `POSTGRES_PASSWORD` (32 caracteres hex).
     * `REDIS_PASSWORD` (32 caracteres hex).
     * `ADMIN_API_KEY` (48 caracteres hex).
   * Asigna permisos estrictos `chmod 600 /opt/pokedex/.env` restringidos al usuario operador.
-* **Consulta de Credenciales Generadas:**
-
-  ```bash
-  ssh root@<PROXMOX_HOST> "cat /opt/pokedex/.env"
-  ```
 
 ---
 
@@ -81,15 +77,15 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/ho
 
 ---
 
-## 4. Método 2: Despliegue Automatizado con Cloud-Init (VM / LXC)
+## 4. Método 2: Aprovisionamiento Base con Cloud-Init (VM / LXC)
 
-La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](../../infra/proxmox/cloud-init/user-data.yaml) automatiza la instalación completa al aprovisionar la máquina virtual:
+La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](../../infra/proxmox/cloud-init/user-data.yaml) automatiza la preparación base del sistema operativo al aprovisionar la máquina virtual:
 
-1. Instala Docker Engine y el plugin de Compose.
-2. Aplica reglas de firewall UFW (solo SSH 22 y Web DMZ 8080).
-3. Clona el repositorio oficial en `/opt/pokedex`.
-4. Inicializa `/opt/pokedex/.env` con credenciales fuertes aleatorias si no existe.
-5. Inicia el stack con `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build`.
+1. Actualiza paquetes del sistema e instala prerrequisitos (`curl`, `git`, `ufw`, `python3`).
+2. Configura módulos de kernel (`overlay`, `br_netfilter`) y sysctl para Kubernetes.
+3. Instala el runtime de contenedores (Docker Engine / containerd).
+4. Aplica reglas de firewall UFW iniciales (solo SSH puerto 22 permitido).
+5. Deja el nodo listo para que Ansible aplique el baseline y se una al clúster de Kubernetes.
 
 ---
 
@@ -109,19 +105,21 @@ tofu apply \
 
 ---
 
-## 6. Método 4: Orquestación y Hardening con Ansible
+## 6. Método 4: Hardening de Nodos y Cortafuegos con Ansible
 
-El playbook [`infra/ansible/playbooks/deploy_proxmox.yml`](../../infra/ansible/playbooks/deploy_proxmox.yml) actualiza paquetes, instala Docker, sincroniza el código excluyendo secretos locales y levanta la pila productiva:
+El playbook [`infra/ansible/playbooks/security_hardening.yml`](../../infra/ansible/playbooks/security_hardening.yml) aplica políticas Zero-Trust al firewall UFW y endurece SSH y los puertos del plano de control de Kubernetes:
 
 ```bash
-ansible-playbook -i "192.168.1.150," -u root infra/ansible/playbooks/deploy_proxmox.yml
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml
 ```
+
+El despliegue productivo de la aplicación Pokédex se realiza mediante **Helm** y **ArgoCD** sobre el clúster Kubernetes.
 
 ---
 
 ## 7. Configuración de LXC con Docker (Nesting & Keyctl)
 
-Para ejecutar Docker dentro de un contenedor LXC sin privilegios en Proxmox:
+Para ejecutar Docker/containerd dentro de un contenedor LXC sin privilegios en Proxmox:
 
 1. **Desde la interfaz Web de Proxmox:**
    * Ve a tu contenedor LXC -> **Options** -> **Features** -> Marca **Nesting** y **Keyctl**.

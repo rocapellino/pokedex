@@ -39,18 +39,16 @@ test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hard
   assert.ok(content.includes('ufw'), 'host_baseline.yml debe configurar firewall ufw');
 });
 
-test('🛡️ Deploy Security: Ansible playbooks excluyen .env en módulos synchronize', () => {
-  const playbooks = [
+test('🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción', () => {
+  const legacyFiles = [
+    'docker-compose.prod.yml',
     'infra/ansible/playbooks/deploy_proxmox.yml',
     'infra/ansible/playbooks/deploy_app.yml'
   ];
 
-  for (const relPath of playbooks) {
+  for (const relPath of legacyFiles) {
     const filePath = path.join(ROOT_DIR, relPath);
-    assert.ok(fs.existsSync(filePath), `El playbook ${relPath} debe existir`);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    assert.ok(content.includes('--exclude=.env'), `${relPath} debe incluir --exclude=.env en rsync_opts`);
-    assert.ok(content.includes('--exclude=.env.*'), `${relPath} debe incluir --exclude=.env.* en rsync_opts`);
+    assert.equal(fs.existsSync(filePath), false, `${relPath} debe estar eliminado; Kubernetes es el único runtime productivo`);
   }
 });
 
