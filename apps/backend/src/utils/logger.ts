@@ -1,24 +1,15 @@
 /**
  * ==============================================================================
- * Logger Estructurado JSON de Alto Rendimiento (Pino / Loki Compatible)
+ * Logger Estructurado con Pino (Alto Rendimiento & Correlación Distribuida)
  * ==============================================================================
- * Escribe registros en formato JSON estándar con timestamp ISO, severidad jerárquica
- * y soporte para inyección de identificadores de correlación distribuida (traceId)
- * mediante Node.js AsyncLocalStorage o paso explícito.
+ * Emite registros JSON optimizados con timestamp ISO, severidad jerárquica
+ * y correlación automática de traceId mediante Node.js AsyncLocalStorage + Pino mixin.
  */
 
+import pino from 'pino';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-const LEVEL_WEIGHTS: Record<LogLevel, number> = {
-  debug: 10,
-  info: 20,
-  warn: 30,
-  error: 40,
-};
-
-const CURRENT_LEVEL: LogLevel = (process.env.LOG_LEVEL as LogLevel) || 'info';
 
 export interface LogTraceContext {
   traceId: string;
@@ -26,74 +17,62 @@ export interface LogTraceContext {
 
 export const traceStorage = new AsyncLocalStorage<LogTraceContext>();
 
-export interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  traceId?: string;
-  context?: Record<string, unknown>;
-  [key: string]: unknown;
-}
+const pinoBase = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  formatters: {
+    level(label: string) {
+      return { level: label };
+    },
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+  base: {
+    service: 'pokedex-api',
+  },
+  mixin() {
+    const store = traceStorage.getStore();
+    return store?.traceId ? { traceId: store.traceId } : {};
+  },
+});
 
-export class StructuredLogger {
-  private defaultContext: Record<string, unknown>;
+export class PinoStructuredLogger {
+  private pinoInstance: pino.Logger;
 
-  constructor(defaultContext: Record<string, unknown> = {}) {
-    this.defaultContext = defaultContext;
+  constructor(pinoLogger: pino.Logger = pinoBase) {
+    this.pinoInstance = pinoLogger;
   }
 
-  child(context: Record<string, unknown>): StructuredLogger {
-    return new StructuredLogger({ ...this.defaultContext, ...context });
-  }
-
-  private shouldLog(level: LogLevel): boolean {
-    return LEVEL_WEIGHTS[level] >= LEVEL_WEIGHTS[CURRENT_LEVEL];
-  }
-
-  private output(level: LogLevel, message: string, context?: Record<string, unknown>, traceId?: string): void {
-    if (!this.shouldLog(level)) return;
-
-    const activeTraceId = traceId || traceStorage.getStore()?.traceId;
-
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      ...(activeTraceId ? { traceId: activeTraceId } : {}),
-      ...this.defaultContext,
-      ...(context ? { context } : {}),
-    };
-
-    const jsonString = JSON.stringify(entry);
-
-    if (level === 'error') {
-      console.error(jsonString);
-    } else if (level === 'warn') {
-      console.warn(jsonString);
-    } else {
-      console.log(jsonString);
-    }
-  }
-
-  debug(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    this.output('debug', message, context, traceId);
+  child(bindings: pino.Bindings): PinoStructuredLogger {
+    return new PinoStructuredLogger(this.pinoInstance.child(bindings));
   }
 
   info(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    this.output('info', message, context, traceId);
+    const data = traceId ? { traceId, ...context } : (context || {});
+    this.pinoInstance.info(data, message);
   }
 
   warn(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    this.output('warn', message, context, traceId);
+    const data = traceId ? { traceId, ...context } : (context || {});
+    this.pinoInstance.warn(data, message);
   }
 
   error(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    this.output('error', message, context, traceId);
+    const data = traceId ? { traceId, ...context } : (context || {});
+    this.pinoInstance.error(data, message);
+  }
+
+  debug(message: string, context?: Record<string, unknown>, traceId?: string): void {
+    const data = traceId ? { traceId, ...context } : (context || {});
+    this.pinoInstance.debug(data, message);
   }
 
   audit(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    this.output('info', message, { audit: true, ...context }, traceId);
+    const data = { audit: true, ...(traceId ? { traceId } : {}), ...(context || {}) };
+    this.pinoInstance.info(data, message);
+  }
+
+  get raw(): pino.Logger {
+    return this.pinoInstance;
   }
 }
 
-export const logger = new StructuredLogger({ service: 'pokedex-api' });
+export const logger = new PinoStructuredLogger(pinoBase);
