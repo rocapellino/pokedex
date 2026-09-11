@@ -27,6 +27,8 @@ import {
   revokeSessionToken,
   revokeSessionTokenDetailed,
 } from './src/services/auth.js';
+import { logger } from './src/utils/logger.js';
+import { requestTracer } from './src/middleware/request-tracer.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -83,6 +85,8 @@ function normalizeEndpoint(req: Request): string {
 app.disable('x-powered-by');
 // Confianza explícita únicamente en proxies de infraestructura local (loopback / linklocal / RFC1918)
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+
+app.use(requestTracer);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -285,7 +289,7 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   const configuredKey = process.env.ADMIN_API_KEY;
 
   if (!configuredKey) {
-    console.error('[Security Warning] Intento de acceso a ruta protegida pero ADMIN_API_KEY no está configurada.');
+    logger.warn('Intento de acceso a ruta protegida pero ADMIN_API_KEY no está configurada', { security: true });
     return res.status(503).json({
       detail: 'Servicio administrativo no disponible: ADMIN_API_KEY no configurada en el servidor.',
     });
@@ -316,7 +320,11 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
     (req as any).authMechanism = 'master_api_key';
     if (process.env.NODE_ENV !== 'test') {
       const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      console.warn(`[Security Audit] Acceso administrativo vía MASTER_API_KEY en ${req.method} ${req.path} (IP: ${clientIp}). Se recomienda utilizar tokens de sesión efímeros.`);
+      logger.audit(`Acceso administrativo vía MASTER_API_KEY en ${req.method} ${req.path}`, {
+        clientIp,
+        method: req.method,
+        path: req.path,
+      });
     }
     return next();
   }
@@ -630,7 +638,10 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
 
   await savePokemon(newPokemon);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon creado: ID ${Number(newPokemon.id)} - ${sanitizeLogString(newPokemon.nombre)}`);
+  logger.audit('Pokémon creado', {
+    id: Number(newPokemon.id),
+    nombre: sanitizeLogString(newPokemon.nombre),
+  });
   return res.status(201).json(newPokemon);
 }));
 
@@ -687,7 +698,10 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorag
 
   await savePokemon(updated);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon actualizado: ID ${Number(id)} - ${sanitizeLogString(updated.nombre)}`);
+  logger.audit('Pokémon actualizado', {
+    id: Number(id),
+    nombre: sanitizeLogString(updated.nombre),
+  });
   return res.json(updated);
 }));
 
@@ -705,7 +719,10 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableSto
 
   await deletePokemon(id);
 
-  console.log(`[AUDIT] [${new Date().toISOString()}] Pokémon eliminado: ID ${Number(id)} - ${sanitizeLogString(existing.nombre)}`);
+  logger.audit('Pokémon eliminado', {
+    id: Number(id),
+    nombre: sanitizeLogString(existing.nombre),
+  });
   return res.json({
     mensaje: `Pokémon con id ${id} eliminado correctamente`,
     pokemon_eliminado: existing,
@@ -761,7 +778,7 @@ app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiter, v
   }
   res.download(zipPath, 'pokedex-v2-migrated.zip', (err) => {
     if (err) {
-      console.error('[Download] Error serving zip:', err);
+      logger.error('Error al generar o servir archivo zip del repositorio', { error: err?.message || String(err) });
       if (!res.headersSent) {
         res.status(500).json({ error: 'No se pudo generar o descargar el archivo ZIP.' });
       }
@@ -813,7 +830,10 @@ app.get('*', (_req: Request, res: Response) => {
 // Middleware Global de Manejo de Errores (Express Error Boundary)
 // ---------------------------------------------------------------------------
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('[Unhandled Server Error]:', err?.message || err);
+  logger.error('Error no controlado en el servidor Express', {
+    error: err?.message || String(err),
+    stack: err?.stack,
+  });
   if (res.headersSent) {
     return;
   }
@@ -829,8 +849,12 @@ if (!isRunningTests) {
   initStorage().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       const health = getStorageHealth();
-      console.log(`[Pokédex Server] Running with security hardening on http://0.0.0.0:${PORT}`);
-      console.log(`[Pokédex Server] Storage: ${health.database.toUpperCase()} (PG: ${health.postgres_connected}, Redis: ${health.redis_connected}).`);
+      logger.info(`Pokédex Server iniciado en http://0.0.0.0:${PORT}`, {
+        port: PORT,
+        storage: health.database.toUpperCase(),
+        pgConnected: health.postgres_connected,
+        redisConnected: health.redis_connected,
+      });
     });
   });
 }
