@@ -11,7 +11,7 @@
  *   - LINEAR_API_KEY      (Requerido: API Key de Linear)
  *   - SONAR_TOKEN         (Opcional: Token de SonarCloud para consultas autenticadas)
  *   - SONAR_PROJECT_KEY   (Opcional: por defecto 'rocapellino_pokedex')
- *   - LINEAR_TEAM_KEY     (Opcional: por defecto 'PER')
+ *   - LINEAR_TEAM_KEY     (Opcional: por defecto 'PEX')
  *   - DRY_RUN             (Opcional: 'true' para simular sin crear tickets)
  */
 
