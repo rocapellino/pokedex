@@ -82,7 +82,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
    {
      "role": "admin",
      "iat": 1725800000,
-     "exp": 1725828800,
+     "exp": 1725814400,
      "jti": "5a7f9b0c2e3d4a1b"
    }
    ```
@@ -101,7 +101,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
   {
     "status": "authenticated",
     "token": "<base64url_payload>.<base64url_hmac_signature>",
-    "expires_in": 28800,
+    "expires_in": 14400,
     "role": "admin"
   }
   ```

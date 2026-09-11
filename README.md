@@ -198,8 +198,8 @@ flowchart TD
 | **`GET`** | `/healthz` | Pública | Ilimitado | **Liveness Probe**: Confirma que el proceso Node.js responde (`healthy`). |
 | **`GET`** | `/readyz` | Pública | Ilimitado | **Readiness Probe**: Verifica conectividad con PostgreSQL y Redis (`ready`). |
 | **`GET`** | `/metrics` | Pública | Ilimitado | Exportador nativo en formato de texto estándar para scraping de **Prometheus**. |
-| **`POST`** | `/api/v1/auth/session` | `X-API-Key: <ADMIN_API_KEY>` | 15 req/min | Intercambia API Key por un token de sesión firmado HMAC SHA-256 (`Bearer`). |
-| **`POST`** | `/api/v1/auth/logout` | `Bearer <Token>` (validación HMAC) | 15 req/min | Revoca token en Redis (`revoked:<jti>`). Rechaza firmas apócrifas (`400`). |
+| **`POST`** | `/api/v1/auth/session` | `X-API-Key: <ADMIN_API_KEY>` | 5 req/min | Intercambia API Key por un token de sesión firmado HMAC SHA-256 (`Bearer`). |
+| **`POST`** | `/api/v1/auth/logout` | `Bearer <Token>` (validación HMAC) | 5 req/min | Revoca token en Redis (`revoked:<jti>`). Rechaza firmas apócrifas (`400`). |
 | **`GET`** | `/pokemons` | Pública | Ilimitado (ETag) | Lista paginada y filtrable. Límite máx: 100 por página, offset máx: 10.000. |
 | **`GET`** | `/pokemons/:id` | Pública | Ilimitado (ETag) | Obtiene detalle por ID nacional (1 - 1025+). Retorna `404` si no existe. |
 | **`POST`** | `/pokemons` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Crea Pokémon. Asigna ID secuencial atómico. Requiere DB activa (`503` en fallo). |

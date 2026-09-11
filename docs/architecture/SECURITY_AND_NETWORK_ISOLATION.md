@@ -161,6 +161,10 @@ Para prevenir ataques de Server-Side Request Forgery (SSRF) dirigidos a endpoint
           - 127.0.0.0/8         # Loopback
 ```
 
+> [!NOTE]
+> **Limitación de Egress L3/L4 y Roadmap a FQDN Allowlist:**
+> La primitiva nativa de Kubernetes `NetworkPolicy` (`networking.k8s.io/v1`) opera exclusivamente en capas 3 y 4 (IP/CIDR y Puertos). Al no disponer de inspección de capa 7 a nivel de nombre de dominio (FQDN), la regla actual excluye rangos privados y metadatos IMDS (`0.0.0.0/0 except`), lo que bloquea eficazmente el SSRF interno pero mantiene abierto el puerto 443 hacia cualquier IP pública (necesario para la API externa de Gemini AI y PokeAPI). Para neutralizar el vector residual de exfiltración de datos hacia servidores externos del atacante, el roadmap contempla implementar un **Egress Gateway dedicado** (o *Cilium NetworkPolicy* con `toFQDNs: [{matchName: "generativelanguage.googleapis.com"}]`).
+
 ### 5.4. Restricción de Tráfico DNS a CoreDNS
 La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cualquier IP externa; está restringida exclusivamente a los pods del clúster etiquetados con `k8s-app: kube-dns`.
 

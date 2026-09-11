@@ -113,3 +113,22 @@ test('🛡️ Startup Env Check: SKIP_ENV_CHECK=true sí permite bypass en entor
   }
 });
 
+test('🛡️ Seguridad Express: Middleware inyecta cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy', async () => {
+  const server = app.listen(0);
+  const address = server.address();
+  const port = typeof address === 'object' && address ? address.port : 3000;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/version`);
+    assert.equal(res.status, 200);
+
+    assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(res.headers.get('x-frame-options'), 'SAMEORIGIN');
+    assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    assert.ok(res.headers.get('content-security-policy')?.includes("default-src 'self'"));
+    assert.ok(res.headers.get('permissions-policy')?.includes('camera=()'));
+  } finally {
+    server.close();
+  }
+});
+

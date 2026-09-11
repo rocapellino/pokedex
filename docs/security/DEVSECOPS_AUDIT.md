@@ -1,37 +1,23 @@
-# 🛡️ Evaluación Técnica Integral y Auditoría DevSecOps — Pokédex
+# 🛡️ Auditoría DevSecOps y Evaluación de Madurez Operativa
 
-Este documento recoge la evaluación técnica de arquitectura, topología, análisis de vectores de vulnerabilidad, madurez operativa en DevSecOps y la hoja de ruta de modernización de la plataforma **Pokédex**.
+Este documento condensa los resultados de la auditoría de seguridad integral, análisis estático y dinámico, evaluación de la cadena de suministro y análisis de superficie de ataque para la plataforma **Pokédex**.
 
 ---
 
-## 1. Arquitectura de la Plataforma y Topología del Monorepo
+## 📑 Tabla de Contenidos
 
-La solución adopta un patrón de monorepo desacoplado enfocado en alta disponibilidad, resiliencia y portabilidad de cargas de trabajo híbridas (on-premise / Proxmox VE y Kubernetes de nube pública).
+- [🛡️ Auditoría DevSecOps y Evaluación de Madurez Operativa](#️-auditoría-devsecops-y-evaluación-de-madurez-operativa)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [1. Perfil del Sistema y Componentes Auditados](#1-perfil-del-sistema-y-componentes-auditados)
+  - [2. Análisis de Vulnerabilidades y Gestión del Riesgo](#2-análisis-de-vulnerabilidades-y-gestión-del-riesgo)
+  - [3. Evaluación de Buenas Prácticas y Madurez DevSecOps](#3-evaluación-de-buenas-prácticas-y-madurez-devsecops)
+  - [4. Hoja de Ruta de Modernización](#4-hoja-de-ruta-de-modernización)
 
-```mermaid
-graph TD
-    User([Cliente Web / Navegador]) -->|HTTPS:8080| Ingress[Ingress / Nginx Proxy]
-    Ingress -->|Static Assets / Cache| Frontend[apps/frontend: SPA Vanilla JS]
-    Ingress -->|/api/* & /pokemons| Backend[apps/backend: Express API Node 22]
-    
-    subgraph Core Platform
-        Backend -->|Pool Read/Write| PgBouncer[PgBouncer Connection Pooler]
-        PgBouncer -->|Persistence| Postgres[(PostgreSQL 16)]
-        Backend -->|Cache, Revocation, RateLimit| Redis[(Redis 7)]
-        Backend -->|Inference Fallback| GeminiAPI[Google Gemini API]
-    end
+---
 
-    subgraph Operations & DevSecOps
-        GitOps[GitOps ArgoCD / Helm] --> Ingress
-        Cosign[Cosign Image Verification] --> Kyverno[Kyverno Admission Controller]
-        Kyverno -.-> Backend
-        Trivy[Trivy & Gitleaks] -.-> GitOps
-    end
-```
+## 1. Perfil del Sistema y Componentes Auditados
 
-### Inventario de Módulos
-
-| Módulo o Componente | Ruta en Repositorio | Pila Tecnológica | Propósito Operacional |
+| Capa / Subsistema | Ruta en Repositorio | Stack Tecnológico | Rol Operativo & Superficie Expuesta |
 | :--- | :--- | :--- | :--- |
 | **Núcleo de API REST** | [`apps/backend`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend) | Node.js 22 LTS, TypeScript, PostgreSQL, Redis | Ingesta, validación, lógica de negocio y persistencia relacional. |
 | **Capa de Presentación** | [`apps/frontend`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend) | Vanilla JS, HTML5/CSS3, Nginx Proxy | Interfaz gráfica pública y backoffice administrativo ligero. |
@@ -47,10 +33,11 @@ graph TD
 | Vector de Riesgo | Archivo Afectado | Severidad | Mecanismo del Fallo | Impacto Técnico & Mitigación |
 | :--- | :--- | :---: | :--- | :--- |
 | **Inyección de Código SQL** | [`apps/backend/src/services/db.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/services/db.ts) | **Crítica** | Interpolación no segura en consultas dinámicas. | **Mitigado:** Parámetros vinculados obligatorios (`$1`, `$2`) en todo el ciclo CRUD. |
+| **Inyección de Código (XSS)** | [`apps/backend/src/validation/pokemon.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/validation/pokemon.ts) | **Media** | Inyección de etiquetas HTML maliciosas o pseudo-protocolos (`javascript:`, `onerror=`) en atributos del catálogo. | **Mitigado (Defensa en profundidad):** Filtro preventivo de tokens y delimitadores (`SCRIPT_PATTERN`) en backend, complementado por función `escapeHTML` estricta en frontend. *Limitación conocida:* Es un filtrado por lista negra; el roadmap contempla migración a Zod con parser/sanitizador HTML dedicado. |
 | **Manipulación DOM (XSS)** | [`apps/frontend/public/js/*.js`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend/public/js/pokedex.js) | **Alta** | Renderizado de respuestas de API en el DOM vía `innerHTML`. | **Mitigado:** Función `escapeHTML` estricta sanitizando `<`, `>`, `&`, `"`, `'` y backticks. |
 | **Prompt Injection / DoS** | [`apps/backend/src/services/ai.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/services/ai.ts) | **Media** | Entrada no delimitada y carencia de disyuntor ante latencias. | **Mitigado:** Delimitadores semánticos XML `<user_prompt>`, sanitización y Circuit Breaker. |
 | **Fuga de Secretos en Procesos** | [`scripts/proxmox_deploy.sh`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/scripts/proxmox_deploy.sh) | **Alta** | Parámetros confidenciales por CLI visibles en `/proc` o `ps aux`. | **Mitigado:** Prioridad de variables de entorno, `umask 077` y exclusión estricta de `.env`. |
-| **Omisión de Cabeceras HTTP** | [`apps/frontend/nginx.conf`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend/nginx.conf) | **Media** | Pérdida de cabeceras en bloques `location` con `add_header` propio. | **Mitigado:** Inclusión sistemática de directivas de seguridad en bloques anidados. |
+| **Omisión de Cabeceras HTTP** | [`apps/backend/server.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/server.ts), [`apps/frontend/nginx.conf`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend/nginx.conf) | **Media** | Pérdida de cabeceras en bypass de Ingress, port-forward directo o bloques `location` con `add_header` propio. | **Mitigado:** Inyección redundante de CSP, HSTS, X-Content-Type-Options y Permissions-Policy tanto en Express como en Nginx. |
 | **Exposición de Estado IaC** | [`infra/opentofu/environments/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments) | **Alta** | Riesgo de persistencia de `.tfstate` con valores en claro. | **Mitigado:** Recomendación de backend remoto S3/PostgreSQL con cifrado en reposo. |
 
 ---
@@ -71,9 +58,12 @@ El repositorio supera los estándares habituales de la industria incorporando de
 
 | Ámbito de Mejora | Solución Propuesta | Horizonte Temporal | Impacto en la Plataforma |
 | :--- | :--- | :---: | :--- |
+| **Hardening de Cabeceras** | Cobertura total de CSP, HSTS y Permissions-Policy en Nginx y Express | Implementado | Protección contra Clickjacking, MIME sniffing y omisión de Ingress en port-forward. |
 | **Gestión de Estados IaC** | Backend remoto cifrado (S3 / OpenTofu HTTP / PG) | Inmediato | Protección absoluta de secretos y sincronización de infraestructura. |
-| **Resiliencia en IA** | Circuit Breaker con degradación y delimitadores de prompt | Inmediato | Prevención de saturación de hilos y blindaje anti-inyecciones. |
-| **Hardening de Cabeceras** | Cobertura total de CSP, HSTS y Permissions-Policy en Nginx | Inmediato | Protección contra Clickjacking, MIME sniffing y degradación SSL. |
-| **Gestión de Datos** | Reemplazo de `init.sql` por migraciones declarativas (Drizzle / Flyway) | Corto Plazo | Despliegues continuos sin interrupción y reversibilidad de esquemas. |
+| **Resiliencia en IA** | Circuit Breaker con degradación y delimitadores de prompt | Implementado | Prevención de saturación de hilos y blindaje anti-inyecciones. |
+| **Aislamiento Egress L7** | Egress Gateway / Cilium FQDN NetworkPolicy (`generativelanguage.googleapis.com`) | Corto Plazo | Eliminación de salida `0.0.0.0/0` en HTTPS previniendo exfiltración externa. |
+| **Validación de Datos (XSS)** | Migración de regex `SCRIPT_PATTERN` a Zod + sanitizador HTML dedicado | Corto Plazo | Validación tipada estructural en lugar de listas negras de tokens. |
+| **Rotación de Credenciales** | Rotación programada automatizada de `ADMIN_API_KEY` (90 días) vía ExternalSecret | Corto Plazo | Reducción de la ventana de exposición ante fugas de la clave maestra. |
+| **Gestión de Datos** | Reemplazo de `init.sql` por migraciones declarativas (Drizzle / Flyway) | Medio Plazo | Despliegues continuos sin interrupción y reversibilidad de esquemas. |
 | **Capa Frontend** | Migración a TypeScript estructurado con empaquetador Vite | Medio Plazo | Tipado unificado de modelos y eliminación estructural de XSS en DOM. |
 | **Telemetría** | Instrumentación de OpenTelemetry y registros JSON correlacionados (Pino) | Medio Plazo | Diagnóstico distribuido y observabilidad extremo a extremo. |
