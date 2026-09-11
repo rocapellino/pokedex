@@ -85,7 +85,8 @@ echo "Iniciando stack de producción..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
 
 sleep 4
-curl -fsSL http://localhost:8080/healthz || true
+HC_SCHEME="${PROXMOX_HEALTHCHECK_SCHEME:-http}"
+curl -fsSL "${HC_SCHEME}://localhost:8080/healthz" || true
 EOF
 
 PROTO="${PROXMOX_PROTOCOL:-https}"

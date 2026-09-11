@@ -65,7 +65,14 @@ spec:
             - containerPort: {{ .Values.redis.port }}
               name: redis
           resources:
-            {{- toYaml .Values.redis.resources | nindent 12 }}
+            limits:
+              cpu: {{ .Values.redis.resources.limits.cpu | default "250m" | quote }}
+              memory: {{ .Values.redis.resources.limits.memory | default "256Mi" | quote }}
+              ephemeral-storage: {{ index .Values.redis.resources.limits "ephemeral-storage" | default "256Mi" | quote }}
+            requests:
+              cpu: {{ .Values.redis.resources.requests.cpu | default "50m" | quote }}
+              memory: {{ .Values.redis.resources.requests.memory | default "64Mi" | quote }}
+              ephemeral-storage: {{ index .Values.redis.resources.requests "ephemeral-storage" | default "64Mi" | quote }}
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
