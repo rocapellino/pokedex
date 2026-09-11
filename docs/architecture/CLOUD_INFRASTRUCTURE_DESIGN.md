@@ -148,7 +148,7 @@ flowchart TD
 | **Política de Seguridad** | `infra/k8s` | Admisión de contenedores y firma de la cadena de suministro. | Kyverno Policy Validating Cosign OIDC | Kyverno Policy Validating Cosign OIDC |
 | **Base de Datos** | `modules/database` | Persistencia relacional PostgreSQL 16 con JSONB. | Amazon RDS for PostgreSQL (Multi-AZ) | PostgreSQL 16 HA StatefulSet / Bitnami |
 | **Caché en Memoria** | `modules/database` | Caché distribuida sub-3ms y sesiones. | Amazon ElastiCache Redis 7 | Redis 7 StatefulSet / Sentinel |
-| **Almacenamiento de Objetos**| `modules/storage` | Almacenamiento de backups cifrados y assets. | Amazon S3 con Bucket Policy restrictiva | MinIO S3-Compatible / Ceph RGW |
+| **Almacenamiento de Objetos** | `modules/storage` | Almacenamiento de backups cifrados y assets. | Amazon S3 con Bucket Policy restrictiva | MinIO S3-Compatible / Ceph RGW |
 
 ---
 
