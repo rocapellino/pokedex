@@ -75,6 +75,18 @@ test('🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados c
   assert.ok(fs.existsSync(proxmoxEnvPath), 'infra/opentofu/environments/proxmox debe existir');
 });
 
+test('🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend', () => {
+  const docPath = path.join(ROOT_DIR, 'docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md');
+  assert.ok(fs.existsSync(docPath), 'CLOUD_INFRASTRUCTURE_DESIGN.md debe existir');
+  const content = fs.readFileSync(docPath, 'utf-8');
+  assert.ok(content.includes('Kubernetes como el runtime universal'), 'Debe formalizar Kubernetes como runtime universal');
+  assert.ok(content.includes('environments/aws'), 'Debe referenciar environments/aws');
+  assert.ok(content.includes('environments/proxmox'), 'Debe referenciar environments/proxmox');
+  assert.ok(content.includes('Single Production Runtime') || content.includes('Producción Universal'), 'Debe formalizar política de producción');
+  assert.ok(content.includes('task dev:compose'), 'Debe formalizar task dev:compose');
+  assert.ok(content.includes('task dev:k8s:up'), 'Debe formalizar task dev:k8s:up');
+});
+
 test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
   const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
   assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');
