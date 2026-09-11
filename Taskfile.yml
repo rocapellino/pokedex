@@ -248,6 +248,11 @@ tasks:
     cmds:
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml {{.CLI_ARGS}}
 
+  dr:verify:
+    desc: "Verifica la integridad de copias de seguridad de PostgreSQL (simulación no destructiva AES-256 + SHA-256)"
+    cmds:
+      - bash scripts/dr_verify_restore.sh --dry-run
+
 
   # ----------------------------------------------------------------------------
   # Infraestructura como Código (IaC) Híbrida con OpenTofu

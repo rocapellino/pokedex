@@ -6,7 +6,8 @@
 #   RPO (Recovery Point Objective): < 24 horas
 #   RTO (Recovery Time Objective):  < 2 horas
 # ==============================================================================
-set -euo pipefail
+set -eu
+(set -o pipefail 2>/dev/null) && set -o pipefail || true
 
 DRY_RUN=false
 BACKUP_FILE="${1:-}"
