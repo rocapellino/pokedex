@@ -5,11 +5,17 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 ---
 
 ## 📑 Tabla de Contenidos
-1. [Versiones con Soporte](#1-versiones-con-soporte)
-2. [Reporte de Vulnerabilidades (Responsible Disclosure)](#2-reporte-de-vulnerabilidades-responsible-disclosure)
-3. [Acuerdo de Nivel de Servicio (SLA de Respuesta)](#3-acuerdo-de-nivel-de-servicio-sla-de-respuesta)
-4. [Alcance y Exclusiones](#4-alcance-y-exclusiones)
-5. [Controles y Arquitectura de Seguridad Implementados](#5-controles-y-arquitectura-de-seguridad-implementados)
+- [🛡️ Política de Seguridad y Divulgación Responsable (Security Policy)](#️-política-de-seguridad-y-divulgación-responsable-security-policy)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [1. Versiones con Soporte](#1-versiones-con-soporte)
+  - [2. Reporte de Vulnerabilidades (Responsible Disclosure)](#2-reporte-de-vulnerabilidades-responsible-disclosure)
+    - [Canales Seguros de Comunicación:](#canales-seguros-de-comunicación)
+    - [Información a Incluir en el Reporte:](#información-a-incluir-en-el-reporte)
+  - [3. Acuerdo de Nivel de Servicio (SLA de Respuesta)](#3-acuerdo-de-nivel-de-servicio-sla-de-respuesta)
+  - [4. Alcance y Exclusiones](#4-alcance-y-exclusiones)
+    - [En Alcance (In Scope):](#en-alcance-in-scope)
+    - [Fuera de Alcance (Out of Scope):](#fuera-de-alcance-out-of-scope)
+  - [5. Controles y Arquitectura de Seguridad Implementados](#5-controles-y-arquitectura-de-seguridad-implementados)
 
 ---
 
@@ -32,12 +38,9 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 > La divulgación pública prematura expone a los usuarios antes de que podamos publicar un parche de remediación.
 
 ### Canales Seguros de Comunicación:
-1. **GitHub Private Vulnerability Reporting (Recomendado):**
+**GitHub Private Vulnerability Reporting (Recomendado):**
    * Dirígete a la pestaña **Security** del repositorio en GitHub: [Report a Vulnerability](https://github.com/rocapellino/pokedex/security/advisories/new).
    * Proporciona un informe detallado con pasos de reproducción, impacto estimado y prueba de concepto (PoC).
-2. **Correo Electrónico de Seguridad:**
-   * Si no dispones de cuenta en GitHub, puedes remitir tu reporte a:  
-     📧 **`ro.capellino@gmail.com`** con el asunto `[SECURITY VULNERABILITY] Pokédex API`.
 
 ### Información a Incluir en el Reporte:
 * Descripción clara de la vulnerabilidad y vector de ataque.

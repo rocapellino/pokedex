@@ -101,10 +101,10 @@ El panel Backoffice proporciona control operativo completo para la gestión del 
 | `color-bg-surface` | Contenedores y tarjetas | `#1f2937` | `#ffffff` |
 | `color-border-subtle` | Delimitadores y bordes | `#374151` | `#e2e8f0` |
 | `color-text-primary` | Texto principal y encabezados | `#ffffff` | `#0f172a` |
-| `color-text-secondary`| Subtítulos y etiquetas | `#9ca3af` | `#64748b` |
+| `color-text-secondary` | Subtítulos y etiquetas | `#9ca3af` | `#64748b` |
 | `color-brand-primary` | Acentos y acción primaria | `#ef4444` (Pokéball Red) | `#dc2626` |
-| `color-status-success`| Éxito / Estado saludable | `#10b981` | `#059669` |
-| `color-status-warning`| Advertencia / Atención | `#f59e0b` | `#d97706` |
+| `color-status-success` | Éxito / Estado saludable | `#10b981` | `#059669` |
+| `color-status-warning` | Advertencia / Atención | `#f59e0b` | `#d97706` |
 
 ---
 
