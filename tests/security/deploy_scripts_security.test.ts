@@ -35,6 +35,13 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh excluye obligatoriament
   assert.ok(content.includes('--exclude=.env.*') || content.includes("--exclude='.env.*'"), 'proxmox_deploy.sh debe contener exclusión explícita de .env.*');
 });
 
+test('🛡️ Deploy Security: scripts/proxmox_deploy.sh aplica umask 077 y soporte seguro de variables de entorno', () => {
+  const filePath = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
+  const content = fs.readFileSync(filePath, 'utf-8');
+  assert.ok(content.includes('umask 077'), 'proxmox_deploy.sh debe ejecutar tar bajo umask 077 para proteger artefactos temporales');
+  assert.ok(content.includes('PROXMOX_HOST='), 'proxmox_deploy.sh debe soportar PROXMOX_HOST vía env');
+});
+
 test('🛡️ Deploy Security: Ansible playbooks excluyen .env en módulos synchronize', () => {
   const playbooks = [
     'infra/ansible/playbooks/deploy_proxmox.yml',

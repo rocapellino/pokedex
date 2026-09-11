@@ -1,0 +1,55 @@
+# ==============================================================================
+# OpenTofu Backend Remoto Cifrado (Plantilla de Producción)
+# ==============================================================================
+# Copiar este archivo como backend.tf en cada entorno (proxmox o cloud) y ajustar
+# las credenciales para almacenar el estado .tfstate de forma remota y cifrada.
+#
+# NUNCA persistas archivos .tfstate en el repositorio Git ni en terminales locales.
+# Los estados de OpenTofu contienen contraseñas de infraestructura, tokens de API
+# y claves privadas generadas durante el aprovisionamiento.
+# ==============================================================================
+
+terraform {
+  # ----------------------------------------------------------------------------
+  # Opción A: Backend Remoto S3 Cifrado (AWS S3, MinIO On-Premise o Ceph)
+  # ----------------------------------------------------------------------------
+  backend "s3" {
+    bucket         = "pokedex-opentofu-state-prod"
+    key            = "environments/proxmox/terraform.tfstate"
+    region         = "us-east-1"
+    
+    # Cifrado obligatorio en reposo mediante SSE (Server-Side Encryption)
+    encrypt        = true
+    # kms_key_id   = "arn:aws:kms:us-east-1:123456789012:key/pokedex-tfstate-key"
+
+    # Bloqueo de concurrencia mediante DynamoDB para prevenir condiciones de carrera
+    dynamodb_table = "pokedex-opentofu-locks"
+
+    # Opciones para MinIO on-premise en Proxmox:
+    # endpoint                    = "https://minio.mgmt.pokedex.internal:9000"
+    # skip_credentials_validation = true
+    # skip_metadata_api_check     = true
+    # skip_region_validation      = true
+    # force_path_style            = true
+  }
+
+  # ----------------------------------------------------------------------------
+  # Opción B: Backend Remoto PostgreSQL (Utilizando la BD del clúster)
+  # ----------------------------------------------------------------------------
+  # backend "pg" {
+  #   conn_str    = "postgres://tofu_user:tofu_pass@pgbouncer.monitoring.svc:5432/tofu_state?sslmode=require"
+  #   schema_name = "opentofu_states"
+  # }
+
+  # ----------------------------------------------------------------------------
+  # Opción C: Backend Remoto HTTP / GitLab Managed Terraform State
+  # ----------------------------------------------------------------------------
+  # backend "http" {
+  #   address        = "https://gitlab.example.com/api/v4/projects/123/terraform/state/proxmox"
+  #   lock_address   = "https://gitlab.example.com/api/v4/projects/123/terraform/state/proxmox/lock"
+  #   unlock_address = "https://gitlab.example.com/api/v4/projects/123/terraform/state/proxmox/lock"
+  #   lock_method    = "POST"
+  #   unlock_method  = "DELETE"
+  #   retry_wait_min = 5
+  # }
+}
