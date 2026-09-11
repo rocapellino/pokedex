@@ -64,6 +64,17 @@ test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default har
   assert.ok(!varBlock.includes('default'), 'variable "ssh_public_key" no debe tener un valor default hardcodeado');
 });
 
+test('🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente', () => {
+  const awsEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/aws');
+  assert.ok(fs.existsSync(awsEnvPath), 'infra/opentofu/environments/aws debe existir');
+  assert.ok(fs.existsSync(path.join(awsEnvPath, 'main.tf')), 'aws/main.tf debe existir');
+  assert.ok(fs.existsSync(path.join(awsEnvPath, 'providers.tf')), 'aws/providers.tf debe existir');
+  assert.ok(fs.existsSync(path.join(awsEnvPath, 'variables.tf')), 'aws/variables.tf debe existir');
+
+  const proxmoxEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox');
+  assert.ok(fs.existsSync(proxmoxEnvPath), 'infra/opentofu/environments/proxmox debe existir');
+});
+
 test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
   const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
   assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');

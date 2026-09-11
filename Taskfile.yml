@@ -270,31 +270,46 @@ tasks:
     cmds:
       - tofu apply
 
-  tofu:init:cloud:
+  tofu:init:aws:
     desc: "Inicializa el entorno OpenTofu para AWS EKS en la nube"
-    dir: infra/opentofu/environments/cloud
+    dir: infra/opentofu/environments/aws
     cmds:
       - tofu init
 
-  tofu:plan:cloud:
+  tofu:plan:aws:
     desc: "Ejecuta tofu plan para el clúster AWS EKS en la nube"
-    dir: infra/opentofu/environments/cloud
+    dir: infra/opentofu/environments/aws
     cmds:
       - tofu plan
 
-  tofu:apply:cloud:
+  tofu:apply:aws:
     desc: "Aplica la infraestructura AWS EKS con OpenTofu"
-    dir: infra/opentofu/environments/cloud
+    dir: infra/opentofu/environments/aws
     cmds:
       - tofu apply
 
+  tofu:init:cloud:
+    desc: "Alias de tofu:init:aws"
+    cmds:
+      - task: tofu:init:aws
+
+  tofu:plan:cloud:
+    desc: "Alias de tofu:plan:aws"
+    cmds:
+      - task: tofu:plan:aws
+
+  tofu:apply:cloud:
+    desc: "Alias de tofu:apply:aws"
+    cmds:
+      - task: tofu:apply:aws
+
   tofu:validate:
-    desc: "Valida la sintaxis de todos los entornos híbridos de OpenTofu"
+    desc: "Valida la sintaxis de todos los entornos híbridos de OpenTofu (Proxmox + AWS)"
     cmds:
       - tofu -chdir=infra/opentofu/environments/proxmox init -backend=false
       - tofu -chdir=infra/opentofu/environments/proxmox validate
-      - tofu -chdir=infra/opentofu/environments/cloud init -backend=false
-      - tofu -chdir=infra/opentofu/environments/cloud validate
+      - tofu -chdir=infra/opentofu/environments/aws init -backend=false
+      - tofu -chdir=infra/opentofu/environments/aws validate
 
   # ----------------------------------------------------------------------------
   # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK)

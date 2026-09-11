@@ -61,9 +61,9 @@ jobs:
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox y Cloud)
+      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox y AWS)
         run: |
-          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/cloud; do
+          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/aws; do
             echo "Verificando formato OpenTofu (fmt -check) en $dir..."
             tofu -chdir="$dir" fmt -check
             echo "Validando entorno OpenTofu en $dir..."
