@@ -5,6 +5,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Información General y Arquitectura de Middlewares](#1-información-general-y-arquitectura-de-middlewares)
 2. [Diagrama de Flujo del Pipeline de Procesamiento HTTP](#2-diagrama-de-flujo-del-pipeline-de-procesamiento-http)
 3. [Autenticación, Sesiones y Seguridad Criptográfica](#3-autenticación-sesiones-y-seguridad-criptográfica)
@@ -15,6 +16,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 8. [Endpoints Administrativos y de Utilidad](#8-endpoints-administrativos-y-de-utilidad)
 9. [Esquema de Datos de Pokémon (TypeScript Interfaces)](#9-esquema-de-datos-de-pokémon-typescript-interfaces)
 10. [Códigos de Estado HTTP y Manejo de Errores](#10-códigos-de-estado-http-y-manejo-de-errores)
+11. [Referencia Canónica de Rate Limiters](#11-referencia-canónica-de-rate-limiters)
 
 ---
 
@@ -24,7 +26,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 * **Formato de Comunicación:** `application/json; charset=utf-8`.
 * **Runtime:** Node.js 22 LTS compilado con esbuild sobre contenedor Alpine endurecido (UID no-root: `1001`).
 * **Límite de Payload:** Máximo de 250 KB (`express.json({ limit: '250kb' })`) para prevenir ataques DoS por saturación de memoria.
-* **Cabeceras de Seguridad:** Inyección automática de `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
+* **Cabeceras de Seguridad:** Inyección automática de `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
 * **Políticas CORS:** Configuración en modo *fail-closed*. En producción exige definición explícita de `CORS_ORIGINS`; en desarrollo restringe estrictamente a loopback (`localhost:3000`, `localhost:8080`, `127.0.0.1`).
 * **Estrategia de Caché y Validación Condicional:** Catálogo en memoria y Redis 7 con resolución sub-3ms mediante claves `pokedex:list:*` e invalidación automática ante mutaciones. Validación condicional de clientes mediante cabeceras `ETag` y `Cache-Control: public, max-age=60, stale-while-revalidate=300`.
 
@@ -34,7 +36,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 
 ```mermaid
 flowchart TD
-    REQ(["Petición Entrante HTTP"]) --> MW1["1. Headers de Hardening\n(nosniff, SAMEORIGIN, strip x-powered-by)"]
+    REQ(["Petición Entrante HTTP"]) --> MW1["1. Headers de Hardening\n(CSP, HSTS, nosniff, SAMEORIGIN)"]
     MW1 --> MW2{"2. CORS Policy\n(¿Origen permitido?)"}
     MW2 -->|No permitido| ERR_CORS["❌ 403 / Error CORS\nFail-closed en producción"]
     MW2 -->|Permitido| MW3["3. Body Parser\n(JSON limit: 250kb)"]
@@ -78,14 +80,16 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
    * Verificar la validez de los tokens sin exponer la clave administrativa maestra.
 3. **Prevención de Timing Attacks:** Todas las comparaciones de contraseñas y claves se ejecutan mediante `crypto.timingSafeEqual` sobre hashes SHA-256 de longitud constante fija.
 4. **Estructura del Token de Sesión:**
+
    ```json
    {
      "role": "admin",
      "iat": 1725800000,
-     "exp": 1725828800,
+     "exp": 1725814400,
      "jti": "5a7f9b0c2e3d4a1b"
    }
    ```
+
 5. **Revocación Distribuida Fail-Closed:** Al cerrar sesión (`POST /api/v1/auth/logout`), se valida primero la firma HMAC del token para rechazar firmas apócrifas con `400 Bad Request`. Si es válido, se almacena el `jti` en Redis bajo la clave `revoked:<jti>` con TTL exacto al tiempo restante de expiración. Si Redis no está disponible, el sistema responde `503 Service Unavailable` bloqueando el logout en modo *fail-closed*.
 
 ---
@@ -93,19 +97,23 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ## 4. Endpoints de Autenticación y Sesiones
 
 ### 4.1. Iniciar Sesión / Intercambiar Credencial por Token
+
 * **Ruta:** `POST /api/v1/auth/session`
 * **Autenticación:** Requiere cabecera `X-API-Key: <ADMIN_API_KEY>` o `Authorization: Bearer <ADMIN_API_KEY>`.
 * **Rate Limit:** 5 solicitudes/minuto por IP (`authRateLimiter`).
 * **Respuesta Exitosa (`200 OK`):**
+
   ```json
   {
     "status": "authenticated",
     "token": "<base64url_payload>.<base64url_hmac_signature>",
-    "expires_in": 28800,
+    "expires_in": 14400,
     "role": "admin"
   }
   ```
+
 * **Respuesta de Error (`401 Unauthorized`):**
+
   ```json
   {
     "detail": "Credencial inválida o no proporcionada"
@@ -115,6 +123,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ---
 
 ### 4.2. Cerrar Sesión y Revocar Token
+
 * **Ruta:** `POST /api/v1/auth/logout`
 * **Autenticación:** Requiere cabecera `Authorization: Bearer <Token>` o `X-Session-Token: <Token>`.
 * **Rate Limit:** 5 solicitudes/minuto por IP (`authRateLimiter`).
@@ -124,6 +133,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
   3. Si la firma es válida: almacena `revoked:<jti>` en Redis con TTL.
   4. Si Redis está caído: **`503 Service Unavailable`** (`Almacenamiento de revocación no disponible (fail-closed)`).
 * **Respuesta Exitosa (`200 OK`):**
+
   ```json
   {
     "status": "success",
@@ -136,9 +146,11 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ## 5. Endpoints del Catálogo de Pokémon
 
 ### 5.1. Listar y Filtrar Pokémon (Con Paginación Segura Anti-DoS)
+
 * **Ruta:** `GET /pokemons`
 * **Autenticación:** Pública (sin credenciales).
 * **Parámetros de Consulta (Query Params):**
+
   | Parámetro | Tipo | Restricción Anti-DoS | Descripción |
   | :--- | :--- | :--- | :--- |
   | `tipo` | `string` | Máx. 50 caracteres | Filtra por tipo elemental en español (ej: `Fuego`, `Agua`, `Eléctrico`). |
@@ -155,10 +167,12 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ---
 
 ### 5.2. Obtener Detalle de un Pokémon por ID
+
 * **Ruta:** `GET /pokemons/:id`
 * **Parámetros de Ruta:** `:id` (Entero positivo, ej: `25`).
 * **Respuesta Exitosa (`200 OK`):** Objeto Pokémon completo.
 * **Respuesta de Error (`404 Not Found`):**
+
   ```json
   {
     "detail": "Pokémon con id 9999 no encontrado"
@@ -168,6 +182,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ---
 
 ### 5.3. Crear un Nuevo Pokémon
+
 * **Ruta:** `POST /pokemons`
 * **Autenticación:** Requiere `Bearer <Token>` o `ADMIN_API_KEY`.
 * **Rate Limit:** 30 solicitudes/minuto por IP (`mutationRateLimiter`).
@@ -175,6 +190,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 * **Sanitización XSS:** Valida que ningún campo contenga `<...>` o `javascript:`. En caso de detección responde **`422 Unprocessable Entity`**.
 * **Asignación de ID:** Si no se especifica `id`, la secuencia atómica `pokedex_id_seq` asigna automáticamente el siguiente valor disponible a partir del máximo actual o 1008+.
 * **Cuerpo de la Petición (Request Body):**
+
   ```json
   {
     "nombre": "Pecharunt",
@@ -201,11 +217,13 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
     }
   }
   ```
+
 * **Respuesta Exitosa (`201 Created`):** Objeto JSON del Pokémon creado con su `id` asignado.
 
 ---
 
 ### 5.4. Actualizar un Pokémon Existente
+
 * **Ruta:** `PUT /pokemons/:id`
 * **Autenticación:** Requiere `Bearer <Token>` o `ADMIN_API_KEY`.
 * **Rate Limit:** 30 solicitudes/minuto.
@@ -215,11 +233,13 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ---
 
 ### 5.5. Eliminar un Pokémon
+
 * **Ruta:** `DELETE /pokemons/:id`
 * **Autenticación:** Requiere `Bearer <Token>` o `ADMIN_API_KEY`.
 * **Rate Limit:** 30 solicitudes/minuto.
 * **Descripción:** Elimina el registro de PostgreSQL e invalida la caché en Redis.
 * **Respuesta Exitosa (`200 OK`):**
+
   ```json
   {
     "mensaje": "Pokémon con id 25 eliminado con éxito"
@@ -239,15 +259,21 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
 * **Timeout y Resiliencia:** Todas las llamadas a la API de Gemini están protegidas por un timeout estricto de **12 segundos** (`withTimeout(12000)`). En caso de timeout o indisponibilidad de API Key, se activa de forma transparente un generador determinista local de respaldo.
 * **Tokens Máximos:** `maxOutputTokens: 1024` para garantizar tiempos de respuesta ágiles.
 
+---
+
 ### 6.1. Generar Diagrama de Arquitectura
+
 * **Ruta:** `POST /api/v1/ai/diagram`
 * **Cuerpo de la Petición:**
+
   ```json
   {
     "topic": "Flujo de lectura con caché Redis y fallback en PostgreSQL"
   }
   ```
+
 * **Respuesta Exitosa (`200 OK`):**
+
   ```json
   {
     "topic": "Flujo de lectura con caché Redis y fallback en PostgreSQL",
@@ -258,27 +284,33 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
 ---
 
 ### 6.2. Generar Especificación de Mockup de UI
+
 * **Ruta:** `POST /api/v1/ai/mock`
 * **Cuerpo de la Petición:**
+
   ```json
   {
     "component_name": "PokemonEvolutionChain"
   }
   ```
+
 * **Respuesta Exitosa (`200 OK`):** Retorna la especificación JSON estructurada del componente.
 
 ---
 
 ### 6.3. Generar Prompt de Asset de Imagen
+
 * **Ruta:** `POST /api/v1/ai/image`
 * **Aspect Ratios Soportados:** `"1:1"`, `"16:9"`, `"9:16"`, `"4:3"`, `"3:4"`.
 * **Cuerpo de la Petición:**
+
   ```json
   {
     "prompt": "Ilustración estilo Sugimori de un Pokémon dragón eléctrico",
     "aspect_ratio": "1:1"
   }
   ```
+
 * **Respuesta Exitosa (`200 OK`):** Retorna el prompt estructurado y metadata del asset.
 
 ---
@@ -296,12 +328,16 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
 ## 8. Endpoints Administrativos y de Utilidad
 
 ### 8.1. Exportación del Repositorio (`/download/repo`)
+
 * **Rutas alternativas:** `/download`, `/download-zip`, `/download/repo`
 * **Autenticación:** Requiere `ADMIN_API_KEY` o Bearer Token válido.
 * **Rate Limit:** 30 solicitudes/minuto.
 * **Propósito:** Genera y transmite dinámicamente un archivo `.zip` con el código fuente del repositorio para auditoría o respaldo local fuera de línea.
 
+---
+
 ### 8.2. Panel de Backoffice (`/backoffice.html`)
+
 * **Rutas alternativas:** `/admin`, `/backoffice`, `/backoffice.html`
 * **Control de Acceso:** Middleware `adminIpRestricted` que restringe el acceso al panel a direcciones IP locales de administración (`127.0.0.1`, `::1`, `localhost` y rangos RFC1918 configurados).
 
@@ -368,11 +404,10 @@ export interface Pokemon {
 > Si se modifica un límite en el código, actualizar la tabla correspondiente en este documento.
 
 | Middleware | Endpoint(s) | Límite | Ventana | Fail-Closed en Redis? |
-|------------|-------------|--------|---------|------------------------|
+| :--- | :--- | :--- | :--- | :--- |
 | `authRateLimiter` | `POST /api/v1/auth/session`, `POST /api/v1/auth/logout` | **5 req** | 1 min | No (fallback a memoria) |
 | `mutationRateLimiter` | `POST /pokemons`, `PUT /pokemons/:id`, `DELETE /pokemons/:id`, `/download` | **30 req** | 1 min | No (fallback a memoria) |
 | `aiRateLimiter` | `POST /api/v1/ai/*` | **10 req** | 1 min | **Sí** (503 si Redis offline) |
 | `aiDailyQuotaLimiter` | `POST /api/v1/ai/*` | **200 req** | 24 h | **Sí** (503 si Redis offline) |
 
 **Fuente de verdad:** [`apps/backend/server.ts` — líneas 247–250](../apps/backend/server.ts)
-

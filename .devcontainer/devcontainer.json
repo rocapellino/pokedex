@@ -20,13 +20,11 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "typescript.tsdk": "node_modules/typescript/lib"
       },
       "extensions": [
         "SonarSource.sonarlint-vscode",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
         "ms-azuretools.vscode-docker",
         "ms-playwright.playwright",
         "redhat.vscode-yaml",
