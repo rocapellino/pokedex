@@ -24,17 +24,17 @@ Para el proyecto utilizamos **GitHub Flow** combinado con la gestión ágil de t
 ```mermaid
 gitGraph
     commit id: "v1.1.0"
-    branch rocapellino/PER-5-plantilla-pr
-    checkout rocapellino/PER-5-plantilla-pr
+    branch rocapellino/PEX-5-plantilla-pr
+    checkout rocapellino/PEX-5-plantilla-pr
     commit id: "feat: add pr template"
     commit id: "test: pytest cov 90%"
     checkout main
-    merge rocapellino/PER-5-plantilla-pr id: "PR #1 Merged (Linear Done)"
-    branch rocapellino/PER-6-filtro-tipo
-    checkout rocapellino/PER-6-filtro-tipo
+    merge rocapellino/PEX-5-plantilla-pr id: "PR #1 Merged (Linear Done)"
+    branch rocapellino/PEX-6-filtro-tipo
+    checkout rocapellino/PEX-6-filtro-tipo
     commit id: "feat: filter by type"
     checkout main
-    merge rocapellino/PER-6-filtro-tipo id: "PR #2 Merged"
+    merge rocapellino/PEX-6-filtro-tipo id: "PR #2 Merged"
     commit id: "v1.2.0" tag: "v1.2.0"
 ```
 
@@ -44,9 +44,9 @@ El formato de ramas está sincronizado con Linear bajo el patrón:
 <usuario>/<identificador-ticket>-<descripcion-corta>
 ```
 * **Ejemplos:**
-  - `rocapellino/PER-5-configurar-plantilla-pr` (Feature asociada al ticket PER-5 de Linear)
-  - `rocapellino/PER-12-fix-cache-ttl` (Bugfix asociado al ticket PER-12)
-  - `rocapellino/PER-20-k6-stress-tests` (Pruebas de rendimiento)
+  - `rocapellino/PEX-5-configurar-plantilla-pr` (Feature asociada al ticket PEX-5 de Linear)
+  - `rocapellino/PEX-12-fix-cache-ttl` (Bugfix asociado al ticket PEX-12)
+  - `rocapellino/PEX-20-k6-stress-tests` (Pruebas de rendimiento)
 * **Atajo en Linear:** Presiona `Ctrl + Shift + .` en cualquier ticket de Linear para copiar el nombre de rama automáticamente.
 
 ---
@@ -132,7 +132,7 @@ Al abrir un PR en GitHub, la plantilla se carga automáticamente:
 
 ```markdown
 ## 📌 Issues Vinculados
-- **Linear:** <!-- Ejemplo: PER-5 / POK-12 -->
+- **Linear:** <!-- Ejemplo: PEX-5 / POK-12 -->
 - **GitHub (opcional):** Closes #<!-- 123 -->
 
 ## 📝 Resumen de Cambios
@@ -239,7 +239,7 @@ git checkout main
 git pull origin main
 
 # 2. Crear la rama copiando el formato de Linear (Ctrl + Shift + .)
-git checkout -b rocapellino/PER-10-nuevo-endpoint-berries
+git checkout -b rocapellino/PEX-10-nuevo-endpoint-berries
 ```
 
 ### 2. Trabajar y validar localmente antes de subir:
@@ -251,7 +251,7 @@ task audit
 
 # Si todo pasa en verde, añadir y commitear
 git add .
-git commit -m "feat(api): add berries endpoint and unit tests (PER-10)"
+git commit -m "feat(api): add berries endpoint and unit tests (PEX-10)"
 ```
 
 ### 3. Mantener tu rama al día con `main` antes del PR:
@@ -262,7 +262,7 @@ git rebase origin/main
 
 ### 4. Publicar rama y abrir Pull Request:
 ```bash
-git push -u origin rocapellino/PER-10-nuevo-endpoint-berries
+git push -u origin rocapellino/PEX-10-nuevo-endpoint-berries
 ```
 > Al abrir el PR en GitHub, se cargará la plantilla, el bot de Linear lo vinculará automáticamente y se dispararán los **Quality Gates** (`🧪 Lint, Security & Unit Tests` y `🛡️ Gitleaks`).
 

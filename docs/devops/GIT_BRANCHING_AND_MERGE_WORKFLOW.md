@@ -41,7 +41,7 @@ flowchart TD
     Start(["Inicio: Nueva Tarea / Requerimiento"])
     
     subgraph Planificacion ["1. Planificación en Linear"]
-        LinearIssue["Identificar Ticket en Linear<br/>Ej: PER-7 / rocapellino/per-7-..."]
+        LinearIssue["Identificar Ticket en Linear<br/>Ej: PEX-7 / rocapellino/pex-7-..."]
     end
 
     subgraph DesarrolloLocal ["2. Entorno Local Git"]
@@ -130,7 +130,7 @@ gitGraph
     commit id: "feat(ai): google ai studio"
     commit id: "test(ai): mock unit tests"
     checkout main
-    merge rocapellino/per-7-upgrade id: "Squash PR #23: PER-7" tag: "v1.2.0"
+    merge rocapellino/per-7-upgrade id: "Squash PR #23: PEX-7" tag: "v1.2.0"
     
     commit id: "docs: update guides"
 ```
@@ -236,8 +236,8 @@ git push -u origin rocapellino/per-8-nueva-funcionalidad
 3. Asegúrate de que la rama base sea `main` y la comparada sea tu rama.
 4. **Vincular Linear:** Incluye el identificador del ticket en la descripción:
    ```markdown
-   Relates to PER-8
-   Closes PER-8
+   Relates to PEX-8
+   Closes PEX-8
    ```
 
 ---

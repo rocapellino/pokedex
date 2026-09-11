@@ -4,12 +4,19 @@
 # ==============================================================================
 set -e
 
-PROXMOX_HOST="${1:-192.168.1.100}"
-USER="${2:-root}"
-PORT="${3:-22}"
-REMOTE_DIR="/opt/pokedex"
+# Priorizar variables de entorno para evitar fuga de credenciales en /proc y ps aux
+PROXMOX_HOST="${PROXMOX_HOST:-${1:-192.168.1.100}}"
+PROXMOX_USER="${PROXMOX_USER:-${2:-root}}"
+USER="$PROXMOX_USER"
+PROXMOX_PORT="${PROXMOX_PORT:-${3:-22}}"
+PORT="$PROXMOX_PORT"
+REMOTE_DIR="${PROXMOX_REMOTE_DIR:-/opt/pokedex}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXCLUDES_FILE="${SCRIPT_DIR}/deploy_excludes.txt"
+
+# Archivo temporal con permisos estrictos de lectura (umask 077) para mitigar accesos locales concurrentes
+DEPLOY_ARCHIVE="/tmp/pokedex_deploy_$$.tar.gz"
+trap 'rm -f "$DEPLOY_ARCHIVE"' EXIT INT TERM
 
 echo "============================================================"
 echo "🚀 Iniciando Despliegue de Pokédex en Proxmox VE: $PROXMOX_HOST"
@@ -36,10 +43,14 @@ TAR_OPTS+=(
     "--exclude=.ruff_cache"
 )
 
-tar "${TAR_OPTS[@]}" -czf /tmp/pokedex_deploy.tar.gz .
+# Garantizar permisos estrictos 600 en el archivo empaquetado
+(
+  umask 077
+  tar "${TAR_OPTS[@]}" -czf "$DEPLOY_ARCHIVE" .
+)
 
-scp -P "$PORT" /tmp/pokedex_deploy.tar.gz "$USER@$PROXMOX_HOST:$REMOTE_DIR/pokedex_deploy.tar.gz"
-rm -f /tmp/pokedex_deploy.tar.gz
+scp -P "$PORT" "$DEPLOY_ARCHIVE" "$USER@$PROXMOX_HOST:$REMOTE_DIR/pokedex_deploy.tar.gz"
+rm -f "$DEPLOY_ARCHIVE"
 
 # 3. Desempaquetar, configurar entorno seguro y levantar contenedores
 echo "🐳 3. Compilando y levantando contenedores con Docker Compose..."

@@ -23,12 +23,12 @@ Este documento describe el flujo de vida completo de la plataforma **Pokédex**,
 flowchart TD
     %% FASE 1: PLANIFICACIÓN
     subgraph F1["📋 FASE 1: Planificación (Linear)"]
-        L1["Ticket Creado (ej: PER-12)"] --> L2["Copiar Rama Estandarizada\n(Ctrl+Shift+.)"]
+        L1["Ticket Creado (ej: PEX-12)"] --> L2["Copiar Rama Estandarizada\n(Ctrl+Shift+.)"]
     end 
 
     %% FASE 2: DESARROLLO LOCAL
     subgraph F2["💻 FASE 2: Desarrollo Local (DX)"]
-        L2 --> G1["git checkout -b rocapellino/PER-X-tarea"]
+        L2 --> G1["git checkout -b rocapellino/PEX-X-tarea"]
         G1 --> DEV["Desarrollo en TypeScript / Web / Helm"]
         DEV --> LOC_TEST["Validación Local:\ntask dev / task audit / npm test"]
         LOC_TEST --> PRECOMMIT["Pre-commit Hooks\n(Gitleaks, Formato, Lint)"]
@@ -82,7 +82,7 @@ flowchart TD
         PROXMOX_K8S & CLOUD_EKS --> RENOVATE_SCAN["Renovate Bot: Escaneo Multi-Manager"]
         RENOVATE_SCAN -->|Detecta Updates| RENO_PR["Abre PR Agrupado con Auto-Merge"]
         RENO_PR --> RENO_SYNC["📌 dependabot-linear-sync.yml"]
-        RENO_SYNC --> LIN_NEW["Linear crea ticket correlativo (PER-X)"]
+        RENO_SYNC --> LIN_NEW["Linear crea ticket correlativo (PEX-X)"]
         LIN_NEW --> F1
     end
 
@@ -104,9 +104,9 @@ flowchart TD
 ## 2. Fases Detalladas del Ciclo
 
 ### Fase 1: Planificación y Gestión Ágil (Linear)
-* Toda nueva funcionalidad, mejora técnica o parche de seguridad se origina como un issue en **Linear** dentro del equipo `PER`.
-* Cada ticket recibe automáticamente un identificador incremental (`PER-1`, `PER-2`, ..., `PER-X`).
-* Al presionar `Ctrl + Shift + .` en Linear, se copia el nombre normalizado de la rama en el portapapeles según la convención `rocapellino/PER-X-descripcion-corta`.
+* Toda nueva funcionalidad, mejora técnica o parche de seguridad se origina como un issue en **Linear** dentro del equipo `PEX`.
+* Cada ticket recibe automáticamente un identificador incremental (`PEX-1`, `PEX-2`, ..., `PEX-X`).
+* Al presionar `Ctrl + Shift + .` en Linear, se copia el nombre normalizado de la rama en el portapapeles según la convención `rocapellino/PEX-X-descripcion-corta`.
 
 ### Fase 2: Desarrollo Local y Quality Gates (DX)
 * El desarrollador crea su rama local y realiza los cambios en backend (`server.ts`, `src/`), frontend (`apps/web/`) o infraestructura (`infra/`, `gitops/`).

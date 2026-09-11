@@ -71,7 +71,7 @@ const SONAR_API_BASE = 'https://sonarcloud.io/api';
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
 const SONAR_TOKEN = process.env.SONAR_TOKEN || '';
 const SONAR_PROJECT_KEY = process.env.SONAR_PROJECT_KEY || 'rocapellino_pokedex';
-const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PER';
+const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PEX';
 const IS_DRY_RUN = process.env.DRY_RUN === 'true';
 
 async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {

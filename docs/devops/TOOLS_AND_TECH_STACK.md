@@ -17,6 +17,10 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
    * [2.8. Infraestructura como Código (IaC) & Virtualización](#28-infraestructura-como-código-iac--virtualización)
    * [2.9. Observabilidad & Monitoreo](#29-observabilidad--monitoreo)
    * [2.10. Automatización & Experiencia de Desarrollo (DX)](#210-automatización--experiencia-de-desarrollo-dx)
+3. [Hoja de Ruta Tecnológica y Evoluciones Recomendadas](#3-hoja-de-ruta-tecnológica-y-evoluciones-recomendadas)
+   * [3.1. Nuevas Herramientas y Librerías](#31-nuevas-herramientas-y-librerías)
+   * [3.2. Mejoras en el Lenguaje y Tipado (TypeScript & JavaScript)](#32-mejoras-en-el-lenguaje-y-tipado-typescript--javascript)
+   * [3.3. Evoluciones en la Arquitectura del Sistema](#33-evoluciones-en-la-arquitectura-del-sistema)
 
 ---
 
@@ -25,7 +29,7 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 ```mermaid
 flowchart LR
     subgraph PLAN["1. Plan & Track"]
-        LINEAR["📋 Linear\n(Tickets PER-X)"]
+        LINEAR["📋 Linear\n(Tickets PEX-X)"]
     end
 
     subgraph CODE["2. Code & Test"]
@@ -160,3 +164,64 @@ flowchart LR
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
 | **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](file:///renovate.json) |
 | **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
+
+---
+
+## 3. Hoja de Ruta Tecnológica y Evoluciones Recomendadas
+
+Tomando como base las características identificadas en el repositorio, se establecen las herramientas, mejoras a nivel de lenguaje y evoluciones de arquitectura recomendadas para subsanar riesgos remanentes y elevar la madurez operacional de la plataforma Pokédex:
+
+### 3.1. Nuevas Herramientas y Librerías
+
+#### Gestión de Base de Datos y Ciclo de Vida del Esquema
+* **Drizzle ORM / Prisma**: La inicialización actual con `init.sql` y `seed.ts` carece de versionado atómico. La adopción de un ORM o Query Builder moderno provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas reproducibles ejecutables desde el `seed-job.yaml` de Kubernetes.
+* **Atlas / Flyway**: Gestión declarativa del control de versiones del esquema relacional de PostgreSQL integrada directamente en la tubería de CI/CD previo al despliegue productivo.
+
+#### Resiliencia y Manejo de Integraciones Externas
+* **Cockatiel / Opossum**: Librerías especializadas para la gestión avanzada de políticas de reintento con backoff exponencial, fallbacks y Circuit Breaker en [`services/ai.ts`](file:///apps/backend/src/services/ai.ts), previniendo el agotamiento de sockets de Node.js ante degradaciones de red del proveedor de IA.
+* **BullMQ**: Desacoplamiento de tareas asíncronas pesadas (inferencia multimodal, generación de mockups y reportes masivos) mediante colas de trabajo respaldadas por la instancia existente de Redis (`redis-deployment.yaml`).
+
+#### Observabilidad y Telemetría
+* **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
+* **Pino**: Reemplazo de logs estándar de consola por registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
+
+#### Herramientas de Monorepo y Build
+* **Turborepo / Nx**: Orquestación eficiente de los espacios de trabajo `apps/backend` y `apps/frontend`, habilitando compilación en paralelo, verificación de tipos y caché distribuida de tareas en CI.
+* **Vite**: Empaquetador ultrarrápido para modernizar la capa de presentación web, habilitando minificación, módulos ES nativos, tree-shaking y sustitución de scripts directos en el DOM.
+
+---
+
+### 3.2. Mejoras en el Lenguaje y Tipado (TypeScript & JavaScript)
+
+#### Frontend Type-Safe y Contratos Compartidos
+* **Migración a TypeScript Estricto en Frontend**: Conversión de `pokedex.js`, `backoffice.js` y `theme.js` a TypeScript bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
+* **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](file:///apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
+
+#### Validación Universal de Esquemas en Runtime
+* **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](file:///apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
+
+#### Manejo de Errores con Tipos Algebraicos
+* **`neverthrow` (Patrón Result / Either)**: Sustitución de `try/catch` no estructurados en [`services/db.ts`](file:///apps/backend/src/services/db.ts) y [`services/auth.ts`](file:///apps/backend/src/services/auth.ts) por tipos `Result<T, AppError>`, forzando en tiempo de compilación el manejo exhaustivo de fallos (entidad no encontrada, credencial inválida, timeout).
+
+---
+
+### 3.3. Evoluciones en la Arquitectura del Sistema
+
+#### Arquitectura Hexagonal / Clean Architecture en Backend
+* **Desacoplamiento Estricto en Capas**:
+  * **Capa de Infraestructura**: Adaptadores para PostgreSQL, Redis, HTTP Express y cliente Gemini AI.
+  * **Capa de Dominio**: Entidades puras de negocio y reglas de validación de Pokémon, independientes de librerías externas.
+  * **Capa de Aplicación / Casos de Uso**: Casos de uso atómicos (registro de criaturas, autenticación, cálculo de estadísticas y generación de arte).
+* **Beneficio**: Testabilidad unitaria completa mediante mocks en memoria sin dependencia forzada de bases de datos en tests locales.
+
+#### Modernización de la Capa Frontend (UI Reactiva y Componentizada)
+* **Adopción de Componentes Reactivos (Lit / Preact / React)**: Sustitución de mutaciones imperativas del DOM (`innerHTML`) por un árbol declarativo de componentes. Erradica estructuralmente el riesgo de inyección XSS al delegar la sanitización y escape en el motor de renderizado.
+
+#### Seguridad y Caché Semántica en la Capa de IA
+* **Guardrails y Delimitación Estricta**: Aislamiento total del contexto del sistema frente a datos ingresados por usuarios en [`services/ai.ts`](file:///apps/backend/src/services/ai.ts) mediante delimitadores XML (`<user_prompt>`) y filtrado semántico previo.
+* **Caché Semántica con Redis**: Almacenamiento con TTL de respuestas generativas recurrentes para reducir latencia a menos de 5 ms y abatir costos operativos de API.
+
+#### Endurecimiento de la Gestión de Estado de Infraestructura (IaC)
+* **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
+* **Inyección Efímera de Secretos**: Refactorización de scripts operativos ([`scripts/proxmox_deploy.sh`](file:///scripts/proxmox_deploy.sh)) para prescindir de parámetros posicionales en CLI, consumiendo credenciales únicamente vía variables de entorno efímeras o Vault.
+

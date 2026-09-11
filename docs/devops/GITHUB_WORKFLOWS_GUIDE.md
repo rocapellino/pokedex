@@ -155,7 +155,7 @@ El workflow [`ci.yml`](file:///.github/workflows/ci.yml) incorpora el gate de re
 
 ## 5. Integración con Linear (Issue Tracking)
 
-* **Convención de Ramas:** `<usuario>/<ticket-id>-<descripcion>` (ej: `rocapellino/PER-15-network-zero-trust`).
+* **Convención de Ramas:** `<usuario>/<ticket-id>-<descripcion>` (ej: `rocapellino/PEX-15-network-zero-trust`).
 * **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
 
 ---
