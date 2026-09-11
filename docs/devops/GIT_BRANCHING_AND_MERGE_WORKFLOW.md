@@ -5,6 +5,7 @@ Esta guía describe el estándar oficial de trabajo con **Git, GitHub y Linear**
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Estrategia de Ramas (GitHub Flow Adaptado)](#1-estrategia-de-ramas-github-flow-adaptado)
 2. [Diagrama de Flujo del Ciclo de Vida de una Rama](#2-diagrama-de-flujo-del-ciclo-de-vida-de-una-rama)
 3. [Diagrama GitGraph (Historial y Merge)](#3-diagrama-gitgraph-historial-y-merge)
@@ -27,6 +28,7 @@ Esta guía describe el estándar oficial de trabajo con **Git, GitHub y Linear**
 ## 1. Estrategia de Ramas (GitHub Flow Adaptado)
 
 El proyecto utiliza un modelo ágil basado en **GitHub Flow**:
+
 * **`main` es la rama protegida y estable:** Todo commit en `main` debe compilar, pasar pruebas y ser apto para producción inmediata.
 * **Ramas de Feature/Fix efímeras:** Cada tarea, issue o ticket de Linear se desarrolla en una rama aislada que nace de `main` y muere al completarse el merge.
 * **Integración Continua Obligatoria:** Ningún cambio entra a `main` sin pasar por un Pull Request con todos los checks de GitHub Actions en verde.
@@ -46,7 +48,7 @@ flowchart TD
 
     subgraph DesarrolloLocal ["2. Entorno Local Git"]
         SyncMain["git checkout main<br/>git pull origin main"]
-        CreateBranch["git checkout -b rocapellino/per-7-upgrade-python-3-13"]
+        CreateBranch["git checkout -b rocapellino/pex-7-upgrade-python-3-13"]
         Coding["Desarrollo de código y pruebas locales"]
         LocalAudit["task test && task lint"]
         CommitChanges["git add .<br/>git commit -m 'feat(scope): mensaje'"]
@@ -65,6 +67,7 @@ flowchart TD
     subgraph PostMerge ["4. Automatización Post-Merge"]
         AutoTag["release-tag.yml genera Tag SemVer<br/>v1.2.0 y GitHub Release"]
         LinearClose["Linear cierra ticket automáticamente<br/>(Done / Completed)"]
+        SlackDone["Notificación en Slack<br/>(Resolución en tiempo real)"]
         CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d rama"]
     end
 
@@ -88,6 +91,7 @@ flowchart TD
     ReviewCopilot -- "Aprobado" --> MergeToMain
     MergeToMain --> AutoTag
     MergeToMain --> LinearClose
+    LinearClose -.-> SlackDone
     MergeToMain --> CleanLocal
     CleanLocal --> Finish
 
@@ -100,7 +104,7 @@ flowchart TD
     classDef fail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
 
     class Start,Finish startEnd;
-    class LinearIssue,LinearClose linearStep;
+    class LinearIssue,LinearClose,SlackDone linearStep;
     class SyncMain,CreateBranch,Coding,LocalAudit,CommitChanges,PushRemote,OpenPR,CIWorkflow,AutoTag,CleanLocal gitAction;
     class CheckCI,ReviewCopilot decision;
     class MergeToMain success;
@@ -124,13 +128,13 @@ gitGraph
     checkout main
     merge dependabot/pip id: "merge PR #12" tag: "v1.1.0"
 
-    branch rocapellino/per-7-upgrade
-    checkout rocapellino/per-7-upgrade
+    branch rocapellino/pex-7-upgrade
+    checkout rocapellino/pex-7-upgrade
     commit id: "feat(docker): python 3.13"
     commit id: "feat(ai): google ai studio"
     commit id: "test(ai): mock unit tests"
     checkout main
-    merge rocapellino/per-7-upgrade id: "Squash PR #23: PEX-7" tag: "v1.2.0"
+    merge rocapellino/pex-7-upgrade id: "Squash PR #23: PEX-7" tag: "v1.2.0"
     
     commit id: "docs: update guides"
 ```
@@ -142,8 +146,8 @@ gitGraph
 Para mantener consistencia con Linear y la trazabilidad del equipo, se utiliza la siguiente convención:
 
 | Tipo | Formato de Rama | Ejemplo Real |
-|---|---|---|
-| **Linear Ticket (Recomendado)** | `<usuario>/<ticket-id>-<descripcion-kebab>` | `rocapellino/per-7-upgrade-python-3-13-and-features` |
+| :--- | :--- | :--- |
+| **Linear Ticket (Recomendado)** | `<usuario>/<ticket-id>-<descripcion-kebab>` | `rocapellino/pex-7-upgrade-python-3-13-and-features` |
 | **Nueva Característica** | `feat/<nombre-funcionalidad>` | `feat/google-ai-studio-endpoints` |
 | **Corrección de Bug** | `fix/<nombre-del-error>` | `fix/postgres-docker-connection-refused` |
 | **Mantenimiento / Deps** | `chore/<descripcion>` | `chore/update-ruff-config` |
@@ -155,6 +159,7 @@ Para mantener consistencia con Linear y la trazabilidad del equipo, se utiliza l
 ## 5. Guía Paso a Paso con Comandos de Terminal
 
 ### Paso 1: Sincronizar `main` local
+
 Antes de comenzar cualquier trabajo, asegúrate de tener la última versión de la rama principal:
 
 ```bash
@@ -168,11 +173,12 @@ git pull origin main
 ---
 
 ### Paso 2: Crear y cambiar a la nueva rama
+
 Crea una rama nueva a partir del estado limpio de `main`:
 
 ```bash
 # Crear y cambiarse en un solo comando (-b)
-git checkout -b rocapellino/per-8-nueva-funcionalidad
+git checkout -b rocapellino/pex-8-nueva-funcionalidad
 
 # Verificar en qué rama te encuentras
 git branch --show-current
@@ -181,6 +187,7 @@ git branch --show-current
 ---
 
 ### Paso 3: Desarrollo y validación local
+
 Realiza los cambios necesarios en el código. Antes de commitear, ejecuta las pruebas y linters locales:
 
 ```bash
@@ -198,6 +205,7 @@ task audit
 ---
 
 ### Paso 4: Commits semánticos (Conventional Commits)
+
 Organiza los cambios en commits claros siguiendo la especificación [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
@@ -208,7 +216,8 @@ git add server.ts src/services/ai.ts
 git commit -m "feat(ai): add google ai studio flowchart generator"
 ```
 
-#### 🏷️ Prefijos Estándar:
+#### 🏷️ Prefijos Estándar
+
 * `feat:` Nueva funcionalidad para el usuario.
 * `fix:` Corrección de un bug.
 * `docs:` Cambios exclusivamente en la documentación.
@@ -220,10 +229,11 @@ git commit -m "feat(ai): add google ai studio flowchart generator"
 ---
 
 ### Paso 5: Publicar la rama en el repositorio remoto
+
 Envía la rama a GitHub configurando el seguimiento (*upstream*):
 
 ```bash
-git push -u origin rocapellino/per-8-nueva-funcionalidad
+git push -u origin rocapellino/pex-8-nueva-funcionalidad
 ```
 
 *(En los siguientes pushes dentro de la misma rama, solo necesitarás escribir `git push`).*
@@ -231,10 +241,12 @@ git push -u origin rocapellino/per-8-nueva-funcionalidad
 ---
 
 ### Paso 6: Abrir y configurar el Pull Request
+
 1. Ingresa a GitHub en el repositorio: `https://github.com/rocapellino/pokedex`.
 2. Haz clic en el botón verde **`Compare & pull request`**.
 3. Asegúrate de que la rama base sea `main` y la comparada sea tu rama.
 4. **Vincular Linear:** Incluye el identificador del ticket en la descripción:
+
    ```markdown
    Relates to PEX-8
    Closes PEX-8
@@ -243,24 +255,28 @@ git push -u origin rocapellino/per-8-nueva-funcionalidad
 ---
 
 ### Paso 7: Validación de CI y Code Review
+
 * **GitHub Actions** ejecutará automáticamente los workflows relevantes:
-  - `api.yml` (Pruebas unitarias, Ruff, Bandit).
-  - `security-gitleaks.yml` (Escaneo de secretos).
-  - `security-trivy.yml` (Escaneo de vulnerabilidades).
+  * `api.yml` (Pruebas unitarias, compilación TypeScript).
+  * `security-gitleaks.yml` (Escaneo de secretos).
+  * `security-trivy.yml` (Escaneo de vulnerabilidades).
 * Si algún check falla:
+
   ```bash
   # 1. Haz la corrección localmente
   # 2. Guarda y commitea
   git add .
-  git commit -m "fix(linter): sort import blocks for ruff"
+  git commit -m "fix(linter): sort import blocks"
   # 3. Empuja de nuevo
-  git push origin rocapellino/per-8-nueva-funcionalidad
+  git push origin rocapellino/pex-8-nueva-funcionalidad
   ```
 
 ---
 
 ### Paso 8: Integración (Merge) a `main`
+
 Una vez que todos los checks estén en verde y el PR aprobado:
+
 1. En GitHub, selecciona **`Squash and merge`** (o *Rebase and merge* según la política).
 2. Confirma el mensaje final del commit.
 3. Haz clic en **`Delete branch`** en la interfaz de GitHub para eliminar la rama remota.
@@ -268,6 +284,7 @@ Una vez que todos los checks estén en verde y el PR aprobado:
 ---
 
 ### Paso 9: Limpieza y sincronización post-merge
+
 Regresa a tu terminal local para mantener el repositorio limpio y sin ramas huérfanas:
 
 ```bash
@@ -278,7 +295,7 @@ git checkout main
 git pull origin main
 
 # 3. Eliminar la rama local ya integrada
-git branch -d rocapellino/per-8-nueva-funcionalidad
+git branch -d rocapellino/pex-8-nueva-funcionalidad
 
 # 4. Purgar referencias a ramas remotas ya eliminadas
 git fetch --prune
@@ -296,7 +313,7 @@ git checkout main
 git pull origin main
 
 # 2. Regresar a tu rama de trabajo
-git checkout rocapellino/per-8-nueva-funcionalidad
+git checkout rocapellino/pex-8-nueva-funcionalidad
 
 # 3. Rebasar tus commits encima del último main
 git rebase main
