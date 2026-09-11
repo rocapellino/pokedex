@@ -102,6 +102,7 @@ helm install pokedex ./infra/helm/pokedex \
 ### 5.2 Despliegue en Producción (Zero-Trust & Secretos Desacoplados)
 
 En producción, **nunca se pasan contraseñas por línea de comandos mediante `--set`**. El perfil `values.prod.yaml` implementa:
+
 1. `secrets.existingSecret: "pokedex-prod-secrets"` (o `externalSecrets.enabled: true`).
 2. `pgbouncer.enabled: true` (mediador obligatorio; bloquea tráfico directo API -> PostgreSQL).
 3. `networkPolicies.egress.antiSsrf.enabled: true` (bloquea IMDS `169.254.169.254/32`, RFC1918 y loopback).
