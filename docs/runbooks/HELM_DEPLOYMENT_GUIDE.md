@@ -102,6 +102,7 @@ helm install pokedex ./infra/helm/pokedex \
 ### 5.2 Despliegue en Producción (Zero-Trust & Secretos Desacoplados)
 
 En producción, **nunca se pasan contraseñas por línea de comandos mediante `--set`**. El perfil `values.prod.yaml` implementa:
+
 1. `secrets.existingSecret: "pokedex-prod-secrets"` (o `externalSecrets.enabled: true`).
 2. `pgbouncer.enabled: true` (mediador obligatorio; bloquea tráfico directo API -> PostgreSQL).
 3. `networkPolicies.egress.antiSsrf.enabled: true` (bloquea IMDS `169.254.169.254/32`, RFC1918 y loopback).
@@ -141,22 +142,39 @@ helm rollback pokedex 1 -n pokemon-app
 ---
 
 ## 6. Integración GitOps con ArgoCD
- 
-Para sincronización continua y despliegue declarativo en la arquitectura híbrida:
- 
+
+Para sincronización continua y despliegue declarativo en la arquitectura multi-backend:
+
 ```bash
-# Despliegue en clúster On-Premise (Proxmox VE):
+# Despliegue en clúster On-Premises (Proxmox VE):
 kubectl apply -f gitops/apps/app-proxmox.yaml
 
-# Despliegue en clúster Nube Pública (EKS / GKE / AKS):
+# Despliegue en clúster Cloud (AWS EKS):
 kubectl apply -f gitops/apps/app-cloud.yaml
 ```
- 
-ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores de `values.yaml` combinados con la sobrescritura del entorno (`gitops/environments/proxmox/values.yaml` o `gitops/environments/cloud/values.yaml`).
+
+ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/proxmox/values.yaml) o [`gitops/environments/aws/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/aws/values.yaml)).
 
 ---
 
-## 7. Verificación del Despliegue
+## 7. Entorno de Desarrollo Local con Paridad Kubernetes (Kind)
+
+Para validar cambios en el Chart de Helm localmente antes de abrirlos a GitOps o subirlos a producción:
+
+```bash
+# Levantar clúster Kind local y desplegar Helm chart con imágenes locales:
+task dev:k8s:up
+
+# Comprobar estado de los recursos en el namespace pokemon-app:
+task dev:k8s:status
+
+# Destruir clúster local al finalizar:
+task dev:k8s:down
+```
+
+---
+
+## 8. Verificación del Despliegue
 
 ```bash
 # Verificar estado de todos los recursos del release
