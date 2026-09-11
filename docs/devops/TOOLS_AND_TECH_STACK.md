@@ -30,6 +30,8 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 flowchart LR
     subgraph PLAN["1. Plan & Track"]
         LINEAR["📋 Linear\n(Tickets PEX-X)"]
+        SLACK["💬 Slack\n(ChatOps & Alertas)"]
+        LINEAR -. "Alertas automáticas" .-> SLACK
     end
 
     subgraph CODE["2. Code & Test"]
@@ -162,6 +164,7 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](file:///Taskfile.yml) |
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
+| **Slack** | SaaS | Canal ChatOps para recepción de alertas de Linear (creación, asignación, updates y cierre de PEX-X) | Integración Workspace Linear App para Slack |
 | **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](file:///renovate.json) |
 | **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
 

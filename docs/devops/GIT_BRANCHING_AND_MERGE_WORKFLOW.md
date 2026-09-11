@@ -46,7 +46,7 @@ flowchart TD
 
     subgraph DesarrolloLocal ["2. Entorno Local Git"]
         SyncMain["git checkout main<br/>git pull origin main"]
-        CreateBranch["git checkout -b rocapellino/per-7-upgrade-python-3-13"]
+        CreateBranch["git checkout -b rocapellino/pex-7-upgrade-python-3-13"]
         Coding["Desarrollo de código y pruebas locales"]
         LocalAudit["task test && task lint"]
         CommitChanges["git add .<br/>git commit -m 'feat(scope): mensaje'"]
@@ -65,6 +65,7 @@ flowchart TD
     subgraph PostMerge ["4. Automatización Post-Merge"]
         AutoTag["release-tag.yml genera Tag SemVer<br/>v1.2.0 y GitHub Release"]
         LinearClose["Linear cierra ticket automáticamente<br/>(Done / Completed)"]
+        SlackDone["Notificación en Slack<br/>(Resolución en tiempo real)"]
         CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d rama"]
     end
 
@@ -88,6 +89,7 @@ flowchart TD
     ReviewCopilot -- "Aprobado" --> MergeToMain
     MergeToMain --> AutoTag
     MergeToMain --> LinearClose
+    LinearClose -.-> SlackDone
     MergeToMain --> CleanLocal
     CleanLocal --> Finish
 
@@ -100,7 +102,7 @@ flowchart TD
     classDef fail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
 
     class Start,Finish startEnd;
-    class LinearIssue,LinearClose linearStep;
+    class LinearIssue,LinearClose,SlackDone linearStep;
     class SyncMain,CreateBranch,Coding,LocalAudit,CommitChanges,PushRemote,OpenPR,CIWorkflow,AutoTag,CleanLocal gitAction;
     class CheckCI,ReviewCopilot decision;
     class MergeToMain success;

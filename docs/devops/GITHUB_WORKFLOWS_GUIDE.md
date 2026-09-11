@@ -153,10 +153,14 @@ El workflow [`ci.yml`](file:///.github/workflows/ci.yml) incorpora el gate de re
 
 ---
 
-## 5. Integración con Linear (Issue Tracking)
+## 5. Integración con Linear & Slack (Issue Tracking & ChatOps)
 
 * **Convención de Ramas:** `<usuario>/<ticket-id>-<descripcion>` (ej: `rocapellino/PEX-15-network-zero-trust`).
 * **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
+* **Notificaciones ChatOps en Slack:**
+  * La aplicación de Linear para Slack retransmite eventos de los tickets (`PEX-X`) directamente al canal de ingeniería del equipo.
+  * Los pipelines automatizados ([`dependabot-linear-sync.yml`](file:///.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](file:///.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
+  * Cuando los PRs son mergeados o cerrados, la sincronización bidireccional actualiza el ticket a `Done` o `Canceled` y publica el resultado en Slack sin requerir gestión manual.
 
 ---
 
