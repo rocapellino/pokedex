@@ -100,8 +100,8 @@ async function loadPokemons() {
       <div class="empty-state">
         <div class="empty-icon">⚠️</div>
         <h3 class="empty-title">Error al conectar con el backend</h3>
-        <p class="empty-subtitle">${err.message}</p>
-        <button class="btn btn-primary" id="btnRetryConnection" style="margin-top: 1rem;">Reintentar Conexión</button>
+        <p class="error-detail">${escapeHTML(err.message)}</p>
+        <button class="btn btn-primary mt-4" id="btnRetryConnection">Reintentar Conexión</button>
       </div>
     `;
   }
@@ -174,7 +174,7 @@ function renderPokemons() {
         <p class="empty-subtitle">Intenta buscar con otro término, tipo o cambia de generación.</p>
       </div>
     `;
-    paginationBar.style.display = 'none';
+    paginationBar.classList.add('hidden');
     return;
   }
 
@@ -212,11 +212,12 @@ function renderPokemons() {
       }
     }
 
+    const normType = normalizeStr(p.tipo || 'normal');
     return `
-      <article class="pokemon-card" data-pokemon-id="${p.id}" style="--type-color: ${typeColor}; --card-glow: ${typeColor}25; cursor: pointer;">
+      <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${escapeHTML(normType)}">
         <div class="card-header">
           <span class="pokemon-id">#${formattedId}</span>
-          <div style="display: flex; gap: 0.35rem; align-items: center;">
+          <div class="flex-center-gap">
             ${stageBadge}
             <span class="gen-badge">Gen ${getGeneration(p.id)}</span>
           </div>
@@ -228,8 +229,8 @@ function renderPokemons() {
 
         <h2 class="pokemon-name">${escapeHTML(p.nombre)}</h2>
         
-        <div style="text-align: center; margin-bottom: 0.5rem;">
-          <span class="type-badge" style="background-color: ${typeColor};">
+        <div class="text-center mb-2">
+          <span class="type-badge" data-type="${escapeHTML(normType)}">
             ${escapeHTML(p.tipo)}
           </span>
         </div>
@@ -262,12 +263,12 @@ function renderPokemons() {
 
   // Actualizar controles de paginación
   if (totalPages > 1) {
-    paginationBar.style.display = 'flex';
+    paginationBar.classList.remove('hidden');
     document.getElementById('pageInfo').innerText = `Página ${currentPage} de ${totalPages} (${filteredPokemons.length} Pokémon)`;
     document.getElementById('btnPrevPage').disabled = (currentPage === 1);
     document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
   } else {
-    paginationBar.style.display = 'none';
+    paginationBar.classList.add('hidden');
   }
 }
 
@@ -445,7 +446,7 @@ function renderSingleEvolutionNode(node, currentId, showMethod = false) {
       </div>
       ${methodBadge}
       <div class="evolution-types-row">
-        ${nodeTypes.map(t => `<span class="evolution-type-mini" style="background-color: ${getOfficialTypeColor(t)}">${escapeHTML(t)}</span>`).join('')}
+        ${nodeTypes.map(t => `<span class="evolution-type-mini" data-type="${escapeHTML(normalizeStr(t))}">${escapeHTML(t)}</span>`).join('')}
       </div>
     </div>
   `;
@@ -610,7 +611,7 @@ function openDetailModal(id) {
       <h2 class="pokedex-notched-title">
         ${escapeHTML(p.nombre)} <span class="pokedex-notched-number">N.º ${escapeHTML(formattedId)}</span>
       </h2>
-      <button class="btn-icon" style="position: absolute; right: 1rem;" aria-label="Cerrar modal">
+      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
@@ -655,7 +656,7 @@ function openDetailModal(id) {
               ${escapeHTML(habilidadPrincipal)}
             </span>
           </div>
-          <div class="blue-card-item" style="grid-column: 1 / -1;">
+          <div class="blue-card-item col-span-full">
             <span class="blue-card-label">Género</span>
             <span class="gender-symbols">♂ ♀</span>
           </div>
@@ -665,7 +666,7 @@ function openDetailModal(id) {
         <div class="type-section-group">
           <h4 class="type-group-title">Tipo</h4>
           <div class="type-pill-badges-row">
-            ${tipos.map(t => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(t)}">${escapeHTML(t)}</span>`).join('')}
+            ${tipos.map(t => `<span class="official-type-pill" data-type="${escapeHTML(normalizeStr(t))}">${escapeHTML(t)}</span>`).join('')}
           </div>
         </div>
 
@@ -673,7 +674,7 @@ function openDetailModal(id) {
         <div class="type-section-group">
           <h4 class="type-group-title">Debilidad</h4>
           <div class="type-pill-badges-row">
-            ${weaknesses.map(w => `<span class="official-type-pill" style="background-color: ${getOfficialTypeColor(w)}">${escapeHTML(w)}</span>`).join('')}
+            ${weaknesses.map(w => `<span class="official-type-pill" data-type="${escapeHTML(normalizeStr(w))}">${escapeHTML(w)}</span>`).join('')}
           </div>
         </div>
       </div>

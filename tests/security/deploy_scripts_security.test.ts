@@ -72,3 +72,14 @@ test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists ma
   assert.ok(!content.includes('allow 172.16.0.0/12;'), 'nginx.conf no debe permitir 172.16.0.0/12 indiscriminado');
   assert.ok(!content.includes('allow 192.168.0.0/16;'), 'nginx.conf no debe permitir 192.168.0.0/16 indiscriminado');
 });
+
+test('🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src', () => {
+  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
+  for (const relPath of confFiles) {
+    const filePath = path.join(ROOT_DIR, relPath);
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    assert.ok(!content.includes("style-src 'self' 'unsafe-inline'"), `${relPath} no debe contener unsafe-inline en style-src`);
+    assert.ok(content.includes("style-src 'self' https://fonts.googleapis.com;"), `${relPath} debe definir style-src estricto`);
+  }
+});

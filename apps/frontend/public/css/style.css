@@ -1488,3 +1488,87 @@ body {
   border-radius: var(--radius-full);
 }
 
+/* ==============================================================================
+ * Sistema de Tipos y Clases de Utilidad para CSP Strict (Zero Inline Styles)
+ * ============================================================================== */
+
+/* Variables de Color por Tipo Pokémon */
+[data-type="normal"] { --type-color: #9ca3af; --type-official: #a8a878; }
+[data-type="fuego"] { --type-color: #ef4444; --type-official: #f08030; }
+[data-type="agua"] { --type-color: #3b82f6; --type-official: #6890f0; }
+[data-type="planta"] { --type-color: #22c55e; --type-official: #78c850; }
+[data-type="electrico"] { --type-color: #eab308; --type-official: #f8d030; }
+[data-type="hielo"] { --type-color: #06b6d4; --type-official: #98d8d8; }
+[data-type="lucha"] { --type-color: #dc2626; --type-official: #c03028; }
+[data-type="veneno"] { --type-color: #a855f7; --type-official: #a040a0; }
+[data-type="tierra"] { --type-color: #d97706; --type-official: #e0c068; }
+[data-type="volador"] { --type-color: #0ea5e9; --type-official: #a890f0; }
+[data-type="psiquico"] { --type-color: #f43f5e; --type-official: #f85888; }
+[data-type="bicho"] { --type-color: #84cc16; --type-official: #a8b820; }
+[data-type="roca"] { --type-color: #78716c; --type-official: #b8a038; }
+[data-type="fantasma"] { --type-color: #6366f1; --type-official: #705898; }
+[data-type="dragon"] { --type-color: #4f46e5; --type-official: #7038f8; }
+[data-type="acero"] { --type-color: #64748b; --type-official: #b8b8d0; }
+[data-type="siniestro"] { --type-color: #1e293b; --type-official: #705848; }
+[data-type="hada"] { --type-color: #ec4899; --type-official: #ee99ac; }
+
+.type-badge {
+  background-color: var(--type-color, #6b7280);
+  color: #ffffff;
+}
+
+.official-type-pill {
+  background-color: var(--type-official, #6b7280);
+  color: #ffffff;
+}
+
+.evolution-type-mini {
+  background-color: var(--type-official, #6b7280);
+  color: #ffffff;
+}
+
+.pokemon-card {
+  --card-glow: color-mix(in srgb, var(--type-color, #6b7280) 25%, transparent);
+  cursor: pointer;
+}
+
+/* Clases de Utilidad de Layout y Espaciado para CSP Strict */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.text-white { color: #ffffff !important; }
+.text-danger { color: #ef4444 !important; }
+.text-sm { font-size: 0.9rem; }
+.text-body { font-size: 0.95rem; line-height: 1.5; }
+.text-2xl { font-size: 1.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.py-4 { padding: 1rem 0; }
+.py-12 { padding: 3rem; }
+.flex-center-gap { display: flex; gap: 0.35rem; align-items: center; }
+.modal-close-btn { position: absolute; right: 1rem; }
+.col-span-full { grid-column: 1 / -1; }
+.w-80px { width: 80px; }
+.w-90px { width: 90px; }
+.w-170px { width: 170px; }
+.spinner-centered { margin: 0 auto 1rem; }
+.token-code { color: var(--primary, #3b82f6); }
+.btn-download-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.btn-auth-active {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+
