@@ -5,11 +5,13 @@ Este documento describe formalmente la arquitectura de infraestructura, topolog�
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Estructura de Capas en la Nube](#1-estructura-de-capas-en-la-nube)
 2. [Diagrama de Flujo: Aprovisionamiento y Despliegue Híbrido GitOps](#2-diagrama-de-flujo-aprovisionamiento-y-despliegue-híbrido-gitops)
 3. [Matriz de Objetos Cloud Implementados (IaC con OpenTofu)](#3-matriz-de-objetos-cloud-implementados-iac-con-opentofu)
 4. [Topología de Red y Aislamiento (Zero-Trust)](#4-topología-de-red-y-aislamiento-zero-trust)
 5. [Estructura del Código IaC Híbrido](#5-estructura-del-código-iac-híbrido)
+6. [Política de Runtime Oficial (Single Production Runtime)](#6-política-de-runtime-oficial-single-production-runtime)
 
 ---
 
@@ -139,4 +141,3 @@ Para evitar duplicidad operativa y dispersión arquitectónica, la plataforma es
 | **Producción Oficial** | **Kubernetes (Helm + ArgoCD)** | Único runtime oficial para cargas de trabajo de producción, balanceo, ingress, autoscaling HPA, políticas L7 y auditoría de admisión (Kyverno + Cosign). |
 | **Aprovisionamiento Base** | **Ansible (`host_baseline.yml`)** | Preparación de nodos bare-metal / VM en Proxmox: SO base, Docker/containerd, parámetros de kernel sysctl y firewall UFW. |
 | **Desarrollo Local & Fallback** | **Docker Compose** | Ejecución local en estación de trabajo y modo standalone de emergencia para nodos aislados sin clúster activo. |
-
