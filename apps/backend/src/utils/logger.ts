@@ -3,8 +3,11 @@
  * Logger Estructurado JSON de Alto Rendimiento (Pino / Loki Compatible)
  * ==============================================================================
  * Escribe registros en formato JSON estándar con timestamp ISO, severidad jerárquica
- * y soporte para inyección de identificadores de correlación distribuida (traceId).
+ * y soporte para inyección de identificadores de correlación distribuida (traceId)
+ * mediante Node.js AsyncLocalStorage o paso explícito.
  */
+
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -16,6 +19,12 @@ const LEVEL_WEIGHTS: Record<LogLevel, number> = {
 };
 
 const CURRENT_LEVEL: LogLevel = (process.env.LOG_LEVEL as LogLevel) || 'info';
+
+export interface LogTraceContext {
+  traceId: string;
+}
+
+export const traceStorage = new AsyncLocalStorage<LogTraceContext>();
 
 export interface LogEntry {
   timestamp: string;
@@ -44,11 +53,13 @@ export class StructuredLogger {
   private output(level: LogLevel, message: string, context?: Record<string, unknown>, traceId?: string): void {
     if (!this.shouldLog(level)) return;
 
+    const activeTraceId = traceId || traceStorage.getStore()?.traceId;
+
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...(traceId ? { traceId } : {}),
+      ...(activeTraceId ? { traceId: activeTraceId } : {}),
       ...this.defaultContext,
       ...(context ? { context } : {}),
     };
@@ -78,6 +89,10 @@ export class StructuredLogger {
 
   error(message: string, context?: Record<string, unknown>, traceId?: string): void {
     this.output('error', message, context, traceId);
+  }
+
+  audit(message: string, context?: Record<string, unknown>, traceId?: string): void {
+    this.output('info', message, { audit: true, ...context }, traceId);
   }
 }
 

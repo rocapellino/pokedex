@@ -5,6 +5,7 @@ import pg from 'pg';
 import { Redis } from 'ioredis';
 import { Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
+import { logger } from '../utils/logger.js';
 
 const { Pool } = pg;
 
@@ -63,7 +64,7 @@ async function connectPg(): Promise<boolean> {
       });
 
       pgPool.on('error', (err) => {
-        console.error('[Storage: PostgreSQL Error] Idle client error:', err.message);
+        logger.error('[Storage: PostgreSQL Error] Idle client error', { error: err.message });
         isPgConnected = false;
       });
     }
@@ -86,7 +87,7 @@ async function connectPg(): Promise<boolean> {
       const countRes = await client.query('SELECT COUNT(*) FROM pokedex_entries');
       const count = Number.parseInt(countRes.rows[0].count, 10);
       if (count === 0) {
-        console.log('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
+        logger.info('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
         for (const p of initialPokemons) {
           await client.query(
             'INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
@@ -102,13 +103,13 @@ async function connectPg(): Promise<boolean> {
         SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true);
       `);
       isPgConnected = true;
-      console.log('[Storage: PostgreSQL] ✅ Conectado, tabla y secuencia pokedex_id_seq sincronizadas.');
+      logger.info('[Storage: PostgreSQL] Conectado, tabla y secuencia pokedex_id_seq sincronizadas');
       return true;
     } finally {
       client.release();
     }
   } catch (err: any) {
-    console.warn(`[Storage: PostgreSQL] ⚠️ No disponible (${err.message}). Operando con almacén en memoria.`);
+    logger.warn(`[Storage: PostgreSQL] No disponible (${err.message}). Operando con almacén en memoria`);
     isPgConnected = false;
     return false;
   }
@@ -127,7 +128,7 @@ async function connectRedis(): Promise<boolean> {
 
       redisClient.on('connect', () => {
         isRedisConnected = true;
-        console.log('[Cache: Redis] ✅ Conexión activa a Redis.');
+        logger.info('[Cache: Redis] Conexión activa a Redis');
       });
 
       redisClient.on('error', () => {
@@ -145,7 +146,7 @@ async function connectRedis(): Promise<boolean> {
     isRedisConnected = true;
     return true;
   } catch (err: any) {
-    console.warn(`[Cache: Redis] ⚠️ No disponible (${err.message}). Caching en memoria desactivado.`);
+    logger.warn(`[Cache: Redis] No disponible (${err.message}). Caching en memoria desactivado`);
     if (redisClient) {
       try { redisClient.disconnect(); } catch {}
       redisClient = null;
@@ -243,7 +244,7 @@ export async function getAllPokemons(options: {
 
       resultData = { total, pokemons };
     } catch (err) {
-      console.error('[Storage: PostgreSQL Error] Fallback a memoria:', err);
+      logger.error('[Storage: PostgreSQL Error] Fallback a memoria', { error: err });
     }
   }
 
@@ -298,7 +299,7 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
       }
       return null;
     } catch (err) {
-      console.error('[Storage: PostgreSQL Error] Fallback a memoria para getById:', err);
+      logger.error('[Storage: PostgreSQL Error] Fallback a memoria para getById', { error: err });
     }
   }
 
@@ -379,7 +380,7 @@ export async function getNextPokemonId(): Promise<number> {
       const res = await pgPool.query("SELECT nextval('pokedex_id_seq') AS next_id");
       return Number.parseInt(res.rows[0].next_id, 10);
     } catch (err) {
-      console.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId:', err);
+      logger.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId', { error: err });
     }
   }
 
