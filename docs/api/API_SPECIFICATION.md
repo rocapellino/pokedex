@@ -95,7 +95,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ### 4.1. Iniciar Sesión / Intercambiar Credencial por Token
 * **Ruta:** `POST /api/v1/auth/session`
 * **Autenticación:** Requiere cabecera `X-API-Key: <ADMIN_API_KEY>` o `Authorization: Bearer <ADMIN_API_KEY>`.
-* **Rate Limit:** 15 solicitudes/minuto por IP (`authRateLimiter`).
+* **Rate Limit:** 5 solicitudes/minuto por IP (`authRateLimiter`).
 * **Respuesta Exitosa (`200 OK`):**
   ```json
   {
@@ -117,7 +117,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 ### 4.2. Cerrar Sesión y Revocar Token
 * **Ruta:** `POST /api/v1/auth/logout`
 * **Autenticación:** Requiere cabecera `Authorization: Bearer <Token>` o `X-Session-Token: <Token>`.
-* **Rate Limit:** 15 solicitudes/minuto por IP (`authRateLimiter`).
+* **Rate Limit:** 5 solicitudes/minuto por IP (`authRateLimiter`).
 * **Comportamiento Fail-Closed:**
   1. Valida criptográficamente la firma HMAC del token con `ADMIN_SESSION_SECRET`.
   2. Si la firma es falsa o corrupta: **`400 Bad Request`** (`Firma de token inválida`).
@@ -358,3 +358,21 @@ export interface Pokemon {
 | **`422 Unprocessable Entity`** | Unprocessable Entity | Payload inválido o detección de vectores XSS (etiquetas HTML `<...>` o `javascript:`). |
 | **`429 Too Many Requests`** | Rate Limit Exceeded | Superado el límite de solicitudes por ventana de tiempo. Cabecera `Retry-After: <segundos>`. |
 | **`503 Service Unavailable`** | Service Unavailable | **Fail-Closed**: Fallo en PostgreSQL al intentar mutación de escritura, o fallo en Redis al intentar revocación de sesión o cálculo de cuota de IA. |
+
+---
+
+## 11. Referencia Canónica de Rate Limiters
+
+> [!NOTE]
+> Estos valores deben mantenerse sincronizados con las constantes en `apps/backend/server.ts`.
+> Si se modifica un límite en el código, actualizar la tabla correspondiente en este documento.
+
+| Middleware | Endpoint(s) | Límite | Ventana | Fail-Closed en Redis? |
+|------------|-------------|--------|---------|------------------------|
+| `authRateLimiter` | `POST /api/v1/auth/session`, `POST /api/v1/auth/logout` | **5 req** | 1 min | No (fallback a memoria) |
+| `mutationRateLimiter` | `POST /pokemons`, `PUT /pokemons/:id`, `DELETE /pokemons/:id`, `/download` | **30 req** | 1 min | No (fallback a memoria) |
+| `aiRateLimiter` | `POST /api/v1/ai/*` | **10 req** | 1 min | **Sí** (503 si Redis offline) |
+| `aiDailyQuotaLimiter` | `POST /api/v1/ai/*` | **200 req** | 24 h | **Sí** (503 si Redis offline) |
+
+**Fuente de verdad:** [`apps/backend/server.ts` — líneas 247–250](../apps/backend/server.ts)
+

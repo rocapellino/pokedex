@@ -30,15 +30,14 @@ server {
     }
 
     # 2. Backoffice CRUD — restringido estrictamente a acceso local y bastion de administración
-    #    NOTA: En el contenedor Docker estas IPs se inyectan vía envsubst desde nginx.conf.template.
-    #          Este archivo es el fallback para desarrollo local directo (sin Docker).
-    #          Ver BACKOFFICE_ALLOWED_IP_1 / BACKOFFICE_ALLOWED_IP_2 en .env.example.
-    #    La segmentación inter-cluster se complementa con NetworkPolicies de Kubernetes
+    #    IPs configuradas vía variables de entorno (envsubst al arrancar el contenedor).
+    #    Valores por defecto en .env.example; sobreescribir por ambiente en Helm values o docker-compose.
+    #    La segmentación inter-cluster se complementa con NetworkPolicies de Kubernetes.
     location ~* ^/(admin|backoffice|backoffice\.html) {
         allow 127.0.0.1;
         allow ::1;
-        allow 10.42.0.1/32;    # Kubernetes Ingress / API Server gateway (default — sobreescribir por ambiente)
-        allow 192.168.1.50/32; # Host Bastion / VPN de gestión administrativa (default — sobreescribir por ambiente)
+        allow ${BACKOFFICE_ALLOWED_IP_1};    # Kubernetes Ingress / API Server gateway
+        allow ${BACKOFFICE_ALLOWED_IP_2};    # Host Bastion / VPN de gestión administrativa
         deny all;
         add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
         add_header Pragma "no-cache" always;
@@ -72,12 +71,13 @@ server {
     }
 
     # 5. Endpoint de métricas de Prometheus — restringido a scrapers autorizados
+    #    CIDR configurado vía variable de entorno (envsubst al arrancar el contenedor).
     #    No expuesto públicamente a través del LB/Ingress.
     location /metrics {
         allow 127.0.0.1;
         allow ::1;
-        allow 172.28.0.0/16;  # Red monitoring-net dedicada de Docker Compose
-        allow 10.42.0.0/24;   # Subred de scraping Prometheus / K3s pods
+        allow 172.28.0.0/16;              # Red monitoring-net dedicada de Docker Compose
+        allow ${METRICS_ALLOWED_CIDR};    # Subred de scraping Prometheus (configurable por cluster)
         deny all;
         proxy_pass http://api:3000/metrics;
         proxy_http_version 1.1;

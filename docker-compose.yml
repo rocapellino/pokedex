@@ -40,7 +40,7 @@ services:
       PORT: "${PORT:-3000}"
       DATABASE_URL: "${DATABASE_URL:-postgresql://${POSTGRES_USER:-pokedex_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
       REDIS_URL: "${REDIS_URL:-redis://:${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}@redis:6379/0}"
-      ADMIN_API_KEY: "${ADMIN_API_KEY}"
+      ADMIN_API_KEY: "${ADMIN_API_KEY:?Error: Variable ADMIN_API_KEY requerida en .env}"
       ADMIN_SESSION_SECRET: "${ADMIN_SESSION_SECRET:?Error: Variable ADMIN_SESSION_SECRET requerida en .env}"
       AI_API_KEY: "${AI_API_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
