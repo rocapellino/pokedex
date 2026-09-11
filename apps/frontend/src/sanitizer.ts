@@ -8,7 +8,8 @@ import type { Config } from 'dompurify';
 
 const SANITIZE_CONFIG: Config = {
   ALLOWED_TAGS: [
-    'div', 'span', 'p', 'a', 'b', 'i', 'strong', 'em', 'small',
+    'article', 'section', 'header', 'footer', 'main', 'nav', 'aside',
+    'div', 'span', 'p', 'a', 'b', 'i', 'strong', 'em', 'small', 'code', 'pre',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     'ul', 'ol', 'li',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
@@ -17,8 +18,9 @@ const SANITIZE_CONFIG: Config = {
   ],
   ALLOWED_ATTR: [
     'class', 'id', 'style', 'href', 'target', 'rel', 'src', 'alt',
-    'title', 'width', 'height', 'data-id', 'data-theme-val', 'type',
-    'value', 'placeholder', 'disabled', 'readonly', 'checked',
+    'title', 'width', 'height', 'loading', 'data-id', 'data-theme-val',
+    'data-pokemon-id', 'data-type', 'data-evol-id', 'data-close-modal',
+    'type', 'value', 'placeholder', 'disabled', 'readonly', 'checked',
     'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
     'd', 'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'xmlns', 'role', 'aria-label',
   ],
