@@ -61,9 +61,9 @@ El repositorio supera los estándares habituales de la industria incorporando de
 | **Hardening de Cabeceras** | Cobertura total de CSP, HSTS y Permissions-Policy en Nginx y Express | Implementado | Protección contra Clickjacking, MIME sniffing y omisión de Ingress en port-forward. |
 | **Gestión de Estados IaC** | Backend remoto cifrado (S3 / OpenTofu HTTP / PG) | Inmediato | Protección absoluta de secretos y sincronización de infraestructura. |
 | **Resiliencia en IA** | Circuit Breaker con degradación y delimitadores de prompt | Implementado | Prevención de saturación de hilos y blindaje anti-inyecciones. |
-| **Aislamiento Egress L7** | Egress Gateway / Cilium FQDN NetworkPolicy (`generativelanguage.googleapis.com`) | Corto Plazo | Eliminación de salida `0.0.0.0/0` en HTTPS previniendo exfiltración externa. |
-| **Validación de Datos (XSS)** | Migración de regex `SCRIPT_PATTERN` a Zod + sanitizador HTML dedicado | Corto Plazo | Validación tipada estructural en lugar de listas negras de tokens. |
+| **Telemetría** | Instrumentación de logs JSON estructurados correlacionados con Pino | Implementado | Diagnóstico distribuido y observabilidad con X-Request-Id. |
+| **Validación de Datos (XSS)** | Validación tipada declarativa con esquemas Zod + DOMPurify en frontend | Implementado | Tipado estricto en runtime y neutralización de vectores XSS/Prototype Pollution. |
+| **Capa Frontend** | Modernización a arquitectura Vite MPA con TypeScript y DOMPurify | Implementado | Tipado unificado de modelos y eliminación estructural de XSS en DOM. |
+| **Gestión de Datos** | Persistencia y migraciones declarativas con Drizzle ORM | Implementado | Esquemas tipados, migraciones SQL versionadas y fallback resiliente. |
+| **Aislamiento Egress L7** | Egress Gateway (Envoy) & Cilium FQDN NetworkPolicy (`toFQDNs`) | Implementado | Eliminación de salida `0.0.0.0/0` en HTTPS previniendo exfiltración externa y C2. |
 | **Rotación de Credenciales** | Rotación programada automatizada de `ADMIN_API_KEY` (90 días) vía ExternalSecret | Corto Plazo | Reducción de la ventana de exposición ante fugas de la clave maestra. |
-| **Gestión de Datos** | Reemplazo de `init.sql` por migraciones declarativas (Drizzle / Flyway) | Medio Plazo | Despliegues continuos sin interrupción y reversibilidad de esquemas. |
-| **Capa Frontend** | Migración a TypeScript estructurado con empaquetador Vite | Medio Plazo | Tipado unificado de modelos y eliminación estructural de XSS en DOM. |
-| **Telemetría** | Instrumentación de OpenTelemetry y registros JSON correlacionados (Pino) | Medio Plazo | Diagnóstico distribuido y observabilidad extremo a extremo. |

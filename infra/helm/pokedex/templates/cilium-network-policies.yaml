@@ -1,0 +1,73 @@
+{{- if and .Values.ciliumNetworkPolicy .Values.ciliumNetworkPolicy.enabled }}
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-api-cilium-l7-policy
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  description: "Aislamiento de Capa 7 (L7 Egress) con Cilium eBPF y FQDN Allowlist para la API de Pokédex"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  ingress:
+    # Permitir únicamente peticiones entrantes desde el frontend web
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/component: web
+      toPorts:
+        - ports:
+            - port: "{{ .Values.api.port }}"
+              protocol: TCP
+  egress:
+    # 1. Resolución DNS interna en CoreDNS con inspección de nombres
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
+    # 2. Conexión a Base de Datos (PgBouncer o PostgreSQL directo)
+    {{- if .Values.pgbouncer.enabled }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/component: pgbouncer
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    {{- else }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/component: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    {{- end }}
+    # 3. Conexión a Redis
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/component: redis
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # 4. Tráfico Saliente HTTPS L7 restringido estrictamente a FQDNs autorizados
+    - toFQDNs:
+        {{- if .Values.ciliumNetworkPolicy.fqdnAllowlist }}
+        {{- toYaml .Values.ciliumNetworkPolicy.fqdnAllowlist | nindent 8 }}
+        {{- else }}
+        - matchName: "generativelanguage.googleapis.com"
+        - matchPattern: "*.githubusercontent.com"
+        - matchPattern: "*.pokeapi.co"
+        {{- end }}
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+{{- end }}

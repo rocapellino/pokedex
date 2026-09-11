@@ -1,0 +1,165 @@
+{{- if and .Values.egressGateway .Values.egressGateway.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pokedex.fullname" . }}-egress-gateway-config
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: egress-gateway
+data:
+  envoy.yaml: |
+    static_resources:
+      listeners:
+      - name: egress_forward_proxy
+        address:
+          socket_address:
+            protocol: TCP
+            address: 0.0.0.0
+            port_value: {{ .Values.egressGateway.port }}
+        filter_chains:
+        - filters:
+          - name: envoy.filters.network.tcp_proxy
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+              stat_prefix: egress_tcp
+              cluster: dynamic_forward_proxy_cluster
+      clusters:
+      - name: dynamic_forward_proxy_cluster
+        connect_timeout: 5s
+        type: LOGICAL_DNS
+        dns_lookup_family: V4_ONLY
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: dynamic_forward_proxy_cluster
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: generativelanguage.googleapis.com
+                    port_value: 443
+  allowed-domains.txt: |
+    {{- range .Values.egressGateway.allowedDomains }}
+    {{ . }}
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pokedex.fullname" . }}-egress-gateway
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: egress-gateway
+spec:
+  type: ClusterIP
+  ports:
+    - name: proxy
+      port: {{ .Values.egressGateway.port }}
+      targetPort: {{ .Values.egressGateway.port }}
+      protocol: TCP
+  selector:
+    {{- include "pokedex.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: egress-gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pokedex.fullname" . }}-egress-gateway
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: egress-gateway
+spec:
+  replicas: {{ .Values.egressGateway.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "pokedex.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: egress-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "pokedex.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: egress-gateway
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: envoy
+          image: "{{ .Values.egressGateway.image.repository }}:{{ .Values.egressGateway.image.tag }}"
+          imagePullPolicy: {{ .Values.egressGateway.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command: ["envoy", "-c", "/etc/envoy/envoy.yaml"]
+          ports:
+            - containerPort: {{ .Values.egressGateway.port }}
+              name: proxy
+          resources:
+            {{- toYaml .Values.egressGateway.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/envoy
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "pokedex.fullname" . }}-egress-gateway-config
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-egress-gateway
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: egress-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: egress-gateway
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Solo acepta peticiones entrantes de los pods de la API
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: api
+      ports:
+        - protocol: TCP
+          port: {{ .Values.egressGateway.port }}
+  egress:
+    # DNS interno
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Salida a Internet HTTPS filtrada con Anti-SSRF
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32 # Bloqueo IMDS Cloud Metadata
+              - 10.0.0.0/8         # RFC1918
+              - 172.16.0.0/12      # RFC1918
+              - 192.168.0.0/16     # RFC1918
+              - 127.0.0.0/8        # Loopback
+      ports:
+        - protocol: TCP
+          port: 443
+{{- end }}
