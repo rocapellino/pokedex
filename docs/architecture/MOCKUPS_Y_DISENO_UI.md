@@ -1,11 +1,12 @@
-# 🎨 Mockups y Sistema de Diseño de la Interfaz (UI/UX)
+# 🎨 Maquetación y Sistema de Diseño de la Interfaz (UI/UX)
 
-Este documento presenta los **mockups visuales de alta fidelidad**, la arquitectura de componentes y los lineamientos de diseño de usuario para la aplicación **Pokédex**, abarcando tanto el catálogo público como el panel administrativo (Backoffice) y los modales de detalle.
+Este documento describe la arquitectura visual, estructura de componentes, esquemas de distribución (wireframes) y lineamientos de diseño de usuario para la aplicación **Pokédex**, abarcando tanto el catálogo público como el panel administrativo (Backoffice) y los modales de detalle implementados en [`apps/frontend/public/`](file:///apps/frontend/public/).
 
 ---
 
-## 📑 Índice de Contenidos
-1. [Mockups Visuales](#1-mockups-visuales)
+## 📑 Tabla de Contenidos
+
+1. [Estructura y Maquetación de Vistas](#1-estructura-y-maquetación-de-vistas)
    * [1.1. Catálogo Principal Pokédex](#11-catálogo-principal-pokédex)
    * [1.2. Ficha de Detalle y Línea Evolutiva](#12-ficha-de-detalle-y-línea-evolutiva)
    * [1.3. Panel Administrativo CRUD (Backoffice)](#13-panel-administrativo-crud-backoffice)
@@ -15,14 +16,26 @@ Este documento presenta los **mockups visuales de alta fidelidad**, la arquitect
 
 ---
 
-## 1. Mockups Visuales
+## 1. Estructura y Maquetación de Vistas
 
 ### 1.1. Catálogo Principal Pokédex
+
 El catálogo público ofrece exploración fluida, búsqueda en tiempo real, filtros por tipo elemental, selector de generaciones y métricas agregadas del universo Pokémon.
 
-![Mockup Catálogo Principal Pokédex](../../public/assets/mockups/pokedex-catalog.svg)
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ 🔴 Pokédex Platform              [ 🔍 Buscar por nombre o tipo... ] ⚙️ │
+├────────────────────────────────────────────────────────────────────────┤
+│ [ Todos ] [ Fuego ] [ Agua ] [ Planta ] [ Eléctrico ] [ Psíquico ] ... │
+├────────────────────────────────────────────────────────────────────────┤
+│ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌──────────────┐ │
+│ │ #001 Bulbasaur│ │ #004 Charmande│ │ #007 Squirtle │ │ #025 Pikachu │ │
+│ │ 🌿 Planta/Ven │ │ 🔥 Fuego      │ │ 💧 Agua       │ │ ⚡ Eléctrico │ │
+│ │ BST: 318      │ │ BST: 309      │ │ BST: 314      │ │ BST: 320     │ │
+│ └───────────────┘ └───────────────┘ └───────────────┘ └──────────────┘ │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-**Elementos clave del diseño:**
 * **Barra de Navegación Unificada:** Identidad visual con Pokébola estilizada, selector de modo de tema (Claro / Oscuro / Sistema) y acceso directo al panel administrativo.
 * **Barra de Búsqueda & Filtros Dinámicos:** Entrada debounce de texto para filtrado instantáneo por nombre, tipo o habilidad, junto con selector multigenacional (Generaciones I a IX).
 * **Píldoras Elementales con Código Cromático:** Identificación inmediata de los 18 tipos elementales con colores armonizados y alto contraste.
@@ -32,11 +45,24 @@ El catálogo público ofrece exploración fluida, búsqueda en tiempo real, filt
 ---
 
 ### 1.2. Ficha de Detalle y Línea Evolutiva
+
 El modal emergente desglosa la información biológica, las estadísticas base y la cadena genealógica y evolutiva del Pokémon seleccionado.
 
-![Mockup Ficha de Detalle y Evoluciones](../../public/assets/mockups/pokemon-detail.svg)
+```text
+┌────────────────────────────────────────────────────────┐
+│ #006 Charizard — Pokémon Llama                 [ ✕ ]   │
+├────────────────────────────┬───────────────────────────┤
+│                            │ HP      ████████░░░ (78)  │
+│       [ Sprite Arte ]      │ Attack  ████████░░░ (84)  │
+│                            │ Defense ███████░░░░ (78)  │
+│ 🔥 Fuego   🦅 Volador      │ Sp. Atk ███████████ (109) │
+│ Peso: 90.5 kg | Alt: 1.7 m │ Speed   ██████████░ (100) │
+├────────────────────────────┴───────────────────────────┤
+│ Línea Evolutiva:                                       │
+│ Charmander (Nv. 16) ──▶ Charmeleon (Nv. 36) ──▶ Charizard│
+└────────────────────────────────────────────────────────┘
+```
 
-**Elementos clave del diseño:**
 * **Cabecera Contextual:** Identificador oficial, nombre y categoría del Pokémon con botón de cierre accesible (`ESC` o click de fondo).
 * **Arte y Reseña Biológica:** Ilustración a escala con resplandor ambiental según el tipo elemental primario y cita descriptiva de la Pokédex.
 * **Matriz de Estadísticas Base:** Barras visuales con gradientes semánticos para PS (HP), Ataque, Defensa, Ataque Especial, Defensa Especial y Velocidad, con cómputo del Total Base Stat (BST).
@@ -45,11 +71,22 @@ El modal emergente desglosa la información biológica, las estadísticas base y
 ---
 
 ### 1.3. Panel Administrativo CRUD (Backoffice)
+
 El panel Backoffice proporciona control operativo completo para la gestión del catálogo Pokémon, con monitoreo de salud del servicio y latencias.
 
-![Mockup Panel Administrativo CRUD](../../public/assets/mockups/backoffice-dashboard.svg)
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ ⚙️ Backoffice CRUD                         [ + Registrar Pokémon ]     │
+├────────────────────────────────────────────────────────────────────────┤
+│ [ KPIs: 1025 Especímenes | 99.9% Uptime | Redis: OK | DB: Connected ]  │
+├────┬────────────┬──────────────┬────────────┬──────────────────────────┤
+│ ID │ Nombre     │ Tipos        │ BST        │ Acciones                 │
+├────┼────────────┼──────────────┼────────────┼──────────────────────────┤
+│ 001│ Bulbasaur  │ Planta, Ven  │ 318        │ [ ✏️ Editar ] [ 🗑️ Borrar]│
+│ 004│ Charmander │ Fuego        │ 309        │ [ ✏️ Editar ] [ 🗑️ Borrar]│
+└────┴────────────┴──────────────┴────────────┴──────────────────────────┘
+```
 
-**Elementos clave del diseño:**
 * **Indicadores Operativos (KPIs):** Monitoreo en vivo de especímenes registrados, total de transacciones CRUD ejecutadas en las últimas 24 horas, latencia promedio de la API REST y estado del healthcheck de Kubernetes.
 * **Acciones Rápidas:** Botón de registro de nuevo Pokémon con modal de validación de campos obligatorios y tipos.
 * **Tabla de Gestión con Acciones:** Listado tabular con paginación, vista previa de sprites, badges tipados, características métricas y botones rápidos de edición (`PUT`) y eliminación protegida con confirmación (`DELETE`).
@@ -59,7 +96,7 @@ El panel Backoffice proporciona control operativo completo para la gestión del 
 ## 2. Sistema de Tokens de Diseño
 
 | Token | Propósito | Valor Modo Oscuro | Valor Modo Claro |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `color-bg-canvas` | Fondo base de la aplicación | `#0b0f19` | `#f8fafc` |
 | `color-bg-surface` | Contenedores y tarjetas | `#1f2937` | `#ffffff` |
 | `color-border-subtle` | Delimitadores y bordes | `#374151` | `#e2e8f0` |
