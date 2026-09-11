@@ -15,9 +15,9 @@ on:
         type: boolean
         default: false
       team_key:
-        description: "Clave del equipo en Linear (por defecto PER)"
+        description: "Clave del equipo en Linear (por defecto PEX)"
         type: string
-        default: "PER"
+        default: "PEX"
 
 permissions:
   contents: read
@@ -46,6 +46,6 @@ jobs:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: "rocapellino_pokedex"
-          LINEAR_TEAM_KEY: ${{ inputs.team_key || 'PER' }}
+          LINEAR_TEAM_KEY: ${{ inputs.team_key || 'PEX' }}
           DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
         run: npx --no-install tsx scripts/sonar-linear-sync.ts

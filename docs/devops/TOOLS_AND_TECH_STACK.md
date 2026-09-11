@@ -29,7 +29,7 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 ```mermaid
 flowchart LR
     subgraph PLAN["1. Plan & Track"]
-        LINEAR["📋 Linear\n(Tickets PER-X)"]
+        LINEAR["📋 Linear\n(Tickets PEX-X)"]
     end
 
     subgraph CODE["2. Code & Test"]

@@ -1,5 +1,5 @@
 ## 📌 Issues Vinculados
-- **Linear:** <!-- Ej: PER-12 -->
+- **Linear:** <!-- Ej: PEX-12 -->
 - **GitHub (opcional):** Closes #<!-- 123 -->
 
 ---
@@ -48,4 +48,4 @@
 - [ ] ¿Introduce algún cambio incompatible (Breaking Change)?
 
 ---
-> *Tip:* Usar el formato de rama sugerido por Linear (`username/PER-X-descripcion-corta`) vinculará automáticamente este PR al ticket correspondiente en el tablero de Linear.
+> *Tip:* Usar el formato de rama sugerido por Linear (`username/PEX-X-descripcion-corta`) vinculará automáticamente este PR al ticket correspondiente en el tablero de Linear.

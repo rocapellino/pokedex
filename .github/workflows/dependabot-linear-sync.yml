@@ -13,7 +13,10 @@ permissions:
 jobs:
   create-linear-ticket:
     name: 🎫 Generate Incremental Linear Issue
-    if: (github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'renovate[bot]') && github.event.pull_request.head.repo.full_name == github.repository
+    if: >
+      github.event.pull_request.head.repo.fork == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.user.id == 49699333 || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'renovate[bot]')
     runs-on: ubuntu-latest
 
     steps:
@@ -30,18 +33,18 @@ jobs:
             exit 0
           fi
 
-          # 1. Obtener dinámicamente el equipo de Linear filtrando por clave PER
+          # 1. Obtener dinámicamente el equipo de Linear filtrando por clave PEX
           TEAM_RESPONSE=$(curl --proto '=https' -fsSL -X POST https://api.linear.app/graphql \
             -H "Content-Type: application/json" \
             -H "Authorization: $LINEAR_API_KEY" \
             -d '{"query": "{ teams { nodes { id key name } } }"}')
 
-          # Seleccionar el equipo con key 'PER' o el primer equipo disponible
-          TEAM_ID=$(echo "$TEAM_RESPONSE" | jq -r '(.data.teams.nodes[] | select(.key == "PER") | .id) // .data.teams.nodes[0].id // empty')
-          TEAM_KEY=$(echo "$TEAM_RESPONSE" | jq -r '(.data.teams.nodes[] | select(.key == "PER") | .key) // .data.teams.nodes[0].key // empty')
+          # Seleccionar el equipo con key 'PEX' o el primer equipo disponible
+          TEAM_ID=$(echo "$TEAM_RESPONSE" | jq -r '(.data.teams.nodes[] | select(.key == "PEX") | .id) // .data.teams.nodes[0].id // empty')
+          TEAM_KEY=$(echo "$TEAM_RESPONSE" | jq -r '(.data.teams.nodes[] | select(.key == "PEX") | .key) // .data.teams.nodes[0].key // empty')
 
           if [ -z "$TEAM_ID" ]; then
-            echo "❌ No se encontró ningún equipo válido en Linear (buscando PER)."
+            echo "❌ No se encontró ningún equipo válido en Linear (buscando PEX)."
             echo "Respuesta de Linear: $TEAM_RESPONSE"
             exit 1
           fi
