@@ -1,11 +1,13 @@
 // ==============================================================================
-// Capa de Acceso a Datos & Caching (PostgreSQL & Redis) con Fallback Resiliente
+// Capa de Acceso a Datos & Caching (PostgreSQL & Redis) con Drizzle ORM & Fallback
 // ==============================================================================
 import pg from 'pg';
 import { Redis } from 'ioredis';
+import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
 import { Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
+import { pokedexEntries, createDrizzleClient, AppDatabase } from '../db/index.js';
 
 const { Pool } = pg;
 
@@ -24,6 +26,7 @@ const REDIS_URL = process.env.REDIS_URL || (
 );
 
 let pgPool: pg.Pool | null = null;
+let drizzleDb: AppDatabase | null = null;
 let redisClient: Redis | null = null;
 
 let isPgConnected = false;
@@ -67,10 +70,13 @@ async function connectPg(): Promise<boolean> {
         logger.error('[Storage: PostgreSQL Error] Idle client error', { error: err.message });
         isPgConnected = false;
       });
+
+      drizzleDb = createDrizzleClient(pgPool);
     }
 
     const client = await pgPool.connect();
     try {
+      // Garantizar esquema base y secuencia de manera declarativa/idempotente
       await client.query(`
         CREATE TABLE IF NOT EXISTS pokedex_entries (
           id INT PRIMARY KEY,
@@ -84,26 +90,36 @@ async function connectPg(): Promise<boolean> {
         CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
       `);
 
-      const countRes = await client.query('SELECT COUNT(*) FROM pokedex_entries');
-      const count = Number.parseInt(countRes.rows[0].count, 10);
-      if (count === 0) {
+      if (!drizzleDb) {
+        drizzleDb = createDrizzleClient(pgPool);
+      }
+
+      const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);
+      const countTotal = Number(countRow?.total ?? 0);
+
+      if (countTotal === 0) {
         logger.info('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
         for (const p of initialPokemons) {
-          await client.query(
-            'INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
-            [p.id, p.nombre, p.tipo, JSON.stringify(p)]
-          );
+          await drizzleDb
+            .insert(pokedexEntries)
+            .values({
+              id: p.id,
+              nombre: p.nombre,
+              tipo: p.tipo,
+              data: p,
+            })
+            .onConflictDoNothing({ target: pokedexEntries.id });
         }
-        lastKnownPgCount = count;
+        lastKnownPgCount = initialPokemons.length;
       } else {
-        lastKnownPgCount = count;
+        lastKnownPgCount = countTotal;
       }
 
       await client.query(`
         SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true);
       `);
       isPgConnected = true;
-      logger.info('[Storage: PostgreSQL] Conectado, tabla y secuencia pokedex_id_seq sincronizadas');
+      logger.info('[Storage: PostgreSQL] Conectado, Drizzle ORM activo, tabla y secuencia pokedex_id_seq sincronizadas');
       return true;
     } finally {
       client.release();
@@ -185,7 +201,7 @@ export async function initStorage(): Promise<void> {
 }
 
 // ------------------------------------------------------------------------------
-// 3. Operaciones CRUD (PostgreSQL con Fallback a Memoria)
+// 3. Operaciones CRUD (Drizzle ORM con Fallback Resiliente a Memoria)
 // ------------------------------------------------------------------------------
 
 export async function getAllPokemons(options: {
@@ -211,37 +227,34 @@ export async function getAllPokemons(options: {
 
   let resultData: { total: number; pokemons: Pokemon[] } | null = null;
 
-  // 2. Intentar consultar PostgreSQL
-  if (isPgConnected && pgPool) {
+  // 2. Intentar consultar PostgreSQL vía Drizzle ORM
+  if (isPgConnected && drizzleDb) {
     try {
-      let countQuery = 'SELECT COUNT(*) FROM pokedex_entries WHERE 1=1';
-      let dataQuery = 'SELECT data FROM pokedex_entries WHERE 1=1';
-      const params: any[] = [];
-      let paramIndex = 1;
-
+      const conditions = [];
       if (type) {
-        const ph = `$${paramIndex++}`;
-        countQuery += ` AND LOWER(tipo) = LOWER(${ph})`;
-        dataQuery += ` AND LOWER(tipo) = LOWER(${ph})`;
-        params.push(type);
+        conditions.push(ilike(pokedexEntries.tipo, type));
       }
       if (search) {
-        const ph = `$${paramIndex++}`;
-        countQuery += ` AND LOWER(nombre) LIKE LOWER(${ph})`;
-        dataQuery += ` AND LOWER(nombre) LIKE LOWER(${ph})`;
-        params.push(`%${search}%`);
+        conditions.push(ilike(pokedexEntries.nombre, `%${search}%`));
       }
 
-      const countResult = await pgPool.query(countQuery, params);
-      const total = Number.parseInt(countResult.rows[0].count, 10);
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      dataQuery += ' ORDER BY id ASC';
-      dataQuery += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
-      const dataParams = [...params, limit, offset];
+      const [countRow] = await drizzleDb
+        .select({ total: count() })
+        .from(pokedexEntries)
+        .where(whereClause);
+      const total = Number(countRow?.total ?? 0);
 
-      const result = await pgPool.query(dataQuery, dataParams);
-      const pokemons = result.rows.map(r => r.data as Pokemon);
+      const rows = await drizzleDb
+        .select({ data: pokedexEntries.data })
+        .from(pokedexEntries)
+        .where(whereClause)
+        .orderBy(asc(pokedexEntries.id))
+        .limit(limit)
+        .offset(offset);
 
+      const pokemons = rows.map(r => r.data);
       resultData = { total, pokemons };
     } catch (err) {
       logger.error('[Storage: PostgreSQL Error] Fallback a memoria', { error: err });
@@ -285,12 +298,17 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
     }
   }
 
-  // Consultar PostgreSQL
-  if (isPgConnected && pgPool) {
+  // Consultar PostgreSQL vía Drizzle ORM
+  if (isPgConnected && drizzleDb) {
     try {
-      const res = await pgPool.query('SELECT data FROM pokedex_entries WHERE id = $1', [id]);
-      if (res.rows.length > 0) {
-        const item = res.rows[0].data as Pokemon;
+      const [entry] = await drizzleDb
+        .select({ data: pokedexEntries.data })
+        .from(pokedexEntries)
+        .where(eq(pokedexEntries.id, id))
+        .limit(1);
+
+      if (entry) {
+        const item = entry.data;
         // Guardar en caché Redis por 5 minutos
         if (isRedisConnected && redisClient) {
           redisClient.setex(cacheKey, 300, JSON.stringify(item)).catch(() => {});
@@ -313,29 +331,38 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
 
 export function isWritableStorageAvailable(): boolean {
   if (Boolean(process.env.DATABASE_URL)) {
-    return isPgConnected && pgPool !== null;
+    return isPgConnected && pgPool !== null && drizzleDb !== null;
   }
   return true;
 }
 
 export async function savePokemon(pokemon: Pokemon): Promise<void> {
   // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar la escritura para evitar pérdida de datos
-  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool)) {
+  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool || !drizzleDb)) {
     throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para escritura. Operación cancelada.');
   }
 
-  // 1. Guardar primero en PostgreSQL (Source of Truth)
-  if (isPgConnected && pgPool) {
-    await pgPool.query(
-      `INSERT INTO pokedex_entries (id, nombre, tipo, data, updated_at)
-       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
-       ON CONFLICT (id) DO UPDATE
-       SET nombre = EXCLUDED.nombre,
-           tipo = EXCLUDED.tipo,
-           data = EXCLUDED.data,
-           updated_at = CURRENT_TIMESTAMP`,
-      [pokemon.id, pokemon.nombre, pokemon.tipo, JSON.stringify(pokemon)]
-    );
+  // 1. Guardar primero en PostgreSQL vía Drizzle ORM (Source of Truth)
+  if (isPgConnected && drizzleDb) {
+    await drizzleDb
+      .insert(pokedexEntries)
+      .values({
+        id: pokemon.id,
+        nombre: pokemon.nombre,
+        tipo: pokemon.tipo,
+        data: pokemon,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoUpdate({
+        target: pokedexEntries.id,
+        set: {
+          nombre: pokemon.nombre,
+          tipo: pokemon.tipo,
+          data: pokemon,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        },
+      });
+
     if (lastKnownPgCount !== null && !memoryMap.has(pokemon.id)) {
       lastKnownPgCount++;
     }
@@ -348,16 +375,20 @@ export async function savePokemon(pokemon: Pokemon): Promise<void> {
 
 export async function deletePokemon(id: number): Promise<boolean> {
   // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar eliminación
-  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool)) {
+  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool || !drizzleDb)) {
     throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para eliminación. Operación cancelada.');
   }
 
   let deleted = false;
 
-  // 1. Eliminar primero en PostgreSQL (Source of Truth)
-  if (isPgConnected && pgPool) {
-    const res = await pgPool.query('DELETE FROM pokedex_entries WHERE id = $1', [id]);
-    deleted = (res.rowCount !== null && res.rowCount > 0);
+  // 1. Eliminar primero en PostgreSQL vía Drizzle ORM (Source of Truth)
+  if (isPgConnected && drizzleDb) {
+    const deletedRows = await drizzleDb
+      .delete(pokedexEntries)
+      .where(eq(pokedexEntries.id, id))
+      .returning({ id: pokedexEntries.id });
+
+    deleted = deletedRows.length > 0;
     if (deleted && lastKnownPgCount !== null && lastKnownPgCount > 0) {
       lastKnownPgCount--;
     }
@@ -375,10 +406,14 @@ export async function deletePokemon(id: number): Promise<boolean> {
 }
 
 export async function getNextPokemonId(): Promise<number> {
-  if (isPgConnected && pgPool) {
+  if (isPgConnected && drizzleDb) {
     try {
-      const res = await pgPool.query("SELECT nextval('pokedex_id_seq') AS next_id");
-      return Number.parseInt(res.rows[0].next_id, 10);
+      const res = await drizzleDb.execute<{ next_id: string }>(
+        sql`SELECT nextval('pokedex_id_seq') AS next_id`
+      );
+      if (res.rows.length > 0) {
+        return Number.parseInt(res.rows[0].next_id, 10);
+      }
     } catch (err) {
       logger.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId', { error: err });
     }
@@ -440,8 +475,6 @@ export async function consumeDistributedRateLimit(
 
   try {
     const redisKey = `ratelimit:${key}`;
-    // Script Lua atómico: incrementa, asigna PEXPIRE si es la primera petición y retorna {count, pttl}
-    // Previene condiciones de carrera o claves huérfanas si el proceso se reinicia entre comandos.
     const luaScript = `
       local current = redis.call('INCR', KEYS[1])
       if current == 1 then
@@ -506,6 +539,10 @@ export function getRedisClient(): Redis | null {
   return isRedisConnected ? redisClient : null;
 }
 
+export function getDrizzleDb(): AppDatabase | null {
+  return isPgConnected ? drizzleDb : null;
+}
+
 export function getStorageHealth(): {
   database: 'postgresql' | 'memory';
   postgres_connected: boolean;
@@ -530,9 +567,9 @@ export function getStorageHealth(): {
  * Si PostgreSQL no está conectado, retorna null.
  */
 export async function getPostgresVersion(): Promise<string | null> {
-  if (!isPgConnected || !pgPool) return null;
+  if (!isPgConnected || !drizzleDb) return null;
   try {
-    const res = await pgPool.query('SELECT version()');
+    const res = await drizzleDb.execute<{ version: string }>(sql`SELECT version()`);
     const raw = (res.rows[0]?.version as string) || '';
     const match = raw.match(/^PostgreSQL\s+\S+/);
     return match ? match[0] : (raw || null);
@@ -540,5 +577,3 @@ export async function getPostgresVersion(): Promise<string | null> {
     return null;
   }
 }
-
-
