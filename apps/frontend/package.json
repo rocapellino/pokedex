@@ -2,7 +2,20 @@
   "name": "@pokedex/frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "lint": "node -c public/js/pokedex.js && node -c public/js/theme.js"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit && node -c public/js/pokedex.js && node -c public/js/theme.js"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.15"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
   }
 }

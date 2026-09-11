@@ -1,5 +1,19 @@
 # ==============================================================================
-# Dockerfile para Aplicación Web Frontend (Nginx Alpine Ligero y Seguro)
+# Dockerfile para Aplicación Web Frontend (Multi-Stage Build con Vite y Nginx)
+# ==============================================================================
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY apps/frontend/package*.json ./apps/frontend/
+RUN npm ci --ignore-scripts
+
+COPY apps/frontend ./apps/frontend
+RUN npm run build --workspace=@pokedex/frontend
+
+# ==============================================================================
+# Etapa de Ejecución (Nginx Alpine Ligero y Seguro)
 # ==============================================================================
 FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 AS runner
 
@@ -20,8 +34,8 @@ RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 # Copiar la plantilla de configuración de Nginx (IPs configurables por variable de entorno)
 COPY apps/frontend/nginx.conf.template /etc/nginx/conf.d/default.conf.template
 
-# Copiar assets estáticos del frontend (HTML, CSS, JS)
-COPY apps/frontend/public/ /usr/share/nginx/html/
+# Copiar build optimizado del frontend generado por Vite
+COPY --from=builder /app/apps/frontend/dist/ /usr/share/nginx/html/
 
 # Ajustar permisos para usuario no privilegiado de Nginx
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
@@ -40,14 +54,10 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 EXPOSE 8080
 
 # Variables de entorno con valores por defecto (sobreescribir en docker-compose o Helm values)
-# Ver .env.example para descripción de cada variable
 ENV BACKOFFICE_ALLOWED_IP_1=10.42.0.1/32 \
     BACKOFFICE_ALLOWED_IP_2=192.168.1.50/32 \
     METRICS_ALLOWED_CIDR=10.42.0.0/24
 
-# envsubst procesa la plantilla y reemplaza las variables antes de arrancar nginx.
-# Se especifican explícitamente las variables a sustituir para evitar reemplazar
-# variables propias de Nginx (e.g. $uri, $host, $remote_addr).
 CMD ["/bin/sh", "-c", \
     "envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
     < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf \
