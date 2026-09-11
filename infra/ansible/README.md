@@ -45,6 +45,7 @@ Para mantener una separación clara de incumbencias (*separation of concerns*):
 ```text
 infra/ansible/
 ├── ansible.cfg              # Configuración de ejecución, SSH pipelining y rutas de inventario
+├── deploy_excludes.txt      # Lista canónica de exclusión de secretos (.env) y artefactos en rsync
 ├── README.md                # Este documento de arquitectura y guía operativa
 ├── inventory/
 │   └── hosts.ini            # Grupos de hosts (k8s_control_plane, k8s_workers, standalone_servers)

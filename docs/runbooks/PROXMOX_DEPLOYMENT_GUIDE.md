@@ -5,11 +5,12 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Arquitectura de Despliegue en Proxmox](#1-arquitectura-de-despliegue-en-proxmox)
 2. [Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)](#2-gestión-segura-de-secretos-en-proxmox-cero-fugas-locales)
-3. [Método 1: Despliegue Automatizado en 1 Clic (Script / VS Code)](#3-método-1-despliegue-automatizado-en-1-clic-script--vs-code)
+3. [Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile](#3-método-1-aprovisionamiento-y-hardening-automatizado-con-ansible--taskfile)
 4. [Método 2: Despliegue Automatizado con Cloud-Init (VM / LXC)](#4-método-2-despliegue-automatizado-con-cloud-init-vm--lxc)
-5. [Método 3: Aprovisionamiento con OpenTofu (`infra/opentofu/environments/proxmox`)](#5-método-3-aprovisionamiento-con-opentofu)
+5. [Método 3: Aprovisionamiento con OpenTofu](#5-método-3-aprovisionamiento-con-opentofu)
 6. [Método 4: Orquestación y Hardening con Ansible](#6-método-4-orquestación-y-hardening-con-ansible)
 7. [Configuración de LXC con Docker (Nesting & Keyctl)](#7-configuración-de-lxc-con-docker-nesting--keyctl)
 
@@ -17,7 +18,7 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 
 ## 1. Arquitectura de Despliegue en Proxmox
 
-```
+```text
                       ┌─────────────────────────────────────────┐
                       │          Proxmox VE Node (PVE)          │
                       │  IP: 192.168.1.100 (Debian Core Kernel) │
@@ -48,8 +49,8 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 
 ## 2. Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)
 
-* **Exclusión de Secretos en Tránsito:** Tanto el script de despliegue (`scripts/proxmox_deploy.sh`) como los playbooks de Ansible (`deploy_proxmox.yml` y `deploy_app.yml`) aplican la lista canónica de exclusiones [`scripts/deploy_excludes.txt`](../../scripts/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se empaqueten ni viajen al host remoto**.
-* **Inicialización Segura en Remoto:** Al desplegarse por primera vez en Proxmox (vía Bash, Ansible o Cloud-Init), el sistema detecta si `/opt/pokedex/.env` existe:
+* **Exclusión de Secretos en Tránsito:** Los playbooks de Ansible (`deploy_proxmox.yml`, `deploy_app.yml` y `host_baseline.yml`) aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se empaqueten ni viajen al host remoto**.
+* **Inicialización Segura en Remoto:** Al desplegarse por primera vez en Proxmox (vía Ansible o Cloud-Init), el sistema detecta si `/opt/pokedex/.env` existe:
   * Si no existe: copia `/opt/pokedex/.env.example` y autogenera credenciales criptográficamente seguras con `openssl rand`:
     * `ADMIN_SESSION_SECRET` (64 caracteres hex / 256 bits).
     * `POSTGRES_PASSWORD` (32 caracteres hex).
@@ -57,28 +58,25 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
     * `ADMIN_API_KEY` (48 caracteres hex).
   * Asigna permisos estrictos `chmod 600 /opt/pokedex/.env` restringidos al usuario operador.
 * **Consulta de Credenciales Generadas:**
+
   ```bash
   ssh root@<PROXMOX_HOST> "cat /opt/pokedex/.env"
   ```
 
 ---
 
-## 3. Método 1: Despliegue Automatizado en 1 Clic (Script / VS Code)
+## 3. Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile
 
-### Opción A: Vía Tareas de VS Code
-1. Presiona `Ctrl + Shift + P` en VS Code.
-2. Selecciona `Tasks: Run Task` -> **`🚀 Proxmox: Desplegar en Servidor Proxmox VE`**.
-3. Ingresa la IP o Hostname de tu servidor o contenedor LXC (ej: `192.168.1.150`).
+### Opción A: Vía Taskfile (Recomendado)
 
-### Opción B: Vía Taskfile (Recomendado):
 ```bash
-task deploy:proxmox -- "192.168.1.150" "root" 22
+task deploy:proxmox -- -e "ansible_host=192.168.1.150"
 ```
 
-### Opción C: Vía Bash (Linux / macOS / CI/CD):
+### Opción B: Vía Ansible CLI directo
+
 ```bash
-chmod +x scripts/proxmox_deploy.sh
-./scripts/proxmox_deploy.sh 192.168.1.150 root 22
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml
 ```
 
 ---
@@ -86,6 +84,7 @@ chmod +x scripts/proxmox_deploy.sh
 ## 4. Método 2: Despliegue Automatizado con Cloud-Init (VM / LXC)
 
 La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](../../infra/proxmox/cloud-init/user-data.yaml) automatiza la instalación completa al aprovisionar la máquina virtual:
+
 1. Instala Docker Engine y el plugin de Compose.
 2. Aplica reglas de firewall UFW (solo SSH 22 y Web DMZ 8080).
 3. Clona el repositorio oficial en `/opt/pokedex`.
@@ -127,6 +126,7 @@ Para ejecutar Docker dentro de un contenedor LXC sin privilegios en Proxmox:
 1. **Desde la interfaz Web de Proxmox:**
    * Ve a tu contenedor LXC -> **Options** -> **Features** -> Marca **Nesting** y **Keyctl**.
 2. **Desde la consola del host Proxmox (`/etc/pve/lxc/<vmid>.conf`):**
+
    ```ini
    features: keyctl=1,nesting=1
    ```

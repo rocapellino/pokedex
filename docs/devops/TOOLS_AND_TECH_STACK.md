@@ -248,4 +248,4 @@ Tomando como base las características identificadas en el repositorio, se estab
 #### Endurecimiento de la Gestión de Estado de Infraestructura (IaC)
 
 * **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
-* **Inyección Efímera de Secretos**: Refactorización de scripts operativos ([`scripts/proxmox_deploy.sh`](file:///scripts/proxmox_deploy.sh)) para prescindir de parámetros posicionales en CLI, consumiendo credenciales únicamente vía variables de entorno efímeras o Vault.
+* **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](file:///infra/ansible/deploy_excludes.txt) y External Secrets Operator / Sealed Secrets en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.

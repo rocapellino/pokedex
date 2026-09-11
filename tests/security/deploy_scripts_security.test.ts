@@ -19,27 +19,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
-test('🛡️ Deploy Security: scripts/deploy_excludes.txt existe y excluye .env y .env.*', () => {
-  const filePath = path.join(ROOT_DIR, 'scripts/deploy_excludes.txt');
-  assert.ok(fs.existsSync(filePath), 'El archivo scripts/deploy_excludes.txt debe existir');
+test('🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*', () => {
+  const filePath = path.join(ROOT_DIR, 'infra/ansible/deploy_excludes.txt');
+  assert.ok(fs.existsSync(filePath), 'El archivo infra/ansible/deploy_excludes.txt debe existir');
   const content = fs.readFileSync(filePath, 'utf-8');
   assert.ok(content.includes('.env'), 'deploy_excludes.txt debe excluir .env');
   assert.ok(content.includes('.env.*'), 'deploy_excludes.txt debe excluir .env.*');
 });
 
-test('🛡️ Deploy Security: scripts/proxmox_deploy.sh excluye obligatoriamente archivos .env locales', () => {
-  const filePath = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
-  assert.ok(fs.existsSync(filePath), 'El script proxmox_deploy.sh debe existir');
-  const content = fs.readFileSync(filePath, 'utf-8');
-  assert.ok(content.includes('--exclude=.env') || content.includes("--exclude='.env'"), 'proxmox_deploy.sh debe contener exclusión explícita de .env');
-  assert.ok(content.includes('--exclude=.env.*') || content.includes("--exclude='.env.*'"), 'proxmox_deploy.sh debe contener exclusión explícita de .env.*');
+test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa', () => {
+  const legacyScript = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
+  assert.equal(fs.existsSync(legacyScript), false, 'scripts/proxmox_deploy.sh debe estar eliminado; el aprovisionamiento se gestiona vía OpenTofu + Ansible + Helm');
 });
 
-test('🛡️ Deploy Security: scripts/proxmox_deploy.sh aplica umask 077 y soporte seguro de variables de entorno', () => {
-  const filePath = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
-  const content = fs.readFileSync(filePath, 'utf-8');
-  assert.ok(content.includes('umask 077'), 'proxmox_deploy.sh debe ejecutar tar bajo umask 077 para proteger artefactos temporales');
-  assert.ok(content.includes('PROXMOX_HOST='), 'proxmox_deploy.sh debe soportar PROXMOX_HOST vía env');
+test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host', () => {
+  const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yml');
+  assert.ok(fs.existsSync(baselinePath), 'host_baseline.yml debe existir');
+  const content = fs.readFileSync(baselinePath, 'utf-8');
+  assert.ok(content.includes('ufw'), 'host_baseline.yml debe configurar firewall ufw');
 });
 
 test('🛡️ Deploy Security: Ansible playbooks excluyen .env en módulos synchronize', () => {
