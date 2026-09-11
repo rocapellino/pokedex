@@ -143,9 +143,20 @@ test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN 
   assert.ok(content.includes('cilium.io/v2'), 'Debe utilizar la API cilium.io/v2');
   assert.ok(content.includes('kind: CiliumNetworkPolicy'), 'Debe definir un recurso CiliumNetworkPolicy');
   assert.ok(content.includes('toFQDNs:'), 'Debe definir reglas de salida L7 toFQDNs');
-  assert.ok(content.includes('generativelanguage.googleapis.com'), 'Debe incluir en la allowlist a Google Gemini API');
-  assert.ok(content.includes('*.githubusercontent.com'), 'Debe incluir en la allowlist el dominio de assets de GitHub');
-  assert.ok(content.includes('*.pokeapi.co'), 'Debe incluir en la allowlist el dominio de PokeAPI');
+
+  const templateLines = content.split(/\r?\n/).map(line => line.trim());
+  assert.ok(
+    templateLines.some(line => line.includes('matchName') && line.includes('generativelanguage')),
+    'Debe incluir en la allowlist a Google Gemini API'
+  );
+  assert.ok(
+    templateLines.some(line => line.includes('matchPattern') && line.includes('githubusercontent')),
+    'Debe incluir en la allowlist el dominio de assets de GitHub'
+  );
+  assert.ok(
+    templateLines.some(line => line.includes('matchPattern') && line.includes('pokeapi')),
+    'Debe incluir en la allowlist el dominio de PokeAPI'
+  );
   assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir resolución DNS interna hacia CoreDNS');
 });
 
