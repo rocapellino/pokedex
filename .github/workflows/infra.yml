@@ -40,6 +40,14 @@ jobs:
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
           echo "✅ Helm Chart validado y renderizado con éxito para dev y prod (prod desacoplado con existingSecret)."
 
+      - name: 2c. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
+        run: |
+          test -s /tmp/rendered-dev.yaml || { echo "❌ Error: rendered-dev.yaml está vacío"; exit 1; }
+          test -s /tmp/rendered-prod.yaml || { echo "❌ Error: rendered-prod.yaml está vacío"; exit 1; }
+          grep -q "allow-postgres-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de PostgreSQL en prod"; exit 1; }
+          grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de Redis en prod"; exit 1; }
+          echo "✅ Integridad y contratos Zero-Trust de Helm validados con éxito."
+
       - name: 3. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
