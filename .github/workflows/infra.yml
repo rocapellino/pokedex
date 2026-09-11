@@ -33,20 +33,28 @@ jobs:
         with:
           version: v3.17.0
 
-      - name: 2b. Validar y Renderizar Helm Chart (Dev & Prod)
+      - name: 2b. Validar y Renderizar Helm Chart (Dev, Prod, Cilium y Egress Gateway)
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass
           helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-dev.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
-          echo "✅ Helm Chart validado y renderizado con éxito para dev y prod (prod desacoplado con existingSecret)."
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set egressGateway.enabled=true --set networkPolicies.egress.useEgressGateway=true > /tmp/rendered-egress-gateway.yaml
+          echo "✅ Helm Chart validado y renderizado con éxito para dev, prod, Cilium L7 y Egress Gateway."
 
       - name: 2c. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
         run: |
           test -s /tmp/rendered-dev.yaml || { echo "❌ Error: rendered-dev.yaml está vacío"; exit 1; }
           test -s /tmp/rendered-prod.yaml || { echo "❌ Error: rendered-prod.yaml está vacío"; exit 1; }
+          test -s /tmp/rendered-cilium.yaml || { echo "❌ Error: rendered-cilium.yaml está vacío"; exit 1; }
+          test -s /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: rendered-egress-gateway.yaml está vacío"; exit 1; }
           grep -q "allow-postgres-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de PostgreSQL en prod"; exit 1; }
           grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de Redis en prod"; exit 1; }
-          echo "✅ Integridad y contratos Zero-Trust de Helm validados con éxito."
+          grep -q "kind: CiliumNetworkPolicy" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta recurso CiliumNetworkPolicy"; exit 1; }
+          grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
+          grep -q "app.kubernetes.io/component: egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta componente egress-gateway"; exit 1; }
+          grep -q "pokedex-egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta Service/Deployment de Egress Gateway"; exit 1; }
+          echo "✅ Integridad, contratos Zero-Trust y aislamiento L7 Egress validados con éxito."
 
       - name: 3. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2

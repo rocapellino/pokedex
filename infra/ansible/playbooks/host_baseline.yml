@@ -1,0 +1,62 @@
+---
+# ==============================================================================
+# Playbook: Aprovisionamiento de Host Baseline y Preparación de Nodos
+# ==============================================================================
+# Propósito:
+#   Configurar el sistema operativo base, dependencias esenciales, runtime de
+#   contenedores (Docker / containerd), tuning de kernel y hardening perimetral.
+#   NO realiza despliegues de aplicación (delegado a Kubernetes + GitOps / ArgoCD).
+# ==============================================================================
+- name: Aprovisionamiento Base de Servidores y Nodos
+  hosts: all
+  become: true
+  tasks:
+    - name: 1. Actualizar caché de paquetes APT
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: 2. Instalar paquetes esenciales del sistema
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - ufw
+          - htop
+          - jq
+        state: present
+
+    - name: 3. Configurar parámetros de kernel sysctl para contenedores y red
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+        - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { name: 'net.ipv4.ip_forward', value: '1' }
+        - { name: 'vm.max_map_count', value: '262144' }
+        - { name: 'fs.inotify.max_user_watches', value: '524288' }
+
+    - name: 4. Instalar Docker CE y Containerd
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+      ignore_errors: true
+
+    - name: 5. Asegurar servicio Docker iniciado y habilitado
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      ignore_errors: true
+
+- import_playbook: security_hardening.yml

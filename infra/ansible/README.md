@@ -49,10 +49,11 @@ infra/ansible/
 ├── inventory/
 │   └── hosts.ini            # Grupos de hosts (k8s_control_plane, k8s_workers, standalone_servers)
 └── playbooks/
+    ├── host_baseline.yml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
     ├── security_hardening.yml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
-    ├── setup_nodes.yml        # Preparación de nodos (Docker Engine, sysctl, swapoff, módulos kernel)
-    ├── deploy_proxmox.yml     # Bootstrap standalone para Proxmox VE (modo fallback)
-    └── deploy_app.yml         # Despliegue standalone con Compose (modo fallback)
+    ├── setup_nodes.yml        # Preparación de nodos para clúster Kubernetes
+    ├── deploy_proxmox.yml     # Bootstrap standalone para Proxmox VE (modo fallback/DR)
+    └── deploy_app.yml         # Despliegue standalone con Compose (modo fallback/DR)
 ```
 
 ---

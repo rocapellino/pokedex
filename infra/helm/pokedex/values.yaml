@@ -326,3 +326,16 @@ limitRange:
   min:
     cpu: "50m"
     memory: "64Mi"
+
+# ------------------------------------------------------------------------------
+# 11. Disaster Recovery & Backup Automatizado (PostgreSQL)
+# ------------------------------------------------------------------------------
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retentionDays: 7
+  persistence:
+    enabled: false
+    size: 5Gi
+    storageClass: ""
+

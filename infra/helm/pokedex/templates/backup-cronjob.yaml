@@ -1,0 +1,165 @@
+{{- if and .Values.backup .Values.backup.enabled }}
+{{- if .Values.backup.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pokedex.fullname" . }}-backup-pvc
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.backup.persistence.size | default "5Gi" }}
+  {{- if .Values.backup.persistence.storageClass }}
+  storageClassName: {{ .Values.backup.persistence.storageClass }}
+  {{- end }}
+---
+{{- end }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "pokedex.fullname" . }}-db-backup
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "{{ .Values.backup.schedule | default "0 2 * * *" }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "pokedex.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            fsGroup: 70
+          containers:
+            - name: db-backup
+              image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+              imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              env:
+                - name: PGHOST
+                  value: {{ include "pokedex.fullname" . }}-postgres
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: {{ .Values.postgresql.auth.database | quote }}
+                - name: PGUSER
+                  value: {{ .Values.postgresql.auth.username | quote }}
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "pokedex.fullname" . }}-secret
+                      key: postgres-password
+                - name: BACKUP_ENCRYPTION_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "pokedex.fullname" . }}-secret
+                      key: backup-encryption-key
+                      optional: true
+                - name: RETENTION_DAYS
+                  value: "{{ .Values.backup.retentionDays | default 7 }}"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+                  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+                  TARGET_DIR="/backups"
+                  TMP_DIR="/tmp"
+                  RAW_FILE="${TMP_DIR}/backup_${TIMESTAMP}.sql.gz"
+                  ENC_FILE="${TARGET_DIR}/pokedex_${TIMESTAMP}.sql.gz.enc"
+                  CHECKSUM_FILE="${TARGET_DIR}/pokedex_${TIMESTAMP}.sql.gz.enc.sha256"
+
+                  echo "📦 [DR Backup] Iniciando volcado de seguridad de PostgreSQL (${PGDATABASE})..."
+                  pg_dump -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" --clean --if-exists | gzip -9 > "${RAW_FILE}"
+
+                  echo "🔒 [DR Backup] Cifrando volcado con AES-256-CBC..."
+                  ENC_PASS="${BACKUP_ENCRYPTION_KEY:-pokedex_dr_default_secure_key_2026}"
+                  openssl enc -aes-256-cbc -pbkdf2 -salt -in "${RAW_FILE}" -out "${ENC_FILE}" -k "${ENC_PASS}"
+
+                  echo "🔍 [DR Backup] Calculando checksum SHA-256 de integridad..."
+                  sha256sum "${ENC_FILE}" > "${CHECKSUM_FILE}"
+
+                  echo "🧹 [DR Backup] Purgando volcado en texto plano de /tmp..."
+                  rm -f "${RAW_FILE}"
+
+                  echo "⏳ [DR Backup] Aplicando política de retención (> ${RETENTION_DAYS} días)..."
+                  find "${TARGET_DIR}" -name "pokedex_*.sql.gz.enc*" -mtime +"${RETENTION_DAYS}" -delete || true
+
+                  BACKUP_SIZE=$(ls -lh "${ENC_FILE}" | awk '{print $5}')
+                  echo "✅ [DR Backup] ¡Copia de seguridad completada con éxito! Archivo: ${ENC_FILE} (Tamaño: ${BACKUP_SIZE})"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                limits:
+                  cpu: "300m"
+                  memory: "384Mi"
+                  ephemeral-storage: "1Gi"
+                requests:
+                  cpu: "50m"
+                  memory: "128Mi"
+                  ephemeral-storage: "256Mi"
+          volumes:
+            - name: backup-storage
+              {{- if .Values.backup.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ include "pokedex.fullname" . }}-backup-pvc
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-backup-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: backup
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: 5432
+{{- end }}
