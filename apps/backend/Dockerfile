@@ -1,6 +1,9 @@
 # ==============================================================================
 # Dockerfile Multi-Stage: Pokédex Backend API Service (Node.js 22 LTS)
 # ==============================================================================
+# Definición canónica para el workspace @pokedex/backend (utilizado por docker-compose).
+# El archivo /Dockerfile en la raíz actúa como espejo sincronizado para compatibilidad.
+# ==============================================================================
 
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación con esbuild)

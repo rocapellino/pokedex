@@ -21,6 +21,9 @@ export function getSessionSecret(): string {
   }
   if (!ephemeralDevSecret) {
     ephemeralDevSecret = crypto.randomBytes(32).toString('hex');
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('[Security Warning] ADMIN_SESSION_SECRET no configurado: utilizando secreto efímero en memoria para desarrollo local. En despliegues multi-pod (e.g. staging), cada réplica generará un secreto distinto invalidando tokens de sesión entre pods.');
+    }
   }
   return ephemeralDevSecret;
 }
