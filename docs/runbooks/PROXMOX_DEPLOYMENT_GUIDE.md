@@ -48,8 +48,8 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 
 ## 2. Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)
 
-* **Exclusión de Secretos en Tránsito:** Tanto el script de despliegue (`scripts/proxmox_deploy.sh`) como los playbooks de Ansible (`deploy_proxmox.yml` y `deploy_app.yml`) aplican la lista canónica de exclusiones [`scripts/deploy_excludes.txt`](../../scripts/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se empaqueten ni viajen al host remoto**.
-* **Inicialización Segura en Remoto:** Al desplegarse por primera vez en Proxmox (vía Bash, Ansible o Cloud-Init), el sistema detecta si `/opt/pokedex/.env` existe:
+* **Exclusión de Secretos en Tránsito:** Los playbooks de Ansible (`deploy_proxmox.yml`, `deploy_app.yml` y `host_baseline.yml`) aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se empaqueten ni viajen al host remoto**.
+* **Inicialización Segura en Remoto:** Al desplegarse por primera vez en Proxmox (vía Ansible o Cloud-Init), el sistema detecta si `/opt/pokedex/.env` existe:
   * Si no existe: copia `/opt/pokedex/.env.example` y autogenera credenciales criptográficamente seguras con `openssl rand`:
     * `ADMIN_SESSION_SECRET` (64 caracteres hex / 256 bits).
     * `POSTGRES_PASSWORD` (32 caracteres hex).
@@ -63,22 +63,16 @@ Esta guía detalla los métodos para desplegar la plataforma Pokédex en servido
 
 ---
 
-## 3. Método 1: Despliegue Automatizado en 1 Clic (Script / VS Code)
+## 3. Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile
 
-### Opción A: Vía Tareas de VS Code
-1. Presiona `Ctrl + Shift + P` en VS Code.
-2. Selecciona `Tasks: Run Task` -> **`🚀 Proxmox: Desplegar en Servidor Proxmox VE`**.
-3. Ingresa la IP o Hostname de tu servidor o contenedor LXC (ej: `192.168.1.150`).
-
-### Opción B: Vía Taskfile (Recomendado):
+### Opción A: Vía Taskfile (Recomendado):
 ```bash
-task deploy:proxmox -- "192.168.1.150" "root" 22
+task deploy:proxmox -- -e "ansible_host=192.168.1.150"
 ```
 
-### Opción C: Vía Bash (Linux / macOS / CI/CD):
+### Opción B: Vía Ansible CLI directo:
 ```bash
-chmod +x scripts/proxmox_deploy.sh
-./scripts/proxmox_deploy.sh 192.168.1.150 root 22
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml
 ```
 
 ---

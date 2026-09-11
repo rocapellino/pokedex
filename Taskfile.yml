@@ -210,9 +210,9 @@ tasks:
       - npx tsx scripts/seal-secret.ts
 
   deploy:proxmox:
-    desc: "Despliega el stack en Proxmox VE (LXC/VM) vía SSH y Docker Compose"
+    desc: "Aprovisiona el baseline y hardening en host Proxmox VE vía Ansible"
     cmds:
-      - bash scripts/proxmox_deploy.sh {{.CLI_ARGS}}
+      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml {{.CLI_ARGS}}
 
 
   # ----------------------------------------------------------------------------
