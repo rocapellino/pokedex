@@ -50,6 +50,7 @@
         content: |
           overlay
           br_netfilter
+        mode: '0640'
 
     - name: Configurar parámetros sysctl para networking de contenedores
       sysctl:

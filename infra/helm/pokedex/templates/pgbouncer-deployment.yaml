@@ -89,5 +89,12 @@ spec:
             - name: DEFAULT_POOL_SIZE
               value: {{ .Values.pgbouncer.defaultPoolSize | quote }}
           resources:
-            {{- toYaml .Values.pgbouncer.resources | nindent 12 }}
+            limits:
+              cpu: {{ .Values.pgbouncer.resources.limits.cpu | default "250m" | quote }}
+              memory: {{ .Values.pgbouncer.resources.limits.memory | default "256Mi" | quote }}
+              ephemeral-storage: {{ index .Values.pgbouncer.resources.limits "ephemeral-storage" | default "256Mi" | quote }}
+            requests:
+              cpu: {{ .Values.pgbouncer.resources.requests.cpu | default "50m" | quote }}
+              memory: {{ .Values.pgbouncer.resources.requests.memory | default "64Mi" | quote }}
+              ephemeral-storage: {{ index .Values.pgbouncer.resources.requests "ephemeral-storage" | default "64Mi" | quote }}
 {{- end }}

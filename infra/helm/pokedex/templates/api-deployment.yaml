@@ -76,7 +76,14 @@ spec:
             - secretRef:
                 name: {{ include "pokedex.secretName" . }}
           resources:
-            {{- toYaml .Values.api.resources | nindent 12 }}
+            limits:
+              cpu: {{ .Values.api.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.api.resources.limits.memory | default "512Mi" | quote }}
+              ephemeral-storage: {{ index .Values.api.resources.limits "ephemeral-storage" | default "512Mi" | quote }}
+            requests:
+              cpu: {{ .Values.api.resources.requests.cpu | default "100m" | quote }}
+              memory: {{ .Values.api.resources.requests.memory | default "128Mi" | quote }}
+              ephemeral-storage: {{ index .Values.api.resources.requests "ephemeral-storage" | default "128Mi" | quote }}
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
