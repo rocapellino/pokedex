@@ -25,6 +25,7 @@ flowchart LR
 ```
 
 ### 2.1. Características de Seguridad del Backup
+
 1. **Zero-Trust Egress**: El pod de backup no tiene salida a Internet pública; su comunicación está estrictamente limitada a PostgreSQL (puerto 5432) y CoreDNS (puerto 53).
 2. **Hardening de Contenedor**: Corre con usuario no root (`UID 70`), sistema de archivos de solo lectura (`readOnlyRootFilesystem: true`) y descarte total de capacidades Linux (`capabilities.drop: [ALL]`).
 3. **Cifrado Criptográfico Estricto**:
@@ -39,17 +40,20 @@ flowchart LR
 ### Escenario A: Restauración sobre Clúster Operativo
 
 1. **Obtener el último backup cifrado y su checksum:**
+
    ```bash
    LATEST_BACKUP=$(kubectl exec -it -n pokemon-app deploy/pokedex-postgres -- find /backups -name "pokedex_*.sql.gz.enc" | sort -r | head -n 1)
    echo "Restaurando desde: ${LATEST_BACKUP}"
    ```
 
 2. **Ejecutar la verificación y restauración automática:**
+
    ```bash
    bash scripts/dr_verify_restore.sh "${LATEST_BACKUP}"
    ```
 
 3. **Restaurar directamente en la base de datos activa:**
+
    ```bash
    openssl enc -d -aes-256-cbc -pbkdf2 -in "${LATEST_BACKUP}" -k "${BACKUP_ENCRYPTION_KEY}" | \
      gzip -d | \
@@ -57,6 +61,7 @@ flowchart LR
    ```
 
 4. **Validar conteo y consistencia:**
+
    ```bash
    kubectl exec -i -n pokemon-app deploy/pokedex-postgres -- \
      psql -U pokedex_app -d pokedex_db -c "SELECT COUNT(*) FROM pokedex_entries;"
@@ -68,9 +73,11 @@ flowchart LR
 
 1. Aprovisionar nodos base con Ansible (`host_baseline.yml`).
 2. Desplegar clúster Kubernetes y sincronizar manifiestos vía ArgoCD / Helm:
+
    ```bash
    helm upgrade --install pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml
    ```
+
 3. Aprovisionar el Secret de cifrado (`pokedex-backup-secret`).
 4. Montar el volumen de backup y ejecutar la restauración con el comando del Escenario A.
 5. Iniciar los pods de la API y Frontend web una vez validada la integridad de PostgreSQL.
