@@ -21,7 +21,7 @@ spec:
       releaseName: pokedex-cloud
       valueFiles:
         - values.yaml
-        - ../../../gitops/environments/cloud/values.yaml
+        - ../../../gitops/environments/aws/values.yaml
   destination:
     # Endpoint o nombre del clúster de Kubernetes en Nube registrado en ArgoCD
     server: https://k8s-cloud-cluster.privatelink.us-east-1.eks.amazonaws.com
