@@ -104,18 +104,12 @@ function updateAuthUI() {
 
   if (token) {
     if (statusText) statusText.innerText = 'Admin Activo';
-    if (btn) {
-      btn.style.borderColor = '#10b981';
-      btn.style.color = '#10b981';
-    }
-    if (clearBtn) clearBtn.style.display = 'inline-block';
+    if (btn) btn.classList.add('btn-auth-active');
+    if (clearBtn) clearBtn.classList.remove('hidden');
   } else {
     if (statusText) statusText.innerText = 'Autenticar';
-    if (btn) {
-      btn.style.borderColor = '';
-      btn.style.color = '';
-    }
-    if (clearBtn) clearBtn.style.display = 'none';
+    if (btn) btn.classList.remove('btn-auth-active');
+    if (clearBtn) clearBtn.classList.add('hidden');
   }
 }
 
@@ -224,9 +218,9 @@ async function loadAdminData() {
       tbody.innerHTML = `
         <tr>
           <td colspan="8" class="table-empty">
-            <div style="color: #ef4444; font-size: 1.5rem; margin-bottom: 0.5rem;">⚠️</div>
+            <div class="text-danger text-2xl mb-2">⚠️</div>
             <strong>Error de conexión con la API</strong>
-            <p class="text-muted">${err.message}</p>
+            <p class="text-muted">${escapeHTML(err.message)}</p>
           </td>
         </tr>
       `;
@@ -315,14 +309,14 @@ function renderTable() {
           </div>
         </td>
         <td>
-          <span class="type-badge" style="background-color: ${typeColor};">
+          <span class="type-badge" data-type="${escapeHTML(normalizeStr(p.tipo))}">
             ${escapeHTML(p.tipo)}
           </span>
         </td>
         <td>
           <div class="force-meter">
             <div class="force-bar-wrapper">
-              <div class="force-bar" style="width: ${maxBarWidth}%;"></div>
+              <div class="force-bar" data-width="${maxBarWidth}"></div>
             </div>
             <span class="force-value">${p.fuerza || 0}</span>
           </div>
@@ -336,7 +330,7 @@ function renderTable() {
         <td>
           <span class="habitat-tag">${escapeHTML(car.habitat || 'Kanto')}</span>
         </td>
-        <td style="text-align: center;">
+        <td class="text-center">
           <div class="actions-group">
             <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="${p.id}">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
@@ -351,13 +345,17 @@ function renderTable() {
     `;
   }).join('');
 
+  tbody.querySelectorAll('.force-bar[data-width]').forEach(el => {
+    el.style.width = el.dataset.width + '%';
+  });
+
   if (totalPages > 1) {
-    pagination.style.display = 'flex';
+    pagination.classList.remove('hidden');
     document.getElementById('adminPageInfo').innerText = `Página ${currentPage} de ${totalPages} (Mostrando ${currentBatch.length} de ${filteredPokemons.length} Pokémon)`;
     document.getElementById('adminBtnPrev').disabled = (currentPage === 1);
     document.getElementById('adminBtnNext').disabled = (currentPage === totalPages);
   } else {
-    pagination.style.display = 'none';
+    pagination.classList.add('hidden');
   }
 }
 

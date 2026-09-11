@@ -68,7 +68,7 @@
           <span class="status-dot" id="statusDot"></span>
           <span id="backendStatus">Conectado: Kubernetes, Postgres & Redis</span>
         </div>
-        <a href="/download" download="pokedex-v2-migrated.zip" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.45rem 0.9rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem;" title="Descargar código fuente del proyecto en ZIP">
+        <a href="/download" download="pokedex-v2-migrated.zip" class="btn btn-secondary btn-download-header" title="Descargar código fuente del proyecto en ZIP">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>Descargar ZIP</span>
         </a>
@@ -167,20 +167,20 @@
       <table class="admin-table">
         <thead>
           <tr>
-            <th style="width: 80px;">ID</th>
-            <th style="width: 90px;">Miniatura</th>
+            <th class="w-80px">ID</th>
+            <th class="w-90px">Miniatura</th>
             <th>Nombre</th>
             <th>Tipo Principal</th>
             <th>Fuerza</th>
             <th>Métricas Físicas</th>
             <th>Hábitat</th>
-            <th style="text-align: center; width: 170px;">Acciones</th>
+            <th class="text-center w-170px">Acciones</th>
           </tr>
         </thead>
         <tbody id="adminTableBody">
           <tr>
-            <td colspan="8" style="text-align: center; padding: 3rem;">
-              <div class="spinner" style="margin: 0 auto 1rem;"></div>
+            <td colspan="8" class="text-center py-12">
+              <div class="spinner spinner-centered"></div>
               <p class="text-muted">Cargando base de datos desde PostgreSQL...</p>
             </td>
           </tr>
@@ -284,14 +284,14 @@
   <div class="modal-overlay" id="deleteModal">
     <div class="modal-card modal-delete-card">
       <div class="modal-header">
-        <h3 class="modal-title" style="color: #ef4444;">⚠️ Confirmar Eliminación</h3>
+        <h3 class="modal-title text-danger">⚠️ Confirmar Eliminación</h3>
         <button class="btn-icon" data-close-delete="true" aria-label="Cerrar modal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="modal-body" style="padding: 1rem 0;">
-        <p>¿Estás seguro de que deseas eliminar a <strong id="deletePokemonName" style="color: #fff;"></strong> (#<span id="deletePokemonId"></span>) de la base de datos?</p>
-        <p class="text-muted" style="margin-top: 0.5rem; font-size: 0.9rem;">Esta acción no se puede deshacer y se invalidará automáticamente la caché de Redis.</p>
+      <div class="modal-body py-4">
+        <p>¿Estás seguro de que deseas eliminar a <strong id="deletePokemonName" class="text-white"></strong> (#<span id="deletePokemonId"></span>) de la base de datos?</p>
+        <p class="text-muted text-sm mt-2">Esta acción no se puede deshacer y se invalidará automáticamente la caché de Redis.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-close-delete="true">Cancelar</button>
@@ -310,9 +310,9 @@
         </button>
       </div>
       <form id="authForm">
-        <div style="padding: 1rem 0;">
-          <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;">
-            Ingresa la clave de administrador para obtener un token de sesión de corta duración (<code style="color: var(--primary, #3b82f6);">HMAC Token</code>). Por seguridad, la clave secreta maestra nunca se almacena en el navegador.
+        <div class="py-4">
+          <p class="text-muted text-body mb-4">
+            Ingresa la clave de administrador para obtener un token de sesión de corta duración (<code class="token-code">HMAC Token</code>). Por seguridad, la clave secreta maestra nunca se almacena en el navegador.
           </p>
           <div class="form-group">
             <label class="form-label" for="adminApiKeyInput">Clave de Administrador (ADMIN_API_KEY)</label>
@@ -320,7 +320,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btnClearKeyBtn" style="display: none;">Cerrar Sesión Admin</button>
+          <button type="button" class="btn btn-secondary hidden" id="btnClearKeyBtn">Cerrar Sesión Admin</button>
           <button type="button" class="btn btn-secondary" data-close-auth="true">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="btnSaveKey">Autenticar Sesión</button>
         </div>

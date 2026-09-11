@@ -18,8 +18,8 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     # HSTS: forzar HTTPS en conexiones protegidas por TLS Ingress o Reverse Proxy
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    # CSP: permite scripts propios (sin 'unsafe-inline'), estilos propios con Google Fonts, imágenes de GitHub y data URIs.
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self';" always;
+    # CSP: permite scripts propios (sin 'unsafe-inline'), estilos propios con Google Fonts (sin 'unsafe-inline'), imágenes de GitHub y data URIs.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self';" always;
 
     # 1. Estrategia de Caché para Assets Estáticos (CSS, JS, Fuentes, Imágenes)
     location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
