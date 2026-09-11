@@ -189,6 +189,7 @@ spec:
       app.kubernetes.io/component: database
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         {{- if .Values.pgbouncer.enabled }}
@@ -206,6 +207,8 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
+  # Zero-Trust: La base de datos es puramente pasiva; no inicia conexiones de salida
+  egress: []
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -219,6 +222,7 @@ spec:
       app.kubernetes.io/component: redis
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
@@ -230,4 +234,6 @@ spec:
       ports:
         - protocol: TCP
           port: 6379
+  # Zero-Trust: El motor de caché no requiere peticiones de salida
+  egress: []
 {{- end }}

@@ -81,5 +81,27 @@ test('🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite
     const content = fs.readFileSync(filePath, 'utf-8');
     assert.ok(!content.includes("style-src 'self' 'unsafe-inline'"), `${relPath} no debe contener unsafe-inline en style-src`);
     assert.ok(content.includes("style-src 'self' https://fonts.googleapis.com;"), `${relPath} debe definir style-src estricto`);
+    assert.ok(content.includes("base-uri 'self';"), `${relPath} debe contener base-uri 'self'`);
+    assert.ok(content.includes("form-action 'self';"), `${relPath} debe contener form-action 'self'`);
+    assert.ok(content.includes("Permissions-Policy"), `${relPath} debe incluir Permissions-Policy`);
   }
+});
+
+test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)', () => {
+  const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
+  assert.ok(fs.existsSync(npPath), 'network-policies.yaml debe existir');
+  const content = fs.readFileSync(npPath, 'utf-8');
+
+  // Asegurar que PostgreSQL y Redis declaran Egress en policyTypes y tienen default-deny egress: []
+  assert.ok(content.includes('allow-postgres-ingress'), 'Debe definir allow-postgres-ingress');
+  assert.ok(content.includes('allow-redis-ingress'), 'Debe definir allow-redis-ingress');
+  
+  // Ambas deben incluir Egress en policyTypes
+  const postgresSection = content.split('allow-postgres-ingress')[1]?.split('---')[0] || '';
+  assert.ok(postgresSection.includes('- Egress'), 'PostgreSQL NetworkPolicy debe incluir Egress en policyTypes');
+  assert.ok(postgresSection.includes('egress: []'), 'PostgreSQL NetworkPolicy debe definir egress: [] (aislamiento total de salida)');
+
+  const redisSection = content.split('allow-redis-ingress')[1] || '';
+  assert.ok(redisSection.includes('- Egress'), 'Redis NetworkPolicy debe incluir Egress en policyTypes');
+  assert.ok(redisSection.includes('egress: []'), 'Redis NetworkPolicy debe definir egress: [] (aislamiento total de salida)');
 });
