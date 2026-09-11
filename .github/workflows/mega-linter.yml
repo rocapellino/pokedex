@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: 2. Ejecutar MegaLinter (Flavor CI Light)
-        uses: oxsecurity/megalinter/flavors/ci_light@ec124f7998718d79379a3c5b39f5359952baf21d # v8.4.2
+        uses: oxsecurity/megalinter/flavors/ci_light@15e5b45552097e318c93de385779ce3b1084052c # v10.0.0
         env:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
