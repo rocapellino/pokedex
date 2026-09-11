@@ -1,6 +1,10 @@
 ---
 # ==============================================================================
-# Playbook: Despliegue Automatizado de la Pokédex (Docker Compose / K8s)
+# Playbook: Despliegue Standalone de la Pokédex (Docker Compose Fallback)
+# ==============================================================================
+# NOTA ARQUITECTÓNICA:
+# El ciclo de vida de la aplicación en producción está gestionado por GitOps
+# (Helm + ArgoCD). Este playbook sirve como mecanismo standalone de respaldo.
 # ==============================================================================
 - name: Despliegue de la Aplicación Pokédex en Servidores Standalone
   hosts: standalone_servers

@@ -76,8 +76,8 @@ pokedex/
 │   ├── helm/pokedex/             # Chart oficial de Helm 3 (Deployments, PgBouncer, HPA, NetPols)
 │   ├── k8s/                      # ClusterPolicy de Kyverno para verificación de firmas Cosign
 │   ├── opentofu/                 # Entornos Proxmox VE (on-premise) y AWS EKS (cloud)
-│   ├── terraform/                # Módulos multi-cloud para nubes públicas
-│   └── ansible/                  # Playbooks de aprovisionamiento y hardening de firewall UFW
+│   ├── proxmox/                  # Plantillas Cloud-Init y contenedores LXC on-premise
+│   └── ansible/                  # Playbooks de baseline de nodos y hardening de firewall UFW
 ├── gitops/                       # GitOps con ArgoCD
 │   ├── apps/                     # Definiciones de ArgoCD Applications (app-proxmox, app-cloud)
 │   └── environments/             # Sobrescrituras de valores por clúster (proxmox, cloud)

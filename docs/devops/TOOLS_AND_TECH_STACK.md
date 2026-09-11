@@ -140,10 +140,10 @@ flowchart LR
 ### 2.8. Infraestructura como Código (IaC) & Virtualización
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **OpenTofu / Terraform** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](file:///infra/opentofu/), [`infra/terraform/`](file:///infra/terraform/) |
+| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](file:///infra/opentofu/) |
 | **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yml`](file:///.github/workflows/infra.yml), [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
 | **Proxmox VE** | `8.x` | Virtualización on-premise mediante contenedores LXC y Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/) |
-| **Ansible** | `2.16+` | Automatización de configuración de nodos y hardening de firewall UFW | [`infra/ansible/`](file:///infra/ansible/) |
+| **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](file:///infra/ansible/) |
 
 ### 2.9. Observabilidad & Monitoreo
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
