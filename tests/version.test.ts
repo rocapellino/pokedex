@@ -77,3 +77,39 @@ test('🛡️ Startup Env Check: pasa exitosamente en producción si variables c
     process.env = prevEnv;
   }
 });
+
+test('🛡️ Startup Env Check: SKIP_ENV_CHECK=true NO bypasses validación en producción', () => {
+  const prevEnv = { ...process.env };
+  try {
+    process.env.NODE_ENV = 'production';
+    process.env.SKIP_ENV_CHECK = 'true';
+    delete process.env.ADMIN_API_KEY;
+    delete process.env.ADMIN_SESSION_SECRET;
+    delete process.env.CORS_ORIGINS;
+
+    assert.throws(
+      () => checkRequiredEnvVars({ throwOnError: true, logWarnings: false }),
+      /ERROR DE ARRANQUE/
+    );
+  } finally {
+    process.env = prevEnv;
+  }
+});
+
+test('🛡️ Startup Env Check: SKIP_ENV_CHECK=true sí permite bypass en entornos no productivos', () => {
+  const prevEnv = { ...process.env };
+  try {
+    process.env.NODE_ENV = 'development';
+    process.env.SKIP_ENV_CHECK = 'true';
+    delete process.env.ADMIN_API_KEY;
+    delete process.env.ADMIN_SESSION_SECRET;
+    delete process.env.CORS_ORIGINS;
+
+    const result = checkRequiredEnvVars({ throwOnError: true, logWarnings: false });
+    assert.equal(result.valid, true);
+    assert.equal(result.missingRequired.length, 0);
+  } finally {
+    process.env = prevEnv;
+  }
+});
+

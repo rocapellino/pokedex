@@ -95,7 +95,11 @@ export function inspectEnvironment(): EnvCheckResult {
 export function checkRequiredEnvVars(options: { throwOnError?: boolean; logWarnings?: boolean } = {}): EnvCheckResult {
   const { throwOnError = true, logWarnings = true } = options;
 
-  if (process.env.NODE_ENV === 'test' || process.env.SKIP_ENV_CHECK === 'true') {
+  const isTest = process.env.NODE_ENV === 'test';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const shouldSkip = isTest || (process.env.SKIP_ENV_CHECK === 'true' && !isProduction);
+
+  if (shouldSkip) {
     return { valid: true, missingRequired: [], warnings: [] };
   }
 

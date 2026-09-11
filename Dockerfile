@@ -1,6 +1,10 @@
 # ==============================================================================
 # Dockerfile Multi-Stage: Pokédex Backend API Service (Node.js 22 LTS)
 # ==============================================================================
+# NOTA: Este archivo es el espejo raíz de apps/backend/Dockerfile mantenido para
+# compatibilidad con builds directos desde la raíz. La definición canónica del
+# servicio backend reside en apps/backend/Dockerfile.
+# ==============================================================================
 
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación con esbuild)

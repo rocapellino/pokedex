@@ -291,6 +291,7 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
   // 1. Validar si la credencial es un token de sesión firmado de corta duración
   const sessionCheck = await verifySessionTokenDetailed(credential);
   if (sessionCheck.valid) {
+    (req as any).authMechanism = 'hmac_session_token';
     return next();
   }
 
@@ -303,6 +304,11 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
   if (safeCompareKeys(credential, configuredKey)) {
+    (req as any).authMechanism = 'master_api_key';
+    if (process.env.NODE_ENV !== 'test') {
+      const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+      console.warn(`[Security Audit] Acceso administrativo vía MASTER_API_KEY en ${req.method} ${req.path} (IP: ${clientIp}). Se recomienda utilizar tokens de sesión efímeros.`);
+    }
     return next();
   }
 
