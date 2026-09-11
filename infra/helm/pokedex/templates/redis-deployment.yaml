@@ -54,7 +54,7 @@ spec:
           command:
             - "sh"
             - "-c"
-            - "printf 'port %s\\nrequirepass %s\\n' '{{ .Values.redis.port }}' \"$REDIS_PASSWORD\" > /tmp/redis.conf && exec redis-server /tmp/redis.conf"
+            - "printf 'port %s\\nrequirepass %s\\nappendonly yes\\nsave \"\"\\n' '{{ .Values.redis.port }}' \"$REDIS_PASSWORD\" > /tmp/redis.conf && exec redis-server /tmp/redis.conf"
           env:
             - name: REDIS_PASSWORD
               valueFrom:

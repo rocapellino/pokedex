@@ -36,10 +36,10 @@ regexes = [
   '''(?i)redis_dev_secret_password''',
   '''(?i)minioadmin_secure_password''',
   '''(?i)ci-validation-dummy-pass''',
-  '''(?i)ci-key''',
-  '''(?i)ci-pass''',
-  '''(?i)dummy-pass''',
-  '''(?i)mock-key''',
+  '''(?i)^ci-key$''',
+  '''(?i)^ci-pass$''',
+  '''(?i)^dummy-pass$''',
+  '''(?i)^mock-key$''',
 ]
 fingerprints = [
   # Commit histórico de SealedSecret cifrado en el clúster
