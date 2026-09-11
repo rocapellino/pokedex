@@ -1,22 +1,22 @@
-# 🖥️ Guía de Despliegue en Proxmox VE (On-Premise & Private Cloud)
+# 🖥️ Guía de Operación y Despliegue en Proxmox VE (On-Premises & Private Cloud)
 
-Esta guía detalla los métodos para desplegar y configurar la infraestructura de Pokédex en servidores **Proxmox Virtual Environment (PVE)** utilizando contenedores **LXC** (Linux Containers) de alto rendimiento o **Máquinas Virtuales (QEMU/KVM)** con inicialización automatizada mediante **Cloud-Init**, **Ansible** u **OpenTofu**, orquestando la aplicación sobre Kubernetes con **Helm**.
+Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y operar la infraestructura de **Pokédex** en servidores **Proxmox Virtual Environment (PVE)**. De acuerdo con la **Política de Runtime Universal**, Proxmox actúa como el proveedor de cómputo y virtualización on-premises (alojando nodos de **Kubernetes** mediante VMs QEMU o contenedores LXC), mientras que la aplicación se despliega y sincroniza declarativamente mediante **Helm** y **ArgoCD**.
 
 ---
 
 ## 📑 Tabla de Contenidos
 
-1. [Arquitectura de Despliegue en Proxmox](#1-arquitectura-de-despliegue-en-proxmox)
-2. [Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)](#2-gestión-segura-de-secretos-en-proxmox-cero-fugas-locales)
-3. [Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile](#3-método-1-aprovisionamiento-y-hardening-automatizado-con-ansible--taskfile)
-4. [Método 2: Aprovisionamiento Base con Cloud-Init (VM / LXC)](#4-método-2-aprovisionamiento-base-con-cloud-init-vm--lxc)
-5. [Método 3: Aprovisionamiento con OpenTofu](#5-método-3-aprovisionamiento-con-opentofu)
-6. [Método 4: Hardening de Nodos y Cortafuegos con Ansible](#6-método-4-hardening-de-nodos-y-cortafuegos-con-ansible)
-7. [Configuración de LXC con Docker (Nesting & Keyctl)](#7-configuración-de-lxc-con-docker-nesting--keyctl)
+1. [Arquitectura de Cómputo On-Premises](#1-arquitectura-de-cómputo-on-premises)
+2. [Gestión Segura de Secretos (Zero-Trust)](#2-gestión-segura-de-secretos-zero-trust)
+3. [Aprovisionamiento de Infraestructura con OpenTofu](#3-aprovisionamiento-de-infraestructura-con-opentofu)
+4. [Aprovisionamiento Base con Cloud-Init (VM / LXC)](#4-aprovisionamiento-base-con-cloud-init-vm--lxc)
+5. [Hardening del Sistema Operativo y Firewall con Ansible](#5-hardening-del-sistema-operativo-y-firewall-con-ansible)
+6. [Despliegue y Sincronización GitOps con ArgoCD](#6-despliegue-y-sincronización-gitops-con-argocd)
+7. [Configuración Especial para Contenedores LXC (Nesting & Keyctl)](#7-configuración-especial-para-contenedores-lxc-nesting--keyctl)
 
 ---
 
-## 1. Arquitectura de Despliegue en Proxmox
+## 1. Arquitectura de Cómputo On-Premises
 
 ```text
                       ┌─────────────────────────────────────────┐
@@ -36,64 +36,45 @@ Esta guía detalla los métodos para desplegar y configurar la infraestructura d
                      └─────────────────────┬─────────────────────┘
                                            ▼
                      ┌───────────────────────────────────────────┐
-                     │          Kubernetes Runtime (K3s/k8s)     │
+                     │          Kubernetes Runtime (k3s/k8s)     │
                      │  • Web Nginx Ingress Controller (:8080)   │
                      │  • Node.js 22 LTS / Express (:3000)       │
                      │  • PostgreSQL 16 StatefulSet (:5432)      │
                      │  • Redis 7 In-Memory Cache (:6379)        │
+                     │  • Kyverno Admission Controller           │
                      │  • Prometheus & Grafana Monitoring        │
+                     └─────────────────────┬─────────────────────┘
+                                           │
+                                           ▼
+                     ┌───────────────────────────────────────────┐
+                     │          Sincronización GitOps            │
+                     │  ArgoCD -> gitops/apps/app-proxmox.yaml   │
+                     │  Helm Chart -> infra/helm/pokedex         │
                      └───────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Gestión Segura de Secretos en Proxmox (Cero Fugas Locales)
+## 2. Gestión Segura de Secretos (Zero-Trust)
 
-* **Exclusión de Secretos en Tránsito:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt). Esto garantiza que los archivos locales `.env` y `.env.*` **nunca se transfieran a hosts remotos**.
-* **Gestión de Secretos en Producción:** En Kubernetes, los secretos se inyectan desacopladamente mediante **External Secrets Operator** o **Sealed Secrets**, evitando la presencia de archivos `.env` en claro en el servidor.
-* **Inicialización Segura en Nodos Standalone / Fallback:**
-  * Si se aprovisiona un entorno aislado fuera de Kubernetes, las credenciales se autogeneran con `openssl rand`:
-    * `ADMIN_SESSION_SECRET` (64 caracteres hex / 256 bits).
-    * `POSTGRES_PASSWORD` (32 caracteres hex).
-    * `REDIS_PASSWORD` (32 caracteres hex).
-    * `ADMIN_API_KEY` (48 caracteres hex).
-  * Asigna permisos estrictos `chmod 600 /opt/pokedex/.env` restringidos al usuario operador.
+* **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
+* **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos `.env` y `.env.*` locales hacia los nodos.
+* **Inyección Desacoplada en Kubernetes:**
+  * **Bitnami Sealed Secrets:** Las credenciales cifradas se versionan de forma segura en el repositorio Git (`infra/helm/pokedex/templates/sealed-secrets.yaml`) y solo el controlador en el clúster puede descifrarlas.
+  * **External Secrets Operator (ESO):** En entornos corporativos híbridos, sincroniza secretos automáticamente desde un proveedor centralizado (Vault, AWS Secrets Manager o GCP Secret Manager).
 
 ---
 
-## 3. Método 1: Aprovisionamiento y Hardening Automatizado con Ansible & Taskfile
+## 3. Aprovisionamiento de Infraestructura con OpenTofu
 
-### Opción A: Vía Taskfile (Recomendado)
-
-```bash
-task deploy:proxmox -- -e "ansible_host=192.168.1.150"
-```
-
-### Opción B: Vía Ansible CLI directo
+El entorno en [`infra/opentofu/environments/proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments/proxmox/) aprovisiona las instancias o máquinas virtuales en Proxmox VE de forma declarativa e inmutable:
 
 ```bash
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml
-```
+# Inicializar y planificar con OpenTofu
+task tofu:init:proxmox
+task tofu:plan:proxmox
 
----
-
-## 4. Método 2: Aprovisionamiento Base con Cloud-Init (VM / LXC)
-
-La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](../../infra/proxmox/cloud-init/user-data.yaml) automatiza la preparación base del sistema operativo al aprovisionar la máquina virtual:
-
-1. Actualiza paquetes del sistema e instala prerrequisitos (`curl`, `git`, `ufw`, `python3`).
-2. Configura módulos de kernel (`overlay`, `br_netfilter`) y sysctl para Kubernetes.
-3. Instala el runtime de contenedores (Docker Engine / containerd).
-4. Aplica reglas de firewall UFW iniciales (solo SSH puerto 22 permitido).
-5. Deja el nodo listo para que Ansible aplique el baseline y se una al clúster de Kubernetes.
-
----
-
-## 5. Método 3: Aprovisionamiento con OpenTofu
-
-El entorno en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox/) aprovisiona los nodos virtuales en Proxmox VE de forma parametrizada y sin credenciales hardcodeadas:
-
-```bash
+# O mediante comandos directos de OpenTofu:
 cd infra/opentofu/environments/proxmox
 tofu init
 tofu apply \
@@ -105,26 +86,77 @@ tofu apply \
 
 ---
 
-## 6. Método 4: Hardening de Nodos y Cortafuegos con Ansible
+## 4. Aprovisionamiento Base con Cloud-Init (VM / LXC)
 
-El playbook [`infra/ansible/playbooks/security_hardening.yml`](../../infra/ansible/playbooks/security_hardening.yml) aplica políticas Zero-Trust al firewall UFW y endurece SSH y los puertos del plano de control de Kubernetes:
+La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/proxmox/cloud-init/user-data.yaml) automatiza la preparación inicial del sistema operativo al inicializar el nodo:
+
+1. Actualiza paquetes base e instala dependencias del sistema (`curl`, `git`, `ufw`, `python3`).
+2. Configura los parámetros de kernel (`overlay`, `br_netfilter`) y `sysctl` requeridos para redes de Kubernetes.
+3. Instala y habilita el runtime de contenedores (`containerd` / Docker Engine).
+4. Configura el firewall UFW por defecto en modo restrictivo (permitiendo únicamente el puerto SSH `22`).
+5. Concluye la fase de inicialización dejando el nodo preparado para que Ansible aplique el baseline de configuración.
+
+---
+
+## 5. Hardening del Sistema Operativo y Firewall con Ansible
+
+Una vez que el nodo Proxmox está accesible por SSH, se ejecutan los playbooks de Ansible para estandarizar la configuración del sistema operativo y blindar el perímetro de red:
+
+### Baseline de Nodo (Recomendado)
+
+```bash
+# Vía Taskfile
+task deploy:proxmox -- -e "ansible_host=192.168.1.150"
+
+# O mediante Ansible CLI directo:
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml
+```
+
+### Hardening Perimetral y Reglas de Firewall (UFW)
+
+Para restringir los puertos de control de Kubernetes (`6443`, `10250`, `2379`) exclusivamente a las subredes autorizadas:
 
 ```bash
 ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml
 ```
 
-El despliegue productivo de la aplicación Pokédex se realiza mediante **Helm** y **ArgoCD** sobre el clúster Kubernetes.
+---
+
+## 6. Despliegue y Sincronización GitOps con ArgoCD
+
+Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoCD** consumiendo el Helm chart universal:
+
+1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/apps/app-proxmox.yaml)
+2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/proxmox/values.yaml)
+
+### Sincronización Manual o Automatizada
+
+```bash
+# Sincronizar el entorno Proxmox vía Taskfile
+task gitops:sync:proxmox
+
+# O verificar el estado de los Pods en el namespace pokemon-app:
+task k8s:status
+```
 
 ---
 
-## 7. Configuración de LXC con Docker (Nesting & Keyctl)
+## 7. Configuración Especial para Contenedores LXC (Nesting & Keyctl)
 
-Para ejecutar Docker/containerd dentro de un contenedor LXC sin privilegios en Proxmox:
+Si se eligen contenedores LXC para alojar nodos de Kubernetes en lugar de máquinas virtuales completas:
 
 1. **Desde la interfaz Web de Proxmox:**
-   * Ve a tu contenedor LXC -> **Options** -> **Features** -> Marca **Nesting** y **Keyctl**.
+   * Selecciona el contenedor LXC -> **Options** -> **Features** -> Marca **Nesting** y **Keyctl**.
 2. **Desde la consola del host Proxmox (`/etc/pve/lxc/<vmid>.conf`):**
 
    ```ini
    features: keyctl=1,nesting=1
+   ```
+
+3. **Módulos de Kernel en el Host PVE:**
+   Asegúrate de que los módulos `overlay` y `br_netfilter` estén cargados en el host físico Proxmox:
+
+   ```bash
+   modprobe overlay
+   modprobe br_netfilter
    ```
