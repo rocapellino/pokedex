@@ -15,7 +15,7 @@ RUN npm run build --workspace=@pokedex/frontend
 # ==============================================================================
 # Etapa de Ejecución (Nginx Alpine Ligero y Seguro)
 # ==============================================================================
-FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 AS runner
+FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
 
 LABEL maintainer="Grupo 3 - UTEC DevOps" \
       version="1.0.0" \
