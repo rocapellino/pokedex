@@ -37,32 +37,32 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Verificar Archivos JS con Node Syntax Checker
-        run: |
-          node -c apps/frontend/public/js/pokedex.js
-          node -c apps/frontend/public/js/theme.js
-          echo "✅ Sintaxis JavaScript correcta y sin errores."
+      - name: 3. Instalar Dependencias
+        run: npm ci --ignore-scripts
 
-      - name: 4. Validar Configuración de Nginx
+      - name: 4. Compilar Aplicación (Backend + Frontend Vite)
+        run: npm run build
+
+      - name: 5. Verificación Estática y Typecheck con TypeScript
+        run: |
+          npm run lint --workspace=@pokedex/frontend
+          echo "✅ Verificación de tipos TypeScript completada sin errores."
+
+      - name: 6. Validar Configuración de Nginx
         run: |
           docker run --rm -t \
             --add-host=api:127.0.0.1 \
             -v ${{ github.workspace }}/apps/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
-            -v ${{ github.workspace }}/apps/frontend/public:/usr/share/nginx/html:ro \
+            -v ${{ github.workspace }}/apps/frontend/dist:/usr/share/nginx/html:ro \
             nginx:1.27-alpine nginx -t
           echo "✅ Configuración de Nginx válida."
 
-      - name: 5. Instalar Dependencias y Compilar Backend
-        run: |
-          npm ci --ignore-scripts
-          npm run build
-
-      - name: 6. Instalar Navegadores de Playwright
+      - name: 7. Instalar Navegadores de Playwright
         run: npm run playwright:install
 
-      - name: 7. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
+      - name: 8. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
         run: npm run test:e2e
 
-      - name: 8. Auditoría de Core Web Vitals con Lighthouse CI
+      - name: 9. Auditoría de Core Web Vitals con Lighthouse CI
         run: npm run perf:lighthouse
 

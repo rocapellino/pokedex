@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit && node -c public/js/pokedex.js && node -c public/js/theme.js"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "dompurify": "^3.4.15"

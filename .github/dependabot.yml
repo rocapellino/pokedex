@@ -59,7 +59,7 @@ updates:
 
   # 4. Dockerfile Frontend Web Nginx
   - package-ecosystem: "docker"
-    directory: "/apps/web"
+    directory: "/apps/frontend"
     schedule:
       interval: "weekly"
       day: "monday"

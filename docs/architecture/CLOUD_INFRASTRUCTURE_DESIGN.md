@@ -98,7 +98,7 @@ El principio rector del diseño de Pokédex es la **portabilidad absoluta del n�
 ```mermaid
 flowchart TD
     subgraph SCM["📦 Repositorio Git (Monorepo)"]
-        CODE["💻 Código Fuente\n(server.ts, apps/web)"]
+        CODE["💻 Código Fuente\n(server.ts, apps/frontend)"]
         HELM_CHART["⚙️ Helm Chart Universal\n(infra/helm/pokedex)"]
         GITOPS_DIR["📋 Manifiestos GitOps\n(gitops/apps, gitops/environments)"]
         TOFU_DIR["🏗️ IaC OpenTofu\n(infra/opentofu/environments)"]

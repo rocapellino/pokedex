@@ -102,8 +102,8 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **HTML5 / CSS3 / Vanilla JS** | Estándar W3C | Interfaz reactiva sin dependencias pesadas, modo oscuro/claro y filtros | [`apps/web/public/`](file:///apps/web/public/) |
-| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/web/nginx.conf`](file:///apps/web/nginx.conf), [`apps/web/Dockerfile`](file:///apps/web/Dockerfile) |
+| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 5` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](file:///apps/frontend/) |
+| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](file:///apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](file:///apps/frontend/Dockerfile) |
 
 ### 2.3. Persistencia, Caché & Connection Pooling
 
