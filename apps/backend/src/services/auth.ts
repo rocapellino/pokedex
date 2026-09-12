@@ -148,8 +148,7 @@ export async function revokeSessionTokenDetailed(token: string): Promise<RevokeS
   if (Boolean(process.env.REDIS_URL)) {
     const redisOk = await setRevokedJti(jti, remainingSeconds);
     if (!redisOk) {
-      const maskedJti = typeof jti === 'string' && jti.length > 8 ? `${jti.slice(0, 4)}...${jti.slice(-4)}` : '***';
-      console.warn(`[Auth: Security Warning] Fallo al registrar revocación de token (id: ${maskedJti}) en Redis. Operación distribuida no garantizada.`);
+      console.warn('[Auth: Security Warning] Fallo al registrar revocación de sesión en Redis. Operación distribuida no garantizada.');
       return { success: false, reason: 'service_unavailable' };
     }
     // Solo tras confirmar la persistencia en el clúster distribuido, actualizar la caché local del pod

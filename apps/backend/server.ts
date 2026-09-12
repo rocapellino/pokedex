@@ -817,31 +817,47 @@ const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+// ---------------------------------------------------------------------------
+// Static Assets & Single Page Application Routing (con Caché en Memoria)
+// ---------------------------------------------------------------------------
+const INDEX_HTML_PATH = path.join(PUBLIC_DIR, 'index.html');
+const BACKOFFICE_HTML_PATH = path.join(PUBLIC_DIR, 'backoffice.html');
+
+let cachedIndexHtml = '';
+let cachedBackofficeHtml = '';
+
+function getIndexHtml(): string {
+  if (!cachedIndexHtml || process.env.NODE_ENV !== 'production') {
+    cachedIndexHtml = fs.existsSync(INDEX_HTML_PATH) ? fs.readFileSync(INDEX_HTML_PATH, 'utf8') : '';
+  }
+  return cachedIndexHtml;
+}
+
+function getBackofficeHtml(): string {
+  if (!cachedBackofficeHtml || process.env.NODE_ENV !== 'production') {
+    cachedBackofficeHtml = fs.existsSync(BACKOFFICE_HTML_PATH) ? fs.readFileSync(BACKOFFICE_HTML_PATH, 'utf8') : '';
+  }
+  return cachedBackofficeHtml;
+}
+
 // Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
 // antes de que express.static sirva cualquier archivo estático
 app.get(['/admin', '/backoffice', '/backoffice.html'], authRateLimiter, adminIpRestricted, (_req: Request, res: Response) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
-});
-
-// Prevenir bypass mediante acceso directo a /backoffice.html a través de express.static
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.path === '/backoffice.html' || req.path.endsWith('/backoffice.html')) {
-    return authRateLimiter(req, res, () => {
-      adminIpRestricted(req, res, () => {
-        res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
-      });
-    });
+  const html = getBackofficeHtml();
+  if (!html) {
+    return res.status(404).json({ error: 'Panel administrativo no disponible' });
   }
-  next();
+  res.type('html').send(html);
 });
 
-// ---------------------------------------------------------------------------
-// Static Assets & Single Page Application Routing
-// ---------------------------------------------------------------------------
 app.use(express.static(PUBLIC_DIR));
 
 app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  const html = getIndexHtml();
+  if (!html) {
+    return res.status(404).json({ error: 'Aplicación cliente no disponible' });
+  }
+  res.type('html').send(html);
 });
 
 // ---------------------------------------------------------------------------
