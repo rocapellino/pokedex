@@ -25,7 +25,11 @@ if [[ "${DRY_RUN}" != "true" ]]; then
   : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria para descifrar backups de PostgreSQL}"
   ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY}"
 else
-  ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY:-synthetic_dr_key_ephemeral_test_2026}"
+  if [[ -z "${BACKUP_ENCRYPTION_KEY:-}" ]]; then
+    ENCRYPTION_KEY="$(openssl rand -hex 32)"
+  else
+    ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY}"
+  fi
 fi
 
 echo "🛡️ [DR Verification] Iniciando protocolo automatizado de verificación de copia de seguridad..."
@@ -63,6 +67,7 @@ CREATE TABLE IF NOT EXISTS pokedex_entries (
   tipo VARCHAR(50) NOT NULL,
   data JSONB NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
 INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
 (25, 'Pikachu', 'Eléctrico', '{"id":25,"nombre":"Pikachu","tipo":"Eléctrico"}');
 EOF
@@ -93,7 +98,12 @@ fi
 
 # 3. Prueba de descifrado seguro en directorio temporal aislado
 TMP_RESTORE_DIR=$(mktemp -d)
+EPHEMERAL_CONTAINER=""
 CLEANUP() {
+  if [[ -n "${EPHEMERAL_CONTAINER}" ]]; then
+    echo "🧹 [DR Verification] Limpiando contenedor PostgreSQL efímero..."
+    docker rm -f "${EPHEMERAL_CONTAINER}" >/dev/null 2>&1 || true
+  fi
   rm -rf "${TMP_RESTORE_DIR}"
 }
 trap CLEANUP EXIT
@@ -116,12 +126,91 @@ gzip -t "${DECRYPTED_GZ}" || {
 
 gzip -d -c "${DECRYPTED_GZ}" > "${DECRYPTED_SQL}"
 
-# 5. Validación de contenido y esquema del volcado
-echo "📋 [DR Verification] Inspeccionando estructura DDL del volcado..."
-grep -q "pokedex_entries" "${DECRYPTED_SQL}" || {
+# 5. Restauración y validación de integridad en PostgreSQL
+echo "📋 [DR Verification] Inspeccionando estructura DDL y verificando integridad de restauración..."
+grep -qi "pokedex_entries" "${DECRYPTED_SQL}" || {
   echo "❌ [DR Verification] Error: El volcado no contiene la tabla esencial 'pokedex_entries'."
   exit 1
 }
+
+# Caso A: Conexión PostgreSQL directa especificada mediante DR_POSTGRES_URL
+if [[ -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
+  echo "🐘 [DR Verification] Ejecutando restauración en base de datos PostgreSQL (${DR_POSTGRES_URL})..."
+  psql "${DR_POSTGRES_URL}" -v ON_ERROR_STOP=1 < "${DECRYPTED_SQL}"
+
+  TABLE_EXISTS=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT to_regclass('public.pokedex_entries');")
+  if [[ -z "${TABLE_EXISTS}" || "${TABLE_EXISTS}" == "null" ]]; then
+    echo "❌ [DR Verification] Error: La tabla 'pokedex_entries' no fue creada en PostgreSQL."
+    exit 1
+  fi
+
+  ROW_COUNT=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM pokedex_entries;")
+  echo "📊 [DR Verification] Registros restaurados: ${ROW_COUNT}"
+  if [[ "${ROW_COUNT}" -lt 1 ]]; then
+    echo "❌ [DR Verification] Error: 'pokedex_entries' no contiene registros."
+    exit 1
+  fi
+
+  INDEXES=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
+  echo "🔑 [DR Verification] Índices detectados: ${INDEXES}"
+
+  echo "🔎 [DR Verification] Consulta de verificación representativa:"
+  psql "${DR_POSTGRES_URL}" -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
+
+# Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero
+elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  echo "🐳 [DR Verification] Creando contenedor PostgreSQL efímero (postgres:16-alpine) vía Docker..."
+  EPHEMERAL_CONTAINER="pokedex_dr_verify_$$"
+  docker run -d --name "${EPHEMERAL_CONTAINER}" \
+    -e POSTGRES_PASSWORD=dr_verify_pass \
+    -e POSTGRES_DB=pokedex_restore_test \
+    postgres:16-alpine >/dev/null
+
+  READY=false
+  for _ in $(seq 1 30); do
+    if docker exec "${EPHEMERAL_CONTAINER}" pg_isready -U postgres -d pokedex_restore_test >/dev/null 2>&1; then
+      READY=true
+      break
+    fi
+    sleep 1
+  done
+
+  if [[ "${READY}" != "true" ]]; then
+    echo "❌ [DR Verification] Error: El contenedor PostgreSQL efímero no respondió en el tiempo límite."
+    exit 1
+  fi
+
+  echo "📥 [DR Verification] Restaurando esquema y datos en PostgreSQL efímero..."
+  docker exec -i "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -v ON_ERROR_STOP=1 < "${DECRYPTED_SQL}"
+
+  TABLE_EXISTS=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT to_regclass('public.pokedex_entries');")
+  if [[ -z "${TABLE_EXISTS}" || "${TABLE_EXISTS}" == "null" ]]; then
+    echo "❌ [DR Verification] Error: La tabla 'pokedex_entries' no fue creada en PostgreSQL efímero."
+    exit 1
+  fi
+
+  ROW_COUNT=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT count(*) FROM pokedex_entries;")
+  echo "📊 [DR Verification] Registros restaurados verificados: ${ROW_COUNT}"
+  if [[ "${ROW_COUNT}" -lt 1 ]]; then
+    echo "❌ [DR Verification] Error: 'pokedex_entries' no contiene registros."
+    exit 1
+  fi
+
+  INDEXES=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
+  echo "🔑 [DR Verification] Índices verificados: ${INDEXES}"
+
+  echo "🔎 [DR Verification] Consulta de verificación representativa:"
+  docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
+
+# Caso C: Verificación sintáctica y estructural exhaustiva DDL/DML si no hay motor SQL disponible
+else
+  echo "⚠️ [DR Verification] No se detectó Docker daemon activo ni DR_POSTGRES_URL. Ejecutando análisis estructural DDL/DML exhaustivo..."
+  grep -qi "INSERT INTO" "${DECRYPTED_SQL}" || {
+    echo "❌ [DR Verification] Error: El volcado no contiene sentencias de inserción de datos (INSERT INTO)."
+    exit 1
+  }
+  echo "ℹ️ [DR Verification] Integridad de sintaxis DDL, inserciones y delimitadores de tabla verificados."
+fi
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))

@@ -1,0 +1,2 @@
+# Asegurar fin de línea LF para scripts de shell (evita errores de sintaxis \r en Linux/Bash)
+*.sh text eol=lf
