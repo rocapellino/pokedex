@@ -5,7 +5,11 @@ name: 📌 Sync GitHub Security & Quality to Linear
 
 on:
   workflow_run:
-    workflows: ["🛡️ Security & Quality Gates (Trivy)", "⚙️ Backend API CI", "🚀 CI/CD Pipeline - Quality Gates & Release"]
+    workflows:
+      - "🛡️ Security & Quality Gates (Trivy)"
+      - "⚙️ Backend API CI"
+      - "🚀 CI/CD Pipeline - Quality Gates & Release"
+      - "🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)"
     types: [completed]
     branches: [main]
   schedule:

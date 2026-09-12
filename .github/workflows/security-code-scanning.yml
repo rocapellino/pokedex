@@ -1,0 +1,95 @@
+# ==============================================================================
+# Workflow Oficial de SAST e IaC Security para GitHub Code Scanning
+# Herramientas: njsscan (Node.js/Express), Hadolint (Dockerfiles), tfsec (OpenTofu)
+# ==============================================================================
+name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'apps/**'
+      - 'Dockerfile'
+      - 'infra/opentofu/**'
+      - '.github/workflows/security-code-scanning.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'apps/**'
+      - 'Dockerfile'
+      - 'infra/opentofu/**'
+      - '.github/workflows/security-code-scanning.yml'
+  schedule:
+    - cron: '0 4 * * 1' # Escaneo preventivo semanal los lunes a las 04:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  njsscan:
+    name: 🛡️ njsscan (Node.js & Express SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Ejecutar análisis estático njsscan
+        uses: ajinabraham/njsscan-action@7237412fdd36af517e2745077cedbf9d6900d711 # v1.4.1
+        with:
+          args: '. --sarif --output njsscan.sarif'
+
+      - name: 3. Subir reporte SARIF de njsscan a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: njsscan.sarif
+          category: njsscan
+
+  hadolint:
+    name: 🐳 Hadolint (Dockerfile Security Linter)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Ejecutar Hadolint en Dockerfiles
+        uses: hadolint/hadolint-action@54c9add30b10f78e44281816ce610f28e45d4249 # v3.1.0
+        with:
+          recursive: true
+          format: sarif
+          output-file: hadolint.sarif
+          no-fail: true
+
+      - name: 3. Subir reporte SARIF de Hadolint a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: hadolint.sarif
+          category: hadolint
+
+  tfsec:
+    name: ☁️ tfsec (OpenTofu & Terraform IaC Security)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Ejecutar tfsec en entornos de infraestructura
+        uses: aquasecurity/tfsec-sarif-action@9a83b5c3524f825c020e35633c070e9c34603952 # v0.1.4
+        with:
+          working_directory: infra/opentofu
+          sarif_file: tfsec.sarif
+
+      - name: 3. Subir reporte SARIF de tfsec a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: tfsec.sarif
+          category: tfsec
