@@ -217,7 +217,7 @@ test('🛡️ GitHub Security Linear Sync: syncGitHubSecurityToLinear se degrada
   }
 });
 
-test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y tfsec existe y está configurado', () => {
+test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Trivy IaC existe y está configurado', () => {
   const workflowPath = path.join(process.cwd(), '.github/workflows/security-code-scanning.yml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de SAST debe existir');
 
@@ -227,7 +227,7 @@ test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y tf
   assert.match(content, /security-events:\s*write/);
   assert.match(content, /njsscan-action/);
   assert.match(content, /hadolint-action/);
-  assert.match(content, /tfsec-action/);
+  assert.match(content, /trivy-action/);
   assert.match(content, /upload-sarif/);
 });
 

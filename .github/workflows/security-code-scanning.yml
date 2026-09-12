@@ -80,8 +80,8 @@ jobs:
           sarif_file: hadolint.sarif
           category: hadolint
 
-  tfsec:
-    name: ☁️ tfsec (OpenTofu & Terraform IaC Security)
+  iac-scan:
+    name: ☁️ Trivy IaC (OpenTofu & Terraform Security)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -91,17 +91,19 @@ jobs:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: 2. Ejecutar tfsec en entornos de infraestructura
-        uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
+      - name: 2. Escaneo de Seguridad IaC con Trivy (Reglas tfsec/defsec)
+        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
         with:
-          working_directory: infra/opentofu
-          format: sarif
-          additional_args: --out tfsec.sarif
-          soft_fail: true
+          scan-type: 'config'
+          scan-ref: 'infra/opentofu'
+          format: 'sarif'
+          output: 'trivy-iac.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
 
-      - name: 3. Subir reporte SARIF de tfsec a GitHub Code Scanning
+      - name: 3. Subir reporte SARIF de IaC a GitHub Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
-          sarif_file: tfsec.sarif
-          category: tfsec
+          sarif_file: trivy-iac.sarif
+          category: trivy-iac
+
