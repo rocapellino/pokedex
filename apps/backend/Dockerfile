@@ -34,7 +34,12 @@ FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a55
 
 LABEL maintainer="Rodrigo Capellino" \
       version="2.0.0" \
-      description="Pokédex Backend Native Node.js & TypeScript Service con Google AI Studio"
+      description="Pokédex Backend Native Node.js & TypeScript Service con Google AI Studio" \
+      org.opencontainers.image.title="pokedex-api" \
+      org.opencontainers.image.description="Pokédex Backend Native Node.js & TypeScript Service" \
+      org.opencontainers.image.source="https://github.com/rocapellino/pokedex" \
+      org.opencontainers.image.vendor="Rodrigo Capellino" \
+      org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app
 
