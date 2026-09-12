@@ -1,0 +1,109 @@
+# ==============================================================================
+# Workflow Oficial de SAST e IaC Security para GitHub Code Scanning
+# Herramientas: njsscan (Node.js/Express), Hadolint (Dockerfiles), tfsec (OpenTofu)
+# ==============================================================================
+name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'apps/**'
+      - 'Dockerfile'
+      - 'infra/opentofu/**'
+      - '.github/workflows/security-code-scanning.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'apps/**'
+      - 'Dockerfile'
+      - 'infra/opentofu/**'
+      - '.github/workflows/security-code-scanning.yml'
+  schedule:
+    - cron: '0 4 * * 1' # Escaneo preventivo semanal los lunes a las 04:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  njsscan:
+    name: 🛡️ njsscan (Node.js & Express SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Ejecutar análisis estático njsscan
+        uses: ajinabraham/njsscan-action@231750a435d85095d33be7d192d52ec650625146 # v9
+        with:
+          args: '. --sarif --output njsscan.sarif'
+
+      - name: 3. Subir reporte SARIF de njsscan a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: njsscan.sarif
+          category: njsscan
+
+  hadolint:
+    name: 🐳 Hadolint (Dockerfile Security Linter)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Ejecutar Hadolint en Dockerfiles
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
+        with:
+          recursive: true
+          format: sarif
+          output-file: hadolint.sarif
+          no-fail: true
+
+      - name: 3. Subir reporte SARIF de Hadolint a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: hadolint.sarif
+          category: hadolint
+
+  iac-scan:
+    name: ☁️ Trivy IaC (OpenTofu & Terraform Security)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Escaneo de Seguridad IaC con Trivy (Reglas tfsec/defsec)
+        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
+        with:
+          scan-type: 'config'
+          scan-ref: 'infra/opentofu'
+          format: 'sarif'
+          output: 'trivy-iac.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: 3. Subir reporte SARIF de IaC a GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: trivy-iac.sarif
+          category: trivy-iac
+
