@@ -228,6 +228,7 @@ secrets:
   geminiApiKey: ""
   minioRootUser: ""
   minioRootPassword: ""
+  backupEncryptionKey: ""
 
 # ------------------------------------------------------------------------------
 # 7b. External Secrets Operator (ESO - Sincronización automática con Vault / AWS / GCP)
@@ -261,7 +262,9 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
-# Egress Gateway perimetral (Envoy Forward Proxy) para clústeres sin Cilium
+# Egress Gateway perimetral (Envoy Forward Proxy) para clústeres sin Cilium o para proxy dedicado
+# Nota de arquitectura: El cluster Envoy estático enruta hacia Google GenAI (generativelanguage.googleapis.com).
+# Para filtrado multi-FQDN dinámico en el borde del clúster, combinar con Cilium eBPF L7 policies (arriba).
 egressGateway:
   enabled: false
   replicaCount: 1

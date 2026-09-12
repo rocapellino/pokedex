@@ -11,7 +11,6 @@ set -eu
 
 DRY_RUN=false
 BACKUP_FILE="${1:-}"
-ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY:-pokedex_dr_default_secure_key_2026}"
 
 for arg in "$@"; do
   case "$arg" in
@@ -21,6 +20,13 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+if [[ "${DRY_RUN}" != "true" ]]; then
+  : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria para descifrar backups de PostgreSQL}"
+  ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY}"
+else
+  ENCRYPTION_KEY="${BACKUP_ENCRYPTION_KEY:-synthetic_dr_key_ephemeral_test_2026}"
+fi
 
 echo "🛡️ [DR Verification] Iniciando protocolo automatizado de verificación de copia de seguridad..."
 START_TIME=$(date +%s)

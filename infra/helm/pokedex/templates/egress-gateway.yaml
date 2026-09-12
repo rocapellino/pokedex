@@ -6,6 +6,11 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
     app.kubernetes.io/component: egress-gateway
+# Nota de Arquitectura Egress Gateway:
+# Este gateway Envoy provee forward proxy dedicado para el tráfico de la API de Google GenAI / Gemini
+# (generativelanguage.googleapis.com:443). El filtrado exhaustivo multi-FQDN en Capa 7 para todos los destinos
+# externos (.Values.egressGateway.allowedDomains) se delega a nivel de kernel mediante Cilium eBPF
+# (ciliumNetworkPolicy.fqdnAllowlist) para evitar terminación TLS no autorizada y mantener Zero-Trust estricto.
 data:
   envoy.yaml: |
     static_resources:

@@ -45,6 +45,7 @@ spec:
           image: "{{ .Values.pgbouncer.image.repository }}:{{ .Values.pgbouncer.image.tag }}"
           imagePullPolicy: {{ .Values.pgbouncer.image.pullPolicy }}
           securityContext:
+            readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
             capabilities:
               drop:
@@ -97,4 +98,10 @@ spec:
               cpu: {{ .Values.pgbouncer.resources.requests.cpu | default "50m" | quote }}
               memory: {{ .Values.pgbouncer.resources.requests.memory | default "64Mi" | quote }}
               ephemeral-storage: {{ index .Values.pgbouncer.resources.requests "ephemeral-storage" | default "64Mi" | quote }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
 {{- end }}
