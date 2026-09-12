@@ -20,12 +20,6 @@ on:
         description: "Clave del equipo en Linear (por defecto PEX)"
         type: string
         default: "PEX"
-  code_scanning_alert:
-    types: [created, fixed, reopened_by_user, closed_by_user]
-  dependabot_alert:
-    types: [created, dismissed, fixed, reopened]
-  secret_scanning_alert:
-    types: [created, resolved, reopened]
   repository_dispatch:
     types:
       - code_scanning_alert
