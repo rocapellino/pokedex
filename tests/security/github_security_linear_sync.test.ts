@@ -227,7 +227,7 @@ test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y tf
   assert.match(content, /security-events:\s*write/);
   assert.match(content, /njsscan-action/);
   assert.match(content, /hadolint-action/);
-  assert.match(content, /tfsec-sarif-action/);
+  assert.match(content, /tfsec-action/);
   assert.match(content, /upload-sarif/);
 });
 
