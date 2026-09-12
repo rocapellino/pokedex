@@ -317,7 +317,7 @@ export async function fetchTeamSecurityIssues(teamKey: string): Promise<Map<stri
       }
     }
   } catch (err) {
-    console.warn(`⚠️ Error al obtener issues existentes del equipo ${teamKey}:`, err);
+    console.warn('⚠️ Error al obtener issues existentes del equipo:', teamKey, err);
   }
 
   return issueMap;
@@ -386,7 +386,7 @@ export async function updateLinearIssueState(issueId: string, stateId: string): 
     const result = await fetchLinear<{ issueUpdate: { success: boolean } }>(mutation, { issueId, stateId });
     return result.issueUpdate?.success ?? false;
   } catch (err) {
-    console.warn(`⚠️ Error actualizando estado de ticket ${issueId}:`, err);
+    console.warn('⚠️ Error actualizando estado de ticket:', issueId, err);
     return false;
   }
 }
@@ -408,7 +408,7 @@ export async function addLinearComment(issueId: string, body: string): Promise<v
   try {
     await fetchLinear(mutation, { issueId, body });
   } catch (err) {
-    console.warn(`⚠️ Error agregando comentario a ticket ${issueId}:`, err);
+    console.warn('⚠️ Error agregando comentario a ticket:', issueId, err);
   }
 }
 

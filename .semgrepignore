@@ -11,5 +11,6 @@ playwright-report/
 lighthouse-results/
 .scannerwork/
 .mega-linter-reports/
+infra/
 infra/k8s/kyverno-test/
 infra/k8s/policies/
