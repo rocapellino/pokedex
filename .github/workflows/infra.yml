@@ -153,8 +153,12 @@ jobs:
             --set web.image.repository=pokedex-web \
             --set web.image.tag=local \
             --set web.image.pullPolicy=Never \
-            --set postgres.persistence.enabled=false \
-            --set redis.persistence.enabled=false \
+            --set postgresql.persistence.enabled=false \
+            --set postgresql.auth.password=ci-canonical-test-pass \
+            --set secrets.adminApiKey=ci-canonical-test-admin-key \
+            --set secrets.adminSessionSecret=ci-canonical-test-session-secret \
+            --set redis.auth.password=ci-canonical-test-redis-pass \
+            --set secrets.backupEncryptionKey=ci-canonical-test-backup-key \
             --wait --timeout 240s
 
       - name: 6. Validar Estado de Kubernetes y Probar Endpoints
