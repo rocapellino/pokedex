@@ -207,6 +207,11 @@ export function createRateLimiter(
 
   return (req: Request, res: Response, next: NextFunction) => {
     (async () => {
+      // Excluir endpoints de salud y observabilidad de rate limiting para evitar falsos negativos en K8s
+      if (req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics') {
+        return next();
+      }
+
       // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
       const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
       const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
@@ -263,6 +268,10 @@ const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { failClo
 const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', { failClosedOnRedisOutage: true });
 const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
 const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
+const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
+
+// Middleware global de rate limiting para protección contra DDoS y saturación general
+app.use(globalRateLimiter);
 
 // ---------------------------------------------------------------------------
 // Security: Verificación de Clave con Prevención de Timing Attacks
@@ -270,9 +279,14 @@ const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 function safeCompareKeys(provided: string, expected: string): boolean {
   if (!provided || !expected) return false;
   try {
-    const hashA = crypto.createHash('sha256').update(provided.trim()).digest();
-    const hashB = crypto.createHash('sha256').update(expected.trim()).digest();
-    return crypto.timingSafeEqual(hashA, hashB);
+    const bufProvided = Buffer.from(provided.trim(), 'utf8');
+    const bufExpected = Buffer.from(expected.trim(), 'utf8');
+    if (bufProvided.length !== bufExpected.length) {
+      // Simular comparación de tiempo constante para prevenir timing attacks por discrepancia de longitud
+      crypto.timingSafeEqual(bufExpected, bufExpected);
+      return false;
+    }
+    return crypto.timingSafeEqual(bufProvided, bufExpected);
   } catch {
     return false;
   }
@@ -805,15 +819,17 @@ const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
 
 // Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
 // antes de que express.static sirva cualquier archivo estático
-app.get(['/admin', '/backoffice', '/backoffice.html'], adminIpRestricted, (_req: Request, res: Response) => {
+app.get(['/admin', '/backoffice', '/backoffice.html'], authRateLimiter, adminIpRestricted, (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
 });
 
 // Prevenir bypass mediante acceso directo a /backoffice.html a través de express.static
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path === '/backoffice.html' || req.path.endsWith('/backoffice.html')) {
-    return adminIpRestricted(req, res, () => {
-      res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
+    return authRateLimiter(req, res, () => {
+      adminIpRestricted(req, res, () => {
+        res.sendFile(path.join(PUBLIC_DIR, 'backoffice.html'));
+      });
     });
   }
   next();
@@ -824,7 +840,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // ---------------------------------------------------------------------------
 app.use(express.static(PUBLIC_DIR));
 
-app.get('*', (_req: Request, res: Response) => {
+app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
