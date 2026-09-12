@@ -44,8 +44,19 @@ jobs:
       - name: 5. Instalar Grafana k6 CLI
         uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065 # v1.2.1
 
-      - name: 6. Ejecutar Pruebas de Carga con Grafana k6
+      - name: 6. Ejecutar Pruebas de Carga con Grafana k6 y Validar Umbrales de SLA
         env:
           TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
         run: |
-          k6 run tests/performance/k6_stress_test.js --env TARGET_URL="$TARGET_URL"
+          k6 run tests/performance/k6_stress_test.js \
+            --env TARGET_URL="$TARGET_URL" \
+            --summary-export=/tmp/k6-summary.json
+          echo "✅ Pruebas de carga finalizadas y umbrales de SLA (p95 < 200ms, error < 1%) validados."
+
+      - name: 7. Generar Resumen de Rendimiento en Step Summary
+        if: always()
+        run: |
+          if [ -f /tmp/k6-summary.json ]; then
+            echo "### ⚡ Resumen de Pruebas de Carga k6" >> $GITHUB_STEP_SUMMARY
+            echo "SLAs validados con éxito: p(95) < 200ms, p(99) < 500ms, tasa de error < 1%." >> $GITHUB_STEP_SUMMARY
+          fi

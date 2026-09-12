@@ -114,3 +114,60 @@ jobs:
           skip_path: infra/k8s/kyverno-test
           soft_fail: false
           output_format: cli
+
+  kind-integration:
+    name: "☸️ Kind Canonical K8s Integration"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 1. Checkout del código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Crear Clúster Kind Efímero
+        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        with:
+          config: infra/k8s/kind-cluster.yaml
+          cluster_name: pokedex-local
+
+      - name: 3. Compilar imágenes locales y cargar a Kind
+        run: |
+          docker build -t pokedex-api:local -f Dockerfile .
+          docker build -t pokedex-web:local -f apps/frontend/Dockerfile apps/frontend
+          kind load docker-image pokedex-api:local --name pokedex-local
+          kind load docker-image pokedex-web:local --name pokedex-local
+
+      - name: 4. Configurar Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: 'v3.15.0'
+
+      - name: 5. Desplegar Helm Chart en Kind
+        run: |
+          helm upgrade --install pokedex infra/helm/pokedex \
+            --namespace pokemon-app --create-namespace \
+            -f infra/helm/pokedex/values.yaml \
+            --set api.image.repository=pokedex-api \
+            --set api.image.tag=local \
+            --set api.image.pullPolicy=Never \
+            --set web.image.repository=pokedex-web \
+            --set web.image.tag=local \
+            --set web.image.pullPolicy=Never \
+            --set postgres.persistence.enabled=false \
+            --set redis.persistence.enabled=false \
+            --wait --timeout 240s
+
+      - name: 6. Validar Estado de Kubernetes y Probar Endpoints
+        run: |
+          echo "=== PODS EN CLUSTER ==="
+          kubectl get pods,svc,netpol -n pokemon-app -o wide
+          kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-api --timeout=60s
+          kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-web --timeout=60s
+          
+          echo "=== TEST DIRECTO VIA PORT-FORWARD ==="
+          kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000 &
+          sleep 4
+          curl -f http://127.0.0.1:3000/healthz || { echo "❌ Endpoint /healthz falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
+          echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
+
