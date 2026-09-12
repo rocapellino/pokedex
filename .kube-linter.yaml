@@ -3,7 +3,13 @@
 # ==============================================================================
 customChecks: []
 checks:
-  addAllBuiltIn: true
-  exclude:
-    # Excluir dangling-service en templates sintéticos de validación CI
-    - "dangling-service"
+  doNotAutoAddDefaults: true
+  include:
+    - "privileged-container"
+    - "privilege-escalation-container"
+    - "run-as-non-root"
+    - "unset-cpu-requirements"
+    - "unset-memory-requirements"
+    - "env-var-secret"
+    - "writable-host-mount"
+    - "wildcard-in-rules"

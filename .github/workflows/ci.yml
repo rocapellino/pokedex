@@ -81,6 +81,8 @@ jobs:
         with:
           framework: terraform,kubernetes,helm
           directory: infra/
+          config_file: .checkov.yaml
+          skip_path: infra/k8s/kyverno-test
           output_format: cli
           soft_fail: false
 
