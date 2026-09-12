@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { Pokemon } from './src/types.js';
 import { generateDiagram, generateMockup, generateImage } from './src/services/ai.js';
 import {
@@ -270,7 +271,42 @@ const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRU
 const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
 
+// Limitadores estándar de express-rate-limit reconocidos formalmente por CodeQL y OWASP
+const globalRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics',
+  message: { detail: 'Límite global de peticiones excedido. Intenta más tarde.' },
+});
+
+const mutationRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de peticiones para Modificaciones CRUD excedido. Intenta más tarde.' },
+});
+
+const authRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de peticiones para Autenticación excedido. Intenta más tarde.' },
+});
+
+const aiRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de peticiones para Endpoints IA excedido. Intenta más tarde.' },
+});
+
 // Middleware global de rate limiting para protección contra DDoS y saturación general
+app.use(globalRateLimiterStandard);
 app.use(globalRateLimiter);
 
 // ---------------------------------------------------------------------------
@@ -292,16 +328,37 @@ function safeCompareKeys(provided: string, expected: string): boolean {
   }
 }
 
-function extractApiKey(req: Request): string {
+/**
+ * Extrae exclusivamente tokens de sesión efímeros firmados con HMAC.
+ */
+function extractSessionToken(req: Request): string {
   const authHeader = (req.headers['authorization'] || '') as string;
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7).trim();
   }
-  return ((req.headers['x-api-key'] || authHeader) as string).trim();
+  const sessionHeader = (req.headers['x-session-token'] || '') as string;
+  if (sessionHeader) {
+    return sessionHeader.trim();
+  }
+  return '';
+}
+
+/**
+ * Extrae exclusivamente claves de API maestras (X-API-Key o Basic/Custom auth).
+ */
+function extractApiKey(req: Request): string {
+  const keyHeader = (req.headers['x-api-key'] || '') as string;
+  if (keyHeader) {
+    return keyHeader.trim();
+  }
+  const authHeader = (req.headers['authorization'] || '') as string;
+  if (authHeader && !authHeader.startsWith('Bearer ')) {
+    return authHeader.trim();
+  }
+  return '';
 }
 
 async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
-  const credential = extractApiKey(req);
   const configuredKey = process.env.ADMIN_API_KEY;
 
   if (!configuredKey) {
@@ -311,28 +368,33 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
     });
   }
 
-  if (!credential) {
+  const sessionToken = extractSessionToken(req);
+  const apiKey = extractApiKey(req);
+
+  if (!sessionToken && !apiKey) {
     return res.status(401).json({
       detail: 'Credencial de autenticación faltante en la cabecera X-API-Key / Authorization',
     });
   }
 
-  // 1. Validar si la credencial es un token de sesión firmado de corta duración
-  const sessionCheck = await verifySessionTokenDetailed(credential);
-  if (sessionCheck.valid) {
-    (req as any).authMechanism = 'hmac_session_token';
-    return next();
-  }
+  // 1. Validar si se suministra un token de sesión firmado de corta duración
+  if (sessionToken) {
+    const sessionCheck = await verifySessionTokenDetailed(sessionToken);
+    if (sessionCheck.valid) {
+      (req as any).authMechanism = 'hmac_session_token';
+      return next();
+    }
 
-  // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
-  if (sessionCheck.reason === 'service_unavailable') {
-    return res.status(503).json({
-      detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
-    });
+    // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
+    if (sessionCheck.reason === 'service_unavailable') {
+      return res.status(503).json({
+        detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
+      });
+    }
   }
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
-  if (safeCompareKeys(credential, configuredKey)) {
+  if (apiKey && safeCompareKeys(apiKey, configuredKey)) {
     (req as any).authMechanism = 'master_api_key';
     if (process.env.NODE_ENV !== 'test') {
       const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
@@ -403,7 +465,7 @@ function calculateETag(data: unknown): string {
 // ---------------------------------------------------------------------------
 // Autenticación de Operador: Emisión de Tokens de Sesión de Corta Duración
 // ---------------------------------------------------------------------------
-app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) => {
+app.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter, (req: Request, res: Response) => {
   const { apiKey } = req.body || {};
   const configuredKey = process.env.ADMIN_API_KEY;
 
@@ -427,8 +489,8 @@ app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) 
   });
 });
 
-app.post('/api/v1/auth/logout', authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
-  const token = extractApiKey(req);
+app.post('/api/v1/auth/logout', authRateLimiterStandard, authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
+  const token = extractSessionToken(req);
   if (token) {
     const revokeResult = await revokeSessionTokenDetailed(token);
     if (!revokeResult.success) {
@@ -611,7 +673,7 @@ app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Creación persistente con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.post('/pokemons', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
     return res.status(422).json({ detail: validation.error });
@@ -662,7 +724,7 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
 }));
 
 // Edición persistente con validación e invalidación de caché
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.put('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -722,7 +784,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorag
 }));
 
 // Eliminación persistente
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.delete('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -748,7 +810,7 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableSto
 // ---------------------------------------------------------------------------
 // Google AI Studio (Gemini) Endpoints con Rate Limit Minuto, Cuota Diaria y Auth
 // ---------------------------------------------------------------------------
-app.post('/api/v1/ai/diagram', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/diagram', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, diagram_type } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -758,7 +820,7 @@ app.post('/api/v1/ai/diagram', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, 
   res.json(result);
 }));
 
-app.post('/api/v1/ai/mock', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/mock', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, framework } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -768,7 +830,7 @@ app.post('/api/v1/ai/mock', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asy
   res.json(result);
 }));
 
-app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/image', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, aspect_ratio } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -782,7 +844,7 @@ app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, as
 // Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
 // DevSecOps Hardening: En producción, deshabilitado por defecto para reducir superficie de ataque
 // ---------------------------------------------------------------------------
-app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
+app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
   if (process.env.NODE_ENV === 'production' && process.env.ENABLE_REPO_DOWNLOAD !== 'true') {
     return res.status(403).json({
       error: 'Acceso denegado: La descarga del código fuente del repositorio se encuentra deshabilitada en producción por directivas de seguridad.'
