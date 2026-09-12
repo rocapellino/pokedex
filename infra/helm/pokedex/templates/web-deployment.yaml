@@ -32,6 +32,10 @@ spec:
         fsGroup: 101
         seccompProfile:
           type: RuntimeDefault
+      {{- with .Values.web.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: web
           image: "{{ .Values.web.image.repository }}{{ if .Values.web.image.digest }}@{{ .Values.web.image.digest }}{{ else }}:{{ .Values.web.image.tag | default .Chart.AppVersion }}{{ end }}"

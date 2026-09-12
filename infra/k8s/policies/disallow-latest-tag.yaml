@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Exige que los contenedores utilicen imágenes con versiones inmutables o digests,
+      rechazando el uso del tag 'latest' en producción.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: validate-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "El uso del tag ':latest' está estrictamente prohibido en producción. Debe utilizar un tag de versión inmutable o un digest SHA-256."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"

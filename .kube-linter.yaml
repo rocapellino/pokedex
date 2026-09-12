@@ -1,0 +1,9 @@
+# ==============================================================================
+# Configuración Centralizada de Kube-Linter (Seguridad y Buenas Prácticas K8s)
+# ==============================================================================
+customChecks: []
+checks:
+  addAllBuiltIn: true
+  exclude:
+    # Excluir dangling-service en templates sintéticos de validación CI
+    - "dangling-service"

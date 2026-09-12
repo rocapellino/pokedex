@@ -4,6 +4,17 @@
 
 api:
   replicaCount: 2
+  image:
+    repository: ghcr.io/rocapellino/pokedex-api
+    tag: "1.30.1"
+    pullPolicy: IfNotPresent
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: pokemon-api
   resources:
     limits:
       cpu: "1000m"
@@ -21,6 +32,17 @@ api:
 
 web:
   replicaCount: 2
+  image:
+    repository: ghcr.io/rocapellino/pokedex-web
+    tag: "1.30.1"
+    pullPolicy: IfNotPresent
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: pokemon-web
   resources:
     limits:
       cpu: "500m"

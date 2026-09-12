@@ -328,6 +328,55 @@ test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener
   }
 });
 
+test('🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints', () => {
+  const deployments = [
+    'infra/helm/pokedex/templates/api-deployment.yaml',
+    'infra/helm/pokedex/templates/web-deployment.yaml',
+  ];
+
+  for (const relPath of deployments) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    assert.ok(
+      content.includes('topologySpreadConstraints:'),
+      `${relPath} debe soportar topologySpreadConstraints para alta disponibilidad`
+    );
+  }
+
+  const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+  const prodContent = fs.readFileSync(prodValuesPath, 'utf-8');
+  assert.ok(
+    prodContent.includes('topologySpreadConstraints:'),
+    'values.prod.yaml debe configurar topologySpreadConstraints'
+  );
+  assert.ok(
+    !prodContent.includes('tag: "latest"'),
+    'values.prod.yaml no debe utilizar el tag :latest en producción'
+  );
+});
+
+test('🛡️ K8s Quality Gates: infra.yml integra kubeconform, kube-linter y kyverno test', () => {
+  const workflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+  assert.ok(fs.existsSync(workflowPath), 'infra.yml debe existir');
+  const content = fs.readFileSync(workflowPath, 'utf-8');
+
+  assert.ok(content.includes('kubeconform'), 'infra.yml debe ejecutar kubeconform para esquemas K8s');
+  assert.ok(content.includes('kube-linter'), 'infra.yml debe ejecutar kube-linter para mejores prácticas');
+  assert.ok(content.includes('kyverno test'), 'infra.yml debe ejecutar kyverno test para políticas de admisión');
+  assert.ok(content.includes('image:.*:latest'), 'infra.yml debe validar y prohibir :latest en producción');
+
+  const kubeLinterConfig = path.join(ROOT_DIR, '.kube-linter.yaml');
+  assert.ok(fs.existsSync(kubeLinterConfig), '.kube-linter.yaml debe existir');
+
+  const kyvernoPolicy = path.join(ROOT_DIR, 'infra/k8s/policies/disallow-latest-tag.yaml');
+  assert.ok(fs.existsSync(kyvernoPolicy), 'disallow-latest-tag.yaml debe existir');
+
+  const kyvernoTest = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/kyverno-test.yaml');
+  assert.ok(fs.existsSync(kyvernoTest), 'kyverno-test.yaml debe existir');
+});
+
+
 
 
 
