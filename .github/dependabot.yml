@@ -21,6 +21,12 @@ updates:
       - "nodejs"
     commit-message:
       prefix: "chore(deps)"
+    # Excepciones de Seguridad Justificadas y Documentadas:
+    # extract-zip <= 2.0.1: No existe versión parcheada por el autor en npm (2.0.1 es la última publicada).
+    # Se consume exclusivamente como dependencia transitiva de desarrollo (@lhci/cli -> lighthouse -> puppeteer-core)
+    # para descargar binarios de Chromium desde CDN oficial de Google en CI/CD; no procesa archivos zip de usuarios.
+    ignore:
+      - dependency-name: "extract-zip"
 
   # 2. GitHub Actions CI/CD Workflows
   - package-ecosystem: "github-actions"

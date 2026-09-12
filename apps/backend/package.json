@@ -24,7 +24,8 @@
     "zod": "^4.6.2"
   },
   "overrides": {
-    "qs": "^6.14.0"
+    "qs": "^6.14.0",
+    "esbuild": "^0.28.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
