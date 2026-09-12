@@ -9,17 +9,22 @@ Este directorio aloja la aplicación web cliente de la **Pokédex**, empaquetada
 ```text
 apps/frontend/
 ├── Dockerfile          # Imagen de producción Nginx Alpine multi-stage no-root
-├── nginx.conf          # Configuración de Nginx (Reverse Proxy a la API, compresión gzip y headers CSP)
+├── nginx.conf          # Configuración de Nginx (Reverse Proxy a la API, gzip y CSP)
+├── nginx.conf.template # Plantilla Nginx con inyección de variables por envsubst
+├── vite.config.ts      # Configuración de Vite para empaquetado multi-página (MPA)
+├── tsconfig.json       # Configuración del compilador TypeScript
+├── index.html          # SPA del Catálogo Pokédex (Punto de entrada Vite)
+├── backoffice.html     # Panel administrativo CRUD (Punto de entrada Vite)
+├── src/                # Código fuente TypeScript con tipado estricto
+│   ├── pokedex.ts      # Catálogo interactivo con sanitización DOMPurify
+│   ├── backoffice.ts   # Operaciones CRUD, auth y métricas
+│   ├── theme.ts        # Selector de tema (Claro / Oscuro / Sistema) Zero-FOUC
+│   ├── sanitizer.ts    # Envoltorio de seguridad DOMPurify anti-XSS
+│   └── types.ts        # Tipos e interfaces de Pokémon y estado
 └── public/             # Assets estáticos servidos al navegador
-    ├── index.html      # SPA del Catálogo Pokédex (Bento Grid, filtros reactivos, modal de detalle)
-    ├── backoffice.html # Panel administrativo CRUD con métricas y gestión del catálogo
-    ├── css/            # Estilos modernos con variables/tokens CSS y glassmorphism
+    ├── css/            # Estilos modernos con variables CSS y glassmorphism
     │   ├── style.css
     │   └── backoffice.css
-    ├── js/             # Lógica cliente en JavaScript Vanilla modular
-    │   ├── pokedex.js  # Búsqueda insensible a tildes, filtros por tipo/gen y modales
-    │   ├── theme.js    # Selector de tema (Claro / Oscuro / Sistema)
-    │   └── backoffice.js # Operaciones CRUD, autenticación y pooling de salud
     └── favicon.*       # Iconografía y branding
 ```
 

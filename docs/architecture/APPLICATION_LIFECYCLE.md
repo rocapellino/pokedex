@@ -115,7 +115,7 @@ flowchart TD
 
 ### Fase 2: Desarrollo Local y Quality Gates (DX)
 
-* El desarrollador crea su rama local y realiza los cambios en backend (`server.ts`, `src/`), frontend (`apps/web/`) o infraestructura (`infra/`, `gitops/`).
+* El desarrollador crea su rama local y realiza los cambios en backend (`server.ts`, `src/`), frontend (`apps/frontend/`) o infraestructura (`infra/`, `gitops/`).
 * Mediante el orquestador multiplataforma **Taskfile** (`task`) ejecuta verificaciones tempranas:
   * `task ts:lint`: Chequeo estricto de tipos con TypeScript (`tsc --noEmit`).
   * `task build`: Compilación y empaquetado de producción con esbuild.

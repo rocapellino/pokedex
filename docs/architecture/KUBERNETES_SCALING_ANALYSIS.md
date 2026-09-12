@@ -5,12 +5,13 @@ Este documento presenta el análisis técnico y arquitectónico para la implemen
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Resumen Ejecutivo y Diagnóstico](#1-resumen-ejecutivo-y-diagnóstico)
 2. [Arquitectura de Autoescalado con Kubernetes (HPA)](#2-arquitectura-de-autoescalado-con-kubernetes-hpa)
 3. [Estrategia de Persistencia y Coherencia de Datos](#3-estrategia-de-persistencia-y-coherencia-de-datos)
 4. [Análisis Comparativo: ¿Proxy, Balanceador o Ambos?](#4-análisis-comparativo-proxy-balanceador-o-ambos)
 5. [Topología de Red y Flujo de Tráfico Propuesto](#5-topología-de-red-y-flujo-de-tráfico-propuesto)
-6. [Manifiestos y Configuración de Referencia](#6-manifiestos-y-configuración-de-referencia)
+6. [Manifiestos y Configuración de Referencia](#6-manifiestos-y-configuración-de-referencia-helm-3-chart)
 7. [Conclusiones y Siguientes Pasos](#7-conclusiones-y-siguientes-pasos)
 
 ---
@@ -20,6 +21,7 @@ Este documento presenta el análisis técnico y arquitectónico para la implemen
 Actualmente, la aplicación corre sobre **Docker Compose** con una arquitectura de contenedores fijos (1 contenedor web, 1 contenedor API, 1 PostgreSQL, 1 Redis, 1 MinIO). Ante picos de tráfico (alto uso de CPU/Memoria), esta infraestructura no puede reaccionar elásticamente sin intervención manual o reinicio de servicios.
 
 La migración hacia **Kubernetes (K8s)** permite:
+
 - **Elasticidad Automática:** Aumentar o disminuir dinámicamente el número de réplicas de los contenedores web y backend en función de la demanda métrica en tiempo real.
 - **Resiliencia y Alta Disponibilidad:** Recuperación automática de pods (*self-healing*) ante caídas o agotamiento de recursos (*OOMKilled*).
 - **Garantía de Consistencia:** Mantener los contenedores web y backend en un modelo **Stateless** (sin estado) convergiendo hacia una capa de datos única y transaccionalmente segura (PostgreSQL + Redis).
@@ -58,6 +60,7 @@ El número deseado de réplicas se calcula según la fórmula oficial de Kuberne
 $$\text{Réplicas Deseadas} = \left\lceil \text{Réplicas Actuales} \times \left( \frac{\text{Métrica Actual}}{\text{Métrica Objetivo}} \right) \right\rceil$$
 
 ### 2.3. Requisitos Críticos para el Autoescalado
+
 1. **Metrics Server Activo:** Debe estar desplegado en el clúster (`kube-system/metrics-server`).
 2. **Definición Obligatoria de `requests` y `limits`:** El HPA calcula los porcentajes sobre los `requests` del contenedor. Si un contenedor no tiene `resources.requests.cpu` o `resources.requests.memory`, el HPA no podrá calcular la utilización y fallará.
 3. **Políticas de Enfriamiento (*Cooldown / Stabilization Windows*):**
@@ -107,6 +110,7 @@ flowchart TD
 ```
 
 ### 3.1. Principios de Consistencia Garantizados
+
 1. **Pods Web y API 100% Stateless:** Ningún contenedor almacena estado en su sistema de archivos local (`rootfs` efímero). Si un pod muere o escala hacia abajo, no se pierde ningún dato.
 2. **Fuente Única de Verdad (*Single Source of Truth*):**
    - Todos los pods API leen y escriben en la misma instancia primaria de PostgreSQL mediante una URL centralizada (`postgresql://user:pass@postgres-service:5432/pokedex_db`).
@@ -130,11 +134,11 @@ Una de las dudas fundamentales en arquitectura cloud-native es si se requiere un
 | **Balanceador Externo (Load Balancer)** | **Capa 4 (TCP/UDP) o Capa 7** | Recibir el tráfico desde Internet / Clientes externos y distribuirlo uniformemente entre los nodos del clúster K8s. | AWS NLB/ALB, GCP Cloud Load Balancing, MetalLB (On-Premises), Service tipo `LoadBalancer`. | **SÍ (Indispensable)** para dar punto de entrada IP pública/DNS al clúster. |
 | **Ingress Controller (Reverse Proxy L7)** | **Capa 7 (HTTP/HTTPS)** | Enrutamiento inteligente por Path y Hostname (`/` $\to$ Web, `/api` $\to$ API), terminación SSL/TLS, compresión Gzip/Brotli, rate limiting y CORS. | Ingress-NGINX, Traefik, Emissary-Ingress, Istio Gateway. | **SÍ (Indispensable)** para evitar exponer múltiples IPs públicas y centralizar reglas de tráfico HTTP. |
 | **Kube-Proxy + Service (ClusterIP)** | **Capa 4 (Transporte / IPVS/iptables)** | Balanceo de carga interno Este-Oeste (*East-West*) entre los múltiples pods réplicas de un mismo Deployment mediante algoritmos Round-Robin. | Componente nativo de Kubernetes (`kube-proxy` + Service `ClusterIP`). | **SÍ (Viene integrado)**: K8s lo gestiona automáticamente al definir un `Service`. |
-| **Nginx Web Container (Local)** | **Capa 7 (HTTP)** | Servir assets estáticos del frontend (HTML, CSS, JS) y reenviar peticiones internas al backend si no se usa Ingress directo. | Contenedor `apps/web` (Nginx Alpine). | **Opcional / Complementario**: Sirve los estáticos del SPA con máxima velocidad. |
+| **Nginx Web Container (Local)** | **Capa 7 (HTTP)** | Servir assets estáticos del frontend (HTML, CSS, JS) y reenviar peticiones internas al backend si no se usa Ingress directo. | Contenedor `apps/frontend` (Nginx Alpine). | **Opcional / Complementario**: Sirve los estáticos del SPA con máxima velocidad. |
 
 ### 4.2. Veredicto Arquitectónico
 
-```
+```text
 Internet (Usuarios)
        │
        ▼
@@ -172,7 +176,8 @@ Internet (Usuarios)
                                 └─────────────────────────────┘
 ```
 
-> **Conclusión:** 
+> **Conclusión:**
+>
 > - **El Balanceador de Carga (Load Balancer)** garantiza la disponibilidad de red y entrada al clúster.
 > - **El Ingress Controller (Reverse Proxy)** interpreta URLs, certificados SSL y reglas HTTP.
 > - **Kubernetes Services** ejecutan el balanceo continuo entre los pods creados por el **HPA**.
@@ -194,7 +199,7 @@ Internet (Usuarios)
 
 Se ha unificado y estructurado la orquestación en el Chart oficial de Helm (`infra/helm/pokedex/`):
 
-```
+```text
 infra/helm/pokedex/
 ├── Chart.yaml                     # Metadatos del Chart y versionado semántico
 ├── values.yaml                    # Configuración por defecto (desarrollo/local)
