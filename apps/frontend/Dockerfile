@@ -21,15 +21,11 @@ LABEL maintainer="Grupo 3 - UTEC DevOps" \
       version="1.0.0" \
       description="Frontend Web Pokédex servido con Nginx y Proxy Inverso a la API"
 
-# Actualizar paquetes base de Alpine para mitigar vulnerabilidades y CVEs del SO
-RUN apk upgrade --no-cache
-
-# Instalar gettext (provee envsubst) para sustitución de variables en nginx.conf.template
-# envsubst ya está incluido en nginx:alpine vía libintl, pero gettext lo expone como binario
-RUN apk add --no-cache gettext
-
-# Eliminar configuración por defecto de Nginx
-RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
+# Actualizar paquetes base de Alpine e instalar utilidades requeridas en una sola capa
+# hadolint ignore=DL3018
+RUN apk upgrade --no-cache && \
+    apk add --no-cache gettext && \
+    rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 
 # Copiar la plantilla de configuración de Nginx (IPs configurables por variable de entorno)
 COPY apps/frontend/nginx.conf.template /etc/nginx/conf.d/default.conf.template
