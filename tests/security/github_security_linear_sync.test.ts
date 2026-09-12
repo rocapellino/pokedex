@@ -8,10 +8,13 @@ import {
   formatDependabotTitle,
   formatSecretScanningTitle,
   sanitize,
+  extractAlertKeyFromTitle,
+  syncAlertLifecycle,
   syncGitHubSecurityToLinear,
   GitHubCodeScanningAlert,
   GitHubDependabotAlert,
   GitHubSecretScanningAlert,
+  LinearIssueNode,
 } from '../../scripts/github-security-linear-sync.js';
 
 test('🛡️ GitHub Security Linear Sync: mapSeverityToPriority mapea severidades a prioridades de Linear', () => {
@@ -91,6 +94,35 @@ test('🛡️ GitHub Security Linear Sync: formatSecretScanningTitle formatea el
   assert.equal(title, '[GitHub Secret #3] Detección de Stripe API Key');
 });
 
+test('🛡️ GitHub Security Linear Sync: extractAlertKeyFromTitle extrae herramienta y número de alerta', () => {
+  assert.deepEqual(extractAlertKeyFromTitle('[GitHub CodeQL #18] Use of password hash with insufficient computational effort'), {
+    tool: 'codeql',
+    number: 18,
+  });
+
+  assert.deepEqual(extractAlertKeyFromTitle('[GitHub Dependabot #42] express (GHSA-xxxx): Prototype pollution'), {
+    tool: 'dependabot',
+    number: 42,
+  });
+
+  assert.deepEqual(extractAlertKeyFromTitle('[GitHub Secret #7] Detección de AWS Secret Key'), {
+    tool: 'secret',
+    number: 7,
+  });
+
+  assert.deepEqual(extractAlertKeyFromTitle('[GitHub Trivy #105] CVE-2026-0001 in Alpine base'), {
+    tool: 'trivy',
+    number: 105,
+  });
+
+  assert.deepEqual(extractAlertKeyFromTitle('[GitHub Code Scanning #12] Missing rate limiting'), {
+    tool: 'codeql',
+    number: 12,
+  });
+
+  assert.equal(extractAlertKeyFromTitle('Feature: Add new Pokemon stats chart'), null);
+});
+
 test('🛡️ GitHub Security Linear Sync: sanitize neutraliza saltos de línea y limita longitud', () => {
   const dirty = 'Línea 1\nLínea 2\rLínea 3\tTab'.repeat(10);
   const clean = sanitize(dirty);
@@ -98,6 +130,63 @@ test('🛡️ GitHub Security Linear Sync: sanitize neutraliza saltos de línea 
   assert.equal(clean.includes('\r'), false);
   assert.equal(clean.includes('\t'), false);
   assert.equal(clean.length <= 120, true);
+});
+
+test('🛡️ GitHub Security Linear Sync: syncAlertLifecycle maneja ciclo de vida en DRY-RUN sin errores', async () => {
+  process.env.DRY_RUN = 'true';
+
+  const existingIssues: LinearIssueNode[] = [
+    {
+      id: 'issue-1',
+      identifier: 'PEX-86',
+      title: '[GitHub CodeQL #18] Use of password hash',
+      state: { id: 'state-todo', name: 'Todo', type: 'unstarted' },
+    },
+    {
+      id: 'issue-2',
+      identifier: 'PEX-98',
+      title: '[GitHub CodeQL #18] Use of password hash',
+      state: { id: 'state-backlog', name: 'Backlog', type: 'backlog' },
+    },
+  ];
+
+  // Caso A: Alerta cerrada en GitHub
+  await assert.doesNotReject(async () => {
+    await syncAlertLifecycle({
+      alertType: 'codeql',
+      alertNumber: 18,
+      isOpen: false,
+      stateDescription: 'fixed',
+      title: '[GitHub CodeQL #18] Use of password hash',
+      description: 'Detalle de prueba',
+      priority: 2,
+      existingIssues,
+      teamId: 'team-mock',
+      todoStateId: 'state-todo',
+      doneStateId: 'state-done',
+      canceledStateId: 'state-canceled',
+      duplicateStateId: 'state-duplicate',
+    });
+  });
+
+  // Caso B: Alerta nueva abierta sin tickets previos
+  await assert.doesNotReject(async () => {
+    await syncAlertLifecycle({
+      alertType: 'codeql',
+      alertNumber: 999,
+      isOpen: true,
+      stateDescription: 'open',
+      title: '[GitHub CodeQL #999] Nueva alerta',
+      description: 'Detalle de prueba',
+      priority: 1,
+      existingIssues: [],
+      teamId: 'team-mock',
+      todoStateId: 'state-todo',
+      doneStateId: 'state-done',
+      canceledStateId: 'state-canceled',
+      duplicateStateId: 'state-duplicate',
+    });
+  });
 });
 
 test('🛡️ GitHub Security Linear Sync: workflow YAML existe y define permisos de menor privilegio', () => {

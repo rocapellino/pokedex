@@ -20,6 +20,12 @@ on:
         description: "Clave del equipo en Linear (por defecto PEX)"
         type: string
         default: "PEX"
+  code_scanning_alert:
+    types: [created, fixed, reopened_by_user, closed_by_user]
+  dependabot_alert:
+    types: [created, dismissed, fixed, reopened]
+  secret_scanning_alert:
+    types: [created, resolved, reopened]
   repository_dispatch:
     types:
       - code_scanning_alert
@@ -35,10 +41,8 @@ jobs:
     name: 🎫 Sync Security Alerts to Linear Tickets
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'schedule' ||
-      github.event_name == 'repository_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: 1. Descargar Código Fuente
