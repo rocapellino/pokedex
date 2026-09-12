@@ -85,6 +85,7 @@ spec:
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: egress-gateway
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001

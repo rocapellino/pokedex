@@ -125,6 +125,8 @@ test('🛡️ Seguridad Express: Middleware inyecta cabeceras CSP, Permissions-P
     assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
     assert.equal(res.headers.get('x-frame-options'), 'SAMEORIGIN');
     assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    assert.equal(res.headers.get('cross-origin-opener-policy'), 'same-origin');
+    assert.equal(res.headers.get('cross-origin-resource-policy'), 'same-origin');
     assert.ok(res.headers.get('content-security-policy')?.includes("default-src 'self'"));
     assert.ok(res.headers.get('permissions-policy')?.includes('camera=()'));
     assert.ok(res.headers.get('x-request-id'));

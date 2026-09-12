@@ -262,6 +262,69 @@ test('🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFiles
   assert.ok(pgbContent.includes('mountPath: /tmp'), 'PgBouncer debe montar /tmp');
 });
 
+test('🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)', () => {
+  const workloads = [
+    'infra/helm/pokedex/templates/seed-job.yaml',
+    'infra/helm/pokedex/templates/backup-cronjob.yaml',
+    'infra/helm/pokedex/templates/egress-gateway.yaml',
+    'infra/helm/pokedex/templates/api-deployment.yaml',
+    'infra/helm/pokedex/templates/web-deployment.yaml',
+    'infra/helm/pokedex/templates/postgres-statefulset.yaml',
+    'infra/helm/pokedex/templates/redis-deployment.yaml',
+    'infra/helm/pokedex/templates/pgbouncer-deployment.yaml',
+  ];
+
+  for (const relPath of workloads) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    assert.ok(
+      content.includes('automountServiceAccountToken: false'),
+      `${relPath} debe declarar explícitamente automountServiceAccountToken: false`
+    );
+  }
+});
+
+test('🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage', () => {
+  const seedPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/seed-job.yaml');
+  assert.ok(fs.existsSync(seedPath), 'seed-job.yaml debe existir');
+  const content = fs.readFileSync(seedPath, 'utf-8');
+  assert.ok(content.includes('ephemeral-storage: 50Mi'), 'seed-job debe declarar request de ephemeral-storage');
+  assert.ok(content.includes('ephemeral-storage: 256Mi'), 'seed-job debe declarar limit de ephemeral-storage');
+});
+
+test('🛡️ CI SAST Security: ci.yml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)', () => {
+  const ciPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
+  assert.ok(fs.existsSync(ciPath), 'ci.yml debe existir');
+  const content = fs.readFileSync(ciPath, 'utf-8');
+  assert.equal(
+    content.includes('--exclude scripts'),
+    false,
+    '.github/workflows/ci.yml no debe excluir scripts del análisis SAST de Semgrep'
+  );
+});
+
+test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy', () => {
+  const confFiles = [
+    'apps/frontend/nginx.conf',
+    'apps/frontend/nginx.conf.template',
+  ];
+
+  for (const relPath of confFiles) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    assert.ok(
+      content.includes('Cross-Origin-Opener-Policy "same-origin" always'),
+      `${relPath} debe configurar Cross-Origin-Opener-Policy`
+    );
+    assert.ok(
+      content.includes('Cross-Origin-Resource-Policy "same-origin" always'),
+      `${relPath} debe configurar Cross-Origin-Resource-Policy`
+    );
+  }
+});
+
 
 
 
