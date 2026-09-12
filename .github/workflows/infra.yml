@@ -158,15 +158,34 @@ jobs:
             --set secrets.adminApiKey=ci-canonical-test-admin-key \
             --set secrets.adminSessionSecret=ci-canonical-test-session-secret \
             --set redis.auth.password=ci-canonical-test-redis-pass \
-            --set secrets.backupEncryptionKey=ci-canonical-test-backup-key \
-            --wait --timeout 240s
+            --set secrets.backupEncryptionKey=ci-canonical-test-backup-key
 
       - name: 6. Validar Estado de Kubernetes y Probar Endpoints
         run: |
+          echo "=== ESPERANDO DISPONIBILIDAD DE PODS ==="
+          kubectl get pods,svc,netpol -n pokemon-app -o wide
+          
+          # Esperar a que los pods de la API y Web estén listos con diagnóstico
+          if ! kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-api --timeout=120s; then
+            echo "❌ Timeout esperando pod pokemon-api. Diagnóstico:"
+            kubectl get pods,events -n pokemon-app -o wide
+            kubectl describe pods -n pokemon-app
+            kubectl logs -n pokemon-app -l app=pokemon-api --tail=100 || true
+            kubectl logs -n pokemon-app -l app=postgres --tail=100 || true
+            kubectl logs -n pokemon-app -l app=redis --tail=100 || true
+            exit 1
+          fi
+
+          if ! kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-web --timeout=60s; then
+            echo "❌ Timeout esperando pod pokemon-web. Diagnóstico:"
+            kubectl get pods,events -n pokemon-app -o wide
+            kubectl describe pods -n pokemon-app -l app=pokemon-web
+            kubectl logs -n pokemon-app -l app=pokemon-web --tail=100 || true
+            exit 1
+          fi
+
           echo "=== PODS EN CLUSTER ==="
           kubectl get pods,svc,netpol -n pokemon-app -o wide
-          kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-api --timeout=60s
-          kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-web --timeout=60s
           
           echo "=== TEST DIRECTO VIA PORT-FORWARD ==="
           kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000 &
