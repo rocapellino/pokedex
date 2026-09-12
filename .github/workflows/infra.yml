@@ -38,8 +38,8 @@ jobs:
 
       - name: 2b. Validar y Renderizar Helm Chart (Dev, Prod, Cilium y Egress Gateway)
         run: |
-          helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass
-          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass > /tmp/rendered-dev.yaml
+          helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key
+          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set egressGateway.enabled=true --set networkPolicies.egress.useEgressGateway=true > /tmp/rendered-egress-gateway.yaml

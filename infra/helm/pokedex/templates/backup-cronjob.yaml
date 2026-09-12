@@ -66,14 +66,14 @@ spec:
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "pokedex.fullname" . }}-secret
-                      key: postgres-password
+                      name: {{ include "pokedex.secretName" . }}
+                      key: POSTGRES_PASSWORD
                 - name: BACKUP_ENCRYPTION_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "pokedex.fullname" . }}-secret
+                      name: {{ include "pokedex.secretName" . }}
                       key: backup-encryption-key
-                      optional: true
+                      optional: false
                 - name: RETENTION_DAYS
                   value: "{{ .Values.backup.retentionDays | default 7 }}"
               command:
@@ -92,8 +92,8 @@ spec:
                   pg_dump -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" --clean --if-exists | gzip -9 > "${RAW_FILE}"
 
                   echo "🔒 [DR Backup] Cifrando volcado con AES-256-CBC..."
-                  ENC_PASS="${BACKUP_ENCRYPTION_KEY:-pokedex_dr_default_secure_key_2026}"
-                  openssl enc -aes-256-cbc -pbkdf2 -salt -in "${RAW_FILE}" -out "${ENC_FILE}" -k "${ENC_PASS}"
+                  : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria para cifrar backups}"
+                  openssl enc -aes-256-cbc -pbkdf2 -salt -in "${RAW_FILE}" -out "${ENC_FILE}" -k "${BACKUP_ENCRYPTION_KEY}"
 
                   echo "🔍 [DR Backup] Calculando checksum SHA-256 de integridad..."
                   sha256sum "${ENC_FILE}" > "${CHECKSUM_FILE}"

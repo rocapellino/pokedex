@@ -19,6 +19,9 @@ test('🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256,
   assert.ok(content.includes('pbkdf2'), 'Debe utilizar derivación de claves robusta PBKDF2');
   assert.ok(content.includes('sha256sum'), 'Debe calcular la suma de comprobación SHA-256 del volcado');
   assert.ok(content.includes('gzip -9'), 'El volcado debe comprimirse antes del cifrado');
+  assert.ok(content.includes('optional: false'), 'La clave BACKUP_ENCRYPTION_KEY debe ser obligatoria (optional: false)');
+  assert.ok(!content.includes('pokedex_dr_default_secure_key_2026'), 'No debe existir fallback hardcodeado público para BACKUP_ENCRYPTION_KEY');
+  assert.ok(content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'), 'Debe fallar cerrado con error explícito si falta BACKUP_ENCRYPTION_KEY');
 
   // Validar hardening del contenedor
   assert.ok(content.includes('runAsNonRoot: true'), 'El contenedor de backup debe correr como no root');
@@ -41,6 +44,8 @@ test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo autom
   assert.ok(content.includes('sha256sum'), 'Debe validar checksum de integridad antes del descifrado');
   assert.ok(content.includes('pokedex_entries'), 'Debe verificar la integridad de la estructura de tablas');
   assert.ok(content.includes('--dry-run'), 'Debe soportar modo de prueba sintética dry-run para CI');
+  assert.ok(!content.includes('pokedex_dr_default_secure_key_2026'), 'dr_verify_restore.sh no debe contener clave hardcodeada pública');
+  assert.ok(content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'), 'dr_verify_restore.sh debe validar fail-closed en ejecuciones reales');
 });
 
 test('🛡️ Disaster Recovery: Runbook oficial define formalmente RPO < 24h y RTO < 2h', () => {
