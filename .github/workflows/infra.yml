@@ -133,7 +133,7 @@ jobs:
       - name: 3. Compilar imágenes locales y cargar a Kind
         run: |
           docker build -t pokedex-api:local -f Dockerfile .
-          docker build -t pokedex-web:local -f apps/frontend/Dockerfile apps/frontend
+          docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
           kind load docker-image pokedex-api:local --name pokedex-local
           kind load docker-image pokedex-web:local --name pokedex-local
 
