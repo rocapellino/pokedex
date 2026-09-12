@@ -136,13 +136,13 @@ export function mapSeverityToPriority(severity?: string): number {
 }
 
 export function extractAlertKeyFromTitle(title: string): { tool: string; number: number } | null {
-  const match = title.match(/\[GitHub\s+([A-Za-z0-9_\s]+?)\s+#(\d+)\]/i);
+  const match = title.match(/\[GitHub\s+([A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)*)\s+#(\d+)\]/i);
   if (!match) return null;
   let tool = match[1].trim();
   if (/code\s+scanning/i.test(tool)) tool = 'CodeQL';
   return {
     tool: tool.toLowerCase(),
-    number: parseInt(match[2], 10),
+    number: Number.parseInt(match[2], 10),
   };
 }
 
@@ -309,8 +309,8 @@ export async function fetchTeamSecurityIssues(teamKey: string): Promise<Map<stri
         existing.push(node);
         // Asegurar que el ticket con menor número identificador (más antiguo) sea el principal
         existing.sort((a, b) => {
-          const numA = parseInt(a.identifier.replace(/\D/g, ''), 10) || 0;
-          const numB = parseInt(b.identifier.replace(/\D/g, ''), 10) || 0;
+          const numA = Number.parseInt(a.identifier.replace(/\D/g, ''), 10) || 0;
+          const numB = Number.parseInt(b.identifier.replace(/\D/g, ''), 10) || 0;
           return numA - numB;
         });
         issueMap.set(key, existing);
