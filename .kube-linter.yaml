@@ -1,0 +1,15 @@
+# ==============================================================================
+# Configuración Centralizada de Kube-Linter (Seguridad y Buenas Prácticas K8s)
+# ==============================================================================
+customChecks: []
+checks:
+  doNotAutoAddDefaults: true
+  include:
+    - "privileged-container"
+    - "privilege-escalation-container"
+    - "run-as-non-root"
+    - "unset-cpu-requirements"
+    - "unset-memory-requirements"
+    - "env-var-secret"
+    - "writable-host-mount"
+    - "wildcard-in-rules"

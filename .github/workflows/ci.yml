@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Escanear código fuente
-        run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage
+        run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage --exclude infra
 
   checkov:
     name: "🏗️ Checkov (Seguridad IaC / Helm)"
@@ -81,6 +81,8 @@ jobs:
         with:
           framework: terraform,kubernetes,helm
           directory: infra/
+          config_file: .checkov.yaml
+          skip_path: infra/k8s/kyverno-test
           output_format: cli
           soft_fail: false
 

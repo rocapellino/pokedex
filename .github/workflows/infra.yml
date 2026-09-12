@@ -57,7 +57,37 @@ jobs:
           grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
           grep -q "app.kubernetes.io/component: egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta componente egress-gateway"; exit 1; }
           grep -q "pokedex-egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta Service/Deployment de Egress Gateway"; exit 1; }
-          echo "✅ Integridad, contratos Zero-Trust y aislamiento L7 Egress validados con éxito."
+          
+          # Prohibir estrictamente el tag :latest en producción
+          if grep -E 'image:.*:latest' /tmp/rendered-prod.yaml; then
+            echo "❌ Error de seguridad: Se detectó el tag prohibido ':latest' en manifiestos de producción."
+            exit 1
+          fi
+          echo "✅ Integridad, contratos Zero-Trust, aislamiento L7 Egress y política anti-latest validados con éxito."
+
+      - name: 2d. Instalar y Ejecutar Kubeconform (Validación estricta de esquemas OpenAPI K8s)
+        run: |
+          KUBECONFORM_VERSION="v0.6.7"
+          curl -sL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xz -C /tmp kubeconform
+          /tmp/kubeconform -v
+          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml
+          echo "✅ Validación de esquemas OpenAPI de Kubernetes con Kubeconform completada con éxito."
+
+      - name: 2e. Instalar y Ejecutar Kube-Linter (Auditoría de Buenas Prácticas K8s)
+        run: |
+          KUBELINTER_VERSION="v0.7.2"
+          curl -sL "https://github.com/stackrox/kube-linter/releases/download/${KUBELINTER_VERSION}/kube-linter-linux.tar.gz" | tar -xz -C /tmp kube-linter
+          /tmp/kube-linter version
+          /tmp/kube-linter lint /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml --config .kube-linter.yaml
+          echo "✅ Kube-Linter validó todas las directivas de seguridad y buenas prácticas en K8s."
+
+      - name: 2f. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
+        run: |
+          KYVERNO_VERSION="v1.12.5"
+          curl -sL "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" | tar -xz -C /tmp kyverno
+          /tmp/kyverno version
+          /tmp/kyverno test infra/k8s/kyverno-test/
+          echo "✅ Pruebas de políticas de admisión Kyverno ejecutadas y aprobadas exitosamente."
 
       - name: 3. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
@@ -80,5 +110,7 @@ jobs:
         with:
           framework: terraform,kubernetes,helm
           directory: infra/
+          config_file: .checkov.yaml
+          skip_path: infra/k8s/kyverno-test
           soft_fail: false
           output_format: cli

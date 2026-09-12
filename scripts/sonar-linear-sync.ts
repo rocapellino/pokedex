@@ -181,7 +181,7 @@ async function isIssueAlreadyOpenInLinear(searchTerm: string): Promise<boolean> 
     }
     return false;
   } catch (err) {
-    console.warn(`⚠️ Error al buscar duplicados en Linear para "${searchTerm}":`, err);
+    console.warn('⚠️ Error al buscar duplicados en Linear para:', searchTerm, err);
     return false;
   }
 }
