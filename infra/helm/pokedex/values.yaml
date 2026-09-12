@@ -341,4 +341,12 @@ backup:
     enabled: false
     size: 5Gi
     storageClass: ""
+  # Arquitectura 3-2-1: Copia off-site remota a Object Storage (S3 / MinIO / B2)
+  offsite:
+    enabled: false
+    endpoint: "" # ej: https://s3.amazonaws.com o http://minio.storage.svc:9000
+    bucket: "pokedex-backups-offsite"
+    region: "us-east-1"
+    secretName: "" # Secreto que contiene credenciales AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY
+
 

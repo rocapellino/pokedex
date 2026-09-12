@@ -32,11 +32,14 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor
   assert.equal(fs.existsSync(legacyScript), false, 'scripts/proxmox_deploy.sh debe estar eliminado; el aprovisionamiento se gestiona vía OpenTofu + Ansible + Helm');
 });
 
-test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host', () => {
+test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host sin errores ignorados', () => {
   const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yml');
   assert.ok(fs.existsSync(baselinePath), 'host_baseline.yml debe existir');
   const content = fs.readFileSync(baselinePath, 'utf-8');
   assert.ok(content.includes('ufw'), 'host_baseline.yml debe configurar firewall ufw');
+  assert.ok(!content.includes('ignore_errors: true'), 'host_baseline.yml no debe ocultar fallos con ignore_errors: true');
+  assert.ok(content.includes('docker info'), 'host_baseline.yml debe verificar el funcionamiento de Docker');
+  assert.ok(content.includes('install_docker'), 'host_baseline.yml debe permitir condicionar el runtime de contenedores');
 });
 
 test('🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción', () => {

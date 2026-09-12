@@ -50,13 +50,18 @@
           - containerd.io
         state: present
         update_cache: yes
-      ignore_errors: true
+      when: install_docker | default(true)
 
     - name: 5. Asegurar servicio Docker iniciado y habilitado
       service:
         name: docker
         state: started
         enabled: yes
-      ignore_errors: true
+      when: install_docker | default(true)
+
+    - name: 6. Verificar funcionamiento del runtime Docker
+      command: docker info
+      changed_when: false
+      when: install_docker | default(true)
 
 - import_playbook: security_hardening.yml

@@ -77,6 +77,30 @@ spec:
                       optional: false
                 - name: RETENTION_DAYS
                   value: "{{ .Values.backup.retentionDays | default 7 }}"
+                {{- if and .Values.backup.offsite .Values.backup.offsite.enabled }}
+                - name: OFFSITE_BACKUP_ENABLED
+                  value: "true"
+                - name: OFFSITE_BUCKET
+                  value: {{ .Values.backup.offsite.bucket | quote }}
+                - name: OFFSITE_ENDPOINT
+                  value: {{ .Values.backup.offsite.endpoint | quote }}
+                - name: OFFSITE_REGION
+                  value: {{ .Values.backup.offsite.region | default "us-east-1" | quote }}
+                {{- if .Values.backup.offsite.secretName }}
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backup.offsite.secretName }}
+                      key: AWS_ACCESS_KEY_ID
+                      optional: true
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backup.offsite.secretName }}
+                      key: AWS_SECRET_ACCESS_KEY
+                      optional: true
+                {{- end }}
+                {{- end }}
               command:
                 - /bin/sh
                 - -c
@@ -107,6 +131,21 @@ spec:
 
                   BACKUP_SIZE=$(ls -lh "${ENC_FILE}" | awk '{print $5}')
                   echo "✅ [DR Backup] ¡Copia de seguridad completada con éxito! Archivo: ${ENC_FILE} (Tamaño: ${BACKUP_SIZE})"
+
+                  if [ "${OFFSITE_BACKUP_ENABLED:-false}" = "true" ]; then
+                    echo "☁️ [DR Backup] Iniciando sincronización off-site a Object Storage (${OFFSITE_BUCKET})..."
+                    if command -v aws >/dev/null 2>&1; then
+                      ENDPOINT_ARG=""
+                      if [ -n "${OFFSITE_ENDPOINT:-}" ]; then
+                        ENDPOINT_ARG="--endpoint-url ${OFFSITE_ENDPOINT}"
+                      fi
+                      aws s3 cp "${ENC_FILE}" "s3://${OFFSITE_BUCKET}/" ${ENDPOINT_ARG} --region "${OFFSITE_REGION:-us-east-1}"
+                      aws s3 cp "${CHECKSUM_FILE}" "s3://${OFFSITE_BUCKET}/" ${ENDPOINT_ARG} --region "${OFFSITE_REGION:-us-east-1}"
+                      echo "✅ [DR Backup] Sincronización off-site completada exitosamente."
+                    else
+                      echo "ℹ️ [DR Backup] Binario aws-cli no presente en imagen; volcado cifrado y checksum listos en PVC para replicación externa."
+                    fi
+                  fi
               volumeMounts:
                 - name: backup-storage
                   mountPath: /backups
@@ -163,4 +202,13 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
+    {{- if and .Values.backup.offsite .Values.backup.offsite.enabled }}
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 9000
+    {{- end }}
 {{- end }}

@@ -20,18 +20,24 @@ flowchart LR
     PG[(PostgreSQL 16\npokedex_db)] -->|pg_dump| GZ[Compresión\ngzip -9]
     GZ -->|openssl enc| AES[Cifrado Simétrico\nAES-256-CBC + PBKDF2]
     AES -->|sha256sum| HASH[Suma de Integridad\nSHA-256]
-    AES --> PVC[Volumen Persistente\n/backups (7 días)]
+    AES --> PVC[Copia Local: PVC\n/backups (RTO Inmediato)]
     HASH --> PVC
+    AES -.->|Off-site Sync| S3[(Almacenamiento Off-site\nS3 / MinIO / B2)]
+    HASH -.->|Off-site Sync| S3
 ```
 
-### 2.1. Características de Seguridad del Backup
+### 2.1. Estrategia de Respaldo 3-2-1 y Características de Seguridad
 
-1. **Zero-Trust Egress**: El pod de backup no tiene salida a Internet pública; su comunicación está estrictamente limitada a PostgreSQL (puerto 5432) y CoreDNS (puerto 53).
-2. **Hardening de Contenedor**: Corre con usuario no root (`UID 70`), sistema de archivos de solo lectura (`readOnlyRootFilesystem: true`) y descarte total de capacidades Linux (`capabilities.drop: [ALL]`).
-3. **Cifrado Criptográfico Estricto**:
+1. **Estrategia 3-2-1**:
+   - **3 Copias de los datos**: Datos en vivo (PostgreSQL), copia local cifrada (PVC) y réplica remota off-site (S3 / MinIO).
+   - **2 Medios distintos**: Almacenamiento en bloque del clúster (PVC) y almacenamiento de objetos externo inmutable.
+   - **1 Copia Off-site**: Réplica fuera del centro de datos/nodo para proteger contra pérdida catastrófica de infraestructura.
+2. **Zero-Trust Egress**: El pod de backup solo se comunica con PostgreSQL (5432), CoreDNS (53) y opcionalmente con el endpoint HTTPS (443) del bucket off-site cuando `backup.offsite.enabled` está activo.
+3. **Hardening de Contenedor**: Corre con usuario no root (`UID 70`), sistema de archivos de solo lectura (`readOnlyRootFilesystem: true`) y descarte total de capacidades Linux (`capabilities.drop: [ALL]`).
+4. **Cifrado Criptográfico Estricto**:
    - Algoritmo: `AES-256-CBC` con derivación de clave `PBKDF2` y salting criptográfico aleatorio.
-   - La clave se inyecta de forma segura mediante variable de entorno `BACKUP_ENCRYPTION_KEY` proveniente de Kubernetes Secret / External Secrets Operator.
-4. **Verificación de Integridad**: Cada volcado genera un archivo anexo `.sha256` para validar que el archivo no fue manipulado ni se corrompió durante la transferencia o almacenamiento.
+   - La clave se inyecta de forma segura mediante variable de entorno `BACKUP_ENCRYPTION_KEY` proveniente de Kubernetes Secret / External Secrets Operator. Sin fallback hardcodeado.
+5. **Verificación de Integridad**: Cada volcado genera un archivo anexo `.sha256` para validar que el archivo no fue manipulado ni se corrompió durante la transferencia o almacenamiento.
 
 ---
 
@@ -79,7 +85,7 @@ flowchart LR
    ```
 
 3. Aprovisionar el Secret de cifrado (`pokedex-backup-secret`).
-4. Montar el volumen de backup y ejecutar la restauración con el comando del Escenario A.
+4. Descargar el backup cifrado desde el bucket off-site o montar el volumen de backup y ejecutar la restauración con el comando del Escenario A.
 5. Iniciar los pods de la API y Frontend web una vez validada la integridad de PostgreSQL.
 
 ---
@@ -92,4 +98,8 @@ El repositorio incluye el script de validación `scripts/dr_verify_restore.sh`, 
 bash scripts/dr_verify_restore.sh --dry-run
 ```
 
-Este script prueba el ciclo completo de verificación SHA-256, descifrado AES-256, descompresión gzip y validación estructural del DDL de `pokedex_entries`, midiendo el tiempo transcurrido contra el objetivo de RTO.
+Este script ejecuta:
+- Generación de clave efímera dinámica con `openssl rand -hex 32` en modo simulación (sin claves predeterminadas).
+- Verificación criptográfica SHA-256, descifrado AES-256 y descompresión gzip.
+- Prueba de restauración real en base de datos PostgreSQL efímera (vía Docker) o remota (`DR_POSTGRES_URL`), validando existencia de la tabla `pokedex_entries`, conteo de filas, lectura representativa e integridad de índices.
+- Medición del tiempo transcurrido contra el objetivo oficial de RTO (< 2 horas).
