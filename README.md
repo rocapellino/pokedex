@@ -1,396 +1,390 @@
-# ⚡ Pokémon DevOps Platform: Monorepo Full-Stack & DevSecOps
+# ⚡ Pokémon DevOps Platform
 
+Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una Pokédex reactiva para la consulta y gestión del catálogo oficial de Pokémon. Diseñada bajo principios de separación de responsabilidades, seguridad por defecto (*fail-closed*) y despliegue continuo mediante contenedores y orquestación con Kubernetes y GitOps.
+
+[![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Express](https://img.shields.io/badge/Express-4.21+-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
-[![Google AI Studio](https://img.shields.io/badge/Google_AI_Studio-Gemini_2.5_Flash-4285F4?style=flat&logo=google&logoColor=white)](https://aistudio.google.com/)
-[![Docker](https://img.shields.io/badge/Docker-27+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Docker](https://img.shields.io/badge/Docker-24+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/)
-[![Kyverno](https://img.shields.io/badge/Kyverno-1.12+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kyverno.io/)
-[![Cosign](https://img.shields.io/badge/Sigstore-Cosign_Keyless-4A90E2?style=flat&logo=sigstore&logoColor=white)](https://sigstore.dev/)
 [![Security: Gitleaks](https://img.shields.io/badge/Security-Gitleaks_Protected-green?style=flat&logo=shield)](https://github.com/gitleaks/gitleaks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-Plataforma de grado empresarial y portafolio DevSecOps que implementa una Pokédex reactiva de alto rendimiento con catálogo oficial de 1.025 Pokémon, persistencia híbrida ACID en PostgreSQL 16 con aceleración distribuida en Redis 7, servicios de Inteligencia Artificial generativa con Google Gemini 2.5 Flash, seguridad en cadena de suministro (Cosign + SBOM + Kyverno) y despliegue continuo GitOps híbrido (Proxmox VE on-premise + AWS EKS en la nube).
 
 ---
 
 ## 📑 Tabla de Contenidos
 
-1. [Arquitectura del Sistema](#1-arquitectura-del-sistema)
-2. [Diagrama de Flujo de Componentes e Interacciones](#2-diagrama-de-flujo-de-componentes-e-interacciones)
-3. [Estructura del Monorepo](#3-estructura-del-monorepo)
-4. [Matriz de Endpoints y Contratos REST](#4-matriz-de-endpoints-y-contratos-rest)
-5. [Seguridad y Hardening DevSecOps](#5-seguridad-y-hardening-devsecops)
-6. [Guía de Inicio Rápido](#6-guía-de-inicio-rápido)
-7. [Observabilidad y Monitoreo](#7-observabilidad-y-monitoreo)
-8. [Portal de Documentación Completa](#8-portal-de-documentación-completa)
+- [Demo y Acceso Rápido](#demo-y-acceso-rápido)
+- [Características Principales](#características-principales)
+- [Arquitectura del Sistema](#arquitectura-del-sistema)
+- [Requisitos](#requisitos)
+- [Inicio Rápido](#inicio-rápido)
+- [Comandos Disponibles](#comandos-disponibles)
+- [Configuración](#configuración)
+- [API REST](#api-rest)
+- [Testing y Calidad](#testing-y-calidad)
+- [Estrategia de Despliegue](#estrategia-de-despliegue)
+- [Observabilidad](#observabilidad)
+- [Backup y Disaster Recovery](#backup-y-disaster-recovery)
+- [Seguridad](#seguridad)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Documentación Adicional](#documentación-adicional)
+- [Contribución](#contribución)
+- [Licencia](#licencia)
 
 ---
 
-## 1. Arquitectura del Sistema
+## Demo y Acceso Rápido
 
-La arquitectura está construida bajo los principios de **Separación de Responsabilidades**, **Defensa en Profundidad (*Defense in Depth*)**, **Zero-Trust Network Isolation** y **Fail-Closed Security**:
+Al iniciar la plataforma en el entorno local, los servicios quedan disponibles en:
 
-```text
-                             [ Usuarios / Clientes Web ]
-                                          │
-                                          ▼ (HTTP :80 / :8080)
-                ┌──────────────────────────────────────────────────┐
-                │    Capa 1: Ingress / Nginx Reverse Proxy (DMZ)    │
-                │  • Servido de estáticos HTML5/CSS3/JS Vanilla    │
-                │  • Cabeceras de seguridad estrictas (CSP, CORS)  │
-                └─────────────────────────┬────────────────────────┘
-                                          │
-                                          ▼ (HTTP interno :3000)
-                ┌──────────────────────────────────────────────────┐
-                │   Capa 2: Backend Pokédex Server (Express + TS)  │
-                │  • Rate Limiter híbrido (Lua en Redis + Local)   │
-                │  • Sesiones HMAC SHA-256 con revocación en Redis │
-                │  • Catálogo indexado en memoria O(1) con ETags   │
-                │  • Validaciones contra XSS y límites anti-DoS    │
-                │  • Exportador nativo de métricas Prometheus      │
-                └──────────────┬───────────────────┬───────────────┘
-                               │                   │
-                               ▼ (SQL / TCP :5432) ▼ (RESP / TCP :6379)
-                ┌─────────────────────────┐     ┌─────────────────────────┐
-                │   PostgreSQL 16         │     │   Redis 7               │
-                │ • Tabla pokedex_entries │     │ • Caché pokedex:list:*  │
-                │ • Documentos JSONB      │     │ • Revocación tokens     │
-                │ • Secuencia atómica id  │     │ • Rate limit atómico    │
-                └─────────────────────────┘     └─────────────────────────┘
-                               │
-                               ▼ (HTTPS / API Rest)
-                ┌──────────────────────────────────────────────────┐
-                │   Google AI Studio / Gemini 2.5 Flash            │
-                │   • Generación de diagramas, mockups y assets    │
-                │   • Timeout 12s, fallback local y cuota diaria   │
-                └──────────────────────────────────────────────────┘
-```
-
-### 1.1 Matriz de Estado y Madurez de Componentes
-
-Para garantizar la total coherencia entre la documentación técnica y la ejecución efectiva en el repositorio, la siguiente matriz clasifica el estado oficial de cada componente, su rol arquitectónico y su entorno de aplicación:
-
-| Componente / Tecnología | Ámbito / Entorno | Estado Oficial | Justificación Técnica & Ubicación |
-| :--- | :--- | :--- | :--- |
-| **Kubernetes Productivo** | Producción | **Oficial** | Runtime exclusivo para producción en Proxmox VE (on-premise) y AWS EKS (cloud). Despliegues inmutables. |
-| **Helm Chart 3** | Producción / CI | **Oficial** | Empaquetado y parametrización declarativa en [`infra/helm/pokedex`](file:///infra/helm/pokedex). Validado con Kubeconform y Kube-linter. |
-| **ArgoCD GitOps** | Producción | **Oficial** | Despliegue continuo declarativo vía [`gitops/apps`](file:///gitops/apps) y [`gitops/environments`](file:///gitops/environments). |
-| **OpenTofu** | Infraestructura Multi-Cloud | **Oficial** | Aprovisionamiento declarativo en [`infra/opentofu`](file:///infra/opentofu). Herramienta canónica (Terraform completamente retirado). |
-| **Ansible Host Baseline** | Aprovisionamiento de Nodos | **Oficial para Hosts** | Configuración base del SO, UFW, módulos de kernel y Docker en [`infra/ansible/playbooks/host_baseline.yml`](file:///infra/ansible/playbooks/host_baseline.yml). Sin `ignore_errors`. |
-| **Docker Compose** | Desarrollo Local | **Desarrollo / DX** | Perfil interactivo de desarrollo ágil ([`docker-compose.yml`](file:///docker-compose.yml)). Estrictamente prohibido en producción. |
-| **Playbooks Compose Legacy** (`deploy_proxmox.yml`, `deploy_app.yml`) | Producción | **Retirados / Deprecados** | Eliminados formalmente del repositorio en favor del flujo GitOps con ArgoCD y Helm. Verificado en tests de regresión. |
-| **Restore PostgreSQL Real (DR)** | Disaster Recovery | **Implementado / Oficial** | Verificación no destructiva en PostgreSQL real (efímero por digest SHA-256 o remoto) vía [`scripts/dr_verify_restore.sh`](file:///scripts/dr_verify_restore.sh). Fail-closed si no hay motor SQL disponible. |
-| **Backup Off-Site** | Disaster Recovery | **En Transición / Runbook** | Backups locales cifrados con AES-256 en PVC con protocolo de replicación 3-2-1 documentado en [`DISASTER_RECOVERY_PLAN.md`](file:///docs/runbooks/DISASTER_RECOVERY_PLAN.md). |
-| **SLSA Provenance & Cosign** | Supply Chain / CI/CD | **Implementado / Oficial** | Firma keyless Cosign, atestación de SBOM CycloneDX y SLSA Provenance por digest inmutable en [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml). |
-| **Pruebas Canónicas en Kind** | Integración Continua (CI) | **Oficial en CI** | Clúster Kind efímero ejecutando validación real de Helm, Ingress, Pods y healthchecks en [`.github/workflows/infra.yml`](file:///.github/workflows/infra.yml). |
-
-### 1.2 Taxonomía de Entornos
-
-* **Producción (`prod`)**: Runtime Kubernetes gestionado exclusivamente mediante ArgoCD y Helm. Despliegues basados en digests OCI inmutables firmados con Cosign. Sin accesos imperativos ni ejecución de Docker Compose.
-* **Disaster Recovery (`DR`)**: Protocolo automatizado de validación y restauración sobre motor PostgreSQL real, comprobando Primary Keys, índices, secuencias y registros con SLA RTO < 2h y RPO < 24h.
-* **Laboratorio / Integración Canónica (`CI / Kind`)**: Entorno efímero dentro de GitHub Actions y reproducible localmente (`task dev:k8s:up`) para verificar manifiestos, ingress y políticas de seguridad antes del merge a `main`.
-* **Desarrollo Local (`dev`)**: Entorno ágil multicontenedor con Docker Compose (`task dev:compose`) para iteración rápida de frontend y backend sin sobrecarga de Kubernetes.
+* **Interfaz Web (Catálogo)**: `http://localhost:8080`
+* **Panel de Administración (Backoffice)**: `http://localhost:8080/backoffice.html`
+* **API REST Backend**: `http://localhost:3000`
+* **Healthcheck de Preparación**: `http://localhost:3000/readyz`
+* **Métricas Prometheus**: `http://localhost:3000/metrics`
+* **Portal de Documentación**: [docs/README.md](docs/README.md)
 
 ---
 
-## 2. Diagrama de Flujo de Componentes e Interacciones
+## Características Principales
 
-El siguiente diagrama detalla el ciclo de vida de una solicitud HTTP en el sistema, diferenciando lecturas cacheadas, mutaciones autenticadas con protección *fail-closed* y servicios de IA:
+* **Catálogo Completo**: Visualización, filtrado por tipo y búsqueda de los 1.025 Pokémon oficiales.
+* **API REST Tipada**: Construida con Node.js 22, Express y TypeScript, con esquemas y migraciones declarativas gestionadas mediante Drizzle ORM.
+* **Persistencia y Caché**: Almacenamiento relacional ACID en PostgreSQL 16 y aceleración en memoria con Redis 7 para rate limiting y gestión de sesiones revocables.
+* **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
+* **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*) y fallback local heurístico.
+* **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
+* **Despliegue Declarativo**: Helm Chart v3 parametrizado, políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
+
+---
+
+## Arquitectura del Sistema
+
+La solución desacopla la capa de presentación, la lógica de negocio y los servicios de datos:
 
 ```mermaid
 flowchart TD
-    CLI(["👤 Cliente / Navegador"]) -->|HTTP 8080| NGINX["🌐 Nginx Reverse Proxy (DMZ)\napps/frontend"]
+    User(["👤 Usuario / Cliente"]) -->|HTTP 8080| Proxy["🌐 Nginx Reverse Proxy\napps/frontend"]
+    Proxy -->|Assets Estáticos| Web["📦 SPA Vite + TS"]
+    Proxy -->|Proxy /api/*, /pokemons| API["⚙️ API Express + TS\napps/backend :3000"]
     
-    NGINX -->|GET / /index.html /css /js| STATIC[("📁 Assets Estáticos\nHTML5, CSS3, JS")]
-    NGINX -->|Proxy /api/*, /pokemons, /healthz| BACKEND["⚙️ Backend Express + TypeScript\napps/backend :3000"]
-    
-    subgraph BACKEND_PIPELINE ["🛡️ Pipeline de Middleware del Backend"]
-        BACKEND --> MW_SEC["1. Cabeceras de Seguridad\n(nosniff, SAMEORIGIN, CSP)"]
-        MW_SEC --> MW_CORS["2. CORS Validador\n(Fail-closed en prod)"]
-        MW_CORS --> MW_BODY["3. JSON Body Parser\n(Limit: 250 KB anti-DoS)"]
-        MW_BODY --> MW_METRICS["4. Prometheus Tracker\n(/metrics, latencia, códigos)"]
-        MW_BODY --> MW_RATE["5. Rate Limiter Híbrido\n(Script Lua en Redis)"]
+    API -->|SQL :5432| DB[("🗄️ PostgreSQL 16\npokedex_entries")]
+    API -->|RESP :6379| Cache[("⚡ Redis 7\nCaché & Sesiones")]
+    API -->|HTTPS| AI["🤖 Google Gemini 2.5 Flash\nServicio de IA"]
+
+    subgraph GitOps_Flow ["☸️ Despliegue GitOps"]
+        GH["🐙 GitHub Actions"] -->|Build, SBOM & Sign| OCI["📦 GitHub Packages (GHCR)"]
+        Argo["🚀 ArgoCD"] -->|Sync Declarativo| K8s["☸️ Clúster Kubernetes"]
+        OCI -.->|Pull por Digest Inmutable| K8s
     end
-    
-    MW_RATE --> ROUTE_CHOICE{"🎯 ¿Qué tipo de ruta se solicita?"}
-    
-    %% Flujo 1: Lectura de Pokémon
-    ROUTE_CHOICE -->|GET /pokemons| READ_FLOW["Lectura de Catálogo\n(con soporte ETag)"]
-    READ_FLOW --> CHECK_REDIS{"¿En caché Redis?\npokedex:list:*"}
-    CHECK_REDIS -->|Cache Hit| RET_CACHE["🚀 Retornar JSON desde Redis (sub-3ms)"]
-    CHECK_REDIS -->|Cache Miss| PG_READ[("🗄️ Consultar PostgreSQL 16\npokedex_entries JSONB")]
-    PG_READ --> SET_REDIS["Guardar en Redis (TTL 300s)"]
-    SET_REDIS --> RET_DB["Retornar JSON con cabecera ETag"]
-    
-    %% Flujo 2: Autenticación y Sesiones
-    ROUTE_CHOICE -->|POST /api/v1/auth/session| AUTH_FLOW["Intercambio de API Key\npor Token de Sesión"]
-    AUTH_FLOW --> VAL_KEY{"Validación Timing-Safe\nADMIN_API_KEY"}
-    VAL_KEY -->|Inválido| ERR_401["❌ 401 Unauthorized"]
-    VAL_KEY -->|Válido| GEN_TOKEN["Generar Token HMAC SHA-256\n(Payload: role, exp, jti)"]
-    
-    ROUTE_CHOICE -->|POST /api/v1/auth/logout| LOGOUT_FLOW["Revocación de Sesión"]
-    LOGOUT_FLOW --> VAL_HMAC{"Validar firma HMAC\ncon ADMIN_SESSION_SECRET"}
-    VAL_HMAC -->|Firma Inválida| ERR_400["❌ 400 Bad Request\nFirma apócrifa rechazada"]
-    VAL_HMAC -->|Válido| STORE_REVOKED[("⚡ Registrar en Redis\nrevoked:jti con TTL exacto")]
-    STORE_REVOKED -->|Redis caído| ERR_503_FAILCLOSED["❌ 503 Fail-Closed\nImposible revocar sesión"]
-    STORE_REVOKED -->|Éxito| RET_LOGOUT["✅ 200 Sesión Revocada"]
-    
-    %% Flujo 3: Mutaciones CRUD
-    ROUTE_CHOICE -->|POST / PUT / DELETE /pokemons| MUT_FLOW["Mutación de Datos"]
-    MUT_FLOW --> CHK_AUTH{"Verificar Admin Bearer\n(Token HMAC o API Key)"}
-    CHK_AUTH -->|No autorizado / Revocado| ERR_401
-    CHK_AUTH -->|Autorizado| CHK_STORAGE{"¿PostgreSQL Writable?"}
-    CHK_STORAGE -->|DB Inaccesible| ERR_503_WRITABLE["❌ 503 Modo Degradado\nMutaciones bloqueadas preventivamente"]
-    CHK_STORAGE -->|DB OK| SANITIZE["Sanitización XSS y Validación\nvalidatePokemonPayload()"]
-    SANITIZE --> WRITE_PG[("💾 Transacción PostgreSQL\nSecuencia id atómica")]
-    WRITE_PG --> INV_CACHE["⚡ Invalidar claves en Redis\nDEL pokedex:list:*"]
-    INV_CACHE --> RET_MUT["✅ 201 Created / 200 OK"]
-    
-    %% Flujo 4: Servicios IA
-    ROUTE_CHOICE -->|POST /api/v1/ai/*| AI_FLOW["Servicios Gemini AI"]
-    AI_FLOW --> CHK_AI_RATE{"Cuota y Rate Limit\n(10 req/min, 200 req/día)"}
-    CHK_AI_RATE -->|Límite o Redis caído| ERR_429_503["❌ 429 Too Many Requests / 503 Fail-Closed"]
-    CHK_AI_RATE -->|Permitido| CALL_GEMINI["🤖 SDK @google/genai\n(Timeout 12s, maxTokens 1024)"]
-    CALL_GEMINI -->|Timeout o Error API| LOCAL_FALLBACK["Fallback Local Heurístico"]
-    CALL_GEMINI -->|Respuesta Exitosa| RET_AI["Retornar Diagrama / Mockup"]
-    LOCAL_FALLBACK --> RET_AI
+```
 
-    classDef client fill:#3b82f6,stroke:#1d4ed8,color:#fff;
-    classDef proxy fill:#0891b2,stroke:#0e7490,color:#fff;
-    classDef backend fill:#6366f1,stroke:#4338ca,color:#fff;
-    classDef storage fill:#10b981,stroke:#047857,color:#fff;
-    classDef ai fill:#ec4899,stroke:#be185d,color:#fff;
-    classDef security fill:#ef4444,stroke:#b91c1c,color:#fff;
+Para una descripción exhaustiva de la arquitectura, flujos de datos y contratos de red, consulta [docs/architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md](docs/architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md) y [docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md).
 
-    class CLI client;
-    class NGINX proxy;
-    class BACKEND backend;
-    class PG_READ,WRITE_PG,CHECK_REDIS,SET_REDIS,STORE_REVOKED,INV_CACHE storage;
-    class CALL_GEMINI,LOCAL_FALLBACK ai;
-    class ERR_401,ERR_400,ERR_503_FAILCLOSED,ERR_503_WRITABLE,ERR_429_503 security;
+---
+
+## Requisitos
+
+Para ejecutar y colaborar en el proyecto se requiere:
+
+* [Node.js](https://nodejs.org/) 22 LTS y npm 10+
+* [Docker](https://www.docker.com/) 24+ y Docker Compose v2
+* [Task](https://taskfile.dev/) (recomendado como ejecutor de tareas unificado)
+* [Helm](https://helm.sh/) 3.17+ y [Kind](https://kind.sigs.k8s.io/) (opcional, para validación sobre Kubernetes local)
+
+---
+
+## Inicio Rápido
+
+Sigue estos pasos para levantar la plataforma en tu entorno de desarrollo en menos de dos minutos:
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/rocapellino/pokedex.git
+cd pokedex
+```
+
+### 2. Configurar variables de entorno
+
+Copia la plantilla de configuración e inicializa el archivo `.env`:
+
+```bash
+cp .env.example .env
+```
+
+> [!NOTE]
+> En desarrollo local los valores por defecto de `.env.example` permiten arrancar sin configuración adicional. Si deseas habilitar funciones de IA, añade tu clave `GEMINI_API_KEY`.
+
+### 3. Instalar dependencias
+
+```bash
+npm ci
+```
+
+### 4. Iniciar la aplicación
+
+Puedes utilizar `task` o `docker compose` directamente:
+
+```bash
+# Con Task (recomendado):
+task dev:compose
+
+# O directamente con Docker Compose:
+docker compose up -d
+```
+
+Este comando inicia los contenedores de PostgreSQL 16, Redis 7, el Backend Express y el Frontend Nginx con inicialización automática de datos.
+
+### 5. Verificar el servicio
+
+Comprueba que las dependencias y la API respondan correctamente:
+
+```bash
+curl -s http://localhost:3000/readyz
+# Salida esperada: {"status":"ready","database":"connected","redis":"connected"}
+```
+
+Abre tu navegador en [http://localhost:8080](http://localhost:8080) para explorar el catálogo interactivo.
+
+### 6. Detener los servicios
+
+```bash
+task dev:compose:down
+# O bien: docker compose down
 ```
 
 ---
 
-## 3. Estructura del Monorepo
+## Comandos Disponibles
+
+El proyecto utiliza un [`Taskfile.yml`](Taskfile.yml) como interfaz de desarrollo estandarizada, complementado con scripts de `package.json`:
+
+| Comando | Herramienta | Propósito |
+| :--- | :--- | :--- |
+| `npm ci` | npm | Instala dependencias del monorepo de forma limpia y reproducible. |
+| `npm run lint` | TypeScript | Valida tipos y reglas de sintaxis en `apps/backend` y `apps/frontend`. |
+| `npm run build` | esbuild / Vite | Compila el backend a CommonJS y genera el bundle optimizado del frontend. |
+| `npm test` | Node Test Runner | Ejecuta la suite de 127 pruebas unitarias, de integración, seguridad y DR. |
+| `npm run test:fuzz` | Script dinámico | Ejecuta pruebas de fuzzing con cargas malformadas sobre los endpoints. |
+| `task dev:compose` | Docker Compose | Levanta el stack multicontenedor local (API, Web, DB, Redis). |
+| `task dev:compose:down` | Docker Compose | Detiene y remueve los contenedores del entorno local de Compose. |
+| `task dev:k8s:up` | Kind + Helm | Crea un clúster Kind local y despliega el Helm chart con Ingress. |
+| `task dev:k8s:status` | kubectl | Muestra el estado de Pods, Services e Ingress en Kubernetes local. |
+| `task dev:k8s:down` | Kind | Elimina el clúster Kind local y libera sus recursos. |
+| `task dr:verify` | Bash / Docker | Ejecuta el simulacro automatizado de Disaster Recovery en PostgreSQL efímero. |
+| `helm lint infra/helm/pokedex` | Helm | Valida sintácticamente las plantillas del chart de Helm. |
+
+---
+
+## Configuración
+
+Las variables de entorno se definen en el archivo `.env` tomando como base [`.env.example`](.env.example):
+
+| Variable | Obligatoria | Ejemplo | Descripción | Entorno |
+| :--- | :---: | :--- | :--- | :--- |
+| `NODE_ENV` | Sí | `development` | Modo de ejecución de la aplicación (`development`, `production`, `test`). | Todos |
+| `PORT` | No | `3000` | Puerto HTTP en el que escucha el servidor backend (por defecto `3000`). | Backend |
+| `WEB_PORT` | No | `8080` | Puerto HTTP expuesto por el proxy Nginx en Compose. | Frontend |
+| `DATABASE_URL` | Sí en prod | `postgresql://user:pass@localhost:5432/pokedex` | Cadena de conexión principal hacia PostgreSQL 16. | Backend |
+| `REDIS_URL` | Sí en prod | `redis://localhost:6379` | Conexión hacia Redis 7 para rate limiting y caché. | Backend |
+| `ADMIN_API_KEY` | Sí en prod | `openssl rand -hex 32` | Credencial maestra para endpoints de gestión y emisión de sesiones. | Backend |
+| `ADMIN_SESSION_SECRET` | Sí en prod | `openssl rand -hex 32` | Secreto HMAC utilizado para firmar y verificar tokens de sesión Bearer. | Backend |
+| `CORS_ORIGINS` | Sí en prod | `https://pokedex.example.com` | Lista de orígenes autorizados separados por coma. | Backend |
+| `GEMINI_API_KEY` | Opcional | `AIzaSy...` | Clave de Google AI Studio para activar generación con Gemini 2.5 Flash. | Backend |
+| `DR_BACKUP_KEY` | Opcional | `clave-secreta-dr` | Clave de descifrado AES-256 para validación de backups de DR. | DR / Scripts |
+
+> [!WARNING]
+> Nunca incorpores credenciales reales, tokens o claves privadas al repositorio. En producción, las contraseñas deben gestionarse mediante Kubernetes Secrets o proveedores externos como External Secrets Operator.
+
+---
+
+## API REST
+
+La API expone endpoints para la consulta pública y la administración autenticada del catálogo.
+
+* **URL Base en desarrollo**: `http://localhost:3000`
+* **Especificación detallada de contratos**: [docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md)
+
+### Endpoints Principales
+
+| Método | Endpoint | Autenticación | Descripción |
+| :---: | :--- | :--- | :--- |
+| `GET` | `/healthz` | Pública | Comprueba que el proceso de la aplicación esté activo (*liveness*). |
+| `GET` | `/readyz` | Pública | Verifica conectividad con PostgreSQL y Redis (*readiness*). |
+| `GET` | `/metrics` | Pública | Expone métricas en formato estándar de Prometheus. |
+| `GET` | `/version` | Pública | Retorna metadatos de versión y commit SHA inyectados durante el build. |
+| `GET` | `/pokemons` | Pública | Lista paginada del catálogo (soporta filtros `type` y `search`). |
+| `GET` | `/pokemons/:id` | Pública | Detalle de un Pokémon por su ID nacional (1 - 1025). |
+| `POST` | `/api/v1/auth/session` | `X-API-Key` | Intercambia la API Key administrativa por un token de sesión HMAC Bearer. |
+| `POST` | `/api/v1/auth/logout` | Bearer Token | Revoca la sesión en Redis de forma inmediata. |
+| `POST` | `/pokemons` | Bearer Token | Registra un nuevo Pokémon en la base de datos. |
+| `PUT` | `/pokemons/:id` | Bearer Token | Actualiza los datos de un Pokémon e invalida la caché. |
+| `DELETE` | `/pokemons/:id` | Bearer Token | Elimina un registro del catálogo e invalida la caché. |
+| `POST` | `/api/v1/ai/diagram` | Bearer Token | Genera un diagrama de arquitectura en sintaxis Mermaid con IA. |
+
+### Ejemplos de Solicitud
+
+```bash
+# Consultar Pokémon por ID con cabecera ETag
+curl -s http://localhost:3000/pokemons/25
+
+# Paginación del catálogo con límite y búsqueda
+curl -s "http://localhost:3000/pokemons?limit=5&offset=0&type=Electric"
+
+# Verificación de salud y dependencias
+curl -s http://localhost:3000/readyz
+```
+
+---
+
+## Testing y Calidad
+
+El proyecto mantiene una suite automatizada de pruebas y quality gates:
+
+```bash
+# Ejecutar suite completa de 127 pruebas
+npm test
+
+# Ejecutar verificación estricta de tipos
+npm run lint
+
+# Ejecutar pruebas de resistencia con payloads malformados
+npm run test:fuzz
+```
+
+En integración continua (GitHub Actions), cada Pull Request debe superar satisfactoriamente:
+* **Pruebas Unitarias y de Integración**: Pruebas con el Node Test Runner nativo sobre servicios, API y validaciones.
+* **Seguridad SAST**: Semgrep y GitHub CodeQL analizando reglas OWASP Top 10.
+* **Seguridad SCA & Secretos**: Gitleaks contra filtración de credenciales y Dependency Review para bloqueo de dependencias vulnerables.
+* **Seguridad IaC**: Checkov escaneando Dockerfiles, Helm charts y manifiestos de OpenTofu.
+* **Integración Canónica en Kind**: Despliegue real del Helm chart en clúster efímero validando Pods, Ingress y probes.
+
+---
+
+## Estrategia de Despliegue
+
+La plataforma diferencia claramente los propósitos de cada entorno de ejecución:
+
+| Entorno / Capa | Tecnología Principal | Rol y Propósito |
+| :--- | :--- | :--- |
+| **Desarrollo Local** | Docker Compose (`docker-compose.yml`) | Iteración rápida para desarrollo y pruebas interactivas. |
+| **Integración Local / CI** | Kubernetes + Kind (`task dev:k8s:up`) | Validación idéntica a producción (Ingress, Probes, NetPols). |
+| **Producción On-Premise** | Kubernetes sobre Proxmox VE | Despliegue continuo gobernado por ArgoCD y Helm. |
+| **Producción Cloud** | Kubernetes sobre AWS EKS | Infraestructura escalable gestionada mediante OpenTofu. |
+| **Aprovisionamiento IaC** | OpenTofu ([`infra/opentofu`](infra/opentofu)) | Declaración reproducible de infraestructura (Terraform retirado). |
+| **Hardening de Servidores** | Ansible ([`infra/ansible`](infra/ansible)) | Configuración base, UFW, módulos de kernel y Docker en nodos. |
+| **Empaquetado** | Helm 3 ([`infra/helm/pokedex`](infra/helm/pokedex)) | Plantillas parametrizadas con HPA, PDB y NetworkPolicies. |
+| **Entrega Continua (GitOps)** | ArgoCD ([`gitops/`](gitops/)) | Sincronización declarativa basada en digests OCI inmutables. |
+
+> [!IMPORTANT]
+> Docker Compose está destinado exclusivamente al desarrollo local interactivo. Todos los despliegues productivos se realizan de manera inmutable sobre Kubernetes mediante ArgoCD y Helm.
+
+---
+
+## Observabilidad
+
+El sistema está instrumentado para integrarse con stacks de observabilidad estándar (Prometheus, Grafana y Loki):
+
+* **Métricas**: Expuestas en `/metrics` mediante el cliente nativo de Prometheus (latencias HTTP por ruta, códigos de estado, uso de memoria, etc.).
+* **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis).
+* **Logs Estructurados**: Salida estándar en formato JSON con inyección y propagación de `X-Request-Id` para trazabilidad de solicitudes de extremo a extremo.
+
+---
+
+## Backup y Disaster Recovery
+
+La estrategia de respaldo y recuperación ante desastres contempla:
+
+* Respaldos periódicos de PostgreSQL generados con compresión gzip y cifrado simétrico AES-256-CBC con PBKDF2 y checksum SHA-256.
+* Script de validación automatizado ([`scripts/dr_verify_restore.sh`](scripts/dr_verify_restore.sh)) que efectúa restauraciones de prueba en un contenedor PostgreSQL efímero aislado fijado por digest (`postgres:16-alpine@sha256:...`), comprobando integridad de esquemas, Primary Keys, secuencias y recuento de registros bajo política estricta *fail-closed*.
+
+Para consultar los procedimientos paso a paso y la arquitectura de respaldo, revisa el [Plan de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md).
+
+---
+
+## Seguridad
+
+La seguridad está integrada en todas las capas del ciclo de vida:
+
+* **Supply Chain Security**: Las imágenes OCI publicadas en GitHub Packages son firmadas criptográficamente con **Cosign** (modo keyless con Sigstore OIDC) y cuentan con atestaciones de SBOM en formato CycloneDX y SLSA Provenance.
+* **Control de Admisión**: En Kubernetes, políticas de **Kyverno** verifican la firma de las imágenes antes de autorizar la creación de Pods.
+* **Network Isolation**: Políticas de red Zero-Trust (Default-Deny Egress) en PostgreSQL y Redis, y bloqueo anti-SSRF hacia metadatos de nube (`169.254.169.254/32`).
+* **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo.
+
+Para conocer el procedimiento de divulgación responsable o reportar una vulnerabilidad, consulta [SECURITY.md](SECURITY.md).
+
+---
+
+## Estructura del Repositorio
 
 ```text
 .
 ├── apps/
 │   ├── backend/                     # API REST Express + TypeScript + Drizzle ORM
 │   │   ├── Dockerfile               # Contenedor Alpine no-root (Node.js 22 LTS)
-│   │   ├── server.ts                # Entrada del servidor Express, middlewares y rutas
-│   │   └── src/                     # Servicios (AI, Auth, DB), esquemas Drizzle y validaciones
-│   └── frontend/                    # SPA Vite + TypeScript + DOMPurify y proxy Nginx
-│       ├── Dockerfile               # Contenedor Alpine no-root para Nginx y build de Vite
-│       ├── nginx.conf               # Reverse proxy con gzip, CSP estricto y rate limit
-│       ├── index.html               # Catálogo interactivo de 1.025 Pokémon
-│       ├── backoffice.html          # Panel CRUD administrativo
-│       └── src/                     # Lógica cliente modular TypeScript
+│   │   ├── server.ts                # Servidor Express, middlewares y rutas
+│   │   └── src/                     # Lógica de negocio, base de datos y esquemas
+│   └── frontend/                    # SPA Vite + TypeScript + DOMPurify
+│       ├── Dockerfile               # Servidor Nginx Alpine con build multi-stage
+│       ├── nginx.conf               # Configuración optimizada con cabeceras de seguridad
+│       └── src/                     # Componentes y controladores de interfaz
 ├── infra/
-│   ├── ansible/                     # Hardening de hosts Linux, UFW y baseline de nodos (sin ignore_errors)
-│   ├── helm/pokedex/                # Helm Chart 3 parametrizado (HPA, NetworkPolicies, Zero-Trust)
-│   ├── k8s/                         # Kind cluster local y políticas Kyverno para verificación de firmas Cosign
+│   ├── ansible/                     # Hardening de SO y preparación de nodos (host_baseline.yml)
+│   ├── helm/pokedex/                # Helm Chart 3 parametrizado (HPA, NetPols, Secrets)
+│   ├── k8s/                         # Configuración de clúster Kind local y políticas Kyverno
 │   ├── opentofu/                    # Infraestructura como Código (Proxmox VE + AWS EKS)
-│   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC on-premise
+│   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC
 ├── gitops/
-│   ├── apps/                        # Definición de Applications de ArgoCD (app-proxmox, app-cloud)
-│   └── environments/                # Values parametrizados para cada clúster
-├── scripts/                         # Utilidades de DX, auditoría, verificación DR fail-closed y sellado
-├── tests/                           # Suite de 127 pruebas unitarias, seguridad, DR y pentesting lógico
-├── Dockerfile                       # Espejo raíz multi-stage para backend en Node.js 22 Alpine
-├── docker-compose.yml               # Orquestación multicontenedor para desarrollo local
+│   ├── apps/                        # Definiciones de Application para ArgoCD
+│   └── environments/                # Values específicos por clúster (on-premise y cloud)
+├── scripts/                         # Utilidades de auditoría, verificación DR y testing
+├── tests/                           # Suite de pruebas automatizadas (127 tests)
+├── .github/workflows/               # Pipelines de CI/CD, SAST, DAST, IaC y Supply Chain
+├── docker-compose.yml               # Orquestación de desarrollo local interactivo
 ├── package.json                     # Monorepo workspaces y dependencias compartidas
-└── Taskfile.yml                     # Automatizador cross-platform de tareas (go-task)
+└── Taskfile.yml                     # Automatizador de comandos del proyecto (Task)
 ```
 
 ---
 
-## 4. Matriz de Endpoints y Contratos REST
+## Documentación Adicional
 
-| Método | Endpoint | Autenticación Requerida | Rate Limit | Propósito y Contrato |
-| :---: | :--- | :--- | :--- | :--- |
-| **`GET`** | `/healthz` | Pública | Ilimitado | **Liveness Probe**: Confirma que el proceso Node.js responde (`healthy`). |
-| **`GET`** | `/readyz` | Pública | Ilimitado | **Readiness Probe**: Verifica conectividad con PostgreSQL y Redis (`ready`). |
-| **`GET`** | `/metrics` | Pública | Ilimitado | Exportador nativo en formato de texto estándar para scraping de **Prometheus**. |
-| **`POST`** | `/api/v1/auth/session` | `X-API-Key: <ADMIN_API_KEY>` | 5 req/min | Intercambia API Key por un token de sesión firmado HMAC SHA-256 (`Bearer`). |
-| **`POST`** | `/api/v1/auth/logout` | `Bearer <Token>` (validación HMAC) | 5 req/min | Revoca token en Redis (`revoked:<jti>`). Rechaza firmas apócrifas (`400`). |
-| **`GET`** | `/pokemons` | Pública | Ilimitado (ETag) | Lista paginada y filtrable. Límite máx: 100 por página, offset máx: 10.000. |
-| **`GET`** | `/pokemons/:id` | Pública | Ilimitado (ETag) | Obtiene detalle por ID nacional (1 - 1025+). Retorna `404` si no existe. |
-| **`POST`** | `/pokemons` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Crea Pokémon. Asigna ID secuencial atómico. Requiere DB activa (`503` en fallo). |
-| **`PUT`** | `/pokemons/:id` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Actualiza Pokémon por ID e invalida caché Redis. Sanitiza contra XSS (`422`). |
-| **`DELETE`** | `/pokemons/:id` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Elimina registro e invalida caché. Bloqueado en modo degradado (`503`). |
-| **`POST`** | `/api/v1/ai/diagram` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera diagrama de arquitectura Mermaid mediante Gemini 2.5 Flash. |
-| **`POST`** | `/api/v1/ai/mock` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera especificación JSON de interfaz para componentes web. |
-| **`POST`** | `/api/v1/ai/image` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera prompts o assets optimizados según aspecto (`1:1`, `16:9`, etc.). |
-| **`GET`** | `/admin` / `/backoffice.html` | IP autorizada / loopback | — | Panel de administración web para gestión de catálogo. |
-| **`GET`** | `/download/repo` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Descarga empaquetada del repositorio para respaldos autorizados. |
+La documentación técnica detallada se encuentra organizada en el directorio [`docs/`](docs/):
+
+* 📚 [Índice General de Documentación](docs/README.md)
+* 📡 [Especificación de Contratos de la API REST](docs/api/API_SPECIFICATION.md)
+* 🔄 [Ciclo de Vida de la Aplicación y SDLC](docs/architecture/APPLICATION_LIFECYCLE.md)
+* 🛡️ [Seguridad, DMZ y Aislamiento de Red](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md)
+* 📊 [Análisis de Base de Datos y Caché](docs/architecture/DATABASE_ANALYSIS.md)
+* ☁️ [Diseño de Infraestructura Cloud y GitOps](docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
+* ☸️ [Escalabilidad y Resiliencia en Kubernetes](docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)
+* 🤖 [Guía de Workflows de CI/CD](docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
+* 🛠️ [Catálogo de Herramientas y Stack Tecnológico](docs/devops/TOOLS_AND_TECH_STACK.md)
+* ⎈ [Manual de Despliegue con Helm 3 y ArgoCD](docs/runbooks/HELM_DEPLOYMENT_GUIDE.md)
+* 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
+* 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
+* 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
 
 ---
 
-## 5. Seguridad y Hardening DevSecOps
+## Contribución
 
-```mermaid
-flowchart LR
-    subgraph S1["1. Código & Dependencias"]
-        GITLEAKS["🛡️ Gitleaks\n(Secret Scanning)"]
-        SEMGREP["🔍 Semgrep\n(SAST OWASP)"]
-        DEP_REV["📦 Dependency Review\n(Bloqueo HIGH+)"]
-        NPM_AUDIT["📦 npm audit\n(SCA)"]
-    end
+Para proponer cambios en el proyecto:
 
-    subgraph S2["2. Build & Supply Chain"]
-        DOCKER["🐳 Alpine Multi-Stage\n(Non-root UID 1001)"]
-        SYFT["📋 Syft\n(SBOM CycloneDX)"]
-        TRIVY["🔍 Trivy\n(Vulnerabilidades OCI)"]
-        COSIGN["✍️ Cosign Keyless\n(Sigstore OIDC)"]
-    end
-
-    subgraph S3["3. Kubernetes Runtime"]
-        KYVERNO["☸️ Kyverno Policy\n(Verifica firma de imagen)"]
-        ESO["🔐 External Secrets\n& Sealed Secrets"]
-        NETPOL["🛡️ Zero-Trust NetPols\n(Anti-SSRF & PgBouncer)"]
-    end
-
-    S1 --> S2 --> S3
-```
-
-1. **Supply Chain Security & CI/CD Gates:**
-   * **Firmado Criptográfico Keyless:** Las imágenes OCI en `ghcr.io/rocapellino/pokedex` son firmadas automáticamente en GitHub Actions mediante **Cosign** y **Sigstore** usando el token OIDC del pipeline de `main`.
-   * **Atestación SBOM:** Se genera un catálogo SBOM en formato CycloneDX mediante Syft y se adjunta como atestación inmutable a la imagen.
-   * **Control de Admisión Kyverno:** En el clúster de Kubernetes, una [`ClusterPolicy`](file:///infra/k8s/kyverno-cosign-policy.yaml) en modo `Enforce` bloquea cualquier Pod cuya imagen no esté debidamente firmada por el workflow oficial de GitHub Actions verificado contra Rekor.
-   * **Gates Bloqueantes:** SAST estricto con **Semgrep** (OWASP Top 10), **Dependency Review** para vulnerabilidades de dependencias (HIGH+) y escaneo de IaC con **Checkov**.
-   * **SHA Pinning Inmutable:** Anclaje por digest criptográfico en todas las GitHub Actions y en imágenes base críticas (Nginx Alpine, PgBouncer).
-   * **Gobernanza Automatizada:** Renovate Bot con auto-merge restringido a parches de npm y Dependabot con 7 días de cooldown.
-
-2. **Seguridad en Aplicación:**
-   * **Desacoplamiento Estricto de Secretos:** `ADMIN_API_KEY` se emplea únicamente para llamadas administrativas directas o intercambio de sesión; `ADMIN_SESSION_SECRET` firma y verifica los tokens HMAC SHA-256 de sesión.
-   * **Fail-Closed Architecture:** Si Redis no está disponible, el sistema deniega el logout y el rate limiting de IA en lugar de continuar de forma insegura. Si PostgreSQL no está accesible, se bloquean todas las mutaciones de escritura (`503 Service Unavailable`).
-   * **Comparación Timing-Safe:** Todas las comparaciones criptográficas utilizan `crypto.timingSafeEqual` con hashes SHA-256 de longitud fija para prevenir ataques de canal lateral basados en tiempo.
-   * **Sanitización contra XSS:** Filtro estricto que rechaza payloads que contengan tags HTML (`<...>` o `</...>`) o esquemas `javascript:`, retornando `422 Unprocessable Entity`.
-
-3. **Zero-Trust Network Isolation & Anti-SSRF:**
-   * **Egress Anti-SSRF:** Regla `ipBlock` en NetworkPolicy que descarta tráfico saliente hacia Cloud Metadata IMDS (`169.254.169.254/32`), subredes privadas RFC 1918 y loopback.
-   * **Aislamiento Estricto con PgBouncer:** PostgreSQL solo admite tráfico proveniente de `pgbouncer` y `db-seeder`; los pods de la API no tienen ruta directa de red hacia la base de datos.
-   * **Egress DNS Restringido:** Salida en puerto 53 UDP/TCP acotada exclusivamente a pods con etiqueta `k8s-app: kube-dns`.
-
-4. **Gestión de Secretos Desacoplada:**
-   * Helm soporta el **External Secrets Operator** y el flag `existingSecret: "pokedex-prod-secrets"`, evitando almacenar contraseñas en Git o pasarlas por `--set`.
-   * Soporte para **Bitnami Sealed Secrets** en clústeres on-premise (Proxmox VE).
+1. Crea una rama descriptiva a partir de `main` (`feature/nombre-mejora` o `fix/descripcion-error`).
+2. Implementa tus cambios asegurando que las pruebas y el linter se ejecuten sin fallos:
+   ```bash
+   npm run lint
+   npm test
+   ```
+3. Realiza commits con formato convencional (`feat: ...`, `fix: ...`, `docs: ...`).
+4. Abre un Pull Request hacia `main`. Todos los checks automáticos de seguridad y calidad deben completarse en verde antes de la integración.
 
 ---
 
-## 6. Guía de Inicio Rápido
-
-### Prerrequisitos
-
-* [Node.js 22 LTS](https://nodejs.org/) y npm 10+
-* [Docker](https://www.docker.com/) 24+ y Docker Compose
-* [Task](https://taskfile.dev/) (opcional, pero recomendado para automatización)
-
-### Perfiles de Desarrollo Local (Dual-Profile DX)
-
-La plataforma ofrece dos perfiles de ejecución local según el objetivo de trabajo:
-
-#### Opción A — Perfil Rápido (Docker Compose)
-
-Ideal para desarrollo interactivo ágil y pruebas rápidas de componentes:
-
-```bash
-# 1. Configurar variables de entorno desde la plantilla
-cp .env.example .env
-
-# 2. Iniciar todos los servicios con Compose
-task dev:compose   # o: docker compose up -d
-
-# 3. Verificar salud del backend
-curl http://localhost:3000/readyz
-# Respuesta: {"status":"ready","database":"connected","redis":"connected"}
-```
-
-Accede a la interfaz web en: **`http://localhost:8080`**  
-Accede al panel Backoffice en: **`http://localhost:8080/backoffice.html`**
-
-#### Opción B — Perfil Kubernetes Local (Kind + Helm)
-
-Ideal para validar el entorno idéntico a producción (Ingress, NetworkPolicies, Helm Hooks, Probes y RBAC):
-
-```bash
-# 1. Crear clúster Kind local y desplegar Helm chart oficial
-task dev:k8s:up
-
-# 2. Consultar estado de los recursos de Kubernetes
-task dev:k8s:status
-
-# 3. Destruir el clúster local al finalizar
-task dev:k8s:down
-```
-
-### Comandos de Calidad y Pruebas con Taskfile
-
-```bash
-# Instalar dependencias
-npm ci
-
-# Ejecutar auditorías de calidad y linting
-task audit
-task lint
-
-# Ejecutar suite completa de 127 pruebas (unitarias, pentesting, fuzzing, IaC security, Disaster Recovery y Supply Chain)
-npm test
-npm run test:fuzz
-```
-
----
-
-## 7. Observabilidad y Monitoreo
-
-La plataforma cuenta con instrumentación de grado producción lista para conectarse al stack global de **`docker_monitoreo`**:
-
-```mermaid
-flowchart LR
-    API["⚙️ Pokédex API\n:3000 /metrics"] -->|Scraping HTTP| PROM["📊 Prometheus\n:9090"]
-    DOCKER_SOCK["🐳 Docker Engine"] -->|Métricas de Contenedores| CADVISOR["📈 cAdvisor"]
-    CADVISOR -->|Scraping| PROM
-    PROM -->|Datasource| GRAFANA["📉 Grafana Dashboards\n:3000"]
-    API -->|Logs JSON stdout| PROMTAIL["📋 Promtail"]
-    PROMTAIL -->|Log Ingestion| LOKI["🗄️ Grafana Loki\n:3100"]
-    LOKI -->|Datasource LogQL| GRAFANA
-```
-
-* **Métricas HTTP expuestas en `/metrics`:**
-  * `http_requests_total{endpoint="/pokemons",status="200",method="GET"}`
-  * `http_request_duration_seconds{endpoint="/pokemons"}`
-  * `pokedex_uptime_seconds` y `pokedex_requests_total`
-* **Alertmanager:** Alertas configuradas para detectar caídas de la base de datos, tasas elevadas de error `5xx` y picos de consumo de memoria.
-
----
-
-## 8. Portal de Documentación Completa
-
-Para profundizar en cada disciplina, consulta la documentación técnica especializada:
-
-* 📚 [**Índice General de Documentación**](docs/README.md)
-* 📡 [**Especificación de Contratos de la API REST**](docs/api/API_SPECIFICATION.md)
-* 🔄 [**Ciclo de Vida Integral de la Aplicación (SDLC & DevOps)**](docs/architecture/APPLICATION_LIFECYCLE.md)
-* 🛡️ [**Seguridad, DMZ y Aislamiento de Red**](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md)
-* 📊 [**Análisis Arquitectónico de Base de Datos y Caché**](docs/architecture/DATABASE_ANALYSIS.md)
-* ☁️ [**Diseño de Infraestructura Cloud y GitOps Híbrido**](docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
-* ☸️ [**Análisis de Escalabilidad y Resiliencia en Kubernetes**](docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)
-* 🤖 [**Guía de Workflows de CI/CD en GitHub Actions**](docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
-* 🌿 [**Estrategia de Ramas y Flujo Git**](docs/devops/GIT_BRANCHING_AND_MERGE_WORKFLOW.md)
-* 🛠️ [**Catálogo de Herramientas y Stack Tecnológico**](docs/devops/TOOLS_AND_TECH_STACK.md)
-* ⎈ [**Manual de Despliegue con Helm 3 y ArgoCD**](docs/runbooks/HELM_DEPLOYMENT_GUIDE.md)
-* 🚀 [**Manual de Autoescalado con HPA v2**](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
-* 🧪 [**Guía de Pruebas de Estrés con k6**](docs/runbooks/STRESS_TESTING_GUIDE.md)
-
----
-
-## 📄 Licencia
+## Licencia
 
 Este proyecto está licenciado bajo los términos de la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
