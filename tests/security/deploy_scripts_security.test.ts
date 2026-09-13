@@ -916,3 +916,51 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
+
+test('🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md', () => {
+  const operationsDir = path.join(ROOT_DIR, 'docs/operations');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  assert.ok(fs.existsSync(operationsDir), 'docs/operations/ debe existir');
+  assert.ok(fs.existsSync(docsReadmePath), 'docs/README.md debe existir');
+
+  const expectedRunbooks = [
+    'observability-alerts.md',
+    'backup-restore.md',
+    'deployment.md',
+    'incident-response.md',
+    'kubernetes-troubleshooting.md',
+    'rollback.md',
+    'secret-rotation.md',
+  ];
+
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+
+  for (const file of expectedRunbooks) {
+    const filePath = path.join(operationsDir, file);
+    assert.ok(fs.existsSync(filePath), `Runbook ${file} debe existir en docs/operations/`);
+
+    const content = fs.readFileSync(filePath, 'utf-8');
+    assert.ok(content.startsWith('# '), `Runbook ${file} debe comenzar con título H1`);
+    assert.ok(
+      !/\n## [^\n]+\n[^\n\r#\s]/.test(content),
+      `Runbook ${file} debe respetar espaciado MD022 tras encabezados H2`
+    );
+
+    assert.ok(
+      docsReadmeContent.includes(file),
+      `docs/README.md debe indexar y enlazar ${file}`
+    );
+  }
+
+  // Validar que el diagrama Mermaid contiene los 7 nodos de operaciones y R5 en runbooks
+  assert.ok(docsReadmeContent.includes('RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]'), 'Mermaid debe enlazar R5 DISASTER_RECOVERY_PLAN');
+  for (let i = 1; i <= 7; i++) {
+    assert.ok(
+      docsReadmeContent.includes(`OP${i}`),
+      `Mermaid en docs/README.md debe contener nodo OP${i}`
+    );
+  }
+});
+
+

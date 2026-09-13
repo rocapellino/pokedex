@@ -1,10 +1,12 @@
 # Runbook: Despliegue y Promoción de Versiones
 
 ## 1. Propósito
+
 Establecer el procedimiento estándar para la entrega continua y promoción de versiones de la plataforma Pokédex desde el código fuente hasta los entornos de producción en Kubernetes.
 
 ## 2. Flujo de Promoción
-```
+
+```text
 Push/Merge a main
        │
        ▼
@@ -27,18 +29,22 @@ Sincronización GitOps (ArgoCD)
 ## 3. Procedimiento Operativo
 
 ### Verificación previa
+
 Antes de fusionar un cambio a `main`:
+
 ```bash
 task validate
 ```
 
 ### Sincronización Manual de ArgoCD (si la auto-sincronización está pausada)
+
 ```bash
 task gitops:sync:cloud     # Para AWS EKS
 task gitops:sync:proxmox   # Para Proxmox VE
 ```
 
 ### Comprobación posterior
+
 ```bash
 task k8s:status
 curl -f http://<INGRESS_IP>/readyz

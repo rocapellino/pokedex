@@ -1,6 +1,7 @@
 # Runbook: Rotación Controlada de Secretos y Credenciales
 
 ## 1. Propósito
+
 Establecer el protocolo para la rotación periódica y de emergencia de claves criptográficas, contraseñas de base de datos, API keys administrativas y credenciales de backup.
 
 ## 2. Inventario de Secretos y Periodicidad
@@ -16,15 +17,19 @@ Establecer el protocolo para la rotación periódica y de emergencia de claves c
 ## 3. Procedimiento de Rotación
 
 ### Paso 1: Actualizar el secreto en el proveedor upstream (AWS Secrets Manager o Vault)
+
 Actualizar el valor de la clave correspondiente en el almacén de secretos.
 
 ### Paso 2: Forzar sincronización en External Secrets Operator
+
 ```bash
 kubectl annotate es pokedex-secrets -n pokemon-app force-sync=$(date +%s) --overwrite
 ```
 
 ### Paso 3: Propagación y Rolling Restart automático
+
 Gracias a la anotación de Stakater Reloader (`secret.reloader.stakater.com/reload: "pokedex-secrets"`), el Deployment ejecutará un RollingUpdate automático sin tiempo de inactividad:
+
 ```bash
 kubectl rollout status deployment/pokemon-api -n pokemon-app
 ```
