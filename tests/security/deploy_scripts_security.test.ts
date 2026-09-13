@@ -824,7 +824,7 @@ test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Key
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-008-supply-chain-security.md'), 'docs/README.md debe enlazar ADR-008');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
 });
 
 test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
@@ -874,7 +874,7 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'docs/README.md debe enlazar ADR-009');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
 
   // Validar que los 9 ADRs existen físicamente en disco
   for (let i = 1; i <= 9; i++) {
@@ -906,10 +906,42 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-010-authentication-and-session-management.md'), 'docs/README.md debe enlazar ADR-010');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010 o ADR-001 a ADR-011');
 
   // Validar que los 10 ADRs existen físicamente en disco
   for (let i = 1; i <= 10; i++) {
+    const num = String(i).padStart(3, '0');
+    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
+    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  }
+});
+
+test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas', () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  assert.ok(fs.existsSync(adrPath), 'ADR-011 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-011 debe estar aceptado');
+  assert.ok(adrContent.includes('Drizzle ORM'), 'ADR-011 debe documentar Drizzle ORM');
+  assert.ok(adrContent.includes('PgBouncer'), 'ADR-011 debe documentar PgBouncer');
+  assert.ok(adrContent.includes('pokedex_id_seq'), 'ADR-011 debe documentar secuencia atómica pokedex_id_seq');
+  assert.ok(adrContent.includes('pokedex_entries'), 'ADR-011 debe documentar tabla pokedex_entries');
+  assert.ok(adrContent.includes('JSONB'), 'ADR-011 debe documentar modelo híbrido JSONB');
+  assert.ok(adrContent.includes('pool_mode = transaction') || adrContent.includes('transaction'), 'ADR-011 debe documentar pooling en modo transacción');
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'README.md debe enlazar ADR-011');
+
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'docs/README.md debe enlazar ADR-011');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-011'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-011');
+
+  // Validar que los 11 ADRs existen físicamente en disco
+  for (let i = 1; i <= 11; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
     const match = files.find(f => f.startsWith(`ADR-${num}`));
