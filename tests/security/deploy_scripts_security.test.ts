@@ -570,8 +570,59 @@ test('🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile ma
   assert.equal(rootBody, backendBody, 'El cuerpo de instrucciones de compilación y runtime entre Dockerfile y apps/backend/Dockerfile debe ser idéntico');
 });
 
+test('🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini', () => {
+  const aiServicePath = path.join(ROOT_DIR, 'apps/backend/src/services/ai.ts');
+  assert.ok(fs.existsSync(aiServicePath), 'ai.ts debe existir');
+  const content = fs.readFileSync(aiServicePath, 'utf-8');
 
+  assert.ok(
+    content.includes("responseMimeType: 'application/json'"),
+    'ai.ts debe exigir responseMimeType application/json para garantizar contratos estructurados'
+  );
+  assert.ok(
+    content.includes('mermaid_code'),
+    'generateDiagram debe solicitar clave estructurada mermaid_code'
+  );
+  assert.ok(
+    content.includes('html_code'),
+    'generateMockup debe solicitar clave estructurada html_code'
+  );
+});
 
+test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator', () => {
+  const esoDir = path.join(ROOT_DIR, 'infra/k8s/eso');
+  assert.ok(fs.existsSync(esoDir), 'Directorio de ESO debe existir');
 
+  const storePath = path.join(esoDir, 'cluster-secret-store.yaml');
+  const secretPath = path.join(esoDir, 'external-secret-pokedex.yaml');
+  const readmePath = path.join(esoDir, 'README.md');
 
+  assert.ok(fs.existsSync(storePath), 'cluster-secret-store.yaml debe existir');
+  assert.ok(fs.existsSync(secretPath), 'external-secret-pokedex.yaml debe existir');
+  assert.ok(fs.existsSync(readmePath), 'README.md de ESO debe existir');
 
+  const storeContent = fs.readFileSync(storePath, 'utf-8');
+  assert.ok(storeContent.includes('kind: ClusterSecretStore'), 'Debe definir ClusterSecretStore');
+
+  const secretContent = fs.readFileSync(secretPath, 'utf-8');
+  assert.ok(secretContent.includes('kind: ExternalSecret'), 'Debe definir ExternalSecret');
+  assert.ok(secretContent.includes('POSTGRES_PASSWORD'), 'Debe mapear POSTGRES_PASSWORD');
+  assert.ok(secretContent.includes('GEMINI_API_KEY'), 'Debe mapear GEMINI_API_KEY');
+});
+
+test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals', () => {
+  const lighthousercPath = path.join(ROOT_DIR, 'lighthouserc.json');
+  assert.ok(fs.existsSync(lighthousercPath), 'lighthouserc.json debe existir en la raíz');
+  const content = JSON.parse(fs.readFileSync(lighthousercPath, 'utf-8'));
+
+  assert.ok(content.ci, 'lighthouserc.json debe tener sección ci');
+  assert.ok(content.ci.assert?.assertions, 'lighthouserc.json debe definir assertions');
+  assert.ok(
+    content.ci.assert.assertions['categories:performance'],
+    'Debe definir presupuesto mínimo para performance'
+  );
+  assert.ok(
+    content.ci.assert.assertions['categories:accessibility'],
+    'Debe definir presupuesto mínimo para accessibility'
+  );
+});
