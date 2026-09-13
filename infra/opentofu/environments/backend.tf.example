@@ -52,4 +52,37 @@ terraform {
   #   unlock_method  = "DELETE"
   #   retry_wait_min = 5
   # }
+
+  # ----------------------------------------------------------------------------
+  # Opción D: Cifrado Nativo del Estado en Reposo (OpenTofu 1.7+ Client-Side Encryption)
+  # ----------------------------------------------------------------------------
+  # OpenTofu v1.7+ permite cifrar criptográficamente el archivo de estado (.tfstate)
+  # y los planes (.tfplan) en el cliente antes de que salgan de la máquina o se almacenen.
+  # Protege credenciales de infraestructura, claves privadas y tokens sin depender del backend.
+  # ----------------------------------------------------------------------------
+  # encryption {
+  #   key_provider "pbkdf2" "state_passphrase" {
+  #     passphrase = var.state_encryption_passphrase # O variable de entorno TF_ENCRYPTION_KEY
+  #   }
+  #
+  #   # O alternativa con AWS KMS:
+  #   # key_provider "aws_kms" "kms_key" {
+  #   #   kms_key_id = "arn:aws:kms:us-east-1:123456789012:key/pokedex-tfstate-key"
+  #   #   region     = "us-east-1"
+  #   # }
+  #
+  #   method "aes_gcm" "state_aes" {
+  #     keys = key_provider.pbkdf2.state_passphrase
+  #   }
+  #
+  #   state {
+  #     method   = method.aes_gcm.state_aes
+  #     enforced = true
+  #   }
+  #
+  #   plan {
+  #     method   = method.aes_gcm.state_aes
+  #     enforced = true
+  #   }
+  # }
 }
