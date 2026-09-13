@@ -2,7 +2,7 @@
 # OpenTofu Providers - AWS EKS (Nube Pública)
 # ==============================================================================
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.8.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"

@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# Role: firewall - Configuración de Firewall Perimetral con UFW
+# ==============================================================================
+- name: 1. Configurar política por defecto de UFW (Denegar entrada)
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: 2. Configurar política por defecto de UFW (Permitir salida)
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: 3. Permitir puerto SSH (22) únicamente desde red de administración
+  community.general.ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+    src: "{{ mgmt_network }}"
+
+- name: 4. Permitir tráfico Web público HTTP (80) y HTTPS (443)
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '80'
+    - '443'
+
+- name: 5. Permitir puerto proxy administrativo (8080) solo desde red administrativa
+  community.general.ufw:
+    rule: allow
+    port: '8080'
+    proto: tcp
+    src: "{{ mgmt_network }}"
+
+- name: 6. Permitir puertos internos de Kubernetes (API, Kubelet, etcd) restringido a nodos
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: tcp
+    src: "{{ k8s_network }}"
+  loop:
+    - { port: '6443', comment: 'Kubernetes API Server' }
+    - { port: '10250', comment: 'Kubelet API' }
+    - { port: '2379:2380', comment: 'etcd server client API' }
+  when: "'k8s_cluster' in group_names"
+
+- name: 7. Asegurar Firewall UFW habilitado
+  community.general.ufw:
+    state: enabled

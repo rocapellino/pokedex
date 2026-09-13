@@ -1,0 +1,4 @@
+---
+# Variables por defecto para el rol firewall
+mgmt_network: "{{ mgmt_cidr | default('192.168.1.0/24') }}"
+k8s_network: "{{ k8s_cluster_cidr | default('192.168.1.0/24') }}"

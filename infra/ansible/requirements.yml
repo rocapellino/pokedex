@@ -1,0 +1,7 @@
+---
+# Colecciones oficiales de Ansible requeridas para los roles de Pokédex
+collections:
+  - name: ansible.posix
+    version: ">=1.5.4"
+  - name: community.general
+    version: ">=8.5.0"

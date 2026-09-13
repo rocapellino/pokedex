@@ -1,11 +1,13 @@
 ---
 # ==============================================================================
-# Playbook: Preparación de Nodos para Kubernetes y Docker Engine
+# Playbook: Preparación Integral de Hosts (Baseline + Kubernetes + Hardening)
 # ==============================================================================
-- name: Aprovisionamiento y Configuración Base de Nodos
+- name: Preparación Completa de Hosts y Nodos
   hosts: all
   become: true
   roles:
     - role: ../roles/base_os
     - role: ../roles/kubernetes_prerequisites
     - role: ../roles/container_runtime
+    - role: ../roles/firewall
+    - role: ../roles/hardening

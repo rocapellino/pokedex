@@ -1,0 +1,26 @@
+---
+# ==============================================================================
+# Role: hardening - Hardening de Seguridad de Acceso SSH y Configuración de Sistema
+# ==============================================================================
+- name: 1. Deshabilitar login directo de root por SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin prohibit-password'
+    state: present
+  notify: Reiniciar SSH
+
+- name: 2. Deshabilitar autenticación con contraseña vacía en SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitEmptyPasswords'
+    line: 'PermitEmptyPasswords no'
+    state: present
+  notify: Reiniciar SSH
+
+- name: 3. Asegurar permisos restrictivos en /etc/ssh/sshd_config
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'

@@ -1,5 +1,5 @@
 # ==============================================================================
-# OpenTofu Providers - Proxmox VE
+# OpenTofu Providers - Laboratorio y Pruebas Efímeras (Lab Environment)
 # ==============================================================================
 terraform {
   required_version = ">= 1.8.0"

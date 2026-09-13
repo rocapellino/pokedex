@@ -109,16 +109,25 @@ jobs:
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox y AWS)
+      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox, AWS y Lab)
         run: |
-          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/aws; do
-            echo "Verificando formato OpenTofu (fmt -check) en $dir..."
-            tofu -chdir="$dir" fmt -check
+          echo "Verificando formato recursivo de OpenTofu (fmt -check)..."
+          tofu fmt -check -recursive infra/opentofu
+          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/aws infra/opentofu/environments/lab; do
             echo "Validando entorno OpenTofu en $dir..."
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate
           done
-          echo "✅ Todos los entornos híbridos de OpenTofu verificados y validados correctamente."
+          echo "✅ Todos los entornos y módulos de OpenTofu verificados y validados correctamente."
+
+      - name: 4b. Validar Sintaxis de Playbooks y Roles de Ansible
+        run: |
+          pip install ansible-core
+          for playbook in infra/ansible/playbooks/*.yml; do
+            echo "Verificando sintaxis de $playbook..."
+            ansible-playbook -i infra/ansible/inventory/hosts.ini "$playbook" --syntax-check
+          done
+          echo "✅ Todos los playbooks y roles de Ansible validados sintácticamente."
 
       - name: 5. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0

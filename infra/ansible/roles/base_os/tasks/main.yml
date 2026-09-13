@@ -1,0 +1,36 @@
+---
+# ==============================================================================
+# Role: base_os - Configuración del Sistema Operativo Base y Tuning de Kernel
+# ==============================================================================
+- name: 1. Actualizar caché de paquetes APT
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: 2. Instalar paquetes esenciales del sistema
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - ufw
+      - htop
+      - jq
+      - git
+      - software-properties-common
+    state: present
+
+- name: 3. Configurar parámetros de kernel sysctl para contenedores y red
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+  loop:
+    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { name: 'net.ipv4.ip_forward', value: '1' }
+    - { name: 'vm.max_map_count', value: '262144' }
+    - { name: 'fs.inotify.max_user_watches', value: '524288' }

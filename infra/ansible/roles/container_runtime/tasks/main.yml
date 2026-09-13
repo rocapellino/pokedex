@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# Role: container_runtime - Instalación y Hardening de Docker Engine / Containerd
+# ==============================================================================
+- name: 1. Crear directorio para keyrings de APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: 2. Descargar clave GPG oficial de Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: 3. Agregar repositorio oficial de Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: 4. Instalar Docker CE, CLI y Containerd
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  register: docker_install_result
+  failed_when: docker_install_result.failed is defined and docker_install_result.failed
+
+- name: 5. Asegurar servicio Docker iniciado y habilitado
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: 6. Agregar usuario actual al grupo docker
+  ansible.builtin.user:
+    name: "{{ ansible_user | default('ubuntu') }}"
+    groups: docker
+    append: true
+  when: ansible_user is defined
+
+- name: 7. Validar funcionamiento y respuesta de Docker Engine
+  ansible.builtin.command: docker info
+  register: docker_info_check
+  changed_when: false
+  failed_when: docker_info_check.rc != 0
