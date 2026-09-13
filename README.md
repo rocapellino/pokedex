@@ -64,7 +64,7 @@ Al iniciar la plataforma en el entorno local, los servicios quedan disponibles e
 - **API REST Tipada**: Construida con Node.js 22, Express y TypeScript, con esquemas y migraciones declarativas gestionadas mediante Drizzle ORM.
 - **Persistencia y Caché**: Almacenamiento relacional ACID en PostgreSQL 16 y aceleración en memoria con Redis 7 para rate limiting y gestión de sesiones revocables.
 - **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
-- **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*) y fallback local heurístico.
+- **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*), fallback local heurístico y arquitectura documentada en [docs/decisions/ADR-009-ai-resilience-and-contracts.md](docs/decisions/ADR-009-ai-resilience-and-contracts.md).
 - **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
 - **Despliegue Declarativo**: Helm Chart v3 parametrizado, políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
 
