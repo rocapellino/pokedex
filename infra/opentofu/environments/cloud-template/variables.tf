@@ -49,10 +49,6 @@ variable "network_id" {
 
 variable "tags" {
   type        = map(string)
-  default = {
-    Application = "Pokédex"
-    Tier        = "CloudTemplate"
-    ManagedBy   = "OpenTofu"
-  }
+  default     = {}
   description = "Etiquetas comunes aplicadas a los recursos"
 }
