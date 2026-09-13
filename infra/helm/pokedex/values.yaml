@@ -50,6 +50,7 @@ api:
   env:
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
     otelEndpoint: "http://tempo:4317"
+  terminationGracePeriodSeconds: 30
   deploymentAnnotations: {}
   podAnnotations: {}
 
@@ -94,6 +95,7 @@ web:
         - ALL
     seccompProfile:
       type: RuntimeDefault
+  terminationGracePeriodSeconds: 30
 
 # ------------------------------------------------------------------------------
 # 3. Base de Datos Relacional (PostgreSQL 16 StatefulSet)

@@ -17,6 +17,7 @@ import {
   getPostgresVersion,
   consumeDistributedRateLimit,
   isWritableStorageAvailable,
+  closeStorage,
 } from './src/services/db.js';
 import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
 import { validatePokemonPayload } from './src/validation/pokemon.js';
@@ -33,6 +34,17 @@ import { requestTracer } from './src/middleware/request-tracer.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+
+// Estado del ciclo de vida del proceso para Kubernetes y Graceful Shutdown
+let isShuttingDown = false;
+
+export function getLifecycleStatus(): { isShuttingDown: boolean } {
+  return { isShuttingDown };
+}
+
+export function setShuttingDownForTest(val: boolean): void {
+  isShuttingDown = val;
+}
 
 const candidatePublicDirs = [
   path.join(process.cwd(), 'apps', 'frontend', 'dist'),
@@ -526,6 +538,12 @@ app.get('/healthz', (_req: Request, res: Response) => {
 });
 
 app.get('/readyz', (_req: Request, res: Response) => {
+  if (isShuttingDown) {
+    return res.status(503).json({
+      status: 'shutting_down',
+      detail: 'Servidor en proceso de terminación grácil (SIGTERM/SIGINT recibido). No admitiendo tráfico nuevo.',
+    });
+  }
   const health = getStorageHealth();
   if (!health.postgres_connected) {
     return res.status(503).json({
@@ -995,12 +1013,75 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Graceful Shutdown Handler (Ciclo de Vida de Pods en Kubernetes / ADR-015)
+// ---------------------------------------------------------------------------
+export function setupGracefulShutdown(
+  server: import('http').Server,
+  options: { drainTimeoutMs?: number; shutdownTimeoutMs?: number } = {}
+): () => void {
+  const drainTimeoutMs = options.drainTimeoutMs ?? (process.env.NODE_ENV === 'test' ? 10 : 2000);
+  const shutdownTimeoutMs = options.shutdownTimeoutMs ?? 15000;
+
+  const handleShutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    logger.info(`[Lifecycle: Graceful Shutdown] Señal ${signal} recibida. Iniciando secuencia de apagado grácil...`, { signal });
+
+    // 1. Temporizador de salvaguarda en caso de sockets o pools bloqueados
+    const forceExitTimer = setTimeout(() => {
+      logger.error('[Lifecycle: Graceful Shutdown] Tiempo límite de apagado excedido. Forzando terminación.');
+      if (process.env.NODE_ENV !== 'test') {
+        process.exit(1);
+      }
+    }, shutdownTimeoutMs);
+    forceExitTimer.unref();
+
+    // 2. Breve pausa de amortiguación para permitir que el EndpointSlice Controller de Kubernetes
+    // retire el Pod de los endpoints del Service y evitar peticiones en vuelo
+    await new Promise((resolve) => setTimeout(resolve, drainTimeoutMs));
+
+    // 3. Dejar de aceptar nuevas conexiones HTTP y drenar las existentes
+    server.close(async (err) => {
+      if (err) {
+        logger.warn('[Lifecycle: Graceful Shutdown] Error al cerrar servidor HTTP', { error: err.message });
+      } else {
+        logger.info('[Lifecycle: Graceful Shutdown] Servidor HTTP cerrado correctamente');
+      }
+
+      // 4. Cerrar pools de persistencia (PostgreSQL) y caché (Redis)
+      try {
+        await closeStorage();
+      } catch (closeErr: any) {
+        logger.error('[Lifecycle: Graceful Shutdown] Error al cerrar capas de almacenamiento', { error: closeErr?.message });
+      }
+
+      clearTimeout(forceExitTimer);
+      logger.info('[Lifecycle: Graceful Shutdown] Apagado grácil completado exitosamente.');
+      if (process.env.NODE_ENV !== 'test') {
+        process.exit(0);
+      }
+    });
+  };
+
+  const onSigterm = () => handleShutdown('SIGTERM');
+  const onSigint = () => handleShutdown('SIGINT');
+
+  process.once('SIGTERM', onSigterm);
+  process.once('SIGINT', onSigint);
+
+  return () => {
+    process.removeListener('SIGTERM', onSigterm);
+    process.removeListener('SIGINT', onSigint);
+  };
+}
+
 // Start Server tras inicializar la capa de persistencia y caché (solo si no es test runner)
 const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
 if (!isRunningTests) {
   checkRequiredEnvVars();
   initStorage().then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       const health = getStorageHealth();
       logger.info(`Pokédex Server iniciado en http://0.0.0.0:${PORT}`, {
         port: PORT,
@@ -1009,7 +1090,9 @@ if (!isRunningTests) {
         redisConnected: health.redis_connected,
       });
     });
+    setupGracefulShutdown(server);
   });
 }
 
 export { app };
+

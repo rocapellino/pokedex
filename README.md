@@ -66,7 +66,7 @@ Al iniciar la plataforma en el entorno local, los servicios quedan disponibles e
 - **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
 - **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*), fallback local heurístico y arquitectura documentada en [docs/decisions/ADR-009-ai-resilience-and-contracts.md](docs/decisions/ADR-009-ai-resilience-and-contracts.md).
 - **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
-- **Despliegue Declarativo y Autoescalado**: Helm Chart v3 parametrizado, autoescalado elástico HPA v2 con PodDisruptionBudget (formalizado en [docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md](docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)), políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
+- **Despliegue Declarativo y Autoescalado**: Helm Chart v3 parametrizado, autoescalado elástico HPA v2 con PodDisruptionBudget (formalizado en [docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md](docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)), terminación grácil y sondas de salud (formalizado en [docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)), políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
 
 ---
 
@@ -421,6 +421,7 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
 - 🚨 [Runbook de Respuesta ante Alertas de Observabilidad](docs/operations/observability-alerts.md)
 - 📐 [ADR-007: Arquitectura de Observabilidad y Métricas Prometheus](docs/decisions/ADR-007-observability-and-metrics.md)
+- 📐 [ADR-015: Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)
 
 ---
 

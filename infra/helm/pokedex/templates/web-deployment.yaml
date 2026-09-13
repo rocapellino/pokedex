@@ -25,6 +25,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.web.terminationGracePeriodSeconds | default 30 }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 101

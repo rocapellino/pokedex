@@ -824,7 +824,7 @@ test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Key
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-008-supply-chain-security.md'), 'docs/README.md debe enlazar ADR-008');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
 });
 
 test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
@@ -874,7 +874,7 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'docs/README.md debe enlazar ADR-009');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
 
   // Validar que los 9 ADRs existen físicamente en disco
   for (let i = 1; i <= 9; i++) {
@@ -906,7 +906,7 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-010-authentication-and-session-management.md'), 'docs/README.md debe enlazar ADR-010');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010 o posterior');
 
   // Validar que los 10 ADRs existen físicamente en disco
   for (let i = 1; i <= 10; i++) {
@@ -938,7 +938,7 @@ test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBounc
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'docs/README.md debe enlazar ADR-011');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-011 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-011 o posterior');
 
   // Validar que los 11 ADRs existen físicamente en disco
   for (let i = 1; i <= 11; i++) {
@@ -971,7 +971,7 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'docs/README.md debe enlazar ADR-012');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-012 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-012 o posterior');
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'DEVSECOPS_AUDIT.md debe enlazar ADR-012');
@@ -1007,7 +1007,7 @@ test('🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, 
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-013-zero-trust-network-architecture.md'), 'docs/README.md debe enlazar ADR-013');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-013 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-013 o posterior');
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('secret-rotation.md'), 'DEVSECOPS_AUDIT.md debe enlazar secret-rotation.md');
@@ -1042,7 +1042,7 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'), 'docs/README.md debe enlazar ADR-014');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-014'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-014');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-014 o posterior');
 
   // Validar que los 14 ADRs existen físicamente en disco
   for (let i = 1; i <= 14; i++) {
@@ -1052,6 +1052,72 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
+
+test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz', () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+  const helmApiDeploymentPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/api-deployment.yaml');
+  const helmValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
+
+  assert.ok(fs.existsSync(adrPath), 'ADR-015 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-015 debe estar aceptado');
+  assert.ok(adrContent.includes('SIGTERM') && adrContent.includes('SIGINT'), 'ADR-015 debe documentar señales SIGTERM y SIGINT');
+  assert.ok(adrContent.includes('setupGracefulShutdown'), 'ADR-015 debe documentar setupGracefulShutdown');
+  assert.ok(adrContent.includes('closeStorage'), 'ADR-015 debe documentar closeStorage');
+  assert.ok(adrContent.includes('/healthz'), 'ADR-015 debe documentar sonda /healthz');
+  assert.ok(adrContent.includes('/readyz'), 'ADR-015 debe documentar sonda /readyz');
+  assert.ok(adrContent.includes('terminationGracePeriodSeconds: 30') || adrContent.includes('terminationGracePeriodSeconds'), 'ADR-015 debe documentar terminationGracePeriodSeconds');
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'), 'README.md debe enlazar ADR-015');
+
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'), 'docs/README.md debe enlazar ADR-015');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-015'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-015');
+
+  const helmApiContent = fs.readFileSync(helmApiDeploymentPath, 'utf-8');
+  assert.ok(helmApiContent.includes('terminationGracePeriodSeconds:'), 'api-deployment.yaml debe configurar terminationGracePeriodSeconds');
+
+  const helmValuesContent = fs.readFileSync(helmValuesPath, 'utf-8');
+  assert.ok(helmValuesContent.includes('terminationGracePeriodSeconds: 30'), 'values.yaml debe fijar terminationGracePeriodSeconds: 30');
+
+  // Validar que los 15 ADRs existen físicamente en disco
+  for (let i = 1; i <= 15; i++) {
+    const num = String(i).padStart(3, '0');
+    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
+    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  }
+});
+
+test('🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil', async () => {
+  const { closeStorage } = await import('../../apps/backend/src/services/db.js');
+  assert.equal(typeof closeStorage, 'function', 'closeStorage debe ser una función exportada');
+
+  // closeStorage debe ser idempotente y resolver sin error
+  await assert.doesNotReject(async () => {
+    await closeStorage();
+  }, 'closeStorage debe resolver limpiamente sin arrojar errores');
+
+  const { getLifecycleStatus, setShuttingDownForTest } = await import('../../apps/backend/server.js');
+  assert.equal(typeof getLifecycleStatus, 'function', 'getLifecycleStatus debe ser una función');
+  assert.equal(typeof setShuttingDownForTest, 'function', 'setShuttingDownForTest debe ser una función');
+
+  // Inicialmente no está apagando
+  assert.equal(getLifecycleStatus().isShuttingDown, false);
+
+  // Simular transición a apagado
+  setShuttingDownForTest(true);
+  assert.equal(getLifecycleStatus().isShuttingDown, true);
+
+  // Restaurar estado
+  setShuttingDownForTest(false);
+  assert.equal(getLifecycleStatus().isShuttingDown, false);
+});
+
 
 test('🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md', () => {
   const operationsDir = path.join(ROOT_DIR, 'docs/operations');

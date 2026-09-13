@@ -62,6 +62,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
+      terminationGracePeriodSeconds: {{ .Values.api.terminationGracePeriodSeconds | default 30 }}
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: {{ .Values.api.securityContext.runAsNonRoot }}

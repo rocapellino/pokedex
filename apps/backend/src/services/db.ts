@@ -577,3 +577,51 @@ export async function getPostgresVersion(): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Cierra limpiamente las conexiones de persistencia y caché (PostgreSQL y Redis)
+ * y detiene cualquier timer de reconexión o heartbeat activo.
+ * Esencial para Graceful Shutdown en Kubernetes ante señales SIGTERM/SIGINT.
+ */
+export async function closeStorage(): Promise<void> {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+
+  const closePg = async () => {
+    if (pgPool) {
+      try {
+        await pgPool.end();
+        logger.info('[Storage: PostgreSQL] Pool de conexiones cerrado limpiamente');
+      } catch (err: any) {
+        logger.warn('[Storage: PostgreSQL] Error al cerrar pool', { error: err?.message || String(err) });
+      } finally {
+        pgPool = null;
+        drizzleDb = null;
+        isPgConnected = false;
+      }
+    }
+  };
+
+  const closeRedis = async () => {
+    if (redisClient) {
+      try {
+        await redisClient.quit();
+        logger.info('[Cache: Redis] Conexión cerrada limpiamente');
+      } catch (err: any) {
+        try {
+          redisClient.disconnect();
+        } catch {
+          // Ignorar si ya estaba desconectado
+        }
+      } finally {
+        redisClient = null;
+        isRedisConnected = false;
+      }
+    }
+  };
+
+  await Promise.allSettled([closePg(), closeRedis()]);
+}
+
