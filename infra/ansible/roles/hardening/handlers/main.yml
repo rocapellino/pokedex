@@ -1,0 +1,6 @@
+---
+# Handlers para el rol hardening
+- name: Reiniciar SSH
+  ansible.builtin.service:
+    name: sshd
+    state: restarted

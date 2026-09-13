@@ -1,0 +1,9 @@
+# Ejemplo de variables para entorno Lab
+proxmox_endpoint  = "https://pve-lab.lan:8006/"
+proxmox_api_token = "root@pam!lab_token=00000000-0000-0000-0000-000000000000"
+ssh_public_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKeyForLabEnvironmentOnly"
+vm_count          = 2
+node_name         = "pve"
+network_base_ip   = "10.0.10."
+network_gateway   = "10.0.10.1"
+proxmox_insecure  = true

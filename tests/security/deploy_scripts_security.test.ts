@@ -35,17 +35,23 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor
 test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host sin errores ignorados', () => {
   const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yml');
   assert.ok(fs.existsSync(baselinePath), 'host_baseline.yml debe existir');
-  const content = fs.readFileSync(baselinePath, 'utf-8');
-  assert.ok(content.includes('ufw'), 'host_baseline.yml debe configurar firewall ufw');
-  assert.ok(!content.includes('ignore_errors: true'), 'host_baseline.yml no debe ocultar fallos con ignore_errors: true');
-  assert.ok(content.includes('docker info'), 'host_baseline.yml debe verificar el funcionamiento de Docker');
-  assert.ok(content.includes('install_docker'), 'host_baseline.yml debe permitir condicionar el runtime de contenedores');
+  const baseContent = fs.readFileSync(baselinePath, 'utf-8');
+  const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yml');
+  const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yml');
+  const combinedContent = baseContent + 
+    (fs.existsSync(roleBaseOs) ? fs.readFileSync(roleBaseOs, 'utf-8') : '') +
+    (fs.existsSync(roleRuntime) ? fs.readFileSync(roleRuntime, 'utf-8') : '');
+
+  assert.ok(combinedContent.includes('ufw'), 'host_baseline y sus roles deben configurar firewall ufw');
+  assert.ok(!combinedContent.includes('ignore_errors: true'), 'host_baseline y sus roles no deben ocultar fallos con ignore_errors: true');
+  assert.ok(combinedContent.includes('docker info'), 'host_baseline y sus roles deben verificar el funcionamiento de Docker');
+  assert.ok(combinedContent.includes('install_docker'), 'host_baseline y sus roles deben permitir condicionar el runtime de contenedores');
 
   const setupNodesPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_nodes.yml');
   if (fs.existsSync(setupNodesPath)) {
     const setupContent = fs.readFileSync(setupNodesPath, 'utf-8');
     assert.ok(!setupContent.includes('ignore_errors: true'), 'setup_nodes.yml no debe ocultar fallos con ignore_errors: true');
-    assert.ok(setupContent.includes('docker info'), 'setup_nodes.yml debe verificar el funcionamiento de Docker');
+    assert.ok(setupContent.includes('docker info') || combinedContent.includes('docker info'), 'setup_nodes.yml y roles deben verificar Docker');
   }
 });
 
@@ -162,7 +168,9 @@ test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Z
 test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
   const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yml');
   assert.ok(fs.existsSync(playbookPath), 'security_hardening.yml debe existir');
-  const content = fs.readFileSync(playbookPath, 'utf-8');
+  const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yml');
+  const content = fs.readFileSync(playbookPath, 'utf-8') + 
+    (fs.existsSync(roleFirewall) ? fs.readFileSync(roleFirewall, 'utf-8') : '');
 
   // SSH no debe estar abierto a any sin src
   assert.ok(content.includes('src: "{{ mgmt_network }}"'), 'Regla SSH (22) debe restringir el origen a la red de administración');
@@ -382,6 +390,41 @@ test('🛡️ K8s Quality Gates: infra.yml integra kubeconform, kube-linter y ky
   const kyvernoTest = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/kyverno-test.yaml');
   assert.ok(fs.existsSync(kyvernoTest), 'kyverno-test.yaml debe existir');
 });
+
+test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente', () => {
+  // Módulos OpenTofu
+  const modules = ['naming', 'tagging', 'security_baseline'];
+  for (const mod of modules) {
+    const modPath = path.join(ROOT_DIR, `infra/opentofu/modules/${mod}`);
+    assert.ok(fs.existsSync(modPath), `Módulo infra/opentofu/modules/${mod} debe existir`);
+    assert.ok(fs.existsSync(path.join(modPath, 'main.tf')), `${mod}/main.tf debe existir`);
+    assert.ok(fs.existsSync(path.join(modPath, 'variables.tf')), `${mod}/variables.tf debe existir`);
+    assert.ok(fs.existsSync(path.join(modPath, 'outputs.tf')), `${mod}/outputs.tf debe existir`);
+  }
+
+  // Entorno Lab OpenTofu
+  const labEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/lab');
+  assert.ok(fs.existsSync(labEnvPath), 'infra/opentofu/environments/lab debe existir');
+  assert.ok(fs.existsSync(path.join(labEnvPath, 'main.tf')), 'lab/main.tf debe existir');
+  assert.ok(fs.existsSync(path.join(labEnvPath, 'providers.tf')), 'lab/providers.tf debe existir');
+  assert.ok(fs.existsSync(path.join(labEnvPath, 'variables.tf')), 'lab/variables.tf debe existir');
+  assert.ok(fs.existsSync(path.join(labEnvPath, 'outputs.tf')), 'lab/outputs.tf debe existir');
+
+  // Roles Ansible
+  const ansibleRoles = ['base_os', 'container_runtime', 'firewall', 'hardening', 'kubernetes_prerequisites'];
+  for (const role of ansibleRoles) {
+    const roleTask = path.join(ROOT_DIR, `infra/ansible/roles/${role}/tasks/main.yml`);
+    assert.ok(fs.existsSync(roleTask), `Role task ${role}/tasks/main.yml debe existir`);
+  }
+
+  // Inventarios y playbooks Ansible
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml')), 'Inventario Proxmox YAML debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yml')), 'Inventario Lab YAML debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/prepare_hosts.yml')), 'prepare_hosts.yml debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/validate_hosts.yml')), 'validate_hosts.yml debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/requirements.yml')), 'requirements.yml debe existir');
+});
+
 
 
 

@@ -1,0 +1,35 @@
+---
+# ==============================================================================
+# Playbook: Validación de Cumplimiento y Estado de Hosts (Dry-Run / Compliance)
+# ==============================================================================
+- name: Validación de Estado y Cumplimiento de Servidores
+  hosts: all
+  become: true
+  tasks:
+    - name: 1. Comprobar que el servicio Docker está activo
+      ansible.builtin.command: systemctl is-active docker
+      register: docker_status
+      changed_when: false
+      failed_when: docker_status.stdout != "active"
+
+    - name: 2. Comprobar que UFW está activo
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      changed_when: false
+      failed_when: "'Status: active' not in ufw_status.stdout"
+
+    - name: 3. Comprobar que swap está desactivado
+      ansible.builtin.command: swapon --show
+      register: swap_check
+      changed_when: false
+      failed_when: swap_check.stdout != ""
+
+    - name: 4. Comprobar que SSH no permite root con contraseña
+      ansible.builtin.command: grep -E '^PermitRootLogin prohibit-password' /etc/ssh/sshd_config
+      register: ssh_root_check
+      changed_when: false
+      failed_when: ssh_root_check.rc != 0
+
+    - name: 5. Resumen de validación exitosa
+      ansible.builtin.debug:
+        msg: "✅ Host {{ inventory_hostname }} cumple con todos los controles de hardening y baseline."

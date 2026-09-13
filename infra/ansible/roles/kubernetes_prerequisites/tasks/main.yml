@@ -1,0 +1,42 @@
+---
+# ==============================================================================
+# Role: kubernetes_prerequisites - Preparación de Host para Nodos de Kubernetes
+# ==============================================================================
+- name: 1. Desactivar memoria Swap en caliente
+  ansible.builtin.command: swapoff -a
+  when: ansible_swaptotal_mb | default(0) > 0
+  changed_when: false
+
+- name: 2. Desactivar memoria Swap de forma persistente en /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+swap\s+.*)$'
+    replace: '# \2'
+
+- name: 3. Cargar módulos del kernel requeridos para networking en K8s/CRI
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: 4. Persistir módulos de kernel para reinicios
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |
+      overlay
+      br_netfilter
+    mode: '0644'
+
+- name: 5. Configurar parámetros sysctl para CRI y networking de Kubernetes
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    reload: true
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
