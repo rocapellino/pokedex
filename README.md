@@ -320,7 +320,7 @@ La plataforma diferencia claramente los propósitos de cada entorno de ejecució
 | **Kubernetes (EKS / Bare-Metal)** | **Oficial** | Runtime estándar y mandatorio de producción, staging y pruebas canónicas de integración en Kind. |
 | **Helm 3 (OCI Artifacts)** | **Oficial** | Empaquetado canónico, versionado semántico y plantillas parametrizadas con firmas Cosign y SBOM. |
 | **ArgoCD (GitOps)** | **Oficial** | Sincronización continua declarativa y reconciliación de estado hacia clústeres gestionados. |
-| **OpenTofu 1.8+** | **Oficial** | Aprovisionamiento declarativo de infraestructura cloud (AWS EKS), entornos de laboratorio y Proxmox. |
+| **OpenTofu 1.8+** | **Oficial** | Aprovisionamiento declarativo de infraestructura cloud (AWS EKS), entornos de laboratorio y Proxmox con gestión y cifrado de estados formalizado en [docs/decisions/ADR-012-iac-state-management-and-encryption.md](docs/decisions/ADR-012-iac-state-management-and-encryption.md). |
 | **Ansible (host_baseline)** | **Oficial** | Hardening del SO base, cortafuegos UFW, módulos de kernel y preparación de nodos físicos/VMs. |
 | **Docker Compose** | **Soporte / Dev** | Entorno de desarrollo local rápido y contingencia aislada para ejecución sin clúster Kubernetes. |
 | **Backup & DR (AES-256 + SHA-256)** | **Oficial** | CronJob nativo en K8s con cifrado PBKDF2/AES-256-CBC, pruebas automatizadas en contenedor efímero (`RPO < 24h`, `RTO < 2h`). |
