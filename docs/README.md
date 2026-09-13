@@ -45,7 +45,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-014"]
+    ADR --> AD1["📐 ADR-001 a ADR-015"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -135,6 +135,7 @@ flowchart TD
 * 📐 [**ADR-012**](./decisions/ADR-012-iac-state-management-and-encryption.md): Estrategia de Gestión de Estados IaC, Bloqueo de Concurrencia y Cifrado en Cliente con OpenTofu.
 * 📐 [**ADR-013**](./decisions/ADR-013-zero-trust-network-architecture.md): Arquitectura de Red Zero-Trust, Microsegmentación en 4 Capas y Filtrado Egress Anti-SSRF y FQDN.
 * 📐 [**ADR-014**](./decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md): Estrategia de Autoescalado Elástico con HPA v2, PodDisruptionBudget y Alta Disponibilidad de Cómputo.
+* 📐 [**ADR-015**](./decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md): Estrategia de Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida de Pods.
 
 ---
 
