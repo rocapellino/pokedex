@@ -123,6 +123,7 @@ jobs:
       - name: 4b. Validar Sintaxis de Playbooks y Roles de Ansible
         run: |
           pip install ansible-core
+          ansible-galaxy collection install -r infra/ansible/requirements.yml
           for playbook in infra/ansible/playbooks/*.yml; do
             echo "Verificando sintaxis de $playbook..."
             ansible-playbook -i infra/ansible/inventory/hosts.ini "$playbook" --syntax-check
