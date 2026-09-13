@@ -68,6 +68,22 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   }
 });
 
+test('🛡️ Seguridad: validateImageUrl rechaza IPs privadas RFC 1918, IMDS e IPv6 restringidas (Anti-SSRF)', () => {
+  // RFC 1918
+  assert.equal(validateImageUrl('https://10.0.0.1/malicious.png'), false);
+  assert.equal(validateImageUrl('https://172.16.0.1/malicious.png'), false);
+  assert.equal(validateImageUrl('https://172.31.255.255/malicious.png'), false);
+  assert.equal(validateImageUrl('https://192.168.1.1/malicious.png'), false);
+
+  // Cloud Metadata IMDS
+  assert.equal(validateImageUrl('https://169.254.169.254/latest/meta-data'), false);
+  assert.equal(validateImageUrl('https://metadata.google.internal/computeMetadata/v1/'), false);
+
+  // Loopback / Non-routable
+  assert.equal(validateImageUrl('https://0.0.0.0/test.png'), false);
+  assert.equal(validateImageUrl('https://[::1]/test.png'), false);
+});
+
 test('🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto', () => {
   const basePayload = {
     nombre: 'Pikachu',

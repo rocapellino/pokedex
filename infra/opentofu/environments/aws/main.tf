@@ -1,5 +1,9 @@
 # ==============================================================================
-# Provisión de Clúster EKS en Nube Pública con OpenTofu
+# Provisión de Clúster EKS en Nube Pública con OpenTofu (Plantilla de Referencia)
+# ==============================================================================
+# NOTA: Este entorno ilustra la arquitectura de referencia para AWS EKS.
+# El único target físico on-premises GA soportado en producción es Proxmox VE.
+# Los IDs de VPC y subredes están completamente parametrizados mediante variables.
 # ==============================================================================
 
 module "eks" {
@@ -21,9 +25,9 @@ module "eks" {
   # DevSecOps Hardening: Habilitar todos los logs del plano de control en CloudWatch (AWS-0038)
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
-  vpc_id                   = "vpc-0123456789abcdef0"
-  subnet_ids               = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
-  control_plane_subnet_ids = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
+  vpc_id                   = var.vpc_id
+  subnet_ids               = var.subnet_ids
+  control_plane_subnet_ids = var.control_plane_subnet_ids
 
   eks_managed_node_groups = {
     standard_nodes = {
@@ -37,8 +41,9 @@ module "eks" {
   }
 
   tags = {
-    Environment = "production-cloud"
+    Environment = "reference-cloud"
     ManagedBy   = "OpenTofu"
     Application = "Pokédex"
+    DesignRole  = "MultiCloudTemplate"
   }
 }

@@ -135,10 +135,26 @@ resourceQuota:
     pods: "50"
     services: "15"
 
+# ------------------------------------------------------------------------------
+# Aislamiento de Red Zero-Trust en Producción (L7 Egress)
+# ------------------------------------------------------------------------------
+# En producción, se exige Zero-Trust a nivel L7 mediante Cilium eBPF (FQDN Allowlist)
+# o mediante un Egress Gateway perimetral. Se deshabilita el fallback permisivo de
+# 0.0.0.0/0 (externalHttps: false) para prevenir exfiltración arbitraria y cumplir
+# con la directriz de menor privilegio.
 networkPolicies:
   enabled: true
   egress:
     antiSsrf: true
-    externalHttps: true
+    externalHttps: false
     allowedExternalCidrs: []
+    useEgressGateway: false
+
+ciliumNetworkPolicy:
+  enabled: true
+  fqdnAllowlist:
+    - matchName: "generativelanguage.googleapis.com"
+    - matchPattern: "*.githubusercontent.com"
+    - matchPattern: "*.pokeapi.co"
+
 

@@ -15,6 +15,69 @@ export const SCRIPT_PATTERN = {
 };
 
 /**
+ * Determina si un hostname o dirección IP pertenece a rangos privados, loopback, link-local o IMDS (Anti-SSRF).
+ */
+export function isPrivateOrRestrictedIp(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, '').trim().toLowerCase();
+
+  // 1. Cloud Metadata Hostnames
+  if (host === 'metadata.google.internal' || host === 'metadata.internal' || host.endsWith('.internal')) {
+    return true;
+  }
+
+  // 2. Loopback names
+  if (host === 'localhost') {
+    return true;
+  }
+
+  // 3. IPv4 check
+  const ipv4Match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (ipv4Match) {
+    const o0 = Number(ipv4Match[1]);
+    const o1 = Number(ipv4Match[2]);
+    const o2 = Number(ipv4Match[3]);
+    const o3 = Number(ipv4Match[4]);
+
+    if (o0 > 255 || o1 > 255 || o2 > 255 || o3 > 255) {
+      return true;
+    }
+
+    // 0.0.0.0/8 (Current network)
+    if (o0 === 0) return true;
+    // 10.0.0.0/8 (RFC 1918)
+    if (o0 === 10) return true;
+    // 127.0.0.0/8 (Loopback)
+    if (o0 === 127) return true;
+    // 169.254.0.0/16 (Link-local / Cloud IMDS)
+    if (o0 === 169 && o1 === 254) return true;
+    // 172.16.0.0/12 (RFC 1918)
+    if (o0 === 172 && o1 >= 16 && o1 <= 31) return true;
+    // 192.168.0.0/16 (RFC 1918)
+    if (o0 === 192 && o1 === 168) return true;
+    // 100.64.0.0/10 (CGNAT)
+    if (o0 === 100 && o1 >= 64 && o1 <= 127) return true;
+    // 224.0.0.0/4 and above (Multicast / Reserved)
+    if (o0 >= 224) return true;
+  }
+
+  // 4. IPv6 check
+  if (host.includes(':')) {
+    if (host === '::1' || host === '0:0:0:0:0:0:0:1' || host === '::') return true;
+    // Unique Local Addresses (fc00::/7)
+    if (/^f[cd][0-9a-f]{2}:/i.test(host)) return true;
+    // Link-local unicast (fe80::/10)
+    if (/^fe[89ab][0-9a-f]:/i.test(host)) return true;
+    // IPv4-mapped IPv6 (::ffff:x.x.x.x)
+    const v4Mapped = /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i.exec(host);
+    if (v4Mapped) {
+      return isPrivateOrRestrictedIp(v4Mapped[1]);
+    }
+  }
+
+  return false;
+}
+
+/**
  * Validador estricto de URLs de imagen contra SSRF y pseudo-protocolos.
  */
 export function validateImageUrl(value: unknown): boolean {
@@ -33,13 +96,26 @@ export function validateImageUrl(value: unknown): boolean {
 
   try {
     const parsed = new URL(val);
-    if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+    const host = parsed.hostname.toLowerCase();
+
+    if (host === 'localhost' || host === '127.0.0.1') {
       if (parsed.protocol === 'http:') {
         return process.env.NODE_ENV !== 'production';
       }
       return parsed.protocol === 'https:';
     }
-    return parsed.protocol === 'https:';
+
+    // Protocolo externo debe ser HTTPS obligatorio
+    if (parsed.protocol !== 'https:') {
+      return false;
+    }
+
+    // Validación estricta contra SSRF en hostnames e IPs privadas
+    if (isPrivateOrRestrictedIp(host)) {
+      return false;
+    }
+
+    return true;
   } catch {
     return false;
   }

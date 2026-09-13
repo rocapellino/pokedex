@@ -1,5 +1,10 @@
 # ==============================================================================
-# ArgoCD Application - Despliegue en Nube Pública (EKS / GKE / AKS)
+# ArgoCD Application - Plantilla de Referencia para Nube Pública (AWS EKS)
+# ==============================================================================
+# NOTA DE ARQUITECTURA:
+# Este manifiesto es una plantilla de referencia para despliegue en nube pública.
+# Proxmox VE es el único target productivo GA del proyecto. Activar y sincronizar
+# esta aplicación únicamente si la organización decide adoptar AWS/EKS como target.
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -8,7 +13,10 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/name: pokedex
-    environment: public-cloud
+    environment: reference-cloud
+  annotations:
+    argocd.argoproj.io/manifest-generate-paths: "infra/helm/pokedex;gitops/environments/aws"
+    architecture.pokedex.io/tier: "reference-template"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

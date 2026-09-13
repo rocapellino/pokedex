@@ -13,6 +13,7 @@ Este documento define formalmente la arquitectura de infraestructura, topología
 5. [Topología de Red y Aislamiento (Zero-Trust)](#5-topología-de-red-y-aislamiento-zero-trust)
 6. [Estructura del Código IaC Multi-Backend](#6-estructura-del-código-iac-multi-backend)
 7. [Política de Runtime Oficial y Experiencia de Desarrollo Dual](#7-política-de-runtime-oficial-y-experiencia-de-desarrollo-dual)
+8. [Matriz de Estado Real de Soporte de Infraestructura](#8-matriz-de-estado-real-de-soporte-de-infraestructura)
 
 ---
 
@@ -173,26 +174,29 @@ La infraestructura como código está modularizada bajo `infra/opentofu/` separa
 ```text
 infra/
 ├── opentofu/
-│   ├── modules/                      # Módulos reutilizables agnósticos / cloud
-│   │   ├── compute/                  # EKS y Node Groups
-│   │   ├── database/                 # RDS Postgres & ElastiCache Redis
-│   │   ├── networking/               # VPC, subredes, tablas de ruteo
-│   │   ├── security/                 # IAM roles, KMS, Security Groups
-│   │   └── storage/                  # Buckets S3 con cifrado KMS
+│   ├── modules/                      # Módulos reutilizables agnósticos
+│   │   ├── compute/                  # Interfaz genérica y especificación de nodos
+│   │   ├── naming/                   # Generación estandarizada de nombres
+│   │   ├── security_baseline/        # Restricciones de red y cifrado
+│   │   └── tagging/                  # Metadata y etiquetas consistentes
 │   └── environments/
-│       ├── aws/                      # Backend Cloud: AWS EKS, RDS, VPC
+│       ├── proxmox/                  # ✅ Target On-Premises Oficial GA (Proxmox VE)
 │       │   ├── main.tf
 │       │   ├── providers.tf
 │       │   ├── variables.tf
 │       │   └── terraform.tfvars.example
-│       └── proxmox/                  # Backend On-Premises: Proxmox VE
+│       ├── lab/                      # ✅ Entorno efímero de pruebas
+│       │   └── main.tf
+│       └── aws/                      # ℹ️ Plantilla de Referencia Arquitectónica Multi-Cloud
+│           ├── README.md
 │           ├── main.tf
 │           ├── providers.tf
 │           ├── variables.tf
 │           └── terraform.tfvars.example
 ├── ansible/                          # Hardening y configuración de nodos base
+│   ├── roles/                        # Roles modulares (base_os, container_runtime, etc.)
 │   └── playbooks/
-│       └── host_baseline.yml         # SO base, containerd, UFW, sysctl
+│       └── host_baseline.yml         # Orquestación de roles sobre nodos Proxmox
 └── k8s/                              # Definiciones Kubernetes locales y perfiles
     └── kind-cluster.yaml             # Perfil de desarrollo local con paridad K8s
 ```
@@ -202,12 +206,12 @@ Asimismo, el repositorio GitOps refleja esta misma topología bajo `gitops/`:
 ```text
 gitops/
 ├── apps/
-│   ├── app-cloud.yaml                # ArgoCD Application apuntando a environments/aws
+│   ├── app-cloud.yaml                # ArgoCD Application (Plantilla de Referencia AWS)
 │   └── app-proxmox.yaml              # ArgoCD Application apuntando a environments/proxmox
 └── environments/
-    ├── aws/                          # Capa de valores para clúster AWS EKS
+    ├── aws/                          # Capa de valores para clúster AWS EKS (Referencia)
     │   └── values.yaml               # Valores específicos (ALB Ingress, RDS endpoint)
-    └── proxmox/                      # Capa de valores para clúster Proxmox
+    └── proxmox/                      # Capa de valores para clúster Proxmox (Oficial)
         └── values.yaml               # Valores específicos (Nginx Ingress, StatefulSet)
 ```
 
@@ -229,3 +233,17 @@ Para evitar duplicidad operativa, inconsistencias entre entornos y scripts de de
 
 > **No se despliegan contenedores de aplicación en producción mediante Docker Compose ni scripts bash aislados.**
 > Todo despliegue productivo debe originarse en un commit Git auditado, pasar los controles de CI (tests, SBOM, firma Cosign) y ser sincronizado declarativamente en un clúster Kubernetes mediante ArgoCD.
+
+---
+
+## 8. Matriz de Estado Real de Soporte de Infraestructura
+
+Para garantizar máxima transparencia arquitectónica y evitar falsas expectativas sobre entornos no provistos físicamente:
+
+| Target de Infraestructura | Nivel de Soporte | Entorno OpenTofu | Propósito y Garantías Operativas |
+| :--- | :--- | :--- | :--- |
+| **Proxmox VE (On-Premises)** | **GA (Oficial)** | `infra/opentofu/environments/proxmox` | **Único target de producción on-premise soportado**. Cuenta con automatización completa de host baseline vía Ansible, almacenamiento persistente, Ingress perimetral y cobertura en planes de Disaster Recovery. |
+| **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Entorno efímero para pruebas destructivas, validación de playbooks y simulación de fallos controlados. |
+| **AWS EKS (Nube Pública)** | **Plantilla de Referencia** | `infra/opentofu/environments/aws` | **Blueprint ilustrativo de portabilidad multi-cloud**. Parametrizado mediante variables; no forma parte de los pipelines de despliegue continuo activo ni de los compromisos de SLA/RTO de Disaster Recovery. |
+| **Kind (Local)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Clúster Kubernetes ligero utilizado para tests de integración en GitHub Actions (`infra.yml`) y pruebas de paridad para desarrolladores locales. |
+
