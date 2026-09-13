@@ -129,7 +129,6 @@ jobs:
             type=sha,format=long,prefix=
             type=ref,event=branch
             type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
           labels: |
             org.opencontainers.image.title=pokedex-api
             org.opencontainers.image.description=Pokédex Backend Native Node.js & TypeScript Service
@@ -251,12 +250,14 @@ jobs:
       - name: Extraer digest de imagen publicada
         id: image-digest
         run: |
-          DIGEST=$(docker inspect --format='{{range .RepoDigests}}{{.}}{{"\n"}}{{end}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} | grep '@sha256:' | head -n 1 | awk -F'@' '{print $2}')
-          if [ -z "$DIGEST" ]; then
-            DIGEST=$(docker image inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} --format '{{.Id}}')
+          # Extraer digest OCI remoto directo desde GHCR usando docker buildx imagetools
+          DIGEST=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"')
+          if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
+            DIGEST=$(docker inspect --format='{{range .RepoDigests}}{{.}}{{"\n"}}{{end}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} | grep '@sha256:' | head -n 1 | awk -F'@' '{print $2}')
           fi
+          test -n "$DIGEST" || { echo "❌ Error: No se pudo determinar el digest OCI remoto de la imagen"; exit 1; }
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          echo "✅ Digest de imagen para SLSA Provenance: $DIGEST"
+          echo "✅ Digest OCI inmutable verificado: $DIGEST"
 
       - name: Configurar Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
@@ -286,9 +287,9 @@ jobs:
         run: |
           echo "$GITHUB_TOKEN" | cosign login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
 
-      - name: Firmar imagen Docker con Cosign (Keyless Sigstore OIDC)
+      - name: Firmar imagen Docker con Cosign por Digest Inmutable (Keyless Sigstore OIDC)
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
 
       - name: Firmar Helm Chart OCI con Cosign (Keyless Sigstore OIDC)
         run: |
@@ -303,11 +304,11 @@ jobs:
 
       - name: Adjuntar SBOM a la imagen en GHCR con Cosign
         run: |
-          cosign attach sbom --sbom /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          cosign attach sbom --sbom /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
 
       - name: Atestar criptográficamente SBOM con Cosign (in-toto attestation)
         run: |
-          cosign attest --yes --predicate /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          cosign attest --yes --predicate /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
 
       - name: Generar y Firmar SLSA Provenance (GitHub Attestations)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -315,4 +316,14 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.image-digest.outputs.digest }}
           push-to-registry: true
+
+      - name: Verificar Criptográficamente Firma y Atestación con Cosign
+        run: |
+          cosign verify ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }} \
+            --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+          cosign verify-attestation --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }} \
+            --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
+          echo "✅ Firma y Atestación de imagen verificadas criptográficamente con éxito."
 

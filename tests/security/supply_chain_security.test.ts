@@ -54,10 +54,18 @@ test('🛡️ Supply Chain Security: Publish job implementa firma Cosign, atesta
   assert.match(ciWorkflow, /id-token:\s*write/, 'Publish debe tener permiso id-token: write para Sigstore OIDC');
   assert.match(ciWorkflow, /attestations:\s*write/, 'Publish debe tener permiso attestations: write para GitHub Attestations');
 
-  // Firma Cosign
-  assert.match(ciWorkflow, /cosign sign --yes/, 'Publish debe firmar la imagen con Cosign keyless');
-  assert.match(ciWorkflow, /cosign attach sbom/, 'Publish debe adjuntar el SBOM OCI con Cosign');
-  assert.match(ciWorkflow, /cosign attest --yes --predicate .* --type cyclonedx/, 'Publish debe atestar criptográficamente el SBOM con Cosign');
+  // Inmutabilidad de Artefactos OCI
+  assert.ok(!ciWorkflow.includes('type=raw,value=latest'), 'ci.yml no debe publicar la etiqueta mutable latest para main');
+  assert.match(ciWorkflow, /docker buildx imagetools inspect/, 'Publish debe extraer el digest remoto directo del registry OCI');
+
+  // Firma y Atestación por Digest Inmutable
+  assert.match(ciWorkflow, /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Publish debe firmar la imagen por digest inmutable');
+  assert.match(ciWorkflow, /cosign attach sbom --sbom .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Publish debe adjuntar el SBOM por digest inmutable');
+  assert.match(ciWorkflow, /cosign attest --yes --predicate .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Publish debe atestar el SBOM por digest inmutable');
+
+  // Verificación Criptográfica Explícita en CI
+  assert.match(ciWorkflow, /cosign verify /, 'Publish debe verificar explícitamente la firma de la imagen');
+  assert.match(ciWorkflow, /cosign verify-attestation /, 'Publish debe verificar explícitamente la atestación de SBOM');
 
   // SLSA Provenance
   assert.match(ciWorkflow, /actions\/attest-build-provenance/, 'Publish debe usar actions/attest-build-provenance para SLSA provenance');

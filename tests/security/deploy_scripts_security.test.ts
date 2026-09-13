@@ -40,6 +40,13 @@ test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hard
   assert.ok(!content.includes('ignore_errors: true'), 'host_baseline.yml no debe ocultar fallos con ignore_errors: true');
   assert.ok(content.includes('docker info'), 'host_baseline.yml debe verificar el funcionamiento de Docker');
   assert.ok(content.includes('install_docker'), 'host_baseline.yml debe permitir condicionar el runtime de contenedores');
+
+  const setupNodesPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_nodes.yml');
+  if (fs.existsSync(setupNodesPath)) {
+    const setupContent = fs.readFileSync(setupNodesPath, 'utf-8');
+    assert.ok(!setupContent.includes('ignore_errors: true'), 'setup_nodes.yml no debe ocultar fallos con ignore_errors: true');
+    assert.ok(setupContent.includes('docker info'), 'setup_nodes.yml debe verificar el funcionamiento de Docker');
+  }
 });
 
 test('🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción', () => {

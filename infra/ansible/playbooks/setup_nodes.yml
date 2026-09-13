@@ -103,3 +103,8 @@
         name: "{{ ansible_user | default('ubuntu') }}"
         groups: docker
         append: yes
+
+    - name: Verificar funcionamiento del runtime Docker
+      command: docker info
+      changed_when: false
+

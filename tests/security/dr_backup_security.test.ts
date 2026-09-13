@@ -57,6 +57,13 @@ test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo autom
   assert.ok(content.includes('count(*)'), 'Debe validar conteo de registros en la restauración');
   assert.ok(content.includes('pg_indexes'), 'Debe validar la integridad de índices en PostgreSQL');
   assert.ok(content.includes('to_regclass'), 'Debe validar la creación formal del objeto tabla');
+  assert.ok(content.includes('pg_constraint'), 'Debe validar Primary Keys');
+  assert.ok(content.includes('relkind = \'S\''), 'Debe validar secuencias activas');
+
+  // Validar pinning de imagen efímera y bandera --syntax-only
+  assert.match(content, /postgres:16-alpine@sha256:[a-f0-9]{64}/, 'PostgreSQL efímero debe estar fijado por digest criptográfico SHA-256');
+  assert.ok(content.includes('--syntax-only'), 'Debe soportar bandera explícita --syntax-only');
+  assert.ok(content.includes('No hay motor PostgreSQL disponible'), 'Debe fallar (fail-closed) si no hay motor SQL y no se pasa --syntax-only');
 });
 
 test('🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h', () => {
