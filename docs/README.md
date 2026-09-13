@@ -44,7 +44,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-007"]
+    ADR --> AD1["📐 ADR-001 a ADR-008"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["📋 DISASTER_RECOVERY_PLAN.md"]
 
@@ -121,6 +121,7 @@ flowchart TD
 * 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión de Secretos en Reposo con Bitnami Sealed Secrets y ESO.
 * 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres con Validación Activa y Cifrado AES-256.
 * 📐 [**ADR-007**](./decisions/ADR-007-observability-and-metrics.md): Observabilidad Unificada, Métricas RED y Prometheus ServiceMonitor.
+* 📐 [**ADR-008**](./decisions/ADR-008-supply-chain-security.md): Seguridad de Cadena de Suministro (Supply Chain), Inmutabilidad de Artefactos y Atestaciones Criptográficas.
 
 ---
 

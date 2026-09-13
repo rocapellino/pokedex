@@ -135,6 +135,25 @@ resourceQuota:
     pods: "50"
     services: "15"
 
+limitRange:
+  enabled: true
+  default:
+    cpu: "500m"
+    memory: "512Mi"
+  defaultRequest:
+    cpu: "100m"
+    memory: "128Mi"
+  max:
+    cpu: "2"
+    memory: "2Gi"
+  min:
+    cpu: "50m"
+    memory: "64Mi"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
 # ------------------------------------------------------------------------------
 # Aislamiento de Red Zero-Trust en Producción (L7 Egress)
 # ------------------------------------------------------------------------------

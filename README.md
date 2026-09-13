@@ -364,6 +364,7 @@ La seguridad está integrada en todas las capas del ciclo de vida:
 - **Control de Admisión**: En Kubernetes, políticas de **Kyverno** verifican la firma de las imágenes antes de autorizar la creación de Pods.
 - **Network Isolation**: Políticas de red Zero-Trust (Default-Deny Egress) en PostgreSQL y Redis, y bloqueo anti-SSRF hacia metadatos de nube (`169.254.169.254/32`).
 - **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo.
+- **Decisión de Diseño**: Registro formal de arquitectura de seguridad en la cadena de suministro en [docs/decisions/ADR-008-supply-chain-security.md](docs/decisions/ADR-008-supply-chain-security.md).
 
 Para conocer el procedimiento de divulgación responsable o reportar una vulnerabilidad, consulta [SECURITY.md](SECURITY.md).
 
