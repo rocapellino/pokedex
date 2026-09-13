@@ -71,3 +71,54 @@ test('🛡️ Operación: dr-simulation.yml automatiza simulacros periódicos de
   assert.match(content, /scripts\/dr_verify_restore\.sh --dry-run/, 'Debe ejecutar dr_verify_restore.sh --dry-run');
   assert.match(content, /GITHUB_STEP_SUMMARY/, 'Debe publicar resultados en GITHUB_STEP_SUMMARY');
 });
+
+test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa validación estricta de checksum y aislamiento de BD', () => {
+  const drScriptPath = path.join(ROOT_DIR, 'scripts/dr_verify_restore.sh');
+  assert.ok(fs.existsSync(drScriptPath), 'dr_verify_restore.sh debe existir');
+
+  const content = fs.readFileSync(drScriptPath, 'utf-8');
+  assert.match(content, /CHECKSUM_FILE="\$\{BACKUP_FILE\}\.sha256"/, 'Debe definir ruta de archivo .sha256');
+  assert.match(content, /sha256sum -c "\$\{CHECKSUM_FILE\}"/, 'Debe validar el checksum con sha256sum');
+  assert.match(content, /Archivo de checksum \$\{CHECKSUM_FILE\} ausente/, 'Debe fallar si el checksum falta fuera de dry-run');
+  assert.match(content, /TEMP_RESTORE_DB=/, 'Debe utilizar base de datos temporal para aislamiento');
+  assert.match(content, /DROP DATABASE IF EXISTS \$\{TEMP_RESTORE_DB\}/, 'Debe limpiar la base temporal en CLEANUP');
+  assert.match(content, /ALLOW_PROD_RESTORE/, 'Debe proteger contra ejecuciones no autorizadas en producción');
+});
+
+test('🛡️ Gobernanza & Arquitectura: Suite formal de ADRs existe en docs/decisions/', () => {
+  const adrs = [
+    'ADR-001-kubernetes-as-runtime.md',
+    'ADR-002-compose-for-local-development.md',
+    'ADR-003-gitops-with-argocd.md',
+    'ADR-004-opentofu-and-ansible-boundaries.md',
+    'ADR-005-secret-management.md',
+    'ADR-006-disaster-recovery-strategy.md'
+  ];
+
+  for (const adr of adrs) {
+    const adrPath = path.join(ROOT_DIR, 'docs/decisions', adr);
+    assert.ok(fs.existsSync(adrPath), `ADR ${adr} debe existir en docs/decisions/`);
+    const content = fs.readFileSync(adrPath, 'utf-8');
+    assert.match(content, /## Estado\s+Aceptado/, `${adr} debe tener Estado: Aceptado`);
+    assert.match(content, /## Decisión/, `${adr} debe incluir sección de Decisión`);
+  }
+});
+
+test('🛡️ Excelencia Operacional: Runbooks formales estructurados en docs/operations/', () => {
+  const runbooks = [
+    'deployment.md',
+    'rollback.md',
+    'incident-response.md',
+    'backup-restore.md',
+    'kubernetes-troubleshooting.md',
+    'secret-rotation.md'
+  ];
+
+  for (const runbook of runbooks) {
+    const runbookPath = path.join(ROOT_DIR, 'docs/operations', runbook);
+    assert.ok(fs.existsSync(runbookPath), `Runbook ${runbook} debe existir en docs/operations/`);
+    const content = fs.readFileSync(runbookPath, 'utf-8');
+    assert.match(content, /## 1\. Propósito/, `${runbook} debe declarar su propósito`);
+  }
+});
+
