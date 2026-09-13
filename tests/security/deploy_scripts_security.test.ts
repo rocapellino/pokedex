@@ -392,8 +392,8 @@ test('🛡️ K8s Quality Gates: infra.yml integra kubeconform, kube-linter y ky
 });
 
 test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente', () => {
-  // Módulos OpenTofu
-  const modules = ['naming', 'tagging', 'security_baseline'];
+  // Módulos OpenTofu (incluyendo interfaz compute agnóstica)
+  const modules = ['compute', 'naming', 'tagging', 'security_baseline'];
   for (const mod of modules) {
     const modPath = path.join(ROOT_DIR, `infra/opentofu/modules/${mod}`);
     assert.ok(fs.existsSync(modPath), `Módulo infra/opentofu/modules/${mod} debe existir`);
@@ -410,6 +410,20 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(labEnvPath, 'variables.tf')), 'lab/variables.tf debe existir');
   assert.ok(fs.existsSync(path.join(labEnvPath, 'outputs.tf')), 'lab/outputs.tf debe existir');
 
+  // Entorno AWS OpenTofu (Parametrizado como Plantilla de Referencia)
+  const awsEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/aws');
+  assert.ok(fs.existsSync(awsEnvPath), 'infra/opentofu/environments/aws debe existir');
+  const awsVars = fs.readFileSync(path.join(awsEnvPath, 'variables.tf'), 'utf-8');
+  assert.ok(awsVars.includes('variable "vpc_id"'), 'AWS variables.tf debe declarar vpc_id');
+  assert.ok(awsVars.includes('variable "subnet_ids"'), 'AWS variables.tf debe declarar subnet_ids');
+  assert.ok(awsVars.includes('variable "control_plane_subnet_ids"'), 'AWS variables.tf debe declarar control_plane_subnet_ids');
+
+  const awsMain = fs.readFileSync(path.join(awsEnvPath, 'main.tf'), 'utf-8');
+  assert.ok(awsMain.includes('vpc_id                   = var.vpc_id'), 'AWS main.tf debe usar var.vpc_id');
+  assert.ok(awsMain.includes('subnet_ids               = var.subnet_ids'), 'AWS main.tf debe usar var.subnet_ids');
+  assert.ok(fs.existsSync(path.join(awsEnvPath, 'terraform.tfvars.example')), 'AWS terraform.tfvars.example debe existir');
+  assert.ok(fs.existsSync(path.join(awsEnvPath, 'README.md')), 'AWS README.md debe existir como plantilla de referencia');
+
   // Roles Ansible
   const ansibleRoles = ['base_os', 'container_runtime', 'firewall', 'hardening', 'kubernetes_prerequisites'];
   for (const role of ansibleRoles) {
@@ -423,6 +437,62 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/prepare_hosts.yml')), 'prepare_hosts.yml debe existir');
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/validate_hosts.yml')), 'validate_hosts.yml debe existir');
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/requirements.yml')), 'requirements.yml debe existir');
+});
+
+test('🛡️ Helm Security: values.prod.yaml exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
+  const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+  assert.ok(fs.existsSync(prodValuesPath), 'values.prod.yaml debe existir');
+  const content = fs.readFileSync(prodValuesPath, 'utf-8');
+
+  assert.ok(content.includes('externalHttps: false'), 'values.prod.yaml debe deshabilitar externalHttps para evitar 0.0.0.0/0 abierto');
+  assert.ok(content.includes('ciliumNetworkPolicy:'), 'values.prod.yaml debe configurar ciliumNetworkPolicy');
+  assert.ok(content.includes('enabled: true'), 'values.prod.yaml debe habilitar ciliumNetworkPolicy');
+});
+
+test('🛡️ Tooling Security: scripts/seal-secret.ts implementa verificación de integridad SHA-256', async () => {
+  const scriptPath = path.join(ROOT_DIR, 'scripts/seal-secret.ts');
+  assert.ok(fs.existsSync(scriptPath), 'seal-secret.ts debe existir');
+  const content = fs.readFileSync(scriptPath, 'utf-8');
+
+  assert.ok(content.includes('verifyBinaryIntegrity'), 'Debe definir verifyBinaryIntegrity');
+  assert.ok(content.includes('KUBESEAL_SHA256'), 'Debe soportar KUBESEAL_SHA256');
+
+  const { verifyBinaryIntegrity } = await import('../../scripts/seal-secret.js');
+  assert.equal(verifyBinaryIntegrity(scriptPath, undefined), true, 'Sin hash esperado debe retornar true');
+
+  // Con hash inválido debe retornar false
+  assert.equal(verifyBinaryIntegrity(scriptPath, '0000000000000000000000000000000000000000000000000000000000000000'), false);
+});
+
+test('🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión', () => {
+  const policyPath = path.join(ROOT_DIR, 'infra/k8s/policies/pod-security-standards.yaml');
+  assert.ok(fs.existsSync(policyPath), 'pod-security-standards.yaml debe existir');
+  const content = fs.readFileSync(policyPath, 'utf-8');
+
+  assert.ok(content.includes('require-run-as-non-root'), 'Debe exigir runAsNonRoot');
+  assert.ok(content.includes('disallow-privileged-containers'), 'Debe prohibir contenedores privilegiados');
+  assert.ok(content.includes('require-readonly-rootfs'), 'Debe exigir readOnlyRootFilesystem');
+  assert.ok(content.includes('disallow-privilege-escalation'), 'Debe prohibir escalada de privilegios');
+  assert.ok(content.includes('require-drop-all-capabilities'), 'Debe exigir drop: [ALL]');
+});
+
+test('🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile mantienen paridad estructural', () => {
+  const rootDockerPath = path.join(ROOT_DIR, 'Dockerfile');
+  const backendDockerPath = path.join(ROOT_DIR, 'apps/backend/Dockerfile');
+
+  assert.ok(fs.existsSync(rootDockerPath), 'Dockerfile raíz debe existir');
+  assert.ok(fs.existsSync(backendDockerPath), 'apps/backend/Dockerfile debe existir');
+
+  // Filtrar líneas de comentarios de encabezado (líneas que empiezan con # antes del primer FROM)
+  const extractBody = (content: string) => {
+    const fromIndex = content.indexOf('FROM ');
+    return fromIndex !== -1 ? content.slice(fromIndex).trim() : content.trim();
+  };
+
+  const rootBody = extractBody(fs.readFileSync(rootDockerPath, 'utf-8'));
+  const backendBody = extractBody(fs.readFileSync(backendDockerPath, 'utf-8'));
+
+  assert.equal(rootBody, backendBody, 'El cuerpo de instrucciones de compilación y runtime entre Dockerfile y apps/backend/Dockerfile debe ser idéntico');
 });
 
 

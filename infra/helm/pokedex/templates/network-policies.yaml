@@ -119,7 +119,7 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.egressGateway.port | default 10000 }}
-    {{- else if and .Values.networkPolicies.egress (or .Values.networkPolicies.egress.externalHttps .Values.networkPolicies.egress.antiSsrf) }}
+    {{- else if and .Values.networkPolicies.egress .Values.networkPolicies.egress.externalHttps (not (and .Values.ciliumNetworkPolicy .Values.ciliumNetworkPolicy.enabled)) }}
     # Endurecido con Anti-SSRF: Bloquea endpoints de metadatos de nube y redes privadas RFC1918
     - to:
         - ipBlock:

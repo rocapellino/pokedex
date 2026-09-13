@@ -11,7 +11,7 @@
  *   npx tsx scripts/seal-secret.ts [--name <name>] [--namespace <ns>] [--output <path>]
  */
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -20,26 +20,58 @@ function generateRandomKey(length = 32): string {
   return randomBytes(length).toString('base64url');
 }
 
-function findKubesealBinary(): string {
+export function verifyBinaryIntegrity(binaryPath: string, expectedSha256?: string): boolean {
+  if (!expectedSha256) {
+    return true;
+  }
+  if (!fs.existsSync(binaryPath)) {
+    throw new Error(`El archivo binario '${binaryPath}' no existe.`);
+  }
+  const fileBuffer = fs.readFileSync(binaryPath);
+  const actualHash = createHash('sha256').update(fileBuffer).digest('hex');
+  if (actualHash.toLowerCase() !== expectedSha256.trim().toLowerCase()) {
+    console.error(`❌ Error de integridad: Checksum SHA-256 no coincide para '${binaryPath}'.`);
+    console.error(`   Esperado: ${expectedSha256.trim()}`);
+    console.error(`   Obtenido: ${actualHash}`);
+    return false;
+  }
+  console.log(`✅ Integridad criptográfica verificada para '${path.basename(binaryPath)}': ${actualHash}`);
+  return true;
+}
+
+export function findKubesealBinary(): string {
   const isWindows = process.platform === 'win32';
   const binName = isWindows ? 'kubeseal.exe' : 'kubeseal';
 
   // 1. Buscar en PATH del sistema
   const checkCmd = isWindows ? 'where' : 'which';
   const check = spawnSync(checkCmd, [binName], { encoding: 'utf-8' });
+  let selectedBin: string | null = null;
   if (check.status === 0 && check.stdout.trim()) {
-    return check.stdout.trim().split(/\r?\n/)[0];
+    selectedBin = check.stdout.trim().split(/\r?\n/)[0];
+  } else {
+    // 2. Buscar en .tools local del proyecto
+    const localTool = path.resolve(process.cwd(), '.tools', binName);
+    if (fs.existsSync(localTool)) {
+      selectedBin = localTool;
+    }
   }
 
-  // 2. Buscar en .tools local del proyecto
-  const localTool = path.resolve(process.cwd(), '.tools', binName);
-  if (fs.existsSync(localTool)) {
-    return localTool;
+  if (!selectedBin) {
+    console.error("❌ Error: 'kubeseal' no encontrado en el PATH ni en .tools/.");
+    console.error("   Descárgalo desde: https://github.com/bitnami-labs/sealed-secrets/releases");
+    process.exit(1);
   }
 
-  console.error("❌ Error: 'kubeseal' no encontrado en el PATH ni en .tools/.");
-  console.error("   Descárgalo desde: https://github.com/bitnami-labs/sealed-secrets/releases");
-  process.exit(1);
+  const expectedSha = process.env.KUBESEAL_SHA256;
+  if (expectedSha) {
+    const isValid = verifyBinaryIntegrity(selectedBin, expectedSha);
+    if (!isValid) {
+      process.exit(1);
+    }
+  }
+
+  return selectedBin;
 }
 
 export function main(): void {

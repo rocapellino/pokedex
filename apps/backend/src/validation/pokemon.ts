@@ -6,11 +6,12 @@
 import {
   PokemonPayloadSchema,
   validateImageUrl,
+  isPrivateOrRestrictedIp,
   SCRIPT_PATTERN,
 } from './schemas.js';
 import type { PokemonPayload } from './schemas.js';
 
-export { validateImageUrl, SCRIPT_PATTERN };
+export { validateImageUrl, isPrivateOrRestrictedIp, SCRIPT_PATTERN };
 export type { PokemonPayload };
 
 export interface ValidationResult {

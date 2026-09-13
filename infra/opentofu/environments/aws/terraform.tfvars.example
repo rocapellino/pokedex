@@ -1,0 +1,14 @@
+# ==============================================================================
+# Variables de Ejemplo para Despliegue en AWS EKS (Plantilla de Referencia)
+# ==============================================================================
+# Copie este archivo a terraform.tfvars e ingrese los identificadores de su VPC real:
+#   cp terraform.tfvars.example terraform.tfvars
+# ==============================================================================
+
+aws_region                           = "us-east-1"
+cluster_name                         = "pokedex-cloud-cluster"
+vpc_id                               = "vpc-0123456789abcdef0"
+subnet_ids                           = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
+control_plane_subnet_ids             = ["subnet-0123456789abcdef0", "subnet-0fedcba9876543210"]
+node_instance_types                  = ["t3.large"]
+cluster_endpoint_public_access_cidrs = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]

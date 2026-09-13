@@ -1,0 +1,89 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: pod-security-standards
+  annotations:
+    policies.kyverno.io/title: Pod Security Standards Restricted
+    policies.kyverno.io/category: Pod Security Standards (Restricted)
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Espeja los controles críticos de Kube-Linter en tiempo de admisión en el clúster:
+      exige runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation: false y
+      prohíbe contenedores privilegiados para garantizar el perfil Restricted de Kubernetes.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Los contenedores deben ejecutar como usuario no-root (securityContext.runAsNonRoot: true)."
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsNonRoot): true
+            containers:
+              - =(securityContext):
+                  =(runAsNonRoot): true
+
+    - name: disallow-privileged-containers
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Los contenedores privilegiados están estrictamente prohibidos (privileged: false)."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  privileged: "!true"
+
+    - name: disallow-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Se debe prohibir la escalada de privilegios (allowPrivilegeEscalation: false)."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+
+    - name: require-readonly-rootfs
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "El sistema de archivos raíz del contenedor debe ser de solo lectura (readOnlyRootFilesystem: true)."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  readOnlyRootFilesystem: true
+
+    - name: require-drop-all-capabilities
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Los contenedores deben descartar todas las capabilities de Linux (capabilities.drop: ['ALL'])."
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
