@@ -107,7 +107,7 @@ flowchart TD
 
 ## 4. Segmentación en Docker Compose
 
-En [`docker-compose.yml`](file:///docker-compose.yml) se definen tres redes aisladas:
+En [`docker-compose.yml`](../../docker-compose.yml) se definen tres redes aisladas:
 
 ```yaml
 networks:
@@ -130,7 +130,7 @@ networks:
 
 ## 5. Aislamiento en Kubernetes (`NetworkPolicies`)
 
-Implementado en [`infra/helm/pokedex/templates/network-policies.yaml`](file:///infra/helm/pokedex/templates/network-policies.yaml):
+Implementado en [`infra/helm/pokedex/templates/network-policies.yaml`](../../infra/helm/pokedex/templates/network-policies.yaml):
 
 ### 5.1. Denegación por Defecto (Default Deny)
 La política `default-deny-all-ingress` bloquea por defecto cualquier tráfico no explícitamente autorizado en el namespace de la aplicación.
@@ -196,7 +196,7 @@ flowchart LR
     KYVERNO -->|Imagen sin firma o workflow ajeno| REJECT["🚫 Pod Rechazado"]
 ```
 
-* **Política Kyverno:** Definida en [`infra/k8s/kyverno-cosign-policy.yaml`](file:///infra/k8s/kyverno-cosign-policy.yaml).
+* **Política Kyverno:** Definida en [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml).
 * **Modo `Enforce`:** Bloquea en tiempo de admisión cualquier intento de ejecutar una imagen que no haya sido firmada por el workflow oficial de GitHub Actions:
   * Emisor OIDC: `https://token.actions.githubusercontent.com`
   * Sujeto: `https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main`
@@ -236,8 +236,8 @@ El backend `server.ts` implementa principios de seguridad estricta para evitar e
 
 ## 9. Manejo Seguro de Secretos y Credenciales
 
-* **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](file:///.env.example).
-* **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) con reglas estrictas ([`.gitleaks.toml`](file:///.gitleaks.toml)).
+* **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](../../.env.example).
+* **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
 * **Desacoplamiento en Producción (`existingSecret` / External Secrets Operator):**
   * En entornos cloud o GitOps de producción, el Chart de Helm no renderiza objetos `Secret` con valores predeterminados.
   * Se enlaza a un Secret existente (`secrets.existingSecret: "pokedex-prod-secrets"`) o se sincroniza dinámicamente mediante el **External Secrets Operator** desde Vault, AWS Secrets Manager o GCP Secret Manager.

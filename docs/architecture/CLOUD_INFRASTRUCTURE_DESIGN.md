@@ -51,7 +51,7 @@ El principio rector del diseño de Pokédex es la **portabilidad absoluta del n�
 ### Principios de Aislamiento de Capas
 
 1. **Contratos Estándar CNCF:** La aplicación consume exclusivamente interfaces estándar de Kubernetes (>= 1.28): `Deployment`, `Service`, `Ingress`, `ConfigMap`, `Secret`, `HorizontalPodAutoscaler` y `PersistentVolumeClaim` mediante `storageClassName`.
-2. **Cero Vendor Lock-in en el Helm Chart:** El chart principal ([`infra/helm/pokedex`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/helm/pokedex)) no contiene anotaciones propietarias fijas de AWS o Proxmox. Cualquier ajuste específico de entorno se inyecta mediante capas de valores de GitOps (`values.yaml` para on-premises/local, `values.prod.yaml` para cloud).
+2. **Cero Vendor Lock-in en el Helm Chart:** El chart principal ([`infra/helm/pokedex`](../../infra/helm/pokedex)) no contiene anotaciones propietarias fijas de AWS o Proxmox. Cualquier ajuste específico de entorno se inyecta mediante capas de valores de GitOps (`values.yaml` para on-premises/local, `values.prod.yaml` para cloud).
 3. **Inmutabilidad de Imágenes de Contenedor:** Las imágenes OCI se compilan una sola vez en CI, se firman criptográficamente mediante Cosign (Sigstore) y se publican en GitHub Container Registry (`ghcr.io/rocapellino/pokedex`). La misma imagen binaria se ejecuta en local, Proxmox o AWS EKS.
 
 ---

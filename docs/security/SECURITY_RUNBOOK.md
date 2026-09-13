@@ -28,7 +28,7 @@ graph TD
     V --> PM[8. Post-mortem]
 ```
 
-1. **Detección**: Identificar la señal de compromiso a través de métricas (`pokedex_http_requests_total`, auth failures), logs de Kubernetes, alertas de Trivy/Semgrep o reportes externos vía [SECURITY.md](file:///c:/Users/Rodrigo/Documents/Git/pokedex/SECURITY.md).
+1. **Detección**: Identificar la señal de compromiso a través de métricas (`pokedex_http_requests_total`, auth failures), logs de Kubernetes, alertas de Trivy/Semgrep o reportes externos vía [SECURITY.md](../../SECURITY.md).
 2. **Contención**: Aislar pods o tráfico sospechoso mediante NetworkPolicies, revocación temporal de ingress o escalado a cero de servicios comprometidos.
 3. **Rotación**: Regenerar inmediatamente los secretos comprometidos en Kubernetes Secrets, Vault o variables de entorno de producción.
 4. **Revocación**: Invalidar tokens de sesión activos masiva o puntualmente en Redis.
@@ -172,6 +172,6 @@ graph TD
 
 ## 4. Contactos y Escalamiento
 
-- **Líder de Seguridad / Maintainer:** Equipo Pokédex Security ([SECURITY.md](file:///c:/Users/Rodrigo/Documents/Git/pokedex/SECURITY.md))
+- **Líder de Seguridad / Maintainer:** Equipo Pokédex Security ([SECURITY.md](../../SECURITY.md))
 - **Canal de Incidentes:** Issues confidenciales con etiqueta `security-incident` en GitHub.
 - **Canal de Auditoría Externa:** Reportes mediante GitHub Security Advisories privados.

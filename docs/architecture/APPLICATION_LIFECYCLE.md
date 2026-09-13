@@ -157,10 +157,10 @@ flowchart TD
 ### Fase 6: Despliegue GitOps y Control de Admisión (ArgoCD & Kyverno)
 
 * **ArgoCD** detecta los cambios en el directorio `gitops/`:
-  * **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox.yaml`](file:///gitops/apps/app-proxmox.yaml) aplicando `values.yaml` específicos.
-  * **Cloud Pública (AWS EKS)**: [`gitops/apps/app-cloud.yaml`](file:///gitops/apps/app-cloud.yaml) aplicando `values.prod.yaml`.
+  * **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) aplicando `values.yaml` específicos.
+  * **Cloud Pública (AWS EKS)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) aplicando `values.prod.yaml`.
 * **Control de Admisión con Kyverno:**
-  * La política de clúster [`infra/k8s/kyverno-cosign-policy.yaml`](file:///infra/k8s/kyverno-cosign-policy.yaml) intercepta la creación de Pods en modo `Enforce`.
+  * La política de clúster [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) intercepta la creación de Pods en modo `Enforce`.
   * Verifica que la imagen provenga de `ghcr.io/rocapellino/pokedex:*`, que esté firmada con el emisor OIDC `https://token.actions.githubusercontent.com` y que la identidad del workflow firmante sea exactamente `https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main`.
   * Cualquier imagen manipulada, sin firmar o construida fuera de `main` es rechazada inmediatamente en el API Server de Kubernetes.
 
@@ -168,6 +168,6 @@ flowchart TD
 
 * **Renovate Bot** (`renovate.json`) audita continuamente dependencias multi-gestor (`npm`, `dockerfile`, `helm-values`, `github-actions`, `opentofu`).
 * Agrupa parches de seguridad en PRs y aplica **automerge** automático una vez superados los Quality Gates.
-* Los workflows de automatización ([`dependabot-linear-sync.yml`](file:///.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](file:///.github/workflows/sonar-linear-sync.yml)) gestionan el ciclo completo del ticket en Linear:
+* Los workflows de automatización ([`dependabot-linear-sync.yml`](../../.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) gestionan el ciclo completo del ticket en Linear:
   * Al detectarse una alerta o PR de dependencias, se genera un ticket incremental (`PEX-X`) que notifica instantáneamente al canal de **Slack**.
   * Al mergearse o cerrarse el PR en GitHub, el ticket se transiciona a **Done** o **Canceled**, actualizando automáticamente el hilo en Slack y manteniendo el backlog y el canal limpios sin intervención manual.
