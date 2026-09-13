@@ -19,6 +19,7 @@ Plataforma de grado empresarial y portafolio DevSecOps que implementa una Pokéd
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Arquitectura del Sistema](#1-arquitectura-del-sistema)
 2. [Diagrama de Flujo de Componentes e Interacciones](#2-diagrama-de-flujo-de-componentes-e-interacciones)
 3. [Estructura del Monorepo](#3-estructura-del-monorepo)
@@ -223,7 +224,7 @@ flowchart TD
 | **`GET`** | `/pokemons/:id` | Pública | Ilimitado (ETag) | Obtiene detalle por ID nacional (1 - 1025+). Retorna `404` si no existe. |
 | **`POST`** | `/pokemons` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Crea Pokémon. Asigna ID secuencial atómico. Requiere DB activa (`503` en fallo). |
 | **`PUT`** | `/pokemons/:id` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Actualiza Pokémon por ID e invalida caché Redis. Sanitiza contra XSS (`422`). |
-| **`DELETE`**| `/pokemons/:id` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Elimina registro e invalida caché. Bloqueado en modo degradado (`503`). |
+| **`DELETE`** | `/pokemons/:id` | Bearer Token / `ADMIN_API_KEY` | 30 req/min | Elimina registro e invalida caché. Bloqueado en modo degradado (`503`). |
 | **`POST`** | `/api/v1/ai/diagram` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera diagrama de arquitectura Mermaid mediante Gemini 2.5 Flash. |
 | **`POST`** | `/api/v1/ai/mock` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera especificación JSON de interfaz para componentes web. |
 | **`POST`** | `/api/v1/ai/image` | `X-API-Key` o Bearer Token | 10/min, 200/día | Genera prompts o assets optimizados según aspecto (`1:1`, `16:9`, etc.). |
@@ -287,6 +288,7 @@ flowchart LR
 ## 6. Guía de Inicio Rápido
 
 ### Prerrequisitos
+
 * [Node.js 22 LTS](https://nodejs.org/) y npm 10+
 * [Docker](https://www.docker.com/) 24+ y Docker Compose
 * [Task](https://taskfile.dev/) (opcional, pero recomendado para automatización)
@@ -296,7 +298,9 @@ flowchart LR
 La plataforma ofrece dos perfiles de ejecución local según el objetivo de trabajo:
 
 #### Opción A — Perfil Rápido (Docker Compose)
+
 Ideal para desarrollo interactivo ágil y pruebas rápidas de componentes:
+
 ```bash
 # 1. Configurar variables de entorno desde la plantilla
 cp .env.example .env
@@ -308,11 +312,14 @@ task dev:compose   # o: docker compose up -d
 curl http://localhost:3000/readyz
 # Respuesta: {"status":"ready","database":"connected","redis":"connected"}
 ```
+
 Accede a la interfaz web en: **`http://localhost:8080`**  
 Accede al panel Backoffice en: **`http://localhost:8080/backoffice.html`**
 
 #### Opción B — Perfil Kubernetes Local (Kind + Helm)
+
 Ideal para validar el entorno idéntico a producción (Ingress, NetworkPolicies, Helm Hooks, Probes y RBAC):
+
 ```bash
 # 1. Crear clúster Kind local y desplegar Helm chart oficial
 task dev:k8s:up
@@ -325,6 +332,7 @@ task dev:k8s:down
 ```
 
 ### Comandos de Calidad y Pruebas con Taskfile
+
 ```bash
 # Instalar dependencias
 npm ci
@@ -384,4 +392,5 @@ Para profundizar en cada disciplina, consulta la documentación técnica especia
 ---
 
 ## 📄 Licencia
+
 Este proyecto está licenciado bajo los términos de la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
