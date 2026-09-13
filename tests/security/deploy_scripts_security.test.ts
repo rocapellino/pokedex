@@ -424,6 +424,15 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(awsEnvPath, 'terraform.tfvars.example')), 'AWS terraform.tfvars.example debe existir');
   assert.ok(fs.existsSync(path.join(awsEnvPath, 'README.md')), 'AWS README.md debe existir como plantilla de referencia');
 
+  // Entorno Cloud-Template Neutral (OpenTofu)
+  const cloudTemplatePath = path.join(ROOT_DIR, 'infra/opentofu/environments/cloud-template');
+  assert.ok(fs.existsSync(cloudTemplatePath), 'infra/opentofu/environments/cloud-template debe existir');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'main.tf')), 'cloud-template/main.tf debe existir');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'variables.tf')), 'cloud-template/variables.tf debe existir');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'outputs.tf')), 'cloud-template/outputs.tf debe existir');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'terraform.tfvars.example')), 'cloud-template/terraform.tfvars.example debe existir');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'README.md')), 'cloud-template/README.md debe existir');
+
   // Roles Ansible
   const ansibleRoles = ['base_os', 'container_runtime', 'firewall', 'hardening', 'kubernetes_prerequisites'];
   for (const role of ansibleRoles) {
@@ -437,6 +446,37 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/prepare_hosts.yml')), 'prepare_hosts.yml debe existir');
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/validate_hosts.yml')), 'validate_hosts.yml debe existir');
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/requirements.yml')), 'requirements.yml debe existir');
+});
+
+test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC', () => {
+  const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
+  assert.ok(fs.existsSync(toolVersionsPath), '.tool-versions debe existir en la raíz');
+  const content = fs.readFileSync(toolVersionsPath, 'utf-8');
+
+  assert.ok(content.includes('nodejs'), '.tool-versions debe fijar nodejs');
+  assert.ok(content.includes('opentofu'), '.tool-versions debe fijar opentofu');
+  assert.ok(content.includes('helm'), '.tool-versions debe fijar helm');
+  assert.ok(content.includes('kubectl'), '.tool-versions debe fijar kubectl');
+});
+
+test('🛡️ Dev DX & Resiliencia: Taskfile.yml parametriza MONITORING_DIR con precondiciones explícitas', () => {
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yml debe existir');
+  const content = fs.readFileSync(taskfilePath, 'utf-8');
+
+  assert.ok(content.includes('MONITORING_DIR:'), 'Taskfile.yml debe declarar la variable MONITORING_DIR');
+  assert.ok(content.includes('preconditions:'), 'Taskfile.yml debe incluir precondiciones en tareas de monitoreo');
+  assert.ok(content.includes('test -d'), 'Debe validar que el directorio de monitoreo existe antes de ejecutar');
+});
+
+test('🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos', () => {
+  const runtimeTaskPath = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yml');
+  assert.ok(fs.existsSync(runtimeTaskPath), 'container_runtime/tasks/main.yml debe existir');
+  const content = fs.readFileSync(runtimeTaskPath, 'utf-8');
+
+  assert.ok(content.includes('service_facts:'), 'Debe recolectar hechos de servicios del sistema');
+  assert.ok(content.includes('ansible.builtin.assert:'), 'Debe realizar aserción formal del servicio');
+  assert.ok(content.includes("ansible_facts.services['docker.service'].state == 'running'"), 'Debe validar que docker.service está running');
 });
 
 test('🛡️ Helm Security: values.prod.yaml exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {

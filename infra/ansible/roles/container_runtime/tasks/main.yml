@@ -50,3 +50,14 @@
   register: docker_info_check
   changed_when: false
   failed_when: docker_info_check.rc != 0
+
+- name: 8. Recolectar hechos de servicios del sistema
+  ansible.builtin.service_facts:
+
+- name: 9. Aserción formal de estado activo para el runtime de contenedores (Zero False Positives)
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.services['docker.service'] is defined
+      - ansible_facts.services['docker.service'].state == 'running'
+    fail_msg: "Fallo crítico: El servicio docker.service no está en ejecución en el host."
+    success_msg: "Verificación aprobada: El servicio docker.service se encuentra en estado running."

@@ -1,0 +1,4 @@
+nodejs 22.13.0
+opentofu 1.8.8
+helm 3.17.0
+kubectl 1.30.0

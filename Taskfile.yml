@@ -1,6 +1,9 @@
 # https://taskfile.dev
 version: '3'
 
+vars:
+  MONITORING_DIR: '{{.MONITORING_DIR | default "../docker_monitoreo"}}'
+
 tasks:
   default:
     desc: "Muestra la lista de tareas disponibles"
@@ -148,25 +151,37 @@ tasks:
 
   monitoring:up:
     desc: "Inicia el stack global de observabilidad (Prometheus, Grafana, Loki, cAdvisor)"
-    dir: ../docker_monitoreo
+    dir: '{{.MONITORING_DIR}}'
+    preconditions:
+      - sh: test -d '{{.MONITORING_DIR}}'
+        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
     cmds:
       - task up
 
   monitoring:down:
     desc: "Detiene el stack global de observabilidad"
-    dir: ../docker_monitoreo
+    dir: '{{.MONITORING_DIR}}'
+    preconditions:
+      - sh: test -d '{{.MONITORING_DIR}}'
+        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
     cmds:
       - task down
 
   monitoring:status:
     desc: "Muestra el estado y healthcheck de los servicios del stack de observabilidad"
-    dir: ../docker_monitoreo
+    dir: '{{.MONITORING_DIR}}'
+    preconditions:
+      - sh: test -d '{{.MONITORING_DIR}}'
+        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
     cmds:
       - task status
 
   monitoring:targets:
     desc: "Consulta los targets activos registrados en Prometheus"
-    dir: ../docker_monitoreo
+    dir: '{{.MONITORING_DIR}}'
+    preconditions:
+      - sh: test -d '{{.MONITORING_DIR}}'
+        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
     cmds:
       - task targets
 
