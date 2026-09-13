@@ -1,13 +1,13 @@
 # ==============================================================================
 # Dockerfile para Aplicación Web Frontend (Multi-Stage Build con Vite y Nginx)
 # ==============================================================================
-FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868 AS builder
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
 
 WORKDIR /app
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY apps/frontend/package*.json ./apps/frontend/
-RUN npm ci --ignore-scripts
+RUN npm ci --workspace=@pokedex/frontend --ignore-scripts
 
 COPY apps/frontend ./apps/frontend
 RUN npm run build --workspace=@pokedex/frontend
@@ -39,6 +39,7 @@ COPY apps/frontend/nginx.conf.template /etc/nginx/templates/default.conf.templat
 COPY --from=builder /app/apps/frontend/dist/ /usr/share/nginx/html/
 
 # Pre-renderizar configuración por defecto y ajustar permisos para usuario no privilegiado de Nginx
+# hadolint ignore=SC2016
 RUN envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
         < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && \
     chown -R nginx:nginx /usr/share/nginx/html && \
