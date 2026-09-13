@@ -927,16 +927,20 @@ app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Middleware Global de Manejo de Errores (Express Error Boundary)
 // ---------------------------------------------------------------------------
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+  const traceId = req.traceId || (req.headers['x-request-id'] as string) || undefined;
   logger.error('Error no controlado en el servidor Express', {
     error: err?.message || String(err),
     stack: err?.stack,
+    traceId,
   });
   if (res.headersSent) {
     return;
   }
   res.status(500).json({
     error: 'Error interno del servidor. La solicitud no pudo ser procesada de forma segura.',
+    code: 'INTERNAL_SERVER_ERROR',
+    requestId: traceId,
   });
 });
 

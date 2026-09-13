@@ -100,17 +100,25 @@ if [[ -f "${CHECKSUM_FILE}" ]]; then
     exit 1
   }
   echo "✅ [DR Verification] Integridad SHA-256 verificada con éxito."
+elif [[ "${DRY_RUN}" == "true" ]]; then
+  echo "⚠️ [DR Verification: Dry-Run] Archivo de checksum .sha256 no disponible en simulación. Continuando..."
 else
-  echo "⚠️ [DR Verification] Advertencia: Archivo de checksum .sha256 no disponible. Procediendo a verificación de descifrado."
+  echo "❌ [DR Verification] Fallo crítico: Archivo de checksum ${CHECKSUM_FILE} ausente. En producción se exige suma de comprobación SHA-256 obligatoria."
+  exit 1
 fi
 
 # 3. Prueba de descifrado seguro en directorio temporal aislado
 TMP_RESTORE_DIR=$(mktemp -d)
 EPHEMERAL_CONTAINER=""
+TEMP_RESTORE_DB=""
 CLEANUP() {
   if [[ -n "${EPHEMERAL_CONTAINER}" ]]; then
     echo "🧹 [DR Verification] Limpiando contenedor PostgreSQL efímero..."
     docker rm -f "${EPHEMERAL_CONTAINER}" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "${TEMP_RESTORE_DB}" && -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
+    echo "🧹 [DR Verification] Eliminando base de datos temporal aislada (${TEMP_RESTORE_DB})..."
+    psql "${DR_POSTGRES_URL}" -c "DROP DATABASE IF EXISTS ${TEMP_RESTORE_DB};" >/dev/null 2>&1 || true
   fi
   rm -rf "${TMP_RESTORE_DIR}"
 }
@@ -143,36 +151,51 @@ grep -qi "pokedex_entries" "${DECRYPTED_SQL}" || {
 
 # Caso A: Conexión PostgreSQL directa especificada mediante DR_POSTGRES_URL
 if [[ -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
-  echo "🐘 [DR Verification] Ejecutando restauración en base de datos PostgreSQL (${DR_POSTGRES_URL})..."
-  psql "${DR_POSTGRES_URL}" -v ON_ERROR_STOP=1 < "${DECRYPTED_SQL}"
+  # Salvaguarda de seguridad: Bloquear conexiones que apunten a producción sin confirmación explícita
+  if [[ "${DR_POSTGRES_URL}" =~ (prod|production) ]] && [[ "${ALLOW_PROD_RESTORE:-false}" != "true" ]]; then
+    echo "❌ [DR Verification] Salvaguarda de seguridad: DR_POSTGRES_URL apunta a un entorno productivo. Defina ALLOW_PROD_RESTORE=true para confirmar."
+    exit 1
+  fi
 
-  TABLE_EXISTS=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT to_regclass('public.pokedex_entries');")
+  TEMP_RESTORE_DB="pokedex_dr_verify_$$"
+  TARGET_PG_URL="${DR_POSTGRES_URL}"
+
+  # Intentar crear una base de datos efímera aislada para no afectar datos preexistentes
+  if psql "${DR_POSTGRES_URL}" -v ON_ERROR_STOP=0 -c "CREATE DATABASE ${TEMP_RESTORE_DB};" >/dev/null 2>&1; then
+    TARGET_PG_URL="${DR_POSTGRES_URL%/*}/${TEMP_RESTORE_DB}"
+    echo "🎯 [DR Verification] Base de datos temporal aislada creada: ${TEMP_RESTORE_DB}"
+  fi
+
+  echo "🐘 [DR Verification] Ejecutando restauración en PostgreSQL (${TARGET_PG_URL})..."
+  psql "${TARGET_PG_URL}" -v ON_ERROR_STOP=1 < "${DECRYPTED_SQL}"
+
+  TABLE_EXISTS=$(psql "${TARGET_PG_URL}" -tAc "SELECT to_regclass('public.pokedex_entries');")
   if [[ -z "${TABLE_EXISTS}" || "${TABLE_EXISTS}" == "null" ]]; then
     echo "❌ [DR Verification] Error: La tabla 'pokedex_entries' no fue creada en PostgreSQL."
     exit 1
   fi
 
-  ROW_COUNT=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM pokedex_entries;")
+  ROW_COUNT=$(psql "${TARGET_PG_URL}" -tAc "SELECT count(*) FROM pokedex_entries;")
   echo "📊 [DR Verification] Registros restaurados: ${ROW_COUNT}"
   if [[ "${ROW_COUNT}" -lt 1 ]]; then
     echo "❌ [DR Verification] Error: 'pokedex_entries' no contiene registros."
     exit 1
   fi
 
-  INDEXES=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
+  INDEXES=$(psql "${TARGET_PG_URL}" -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
   echo "🔑 [DR Verification] Índices detectados: ${INDEXES}"
 
-  PK_NAME=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT conname FROM pg_constraint WHERE conrelid = 'pokedex_entries'::regclass AND contype = 'p';")
+  PK_NAME=$(psql "${TARGET_PG_URL}" -tAc "SELECT conname FROM pg_constraint WHERE conrelid = 'pokedex_entries'::regclass AND contype = 'p';")
   echo "🔒 [DR Verification] Primary Key verificada: ${PK_NAME}"
 
-  SEQ_COUNT=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM pg_class WHERE relkind = 'S';")
+  SEQ_COUNT=$(psql "${TARGET_PG_URL}" -tAc "SELECT count(*) FROM pg_class WHERE relkind = 'S';")
   echo "🔢 [DR Verification] Secuencias verificadas: ${SEQ_COUNT}"
 
-  TOTAL_TABLES=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
+  TOTAL_TABLES=$(psql "${TARGET_PG_URL}" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
   echo "📑 [DR Verification] Total de tablas en esquema público: ${TOTAL_TABLES}"
 
   echo "🔎 [DR Verification] Consulta de verificación representativa:"
-  psql "${DR_POSTGRES_URL}" -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
+  psql "${TARGET_PG_URL}" -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
 
 # Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero con imagen inmutable fijada por digest
 elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
