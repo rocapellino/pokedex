@@ -824,7 +824,7 @@ test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Key
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-008-supply-chain-security.md'), 'docs/README.md debe enlazar ADR-008');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-008');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
 });
 
 test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
@@ -849,6 +849,40 @@ test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates config
   assert.ok(infraCiContent.includes('kind: PodDisruptionBudget'), 'infra.yml debe validar PodDisruptionBudget en prod');
   assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yml debe validar ResourceQuota en prod');
   assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yml debe validar LimitRange en prod');
+});
+
+test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista', () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-009-ai-resilience-and-contracts.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  assert.ok(fs.existsSync(adrPath), 'ADR-009 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-009 debe estar aceptado');
+  assert.ok(adrContent.includes('GoogleGenAI'), 'ADR-009 debe documentar SDK oficial @google/genai');
+  assert.ok(adrContent.includes('gemini-2.5-flash'), 'ADR-009 debe documentar modelo gemini-2.5-flash');
+  assert.ok(adrContent.includes('responseMimeType: \'application/json\''), 'ADR-009 debe documentar modo estructurado JSON');
+  assert.ok(adrContent.includes('AICircuitBreaker'), 'ADR-009 debe documentar patrón Circuit Breaker');
+  assert.ok(adrContent.includes('getSemanticCacheKey'), 'ADR-009 debe documentar caché semántica en Redis');
+  assert.ok(adrContent.includes('sanitizePrompt'), 'ADR-009 debe documentar sanitización contra prompt injection');
+  assert.ok(adrContent.includes('getDeterministicDiagram'), 'ADR-009 debe documentar fallback determinista local');
+  assert.ok(adrContent.includes('pokedex_ai_circuit_breaker_open'), 'ADR-009 debe documentar métricas de observabilidad en /metrics');
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'README.md debe enlazar ADR-009');
+
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'docs/README.md debe enlazar ADR-009');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009');
+
+  // Validar que los 9 ADRs existen físicamente en disco
+  for (let i = 1; i <= 9; i++) {
+    const num = String(i).padStart(3, '0');
+    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
+    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  }
 });
 
 
