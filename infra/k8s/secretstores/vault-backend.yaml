@@ -1,0 +1,20 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: vault-backend
+  labels:
+    app.kubernetes.io/name: pokedex
+    app.kubernetes.io/component: secrets-management
+spec:
+  provider:
+    vault:
+      server: "https://vault.internal.lan:8200"
+      path: "secret"
+      version: "v2"
+      auth:
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "pokedex-role"
+          serviceAccountRef:
+            name: external-secrets-sa
+            namespace: external-secrets

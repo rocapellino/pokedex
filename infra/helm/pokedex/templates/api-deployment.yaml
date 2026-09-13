@@ -40,6 +40,10 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
     app: pokemon-api
+  {{- with .Values.api.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not .Values.api.autoscaling.enabled }}
   replicas: {{ .Values.api.replicaCount }}
@@ -53,6 +57,10 @@ spec:
         app: pokemon-api
         app.kubernetes.io/component: api
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
+      {{- with .Values.api.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       automountServiceAccountToken: false
       securityContext:

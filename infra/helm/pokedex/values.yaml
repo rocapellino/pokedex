@@ -50,6 +50,8 @@ api:
   env:
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
     otelEndpoint: "http://tempo:4317"
+  deploymentAnnotations: {}
+  podAnnotations: {}
 
 # ------------------------------------------------------------------------------
 # 2. Frontend Web (Nginx + Reverse Proxy)
@@ -237,11 +239,20 @@ externalSecrets:
   enabled: false
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
+  annotations: {}
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
     key: "pokedex/production"
+  # data: []       # Lista explícita de campos (opcional, por defecto usa las credenciales estándar)
+  # dataFrom: []   # Extracción masiva (ej. - extract: { key: "pokedex/production" })
+  secretStore:
+    create: false
+    kind: "SecretStore" # "SecretStore" o "ClusterSecretStore"
+    name: ""
+    annotations: {}
+    provider: {}
 
 # ------------------------------------------------------------------------------
 # 8. Políticas de Seguridad Zero-Trust y Resiliencia

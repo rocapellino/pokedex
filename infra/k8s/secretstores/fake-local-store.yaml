@@ -1,0 +1,24 @@
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: fake-local-store
+  namespace: pokemon-app
+  labels:
+    app.kubernetes.io/name: pokedex
+    app.kubernetes.io/component: secrets-management
+spec:
+  provider:
+    fake:
+      data:
+        - key: "pokedex/production"
+          version: "v1"
+          valueMap:
+            POSTGRES_PASSWORD: "local-insecure-pg-password"
+            ADMIN_API_KEY: "pokedex-super-admin-entropy-key-change-me"
+            ADMIN_SESSION_SECRET: "pokedex-internal-hmac-session-secret-entropy"
+            REDIS_PASSWORD: "local-insecure-redis-password"
+            REDIS_URL: "redis://:local-insecure-redis-password@pokemon-redis-svc:6379"
+            DATABASE_URL: "postgresql://pokedex_app:local-insecure-pg-password@pokemon-postgres-svc:5432/pokedex_db"
+            AI_API_KEY: "mock-ai-api-key"
+            GEMINI_API_KEY: "mock-gemini-api-key"
+            BACKUP_ENCRYPTION_KEY: "local-mock-dr-backup-encryption-key"

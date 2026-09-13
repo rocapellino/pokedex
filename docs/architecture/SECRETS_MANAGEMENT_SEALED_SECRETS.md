@@ -5,11 +5,12 @@ Este documento describe la arquitectura, herramientas y estándares implementado
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Estrategia de Secretos en Entornos Locales (`.env.example`)](#1-estrategia-de-secretos-en-entornos-locales-envexample)
 2. [Prevención y Detección de Fugas con Gitleaks (CI/CD)](#2-prevención-y-detección-de-fugas-con-gitleaks-cicd)
 3. [Estrategia Híbrida de Secretos en Kubernetes](#3-estrategia-híbrida-de-secretos-en-kubernetes)
-   * [3.1. Enfoque Cloud Enterprise: External Secrets Operator (ESO) & `existingSecret`](#31-enfoque-cloud-enterprise-external-secrets-operator-eso--existingsecret)
-   * [3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets](#32-enfoque-on-premise--gitops-bitnami-sealed-secrets)
+   - [3.1. Enfoque Cloud Enterprise: External Secrets Operator (ESO) & `existingSecret`](#31-enfoque-cloud-enterprise-external-secrets-operator-eso--existingsecret)
+   - [3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets](#32-enfoque-on-premise--gitops-bitnami-sealed-secrets)
 4. [Helper de Resolución Dinámica en Helm (`pokedex.secretName`)](#4-helper-de-resolución-dinámica-en-helm-pokedexsecretname)
 5. [Flujo de Trabajo Operativo para Desarrolladores](#5-flujo-de-trabajo-operativo-para-desarrolladores)
 
@@ -17,17 +18,18 @@ Este documento describe la arquitectura, herramientas y estándares implementado
 
 ## 1. Estrategia de Secretos en Entornos Locales (`.env.example`)
 
-* **Regla de Oro:** Ningún archivo `.env` con credenciales reales debe commitearse en Git.
-* **Plantilla Versionada:** El repositorio incluye [`.env.example`](../../.env.example) con la estructura de variables y valores por defecto para desarrollo local.
-* **Variables Críticas Obligatorias:**
-  * `ADMIN_API_KEY`: Clave administrativa requerida para operaciones de mutación directa y generación de tokens.
-  * `ADMIN_SESSION_SECRET`: Secreto criptográfico independiente y obligatorio para firma y verificación de tokens HMAC SHA-256 de sesión.
-  * `AI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Google Gemini 2.5 Flash).
-  * `DATABASE_URL` / `POSTGRES_PASSWORD`: Credenciales de persistencia ACID.
-  * `REDIS_PASSWORD`: Credenciales de acceso a la caché y rate limiter.
-* **Protección en `.gitignore`:** Reglas estrictas ignoran `.env`, `.env.*`, claves privadas (`*.pem`, `*.key`) y certificados.
+- **Regla de Oro:** Ningún archivo `.env` con credenciales reales debe commitearse en Git.
+- **Plantilla Versionada:** El repositorio incluye [`.env.example`](../../.env.example) con la estructura de variables y valores por defecto para desarrollo local.
+- **Variables Críticas Obligatorias:**
+  - `ADMIN_API_KEY`: Clave administrativa requerida para operaciones de mutación directa y generación de tokens.
+  - `ADMIN_SESSION_SECRET`: Secreto criptográfico independiente y obligatorio para firma y verificación de tokens HMAC SHA-256 de sesión.
+  - `AI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Google Gemini 2.5 Flash).
+  - `DATABASE_URL` / `POSTGRES_PASSWORD`: Credenciales de persistencia ACID.
+  - `REDIS_PASSWORD`: Credenciales de acceso a la caché y rate limiter.
+- **Protección en `.gitignore`:** Reglas estrictas ignoran `.env`, `.env.*`, claves privadas (`*.pem`, `*.key`) y certificados.
 
-### Uso con Docker Compose:
+### Uso con Docker Compose
+
 ```bash
 # Crear el archivo local a partir de la plantilla:
 cp .env.example .env
@@ -43,13 +45,13 @@ docker compose up -d
 Para garantizar que ningún desarrollador comitee accidentalmente tokens, API keys o contraseñas:
 
 1. **Configuración de Reglas ([`.gitleaks.toml`](../../.gitleaks.toml)):**
-   * Activa detección de entropía y patrones conocidos (AWS, GitHub Tokens, Postgres, Gemini API Keys, etc.).
-   * Allowlist estricta para ejemplos (`.env.example`), documentación y mocks de pruebas unitarias.
+   - Activa detección de entropía y patrones conocidos (AWS, GitHub Tokens, Postgres, Gemini API Keys, etc.).
+   - Allowlist estricta para ejemplos (`.env.example`), documentación y mocks de pruebas unitarias.
 2. **Hooks de Pre-Commit ([`.pre-commit-config.yaml`](../../.pre-commit-config.yaml)):**
-   * Escaneo automático antes de registrar cualquier commit en la máquina del desarrollador.
+   - Escaneo automático antes de registrar cualquier commit en la máquina del desarrollador.
 3. **Pipeline de CI/CD ([`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml)):**
-   * Se ejecuta en cada `push` y `pull_request` analizando el historial completo de commits (`fetch-depth: 0`).
-   * Bloquea de manera intransigente el merge del PR si detecta cualquier credencial expuesta.
+   - Se ejecuta en cada `push` y `pull_request` analizando el historial completo de commits (`fetch-depth: 0`).
+   - Bloquea de manera intransigente el merge del PR si detecta cualquier credencial expuesta.
 
 ---
 
@@ -58,6 +60,7 @@ Para garantizar que ningún desarrollador comitee accidentalmente tokens, API ke
 En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no constituye cifrado**. El proyecto soporta dos modelos enterprise según el entorno de despliegue:
 
 ### 3.1. Enfoque Cloud Enterprise: External Secrets Operator (ESO) & `existingSecret`
+
 Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privadas con HashiCorp Vault:
 
 ```text
@@ -71,22 +74,52 @@ Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privada
                          │ (Genera Secret en memoria k8s)
                          ▼
          ┌───────────────────────────────┐
-         │ K8s Secret: pokedex-prod-secrets
+         │ K8s Secret: pokemon-secrets   │
          └───────────────┬───────────────┘
                          │ (Montado como env/secretKeyRef)
                          ▼
           [ Pods: pokemon-api, postgres, redis ]
 ```
 
-* **Desacoplamiento en Helm:** En `values.prod.yaml`, se define:
+- **Desacoplamiento en Helm:** En entornos productivos (`gitops/environments/aws/values.yaml` y `gitops/environments/proxmox/values.yaml`), se define:
+
   ```yaml
   secrets:
-    existingSecret: "pokedex-prod-secrets"
+    existingSecret: "pokemon-secrets"
+
+  externalSecrets:
+    enabled: true
+    refreshInterval: "1h"
+    targetSecretName: "pokemon-secrets"
+    secretStoreRef:
+      name: "aws-secrets-manager" # o "vault-backend"
+      kind: "ClusterSecretStore"
+    remoteRef:
+      key: "pokedex/production"
   ```
-  Esto instruye a Helm a **no generar ningún recurso `kind: Secret`** en el clúster, impidiendo el paso de credenciales en flags de línea de comandos (`--set`) o en repositorios GitOps.
-* **Manifiesto de ExternalSecret:** Parametrizado en `infra/helm/pokedex/templates/externalsecret.yaml` (`external-secrets.io/v1beta1`) para sincronizar automáticamente secretos desde el `SecretStore` configurado.
+
+  Esto instruye a Helm a **no generar ningún recurso `kind: Secret` estático**, delegando la creación y rotación de credenciales al operador.
+
+- **Manifiesto de ExternalSecret:** Parametrizado en `infra/helm/pokedex/templates/externalsecret.yaml` (`external-secrets.io/v1beta1`) para mapear automáticamente todas las variables requeridas por la aplicación (`DATABASE_URL`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `REDIS_URL`, `ADMIN_API_KEY`, `ADMIN_SESSION_SECRET`, `AI_API_KEY`, `GEMINI_API_KEY`, `BACKUP_ENCRYPTION_KEY`).
+
+- **Rotación Zero-Downtime con Stakater Reloader:**
+  Para evitar que los pods queden desactualizados al rotar credenciales en el proveedor externo, los Deployments incluyen la anotación de [Stakater Reloader](https://github.com/stakater/Reloader):
+
+  ```yaml
+  api:
+    deploymentAnnotations:
+      reloader.stakater.com/auto: "true"
+  ```
+
+  Cuando ESO actualiza el recurso `v1/Secret`, Reloader detecta la mutación y ejecuta automáticamente un *rolling upgrade* ordenado de los Pods.
+
+- **Manifiestos de Referencia (`infra/k8s/secretstores/`):**
+  - [`aws-secrets-manager.yaml`](../../infra/k8s/secretstores/aws-secrets-manager.yaml): Conexión hacia AWS Secrets Manager utilizando IAM Roles for Service Accounts (IRSA).
+  - [`vault-backend.yaml`](../../infra/k8s/secretstores/vault-backend.yaml): Conexión hacia HashiCorp Vault utilizando Kubernetes ServiceAccount token authentication.
+  - [`fake-local-store.yaml`](../../infra/k8s/secretstores/fake-local-store.yaml): Proveedor simulado para validaciones y pruebas locales sobre Kind o CI.
 
 ### 3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets
+
 Para clústeres bare-metal o entornos Proxmox VE sin acceso a gestores de secretos cloud:
 
 ```text
@@ -134,10 +167,12 @@ garantizando que en producción nunca se renderice un Secret en blanco ni se sob
 
 ## 5. Flujo de Trabajo Operativo para Desarrolladores
 
-### 5.1. Para Despliegues Locales / Desarrollo:
+### 5.1. Para Despliegues Locales / Desarrollo
+
 Helm genera el secreto por defecto `pokemon-secrets` con valores autogenerados o provistos en `values.yaml`.
 
-### 5.2. Para Sellar Secretos con Sealed Secrets (Proxmox):
+### 5.2. Para Sellar Secretos con Sealed Secrets (Proxmox)
+
 ```bash
 # Vía Taskfile:
 task secrets:seal
@@ -146,7 +181,8 @@ task secrets:seal
 python scripts/seal_secret.py --name pokemon-secrets --namespace pokemon-app
 ```
 
-### 5.3. Para Producción con Secret Pre-creado:
+### 5.3. Para Producción con Secret Pre-creado
+
 ```bash
 # Crear el secret en Kubernetes de forma segura mediante archivo temporal o kubectl:
 kubectl create secret generic pokedex-prod-secrets \
