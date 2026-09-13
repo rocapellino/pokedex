@@ -8,9 +8,9 @@ tasks:
       - task --list
 
   install:
-    desc: "Instala dependencias del servicio Node.js y TypeScript"
+    desc: "Instala dependencias del monorepo de forma limpia y reproducible con npm ci"
     cmds:
-      - npm install
+      - npm ci
 
   dev:
     desc: "Inicia el servidor Pokédex Full-Stack en modo desarrollo con recarga automática"
@@ -18,14 +18,24 @@ tasks:
       - npm run dev
 
   build:
-    desc: "Compila y empaqueta el servidor TypeScript con esbuild"
+    desc: "Compila y empaqueta el servidor TypeScript con esbuild y el frontend con Vite"
     cmds:
       - npm run build
 
+  typecheck:
+    desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
+    cmds:
+      - npm run typecheck
+
   lint:
-    desc: "Ejecuta la verificación de tipos con TypeScript (tsc --noEmit)"
+    desc: "Ejecuta linting y validación de tipos en backend, frontend y raíz"
     cmds:
       - npm run lint
+
+  validate:
+    desc: "Ejecuta todas las validaciones obligatorias del proyecto (lint, typecheck, build, test, fuzzing)"
+    cmds:
+      - npm run validate
 
   test:
     desc: "Ejecuta las pruebas unitarias y validaciones de tipos"
@@ -61,7 +71,7 @@ tasks:
   sonar:
     desc: "Ejecuta SonarScanner localmente mediante contenedor Docker"
     cmds:
-      - docker run --rm -v "${PWD}:/usr/src" -e SONAR_TOKEN="${SONAR_TOKEN}" sonarsource/sonar-scanner-cli:latest
+      - docker run --rm -v "${PWD}:/usr/src" -e SONAR_TOKEN="${SONAR_TOKEN}" sonarsource/sonar-scanner-cli:11.2.0
 
 
   audit:
@@ -98,6 +108,13 @@ tasks:
     cmds:
       - docker compose down
 
+  dev:verify:
+    desc: "Valida la disponibilidad de los servicios locales (healthz, readyz y frontend Web)"
+    cmds:
+      - curl --fail -s http://localhost:3000/healthz || echo "Backend liveness no responde"
+      - curl --fail -s http://localhost:3000/readyz || echo "Backend readiness no responde"
+      - curl --fail -s http://localhost:8080 || echo "Frontend Web Nginx no responde"
+
   dev:k8s:up:
     desc: "Perfil Kubernetes: Crea clúster Kind local y despliega Helm chart idéntico a producción"
     cmds:
@@ -119,13 +136,13 @@ tasks:
       - kubectl get pods,svc,ingress -n pokemon-app -o wide
 
   docker:up:
-    desc: "Levanta todos los servicios con Docker Compose (Alias de dev:compose)"
+    desc: "[Alias compatibilidad] Levanta stack de desarrollo interactivo (usa dev:compose)"
     deps: [network]
     cmds:
       - task: dev:compose
 
   docker:down:
-    desc: "Detiene todos los contenedores de Docker Compose (Alias de dev:compose:down)"
+    desc: "[Alias compatibilidad] Detiene stack interactivo de Docker Compose (usa dev:compose:down)"
     cmds:
       - task: dev:compose:down
 
@@ -165,12 +182,22 @@ tasks:
   gitops:sync:proxmox:
     desc: "Sincroniza la aplicación ArgoCD para el entorno on-premise Proxmox"
     cmds:
-      - argocd app sync pokedex-proxmox || echo "Usando manifiesto directo..." && kubectl apply -f gitops/apps/app-proxmox.yaml
+      - argocd app sync pokedex-proxmox
+
+  gitops:bootstrap:proxmox:
+    desc: "[Bootstrap/Emergencia] Aplica directamente el manifiesto de Application de ArgoCD en Proxmox"
+    cmds:
+      - kubectl apply -f gitops/apps/app-proxmox.yaml
 
   gitops:sync:cloud:
     desc: "Sincroniza la aplicación ArgoCD para el entorno público Cloud (AWS EKS)"
     cmds:
-      - argocd app sync pokedex-cloud || echo "Usando manifiesto directo..." && kubectl apply -f gitops/apps/app-cloud.yaml
+      - argocd app sync pokedex-cloud
+
+  gitops:bootstrap:cloud:
+    desc: "[Bootstrap/Emergencia] Aplica directamente el manifiesto de Application de ArgoCD en Cloud"
+    cmds:
+      - kubectl apply -f gitops/apps/app-cloud.yaml
 
   gitops:status:
     desc: "Consulta el estado de sincronización y salud de las aplicaciones ArgoCD"
@@ -196,7 +223,7 @@ tasks:
       - kubectl get pods,svc,hpa,ingress -n pokemon-app
 
   k8s:seed:
-    desc: "Dispara el Job de siembra masiva de Pokémon en Kubernetes"
+    desc: "[Dev/Bootstrap] Ejecuta el Job idempotente de siembra masiva de Pokémon en Kubernetes"
     cmds:
       - kubectl delete job pokedex-db-seed -n pokemon-app --ignore-not-found
       - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
@@ -317,30 +344,30 @@ tasks:
       - tofu -chdir=infra/opentofu/environments/aws validate
 
   # ----------------------------------------------------------------------------
-  # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK)
+  # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK - Aliases de Compatibilidad)
   # ----------------------------------------------------------------------------
   ts:install:
-    desc: "Instala dependencias de Node.js / TypeScript con npm"
+    desc: "[Alias compatibilidad] Instala dependencias con npm ci (usa install)"
     cmds:
-      - npm install
+      - npm ci
 
   ts:dev:
-    desc: "Inicia el servidor Express TypeScript con recarga rápida (tsx)"
+    desc: "[Alias compatibilidad] Inicia el servidor Express con recarga rápida (usa dev)"
     cmds:
       - npm run dev
 
   ts:build:
-    desc: "Compila el bundle de producción del servidor TypeScript (esbuild)"
+    desc: "[Alias compatibilidad] Compila el bundle de producción (usa build)"
     cmds:
       - npm run build
 
   ts:start:
-    desc: "Ejecuta el bundle de producción compilado (dist/server.cjs)"
+    desc: "[Alias compatibilidad] Ejecuta el bundle de producción compilado"
     cmds:
       - npm start
 
   ts:lint:
-    desc: "Verifica tipos de TypeScript sin emitir código (tsc --noEmit)"
+    desc: "[Alias compatibilidad] Verifica tipos y linting (usa lint)"
     cmds:
       - npm run lint
 
