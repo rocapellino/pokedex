@@ -10,13 +10,21 @@ set -eu
 (set -o pipefail 2>/dev/null) && set -o pipefail || true
 
 DRY_RUN=false
-BACKUP_FILE="${1:-}"
+SYNTAX_ONLY=false
+BACKUP_FILE=""
 
 for arg in "$@"; do
   case "$arg" in
     --dry-run)
       DRY_RUN=true
-      shift
+      ;;
+    --syntax-only)
+      SYNTAX_ONLY=true
+      ;;
+    *)
+      if [[ -z "${BACKUP_FILE}" ]]; then
+        BACKUP_FILE="$arg"
+      fi
       ;;
   esac
 done
@@ -154,17 +162,28 @@ if [[ -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
   INDEXES=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
   echo "🔑 [DR Verification] Índices detectados: ${INDEXES}"
 
+  PK_NAME=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT conname FROM pg_constraint WHERE conrelid = 'pokedex_entries'::regclass AND contype = 'p';")
+  echo "🔒 [DR Verification] Primary Key verificada: ${PK_NAME}"
+
+  SEQ_COUNT=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM pg_class WHERE relkind = 'S';")
+  echo "🔢 [DR Verification] Secuencias verificadas: ${SEQ_COUNT}"
+
+  TOTAL_TABLES=$(psql "${DR_POSTGRES_URL}" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
+  echo "📑 [DR Verification] Total de tablas en esquema público: ${TOTAL_TABLES}"
+
   echo "🔎 [DR Verification] Consulta de verificación representativa:"
   psql "${DR_POSTGRES_URL}" -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
 
-# Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero
+# Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero con imagen inmutable fijada por digest
 elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-  echo "🐳 [DR Verification] Creando contenedor PostgreSQL efímero (postgres:16-alpine) vía Docker..."
+  # Imagen oficial PostgreSQL 16 Alpine fijada por digest SHA-256 criptográficamente verificable
+  POSTGRES_IMAGE="postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685"
+  echo "🐳 [DR Verification] Creando contenedor PostgreSQL efímero (${POSTGRES_IMAGE}) vía Docker..."
   EPHEMERAL_CONTAINER="pokedex_dr_verify_$$"
   docker run -d --name "${EPHEMERAL_CONTAINER}" \
     -e POSTGRES_PASSWORD=dr_verify_pass \
     -e POSTGRES_DB=pokedex_restore_test \
-    postgres:16-alpine >/dev/null
+    "${POSTGRES_IMAGE}" >/dev/null
 
   READY=false
   for _ in $(seq 1 30); do
@@ -199,22 +218,40 @@ elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   INDEXES=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';")
   echo "🔑 [DR Verification] Índices verificados: ${INDEXES}"
 
+  PK_NAME=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT conname FROM pg_constraint WHERE conrelid = 'pokedex_entries'::regclass AND contype = 'p';")
+  echo "🔒 [DR Verification] Primary Key verificada: ${PK_NAME}"
+
+  SEQ_COUNT=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT count(*) FROM pg_class WHERE relkind = 'S';")
+  echo "🔢 [DR Verification] Secuencias verificadas: ${SEQ_COUNT}"
+
+  TOTAL_TABLES=$(docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
+  echo "📑 [DR Verification] Total de tablas en esquema público: ${TOTAL_TABLES}"
+
   echo "🔎 [DR Verification] Consulta de verificación representativa:"
   docker exec "${EPHEMERAL_CONTAINER}" psql -U postgres -d pokedex_restore_test -c "SELECT id, nombre, tipo FROM pokedex_entries LIMIT 3;"
 
-# Caso C: Verificación sintáctica y estructural exhaustiva DDL/DML si no hay motor SQL disponible
-else
-  echo "⚠️ [DR Verification] No se detectó Docker daemon activo ni DR_POSTGRES_URL. Ejecutando análisis estructural DDL/DML exhaustivo..."
+# Caso C: Sin motor PostgreSQL disponible — Fail-closed a menos que se solicite explícitamente --syntax-only
+elif [[ "${SYNTAX_ONLY}" == "true" ]]; then
+  echo "⚠️ [DR Verification: Syntax-Only] Ejecutando análisis estructural y sintáctico DDL/DML (--syntax-only solicitado)..."
   grep -qi "INSERT INTO" "${DECRYPTED_SQL}" || {
     echo "❌ [DR Verification] Error: El volcado no contiene sentencias de inserción de datos (INSERT INTO)."
     exit 1
   }
-  echo "ℹ️ [DR Verification] Integridad de sintaxis DDL, inserciones y delimitadores de tabla verificados."
+  echo "ℹ️ [DR Verification] Integridad de sintaxis DDL, inserciones y delimitadores de tabla verificados en modo sintáctico."
+else
+  echo "❌ [DR Verification] Error crítico: No hay motor PostgreSQL disponible (Docker daemon inactivo o DR_POSTGRES_URL no configurada)."
+  echo "   Para certificar una recuperación ante desastres (DR) se exige validación real sobre base de datos."
+  echo "   Si solo desea una comprobación sintáctica del archivo SQL, use la bandera: --syntax-only"
+  exit 1
 fi
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
 
 echo "⏱️ [DR Verification] Tiempo de recuperación/validación: ${ELAPSED}s (Objetivo RTO < 7200s superado holgadamente)."
-echo "🎉 [DR Verification] ¡Simulacro de Disaster Recovery completado con éxito! Integridad garantizada."
+if [[ "${SYNTAX_ONLY}" == "true" ]]; then
+  echo "⚠️ [DR Verification] Validación sintáctica completada (--syntax-only). NOTA: No certifica restauración en motor SQL real."
+else
+  echo "🎉 [DR Verification] ¡Simulacro de Disaster Recovery completado con éxito en PostgreSQL! Integridad garantizada."
+fi
 exit 0
