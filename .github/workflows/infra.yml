@@ -153,6 +153,8 @@ jobs:
             --set web.image.repository=pokedex-web \
             --set web.image.tag=local \
             --set web.image.pullPolicy=Never \
+            --set api.service.type=NodePort \
+            --set api.service.nodePort=30000 \
             --set postgresql.persistence.enabled=false \
             --set postgresql.auth.password=ci-canonical-test-pass \
             --set secrets.adminApiKey=ci-canonical-test-admin-key \
@@ -187,9 +189,14 @@ jobs:
           echo "=== PODS EN CLUSTER ==="
           kubectl get pods,svc,netpol -n pokemon-app -o wide
           
-          echo "=== TEST DIRECTO VIA PORT-FORWARD ==="
-          kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000 &
-          sleep 4
+          echo "=== TEST DIRECTO VIA KIND NODEPORT ==="
+          for i in $(seq 1 10); do
+            if curl -s -f http://127.0.0.1:3000/healthz > /dev/null; then
+              break
+            fi
+            echo "Aguardando endpoint... reintento $i"
+            sleep 2
+          done
           curl -f http://127.0.0.1:3000/healthz || { echo "❌ Endpoint /healthz falló"; exit 1; }
           curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
           echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
