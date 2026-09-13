@@ -679,6 +679,20 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
     alertsContent.includes('http_request_duration_seconds_bucket'),
     'alerts.yml debe calcular percentil P99 con http_request_duration_seconds_bucket'
   );
+
+  // Coherencia con disyuntor de IA (Gemini)
+  assert.ok(
+    serverContent.includes('pokedex_ai_circuit_breaker_open'),
+    'server.ts debe exponer pokedex_ai_circuit_breaker_open'
+  );
+  assert.ok(
+    alertsContent.includes('PokedexAICircuitBreakerOpen'),
+    'alerts.yml debe definir alerta PokedexAICircuitBreakerOpen'
+  );
+  assert.ok(
+    alertsContent.includes('pokedex_ai_circuit_breaker_open == 1'),
+    'alerts.yml debe evaluar condición de circuito de IA abierto'
+  );
 });
 
 test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad', () => {

@@ -5,7 +5,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { Pokemon } from './src/types.js';
-import { generateDiagram, generateMockup, generateImage } from './src/services/ai.js';
+import { generateDiagram, generateMockup, generateImage, aiCircuitBreaker } from './src/services/ai.js';
 import {
   initStorage,
   getAllPokemons,
@@ -603,6 +603,14 @@ app.get('/metrics', (_req: Request, res: Response) => {
     '# HELP pokedex_degraded_mode Indicador de modo degradado (1 = activo, 0 = normal).',
     '# TYPE pokedex_degraded_mode gauge',
     `pokedex_degraded_mode ${degradedMode}`,
+    '',
+    '# HELP pokedex_ai_circuit_breaker_open Estado del disyuntor de llamadas a Gemini (1 = circuito abierto/fallback, 0 = cerrado/operativo).',
+    '# TYPE pokedex_ai_circuit_breaker_open gauge',
+    `pokedex_ai_circuit_breaker_open ${aiCircuitBreaker.isOpen() ? 1 : 0}`,
+    '',
+    '# HELP pokedex_ai_circuit_breaker_failures Fallos acumulados consecutivos registrados por el disyuntor de IA.',
+    '# TYPE pokedex_ai_circuit_breaker_failures gauge',
+    `pokedex_ai_circuit_breaker_failures ${aiCircuitBreaker.getFailureCount()}`,
     '',
     '# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas por endpoint y estado.',
     '# TYPE pokedex_http_requests_total counter',

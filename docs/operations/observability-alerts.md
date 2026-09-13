@@ -15,6 +15,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexHighLatencyP99** | `warning` | `histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2.0` | Percentil 99 de tiempo de respuesta superior a 2 segundos sostenidos. |
 | **PokedexHpaMaxReplicasReached** | `warning` | `kube_hpa_status_current_replicas >= kube_hpa_spec_max_replicas` | Autoescalador al límite máximo de réplicas durante más de 15 minutos. |
 | **PokedexContainerRestartLoop** | `critical` | `increase(kube_pod_container_status_restarts_total[15m]) > 2` | Contenedores reiniciándose en bucle (CrashLoopBackOff u OOMKilled). |
+| **PokedexAICircuitBreakerOpen** | `warning` | `pokedex_ai_circuit_breaker_open == 1` | Disyuntor de llamadas a Gemini abierto por fallos consecutivos; servicio opera con fallback heurístico local. |
 
 ---
 
@@ -92,3 +93,18 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 2. **Acciones de Remediación**:
    - Si el motivo es `OOMKilled`: incrementar límites de memoria en el Helm Chart (`resources.limits.memory`).
    - Si el motivo es `Error`: revisar logs previos con `kubectl logs -n pokemon-app <POD_NAME> --previous`.
+
+### 3.7. PokedexAICircuitBreakerOpen
+1. **Inspección de Métricas y Estado del Disyuntor**:
+   ```bash
+   curl -s http://<API_URL>/metrics | grep pokedex_ai_circuit_breaker
+   ```
+2. **Revisión de Logs del Servicio de IA**:
+   ```bash
+   kubectl logs -n pokemon-app -l app=pokemon-api --tail=100 | grep -i 'AI Service'
+   ```
+3. **Causas Raíz y Acciones de Remediación**:
+   - **Cuota Excedida o Error 429**: Comprobar límites de tasa en Google AI Studio para el modelo Gemini 2.5 Flash.
+   - **Credenciales Inválidas**: Verificar que `GEMINI_API_KEY` o `AI_API_KEY` no hayan sido revocadas o rotadas incorrectamente.
+   - **Aislamiento de Red / Egress Bloqueado**: Comprobar que `CiliumNetworkPolicy` o el `egress-gateway` permitan tráfico HTTPS saliente hacia `generativelanguage.googleapis.com:443`.
+   - **Comportamiento Esperado**: El backend protege la estabilidad de la plataforma respondiendo con diagramas y mockups en fallback heurístico local sin bloquear peticiones de usuarios ni degradar la disponibilidad del catálogo. El disyuntor intentará reabrirse automáticamente (estado `HALF_OPEN`) tras el período de enfriamiento (`cooldownMs: 30000`).

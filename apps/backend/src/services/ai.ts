@@ -74,6 +74,14 @@ export class AICircuitBreaker {
     this.failureCount = 0;
     this.lastFailureTime = 0;
   }
+
+  getFailureCount(): number {
+    return this.failureCount;
+  }
+
+  isOpen(): boolean {
+    return this.getState() === 'OPEN';
+  }
 }
 
 export const aiCircuitBreaker = new AICircuitBreaker();
