@@ -39,24 +39,24 @@ Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una 
 
 Al iniciar la plataforma en el entorno local, los servicios quedan disponibles en:
 
-* **Interfaz Web (Catálogo)**: `http://localhost:8080`
-* **Panel de Administración (Backoffice)**: `http://localhost:8080/backoffice.html`
-* **API REST Backend**: `http://localhost:3000`
-* **Healthcheck de Preparación**: `http://localhost:3000/readyz`
-* **Métricas Prometheus**: `http://localhost:3000/metrics`
-* **Portal de Documentación**: [docs/README.md](docs/README.md)
+- **Interfaz Web (Catálogo)**: `http://localhost:8080`
+- **Panel de Administración (Backoffice)**: `http://localhost:8080/backoffice.html`
+- **API REST Backend**: `http://localhost:3000`
+- **Healthcheck de Preparación**: `http://localhost:3000/readyz`
+- **Métricas Prometheus**: `http://localhost:3000/metrics`
+- **Portal de Documentación**: [docs/README.md](docs/README.md)
 
 ---
 
 ## Características Principales
 
-* **Catálogo Completo**: Visualización, filtrado por tipo y búsqueda de los 1.025 Pokémon oficiales.
-* **API REST Tipada**: Construida con Node.js 22, Express y TypeScript, con esquemas y migraciones declarativas gestionadas mediante Drizzle ORM.
-* **Persistencia y Caché**: Almacenamiento relacional ACID en PostgreSQL 16 y aceleración en memoria con Redis 7 para rate limiting y gestión de sesiones revocables.
-* **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
-* **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*) y fallback local heurístico.
-* **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
-* **Despliegue Declarativo**: Helm Chart v3 parametrizado, políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
+- **Catálogo Completo**: Visualización, filtrado por tipo y búsqueda de los 1.025 Pokémon oficiales.
+- **API REST Tipada**: Construida con Node.js 22, Express y TypeScript, con esquemas y migraciones declarativas gestionadas mediante Drizzle ORM.
+- **Persistencia y Caché**: Almacenamiento relacional ACID en PostgreSQL 16 y aceleración en memoria con Redis 7 para rate limiting y gestión de sesiones revocables.
+- **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
+- **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*) y fallback local heurístico.
+- **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
+- **Despliegue Declarativo**: Helm Chart v3 parametrizado, políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
 
 ---
 
@@ -89,10 +89,10 @@ Para una descripción exhaustiva de la arquitectura, flujos de datos y contratos
 
 Para ejecutar y colaborar en el proyecto se requiere:
 
-* [Node.js](https://nodejs.org/) 22 LTS y npm 10+
-* [Docker](https://www.docker.com/) 24+ y Docker Compose v2
-* [Task](https://taskfile.dev/) (recomendado como ejecutor de tareas unificado)
-* [Helm](https://helm.sh/) 3.17+ y [Kind](https://kind.sigs.k8s.io/) (opcional, para validación sobre Kubernetes local)
+- [Node.js](https://nodejs.org/) 22 LTS y npm 10+
+- [Docker](https://www.docker.com/) 24+ y Docker Compose v2
+- [Task](https://taskfile.dev/) (recomendado como ejecutor de tareas unificado)
+- [Helm](https://helm.sh/) 3.17+ y [Kind](https://kind.sigs.k8s.io/) (opcional, para validación sobre Kubernetes local)
 
 ---
 
@@ -205,8 +205,8 @@ Las variables de entorno se definen en el archivo `.env` tomando como base [`.en
 
 La API expone endpoints para la consulta pública y la administración autenticada del catálogo.
 
-* **URL Base en desarrollo**: `http://localhost:3000`
-* **Especificación detallada de contratos**: [docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md)
+- **URL Base en desarrollo**: `http://localhost:3000`
+- **Especificación detallada de contratos**: [docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md)
 
 ### Endpoints Principales
 
@@ -256,11 +256,12 @@ npm run test:fuzz
 ```
 
 En integración continua (GitHub Actions), cada Pull Request debe superar satisfactoriamente:
-* **Pruebas Unitarias y de Integración**: Pruebas con el Node Test Runner nativo sobre servicios, API y validaciones.
-* **Seguridad SAST**: Semgrep y GitHub CodeQL analizando reglas OWASP Top 10.
-* **Seguridad SCA & Secretos**: Gitleaks contra filtración de credenciales y Dependency Review para bloqueo de dependencias vulnerables.
-* **Seguridad IaC**: Checkov escaneando Dockerfiles, Helm charts y manifiestos de OpenTofu.
-* **Integración Canónica en Kind**: Despliegue real del Helm chart en clúster efímero validando Pods, Ingress y probes.
+
+- **Pruebas Unitarias y de Integración**: Pruebas con el Node Test Runner nativo sobre servicios, API y validaciones.
+- **Seguridad SAST**: Semgrep y GitHub CodeQL analizando reglas OWASP Top 10.
+- **Seguridad SCA & Secretos**: Gitleaks contra filtración de credenciales y Dependency Review para bloqueo de dependencias vulnerables.
+- **Seguridad IaC**: Checkov escaneando Dockerfiles, Helm charts y manifiestos de OpenTofu.
+- **Integración Canónica en Kind**: Despliegue real del Helm chart en clúster efímero validando Pods, Ingress y probes.
 
 ---
 
@@ -288,9 +289,9 @@ La plataforma diferencia claramente los propósitos de cada entorno de ejecució
 
 El sistema está instrumentado para integrarse con stacks de observabilidad estándar (Prometheus, Grafana y Loki):
 
-* **Métricas**: Expuestas en `/metrics` mediante el cliente nativo de Prometheus (latencias HTTP por ruta, códigos de estado, uso de memoria, etc.).
-* **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis).
-* **Logs Estructurados**: Salida estándar en formato JSON con inyección y propagación de `X-Request-Id` para trazabilidad de solicitudes de extremo a extremo.
+- **Métricas**: Expuestas en `/metrics` mediante el cliente nativo de Prometheus (latencias HTTP por ruta, códigos de estado, uso de memoria, etc.).
+- **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis).
+- **Logs Estructurados**: Salida estándar en formato JSON con inyección y propagación de `X-Request-Id` para trazabilidad de solicitudes de extremo a extremo.
 
 ---
 
@@ -298,8 +299,8 @@ El sistema está instrumentado para integrarse con stacks de observabilidad est�
 
 La estrategia de respaldo y recuperación ante desastres contempla:
 
-* Respaldos periódicos de PostgreSQL generados con compresión gzip y cifrado simétrico AES-256-CBC con PBKDF2 y checksum SHA-256.
-* Script de validación automatizado ([`scripts/dr_verify_restore.sh`](scripts/dr_verify_restore.sh)) que efectúa restauraciones de prueba en un contenedor PostgreSQL efímero aislado fijado por digest (`postgres:16-alpine@sha256:...`), comprobando integridad de esquemas, Primary Keys, secuencias y recuento de registros bajo política estricta *fail-closed*.
+- Respaldos periódicos de PostgreSQL generados con compresión gzip y cifrado simétrico AES-256-CBC con PBKDF2 y checksum SHA-256.
+- Script de validación automatizado ([`scripts/dr_verify_restore.sh`](scripts/dr_verify_restore.sh)) que efectúa restauraciones de prueba en un contenedor PostgreSQL efímero aislado fijado por digest (`postgres:16-alpine@sha256:...`), comprobando integridad de esquemas, Primary Keys, secuencias y recuento de registros bajo política estricta *fail-closed*.
 
 Para consultar los procedimientos paso a paso y la arquitectura de respaldo, revisa el [Plan de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md).
 
@@ -309,10 +310,10 @@ Para consultar los procedimientos paso a paso y la arquitectura de respaldo, rev
 
 La seguridad está integrada en todas las capas del ciclo de vida:
 
-* **Supply Chain Security**: Las imágenes OCI publicadas en GitHub Packages son firmadas criptográficamente con **Cosign** (modo keyless con Sigstore OIDC) y cuentan con atestaciones de SBOM en formato CycloneDX y SLSA Provenance.
-* **Control de Admisión**: En Kubernetes, políticas de **Kyverno** verifican la firma de las imágenes antes de autorizar la creación de Pods.
-* **Network Isolation**: Políticas de red Zero-Trust (Default-Deny Egress) en PostgreSQL y Redis, y bloqueo anti-SSRF hacia metadatos de nube (`169.254.169.254/32`).
-* **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo.
+- **Supply Chain Security**: Las imágenes OCI publicadas en GitHub Packages son firmadas criptográficamente con **Cosign** (modo keyless con Sigstore OIDC) y cuentan con atestaciones de SBOM en formato CycloneDX y SLSA Provenance.
+- **Control de Admisión**: En Kubernetes, políticas de **Kyverno** verifican la firma de las imágenes antes de autorizar la creación de Pods.
+- **Network Isolation**: Políticas de red Zero-Trust (Default-Deny Egress) en PostgreSQL y Redis, y bloqueo anti-SSRF hacia metadatos de nube (`169.254.169.254/32`).
+- **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo.
 
 Para conocer el procedimiento de divulgación responsable o reportar una vulnerabilidad, consulta [SECURITY.md](SECURITY.md).
 
@@ -354,19 +355,19 @@ Para conocer el procedimiento de divulgación responsable o reportar una vulnera
 
 La documentación técnica detallada se encuentra organizada en el directorio [`docs/`](docs/):
 
-* 📚 [Índice General de Documentación](docs/README.md)
-* 📡 [Especificación de Contratos de la API REST](docs/api/API_SPECIFICATION.md)
-* 🔄 [Ciclo de Vida de la Aplicación y SDLC](docs/architecture/APPLICATION_LIFECYCLE.md)
-* 🛡️ [Seguridad, DMZ y Aislamiento de Red](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md)
-* 📊 [Análisis de Base de Datos y Caché](docs/architecture/DATABASE_ANALYSIS.md)
-* ☁️ [Diseño de Infraestructura Cloud y GitOps](docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
-* ☸️ [Escalabilidad y Resiliencia en Kubernetes](docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)
-* 🤖 [Guía de Workflows de CI/CD](docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
-* 🛠️ [Catálogo de Herramientas y Stack Tecnológico](docs/devops/TOOLS_AND_TECH_STACK.md)
-* ⎈ [Manual de Despliegue con Helm 3 y ArgoCD](docs/runbooks/HELM_DEPLOYMENT_GUIDE.md)
-* 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
-* 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
-* 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
+- 📚 [Índice General de Documentación](docs/README.md)
+- 📡 [Especificación de Contratos de la API REST](docs/api/API_SPECIFICATION.md)
+- 🔄 [Ciclo de Vida de la Aplicación y SDLC](docs/architecture/APPLICATION_LIFECYCLE.md)
+- 🛡️ [Seguridad, DMZ y Aislamiento de Red](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md)
+- 📊 [Análisis de Base de Datos y Caché](docs/architecture/DATABASE_ANALYSIS.md)
+- ☁️ [Diseño de Infraestructura Cloud y GitOps](docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md)
+- ☸️ [Escalabilidad y Resiliencia en Kubernetes](docs/architecture/KUBERNETES_SCALING_ANALYSIS.md)
+- 🤖 [Guía de Workflows de CI/CD](docs/devops/GITHUB_WORKFLOWS_GUIDE.md)
+- 🛠️ [Catálogo de Herramientas y Stack Tecnológico](docs/devops/TOOLS_AND_TECH_STACK.md)
+- ⎈ [Manual de Despliegue con Helm 3 y ArgoCD](docs/runbooks/HELM_DEPLOYMENT_GUIDE.md)
+- 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
+- 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
+- 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
 
 ---
 
@@ -376,10 +377,12 @@ Para proponer cambios en el proyecto:
 
 1. Crea una rama descriptiva a partir de `main` (`feature/nombre-mejora` o `fix/descripcion-error`).
 2. Implementa tus cambios asegurando que las pruebas y el linter se ejecuten sin fallos:
+
    ```bash
    npm run lint
    npm test
    ```
+
 3. Realiza commits con formato convencional (`feat: ...`, `fix: ...`, `docs: ...`).
 4. Abre un Pull Request hacia `main`. Todos los checks automáticos de seguridad y calidad deben completarse en verde antes de la integración.
 
