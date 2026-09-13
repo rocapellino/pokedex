@@ -45,7 +45,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-012"]
+    ADR --> AD1["📐 ADR-001 a ADR-013"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -133,6 +133,7 @@ flowchart TD
 * 📐 [**ADR-010**](./decisions/ADR-010-authentication-and-session-management.md): Arquitectura de Autenticación, Gestión de Sesiones Criptográficas y Revocación Distribuida Fail-Closed.
 * 📐 [**ADR-011**](./decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md): Estrategia de Persistencia Relacional, Migraciones Declarativas con Drizzle ORM y Connection Pooling con PgBouncer.
 * 📐 [**ADR-012**](./decisions/ADR-012-iac-state-management-and-encryption.md): Estrategia de Gestión de Estados IaC, Bloqueo de Concurrencia y Cifrado en Cliente con OpenTofu.
+* 📐 [**ADR-013**](./decisions/ADR-013-zero-trust-network-architecture.md): Arquitectura de Red Zero-Trust, Microsegmentación en 4 Capas y Filtrado Egress Anti-SSRF y FQDN.
 
 ---
 
