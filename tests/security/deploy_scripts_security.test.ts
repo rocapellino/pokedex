@@ -626,3 +626,77 @@ test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupue
     'Debe definir presupuesto mínimo para accessibility'
   );
 });
+
+test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yml', () => {
+  const serverPath = path.join(ROOT_DIR, 'apps/backend/server.ts');
+  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yml');
+
+  assert.ok(fs.existsSync(serverPath), 'server.ts debe existir');
+  assert.ok(fs.existsSync(alertsPath), 'alerts.yml debe existir');
+
+  const serverContent = fs.readFileSync(serverPath, 'utf-8');
+  const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
+
+  // Coherencia con alertas de estado de infraestructura
+  assert.ok(
+    serverContent.includes('pokedex_storage_status'),
+    'server.ts debe exponer pokedex_storage_status'
+  );
+  assert.ok(
+    alertsContent.includes('pokedex_storage_status == 0'),
+    'alerts.yml debe monitorear desconexión de base de datos'
+  );
+
+  assert.ok(
+    serverContent.includes('pokedex_redis_status'),
+    'server.ts debe exponer pokedex_redis_status'
+  );
+  assert.ok(
+    alertsContent.includes('pokedex_redis_status == 0'),
+    'alerts.yml debe monitorear desconexión de Redis'
+  );
+
+  // Coherencia con métricas estándar HTTP y latencia
+  assert.ok(
+    serverContent.includes('http_requests_total'),
+    'server.ts debe exponer http_requests_total estándar'
+  );
+  assert.ok(
+    alertsContent.includes('http_requests_total'),
+    'alerts.yml debe evaluar tasa de errores sobre http_requests_total'
+  );
+
+  assert.ok(
+    serverContent.includes('http_request_duration_seconds_bucket'),
+    'server.ts debe exponer buckets de histograma para duración de requests'
+  );
+  assert.ok(
+    alertsContent.includes('http_request_duration_seconds_bucket'),
+    'alerts.yml debe calcular percentil P99 con http_request_duration_seconds_bucket'
+  );
+});
+
+test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad', () => {
+  const serviceMonitorPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/servicemonitor.yaml');
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-007-observability-and-metrics.md');
+  const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
+  const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+
+  assert.ok(fs.existsSync(serviceMonitorPath), 'servicemonitor.yaml debe existir en Helm');
+  assert.ok(fs.existsSync(adrPath), 'ADR-007 debe existir en docs/decisions/');
+
+  const smContent = fs.readFileSync(serviceMonitorPath, 'utf-8');
+  assert.ok(smContent.includes('kind: ServiceMonitor'), 'Debe definir tipo ServiceMonitor');
+  assert.ok(smContent.includes('apiVersion: monitoring.coreos.com/v1'), 'Debe usar apiVersion monitoring.coreos.com/v1');
+  assert.ok(smContent.includes('path: /metrics'), 'Debe apuntar a /metrics');
+
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+  assert.ok(adrContent.includes('## Estado\nAceptado'), 'ADR-007 debe estar aceptado');
+
+  const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
+  assert.ok(valuesContent.includes('serviceMonitor:'), 'values.yaml debe declarar serviceMonitor');
+
+  const valuesProdContent = fs.readFileSync(valuesProdPath, 'utf-8');
+  assert.ok(valuesProdContent.includes('enabled: true'), 'values.prod.yaml debe tener serviceMonitor habilitado');
+});
+

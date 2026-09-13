@@ -360,4 +360,15 @@ backup:
     region: "us-east-1"
     secretName: "" # Secreto que contiene credenciales AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY
 
+# ------------------------------------------------------------------------------
+# 12. Monitoreo & Observabilidad (Prometheus Operator / ServiceMonitor)
+# ------------------------------------------------------------------------------
+monitoring:
+  serviceMonitor:
+    enabled: false
+    interval: "15s"
+    scrapeTimeout: "10s"
+    additionalLabels: {}
+
+
 

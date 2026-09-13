@@ -1,0 +1,23 @@
+{{- if and .Values.monitoring .Values.monitoring.serviceMonitor .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "pokedex.fullname" . }}-api
+  labels:
+    app: pokemon-api
+    app.kubernetes.io/component: api
+    {{- include "pokedex.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: pokemon-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval | default "15s" | quote }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout | default "10s" | quote }}
+      scheme: http
+{{- end }}

@@ -157,4 +157,13 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: "15s"
+    scrapeTimeout: "10s"
+    additionalLabels:
+      release: prometheus-stack
+
+
 
