@@ -457,6 +457,18 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   assert.ok(content.includes('opentofu'), '.tool-versions debe fijar opentofu');
   assert.ok(content.includes('helm'), '.tool-versions debe fijar helm');
   assert.ok(content.includes('kubectl'), '.tool-versions debe fijar kubectl');
+  assert.ok(content.includes('ansible-core'), '.tool-versions debe fijar ansible-core');
+
+  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yml'), 'utf-8');
+  assert.ok(
+    infraWorkflow.includes('--only-binary :all:'),
+    'infra.yml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables'
+  );
+  assert.match(
+    infraWorkflow,
+    /ansible-core==\d+\.\d+\.\d+/,
+    'infra.yml debe fijar la versión exacta de ansible-core'
+  );
 });
 
 test('🛡️ Dev DX & Resiliencia: Taskfile.yml parametriza MONITORING_DIR con precondiciones explícitas', () => {
