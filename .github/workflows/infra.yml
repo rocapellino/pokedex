@@ -57,6 +57,7 @@ jobs:
           grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
           grep -q "app.kubernetes.io/component: egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta componente egress-gateway"; exit 1; }
           grep -q "pokedex-egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta Service/Deployment de Egress Gateway"; exit 1; }
+          grep -q "kind: ServiceMonitor" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ServiceMonitor en prod"; exit 1; }
           
           # Prohibir estrictamente el tag :latest en producción
           if grep -E 'image:.*:latest' /tmp/rendered-prod.yaml; then
@@ -224,5 +225,7 @@ jobs:
           done
           curl -f http://127.0.0.1:3000/healthz || { echo "❌ Endpoint /healthz falló"; exit 1; }
           curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds" || { echo "❌ Endpoint /metrics falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status" || { echo "❌ Endpoint /metrics sin storage_status"; exit 1; }
           echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
 
