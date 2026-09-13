@@ -705,3 +705,54 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
   assert.ok(valuesProdContent.includes('enabled: true'), 'values.prod.yaml debe tener serviceMonitor habilitado');
 });
 
+test('🛡️ CI Tooling Parity: infra.yml mantiene paridad estricta de versión de Helm en todos sus jobs', () => {
+  const infraWorkflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+  const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
+
+  assert.ok(fs.existsSync(infraWorkflowPath), 'infra.yml debe existir');
+  assert.ok(fs.existsSync(toolVersionsPath), '.tool-versions debe existir');
+
+  const infraContent = fs.readFileSync(infraWorkflowPath, 'utf-8');
+  const toolVersionsContent = fs.readFileSync(toolVersionsPath, 'utf-8');
+
+  // Extraer versión de Helm esperada de .tool-versions (ej. 3.17.0)
+  const helmVersionMatch = toolVersionsContent.match(/helm\s+(\S+)/);
+  assert.ok(helmVersionMatch, 'Debe encontrarse versión de Helm en .tool-versions');
+  const expectedHelmVersion = `v${helmVersionMatch[1]}`;
+
+  // Extraer todas las versiones configuradas para setup-helm en infra.yml
+  const configuredVersions = Array.from(infraContent.matchAll(/version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
+  assert.ok(configuredVersions.length >= 2, 'infra.yml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
+
+  for (const ver of configuredVersions) {
+    assert.equal(
+      ver,
+      expectedHelmVersion,
+      `Cada job de infra.yml debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
+    );
+  }
+});
+
+test('🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yml', () => {
+  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yml');
+  const runbookPath = path.join(ROOT_DIR, 'docs/operations/observability-alerts.md');
+
+  assert.ok(fs.existsSync(alertsPath), 'alerts.yml debe existir');
+  assert.ok(fs.existsSync(runbookPath), 'observability-alerts.md debe existir');
+
+  const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
+  const runbookContent = fs.readFileSync(runbookPath, 'utf-8');
+
+  // Extraer nombres de alertas de alerts.yml
+  const alertMatches = Array.from(alertsContent.matchAll(/alert:\s*([A-Za-z0-9_-]+)/g)).map(m => m[1]);
+  assert.ok(alertMatches.length > 0, 'alerts.yml debe contener al menos una alerta');
+
+  for (const alertName of alertMatches) {
+    assert.ok(
+      runbookContent.includes(alertName),
+      `El runbook de observabilidad debe documentar el procedimiento de respuesta para la alerta ${alertName}`
+    );
+  }
+});
+
+
