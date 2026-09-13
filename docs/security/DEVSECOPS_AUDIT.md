@@ -59,7 +59,7 @@ El repositorio supera los estándares habituales de la industria incorporando de
 | Ámbito de Mejora | Solución Propuesta | Horizonte Temporal | Impacto en la Plataforma |
 | :--- | :--- | :---: | :--- |
 | **Hardening de Cabeceras** | Cobertura total de CSP, HSTS y Permissions-Policy en Nginx y Express | Implementado | Protección contra Clickjacking, MIME sniffing y omisión de Ingress en port-forward. |
-| **Gestión de Estados IaC** | Backend remoto cifrado (S3 / OpenTofu HTTP / PG) | Inmediato | Protección absoluta de secretos y sincronización de infraestructura. |
+| **Gestión de Estados IaC** | Backend remoto cifrado (S3 / OpenTofu HTTP / PG) y cifrado client-side AES-GCM (formalizado en [ADR-012](../decisions/ADR-012-iac-state-management-and-encryption.md)) | Implementado | Protección absoluta de secretos, bloqueo distribuido y prevención de colisiones en CI. |
 | **Resiliencia en IA** | Circuit Breaker con degradación y delimitadores de prompt | Implementado | Prevención de saturación de hilos y blindaje anti-inyecciones. |
 | **Telemetría** | Instrumentación de logs JSON estructurados correlacionados con Pino | Implementado | Diagnóstico distribuido y observabilidad con X-Request-Id. |
 | **Validación de Datos (XSS)** | Validación tipada declarativa con esquemas Zod + DOMPurify en frontend | Implementado | Tipado estricto en runtime y neutralización de vectores XSS/Prototype Pollution. |
