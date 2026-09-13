@@ -27,7 +27,9 @@
     content: |
       overlay
       br_netfilter
-    mode: '0644'
+    owner: root
+    group: root
+    mode: '0600'
 
 - name: 5. Configurar parámetros sysctl para CRI y networking de Kubernetes
   ansible.posix.sysctl:

@@ -440,6 +440,16 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
     assert.ok(fs.existsSync(roleTask), `Role task ${role}/tasks/main.yml debe existir`);
   }
 
+  // Hardening de permisos en kubernetes_prerequisites
+  const k8sPrereqsContent = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/ansible/roles/kubernetes_prerequisites/tasks/main.yml'),
+    'utf-8'
+  );
+  assert.ok(
+    k8sPrereqsContent.includes("mode: '0600'"),
+    'kubernetes_prerequisites debe configurar permisos restrictivos 0600 en /etc/modules-load.d/k8s.conf'
+  );
+
   // Inventarios y playbooks Ansible
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml')), 'Inventario Proxmox YAML debe existir');
   assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yml')), 'Inventario Lab YAML debe existir');
