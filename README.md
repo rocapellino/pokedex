@@ -70,6 +70,31 @@ La arquitectura está construida bajo los principios de **Separación de Respons
                 └──────────────────────────────────────────────────┘
 ```
 
+### 1.1 Matriz de Estado y Madurez de Componentes
+
+Para garantizar la total coherencia entre la documentación técnica y la ejecución efectiva en el repositorio, la siguiente matriz clasifica el estado oficial de cada componente, su rol arquitectónico y su entorno de aplicación:
+
+| Componente / Tecnología | Ámbito / Entorno | Estado Oficial | Justificación Técnica & Ubicación |
+| :--- | :--- | :--- | :--- |
+| **Kubernetes Productivo** | Producción | **Oficial** | Runtime exclusivo para producción en Proxmox VE (on-premise) y AWS EKS (cloud). Despliegues inmutables. |
+| **Helm Chart 3** | Producción / CI | **Oficial** | Empaquetado y parametrización declarativa en [`infra/helm/pokedex`](file:///infra/helm/pokedex). Validado con Kubeconform y Kube-linter. |
+| **ArgoCD GitOps** | Producción | **Oficial** | Despliegue continuo declarativo vía [`gitops/apps`](file:///gitops/apps) y [`gitops/environments`](file:///gitops/environments). |
+| **OpenTofu** | Infraestructura Multi-Cloud | **Oficial** | Aprovisionamiento declarativo en [`infra/opentofu`](file:///infra/opentofu). Herramienta canónica (Terraform completamente retirado). |
+| **Ansible Host Baseline** | Aprovisionamiento de Nodos | **Oficial para Hosts** | Configuración base del SO, UFW, módulos de kernel y Docker en [`infra/ansible/playbooks/host_baseline.yml`](file:///infra/ansible/playbooks/host_baseline.yml). Sin `ignore_errors`. |
+| **Docker Compose** | Desarrollo Local | **Desarrollo / DX** | Perfil interactivo de desarrollo ágil ([`docker-compose.yml`](file:///docker-compose.yml)). Estrictamente prohibido en producción. |
+| **Playbooks Compose Legacy** (`deploy_proxmox.yml`, `deploy_app.yml`) | Producción | **Retirados / Deprecados** | Eliminados formalmente del repositorio en favor del flujo GitOps con ArgoCD y Helm. Verificado en tests de regresión. |
+| **Restore PostgreSQL Real (DR)** | Disaster Recovery | **Implementado / Oficial** | Verificación no destructiva en PostgreSQL real (efímero por digest SHA-256 o remoto) vía [`scripts/dr_verify_restore.sh`](file:///scripts/dr_verify_restore.sh). Fail-closed si no hay motor SQL disponible. |
+| **Backup Off-Site** | Disaster Recovery | **En Transición / Runbook** | Backups locales cifrados con AES-256 en PVC con protocolo de replicación 3-2-1 documentado en [`DISASTER_RECOVERY_PLAN.md`](file:///docs/runbooks/DISASTER_RECOVERY_PLAN.md). |
+| **SLSA Provenance & Cosign** | Supply Chain / CI/CD | **Implementado / Oficial** | Firma keyless Cosign, atestación de SBOM CycloneDX y SLSA Provenance por digest inmutable en [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml). |
+| **Pruebas Canónicas en Kind** | Integración Continua (CI) | **Oficial en CI** | Clúster Kind efímero ejecutando validación real de Helm, Ingress, Pods y healthchecks en [`.github/workflows/infra.yml`](file:///.github/workflows/infra.yml). |
+
+### 1.2 Taxonomía de Entornos
+
+* **Producción (`prod`)**: Runtime Kubernetes gestionado exclusivamente mediante ArgoCD y Helm. Despliegues basados en digests OCI inmutables firmados con Cosign. Sin accesos imperativos ni ejecución de Docker Compose.
+* **Disaster Recovery (`DR`)**: Protocolo automatizado de validación y restauración sobre motor PostgreSQL real, comprobando Primary Keys, índices, secuencias y registros con SLA RTO < 2h y RPO < 24h.
+* **Laboratorio / Integración Canónica (`CI / Kind`)**: Entorno efímero dentro de GitHub Actions y reproducible localmente (`task dev:k8s:up`) para verificar manifiestos, ingress y políticas de seguridad antes del merge a `main`.
+* **Desarrollo Local (`dev`)**: Entorno ágil multicontenedor con Docker Compose (`task dev:compose`) para iteración rápida de frontend y backend sin sobrecarga de Kubernetes.
+
 ---
 
 ## 2. Diagrama de Flujo de Componentes e Interacciones
@@ -156,37 +181,31 @@ flowchart TD
 ```text
 .
 ├── apps/
-│   └── web/                         # Frontend Vanilla JS, CSS3, HTML5 y servidor Nginx
-│       ├── Dockerfile               # Contenedor Alpine no-root para Nginx
-│       ├── nginx.conf               # Configuración optimizada con gzip y cabeceras CSP
-│       └── public/                  # Catálogo de Pokédex, Ficha técnica y Backoffice CRUD
-├── src/
-│   ├── data/                        # Semilla oficial de 1.025 Pokémon (pokedex.json)
-│   ├── services/
-│   │   ├── ai.ts                    # Integración Gemini 2.5 Flash (@google/genai) con timeout
-│   │   ├── auth.ts                  # Autenticación timing-safe y gestión de sesiones HMAC
-│   │   └── db.ts                    # Cliente PostgreSQL (JSONB) + Redis con scripts Lua
-│   ├── types.ts                     # Definiciones e interfaces de dominio TypeScript
-│   ├── utils/pagination.ts          # Normalizador y límites de paginación anti-DoS
-│   ├── validation/pokemon.ts        # Sanitizador contra inyecciones XSS y validador de esquema
-│   └── seed.ts                      # Script CLI y función de inicialización de la base de datos
+│   ├── backend/                     # API REST Express + TypeScript + Drizzle ORM
+│   │   ├── Dockerfile               # Contenedor Alpine no-root (Node.js 22 LTS)
+│   │   ├── server.ts                # Entrada del servidor Express, middlewares y rutas
+│   │   └── src/                     # Servicios (AI, Auth, DB), esquemas Drizzle y validaciones
+│   └── frontend/                    # SPA Vite + TypeScript + DOMPurify y proxy Nginx
+│       ├── Dockerfile               # Contenedor Alpine no-root para Nginx y build de Vite
+│       ├── nginx.conf               # Reverse proxy con gzip, CSP estricto y rate limit
+│       ├── index.html               # Catálogo interactivo de 1.025 Pokémon
+│       ├── backoffice.html          # Panel CRUD administrativo
+│       └── src/                     # Lógica cliente modular TypeScript
 ├── infra/
-│   ├── ansible/                     # Hardening de servidores, configuración UFW/SSH y baseline de nodos
-│   ├── helm/pokedex/                # Helm Chart 3 parametrizado (HPA, Sealed Secrets, NetworkPolicies)
-│   ├── k8s/                         # Políticas Kyverno para verificación de firmas Cosign
+│   ├── ansible/                     # Hardening de hosts Linux, UFW y baseline de nodos (sin ignore_errors)
+│   ├── helm/pokedex/                # Helm Chart 3 parametrizado (HPA, NetworkPolicies, Zero-Trust)
+│   ├── k8s/                         # Kind cluster local y políticas Kyverno para verificación de firmas Cosign
 │   ├── opentofu/                    # Infraestructura como Código (Proxmox VE + AWS EKS)
 │   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC on-premise
 ├── gitops/
 │   ├── apps/                        # Definición de Applications de ArgoCD (app-proxmox, app-cloud)
 │   └── environments/                # Values parametrizados para cada clúster
-├── scripts/                         # Utilidades de DX, auditoría, pruebas de estrés y sellado de secretos
-├── tests/                           # Suite de pruebas unitarias, seguridad y pentesting lógico
-├── Dockerfile                       # Construcción multi-stage en Node.js 22 Alpine endurecido
-├── docker-compose.yml               # Orquestación multicontenedor local (API, Web, Postgres, Redis)
-├── package.json                     # Scripts y dependencias del backend
-├── server.ts                        # Punto de entrada del servidor Express 4.21
-├── Taskfile.yml                     # Automatizador cross-platform de tareas (go-task)
-└── renovate.json                    # Configuración de dependencias automáticas con Renovate Bot
+├── scripts/                         # Utilidades de DX, auditoría, verificación DR fail-closed y sellado
+├── tests/                           # Suite de 127 pruebas unitarias, seguridad, DR y pentesting lógico
+├── Dockerfile                       # Espejo raíz multi-stage para backend en Node.js 22 Alpine
+├── docker-compose.yml               # Orquestación multicontenedor para desarrollo local
+├── package.json                     # Monorepo workspaces y dependencias compartidas
+└── Taskfile.yml                     # Automatizador cross-platform de tareas (go-task)
 ```
 
 ---
@@ -314,7 +333,7 @@ npm ci
 task audit
 task lint
 
-# Ejecutar suite completa de 95 pruebas (unitarias, pentesting, fuzzing, IaC security)
+# Ejecutar suite completa de 127 pruebas (unitarias, pentesting, fuzzing, IaC security, Disaster Recovery y Supply Chain)
 npm test
 npm run test:fuzz
 ```
