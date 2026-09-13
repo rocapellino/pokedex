@@ -40,6 +40,7 @@ Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una 
   - [Seguridad](#seguridad)
   - [Estructura del Repositorio](#estructura-del-repositorio)
   - [Documentación Adicional](#documentación-adicional)
+  - [Resolución de Problemas (Troubleshooting)](#resolución-de-problemas-troubleshooting)
   - [Licencia](#licencia)
 
 ---
@@ -129,8 +130,11 @@ cp .env.example .env
 
 ### 3. Instalar dependencias
 
+Instala las dependencias del monorepo de forma limpia y reproducible con `task` o `npm`:
+
 ```bash
-npm ci
+task install
+# O equivalente: npm ci
 ```
 
 ### 4. Iniciar la aplicación
@@ -149,9 +153,17 @@ Este comando inicia los contenedores de PostgreSQL 16, Redis 7, el Backend Expre
 
 ### 5. Verificar el servicio
 
-Comprueba que las dependencias y la API respondan correctamente:
+Comprueba la salud del proceso y la conectividad activa con las bases de datos:
 
 ```bash
+# Con Task (verifica liveness, readiness y frontend):
+task dev:verify
+
+# O manualmente con curl:
+# Liveness (el proceso Node.js responde):
+curl -s http://localhost:3000/healthz
+
+# Readiness (PostgreSQL y Redis conectados y listos para tráfico):
 curl -s http://localhost:3000/readyz
 # Salida esperada: {"status":"ready","database":"connected","redis":"connected"}
 ```
@@ -173,18 +185,21 @@ El proyecto utiliza un [`Taskfile.yml`](Taskfile.yml) como interfaz de desarroll
 
 | Comando | Herramienta | Propósito |
 | :--- | :--- | :--- |
-| `npm ci` | npm | Instala dependencias del monorepo de forma limpia y reproducible. |
+| `task install` / `npm ci` | npm | Instala dependencias del monorepo de forma limpia y reproducible. |
 | `npm run lint` | TypeScript | Valida tipos y reglas de sintaxis en `apps/backend` y `apps/frontend`. |
+| `npm run typecheck` | TypeScript | Ejecuta la verificación estricta de tipos (`tsc --noEmit`) en la raíz. |
 | `npm run build` | esbuild / Vite | Compila el backend a CommonJS y genera el bundle optimizado del frontend. |
-| `npm test` | Node Test Runner | Ejecuta la suite de 127 pruebas unitarias, de integración, seguridad y DR. |
+| `npm test` | Node Test Runner | Ejecuta la suite automatizada de pruebas unitarias, de integración, seguridad y DR. |
 | `npm run test:fuzz` | Script dinámico | Ejecuta pruebas de fuzzing con cargas malformadas sobre los endpoints. |
+| `task validate` | Monorepo Script | Ejecuta todas las validaciones obligatorias del proyecto en un solo paso. |
 | `task dev:compose` | Docker Compose | Levanta el stack multicontenedor local (API, Web, DB, Redis). |
 | `task dev:compose:down` | Docker Compose | Detiene y remueve los contenedores del entorno local de Compose. |
+| `task dev:verify` | cURL / Script | Valida la disponibilidad HTTP y salud de los servicios locales (healthz, readyz, web). |
 | `task dev:k8s:up` | Kind + Helm | Crea un clúster Kind local y despliega el Helm chart con Ingress. |
 | `task dev:k8s:status` | kubectl | Muestra el estado de Pods, Services e Ingress en Kubernetes local. |
 | `task dev:k8s:down` | Kind | Elimina el clúster Kind local y libera sus recursos. |
 | `task dr:verify` | Bash / Docker | Ejecuta el simulacro automatizado de Disaster Recovery en PostgreSQL efímero. |
-| `helm lint infra/helm/pokedex` | Helm | Valida sintácticamente las plantillas del chart de Helm. |
+| `task helm:lint` | Helm en Docker | Valida sintácticamente las plantillas del chart de Helm de forma reproducible. |
 
 ---
 
@@ -254,11 +269,17 @@ curl -s http://localhost:3000/readyz
 El proyecto mantiene una suite automatizada de pruebas y quality gates:
 
 ```bash
-# Ejecutar suite completa de 127 pruebas
+# Ejecutar suite automatizada de pruebas
 npm test
 
 # Ejecutar verificación estricta de tipos
+npm run typecheck
+
+# Ejecutar linting en todos los workspaces
 npm run lint
+
+# Ejecutar validación completa obligatoria (lint, typecheck, build, test, fuzz)
+npm run validate
 
 # Ejecutar pruebas de resistencia con payloads malformados
 npm run test:fuzz
@@ -290,7 +311,7 @@ La plataforma diferencia claramente los propósitos de cada entorno de ejecució
 | **Entrega Continua (GitOps)** | ArgoCD ([`gitops/`](gitops/)) | Sincronización declarativa basada en digests OCI inmutables. |
 
 > [!IMPORTANT]
-> Docker Compose está destinado exclusivamente al desarrollo local interactivo. Todos los despliegues productivos se realizan de manera inmutable sobre Kubernetes mediante ArgoCD y Helm.
+> Docker Compose está destinado exclusivamente al desarrollo local interactivo. En producción, **ArgoCD** es la fuente de verdad y el mecanismo oficial de sincronización continua. **Helm 3** se utiliza para empaquetar y renderizar los manifiestos inmutables. El uso directo de `kubectl apply` está reservado exclusivamente para el bootstrap inicial o contingencias documentadas.
 
 ---
 
@@ -301,6 +322,9 @@ El sistema está instrumentado para integrarse con stacks de observabilidad est�
 - **Métricas**: Expuestas en `/metrics` mediante el cliente nativo de Prometheus (latencias HTTP por ruta, códigos de estado, uso de memoria, etc.).
 - **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis).
 - **Logs Estructurados**: Salida estándar en formato JSON con inyección y propagación de `X-Request-Id` para trazabilidad de solicitudes de extremo a extremo.
+
+> [!NOTE]
+> Las tareas de monitoreo (`task monitoring:*`) se integran de forma opcional con el repositorio hermano `../docker_monitoreo` para el aprovisionamiento del stack central de telemetría a nivel de host.
 
 ---
 
@@ -351,7 +375,7 @@ Para conocer el procedimiento de divulgación responsable o reportar una vulnera
 │   ├── apps/                        # Definiciones de Application para ArgoCD
 │   └── environments/                # Values específicos por clúster (on-premise y cloud)
 ├── scripts/                         # Utilidades de auditoría, verificación DR y testing
-├── tests/                           # Suite de pruebas automatizadas (127 tests)
+├── tests/                           # Suite de pruebas automatizadas
 ├── .github/workflows/               # Pipelines de CI/CD, SAST, DAST, IaC y Supply Chain
 ├── docker-compose.yml               # Orquestación de desarrollo local interactivo
 ├── package.json                     # Monorepo workspaces y dependencias compartidas
@@ -377,6 +401,68 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
 - 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
+
+---
+
+## Resolución de Problemas (Troubleshooting)
+
+### El puerto 8080 o 3000 ya está en uso
+
+Si Docker Compose o un proceso local ya ocupa los puertos:
+
+```bash
+# Detener contenedores existentes
+docker compose down
+
+# En Linux / macOS: identificar proceso ocupando el puerto
+lsof -i :8080
+lsof -i :3000
+
+# En Windows (PowerShell):
+Get-NetTCPConnection -LocalPort 8080,3000 | Select-Object LocalPort,OwningProcess
+```
+
+### `/readyz` devuelve error o dependencias no conectadas
+
+Verifica el estado de los contenedores de datos y sus logs:
+
+```bash
+docker compose ps
+docker compose logs postgres
+docker compose logs redis
+```
+
+Asegúrate de que las credenciales en `.env` coincidan con los parámetros de conexión.
+
+### El frontend Web carga pero la API no responde
+
+Comprueba la comunicación de red entre el contenedor de Nginx y el backend:
+
+```bash
+docker compose logs backend
+curl -s http://localhost:3000/healthz
+```
+
+En entornos Kubernetes, verifica que el servicio `pokemon-api-svc` tenga endpoints activos:
+
+```bash
+kubectl get endpoints pokemon-api-svc -n pokemon-app
+```
+
+### Kind no puede cargar o encontrar las imágenes locales
+
+Si despliegas en Kubernetes local y los pods quedan en `ImagePullBackOff` o `ErrImageNeverPull`:
+
+```bash
+# Verificar que el clúster exista
+kind get clusters
+
+# Recompilar y cargar las imágenes en el plano de control de Kind
+docker build -t pokedex-api:local -f apps/backend/Dockerfile .
+docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
+kind load docker-image pokedex-api:local --name pokedex-local
+kind load docker-image pokedex-web:local --name pokedex-local
+```
 
 ---
 
