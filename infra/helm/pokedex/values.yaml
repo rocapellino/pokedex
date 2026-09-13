@@ -175,19 +175,44 @@ redis:
       ephemeral-storage: "64Mi"
 
 # ------------------------------------------------------------------------------
-# 6. Ingress Controller (Nginx Path Routing)
+# 6. Ingress Controller — Terminación TLS y Hardening HTTP L7 (ADR-016)
 # ------------------------------------------------------------------------------
 ingress:
   enabled: true
   className: nginx
   annotations:
+    # --- Timeouts y tamaño de cuerpo ---
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    # --- TLS: redirección forzada HTTP→HTTPS (308) en producción ---
+    # Establecer "true" en producción cuando cert-manager provea el certificado.
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    # Bloqueo explícito de métricas en Ingress público (solo scraping interno de Prometheus)
+    # --- cert-manager: emisor de certificado TLS ---
+    # Descomentar en producción (Let's Encrypt) o staging (selfsigned):
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # --- Rate Limiting L7: protección contra ráfagas y DDoS volumétrico (ADR-016) ---
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    # --- Cabeceras de seguridad HTTP inyectadas en todas las respuestas (ADR-016) ---
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Permissions-Policy: camera=(), microphone=(), geolocation=()";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://raw.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'";
+    # --- Bloqueo de endpoints internos desde el exterior (ADR-016) ---
     nginx.ingress.kubernetes.io/server-snippet: |
       location /metrics {
+        deny all;
+        return 403;
+      }
+      location /healthz {
+        deny all;
+        return 403;
+      }
+      location /readyz {
         deny all;
         return 403;
       }
@@ -215,7 +240,14 @@ ingress:
               name: pokemon-web-svc
               port:
                 number: 8080
+  # --- TLS: Activar en producción con cert-manager (ADR-016) ---
+  # En desarrollo local (Kind) mantener tls: [] y ssl-redirect: "false"
   tls: []
+  # Ejemplo de configuración para producción con Let's Encrypt:
+  # tls:
+  #   - hosts:
+  #       - pokedex.example.com
+  #     secretName: pokedex-tls-cert
 
 # ------------------------------------------------------------------------------
 # 7. Credenciales y Secretos de Aplicación
