@@ -8,6 +8,8 @@ global:
 
 api:
   replicaCount: 3
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   image:
     repository: ghcr.io/rocapellino/pokedex-server
     tag: v2.0.0
@@ -66,3 +68,16 @@ ingress:
     - secretName: pokedex-cloud-cert
       hosts:
         - pokedex.cloud.rodrigo.dev
+
+secrets:
+  existingSecret: "pokemon-secrets"
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "1h"
+  targetSecretName: "pokemon-secrets"
+  secretStoreRef:
+    name: "aws-secrets-manager"
+    kind: "ClusterSecretStore"
+  remoteRef:
+    key: "pokedex/production"

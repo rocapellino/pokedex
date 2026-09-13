@@ -15,23 +15,32 @@ Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una 
 
 ## 📑 Tabla de Contenidos
 
-- [Demo y Acceso Rápido](#demo-y-acceso-rápido)
-- [Características Principales](#características-principales)
-- [Arquitectura del Sistema](#arquitectura-del-sistema)
-- [Requisitos](#requisitos)
-- [Inicio Rápido](#inicio-rápido)
-- [Comandos Disponibles](#comandos-disponibles)
-- [Configuración](#configuración)
-- [API REST](#api-rest)
-- [Testing y Calidad](#testing-y-calidad)
-- [Estrategia de Despliegue](#estrategia-de-despliegue)
-- [Observabilidad](#observabilidad)
-- [Backup y Disaster Recovery](#backup-y-disaster-recovery)
-- [Seguridad](#seguridad)
-- [Estructura del Repositorio](#estructura-del-repositorio)
-- [Documentación Adicional](#documentación-adicional)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
+- [⚡ Pokémon DevOps Platform](#-pokémon-devops-platform)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [Demo y Acceso Rápido](#demo-y-acceso-rápido)
+  - [Características Principales](#características-principales)
+  - [Arquitectura del Sistema](#arquitectura-del-sistema)
+  - [Requisitos](#requisitos)
+  - [Inicio Rápido](#inicio-rápido)
+    - [1. Clonar el repositorio](#1-clonar-el-repositorio)
+    - [2. Configurar variables de entorno](#2-configurar-variables-de-entorno)
+    - [3. Instalar dependencias](#3-instalar-dependencias)
+    - [4. Iniciar la aplicación](#4-iniciar-la-aplicación)
+    - [5. Verificar el servicio](#5-verificar-el-servicio)
+    - [6. Detener los servicios](#6-detener-los-servicios)
+  - [Comandos Disponibles](#comandos-disponibles)
+  - [Configuración](#configuración)
+  - [API REST](#api-rest)
+    - [Endpoints Principales](#endpoints-principales)
+    - [Ejemplos de Solicitud](#ejemplos-de-solicitud)
+  - [Testing y Calidad](#testing-y-calidad)
+  - [Estrategia de Despliegue](#estrategia-de-despliegue)
+  - [Observabilidad](#observabilidad)
+  - [Backup y Disaster Recovery](#backup-y-disaster-recovery)
+  - [Seguridad](#seguridad)
+  - [Estructura del Repositorio](#estructura-del-repositorio)
+  - [Documentación Adicional](#documentación-adicional)
+  - [Licencia](#licencia)
 
 ---
 
@@ -368,23 +377,6 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
 - 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
-
----
-
-## Contribución
-
-Para proponer cambios en el proyecto:
-
-1. Crea una rama descriptiva a partir de `main` (`feature/nombre-mejora` o `fix/descripcion-error`).
-2. Implementa tus cambios asegurando que las pruebas y el linter se ejecuten sin fallos:
-
-   ```bash
-   npm run lint
-   npm test
-   ```
-
-3. Realiza commits con formato convencional (`feat: ...`, `fix: ...`, `docs: ...`).
-4. Abre un Pull Request hacia `main`. Todos los checks automáticos de seguridad y calidad deben completarse en verde antes de la integración.
 
 ---
 
