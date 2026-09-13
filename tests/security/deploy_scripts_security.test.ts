@@ -433,6 +433,19 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'terraform.tfvars.example')), 'cloud-template/terraform.tfvars.example debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'README.md')), 'cloud-template/README.md debe existir');
 
+  // OpenTofu Backend & Cifrado de Estado (OpenTofu 1.7+ Native Client-Side Encryption)
+  const backendExamplePath = path.join(ROOT_DIR, 'infra/opentofu/environments/backend.tf.example');
+  assert.ok(fs.existsSync(backendExamplePath), 'backend.tf.example debe existir');
+  const backendExampleContent = fs.readFileSync(backendExamplePath, 'utf-8');
+  assert.ok(
+    backendExampleContent.includes('key_provider "pbkdf2"'),
+    'backend.tf.example debe documentar cifrado nativo del lado del cliente con pbkdf2'
+  );
+  assert.ok(
+    backendExampleContent.includes('method "aes_gcm"'),
+    'backend.tf.example debe documentar método de cifrado aes_gcm en reposo'
+  );
+
   // Roles Ansible
   const ansibleRoles = ['base_os', 'container_runtime', 'firewall', 'hardening', 'kubernetes_prerequisites'];
   for (const role of ansibleRoles) {
