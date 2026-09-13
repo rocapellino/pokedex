@@ -705,14 +705,17 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
   assert.ok(valuesProdContent.includes('enabled: true'), 'values.prod.yaml debe tener serviceMonitor habilitado');
 });
 
-test('🛡️ CI Tooling Parity: infra.yml mantiene paridad estricta de versión de Helm en todos sus jobs', () => {
+test('🛡️ CI Tooling Parity: infra.yml y ci.yml mantienen paridad estricta de versión de Helm en todos sus jobs', () => {
   const infraWorkflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+  const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
   const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
 
   assert.ok(fs.existsSync(infraWorkflowPath), 'infra.yml debe existir');
+  assert.ok(fs.existsSync(ciWorkflowPath), 'ci.yml debe existir');
   assert.ok(fs.existsSync(toolVersionsPath), '.tool-versions debe existir');
 
   const infraContent = fs.readFileSync(infraWorkflowPath, 'utf-8');
+  const ciContent = fs.readFileSync(ciWorkflowPath, 'utf-8');
   const toolVersionsContent = fs.readFileSync(toolVersionsPath, 'utf-8');
 
   // Extraer versión de Helm esperada de .tool-versions (ej. 3.17.0)
@@ -720,15 +723,19 @@ test('🛡️ CI Tooling Parity: infra.yml mantiene paridad estricta de versión
   assert.ok(helmVersionMatch, 'Debe encontrarse versión de Helm en .tool-versions');
   const expectedHelmVersion = `v${helmVersionMatch[1]}`;
 
-  // Extraer todas las versiones configuradas para setup-helm en infra.yml
-  const configuredVersions = Array.from(infraContent.matchAll(/version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
-  assert.ok(configuredVersions.length >= 2, 'infra.yml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
+  // Extraer todas las versiones configuradas para setup-helm en infra.yml y ci.yml
+  const infraVersions = Array.from(infraContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
+  assert.ok(infraVersions.length >= 2, 'infra.yml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
 
-  for (const ver of configuredVersions) {
+  const ciVersions = Array.from(ciContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
+  assert.ok(ciVersions.length >= 1, 'ci.yml debe configurar Helm en el job publish');
+
+  const allVersions = [...infraVersions, ...ciVersions];
+  for (const ver of allVersions) {
     assert.equal(
       ver,
       expectedHelmVersion,
-      `Cada job de infra.yml debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
+      `Cada workflow de CI (infra.yml, ci.yml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
     );
   }
 });
@@ -753,6 +760,34 @@ test('🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cu
       `El runbook de observabilidad debe documentar el procedimiento de respuesta para la alerta ${alertName}`
     );
   }
+});
+
+test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs', () => {
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  assert.ok(fs.existsSync(readmePath), 'README.md debe existir');
+  assert.ok(fs.existsSync(docsReadmePath), 'docs/README.md debe existir');
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+
+  // Matriz de estado en README.md
+  assert.ok(
+    readmeContent.includes('Matriz de Estado y Nivel de Soporte de Componentes'),
+    'README.md debe contener la Matriz de Estado y Nivel de Soporte de Componentes'
+  );
+  assert.ok(readmeContent.includes('Kubernetes (EKS / Bare-Metal)'), 'Matriz debe listar Kubernetes');
+  assert.ok(readmeContent.includes('Helm 3 (OCI Artifacts)'), 'Matriz debe listar Helm 3');
+  assert.ok(readmeContent.includes('ArgoCD (GitOps)'), 'Matriz debe listar ArgoCD');
+  assert.ok(readmeContent.includes('OpenTofu 1.8+'), 'Matriz debe listar OpenTofu');
+
+  // Enlaces a Observabilidad y ADR-007
+  assert.ok(readmeContent.includes('docs/operations/observability-alerts.md'), 'README.md debe enlazar observability-alerts.md');
+  assert.ok(readmeContent.includes('docs/decisions/ADR-007-observability-and-metrics.md'), 'README.md debe enlazar ADR-007');
+
+  assert.ok(docsReadmeContent.includes('observability-alerts.md'), 'docs/README.md debe enlazar observability-alerts.md');
+  assert.ok(docsReadmeContent.includes('ADR-007-observability-and-metrics.md'), 'docs/README.md debe enlazar ADR-007');
 });
 
 

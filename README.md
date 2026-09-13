@@ -313,15 +313,32 @@ La plataforma diferencia claramente los propósitos de cada entorno de ejecució
 > [!IMPORTANT]
 > Docker Compose está destinado exclusivamente al desarrollo local interactivo. En producción, **ArgoCD** es la fuente de verdad y el mecanismo oficial de sincronización continua. **Helm 3** se utiliza para empaquetar y renderizar los manifiestos inmutables. El uso directo de `kubectl apply` está reservado exclusivamente para el bootstrap inicial o contingencias documentadas.
 
+### Matriz de Estado y Nivel de Soporte de Componentes
+
+| Componente / Subsistema | Nivel de Soporte | Rol y Alcance Técnico |
+| :--- | :--- | :--- |
+| **Kubernetes (EKS / Bare-Metal)** | **Oficial** | Runtime estándar y mandatorio de producción, staging y pruebas canónicas de integración en Kind. |
+| **Helm 3 (OCI Artifacts)** | **Oficial** | Empaquetado canónico, versionado semántico y plantillas parametrizadas con firmas Cosign y SBOM. |
+| **ArgoCD (GitOps)** | **Oficial** | Sincronización continua declarativa y reconciliación de estado hacia clústeres gestionados. |
+| **OpenTofu 1.8+** | **Oficial** | Aprovisionamiento declarativo de infraestructura cloud (AWS EKS), entornos de laboratorio y Proxmox. |
+| **Ansible (host_baseline)** | **Oficial** | Hardening del SO base, cortafuegos UFW, módulos de kernel y preparación de nodos físicos/VMs. |
+| **Docker Compose** | **Soporte / Dev** | Entorno de desarrollo local rápido y contingencia aislada para ejecución sin clúster Kubernetes. |
+| **Backup & DR (AES-256 + SHA-256)** | **Oficial** | CronJob nativo en K8s con cifrado PBKDF2/AES-256-CBC, pruebas automatizadas en contenedor efímero (`RPO < 24h`, `RTO < 2h`). |
+| **Observabilidad & Prometheus** | **Oficial** | Métricas RED, histogramas de latencia en backend, recurso `ServiceMonitor` y [Runbook Operacional](docs/operations/observability-alerts.md). |
+| **External Secrets Operator (ESO)** | **Referencia** | Arquitectura declarativa para sincronización y rotación dinámica de secretos desde Vault / Cloud KMS. |
+
 ---
 
 ## Observabilidad
 
-El sistema está instrumentado para integrarse con stacks de observabilidad estándar (Prometheus, Grafana y Loki):
+El sistema está instrumentado para integrarse nativamente con stacks de observabilidad estándar (Prometheus Operator, Grafana, Loki y Alertmanager):
 
-- **Métricas**: Expuestas en `/metrics` mediante el cliente nativo de Prometheus (latencias HTTP por ruta, códigos de estado, uso de memoria, etc.).
-- **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis).
-- **Logs Estructurados**: Salida estándar en formato JSON con inyección y propagación de `X-Request-Id` para trazabilidad de solicitudes de extremo a extremo.
+- **Métricas RED & Negocio**: Expuestas en `/metrics` mediante cliente nativo Prometheus (latencias HTTP de alta resolución con percentiles P95/P99, códigos de estado, estado de almacenamiento PostgreSQL y Redis en vivo).
+- **Integración Prometheus Operator**: Manifiesto declarativo [`ServiceMonitor`](infra/helm/pokedex/templates/servicemonitor.yaml) empaquetado en Helm y habilitado en `values.prod.yaml`.
+- **Healthchecks**: `/healthz` para comprobación de vida del proceso y `/readyz` para estado de dependencias activas (PostgreSQL y Redis) bajo semántica *fail-closed*.
+- **Logs Estructurados**: Salida estándar JSON de alto rendimiento con Pino, inyección y propagación de `X-Request-Id` y correlación distribuida vía `AsyncLocalStorage`.
+- **Runbook Operativo de Alertas**: Procedimientos estándar de diagnóstico y mitigación para las 6 alertas de Prometheus en [docs/operations/observability-alerts.md](docs/operations/observability-alerts.md).
+- **Decisión de Diseño**: Registro formal de arquitectura en [docs/decisions/ADR-007-observability-and-metrics.md](docs/decisions/ADR-007-observability-and-metrics.md).
 
 > [!NOTE]
 > Las tareas de monitoreo (`task monitoring:*`) se integran de forma opcional con el repositorio hermano `../docker_monitoreo` para el aprovisionamiento del stack central de telemetría a nivel de host.
@@ -401,6 +418,8 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 🚀 [Manual de Autoescalado con HPA v2](docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md)
 - 🧪 [Guía de Pruebas de Estrés con k6](docs/runbooks/STRESS_TESTING_GUIDE.md)
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
+- 🚨 [Runbook de Respuesta ante Alertas de Observabilidad](docs/operations/observability-alerts.md)
+- 📐 [ADR-007: Arquitectura de Observabilidad y Métricas Prometheus](docs/decisions/ADR-007-observability-and-metrics.md)
 
 ---
 
