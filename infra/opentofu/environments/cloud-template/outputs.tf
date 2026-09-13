@@ -23,5 +23,10 @@ output "cluster_summary" {
 
 output "security_posture" {
   description = "Configuración del baseline de seguridad aplicado"
-  value       = module.security_baseline.rules
+  value = {
+    backup_retention_days = module.security_baseline.backup_retention_days
+    encryption_algorithm  = module.security_baseline.encryption_algorithm
+    enable_kms_rotation   = module.security_baseline.enable_kms_rotation
+    enforce_ssl_requests  = module.security_baseline.enforce_ssl_requests
+  }
 }
