@@ -35,7 +35,10 @@ test('🛡️ Operación: security-dast-zap.yml configura escaneo dinámico con 
 
   const content = fs.readFileSync(zapWorkflowPath, 'utf-8');
   assert.match(content, /zaproxy\/action-baseline/, 'Debe utilizar zaproxy/action-baseline');
-  assert.match(content, /network_name:\s*"host"/, 'Debe configurar network_name: host');
+  // network_name no es un input válido en zaproxy/action-baseline@v0.15.0 — fue eliminado correctamente
+  assert.doesNotMatch(content, /network_name/, 'No debe usar el input inválido network_name (removido en v0.15.0)');
+  assert.match(content, /172\.17\.0\.1/, 'Debe usar 172.17.0.1 (Docker gateway) para acceder al servidor del runner');
+  assert.match(content, /allow_issue_writing/, 'Debe configurar allow_issue_writing');
   assert.match(content, /cron:/, 'Debe tener ejecución programada por cron');
 });
 
