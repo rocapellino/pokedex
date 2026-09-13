@@ -14,6 +14,8 @@ flowchart TD
     PORTAL --> BEST["🌿 4. Estándares & Mejores Prácticas\n(docs/best-practices/)"]
     PORTAL --> RUN["📖 5. Runbooks & Operaciones\n(docs/runbooks/)"]
     PORTAL --> SEC["🛡️ 6. Seguridad & Incidentes\n(docs/security/)"]
+    PORTAL --> ADR["📐 7. Decisiones de Arquitectura\n(docs/decisions/)"]
+    PORTAL --> OPS["🚨 8. Operaciones de Plataforma\n(docs/operations/)"]
 
     ARCH --> A1["🎨 MOCKUPS_Y_DISENO_UI.md"]
     ARCH --> A2["🔬 ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md"]
@@ -42,13 +44,17 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
+    ADR --> AD1["📐 ADR-001 a ADR-007"]
+    OPS --> OP1["🚨 observability-alerts.md"]
+    OPS --> OP2["📋 DISASTER_RECOVERY_PLAN.md"]
+
     classDef main fill:#2563eb,stroke:#1d4ed8,color:#fff;
     classDef section fill:#0891b2,stroke:#0e7490,color:#fff;
     classDef doc fill:#64748b,stroke:#475569,color:#fff;
 
     class PORTAL main;
-    class ARCH,API,DEVOPS,BEST,RUN,SEC section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,AP1,D1,D2,D3,B1,R1,R2,R3,R4,S1,S2,S3 doc;
+    class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,AP1,D1,D2,D3,B1,R1,R2,R3,R4,S1,S2,S3,AD1,OP1,OP2 doc;
 ```
 
 ---
@@ -103,3 +109,22 @@ flowchart TD
 * 🛡️ [**SECURITY.md**](../SECURITY.md): **Política oficial de seguridad** y divulgación responsable de vulnerabilidades (Responsible Disclosure) en la raíz del repositorio.
 * 🚨 [**SECURITY_RUNBOOK.md**](./security/SECURITY_RUNBOOK.md): Procedimientos operativos estándar (**SOP**) de respuesta a incidentes de seguridad clasificados por matriz de severidad (SEV-1 a SEV-4).
 * 🔍 [**DEVSECOPS_AUDIT.md**](./security/DEVSECOPS_AUDIT.md): Evaluación técnica integral de arquitectura, matriz de mitigación de vectores de vulnerabilidad y madurez operativa DevSecOps.
+
+---
+
+### 7. 📐 Registros de Decisión Arquitectónica ([`docs/decisions/`](./decisions/))
+
+* 📐 [**ADR-001**](./decisions/ADR-001-kubernetes-as-runtime.md): Adopción de Kubernetes como Runtime Canónico de Producción.
+* 📐 [**ADR-002**](./decisions/ADR-002-compose-for-local-development.md): Uso de Docker Compose Restringido a Desarrollo Local.
+* 📐 [**ADR-003**](./decisions/ADR-003-gitops-with-argocd.md): GitOps Declarativo mediante ArgoCD y Digests Inmutables OCI.
+* 📐 [**ADR-004**](./decisions/ADR-004-opentofu-and-ansible-boundaries.md): Delimitación de Responsabilidades entre OpenTofu e IaC Ansible.
+* 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión de Secretos en Reposo con Bitnami Sealed Secrets y ESO.
+* 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres con Validación Activa y Cifrado AES-256.
+* 📐 [**ADR-007**](./decisions/ADR-007-observability-and-metrics.md): Observabilidad Unificada, Métricas RED y Prometheus ServiceMonitor.
+
+---
+
+### 8. 🚨 Excelencia Operacional y Runbooks de Plataforma ([`docs/operations/`](./operations/))
+
+* 📊 [**observability-alerts.md**](./operations/observability-alerts.md): Runbook operacional y procedimientos de mitigación para las 6 alertas de Prometheus.
+* 📋 [**DISASTER_RECOVERY_PLAN.md**](./operations/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.
