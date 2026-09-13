@@ -39,6 +39,7 @@ flowchart TD
     RUN --> R2["🚀 KUBERNETES_AUTOSCALING_GUIDE.md"]
     RUN --> R3["🧪 STRESS_TESTING_GUIDE.md"]
     RUN --> R4["🖥️ PROXMOX_DEPLOYMENT_GUIDE.md"]
+    RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]
 
     SEC --> S1["🛡️ SECURITY.md (Root)"]
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
@@ -46,7 +47,12 @@ flowchart TD
 
     ADR --> AD1["📐 ADR-001 a ADR-010"]
     OPS --> OP1["🚨 observability-alerts.md"]
-    OPS --> OP2["📋 DISASTER_RECOVERY_PLAN.md"]
+    OPS --> OP2["💾 backup-restore.md"]
+    OPS --> OP3["🚀 deployment.md"]
+    OPS --> OP4["🚑 incident-response.md"]
+    OPS --> OP5["☸️ kubernetes-troubleshooting.md"]
+    OPS --> OP6["⏪ rollback.md"]
+    OPS --> OP7["🔐 secret-rotation.md"]
 
     classDef main fill:#2563eb,stroke:#1d4ed8,color:#fff;
     classDef section fill:#0891b2,stroke:#0e7490,color:#fff;
@@ -54,7 +60,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,AP1,D1,D2,D3,B1,R1,R2,R3,R4,S1,S2,S3,AD1,OP1,OP2 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7 doc;
 ```
 
 ---
@@ -101,6 +107,7 @@ flowchart TD
 * 🚀 [**KUBERNETES_AUTOSCALING_GUIDE.md**](./runbooks/KUBERNETES_AUTOSCALING_GUIDE.md): Procedimiento de validación del autoescalado con métricas de CPU y siembra masiva de datos.
 * 🧪 [**STRESS_TESTING_GUIDE.md**](./runbooks/STRESS_TESTING_GUIDE.md): Guía para ejecución de pruebas de carga y estrés con k6 y generador concurrente de tráfico.
 * 🖥️ [**PROXMOX_DEPLOYMENT_GUIDE.md**](./runbooks/PROXMOX_DEPLOYMENT_GUIDE.md): Guía de despliegue y virtualización en clústeres locales Proxmox VE con contenedores LXC, Cloud-Init, Ansible y OpenTofu.
+* 📋 [**DISASTER_RECOVERY_PLAN.md**](./runbooks/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.
 
 ---
 
@@ -130,4 +137,10 @@ flowchart TD
 ### 8. 🚨 Excelencia Operacional y Runbooks de Plataforma ([`docs/operations/`](./operations/))
 
 * 📊 [**observability-alerts.md**](./operations/observability-alerts.md): Runbook operacional y procedimientos de mitigación para las 6 alertas de Prometheus.
-* 📋 [**DISASTER_RECOVERY_PLAN.md**](./operations/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.
+* 💾 [**backup-restore.md**](./operations/backup-restore.md): Ciclo de vida operativo de copias de seguridad PostgreSQL, cifrado AES-256 y restauración manual y automatizada.
+* 🚀 [**deployment.md**](./operations/deployment.md): Procedimiento estándar de entrega continua, verificación previa y sincronización con ArgoCD.
+* 🚑 [**incident-response.md**](./operations/incident-response.md): Matriz de escalado por severidad (SEV-1 a SEV-3), diagnóstico rápido y triage operativo.
+* ☸️ [**kubernetes-troubleshooting.md**](./operations/kubernetes-troubleshooting.md): Diagnóstico rápido para CrashLoopBackOff, ImagePullBackOff, fallos de endpoints y ExternalSecrets.
+* ⏪ [**rollback.md**](./operations/rollback.md): Protocolos de reversión controlada vía ArgoCD, Helm de emergencia y Git revert.
+* 🔐 [**secret-rotation.md**](./operations/secret-rotation.md): Protocolo de rotación periódica y de emergencia de secretos con External Secrets Operator y Stakater Reloader.
+
