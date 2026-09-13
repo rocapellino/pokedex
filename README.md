@@ -363,7 +363,7 @@ La seguridad está integrada en todas las capas del ciclo de vida:
 - **Supply Chain Security**: Las imágenes OCI publicadas en GitHub Packages son firmadas criptográficamente con **Cosign** (modo keyless con Sigstore OIDC) y cuentan con atestaciones de SBOM en formato CycloneDX y SLSA Provenance.
 - **Control de Admisión**: En Kubernetes, políticas de **Kyverno** verifican la firma de las imágenes antes de autorizar la creación de Pods.
 - **Network Isolation**: Políticas de red Zero-Trust (Default-Deny Egress) en PostgreSQL y Redis, y bloqueo anti-SSRF hacia metadatos de nube (`169.254.169.254/32`).
-- **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo.
+- **Comparaciones Timing-Safe**: Autenticación administrativa protegida contra ataques de canal lateral basados en tiempo y arquitectura de sesiones formalizada en [docs/decisions/ADR-010-authentication-and-session-management.md](docs/decisions/ADR-010-authentication-and-session-management.md).
 - **Decisión de Diseño**: Registro formal de arquitectura de seguridad en la cadena de suministro en [docs/decisions/ADR-008-supply-chain-security.md](docs/decisions/ADR-008-supply-chain-security.md).
 
 Para conocer el procedimiento de divulgación responsable o reportar una vulnerabilidad, consulta [SECURITY.md](SECURITY.md).
