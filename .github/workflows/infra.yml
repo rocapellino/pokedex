@@ -109,11 +109,11 @@ jobs:
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox, AWS y Lab)
+      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox, Lab, Cloud-Template y AWS)
         run: |
           echo "Verificando formato recursivo de OpenTofu (fmt -check)..."
           tofu fmt -check -recursive infra/opentofu
-          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/aws infra/opentofu/environments/lab; do
+          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/lab infra/opentofu/environments/cloud-template infra/opentofu/environments/aws; do
             echo "Validando entorno OpenTofu en $dir..."
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate

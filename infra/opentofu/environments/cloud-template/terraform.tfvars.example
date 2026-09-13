@@ -1,0 +1,15 @@
+# ==============================================================================
+# Variables de Ejemplo: Entorno Cloud-Template Neutral
+# ==============================================================================
+project      = "pokedex"
+environment  = "cloud-staging"
+node_count   = 3
+cpu_cores    = 4
+memory_mb    = 8192
+disk_size_gb = 50
+network_id   = "vpc-subnet-example"
+tags = {
+  Application = "Pokédex"
+  Tier        = "CloudStaging"
+  ManagedBy   = "OpenTofu"
+}
