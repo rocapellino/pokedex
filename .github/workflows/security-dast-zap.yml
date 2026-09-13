@@ -9,7 +9,7 @@ on:
       target_url:
         description: "URL base para escaneo DAST"
         required: false
-        default: "http://127.0.0.1:3000"
+        default: "http://172.17.0.1:3000"
   schedule:
     - cron: "0 4 * * 1" # Semanal los lunes a las 04:00 UTC
 
@@ -40,12 +40,18 @@ jobs:
           npm run build
           node apps/backend/dist/server.cjs &
           sleep 4
+          # HTTP is intentional: the local CI server has no TLS certificate.
+          # ZAP is a DAST tool that scans HTTP/HTTPS by design; clear-text is expected here.
+          # nosemgrep: generic.text.ban-http-url, checkov:CKV_GIT_4
           curl -f http://127.0.0.1:3000/healthz
+          # Verificar que el servidor también es alcanzable desde la red Docker (gateway 172.17.0.1)
+          curl -f http://172.17.0.1:3000/healthz || echo "Docker gateway no disponible (entorno local)" # nosemgrep: generic.text.ban-http-url
 
       - name: 5. Ejecutar OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
-          target: ${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
-          network_name: "host"
+          # HTTP target is intentional: this is a DAST scan against the local CI server.
+          # ZAP's purpose is to test HTTP/HTTPS endpoints; HTTPS is not available in CI. # nosemgrep: generic.text.ban-http-url
+          target: ${{ github.event.inputs.target_url || 'http://172.17.0.1:3000' }}
           allow_issue_writing: false
           cmd_options: "-a"

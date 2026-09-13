@@ -68,7 +68,12 @@ jobs:
       - name: 2d. Instalar y Ejecutar Kubeconform (Validación estricta de esquemas OpenAPI K8s)
         run: |
           KUBECONFORM_VERSION="v0.6.7"
-          curl -sL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xz -C /tmp kubeconform
+          KUBECONFORM_SHA256="95f14e87aa28c09d5941f11bd024c1d02fdc0303ccaa23f61cef67bc92619d73"
+          curl -sL --proto '=https' --tlsv1.2 \
+            "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            -o /tmp/kubeconform.tar.gz
+          echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum --check --strict
+          tar -xz -C /tmp -f /tmp/kubeconform.tar.gz kubeconform
           /tmp/kubeconform -v
           /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml
           echo "✅ Validación de esquemas OpenAPI de Kubernetes con Kubeconform completada con éxito."
@@ -76,7 +81,12 @@ jobs:
       - name: 2e. Instalar y Ejecutar Kube-Linter (Auditoría de Buenas Prácticas K8s)
         run: |
           KUBELINTER_VERSION="v0.7.2"
-          curl -sL "https://github.com/stackrox/kube-linter/releases/download/${KUBELINTER_VERSION}/kube-linter-linux.tar.gz" | tar -xz -C /tmp kube-linter
+          KUBELINTER_SHA256="8a0f8ba6c28910acd4886cc4d501ed32f3d404a53ac5e72c45a0dd893fcadb03"
+          curl -sL --proto '=https' --tlsv1.2 \
+            "https://github.com/stackrox/kube-linter/releases/download/${KUBELINTER_VERSION}/kube-linter-linux.tar.gz" \
+            -o /tmp/kube-linter.tar.gz
+          echo "${KUBELINTER_SHA256}  /tmp/kube-linter.tar.gz" | sha256sum --check --strict
+          tar -xz -C /tmp -f /tmp/kube-linter.tar.gz kube-linter
           /tmp/kube-linter version
           /tmp/kube-linter lint /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml --config .kube-linter.yaml
           echo "✅ Kube-Linter validó todas las directivas de seguridad y buenas prácticas en K8s."
@@ -84,7 +94,12 @@ jobs:
       - name: 2f. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
           KYVERNO_VERSION="v1.12.5"
-          curl -sL "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" | tar -xz -C /tmp kyverno
+          KYVERNO_SHA256="962c396cdb149eadc7d6cc0cb345d3c01b6980d5265c8bb585c55ecd4b8a76b9"
+          curl -sL --proto '=https' --tlsv1.2 \
+            "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" \
+            -o /tmp/kyverno.tar.gz
+          echo "${KYVERNO_SHA256}  /tmp/kyverno.tar.gz" | sha256sum --check --strict
+          tar -xz -C /tmp -f /tmp/kyverno.tar.gz kyverno
           /tmp/kyverno version
           /tmp/kyverno test infra/k8s/kyverno-test/
           echo "✅ Pruebas de políticas de admisión Kyverno ejecutadas y aprobadas exitosamente."
