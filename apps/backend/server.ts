@@ -464,10 +464,6 @@ function verifyAIKey(req: Request, res: Response, next: NextFunction) {
 // ---------------------------------------------------------------------------
 // Helper: ETag Seguro
 // ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Helper: ETag Seguro
-// ---------------------------------------------------------------------------
 function calculateETag(data: unknown): string {
   const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex').substring(0, 16);
   return `"${hash}"`;
