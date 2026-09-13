@@ -227,5 +227,6 @@ jobs:
           curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds" || { echo "❌ Endpoint /metrics falló"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status" || { echo "❌ Endpoint /metrics sin storage_status"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ Endpoint /metrics sin ai_circuit_breaker_open"; exit 1; }
           echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
 

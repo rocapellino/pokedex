@@ -27,6 +27,16 @@ groups:
           summary: "Redis fuera de línea en Pokédex API"
           description: "Redis no responde. La revocación de sesiones distribuidas y cuotas de IA están bloqueadas preventivamente (fail-closed)."
 
+      - alert: PokedexAICircuitBreakerOpen
+        expr: pokedex_ai_circuit_breaker_open == 1
+        for: 2m
+        labels:
+          severity: warning
+          service: pokedex-ai
+        annotations:
+          summary: "Disyuntor del servicio de IA (Gemini) abierto"
+          description: "El circuito hacia Google Gemini ha fallado reiteradamente y se encuentra abierto. El servicio opera en modo fallback heurístico local."
+
       # --------------------------------------------------------------------------
       # 2. Rendimiento y Tasas de Error HTTP
       # --------------------------------------------------------------------------
