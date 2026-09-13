@@ -804,4 +804,51 @@ test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan
   assert.ok(docsReadmeContent.includes('ADR-007-observability-and-metrics.md'), 'docs/README.md debe enlazar ADR-007');
 });
 
+test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Keyless, SLSA L3 y Kyverno', () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-008-supply-chain-security.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  assert.ok(fs.existsSync(adrPath), 'ADR-008 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-008 debe estar aceptado');
+  assert.ok(adrContent.includes('Digest Pinning'), 'ADR-008 debe definir Digest Pinning');
+  assert.ok(adrContent.includes('CycloneDX'), 'ADR-008 debe definir CycloneDX SBOM');
+  assert.ok(adrContent.includes('Cosign'), 'ADR-008 debe definir Cosign Keyless');
+  assert.ok(adrContent.includes('SLSA'), 'ADR-008 debe definir SLSA Provenance');
+  assert.ok(adrContent.includes('Kyverno'), 'ADR-008 debe definir control de admisión Kyverno');
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-008-supply-chain-security.md'), 'README.md debe enlazar ADR-008');
+
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-008-supply-chain-security.md'), 'docs/README.md debe enlazar ADR-008');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-008');
+});
+
+test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
+  const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+  const pdbPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/pdb.yaml');
+  const quotaPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/resourcequota.yaml');
+  const limitRangePath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/limitrange.yaml');
+  const infraCiPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+
+  assert.ok(fs.existsSync(valuesProdPath), 'values.prod.yaml debe existir');
+  assert.ok(fs.existsSync(pdbPath), 'pdb.yaml debe existir');
+  assert.ok(fs.existsSync(quotaPath), 'resourcequota.yaml debe existir');
+  assert.ok(fs.existsSync(limitRangePath), 'limitrange.yaml debe existir');
+  assert.ok(fs.existsSync(infraCiPath), 'infra.yml debe existir');
+
+  const valuesProdContent = fs.readFileSync(valuesProdPath, 'utf-8');
+  assert.ok(valuesProdContent.includes('podDisruptionBudget:'), 'values.prod.yaml debe configurar podDisruptionBudget');
+  assert.ok(valuesProdContent.includes('resourceQuota:'), 'values.prod.yaml debe configurar resourceQuota');
+  assert.ok(valuesProdContent.includes('limitRange:'), 'values.prod.yaml debe configurar limitRange');
+
+  const infraCiContent = fs.readFileSync(infraCiPath, 'utf-8');
+  assert.ok(infraCiContent.includes('kind: PodDisruptionBudget'), 'infra.yml debe validar PodDisruptionBudget en prod');
+  assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yml debe validar ResourceQuota en prod');
+  assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yml debe validar LimitRange en prod');
+});
+
 

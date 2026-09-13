@@ -58,6 +58,9 @@ jobs:
           grep -q "app.kubernetes.io/component: egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta componente egress-gateway"; exit 1; }
           grep -q "pokedex-egress-gateway" /tmp/rendered-egress-gateway.yaml || { echo "❌ Error: Falta Service/Deployment de Egress Gateway"; exit 1; }
           grep -q "kind: ServiceMonitor" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ServiceMonitor en prod"; exit 1; }
+          grep -q "kind: PodDisruptionBudget" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso PodDisruptionBudget en prod"; exit 1; }
+          grep -q "kind: ResourceQuota" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ResourceQuota en prod"; exit 1; }
+          grep -q "kind: LimitRange" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso LimitRange en prod"; exit 1; }
           
           # Prohibir estrictamente el tag :latest en producción
           if grep -E 'image:.*:latest' /tmp/rendered-prod.yaml; then
