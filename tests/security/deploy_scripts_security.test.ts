@@ -549,6 +549,11 @@ test('🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perf
   assert.ok(content.includes('require-readonly-rootfs'), 'Debe exigir readOnlyRootFilesystem');
   assert.ok(content.includes('disallow-privilege-escalation'), 'Debe prohibir escalada de privilegios');
   assert.ok(content.includes('require-drop-all-capabilities'), 'Debe exigir drop: [ALL]');
+
+  const testSuitePath = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/pod-security-standards/kyverno-test.yaml');
+  assert.ok(fs.existsSync(testSuitePath), 'kyverno-test.yaml de PSS debe existir');
+  const testContent = fs.readFileSync(testSuitePath, 'utf-8');
+  assert.ok(testContent.includes('pod-security-standards'), 'Debe testear la política pod-security-standards');
 });
 
 test('🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile mantienen paridad estructural', () => {

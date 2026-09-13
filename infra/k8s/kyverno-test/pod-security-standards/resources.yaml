@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pss-pod-valid
+  namespace: pokemon-app
+spec:
+  securityContext:
+    runAsNonRoot: true
+  containers:
+    - name: api
+      image: ghcr.io/rocapellino/pokedex-api:1.0.0
+      securityContext:
+        runAsNonRoot: true
+        privileged: false
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pss-pod-invalid-escalation
+  namespace: pokemon-app
+spec:
+  securityContext:
+    runAsNonRoot: true
+  containers:
+    - name: api
+      image: ghcr.io/rocapellino/pokedex-api:1.0.0
+      securityContext:
+        runAsNonRoot: true
+        privileged: false
+        allowPrivilegeEscalation: true
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pss-pod-invalid-privileged
+  namespace: pokemon-app
+spec:
+  securityContext:
+    runAsNonRoot: true
+  containers:
+    - name: api
+      image: ghcr.io/rocapellino/pokedex-api:1.0.0
+      securityContext:
+        runAsNonRoot: true
+        privileged: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
