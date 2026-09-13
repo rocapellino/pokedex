@@ -153,7 +153,7 @@ kubectl apply -f gitops/apps/app-proxmox.yaml
 kubectl apply -f gitops/apps/app-cloud.yaml
 ```
 
-ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/proxmox/values.yaml) o [`gitops/environments/aws/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/aws/values.yaml)).
+ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) o [`gitops/environments/aws/values.yaml`](../../gitops/environments/aws/values.yaml)).
 
 ---
 

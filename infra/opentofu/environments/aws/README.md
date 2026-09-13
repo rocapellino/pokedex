@@ -1,7 +1,7 @@
 # ☁️ Entorno OpenTofu: AWS EKS (Plantilla de Referencia Arquitectónica)
 
 > **ESTADO DE SOPORTE:** Plantilla de Referencia / Ejemplo Arquitectónico.  
-> **TARGET DE PRODUCCIÓN OFICIAL:** Proxmox VE ([`../proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments/proxmox)).
+> **TARGET DE PRODUCCIÓN OFICIAL:** Proxmox VE ([`../proxmox/`](../proxmox)).
 
 ---
 

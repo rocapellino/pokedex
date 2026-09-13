@@ -93,72 +93,72 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`Dockerfile`](file:///Dockerfile), [`package.json`](file:///package.json) |
-| **Express** | `4.21+` | Framework HTTP para rutas REST, middlewares y validaciones | [`server.ts`](file:///server.ts) |
-| **TypeScript** | `5.7+` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](file:///tsconfig.json), [`src/types.ts`](file:///src/types.ts) |
-| **esbuild** | `0.24+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](file:///package.json) |
+| **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`Dockerfile`](../../Dockerfile), [`package.json`](../../package.json) |
+| **Express** | `4.21+` | Framework HTTP para rutas REST, middlewares y validaciones | [`server.ts`](../../server.ts) |
+| **TypeScript** | `5.7+` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`src/types.ts`](../../src/types.ts) |
+| **esbuild** | `0.24+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
 
 ### 2.2. Frontend Web
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 5` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](file:///apps/frontend/) |
-| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](file:///apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](file:///apps/frontend/Dockerfile) |
+| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 5` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
+| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
 
 ### 2.3. Persistencia, Caché & Connection Pooling
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`src/services/db.ts`](file:///src/services/db.ts), [`docker-compose.yml`](file:///docker-compose.yml) |
-| **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](file:///infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
-| **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`src/services/db.ts`](file:///src/services/db.ts), [`src/services/auth.ts`](file:///src/services/auth.ts) |
+| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`src/services/db.ts`](../../src/services/db.ts), [`docker-compose.yml`](../../docker-compose.yml) |
+| **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](../../infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
+| **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`src/services/db.ts`](../../src/services/db.ts), [`src/services/auth.ts`](../../src/services/auth.ts) |
 
 ### 2.4. Inteligencia Artificial Generativa
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Google AI Studio (`@google/genai`)** | SDK oficial | Integración nativa con **Gemini 2.5 Flash** para diagramas y mockups | [`src/services/ai.ts`](file:///src/services/ai.ts) |
+| **Google AI Studio (`@google/genai`)** | SDK oficial | Integración nativa con **Gemini 2.5 Flash** para diagramas y mockups | [`src/services/ai.ts`](../../src/services/ai.ts) |
 
 ### 2.5. Calidad de Código, Testing & Fuzzing
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](file:///tests/) |
-| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/`](file:///tests/fuzz/) |
-| **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](file:///tests/performance/k6_stress_test.js) |
-| **TypeScript Compiler (`tsc`)** | `5.7+` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](file:///package.json) |
+| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
+| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/`](../../tests/fuzz) |
+| **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
+| **TypeScript Compiler (`tsc`)** | `5.7+` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
 
 ### 2.6. Seguridad & Supply Chain
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Cosign (Sigstore)** | `2.x+` | Firmado criptográfico Keyless de imágenes OCI mediante OIDC de GitHub Actions | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Kyverno** | `1.12+` | Control de admisión en Kubernetes para exigir imágenes firmadas válidas | [`infra/k8s/kyverno-cosign-policy.yaml`](file:///infra/k8s/kyverno-cosign-policy.yaml) |
-| **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](file:///.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml) |
-| **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](file:///.github/workflows/security-trivy.yml) |
-| **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](file:///infra/helm/pokedex/templates/externalsecret.yaml) |
-| **Bitnami Sealed Secrets** | Latest | Cifrado asimétrico de secretos en Git para clústeres on-premise | [`scripts/seal_secret.py`](file:///scripts/seal_secret.py), [`scripts/seal_secret.sh`](file:///scripts/seal_secret.sh) |
+| **Cosign (Sigstore)** | `2.x+` | Firmado criptográfico Keyless de imágenes OCI mediante OIDC de GitHub Actions | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Kyverno** | `1.12+` | Control de admisión en Kubernetes para exigir imágenes firmadas válidas | [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) |
+| **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](../../.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) |
+| **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](../../.github/workflows/security-trivy.yml) |
+| **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
+| **Bitnami Sealed Secrets** | Latest | Cifrado asimétrico de secretos en Git para clústeres on-premise | [`scripts/seal_secret.py`](../../scripts/seal_secret.py), [`scripts/seal_secret.sh`](../../scripts/seal_secret.sh) |
 
 ### 2.7. Contenedores, Orquestación & GitOps
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`Dockerfile`](file:///Dockerfile) |
-| **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yml`](file:///docker-compose.yml) |
-| **Helm** | `3.17` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](file:///infra/helm/pokedex/) |
-| **Argo CD** | Latest | Motor GitOps para sincronización declarativa continua en clúster | [`gitops/apps/`](file:///gitops/apps/) |
+| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`Dockerfile`](../../Dockerfile) |
+| **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yml`](../../docker-compose.yml) |
+| **Helm** | `3.17` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](../../infra/helm/pokedex) |
+| **Argo CD** | Latest | Motor GitOps para sincronización declarativa continua en clúster | [`gitops/apps/`](../../gitops/apps) |
 
 ### 2.8. Infraestructura como Código (IaC) & Virtualización
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](file:///infra/opentofu/) |
-| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yml`](file:///.github/workflows/infra.yml), [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) |
-| **Proxmox VE** | `8.x` | Virtualización on-premise mediante contenedores LXC y Cloud-Init | [`infra/proxmox/`](file:///infra/proxmox/) |
-| **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](file:///infra/ansible/) |
+| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](../../infra/opentofu) |
+| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yml`](../../.github/workflows/infra.yml), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Proxmox VE** | `8.x` | Virtualización on-premise mediante contenedores LXC y Cloud-Init | [`infra/proxmox/`](../../infra/proxmox) |
+| **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 
 ### 2.9. Observabilidad & Monitoreo
 
@@ -173,11 +173,11 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](file:///Taskfile.yml) |
-| **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](file:///.github/pull_request_template.md) |
+| **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](../../Taskfile.yml) |
+| **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) |
 | **Slack** | SaaS | Canal ChatOps para recepción de alertas de Linear (creación, asignación, updates y cierre de PEX-X) | Integración Workspace Linear App para Slack |
-| **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](file:///renovate.json) |
-| **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](file:///.github/dependabot.yml) |
+| **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](../../renovate.json) |
+| **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](../../.github/dependabot.yml) |
 
 ---
 
@@ -194,7 +194,7 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Resiliencia y Manejo de Integraciones Externas
 
-* **Cockatiel / Opossum**: Librerías especializadas para la gestión avanzada de políticas de reintento con backoff exponencial, fallbacks y Circuit Breaker en [`services/ai.ts`](file:///apps/backend/src/services/ai.ts), previniendo el agotamiento de sockets de Node.js ante degradaciones de red del proveedor de IA.
+* **Cockatiel / Opossum**: Librerías especializadas para la gestión avanzada de políticas de reintento con backoff exponencial, fallbacks y Circuit Breaker en [`services/ai.ts`](../../apps/backend/src/services/ai.ts), previniendo el agotamiento de sockets de Node.js ante degradaciones de red del proveedor de IA.
 * **BullMQ**: Desacoplamiento de tareas asíncronas pesadas (inferencia multimodal, generación de mockups y reportes masivos) mediante colas de trabajo respaldadas por la instancia existente de Redis (`redis-deployment.yaml`).
 
 #### Observabilidad y Telemetría
@@ -214,15 +214,15 @@ Tomando como base las características identificadas en el repositorio, se estab
 #### Frontend Type-Safe y Contratos Compartidos
 
 * **Migración a TypeScript Estricto en Frontend**: Conversión de `pokedex.js`, `backoffice.js` y `theme.js` a TypeScript bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
-* **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](file:///apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
+* **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
 
 #### Validación Universal de Esquemas en Runtime
 
-* **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](file:///apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
+* **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
 
 #### Manejo de Errores con Tipos Algebraicos
 
-* **`neverthrow` (Patrón Result / Either)**: Sustitución de `try/catch` no estructurados en [`services/db.ts`](file:///apps/backend/src/services/db.ts) y [`services/auth.ts`](file:///apps/backend/src/services/auth.ts) por tipos `Result<T, AppError>`, forzando en tiempo de compilación el manejo exhaustivo de fallos (entidad no encontrada, credencial inválida, timeout).
+* **`neverthrow` (Patrón Result / Either)**: Sustitución de `try/catch` no estructurados en [`services/db.ts`](../../apps/backend/src/services/db.ts) y [`services/auth.ts`](../../apps/backend/src/services/auth.ts) por tipos `Result<T, AppError>`, forzando en tiempo de compilación el manejo exhaustivo de fallos (entidad no encontrada, credencial inválida, timeout).
 
 ---
 
@@ -242,10 +242,10 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Seguridad y Caché Semántica en la Capa de IA
 
-* **Guardrails y Delimitación Estricta**: Aislamiento total del contexto del sistema frente a datos ingresados por usuarios en [`services/ai.ts`](file:///apps/backend/src/services/ai.ts) mediante delimitadores XML (`<user_prompt>`) y filtrado semántico previo.
+* **Guardrails y Delimitación Estricta**: Aislamiento total del contexto del sistema frente a datos ingresados por usuarios en [`services/ai.ts`](../../apps/backend/src/services/ai.ts) mediante delimitadores XML (`<user_prompt>`) y filtrado semántico previo.
 * **Caché Semántica con Redis**: Almacenamiento con TTL de respuestas generativas recurrentes para reducir latencia a menos de 5 ms y abatir costos operativos de API.
 
 #### Endurecimiento de la Gestión de Estado de Infraestructura (IaC)
 
 * **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
-* **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](file:///infra/ansible/deploy_excludes.txt) y External Secrets Operator / Sealed Secrets en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.
+* **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y External Secrets Operator / Sealed Secrets en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.

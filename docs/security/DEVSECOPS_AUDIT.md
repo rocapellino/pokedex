@@ -19,12 +19,12 @@ Este documento condensa los resultados de la auditoría de seguridad integral, a
 
 | Capa / Subsistema | Ruta en Repositorio | Stack Tecnológico | Rol Operativo & Superficie Expuesta |
 | :--- | :--- | :--- | :--- |
-| **Núcleo de API REST** | [`apps/backend`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend) | Node.js 22 LTS, TypeScript, PostgreSQL, Redis | Ingesta, validación, lógica de negocio y persistencia relacional. |
-| **Capa de Presentación** | [`apps/frontend`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend) | Vanilla JS, HTML5/CSS3, Nginx Proxy | Interfaz gráfica pública y backoffice administrativo ligero. |
-| **Automatización de Nodos** | [`infra/ansible`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible) | Ansible Core, SSH, Cloud-Init | Hardening de SO, cortafuegos UFW y configuración base. |
-| **Orquestación Kubernetes** | [`infra/helm/pokedex`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/helm/pokedex) | Helm Charts v3, K8s Manifests | Despliegue, HPA, PDB, Ingress y Network Policies Zero-Trust. |
-| **Infraestructura Declarativa** | [`infra/opentofu`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu) | OpenTofu (Terraform DSL) | Aprovisionamiento declarativo de VMs/LXC en Proxmox y Cloud. |
-| **Gobernanza y Admisión** | [`infra/k8s`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/k8s) | Kyverno, Cosign, Pod Security | Verificación criptográfica de firmas OCI y admisión. |
+| **Núcleo de API REST** | [`apps/backend`](../../apps/backend) | Node.js 22 LTS, TypeScript, PostgreSQL, Redis | Ingesta, validación, lógica de negocio y persistencia relacional. |
+| **Capa de Presentación** | [`apps/frontend`](../../apps/frontend) | Vanilla JS, HTML5/CSS3, Nginx Proxy | Interfaz gráfica pública y backoffice administrativo ligero. |
+| **Automatización de Nodos** | [`infra/ansible`](../../infra/ansible) | Ansible Core, SSH, Cloud-Init | Hardening de SO, cortafuegos UFW y configuración base. |
+| **Orquestación Kubernetes** | [`infra/helm/pokedex`](../../infra/helm/pokedex) | Helm Charts v3, K8s Manifests | Despliegue, HPA, PDB, Ingress y Network Policies Zero-Trust. |
+| **Infraestructura Declarativa** | [`infra/opentofu`](../../infra/opentofu) | OpenTofu (Terraform DSL) | Aprovisionamiento declarativo de VMs/LXC en Proxmox y Cloud. |
+| **Gobernanza y Admisión** | [`infra/k8s`](../../infra/k8s) | Kyverno, Cosign, Pod Security | Verificación criptográfica de firmas OCI y admisión. |
 
 ---
 
@@ -32,13 +32,13 @@ Este documento condensa los resultados de la auditoría de seguridad integral, a
 
 | Vector de Riesgo | Archivo Afectado | Severidad | Mecanismo del Fallo | Impacto Técnico & Mitigación |
 | :--- | :--- | :---: | :--- | :--- |
-| **Inyección de Código SQL** | [`apps/backend/src/services/db.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/services/db.ts) | **Crítica** | Interpolación no segura en consultas dinámicas. | **Mitigado:** Parámetros vinculados obligatorios (`$1`, `$2`) en todo el ciclo CRUD. |
-| **Inyección de Código (XSS)** | [`apps/backend/src/validation/pokemon.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/validation/pokemon.ts) | **Media** | Inyección de etiquetas HTML maliciosas o pseudo-protocolos (`javascript:`, `onerror=`) en atributos del catálogo. | **Mitigado (Defensa en profundidad):** Filtro preventivo de tokens y delimitadores (`SCRIPT_PATTERN`) en backend, complementado por función `escapeHTML` estricta en frontend. *Limitación conocida:* Es un filtrado por lista negra; el roadmap contempla migración a Zod con parser/sanitizador HTML dedicado. |
-| **Manipulación DOM (XSS)** | [`apps/frontend/public/js/*.js`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend/public/js/pokedex.js) | **Alta** | Renderizado de respuestas de API en el DOM vía `innerHTML`. | **Mitigado:** Función `escapeHTML` estricta sanitizando `<`, `>`, `&`, `"`, `'` y backticks. |
-| **Prompt Injection / DoS** | [`apps/backend/src/services/ai.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/services/ai.ts) | **Media** | Entrada no delimitada y carencia de disyuntor ante latencias. | **Mitigado:** Delimitadores semánticos XML `<user_prompt>`, sanitización y Circuit Breaker. |
-| **Fuga de Secretos en Procesos** | [`infra/ansible/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible/) | **Alta** | Parámetros confidenciales por CLI o scripts bash legacy. | **Mitigado:** Script bash legacy retirado en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible/deploy_excludes.txt) y variables seguras. |
-| **Omisión de Cabeceras HTTP** | [`apps/backend/server.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/server.ts), [`apps/frontend/nginx.conf`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/frontend/nginx.conf) | **Media** | Pérdida de cabeceras en bypass de Ingress, port-forward directo o bloques `location` con `add_header` propio. | **Mitigado:** Inyección redundante de CSP, HSTS, X-Content-Type-Options y Permissions-Policy tanto en Express como en Nginx. |
-| **Exposición de Estado IaC** | [`infra/opentofu/environments/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments) | **Alta** | Riesgo de persistencia de `.tfstate` con valores en claro. | **Mitigado:** Recomendación de backend remoto S3/PostgreSQL con cifrado en reposo. |
+| **Inyección de Código SQL** | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts) | **Crítica** | Interpolación no segura en consultas dinámicas. | **Mitigado:** Parámetros vinculados obligatorios (`$1`, `$2`) en todo el ciclo CRUD. |
+| **Inyección de Código (XSS)** | [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) | **Media** | Inyección de etiquetas HTML maliciosas o pseudo-protocolos (`javascript:`, `onerror=`) en atributos del catálogo. | **Mitigado (Defensa en profundidad):** Filtro preventivo de tokens y delimitadores (`SCRIPT_PATTERN`) en backend, complementado por función `escapeHTML` estricta en frontend. *Limitación conocida:* Es un filtrado por lista negra; el roadmap contempla migración a Zod con parser/sanitizador HTML dedicado. |
+| **Manipulación DOM (XSS)** | [`apps/frontend/public/js/*.js`](../../apps/frontend/public/js/pokedex.js) | **Alta** | Renderizado de respuestas de API en el DOM vía `innerHTML`. | **Mitigado:** Función `escapeHTML` estricta sanitizando `<`, `>`, `&`, `"`, `'` y backticks. |
+| **Prompt Injection / DoS** | [`apps/backend/src/services/ai.ts`](../../apps/backend/src/services/ai.ts) | **Media** | Entrada no delimitada y carencia de disyuntor ante latencias. | **Mitigado:** Delimitadores semánticos XML `<user_prompt>`, sanitización y Circuit Breaker. |
+| **Fuga de Secretos en Procesos** | [`infra/ansible/`](../../infra/ansible) | **Alta** | Parámetros confidenciales por CLI o scripts bash legacy. | **Mitigado:** Script bash legacy retirado en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y variables seguras. |
+| **Omisión de Cabeceras HTTP** | [`apps/backend/server.ts`](../../apps/backend/server.ts), [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf) | **Media** | Pérdida de cabeceras en bypass de Ingress, port-forward directo o bloques `location` con `add_header` propio. | **Mitigado:** Inyección redundante de CSP, HSTS, X-Content-Type-Options y Permissions-Policy tanto en Express como en Nginx. |
+| **Exposición de Estado IaC** | [`infra/opentofu/environments/`](../../infra/opentofu/environments) | **Alta** | Riesgo de persistencia de `.tfstate` con valores en claro. | **Mitigado:** Recomendación de backend remoto S3/PostgreSQL con cifrado en reposo. |
 
 ---
 

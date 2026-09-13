@@ -1,6 +1,6 @@
 # 🎨 Maquetación y Sistema de Diseño de la Interfaz (UI/UX)
 
-Este documento describe la arquitectura visual, estructura de componentes, esquemas de distribución (wireframes) y lineamientos de diseño de usuario para la aplicación **Pokédex**, abarcando tanto el catálogo público como el panel administrativo (Backoffice) y los modales de detalle implementados en [`apps/frontend/public/`](file:///apps/frontend/public/).
+Este documento describe la arquitectura visual, estructura de componentes, esquemas de distribución (wireframes) y lineamientos de diseño de usuario para la aplicación **Pokédex**, abarcando tanto el catálogo público como el panel administrativo (Backoffice) y los modales de detalle implementados en [`apps/frontend/public/`](../../apps/frontend/public).
 
 ---
 

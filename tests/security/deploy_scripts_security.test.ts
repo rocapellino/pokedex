@@ -963,4 +963,38 @@ test('🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 S
   }
 });
 
+test('🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:///', () => {
+  function getMarkdownFiles(dir: string): string[] {
+    let files: string[] = [];
+    const entries = fs.readdirSync(dir);
+    for (const entry of entries) {
+      if (entry === 'node_modules' || entry === '.git' || entry === 'dist') continue;
+      const fullPath = path.join(dir, entry);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        files = files.concat(getMarkdownFiles(fullPath));
+      } else if (entry.endsWith('.md')) {
+        files.push(fullPath);
+      }
+    }
+    return files;
+  }
+
+  const allMarkdownFiles = getMarkdownFiles(ROOT_DIR);
+  assert.ok(allMarkdownFiles.length > 20, 'Deben existir múltiples archivos de documentación Markdown');
+
+  const filesWithAbsoluteLinks: string[] = [];
+  for (const file of allMarkdownFiles) {
+    const content = fs.readFileSync(file, 'utf-8');
+    if (content.includes('file:///')) {
+      filesWithAbsoluteLinks.push(path.relative(ROOT_DIR, file));
+    }
+  }
+
+  assert.deepStrictEqual(
+    filesWithAbsoluteLinks,
+    [],
+    `Los siguientes archivos contienen enlaces absolutos locales file:///: ${filesWithAbsoluteLinks.join(', ')}`
+  );
+});
 

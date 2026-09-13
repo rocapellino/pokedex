@@ -158,24 +158,24 @@ A continuación se detalla cada uno de los artefactos impactados o introducidos 
 
 | Archivo / Ruta | Estado Git | Capa / Dominio | Descripción y Propósito Técnico |
 |---|---|---|---|
-| [`server.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/server.ts) | ✨ Nuevo | Backend / API | Servidor central en Express/TypeScript. Gestiona endpoints CRUD `/pokemons`, métricas Prometheus `/metrics`, healthcheck `/healthz`, endpoints de Gemini y ruteo SPA. |
-| [`src/pokemonData.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/src/pokemonData.ts) | ✨ Nuevo | Dominio / Datos | Interfaces y modelos de tipos (`Pokemon`, `PokemonStats`, etc.) y dataset inicial de 830+ líneas con Pokémon de Kanto a Paldea. |
-| [`package.json`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/package.json) | ✨ Nuevo | Config / Build | Manifiesto Node.js con dependencias (`@google/genai`, `express`, `cors`), bundler (`esbuild`), runtime de desarrollo (`tsx`) y TypeScript. |
-| [`bun.lock`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/bun.lock) | ✨ Nuevo | Config / Build | Lockfile determinístico para gestión de dependencias ultrarrápida con Bun. |
-| [`tsconfig.json`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/tsconfig.json) | ✨ Nuevo | Config / Build | Configuración de compilación de TypeScript para NodeNext y ECMAScript 2022 (`outDir: ./dist`). |
-| [`metadata.json`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/metadata.json) | ✨ Nuevo | AI Studio | Metadatos de la aplicación para AI Studio, declarando la capacidad `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API`. |
-| [`public/index.html`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/index.html) | ✨ Nuevo | Frontend | Vista principal de la Pokédex: Bento Grid con métricas de fuerza/peso, buscador reactivo, filtros por tipo y modal de evoluciones. |
-| [`public/backoffice.html`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/backoffice.html) | ✨ Nuevo | Frontend / Admin | Panel de administración CRUD: monitoreo de latencia y estado de salud, tabla interactiva de Pokémon y formulario modal de alta/edición. |
-| [`public/js/pokedex.js`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/js/pokedex.js) | ✨ Nuevo | Frontend / Lógica | Lógica reactiva de la Pokédex: consumo asíncrono de `/pokemons`, cálculo de estadísticas BST en cliente, filtrado combinado y renderizado DOM optimizado. |
-| [`public/js/backoffice.js`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/js/backoffice.js) | ✨ Nuevo | Frontend / Admin | Lógica del panel administrativo: operaciones HTTP `POST`, `PUT`, `DELETE` con confirmación, validación y pooling de healthcheck. |
-| [`public/js/theme.js`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/js/theme.js) | ✨ Nuevo | Frontend / UI | Gestor de temas claro / oscuro con persistencia en `localStorage` y sincronización con preferencias del sistema operativo. |
-| [`public/css/style.css`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/css/style.css) | ✨ Nuevo | Frontend / Estilos | Sistema de diseño con tokens CSS, gradientes cromáticos por tipo elemental, glassmorphism, microanimaciones y diseño responsivo. |
-| [`public/css/backoffice.css`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/css/backoffice.css) | ✨ Nuevo | Frontend / Estilos | Estilos específicos para la consola administrativa, tablas de gestión y modales CRUD. |
-| [`public/assets/mockups/*`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/public/assets/mockups/) | ✨ Nuevo | Assets / Diseño | Mockups vectoriales SVG de alta fidelidad (`pokedex-catalog.svg`, `pokemon-detail.svg`, `backoffice-dashboard.svg`). |
-| [`docs/architecture/MOCKUPS_Y_DISENO_UI.md`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/docs/architecture/MOCKUPS_Y_DISENO_UI.md) | ✨ Nuevo | Documentación | Documentación técnica del sistema de diseño visual, tokens, accesibilidad WCAG 2.1 AA y lineamientos de UX. |
-| [`.env.example`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/.env.example) | 📝 Modificado | Configuración | Plantilla ajustada para el entorno unificado (`PORT=3000`, `GEMINI_API_KEY`, `DATABASE_URL`, `REDIS_URL`). |
-| [`.gitignore`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/.gitignore) | 📝 Modificado | Git / DevOps | Adición de exclusiones estándar para el ecosistema Node.js (`node_modules/`, `dist/`, `.npm/`). |
-| [`docs/README.md`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/docs/README.md) | 📝 Modificado | Documentación | Vinculación en el índice general hacia los nuevos documentos arquitectónicos. |
+| [`server.ts`](../../server.ts) | ✨ Nuevo | Backend / API | Servidor central en Express/TypeScript. Gestiona endpoints CRUD `/pokemons`, métricas Prometheus `/metrics`, healthcheck `/healthz`, endpoints de Gemini y ruteo SPA. |
+| [`src/pokemonData.ts`](../../src/pokemonData.ts) | ✨ Nuevo | Dominio / Datos | Interfaces y modelos de tipos (`Pokemon`, `PokemonStats`, etc.) y dataset inicial de 830+ líneas con Pokémon de Kanto a Paldea. |
+| [`package.json`](../../package.json) | ✨ Nuevo | Config / Build | Manifiesto Node.js con dependencias (`@google/genai`, `express`, `cors`), bundler (`esbuild`), runtime de desarrollo (`tsx`) y TypeScript. |
+| [`bun.lock`](../../bun.lock) | ✨ Nuevo | Config / Build | Lockfile determinístico para gestión de dependencias ultrarrápida con Bun. |
+| [`tsconfig.json`](../../tsconfig.json) | ✨ Nuevo | Config / Build | Configuración de compilación de TypeScript para NodeNext y ECMAScript 2022 (`outDir: ./dist`). |
+| [`metadata.json`](../../metadata.json) | ✨ Nuevo | AI Studio | Metadatos de la aplicación para AI Studio, declarando la capacidad `MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API`. |
+| [`public/index.html`](../../public/index.html) | ✨ Nuevo | Frontend | Vista principal de la Pokédex: Bento Grid con métricas de fuerza/peso, buscador reactivo, filtros por tipo y modal de evoluciones. |
+| [`public/backoffice.html`](../../public/backoffice.html) | ✨ Nuevo | Frontend / Admin | Panel de administración CRUD: monitoreo de latencia y estado de salud, tabla interactiva de Pokémon y formulario modal de alta/edición. |
+| [`public/js/pokedex.js`](../../public/js/pokedex.js) | ✨ Nuevo | Frontend / Lógica | Lógica reactiva de la Pokédex: consumo asíncrono de `/pokemons`, cálculo de estadísticas BST en cliente, filtrado combinado y renderizado DOM optimizado. |
+| [`public/js/backoffice.js`](../../public/js/backoffice.js) | ✨ Nuevo | Frontend / Admin | Lógica del panel administrativo: operaciones HTTP `POST`, `PUT`, `DELETE` con confirmación, validación y pooling de healthcheck. |
+| [`public/js/theme.js`](../../public/js/theme.js) | ✨ Nuevo | Frontend / UI | Gestor de temas claro / oscuro con persistencia en `localStorage` y sincronización con preferencias del sistema operativo. |
+| [`public/css/style.css`](../../public/css/style.css) | ✨ Nuevo | Frontend / Estilos | Sistema de diseño con tokens CSS, gradientes cromáticos por tipo elemental, glassmorphism, microanimaciones y diseño responsivo. |
+| [`public/css/backoffice.css`](../../public/css/backoffice.css) | ✨ Nuevo | Frontend / Estilos | Estilos específicos para la consola administrativa, tablas de gestión y modales CRUD. |
+| [`public/assets/mockups/*`](../../public/assets/mockups) | ✨ Nuevo | Assets / Diseño | Mockups vectoriales SVG de alta fidelidad (`pokedex-catalog.svg`, `pokemon-detail.svg`, `backoffice-dashboard.svg`). |
+| [`docs/architecture/MOCKUPS_Y_DISENO_UI.md`](./MOCKUPS_Y_DISENO_UI.md) | ✨ Nuevo | Documentación | Documentación técnica del sistema de diseño visual, tokens, accesibilidad WCAG 2.1 AA y lineamientos de UX. |
+| [`.env.example`](../../.env.example) | 📝 Modificado | Configuración | Plantilla ajustada para el entorno unificado (`PORT=3000`, `GEMINI_API_KEY`, `DATABASE_URL`, `REDIS_URL`). |
+| [`.gitignore`](../../.gitignore) | 📝 Modificado | Git / DevOps | Adición de exclusiones estándar para el ecosistema Node.js (`node_modules/`, `dist/`, `.npm/`). |
+| [`docs/README.md`](../README.md) | 📝 Modificado | Documentación | Vinculación en el índice general hacia los nuevos documentos arquitectónicos. |
 
 ---
 

@@ -1,6 +1,6 @@
 # 🤖 Guía Completa de Workflows de GitHub Actions y DevSecOps
 
-Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** los pipelines de Integración Continua, Entrega Continua y Seguridad de la Cadena de Suministro (CI/CD/DevSecOps) configurados en [`.github/workflows/`](file:///.github/workflows/) de este repositorio.
+Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** los pipelines de Integración Continua, Entrega Continua y Seguridad de la Cadena de Suministro (CI/CD/DevSecOps) configurados en [`.github/workflows/`](../../.github/workflows) de este repositorio.
 
 ---
 
@@ -30,11 +30,11 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 
 Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo estructurado con npm workspaces, se implementa **Path Filtering** inteligente:
 
-* **Cambios en Backend:** Activan exclusivamente [`api.yml`](file:///.github/workflows/api.yml).
-* **Cambios en Frontend:** Activan exclusivamente [`web.yml`](file:///.github/workflows/web.yml).
-* **Cambios en Infraestructura / Helm:** Activan exclusivamente [`infra.yml`](file:///.github/workflows/infra.yml).
-* **Pull Requests a `main` y Pushes a `main`:** Disparan [`ci.yml`](file:///.github/workflows/ci.yml) ejecutando la suite completa de calidad, security gates paralelos y firmado.
-* **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml).
+* **Cambios en Backend:** Activan exclusivamente [`api.yml`](../../.github/workflows/api.yml).
+* **Cambios en Frontend:** Activan exclusivamente [`web.yml`](../../.github/workflows/web.yml).
+* **Cambios en Infraestructura / Helm:** Activan exclusivamente [`infra.yml`](../../.github/workflows/infra.yml).
+* **Pull Requests a `main` y Pushes a `main`:** Disparan [`ci.yml`](../../.github/workflows/ci.yml) ejecutando la suite completa de calidad, security gates paralelos y firmado.
+* **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml).
 
 ---
 
@@ -100,31 +100,31 @@ flowchart TD
 
 ### 3.1. ⚙️ `api.yml` (Backend API CI)
 
-* **Archivo:** [`api.yml`](file:///.github/workflows/api.yml)
+* **Archivo:** [`api.yml`](../../.github/workflows/api.yml)
 * **Triggers:** Cambios en `apps/backend/**`, `package.json`, `package-lock.json`, `tsconfig.json`.
 * **Pasos:** Checkout con SHA pinned, Node.js 22 LTS, `npm ci`, verificación de tipos (`tsc --noEmit`), compilación esbuild (`npm run build`), ejecución de tests (`npm test`) y auditoría `npm audit --audit-level=high`.
 
 ### 3.2. 🌐 `web.yml` (Frontend Web CI)
 
-* **Archivo:** [`web.yml`](file:///.github/workflows/web.yml)
+* **Archivo:** [`web.yml`](../../.github/workflows/web.yml)
 * **Triggers:** Cambios en `apps/frontend/**`.
 * **Pasos:** Chequeo de sintaxis JavaScript en archivos estáticos (`node -c apps/frontend/public/js/*.js`) y validación de configuración de Nginx (`nginx -t`).
 
 ### 3.3. ⚙️ `infra.yml` (Infrastructure & IaC CI)
 
-* **Archivo:** [`infra.yml`](file:///.github/workflows/infra.yml)
+* **Archivo:** [`infra.yml`](../../.github/workflows/infra.yml)
 * **Triggers:** Cambios en `infra/**`, `gitops/**`.
 * **Pasos:** Helm CLI lint (`helm lint infra/helm/pokedex`), renderizado de templates con valores de desarrollo y producción con validación Zero-Trust (`helm template`), validación de sintaxis OpenTofu y auditoría IaC con Checkov.
 
 ### 3.4. 🔐 `security-gitleaks.yml` (Secret Scanning)
 
-* **Archivo:** [`security-gitleaks.yml`](file:///.github/workflows/security-gitleaks.yml)
+* **Archivo:** [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml)
 * **Triggers:** Todos los commits y PRs.
-* **Pasos:** Gitleaks con reglas de [`.gitleaks.toml`](file:///.gitleaks.toml) analizando el historial completo para evitar fuga de credenciales o API keys.
+* **Pasos:** Gitleaks con reglas de [`.gitleaks.toml`](../../.gitleaks.toml) analizando el historial completo para evitar fuga de credenciales o API keys.
 
 ### 3.5. 🚀 `ci.yml` (Monorepo CI, Gates Bloqueantes, SBOM, Cosign & Supply Chain)
 
-* **Archivo:** [`ci.yml`](file:///.github/workflows/ci.yml)
+* **Archivo:** [`ci.yml`](../../.github/workflows/ci.yml)
 * **Triggers:** Pull Requests y pushes a `main`.
 * **Etapas:**
   1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm test` (63 tests) y `npm run test:fuzz` (7 fuzz tests).
@@ -139,18 +139,18 @@ flowchart TD
 
 ### 3.6. 🛡️ `security-trivy.yml` (Escaneo Programado de Vulnerabilidades)
 
-* **Archivo:** [`security-trivy.yml`](file:///.github/workflows/security-trivy.yml)
+* **Archivo:** [`security-trivy.yml`](../../.github/workflows/security-trivy.yml)
 * **Triggers:** Escaneo programado periódico de CVEs sobre filesystem y dependencias.
 
 ### 3.7. 🏷️ `release-tag.yml` (Versionado Semántico Automático)
 
-* **Archivo:** [`release-tag.yml`](file:///.github/workflows/release-tag.yml)
+* **Archivo:** [`release-tag.yml`](../../.github/workflows/release-tag.yml)
 * **Triggers:** Push directo / merge a `main`.
 * **Pasos:** Analiza commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer y publica el **GitHub Release** con Git Tag asociado.
 
 ### 3.8. ⚡ `performance-k6.yml` (Pruebas de Carga y Rendimiento)
 
-* **Archivo:** [`performance-k6.yml`](file:///.github/workflows/performance-k6.yml)
+* **Archivo:** [`performance-k6.yml`](../../.github/workflows/performance-k6.yml)
 * **Triggers:** Ejecución manual o programada para validar métricas de latencia p95 y resistencia bajo carga con scripts k6.
 
 ---
@@ -163,15 +163,15 @@ Todas las dependencias de GitHub Actions en los workflows están ancladas por su
 
 ### 4.2. Dependency Review Gate
 
-El workflow [`ci.yml`](file:///.github/workflows/ci.yml) incorpora el gate de revisión de dependencias:
+El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revisión de dependencias:
 
 * Falla de forma bloqueante si un PR introduce paquetes con CVEs calificados como `moderate`, `high` o `critical`.
 * Previene la introducción de paquetes comprometidos antes de que el código llegue a `main`.
 
 ### 4.3. Renovate Bot y Dependabot con Cooldown
 
-* **Renovate Bot ([`renovate.json`](file:///renovate.json)):** Configurado con auto-merge restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker y GitHub Actions requieren aprobación humana explícita y etiquetas `manual-review-required` e `infra-supply-chain-review`.
-* **Dependabot ([`.github/dependabot.yml`](file:///.github/dependabot.yml)):** Configurado con un **cooldown obligatorio de 7 días** (`cooldown.default-days: 7`) para que cualquier nueva versión permanezca en observación comunitaria antes de proponerse en un PR.
+* **Renovate Bot ([`renovate.json`](../../renovate.json)):** Configurado con auto-merge restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker y GitHub Actions requieren aprobación humana explícita y etiquetas `manual-review-required` e `infra-supply-chain-review`.
+* **Dependabot ([`.github/dependabot.yml`](../../.github/dependabot.yml)):** Configurado con un **cooldown obligatorio de 7 días** (`cooldown.default-days: 7`) para que cualquier nueva versión permanezca en observación comunitaria antes de proponerse en un PR.
 
 ---
 
@@ -181,7 +181,7 @@ El workflow [`ci.yml`](file:///.github/workflows/ci.yml) incorpora el gate de re
 * **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
 * **Notificaciones ChatOps en Slack:**
   * La aplicación de Linear para Slack retransmite eventos de los tickets (`PEX-X`) directamente al canal de ingeniería del equipo.
-  * Los pipelines automatizados ([`dependabot-linear-sync.yml`](file:///.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](file:///.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
+  * Los pipelines automatizados ([`dependabot-linear-sync.yml`](../../.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
   * Cuando los PRs son mergeados o cerrados, la sincronización bidireccional actualiza el ticket a `Done` o `Canceled` y publica el resultado en Slack sin requerir gestión manual.
 
 ---

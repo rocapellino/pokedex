@@ -58,7 +58,7 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 ## 2. Gestión Segura de Secretos (Zero-Trust)
 
 * **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
-* **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos `.env` y `.env.*` locales hacia los nodos.
+* **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos `.env` y `.env.*` locales hacia los nodos.
 * **Inyección Desacoplada en Kubernetes:**
   * **Bitnami Sealed Secrets:** Las credenciales cifradas se versionan de forma segura en el repositorio Git (`infra/helm/pokedex/templates/sealed-secrets.yaml`) y solo el controlador en el clúster puede descifrarlas.
   * **External Secrets Operator (ESO):** En entornos corporativos híbridos, sincroniza secretos automáticamente desde un proveedor centralizado (Vault, AWS Secrets Manager o GCP Secret Manager).
@@ -67,7 +67,7 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 
 ## 3. Aprovisionamiento de Infraestructura con OpenTofu
 
-El entorno en [`infra/opentofu/environments/proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments/proxmox/) aprovisiona las instancias o máquinas virtuales en Proxmox VE de forma declarativa e inmutable:
+El entorno en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) aprovisiona las instancias o máquinas virtuales en Proxmox VE de forma declarativa e inmutable:
 
 ```bash
 # Inicializar y planificar con OpenTofu
@@ -88,7 +88,7 @@ tofu apply \
 
 ## 4. Aprovisionamiento Base con Cloud-Init (VM / LXC)
 
-La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/proxmox/cloud-init/user-data.yaml) automatiza la preparación inicial del sistema operativo al inicializar el nodo:
+La plantilla [`infra/proxmox/cloud-init/user-data.yaml`](../../infra/proxmox/cloud-init/user-data.yaml) automatiza la preparación inicial del sistema operativo al inicializar el nodo:
 
 1. Actualiza paquetes base e instala dependencias del sistema (`curl`, `git`, `ufw`, `python3`).
 2. Configura los parámetros de kernel (`overlay`, `br_netfilter`) y `sysctl` requeridos para redes de Kubernetes.
@@ -126,8 +126,8 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/se
 
 Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoCD** consumiendo el Helm chart universal:
 
-1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/apps/app-proxmox.yaml)
-2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/gitops/environments/proxmox/values.yaml)
+1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml)
+2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)
 
 ### Sincronización Manual o Automatizada
 

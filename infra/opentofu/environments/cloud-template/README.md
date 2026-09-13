@@ -1,7 +1,7 @@
 # ☁️ Entorno OpenTofu: Cloud-Template (Plantilla Universal Cloud-Neutral)
 
 > **ESTADO DE SOPORTE:** Plantilla Canónica Multi-Cloud Neutral.  
-> **TARGET DE PRODUCCIÓN OFICIAL ON-PREMISES:** Proxmox VE ([`../proxmox/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/environments/proxmox)).
+> **TARGET DE PRODUCCIÓN OFICIAL ON-PREMISES:** Proxmox VE ([`../proxmox/`](../proxmox)).
 
 ---
 
@@ -12,9 +12,9 @@ Este directorio define el blueprint canónico de infraestructura cloud-neutral p
 A diferencia de los entornos acoplados a APIs de un proveedor específico:
 1. No impone dependencias de proveedores cloud propietarios (AWS, GCP, Azure) como requisito previo.
 2. Consume exclusivamente los módulos de contrato común:
-   - [`modules/compute/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/modules/compute): Especificación estandarizada de capacidades de cómputo.
-   - [`modules/naming/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/modules/naming): Convención inmutable de nomenclatura de recursos.
-   - [`modules/security_baseline/`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/opentofu/modules/security_baseline): Contratos de aislamiento de red y cifrado.
+   - [`modules/compute/`](../../modules/compute): Especificación estandarizada de capacidades de cómputo.
+   - [`modules/naming/`](../../modules/naming): Convención inmutable de nomenclatura de recursos.
+   - [`modules/security_baseline/`](../../modules/security_baseline): Contratos de aislamiento de red y cifrado.
 3. Se valida sintácticamente y estructuralmente en CI sin necesidad de credenciales de nube.
 
 ## 2. Parámetros

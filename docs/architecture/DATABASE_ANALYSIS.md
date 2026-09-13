@@ -97,7 +97,7 @@ flowchart TD
 
 ## 5. Esquema de Base de Datos y Secuencia Atómica
 
-Implementado en [`src/services/db.ts`](file:///src/services/db.ts):
+Implementado en [`src/services/db.ts`](../../src/services/db.ts):
 
 ### Definición DDL de Tabla
 ```sql
