@@ -20,6 +20,8 @@ paths = [
   '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
   # Ansible — inventario de ejemplo
   '''(?i)^infra/ansible/inventory/hosts\.ini$''',
+  # SecretStores simulados / mock de testing
+  '''(?i)^infra/k8s/secretstores/.*\.ya?ml$''',
 ]
 commits = [
   # Commit histórico de SealedSecret cifrado en clúster

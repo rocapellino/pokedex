@@ -14,8 +14,8 @@ spec:
           version: "v1"
           valueMap:
             POSTGRES_PASSWORD: "local-insecure-pg-password"
-            ADMIN_API_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-            ADMIN_SESSION_SECRET: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            ADMIN_API_KEY: "pokedex-super-admin-entropy-key-change-me"
+            ADMIN_SESSION_SECRET: "pokedex-internal-hmac-session-secret-entropy"
             REDIS_PASSWORD: "local-insecure-redis-password"
             REDIS_URL: "redis://:local-insecure-redis-password@pokemon-redis-svc:6379"
             DATABASE_URL: "postgresql://pokedex_app:local-insecure-pg-password@pokemon-postgres-svc:5432/pokedex_db"
