@@ -90,6 +90,10 @@ spec:
           emptyDir: {}
         - name: run-volume
           emptyDir: {}
+        {{- if not .Values.postgresql.persistence.enabled }}
+        - name: postgres-storage
+          emptyDir: {}
+        {{- end }}
   {{- if .Values.postgresql.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
@@ -102,9 +106,5 @@ spec:
         resources:
           requests:
             storage: {{ .Values.postgresql.persistence.size }}
-  {{- else }}
-      volumes:
-        - name: postgres-storage
-          emptyDir: {}
   {{- end }}
 {{- end }}

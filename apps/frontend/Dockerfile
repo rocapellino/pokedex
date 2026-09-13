@@ -27,16 +27,23 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache gettext && \
     rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 
+# Variables de entorno con valores por defecto (sobreescribir en docker-compose o Helm values)
+ENV BACKOFFICE_ALLOWED_IP_1=10.42.0.1/32 \
+    BACKOFFICE_ALLOWED_IP_2=192.168.1.50/32 \
+    METRICS_ALLOWED_CIDR=10.42.0.0/24
+
 # Copiar la plantilla de configuración de Nginx (IPs configurables por variable de entorno)
-COPY apps/frontend/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+COPY apps/frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Copiar build optimizado del frontend generado por Vite
 COPY --from=builder /app/apps/frontend/dist/ /usr/share/nginx/html/
 
-# Ajustar permisos para usuario no privilegiado de Nginx
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
+# Pre-renderizar configuración por defecto y ajustar permisos para usuario no privilegiado de Nginx
+RUN envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
+        < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /etc/nginx/templates && \
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
 
@@ -49,12 +56,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 8080
 
-# Variables de entorno con valores por defecto (sobreescribir en docker-compose o Helm values)
-ENV BACKOFFICE_ALLOWED_IP_1=10.42.0.1/32 \
-    BACKOFFICE_ALLOWED_IP_2=192.168.1.50/32 \
-    METRICS_ALLOWED_CIDR=10.42.0.0/24
-
 CMD ["/bin/sh", "-c", \
-    "envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
-    < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf \
-    && nginx -g 'daemon off;'"]
+    "if [ -w /etc/nginx/conf.d ]; then \
+      envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
+      < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf; \
+    fi && nginx -g 'daemon off;'"]

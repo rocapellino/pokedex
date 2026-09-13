@@ -114,3 +114,90 @@ jobs:
           skip_path: infra/k8s/kyverno-test
           soft_fail: false
           output_format: cli
+
+  kind-integration:
+    name: "☸️ Kind Canonical K8s Integration"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 1. Checkout del código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Crear Clúster Kind Efímero
+        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        with:
+          config: infra/k8s/kind-cluster.yaml
+          cluster_name: pokedex-local
+
+      - name: 3. Compilar imágenes locales y cargar a Kind
+        run: |
+          docker build -t pokedex-api:local -f Dockerfile .
+          docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
+          kind load docker-image pokedex-api:local --name pokedex-local
+          kind load docker-image pokedex-web:local --name pokedex-local
+
+      - name: 4. Configurar Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: 'v3.15.0'
+
+      - name: 5. Desplegar Helm Chart en Kind
+        run: |
+          helm upgrade --install pokedex infra/helm/pokedex \
+            --namespace pokemon-app --create-namespace \
+            -f infra/helm/pokedex/values.yaml \
+            --set api.image.repository=pokedex-api \
+            --set api.image.tag=local \
+            --set api.image.pullPolicy=Never \
+            --set web.image.repository=pokedex-web \
+            --set web.image.tag=local \
+            --set web.image.pullPolicy=Never \
+            --set api.service.type=NodePort \
+            --set api.service.nodePort=30000 \
+            --set postgresql.persistence.enabled=false \
+            --set postgresql.auth.password=ci-canonical-test-pass \
+            --set secrets.adminApiKey=ci-canonical-test-admin-key \
+            --set secrets.adminSessionSecret=ci-canonical-test-session-secret \
+            --set redis.auth.password=ci-canonical-test-redis-pass \
+            --set secrets.backupEncryptionKey=ci-canonical-test-backup-key
+
+      - name: 6. Validar Estado de Kubernetes y Probar Endpoints
+        run: |
+          echo "=== ESPERANDO DISPONIBILIDAD DE PODS ==="
+          kubectl get pods,svc,netpol -n pokemon-app -o wide
+          
+          # Esperar a que los pods de la API y Web estén listos con diagnóstico
+          if ! kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-api --timeout=120s; then
+            echo "❌ Timeout esperando pod pokemon-api. Diagnóstico:"
+            kubectl get pods,events -n pokemon-app -o wide
+            kubectl describe pods -n pokemon-app
+            kubectl logs -n pokemon-app -l app=pokemon-api --tail=100 || true
+            kubectl logs -n pokemon-app -l app=postgres --tail=100 || true
+            kubectl logs -n pokemon-app -l app=redis --tail=100 || true
+            exit 1
+          fi
+
+          if ! kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-web --timeout=60s; then
+            echo "❌ Timeout esperando pod pokemon-web. Diagnóstico:"
+            kubectl get pods,events -n pokemon-app -o wide
+            kubectl describe pods -n pokemon-app -l app=pokemon-web
+            kubectl logs -n pokemon-app -l app=pokemon-web --tail=100 || true
+            exit 1
+          fi
+
+          echo "=== PODS EN CLUSTER ==="
+          kubectl get pods,svc,netpol -n pokemon-app -o wide
+          
+          echo "=== TEST DIRECTO VIA KIND NODEPORT ==="
+          for i in $(seq 1 10); do
+            if curl -s -f http://127.0.0.1:3000/healthz > /dev/null; then
+              break
+            fi
+            echo "Aguardando endpoint... reintento $i"
+            sleep 2
+          done
+          curl -f http://127.0.0.1:3000/healthz || { echo "❌ Endpoint /healthz falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
+          echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
+

@@ -57,6 +57,8 @@ spec:
               name: cache-volume
             - mountPath: /var/run
               name: run-volume
+            - mountPath: /etc/nginx/conf.d
+              name: conf-volume
           livenessProbe:
             httpGet:
               path: /healthz
@@ -86,6 +88,8 @@ spec:
         - name: cache-volume
           emptyDir: {}
         - name: run-volume
+          emptyDir: {}
+        - name: conf-volume
           emptyDir: {}
       {{- with .Values.web.nodeSelector }}
       nodeSelector:

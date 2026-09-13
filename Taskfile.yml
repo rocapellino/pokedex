@@ -103,7 +103,7 @@ tasks:
     cmds:
       - kind create cluster --config infra/k8s/kind-cluster.yaml || echo "El cluster kind ya existe."
       - docker build -t pokedex-api:local -f apps/backend/Dockerfile .
-      - docker build -t pokedex-web:local -f apps/frontend/Dockerfile apps/frontend
+      - docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
       - kind load docker-image pokedex-api:local --name pokedex-local
       - kind load docker-image pokedex-web:local --name pokedex-local
       - helm upgrade --install pokedex infra/helm/pokedex -n pokemon-app --create-namespace -f infra/helm/pokedex/values.yaml --set api.image.repository=pokedex-api --set api.image.tag=local --set web.image.repository=pokedex-web --set web.image.tag=local
