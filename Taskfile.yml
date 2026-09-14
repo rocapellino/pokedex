@@ -25,6 +25,26 @@ tasks:
     cmds:
       - npm run build
 
+  turbo:build:
+    desc: "Compila el monorepo con aceleración y caché declarativo de Turborepo"
+    cmds:
+      - npx turbo run build
+
+  turbo:lint:
+    desc: "Ejecuta linting en todos los paquetes del monorepo mediante Turborepo"
+    cmds:
+      - npx turbo run lint
+
+  turbo:typecheck:
+    desc: "Ejecuta verificación de tipos en todos los paquetes del monorepo mediante Turborepo"
+    cmds:
+      - npx turbo run typecheck
+
+  turbo:clean:
+    desc: "Limpia la caché local de Turborepo y artefactos de compilación"
+    cmds:
+      - node -e "fs.rmSync('.turbo', { recursive: true, force: true }); fs.rmSync('apps/backend/dist', { recursive: true, force: true }); fs.rmSync('apps/frontend/dist', { recursive: true, force: true });"
+
   typecheck:
     desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
     cmds:
@@ -81,6 +101,12 @@ tasks:
     desc: "Auditoría de calidad, duplicación de código y deuda técnica con SonarQube"
     cmds:
       - task: sonar
+
+  governance:audit-scripts:
+    desc: "Audita la gobernanza de scripts de despliegue y valida la lista blanca de scripts autorizados (ADR-020)"
+    cmds:
+      - node -e "const fs=require('fs'), path=require('path'); const allowed=['scripts/dr_verify_restore.sh']; const findSh=(dir)=>{ let r=[]; for(const f of fs.readdirSync(dir)){ const p=path.join(dir,f); if(['node_modules','.git','dist','coverage','.turbo'].includes(f)) continue; if(fs.statSync(p).isDirectory()) r=r.concat(findSh(p)); else if(f.endsWith('.sh')) r.push(p.replace(/\\\\/g,'/')); } return r; }; const found=findSh('.'); const unauth=found.filter(s=>!allowed.some(a=>s.endsWith(a))); if(unauth.length>0){ console.error('❌ Scripts no autorizados detectados:', unauth); process.exit(1); } console.log('✔ Gobernanza de scripts validada: solo scripts autorizados presentes:', allowed);"
+
 
   security:
     desc: "Ejecuta análisis de vulnerabilidades en dependencias (npm audit)"
@@ -194,6 +220,16 @@ tasks:
       - kubectl apply -f gitops/apps/app-proxmox.yaml
       - kubectl apply -f gitops/apps/app-cloud.yaml
 
+  gitops:apps:root:
+    desc: "Aplica la aplicación raíz de ArgoCD según el patrón canónico App-of-Apps (ADR-021)"
+    cmds:
+      - kubectl apply -f gitops/apps/root-application.yaml
+
+  gitops:health-checks:
+    desc: "Aplica los Custom Health Checks de ArgoCD para evaluación de CRDs (ADR-021)"
+    cmds:
+      - kubectl apply -f gitops/health-checks/argocd-cm-healthchecks.yaml
+
   gitops:sync:proxmox:
     desc: "Sincroniza la aplicación ArgoCD para el entorno on-premise Proxmox"
     cmds:
@@ -284,6 +320,11 @@ tasks:
     desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/helm/pokedex/templates/sealed-secrets.yaml"
     cmds:
       - npx tsx scripts/seal-secret.ts
+
+  secrets:audit-rotation:
+    desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
+    cmds:
+      - npx tsx scripts/verify-secret-rotation.ts
 
   # ----------------------------------------------------------------------------
   # Gestión y Configuración de Hosts con Ansible (Capa 2)

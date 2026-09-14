@@ -79,6 +79,17 @@ export function isPrivateOrRestrictedIp(hostname: string): boolean {
 
 /**
  * Validador estricto de URLs de imagen contra SSRF y pseudo-protocolos.
+ *
+ * MODELO DE AMENAZAS & LIMITACIÓN DE DNS REBINDING:
+ * 1. Actualmente el campo `imagen` sólo se almacena en base de datos y se renderiza en el cliente
+ *    a través del navegador (<img src>), por lo que el proceso Node.js no realiza peticiones HTTP
+ *    salientes server-side (no hay impacto de SSRF server-side directo).
+ * 2. Esta función valida el hostname literal contra localhost, rangos RFC 1918, IMDS (169.254.169.254)
+ *    y direcciones IPv6 privadas/enlace local.
+ * 3. LIMITACIÓN CONOCIDA (TOCTOU / DNS Rebinding): No realiza resolución de nombres DNS en tiempo de
+ *    validación sintáctica para evitar latencia externa y DoS. Si en fases futuras se incorpora un
+ *    servicio de thumbnailing o fetch server-side de imágenes, debe validarse la IP resuelta a nivel
+ *    de socket antes de establecer la conexión HTTP.
  */
 export function validateImageUrl(value: unknown): boolean {
   if (typeof value !== 'string' || !value.trim()) {

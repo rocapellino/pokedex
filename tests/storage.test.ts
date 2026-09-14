@@ -43,10 +43,14 @@ test('📦 Storage Layer: savePokemon guarda y actualiza un registro', async () 
     id: 9999,
     nombre: 'Testmon',
     tipo: 'Normal',
-    altura: 1.0,
-    peso: 20.0,
-    descripcion: 'Pokemon de prueba unitaria',
-    imagen: 'https://example.com/testmon.png'
+    imagen: 'https://example.com/testmon.png',
+    caracteristicas: {
+      peso: 20.0,
+      altura: 1.0,
+      fuerza: 50,
+      descripcion: 'Pokemon de prueba unitaria'
+    },
+    habilidades: ['Placaje']
   };
 
   await savePokemon(testPokemon);

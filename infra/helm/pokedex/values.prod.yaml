@@ -8,6 +8,8 @@ api:
     repository: ghcr.io/rocapellino/pokedex-api
     tag: "1.30.1"
     pullPolicy: IfNotPresent
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: "kubernetes.io/hostname"
@@ -36,6 +38,8 @@ web:
     repository: ghcr.io/rocapellino/pokedex-web
     tag: "1.30.1"
     pullPolicy: IfNotPresent
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: "kubernetes.io/hostname"
@@ -119,11 +123,16 @@ secrets:
 
 externalSecrets:
   enabled: false
+  refreshInterval: "1h"
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
     key: "pokedex/production"
+
+reloader:
+  enabled: true
+  auto: true
 
 resourceQuota:
   enabled: true

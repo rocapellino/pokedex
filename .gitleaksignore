@@ -1,2 +1,4 @@
 # Gitleaks ignore file (fingerprints)
+# Remanente histórico retenido para escaneos de historial git completo (--log-opts):
+# Corresponde al template público de Sealed Secret retirado en favor de External Secrets Operator (ADR-005).
 5d8c13701df243f209de41388cdc1a5d77f536d2:infra/k8s/01-sealed-secrets.yaml:generic-api-key:10

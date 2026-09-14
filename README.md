@@ -66,7 +66,7 @@ Al iniciar la plataforma en el entorno local, los servicios quedan disponibles e
 - **Frontend Reactivo**: SPA modular desarrollada con Vite, TypeScript y sanitización estricta del DOM con DOMPurify, servida mediante Nginx reverse proxy.
 - **Servicios de Inteligencia Artificial**: Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación asistida de diagramas de arquitectura y especificaciones UI, con disyuntor (*circuit breaker*), fallback local heurístico y arquitectura documentada en [docs/decisions/ADR-009-ai-resilience-and-contracts.md](docs/decisions/ADR-009-ai-resilience-and-contracts.md).
 - **Seguridad DevSecOps**: Escaneo SAST con Semgrep y CodeQL, detección de secretos con Gitleaks, verificación de dependencias (SCA) con Dependency Review y Trivy, análisis IaC con Checkov, generación de SBOM CycloneDX y firmas de imágenes con Cosign.
-- **Despliegue Declarativo y Autoescalado**: Helm Chart v3 parametrizado, autoescalado elástico HPA v2 con PodDisruptionBudget (formalizado en [docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md](docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)), terminación grácil y sondas de salud (formalizado en [docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)), Ingress con terminación TLS, cabeceras de seguridad HTTP y rate limiting L7 (formalizado en [docs/decisions/ADR-016-ingress-tls-and-http-hardening.md](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)), políticas de admisión Kyverno y sincronización continua GitOps mediante ArgoCD.
+- **Despliegue Declarativo y Autoescalado**: Helm Chart v3 parametrizado, autoescalado elástico HPA v2 con PodDisruptionBudget (formalizado en [docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md](docs/decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)), terminación grácil y sondas de salud (formalizado en [docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)), Ingress con terminación TLS, cabeceras de seguridad HTTP y rate limiting L7 (formalizado en [docs/decisions/ADR-016-ingress-tls-and-http-hardening.md](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)), políticas de admisión Kyverno y control PSS Restricted (formalizado en [docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md](docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md)), observabilidad distribuida con OpenTelemetry y W3C Trace Context (formalizado en [docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md](docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md)), orquestación de monorepo con Turborepo (formalizado en [docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md](docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md)), gobernanza unificada de despliegue con Taskfile (formalizado en [docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)) y sincronización continua GitOps mediante ArgoCD.
 
 ---
 
@@ -390,8 +390,9 @@ Para conocer el procedimiento de divulgación responsable o reportar una vulnera
 │   ├── opentofu/                    # Infraestructura como Código (Proxmox VE + AWS EKS)
 │   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC
 ├── gitops/
-│   ├── apps/                        # Definiciones de Application para ArgoCD
-│   └── environments/                # Values específicos por clúster (on-premise y cloud)
+│   ├── apps/                        # Definiciones de Application y App-of-Apps para ArgoCD
+│   ├── environments/                # Values específicos por clúster (on-premise y cloud)
+│   └── health-checks/               # Evaluaciones de salud Lua para CRDs en ArgoCD
 ├── scripts/                         # Utilidades de auditoría, verificación DR y testing
 ├── tests/                           # Suite de pruebas automatizadas
 ├── .github/workflows/               # Pipelines de CI/CD, SAST, DAST, IaC y Supply Chain
@@ -423,6 +424,12 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📐 [ADR-007: Arquitectura de Observabilidad y Métricas Prometheus](docs/decisions/ADR-007-observability-and-metrics.md)
 - 📐 [ADR-015: Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)
 - 📐 [ADR-016: Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)
+- 📐 [ADR-017: Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards](docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md)
+- 📐 [ADR-018: OpenTelemetry y Trazabilidad Distribuida W3C](docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md)
+- 📐 [ADR-019: Optimización de Monorepo y Caché con Turborepo](docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md)
+- 📐 [ADR-020: Gobernanza Unificada de Despliegue y Retiro de Scripts Legados](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
+- 📐 [ADR-021: Orquestación GitOps Avanzada con ArgoCD, Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
+- 📐 [ADR-022: Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader](docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)
 
 ---
 
