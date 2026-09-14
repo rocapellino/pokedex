@@ -50,8 +50,10 @@ api:
   env:
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
     otelEndpoint: "http://tempo:4317"
+    otelServiceName: "pokedex-api"
   terminationGracePeriodSeconds: 30
-  deploymentAnnotations: {}
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   podAnnotations: {}
 
 # ------------------------------------------------------------------------------
@@ -96,6 +98,9 @@ web:
     seccompProfile:
       type: RuntimeDefault
   terminationGracePeriodSeconds: 30
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
+  podAnnotations: {}
 
 # ------------------------------------------------------------------------------
 # 3. Base de Datos Relacional (PostgreSQL 16 StatefulSet)
@@ -197,11 +202,14 @@ ingress:
     # --- Cabeceras de seguridad HTTP inyectadas en todas las respuestas (ADR-016) ---
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
-      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
       more_set_headers "X-Content-Type-Options: nosniff";
       more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
       more_set_headers "Permissions-Policy: camera=(), microphone=(), geolocation=()";
-      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://raw.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'";
+      more_set_headers "Cross-Origin-Opener-Policy: same-origin";
+      more_set_headers "Cross-Origin-Resource-Policy: same-origin";
+      more_set_headers "Cross-Origin-Embedder-Policy: require-corp";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
     # --- Bloqueo de endpoints internos desde el exterior (ADR-016) ---
     nginx.ingress.kubernetes.io/server-snippet: |
       location /metrics {
@@ -403,6 +411,14 @@ monitoring:
     interval: "15s"
     scrapeTimeout: "10s"
     additionalLabels: {}
+
+# ------------------------------------------------------------------------------
+# 13. Stakater Reloader (Rotación Dinámica Zero-Downtime - ADR-022)
+# ------------------------------------------------------------------------------
+reloader:
+  enabled: true
+  auto: true
+
 
 
 

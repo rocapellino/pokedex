@@ -5,6 +5,11 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  {{- with .Values.web.deploymentAnnotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not (and .Values.web.autoscaling .Values.web.autoscaling.enabled) }}
   replicas: {{ .Values.web.replicaCount }}

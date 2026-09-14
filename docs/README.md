@@ -45,7 +45,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-016"]
+    ADR --> AD1["📐 ADR-001 a ADR-022"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -137,6 +137,12 @@ flowchart TD
 * 📐 [**ADR-014**](./decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md): Estrategia de Autoescalado Elástico con HPA v2, PodDisruptionBudget y Alta Disponibilidad de Cómputo.
 * 📐 [**ADR-015**](./decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md): Estrategia de Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida de Pods.
 * 📐 [**ADR-016**](./decisions/ADR-016-ingress-tls-and-http-hardening.md): Ingress Controller, Terminación TLS y Hardening de Cabeceras de Seguridad HTTP L7.
+* 📐 [**ADR-017**](./decisions/ADR-017-kyverno-admission-control-and-pod-security.md): Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards (PSS Restricted).
+* 📐 [**ADR-018**](./decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md): Observabilidad de Extremo a Extremo con OpenTelemetry y Trazabilidad Distribuida W3C.
+* 📐 [**ADR-019**](./decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md): Optimización de Build en Monorepo, Grafo de Dependencias y Caché Declarativo con Turborepo.
+* 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados.
+* 📐 [**ADR-021**](./decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md): Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks de Ciclo de Vida, Health Checks Declarativos y Patrón App-of-Apps.
+* 📐 [**ADR-022**](./decisions/ADR-022-automated-credential-rotation-and-reloader.md): Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader.
 
 ---
 
@@ -149,4 +155,3 @@ flowchart TD
 * ☸️ [**kubernetes-troubleshooting.md**](./operations/kubernetes-troubleshooting.md): Diagnóstico rápido para CrashLoopBackOff, ImagePullBackOff, fallos de endpoints y ExternalSecrets.
 * ⏪ [**rollback.md**](./operations/rollback.md): Protocolos de reversión controlada vía ArgoCD, Helm de emergencia y Git revert.
 * 🔐 [**secret-rotation.md**](./operations/secret-rotation.md): Protocolo de rotación periódica y de emergencia de secretos con External Secrets Operator y Stakater Reloader.
-

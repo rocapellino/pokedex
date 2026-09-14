@@ -1,3 +1,10 @@
+# ==============================================================================
+# Kyverno ClusterPolicy: Verificación de Firma Cosign en Modo Enforce (App Core)
+# Propósito: Política autoritativa bloqueante (Enforce) para las imágenes de la
+# aplicación Pokédex (ghcr.io/rocapellino/pokedex:*). Impide el despliegue de
+# cualquier imagen de la app que carezca de firma Cosign keyless válida y registro
+# en el log de transparencia de Sigstore Rekor.
+# ==============================================================================
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
