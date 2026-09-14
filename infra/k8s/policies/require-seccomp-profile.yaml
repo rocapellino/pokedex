@@ -1,0 +1,36 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-seccomp-profile
+  annotations:
+    policies.kyverno.io/title: Require Seccomp Profile
+    policies.kyverno.io/category: Pod Security Standards (Restricted)
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Exige que todos los Pods declaren un perfil seccomp de tipo RuntimeDefault o Localhost
+      en el securityContext del Pod o de cada contenedor, activando el filtrado de syscalls
+      del runtime para reducir la superficie de ataque a nivel del kernel Linux.
+      Formalizado en ADR-017.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-seccomp-profile
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: >-
+          Se debe declarar seccompProfile.type: RuntimeDefault o Localhost en el securityContext
+          del Pod o de cada contenedor (ADR-017: require-seccomp-profile).
+        pattern:
+          spec:
+            =(securityContext):
+              =(seccompProfile):
+                =(type): "RuntimeDefault | Localhost"
+            containers:
+              - =(securityContext):
+                  =(seccompProfile):
+                    =(type): "RuntimeDefault | Localhost"

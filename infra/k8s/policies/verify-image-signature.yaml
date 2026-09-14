@@ -1,3 +1,11 @@
+# ==============================================================================
+# Kyverno ClusterPolicy: Verificación de Firma Cosign en Modo Audit (Org Registry)
+# Propósito: Política de observabilidad y gobernanza amplia (Audit) para todas las
+# imágenes del registro de la organización (ghcr.io/rocapellino/*). Registra
+# violaciones sin bloquear workloads auxiliares o de terceros en transición.
+# Para la aplicación Pokédex, la política autoritativa bloqueante es
+# infra/k8s/kyverno-cosign-policy.yaml (validationFailureAction: Enforce).
+# ==============================================================================
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
