@@ -25,6 +25,26 @@ tasks:
     cmds:
       - npm run build
 
+  turbo:build:
+    desc: "Compila el monorepo con aceleración y caché declarativo de Turborepo"
+    cmds:
+      - npx turbo run build
+
+  turbo:lint:
+    desc: "Ejecuta linting en todos los paquetes del monorepo mediante Turborepo"
+    cmds:
+      - npx turbo run lint
+
+  turbo:typecheck:
+    desc: "Ejecuta verificación de tipos en todos los paquetes del monorepo mediante Turborepo"
+    cmds:
+      - npx turbo run typecheck
+
+  turbo:clean:
+    desc: "Limpia la caché local de Turborepo y artefactos de compilación"
+    cmds:
+      - node -e "fs.rmSync('.turbo', { recursive: true, force: true }); fs.rmSync('apps/backend/dist', { recursive: true, force: true }); fs.rmSync('apps/frontend/dist', { recursive: true, force: true });"
+
   typecheck:
     desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
     cmds:

@@ -7,6 +7,7 @@ build/
 .npm/
 *.tsbuildinfo
 dist-ssr/
+.turbo/
 
 # Logs de gestores de paquetes
 npm-debug.log*

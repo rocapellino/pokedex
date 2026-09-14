@@ -9,6 +9,7 @@
     "seed": "tsx src/seed.ts",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:studio": "drizzle-kit studio"
