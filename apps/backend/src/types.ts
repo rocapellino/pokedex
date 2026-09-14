@@ -6,7 +6,11 @@ export interface PokemonCharacteristics {
   categoria?: string;
   descripcion?: string;
   habitat?: string;
+  [key: string]: unknown;
 }
+
+/** Alias de compatibilidad e interoperabilidad entre capas */
+export type PokemonCaracteristicas = PokemonCharacteristics;
 
 export interface PokemonStats {
   hp: number;
@@ -15,6 +19,7 @@ export interface PokemonStats {
   sp_attack: number;
   sp_defense: number;
   speed: number;
+  [key: string]: number | undefined;
 }
 
 export interface EvolutionNode {
@@ -22,8 +27,9 @@ export interface EvolutionNode {
   nombre: string;
   etapa?: string;
   metodo?: string | null;
-  imagen?: string;
+  imagen?: string | null;
   evolves_to?: EvolutionNode[];
+  evoluciones?: EvolutionNode[];
 }
 
 export interface Pokemon {
@@ -37,5 +43,9 @@ export interface Pokemon {
   habilidades: string[];
   stats?: PokemonStats;
   fuerza?: number;
+  peso?: number;
+  altura?: number;
+  edad?: number;
   evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode };
+  [key: string]: unknown;
 }

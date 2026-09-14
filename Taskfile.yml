@@ -164,6 +164,12 @@ tasks:
     cmds:
       - kubectl get pods,svc,ingress -n pokemon-app -o wide
 
+  dev:k8s:calico:
+    desc: "Perfil Kubernetes: Instala Calico CNI en Kind para validación local de plano de datos de NetworkPolicies"
+    cmds:
+      - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+      - kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+
   docker:up:
     desc: "[Alias compatibilidad] Levanta stack de desarrollo interactivo (usa dev:compose)"
     deps: [network]

@@ -295,7 +295,27 @@ const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRU
 const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
 
-// Limitadores estándar de express-rate-limit reconocidos formalmente por CodeQL y OWASP
+// ---------------------------------------------------------------------------
+// Arquitectura dual de Rate Limiting
+// ---------------------------------------------------------------------------
+// El proyecto usa DOS mecanismos de rate limiting en cadena para cada endpoint
+// sensible. Esta redundancia es intencional y está documentada aquí:
+//
+// 1. express-rate-limit (Standard, in-process):
+//    - Almacén local en memoria (por pod), no distribuido.
+//    - Propósito: guardia de CPU/memoria local. Actúa incluso si Redis está caído
+//      o REDIS_URL no está configurado. Previene que un único pod sea saturado.
+//    - Valores: idénticos a los del limitador Redis-backed para evitar ambigüedad.
+//
+// 2. createRateLimiter (Redis-backed con fallback):
+//    - Fuente de verdad distribuida en entornos multi-pod.
+//    - Si Redis está disponible, aplica el límite de forma consistente entre réplicas.
+//    - Fallback a memoria local si Redis no está configurado.
+//    - Para endpoints IA: fail-closed (503) si Redis falla y REDIS_URL está definido.
+//
+// El límite efectivo es el mínimo de ambos. Los valores DEBEN mantenerse idénticos
+// entre ambos mecanismos para cada ruta. Cualquier desalineación es un bug.
+// ---------------------------------------------------------------------------
 const globalRateLimiterStandard = rateLimit({
   windowMs: 60 * 1000,
   max: 300,
@@ -315,7 +335,7 @@ const mutationRateLimiterStandard = rateLimit({
 
 const authRateLimiterStandard = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 5, // Alineado con authRateLimiter (Redis-backed): 5 req/min (HAL-5, sept. 2026)
   standardHeaders: true,
   legacyHeaders: false,
   message: { detail: 'Límite de peticiones para Autenticación excedido. Intenta más tarde.' },

@@ -134,7 +134,17 @@ CMD ["node", "apps/backend/dist/server.cjs"]
 ## 8. Dockerfile de Referencia: Frontend Web Nginx
 
 ```dockerfile
-FROM nginx:1.27-alpine AS runner
+# Etapa 1: Builder (Vite + Node 22 LTS — alineado con runtime de producción del backend)
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
+WORKDIR /app
+COPY package*.json ./
+COPY apps/frontend/package*.json ./apps/frontend/
+RUN npm ci --workspace=@pokedex/frontend --ignore-scripts
+COPY apps/frontend ./apps/frontend
+RUN npm run build --workspace=@pokedex/frontend
+
+# Etapa 2: Runner (Nginx 1.31-alpine — versión actual de producción)
+FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
 RUN apk upgrade --no-cache
 RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
 COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf

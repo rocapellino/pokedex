@@ -17,6 +17,7 @@ test('🛡️ Operación: Kind clúster declarativo existe y define puertos e in
   assert.match(content, /ingress-ready=true/, 'Debe etiquetar nodo con ingress-ready=true');
   assert.match(content, /hostPort:\s*8080/, 'Debe mapear puerto Ingress HTTP 8080');
   assert.match(content, /hostPort:\s*3000/, 'Debe mapear puerto API 3000');
+  assert.match(content, /kindnet/, 'Debe documentar explícitamente el uso de kindnet y su relación con NetworkPolicies');
 });
 
 test('🛡️ Operación: infra.yml integra Kind como prueba canónica de integración', () => {

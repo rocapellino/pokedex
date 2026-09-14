@@ -1689,7 +1689,7 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
 
   // 1. ADR-022 existe con Estado: Aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-022 debe existir en docs/decisions/');
-  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8').replace(/\r\n/g, '\n');
   assert.ok(adrContent.includes('## Estado\n\nAceptado'), 'ADR-022 debe estar en estado Aceptado');
   assert.ok(adrContent.includes('reloader.stakater.com/auto'), 'ADR-022 debe formalizar anotación de Stakater Reloader');
   assert.ok(adrContent.includes('External Secrets Operator'), 'ADR-022 debe formalizar External Secrets Operator');

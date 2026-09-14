@@ -80,16 +80,26 @@ export function isPrivateOrRestrictedIp(hostname: string): boolean {
 /**
  * Validador estricto de URLs de imagen contra SSRF y pseudo-protocolos.
  *
- * MODELO DE AMENAZAS & LIMITACIÓN DE DNS REBINDING:
- * 1. Actualmente el campo `imagen` sólo se almacena en base de datos y se renderiza en el cliente
- *    a través del navegador (<img src>), por lo que el proceso Node.js no realiza peticiones HTTP
- *    salientes server-side (no hay impacto de SSRF server-side directo).
- * 2. Esta función valida el hostname literal contra localhost, rangos RFC 1918, IMDS (169.254.169.254)
- *    y direcciones IPv6 privadas/enlace local.
- * 3. LIMITACIÓN CONOCIDA (TOCTOU / DNS Rebinding): No realiza resolución de nombres DNS en tiempo de
- *    validación sintáctica para evitar latencia externa y DoS. Si en fases futuras se incorpora un
- *    servicio de thumbnailing o fetch server-side de imágenes, debe validarse la IP resuelta a nivel
- *    de socket antes de establecer la conexión HTTP.
+ * MODELO DE AMENAZAS & LIMITACIÓN DE DNS REBINDING (SSRF):
+ * 1. Consumo Actual (Solo Cliente):
+ *    Actualmente el campo `imagen` únicamente se valida sintácticamente, se almacena en PostgreSQL
+ *    y se envía en respuestas JSON para ser renderizado por el navegador del cliente (<img src>).
+ *    El proceso Node.js NO realiza peticiones HTTP/HTTPS salientes para descargar ni procesar imágenes,
+ *    por lo que no existe vector de SSRF server-side directo en la arquitectura vigente.
+ * 2. Filtrado Sintáctico Estricto:
+ *    Esta función valida el formato de URL (RFC 3986), exige HTTPS obligatorio (excepto localhost en dev),
+ *    y rechaza literales de host que coincidan con localhost, rangos privados RFC 1918 (10.0.0.0/8,
+ *    172.16.0.0/12, 192.168.0.0/16), Carrier-Grade NAT (100.64.0.0/10), IMDS de nube (169.254.169.254),
+ *    bucle local IPv6 (::1, fe80::/10, fc00::/7) y representaciones IPv4-mapped (::ffff:x.x.x.x).
+ * 3. DIRECTRIZ ARQUITECTÓNICA ANTE FETCH SERVER-SIDE FUTURO (DNS Rebinding / TOCTOU):
+ *    Si en fases futuras se incorpora un servicio de thumbnailing, caching o fetch server-side de imágenes,
+ *    NO debe confiarse exclusivamente en esta validación sintáctica debido al riesgo de DNS Rebinding
+ *    (donde un dominio malicioso resuelve a una IP pública en el primer lookup y a una IP interna en la conexión).
+ *    En tal escenario, la mitigación obligatoria debe implementarse a nivel de socket de red:
+ *      - Configurar un agente HTTP/HTTPS personalizado (`http.Agent` / `undici.Dispatcher`) con hook
+ *        de resolución DNS (`dns.promises.lookup()`).
+ *      - Validar la dirección IP resuelta contra `isPrivateOrRestrictedIp()` inmediatamente antes de
+ *        establecer el socket TCP, rechazando la conexión si apunta a una red privada o reservada.
  */
 export function validateImageUrl(value: unknown): boolean {
   if (typeof value !== 'string' || !value.trim()) {

@@ -101,3 +101,27 @@ test('📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en dis
   assert.ok(initialMigration.includes('pokedex_id_seq'));
 });
 
+test('📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en producción', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const configPath = path.resolve('apps/backend/drizzle.config.ts');
+
+  assert.ok(fs.existsSync(configPath), 'drizzle.config.ts debe existir');
+  const content = fs.readFileSync(configPath, 'utf-8');
+  assert.ok(content.includes("NODE_ENV === 'production'"), 'drizzle.config.ts debe evaluar NODE_ENV');
+  assert.ok(content.includes('DATABASE_URL o POSTGRES_PASSWORD es obligatoria'), 'drizzle.config.ts debe requerir credenciales en producción');
+});
+
+test('📦 Metadata: metadata.json no contiene campos residuales de scaffold', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const metadataPath = path.resolve('metadata.json');
+
+  assert.ok(fs.existsSync(metadataPath), 'metadata.json debe existir');
+  const raw = fs.readFileSync(metadataPath, 'utf-8');
+  const parsed = JSON.parse(raw);
+  assert.strictEqual(parsed.requestFramePermissions, undefined, 'requestFramePermissions residual debe ser eliminado');
+  assert.ok(parsed.name, 'metadata.json debe conservar name');
+  assert.ok(parsed.majorCapabilities, 'metadata.json debe conservar majorCapabilities');
+});
+

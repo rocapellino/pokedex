@@ -20,8 +20,21 @@ function generateRandomKey(length = 32): string {
   return randomBytes(length).toString('base64url');
 }
 
+/**
+ * Verifica la integridad criptográfica de un binario comparando su hash SHA-256
+ * con el valor esperado. Este control es parte de la cadena de suministro segura
+ * del proyecto (ADR-008).
+ *
+ * @param binaryPath - Ruta absoluta al binario a verificar.
+ * @param expectedSha256 - Hash SHA-256 esperado (hexadecimal, case-insensitive).
+ *   En el flujo normal de producción, este parámetro proviene de KUBESEAL_SHA256
+ *   y su presencia se valida como obligatoria en findKubesealBinary().
+ * @returns true si el hash coincide, false en caso contrario.
+ */
 export function verifyBinaryIntegrity(binaryPath: string, expectedSha256?: string): boolean {
   if (!expectedSha256) {
+    // Salvaguarda de robustez: en tests unitarios puede llamarse directamente.
+    // En producción, findKubesealBinary() garantiza que expectedSha256 siempre esté presente.
     return true;
   }
   if (!fs.existsSync(binaryPath)) {
@@ -64,11 +77,23 @@ export function findKubesealBinary(): string {
   }
 
   const expectedSha = process.env.KUBESEAL_SHA256;
-  if (expectedSha) {
-    const isValid = verifyBinaryIntegrity(selectedBin, expectedSha);
-    if (!isValid) {
-      process.exit(1);
-    }
+  if (!expectedSha) {
+    // SECURITY (Supply Chain): La verificación de integridad del binario kubeseal es un
+    // control obligatorio de cadena de suministro. No se permite continuar sin ella.
+    // Para obtener el SHA256 del binario descargado:
+    //   Linux/macOS: sha256sum .tools/kubeseal
+    //   Windows:     (Get-FileHash .tools\kubeseal.exe -Algorithm SHA256).Hash.ToLower()
+    // Luego exportar: export KUBESEAL_SHA256=<hash_obtenido>
+    console.error('❌ Error de seguridad: La variable de entorno KUBESEAL_SHA256 es obligatoria.');
+    console.error('   Verifica la integridad del binario kubeseal antes de usarlo:');
+    console.error('   Linux/macOS: sha256sum .tools/kubeseal');
+    console.error('   Windows:     (Get-FileHash .tools\\kubeseal.exe -Algorithm SHA256).Hash.ToLower()');
+    console.error('   Luego exportar: export KUBESEAL_SHA256=<hash_obtenido>');
+    process.exit(1);
+  }
+  const isValid = verifyBinaryIntegrity(selectedBin, expectedSha);
+  if (!isValid) {
+    process.exit(1);
   }
 
   return selectedBin;

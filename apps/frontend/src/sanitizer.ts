@@ -17,8 +17,14 @@ const SANITIZE_CONFIG: Config = {
     'img', 'svg', 'path', 'circle', 'line', 'polyline', 'rect',
   ],
   ALLOWED_ATTR: [
-    'class', 'id', 'style', 'href', 'target', 'rel', 'src', 'alt',
-    'title', 'width', 'height', 'loading', 'data-id', 'data-theme-val',
+    // NOTA DE SEGURIDAD: 'style' fue eliminado intencionalmente de esta lista.
+    // La CSP activa (style-src 'self', sin unsafe-inline) bloquea estilos inline
+    // a nivel de navegador. Mantener 'style' en DOMPurify crearía una dependencia
+    // cruzada implícita: si la CSP se relaja en el futuro, el atributo quedaría
+    // explotable como vector XSS (CSS injection). La defensa en profundidad requiere
+    // que ambas capas sean independientemente seguras. (HAL-4, sept. 2026)
+    'class', 'id', 'href', 'target', 'rel', 'src', 'alt',
+    'title', 'width', 'height', 'loading', 'crossorigin', 'data-id', 'data-theme-val',
     'data-pokemon-id', 'data-type', 'data-evol-id', 'data-close-modal',
     'type', 'value', 'placeholder', 'disabled', 'readonly', 'checked',
     'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',

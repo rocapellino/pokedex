@@ -23,6 +23,9 @@ export interface PokemonCaracteristicas {
   [key: string]: unknown;
 }
 
+/** Alias de compatibilidad e interoperabilidad entre capas */
+export type PokemonCharacteristics = PokemonCaracteristicas;
+
 export interface EvolutionNode {
   id?: number;
   nombre?: string;
