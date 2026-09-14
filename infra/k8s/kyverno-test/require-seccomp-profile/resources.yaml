@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: seccomp-pod-valid
+  namespace: pokemon-app
+spec:
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: api
+      image: ghcr.io/rocapellino/pokedex-api:1.0.0
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: seccomp-pod-invalid
+  namespace: pokemon-app
+spec:
+  securityContext:
+    runAsNonRoot: true
+  containers:
+    - name: api
+      image: ghcr.io/rocapellino/pokedex-api:1.0.0
+      securityContext:
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL

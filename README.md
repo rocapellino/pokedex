@@ -421,6 +421,8 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
 - 🚨 [Runbook de Respuesta ante Alertas de Observabilidad](docs/operations/observability-alerts.md)
 - 📐 [ADR-007: Arquitectura de Observabilidad y Métricas Prometheus](docs/decisions/ADR-007-observability-and-metrics.md)
+- 📐 [ADR-016: Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)
+- 📐 [ADR-017: Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards](docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md)
 - 📐 [ADR-015: Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)
 - 📐 [ADR-016: Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)
 
