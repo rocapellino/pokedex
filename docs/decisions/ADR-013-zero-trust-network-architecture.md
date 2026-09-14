@@ -54,3 +54,4 @@ Se adopta una arquitectura de red **Zero-Trust de Defensa en Profundidad** basad
 - **Compensaciones**:
   - La adición de nuevas integraciones externas (ej. nuevas APIs o webhooks) requiere actualizar explícitamente las listas blancas de CIDR o FQDN en los manifiestos de Helm.
   - El filtrado L7 avanzado requiere un clúster con CNI compatible con eBPF (Cilium v2).
+  - **Gobernanza de CNI en CI y Entorno Local (Kind vs Cilium)**: El clúster de integración en CI y desarrollo local (`infra/k8s/kind-cluster.yaml`) utiliza `kindnet` como CNI ligero por defecto (< 30s de arranque). La conformidad de `NetworkPolicies` en CI se valida estáticamente mediante `kubeconform`, `kube-linter` y `kyverno test`, mientras que el enforcement activo de paquetes en el plano de datos reside en los clústeres productivos con Cilium. Para validación local de plano de datos, `kind-cluster.yaml` documenta el procedimiento opcional para desplegar Calico CNI.

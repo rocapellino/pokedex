@@ -1,8 +1,18 @@
 # ==============================================================================
 # Configuración Declarativa de Clúster Kubernetes Local (Kind)
 # ==============================================================================
-# Proporciona un entorno Kubernetes conformante local para desarrollo y pruebas
-# idéntico a producción (Ingress, NetworkPolicies, Helm Hooks, Probes y RBAC).
+# Proporciona un entorno Kubernetes local para desarrollo y pruebas de integración
+# (Ingress L7, Helm Hooks, Sondas de Salud /healthz y /readyz, RBAC y Secrets).
+#
+# NOTA DE GOBERNANZA DE CNI & NETWORKPOLICIES (ADR-013):
+# Por diseño y optimización de CI/CD, Kind utiliza el CNI por defecto 'kindnet'.
+# 'kindnet' permite el despliegue y validación sintáctica de manifiestos NetworkPolicy,
+# pero NO aplica filtrado de paquetes a nivel de plano de datos en el kernel.
+# La verificación estricta de políticas de red se realiza mediante kubeconform / kube-linter
+# en CI estático, mientras que el enforcement del plano de datos en producción y staging
+# está garantizado por Cilium eBPF (ADR-013). Para validación local de plano de datos con
+# NetworkPolicies, puede habilitarse 'networking.disableDefaultCNI: true' e instalar
+# Calico mediante 'task dev:k8s:calico'.
 # ==============================================================================
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
