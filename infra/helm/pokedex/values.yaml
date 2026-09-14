@@ -50,6 +50,7 @@ api:
   env:
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
     otelEndpoint: "http://tempo:4317"
+    otelServiceName: "pokedex-api"
   terminationGracePeriodSeconds: 30
   deploymentAnnotations: {}
   podAnnotations: {}

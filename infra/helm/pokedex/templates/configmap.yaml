@@ -14,5 +14,6 @@ data:
   PORT: {{ .Values.api.port | quote }}
   WEB_PORT: {{ .Values.web.service.port | quote }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.api.env.otelEndpoint | quote }}
+  OTEL_SERVICE_NAME: {{ .Values.api.env.otelServiceName | default "pokedex-api" | quote }}
   CORS_ORIGINS: {{ .Values.api.env.corsOrigins | quote }}
   DB_SSL: {{ .Values.postgresql.ssl | default "false" | quote }}
