@@ -36,36 +36,6 @@
       "detail": "Detiene y elimina los contenedores y redes del entorno de desarrollo."
     },
     {
-      "label": "🌐 Docker: Prod Up",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "detail": "Levanta el entorno de Producción aislado, con límites de RAM/CPU y sin herramientas de desarrollo."
-    },
-    {
-      "label": "🛑 Docker: Prod Down",
-      "type": "shell",
-      "command": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": false
-      },
-      "detail": "Detiene y elimina los contenedores del entorno de producción."
-    },
-    {
       "label": "🧪 Tests: Suite Completa & Pentest (npm test)",
       "type": "shell",
       "command": "npm test",
@@ -82,7 +52,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Ejecuta la suite completa de 55 pruebas unitarias, de integración, resiliencia y pentest con Node.js."
+      "detail": "Ejecuta la suite completa de pruebas unitarias, de integración, resiliencia, seguridad y pentest con Node.js."
     },
     {
       "label": "🔍 Lint: Verificación de Tipos (TypeScript)",
@@ -118,9 +88,9 @@
       "detail": "Compila el bundle de producción del servidor Express y script de seed con esbuild."
     },
     {
-      "label": "🔍 Auditoría: Calidad, Duplicación y Rendimiento",
+      "label": "🛡️ Validación Canónica Completa (npm run validate)",
       "type": "shell",
-      "command": ".\\.venv\\Scripts\\python scripts/audit_code_quality.py",
+      "command": "npm run validate",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -130,7 +100,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Ejecuta Ruff, Radon (complejidad ciclomática) y el detector de duplicación en todo el repositorio."
+      "detail": "Ejecuta la validación completa del proyecto: linting, compilación, tests unitarios y fuzzing."
     },
     {
       "label": "📊 Monitoreo: Iniciar Prometheus & Grafana",
