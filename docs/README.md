@@ -45,7 +45,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-019"]
+    ADR --> AD1["📐 ADR-001 a ADR-020"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -140,6 +140,7 @@ flowchart TD
 * 📐 [**ADR-017**](./decisions/ADR-017-kyverno-admission-control-and-pod-security.md): Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards (PSS Restricted).
 * 📐 [**ADR-018**](./decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md): Observabilidad de Extremo a Extremo con OpenTelemetry y Trazabilidad Distribuida W3C.
 * 📐 [**ADR-019**](./decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md): Optimización de Build en Monorepo, Grafo de Dependencias y Caché Declarativo con Turborepo.
+* 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados.
 
 ---
 
