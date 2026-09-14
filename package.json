@@ -30,6 +30,7 @@
     "lint:turbo": "turbo run lint",
     "typecheck:turbo": "turbo run typecheck",
     "governance:audit-scripts": "node -e \"const fs=require('fs'), path=require('path'); const allowed=['scripts/dr_verify_restore.sh']; const findSh=(dir)=>{ let r=[]; for(const f of fs.readdirSync(dir)){ const p=path.join(dir,f); if(['node_modules','.git','dist','coverage','.turbo'].includes(f)) continue; if(fs.statSync(p).isDirectory()) r=r.concat(findSh(p)); else if(f.endsWith('.sh')) r.push(p.replace(/\\\\/g,'/')); } return r; }; const found=findSh('.'); const unauth=found.filter(s=>!allowed.some(a=>s.endsWith(a))); if(unauth.length>0){ console.error('❌ Scripts no autorizados detectados:', unauth); process.exit(1); } console.log('✔ Gobernanza de scripts validada: solo scripts autorizados presentes:', allowed);\"",
+    "secrets:audit-rotation": "tsx scripts/verify-secret-rotation.ts",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"

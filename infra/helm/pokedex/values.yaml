@@ -52,7 +52,8 @@ api:
     otelEndpoint: "http://tempo:4317"
     otelServiceName: "pokedex-api"
   terminationGracePeriodSeconds: 30
-  deploymentAnnotations: {}
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   podAnnotations: {}
 
 # ------------------------------------------------------------------------------
@@ -97,6 +98,9 @@ web:
     seccompProfile:
       type: RuntimeDefault
   terminationGracePeriodSeconds: 30
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
+  podAnnotations: {}
 
 # ------------------------------------------------------------------------------
 # 3. Base de Datos Relacional (PostgreSQL 16 StatefulSet)
@@ -407,6 +411,14 @@ monitoring:
     interval: "15s"
     scrapeTimeout: "10s"
     additionalLabels: {}
+
+# ------------------------------------------------------------------------------
+# 13. Stakater Reloader (Rotación Dinámica Zero-Downtime - ADR-022)
+# ------------------------------------------------------------------------------
+reloader:
+  enabled: true
+  auto: true
+
 
 
 

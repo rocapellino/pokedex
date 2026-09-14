@@ -429,6 +429,7 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📐 [ADR-019: Optimización de Monorepo y Caché con Turborepo](docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md)
 - 📐 [ADR-020: Gobernanza Unificada de Despliegue y Retiro de Scripts Legados](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
 - 📐 [ADR-021: Orquestación GitOps Avanzada con ArgoCD, Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
+- 📐 [ADR-022: Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader](docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)
 
 ---
 
