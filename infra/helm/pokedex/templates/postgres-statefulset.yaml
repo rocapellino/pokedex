@@ -6,6 +6,8 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
     app: postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   serviceName: postgres-service
   replicas: 1

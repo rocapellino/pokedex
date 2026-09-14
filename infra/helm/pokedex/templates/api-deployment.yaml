@@ -40,8 +40,9 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
     app: pokemon-api
-  {{- with .Values.api.deploymentAnnotations }}
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  {{- with .Values.api.deploymentAnnotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

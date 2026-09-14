@@ -390,8 +390,9 @@ Para conocer el procedimiento de divulgación responsable o reportar una vulnera
 │   ├── opentofu/                    # Infraestructura como Código (Proxmox VE + AWS EKS)
 │   └── proxmox/                     # Plantillas Cloud-Init y contenedores LXC
 ├── gitops/
-│   ├── apps/                        # Definiciones de Application para ArgoCD
-│   └── environments/                # Values específicos por clúster (on-premise y cloud)
+│   ├── apps/                        # Definiciones de Application y App-of-Apps para ArgoCD
+│   ├── environments/                # Values específicos por clúster (on-premise y cloud)
+│   └── health-checks/               # Evaluaciones de salud Lua para CRDs en ArgoCD
 ├── scripts/                         # Utilidades de auditoría, verificación DR y testing
 ├── tests/                           # Suite de pruebas automatizadas
 ├── .github/workflows/               # Pipelines de CI/CD, SAST, DAST, IaC y Supply Chain
@@ -421,10 +422,13 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📋 [Plan y Runbook de Disaster Recovery](docs/runbooks/DISASTER_RECOVERY_PLAN.md)
 - 🚨 [Runbook de Respuesta ante Alertas de Observabilidad](docs/operations/observability-alerts.md)
 - 📐 [ADR-007: Arquitectura de Observabilidad y Métricas Prometheus](docs/decisions/ADR-007-observability-and-metrics.md)
-- 📐 [ADR-016: Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)
-- 📐 [ADR-017: Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards](docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md)
 - 📐 [ADR-015: Terminación Grácil (Graceful Shutdown), Sondas de Salud y Ciclo de Vida](docs/decisions/ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)
 - 📐 [ADR-016: Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7](docs/decisions/ADR-016-ingress-tls-and-http-hardening.md)
+- 📐 [ADR-017: Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards](docs/decisions/ADR-017-kyverno-admission-control-and-pod-security.md)
+- 📐 [ADR-018: OpenTelemetry y Trazabilidad Distribuida W3C](docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md)
+- 📐 [ADR-019: Optimización de Monorepo y Caché con Turborepo](docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md)
+- 📐 [ADR-020: Gobernanza Unificada de Despliegue y Retiro de Scripts Legados](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
+- 📐 [ADR-021: Orquestación GitOps Avanzada con ArgoCD, Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
 
 ---
 

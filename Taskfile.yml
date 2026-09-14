@@ -220,6 +220,16 @@ tasks:
       - kubectl apply -f gitops/apps/app-proxmox.yaml
       - kubectl apply -f gitops/apps/app-cloud.yaml
 
+  gitops:apps:root:
+    desc: "Aplica la aplicación raíz de ArgoCD según el patrón canónico App-of-Apps (ADR-021)"
+    cmds:
+      - kubectl apply -f gitops/apps/root-application.yaml
+
+  gitops:health-checks:
+    desc: "Aplica los Custom Health Checks de ArgoCD para evaluación de CRDs (ADR-021)"
+    cmds:
+      - kubectl apply -f gitops/health-checks/argocd-cm-healthchecks.yaml
+
   gitops:sync:proxmox:
     desc: "Sincroniza la aplicación ArgoCD para el entorno on-premise Proxmox"
     cmds:

@@ -824,7 +824,7 @@ test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Key
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-008-supply-chain-security.md'), 'docs/README.md debe enlazar ADR-008');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-008') || docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
 });
 
 test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
@@ -874,7 +874,7 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'docs/README.md debe enlazar ADR-009');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-009') || docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-009 o superior');
 
   // Validar que los 9 ADRs existen físicamente en disco
   for (let i = 1; i <= 9; i++) {
@@ -906,7 +906,7 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-010-authentication-and-session-management.md'), 'docs/README.md debe enlazar ADR-010');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-010') || docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-010 o posterior');
 
   // Validar que los 10 ADRs existen físicamente en disco
   for (let i = 1; i <= 10; i++) {
@@ -938,7 +938,7 @@ test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBounc
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'docs/README.md debe enlazar ADR-011');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-011 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-011') || docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-011 o posterior');
 
   // Validar que los 11 ADRs existen físicamente en disco
   for (let i = 1; i <= 11; i++) {
@@ -971,7 +971,7 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'docs/README.md debe enlazar ADR-012');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-012 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-012 o posterior');
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'DEVSECOPS_AUDIT.md debe enlazar ADR-012');
@@ -1007,7 +1007,7 @@ test('🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, 
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-013-zero-trust-network-architecture.md'), 'docs/README.md debe enlazar ADR-013');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-013 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-013 o posterior');
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('secret-rotation.md'), 'DEVSECOPS_AUDIT.md debe enlazar secret-rotation.md');
@@ -1042,7 +1042,7 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'), 'docs/README.md debe enlazar ADR-014');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-014 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-014 o posterior');
 
   // Validar que los 14 ADRs existen físicamente en disco
   for (let i = 1; i <= 14; i++) {
@@ -1076,7 +1076,7 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'), 'docs/README.md debe enlazar ADR-015');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-015 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-015 o posterior');
 
   const helmApiContent = fs.readFileSync(helmApiDeploymentPath, 'utf-8');
   assert.ok(helmApiContent.includes('terminationGracePeriodSeconds:'), 'api-deployment.yaml debe configurar terminationGracePeriodSeconds');
@@ -1249,7 +1249,7 @@ test('🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminaci�
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-016-ingress-tls-and-http-hardening.md'), 'docs/README.md debe enlazar ADR-016');
   assert.ok(
-    docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'),
+    docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'),
     'Mermaid en docs/README.md debe indicar ADR-001 a ADR-016 o posterior'
   );
 
@@ -1335,7 +1335,7 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-017-kyverno-admission-control-and-pod-security.md'), 'docs/README.md debe enlazar ADR-017');
   assert.ok(
-    docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'),
+    docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'),
     'Mermaid en docs/README.md debe indicar ADR-001 a ADR-017 o posterior'
   );
 
@@ -1428,7 +1428,7 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-018-opentelemetry-distributed-tracing-and-w3c.md'), 'docs/README.md debe enlazar ADR-018');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-018 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-018 o posterior');
 
   // 7. Los 18 ADRs existen físicamente en disco
   for (let i = 1; i <= 18; i++) {
@@ -1487,7 +1487,7 @@ test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de buil
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   assert.ok(readmeContent.includes('ADR-019-monorepo-build-optimization-and-dependency-graph.md'), 'README.md debe enlazar ADR-019');
   assert.ok(docsReadmeContent.includes('ADR-019-monorepo-build-optimization-and-dependency-graph.md'), 'docs/README.md debe enlazar ADR-019');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-019 o posterior');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-019 o posterior');
 
   // 7. Los 19 ADRs existen físicamente en disco
   for (let i = 1; i <= 19; i++) {
@@ -1573,10 +1573,101 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   assert.ok(readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'README.md debe enlazar ADR-020');
   assert.ok(docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'docs/README.md debe enlazar ADR-020');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-020');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-020 o posterior');
 
   // 8. Los 20 ADRs existen físicamente en disco
   for (let i = 1; i <= 20; i++) {
+    const num = String(i).padStart(3, '0');
+    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
+    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
+    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  }
+});
+
+test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps', async () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md');
+  const rootAppPath = path.join(ROOT_DIR, 'gitops/apps/root-application.yaml');
+  const appProxmoxPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml');
+  const appCloudPath = path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml');
+  const healthChecksPath = path.join(ROOT_DIR, 'gitops/health-checks/argocd-cm-healthchecks.yaml');
+  const seedJobPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/seed-job.yaml');
+  const postgresStsPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/postgres-statefulset.yaml');
+  const apiDeploymentPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/api-deployment.yaml');
+  const webDeploymentPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/web-deployment.yaml');
+  const ingressPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/ingress.yaml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+
+  // 1. ADR-021 existe y está aceptado
+  assert.ok(fs.existsSync(adrPath), 'ADR-021 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-021 debe estar en estado Aceptado');
+  assert.ok(adrContent.includes('Sync Waves'), 'ADR-021 debe documentar Sync Waves');
+  assert.ok(adrContent.includes('PreSync'), 'ADR-021 debe documentar PreSync hook');
+  assert.ok(adrContent.includes('App-of-Apps'), 'ADR-021 debe documentar patrón App-of-Apps');
+  assert.ok(adrContent.includes('Health Checks'), 'ADR-021 debe documentar Custom Health Checks');
+
+  // 2. root-application.yaml existe y define App-of-Apps
+  assert.ok(fs.existsSync(rootAppPath), 'root-application.yaml debe existir en gitops/apps/');
+  const rootAppContent = fs.readFileSync(rootAppPath, 'utf-8');
+  assert.ok(rootAppContent.includes('pokedex-root'), 'root-application.yaml debe nombrar la app pokedex-root');
+  assert.ok(rootAppContent.includes('gitops/apps'), 'root-application.yaml debe apuntar a gitops/apps');
+  assert.ok(rootAppContent.includes('resources-finalizer.argocd.argoproj.io'), 'root-application.yaml debe incluir finalizer');
+
+  // 3. Health checks existen y cubren CRDs críticos
+  assert.ok(fs.existsSync(healthChecksPath), 'argocd-cm-healthchecks.yaml debe existir en gitops/health-checks/');
+  const healthContent = fs.readFileSync(healthChecksPath, 'utf-8');
+  assert.ok(healthContent.includes('external-secrets.io_ExternalSecret'), 'Debe definir health check para ExternalSecret');
+  assert.ok(healthContent.includes('bitnami.com_SealedSecret'), 'Debe definir health check para SealedSecret');
+  assert.ok(healthContent.includes('kyverno.io_ClusterPolicy'), 'Debe definir health check para ClusterPolicy');
+
+  // 4. Helm templates declaran Sync Waves deterministas (0 a 4)
+  const stsContent = fs.readFileSync(postgresStsPath, 'utf-8');
+  assert.ok(stsContent.includes('argocd.argoproj.io/sync-wave: "0"'), 'PostgreSQL StatefulSet debe estar en sync-wave 0');
+
+  const seedContent = fs.readFileSync(seedJobPath, 'utf-8');
+  assert.ok(seedContent.includes('sync-wave') && seedContent.includes('"1"'), 'Seed Job debe estar en sync-wave 1');
+  assert.ok(seedContent.includes('PreSync'), 'Seed Job debe definir hook PreSync');
+  assert.ok(seedContent.includes('HookSucceeded'), 'Seed Job debe definir hook-delete-policy');
+
+  const apiContent = fs.readFileSync(apiDeploymentPath, 'utf-8');
+  assert.ok(apiContent.includes('argocd.argoproj.io/sync-wave: "2"'), 'API Deployment debe estar en sync-wave 2');
+
+  const webContent = fs.readFileSync(webDeploymentPath, 'utf-8');
+  assert.ok(webContent.includes('argocd.argoproj.io/sync-wave: "3"'), 'Web Deployment debe estar en sync-wave 3');
+
+  const ingressContent = fs.readFileSync(ingressPath, 'utf-8');
+  assert.ok(ingressContent.includes('argocd.argoproj.io/sync-wave: "4"'), 'Ingress debe estar en sync-wave 4');
+
+  // 5. app-proxmox.yaml y app-cloud.yaml configuran syncWindows y opciones avanzadas
+  const proxmoxContent = fs.readFileSync(appProxmoxPath, 'utf-8');
+  const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
+  assert.ok(proxmoxContent.includes('ServerSideApply=true'), 'app-proxmox.yaml debe configurar ServerSideApply');
+  assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
+  assert.ok(cloudContent.includes('ServerSideApply=true'), 'app-cloud.yaml debe configurar ServerSideApply');
+  assert.ok(cloudContent.includes('syncWindows:'), 'app-cloud.yaml debe configurar syncWindows');
+
+  // 6. Taskfile.yml define tareas gitops:apps:root y gitops:health-checks
+  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yml debe definir gitops:apps:root');
+  assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yml debe definir gitops:health-checks');
+
+  // 7. deployment.md documenta sección 5 y ADR-021
+  const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
+  assert.ok(deploymentContent.includes('ADR-021'), 'deployment.md debe referenciar ADR-021');
+  assert.ok(deploymentContent.includes('task gitops:apps:root'), 'deployment.md debe documentar task gitops:apps:root');
+
+  // 8. README.md y docs/README.md enlazan ADR-021
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-021-advanced-gitops-sync-waves-and-health-checks.md'), 'README.md debe enlazar ADR-021');
+  assert.ok(docsReadmeContent.includes('ADR-021-advanced-gitops-sync-waves-and-health-checks.md'), 'docs/README.md debe enlazar ADR-021');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-021'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-021');
+
+  // 9. Los 21 ADRs existen físicamente en disco
+  for (let i = 1; i <= 21; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
     const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
