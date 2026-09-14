@@ -13,6 +13,8 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogTraceContext {
   traceId: string;
+  spanId?: string;
+  traceparent?: string;
 }
 
 export const traceStorage = new AsyncLocalStorage<LogTraceContext>();
@@ -30,7 +32,11 @@ const pinoBase = pino({
   },
   mixin() {
     const store = traceStorage.getStore();
-    return store?.traceId ? { traceId: store.traceId } : {};
+    return {
+      ...(store?.traceId ? { traceId: store.traceId } : {}),
+      ...(store?.spanId ? { spanId: store.spanId } : {}),
+      ...(store?.traceparent ? { traceparent: store.traceparent } : {}),
+    };
   },
 });
 
