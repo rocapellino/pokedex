@@ -209,7 +209,7 @@ export function renderPokemons(): void {
           </div>
 
           <div class="image-container">
-            <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="pokemon-img" loading="lazy">
+            <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="pokemon-img" loading="lazy" crossorigin="anonymous">
           </div>
 
           <h2 class="pokemon-name">${escapeText(p.nombre)}</h2>
@@ -426,7 +426,7 @@ function renderSingleEvolutionNode(node: EvolutionNode, currentId: number, showM
       isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre
     }">
       <div class="evolution-circle-frame">
-        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img">
+        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
       </div>
       <div class="evolution-name-tag">
         ${safeNombre} <span class="evolution-number-sub">N.º ${escapeText(formattedId)}</span>

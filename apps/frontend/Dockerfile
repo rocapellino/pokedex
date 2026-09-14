@@ -5,7 +5,6 @@ FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897
 
 WORKDIR /app
 COPY package*.json ./
-COPY apps/backend/package*.json ./apps/backend/
 COPY apps/frontend/package*.json ./apps/frontend/
 RUN npm ci --workspace=@pokedex/frontend --ignore-scripts
 

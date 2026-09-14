@@ -63,4 +63,27 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     expect(seriousViolations).toEqual([]);
   });
+
+  test('@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)', async ({ page }) => {
+    // Verificar que COEP: require-corp no bloquea silenciosamente las imágenes cross-origin.
+    // GitHub raw content expone Access-Control-Allow-Origin: * y crossorigin="anonymous"
+    // está presente en los <img>, por lo que el navegador debe cargarlas sin bloqueo.
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+
+    // Evaluar naturalWidth en la primera imagen de tarjeta visible
+    // naturalWidth === 0 indica que el navegador bloqueó o falló la carga del recurso.
+    const firstImgLoaded = await page.evaluate(() => {
+      const img = document.querySelector<HTMLImageElement>('.pokemon-img');
+      if (!img) return false;
+      // Si la imagen ya completó su carga, verificar naturalWidth directamente
+      if (img.complete) return img.naturalWidth > 0;
+      // Si aún está cargando, esperar el evento load
+      return new Promise<boolean>((resolve) => {
+        img.addEventListener('load', () => resolve(img.naturalWidth > 0));
+        img.addEventListener('error', () => resolve(false));
+      });
+    });
+
+    expect(firstImgLoaded, 'La imagen de Pokémon fue bloqueada (COEP/CORS) o no cargó. naturalWidth = 0.').toBe(true);
+  });
 });
