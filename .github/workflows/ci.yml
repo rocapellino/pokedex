@@ -280,7 +280,6 @@ jobs:
           CHART_OUTPUT=$(helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts 2>&1)
           echo "$CHART_OUTPUT"
           CHART_DIGEST=$(echo "$CHART_OUTPUT" | grep -i 'Digest:' | awk '{print $2}' | tr -d '\r\n')
-          
           # Validación formal estricta del digest OCI (formato sha256:<64 hex>)
           if ! echo "$CHART_DIGEST" | grep -Eq '^sha256:[a-f0-9]{64}$'; then
             echo "❌ Error crítico: Digest OCI del Helm Chart ausente o inválido ('$CHART_DIGEST'). Abortando."
