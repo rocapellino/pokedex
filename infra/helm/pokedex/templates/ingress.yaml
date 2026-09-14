@@ -5,8 +5,9 @@ metadata:
   name: {{ include "pokedex.fullname" . }}-ingress
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
