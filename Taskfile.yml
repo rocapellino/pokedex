@@ -321,6 +321,11 @@ tasks:
     cmds:
       - npx tsx scripts/seal-secret.ts
 
+  secrets:audit-rotation:
+    desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
+    cmds:
+      - npx tsx scripts/verify-secret-rotation.ts
+
   # ----------------------------------------------------------------------------
   # Gestión y Configuración de Hosts con Ansible (Capa 2)
   # ----------------------------------------------------------------------------

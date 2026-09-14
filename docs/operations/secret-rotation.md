@@ -28,8 +28,18 @@ kubectl annotate es pokedex-secrets -n pokemon-app force-sync=$(date +%s) --over
 
 ### Paso 3: Propagación y Rolling Restart automático
 
-Gracias a la anotación de Stakater Reloader (`secret.reloader.stakater.com/reload: "pokedex-secrets"`), el Deployment ejecutará un RollingUpdate automático sin tiempo de inactividad:
+Gracias a la anotación de Stakater Reloader (`secret.reloader.stakater.com/reload: "pokedex-secrets"` o `reloader.stakater.com/auto: "true"` formalizado en [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md)), el Deployment ejecutará un RollingUpdate automático sin tiempo de inactividad:
 
 ```bash
 kubectl rollout status deployment/pokemon-api -n pokemon-app
+```
+
+## 4. Auditoría Automatizada de Rotación (ADR-022)
+
+Conforme a [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md), todos los despliegues de Kubernetes que consumen secretos están obligados a incorporar la anotación de recarga dinámica `reloader.stakater.com/auto: "true"`, y los manifiestos `ExternalSecret` aplican un `refreshInterval: 1h`.
+
+Para auditar la conformidad de toda la plataforma en CI o localmente:
+
+```bash
+task secrets:audit-rotation
 ```
