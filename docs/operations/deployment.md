@@ -50,3 +50,16 @@ task k8s:status
 curl -f http://<INGRESS_IP>/readyz
 curl -f http://<INGRESS_IP>/version
 ```
+
+## 4. Gobernanza de Despliegue y Retiro de Scripts Legados (ADR-020)
+
+Conforme a lo establecido en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md):
+
+1. **CLI Canónico Único**: Todas las operaciones de compilación, validación, pruebas, infraestructura y despliegue se ejecutan exclusivamente mediante `Taskfile.yml` (`task --list`) o scripts tipados en `package.json`.
+2. **Prohibición de Scripts Imperativos**: Queda estrictamente prohibido el uso o creación de scripts shell imperativos de despliegue (`deploy*.sh`, `*deploy.sh`). El aprovisionamiento y entrega es 100% declarativo vía Helm 3, ArgoCD y OpenTofu.
+3. **Inventario Canónico Auditable**: La única secuencia shell autorizada en el repositorio es `scripts/dr_verify_restore.sh` para pruebas de DR. Para verificar el cumplimiento:
+
+```bash
+task governance:audit-scripts
+```
+
