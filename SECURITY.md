@@ -116,3 +116,18 @@ El repositorio cuenta con defensas en profundidad integradas en el pipeline y en
    - Soporte para **External Secrets Operator** y modo `existingSecret: "pokedex-prod-secrets"` en Helm para prevenir contraseñas en Git o flags CLI.
    - Manifiestos cifrados con **Bitnami Sealed Secrets** para entornos on-premise.
    - Escaneo preventivo continuo con **Gitleaks**.
+
+5. **Política de Escaneo de Contenedores y Vulnerabilidades Upstream (Trivy):**
+   - **Compilación en CI (`ci.yml`):** Utiliza `ignore-unfixed: true` exclusivamente como compuerta bloqueante de PRs para evitar roturas causadas por vulnerabilidades base de la distribución (`alpine:3.21`) sin parche oficial disponible (*unfixed*).
+   - **Monitoreo Continuo (`security-trivy.yml`):** Ejecuta escaneos programados diarios sobre el repositorio e imágenes sin suprimir CVEs sin parche, publicando los hallazgos en GitHub Security tab para auditoría y evaluación de riesgos.
+   - **Criterio de Evaluación:** Si un CVE sin parche alcanza severidad CRITICAL con exploit público conocido (CISA KEV), se evalúa inmediatamente la sustitución o remediación manual de la imagen base.
+
+6. **Política de Overrides de Dependencias (`package.json`):**
+   - Cada entrada en la directiva `overrides` responde a la mitigación directa de un advisory de seguridad reportado en dependencias transitivas:
+     - `qs` (^6.14.0): Mitigación de Prototype Pollution en parsers HTTP de Express.
+     - `tmp` (^0.2.6): Prevención de condiciones de carrera y creación insegura de archivos temporales.
+     - `cookie` (^2.0.1): Prevención de ReDoS y parsing fuera de límites.
+     - `esbuild` (^0.28.2): Paridad del compilador y mitigación de vulnerabilidades de empaquetado.
+     - `@puppeteer/browsers` y `proxy-agent`: Mitigaciones aplicadas a la suite de testing E2E.
+   - **Condición de Retiro:** Los overrides son revaluados bimestralmente mediante `npm outdated` y retirados en cuanto los paquetes principales actualicen sus árboles de dependencias.
+
