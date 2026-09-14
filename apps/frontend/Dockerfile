@@ -47,12 +47,12 @@ RUN envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_AL
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
 
-# Usar usuario sin privilegios 'nginx'
-USER nginx
+# Usar usuario sin privilegios por UID:GID numérico (Hadolint DL3066)
+USER 101:101
 
-# Healthcheck interno de Nginx
+# Healthcheck interno de Nginx (Hadolint DL3025)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1
+    CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1"]
 
 EXPOSE 8080
 
