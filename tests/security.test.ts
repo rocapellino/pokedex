@@ -8,6 +8,10 @@ import {
   getSessionSecret,
   verifyTokenSignature,
 } from '../apps/backend/src/services/auth.js';
+import {
+  buildSessionCookie,
+  extractSessionTokenFromRequest,
+} from '../apps/backend/server.js';
 import crypto from 'crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
@@ -204,6 +208,31 @@ test('⚡ Escalabilidad: cálculo de nextId con reduce soporta grandes coleccion
   assert.equal(nextId, 5001);
 });
 
+test('🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly', () => {
+  const req = {
+    headers: {
+      cookie: 'pokedex_admin_session=abc123.token; other=value',
+    },
+  } as any;
+
+  assert.equal(extractSessionTokenFromRequest(req), 'abc123.token');
+});
+
+test('🔐 Auth Session: buildSessionCookie emite cookie segura con flags HttpOnly, Secure y SameSite', () => {
+  const previousEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'production';
+  try {
+    const cookie = buildSessionCookie('abc123.token', 3600);
+    assert.match(cookie, /pokedex_admin_session=abc123\.token/);
+    assert.match(cookie, /HttpOnly/i);
+    assert.match(cookie, /Secure/i);
+    assert.match(cookie, /SameSite=Lax/i);
+    assert.match(cookie, /Max-Age=3600/i);
+  } finally {
+    process.env.NODE_ENV = previousEnv;
+  }
+});
+
 test('🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado', async () => {
   const session = generateSessionToken();
   assert.ok(session.token);
@@ -324,6 +353,16 @@ test('🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SEC
     if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
     if (originalKey) process.env.ADMIN_API_KEY = originalKey;
   }
+});
+
+test('🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly', () => {
+  const req = {
+    headers: {
+      cookie: 'pokedex_admin_session=abc123.token; other=value',
+    },
+  } as any;
+
+  assert.equal(extractSessionTokenFromRequest(req), 'abc123.token');
 });
 
 test('🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test', () => {

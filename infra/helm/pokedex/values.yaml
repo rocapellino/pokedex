@@ -48,6 +48,7 @@ api:
     seccompProfile:
       type: RuntimeDefault
   env:
+    nodeEnv: "development"
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
     otelEndpoint: "http://tempo:4317"
     otelServiceName: "pokedex-api"
@@ -167,6 +168,10 @@ redis:
   port: 6379
   auth:
     password: ""
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
   service:
     port: 6379
   resources:

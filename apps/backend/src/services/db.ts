@@ -76,20 +76,6 @@ async function connectPg(): Promise<boolean> {
 
     const client = await pgPool.connect();
     try {
-      // Garantizar esquema base y secuencia de manera declarativa/idempotente
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS pokedex_entries (
-          id INT PRIMARY KEY,
-          nombre VARCHAR(100) NOT NULL,
-          tipo VARCHAR(50) NOT NULL,
-          data JSONB NOT NULL,
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
-        CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
-        CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq START WITH 1009;
-      `);
-
       if (!drizzleDb) {
         drizzleDb = createDrizzleClient(pgPool);
       }

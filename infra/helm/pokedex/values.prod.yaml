@@ -30,6 +30,7 @@ api:
     minReplicas: 2
     maxReplicas: 10
   env:
+    nodeEnv: "production"
     corsOrigins: "https://pokedex.example.com"
 
 web:
@@ -78,6 +79,12 @@ pgbouncer:
   replicaCount: 2
   maxClientConn: 500
   defaultPoolSize: 50
+
+redis:
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: "standard"
 
 ingress:
   annotations:
