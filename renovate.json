@@ -57,7 +57,8 @@
     {
       "description": "Excepción de seguridad justificada para extract-zip (dependencia de desarrollo transitiva sin parche disponible)",
       "matchPackageNames": ["extract-zip"],
-      "enabled": false
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Gestor GitHub Actions: prefijo chore(ci) y etiquetas de CI/CD",
@@ -97,6 +98,7 @@
       "matchPackageNames": ["typescript"],
       "matchUpdateTypes": ["major"],
       "enabled": false,
+      "minimumReleaseAge": "7 days",
       "labels": ["typescript-major-manual-review"]
     }
   ]

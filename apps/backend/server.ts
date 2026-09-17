@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
@@ -295,13 +296,57 @@ const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
 
 // ---------------------------------------------------------------------------
-// Rate Limiting: único mecanismo de control de tráfico
+// Rate Limiting de Doble Capa: Defensa en Profundidad (Dual-Layer Defense)
 // ---------------------------------------------------------------------------
-// El proyecto usa un único limitador autorizador para cada ruta crítica. Esto evita
-// duplicar los controles en memoria y Redis, reduciendo ambigüedad operativa y
-// la posibilidad de que dos políticas divergentes permitan o bloqueen tráfico de
-// forma inconsistente entre pods o rutas.
+// 1. express-rate-limit (Standard, in-process):
+//    - Analizado y validado por herramientas SAST (CodeQL, Semgrep).
+//    - Respuesta ultra-rápida en memoria local por proceso/pod.
+//    - Cabeceras estándar IETF (RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset).
+//
+// 2. createRateLimiter (Redis-backed con fallback):
+//    - Fuente de verdad distribuida en entornos multi-pod.
+//    - Si Redis está disponible, aplica el límite de forma consistente entre réplicas.
+//    - Fallback a memoria local si Redis no está configurado.
+//    - Para endpoints IA: fail-closed (503) si Redis falla y REDIS_URL está definido.
+//
+// El límite efectivo es el mínimo de ambos. Los valores DEBEN mantenerse idénticos
+// entre ambos mecanismos para cada ruta. Cualquier desalineación es un bug.
 // ---------------------------------------------------------------------------
+const globalRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics',
+  message: { detail: 'Límite global de peticiones excedido. Intenta más tarde.' },
+});
+
+const mutationRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de peticiones para Modificaciones CRUD excedido. Intenta más tarde.' },
+});
+
+const authRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de intentos de autenticación excedido. Intenta más tarde.' },
+});
+
+const aiRateLimiterStandard = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Límite de peticiones para Endpoints IA excedido. Intenta más tarde.' },
+});
+
+// Middleware global de rate limiting para protección contra DDoS y saturación general
+app.use(globalRateLimiterStandard);
 app.use(globalRateLimiter);
 
 // ---------------------------------------------------------------------------
@@ -497,7 +542,7 @@ function calculateETag(data: unknown): string {
 // ---------------------------------------------------------------------------
 // Autenticación de Operador: Emisión de Tokens de Sesión de Corta Duración
 // ---------------------------------------------------------------------------
-app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) => {
+app.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter, (req: Request, res: Response) => {
   const { apiKey } = req.body || {};
   const configuredKey = process.env.ADMIN_API_KEY;
 
@@ -523,7 +568,7 @@ app.post('/api/v1/auth/session', authRateLimiter, (req: Request, res: Response) 
   });
 });
 
-app.post('/api/v1/auth/logout', authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/auth/logout', authRateLimiterStandard, authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
   const token = extractSessionToken(req);
   if (token) {
     const revokeResult = await revokeSessionTokenDetailed(token);
@@ -759,7 +804,7 @@ app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Creación persistente con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.post('/pokemons', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const validation = validatePokemonPayload(req.body);
   if (!validation.valid) {
     return res.status(422).json({ detail: validation.error });
@@ -810,7 +855,7 @@ app.post('/pokemons', mutationRateLimiter, verifyAdmin, requireWritableStorage, 
 }));
 
 // Edición persistente con validación e invalidación de caché
-app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.put('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -870,7 +915,7 @@ app.put('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorag
 }));
 
 // Eliminación persistente
-app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
+app.delete('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
   const id = Number.parseInt(req.params.id, 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
@@ -896,7 +941,7 @@ app.delete('/pokemons/:id', mutationRateLimiter, verifyAdmin, requireWritableSto
 // ---------------------------------------------------------------------------
 // Google AI Studio (Gemini) Endpoints con Rate Limit Minuto, Cuota Diaria y Auth
 // ---------------------------------------------------------------------------
-app.post('/api/v1/ai/diagram', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/diagram', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, diagram_type } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -906,7 +951,7 @@ app.post('/api/v1/ai/diagram', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, 
   res.json(result);
 }));
 
-app.post('/api/v1/ai/mock', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/mock', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, framework } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -916,7 +961,7 @@ app.post('/api/v1/ai/mock', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asy
   res.json(result);
 }));
 
-app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
+app.post('/api/v1/ai/image', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
   const { prompt, aspect_ratio } = req.body || {};
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
@@ -930,7 +975,7 @@ app.post('/api/v1/ai/image', aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, as
 // Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
 // DevSecOps Hardening: En producción, deshabilitado por defecto para reducir superficie de ataque
 // ---------------------------------------------------------------------------
-app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
+app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
   if (process.env.NODE_ENV === 'production' && process.env.ENABLE_REPO_DOWNLOAD !== 'true') {
     return res.status(403).json({
       error: 'Acceso denegado: La descarga del código fuente del repositorio se encuentra deshabilitada en producción por directivas de seguridad.'
