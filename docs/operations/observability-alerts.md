@@ -23,6 +23,13 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexHpaMaxReplicasReached** | `warning` | `kube_hpa_status_current_replicas >= kube_hpa_spec_max_replicas` | Autoescalador al límite máximo de réplicas durante más de 15 minutos. |
 | **PokedexContainerRestartLoop** | `critical` | `increase(kube_pod_container_status_restarts_total[15m]) > 2` | Contenedores reiniciándose en bucle (CrashLoopBackOff u OOMKilled). |
 | **PokedexAICircuitBreakerOpen** | `warning` | `pokedex_ai_circuit_breaker_open == 1` | Disyuntor de llamadas a Gemini abierto por fallos consecutivos; servicio opera con fallback heurístico local. |
+| **PokedexPvcStorageFillingUp** | `warning` | `(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85` | Volumen persistente (PVC) próximo al límite (> 85%). |
+| **PokedexDbBackupFailed** | `critical` | `kube_job_status_failed{job_name=~".*backup.*"} > 0` | Fallo de ejecución de Job de respaldo automatizado de PostgreSQL. |
+| **PokedexDbBackupStale** | `critical` | `(time() - kube_cronjob_status_last_successful_time) > 93600` | Copia de seguridad desactualizada (> 26 horas). |
+| **TlsCertExpiringSoon** | `warning` | `(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 15` | Certificado TLS próximo a expirar (< 15 días). |
+| **ArgoCDAppOutOfSync** | `warning` | `argocd_app_info{sync_status!="Synced"} == 1` | Aplicación GitOps desincronizada con el repositorio. |
+| **ArgoCDAppDegraded** | `critical` | `argocd_app_info{health_status="Degraded"} == 1` | Aplicación GitOps con recursos degradados en el clúster. |
+| **ExternalSecretSyncFailed** | `critical` | `externalsecret_status_condition{status="False",type="Ready"} == 1` | Fallo en la sincronización de secretos externos desde Vault/AWS Secrets Manager. |
 
 ---
 

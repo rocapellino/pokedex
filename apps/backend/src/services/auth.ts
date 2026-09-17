@@ -172,7 +172,7 @@ export async function revokeSessionToken(token: string): Promise<boolean> {
 }
 
 export type VerifySessionResult =
-  | { valid: true }
+  | { valid: true; expiresAt: number; payload?: SessionTokenPayload }
   | { valid: false; reason: 'invalid_format' | 'invalid_signature' | 'expired' | 'revoked' | 'service_unavailable' };
 
 /**
@@ -231,7 +231,7 @@ export async function verifySessionTokenDetailed(token: string): Promise<VerifyS
     }
   }
 
-  return { valid: true };
+  return { valid: true, expiresAt: payload.exp, payload };
 }
 
 /**

@@ -54,8 +54,10 @@ export interface Pokemon {
 }
 
 export interface SessionInfo {
-  token: string;
-  expiresIn: number;
-  expiresAt: number;
-  role: string;
+  authenticated?: boolean;
+  token?: string;
+  expiresIn?: number;
+  expires_in?: number;
+  expiresAt?: number;
+  role?: string;
 }

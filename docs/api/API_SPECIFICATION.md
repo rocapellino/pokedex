@@ -1,6 +1,6 @@
 # 📡 Especificación de Contratos y Endpoints de la API REST
 
-Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 22 LTS + Express 4.21 + TypeScript 5.7).
+Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 22 LTS + Express 4.22 + TypeScript 7.x).
 
 ---
 

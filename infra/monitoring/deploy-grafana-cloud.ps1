@@ -42,19 +42,29 @@ helm repo add grafana https://grafana.github.io/helm-charts --force-update 2>$nu
 helm repo update grafana
 
 # 4. Desplegar o actualizar k8s-monitoring
-Write-Host "🚀 Ejecutando helm upgrade --install $ReleaseName..." -ForegroundColor Cyan
-helm upgrade --install $ReleaseName grafana/k8s-monitoring `
-    --namespace $Namespace --create-namespace `
-    --values $ValuesFile `
-    --set "cluster.name=$clusterName" `
-    --set "collectorCommon.alloy.remoteConfig.enabled=true" `
-    --set-string "collectorCommon.alloy.remoteConfig.url=$RemoteConfigUrl" `
-    --set-string "collectorCommon.alloy.remoteConfig.auth.username=$Username" `
-    --set-string "collectorCommon.alloy.remoteConfig.auth.password=$Token"
+# Mitigación de seguridad: El token se pasa mediante --set-file desde un archivo temporal efímero
+# para evitar exponer credenciales en la tabla de procesos del sistema operativo (Get-Process / ps aux / auditd)
+$tempTokenFile = [System.IO.Path]::GetTempFileName()
+try {
+    [System.IO.File]::WriteAllText($tempTokenFile, $Token.Trim())
+    Write-Host "🚀 Ejecutando helm upgrade --install $ReleaseName..." -ForegroundColor Cyan
+    helm upgrade --install $ReleaseName grafana/k8s-monitoring `
+        --namespace $Namespace --create-namespace `
+        --values $ValuesFile `
+        --set "cluster.name=$clusterName" `
+        --set "collectorCommon.alloy.remoteConfig.enabled=true" `
+        --set-string "collectorCommon.alloy.remoteConfig.url=$RemoteConfigUrl" `
+        --set-string "collectorCommon.alloy.remoteConfig.auth.username=$Username" `
+        --set-file "collectorCommon.alloy.remoteConfig.auth.password=$tempTokenFile"
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ [Grafana Cloud] k8s-monitoring instalado exitosamente." -ForegroundColor Green
-    Write-Host "🔍 Verifique los pods con: kubectl get pods -n $Namespace" -ForegroundColor Cyan
-} else {
-    Write-Error "❌ Error al ejecutar helm upgrade."
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ [Grafana Cloud] k8s-monitoring instalado exitosamente." -ForegroundColor Green
+        Write-Host "🔍 Verifique los pods con: kubectl get pods -n $Namespace" -ForegroundColor Cyan
+    } else {
+        Write-Error "❌ Error al ejecutar helm upgrade."
+    }
+} finally {
+    if (Test-Path $tempTokenFile) {
+        Remove-Item -Path $tempTokenFile -Force -ErrorAction SilentlyContinue
+    }
 }

@@ -5,13 +5,14 @@
 import { sanitizeHtml, escapeText } from './sanitizer.js';
 import type { Pokemon, SessionInfo } from './types.js';
 
-let allPokemons: Pokemon[] = [];
-let filteredPokemons: Pokemon[] = [];
+let currentPokemons: Pokemon[] = [];
+let totalRecords = 0;
 let currentPage = 1;
 let pageSize = 50;
 let currentSearch = '';
 let currentType = 'all';
 let pendingDeleteId: number | null = null;
+let searchDebounceTimeout: any = null;
 
 const TYPE_COLORS: Record<string, string> = {
   'Eléctrico': '#f59e0b',
@@ -50,66 +51,62 @@ function getTypeColor(tipo?: string): string {
 }
 
 // ============================================================================
-// Autenticación de Sesión de Administrador (HMAC Session Token)
+// Autenticación de Sesión de Administrador (HttpOnly Cookie + Zero Token Exposure)
 // ============================================================================
-const ADMIN_TOKEN_KEY = 'pokedex_admin_session_token';
-const ADMIN_EXPIRES_KEY = 'pokedex_admin_session_expires';
+let isAdminActive = false;
+let adminSessionExpiresAt: number | null = null;
 
-export function getAdminSessionToken(): string {
-  const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
-  const expiresAt = sessionStorage.getItem(ADMIN_EXPIRES_KEY);
-  if (!token) {
-    const fallback = document.cookie
-      .split('; ')
-      .find((entry) => entry.startsWith('pokedex_admin_session='));
-
-    if (!fallback) return '';
-
-    const value = decodeURIComponent(fallback.split('=').slice(1).join('='));
-    if (value && value.trim()) {
-      sessionStorage.setItem(ADMIN_TOKEN_KEY, value.trim());
-      if (expiresAt) {
-        sessionStorage.setItem(ADMIN_EXPIRES_KEY, expiresAt);
-      }
-      return value.trim();
+export async function checkAdminSession(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/v1/auth/session', { credentials: 'same-origin' });
+    if (res.ok) {
+      const data = await res.json();
+      isAdminActive = Boolean(data.authenticated);
+      adminSessionExpiresAt = data.expiresAt ? Number(data.expiresAt) : null;
+    } else {
+      isAdminActive = false;
+      adminSessionExpiresAt = null;
     }
-    return '';
+  } catch {
+    isAdminActive = false;
+    adminSessionExpiresAt = null;
   }
-
-  if (expiresAt && Date.now() > Number(expiresAt)) {
-    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
-    updateAuthUI();
-    return '';
-  }
-
-  return token;
+  updateAuthUI();
+  return isAdminActive;
 }
 
-export function setAdminSession(token?: string, expiresAt?: number): void {
-  if (token && token.trim()) {
-    sessionStorage.setItem(ADMIN_TOKEN_KEY, token.trim());
-    if (expiresAt) {
-      sessionStorage.setItem(ADMIN_EXPIRES_KEY, String(expiresAt));
-    }
-  } else {
-    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+export function isSessionActive(): boolean {
+  if (!isAdminActive) return false;
+  if (adminSessionExpiresAt && Date.now() > adminSessionExpiresAt) {
+    isAdminActive = false;
+    adminSessionExpiresAt = null;
+    updateAuthUI();
+    return false;
   }
+  return true;
+}
+
+export function setAdminSessionActive(active: boolean, expiresAt?: number): void {
+  isAdminActive = active;
+  adminSessionExpiresAt = expiresAt ? Number(expiresAt) : null;
   updateAuthUI();
 }
 
-export function clearAdminSession(): void {
-  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-  sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
-  document.cookie = 'pokedex_admin_session=; Path=/; Max-Age=0; SameSite=Lax';
+export async function clearAdminSession(): Promise<void> {
+  isAdminActive = false;
+  adminSessionExpiresAt = null;
+  try {
+    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
+  } catch {
+    // Ignorar fallos de red en logout
+  }
   updateAuthUI();
   closeAuthModal();
   showToast('ℹ️ Sesión administrativa cerrada.');
 }
 
 export function updateAuthUI(): void {
-  const token = getAdminSessionToken();
+  const active = isSessionActive();
   const statusText = document.getElementById('authStatusText');
   const btn = document.getElementById('btnAdminAuth');
   const clearBtn = document.getElementById('btnClearKeyBtn');
@@ -117,7 +114,7 @@ export function updateAuthUI(): void {
 
   if (input) input.value = '';
 
-  if (token) {
+  if (active) {
     if (statusText) statusText.innerText = 'Admin Activo';
     if (btn) btn.classList.add('btn-auth-active');
     if (clearBtn) clearBtn.classList.remove('hidden');
@@ -158,19 +155,20 @@ export async function handleAuthSubmit(e: Event): Promise<void> {
   try {
     const res = await fetch('/api/v1/auth/session', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey: val }),
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${res.status}: Clave no autorizada`);
+      throw new Error(err.detail || err.error || `HTTP ${res.status}: Clave no autorizada`);
     }
 
     const data = (await res.json()) as SessionInfo;
-    setAdminSession(data.token, data.expiresAt);
+    setAdminSessionActive(true, data.expiresAt);
     closeAuthModal();
-    showToast('🔐 Sesión administrativa autenticada (token HMAC emitido).');
+    showToast('🔐 Sesión administrativa autenticada (cookie HttpOnly emitida).');
   } catch (err: any) {
     showToast(`❌ Error de autenticación: ${err?.message || err}`, true);
   } finally {
@@ -217,14 +215,24 @@ export async function loadAdminData(): Promise<void> {
       </tr>
     `);
 
-    const res = await fetch('/pokemons');
+    const offset = (currentPage - 1) * pageSize;
+    const params = new URLSearchParams({
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    if (currentSearch.trim()) params.set('nombre', currentSearch.trim());
+    if (currentType && currentType !== 'all') params.set('tipo', currentType);
+
+    const res = await fetch(`/pokemons?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}: Error al conectar con la API`);
-    allPokemons = (await res.json()) as Pokemon[];
 
-    allPokemons.sort((a, b) => a.id - b.id);
+    const countHeader = res.headers.get('X-Total-Count');
+    currentPokemons = (await res.json()) as Pokemon[];
+    totalRecords = countHeader ? Number.parseInt(countHeader, 10) : currentPokemons.length;
 
-    applyAdminFilters();
-    showToast(`✅ Catálogo cargado: ${allPokemons.length} registros en base de datos.`);
+    renderTable();
+    updateKPIs();
+    showToast(`✅ Catálogo cargado: ${currentPokemons.length} de ${totalRecords} registros.`);
   } catch (err: any) {
     console.error('Error al conectar con la API:', err);
     showToast(`Error al cargar datos: ${err?.message || err}`, true);
@@ -243,41 +251,32 @@ export async function loadAdminData(): Promise<void> {
 }
 
 export function applyAdminFilters(): void {
-  filteredPokemons = allPokemons.filter((p) => {
-    const term = currentSearch.toLowerCase().trim();
-    const matchesSearch =
-      !term ||
-      p.nombre.toLowerCase().includes(term) ||
-      (p.tipo && p.tipo.toLowerCase().includes(term)) ||
-      String(p.id).includes(term);
-
-    const matchesType = currentType === 'all' || (p.tipo && p.tipo.toLowerCase() === currentType.toLowerCase());
-
-    return matchesSearch && matchesType;
-  });
-
   currentPage = 1;
-  renderTable();
-  updateKPIs();
+  loadAdminData();
 }
 
 export function handleAdminSearch(): void {
   const input = (document.getElementById('adminSearch') || document.getElementById('adminSearchInput')) as HTMLInputElement | null;
   currentSearch = input ? input.value : '';
-  applyAdminFilters();
+  clearTimeout(searchDebounceTimeout);
+  searchDebounceTimeout = setTimeout(() => {
+    currentPage = 1;
+    loadAdminData();
+  }, 300);
 }
 
 export function handleAdminTypeFilter(): void {
   const select = document.getElementById('adminTypeFilter') as HTMLSelectElement | null;
   currentType = select ? select.value : 'all';
-  applyAdminFilters();
+  currentPage = 1;
+  loadAdminData();
 }
 
 export function handlePageSizeChange(): void {
   const sizeEl = document.getElementById('adminPageSize') as HTMLSelectElement | null;
   pageSize = sizeEl ? Number.parseInt(sizeEl.value, 10) || 50 : 50;
   currentPage = 1;
-  renderTable();
+  loadAdminData();
 }
 
 export function renderTable(): void {
@@ -285,7 +284,7 @@ export function renderTable(): void {
   const pagination = document.getElementById('adminPagination');
   if (!tbody) return;
 
-  if (filteredPokemons.length === 0) {
+  if (currentPokemons.length === 0) {
     tbody.innerHTML = sanitizeHtml(`
       <tr>
         <td colspan="8" class="table-empty">
@@ -297,12 +296,9 @@ export function renderTable(): void {
     return;
   }
 
-  const totalPages = Math.ceil(filteredPokemons.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, filteredPokemons.length);
-  const currentBatch = filteredPokemons.slice(startIndex, endIndex);
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
 
-  const rawRows = currentBatch
+  const rawRows = currentPokemons
     .map((p) => {
       const car = p.caracteristicas || {};
       const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
@@ -376,7 +372,7 @@ export function renderTable(): void {
       pagination.style.display = '';
       const pageInfo = document.getElementById('adminPageInfo');
       if (pageInfo) {
-        pageInfo.innerText = `Página ${currentPage} de ${totalPages} (Mostrando ${currentBatch.length} de ${filteredPokemons.length} Pokémon)`;
+        pageInfo.innerText = `Página ${currentPage} de ${totalPages} (Mostrando ${currentPokemons.length} de ${totalRecords} Pokémon)`;
       }
       const prevBtn = document.getElementById('adminBtnPrev') as HTMLButtonElement | null;
       const nextBtn = document.getElementById('adminBtnNext') as HTMLButtonElement | null;
@@ -389,23 +385,23 @@ export function renderTable(): void {
 }
 
 export function changeAdminPage(delta: number): void {
-  const totalPages = Math.ceil(filteredPokemons.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const newPage = currentPage + delta;
   if (newPage >= 1 && newPage <= totalPages) {
     currentPage = newPage;
-    renderTable();
+    loadAdminData();
     window.scrollTo({ top: 200, behavior: 'smooth' });
   }
 }
 
 export function updateKPIs(): void {
   const totalEl = document.getElementById('kpiTotal');
-  if (totalEl) totalEl.innerText = String(allPokemons.length);
-  if (allPokemons.length === 0) return;
+  if (totalEl) totalEl.innerText = String(totalRecords);
+  if (currentPokemons.length === 0) return;
 
-  const totalForce = allPokemons.reduce((acc, p) => acc + (p.fuerza || 0), 0);
-  const avgForce = Math.round(totalForce / allPokemons.length);
-  const uniqueTypes = new Set(allPokemons.map((p) => p.tipo).filter(Boolean));
+  const totalForce = currentPokemons.reduce((acc, p) => acc + (p.fuerza || 0), 0);
+  const avgForce = Math.round(totalForce / currentPokemons.length);
+  const uniqueTypes = new Set(currentPokemons.map((p) => p.tipo).filter(Boolean));
 
   const avgPowerEl = document.getElementById('kpiAvgPower') || document.getElementById('kpiAvgForce');
   if (avgPowerEl) avgPowerEl.innerText = `${avgForce} pts`;
@@ -428,7 +424,7 @@ export function openCreateModal(): void {
 }
 
 export function openEditModal(id: number): void {
-  const p = allPokemons.find((x) => x.id === id);
+  const p = currentPokemons.find((x) => x.id === id);
   if (!p) return;
 
   const title = document.getElementById('crudModalTitle');
@@ -457,8 +453,7 @@ export function closeCrudModal(): void {
 export async function handleFormSubmit(e: Event): Promise<void> {
   e.preventDefault();
 
-  const token = getAdminSessionToken();
-  if (!token) {
+  if (!isSessionActive()) {
     showToast('⚠️ Se requiere autenticación de administrador para guardar cambios.', true);
     openAuthModal();
     return;
@@ -492,9 +487,9 @@ export async function handleFormSubmit(e: Event): Promise<void> {
 
     const res = await fetch(url, {
       method: method,
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -530,7 +525,7 @@ export async function handleFormSubmit(e: Event): Promise<void> {
 // Modal de Eliminación
 // ============================================================================
 export function openDeleteModal(id: number): void {
-  const p = allPokemons.find((x) => x.id === id);
+  const p = currentPokemons.find((x) => x.id === id);
   if (!p) return;
   pendingDeleteId = id;
   const nameEl = document.getElementById('deletePokemonName');
@@ -548,8 +543,7 @@ export function closeDeleteModal(): void {
 export async function executeDelete(): Promise<void> {
   if (!pendingDeleteId) return;
 
-  const token = getAdminSessionToken();
-  if (!token) {
+  if (!isSessionActive()) {
     showToast('⚠️ Se requiere autenticación de administrador para eliminar registros.', true);
     closeDeleteModal();
     openAuthModal();
@@ -563,9 +557,7 @@ export async function executeDelete(): Promise<void> {
   try {
     const res = await fetch(`/pokemons/${pendingDeleteId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: 'same-origin',
     });
 
     if (res.status === 401) {
@@ -709,14 +701,14 @@ export function initEventListeners(): void {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
-    updateAuthUI();
+    checkAdminSession();
     loadAdminData();
     checkHealthStatus();
     setInterval(checkHealthStatus, 15000);
   });
 } else {
   initEventListeners();
-  updateAuthUI();
+  checkAdminSession();
   loadAdminData();
   checkHealthStatus();
   setInterval(checkHealthStatus, 15000);
