@@ -46,6 +46,7 @@ lighthouse-results/
 secrets/
 *.secrets
 .tools/
+grafana.txt
 
 # ==============================================================================
 # OpenTofu & IaC (Infraestructura como Código)
@@ -95,6 +96,7 @@ minio_data/
 !.vscode/tasks.json
 !.vscode/settings.json
 !.vscode/launch.json
+!.vscode/mcp.json
 .idea/
 *.swp
 *.swo

@@ -1,0 +1,42 @@
+# ==============================================================================
+# Grafana Cloud: k8s-monitoring Values
+# Chart: https://grafana.github.io/helm-charts (k8s-monitoring)
+# ==============================================================================
+
+cluster:
+  name: "pokedex-k8s-cluster"
+
+collectorCommon:
+  alloy:
+    remoteConfig:
+      enabled: true
+      url: "https://fleet-management-prod-015.grafana.net"
+      auth:
+        type: "basic"
+        username: "1832819"
+        # La contraseña (token de Access Policy) se inyecta dinámicamente vía --set-string o secret
+
+collectors:
+  alloy-daemon:
+    presets:
+      - large
+      - root
+      - host-storage
+      - host-network
+      - host-cgroup
+      - clustered
+      - service-discovery
+      - filesystem-log-reader
+      - daemonset
+
+telemetryServices:
+  node-exporter:
+    deploy: true
+
+  kube-state-metrics:
+    deploy: true
+
+  beyla:
+    deploy: true
+    k8sCache:
+      replicas: 1

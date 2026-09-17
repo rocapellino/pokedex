@@ -341,7 +341,7 @@ El sistema está instrumentado para integrarse nativamente con stacks de observa
 - **Decisión de Diseño**: Registro formal de arquitectura en [docs/decisions/ADR-007-observability-and-metrics.md](docs/decisions/ADR-007-observability-and-metrics.md).
 
 > [!NOTE]
-> Las tareas de monitoreo (`task monitoring:*`) se integran de forma opcional con el repositorio hermano `../docker_monitoreo` para el aprovisionamiento del stack central de telemetría a nivel de host.
+> La observabilidad central está migrada a **Grafana Cloud** mediante Grafana Alloy DaemonSet y Beyla eBPF (`task monitoring:grafana-cloud:install`). Los tableros canónicos se encuentran versionados en [`infra/monitoring/dashboards/`](infra/monitoring/dashboards/) y las alertas en [`infra/monitoring/alerts.yml`](infra/monitoring/alerts.yml). El stack local `docker_monitoreo` se mantiene como opción secundaria para emulación local con Docker Compose.
 
 ---
 

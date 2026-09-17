@@ -207,6 +207,36 @@
         "clear": false
       },
       "detail": "Valida el endpoint de preparación /readyz de la API dentro del clúster."
+    },
+    {
+      "label": "📊 Grafana Cloud: Install / Upgrade k8s-monitoring",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File infra/monitoring/deploy-grafana-cloud.ps1",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Instala o actualiza el stack de telemetría de Grafana Cloud (Alloy, Beyla eBPF, Node Exporter, KSM) en Kubernetes."
+    },
+    {
+      "label": "📊 Grafana Cloud: Status",
+      "type": "shell",
+      "command": "kubectl get pods,daemonset,deployment -n monitoring -o wide",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "detail": "Muestra el estado de los componentes de telemetría de Grafana Cloud en el namespace monitoring."
     }
   ]
 }

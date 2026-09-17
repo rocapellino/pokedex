@@ -17,6 +17,26 @@ groups:
           summary: "PostgreSQL desconectado en Pokédex API"
           description: "La base de datos PostgreSQL está inaccesible. Las operaciones de mutación están bloqueadas en modo fail-closed (HTTP 503)."
 
+      - alert: PokedexDegradedMode
+        expr: pokedex_degraded_mode == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: pokedex-api
+        annotations:
+          summary: "Pokédex API operando en MODO DEGRADADO"
+          description: "La API ha perdido conectividad con la base de datos principal y está respondiendo usando datos en memoria volátil."
+
+      - alert: PokedexAPIDown
+        expr: up{job=~".*pokedex.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: pokedex-api
+        annotations:
+          summary: "Pokédex API está caída o inaccesible"
+          description: "Prometheus o Grafana Alloy no ha podido realizar scraping a la API Pokédex durante más de 1 minuto."
+
       - alert: PokedexRedisDisconnected
         expr: pokedex_redis_status == 0
         for: 1m
@@ -67,8 +87,51 @@ groups:
           description: "El percentil 99 de tiempo de respuesta de la API supera los 2 segundos sostenidos durante 5 minutos."
 
       # --------------------------------------------------------------------------
-      # 3. Saturación de Recursos y Resiliencia en Kubernetes
+      # 3. Base de Datos y Caché (Exporters)
       # --------------------------------------------------------------------------
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "La base de datos PostgreSQL está inaccesible"
+          description: "postgres_exporter indica que PostgreSQL no responde a consultas pg_isready."
+
+      - alert: PostgresHighConnections
+        expr: (sum(pg_stat_database_numbackends) / sum(pg_settings_max_connections)) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: postgres
+        annotations:
+          summary: "Saturación del pool de conexiones en PostgreSQL (> 80%)"
+          description: "El número de conexiones activas excede el 80% del límite de max_connections."
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "El servidor de caché Redis está caído"
+          description: "redis_exporter indica que Redis no responde al comando PING."
+
+      # --------------------------------------------------------------------------
+      # 4. Saturación de Recursos y Resiliencia en Kubernetes / Contenedores
+      # --------------------------------------------------------------------------
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_working_set_bytes{name=~".*pokemon.*"} / container_spec_memory_limit_bytes{name=~".*pokemon.*"}) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning
+          service: containers
+        annotations:
+          summary: "Contenedor de Pokédex consumiendo más del 85% de su límite de RAM"
+          description: "El contenedor {{ $labels.name }} está próximo al umbral de OOM-Kill (> 85% de RAM asignada)."
+
       - alert: PokedexHpaMaxReplicasReached
         expr: |
           kube_horizontalpodautoscaler_status_current_replicas{namespace="pokemon-app"}

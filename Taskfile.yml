@@ -217,6 +217,21 @@ tasks:
     cmds:
       - task targets
 
+  monitoring:grafana-cloud:install:
+    desc: "Despliega el stack de telemetría de Grafana Cloud (Alloy, Beyla eBPF, Node Exporter, KSM) en Kubernetes"
+    cmds:
+      - powershell -ExecutionPolicy Bypass -File infra/monitoring/deploy-grafana-cloud.ps1
+
+  monitoring:grafana-cloud:status:
+    desc: "Muestra el estado de los pods y DaemonSets de Grafana Cloud en el namespace monitoring"
+    cmds:
+      - kubectl get pods,daemonset,deployment -n monitoring -o wide
+
+  monitoring:grafana-cloud:uninstall:
+    desc: "Desinstala el release de Grafana Cloud k8s-monitoring"
+    cmds:
+      - helm uninstall grafana-cloud -n monitoring --ignore-not-found
+
   # ----------------------------------------------------------------------------
   # GitOps & CD (ArgoCD & Kubernetes)
   # ----------------------------------------------------------------------------
