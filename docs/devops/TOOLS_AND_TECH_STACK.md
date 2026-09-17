@@ -36,7 +36,7 @@ flowchart LR
     end
 
     subgraph CODE["2. Code & Test"]
-        TS["🟦 TypeScript 5.7\nNode.js 22 LTS"]
+        TS["🟦 TypeScript 7.x\nNode.js 22 LTS"]
         ESBUILD["⚡ esbuild"]
         TASK["⚙️ Taskfile\n(go-task)"]
         TESTS["🧪 Node Test Runner\n(63 Tests + 7 Fuzz Tests)"]
@@ -94,15 +94,15 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`Dockerfile`](../../Dockerfile), [`package.json`](../../package.json) |
-| **Express** | `4.21+` | Framework HTTP para rutas REST, middlewares y validaciones | [`server.ts`](../../server.ts) |
-| **TypeScript** | `5.7+` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`src/types.ts`](../../src/types.ts) |
-| **esbuild** | `0.24+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
+| **Express** | `4.22+` | Framework HTTP para rutas REST, middlewares y validaciones | [`server.ts`](../../server.ts) |
+| **TypeScript** | `7.x` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`src/types.ts`](../../src/types.ts) |
+| **esbuild** | `0.28+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
 
 ### 2.2. Frontend Web
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 5` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
+| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 7` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
 | **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
 
 ### 2.3. Persistencia, Caché & Connection Pooling
@@ -126,7 +126,7 @@ flowchart LR
 | **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
 | **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/`](../../tests/fuzz) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
-| **TypeScript Compiler (`tsc`)** | `5.7+` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
+| **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
 
 ### 2.6. Seguridad & Supply Chain
 

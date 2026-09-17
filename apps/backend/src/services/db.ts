@@ -205,10 +205,12 @@ export async function getAllPokemons(options: {
 } = {}): Promise<{ total: number; pokemons: Pokemon[] }> {
   const { limit = 20, offset = 0, type, search } = options;
 
-  // 1. Intentar consultar caché de Redis para listados
-  const listCacheKey = `pokedex:list:${(type || 'all').toLowerCase()}:${(search || 'all').toLowerCase()}:${limit}:${offset}`;
+  // 1. Intentar consultar caché de Redis para listados con versionado O(1)
+  let listCacheKey = '';
   if (isRedisConnected && redisClient) {
     try {
+      const version = (await redisClient.get('pokedex:list_version')) || '1';
+      listCacheKey = `pokedex:list:v${version}:${(type || 'all').toLowerCase()}:${(search || 'all').toLowerCase()}:${limit}:${offset}`;
       const cached = await redisClient.get(listCacheKey);
       if (cached) {
         return JSON.parse(cached);
@@ -270,7 +272,7 @@ export async function getAllPokemons(options: {
   }
 
   // 4. Poblar caché de Redis con TTL de 60 segundos
-  if (isRedisConnected && redisClient && resultData) {
+  if (isRedisConnected && redisClient && resultData && listCacheKey) {
     redisClient.setex(listCacheKey, 60, JSON.stringify(resultData)).catch(() => {});
   }
 
@@ -427,32 +429,16 @@ export async function invalidateCache(id?: number): Promise<void> {
   if (!isRedisConnected || !redisClient) return;
 
   try {
-    const keysToDelete: string[] = [];
     if (id !== undefined) {
-      keysToDelete.push(`pokedex:item:${id}`);
+      await redisClient.del(`pokedex:item:${id}`);
     }
 
-    // Escanear y borrar claves de listados de forma no bloqueante con SCAN
-    let cursor = '0';
-    do {
-      const [nextCursor, matchedKeys] = await redisClient.scan(
-        cursor,
-        'MATCH',
-        'pokedex:list:*',
-        'COUNT',
-        50
-      );
-      cursor = nextCursor;
-      if (matchedKeys.length > 0) {
-        keysToDelete.push(...matchedKeys);
-      }
-    } while (cursor !== '0');
-
-    if (keysToDelete.length > 0) {
-      await redisClient.del(...keysToDelete);
-    }
+    // Invalidación atómica O(1) sin escaneo bloqueante:
+    // El incremento de versión deja obsoletas todas las claves pokedex:list:v* anteriores
+    // permitiendo que expiren pasivamente mediante su TTL de 60 segundos
+    await redisClient.incr('pokedex:list_version');
   } catch (err) {
-    // Ignorar errores de invalidación
+    // Ignorar errores de invalidación de caché
   }
 }
 

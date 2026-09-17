@@ -458,21 +458,45 @@ async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
     });
   }
 
-  // 1. Validar si se suministra un token de sesión firmado de corta duración
-  if (sessionToken) {
-    const sessionCheck = await verifySessionTokenDetailed(sessionToken);
-    if (sessionCheck.valid) {
-      (req as any).authMechanism = 'hmac_session_token';
-      return next();
-    }
+    // 1. Validar si se suministra un token de sesión firmado de corta duración
+    if (sessionToken) {
+      const sessionCheck = await verifySessionTokenDetailed(sessionToken);
+      if (sessionCheck.valid) {
+        // Mitigación CSRF para mutaciones respaldadas por cookie de sesión
+        const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
+        const isCookieAuth = Boolean(req.headers.cookie && req.headers.cookie.includes('pokedex_admin_session='));
+        const originHeader = (req.headers['origin'] || req.headers['referer']) as string | undefined;
 
-    // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
-    if (sessionCheck.reason === 'service_unavailable') {
-      return res.status(503).json({
-        detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
-      });
+        if (isMutative && isCookieAuth && originHeader) {
+          try {
+            const originUrl = new URL(originHeader);
+            const originHost = originUrl.origin;
+            const allowed = configuredCorsOrigins || DEFAULT_DEV_CORS_ORIGINS;
+            const isAllowed = allowed.includes(originHost) || (req.headers.host && originHost.includes(req.headers.host));
+            if (!isAllowed) {
+              logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', { origin: originHost, path: req.path });
+              return res.status(403).json({
+                detail: 'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
+              });
+            }
+          } catch {
+            return res.status(403).json({
+              detail: 'Cabecera Origin/Referer inválida para operación administrativa.',
+            });
+          }
+        }
+
+        (req as any).authMechanism = 'hmac_session_token';
+        return next();
+      }
+
+      // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
+      if (sessionCheck.reason === 'service_unavailable') {
+        return res.status(503).json({
+          detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
+        });
+      }
     }
-  }
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
   if (apiKey && safeCompareKeys(apiKey, configuredKey)) {
@@ -560,16 +584,32 @@ app.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter, (req:
 
   const { token, expiresIn, expiresAt } = generateSessionToken();
   res.setHeader('Set-Cookie', buildSessionCookie(token, expiresIn));
+  // Inmunidad XSS: no se expone el token criptográfico a JavaScript, se transporta exclusivamente en cookie HttpOnly
   return res.status(200).json({
-    token,
-    token_type: 'Bearer',
+    authenticated: true,
     expires_in: expiresIn,
     expiresAt,
   });
 });
 
+app.get('/api/v1/auth/session', asyncHandler(async (req: Request, res: Response) => {
+  const token = extractSessionToken(req);
+  if (!token) {
+    return res.status(200).json({ authenticated: false });
+  }
+  const sessionCheck = await verifySessionTokenDetailed(token);
+  if (!sessionCheck.valid) {
+    return res.status(200).json({ authenticated: false });
+  }
+  return res.status(200).json({
+    authenticated: true,
+    expiresAt: sessionCheck.expiresAt,
+  });
+}));
+
 app.post('/api/v1/auth/logout', authRateLimiterStandard, authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
   const token = extractSessionToken(req);
+  res.setHeader('Set-Cookie', 'pokedex_admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
   if (token) {
     const revokeResult = await revokeSessionTokenDetailed(token);
     if (!revokeResult.success) {
@@ -777,6 +817,8 @@ app.get('/pokemons', asyncHandler(async (req: Request, res: Response) => {
   }
 
   res.setHeader('ETag', etag);
+  res.setHeader('X-Total-Count', String(total));
+  res.setHeader('Access-Control-Expose-Headers', 'ETag, X-Total-Count');
   res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
   return res.json(list);
 }));

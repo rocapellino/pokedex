@@ -155,3 +155,76 @@ groups:
         annotations:
           summary: "Contenedores reiniciándose frecuentemente en pokemon-app"
           description: "Se han detectado múltiples reinicios de Pods en el namespace pokemon-app en los últimos 15 minutos."
+
+      # --------------------------------------------------------------------------
+      # 5. GitOps, Almacenamiento (PVC), Certificados TLS y Copias de Seguridad
+      # --------------------------------------------------------------------------
+      - alert: PokedexPvcStorageFillingUp
+        expr: (kubelet_volume_stats_used_bytes{namespace="pokemon-app"} / kubelet_volume_stats_capacity_bytes{namespace="pokemon-app"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: pokedex-storage
+        annotations:
+          summary: "Volumen persistente (PVC) próximo al límite (> 85%)"
+          description: "El volumen persistente {{ $labels.persistentvolumeclaim }} en pokemon-app supera el 85% de capacidad utilizada."
+
+      - alert: PokedexDbBackupFailed
+        expr: kube_job_status_failed{job_name=~".*backup.*"} > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pokedex-backup
+        annotations:
+          summary: "Fallo en ejecución de Job de Backup PostgreSQL"
+          description: "El Job de respaldo automatizado {{ $labels.job_name }} ha reportado un estado de fallo."
+
+      - alert: PokedexDbBackupStale
+        expr: (time() - kube_cronjob_status_last_successful_time{cronjob=~".*backup.*"}) > 93600
+        for: 15m
+        labels:
+          severity: critical
+          service: pokedex-backup
+        annotations:
+          summary: "Copia de seguridad desactualizada (> 26 horas)"
+          description: "No se registra ninguna ejecución exitosa del CronJob de backup en las últimas 26 horas."
+
+      - alert: TlsCertExpiringSoon
+        expr: (certmanager_certificate_expiration_timestamp_seconds{namespace="pokemon-app"} - time()) / 86400 < 15
+        for: 1h
+        labels:
+          severity: warning
+          service: pokedex-tls
+        annotations:
+          summary: "Certificado TLS próximo a expirar (< 15 días)"
+          description: "El certificado {{ $labels.name }} expirará en menos de 15 días sin renovación detectada."
+
+      - alert: ArgoCDAppOutOfSync
+        expr: argocd_app_info{sync_status!="Synced"} == 1
+        for: 15m
+        labels:
+          severity: warning
+          service: gitops-argocd
+        annotations:
+          summary: "Aplicación ArgoCD desincronizada (OutOfSync)"
+          description: "La aplicación GitOps {{ $labels.name }} permanece en estado desincronizado con el repositorio."
+
+      - alert: ArgoCDAppDegraded
+        expr: argocd_app_info{health_status="Degraded"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          service: gitops-argocd
+        annotations:
+          summary: "Aplicación ArgoCD en estado Degraded"
+          description: "Los recursos de la aplicación GitOps {{ $labels.name }} presentan degradación operativa en el clúster."
+
+      - alert: ExternalSecretSyncFailed
+        expr: externalsecret_status_condition{status="False",type="Ready"} == 1
+        for: 10m
+        labels:
+          severity: critical
+          service: external-secrets
+        annotations:
+          summary: "Sincronización de ExternalSecret fallida"
+          description: "ExternalSecret {{ $labels.name }} no ha podido sincronizar secretos desde el SecretStore remoto."
