@@ -15,20 +15,9 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "📊 [Grafana Cloud] Iniciando aprovisionamiento de k8s-monitoring..." -ForegroundColor Cyan
 
-# 1. Resolver Token si no se pasó por variable de entorno
+# 1. Validar Token (debe provenir de $env:GRAFANA_CLOUD_TOKEN o parámetro -Token)
 if (-not $Token) {
-    $grafanaTxtPath = Join-Path $PSScriptRoot "../../grafana.txt"
-    if (Test-Path $grafanaTxtPath) {
-        $content = Get-Content $grafanaTxtPath -Raw
-        if ($content -match 'password=([^\s"\\]+)') {
-            $Token = $matches[1]
-            Write-Host "🔑 Token obtenido desde archivo local grafana.txt" -ForegroundColor Yellow
-        }
-    }
-}
-
-if (-not $Token) {
-    Write-Error "❌ No se encontró el token de Grafana Cloud. Configure la variable `$env:GRAFANA_CLOUD_TOKEN o conserve grafana.txt."
+    Write-Error "❌ No se encontró el token de Grafana Cloud. Configure la variable `$env:GRAFANA_CLOUD_TOKEN o pase el parámetro -Token."
 }
 
 # 2. Obtener nombre seguro del clúster actual

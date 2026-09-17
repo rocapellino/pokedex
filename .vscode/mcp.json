@@ -15,7 +15,7 @@
 	"servers": {
 		"grafana": {
 			"command": "uvx",
-			"args": ["mcp-grafana"],
+			"args": ["mcp-grafana==1.5.0"],
 			"env": {
 				"GRAFANA_URL": "${input:grafanaUrl}",
 				"GRAFANA_SERVICE_ACCOUNT_TOKEN": "${input:token}"

@@ -171,6 +171,19 @@ flowchart LR
 | **Reglas de Alertas** | `Prometheus/Alloy` | Definición unificada de alertas (infraestructura, base de datos y API) | [`infra/monitoring/alerts.yml`](../../infra/monitoring/alerts.yml) |
 | **docker_monitoreo** | Local | Stack legado opcional para emulación local con Docker Compose | Repositorio hermano (opcional) |
 
+#### Matriz de Responsabilidad de Señales de Telemetría (Prevención de Solapamiento)
+
+Para evitar duplicidad y clarificar el origen de cada señal hacia Grafana Cloud:
+
+| Señal / Dominio | Componente Emisor | Mecanismo | Destino en Grafana Cloud |
+| :--- | :--- | :--- | :--- |
+| **Métricas de Aplicación (RED & Negocio)** | `pokemon-api` | Endpoint HTTP `/metrics` (prom-client nativo) | Prometheus / Metrics |
+| **Métricas de Host & Sistema Operativo** | `node-exporter` | DaemonSet recolector de CPU, RAM, disco y red física | Prometheus / Metrics |
+| **Métricas de Contenedores y Pods** | `kube-state-metrics` / cAdvisor | Métricas de estado de objetos K8s y límites de Pods | Prometheus / Metrics |
+| **Trazas Distribuidas L7 (eBPF)** | `grafana-beyla` | Auto-instrumentación en espacio de kernel Linux (HTTP/gRPC) | Tempo / Traces |
+| **Logs de Aplicación y Contenedores** | `grafana-alloy` (DaemonSet) | Lector directo de logs del sistema de archivos (`/var/log/pods`) | Loki / Logs |
+| **Agregación y Forwarding OTLP** | `grafana-alloy` | Receptor OTLP en `:4317` hacia endpoint SaaS | Grafana Cloud Fleet Management |
+
 ### 2.10. Automatización & Experiencia de Desarrollo (DX)
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |

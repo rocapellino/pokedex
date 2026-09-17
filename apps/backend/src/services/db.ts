@@ -7,7 +7,7 @@ import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
 import { Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
-import { pokedexEntries, createDrizzleClient, AppDatabase } from '../db/index.js';
+import { pokedexEntries, createDrizzleClient, AppDatabase, runMigrations } from '../db/index.js';
 
 const { Pool } = pg;
 
@@ -78,6 +78,13 @@ async function connectPg(): Promise<boolean> {
     try {
       if (!drizzleDb) {
         drizzleDb = createDrizzleClient(pgPool);
+      }
+
+      // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
+      try {
+        await runMigrations(DATABASE_URL);
+      } catch (migErr: any) {
+        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: migErr?.message });
       }
 
       const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);
