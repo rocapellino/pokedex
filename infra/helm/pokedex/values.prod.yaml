@@ -7,6 +7,7 @@ api:
   image:
     repository: ghcr.io/rocapellino/pokedex-api
     tag: "1.30.1"
+    digest: "" # Pinning OCI SHA-256 opcional: al definirse, el chart usa @sha256:... con precedencia sobre tag
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
@@ -38,6 +39,7 @@ web:
   image:
     repository: ghcr.io/rocapellino/pokedex-web
     tag: "1.30.1"
+    digest: "" # Pinning OCI SHA-256 opcional: al definirse, el chart usa @sha256:... con precedencia sobre tag
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
@@ -132,14 +134,19 @@ ingress:
 # ------------------------------------------------------------------------------
 # Gestión de Secretos en Producción (Zero-Trust & Desacoplamiento de Helm)
 # ------------------------------------------------------------------------------
-# En producción, Helm NO debe generar secretos con valores planos ni utilizar --set.
-# Los secretos se gestionan de forma desacoplada vía External Secrets Operator (Vault, AWS Secrets Manager, GCP)
-# o mediante un Secret preexistente inyectado en el clúster.
+# Arquitectura y Jerarquía Canónica:
+# 1. MODELO OFICIAL (GitOps / Entornos Multi-Cloud & On-Prem):
+#    External Secrets Operator (ESO) con recarga automática vía Stakater Reloader.
+#    Habilitado por environment en gitops/environments/{proxmox,aws}/values.yaml
+#    consumiendo HashiCorp Vault (on-prem) o AWS Secrets Manager (cloud).
+# 2. MODELO DE RESPALDO / AIR-GAPPED (CI / Standalone):
+#    Secret preexistente (existingSecret: "pokedex-prod-secrets") inyectado de forma
+#    independiente a Helm, evitando secretos planos o el uso de --set en pipelines.
 secrets:
   existingSecret: "pokedex-prod-secrets"
 
 externalSecrets:
-  enabled: false
+  enabled: false # En values.prod.yaml base permanece false; los entornos GitOps (proxmox/aws) lo activan como SSOT
   refreshInterval: "1h"
   secretStoreRef:
     name: "vault-backend"

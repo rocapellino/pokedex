@@ -8,8 +8,9 @@ metadata:
 data:
   init.sql: |
     -- ==============================================================================
-    -- Schema Initialization: Pokédex Database (PostgreSQL 16)
-    -- Modelo unificado y sincronizado con el backend Node.js / TypeScript
+    -- Schema Bootstrap: Pokédex Database (PostgreSQL 16)
+    -- SSOT: La fuente oficial del esquema son las migraciones Drizzle en apps/backend/src/db/migrations.
+    -- Este ConfigMap se utiliza únicamente para el bootstrap inicial del pod de PostgreSQL en K8s.
     -- ==============================================================================
     CREATE TABLE IF NOT EXISTS pokedex_entries (
         id INT PRIMARY KEY,

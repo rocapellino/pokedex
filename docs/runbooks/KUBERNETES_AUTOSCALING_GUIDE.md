@@ -69,6 +69,8 @@ kubectl logs -n pokemon-app job/pokedex-db-seed -f
 
 El HPA de la Web (`pokemon-web-hpa`) y de la API (`pokemon-api-hpa`) están configurados para escalar cuando la CPU supere el **70%** o la memoria el **80%**.
 
+> 💡 **Planificación de Capacidad**: Para el modelado formal de cuotas de recursos del clúster (`ResourceQuota` / `LimitRange`) frente al autoescalado HPA máximo, consulte [docs/operations/capacity-and-quotas.md](../operations/capacity-and-quotas.md).
+
 ### Paso 1: Abrir Terminales de Monitoreo
 **Terminal 1 (Monitoreo de HPA):**
 ```bash

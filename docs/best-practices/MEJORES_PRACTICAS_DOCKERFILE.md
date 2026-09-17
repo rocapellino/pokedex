@@ -170,10 +170,10 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ```bash
 # Compilar backend y frontend
-docker build -t pokedex-server:test -f apps/backend/Dockerfile .
+docker build -t pokedex-api:test -f apps/backend/Dockerfile .
 docker build -t pokedex-web:test -f apps/frontend/Dockerfile .
 
 # Escanear vulnerabilidades con Trivy (debe dar 0 hallazgos CRITICAL/HIGH)
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity CRITICAL,HIGH --exit-code 1 pokedex-server:test
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity CRITICAL,HIGH --exit-code 1 pokedex-api:test
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity CRITICAL,HIGH --exit-code 1 pokedex-web:test
 ```

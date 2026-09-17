@@ -53,7 +53,6 @@ services:
     networks:
       - frontend-net
       - backend-net
-      - monitoring-net
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/healthz || exit 1"]
       interval: 15s
@@ -122,9 +121,6 @@ networks:
     name: pokedex-backend-net
     driver: bridge
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
-  monitoring-net:
-    name: monitoring-net
-    driver: bridge
 
 
 
