@@ -27,7 +27,76 @@ services:
     ports:
       - "6379:6379"  # Puerto abierto al host para depuración de caché (RedisInsight)
 
+  # ============================================================================
+  # 5. Agente de Telemetría Grafana Alloy (Envío de Métricas a Grafana Cloud)
+  # ============================================================================
+  alloy:
+    image: grafana/alloy:latest
+    container_name: pokemon-alloy
+    restart: unless-stopped
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"  # UI y métricas de diagnóstico de Alloy
+    volumes:
+      - ./infra/monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      GRAFANA_CLOUD_PROMETHEUS_URL: "${GRAFANA_CLOUD_PROMETHEUS_URL:-https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push}"
+      GRAFANA_CLOUD_PROMETHEUS_USER: "${GRAFANA_CLOUD_PROMETHEUS_USER:-3589862}"
+      GRAFANA_CLOUD_LOKI_URL: "${GRAFANA_CLOUD_LOKI_URL:-https://logs-prod-024.grafana.net/loki/api/v1/push}"
+      GRAFANA_CLOUD_LOKI_USER: "${GRAFANA_CLOUD_LOKI_USER:-1790605}"
+      GRAFANA_CLOUD_TOKEN: "${GRAFANA_CLOUD_TOKEN:-}"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  # ============================================================================
+  # 6. Exporters de Métricas (PostgreSQL, Redis y Contenedores cAdvisor)
+  # ============================================================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: pokemon-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Error: Variable POSTGRES_PASSWORD requerida en .env}@postgres:5432/${POSTGRES_DB:-pokedex_db}?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: pokemon-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: pokemon-cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - backend-net
+
+
 networks:
   backend-net:
     internal: false  # Habilitar forwarding de puertos en local para desarrollo
-

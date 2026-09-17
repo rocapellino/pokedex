@@ -122,8 +122,6 @@ networks:
     driver: bridge
     internal: true   # Aislamiento total: la red no tiene ruta de salida ni entrada a internet
 
-
-
 volumes:
   postgres_data:
     name: pokedex_postgres_data
@@ -131,4 +129,3 @@ volumes:
   redis_data:
     name: pokedex_redis_data
     driver: local
-
