@@ -14,10 +14,10 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexDegradedMode** | `critical` | `pokedex_degraded_mode == 1` | API operando en modo degradado con almacenamiento volátil en memoria. |
 | **PokedexPostgresDisconnected** | `critical` | `pokedex_storage_status == 0` | Fallo de persistencia; API opera en modo degradado fail-closed (HTTP 503 para mutaciones). |
 | **PostgresDown** | `critical` | `pg_up == 0` | Instancia de PostgreSQL inaccesible según postgres_exporter. |
-| **PostgresHighConnections** | `warning` | `(sum(pg_stat_database_numbackends) / sum(pg_settings_max_connections)) * 100 > 80` | Saturación del pool de conexiones en PostgreSQL (> 80%). |
-| **PokedexRedisDisconnected** | `warning` | `pokedex_redis_status == 0` | Fallo de caché distribuida; rate limiting y revocación de sesiones operan con fallback local. |
-| **RedisDown** | `critical` | `redis_up == 0` | Instancia de Redis caída o no responde al PING según redis_exporter. |
-| **ContainerHighMemoryUsage** | `warning` | `(container_memory_working_set_bytes / container_spec_memory_limit_bytes) * 100 > 85` | Contenedor consumiendo > 85% de su límite de RAM asignado. |
+| **PostgresHighConnections** | `warning` | `(sum by (instance) (pg_stat_database_numbackends) / sum by (instance) (pg_settings_max_connections)) * 100 > 80` | Saturación del pool de conexiones en PostgreSQL por instancia (> 80%). |
+| **PokedexRedisDisconnected** | `warning` | `pokedex_redis_status == 0` | Fallo de conectividad con Redis desde la API; revocación de sesiones de admin bloqueada en fail-closed (HTTP 503). |
+| **RedisDown** | `critical` | `redis_up == 0` | Instancia de Redis caída o no responde al PING según redis_exporter (Infraestructura). |
+| **ContainerHighMemoryUsage** | `warning` | `(container_memory_working_set_bytes / (container_spec_memory_limit_bytes > 0)) * 100 > 85` | Contenedor consumiendo > 85% de su límite de RAM asignado (filtrando límites > 0). |
 | **PokedexHighErrorRate5xx** | `critical` | `rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01` | Más del 1% de peticiones fallando con código 5xx. |
 | **PokedexHighLatencyP99** | `warning` | `histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2.0` | Percentil 99 de tiempo de respuesta superior a 2 segundos sostenidos. |
 | **PokedexHpaMaxReplicasReached** | `warning` | `kube_hpa_status_current_replicas >= kube_hpa_spec_max_replicas` | Autoescalador al límite máximo de réplicas durante más de 15 minutos. |

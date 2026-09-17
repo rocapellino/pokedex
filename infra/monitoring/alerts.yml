@@ -44,8 +44,8 @@ groups:
           severity: warning
           service: pokedex-api
         annotations:
-          summary: "Redis fuera de línea en Pokédex API"
-          description: "Redis no responde. La revocación de sesiones distribuidas y cuotas de IA están bloqueadas preventivamente (fail-closed)."
+          summary: "Redis fuera de línea en Pokédex API (Impacto Funcional)"
+          description: "Redis no responde desde la API. La verificación de sesiones de administración se bloquea preventivamente (fail-closed HTTP 503), y las cuotas de IA/rate limiting operan con fallback local en memoria."
 
       - alert: PokedexAICircuitBreakerOpen
         expr: pokedex_ai_circuit_breaker_open == 1
@@ -100,14 +100,14 @@ groups:
           description: "postgres_exporter indica que PostgreSQL no responde a consultas pg_isready."
 
       - alert: PostgresHighConnections
-        expr: (sum(pg_stat_database_numbackends) / sum(pg_settings_max_connections)) * 100 > 80
+        expr: (sum by (instance) (pg_stat_database_numbackends) / sum by (instance) (pg_settings_max_connections)) * 100 > 80
         for: 2m
         labels:
           severity: warning
           service: postgres
         annotations:
-          summary: "Saturación del pool de conexiones en PostgreSQL (> 80%)"
-          description: "El número de conexiones activas excede el 80% del límite de max_connections."
+          summary: "Saturación del pool de conexiones en PostgreSQL por instancia (> 80%)"
+          description: "El número de conexiones activas en la instancia {{ $labels.instance }} excede el 80% del límite de max_connections."
 
       - alert: RedisDown
         expr: redis_up == 0
@@ -116,14 +116,14 @@ groups:
           severity: critical
           service: redis
         annotations:
-          summary: "El servidor de caché Redis está caído"
-          description: "redis_exporter indica que Redis no responde al comando PING."
+          summary: "Instancia Redis caída (Infraestructura / Exporter)"
+          description: "redis_exporter indica que el proceso Redis no responde al comando PING a nivel de infraestructura."
 
       # --------------------------------------------------------------------------
       # 4. Saturación de Recursos y Resiliencia en Kubernetes / Contenedores
       # --------------------------------------------------------------------------
       - alert: ContainerHighMemoryUsage
-        expr: (container_memory_working_set_bytes{name=~".*pokemon.*"} / container_spec_memory_limit_bytes{name=~".*pokemon.*"}) * 100 > 85
+        expr: (container_memory_working_set_bytes{name=~".*pokemon.*"} / (container_spec_memory_limit_bytes{name=~".*pokemon.*"} > 0)) * 100 > 85
         for: 3m
         labels:
           severity: warning

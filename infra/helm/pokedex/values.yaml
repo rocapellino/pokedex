@@ -206,8 +206,8 @@ ingress:
     nginx.ingress.kubernetes.io/limit-rps: "20"
     nginx.ingress.kubernetes.io/limit-connections: "10"
     # --- Cabeceras de seguridad HTTP inyectadas en todas las respuestas (ADR-016) ---
+    # Nota: HSTS (Strict-Transport-Security) se configura exclusivamente en values.prod.yaml con TLS activo.
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
       more_set_headers "X-Frame-Options: SAMEORIGIN";
       more_set_headers "X-Content-Type-Options: nosniff";
       more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
@@ -330,7 +330,7 @@ egressGateway:
   port: 10000
   image:
     repository: envoyproxy/envoy
-    tag: "v1.31.0-alpine"
+    tag: "v1.31.0@sha256:2bf7f042e3960e3904864cb09c174498e20a06859a5c394b7e3a6528a649b1da"
     pullPolicy: IfNotPresent
   resources:
     limits:

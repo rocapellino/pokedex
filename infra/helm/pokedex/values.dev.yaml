@@ -1,0 +1,83 @@
+# ==============================================================================
+# Perfil Helm de Desarrollo Local (Kind / Minikube / Lab)
+# Uso: helm upgrade --install pokedex infra/helm/pokedex -f infra/helm/pokedex/values.dev.yaml
+# ==============================================================================
+
+global:
+  environment: "development"
+
+api:
+  replicaCount: 1
+  env:
+    nodeEnv: "development"
+    corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
+    otelEndpoint: "http://grafana-cloud-alloy.monitoring.svc.cluster.local:4317"
+    otelServiceName: "pokedex-api-dev"
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+
+web:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: "250m"
+      memory: "128Mi"
+    requests:
+      cpu: "25m"
+      memory: "32Mi"
+
+postgresql:
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: "standard"
+
+redis:
+  persistence:
+    enabled: false  # Usa emptyDir efímero para desarrollo rápido local
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - host: pokedex.local
+      paths:
+        - path: /api/
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /pokemons
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-web-svc
+              port:
+                number: 8080
+  tls: []
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+
+hpa:
+  enabled: false
+
+reloader:
+  enabled: false
