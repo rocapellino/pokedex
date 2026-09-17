@@ -83,3 +83,19 @@ test('🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitect
   assert.ok(content.includes('3-2-1'), 'Debe formalizar la estrategia 3-2-1 de copias de seguridad');
   assert.ok(content.includes('Off-site'), 'Debe contemplar réplica remota off-site en Object Storage');
 });
+
+test('🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa verificación periódica de restauración en K8s', () => {
+  const verifyCronJobPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/backup-restore-verify-cronjob.yaml');
+  assert.ok(fs.existsSync(verifyCronJobPath), 'backup-restore-verify-cronjob.yaml debe existir en templates de Helm');
+  const content = fs.readFileSync(verifyCronJobPath, 'utf-8');
+
+  assert.ok(content.includes('kind: CronJob'), 'Debe definir un CronJob de verificación');
+  assert.ok(content.includes('dr-restore-verify'), 'Debe nombrarse dr-restore-verify');
+  assert.ok(content.includes('restoreVerification'), 'Debe condicionarse a backup.restoreVerification');
+  assert.ok(content.includes('sha256sum -c'), 'Debe auditar la integridad criptográfica SHA-256');
+  assert.ok(content.includes('openssl enc -d -aes-256-cbc'), 'Debe probar el descifrado simétrico AES-256-CBC');
+  assert.ok(content.includes('pokedex_entries'), 'Debe verificar la existencia de tablas de datos esenciales');
+  assert.ok(content.includes('runAsNonRoot: true'), 'Debe ejecutar con runAsNonRoot');
+  assert.ok(content.includes('readOnlyRootFilesystem: true'), 'Debe montar filesystem de solo lectura');
+});
+

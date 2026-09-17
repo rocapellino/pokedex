@@ -30,7 +30,7 @@ spec:
                 - Pod
       verifyImages:
         - imageReferences:
-            - "ghcr.io/rocapellino/pokedex:*"
+            - "ghcr.io/rocapellino/pokedex*"
           attestors:
             - entries:
                 - keyless:

@@ -31,7 +31,7 @@ services:
   # 5. Agente de Telemetría Grafana Alloy (Envío de Métricas a Grafana Cloud)
   # ============================================================================
   alloy:
-    image: grafana/alloy:latest
+    image: grafana/alloy:v1.7.1
     container_name: pokemon-alloy
     restart: unless-stopped
     command:
@@ -40,15 +40,15 @@ services:
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     ports:
-      - "12345:12345"  # UI y métricas de diagnóstico de Alloy
+      - "127.0.0.1:12345:12345"  # UI y métricas de diagnóstico de Alloy (acotado a localhost)
     volumes:
       - ./infra/monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      GRAFANA_CLOUD_PROMETHEUS_URL: "${GRAFANA_CLOUD_PROMETHEUS_URL:-https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push}"
-      GRAFANA_CLOUD_PROMETHEUS_USER: "${GRAFANA_CLOUD_PROMETHEUS_USER:-3589862}"
-      GRAFANA_CLOUD_LOKI_URL: "${GRAFANA_CLOUD_LOKI_URL:-https://logs-prod-024.grafana.net/loki/api/v1/push}"
-      GRAFANA_CLOUD_LOKI_USER: "${GRAFANA_CLOUD_LOKI_USER:-1790605}"
+      GRAFANA_CLOUD_PROMETHEUS_URL: "${GRAFANA_CLOUD_PROMETHEUS_URL:-}"
+      GRAFANA_CLOUD_PROMETHEUS_USER: "${GRAFANA_CLOUD_PROMETHEUS_USER:-}"
+      GRAFANA_CLOUD_LOKI_URL: "${GRAFANA_CLOUD_LOKI_URL:-}"
+      GRAFANA_CLOUD_LOKI_USER: "${GRAFANA_CLOUD_LOKI_USER:-}"
       GRAFANA_CLOUD_TOKEN: "${GRAFANA_CLOUD_TOKEN:-}"
     depends_on:
       api:
@@ -60,7 +60,7 @@ services:
   # 6. Exporters de Métricas (PostgreSQL, Redis y Contenedores cAdvisor)
   # ============================================================================
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
+    image: prometheuscommunity/postgres-exporter:v0.16.0
     container_name: pokemon-postgres-exporter
     restart: unless-stopped
     environment:
@@ -72,7 +72,7 @@ services:
       - backend-net
 
   redis-exporter:
-    image: oliver006/redis_exporter:latest
+    image: oliver006/redis_exporter:v1.67.0
     container_name: pokemon-redis-exporter
     restart: unless-stopped
     environment:

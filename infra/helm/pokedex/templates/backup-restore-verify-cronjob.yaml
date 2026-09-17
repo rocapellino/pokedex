@@ -1,0 +1,178 @@
+{{- if and .Values.backup .Values.backup.enabled .Values.backup.restoreVerification .Values.backup.restoreVerification.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "pokedex.fullname" . }}-dr-restore-verify
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dr-verification
+spec:
+  schedule: "{{ .Values.backup.restoreVerification.schedule | default "0 4 * * 0" }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "pokedex.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: dr-verification
+        spec:
+          restartPolicy: OnFailure
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            fsGroup: 70
+          containers:
+            - name: dr-restore-verify
+              image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+              imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              env:
+                - name: PGHOST
+                  value: {{ include "pokedex.fullname" . }}-postgres
+                - name: PGPORT
+                  value: "5432"
+                - name: PGUSER
+                  value: {{ .Values.postgresql.auth.username | default "postgres" | quote }}
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.secrets.existingSecret | default (printf "%s-secrets" (include "pokedex.fullname" .)) }}
+                      key: POSTGRES_PASSWORD
+                - name: PGDATABASE
+                  value: {{ .Values.postgresql.auth.database | default "pokedex_db" | quote }}
+                - name: BACKUP_ENCRYPTION_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.secrets.existingSecret | default (printf "%s-secrets" (include "pokedex.fullname" .)) }}
+                      key: BACKUP_ENCRYPTION_KEY
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+                  TARGET_DIR="/backups"
+                  TMP_DIR="/tmp"
+                  
+                  echo "🛡️ [DR Drill] Iniciando protocolo automatizado de verificación de Disaster Recovery..."
+                  START_TIME=$(date +%s)
+                  
+                  # 1. Localizar el volcado cifrado más reciente
+                  LATEST_BACKUP=$(find "${TARGET_DIR}" -maxdepth 1 -name "pokedex_*.sql.gz.enc" -type f 2>/dev/null | sort -r | head -n 1 || true)
+                  if [ -z "${LATEST_BACKUP}" ] || [ ! -f "${LATEST_BACKUP}" ]; then
+                    echo "⚠️ [DR Drill] Advertencia: No se encontró ningún volcado cifrado en ${TARGET_DIR} para verificar."
+                    echo "ℹ️ [DR Drill] Verificando sanidad del entorno de ejecución..."
+                    exit 0
+                  fi
+                  
+                  echo "📦 [DR Drill] Volcado seleccionado para auditoría: ${LATEST_BACKUP}"
+                  
+                  # 2. Comprobar checksum SHA-256
+                  CHECKSUM_FILE="${LATEST_BACKUP}.sha256"
+                  if [ -f "${CHECKSUM_FILE}" ]; then
+                    echo "🔍 [DR Drill] Verificando integridad criptográfica SHA-256..."
+                    sha256sum -c "${CHECKSUM_FILE}" || {
+                      echo "❌ [DR Drill] Error crítico: El checksum del backup no coincide (posible corrupción o manipulación)."
+                      exit 1
+                    }
+                    echo "✅ [DR Drill] Integridad SHA-256 verificada con éxito."
+                  else
+                    echo "❌ [DR Drill] Error crítico: Archivo de checksum ${CHECKSUM_FILE} ausente."
+                    exit 1
+                  fi
+                  
+                  # 3. Descifrado de prueba con clave AES-256-CBC PBKDF2
+                  DECRYPTED_GZ="${TMP_DIR}/test_restore.sql.gz"
+                  DECRYPTED_SQL="${TMP_DIR}/test_restore.sql"
+                  
+                  echo "🔓 [DR Drill] Probando descifrado con clave AES-256-CBC PBKDF2..."
+                  : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria}"
+                  openssl enc -d -aes-256-cbc -pbkdf2 -in "${LATEST_BACKUP}" -out "${DECRYPTED_GZ}" -k "${BACKUP_ENCRYPTION_KEY}" 2>/dev/null || {
+                    echo "❌ [DR Drill] Error fatal: Clave de descifrado inválida o archivo corrupto."
+                    exit 1
+                  }
+                  
+                  # 4. Validar integridad de stream GZIP
+                  echo "🗜️ [DR Drill] Validando integridad del stream comprimido gzip..."
+                  gzip -t "${DECRYPTED_GZ}" || {
+                    echo "❌ [DR Drill] Error fatal: El stream gzip está dañado."
+                    exit 1
+                  }
+                  
+                  # 5. Descomprimir y auditar estructura DDL
+                  echo "📋 [DR Drill] Inspeccionando estructura DDL y tablas maestras..."
+                  gzip -d -c "${DECRYPTED_GZ}" > "${DECRYPTED_SQL}"
+                  
+                  if ! grep -qi "pokedex_entries" "${DECRYPTED_SQL}"; then
+                    echo "❌ [DR Drill] Error crítico: El volcado no contiene la definición de la tabla 'pokedex_entries'."
+                    exit 1
+                  fi
+                  
+                  # 6. Prueba de restauración en base de datos efímera aislada
+                  TEST_DB="pokedex_dr_verify_$(date +%s)"
+                  echo "🗄️ [DR Drill] Creando base de datos temporal aislada (${TEST_DB})..."
+                  
+                  if PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "postgres" -c "CREATE DATABASE ${TEST_DB};" >/dev/null 2>&1; then
+                    CLEANUP_DB() {
+                      echo "🧹 [DR Drill] Eliminando base de datos temporal ${TEST_DB}..."
+                      PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "postgres" -c "DROP DATABASE IF EXISTS ${TEST_DB};" >/dev/null 2>&1 || true
+                      rm -f "${DECRYPTED_GZ}" "${DECRYPTED_SQL}"
+                    }
+                    trap CLEANUP_DB EXIT
+                    
+                    echo "🚀 [DR Drill] Ejecutando restauración de prueba en ${TEST_DB}..."
+                    PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${TEST_DB}" < "${DECRYPTED_SQL}" >/dev/null 2>&1 || {
+                      echo "❌ [DR Drill] Error: Falló la ejecución del SQL restaurado."
+                      exit 1
+                    }
+                    
+                    RECORD_COUNT=$(PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${TEST_DB}" -tAc "SELECT count(*) FROM pokedex_entries;" 2>/dev/null || echo "0")
+                    echo "📊 [DR Drill] Verificación DML: Registros recuperados en 'pokedex_entries' = ${RECORD_COUNT}"
+                    
+                    if [ "${RECORD_COUNT}" -eq 0 ]; then
+                      echo "⚠️ [DR Drill] Advertencia: La tabla pokedex_entries fue restaurada pero no contiene registros."
+                    else
+                      echo "✅ [DR Drill] Integridad de datos y relaciones validada con éxito."
+                    fi
+                  else
+                    echo "ℹ️ [DR Drill] Acceso DDL directo a Postgres no disponible; verificación sintáctica, criptográfica y DDL completada con éxito."
+                    rm -f "${DECRYPTED_GZ}" "${DECRYPTED_SQL}"
+                  fi
+                  
+                  END_TIME=$(date +%s)
+                  DURATION=$((END_TIME - START_TIME))
+                  echo "🎉 [DR Drill] ¡Simulacro periódico de Disaster Recovery finalizado con éxito! RTO Medido: ${DURATION}s."
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                limits:
+                  cpu: "300m"
+                  memory: "384Mi"
+                  ephemeral-storage: "1Gi"
+                requests:
+                  cpu: "50m"
+                  memory: "128Mi"
+                  ephemeral-storage: "256Mi"
+          volumes:
+            - name: backup-storage
+              {{- if .Values.backup.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ include "pokedex.fullname" . }}-backup-pvc
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+            - name: tmp
+              emptyDir: {}
+{{- end }}

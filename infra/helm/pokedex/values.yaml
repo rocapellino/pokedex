@@ -407,6 +407,10 @@ backup:
     bucket: "pokedex-backups-offsite"
     region: "us-east-1"
     secretName: "" # Secreto que contiene credenciales AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY
+  # Verificación Periódica Automatizada de DR (Restore Drill)
+  restoreVerification:
+    enabled: true
+    schedule: "0 4 * * 0" # Semanal los domingos a las 04:00 UTC (posterior al snapshot diario)
 
 # ------------------------------------------------------------------------------
 # 12. Monitoreo & Observabilidad (Prometheus Operator / ServiceMonitor)

@@ -1,9 +1,6 @@
 # https://taskfile.dev
 version: '3'
 
-vars:
-  MONITORING_DIR: '{{.MONITORING_DIR | default "../docker_monitoreo"}}'
-
 tasks:
   default:
     desc: "Muestra la lista de tareas disponibles"
@@ -181,42 +178,9 @@ tasks:
     cmds:
       - task: dev:compose:down
 
-  monitoring:up:
-    desc: "[Legacy / Emulación Local] Inicia el stack global de observabilidad docker_monitoreo"
-    dir: '{{.MONITORING_DIR}}'
-    preconditions:
-      - sh: test -d '{{.MONITORING_DIR}}'
-        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
-    cmds:
-      - task up
-
-  monitoring:down:
-    desc: "[Legacy / Emulación Local] Detiene el stack global de observabilidad docker_monitoreo"
-    dir: '{{.MONITORING_DIR}}'
-    preconditions:
-      - sh: test -d '{{.MONITORING_DIR}}'
-        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
-    cmds:
-      - task down
-
-  monitoring:status:
-    desc: "[Legacy / Emulación Local] Muestra el estado y healthcheck de los servicios de docker_monitoreo"
-    dir: '{{.MONITORING_DIR}}'
-    preconditions:
-      - sh: test -d '{{.MONITORING_DIR}}'
-        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
-    cmds:
-      - task status
-
-  monitoring:targets:
-    desc: "[Legacy / Emulación Local] Consulta los targets activos registrados en Prometheus local"
-    dir: '{{.MONITORING_DIR}}'
-    preconditions:
-      - sh: test -d '{{.MONITORING_DIR}}'
-        msg: "El directorio del stack de observabilidad '{{.MONITORING_DIR}}' no existe. Clone el repositorio hermano o configure MONITORING_DIR."
-    cmds:
-      - task targets
-
+  # ----------------------------------------------------------------------------
+  # Observabilidad & Telemetría (Grafana Cloud & Local Dev)
+  # ----------------------------------------------------------------------------
   monitoring:grafana-cloud:install:
     desc: "Despliega el stack de telemetría de Grafana Cloud (Alloy, Beyla eBPF, Node Exporter, KSM) en Kubernetes"
     cmds:
@@ -242,6 +206,18 @@ tasks:
     cmds:
       - docker logs pokemon-alloy --tail 50 -f
 
+  # ----------------------------------------------------------------------------
+  # Disaster Recovery & Resiliencia de Datos (DR)
+  # ----------------------------------------------------------------------------
+  dr:drill:
+    desc: "Ejecuta un simulacro automatizado de Disaster Recovery y restauración en seco (Dry-Run)"
+    cmds:
+      - bash scripts/dr_verify_restore.sh --dry-run
+
+  dr:verify:
+    desc: "Verifica criptográficamente el último backup real (.sql.gz.enc) y su restauración"
+    cmds:
+      - bash scripts/dr_verify_restore.sh
 
   # ----------------------------------------------------------------------------
   # GitOps & CD (ArgoCD & Kubernetes)
