@@ -20,7 +20,7 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 4. [Hardening de la Cadena de Suministro (Supply Chain Hardening)](#4-hardening-de-la-cadena-de-suministro-supply-chain-hardening)
    * [4.1. SHA Pinning en GitHub Actions](#41-sha-pinning-en-github-actions)
    * [4.2. Dependency Review Gate](#42-dependency-review-gate)
-   * [4.3. Renovate Bot y Dependabot con Cooldown](#43-renovate-bot-y-dependabot-con-cooldown)
+   * [4.3. Renovate Bot con Cooldown y Gobernanza Automatizada](#43-renovate-bot-con-cooldown-y-gobernanza-automatizada)
 5. [Integración con Linear & Slack (Issue Tracking & ChatOps)](#5-integración-con-linear--slack-issue-tracking--chatops)
 6. [Resolución de Errores y Diagnóstico en CI](#6-resolución-de-errores-y-diagnóstico-en-ci)
 
@@ -168,10 +168,12 @@ El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revi
 * Falla de forma bloqueante si un PR introduce paquetes con CVEs calificados como `moderate`, `high` o `critical`.
 * Previene la introducción de paquetes comprometidos antes de que el código llegue a `main`.
 
-### 4.3. Renovate Bot y Dependabot con Cooldown
+### 4.3. Renovate Bot con Cooldown y Gobernanza Automatizada
 
-* **Renovate Bot ([`renovate.json`](../../renovate.json)):** Configurado con auto-merge restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker y GitHub Actions requieren aprobación humana explícita y etiquetas `manual-review-required` e `infra-supply-chain-review`.
-* **Dependabot ([`.github/dependabot.yml`](../../.github/dependabot.yml)):** Configurado con un **cooldown obligatorio de 7 días** (`cooldown.default-days: 7`) para que cualquier nueva versión permanezca en observación comunitaria antes de proponerse en un PR.
+* **Renovate Bot ([`renovate.json`](../../renovate.json)):** Centraliza la gestión unificada y programada de dependencias en todos los ecosistemas del proyecto (`npm`, `dockerfile`, `github-actions`, `helm` y `terraform/opentofu`).
+* **Cooldown de 7 Días (`minimumReleaseAge: "7 days"`):** Garantiza que cualquier versión nueva permanezca en observación comunitaria durante 7 días antes de abrir un PR, mitigando riesgos de supply chain poisoning.
+* **Ventana Programada:** Ejecución semanal los lunes antes de las 06:00 AM (ART).
+* **Auto-Merge Controlado:** Restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker, OpenTofu y GitHub Actions requieren aprobación humana explícita (`manual-review-required`, `infra-supply-chain-review`).
 
 ---
 
@@ -181,7 +183,7 @@ El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revi
 * **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
 * **Notificaciones ChatOps en Slack:**
   * La aplicación de Linear para Slack retransmite eventos de los tickets (`PEX-X`) directamente al canal de ingeniería del equipo.
-  * Los pipelines automatizados ([`dependabot-linear-sync.yml`](../../.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
+  * Los pipelines automatizados ([`renovate-linear-sync.yml`](../../.github/workflows/renovate-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
   * Cuando los PRs son mergeados o cerrados, la sincronización bidireccional actualiza el ticket a `Done` o `Canceled` y publica el resultado en Slack sin requerir gestión manual.
 
 ---

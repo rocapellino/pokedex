@@ -176,8 +176,7 @@ flowchart LR
 | **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](../../Taskfile.yml) |
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) |
 | **Slack** | SaaS | Canal ChatOps para recepción de alertas de Linear (creación, asignación, updates y cierre de PEX-X) | Integración Workspace Linear App para Slack |
-| **Renovate Bot** | Latest | Dependencias automáticas con auto-merge restringido a npm patch | [`renovate.json`](../../renovate.json) |
-| **Dependabot** | Latest | Version updates semanales con cooldown de 7 días y etiquetas sincronizadas | [`.github/dependabot.yml`](../../.github/dependabot.yml) |
+| **Renovate Bot** | Latest | Gestión unificada de dependencias multi-gestor, cooldown de 7 días, ventanas semanales y auto-merge restringido a npm patch | [`renovate.json`](../../renovate.json) |
 
 ---
 

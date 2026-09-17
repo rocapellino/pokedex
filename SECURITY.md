@@ -97,7 +97,7 @@ El repositorio cuenta con defensas en profundidad integradas en el pipeline y en
    - **SAST Bloqueante con Semgrep:** Detección de fallas OWASP Top 10 en cada Pull Request.
    - **Dependency Review Gate:** Bloqueo automático de dependencias con vulnerabilidades HIGH+.
    - **SHA Pinning Estricto:** Anclaje por digest inmutable en GitHub Actions y contenedores Docker (Nginx, PgBouncer).
-   - **Gobernanza Automatizada:** Renovate Bot con auto-merge limitado a parches npm y Dependabot con 7 días de cooldown.
+   - **Gobernanza Automatizada:** Renovate Bot con cooldown de 7 días (`minimumReleaseAge`), schedule semanal y auto-merge restringido a parches npm.
 
 2. **Defensas en Aplicación (Fail-Closed):**
    - Verificación de credenciales segura contra ataques de canal lateral basados en tiempo (`crypto.timingSafeEqual`).
