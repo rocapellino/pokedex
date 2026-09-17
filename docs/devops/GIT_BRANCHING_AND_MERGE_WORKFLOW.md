@@ -122,11 +122,11 @@ gitGraph
     commit id: "v1.0.0" tag: "v1.0.0"
     commit id: "chore: init repo"
     
-    branch dependabot/pip
-    checkout dependabot/pip
-    commit id: "bump fastapi 0.115"
+    branch renovate/dependencies
+    checkout renovate/dependencies
+    commit id: "bump packages"
     checkout main
-    merge dependabot/pip id: "merge PR #12" tag: "v1.1.0"
+    merge renovate/dependencies id: "merge PR #12" tag: "v1.1.0"
 
     branch rocapellino/pex-7-upgrade
     checkout rocapellino/pex-7-upgrade

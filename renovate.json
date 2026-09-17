@@ -7,6 +7,15 @@
     ":semanticCommitTypeAll(chore)"
   ],
   "timezone": "America/Argentina/Buenos_Aires",
+  "schedule": ["before 6:00am on monday"],
+  "minimumReleaseAge": "7 days",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 5,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"],
+    "minimumReleaseAge": null
+  },
   "enabledManagers": [
     "dockerfile",
     "github-actions",
@@ -28,7 +37,7 @@
       "ignoreTests": false
     },
     {
-      "description": "Actualizaciones que requieren revisión manual obligatoria (minor, major, digests, pins)",
+      "description": "Actualizaciones que requieren revisión manual obligatoria (minor, major, pins, digests)",
       "matchUpdateTypes": ["minor", "major", "pin", "digest"],
       "automerge": false,
       "labels": ["manual-review-required"]
@@ -40,26 +49,56 @@
       "labels": ["infra-supply-chain-review"]
     },
     {
-      "description": "Escanear y mantener proveedores y módulos de OpenTofu",
+      "description": "Gestor npm: prefijo semántico chore(deps) y etiquetas de stack",
+      "matchManagers": ["npm"],
+      "commitMessagePrefix": "chore(deps):",
+      "labels": ["dependencies", "nodejs", "javascript"]
+    },
+    {
+      "description": "Excepción de seguridad justificada para extract-zip (dependencia de desarrollo transitiva sin parche disponible)",
+      "matchPackageNames": ["extract-zip"],
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Gestor GitHub Actions: prefijo chore(ci) y etiquetas de CI/CD",
+      "matchManagers": ["github-actions"],
+      "commitMessagePrefix": "chore(ci):",
+      "labels": ["dependencies", "ci-cd", "github-actions"]
+    },
+    {
+      "description": "Gestor Dockerfile: prefijo chore(docker) y etiquetas de contenedor",
+      "matchManagers": ["dockerfile"],
+      "commitMessagePrefix": "chore(docker):",
+      "labels": ["dependencies", "docker"],
+      "matchFileNames": ["Dockerfile", "apps/**/Dockerfile"]
+    },
+    {
+      "description": "Dockerfile Frontend Web Nginx: etiquetas adicionales para web",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["apps/frontend/**"],
+      "labels": ["dependencies", "docker", "web"]
+    },
+    {
+      "description": "Escanear y mantener proveedores y módulos de OpenTofu / Terraform",
       "matchManagers": ["terraform"],
+      "commitMessagePrefix": "chore(iac):",
+      "labels": ["dependencies", "iac", "opentofu"],
       "matchFileNames": ["infra/opentofu/**"]
     },
     {
       "description": "Escanear dependencias de Helm Charts",
       "matchManagers": ["helmv3", "helm-values"],
+      "commitMessagePrefix": "chore(helm):",
+      "labels": ["dependencies", "iac", "helm"],
       "matchFileNames": ["infra/helm/**", "gitops/environments/**"]
-    },
-    {
-      "description": "Escanear imágenes en Dockerfiles",
-      "matchManagers": ["dockerfile"],
-      "matchFileNames": ["Dockerfile", "apps/**/Dockerfile"]
     },
     {
       "description": "Bloquear upgrades major de TypeScript (TS7 experimental) hasta revisión manual explícita",
       "matchPackageNames": ["typescript"],
       "matchUpdateTypes": ["major"],
       "enabled": false,
-      "minimumReleaseAge": false,
+      "minimumReleaseAge": "7 days",
       "labels": ["typescript-major-manual-review"]
     }
   ]

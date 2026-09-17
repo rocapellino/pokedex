@@ -5,6 +5,8 @@ metadata:
   labels:
     {{- include "pokedex.labels" . | nindent 4 }}
 data:
+  NODE_ENV: {{ .Values.api.env.nodeEnv | quote }}
+  SECURE_COOKIES: {{ ternary "true" "false" (eq .Values.api.env.nodeEnv "production") | quote }}
   POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
   POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
   POSTGRES_HOST: {{ if .Values.pgbouncer.enabled }}"pgbouncer-service"{{ else }}"postgres-service"{{ end }}

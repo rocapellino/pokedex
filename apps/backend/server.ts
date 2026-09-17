@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import rateLimit from 'express-rate-limit';
 import { Pokemon } from './src/types.js';
 import { generateDiagram, generateMockup, generateImage, aiCircuitBreaker } from './src/services/ai.js';
 import {
@@ -296,16 +296,12 @@ const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
 
 // ---------------------------------------------------------------------------
-// Arquitectura dual de Rate Limiting
+// Rate Limiting de Doble Capa: Defensa en Profundidad (Dual-Layer Defense)
 // ---------------------------------------------------------------------------
-// El proyecto usa DOS mecanismos de rate limiting en cadena para cada endpoint
-// sensible. Esta redundancia es intencional y está documentada aquí:
-//
 // 1. express-rate-limit (Standard, in-process):
-//    - Almacén local en memoria (por pod), no distribuido.
-//    - Propósito: guardia de CPU/memoria local. Actúa incluso si Redis está caído
-//      o REDIS_URL no está configurado. Previene que un único pod sea saturado.
-//    - Valores: idénticos a los del limitador Redis-backed para evitar ambigüedad.
+//    - Analizado y validado por herramientas SAST (CodeQL, Semgrep).
+//    - Respuesta ultra-rápida en memoria local por proceso/pod.
+//    - Cabeceras estándar IETF (RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset).
 //
 // 2. createRateLimiter (Redis-backed con fallback):
 //    - Fuente de verdad distribuida en entornos multi-pod.
@@ -335,10 +331,10 @@ const mutationRateLimiterStandard = rateLimit({
 
 const authRateLimiterStandard = rateLimit({
   windowMs: 60 * 1000,
-  max: 5, // Alineado con authRateLimiter (Redis-backed): 5 req/min (HAL-5, sept. 2026)
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { detail: 'Límite de peticiones para Autenticación excedido. Intenta más tarde.' },
+  message: { detail: 'Límite de intentos de autenticación excedido. Intenta más tarde.' },
 });
 
 const aiRateLimiterStandard = rateLimit({
@@ -375,16 +371,57 @@ function safeCompareKeys(provided: string, expected: string): boolean {
 /**
  * Extrae exclusivamente tokens de sesión efímeros firmados con HMAC.
  */
-function extractSessionToken(req: Request): string {
+export function extractSessionTokenFromRequest(req: Request): string {
   const authHeader = (req.headers['authorization'] || '') as string;
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7).trim();
   }
+
+  const cookieHeader = (req.headers.cookie || '') as string;
+  if (cookieHeader) {
+    const cookiePairs = cookieHeader.split(';').map((entry) => entry.trim());
+    for (const pair of cookiePairs) {
+      if (!pair) continue;
+      const [name, ...rest] = pair.split('=');
+      if (name === 'pokedex_admin_session') {
+        const value = rest.join('=');
+        try {
+          return decodeURIComponent(value);
+        } catch {
+          return value;
+        }
+      }
+    }
+  }
+
   const sessionHeader = (req.headers['x-session-token'] || '') as string;
   if (sessionHeader) {
     return sessionHeader.trim();
   }
   return '';
+}
+
+function extractSessionToken(req: Request): string {
+  return extractSessionTokenFromRequest(req);
+}
+
+export function buildSessionCookie(token: string, expiresInSeconds: number): string {
+  const value = encodeURIComponent(token.trim());
+  const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
+  const maxAgeSeconds = Math.max(1, Math.floor(expiresInSeconds));
+  const parts = [
+    `pokedex_admin_session=${value}`,
+    'Path=/',
+    `Max-Age=${maxAgeSeconds}`,
+    'HttpOnly',
+    'SameSite=Lax',
+  ];
+
+  if (secure) {
+    parts.push('Secure');
+  }
+
+  return parts.join('; ');
 }
 
 /**
@@ -521,11 +558,13 @@ app.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter, (req:
     });
   }
 
-  const { token, expiresIn } = generateSessionToken();
+  const { token, expiresIn, expiresAt } = generateSessionToken();
+  res.setHeader('Set-Cookie', buildSessionCookie(token, expiresIn));
   return res.status(200).json({
     token,
     token_type: 'Bearer',
     expires_in: expiresIn,
+    expiresAt,
   });
 });
 

@@ -30,7 +30,6 @@ El monorepo está organizado siguiendo una separación estricta de responsabilid
 pokedex/
 ├── .github/                      # Automatizaciones de CI/CD y gobernanza en GitHub
 │   ├── workflows/                # Pipelines de build, test, SAST, SBOM, Cosign y release
-│   ├── dependabot.yml            # Configuración de Dependabot con cooldown de 7 días
 │   ├── CODEOWNERS                # Asignación obligatoria de revisores por dominio
 │   └── pull_request_template.md  # Plantilla estándar para Pull Requests
 ├── .vscode/                      # Configuración del editor y tareas automatizadas
@@ -69,7 +68,7 @@ pokedex/
 ├── package-lock.json             # Lockfile determinista de npm
 ├── tsconfig.json                 # Configuración del compilador TypeScript en modo estricto
 ├── Taskfile.yml                  # Automatización de tareas de desarrollo y operaciones (go-task)
-├── renovate.json                 # Renovate Bot con auto-merge restringido a parches de npm
+├── renovate.json                 # Renovate Bot: multi-gestor con cooldown de 7 días y auto-merge de parches npm
 ├── SECURITY.md                   # Política de seguridad y divulgación responsable de vulnerabilidades
 ├── SECURITY_RUNBOOK.md           # Guías de respuesta ante incidentes y rotación criptográfica de claves
 ├── infra/                        # Infraestructura como Código (IaC) y Manifiestos Cloud-Native

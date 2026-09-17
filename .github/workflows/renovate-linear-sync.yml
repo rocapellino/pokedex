@@ -1,7 +1,7 @@
 # ==============================================================================
-# Workflow: Crear Ticket Dinámico e Incremental en Linear ante PRs de Dependabot
+# Workflow: Crear Ticket Dinámico e Incremental en Linear ante PRs de Renovate Bot
 # ==============================================================================
-name: 📌 Sync Dependabot PRs to Linear
+name: 📌 Sync Renovate PRs to Linear
 
 on:
   pull_request_target:
@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   sync-linear-ticket:
-    name: 🎫 Sync Dependabot PR with Linear
+    name: 🎫 Sync Renovate PR with Linear
     if: >
       github.event.pull_request.head.repo.fork == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -29,6 +29,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           EVENT_ACTION: ${{ github.event.action }}
           IS_MERGED: ${{ github.event.pull_request.merged }}
+          PR_USER: ${{ github.event.pull_request.user.login }}
         run: |
           if [ -z "$LINEAR_API_KEY" ]; then
             echo "⚠️ Secret LINEAR_API_KEY no encontrado. Omitiendo sincronización con Linear."
@@ -110,8 +111,12 @@ jobs:
           fi
 
           # 3. Manejo de Evento: PR Abierto -> Crear Ticket Incremental
-          ISSUE_TITLE="Dependabot: $PR_TITLE (PR #$PR_NUMBER)"
-          ISSUE_DESC=$(printf "Dependabot ha detectado actualizaciones de dependencias.\n\n🔗 **Pull Request en GitHub:** %s\n\n> *Nota:* Valida que los checks de CI pasen en verde antes de mergear." "$PR_URL")
+          BOT_NAME="Renovate"
+          if [ "$PR_USER" = "dependabot[bot]" ]; then
+            BOT_NAME="Dependabot"
+          fi
+          ISSUE_TITLE="$BOT_NAME: $PR_TITLE (PR #$PR_NUMBER)"
+          ISSUE_DESC=$(printf "%s ha detectado actualizaciones de dependencias.\n\n🔗 **Pull Request en GitHub:** %s\n\n> *Nota:* Valida que los checks de CI pasen en verde antes de mergear." "$BOT_NAME" "$PR_URL")
 
           MUTATION_PAYLOAD=$(jq -n \
             --arg teamId "$TEAM_ID" \

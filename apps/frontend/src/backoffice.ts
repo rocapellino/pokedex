@@ -58,7 +58,23 @@ const ADMIN_EXPIRES_KEY = 'pokedex_admin_session_expires';
 export function getAdminSessionToken(): string {
   const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
   const expiresAt = sessionStorage.getItem(ADMIN_EXPIRES_KEY);
-  if (!token) return '';
+  if (!token) {
+    const fallback = document.cookie
+      .split('; ')
+      .find((entry) => entry.startsWith('pokedex_admin_session='));
+
+    if (!fallback) return '';
+
+    const value = decodeURIComponent(fallback.split('=').slice(1).join('='));
+    if (value && value.trim()) {
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, value.trim());
+      if (expiresAt) {
+        sessionStorage.setItem(ADMIN_EXPIRES_KEY, expiresAt);
+      }
+      return value.trim();
+    }
+    return '';
+  }
 
   if (expiresAt && Date.now() > Number(expiresAt)) {
     sessionStorage.removeItem(ADMIN_TOKEN_KEY);
@@ -86,6 +102,7 @@ export function setAdminSession(token?: string, expiresAt?: number): void {
 export function clearAdminSession(): void {
   sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+  document.cookie = 'pokedex_admin_session=; Path=/; Max-Age=0; SameSite=Lax';
   updateAuthUI();
   closeAuthModal();
   showToast('ℹ️ Sesión administrativa cerrada.');

@@ -84,7 +84,7 @@ flowchart TD
     subgraph F7["🔄 FASE 7: Renovate Bot & Dependencias"]
         PROXMOX_K8S & CLOUD_EKS --> RENOVATE_SCAN["Renovate Bot: Escaneo Multi-Manager"]
         RENOVATE_SCAN -->|Detecta Updates| RENO_PR["Abre PR Agrupado con Auto-Merge"]
-        RENO_PR --> RENO_SYNC["📌 dependabot-linear-sync.yml"]
+        RENO_PR --> RENO_SYNC["📌 renovate-linear-sync.yml"]
         RENO_SYNC --> LIN_NEW["Linear crea ticket correlativo (PEX-X)"]
         LIN_NEW --> F1
     end
@@ -168,6 +168,6 @@ flowchart TD
 
 * **Renovate Bot** (`renovate.json`) audita continuamente dependencias multi-gestor (`npm`, `dockerfile`, `helm-values`, `github-actions`, `opentofu`).
 * Agrupa parches de seguridad en PRs y aplica **automerge** automático una vez superados los Quality Gates.
-* Los workflows de automatización ([`dependabot-linear-sync.yml`](../../.github/workflows/dependabot-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) gestionan el ciclo completo del ticket en Linear:
+* Los workflows de automatización ([`renovate-linear-sync.yml`](../../.github/workflows/renovate-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) gestionan el ciclo completo del ticket en Linear:
   * Al detectarse una alerta o PR de dependencias, se genera un ticket incremental (`PEX-X`) que notifica instantáneamente al canal de **Slack**.
   * Al mergearse o cerrarse el PR en GitHub, el ticket se transiciona a **Done** o **Canceled**, actualizando automáticamente el hilo en Slack y manteniendo el backlog y el canal limpios sin intervención manual.
