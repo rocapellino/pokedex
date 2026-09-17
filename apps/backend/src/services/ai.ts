@@ -17,21 +17,32 @@ export function sanitizeAIHtml(rawHtml: string): string {
   if (!rawHtml || typeof rawHtml !== 'string') return '';
 
   // 1. Limitar longitud máxima de salida (64KB)
-  let cleaned = rawHtml.slice(0, 65536);
+  const trimmed = rawHtml.slice(0, 65536).trim();
 
-  // 2. Eliminar bloques <script> completamente
-  cleaned = cleaned.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // 2. Rechazo explícito de etiquetas ejecutables y de incrustación
+  if (/<script\b|<\/script/i.test(trimmed)) {
+    console.warn('[AI Security] Salida de IA rechazada: contiene etiquetas <script>.');
+    return '';
+  }
 
-  // 3. Eliminar etiquetas de alto riesgo (iframe, object, embed, frame, applet, base, link, meta)
-  cleaned = cleaned.replace(/<\/?(?:iframe|object|embed|frame|frameset|applet|base|link|meta)\b[^>]*>/gi, '');
+  if (/<(?:iframe|object|embed|frame|frameset|applet|base|link|meta)\b/i.test(trimmed)) {
+    console.warn('[AI Security] Salida de IA rechazada: contiene elementos incrustados no permitidos.');
+    return '';
+  }
 
-  // 4. Neutralizar esquemas peligrosos en atributos href/src/action
-  cleaned = cleaned.replace(/(?:href|src|action)\s*=\s*["']?\s*(?:javascript|vbscript|data\s*:\s*text\/html):[^"'>\s]*/gi, '');
+  // 3. Rechazo explícito de pseudo-protocolos en atributos
+  if (/(?:href|src|action)\s*=\s*["']?\s*(?:javascript|vbscript|data\s*:\s*text\/html)/i.test(trimmed)) {
+    console.warn('[AI Security] Salida de IA rechazada: contiene pseudo-protocolos peligrosos.');
+    return '';
+  }
 
-  // 5. Neutralizar manejadores de eventos inline (onload, onclick, onerror, onmouseover, etc.)
-  cleaned = cleaned.replace(/\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '');
+  // 4. Rechazo explícito de manejadores de eventos en línea (onload, onerror, onclick, etc.)
+  if (/\son[a-z]+\s*=/i.test(trimmed)) {
+    console.warn('[AI Security] Salida de IA rechazada: contiene manejadores de eventos inline.');
+    return '';
+  }
 
-  return cleaned.trim();
+  return trimmed;
 }
 
 let aiClient: GoogleGenAI | null = null;
