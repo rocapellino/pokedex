@@ -189,6 +189,16 @@ groups:
           summary: "Copia de seguridad desactualizada (> 26 horas)"
           description: "No se registra ninguna ejecución exitosa del CronJob de backup en las últimas 26 horas."
 
+      - alert: DatabaseRestoreDrillFailed
+        expr: kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: pokedex-backup
+        annotations:
+          summary: "Simulacro periódico de restauración DR fallido"
+          description: "El Job de verificación de restauración {{ $labels.job_name }} falló; posible corrupción en respaldos."
+
       - alert: TlsCertExpiringSoon
         expr: (certmanager_certificate_expiration_timestamp_seconds{namespace="pokemon-app"} - time()) / 86400 < 15
         for: 1h

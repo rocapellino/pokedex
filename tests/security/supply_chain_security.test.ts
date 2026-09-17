@@ -85,3 +85,25 @@ test('🛡️ Supply Chain Security: Política Kyverno verify-image-signature ex
   assert.match(policyContent, /issuer:\s*"https:\/\/token\.actions\.githubusercontent\.com"/, 'Debe exigir emisor OIDC de GitHub Actions');
   assert.match(policyContent, /subject:\s*"https:\/\/github\.com\/rocapellino\/pokedex\/\.github\/workflows\/ci\.yml@refs\/heads\/main"/, 'Debe validar el subject exacto del workflow en main');
 });
+
+test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican OCI digest pinning inmutable (sha256)', () => {
+  const envFiles = [
+    'gitops/environments/aws/values.yaml',
+    'gitops/environments/proxmox/values.yaml',
+    'infra/helm/pokedex/values.prod.yaml'
+  ];
+
+  const sha256Pattern = /digest:\s*"sha256:[a-f0-9]{64}"/g;
+
+  for (const relPath of envFiles) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    const matches = content.match(sha256Pattern);
+    assert.ok(
+      matches && matches.length >= 2,
+      `${relPath} debe definir digests SHA-256 inmutables para api y web`
+    );
+  }
+});
+

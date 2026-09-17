@@ -26,6 +26,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexPvcStorageFillingUp** | `warning` | `(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85` | Volumen persistente (PVC) próximo al límite (> 85%). |
 | **PokedexDbBackupFailed** | `critical` | `kube_job_status_failed{job_name=~".*backup.*"} > 0` | Fallo de ejecución de Job de respaldo automatizado de PostgreSQL. |
 | **PokedexDbBackupStale** | `critical` | `(time() - kube_cronjob_status_last_successful_time) > 93600` | Copia de seguridad desactualizada (> 26 horas). |
+| **DatabaseRestoreDrillFailed** | `critical` | `kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0` | Fallo en el simulacro periódico de restauración DR; posible corrupción de respaldos o incompatibilidad. |
 | **TlsCertExpiringSoon** | `warning` | `(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 15` | Certificado TLS próximo a expirar (< 15 días). |
 | **ArgoCDAppOutOfSync** | `warning` | `argocd_app_info{sync_status!="Synced"} == 1` | Aplicación GitOps desincronizada con el repositorio. |
 | **ArgoCDAppDegraded** | `critical` | `argocd_app_info{health_status="Degraded"} == 1` | Aplicación GitOps con recursos degradados en el clúster. |
@@ -194,6 +195,20 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
    ```
 2. **Remediación**:
    - Identificar si hay fuga de memoria en Node.js (V8 heap). Analizar perfiles de memoria o escalar temporalmente réplicas para distribuir la carga.
+
+### 3.12. DatabaseRestoreDrillFailed
+
+1. **Inspección de Logs del Job de Verificación**:
+   ```bash
+   kubectl get jobs,pods -n pokemon-app -l app.kubernetes.io/component=dr-verification
+   kubectl logs -n pokemon-app -l app.kubernetes.io/component=dr-verification --tail=100
+   ```
+2. **Diagnóstico de Causa Raíz**:
+   - Comprobar si el fallo responde a discrepancia en el checksum SHA-256 (`.sha256`), clave simétrica inválida (`BACKUP_ENCRYPTION_KEY`) o stream gzip corrupto.
+   - Si la aserción DML/DDL falló durante la restauración temporal, inspeccionar la consistencia de los datos del volcado.
+3. **Remediación**:
+   - Ejecutar un simulacro local o manual controlado: `task dr:verify` o `task dr:drill`.
+   - Si el volcado almacenado en el PVC está dañado, generar inmediatamente un nuevo volcado forzado con `kubectl create job --from=cronjob/pokedex-db-backup dr-backup-manual -n pokemon-app`.
 
 ---
 

@@ -494,14 +494,16 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   );
 });
 
-test('🛡️ Dev DX & Resiliencia: Taskfile.yml parametriza MONITORING_DIR con precondiciones explícitas', () => {
+test('🛡️ Dev DX & Resiliencia: Taskfile.yml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
   const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
   assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yml debe existir');
   const content = fs.readFileSync(taskfilePath, 'utf-8');
 
-  assert.ok(content.includes('MONITORING_DIR:'), 'Taskfile.yml debe declarar la variable MONITORING_DIR');
-  assert.ok(content.includes('preconditions:'), 'Taskfile.yml debe incluir precondiciones en tareas de monitoreo');
-  assert.ok(content.includes('test -d'), 'Debe validar que el directorio de monitoreo existe antes de ejecutar');
+  assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yml no debe incluir la variable obsoleta MONITORING_DIR');
+  assert.ok(!content.includes('docker_monitoreo'), 'Taskfile.yml no debe incluir referencias al stack legacy docker_monitoreo');
+  assert.ok(content.includes('monitoring:grafana-cloud:install:'), 'Taskfile.yml debe incluir la tarea de instalación de Grafana Cloud');
+  assert.ok(content.includes('monitoring:dev:status:'), 'Taskfile.yml debe incluir la tarea de diagnóstico dev:status');
+  assert.ok(content.includes('monitoring:dev:logs:'), 'Taskfile.yml debe incluir la tarea de logs de dev');
 });
 
 test('🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos', () => {
