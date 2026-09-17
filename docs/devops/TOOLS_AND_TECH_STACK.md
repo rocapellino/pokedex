@@ -161,13 +161,15 @@ flowchart LR
 | **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 
 ### 2.9. Observabilidad & Monitoreo
-
+ 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Prometheus** | `2.x+` | Recolección de métricas de la API (`/metrics`), hosts y contenedores | Stack `docker_monitoreo` |
-| **Grafana** | `11.x` | Visualización en tiempo real con tableros de latencia, RPS y recursos | Stack `docker_monitoreo` |
-| **Grafana Loki** | `3.x` | Ingesta e indexación de logs de contenedores para consultas LogQL | Stack `docker_monitoreo` |
-| **Alertmanager** | Latest | Notificación proactiva ante anomalías o caídas de servicios | Stack `docker_monitoreo` |
+| **Grafana Cloud** | SaaS | Plataforma central de observabilidad SaaS (Métricas, Logs, Trazas eBPF) | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
+| **Grafana Alloy** | `v1.x` | Agente unificado DaemonSet para recolección de métricas, OTLP y logs | [`infra/monitoring/deploy-grafana-cloud.ps1`](../../infra/monitoring/deploy-grafana-cloud.ps1) |
+| **Grafana Beyla** | `v1.x` | Auto-instrumentación de trazas y métricas L7 mediante eBPF | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
+| **Tableros Grafana** | `v10/11` | Dashboards canónicos para Pokédex API y salud del clúster | [`infra/monitoring/dashboards/`](../../infra/monitoring/dashboards) |
+| **Reglas de Alertas** | `Prometheus/Alloy` | Definición unificada de alertas (infraestructura, base de datos y API) | [`infra/monitoring/alerts.yml`](../../infra/monitoring/alerts.yml) |
+| **docker_monitoreo** | Local | Stack legado opcional para emulación local con Docker Compose | Repositorio hermano (opcional) |
 
 ### 2.10. Automatización & Experiencia de Desarrollo (DX)
 
@@ -175,8 +177,9 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](../../Taskfile.yml) |
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) |
-| **Slack** | SaaS | Canal ChatOps para recepción de alertas de Linear (creación, asignación, updates y cierre de PEX-X) | Integración Workspace Linear App para Slack |
 | **Renovate Bot** | Latest | Gestión unificada de dependencias multi-gestor, cooldown de 7 días, ventanas semanales y auto-merge restringido a npm patch | [`renovate.json`](../../renovate.json) |
+| **Grafana Cloud** | SaaS | Telemetría Kubernetes cloud-native vía Grafana Alloy, Beyla eBPF, Node Exporter y Kube-State-Metrics | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
+| **Grafana MCP Server** | Latest | Integración Model Context Protocol (`mcp-grafana`) para interacción con dashboards, métricas y alertas desde el IDE | [`.vscode/mcp.json`](../../.vscode/mcp.json) |
 
 ---
 

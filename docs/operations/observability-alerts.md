@@ -7,11 +7,17 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 ---
 
 ## 2. Matriz de Alertas y Severidades
-
+ 
 | Alerta | Severidad | Métrica / Expresión PromQL | Impacto |
 | :--- | :--- | :--- | :--- |
+| **PokedexAPIDown** | `critical` | `up{job=~".*pokedex.*"} == 0` | Microservicio Pokédex API caído o inalcanzable por scraping. |
+| **PokedexDegradedMode** | `critical` | `pokedex_degraded_mode == 1` | API operando en modo degradado con almacenamiento volátil en memoria. |
 | **PokedexPostgresDisconnected** | `critical` | `pokedex_storage_status == 0` | Fallo de persistencia; API opera en modo degradado fail-closed (HTTP 503 para mutaciones). |
+| **PostgresDown** | `critical` | `pg_up == 0` | Instancia de PostgreSQL inaccesible según postgres_exporter. |
+| **PostgresHighConnections** | `warning` | `(sum(pg_stat_database_numbackends) / sum(pg_settings_max_connections)) * 100 > 80` | Saturación del pool de conexiones en PostgreSQL (> 80%). |
 | **PokedexRedisDisconnected** | `warning` | `pokedex_redis_status == 0` | Fallo de caché distribuida; rate limiting y revocación de sesiones operan con fallback local. |
+| **RedisDown** | `critical` | `redis_up == 0` | Instancia de Redis caída o no responde al PING según redis_exporter. |
+| **ContainerHighMemoryUsage** | `warning` | `(container_memory_working_set_bytes / container_spec_memory_limit_bytes) * 100 > 85` | Contenedor consumiendo > 85% de su límite de RAM asignado. |
 | **PokedexHighErrorRate5xx** | `critical` | `rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01` | Más del 1% de peticiones fallando con código 5xx. |
 | **PokedexHighLatencyP99** | `warning` | `histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2.0` | Percentil 99 de tiempo de respuesta superior a 2 segundos sostenidos. |
 | **PokedexHpaMaxReplicasReached** | `warning` | `kube_hpa_status_current_replicas >= kube_hpa_spec_max_replicas` | Autoescalador al límite máximo de réplicas durante más de 15 minutos. |
@@ -140,3 +146,58 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
    - **Credenciales Inválidas**: Verificar que `GEMINI_API_KEY` o `AI_API_KEY` no hayan sido revocadas o rotadas incorrectamente.
    - **Aislamiento de Red / Egress Bloqueado**: Comprobar que `CiliumNetworkPolicy` o el `egress-gateway` permitan tráfico HTTPS saliente hacia `generativelanguage.googleapis.com:443`.
    - **Comportamiento Esperado**: El backend protege la estabilidad de la plataforma respondiendo con diagramas y mockups en fallback heurístico local sin bloquear peticiones de usuarios ni degradar la disponibilidad del catálogo. El disyuntor intentará reabrirse automáticamente (estado `HALF_OPEN`) tras el período de enfriamiento (`cooldownMs: 30000`).
+
+### 3.8. PokedexAPIDown & PokedexDegradedMode
+
+1. **Inspección de Estado y Pods**:
+   ```bash
+   kubectl get pods -n pokemon-app -l app=pokemon-api
+   kubectl describe pod -n pokemon-app -l app=pokemon-api
+   ```
+2. **Remediación**:
+   - Si el pod está `CrashLoopBackOff`, inspeccionar logs anteriores: `kubectl logs -n pokemon-app -l app=pokemon-api --previous`.
+   - Si está en `PokedexDegradedMode`: verificar conectividad con PostgreSQL y PgBouncer. La API mantiene disponibilidad de lectura usando caché en memoria mientras se restablece la base de datos.
+
+### 3.9. PostgresDown & PostgresHighConnections
+
+1. **Inspección de PostgreSQL y Pooler**:
+   ```bash
+   kubectl get pods -n pokemon-app -l app=postgres
+   kubectl exec -it -n pokemon-app postgres-0 -- psql -U pokedex_app -d pokedex_db -c "SELECT count(*), state FROM pg_stat_activity GROUP BY state;"
+   ```
+2. **Remediación**:
+   - En caso de saturación (> 80%), verificar queries lentas o bloqueos (locks): `SELECT pid, query, age(clock_timestamp(), query_start) FROM pg_stat_activity WHERE state != 'idle' ORDER BY age DESC LIMIT 5;`.
+   - Ajustar `max_connections` o parámetros de PgBouncer (`default_pool_size`, `max_client_conn`).
+
+### 3.10. RedisDown
+
+1. **Inspección de Instancia Redis**:
+   ```bash
+   kubectl get pods -n pokemon-app -l app=redis
+   kubectl logs -n pokemon-app -l app=redis --tail=50
+   ```
+2. **Remediación**:
+   - Reiniciar el pod si se encuentra en estado zombie o bloqueado por persistencia AOF/RDB.
+
+### 3.11. ContainerHighMemoryUsage
+
+1. **Inspección de Consumo de RAM**:
+   ```bash
+   kubectl top pods -n pokemon-app
+   ```
+2. **Remediación**:
+   - Identificar si hay fuga de memoria en Node.js (V8 heap). Analizar perfiles de memoria o escalar temporalmente réplicas para distribuir la carga.
+
+---
+
+## 4. Visualización y Telemetría en Grafana Cloud
+
+Las métricas y alertas recolectadas por Grafana Alloy y Beyla se integran con Grafana Cloud. Los tableros canónicos se encuentran versionados en el repositorio:
+
+- **Métricas de Aplicación Pokédex:** [`infra/monitoring/dashboards/pokedex-application.json`](../../infra/monitoring/dashboards/pokedex-application.json)
+- **Observabilidad Global del Clúster:** [`infra/monitoring/dashboards/cluster-observability.json`](../../infra/monitoring/dashboards/cluster-observability.json)
+
+Para importar estos tableros en la instancia de Grafana Cloud:
+1. Acceder a la consola de Grafana Cloud (`Dashboards` > `New` > `Import`).
+2. Pegar el contenido del archivo JSON correspondiente.
+3. Vincular la fuente de datos al Prometheus gestionado por Grafana Cloud.

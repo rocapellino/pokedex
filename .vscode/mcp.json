@@ -1,0 +1,25 @@
+{
+	"inputs": [
+		{
+			"id": "grafanaUrl",
+			"type": "promptString",
+			"description": "Grafana Instance URL (ej: https://<stack>.grafana.net)"
+		},
+		{
+			"id": "token",
+			"type": "promptString",
+			"description": "Grafana Service Account Token",
+			"password": true
+		}
+	],
+	"servers": {
+		"grafana": {
+			"command": "uvx",
+			"args": ["mcp-grafana"],
+			"env": {
+				"GRAFANA_URL": "${input:grafanaUrl}",
+				"GRAFANA_SERVICE_ACCOUNT_TOKEN": "${input:token}"
+			}
+		}
+	}
+}

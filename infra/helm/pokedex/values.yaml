@@ -50,7 +50,8 @@ api:
   env:
     nodeEnv: "development"
     corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
-    otelEndpoint: "http://tempo:4317"
+    # OTLP collector endpoint (Grafana Alloy en namespace monitoring o Tempo local)
+    otelEndpoint: "http://grafana-cloud-alloy.monitoring.svc.cluster.local:4317"
     otelServiceName: "pokedex-api"
   terminationGracePeriodSeconds: 30
   deploymentAnnotations:
