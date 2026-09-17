@@ -232,6 +232,17 @@ tasks:
     cmds:
       - helm uninstall grafana-cloud -n monitoring --ignore-not-found
 
+  monitoring:dev:status:
+    desc: "Muestra el estado de salud de los recolectores locales de observabilidad (Alloy, cAdvisor, Exporters)"
+    cmds:
+      - docker compose -f docker-compose.yml -f docker-compose.dev.yml ps alloy cadvisor postgres-exporter redis-exporter
+
+  monitoring:dev:logs:
+    desc: "Muestra los registros en tiempo real del agente Grafana Alloy"
+    cmds:
+      - docker logs pokemon-alloy --tail 50 -f
+
+
   # ----------------------------------------------------------------------------
   # GitOps & CD (ArgoCD & Kubernetes)
   # ----------------------------------------------------------------------------

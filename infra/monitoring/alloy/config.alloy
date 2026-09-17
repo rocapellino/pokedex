@@ -1,0 +1,120 @@
+// ==============================================================================
+// Grafana Alloy - Recolección Local Multi-Servicio & Logs -> Grafana Cloud
+// ==============================================================================
+
+// 1. Recolectar métricas expuestas por la API de Pokédex
+prometheus.scrape "pokedex_api" {
+	targets = [
+		{
+			"__address__"      = "api:3000",
+			"__metrics_path__" = "/metrics",
+			"app"              = "pokemon-api",
+			"instance"         = "pokedex-local-dev",
+			"environment"      = "development",
+		},
+	]
+	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
+	scrape_interval = "5s"
+	scrape_timeout  = "4s"
+}
+
+// 2. Recolectar métricas de PostgreSQL
+prometheus.scrape "postgres" {
+	targets = [
+		{
+			"__address__"      = "postgres-exporter:9187",
+			"__metrics_path__" = "/metrics",
+			"app"              = "pokemon-postgres",
+			"instance"         = "pokedex-postgres-dev",
+			"environment"      = "development",
+		},
+	]
+	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
+	scrape_interval = "5s"
+	scrape_timeout  = "4s"
+}
+
+// 3. Recolectar métricas de Redis
+prometheus.scrape "redis" {
+	targets = [
+		{
+			"__address__"      = "redis-exporter:9121",
+			"__metrics_path__" = "/metrics",
+			"app"              = "pokemon-redis",
+			"instance"         = "pokedex-redis-dev",
+			"environment"      = "development",
+		},
+	]
+	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
+	scrape_interval = "5s"
+	scrape_timeout  = "4s"
+}
+
+// 4. Recolectar métricas de Contenedores Docker vía cAdvisor
+prometheus.scrape "cadvisor" {
+	targets = [
+		{
+			"__address__"      = "cadvisor:8080",
+			"__metrics_path__" = "/metrics",
+			"app"              = "docker-cadvisor",
+			"instance"         = "pokedex-cadvisor-dev",
+			"environment"      = "development",
+		},
+	]
+	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
+	scrape_interval = "5s"
+	scrape_timeout  = "4s"
+}
+
+// 5. Exportar métricas mediante Remote Write a Grafana Cloud Prometheus
+prometheus.remote_write "metrics_hosted_prometheus" {
+	endpoint {
+		name = "hosted-prometheus"
+		url  = sys.env("GRAFANA_CLOUD_PROMETHEUS_URL")
+
+		basic_auth {
+			username = sys.env("GRAFANA_CLOUD_PROMETHEUS_USER")
+			password = sys.env("GRAFANA_CLOUD_TOKEN")
+		}
+	}
+}
+
+// ==============================================================================
+// 6. Recolección de Logs de Contenedores Docker -> Grafana Cloud Loki
+// ==============================================================================
+
+discovery.docker "containers" {
+	host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+	targets = discovery.docker.containers.targets
+
+	rule {
+		source_labels = ["__meta_docker_container_name"]
+		regex         = "/(.*)"
+		target_label  = "container"
+	}
+	rule {
+		source_labels = ["__meta_docker_container_name"]
+		regex         = "/(.*)"
+		target_label  = "app"
+	}
+}
+
+loki.source.docker "docker_logs" {
+	host       = "unix:///var/run/docker.sock"
+	targets    = discovery.relabel.docker_logs.output
+	forward_to = [loki.write.grafana_cloud_loki.receiver]
+}
+
+loki.write "grafana_cloud_loki" {
+	endpoint {
+		url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+
+		basic_auth {
+			username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+			password = sys.env("GRAFANA_CLOUD_TOKEN")
+		}
+	}
+}
