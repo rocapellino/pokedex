@@ -29,7 +29,7 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
    * El frontend (`pokemon-web`) no tiene conectividad de red hacia PostgreSQL ni Redis.
    * El backend (`pokemon-api`, Express en puerto `:3000`) es el único intermediario validado.
    * En producción con PgBouncer activo, la API **no puede comunicarse directamente con PostgreSQL**: toda conexión pasa obligatoriamente por el pooler de conexiones.
-   * El stack de observabilidad (`docker_monitoreo`) accede únicamente al endpoint `/metrics` de la API a través de la red `monitoring-net`, sin visibilidad de las bases de datos.
+   * La observabilidad y telemetría están centralizadas en **Grafana Cloud** mediante Grafana Alloy / Beyla eBPF, eliminando acoplamientos de red locales como `monitoring-net` en Docker Compose.
 4. **Protección Egress Anti-SSRF:** La salida a Internet de los pods de aplicación está restringida a HTTPS (443) y filtra explícitamente mediante `ipBlock` los rangos de metadatos de Cloud (IMDS `169.254.169.254/32`), redes privadas RFC 1918 y loopback.
 5. **Ejecución No-Root:** Todos los contenedores corren bajo usuarios sin privilegios (`appuser:1001` en el backend y `nginx` en el frontend).
 6. **Arquitectura Fail-Closed:** Ante fallos de componentes auxiliares de seguridad (Redis o PostgreSQL), las operaciones sensibles se bloquean preventivamente en lugar de continuar en estado vulnerable.
@@ -95,35 +95,30 @@ flowchart TD
 
 | Componente | Repositorio | Redes Asignadas | Puerto Interno | Puerto Host | Accesible Desde | Bloqueado Para |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `80` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net`, `monitoring-net` |
-| **Backend API (`pokemon-api`)**| `pokedex` | `pokedex-frontend-net`<br>`pokedex-backend-net`<br>`monitoring-net` | `3000` | `3000` *(dev)* | `pokemon-web`<br>`prometheus` (`/metrics`) | Acceso directo sin proxy en producción |
-| **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `5432` | — | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo` |
+| **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `80` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net` |
+| **Backend API (`pokemon-api`)**| `pokedex` | `pokedex-frontend-net`<br>`pokedex-backend-net` | `3000` | `3000` *(dev)* | `pokemon-web` | Acceso directo sin proxy en producción |
+| **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `5432` | — | `pokemon-api` | `pokemon-web`, Internet |
 | **PostgreSQL 16** | `pokedex` | `pokedex-backend-net` | `5432` | `5432` *(dev)* | `pgbouncer`, `db-seeder` | `pokemon-web`, `pokemon-api` *(en prod)*, Internet |
-| **Redis 7** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet, `docker_monitoreo` |
-| **Prometheus** | `docker_monitoreo` | `monitoring-local-net`<br>`monitoring-net` | `9090` | `9090` | Host, `grafana` | `pokedex-backend-net`, `pokedex-frontend-net` |
-| **Grafana** | `docker_monitoreo` | `monitoring-local-net` | `3000` | `3000` | Host / Usuarios | `pokedex-backend-net`, `pokedex-frontend-net`, `pokemon-api` |
+| **Redis 7** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet |
+| **Grafana Cloud / Alloy** | N/A (SaaS) | Egress HTTPS (443) | — | — | Agentes de telemetría K8s / host | Tráfico Ingress no solicitado |
 
 ---
 
 ## 4. Segmentación en Docker Compose
 
-En [`docker-compose.yml`](../../docker-compose.yml) se definen tres redes aisladas:
+En [`docker-compose.yml`](../../docker-compose.yml) se definen dos redes aisladas bajo el patrón DMZ (la observabilidad fue migrada a Grafana Cloud y ya no requiere una red local compartida):
 
 ```yaml
 networks:
   frontend-net:
     name: pokedex-frontend-net
     driver: bridge
-    internal: false  # Permite al proxy web publicar el puerto 8080 hacia el host
+    internal: false  # Permite al contenedor web publicar el puerto 8080 hacia el host
 
   backend-net:
     name: pokedex-backend-net
     driver: bridge
     internal: true   # Aislamiento total: sin enrutamiento ni acceso a internet
-
-  monitoring-net:
-    name: monitoring-net
-    driver: bridge   # Red compartida exclusiva para métricas de observabilidad
 ```
 
 ---

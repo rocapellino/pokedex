@@ -8,6 +8,7 @@ param (
     [string]$ValuesFile = "$PSScriptRoot/grafana-cloud-values.yaml",
     [string]$Username = "1832819",
     [string]$RemoteConfigUrl = "https://fleet-management-prod-015.grafana.net",
+    [string]$ChartVersion = "2.0.12",
     [string]$Token = $env:GRAFANA_CLOUD_TOKEN
 )
 
@@ -47,8 +48,9 @@ helm repo update grafana
 $tempTokenFile = [System.IO.Path]::GetTempFileName()
 try {
     [System.IO.File]::WriteAllText($tempTokenFile, $Token.Trim())
-    Write-Host "🚀 Ejecutando helm upgrade --install $ReleaseName..." -ForegroundColor Cyan
+    Write-Host "🚀 Ejecutando helm upgrade --install $ReleaseName (Chart: grafana/k8s-monitoring:$ChartVersion)..." -ForegroundColor Cyan
     helm upgrade --install $ReleaseName grafana/k8s-monitoring `
+        --version $ChartVersion `
         --namespace $Namespace --create-namespace `
         --values $ValuesFile `
         --set "cluster.name=$clusterName" `

@@ -1,6 +1,11 @@
 -- ==============================================================================
--- Schema Initialization: Pokédex Database (PostgreSQL 16)
--- Modelo unificado y sincronizado con el backend Node.js / TypeScript
+-- Schema Bootstrap: Pokédex Database (PostgreSQL 16)
+-- AVISO DE GOBERNANZA DE ESQUEMA (SSOT):
+-- La Única Fuente de Verdad (Single Source of Truth) oficial para el esquema y
+-- evolución de la base de datos son las migraciones declarativas de Drizzle ORM
+-- ubicadas en: apps/backend/src/db/migrations/
+-- Este archivo init.sql opera EXCLUSIVAMENTE como script de bootstrap inicial
+-- para entornos locales de desarrollo con Docker Compose sin el backend en ejecución.
 -- ==============================================================================
 
 CREATE TABLE IF NOT EXISTS pokedex_entries (
