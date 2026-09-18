@@ -65,8 +65,11 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
   // 2. Validar configuración de ClusterSecretStore
   if (fs.existsSync(vaultBackendPath)) {
     const content = fs.readFileSync(vaultBackendPath, 'utf-8');
-    if (!content.includes('server: "http://10.10.13.110:8200"')) {
-      reasons.push('vault-backend.yaml debe apuntar a la IP del contenedor LXC de Vault (http://10.10.13.110:8200)');
+    if (!content.includes('server: "https://10.10.13.110:8200"')) {
+      reasons.push('vault-backend.yaml debe apuntar a la IP del contenedor LXC de Vault vía HTTPS (https://10.10.13.110:8200)');
+    }
+    if (!content.includes('caProvider:')) {
+      reasons.push('vault-backend.yaml debe configurar caProvider para validación criptográfica de TLS');
     }
     if (!content.includes('role: "pokedex-role"')) {
       reasons.push('vault-backend.yaml debe utilizar el rol pokedex-role para autenticación Kubernetes');
@@ -75,11 +78,20 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     reasons.push(`Archivo no encontrado: ${vaultBackendPath}`);
   }
 
-  // 3. Validar Playbook de Ansible para Vault
+  // 3. Validar Playbook de Ansible para Vault con Hardening
   if (fs.existsSync(setupVaultPlaybook)) {
     const content = fs.readFileSync(setupVaultPlaybook, 'utf-8');
     if (!content.includes('vault operator init') || !content.includes('vault operator unseal')) {
       reasons.push('setup_vault.yml debe incluir tareas para inicializar y desbloquear Vault');
+    }
+    if (!content.includes('tls_disable') || !content.includes('vault_tls_dir')) {
+      reasons.push('setup_vault.yml debe configurar infraestructura de certificados y listener TLS');
+    }
+    if (!content.includes('storage "raft"')) {
+      reasons.push('setup_vault.yml debe configurar almacenamiento transaccional Raft');
+    }
+    if (!content.includes('community.general.ufw')) {
+      reasons.push('setup_vault.yml debe configurar firewall perimetral UFW para puerto 8200');
     }
     if (!content.includes('pokedex-policy') || !content.includes('pokedex-role')) {
       reasons.push('setup_vault.yml debe configurar pokedex-policy y el rol pokedex-role');
@@ -118,8 +130,8 @@ async function run() {
     }
 
     console.log('✅ 1. Stakater Reloader desactivado en Proxmox (Confirmado: reloader.enabled: false).');
-    console.log('✅ 2. Backend de Secretos: HashiCorp Vault CE en LXC (10.10.13.110:8200).');
-    console.log('✅ 3. External Secrets Operator (ESO) configurado con ClusterSecretStore/vault-backend.');
+    console.log('✅ 2. Backend de Secretos: HashiCorp Vault CE Endurecido en LXC (https://10.10.13.110:8200, TLS + Raft + Shamir 5/3 + UFW).');
+    console.log('✅ 3. External Secrets Operator (ESO) configurado con ClusterSecretStore/vault-backend vía HTTPS.');
     console.log('✅ 4. Contrato de Redeploy: Debido a que Node.js copia process.env al arrancar y Reloader está inactivo,');
     console.log('      el rollout restart progresivo es la vía oficial y obligatoria para inyectar credenciales.');
     console.log('\n🎉 ¡Validación contractual completada exitosamente!');

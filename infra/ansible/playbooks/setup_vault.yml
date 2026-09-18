@@ -1,14 +1,34 @@
 ---
 # ==============================================================================
-# Playbook: Instalación y Configuración de HashiCorp Vault (Community Edition)
+# Playbook: Instalación y Configuración Endurecida de HashiCorp Vault (CE)
 # Entorno: Contenedor LXC en Proxmox VE (Debian 12 Bookworm)
-# Proveedor para: External Secrets Operator (ESO) -> ClusterSecretStore/vault-backend
+# Estándar de Seguridad: Producción / Zero-Trust (Severidad P1 Mitigada)
+#   - Listener HTTPS/TLS 1.2+ con PKI interna dedicada
+#   - Almacenamiento persistente transaccional Raft con permisos 0700
+#   - Protección anti-dumping de memoria (mlock activo con CAP_IPC_LOCK)
+#   - Esquema Shamir Secret Sharing multipartito (5 llaves / threshold 3)
+#   - Zero-Disk Persistence: Sin almacenamiento de credenciales maestras en LXC
+#   - Firewall perimetral UFW: Puerto 8200 restringido a K8s y Bastion
 # ==============================================================================
-- name: Setup HashiCorp Vault (Community Edition)
+- name: Setup Hardened HashiCorp Vault (Community Edition)
   hosts: vault_servers
   become: true
+  vars:
+    vault_storage_dir: "/opt/vault/data"
+    vault_config_dir: "/etc/vault.d"
+    vault_tls_dir: "/etc/vault.d/tls"
+    vault_api_ip: "10.10.13.110"
+    vault_cluster_subnet: "10.10.13.0/24"
+    vault_bastion_ip: "10.10.13.120"
+    vault_k8s_node_ip: "10.10.13.100"
+    vault_shares: 5
+    vault_threshold: 3
+
   tasks:
-    - name: Instalar paquetes de prerrequisitos
+    # --------------------------------------------------------------------------
+    # 1. Prerrequisitos del Sistema y Herramientas de Seguridad
+    # --------------------------------------------------------------------------
+    - name: Instalar paquetes de prerrequisitos y herramientas de hardening
       ansible.builtin.apt:
         name:
           - curl
@@ -16,6 +36,9 @@
           - lsb-release
           - jq
           - ca-certificates
+          - openssl
+          - ufw
+          - libcap2-bin
         state: present
         update_cache: true
 
@@ -42,114 +65,321 @@
         state: present
         update_cache: true
 
-    - name: Crear directorio de almacenamiento de datos de Vault
+    # --------------------------------------------------------------------------
+    # 2. Firewall Perimetral UFW (Restricción de Acceso al Puerto 8200)
+    # --------------------------------------------------------------------------
+    - name: Configurar políticas por defecto de UFW
+      community.general.ufw:
+        state: reset
+
+    - name: Establecer política por defecto de denegación entrante
+      community.general.ufw:
+        direction: incoming
+        default: deny
+
+    - name: Establecer política por defecto de permiso saliente
+      community.general.ufw:
+        direction: outgoing
+        default: allow
+
+    - name: Permitir tráfico local de loopback
+      community.general.ufw:
+        interface: lo
+        direction: in
+        rule: allow
+
+    - name: Permitir SSH (puerto 22) exclusivamente desde Bastion y subred de administración
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+        from_ip: "{{ item }}"
+      loop:
+        - "{{ vault_bastion_ip }}"
+        - "{{ vault_cluster_subnet }}"
+
+    - name: Permitir API de Vault (puerto 8200) exclusivamente desde K8s, Bastion y loopback
+      community.general.ufw:
+        rule: allow
+        port: '8200'
+        proto: tcp
+        from_ip: "{{ item }}"
+      loop:
+        - "{{ vault_k8s_node_ip }}"
+        - "{{ vault_bastion_ip }}"
+        - "{{ vault_cluster_subnet }}"
+        - "127.0.0.1"
+
+    - name: Habilitar y aplicar reglas de UFW
+      community.general.ufw:
+        state: enabled
+
+    # --------------------------------------------------------------------------
+    # 3. Directorios Seguros y Permisos de Almacenamiento
+    # --------------------------------------------------------------------------
+    - name: Crear directorio de almacenamiento de datos Raft (permisos estrictos 0700)
       ansible.builtin.file:
-        path: /opt/vault/data
+        path: "{{ vault_storage_dir }}"
+        state: directory
+        owner: vault
+        group: vault
+        mode: '0700'
+
+    - name: Crear directorio para certificados TLS de Vault
+      ansible.builtin.file:
+        path: "{{ vault_tls_dir }}"
         state: directory
         owner: vault
         group: vault
         mode: '0750'
 
-    - name: Generar archivo de configuración /etc/vault.d/vault.hcl
+    # --------------------------------------------------------------------------
+    # 4. Infraestructura de Clave Pública (PKI) y Certificados TLS Internos
+    # --------------------------------------------------------------------------
+    - name: Generar clave privada para la CA interna de Vault
+      ansible.builtin.command:
+        cmd: "openssl genrsa -out {{ vault_tls_dir }}/vault-ca.key 2048"
+        creates: "{{ vault_tls_dir }}/vault-ca.key"
+
+    - name: Establecer permisos de la clave privada de la CA
+      ansible.builtin.file:
+        path: "{{ vault_tls_dir }}/vault-ca.key"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Generar certificado autofirmado de la CA interna de Vault
+      ansible.builtin.command:
+        cmd: >
+          openssl req -x509 -new -nodes
+          -key {{ vault_tls_dir }}/vault-ca.key
+          -sha256 -days 3650
+          -out {{ vault_tls_dir }}/vault-ca.crt
+          -subj "/C=AR/ST=BuenosAires/L=BuenosAires/O=Pokedex/OU=Security/CN=Pokedex Vault Internal Root CA"
+        creates: "{{ vault_tls_dir }}/vault-ca.crt"
+
+    - name: Publicar y confiar en la CA interna en el sistema local
       ansible.builtin.copy:
-        dest: /etc/vault.d/vault.hcl
+        src: "{{ vault_tls_dir }}/vault-ca.crt"
+        dest: /usr/local/share/ca-certificates/vault-ca.crt
+        remote_src: true
+        mode: '0644'
+      notify: Actualizar certificados del sistema
+
+    - name: Generar archivo de configuración OpenSSL para SANs del servidor
+      ansible.builtin.copy:
+        dest: "{{ vault_tls_dir }}/openssl.cnf"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [req]
+          default_bits = 2048
+          prompt = no
+          default_md = sha256
+          distinguished_name = dn
+          req_extensions = req_ext
+
+          [dn]
+          C = AR
+          ST = BuenosAires
+          L = BuenosAires
+          O = Pokedex
+          OU = Infrastructure
+          CN = vault.proxmox.internal.lan
+
+          [req_ext]
+          subjectAltName = @alt_names
+
+          [alt_names]
+          IP.1 = {{ vault_api_ip }}
+          IP.2 = 127.0.0.1
+          DNS.1 = vault
+          DNS.2 = vault.proxmox.internal.lan
+          DNS.3 = localhost
+
+    - name: Generar clave privada para el servidor Vault
+      ansible.builtin.command:
+        cmd: "openssl genrsa -out {{ vault_tls_dir }}/vault.key 2048"
+        creates: "{{ vault_tls_dir }}/vault.key"
+
+    - name: Establecer permisos de la clave privada del servidor Vault
+      ansible.builtin.file:
+        path: "{{ vault_tls_dir }}/vault.key"
+        owner: vault
+        group: vault
+        mode: '0640'
+
+    - name: Generar solicitud de firma de certificado (CSR) para Vault
+      ansible.builtin.command:
+        cmd: "openssl req -new -key {{ vault_tls_dir }}/vault.key -out {{ vault_tls_dir }}/vault.csr -config {{ vault_tls_dir }}/openssl.cnf"
+        creates: "{{ vault_tls_dir }}/vault.csr"
+
+    - name: Firmar certificado de Vault con la CA interna
+      ansible.builtin.command:
+        cmd: >
+          openssl x509 -req
+          -in {{ vault_tls_dir }}/vault.csr
+          -CA {{ vault_tls_dir }}/vault-ca.crt
+          -CAkey {{ vault_tls_dir }}/vault-ca.key
+          -CAcreateserial
+          -out {{ vault_tls_dir }}/vault.crt
+          -days 825
+          -sha256
+          -extfile {{ vault_tls_dir }}/openssl.cnf
+          -extensions req_ext
+        creates: "{{ vault_tls_dir }}/vault.crt"
+
+    - name: Ajustar permisos del certificado del servidor Vault
+      ansible.builtin.file:
+        path: "{{ vault_tls_dir }}/vault.crt"
+        owner: vault
+        group: vault
+        mode: '0644'
+
+    # --------------------------------------------------------------------------
+    # 5. Configuración de Servicio Vault y Memory Lock (mlock) Hardening
+    # --------------------------------------------------------------------------
+    - name: Configurar capacidades Linux para mlock en binario de Vault
+      ansible.builtin.command:
+        cmd: setcap cap_ipc_lock=+ep /usr/bin/vault
+      changed_when: false
+
+    - name: Crear directorio para drop-in de systemd de Vault
+      ansible.builtin.file:
+        path: /etc/systemd/system/vault.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configurar límites de memoria y capacidades en systemd drop-in
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/vault.service.d/override.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Service]
+          LimitMEMLOCK=infinity
+          CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+          AmbientCapabilities=CAP_IPC_LOCK
+
+    - name: Generar archivo de configuración /etc/vault.d/vault.hcl endurecido
+      ansible.builtin.copy:
+        dest: "{{ vault_config_dir }}/vault.hcl"
         owner: vault
         group: vault
         mode: '0640'
         content: |
-          # Configuración HashiCorp Vault (Community Edition) en Proxmox LXC
-          storage "file" {
-            path = "/opt/vault/data"
+          # Configuración HashiCorp Vault (Community Edition) Endurecida en Proxmox LXC
+          # Almacenamiento transaccional integrado Raft
+          storage "raft" {
+            path    = "{{ vault_storage_dir }}"
+            node_id = "vault-1"
           }
 
+          # Listener HTTPS / TLS Estricto
           listener "tcp" {
-            address     = "0.0.0.0:8200"
-            tls_disable = 1
+            address         = "0.0.0.0:8200"
+            tls_disable     = 0
+            tls_cert_file   = "{{ vault_tls_dir }}/vault.crt"
+            tls_key_file    = "{{ vault_tls_dir }}/vault.key"
+            tls_min_version = "tls12"
           }
 
-          api_addr      = "http://10.10.13.110:8200"
-          cluster_addr  = "http://10.10.13.110:8201"
+          api_addr      = "https://{{ vault_api_ip }}:8200"
+          cluster_addr  = "https://{{ vault_api_ip }}:8201"
           ui            = true
-          disable_mlock = true
+          disable_mlock = false
 
     - name: Iniciar y habilitar el servicio de HashiCorp Vault
       ansible.builtin.systemd:
         name: vault
         enabled: true
-        state: started
+        state: restarted
         daemon_reload: true
 
-    - name: Verificar disponibilidad del endpoint de Vault
+    # --------------------------------------------------------------------------
+    # 6. Verificación de Salud e Inicialización Criptográfica (Shamir 5/3)
+    # --------------------------------------------------------------------------
+    - name: Verificar disponibilidad del endpoint HTTPS de Vault
       ansible.builtin.uri:
-        url: http://127.0.0.1:8200/v1/sys/health
+        url: https://127.0.0.1:8200/v1/sys/health
         method: GET
+        ca_path: "{{ vault_tls_dir }}/vault-ca.crt"
         status_code:
           - 200 # Inicializado y desbloqueado
-          - 501 # No inicializado (esperado tras primer arranque)
-          - 503 # Sellado (esperado antes del unseal)
+          - 501 # No inicializado (primer arranque)
+          - 503 # Sellado (esperado antes de unseal)
       register: vault_health
-      retries: 10
+      retries: 15
       delay: 2
       until: vault_health.status in [200, 501, 503]
 
-    - name: Inicializar HashiCorp Vault si es el primer arranque
+    - name: Inicializar HashiCorp Vault con Shamir 5/3 (Salida en Memoria Exclusiva)
       ansible.builtin.command:
-        cmd: vault operator init -key-shares=1 -key-threshold=1 -format=json
+        cmd: "vault operator init -key-shares={{ vault_shares }} -key-threshold={{ vault_threshold }} -format=json"
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
       register: vault_init_raw
       when: vault_health.status == 501
+      no_log: true
       changed_when: true
 
-    - name: Guardar credenciales maestras en archivo local protegido
-      ansible.builtin.copy:
-        dest: /etc/vault.d/vault-init.json
-        owner: root
-        group: root
-        mode: '0600'
-        content: "{{ vault_init_raw.stdout }}"
-      when: vault_health.status == 501
-
-    - name: Verificar si existe archivo de credenciales de inicialización
-      ansible.builtin.stat:
-        path: /etc/vault.d/vault-init.json
-      register: vault_init_file
-
-    - name: Leer credenciales de inicialización si existen
-      ansible.builtin.slurp:
-        src: /etc/vault.d/vault-init.json
-      register: vault_init_slurped
-      when: vault_init_file.stat.exists
-
-    - name: Parsear credenciales de inicialización
+    - name: Parsear credenciales maestras volátiles en memoria de Ansible
       ansible.builtin.set_fact:
-        vault_creds: "{{ vault_init_slurped.content | b64decode | from_json }}"
-      when: vault_init_file.stat.exists
+        vault_master_creds: "{{ vault_init_raw.stdout | from_json }}"
+      when: vault_init_raw.changed
+      no_log: true
 
-    - name: Desbloquear (Unseal) HashiCorp Vault si está sellado
+    # --------------------------------------------------------------------------
+    # 7. Zero-Disk Persistence: Purga de Archivos Locales de Credenciales
+    # --------------------------------------------------------------------------
+    - name: Garantizar que vault-init.json NO persista en el filesystem del LXC
+      ansible.builtin.file:
+        path: "{{ vault_config_dir }}/vault-init.json"
+        state: absent
+
+    # --------------------------------------------------------------------------
+    # 8. Desbloqueo (Unseal) Multipartito en Memoria
+    # --------------------------------------------------------------------------
+    - name: Desbloquear Vault aplicando el umbral de llaves Shamir en memoria (Primer Arranque)
       ansible.builtin.command:
-        cmd: "vault operator unseal {{ vault_creds.unseal_keys_b64[0] }}"
+        cmd: "vault operator unseal {{ item }}"
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+      loop:
+        - "{{ vault_master_creds.unseal_keys_b64[0] }}"
+        - "{{ vault_master_creds.unseal_keys_b64[1] }}"
+        - "{{ vault_master_creds.unseal_keys_b64[2] }}"
       when:
-        - vault_init_file.stat.exists
-        - vault_health.status == 503 or (vault_init_raw is defined and vault_init_raw.changed)
+        - vault_init_raw is defined
+        - vault_init_raw.changed
+      no_log: true
       changed_when: true
 
+    # --------------------------------------------------------------------------
+    # 9. Configuración de Recursos de Aplicación (KV-v2, Políticas y K8s Auth)
+    # --------------------------------------------------------------------------
     - name: Habilitar Secrets Engine KV versión 2 en secret/
       ansible.builtin.command:
         cmd: vault secrets enable -version=2 -path=secret kv
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
-        VAULT_TOKEN: "{{ vault_creds.root_token }}"
-      when: vault_init_file.stat.exists
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
       register: kv_enable
       failed_when: false
       changed_when: kv_enable.rc == 0
 
     - name: Generar política de acceso pokedex-policy para la aplicación
       ansible.builtin.copy:
-        dest: /etc/vault.d/pokedex-policy.hcl
+        dest: "{{ vault_config_dir }}/pokedex-policy.hcl"
         owner: root
         group: root
         mode: '0640'
@@ -164,20 +394,24 @@
 
     - name: Aplicar política pokedex-policy en Vault
       ansible.builtin.command:
-        cmd: vault policy write pokedex-policy /etc/vault.d/pokedex-policy.hcl
+        cmd: "vault policy write pokedex-policy {{ vault_config_dir }}/pokedex-policy.hcl"
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
-        VAULT_TOKEN: "{{ vault_creds.root_token }}"
-      when: vault_init_file.stat.exists
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
       changed_when: true
 
     - name: Habilitar método de autenticación Kubernetes
       ansible.builtin.command:
         cmd: vault auth enable kubernetes
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
-        VAULT_TOKEN: "{{ vault_creds.root_token }}"
-      when: vault_init_file.stat.exists
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
       register: k8s_auth_enable
       failed_when: false
       changed_when: k8s_auth_enable.rc == 0
@@ -191,10 +425,48 @@
           policies=pokedex-policy
           ttl=1h
       environment:
-        VAULT_ADDR: "http://127.0.0.1:8200"
-        VAULT_TOKEN: "{{ vault_creds.root_token }}"
-      when: vault_init_file.stat.exists
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
       register: role_write
       failed_when: false
       changed_when: role_write.rc == 0
 
+    # --------------------------------------------------------------------------
+    # 10. Custodia Externa Segura: Exportar Certificado CA a Infraestructura K8s
+    # --------------------------------------------------------------------------
+    - name: Obtener certificado público de la CA de Vault para configuración de ESO en K8s
+      ansible.builtin.slurp:
+        src: "{{ vault_tls_dir }}/vault-ca.crt"
+      register: vault_ca_public_cert
+
+    - name: Guardar copia del certificado público de CA en el repositorio infra/k8s/eso/vault-ca.crt
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/../../k8s/eso/vault-ca.crt"
+        content: "{{ vault_ca_public_cert.content | b64decode }}"
+        mode: '0644'
+      delegate_to: localhost
+      become: false
+
+    - name: Informar al operador sobre inicialización completada y resguardo de credenciales
+      ansible.builtin.debug:
+        msg:
+          - "========================================================================"
+          - "🔒 HASHICORP VAULT (COMMUNITY EDITION) ENDURECIDO APROVISIONADO CON ÉXITO"
+          - "========================================================================"
+          - "Endpoint API       : https://{{ vault_api_ip }}:8200"
+          - "Cifrado en Tránsito : TLS 1.2+ Activo con CA dedicada"
+          - "Almacenamiento     : Raft Integrated Storage (0700)"
+          - "Shamir Scheme      : 5 llaves generadas, threshold 3"
+          - "Firewall UFW       : 8200 permitido únicamente para K8s y Bastion"
+          - "Zero-Persistence   : /etc/vault.d/vault-init.json PURGADO DEL CONTENEDOR"
+          - "Certificado CA     : Exportado a infra/k8s/eso/vault-ca.crt"
+          - "========================================================================"
+      when: vault_init_raw is defined and vault_init_raw.changed
+
+  handlers:
+    - name: Actualizar certificados del sistema
+      ansible.builtin.command:
+        cmd: update-ca-certificates

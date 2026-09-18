@@ -21,14 +21,15 @@ test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore v
   assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Proxmox');
 });
 
-test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTP del LXC Proxmox y rol pokedex-role', () => {
+test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-role', () => {
   const vaultBackendPath = path.join(ROOT_DIR, 'infra/k8s/eso/vault-backend.yaml');
   const content = fs.readFileSync(vaultBackendPath, 'utf-8');
 
-  assert.match(content, /server:\s*"http:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault');
+  assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
   assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
   assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
   assert.match(content, /role:\s*"pokedex-role"/, 'Debe autenticar con el rol pokedex-role');
+  assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
 });
 
 test('🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout restart en ausencia de Reloader', () => {

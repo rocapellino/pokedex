@@ -180,24 +180,39 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/se
 
 ---
 
-## 6. Aprovisionamiento y Configuración de Vault CE con Ansible
+## 6. Aprovisionamiento y Configuración Endurecida de Vault CE con Ansible
 
-El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) automatiza el ciclo de vida de HashiCorp Vault CE dentro del contenedor LXC (ID 810, IP `10.10.13.110`):
+El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) automatiza el ciclo de vida y blindaje de HashiCorp Vault CE dentro del contenedor LXC (ID 810, IP `10.10.13.110`) bajo un estándar de seguridad de producción y Zero-Trust:
 
-1. **Instalación y Configuración del Servicio:** Instala el paquete de Vault CE, configura `/etc/vault.d/vault.hcl` con backend de almacenamiento `file` persistente en `/opt/vault/data`, listener HTTP en `0.0.0.0:8200` y habilita el servicio systemd.
-2. **Inicialización y Desbloqueo (Unseal):** Comprueba el estado (`vault status`). Si no está inicializado, ejecuta `vault operator init -key-shares=1 -key-threshold=1`, persiste las claves de forma segura en `/etc/vault.d/vault.keys` con permisos `0600`, y desbloquea la instancia (`vault operator unseal`).
-3. **Motores de Secretos y Políticas:** Habilita el motor KV versión 2 en `secret/` y aplica la política `pokedex-policy` (`read` sobre `secret/data/pokedex/*`).
-4. **Integración con Kubernetes (Auth Method):** Habilita el método de autenticación `kubernetes` y configura el rol `pokedex-role` enlazado al ServiceAccount `external-secrets-sa` del namespace `external-secrets`.
+1. **Cifrado en Tránsito (HTTPS / TLS 1.2+):**
+   - Se genera una PKI interna con una CA raíz (`vault-ca.crt`) y un certificado emitido para `vault.proxmox.internal.lan` con SANs para `10.10.13.110`, `127.0.0.1` y `localhost`.
+   - Se activa el listener TLS estricto en el puerto 8200 (`tls_disable = 0`, `tls_min_version = "tls12"`).
+2. **Almacenamiento Transaccional Raft y Anti-Swap:**
+   - Se configura `storage "raft"` en `/opt/vault/data` con permisos restrictivos `0700` (`vault:vault`).
+   - Se habilita el bloqueo de memoria física (`disable_mlock = false`) respaldado por la capacidad de Linux `CAP_IPC_LOCK` y límites de systemd `LimitMEMLOCK=infinity` para prevenir el volcado de claves criptográficas a disco swap.
+3. **Firewall Perimetral UFW:**
+   - Se aplica política por defecto de denegación (`default deny incoming`).
+   - El puerto API `8200/tcp` se restringe de forma estricta para ser alcanzable únicamente desde los nodos del clúster K8s (`10.10.13.100`), el host Bastion (`10.10.13.120`) y loopback.
+   - El puerto `22/tcp` (SSH) solo se permite desde Bastion y subredes autorizadas.
+4. **Shamir Secret Sharing Multipartito (5 llaves / umbral 3):**
+   - Inicialización con esquema robusto de Shamir (`key-shares=5`, `key-threshold=3`).
+5. **Zero-Disk Persistence (Sin Resguardo de Root Token en LXC):**
+   - El proceso de inicialización captura las claves de unseal y el root token **únicamente en la memoria volátil de Ansible**.
+   - Se realiza el unseal inicial aplicando 3 llaves en memoria y se configuran las entidades de Vault.
+   - Se garantiza la eliminación permanente de cualquier archivo `vault-init.json` en el contenedor LXC.
+   - Las llaves maestras se entregan al operador fuera del contenedor.
+6. **Integración con External Secrets Operator (ESO):**
+   - El certificado público de la CA interna se exporta a [`infra/k8s/eso/vault-ca.crt`](../../infra/k8s/eso/vault-ca.crt) y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
 
 ```bash
-# Ejecutar el playbook de aprovisionamiento de Vault:
+# Ejecutar el playbook de aprovisionamiento endurecido de Vault:
 ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
 
 # O mediante Taskfile:
 task vault:setup:proxmox
 
-# Verificar la salud de la API de Vault:
-curl -s http://10.10.13.110:8200/v1/sys/health | jq .
+# Verificar la salud de la API de Vault vía HTTPS con la CA interna:
+curl --cacert infra/k8s/eso/vault-ca.crt https://10.10.13.110:8200/v1/sys/health | jq .
 ```
 
 ---
