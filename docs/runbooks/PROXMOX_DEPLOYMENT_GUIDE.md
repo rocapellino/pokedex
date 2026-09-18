@@ -62,7 +62,9 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 * **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
 * **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos locales hacia los nodos.
 * **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado, la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a **HashiCorp Vault (Community Edition)**:
+
   * **Topología Canónica:**
+
     ```text
     Proxmox (LXC 810: Vault CE @ 10.10.13.110:8200)
        ↓ (k8s auth method / pokedex-role)
@@ -74,6 +76,7 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
        ↓
     Deployment Pods (pokedex-api / pokedex-web)
     ```
+
   * **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, IP `10.10.13.110`, hostname `vault`) gestionado por OpenTofu y configurado por Ansible.
   * **Definición Canónica ESO:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
   * **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
@@ -259,5 +262,3 @@ npm run k8s:verify-vault-architecture
 # o ejecutar la suite de pruebas de contrato:
 npm test -- tests/security/vault_redeploy_contract.test.ts
 ```
-
-
