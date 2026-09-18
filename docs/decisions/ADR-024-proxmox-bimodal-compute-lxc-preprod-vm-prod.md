@@ -89,6 +89,7 @@ Como principio fundamental de seguridad ([ADR-005](./ADR-005-secret-management.m
 - **Tolerancia Cero a Secretos por Defecto**: Ninguna variable de credenciales (`proxmox_api_token`, `vm_user_password`) contiene valores por defecto en el código fuente.
 - **Acceso a Nodos por SSH Key**: La autenticación hacia las instancias de Kubernetes es obligatoria y validada mediante llave pública SSH (`ssh_public_key`). La contraseña de consola queda deshabilitada por defecto (`vm_user_password = null`) con reglas de `lifecycle { ignore_changes }` para prevenir destrucciones accidentales durante rotaciones.
 - **Verificación TLS Estricta por Defecto**: Se establece `proxmox_insecure = false` por defecto para prevenir ataques Man-In-The-Middle (MITM). En caso de usar certificados autofirmados en laboratorios locales, el operador debe optar explícitamente por `proxmox_insecure = true` en su archivo `terraform.tfvars` local no versionado.
+- **Descarga por HTTPS y Verificación Criptográfica de Plantillas (Supply Chain Security)**: En cumplimiento con [ADR-008](./ADR-008-supply-chain-security.md), se erradicó la descarga en texto plano vía HTTP. Las plantillas LXC se descargan exclusivamente mediante HTTPS y su integridad es validada de forma estricta en OpenTofu mediante hashes criptográficos oficiales (`checksum = "ff5c55cba730fc1e93bc7de3e0ea4aecb05c692094009cfcf2999973a56f15e5"`, `checksum_algorithm = "sha256"`), bloqueando cualquier intento de manipulación o corrupción en tránsito antes de inicializar los nodos.
 
 ## Consecuencias
 

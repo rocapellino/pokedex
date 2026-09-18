@@ -19,8 +19,11 @@ vm_count               = 1
 vm_cores               = 4
 vm_memory              = 5120
 vm_disk_size           = 32
-lxc_template_url       = "http://download.proxmox.com/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
-lxc_template_file_name = "debian-12-standard_12.12-1_amd64.tar.zst"
+# Plantilla LXC descargada mediante HTTPS con verificación criptográfica SHA256 (Supply Chain Security):
+lxc_template_url                = "https://mirrors.ustc.edu.cn/proxmox/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
+lxc_template_file_name          = "debian-12-standard_12.12-1_amd64.tar.zst"
+lxc_template_checksum           = "ff5c55cba730fc1e93bc7de3e0ea4aecb05c692094009cfcf2999973a56f15e5"
+lxc_template_checksum_algorithm = "sha256"
 network_bridge         = "vmbr0"
 network_ip             = "10.10.13.100/24"
 network_gateway        = "10.10.13.1"

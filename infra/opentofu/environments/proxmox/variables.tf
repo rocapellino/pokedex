@@ -83,14 +83,26 @@ variable "vm_disk_size" {
 
 variable "lxc_template_url" {
   type        = string
-  default     = "http://download.proxmox.com/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
-  description = "URL oficial de descarga de la plantilla LXC en Proxmox"
+  default     = "https://mirrors.ustc.edu.cn/proxmox/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
+  description = "URL oficial HTTPS de descarga de la plantilla LXC en Proxmox"
 }
 
 variable "lxc_template_file_name" {
   type        = string
   default     = "debian-12-standard_12.12-1_amd64.tar.zst"
   description = "Nombre del archivo de plantilla vztmpl en Proxmox"
+}
+
+variable "lxc_template_checksum" {
+  type        = string
+  default     = "ff5c55cba730fc1e93bc7de3e0ea4aecb05c692094009cfcf2999973a56f15e5"
+  description = "Hash criptográfico SHA256 oficial para verificación estricta de integridad de la plantilla LXC"
+}
+
+variable "lxc_template_checksum_algorithm" {
+  type        = string
+  default     = "sha256"
+  description = "Algoritmo de hash para verificar la plantilla LXC ('sha256' o 'sha512')"
 }
 
 variable "image_file_id" {

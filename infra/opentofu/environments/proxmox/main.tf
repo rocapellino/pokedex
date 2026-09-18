@@ -6,12 +6,14 @@
 # 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count        = var.compute_type == "lxc" ? 1 : 0
-  content_type = "vztmpl"
-  datastore_id = "local"
-  node_name    = var.node_name
-  url          = var.lxc_template_url
-  file_name    = var.lxc_template_file_name
+  count              = var.compute_type == "lxc" ? 1 : 0
+  content_type       = "vztmpl"
+  datastore_id       = "local"
+  node_name          = var.node_name
+  url                = var.lxc_template_url
+  file_name          = var.lxc_template_file_name
+  checksum           = var.lxc_template_checksum
+  checksum_algorithm = var.lxc_template_checksum_algorithm
 }
 
 resource "proxmox_virtual_environment_container" "k8s_nodes" {
@@ -74,6 +76,7 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
   lifecycle {
     ignore_changes = [
       initialization[0].user_account[0].password,
+      operating_system[0].template_file_id,
     ]
   }
 }
