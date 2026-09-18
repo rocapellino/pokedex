@@ -9,7 +9,7 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 1. [Arquitectura de Cómputo On-Premises (Bi-Modal)](#1-arquitectura-de-cómputo-on-premises-bi-modal)
 2. [Gestión Canónica de Secretos (ESO + Vault) y Justificación de Redeploy](#2-gestión-canónica-de-secretos-eso--vault-y-justificación-de-redeploy)
 3. [Aprovisionamiento de Infraestructura con OpenTofu (IaaS)](#3-aprovisionamiento-de-infraestructura-con-opentofu-iaas)
-4. [Nodo Satélite de Automatización (Ansible Control Node en LXC)](#4-nodo-satélite-de-automatización-ansible-control-node-en-lxc)
+4. [Bastion Host y Herramientas Centralizadas (LXC 820)](#4-bastion-host-y-herramientas-centralizadas-lxc-820)
 5. [Hardening del Sistema Operativo y Firewall con Ansible](#5-hardening-del-sistema-operativo-y-firewall-con-ansible)
 6. [Aprovisionamiento y Configuración de Vault CE con Ansible](#6-aprovisionamiento-y-configuración-de-vault-ce-con-ansible)
 7. [Instalación de Kubernetes Runtime (K3s) y CNI Cilium](#7-instalación-de-kubernetes-runtime-k3s-y-cni-cilium)
@@ -124,23 +124,33 @@ tofu apply \
 
 ---
 
-## 4. Nodo Satélite de Automatización (Ansible Control Node en LXC)
+## 4. Bastion Host y Herramientas Centralizadas (LXC 820)
 
-Para superar las fricciones de ejecución de Ansible desde estaciones cliente (passphrases de SSH o diferencias de sistema operativo), el contenedor **`820 (ansible-satellite)`** actúa como el nodo de control oficial en la LAN interna de Proxmox (`10.10.13.120/24`):
+Para centralizar todas las herramientas de gestión y superar las fricciones de ejecución desde estaciones cliente (passphrases de SSH o diferencias de sistema operativo), el contenedor **`820 (bastion)`** (`10.10.13.120/24`) actúa como el bastion y nodo de control DevOps oficial dentro de la LAN de Proxmox:
 
-### Puesta en Marcha Rápida del Satélite
+### Herramientas Centralizadas en Bastion
+- **Orquestación:** `ansible` y `ansible-playbook` con los playbooks del repositorio.
+- **Kubernetes:** `kubectl` y `helm` preinstalados para interactuar con el clúster (`10.10.13.100`).
+- **Secretos:** `vault` CLI para inspeccionar y operar HashiCorp Vault (`10.10.13.110:8200`).
+- **DevOps Core:** `git`, `curl`, `wget`, `jq`, `python3`, `dnsutils`, `netcat-openbsd`.
+
+### Puesta en Marcha y Centralización de Herramientas
 
 Desde la consola web de Proxmox (LXC 820 -> `>_ Console`):
 
 ```bash
-# 1. Instalar paquetes de automatización
-apt-get update && apt-get install -y ansible git curl jq python3-pip
+# 1. Instalar el ecosistema completo de herramientas DevOps
+apt-get update && apt-get install -y ansible git curl wget jq python3-pip python3-venv dnsutils netcat-openbsd
 
-# 2. Clonar el repositorio Pokédex para orquestación interna
+# 2. Instalar herramientas CLI oficiales (kubectl, helm, vault)
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
+
+# 3. Clonar el repositorio Pokédex para orquestación interna
 git clone https://github.com/rocapellino/pokedex.git /opt/devops/pokedex
 cd /opt/devops/pokedex
 
-# 3. Ejecutar el setup de Vault directamente desde la LAN interna
+# 4. Orquestar el setup de Vault en 10.10.13.110 directamente desde la LAN
 ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
 ```
 

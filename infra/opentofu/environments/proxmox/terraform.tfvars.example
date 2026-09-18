@@ -41,13 +41,14 @@ vault_disk_size        = 16
 vault_network_ip       = "10.10.13.110/24"
 vault_unprivileged     = true
 
-# Configuración del Nodo Satélite de Ansible (Control Node) LXC:
-ansible_satellite_enabled      = true
-ansible_satellite_vm_id        = 820
-ansible_satellite_hostname     = "ansible-satellite"
-ansible_satellite_cores        = 2
-ansible_satellite_memory       = 1024
-ansible_satellite_disk_size    = 16
-ansible_satellite_network_ip   = "10.10.13.120/24"
-ansible_satellite_unprivileged = true
+# Configuración del Bastion Host y Automatización Centralizada LXC:
+bastion_enabled      = true
+bastion_vm_id        = 820
+bastion_hostname     = "bastion"
+bastion_cores        = 2
+bastion_memory       = 1024
+bastion_disk_size    = 16
+bastion_network_ip   = "10.10.13.120/24"
+bastion_unprivileged = true
+
 

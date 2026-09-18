@@ -67,20 +67,21 @@ output "vault_endpoint" {
 }
 
 # ==============================================================================
-# Outputs - Ansible Control Node / Satélite LXC
+# Outputs - Bastion Host y Automatización Centralizada LXC
 # ==============================================================================
-output "ansible_satellite_instance_id" {
-  description = "ID del contenedor LXC del satélite de Ansible en Proxmox VE"
-  value       = var.ansible_satellite_enabled ? proxmox_virtual_environment_container.ansible_satellite[0].vm_id : null
+output "bastion_instance_id" {
+  description = "ID del contenedor LXC de bastion en Proxmox VE"
+  value       = var.bastion_enabled ? proxmox_virtual_environment_container.bastion[0].vm_id : null
 }
 
-output "ansible_satellite_hostname" {
-  description = "Hostname del contenedor LXC del satélite de Ansible"
-  value       = var.ansible_satellite_enabled ? proxmox_virtual_environment_container.ansible_satellite[0].initialization[0].hostname : null
+output "bastion_hostname" {
+  description = "Hostname del contenedor LXC de bastion"
+  value       = var.bastion_enabled ? proxmox_virtual_environment_container.bastion[0].initialization[0].hostname : null
 }
 
-output "ansible_satellite_ip" {
-  description = "Dirección IPv4 del contenedor LXC del satélite de Ansible"
-  value       = var.ansible_satellite_enabled ? split("/", var.ansible_satellite_network_ip)[0] : null
+output "bastion_ip" {
+  description = "Dirección IPv4 del contenedor LXC de bastion"
+  value       = var.bastion_enabled ? split("/", var.bastion_network_ip)[0] : null
 }
+
 

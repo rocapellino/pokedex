@@ -217,54 +217,55 @@ variable "vault_unprivileged" {
 }
 
 # ==============================================================================
-# Variables para Ansible Control Node / Satélite en Contenedor LXC
+# Variables para Bastion Host y Automatización Centralizada en Contenedor LXC
 # ==============================================================================
-variable "ansible_satellite_enabled" {
+variable "bastion_enabled" {
   type        = bool
   default     = true
-  description = "Habilitar el aprovisionamiento del contenedor LXC dedicado como nodo de control y satélite de Ansible"
+  description = "Habilitar el aprovisionamiento del contenedor LXC dedicado como bastion host y nodo de automatización centralizado"
 }
 
-variable "ansible_satellite_vm_id" {
+variable "bastion_vm_id" {
   type        = number
   default     = 820
-  description = "ID asignado al contenedor LXC del satélite de Ansible en Proxmox VE"
+  description = "ID asignado al contenedor LXC de bastion en Proxmox VE"
 }
 
-variable "ansible_satellite_hostname" {
+variable "bastion_hostname" {
   type        = string
-  default     = "ansible-satellite"
-  description = "Hostname configurado en el contenedor LXC del satélite de Ansible"
+  default     = "bastion"
+  description = "Hostname configurado en el contenedor LXC de bastion"
 }
 
-variable "ansible_satellite_cores" {
+variable "bastion_cores" {
   type        = number
   default     = 2
-  description = "Cores de CPU asignados al contenedor LXC del satélite de Ansible"
+  description = "Cores de CPU asignados al contenedor LXC de bastion"
 }
 
-variable "ansible_satellite_memory" {
+variable "bastion_memory" {
   type        = number
   default     = 1024
-  description = "Memoria RAM en MB asignada al contenedor LXC del satélite de Ansible"
+  description = "Memoria RAM en MB asignada al contenedor LXC de bastion"
 }
 
-variable "ansible_satellite_disk_size" {
+variable "bastion_disk_size" {
   type        = number
   default     = 16
-  description = "Tamaño del disco en GB asignado al contenedor LXC del satélite de Ansible"
+  description = "Tamaño del disco en GB asignado al contenedor LXC de bastion"
 }
 
-variable "ansible_satellite_network_ip" {
+variable "bastion_network_ip" {
   type        = string
   default     = "10.10.13.120/24"
-  description = "Dirección IPv4 estática CIDR para el contenedor LXC del satélite de Ansible"
+  description = "Dirección IPv4 estática CIDR para el contenedor LXC de bastion"
 }
 
-variable "ansible_satellite_unprivileged" {
+variable "bastion_unprivileged" {
   type        = bool
   default     = true
-  description = "Ejecutar el contenedor LXC del satélite en modo unprivileged para aislamiento de seguridad estricto"
+  description = "Ejecutar el contenedor LXC de bastion en modo unprivileged para aislamiento de seguridad estricto"
 }
+
 
 

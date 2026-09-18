@@ -6,7 +6,7 @@
 # 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count              = (var.compute_type == "lxc" || var.vault_enabled || var.ansible_satellite_enabled) ? 1 : 0
+  count              = (var.compute_type == "lxc" || var.vault_enabled || var.bastion_enabled) ? 1 : 0
   content_type       = "vztmpl"
   datastore_id       = "local"
   node_name          = var.node_name
@@ -235,32 +235,37 @@ resource "proxmox_virtual_environment_container" "vault" {
 }
 
 # ------------------------------------------------------------------------------
-# 4. Ansible Control Node / Satélite de Automatización - Contenedor LXC Dedicado
+# 4. Bastion Host y Nodo de Automatización Centralizado - Contenedor LXC Dedicado
 # ------------------------------------------------------------------------------
-resource "proxmox_virtual_environment_container" "ansible_satellite" {
-  count       = var.ansible_satellite_enabled ? 1 : 0
-  node_name   = var.node_name
-  vm_id       = var.ansible_satellite_vm_id
-  description = "Ansible Control Node / Satélite de Automatización en LXC (OpenTofu Managed)"
-  tags        = ["ansible", "satellite", "devops", "lxc", "onprem", "pokedex", var.environment_tier]
+moved {
+  from = proxmox_virtual_environment_container.ansible_satellite
+  to   = proxmox_virtual_environment_container.bastion
+}
 
-  unprivileged  = var.ansible_satellite_unprivileged
+resource "proxmox_virtual_environment_container" "bastion" {
+  count       = var.bastion_enabled ? 1 : 0
+  node_name   = var.node_name
+  vm_id       = var.bastion_vm_id
+  description = "Bastion Host y Nodo de Automatización Centralizado en LXC (OpenTofu Managed)"
+  tags        = ["bastion", "management", "devops", "lxc", "onprem", "pokedex", var.environment_tier]
+
+  unprivileged  = var.bastion_unprivileged
   started       = true
   start_on_boot = true
 
   cpu {
-    cores        = var.ansible_satellite_cores
+    cores        = var.bastion_cores
     architecture = "amd64"
   }
 
   memory {
-    dedicated = var.ansible_satellite_memory
+    dedicated = var.bastion_memory
     swap      = 512
   }
 
   disk {
     datastore_id = "local-lvm"
-    size         = var.ansible_satellite_disk_size
+    size         = var.bastion_disk_size
   }
 
   operating_system {
@@ -274,13 +279,13 @@ resource "proxmox_virtual_environment_container" "ansible_satellite" {
   }
 
   initialization {
-    hostname = var.ansible_satellite_hostname
+    hostname = var.bastion_hostname
     dns {
       servers = [var.network_gateway, "1.1.1.1"]
     }
     ip_config {
       ipv4 {
-        address = var.ansible_satellite_network_ip
+        address = var.bastion_network_ip
         gateway = var.network_gateway
       }
     }
@@ -301,5 +306,6 @@ resource "proxmox_virtual_environment_container" "ansible_satellite" {
     ]
   }
 }
+
 
 

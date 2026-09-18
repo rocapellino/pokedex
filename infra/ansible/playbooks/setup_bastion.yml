@@ -1,0 +1,80 @@
+---
+# ==============================================================================
+# Playbook: Aprovisionamiento y Centralización de Herramientas en Bastion LXC
+# ==============================================================================
+- name: Centralizar herramientas DevOps en el Bastion Host
+  hosts: bastion_servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Actualizar cache de APT
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Instalar paquetes esenciales de administración y red
+      ansible.builtin.apt:
+        name:
+          - ansible
+          - git
+          - curl
+          - wget
+          - jq
+          - python3
+          - python3-pip
+          - python3-venv
+          - sshpass
+          - rsync
+          - dnsutils
+          - netcat-openbsd
+          - ca-certificates
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Añadir clave GPG oficial de HashiCorp (Vault)
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /etc/apt/trusted.gpg.d/hashicorp.asc
+        mode: '0644'
+
+    - name: Añadir repositorio oficial de HashiCorp
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+
+    - name: Instalar cliente HashiCorp Vault
+      ansible.builtin.apt:
+        name: vault
+        state: present
+        update_cache: true
+
+    - name: Descargar e instalar kubectl (Kubernetes CLI)
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Instalar Helm (Kubernetes Package Manager)
+      ansible.builtin.shell: |
+        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Crear directorio de trabajo /opt/devops
+      ansible.builtin.file:
+        path: /opt/devops
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Clonar o sincronizar repositorio Pokédex para orquestación interna
+      ansible.builtin.git:
+        repo: "https://github.com/rocapellino/pokedex.git"
+        dest: /opt/devops/pokedex
+        version: main
+        force: false
+      ignore_errors: true
