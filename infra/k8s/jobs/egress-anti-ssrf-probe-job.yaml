@@ -1,3 +1,4 @@
+# checkov:skip=CKV2_K8S_6: "El Job hereda las NetworkPolicies y CiliumNetworkPolicies de la API mediante app.kubernetes.io/component: api"
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -16,9 +17,18 @@ spec:
         app.kubernetes.io/component: api # Crucial: aplica el mismo endpointSelector que la API
     spec:
       restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: probe
-          image: curlimages/curl:8.10.1
+          image: curlimages/curl:8.10.1@sha256:d9b4541e214bcd85196d6e92e2753ac6d0ea699f0af5741f8c6cccbfcf00ef4b
+          imagePullPolicy: Always
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -82,7 +92,39 @@ spec:
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
-            runAsUser: 1000
+            runAsUser: 10001
+            runAsGroup: 10001
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pokedex-egress-anti-ssrf-probe-netpol
+  namespace: pokemon-app
+  labels:
+    app.kubernetes.io/name: pokedex-egress-probe
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pokedex-egress-probe
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+
