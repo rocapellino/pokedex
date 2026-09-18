@@ -5,6 +5,8 @@
 global:
   environment: onprem-proxmox
   namespace: pokemon-app
+  imagePullSecrets: []
+
 
 api:
   replicaCount: 2
@@ -40,9 +42,12 @@ web:
 
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations:
-    cert-manager.io/cluster-issuer: "internal-ca-issuer"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/configuration-snippet: null
+    nginx.ingress.kubernetes.io/server-snippet: null
+
   hosts:
     - host: pokedex.proxmox.internal.lan
       paths:
@@ -67,16 +72,37 @@ ingress:
               name: pokemon-web-svc
               port:
                 number: 8080
-  tls:
-    - secretName: pokedex-internal-tls
-      hosts:
-        - pokedex.proxmox.internal.lan
+    - host: ""
+      paths:
+
+        - path: /api/
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /pokemons
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-api-svc
+              port:
+                number: 3000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: pokemon-web-svc
+              port:
+                number: 8080
+  tls: []
 
 secrets:
-  existingSecret: "pokemon-secrets"
+  existingSecret: ""
 
 externalSecrets:
-  enabled: true
+  enabled: false
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
   secretStoreRef:
@@ -84,3 +110,4 @@ externalSecrets:
     kind: "ClusterSecretStore"
   remoteRef:
     key: "secret/data/pokedex/production"
+
