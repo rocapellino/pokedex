@@ -6,7 +6,7 @@
 # 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count              = (var.compute_type == "lxc" || var.vault_enabled) ? 1 : 0
+  count              = (var.compute_type == "lxc" || var.vault_enabled || var.bastion_enabled) ? 1 : 0
   content_type       = "vztmpl"
   datastore_id       = "local"
   node_name          = var.node_name
@@ -233,4 +233,79 @@ resource "proxmox_virtual_environment_container" "vault" {
     ]
   }
 }
+
+# ------------------------------------------------------------------------------
+# 4. Bastion Host y Nodo de Automatización Centralizado - Contenedor LXC Dedicado
+# ------------------------------------------------------------------------------
+moved {
+  from = proxmox_virtual_environment_container.ansible_satellite
+  to   = proxmox_virtual_environment_container.bastion
+}
+
+resource "proxmox_virtual_environment_container" "bastion" {
+  count       = var.bastion_enabled ? 1 : 0
+  node_name   = var.node_name
+  vm_id       = var.bastion_vm_id
+  description = "Bastion Host y Nodo de Automatización Centralizado en LXC (OpenTofu Managed)"
+  tags        = ["bastion", "management", "devops", "lxc", "onprem", "pokedex", var.environment_tier]
+
+  unprivileged  = var.bastion_unprivileged
+  started       = true
+  start_on_boot = true
+
+  cpu {
+    cores        = var.bastion_cores
+    architecture = "amd64"
+  }
+
+  memory {
+    dedicated = var.bastion_memory
+    swap      = 512
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    size         = var.bastion_disk_size
+  }
+
+  operating_system {
+    template_file_id = proxmox_download_file.debian_lxc_template[0].id
+    type             = "debian"
+  }
+
+  network_interface {
+    name   = "eth0"
+    bridge = var.network_bridge
+  }
+
+  initialization {
+    hostname = var.bastion_hostname
+    dns {
+      servers = [var.network_gateway, "1.1.1.1"]
+    }
+    ip_config {
+      ipv4 {
+        address = var.bastion_network_ip
+        gateway = var.network_gateway
+      }
+    }
+    user_account {
+      keys     = [var.ssh_public_key]
+      password = var.vm_user_password
+    }
+  }
+
+  features {
+    nesting = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      initialization[0].user_account[0].password,
+      operating_system[0].template_file_id,
+    ]
+  }
+}
+
+
 

@@ -65,3 +65,23 @@ output "vault_endpoint" {
   description = "URL HTTP del servicio HashiCorp Vault en Proxmox"
   value       = var.vault_enabled ? "http://${split("/", var.vault_network_ip)[0]}:8200" : null
 }
+
+# ==============================================================================
+# Outputs - Bastion Host y Automatización Centralizada LXC
+# ==============================================================================
+output "bastion_instance_id" {
+  description = "ID del contenedor LXC de bastion en Proxmox VE"
+  value       = var.bastion_enabled ? proxmox_virtual_environment_container.bastion[0].vm_id : null
+}
+
+output "bastion_hostname" {
+  description = "Hostname del contenedor LXC de bastion"
+  value       = var.bastion_enabled ? proxmox_virtual_environment_container.bastion[0].initialization[0].hostname : null
+}
+
+output "bastion_ip" {
+  description = "Dirección IPv4 del contenedor LXC de bastion"
+  value       = var.bastion_enabled ? split("/", var.bastion_network_ip)[0] : null
+}
+
+
