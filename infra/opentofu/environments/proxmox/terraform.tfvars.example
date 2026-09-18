@@ -1,0 +1,21 @@
+# ==============================================================================
+# Variables de Ejemplo para Proxmox VE (terraform.tfvars.example)
+# ==============================================================================
+
+proxmox_endpoint       = "https://10.10.13.10:8006/"
+proxmox_username       = "root@pam"
+proxmox_password       = "YOUR_PASSWORD_HERE"
+# proxmox_api_token    = "root@pam!opentofu=YOUR_TOKEN_UUID"
+proxmox_insecure       = true
+node_name              = "pve"
+vm_count               = 1
+vm_cores               = 4
+vm_memory              = 5120
+vm_disk_size           = 32
+lxc_template_url       = "http://download.proxmox.com/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
+lxc_template_file_name = "debian-12-standard_12.12-1_amd64.tar.zst"
+network_bridge         = "vmbr0"
+network_ip             = "10.10.13.100/24"
+network_gateway        = "10.10.13.1"
+ssh_public_key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKey devops@proxmox"
+vm_user_password       = "YOUR_CONSOLE_PASSWORD"

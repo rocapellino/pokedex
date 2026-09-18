@@ -67,9 +67,27 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: web
+        {{- if .Values.ingress.enabled }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+        {{- end }}
       ports:
         - protocol: TCP
           port: {{ .Values.api.port }}
+    {{- if .Values.ingress.enabled }}
+    # Si Ingress está habilitado y el tráfico de ingress controller proviene de hostPort/SNAT
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: {{ .Values.api.port }}
+    {{- end }}
   egress:
     # Permitir resolución DNS interna únicamente
     - to:
