@@ -9,7 +9,7 @@ metadata:
 spec:
   provider:
     vault:
-      server: "https://vault.internal.lan:8200"
+      server: "http://10.10.13.110:8200"
       path: "secret"
       version: "v2"
       auth:

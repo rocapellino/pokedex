@@ -553,4 +553,15 @@ tasks:
     cmds:
       - npx tsx scripts/sonar-linear-sync.ts
 
+  k8s:rollout-restart:
+    desc: "Aplica un reinicio progresivo (rollout restart) a los pods de la app para cargar secretos de Vault"
+    cmds:
+      - npm run k8s:rollout-restart -- {{.CLI_ARGS}}
+
+  vault:setup:proxmox:
+    desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+
+
 

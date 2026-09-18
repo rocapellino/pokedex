@@ -127,7 +127,7 @@ externalSecrets:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "secret/data/pokedex/production"
+    key: "pokedex/production"
 
 # ------------------------------------------------------------------------------
 # Aislamiento de Red Zero-Trust en Proxmox VE (Cilium eBPF L7 Egress)

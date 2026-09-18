@@ -35,6 +35,8 @@
     "gitops:verify-parity:strict": "node --experimental-strip-types scripts/verify-image-digest-parity.ts --strict",
     "test:security:egress": "node --experimental-strip-types --test tests/security/egress_anti_ssrf.test.ts",
     "probe:security:egress": "node --experimental-strip-types scripts/probe-egress-security.ts --simulate --profile=cilium-l7",
+    "k8s:rollout-restart": "node --experimental-strip-types scripts/k8s-rollout-restart.ts",
+    "k8s:verify-vault-architecture": "node --experimental-strip-types scripts/k8s-rollout-restart.ts --simulate",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"
