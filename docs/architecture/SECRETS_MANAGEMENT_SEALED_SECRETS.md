@@ -81,21 +81,31 @@ Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privada
           [ Pods: pokemon-api, postgres, redis ]
 ```
 
-- **Desacoplamiento en Helm:** En entornos productivos (`gitops/environments/aws/values.yaml` y `gitops/environments/proxmox/values.yaml`), se define:
+- **Desacoplamiento en Helm y Especificidades por Proveedor:** En entornos productivos ([`gitops/environments/aws/values.yaml`](../../gitops/environments/aws/values.yaml) y [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)), se modela la referencia remota adaptada a la API nativa de cada SecretStore:
+
+  | Proveedor | ClusterSecretStore | Sintaxis `remoteRef.key` | Justificación de la Ruta |
+  |---|---|---|---|
+  | **AWS Secrets Manager** *(Cloud / AWS)* | `aws-secrets-manager` | `pokedex/production` | Nomenclatura jerárquica plana por nombre de secreto nativo en AWS. |
+  | **HashiCorp Vault** *(On-Prem / Proxmox)* | `vault-backend` | `secret/data/pokedex/production` | El motor Vault KV versión 2 exige el prefijo intermedio `/data/` entre el mount point (`secret/`) y el path (`pokedex/production`) para acceder al payload. |
 
   ```yaml
-  secrets:
-    existingSecret: "pokemon-secrets"
-
+  # Ejemplo Cloud (AWS Secrets Manager):
   externalSecrets:
     enabled: true
-    refreshInterval: "1h"
-    targetSecretName: "pokemon-secrets"
     secretStoreRef:
-      name: "aws-secrets-manager" # o "vault-backend"
+      name: "aws-secrets-manager"
       kind: "ClusterSecretStore"
     remoteRef:
       key: "pokedex/production"
+
+  # Ejemplo On-Prem (HashiCorp Vault KV v2):
+  externalSecrets:
+    enabled: true
+    secretStoreRef:
+      name: "vault-backend"
+      kind: "ClusterSecretStore"
+    remoteRef:
+      key: "secret/data/pokedex/production"
   ```
 
   Esto instruye a Helm a **no generar ningún recurso `kind: Secret` estático**, delegando la creación y rotación de credenciales al operador.

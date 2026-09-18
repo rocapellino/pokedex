@@ -288,13 +288,16 @@ externalSecrets:
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
   annotations: {}
+  # Convención de Nomenclatura según Proveedor:
+  # - AWS Secrets Manager: key: "pokedex/production" (sin prefijo secret/data)
+  # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/production" (prefijo API requerido por Vault KV engine v2)
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "pokedex/production"
+    key: "secret/data/pokedex/production"
   # data: []       # Lista explícita de campos (opcional, por defecto usa las credenciales estándar)
-  # dataFrom: []   # Extracción masiva (ej. - extract: { key: "pokedex/production" })
+  # dataFrom: []   # Extracción masiva (ej. - extract: { key: "secret/data/pokedex/production" })
   secretStore:
     create: false
     kind: "SecretStore" # "SecretStore" o "ClusterSecretStore"
@@ -311,7 +314,6 @@ networkPolicies:
     antiSsrf: true
     externalHttps: true
     allowedExternalCidrs: []
-    useEgressGateway: false
 
 # Aislamiento de Capa 7 (L7 Egress) mediante Cilium eBPF FQDN NetworkPolicy
 ciliumNetworkPolicy:
@@ -321,30 +323,6 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
-# Egress Gateway perimetral (Envoy Forward Proxy) para clústeres sin Cilium o para proxy dedicado
-# Nota de arquitectura: El cluster Envoy estático enruta hacia Google GenAI (generativelanguage.googleapis.com).
-# Para filtrado multi-FQDN dinámico en el borde del clúster, combinar con Cilium eBPF L7 policies (arriba).
-egressGateway:
-  enabled: false
-  replicaCount: 1
-  port: 10000
-  image:
-    repository: envoyproxy/envoy
-    tag: "v1.31.0@sha256:2bf7f042e3960e3904864cb09c174498e20a06859a5c394b7e3a6528a649b1da"
-    pullPolicy: IfNotPresent
-  resources:
-    limits:
-      cpu: "250m"
-      memory: "256Mi"
-      ephemeral-storage: "256Mi"
-    requests:
-      cpu: "50m"
-      memory: "64Mi"
-      ephemeral-storage: "64Mi"
-  allowedDomains:
-    - generativelanguage.googleapis.com
-    - raw.githubusercontent.com
-    - pokeapi.co
 
 podDisruptionBudget:
   enabled: true

@@ -40,7 +40,11 @@ else
   fi
 fi
 
-echo "🛡️ [DR Verification] Iniciando protocolo automatizado de verificación de copia de seguridad..."
+if [[ "${DRY_RUN}" == "true" ]]; then
+  echo "🛡️ [DR Drill: Smoke Test] Iniciando simulacro de mecanismo de recuperación (Dry-Run)..."
+else
+  echo "🛡️ [DR Verify: Real Certification] Iniciando certificación real de copia de seguridad productiva..."
+fi
 START_TIME=$(date +%s)
 
 # 1. Determinar archivo de copia de seguridad a verificar
@@ -274,7 +278,9 @@ ELAPSED=$((END_TIME - START_TIME))
 echo "⏱️ [DR Verification] Tiempo de recuperación/validación: ${ELAPSED}s (Objetivo RTO < 7200s superado holgadamente)."
 if [[ "${SYNTAX_ONLY}" == "true" ]]; then
   echo "⚠️ [DR Verification] Validación sintáctica completada (--syntax-only). NOTA: No certifica restauración en motor SQL real."
+elif [[ "${DRY_RUN}" == "true" ]]; then
+  echo "🎉 [DR Drill] ¡Simulacro del mecanismo de recuperación (Smoke Test) completado con éxito! Mecánica de restauración validada."
 else
-  echo "🎉 [DR Verification] ¡Simulacro de Disaster Recovery completado con éxito en PostgreSQL! Integridad garantizada."
+  echo "🎉 [DR Verify] ¡Certificación de copia de seguridad real completada con éxito en PostgreSQL! Integridad y datos garantizados."
 fi
 exit 0

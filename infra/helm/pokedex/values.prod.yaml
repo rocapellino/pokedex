@@ -6,8 +6,7 @@ api:
   replicaCount: 2
   image:
     repository: ghcr.io/rocapellino/pokedex-api
-    tag: "1.30.1"
-    digest: "sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd" # Pinning OCI SHA-256 inmutable alineado con Cosign
+    digest: "sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
@@ -38,8 +37,7 @@ web:
   replicaCount: 2
   image:
     repository: ghcr.io/rocapellino/pokedex-web
-    tag: "1.30.1"
-    digest: "sha256:9cc9468cb10ed865e8182e4a2cf4fc0d0196d6fa6f88ac4cf921a70ca92b1b1c" # Pinning OCI SHA-256 inmutable alineado con Cosign
+    digest: "sha256:9cc9468cb10ed865e8182e4a2cf4fc0d0196d6fa6f88ac4cf921a70ca92b1b1c" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
@@ -148,11 +146,14 @@ secrets:
 externalSecrets:
   enabled: false # En values.prod.yaml base permanece false; los entornos GitOps (proxmox/aws) lo activan como SSOT
   refreshInterval: "1h"
+  # Especificidad de Nomenclatura por Proveedor (ADR-011 / SECRETS_MANAGEMENT_SEALED_SECRETS.md):
+  # - HashiCorp Vault KV v2 (Proxmox On-Prem): name: "vault-backend" | key: "secret/data/pokedex/production"
+  # - AWS Secrets Manager (Public Cloud):      name: "aws-secrets-manager" | key: "pokedex/production"
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "pokedex/production"
+    key: "secret/data/pokedex/production"
 
 reloader:
   enabled: true
@@ -200,7 +201,6 @@ networkPolicies:
     antiSsrf: true
     externalHttps: false
     allowedExternalCidrs: []
-    useEgressGateway: false
 
 ciliumNetworkPolicy:
   enabled: true

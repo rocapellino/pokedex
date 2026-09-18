@@ -325,7 +325,7 @@ tasks:
       - gitleaks detect --verbose --no-git
 
   secrets:seal:
-    desc: "Sella credenciales con Bitnami Sealed Secrets hacia infra/helm/pokedex/templates/sealed-secrets.yaml"
+    desc: "[Legacy/Deprecado] Sella credenciales con Bitnami Sealed Secrets (preferir ESO con Secret Manager)"
     cmds:
       - npx tsx scripts/seal-secret.ts
 
@@ -364,11 +364,6 @@ tasks:
     desc: "[Alias compatibilidad] Aprovisiona el baseline y hardening en Proxmox (usa ansible:prepare)"
     cmds:
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml {{.CLI_ARGS}}
-
-  dr:verify:
-    desc: "Verifica la integridad de copias de seguridad de PostgreSQL (simulación no destructiva AES-256 + SHA-256)"
-    cmds:
-      - bash scripts/dr_verify_restore.sh --dry-run
 
 
   # ----------------------------------------------------------------------------

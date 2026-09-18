@@ -12,8 +12,7 @@ api:
     reloader.stakater.com/auto: "true"
   image:
     repository: ghcr.io/rocapellino/pokedex-api
-    tag: "1.30.1"
-    digest: "sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd" # SHA256 digest pinning para inmutabilidad estricta
+    digest: "sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:
@@ -29,8 +28,7 @@ web:
   replicaCount: 2
   image:
     repository: ghcr.io/rocapellino/pokedex-web
-    tag: "1.30.1"
-    digest: "sha256:9cc9468cb10ed865e8182e4a2cf4fc0d0196d6fa6f88ac4cf921a70ca92b1b1c" # SHA256 digest pinning para inmutabilidad estricta
+    digest: "sha256:9cc9468cb10ed865e8182e4a2cf4fc0d0196d6fa6f88ac4cf921a70ca92b1b1c" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:

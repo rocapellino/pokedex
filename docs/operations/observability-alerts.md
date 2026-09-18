@@ -26,7 +26,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexPvcStorageFillingUp** | `warning` | `(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85` | Volumen persistente (PVC) próximo al límite (> 85%). |
 | **PokedexDbBackupFailed** | `critical` | `kube_job_status_failed{job_name=~".*backup.*"} > 0` | Fallo de ejecución de Job de respaldo automatizado de PostgreSQL. |
 | **PokedexDbBackupStale** | `critical` | `(time() - kube_cronjob_status_last_successful_time) > 93600` | Copia de seguridad desactualizada (> 26 horas). |
-| **DatabaseRestoreDrillFailed** | `critical` | `kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0` | Fallo en el simulacro periódico de restauración DR; posible corrupción de respaldos o incompatibilidad. |
+| **DatabaseRestoreDrillFailed** | `critical` | `kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0` | Fallo en la certificación periódica de restauración del backup real (`dr:verify`); posible corrupción de respaldos, ausencia de snapshot o clave errónea. |
 | **TlsCertExpiringSoon** | `warning` | `(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 15` | Certificado TLS próximo a expirar (< 15 días). |
 | **ArgoCDAppOutOfSync** | `warning` | `argocd_app_info{sync_status!="Synced"} == 1` | Aplicación GitOps desincronizada con el repositorio. |
 | **ArgoCDAppDegraded** | `critical` | `argocd_app_info{health_status="Degraded"} == 1` | Aplicación GitOps con recursos degradados en el clúster. |
@@ -152,7 +152,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 3. **Causas Raíz y Acciones de Remediación**:
    - **Cuota Excedida o Error 429**: Comprobar límites de tasa en Google AI Studio para el modelo Gemini 2.5 Flash.
    - **Credenciales Inválidas**: Verificar que `GEMINI_API_KEY` o `AI_API_KEY` no hayan sido revocadas o rotadas incorrectamente.
-   - **Aislamiento de Red / Egress Bloqueado**: Comprobar que `CiliumNetworkPolicy` o el `egress-gateway` permitan tráfico HTTPS saliente hacia `generativelanguage.googleapis.com:443`.
+   - **Aislamiento de Red / Egress Bloqueado**: Comprobar que `CiliumNetworkPolicy` o la `NetworkPolicy` permitan tráfico HTTPS saliente hacia `generativelanguage.googleapis.com:443`.
    - **Comportamiento Esperado**: El backend protege la estabilidad de la plataforma respondiendo con diagramas y mockups en fallback heurístico local sin bloquear peticiones de usuarios ni degradar la disponibilidad del catálogo. El disyuntor intentará reabrirse automáticamente (estado `HALF_OPEN`) tras el período de enfriamiento (`cooldownMs: 30000`).
 
 ### 3.8. PokedexAPIDown & PokedexDegradedMode
@@ -198,17 +198,22 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 
 ### 3.12. DatabaseRestoreDrillFailed
 
+> [!IMPORTANT]
+> **Alcance de la Alerta**: Esta alerta corresponde **exclusivamente a la certificación real de backups (`dr:verify`)** ejecutada por el CronJob en el clúster. No se dispara por simulacros sintéticos de CI/CD (`dr:drill`), garantizando cero falsos positivos derivados del mecanismo de prueba en pipelines.
+
 1. **Inspección de Logs del Job de Verificación**:
    ```bash
    kubectl get jobs,pods -n pokemon-app -l app.kubernetes.io/component=dr-verification
    kubectl logs -n pokemon-app -l app.kubernetes.io/component=dr-verification --tail=100
    ```
 2. **Diagnóstico de Causa Raíz**:
+   - Comprobar si no existe un snapshot cifrado en `/backups` (fallo de RPO).
    - Comprobar si el fallo responde a discrepancia en el checksum SHA-256 (`.sha256`), clave simétrica inválida (`BACKUP_ENCRYPTION_KEY`) o stream gzip corrupto.
-   - Si la aserción DML/DDL falló durante la restauración temporal, inspeccionar la consistencia de los datos del volcado.
+   - Si la aserción DML/DDL falló durante la restauración temporal en la base efímera, inspeccionar la consistencia de los datos del volcado.
 3. **Remediación**:
-   - Ejecutar un simulacro local o manual controlado: `task dr:verify` o `task dr:drill`.
-   - Si el volcado almacenado en el PVC está dañado, generar inmediatamente un nuevo volcado forzado con `kubectl create job --from=cronjob/pokedex-db-backup dr-backup-manual -n pokemon-app`.
+   - Para probar el mecanismo del tooling: `task dr:drill` (Smoke Test con muestra efímera).
+   - Para certificar el backup real localmente: `task dr:verify` (requiere `BACKUP_ENCRYPTION_KEY` y volcado real).
+   - Si el volcado almacenado en el PVC está dañado o ausente, generar inmediatamente un nuevo volcado forzado con `kubectl create job --from=cronjob/pokedex-db-backup dr-backup-manual -n pokemon-app`.
 
 ---
 

@@ -158,17 +158,17 @@ Para prevenir ataques de Server-Side Request Forgery (SSRF) dirigidos a endpoint
 
 ```
 
-### 5.4. Aislamiento L7 Egress: Cilium FQDN NetworkPolicy & Egress Gateway
-Para neutralizar por completo el riesgo de exfiltración externa de datos y ataques Command and Control (C2), se implementa una arquitectura dual de control de salida en Capa 7:
+### 5.4. Aislamiento L7 Egress: Cilium FQDN NetworkPolicy (Consolidado)
+Para neutralizar por completo el riesgo de exfiltración externa de datos y ataques Command and Control (C2), se ha consolidado el control perimetral de salida bajo el principio de menor complejidad operativa (ADR-020 / Plan de Consolidación):
 
-1. **Cilium eBPF con FQDN Allowlist (`CiliumNetworkPolicy`):**
-   En clústeres equipados con Cilium CNI (`ciliumNetworkPolicy.enabled: true`), el kernel eBPF inspecciona el tráfico de salida y autoriza exclusivamente conexiones a nombres de dominio plenamente cualificados autorizados:
+1. **Cilium eBPF con FQDN Allowlist (`CiliumNetworkPolicy` - Estándar L7):**
+   El kernel eBPF inspecciona a nivel de socket el tráfico de salida y autoriza exclusivamente conexiones a nombres de dominio plenamente cualificados autorizados:
    - `generativelanguage.googleapis.com` (API de Google Gemini)
    - `*.githubusercontent.com` / `raw.githubusercontent.com` (Sprites y avatares oficiales)
    - `*.pokeapi.co` / `pokeapi.co` (Datos públicos de Pokémon)
 
-2. **Egress Gateway Perimetral (`egressGateway.enabled: true`):**
-   Para clústeres Kubernetes estándar sin Cilium, se despliega un proxy perimetral Envoy endurecido (`app.kubernetes.io/component: egress-gateway`) que centraliza la salida HTTP/TLS y deniega por defecto cualquier destino fuera de la allowlist. La API redirige su tráfico exclusivamente a este gateway en el puerto 10000 (`networkPolicies.egress.useEgressGateway: true`), revocando el acceso directo a `0.0.0.0/0`.
+2. **NetworkPolicy L4 Baseline con Anti-SSRF Estricto:**
+   Como salvaguarda complementaria o en entornos sin inspección FQDN activa, se bloquea por defecto todo tráfico hacia metadatos de nube (`169.254.169.254/32`) y subredes privadas RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). El proxy Envoy satélite previo fue podado para eliminar saltos innecesarios y consumo redundante de recursos.
 
 ### 5.5. Restricción de Tráfico DNS a CoreDNS
 La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cualquier IP externa; está restringida exclusivamente a los pods del clúster etiquetados con `k8s-app: kube-dns`.
