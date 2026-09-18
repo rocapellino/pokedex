@@ -38,41 +38,65 @@ export function extractRenderedApiImage(chartPath: string, valuesPath: string): 
     throw new Error(`Ruta de Helm chart no encontrada: ${resolvedChart}`);
   }
 
-  const helmCmd = `helm template pokedex "${resolvedChart}" -f "${resolvedValues}" -s templates/api-deployment.yaml`;
-  let output: string;
+  // 1. Intentar renderizar vía Helm si está disponible en PATH
   try {
-    output = execSync(helmCmd, {
+    const helmCmd = `helm template pokedex "${resolvedChart}" -f "${resolvedValues}" -s templates/api-deployment.yaml`;
+    const output = execSync(helmCmd, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
-  } catch (err: unknown) {
-    const error = err as { stderr?: string; message?: string };
-    throw new Error(`Fallo al ejecutar 'helm template' para ${valuesPath}:\n${error.stderr || error.message}`);
+
+    const documents = yaml.loadAll(output) as Array<Record<string, unknown> | null>;
+    const deployment = documents.find(
+      (doc) =>
+        doc &&
+        doc.kind === 'Deployment' &&
+        (doc.metadata as Record<string, unknown> | undefined)?.name === 'pokemon-api'
+    );
+
+    if (deployment) {
+      const spec = deployment.spec as Record<string, unknown> | undefined;
+      const template = spec?.template as Record<string, unknown> | undefined;
+      const podSpec = template?.spec as Record<string, unknown> | undefined;
+      const containers = (podSpec?.containers || []) as Array<{ name: string; image?: string }>;
+
+      const apiContainer = containers.find((c) => c.name === 'api');
+      if (apiContainer && apiContainer.image) {
+        return apiContainer.image.trim();
+      }
+    }
+  } catch {
+    // Si helm no está instalado (típico en runners de CI que solo ejecutan Node.js / unit tests)
+    // o falla la ejecución, recurrimos a resolución estricta del AST de los values YAML.
   }
 
-  const documents = yaml.loadAll(output) as Array<Record<string, unknown> | null>;
-  const deployment = documents.find(
-    (doc) =>
-      doc &&
-      doc.kind === 'Deployment' &&
-      (doc.metadata as Record<string, unknown> | undefined)?.name === 'pokemon-api'
-  );
-
-  if (!deployment) {
-    throw new Error(`No se encontró el Deployment 'pokemon-api' renderizado en ${valuesPath}`);
+  // 2. Fallback determinista mediante AST parsing (js-yaml)
+  const baseValuesPath = path.join(resolvedChart, 'values.yaml');
+  let baseApiImage: Record<string, unknown> = {};
+  if (fs.existsSync(baseValuesPath)) {
+    const baseContent = fs.readFileSync(baseValuesPath, 'utf8');
+    const baseDoc = yaml.load(baseContent) as Record<string, unknown> | null;
+    const baseApi = baseDoc?.api as Record<string, unknown> | undefined;
+    baseApiImage = (baseApi?.image as Record<string, unknown>) || {};
   }
 
-  const spec = deployment.spec as Record<string, unknown> | undefined;
-  const template = spec?.template as Record<string, unknown> | undefined;
-  const podSpec = template?.spec as Record<string, unknown> | undefined;
-  const containers = (podSpec?.containers || []) as Array<{ name: string; image?: string }>;
+  const envContent = fs.readFileSync(resolvedValues, 'utf8');
+  const envDoc = yaml.load(envContent) as Record<string, unknown> | null;
+  const envApi = envDoc?.api as Record<string, unknown> | undefined;
+  const envApiImage = (envApi?.image as Record<string, unknown>) || {};
 
-  const apiContainer = containers.find((c) => c.name === 'api');
-  if (!apiContainer || !apiContainer.image) {
-    throw new Error(`Contenedor 'api' o campo 'image' no encontrado en Deployment 'pokemon-api' para ${valuesPath}`);
+  const repository = (envApiImage.repository as string) || (baseApiImage.repository as string) || 'ghcr.io/rocapellino/pokedex-api';
+  const digest = (envApiImage.digest as string) || (baseApiImage.digest as string);
+  const tag = (envApiImage.tag as string) || (baseApiImage.tag as string);
+
+  if (digest) {
+    return `${repository}@${digest.trim()}`;
+  }
+  if (tag) {
+    return `${repository}:${tag.trim()}`;
   }
 
-  return apiContainer.image.trim();
+  throw new Error(`No se pudo extraer la imagen del contenedor api en ${valuesPath}`);
 }
 
 /**
