@@ -149,7 +149,7 @@ variable "network_cidr_mask" {
 
 variable "proxmox_insecure" {
   type        = bool
-  default     = true
-  description = "Permitir certificados TLS autofirmados al conectar con la API de Proxmox VE"
+  default     = false
+  description = "Permitir certificados TLS autofirmados al conectar con la API de Proxmox VE (default: false para forzar verificación TLS estricta; activar solo de forma explícita en laboratorios con certificados autofirmados)"
 }
 

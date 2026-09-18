@@ -88,6 +88,7 @@ Como principio fundamental de seguridad ([ADR-005](./ADR-005-secret-management.m
 - **Desacople de Contraseñas de Hipervisor**: Se elimina por completo el uso de `username`/`password` (`root@pam`) en el proveedor OpenTofu, adoptando **exclusivamente Proxmox API Tokens** (`USER@REALM!TOKENID=UUID`) con separación de privilegios configurada.
 - **Tolerancia Cero a Secretos por Defecto**: Ninguna variable de credenciales (`proxmox_api_token`, `vm_user_password`) contiene valores por defecto en el código fuente.
 - **Acceso a Nodos por SSH Key**: La autenticación hacia las instancias de Kubernetes es obligatoria y validada mediante llave pública SSH (`ssh_public_key`). La contraseña de consola queda deshabilitada por defecto (`vm_user_password = null`) con reglas de `lifecycle { ignore_changes }` para prevenir destrucciones accidentales durante rotaciones.
+- **Verificación TLS Estricta por Defecto**: Se establece `proxmox_insecure = false` por defecto para prevenir ataques Man-In-The-Middle (MITM). En caso de usar certificados autofirmados en laboratorios locales, el operador debe optar explícitamente por `proxmox_insecure = true` en su archivo `terraform.tfvars` local no versionado.
 
 ## Consecuencias
 

@@ -5,7 +5,10 @@
 proxmox_endpoint       = "https://10.10.13.10:8006/"
 # Autenticación segura mediante API Token (USER@REALM!TOKENID=UUID)
 proxmox_api_token      = "root@pam!opentofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-proxmox_insecure       = true
+# Verificación TLS estricta por defecto (false).
+# Si el entorno de laboratorio/on-prem utiliza un certificado autofirmado sin CA confiable,
+# configure explícitamente proxmox_insecure = true en su terraform.tfvars local no versionado.
+proxmox_insecure       = false
 # Tipo de cómputo y entorno:
 # compute_type: "lxc" (ultraliviano para preprod/lab) o "vm" (aislamiento KVM completo para prod)
 compute_type           = "lxc"
