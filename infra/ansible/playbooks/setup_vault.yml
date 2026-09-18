@@ -1,0 +1,93 @@
+---
+# ==============================================================================
+# Playbook: Instalación y Configuración de HashiCorp Vault (Community Edition)
+# Entorno: Contenedor LXC en Proxmox VE (Debian 12 Bookworm)
+# Proveedor para: External Secrets Operator (ESO) -> ClusterSecretStore/vault-backend
+# ==============================================================================
+- name: Setup HashiCorp Vault (Community Edition)
+  hosts: vault_servers
+  become: true
+  tasks:
+    - name: Instalar paquetes de prerrequisitos
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gpg
+          - lsb-release
+          - jq
+          - ca-certificates
+        state: present
+        update_cache: true
+
+    - name: Descargar e instalar clave GPG del repositorio oficial de HashiCorp
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /usr/share/keyrings/hashicorp-archive-keyring.asc
+        mode: '0644'
+
+    - name: Convertir clave GPG de HashiCorp a formato binario
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg /usr/share/keyrings/hashicorp-archive-keyring.asc
+        creates: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Configurar repositorio oficial de HashiCorp
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+
+    - name: Instalar HashiCorp Vault (Community Edition)
+      ansible.builtin.apt:
+        name: vault
+        state: present
+        update_cache: true
+
+    - name: Crear directorio de almacenamiento de datos de Vault
+      ansible.builtin.file:
+        path: /opt/vault/data
+        state: directory
+        owner: vault
+        group: vault
+        mode: '0750'
+
+    - name: Generar archivo de configuración /etc/vault.d/vault.hcl
+      ansible.builtin.copy:
+        dest: /etc/vault.d/vault.hcl
+        owner: vault
+        group: vault
+        mode: '0640'
+        content: |
+          # Configuración HashiCorp Vault (Community Edition) en Proxmox LXC
+          storage "file" {
+            path = "/opt/vault/data"
+          }
+
+          listener "tcp" {
+            address     = "0.0.0.0:8200"
+            tls_disable = 1
+          }
+
+          api_addr      = "http://0.0.0.0:8200"
+          cluster_addr  = "http://0.0.0.0:8201"
+          ui            = true
+          disable_mlock = true
+
+    - name: Iniciar y habilitar el servicio de HashiCorp Vault
+      ansible.builtin.systemd:
+        name: vault
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Verificar disponibilidad del endpoint de Vault
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8200/v1/sys/health
+        method: GET
+        status_code:
+          - 200 # Inicializado y desbloqueado
+          - 501 # No inicializado (esperado tras primer arranque)
+          - 503 # Sellado (esperado antes del unseal)
+      register: vault_health
+      retries: 10
+      delay: 2
+      until: vault_health.status in [200, 501, 503]

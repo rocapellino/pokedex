@@ -94,3 +94,26 @@ externalSecrets:
     kind: "ClusterSecretStore"
   remoteRef:
     key: "pokedex/production"
+
+# Stakater Reloader habilitado en Cloud para detectar mutaciones asíncronas de v1/Secret
+# generadas por ESO tras rotaciones en AWS Secrets Manager (checksum/config no cubre este caso):
+reloader:
+  enabled: true
+  auto: true
+
+# Aislamiento Zero-Trust L7 Egress con Cilium eBPF FQDN
+networkPolicies:
+  enabled: true
+  egress:
+    antiSsrf: true
+    externalHttps: false
+    allowedExternalCidrs: []
+
+ciliumNetworkPolicy:
+  enabled: true
+  fqdnAllowlist:
+    - matchName: "generativelanguage.googleapis.com"
+    - matchPattern: "*.githubusercontent.com"
+    - matchPattern: "*.pokeapi.co"
+
+

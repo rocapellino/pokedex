@@ -58,9 +58,24 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 
 * **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
 * **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos locales hacia los nodos.
-* **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado, la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a HashiCorp Vault:
-  * Definición canónica: [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
-  * Secret generado en clúster: `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
+* **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado (commit #206), la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a **HashiCorp Vault (Community Edition)**:
+  * **Topología Canónica:**
+    ```text
+    Proxmox (Hipervisor / Nodo K3s)
+       ↓
+    ESO (External Secrets Operator en clúster K8s)
+       ↓
+    Vault (HashiCorp Vault CE en contenedor LXC dedicado)
+       ↓
+    pokemon-secrets (K8s Secret nativo consumido por API / Postgres / Redis)
+    ```
+  * **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, hostname `vault`) gestionado por OpenTofu.
+  * **Definición Canónica ESO:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
+  * **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
+* **Ausencia de Stakater Reloader en Proxmox (Perfil Lean MVP):** Stakater Reloader está intencionalmente **desactivado** (`reloader.enabled: false`) para no sobrecargar el clúster con pods y RBAC superfluos.
+  - La recarga de cambios en configuración (`ConfigMap`) se realiza de forma nativa mediante la anotación Helm **`checksum/config`** en la plantilla de Pods.
+  - Ante una rotación de secretos en Vault, la actualización de Pods se dispara mediante un reinicio progresivo: `kubectl rollout restart deployment/pokemon-api deployment/pokemon-web -n pokemon-app`.
+  - **No intente desplegar ni buscar pods de Reloader en este entorno.**
 
 ---
 
@@ -74,6 +89,7 @@ El módulo en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/envi
 * **Verificación TLS Estricta:** `proxmox_insecure = false` por defecto.
 * **Acceso por SSH Key:** `ssh_public_key` obligatorio; passwords de usuario nulos.
 * **Cadena de Suministro Segura:** Plantillas descargadas exclusivamente vía HTTPS con validación criptográfica SHA256.
+* **Aprovisionamiento Conjunto de HashiCorp Vault CE:** El módulo aprovisiona automáticamente el contenedor LXC dedicado para HashiCorp Vault (`vault_enabled = true`, ID `810`, IP `10.10.13.110/24`) para servir como backend de secretos para ESO.
 
 ```bash
 # Inicializar y planificar con OpenTofu
@@ -88,7 +104,8 @@ tofu apply \
   -var="proxmox_api_token=devops@pve!opentofu=00000000-0000-0000-0000-000000000000" \
   -var="ssh_public_key=$(cat ~/.ssh/id_ed25519.pub)" \
   -var="compute_type=lxc" \
-  -var="environment_tier=preprod"
+  -var="environment_tier=preprod" \
+  -var="vault_enabled=true"
 ```
 
 ---
@@ -117,19 +134,26 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/se
 
 ---
 
-## 5. Instalación de Kubernetes Runtime (K3s)
+## 5. Instalación de Kubernetes Runtime (K3s) y CNI Cilium
 
-Con el host endurecido, se despliega el runtime de K3s ultraliviano:
+Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquear destinos públicos no autorizados (como `https://example.com`) al tiempo que se permite el acceso a `generativelanguage.googleapis.com` y `pokeapi.co`, K3s se instala delegando el CNI a **Cilium eBPF**:
 
 ```bash
-# Instalación de K3s sin Traefik legacy ni servicelb (manejados declarativamente vía Helm)
-curl -sfL https://get.k3s.io | sh -s - \
-  --write-kubeconfig-mode 644 \
-  --disable servicelb \
-  --disable local-storage
+# 1. Instalación de K3s con Flannel desactivado (preparado para Cilium)
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage" sh -s - \
+  --write-kubeconfig-mode 644
 
-# Verificar estado del nodo
+# 2. Despliegue de Cilium CNI en modo ligero (sin Hubble UI para optimizar RAM < 250MB)
+helm repo add cilium https://helm.cilium.io/
+helm repo update
+helm upgrade --install cilium cilium/cilium --version 1.16.1 \
+  --namespace kube-system \
+  --set operator.replicas=1 \
+  --set hubble.enabled=false
+
+# 3. Verificar estado del nodo y pods del sistema
 kubectl get nodes -o wide
+kubectl get pods -n kube-system -l k8s-app=cilium
 ```
 
 ---
@@ -139,7 +163,7 @@ kubectl get nodes -o wide
 Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoCD** consumiendo el Helm chart universal:
 
 1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml)
-2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)
+2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) (con `ciliumNetworkPolicy.enabled: true` y `networkPolicies.egress.externalHttps: false`)
 
 ### Sincronización Manual o Automatizada
 
@@ -150,3 +174,26 @@ task gitops:sync:proxmox
 # O verificar el estado de los Pods en el namespace pokemon-app:
 task k8s:status
 ```
+
+---
+
+## 7. Verificación en Vivo de Aislamiento Egress y Anti-SSRF
+
+Para certificar que el clúster Proxmox cumple de manera efectiva con los controles de salida de red:
+
+```bash
+# 1. Ejecutar el Job de sonda de seguridad de red en el namespace pokemon-app:
+kubectl apply -f infra/k8s/jobs/egress-anti-ssrf-probe-job.yaml
+
+# 2. Inspeccionar los resultados de la sonda:
+kubectl logs -n pokemon-app job/pokedex-egress-anti-ssrf-probe -f
+
+# 3. Validar los 6 criterios obligatorios:
+#    - https://generativelanguage.googleapis.com -> OK (Permitido por Cilium toFQDNs)
+#    - https://pokeapi.co                       -> OK (Permitido por Cilium toFQDNs)
+#    - https://example.com                      -> FAIL (Bloqueado por Cilium eBPF L7)
+#    - http://169.254.169.254                   -> FAIL (Bloqueado Anti-SSRF IMDS)
+#    - http://10.0.0.1                          -> FAIL (Bloqueado Anti-SSRF RFC1918)
+#    - http://192.168.1.1                       -> FAIL (Bloqueado Anti-SSRF RFC1918)
+```
+

@@ -83,7 +83,8 @@ prometheus.scrape "redis" {
 	scrape_timeout  = "4s"
 }
 
-// 4. Recolectar métricas de Contenedores Docker vía cAdvisor
+// 4. Recolectar métricas de Contenedores Docker vía cAdvisor (Opción A - Dev)
+// Alimenta métricas container_* (CPU, Working Set RAM, límites cgroups) a Grafana Cloud
 prometheus.scrape "cadvisor" {
 	targets = [
 		{

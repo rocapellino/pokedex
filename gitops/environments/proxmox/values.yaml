@@ -128,3 +128,24 @@ externalSecrets:
     kind: "ClusterSecretStore"
   remoteRef:
     key: "secret/data/pokedex/production"
+
+# ------------------------------------------------------------------------------
+# Aislamiento de Red Zero-Trust en Proxmox VE (Cilium eBPF L7 Egress)
+# ------------------------------------------------------------------------------
+# Para garantizar la política Anti-SSRF y Anti-Exfiltración donde dominios no
+# autorizados (ej. https://example.com) y redes privadas (RFC1918 / IMDS) sean
+# bloqueados, se activa CiliumNetworkPolicy L7 FQDN y se desactiva externalHttps L4.
+networkPolicies:
+  enabled: true
+  egress:
+    antiSsrf: true
+    externalHttps: false
+    allowedExternalCidrs: []
+
+ciliumNetworkPolicy:
+  enabled: true
+  fqdnAllowlist:
+    - matchName: "generativelanguage.googleapis.com"
+    - matchPattern: "*.githubusercontent.com"
+    - matchPattern: "*.pokeapi.co"
+

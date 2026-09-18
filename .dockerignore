@@ -43,6 +43,7 @@ LICENSE
 # Infraestructura, Pruebas y Herramientas Locales
 # ==============================================================================
 infra/
+gitops/
 tests/
 scripts/
 Taskfile.yml
@@ -62,6 +63,7 @@ reports/
 test-results/
 playwright-report/
 lighthouse-results/
+.lighthouseci/
 .scannerwork/
 .mega-linter-reports/
 sonar-project.properties

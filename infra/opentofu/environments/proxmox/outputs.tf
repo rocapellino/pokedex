@@ -42,3 +42,26 @@ output "vm_ip" {
   description = "Alias de compatibilidad para IP de instancia"
   value       = var.network_ip
 }
+
+# ==============================================================================
+# Outputs - HashiCorp Vault (Community Edition) LXC
+# ==============================================================================
+output "vault_instance_id" {
+  description = "ID del contenedor LXC de HashiCorp Vault en Proxmox VE"
+  value       = var.vault_enabled ? proxmox_virtual_environment_container.vault[0].vm_id : null
+}
+
+output "vault_hostname" {
+  description = "Hostname del contenedor LXC de HashiCorp Vault"
+  value       = var.vault_enabled ? proxmox_virtual_environment_container.vault[0].initialization[0].hostname : null
+}
+
+output "vault_ip" {
+  description = "Dirección IPv4 del contenedor LXC de HashiCorp Vault"
+  value       = var.vault_enabled ? split("/", var.vault_network_ip)[0] : null
+}
+
+output "vault_endpoint" {
+  description = "URL HTTP del servicio HashiCorp Vault en Proxmox"
+  value       = var.vault_enabled ? "http://${split("/", var.vault_network_ip)[0]}:8200" : null
+}

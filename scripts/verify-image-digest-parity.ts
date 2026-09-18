@@ -14,6 +14,7 @@ export interface VerificationOptions {
   publishedDigest?: string;
   chartPath?: string;
   environments?: { name: string; file: string }[];
+  strict?: boolean;
 }
 
 const DEFAULT_CHART_PATH = 'infra/helm/pokedex';
@@ -26,10 +27,20 @@ const DEFAULT_ENVIRONMENTS = [
 /**
  * Renderiza el Deployment de la API para un conjunto de values y extrae
  * la imagen compilada final que Kubernetes recibirá.
+ *
+ * @param chartPath Ruta al Helm chart
+ * @param valuesPath Ruta al archivo de values
+ * @param options Opciones de ejecución: si strict=true (CI release), helm template es
+ *                obligatorio y se desactiva por completo el fallback a values AST.
  */
-export function extractRenderedApiImage(chartPath: string, valuesPath: string): string {
+export function extractRenderedApiImage(
+  chartPath: string,
+  valuesPath: string,
+  options: { strict?: boolean } = {}
+): string {
   const resolvedValues = path.resolve(process.cwd(), valuesPath);
   const resolvedChart = path.resolve(process.cwd(), chartPath);
+  const isStrict = options.strict ?? (process.env.STRICT_HELM === 'true');
 
   if (!fs.existsSync(resolvedValues)) {
     throw new Error(`Archivo de values no encontrado: ${resolvedValues}`);
@@ -38,15 +49,27 @@ export function extractRenderedApiImage(chartPath: string, valuesPath: string): 
     throw new Error(`Ruta de Helm chart no encontrada: ${resolvedChart}`);
   }
 
-  // 1. Intentar renderizar vía Helm si está disponible en PATH
+  // 1. Renderizado real vía Helm CLI
+  let helmOutput: string | null = null;
+  let helmExecError: Error | null = null;
+
   try {
     const helmCmd = `helm template pokedex "${resolvedChart}" -f "${resolvedValues}" -s templates/api-deployment.yaml`;
-    const output = execSync(helmCmd, {
+    helmOutput = execSync(helmCmd, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+  } catch (err: unknown) {
+    helmExecError = err as Error;
+    if (isStrict) {
+      throw new Error(
+        `[Modo Estricto CI - Sin Fallback] Falló la ejecución obligatoria de 'helm template' para ${valuesPath}:\n${helmExecError.message}`
+      );
+    }
+  }
 
-    const documents = yaml.loadAll(output) as Array<Record<string, unknown> | null>;
+  if (helmOutput) {
+    const documents = yaml.loadAll(helmOutput) as Array<Record<string, unknown> | null>;
     const deployment = documents.find(
       (doc) =>
         doc &&
@@ -65,12 +88,21 @@ export function extractRenderedApiImage(chartPath: string, valuesPath: string): 
         return apiContainer.image.trim();
       }
     }
-  } catch {
-    // Si helm no está instalado (típico en runners de CI que solo ejecutan Node.js / unit tests)
-    // o falla la ejecución, recurrimos a resolución estricta del AST de los values YAML.
+
+    if (isStrict) {
+      throw new Error(
+        `[Modo Estricto CI - Sin Fallback] 'helm template' no generó el Deployment 'pokemon-api' con el contenedor 'api' en ${valuesPath}`
+      );
+    }
   }
 
-  // 2. Fallback determinista mediante AST parsing (js-yaml)
+  // 2. Fallback determinista mediante AST parsing (js-yaml) reservado exclusivamente para desarrollo local
+  if (isStrict) {
+    throw new Error(
+      `[Modo Estricto CI - Sin Fallback] Se requiere 'helm template' válido en release de CI para ${valuesPath}. El fallback a values AST está prohibido.`
+    );
+  }
+
   const baseValuesPath = path.join(resolvedChart, 'values.yaml');
   let baseApiImage: Record<string, unknown> = {};
   if (fs.existsSync(baseValuesPath)) {
@@ -125,12 +157,14 @@ export function parseImmutableDigest(imageString: string): string {
 export function verifyImageDigestParity(options: VerificationOptions = {}): EnvironmentDigestResult[] {
   const chartPath = options.chartPath || DEFAULT_CHART_PATH;
   const envs = options.environments || DEFAULT_ENVIRONMENTS;
+  const strict = options.strict ?? (process.env.STRICT_HELM === 'true');
   const results: EnvironmentDigestResult[] = [];
 
-  console.log('🔍 [Supply Chain] Validando paridad de imágenes renderizadas en Kubernetes (Helm AST)...');
+  const modeLabel = strict ? 'Helm Template Real [CI Estricto - Sin Fallback]' : 'Helm Template / Fallback Dev';
+  console.log(`🔍 [Supply Chain] Validando paridad de imágenes renderizadas en Kubernetes (${modeLabel})...`);
 
   for (const env of envs) {
-    const image = extractRenderedApiImage(chartPath, env.file);
+    const image = extractRenderedApiImage(chartPath, env.file, { strict });
     const digest = parseImmutableDigest(image);
 
     results.push({
@@ -179,15 +213,18 @@ export function verifyImageDigestParity(options: VerificationOptions = {}): Envi
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('verify-image-digest-parity.ts')) {
   try {
     let publishedDigest: string | undefined;
+    let strict = process.env.STRICT_HELM === 'true';
     const args = process.argv.slice(2);
     for (let i = 0; i < args.length; i++) {
       if (args[i] === '--published-digest' && args[i + 1]) {
         publishedDigest = args[i + 1];
         i++;
+      } else if (args[i] === '--strict' || args[i] === '--require-helm') {
+        strict = true;
       }
     }
 
-    verifyImageDigestParity({ publishedDigest });
+    verifyImageDigestParity({ publishedDigest, strict });
     console.log('✅ Validación de consistencia superada con éxito.');
     process.exit(0);
   } catch (err: unknown) {

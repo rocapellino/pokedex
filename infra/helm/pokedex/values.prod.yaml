@@ -155,9 +155,27 @@ externalSecrets:
   remoteRef:
     key: "secret/data/pokedex/production"
 
+# ------------------------------------------------------------------------------
+# Recarga Dinámica de Cargas de Trabajo (Stakater Reloader vs checksum/config)
+# ------------------------------------------------------------------------------
+# Justificación de la Dualidad Arquitectónica Multi-Entorno (ADR-022):
+# - ENTORNO CLOUD (AWS EKS / values.prod.yaml base):
+#   reloader.enabled: true | reloader.auto: true.
+#   Imprescindible porque los Secrets son gestionados de forma asíncrona por ESO
+#   desde AWS Secrets Manager en runtime. Cuando una credencial rota fuera del ciclo
+#   de vida de Helm, la anotación checksum/config NO varía (el Secret no forma parte
+#   del render estático de Helm). Stakater Reloader observa la API de Kubernetes y
+#   dispara el RollingUpdate autónomo de forma zero-touch.
+# - ENTORNO ON-PREMISE (Proxmox VE - Perfil Lean MVP / gitops/environments/proxmox):
+#   reloader.enabled: false.
+#   Desactivado deliberadamente para reducir la huella de memoria (< 1 GB RAM) y evitar
+#   controladores RBAC cluster-wide en un laboratorio/MVP. La recarga de cambios en
+#   ConfigMap se realiza con Helm checksum/config nativo, mientras que la rotación
+#   de secretos en Vault se delega a reinicios controlados (kubectl rollout restart).
 reloader:
   enabled: true
   auto: true
+
 
 resourceQuota:
   enabled: true

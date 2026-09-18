@@ -15,6 +15,8 @@ paths = [
   # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
   '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/opentofu/.*/(variables|outputs)\.tf$''',
+  '''(?i)^infra/opentofu/.*\.tfvars\.example$''',
+  '''(?i)^infra/terraform/.*\.tfvars\.example$''',
   # K8s / Helm — SealedSecrets cifrados con clave pública del controlador (actual e histórico)
   '''(?i)^infra/helm/pokedex/templates/sealed-secrets\.ya?ml$''',
   '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
