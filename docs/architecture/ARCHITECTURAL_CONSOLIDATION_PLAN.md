@@ -76,18 +76,20 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
   - **Modularización Futura (`includes:`):** Cuando el equipo crezca o se requiera aislar responsabilidades de mantenimiento, se adoptará la descomposición nativa de go-task (`taskfiles/Taskfile.{dev,k8s,infra,security,gitops}.yml`) utilizando `flatten: true` para preservar la nomenclatura canónica sin introducir prefijos redundantes.
 * **Resolución:** Mantener `Taskfile.yml` unificado en la fase actual por ergonomía y estabilidad de CI/tests, conservando los aliases de compatibilidad documentados.
 
-### 2.6. Gestión de Secretos: Consolidación en External Secrets Operator (Prioridad 🟡)
-* **Situación:** Coexisten conceptualmente dos mecanismos para Kubernetes: External Secrets Operator (ESO) y Bitnami Sealed Secrets (`scripts/seal-secret.ts`).
+### 2.6. Gestión de Secretos: External Secrets Operator como Estándar Canónico Único Multi-Entorno
+* **Situación:** Coexistían conceptualmente múltiples mecanismos y directorios fragmentados (`infra/k8s/eso/` con `pokedex-secret-store` y `infra/k8s/secretstores/` con nombres dispares), además de utilidades legadas de Bitnami Sealed Secrets.
 * **Diagnóstico de Superficie Conceptual:**
-  - Mantener ambos genera ambigüedad sobre la autoridad de las credenciales, dónde residen y quién las rota.
-  - Ni AWS EKS ni Proxmox VE utilizan Sealed Secrets en sus manifiestos GitOps (`gitops/environments/*/values.yaml` ambos implementan `externalSecrets.enabled: true` apuntando a AWS Secrets Manager y HashiCorp Vault respectivamente).
-  - Sealed Secrets no soporta rotación periódica desatendida ni polling aguas arriba.
-* **Acción de Poda (Fase E):**
-  - **Mecanismo Canónico Único:** **External Secrets Operator (ESO) + Secret Manager Upstream (AWS/Vault) $\to$ `v1/Secret` efímero $\to$ Stakater Reloader**.
-  - **Deprecación de Sealed Secrets:** Se declara Sealed Secrets como mecanismo legado/deprecado. Se retira su necesidad operativa y se mantiene `scripts/seal-secret.ts` únicamente como utilidad histórica aislada.
+  - Mantener directorios dispersos (`infra/k8s/eso` y `infra/k8s/secretstores`) generaba ambigüedad sobre qué `ClusterSecretStore` se utilizaba y dónde residía.
+  - La arquitectura canónica del proyecto (compromiso #206) establece que **External Secrets Operator (ESO) es el mecanismo absoluto y universal** para la inyección y rotación de credenciales en Kubernetes.
+* **Acción de Consolidación y Poda (Fase E - [x] Ejecutada):**
+  - **Estandarización Canónica Bipolar**:
+    - **AWS EKS (Cloud)**: `ESO` $\to$ `ClusterSecretStore/aws-secrets-manager` $\to$ **AWS Secrets Manager** (autenticación federada IRSA).
+    - **Proxmox VE (On-Premise)**: `ESO` $\to$ `ClusterSecretStore/vault-backend` $\to$ **HashiCorp Vault** (autenticación Kubernetes ServiceAccount).
+  - **Limpieza de Directorios**: Se podó y eliminó `infra/k8s/secretstores/`, consolidando todos los conectores de clúster bajo `infra/k8s/eso/` (`aws-secrets-manager.yaml`, `vault-backend.yaml`, `cluster-secret-store.yaml`).
+  - **Deprecación de Sealed Secrets**: Sealed Secrets queda oficialmente deprecado como mecanismo de despliegue; `scripts/seal-secret.ts` se conserva únicamente como utilidad histórica aislada.
 
 ### 2.7. Minimal Viable Platform (MVP) en Proxmox VE On-Premise (Prioridad 🔴)
-* **Situación:** En el despliegue on-premise sobre Proxmox VE (LXC/VM K3s), trasladar acríticamente todo el ecosistema de operadores de nube (ESO, Stakater Reloader, PgBouncer, Beyla eBPF, Node Exporter, Cilium CNI) sobrecarga la memoria disponible y multiplica puntos de falla sin aportar valor real en un laboratorio u operación interna.
+* **Situación:** En el despliegue on-premise sobre Proxmox VE (LXC/VM K3s), trasladar acríticamente componentes auxiliares no esenciales sobrecarga la memoria y multiplica puntos de falla en un laboratorio u operación interna.
 * **Diagnóstico de Complejidad vs. Garantía:**
   La meta arquitectónica consiste en podar componentes redundantes preservando intactas las garantías de **disponibilidad, seguridad, observabilidad y disaster recovery**.
 
@@ -95,7 +97,7 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
 |---|---|---|---|
 | **Stakater Reloader** | Reiniciar Pods ante cambios de config/secretos | Requiere un controller Go dedicado con permisos RBAC en todo el clúster. | **Anotación nativa Helm `checksum/config`** (`spec.template.metadata.annotations`) en `api-deployment` y `web-deployment`. Provoca RollingUpdate determinista nativo ante cambios de ConfigMap sin necesidad de pods extra. |
 | **PgBouncer** | Pooler de conexiones PostgreSQL | La API usa `pg.Pool` limitado a 20 conns por réplica (40 en 2 réplicas). PostgreSQL nativo soporta 100-200 conex. sin penalización. | **Pooling nativo en runtime Node.js**. Elimina un intermediario de red y evita fallos con prepared statements. |
-| **External Secrets Operator (ESO)** | Sincronización continua de secretos con Vault | En laboratorio on-premise, 3 pods de ESO para sincronizar 5 credenciales estáticas es desproporcionado. | **`v1/Secret` estático nativo de Kubernetes** (`pokemon-secrets`), desacoplado vía GitOps (`secrets.existingSecret`). |
+| **External Secrets Operator (ESO)** | Sincronización continua de secretos con Vault | Mecanismo canónico oficial (commit #206). En Proxmox conecta con `ClusterSecretStore/vault-backend`. | **Sincronización declarativa con Vault** proyectada a `pokemon-secrets` (`refreshInterval: 1h`). |
 | **Beyla (eBPF)** | Auto-instrumentación de trazas por kernel eBPF | En LXC anidado/privilegiado, eBPF requiere privilegios elevados y es propenso a incompatibilidades con el kernel del host PVE. | **Instrumentación nativa W3C `traceparent` (ADR-018)** + logs estructurados Pino JSON con `traceId`/`spanId` + endpoint `/metrics` en la aplicación. |
 | **Node Exporter & KSM** | Métricas del host OS y objetos de Kubernetes | Duplica la telemetría que el hipervisor ya captura con precisión absoluta. | **Telemetría RRD nativa de Proxmox VE** (CPU, RAM, I/O) + `metrics-server` embebido en K3s para HPA + scraping ligero de pods vía Grafana Alloy. |
 | **Cilium CNI** | CNI eBPF avanzado | K3s incluye Flannel embebido con huella de memoria prácticamente nula (<20MB). | **Flannel + K8s NetworkPolicies L4 estándar** con reglas de Default-Deny y Anti-SSRF estrictas. |
@@ -108,7 +110,7 @@ Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la reg
 
 | Dominio Operativo | Herramienta Autorizada (Cloud / AWS) | Perfil Minimal Viable Platform (On-Prem / Proxmox) | Alternativas Descartadas / Podadas |
 |---|---|---|---|
-| **Gestión de Secretos** | **External Secrets Operator (ESO)** | `v1/Secret` nativo K8s (`existingSecret`) | Bitnami Sealed Secrets (deprecado) |
+| **Gestión de Secretos** | **ESO $\to$ AWS Secrets Manager** (`aws-secrets-manager`) | **ESO $\to$ HashiCorp Vault** (`vault-backend`) | Bitnami Sealed Secrets (deprecado), `infra/k8s/secretstores/` disperso |
 | **Recarga de Config/Secretos** | Stakater Reloader | **Helm `checksum/config` nativo en Pod template** | Scripts manuales de rollout |
 | **Connection Pooling** | PgBouncer (si réplicas > 10) | **Pool nativo `pg.Pool` en aplicación** | PgBouncer innecesario en cargas moderadas |
 | **GitOps** | ArgoCD (targetRevision fija) | ArgoCD / Helm directo estandarizado | Scripts de deploy imperativos |

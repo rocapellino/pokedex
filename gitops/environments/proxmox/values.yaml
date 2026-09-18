@@ -2,9 +2,9 @@
 # Sobrescritura de Values para Entorno On-Premise (Proxmox VE / K8s Interno)
 # Perfil: Minimal Viable Platform (MVP) / Lean On-Premise
 # Racional de Consolidación Arquitectónica:
+# - Secrets: External Secrets Operator (ESO) canónico -> HashiCorp Vault (vault-backend)
 # - Reloader: Desactivado. Sustituido por anotación nativa Helm checksum/config en Pod template.
 # - PgBouncer: Desactivado. Sustituido por pool nativo pg.Pool en Node.js (20 conns/pod = 40 total).
-# - External Secrets Operator (ESO): Desactivado. Sustituido por v1/Secret nativo de K8s.
 # - Beyla (eBPF): Desactivado. Sustituido por instrumentación W3C nativa + Prometheus /metrics.
 # - Node Exporter: Desactivado. Sustituido por telemetría RRD nativa del hipervisor Proxmox VE.
 # - Observabilidad: Grafana Alloy con OTLP (:4317/:4318) + recolección de logs en /var/log/pods.
@@ -111,7 +111,7 @@ ingress:
   tls: []
 
 secrets:
-  existingSecret: ""
+  existingSecret: "pokemon-secrets"
 
 pgbouncer:
   enabled: false
@@ -120,7 +120,7 @@ reloader:
   enabled: false
 
 externalSecrets:
-  enabled: false
+  enabled: true
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
   secretStoreRef:
