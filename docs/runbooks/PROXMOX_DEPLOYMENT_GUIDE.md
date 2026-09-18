@@ -1,17 +1,21 @@
 # 🖥️ Guía de Operación y Despliegue en Proxmox VE (On-Premises & Private Cloud)
 
-Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y operar la infraestructura de **Pokédex** en servidores **Proxmox Virtual Environment (PVE)**. De acuerdo con la **Estrategia de Cómputo Bi-Modal (ADR-024)**, Proxmox actúa como el proveedor de cómputo on-premises (alojando nodos de **Kubernetes/K3s** mediante contenedores LXC ultralivianos en Pre-Prod/Laboratorio o Máquinas Virtuales KVM con aislamiento estricto en Producción), mientras que el hardening del sistema operativo se delega a **Ansible** y la aplicación se despliega declarativamente mediante **Helm** y **ArgoCD**.
+Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y operar la infraestructura de **Pokédex** en servidores **Proxmox Virtual Environment (PVE)**.
+
+De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Management Plane y Runtime Plane)**:
+- **On-Premise (Proxmox VE):** Es la plataforma operacionalmente activa donde corren los entornos de Pre-producción y Producción.
+- **Cloud (AWS):** Se define como un **Target Arquitectónico Cloud-Ready (no activo concurrentemente)**, garantizando que el Helm chart universal y los contratos de la aplicación puedan migrar a la nube sin rediseñar la arquitectura.
 
 ---
 
 ## 📑 Tabla de Contenidos
 
-1. [Arquitectura de Cómputo On-Premises (Bi-Modal)](#1-arquitectura-de-cómputo-on-premises-bi-modal)
+1. [Arquitectura por Planos (Management Plane vs Runtime Plane)](#1-arquitectura-por-planos-management-plane-vs-runtime-plane)
 2. [Gestión Canónica de Secretos (ESO + Vault) y Justificación de Redeploy](#2-gestión-canónica-de-secretos-eso--vault-y-justificación-de-redeploy)
 3. [Aprovisionamiento de Infraestructura con OpenTofu (IaaS)](#3-aprovisionamiento-de-infraestructura-con-opentofu-iaas)
-4. [Bastion Host y Herramientas Centralizadas (LXC 820)](#4-bastion-host-y-herramientas-centralizadas-lxc-820)
+4. [Bastion Host como Management Plane On-Premise (LXC 820)](#4-bastion-host-como-management-plane-on-premise-lxc-820)
 5. [Hardening del Sistema Operativo y Firewall con Ansible](#5-hardening-del-sistema-operativo-y-firewall-con-ansible)
-6. [Aprovisionamiento y Configuración de Vault CE con Ansible](#6-aprovisionamiento-y-configuración-de-vault-ce-con-ansible)
+6. [Aprovisionamiento y Configuración Endurecida de Vault CE con Ansible](#6-aprovisionamiento-y-configuración-endurecida-de-vault-ce-con-ansible)
 7. [Instalación de Kubernetes Runtime (K3s) y CNI Cilium](#7-instalación-de-kubernetes-runtime-k3s-y-cni-cilium)
 8. [Despliegue y Sincronización GitOps con ArgoCD](#8-despliegue-y-sincronización-gitops-con-argocd)
 9. [Verificación en Vivo de Aislamiento Egress y Anti-SSRF](#9-verificación-en-vivo-de-aislamiento-egress-y-anti-ssrf)
@@ -19,42 +23,36 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 
 ---
 
-## 1. Arquitectura de Cómputo On-Premises (Bi-Modal)
+## 1. Arquitectura por Planos (Management Plane vs Runtime Plane)
 
 ```text
-                      ┌─────────────────────────────────────────┐
-                      │          Proxmox VE Node (PVE)          │
-                      │  IP: 10.10.13.10 (Debian Core Kernel)   │
-                      └────────────────────┬────────────────────┘
-                                           │
-                     ┌─────────────────────┴─────────────────────┐
-                     ▼                                           ▼
-       ┌───────────────────────────┐               ┌───────────────────────────┐
-       │   Pre-Prod / Lab: LXC     │               │     Producción: KVM VM    │
-       │    (Debian 12 Bookworm)   │               │    (Debian 12 Cloud-Init) │
-       │  • Consumo: ~800 MB RAM   │               │  • Aislamiento por HW     │
-       │  • Arranque: < 5 segundos │               │  • Kernel independiente   │
-       │  • compute_type = "lxc"   │               │  • compute_type = "vm"    │
-       └─────────────┬─────────────┘               └─────────────┬─────────────┘
-                     │                                           │
-                     └─────────────────────┬─────────────────────┘
-                                           ▼
-                     ┌───────────────────────────────────────────┐
-                     │          Kubernetes Runtime (K3s)         │
-                     │  • Traefik Ingress Controller (:80/:443)  │
-                     │  • Node.js 22 LTS / Express (:3000)       │
-                     │  • PostgreSQL 16 StatefulSet (:5432)      │
-                     │  • Redis 7 In-Memory Cache (:6379)        │
-                     │  • Grafana Alloy DaemonSet (Logs & OTLP)  │
-                     └─────────────────────┬─────────────────────┘
-                                           │
-                                           ▼
-                     ┌───────────────────────────────────────────┐
-                     │          Sincronización GitOps            │
-                     │  ArgoCD -> gitops/apps/app-proxmox.yaml   │
-                     │  Helm Chart -> infra/helm/pokedex         │
-                     └───────────────────────────────────────────┘
+                               GitHub
+                                 │
+                          GitHub Actions
+                                 │
+                   ┌─────────────┴─────────────┐
+                   │                           │
+             Cloud-Ready                  On-Premise
+              AWS / EKS                    Proxmox
+             (Preparado)                  (Operativo)
+                                               │
+                                ┌──────────────┴──────────────┐
+                                ▼                             ▼
+                     ┌─────────────────────┐       ┌─────────────────────┐
+                     │  Management Plane   │       │    Runtime Plane    │
+                     │  • Bastion (LXC 820)│       │  • K3s (ID 800)     │
+                     │  • OpenTofu (IaaS)  │       │    - API & Web      │
+                     │  • Ansible (Config) │       │    - PostgreSQL/Redis│
+                     │  • ArgoCD (GitOps)  │       │    - Grafana Alloy  │
+                     │  • Vault/K8s CLIs   │       │  • Vault CE (LXC 810│
+                     └─────────────────────┘       └─────────────────────┘
 ```
+
+### Cadena Estricta de Responsabilidad On-Premise (Source of Truth)
+1. **OpenTofu (IaaS):** Crea infraestructura inmutable (VMs, LXCs, CPU, RAM, disco, redes, IPs y firewall perimetral).
+2. **Ansible (Config):** Configura sistemas operativos (paquetes base, hardening de kernel/SSH, UFW, runtime K3s, HashiCorp Vault y herramientas en Bastion).
+3. **ArgoCD (GitOps):** Reconcilia el estado deseado en Kubernetes (Deployments, Services, ConfigMaps, ExternalSecrets, NetworkPolicies).
+4. **GitHub Actions (CI/CD):** Ejecuta validaciones de calidad y seguridad, compila y firma imágenes OCI, y publica manifiestos.
 
 ---
 
@@ -124,9 +122,35 @@ tofu apply \
 
 ---
 
-## 4. Bastion Host y Herramientas Centralizadas (LXC 820)
+## 4. Bastion Host como Management Plane On-Premise (LXC 820)
 
-Para centralizar todas las herramientas de gestión y superar las fricciones de ejecución desde estaciones cliente (passphrases de SSH o diferencias de sistema operativo), el contenedor **`820 (bastion)`** (`10.10.13.120/24`) actúa como el bastion y nodo de control DevOps oficial dentro de la LAN de Proxmox:
+Conforme a **ADR-025**, el contenedor **`820 (bastion)`** (`10.10.13.120/24`) actúa formalmente como el componente central del **Management Plane** dentro de la infraestructura on-premise en Proxmox:
+
+```text
+Internet / GitHub Actions
+           │  (SSH / Runner Automation)
+           ▼
+     Bastion LXC (Management Plane)
+           │
+           ├── kubectl / Helm
+           ├── Ansible Orchestration
+           ├── Vault CLI & PKI
+           └── Herramientas de Diagnóstico
+           │
+           ▼ (Red de Administración 10.10.13.0/24)
+  ┌────────┼────────┐
+  ▼        ▼        ▼
+Proxmox   K3s     Vault
+```
+
+### 🛡️ Guardarraíles Operativos de Bastion (Anti-Drift y SSOT)
+Para evitar que el Bastion degenere en un punto de divergencia manual ("snowflake server"), se establecen las siguientes reglas estrictas:
+- **Prohibido:** El Bastion **NO** se utiliza para aplicar cambios manuales persistentes, `kubectl apply` ad-hoc, `git pull` manuales ni edición de manifiestos en caliente.
+- **Permitido:** Se reserva exclusivamente para:
+  1. **Administración y Orquestación:** Ejecución de playbooks de Ansible controlados.
+  2. **Troubleshooting y Diagnóstico:** Comprobación de conectividad de red, DNS y salud de endpoints internos.
+  3. **Break-Glass:** Operaciones de emergencia y recuperación ante desastres cuando la automatización remota no esté disponible.
+- **Git como Única Fuente de Verdad:** El flujo operativo normal es siempre declarativo: `Git -> CI -> ArgoCD -> K3s`. Bastion no almacena el estado del sistema.
 
 ### Herramientas Centralizadas en Bastion
 - **Orquestación:** `ansible` y `ansible-playbook` con los playbooks del repositorio.
