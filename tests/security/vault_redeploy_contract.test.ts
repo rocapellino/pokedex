@@ -46,3 +46,31 @@ test('🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout r
     'En Proxmox, un rollout restart es estrictamente necesario para refrescar process.env tras rotación de secretos'
   );
 });
+
+test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-prod y Prod', () => {
+  const setupVaultPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yml');
+  const content = fs.readFileSync(setupVaultPath, 'utf-8');
+
+  assert.match(content, /pokedex-preprod-policy\.hcl/, 'Debe generar la política pokedex-preprod-policy');
+  assert.match(content, /secret\/data\/pokedex\/preprod\/\*/, 'La política de pre-prod debe restringir a secret/data/pokedex/preprod/*');
+  assert.match(content, /pokedex-prod-policy\.hcl/, 'Debe generar la política pokedex-prod-policy');
+  assert.match(content, /secret\/data\/pokedex\/prod\/\*/, 'La política de prod debe restringir a secret/data/pokedex/prod/*');
+  assert.match(content, /auth\/kubernetes\/role\/pokedex-preprod-role/, 'Debe configurar el rol de autenticación K8s pokedex-preprod-role');
+  assert.match(content, /auth\/kubernetes\/role\/pokedex-prod-role/, 'Debe configurar el rol de autenticación K8s pokedex-prod-role');
+});
+
+test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y políticas operativas', () => {
+  const setupBastionPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_bastion.yml');
+  const content = fs.readFileSync(setupBastionPath, 'utf-8');
+
+  assert.match(content, /\/var\/log\/bastion\/audit\.log/, 'Bastion debe configurar log dedicado para auditoría');
+  assert.match(content, /_bastion_audit/, 'Bastion debe capturar comandos con función interceptora de auditoría');
+  assert.match(content, /authpriv\.notice/, 'Bastion debe reenviar eventos de auditoría a syslog');
+
+  const breakGlassRunbook = path.join(ROOT_DIR, 'docs/runbooks/BREAK_GLASS_PROCEDURE.md');
+  assert.ok(fs.existsSync(breakGlassRunbook), 'Debe existir el runbook de procedimiento Break-Glass');
+
+  const spofDoc = path.join(ROOT_DIR, 'docs/architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md');
+  assert.ok(fs.existsSync(spofDoc), 'Debe existir el análisis formal de SPOF y dominios de falla on-premise');
+});
+

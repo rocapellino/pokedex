@@ -384,7 +384,7 @@
         group: root
         mode: '0640'
         content: |
-          # Política de solo lectura para la aplicación Pokédex
+          # Política de solo lectura para la aplicación Pokédex (acceso global)
           path "secret/data/pokedex/*" {
             capabilities = ["read"]
           }
@@ -395,6 +395,58 @@
     - name: Aplicar política pokedex-policy en Vault
       ansible.builtin.command:
         cmd: "vault policy write pokedex-policy {{ vault_config_dir }}/pokedex-policy.hcl"
+      environment:
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+      changed_when: true
+
+    - name: Generar política pokedex-preprod-policy (Aislamiento Lógico Pre-prod)
+      ansible.builtin.copy:
+        dest: "{{ vault_config_dir }}/pokedex-preprod-policy.hcl"
+        owner: root
+        group: root
+        mode: '0640'
+        content: |
+          # Política de aislamiento lógico para entorno Pre-producción
+          path "secret/data/pokedex/preprod/*" {
+            capabilities = ["read"]
+          }
+          path "secret/metadata/pokedex/preprod/*" {
+            capabilities = ["read", "list"]
+          }
+
+    - name: Aplicar política pokedex-preprod-policy en Vault
+      ansible.builtin.command:
+        cmd: "vault policy write pokedex-preprod-policy {{ vault_config_dir }}/pokedex-preprod-policy.hcl"
+      environment:
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+      changed_when: true
+
+    - name: Generar política pokedex-prod-policy (Aislamiento Lógico Prod)
+      ansible.builtin.copy:
+        dest: "{{ vault_config_dir }}/pokedex-prod-policy.hcl"
+        owner: root
+        group: root
+        mode: '0640'
+        content: |
+          # Política de aislamiento lógico para entorno Producción
+          path "secret/data/pokedex/prod/*" {
+            capabilities = ["read"]
+          }
+          path "secret/metadata/pokedex/prod/*" {
+            capabilities = ["read", "list"]
+          }
+
+    - name: Aplicar política pokedex-prod-policy en Vault
+      ansible.builtin.command:
+        cmd: "vault policy write pokedex-prod-policy {{ vault_config_dir }}/pokedex-prod-policy.hcl"
       environment:
         VAULT_ADDR: "https://127.0.0.1:8200"
         VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
@@ -433,6 +485,42 @@
       register: role_write
       failed_when: false
       changed_when: role_write.rc == 0
+
+    - name: Configurar rol pokedex-preprod-role para External Secrets Operator
+      ansible.builtin.command:
+        cmd: >
+          vault write auth/kubernetes/role/pokedex-preprod-role
+          bound_service_account_names=external-secrets-sa
+          bound_service_account_namespaces=external-secrets,pokedex-preprod
+          policies=pokedex-preprod-policy
+          ttl=1h
+      environment:
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+      register: preprod_role_write
+      failed_when: false
+      changed_when: preprod_role_write.rc == 0
+
+    - name: Configurar rol pokedex-prod-role para External Secrets Operator
+      ansible.builtin.command:
+        cmd: >
+          vault write auth/kubernetes/role/pokedex-prod-role
+          bound_service_account_names=external-secrets-sa
+          bound_service_account_namespaces=external-secrets,pokedex-prod,pokedex
+          policies=pokedex-prod-policy
+          ttl=1h
+      environment:
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+      register: prod_role_write
+      failed_when: false
+      changed_when: prod_role_write.rc == 0
 
     # --------------------------------------------------------------------------
     # 10. Custodia Externa Segura: Exportar Certificado CA a Infraestructura K8s
