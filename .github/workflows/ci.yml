@@ -259,43 +259,25 @@ jobs:
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
           echo "✅ Digest OCI inmutable verificado: $DIGEST"
 
-      - name: Validar consistencia criptográfica de Digest (CI Published == GitOps Pinning)
-        env:
-          PUBLISHED_DIGEST: ${{ steps.image-digest.outputs.digest }}
-          IMAGE_TAG: ${{ needs.build-docker.outputs.image_tag }}
-        run: |
-          echo "🔒 [Supply Chain] Validando paridad de digests entre imagen publicada y manifiestos GitOps..."
-          
-          # Extraer digests declarados en los entornos GitOps
-          GITOPS_AWS_DIGEST=$(grep -A 4 'pokedex-api' gitops/environments/aws/values.yaml | grep 'digest:' | head -n 1 | awk '{print $2}' | tr -d '"')
-          GITOPS_PROXMOX_DIGEST=$(grep -A 4 'pokedex-api' gitops/environments/proxmox/values.yaml | grep 'digest:' | head -n 1 | awk '{print $2}' | tr -d '"')
-          HELM_PROD_DIGEST=$(grep -A 4 'pokedex-api' infra/helm/pokedex/values.prod.yaml | grep 'digest:' | head -n 1 | awk '{print $2}' | tr -d '"')
-          
-          echo "   - Digest OCI Publicado (CI): $PUBLISHED_DIGEST"
-          echo "   - Digest GitOps AWS:         $GITOPS_AWS_DIGEST"
-          echo "   - Digest GitOps Proxmox:     $GITOPS_PROXMOX_DIGEST"
-          echo "   - Digest Helm Producción:    $HELM_PROD_DIGEST"
-          
-          # 1. Comprobar paridad inter-entornos
-          if [ "$GITOPS_AWS_DIGEST" != "$GITOPS_PROXMOX_DIGEST" ] || [ "$GITOPS_AWS_DIGEST" != "$HELM_PROD_DIGEST" ]; then
-            echo "❌ Error crítico: Discrepancia entre manifiestos GitOps (AWS != Proxmox != Prod). Abortando firma de release."
-            exit 1
-          fi
-          
-          # 2. Comprobar que GitOps no contenga etiquetas 'tag' confusas y use 'digest' como única fuente de verdad (SSOT)
-          GITOPS_TAG=$(grep -A 4 'pokedex-api' gitops/environments/aws/values.yaml | grep 'tag:' | head -n 1 || true)
-          if [ -n "$GITOPS_TAG" ]; then
-            echo "⚠️ Advertencia de arquitectura: Se detectó campo 'tag' en GitOps. La política de SSOT exige digest inmutable exclusivo."
-          fi
-          
-          echo "🔒 Paridad criptográfica 1:1 certificada en GitOps (AWS == Proxmox == Prod): $GITOPS_AWS_DIGEST"
-          echo "📦 Digest OCI publicado y listo para firma Cosign: $PUBLISHED_DIGEST"
-          echo "✅ Validación de consistencia superada con éxito."
+      - name: Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias del monorepo
+        run: npm ci --ignore-scripts
 
       - name: Configurar Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           version: 'v3.17.0'
+
+      - name: Validar consistencia criptográfica de Digest en Manifiestos Renderizados (Helm AST)
+        env:
+          PUBLISHED_DIGEST: ${{ steps.image-digest.outputs.digest }}
+        run: |
+          node --experimental-strip-types scripts/verify-image-digest-parity.ts --published-digest "$PUBLISHED_DIGEST"
 
       - name: Validar, empaquetar y publicar Helm Chart como OCI
         id: helm-push

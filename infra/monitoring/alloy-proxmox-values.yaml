@@ -1,0 +1,148 @@
+# ==============================================================================
+# Grafana Alloy - Configuración para Clúster Kubernetes en Proxmox VE
+# Namespace: monitoring | Release: grafana-cloud
+# ==============================================================================
+
+controller:
+  type: daemonset
+  resources:
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+
+service:
+  enabled: true
+  type: ClusterIP
+
+alloy:
+  extraPorts:
+    - name: "otlp-grpc"
+      port: 4317
+      targetPort: 4317
+      protocol: "TCP"
+    - name: "otlp-http"
+      port: 4318
+      targetPort: 4318
+      protocol: "TCP"
+
+  envFrom:
+    - secretRef:
+        name: grafana-cloud-credentials
+
+  configMap:
+    create: true
+    content: |
+      // ----------------------------------------------------------------------
+      // 1. Recepción OTLP (gRPC :4317 / HTTP :4318) para Trazas y Telemetría
+      // ----------------------------------------------------------------------
+      otelcol.receiver.otlp "default" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        http {
+          endpoint = "0.0.0.0:4318"
+        }
+        output {
+          metrics = [otelcol.exporter.prometheus.default.input]
+          logs    = [otelcol.exporter.loki.default.input]
+        }
+      }
+
+      otelcol.exporter.prometheus "default" {
+        forward_to = [prometheus.remote_write.grafana_cloud_prometheus.receiver]
+      }
+
+      otelcol.exporter.loki "default" {
+        forward_to = [loki.write.grafana_cloud_loki.receiver]
+      }
+
+      // ----------------------------------------------------------------------
+      // 2. Exportación a Grafana Cloud Prometheus (Remote Write)
+      // ----------------------------------------------------------------------
+      prometheus.remote_write "grafana_cloud_prometheus" {
+        endpoint {
+          name = "hosted-prometheus"
+          url  = sys.env("GRAFANA_CLOUD_PROMETHEUS_URL")
+          basic_auth {
+            username = sys.env("GRAFANA_CLOUD_PROMETHEUS_USER")
+            password = sys.env("GRAFANA_CLOUD_TOKEN")
+          }
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // 3. Exportación a Grafana Cloud Loki (Push)
+      // ----------------------------------------------------------------------
+      loki.write "grafana_cloud_loki" {
+        endpoint {
+          url = sys.env("GRAFANA_CLOUD_LOKI_URL")
+          basic_auth {
+            username = sys.env("GRAFANA_CLOUD_LOKI_USER")
+            password = sys.env("GRAFANA_CLOUD_TOKEN")
+          }
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // 4. Raspado de Métricas de la Aplicación Pokédex (Express API)
+      // ----------------------------------------------------------------------
+      prometheus.scrape "pokemon_api" {
+        targets = [
+          {
+            "__address__"      = "pokemon-api-svc.pokemon-app.svc.cluster.local:3000",
+            "__metrics_path__" = "/metrics",
+            "app"              = "pokemon-api",
+            "instance"         = "pokedex-k8s-node",
+            "environment"      = "onprem-proxmox",
+            "cluster"          = "pokedex-k8s-cluster",
+          },
+        ]
+        forward_to      = [prometheus.remote_write.grafana_cloud_prometheus.receiver]
+        scrape_interval = "15s"
+      }
+
+      // ----------------------------------------------------------------------
+      // 5. Recolección de Logs de Pods Kubernetes en Proxmox (/var/log/pods)
+      // ----------------------------------------------------------------------
+      discovery.kubernetes "pods" {
+        role = "pod"
+        namespaces {
+          names = ["pokemon-app", "monitoring"]
+        }
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      loki.source.kubernetes "pod_logs" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.write.grafana_cloud_loki.receiver]
+      }
+
+rbac:
+  create: true

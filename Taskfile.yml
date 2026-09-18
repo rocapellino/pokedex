@@ -197,9 +197,9 @@ tasks:
       - helm uninstall grafana-cloud -n monitoring --ignore-not-found
 
   monitoring:dev:status:
-    desc: "Muestra el estado de salud de los recolectores locales de observabilidad (Alloy, cAdvisor, Exporters)"
+    desc: "Muestra el estado de salud de los recolectores locales de observabilidad (Alloy, cAdvisor)"
     cmds:
-      - docker compose -f docker-compose.yml -f docker-compose.dev.yml ps alloy cadvisor postgres-exporter redis-exporter
+      - docker compose -f docker-compose.yml -f docker-compose.dev.yml ps alloy cadvisor
 
   monitoring:dev:logs:
     desc: "Muestra los registros en tiempo real del agente Grafana Alloy"

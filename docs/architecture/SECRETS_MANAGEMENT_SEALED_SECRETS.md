@@ -123,10 +123,10 @@ Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privada
 
   Cuando ESO actualiza el recurso `v1/Secret`, Reloader detecta la mutación y ejecuta automáticamente un *rolling upgrade* ordenado de los Pods.
 
-- **Manifiestos de Referencia (`infra/k8s/secretstores/`):**
-  - [`aws-secrets-manager.yaml`](../../infra/k8s/secretstores/aws-secrets-manager.yaml): Conexión hacia AWS Secrets Manager utilizando IAM Roles for Service Accounts (IRSA).
-  - [`vault-backend.yaml`](../../infra/k8s/secretstores/vault-backend.yaml): Conexión hacia HashiCorp Vault utilizando Kubernetes ServiceAccount token authentication.
-  - [`fake-local-store.yaml`](../../infra/k8s/secretstores/fake-local-store.yaml): Proveedor simulado para validaciones y pruebas locales sobre Kind o CI.
+- **Manifiestos de Referencia (`infra/k8s/eso/`):**
+  - [`aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml): Conexión hacia AWS Secrets Manager utilizando IAM Roles for Service Accounts (IRSA).
+  - [`vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml): Conexión hacia HashiCorp Vault utilizando Kubernetes ServiceAccount token authentication.
+  - [`cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml): Manifiesto canónico consolidado con los ClusterSecretStores para AWS y Proxmox.
 
 ### 3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets
 

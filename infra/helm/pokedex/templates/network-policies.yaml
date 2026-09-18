@@ -127,6 +127,16 @@ spec:
       ports:
         - protocol: TCP
           port: 6379
+    # Permitir telemetría saliente hacia Grafana Alloy / OpenTelemetry Collector
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
     # Permitir tráfico HTTPS saliente para servicios externos (ej. Gemini AI, PokeAPI)
     # Endurecido con Anti-SSRF: Bloquea endpoints de metadatos de nube y redes privadas RFC1918
     # En clústeres con Cilium activo, el filtrado granular se delega a CiliumNetworkPolicy L7 FQDN

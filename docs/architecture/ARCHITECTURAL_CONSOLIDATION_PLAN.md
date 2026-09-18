@@ -49,13 +49,13 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
     6. **TLS SNI Passthrough:** Handshakes cifrados validados mediante SNI en socket sin requerir certificados CA privados ni terminación TLS.
     7. **Fail-Closed Estricto:** Cualquier destino externo no explícitamente en la allowlist (ej. `curl -I https://example.com` o puerto 80) debe ser rechazado/descartado inmediatamente.
 
-### 2.2. Agentes de Telemetría y Monitoreo
-* **Situación:** En desarrollo y producción conviven agentes independientes:
+### 2.2. Agentes de Telemetría y Monitoreo (Fase B - Completada)
+* **Situación:** En desarrollo coexistían agentes independientes en contenedores satélites dedicados:
   - `postgres-exporter`, `redis-exporter`, `cadvisor` y `grafana/alloy`.
-* **Diagnóstico:** Grafana Alloy es un recolector programable moderno capaz de embeber internamente los exporters de Prometheus mediante sus componentes `prometheus.exporter.postgres` y `prometheus.exporter.redis` sin necesidad de ejecutar contenedores satélites dedicados.
-* **Acción de Poda (Fase B):**
-  - Migrar la recolección de métricas de PostgreSQL y Redis a componentes nativos dentro del pipeline de `config.alloy`.
-  - Retirar los contenedores `postgres-exporter` y `redis-exporter` del Compose local, reduciendo el footprint a un único agente Alloy.
+* **Diagnóstico:** Grafana Alloy es un recolector programable moderno capaz de embeber internamente los exporters de Prometheus mediante sus componentes nativos `prometheus.exporter.postgres` y `prometheus.exporter.redis` sin necesidad de ejecutar contenedores satélites dedicados.
+* **Acción de Poda (Fase B - [x] Ejecutada):**
+  - **Migración a Exporters Nativos en Alloy**: Configurados `prometheus.exporter.postgres "postgres"` y `prometheus.exporter.redis "redis"` con descubrimiento y relabeling nativo (`discovery.relabel`) en `infra/monitoring/alloy/config.alloy`.
+  - **Retiro de Contenedores Satélites**: Eliminados los servicios `postgres-exporter` y `redis-exporter` de `docker-compose.dev.yml` y `Taskfile.yml`, consolidando toda la recolección de métricas (API, Postgres, Redis, Docker cAdvisor, Logs) en el agente Alloy y reduciendo el footprint local.
 
 ### 2.3. Pooler de Conexiones (PgBouncer)
 * **Situación:** Se incluye PgBouncer frente a PostgreSQL.
@@ -76,15 +76,31 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
   - **Modularización Futura (`includes:`):** Cuando el equipo crezca o se requiera aislar responsabilidades de mantenimiento, se adoptará la descomposición nativa de go-task (`taskfiles/Taskfile.{dev,k8s,infra,security,gitops}.yml`) utilizando `flatten: true` para preservar la nomenclatura canónica sin introducir prefijos redundantes.
 * **Resolución:** Mantener `Taskfile.yml` unificado en la fase actual por ergonomía y estabilidad de CI/tests, conservando los aliases de compatibilidad documentados.
 
-### 2.6. Gestión de Secretos: Consolidación en External Secrets Operator (Prioridad 🟡)
-* **Situación:** Coexisten conceptualmente dos mecanismos para Kubernetes: External Secrets Operator (ESO) y Bitnami Sealed Secrets (`scripts/seal-secret.ts`).
+### 2.6. Gestión de Secretos: External Secrets Operator como Estándar Canónico Único Multi-Entorno
+* **Situación:** Coexistían conceptualmente múltiples mecanismos y directorios fragmentados (`infra/k8s/eso/` con `pokedex-secret-store` y `infra/k8s/secretstores/` con nombres dispares), además de utilidades legadas de Bitnami Sealed Secrets.
 * **Diagnóstico de Superficie Conceptual:**
-  - Mantener ambos genera ambigüedad sobre la autoridad de las credenciales, dónde residen y quién las rota.
-  - Ni AWS EKS ni Proxmox VE utilizan Sealed Secrets en sus manifiestos GitOps (`gitops/environments/*/values.yaml` ambos implementan `externalSecrets.enabled: true` apuntando a AWS Secrets Manager y HashiCorp Vault respectivamente).
-  - Sealed Secrets no soporta rotación periódica desatendida ni polling aguas arriba.
-* **Acción de Poda (Fase E):**
-  - **Mecanismo Canónico Único:** **External Secrets Operator (ESO) + Secret Manager Upstream (AWS/Vault) $\to$ `v1/Secret` efímero $\to$ Stakater Reloader**.
-  - **Deprecación de Sealed Secrets:** Se declara Sealed Secrets como mecanismo legado/deprecado. Se retira su necesidad operativa y se mantiene `scripts/seal-secret.ts` únicamente como utilidad histórica aislada.
+  - Mantener directorios dispersos (`infra/k8s/eso` y `infra/k8s/secretstores`) generaba ambigüedad sobre qué `ClusterSecretStore` se utilizaba y dónde residía.
+  - La arquitectura canónica del proyecto (compromiso #206) establece que **External Secrets Operator (ESO) es el mecanismo absoluto y universal** para la inyección y rotación de credenciales en Kubernetes.
+* **Acción de Consolidación y Poda (Fase E - [x] Ejecutada):**
+  - **Estandarización Canónica Bipolar**:
+    - **AWS EKS (Cloud)**: `ESO` $\to$ `ClusterSecretStore/aws-secrets-manager` $\to$ **AWS Secrets Manager** (autenticación federada IRSA).
+    - **Proxmox VE (On-Premise)**: `ESO` $\to$ `ClusterSecretStore/vault-backend` $\to$ **HashiCorp Vault** (autenticación Kubernetes ServiceAccount).
+  - **Limpieza de Directorios**: Se podó y eliminó `infra/k8s/secretstores/`, consolidando todos los conectores de clúster bajo `infra/k8s/eso/` (`aws-secrets-manager.yaml`, `vault-backend.yaml`, `cluster-secret-store.yaml`).
+  - **Deprecación de Sealed Secrets**: Sealed Secrets queda oficialmente deprecado como mecanismo de despliegue; `scripts/seal-secret.ts` se conserva únicamente como utilidad histórica aislada.
+
+### 2.7. Minimal Viable Platform (MVP) en Proxmox VE On-Premise (Prioridad 🔴)
+* **Situación:** En el despliegue on-premise sobre Proxmox VE (LXC/VM K3s), trasladar acríticamente componentes auxiliares no esenciales sobrecarga la memoria y multiplica puntos de falla en un laboratorio u operación interna.
+* **Diagnóstico de Complejidad vs. Garantía:**
+  La meta arquitectónica consiste en podar componentes redundantes preservando intactas las garantías de **disponibilidad, seguridad, observabilidad y disaster recovery**.
+
+| Componente Original | Rol Original | Racional de Poda en Proxmox | Garantía de Reemplazo Preservada |
+|---|---|---|---|
+| **Stakater Reloader** | Reiniciar Pods ante cambios de config/secretos | Requiere un controller Go dedicado con permisos RBAC en todo el clúster. | **Anotación nativa Helm `checksum/config`** (`spec.template.metadata.annotations`) en `api-deployment` y `web-deployment`. Provoca RollingUpdate determinista nativo ante cambios de ConfigMap sin necesidad de pods extra. |
+| **PgBouncer** | Pooler de conexiones PostgreSQL | La API usa `pg.Pool` limitado a 20 conns por réplica (40 en 2 réplicas). PostgreSQL nativo soporta 100-200 conex. sin penalización. | **Pooling nativo en runtime Node.js**. Elimina un intermediario de red y evita fallos con prepared statements. |
+| **External Secrets Operator (ESO)** | Sincronización continua de secretos con Vault | Mecanismo canónico oficial (commit #206). En Proxmox conecta con `ClusterSecretStore/vault-backend`. | **Sincronización declarativa con Vault** proyectada a `pokemon-secrets` (`refreshInterval: 1h`). |
+| **Beyla (eBPF)** | Auto-instrumentación de trazas por kernel eBPF | En LXC anidado/privilegiado, eBPF requiere privilegios elevados y es propenso a incompatibilidades con el kernel del host PVE. | **Instrumentación nativa W3C `traceparent` (ADR-018)** + logs estructurados Pino JSON con `traceId`/`spanId` + endpoint `/metrics` en la aplicación. |
+| **Node Exporter & KSM** | Métricas del host OS y objetos de Kubernetes | Duplica la telemetría que el hipervisor ya captura con precisión absoluta. | **Telemetría RRD nativa de Proxmox VE** (CPU, RAM, I/O) + `metrics-server` embebido en K3s para HPA + scraping ligero de pods vía Grafana Alloy. |
+| **Cilium CNI** | CNI eBPF avanzado | K3s incluye Flannel embebido con huella de memoria prácticamente nula (<20MB). | **Flannel + K8s NetworkPolicies L4 estándar** con reglas de Default-Deny y Anti-SSRF estrictas. |
 
 ---
 
@@ -92,16 +108,19 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
 
 Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la regla estricta:
 
-| Dominio Operativo | Herramienta Autorizada | Alternativas Descartadas / Desmanteladas |
-|---|---|---|
-| **Gestión de Secretos** | **External Secrets Operator (ESO)** | Bitnami Sealed Secrets (deprecado) |
-| **GitOps** | ArgoCD (targetRevision fija por release) | Scripts de deploy imperativos |
-| **Ingress & TLS** | cert-manager + Nginx Ingress / ALB | Gestión manual de certificados |
-| **Zero-Trust L7** | CiliumNetworkPolicy eBPF FQDN | Envoy Egress Gateway proxy |
-| **Telemetría** | Grafana Alloy + Grafana Cloud OTLP | Stack de monitoreo local legado (`docker_monitoreo`) |
-| **Auditoría de Imagen** | Trivy (SCA/SBOM) + Cosign (Keyless) | Múltiples scanners redundantes |
-| **Disaster Recovery** | `backup-cronjob` + `backup-restore-verify` | Scripts manuales ad-hoc sin restore drill |
-| **Task Runner Monorepo** | Task (`Taskfile.yml` unificado) | Makefiles dispersos o scripts Bash ad-hoc |
+| Dominio Operativo | Herramienta Autorizada (Cloud / AWS) | Perfil Minimal Viable Platform (On-Prem / Proxmox) | Alternativas Descartadas / Podadas |
+|---|---|---|---|
+| **Gestión de Secretos** | **ESO $\to$ AWS Secrets Manager** (`aws-secrets-manager`) | **ESO $\to$ HashiCorp Vault** (`vault-backend`) | Bitnami Sealed Secrets (deprecado), `infra/k8s/secretstores/` disperso |
+| **Recarga de Config/Secretos** | Stakater Reloader | **Helm `checksum/config` nativo en Pod template** | Scripts manuales de rollout |
+| **Connection Pooling** | PgBouncer (si réplicas > 10) | **Pool nativo `pg.Pool` en aplicación** | PgBouncer innecesario en cargas moderadas |
+| **GitOps** | ArgoCD (targetRevision fija) | ArgoCD / Helm directo estandarizado | Scripts de deploy imperativos |
+| **Ingress & TLS** | cert-manager + Nginx Ingress / ALB | Traefik embebido de K3s + split-DNS | Gestión manual de certificados |
+| **Zero-Trust L7 / L4** | CiliumNetworkPolicy eBPF FQDN | K8s NetworkPolicies L4 (Default-Deny + Anti-SSRF) | Envoy Egress Gateway proxy |
+| **Telemetría** | Grafana Alloy + Grafana Cloud OTLP | Grafana Alloy (OTLP + logs /var/log/pods) | Stack legado (`docker_monitoreo`), Beyla en LXC |
+| **Métricas de Host** | Node Exporter + KSM | **Proxmox VE RRD hypervisor metrics + metrics-server** | Agentes duplicados en nodo LXC |
+| **Auditoría de Imagen** | Trivy (SCA/SBOM) + Cosign (Keyless) | Trivy + Cosign en CI | Múltiples scanners redundantes |
+| **Disaster Recovery** | `backup-cronjob` + `dr-restore-verify` | `backup-cronjob` + `dr-restore-verify` | Scripts ad-hoc sin restore drill |
+| **Task Runner Monorepo** | Task (`Taskfile.yml` unificado) | Task (`Taskfile.yml` unificado) | Makefiles dispersos o scripts Bash ad-hoc |
 
 ---
 
@@ -114,3 +133,6 @@ Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la reg
 - [x] Poda de `egress-gateway.yaml` ejecutada: consolidación del filtrado L7 en `CiliumNetworkPolicy` (eBPF FQDN) y baseline L4 con Anti-SSRF.
 - [x] Evaluación y estrategia de modularización de `Taskfile.yml` formalizada (monolito ergonómico actual con blueprint de migración a `includes` con `flatten: true`).
 - [x] Consolidación de Gestión de Secretos formalizada: ESO como mecanismo único y autoridad absoluta; Sealed Secrets deprecado.
+- [x] **Poda de Exporters Satélites Locales (Fase B)**: Reemplazo de `postgres-exporter` y `redis-exporter` por componentes embebidos nativos en Grafana Alloy (`prometheus.exporter.postgres` y `prometheus.exporter.redis`), eliminando contenedores satélites de `docker-compose.dev.yml` y `Taskfile.yml`.
+- [x] **Poda de Arquitectura en Proxmox VE (Minimal Viable Platform)**: Adopción de `checksum/config` nativo en Helm (sustituyendo Reloader), desactivación explícita de PgBouncer y ESO, instrumentación W3C nativa sin eBPF intrusivo en LXC, y telemetría consolidada en Grafana Alloy con huella < 1 GB RAM total.
+

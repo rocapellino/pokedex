@@ -18,33 +18,66 @@ prometheus.scrape "pokedex_api" {
 	scrape_timeout  = "4s"
 }
 
-// 2. Recolectar métricas de PostgreSQL
-prometheus.scrape "postgres" {
-	targets = [
-		{
-			"__address__"      = "postgres-exporter:9187",
-			"__metrics_path__" = "/metrics",
-			"app"              = "pokemon-postgres",
-			"instance"         = "pokedex-postgres-dev",
-			"environment"      = "development",
-		},
+// 2. Exporter nativo embebido y recolección de métricas de PostgreSQL
+prometheus.exporter.postgres "postgres" {
+	data_source_names = [
+		sys.env("POSTGRES_DATA_SOURCE_NAME"),
 	]
+}
+
+discovery.relabel "postgres" {
+	targets = prometheus.exporter.postgres.postgres.targets
+
+	rule {
+		target_label = "app"
+		replacement  = "pokemon-postgres"
+	}
+
+	rule {
+		target_label = "instance"
+		replacement  = "pokedex-postgres-dev"
+	}
+
+	rule {
+		target_label = "environment"
+		replacement  = "development"
+	}
+}
+
+prometheus.scrape "postgres" {
+	targets         = discovery.relabel.postgres.output
 	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
 	scrape_interval = "5s"
 	scrape_timeout  = "4s"
 }
 
-// 3. Recolectar métricas de Redis
+// 3. Exporter nativo embebido y recolección de métricas de Redis
+prometheus.exporter.redis "redis" {
+	redis_addr     = sys.env("REDIS_ADDR")
+	redis_password = sys.env("REDIS_PASSWORD")
+}
+
+discovery.relabel "redis" {
+	targets = prometheus.exporter.redis.redis.targets
+
+	rule {
+		target_label = "app"
+		replacement  = "pokemon-redis"
+	}
+
+	rule {
+		target_label = "instance"
+		replacement  = "pokedex-redis-dev"
+	}
+
+	rule {
+		target_label = "environment"
+		replacement  = "development"
+	}
+}
+
 prometheus.scrape "redis" {
-	targets = [
-		{
-			"__address__"      = "redis-exporter:9121",
-			"__metrics_path__" = "/metrics",
-			"app"              = "pokemon-redis",
-			"instance"         = "pokedex-redis-dev",
-			"environment"      = "development",
-		},
-	]
+	targets         = discovery.relabel.redis.output
 	forward_to      = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
 	scrape_interval = "5s"
 	scrape_timeout  = "4s"
@@ -95,6 +128,7 @@ discovery.relabel "docker_logs" {
 		regex         = "/(.*)"
 		target_label  = "container"
 	}
+
 	rule {
 		source_labels = ["__meta_docker_container_name"]
 		regex         = "/(.*)"

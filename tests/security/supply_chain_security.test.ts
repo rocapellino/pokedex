@@ -200,9 +200,7 @@ test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests 
   const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
 
   assert.match(ciWorkflow, /Validar consistencia .* de Digest/, 'Publish debe tener un paso explícito de validación de consistencia de digests');
-  assert.match(ciWorkflow, /GITOPS_AWS_DIGEST=/, 'Debe extraer el digest de GitOps AWS');
-  assert.match(ciWorkflow, /GITOPS_PROXMOX_DIGEST=/, 'Debe extraer el digest de GitOps Proxmox');
-  assert.match(ciWorkflow, /HELM_PROD_DIGEST=/, 'Debe extraer el digest de Helm Prod');
+  assert.match(ciWorkflow, /verify-image-digest-parity\.ts/, 'Debe invocar el script canónico de verificación de paridad Helm AST');
   assert.match(ciWorkflow, /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Cosign debe firmar exactamente el digest validado');
 });
 
