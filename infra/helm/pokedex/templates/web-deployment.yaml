@@ -24,6 +24,11 @@ spec:
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
         app: pokemon-web
         app.kubernetes.io/component: web
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- with .Values.web.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       automountServiceAccountToken: false
       {{- with .Values.global.imagePullSecrets }}

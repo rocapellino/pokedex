@@ -57,9 +57,9 @@ spec:
       labels:
         app: pokemon-api
         app.kubernetes.io/component: api
-        {{- include "pokedex.selectorLabels" . | nindent 8 }}
-      {{- with .Values.api.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- with .Values.api.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
