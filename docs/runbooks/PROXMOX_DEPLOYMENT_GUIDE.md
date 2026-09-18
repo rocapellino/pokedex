@@ -59,8 +59,8 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 * **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
 * **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos locales hacia los nodos.
 * **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado, la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a HashiCorp Vault:
-  - Definición canónica: [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
-  - Secret generado en clúster: `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
+  * Definición canónica: [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
+  * Secret generado en clúster: `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
 
 ---
 
@@ -69,10 +69,11 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 El módulo en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) es la **única fuente de verdad** para aprovisionar el cómputo en Proxmox VE. No se requiere configuración manual de templates ni cloud-init externo:
 
 ### Parámetros de Seguridad Obligatorios
-- **Autenticación Exclusiva por API Token:** `proxmox_api_token = "USER@REALM!TOKENID=UUID"` (se prohíbe `root@pam + password`).
-- **Verificación TLS Estricta:** `proxmox_insecure = false` por defecto.
-- **Acceso por SSH Key:** `ssh_public_key` obligatorio; passwords de usuario nulos.
-- **Cadena de Suministro Segura:** Plantillas descargadas exclusivamente vía HTTPS con validación criptográfica SHA256.
+
+* **Autenticación Exclusiva por API Token:** `proxmox_api_token = "USER@REALM!TOKENID=UUID"` (se prohíbe `root@pam + password`).
+* **Verificación TLS Estricta:** `proxmox_insecure = false` por defecto.
+* **Acceso por SSH Key:** `ssh_public_key` obligatorio; passwords de usuario nulos.
+* **Cadena de Suministro Segura:** Plantillas descargadas exclusivamente vía HTTPS con validación criptográfica SHA256.
 
 ```bash
 # Inicializar y planificar con OpenTofu
