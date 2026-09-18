@@ -219,14 +219,14 @@ test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN 
 test('🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)', () => {
   const cnpPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
   assert.ok(fs.existsSync(cnpPath), 'cilium-network-policies.yaml debe existir');
-  const content = fs.readFileSync(cnpPath, 'utf-8');
+  const lines = fs.readFileSync(cnpPath, 'utf-8').split(/\r?\n/).map(l => l.trim());
 
-  assert.ok(content.includes('kind: CiliumNetworkPolicy'), 'Debe ser de tipo CiliumNetworkPolicy');
-  assert.ok(content.includes('generativelanguage.googleapis.com'), 'Debe permitir generativelanguage.googleapis.com');
-  assert.ok(content.includes('*.pokeapi.co'), 'Debe permitir *.pokeapi.co');
-  assert.ok(content.includes('*.githubusercontent.com'), 'Debe permitir *.githubusercontent.com');
-  assert.ok(content.includes('port: "443"'), 'Debe permitir puerto HTTPS 443');
-  assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir DNS interno en CoreDNS');
+  assert.ok(lines.some(l => l === 'kind: CiliumNetworkPolicy'), 'Debe ser de tipo CiliumNetworkPolicy');
+  assert.ok(lines.some(l => l.includes('matchName') && l.includes('generativelanguage')), 'Debe permitir generativelanguage');
+  assert.ok(lines.some(l => l.includes('matchPattern') && l.includes('pokeapi')), 'Debe permitir pokeapi');
+  assert.ok(lines.some(l => l.includes('matchPattern') && l.includes('githubusercontent')), 'Debe permitir githubusercontent');
+  assert.ok(lines.some(l => l.includes('port: "443"')), 'Debe permitir puerto HTTPS 443');
+  assert.ok(lines.some(l => l.includes('k8s-app: kube-dns')), 'Debe permitir DNS interno en CoreDNS');
 });
 
 test('🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto', () => {
