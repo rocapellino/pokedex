@@ -100,6 +100,7 @@ Se formaliza la distinción estricta entre el flujo normal y el flujo de conting
   - El contenedor Bastion queda formalmente justificado como host de auditoría y punto de break-glass seguro.
   - La separación de ambientes en Vault se resuelve lógicamente sin sobrecosto de contenedores adicionales.
   - El SPOF del host Proxmox queda formalmente asumido, documentado y mitigado.
+  - Se formaliza la demarcación canónica de responsabilidades en [Matriz de Responsabilidades](../architecture/RESPONSIBILITY_MATRIX.md).
 - **Negativas:** 
   - Requiere mantener la disciplina de no realizar cambios manuales desde el Bastion sin posterior reconciliación en Git.
 

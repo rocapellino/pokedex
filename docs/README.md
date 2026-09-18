@@ -78,6 +78,8 @@ flowchart TD
 * 🔬 [**ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md**](./architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md): Análisis comparativo de lenguajes de programación (TypeScript vs Python vs Go), arquitectura limpia y justificación del stack Node.js 22 LTS.
 * 📂 [**MONOREPO_STRUCTURE.md**](./architecture/MONOREPO_STRUCTURE.md): Organización de directorios del monorepo (`apps/`, `infra/`, `gitops/`, `src/`, `scripts/`, `docs/`) y responsabilidades por dominio.
 * 🔐 [**SECRETS_MANAGEMENT_SEALED_SECRETS.md**](./architecture/SECRETS_MANAGEMENT_SEALED_SECRETS.md): Gestión segura de credenciales sin secretos en claro en Git mediante Bitnami Sealed Secrets y escaneo con Gitleaks.
+* 📋 [**RESPONSIBILITY_MATRIX.md**](./architecture/RESPONSIBILITY_MATRIX.md): **Matriz canónica de responsabilidades** de componentes (OpenTofu, Ansible, Bastion, Vault, ESO, ArgoCD, Cilium, Alloy) y demarcación técnica de herramientas DevSecOps.
+* 🏢 [**ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md**](./architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md): Análisis de aislamiento lógico vs físico, dominios de falla compartidos y mitigaciones del SPOF on-premise en Proxmox.
 
 ---
 
