@@ -216,3 +216,55 @@ variable "vault_unprivileged" {
   description = "Ejecutar el contenedor LXC de Vault en modo unprivileged para aislamiento de seguridad estricto"
 }
 
+# ==============================================================================
+# Variables para Ansible Control Node / Satélite en Contenedor LXC
+# ==============================================================================
+variable "ansible_satellite_enabled" {
+  type        = bool
+  default     = true
+  description = "Habilitar el aprovisionamiento del contenedor LXC dedicado como nodo de control y satélite de Ansible"
+}
+
+variable "ansible_satellite_vm_id" {
+  type        = number
+  default     = 820
+  description = "ID asignado al contenedor LXC del satélite de Ansible en Proxmox VE"
+}
+
+variable "ansible_satellite_hostname" {
+  type        = string
+  default     = "ansible-satellite"
+  description = "Hostname configurado en el contenedor LXC del satélite de Ansible"
+}
+
+variable "ansible_satellite_cores" {
+  type        = number
+  default     = 2
+  description = "Cores de CPU asignados al contenedor LXC del satélite de Ansible"
+}
+
+variable "ansible_satellite_memory" {
+  type        = number
+  default     = 1024
+  description = "Memoria RAM en MB asignada al contenedor LXC del satélite de Ansible"
+}
+
+variable "ansible_satellite_disk_size" {
+  type        = number
+  default     = 16
+  description = "Tamaño del disco en GB asignado al contenedor LXC del satélite de Ansible"
+}
+
+variable "ansible_satellite_network_ip" {
+  type        = string
+  default     = "10.10.13.120/24"
+  description = "Dirección IPv4 estática CIDR para el contenedor LXC del satélite de Ansible"
+}
+
+variable "ansible_satellite_unprivileged" {
+  type        = bool
+  default     = true
+  description = "Ejecutar el contenedor LXC del satélite en modo unprivileged para aislamiento de seguridad estricto"
+}
+
+

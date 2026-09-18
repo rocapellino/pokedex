@@ -65,3 +65,22 @@ output "vault_endpoint" {
   description = "URL HTTP del servicio HashiCorp Vault en Proxmox"
   value       = var.vault_enabled ? "http://${split("/", var.vault_network_ip)[0]}:8200" : null
 }
+
+# ==============================================================================
+# Outputs - Ansible Control Node / Satélite LXC
+# ==============================================================================
+output "ansible_satellite_instance_id" {
+  description = "ID del contenedor LXC del satélite de Ansible en Proxmox VE"
+  value       = var.ansible_satellite_enabled ? proxmox_virtual_environment_container.ansible_satellite[0].vm_id : null
+}
+
+output "ansible_satellite_hostname" {
+  description = "Hostname del contenedor LXC del satélite de Ansible"
+  value       = var.ansible_satellite_enabled ? proxmox_virtual_environment_container.ansible_satellite[0].initialization[0].hostname : null
+}
+
+output "ansible_satellite_ip" {
+  description = "Dirección IPv4 del contenedor LXC del satélite de Ansible"
+  value       = var.ansible_satellite_enabled ? split("/", var.ansible_satellite_network_ip)[0] : null
+}
+

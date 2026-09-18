@@ -1,0 +1,45 @@
+---
+# ==============================================================================
+# Playbook: Configuración y Bootstrap de Ansible Satélite en Proxmox VE
+# ==============================================================================
+- name: Aprovisionar herramientas de automatización en Satélite LXC
+  hosts: ansible_satellites
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Actualizar repositorios APT
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Instalar paquetes esenciales de automatización y desarrollo
+      ansible.builtin.apt:
+        name:
+          - ansible
+          - git
+          - curl
+          - wget
+          - jq
+          - python3
+          - python3-pip
+          - python3-venv
+          - sshpass
+          - rsync
+        state: present
+
+    - name: Configurar directorio de trabajo /opt/devops
+      ansible.builtin.file:
+        path: /opt/devops
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Clonar o sincronizar repositorio Pokédex para ejecución local
+      ansible.builtin.git:
+        repo: "https://github.com/rocapellino/pokedex.git"
+        dest: /opt/devops/pokedex
+        version: main
+        force: false
+      ignore_errors: true

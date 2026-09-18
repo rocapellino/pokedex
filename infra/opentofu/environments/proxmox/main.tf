@@ -6,7 +6,7 @@
 # 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count              = (var.compute_type == "lxc" || var.vault_enabled) ? 1 : 0
+  count              = (var.compute_type == "lxc" || var.vault_enabled || var.ansible_satellite_enabled) ? 1 : 0
   content_type       = "vztmpl"
   datastore_id       = "local"
   node_name          = var.node_name
@@ -233,4 +233,73 @@ resource "proxmox_virtual_environment_container" "vault" {
     ]
   }
 }
+
+# ------------------------------------------------------------------------------
+# 4. Ansible Control Node / Satélite de Automatización - Contenedor LXC Dedicado
+# ------------------------------------------------------------------------------
+resource "proxmox_virtual_environment_container" "ansible_satellite" {
+  count       = var.ansible_satellite_enabled ? 1 : 0
+  node_name   = var.node_name
+  vm_id       = var.ansible_satellite_vm_id
+  description = "Ansible Control Node / Satélite de Automatización en LXC (OpenTofu Managed)"
+  tags        = ["ansible", "satellite", "devops", "lxc", "onprem", "pokedex", var.environment_tier]
+
+  unprivileged  = var.ansible_satellite_unprivileged
+  started       = true
+  start_on_boot = true
+
+  cpu {
+    cores        = var.ansible_satellite_cores
+    architecture = "amd64"
+  }
+
+  memory {
+    dedicated = var.ansible_satellite_memory
+    swap      = 512
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    size         = var.ansible_satellite_disk_size
+  }
+
+  operating_system {
+    template_file_id = proxmox_download_file.debian_lxc_template[0].id
+    type             = "debian"
+  }
+
+  network_interface {
+    name   = "eth0"
+    bridge = var.network_bridge
+  }
+
+  initialization {
+    hostname = var.ansible_satellite_hostname
+    dns {
+      servers = [var.network_gateway, "1.1.1.1"]
+    }
+    ip_config {
+      ipv4 {
+        address = var.ansible_satellite_network_ip
+        gateway = var.network_gateway
+      }
+    }
+    user_account {
+      keys     = [var.ssh_public_key]
+      password = var.vm_user_password
+    }
+  }
+
+  features {
+    nesting = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      initialization[0].user_account[0].password,
+      operating_system[0].template_file_id,
+    ]
+  }
+}
+
 

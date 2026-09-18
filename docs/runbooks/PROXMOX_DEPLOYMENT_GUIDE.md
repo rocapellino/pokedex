@@ -9,12 +9,13 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 1. [Arquitectura de Cómputo On-Premises (Bi-Modal)](#1-arquitectura-de-cómputo-on-premises-bi-modal)
 2. [Gestión Canónica de Secretos (ESO + Vault) y Justificación de Redeploy](#2-gestión-canónica-de-secretos-eso--vault-y-justificación-de-redeploy)
 3. [Aprovisionamiento de Infraestructura con OpenTofu (IaaS)](#3-aprovisionamiento-de-infraestructura-con-opentofu-iaas)
-4. [Hardening del Sistema Operativo y Firewall con Ansible](#4-hardening-del-sistema-operativo-y-firewall-con-ansible)
-5. [Aprovisionamiento y Configuración de Vault CE con Ansible](#5-aprovisionamiento-y-configuración-de-vault-ce-con-ansible)
-6. [Instalación de Kubernetes Runtime (K3s) y CNI Cilium](#6-instalación-de-kubernetes-runtime-k3s-y-cni-cilium)
-7. [Despliegue y Sincronización GitOps con ArgoCD](#7-despliegue-y-sincronización-gitops-con-argocd)
-8. [Verificación en Vivo de Aislamiento Egress y Anti-SSRF](#8-verificación-en-vivo-de-aislamiento-egress-y-anti-ssrf)
-9. [Procedimiento de Rotación de Secretos y Reinicio Progresivo (Rollout Restart)](#9-procedimiento-de-rotación-de-secretos-y-reinicio-progresivo-rollout-restart)
+4. [Nodo Satélite de Automatización (Ansible Control Node en LXC)](#4-nodo-satélite-de-automatización-ansible-control-node-en-lxc)
+5. [Hardening del Sistema Operativo y Firewall con Ansible](#5-hardening-del-sistema-operativo-y-firewall-con-ansible)
+6. [Aprovisionamiento y Configuración de Vault CE con Ansible](#6-aprovisionamiento-y-configuración-de-vault-ce-con-ansible)
+7. [Instalación de Kubernetes Runtime (K3s) y CNI Cilium](#7-instalación-de-kubernetes-runtime-k3s-y-cni-cilium)
+8. [Despliegue y Sincronización GitOps con ArgoCD](#8-despliegue-y-sincronización-gitops-con-argocd)
+9. [Verificación en Vivo de Aislamiento Egress y Anti-SSRF](#9-verificación-en-vivo-de-aislamiento-egress-y-anti-ssrf)
+10. [Procedimiento de Rotación de Secretos y Reinicio Progresivo (Rollout Restart)](#10-procedimiento-de-rotación-de-secretos-y-reinicio-progresivo-rollout-restart)
 
 ---
 
@@ -123,7 +124,29 @@ tofu apply \
 
 ---
 
-## 4. Hardening del Sistema Operativo y Firewall con Ansible
+## 4. Nodo Satélite de Automatización (Ansible Control Node en LXC)
+
+Para superar las fricciones de ejecución de Ansible desde estaciones cliente (passphrases de SSH o diferencias de sistema operativo), el contenedor **`820 (ansible-satellite)`** actúa como el nodo de control oficial en la LAN interna de Proxmox (`10.10.13.120/24`):
+
+### Puesta en Marcha Rápida del Satélite
+
+Desde la consola web de Proxmox (LXC 820 -> `>_ Console`):
+
+```bash
+# 1. Instalar paquetes de automatización
+apt-get update && apt-get install -y ansible git curl jq python3-pip
+
+# 2. Clonar el repositorio Pokédex para orquestación interna
+git clone https://github.com/rocapellino/pokedex.git /opt/devops/pokedex
+cd /opt/devops/pokedex
+
+# 3. Ejecutar el setup de Vault directamente desde la LAN interna
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+```
+
+---
+
+## 5. Hardening del Sistema Operativo y Firewall con Ansible
 
 Una vez que el nodo Proxmox está accesible por SSH, se ejecutan los playbooks de Ansible para estandarizar la configuración del sistema operativo, cargar módulos de kernel y blindar el perímetro de red:
 
@@ -147,7 +170,7 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/se
 
 ---
 
-## 5. Aprovisionamiento y Configuración de Vault CE con Ansible
+## 6. Aprovisionamiento y Configuración de Vault CE con Ansible
 
 El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) automatiza el ciclo de vida de HashiCorp Vault CE dentro del contenedor LXC (ID 810, IP `10.10.13.110`):
 
@@ -169,7 +192,7 @@ curl -s http://10.10.13.110:8200/v1/sys/health | jq .
 
 ---
 
-## 6. Instalación de Kubernetes Runtime (K3s) y CNI Cilium
+## 7. Instalación de Kubernetes Runtime (K3s) y CNI Cilium
 
 Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquear destinos públicos no autorizados (como `https://example.com`) al tiempo que se permite el acceso a `generativelanguage.googleapis.com` y `pokeapi.co`, K3s se instala delegando el CNI a **Cilium eBPF**:
 
@@ -193,7 +216,7 @@ kubectl get pods -n kube-system -l k8s-app=cilium
 
 ---
 
-## 7. Despliegue y Sincronización GitOps con ArgoCD
+## 8. Despliegue y Sincronización GitOps con ArgoCD
 
 Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoCD** consumiendo el Helm chart universal:
 
@@ -212,7 +235,7 @@ task k8s:status
 
 ---
 
-## 8. Verificación en Vivo de Aislamiento Egress y Anti-SSRF
+## 9. Verificación en Vivo de Aislamiento Egress y Anti-SSRF
 
 Para certificar que el clúster Proxmox cumple de manera efectiva con los controles de salida de red:
 
@@ -234,7 +257,7 @@ kubectl logs -n pokemon-app job/pokedex-egress-anti-ssrf-probe -f
 
 ---
 
-## 9. Procedimiento de Rotación de Secretos y Reinicio Progresivo (Rollout Restart)
+## 10. Procedimiento de Rotación de Secretos y Reinicio Progresivo (Rollout Restart)
 
 Una vez que Vault se encuentra aprovisionado y sincronizado por ESO en `v1/Secret pokemon-secrets`:
 
