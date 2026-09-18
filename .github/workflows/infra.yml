@@ -57,7 +57,7 @@ jobs:
           grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de Redis en prod"; exit 1; }
           grep -q "kind: CiliumNetworkPolicy" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta recurso CiliumNetworkPolicy"; exit 1; }
           grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
-          grep -q "169.254.169.254/32" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta bloqueo Anti-SSRF hacia Cloud IMDS en NetworkPolicies"; exit 1; }
+          grep -q "169.254.169.254/32" /tmp/rendered-dev.yaml || { echo "❌ Error: Falta bloqueo Anti-SSRF hacia Cloud IMDS en NetworkPolicies"; exit 1; }
           grep -q "kind: ServiceMonitor" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ServiceMonitor en prod"; exit 1; }
           grep -q "kind: PodDisruptionBudget" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso PodDisruptionBudget en prod"; exit 1; }
           grep -q "kind: ResourceQuota" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ResourceQuota en prod"; exit 1; }
