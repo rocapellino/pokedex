@@ -40,7 +40,8 @@ tasks:
   turbo:clean:
     desc: "Limpia la caché local de Turborepo y artefactos de compilación"
     cmds:
-      - node -e "fs.rmSync('.turbo', { recursive: true, force: true }); fs.rmSync('apps/backend/dist', { recursive: true, force: true }); fs.rmSync('apps/frontend/dist', { recursive: true, force: true });"
+      - >-
+        node -e "fs.rmSync('.turbo', { recursive: true, force: true }); fs.rmSync('apps/backend/dist', { recursive: true, force: true }); fs.rmSync('apps/frontend/dist', { recursive: true, force: true });"
 
   typecheck:
     desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
@@ -102,7 +103,7 @@ tasks:
   governance:audit-scripts:
     desc: "Audita la gobernanza de scripts de despliegue y valida la lista blanca de scripts autorizados (ADR-020)"
     cmds:
-      - node -e "const fs=require('fs'), path=require('path'); const allowed=['scripts/dr_verify_restore.sh']; const findSh=(dir)=>{ let r=[]; for(const f of fs.readdirSync(dir)){ const p=path.join(dir,f); if(['node_modules','.git','dist','coverage','.turbo'].includes(f)) continue; if(fs.statSync(p).isDirectory()) r=r.concat(findSh(p)); else if(f.endsWith('.sh')) r.push(p.replace(/\\\\/g,'/')); } return r; }; const found=findSh('.'); const unauth=found.filter(s=>!allowed.some(a=>s.endsWith(a))); if(unauth.length>0){ console.error('❌ Scripts no autorizados detectados:', unauth); process.exit(1); } console.log('✔ Gobernanza de scripts validada: solo scripts autorizados presentes:', allowed);"
+      - npm run governance:audit-scripts
 
 
   security:
