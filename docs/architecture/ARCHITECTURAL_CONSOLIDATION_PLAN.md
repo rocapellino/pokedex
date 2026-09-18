@@ -49,13 +49,13 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
     6. **TLS SNI Passthrough:** Handshakes cifrados validados mediante SNI en socket sin requerir certificados CA privados ni terminación TLS.
     7. **Fail-Closed Estricto:** Cualquier destino externo no explícitamente en la allowlist (ej. `curl -I https://example.com` o puerto 80) debe ser rechazado/descartado inmediatamente.
 
-### 2.2. Agentes de Telemetría y Monitoreo
-* **Situación:** En desarrollo y producción conviven agentes independientes:
+### 2.2. Agentes de Telemetría y Monitoreo (Fase B - Completada)
+* **Situación:** En desarrollo coexistían agentes independientes en contenedores satélites dedicados:
   - `postgres-exporter`, `redis-exporter`, `cadvisor` y `grafana/alloy`.
-* **Diagnóstico:** Grafana Alloy es un recolector programable moderno capaz de embeber internamente los exporters de Prometheus mediante sus componentes `prometheus.exporter.postgres` y `prometheus.exporter.redis` sin necesidad de ejecutar contenedores satélites dedicados.
-* **Acción de Poda (Fase B):**
-  - Migrar la recolección de métricas de PostgreSQL y Redis a componentes nativos dentro del pipeline de `config.alloy`.
-  - Retirar los contenedores `postgres-exporter` y `redis-exporter` del Compose local, reduciendo el footprint a un único agente Alloy.
+* **Diagnóstico:** Grafana Alloy es un recolector programable moderno capaz de embeber internamente los exporters de Prometheus mediante sus componentes nativos `prometheus.exporter.postgres` y `prometheus.exporter.redis` sin necesidad de ejecutar contenedores satélites dedicados.
+* **Acción de Poda (Fase B - [x] Ejecutada):**
+  - **Migración a Exporters Nativos en Alloy**: Configurados `prometheus.exporter.postgres "postgres"` y `prometheus.exporter.redis "redis"` con descubrimiento y relabeling nativo (`discovery.relabel`) en `infra/monitoring/alloy/config.alloy`.
+  - **Retiro de Contenedores Satélites**: Eliminados los servicios `postgres-exporter` y `redis-exporter` de `docker-compose.dev.yml` y `Taskfile.yml`, consolidando toda la recolección de métricas (API, Postgres, Redis, Docker cAdvisor, Logs) en el agente Alloy y reduciendo el footprint local.
 
 ### 2.3. Pooler de Conexiones (PgBouncer)
 * **Situación:** Se incluye PgBouncer frente a PostgreSQL.
@@ -131,5 +131,6 @@ Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la reg
 - [x] Poda de `egress-gateway.yaml` ejecutada: consolidación del filtrado L7 en `CiliumNetworkPolicy` (eBPF FQDN) y baseline L4 con Anti-SSRF.
 - [x] Evaluación y estrategia de modularización de `Taskfile.yml` formalizada (monolito ergonómico actual con blueprint de migración a `includes` con `flatten: true`).
 - [x] Consolidación de Gestión de Secretos formalizada: ESO como mecanismo único y autoridad absoluta; Sealed Secrets deprecado.
+- [x] **Poda de Exporters Satélites Locales (Fase B)**: Reemplazo de `postgres-exporter` y `redis-exporter` por componentes embebidos nativos en Grafana Alloy (`prometheus.exporter.postgres` y `prometheus.exporter.redis`), eliminando contenedores satélites de `docker-compose.dev.yml` y `Taskfile.yml`.
 - [x] **Poda de Arquitectura en Proxmox VE (Minimal Viable Platform)**: Adopción de `checksum/config` nativo en Helm (sustituyendo Reloader), desactivación explícita de PgBouncer y ESO, instrumentación W3C nativa sin eBPF intrusivo en LXC, y telemetría consolidada en Grafana Alloy con huella < 1 GB RAM total.
 

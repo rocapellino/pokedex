@@ -50,40 +50,23 @@ services:
       GRAFANA_CLOUD_LOKI_URL: "${GRAFANA_CLOUD_LOKI_URL:-}"
       GRAFANA_CLOUD_LOKI_USER: "${GRAFANA_CLOUD_LOKI_USER:-}"
       GRAFANA_CLOUD_TOKEN: "${GRAFANA_CLOUD_TOKEN:-}"
+      POSTGRES_DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Error: Variable POSTGRES_PASSWORD requerida en .env}@postgres:5432/${POSTGRES_DB:-pokedex_db}?sslmode=disable"
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}"
     depends_on:
       api:
         condition: service_healthy
-    networks:
-      - backend-net
-
-  # ============================================================================
-  # 6. Exporters de Métricas (PostgreSQL, Redis y Contenedores cAdvisor)
-  # ============================================================================
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.16.0
-    container_name: pokemon-postgres-exporter
-    restart: unless-stopped
-    environment:
-      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Error: Variable POSTGRES_PASSWORD requerida en .env}@postgres:5432/${POSTGRES_DB:-pokedex_db}?sslmode=disable"
-    depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - backend-net
-
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.67.0
-    container_name: pokemon-redis-exporter
-    restart: unless-stopped
-    environment:
-      REDIS_ADDR: "redis://redis:6379"
-      REDIS_PASSWORD: "${REDIS_PASSWORD:?Error: Variable REDIS_PASSWORD requerida en .env}"
-    depends_on:
       redis:
         condition: service_healthy
     networks:
       - backend-net
 
+  # ============================================================================
+  # 6. Exporter de Métricas de Contenedores Docker (cAdvisor)
+  # (PostgreSQL y Redis embebidos nativamente dentro de Grafana Alloy)
+  # ============================================================================
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: pokemon-cadvisor
