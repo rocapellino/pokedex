@@ -35,10 +35,10 @@ Se adopta una arquitectura de persistencia relacional, migraciones declarativas 
    - Se implementa la secuencia nativa `pokedex_id_seq` con valor inicial `START WITH 1009`.
    - La reserva de nuevos identificadores se ejecuta a nivel de motor relacional mediante `nextval('pokedex_id_seq')`, garantizando unicidad estricta y atomicidad aún bajo alta concurrencia de mutaciones sin requerir bloqueos de tabla (*table locks*).
 
-4. **Multiplexación Obligatoria de Conexiones con PgBouncer en Modo Transacción**:
-   - En entornos de producción (Kubernetes / Helm), se interpone **PgBouncer** como mediador obligatorio entre los pods de la API y PostgreSQL (`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`).
-   - Se configura `pool_mode = transaction`, permitiendo que cientos de conexiones cliente compartan un conjunto reducido de conexiones backend hacia PostgreSQL (ej. 20 conexiones al motor físico), liberando el socket inmediatamente al finalizar cada transacción SQL.
-   - La red Zero-Trust aísla PostgreSQL bloqueando el tráfico directo de `pokemon-api` en producción y canalizando todo el flujo a través de `pgbouncer-service:6432`.
+4. **Multiplexación de Conexiones con PgBouncer (Perfil Enterprise vs. Lean)**:
+   - **Plantilla Canónica en Helm**: El chart (`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`) provee la plantilla de PgBouncer con `pool_mode = transaction` y aislamiento de red listo para alta concurrencia.
+   - **Perfil On-Premise Lean (Proxmox VE - ADR-024)**: Para optimizar memoria (< 150MB) en el clúster K3s mononodo, PgBouncer se mantiene como capacidad preparada pero **desactivada** (`pgbouncer.enabled: false`). La API utiliza el pool nativo de Node.js (`pg.Pool` con `max: 20` conexiones por pod = 40 totales), satisfaciendo plenamente la carga de producción actual sin sobrecosto de pods intermediarios.
+   - **Perfil Cloud-Ready (AWS EKS)**: Se activa bajo demanda para gestionar picos elásticos con HPA sin agotar conexiones en Amazon RDS.
 
 5. **Migraciones Declarativas Versionadas y Fallback Resiliente Dual**:
    - Las migraciones se definen de forma declarativa y versionada en `apps/backend/src/db/migrations/`, gestionadas mediante `drizzle-kit` y aplicadas a través de `apps/backend/src/db/migrate.ts` con control transaccional e idempotencia.
