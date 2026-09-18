@@ -42,16 +42,13 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 * **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)
-* **Proxmox VE (On-Premise):** Provisión de máquinas virtuales Debian/Ubuntu con Cloud-Init y cloud-image para nodos Kubernetes.
-* **AWS Cloud (Pública):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS.
+* **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/`):** Provisión bi-modal declarativa de nodos Kubernetes: contenedores **LXC** ultralivianos para Pre-Prod/Laboratorio y máquinas virtuales **KVM** con aislamiento estricto de hardware para Producción.
+* **AWS Cloud (Pública - `infra/opentofu/environments/aws/`):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS.
 * Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
 
 ### 3. Automatización con Ansible (`infra/ansible/`)
 * Hardening de seguridad con cortafuegos UFW y configuración SSH.
-* Preparación de nodos Kubernetes (instalación de containerd, módulos `overlay`/`br_netfilter` y desactivación de Swap).
-
-### 4. Entornos On-Premise con Proxmox VE (`infra/proxmox/`)
-* Despliegue automatizado en servidores locales mediante Cloud-Init y contenedores LXC optimizados.
+* Preparación de nodos Kubernetes (instalación de runtime, módulos `overlay`/`br_netfilter`, sysctl y desactivación de Swap vía `host_baseline.yml`).
 
 ---
 
