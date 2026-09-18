@@ -173,15 +173,16 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
     { encoding: 'utf-8' }
   );
 
-  assert.ok(renderedCilium.includes('kind: CiliumNetworkPolicy'), 'Debe generar recurso CiliumNetworkPolicy');
-  assert.ok(renderedCilium.includes('toFQDNs:'), 'Debe contener sección toFQDNs');
-  assert.ok(
-    renderedCilium.includes('generativelanguage.googleapis.com'),
+  assert.match(renderedCilium, /kind:\s*CiliumNetworkPolicy/, 'Debe generar recurso CiliumNetworkPolicy');
+  assert.match(renderedCilium, /toFQDNs:/, 'Debe contener sección toFQDNs');
+  assert.match(
+    renderedCilium,
+    /matchName:\s*["']?generativelanguage\.googleapis\.com/,
     'Debe permitir generativelanguage.googleapis.com'
   );
-  assert.ok(renderedCilium.includes('*.pokeapi.co'), 'Debe permitir *.pokeapi.co');
-  assert.ok(renderedCilium.includes('*.githubusercontent.com'), 'Debe permitir *.githubusercontent.com');
-  assert.ok(!renderedCilium.includes('example.com'), 'NO debe permitir example.com');
+  assert.match(renderedCilium, /matchPattern:\s*["']?\*\.pokeapi\.co/, 'Debe permitir *.pokeapi.co');
+  assert.match(renderedCilium, /matchPattern:\s*["']?\*\.githubusercontent\.com/, 'Debe permitir *.githubusercontent.com');
+  assert.doesNotMatch(renderedCilium, /example\.com/, 'NO debe permitir example.com');
 
   // Verificar que en producción, el L4 permisivo 0.0.0.0/0 en network-policies.yaml está desactivado
   const renderedL4 = execSync(
@@ -189,8 +190,9 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
     { encoding: 'utf-8' }
   );
 
-  assert.ok(
-    !renderedL4.includes('169.254.169.254/32'),
+  assert.doesNotMatch(
+    renderedL4,
+    /169\.254\.169\.254\/32/,
     'En producción con Cilium activo, la regla L4 0.0.0.0/0 se omite para delegar el control total a Cilium L7'
   );
 });
@@ -199,14 +201,16 @@ test('🛡️ GitOps Configuration: Proxmox values.yaml habilita Cilium L7 Zero-
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
   const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');
 
-  assert.ok(content.includes('ciliumNetworkPolicy:'), 'Proxmox values.yaml debe configurar ciliumNetworkPolicy');
-  assert.ok(content.includes('enabled: true'), 'Proxmox values.yaml debe habilitar ciliumNetworkPolicy para soportar FQDN allowlist');
-  assert.ok(
-    content.includes('generativelanguage.googleapis.com'),
+  assert.match(content, /ciliumNetworkPolicy:/, 'Proxmox values.yaml debe configurar ciliumNetworkPolicy');
+  assert.match(content, /enabled:\s*true/, 'Proxmox values.yaml debe habilitar ciliumNetworkPolicy para soportar FQDN allowlist');
+  assert.match(
+    content,
+    /matchName:\s*["']?generativelanguage\.googleapis\.com/,
     'Proxmox values.yaml debe incluir generativelanguage en fqdnAllowlist'
   );
-  assert.ok(
-    content.includes('externalHttps: false'),
+  assert.match(
+    content,
+    /externalHttps:\s*false/,
     'Proxmox values.yaml debe desactivar externalHttps L4 para evitar el bypass de 0.0.0.0/0'
   );
 });
