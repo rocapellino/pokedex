@@ -102,7 +102,7 @@ variable "lxc_template_checksum" {
 variable "lxc_template_checksum_algorithm" {
   type        = string
   default     = "sha256"
-  description = "Algoritmo de hash para verificar la plantilla LXC ('sha256' o 'sha512')"
+  description = "Algoritmo de hash criptográfico para verificar la plantilla LXC ('sha256' o 'sha512')"
 }
 
 variable "image_file_id" {
