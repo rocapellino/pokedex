@@ -1,0 +1,130 @@
+# checkov:skip=CKV2_K8S_6: "El Job hereda las NetworkPolicies y CiliumNetworkPolicies de la API mediante app.kubernetes.io/component: api"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pokedex-egress-anti-ssrf-probe
+  namespace: pokemon-app
+  labels:
+    app.kubernetes.io/name: pokedex-egress-probe
+    app.kubernetes.io/component: api # Hereda las NetworkPolicies y CiliumNetworkPolicies de la API
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pokedex-egress-probe
+        app.kubernetes.io/component: api # Crucial: aplica el mismo endpointSelector que la API
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: probe
+          image: curlimages/curl:8.10.1@sha256:d9b4541e214bcd85196d6e92e2753ac6d0ea699f0af5741f8c6cccbfcf00ef4b
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -u
+              echo "================================================================================"
+              echo "🛡️  Pokédex Egress & Anti-SSRF In-Pod Live Network Verification"
+              echo "================================================================================"
+              
+              FAILURES=0
+
+              test_target() {
+                NAME="$1"
+                URL="$2"
+                EXPECTED="$3" # "SUCCESS" o "FAIL"
+
+                echo -n "🔍 Probando ${NAME} (${URL})... "
+                
+                # Intentar conexión con timeout de 3 segundos
+                if curl -fsSL -k -m 3 --connect-timeout 3 "${URL}" >/dev/null 2>&1; then
+                  STATUS="SUCCESS"
+                else
+                  STATUS="FAIL"
+                fi
+
+                if [ "${STATUS}" = "${EXPECTED}" ]; then
+                  echo "✅ [OK] (Esperado: ${EXPECTED}, Obtenido: ${STATUS})"
+                else
+                  echo "❌ [ERROR] (Esperado: ${EXPECTED}, Obtenido: ${STATUS})"
+                  FAILURES=$((FAILURES + 1))
+                fi
+              }
+
+              echo "--- 1. Servicios Upstream Autorizados (Deben Funcionar) ---"
+              test_target "Google Gemini AI" "https://generativelanguage.googleapis.com" "SUCCESS"
+              test_target "PokeAPI Catálogo" "https://pokeapi.co" "SUCCESS"
+
+              echo "--- 2. Dominio Externo No Autorizado (Debe Fallar en L7) ---"
+              test_target "Example.com" "https://example.com" "FAIL"
+
+              echo "--- 3. Vectores Anti-SSRF / Metadatos / Redes Privadas (Deben Fallar) ---"
+              test_target "Cloud IMDS Metadata" "http://169.254.169.254" "FAIL"
+              test_target "RFC1918 Clase A" "http://10.0.0.1" "FAIL"
+              test_target "RFC1918 Clase C" "http://192.168.1.1" "FAIL"
+
+              echo "================================================================================"
+              if [ ${FAILURES} -eq 0 ]; then
+                echo "🎉 ¡Todas las pruebas de seguridad Egress y Anti-SSRF pasaron exitosamente!"
+                exit 0
+              else
+                echo "❌ Fallaron ${FAILURES} pruebas de seguridad de red."
+                echo "   Nota: Si 'Example.com' resultó en SUCCESS, el clúster carece de filtrado L7 FQDN (Cilium eBPF)."
+                exit 1
+              fi
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pokedex-egress-anti-ssrf-probe-netpol
+  namespace: pokemon-app
+  labels:
+    app.kubernetes.io/name: pokedex-egress-probe
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pokedex-egress-probe
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+

@@ -29,6 +29,7 @@ reports/
 test-results/
 playwright-report/
 lighthouse-results/
+.lighthouseci/
 .scannerwork/
 .mega-linter-reports/
 .sonarlint/
@@ -67,9 +68,16 @@ override.tf.json
 .terraformrc
 terraform.rc
 .tofurc
+*.lock.info
+
+# ==============================================================================
+# Ansible Automation & Playbooks
+# ==============================================================================
+*.retry
 
 # ==============================================================================
 # Helm & Empaquetado Cloud-Native
+
 # ==============================================================================
 infra/helm/pokedex/*.tgz
 infra/helm/dist/

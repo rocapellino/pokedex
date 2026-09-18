@@ -48,6 +48,13 @@ Se incorpora la herramienta tipada [`scripts/verify-secret-rotation.ts`](../../s
 - Verifica que las plantillas `ExternalSecret` apliquen un `refreshInterval` válido (<= 24h).
 - Audita que ningún `ConfigMap` contenga claves prohibidas (`PASSWORD`, `ADMIN_API_KEY`, `SESSION_SECRET`, `BACKUP_ENCRYPTION_KEY`).
 
+### 5. Adaptabilidad Multi-Entorno: Perfil Minimal Viable Platform (Proxmox VE) vs. Cloud (AWS)
+
+Se establece la justificación técnica de la convivencia de ambos enfoques:
+- **Limitación Técnica de `checksum/config`:** La anotación de Helm calcula el hash SHA-256 de `templates/configmap.yaml` únicamente durante la renderización del chart (`helm upgrade`). Dado que el recurso `v1/Secret pokemon-secrets` se genera y actualiza de manera asíncrona en runtime por External Secrets Operator (ESO), **las rotaciones de secretos upstream no mutan el hash de `checksum/config`**.
+- **Necesidad de Stakater Reloader en Cloud (AWS EKS):** En producción enterprise cloud, la rotación de credenciales en AWS Secrets Manager es desatendida y continua. Reloader actúa como un observador en tiempo de ejecución de la API de Kubernetes, detectando cuando ESO actualiza el Secret y disparando el RollingUpdate automático sin redeploy de Helm.
+- **Perfil Lean On-Premise (Proxmox VE):** En Proxmox VE K3s, para priorizar la huella ultraliviana (< 1 GB RAM) y reducir la superficie RBAC en laboratorio/MVP, **Stakater Reloader está desactivado** (`reloader.enabled: false`, `reloader.stakater.com/auto: null`). Los cambios de configuración se delegan a `checksum/config`, y ante una rotación de secretos en Vault se asume el reinicio progresivo manual o por pipeline (`kubectl rollout restart deployment/pokemon-api -n pokemon-app`).
+
 ## Consecuencias
 
 ### Positivas

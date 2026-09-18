@@ -165,3 +165,54 @@ variable "proxmox_insecure" {
   description = "Permitir certificados TLS autofirmados al conectar con la API de Proxmox VE (default: false para forzar verificación TLS estricta; activar solo de forma explícita en laboratorios con certificados autofirmados)"
 }
 
+# ==============================================================================
+# Variables para HashiCorp Vault (Community Edition) en Contenedor LXC
+# ==============================================================================
+variable "vault_enabled" {
+  type        = bool
+  default     = true
+  description = "Habilitar el aprovisionamiento del contenedor LXC dedicado para HashiCorp Vault (Community Edition)"
+}
+
+variable "vault_vm_id" {
+  type        = number
+  default     = 810
+  description = "ID asignado al contenedor LXC de HashiCorp Vault en Proxmox VE"
+}
+
+variable "vault_hostname" {
+  type        = string
+  default     = "vault"
+  description = "Hostname configurado en el contenedor LXC de HashiCorp Vault"
+}
+
+variable "vault_cores" {
+  type        = number
+  default     = 2
+  description = "Cores de CPU asignados al contenedor LXC de HashiCorp Vault"
+}
+
+variable "vault_memory" {
+  type        = number
+  default     = 1024
+  description = "Memoria RAM en MB asignada al contenedor LXC de HashiCorp Vault"
+}
+
+variable "vault_disk_size" {
+  type        = number
+  default     = 16
+  description = "Tamaño del disco en GB asignado al contenedor LXC de HashiCorp Vault"
+}
+
+variable "vault_network_ip" {
+  type        = string
+  default     = "10.10.13.110/24"
+  description = "Dirección IPv4 estática CIDR para el contenedor LXC de HashiCorp Vault"
+}
+
+variable "vault_unprivileged" {
+  type        = bool
+  default     = true
+  description = "Ejecutar el contenedor LXC de Vault en modo unprivileged para aislamiento de seguridad estricto"
+}
+

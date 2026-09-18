@@ -334,6 +334,16 @@ tasks:
     cmds:
       - npx tsx scripts/verify-secret-rotation.ts
 
+  gitops:verify-parity:
+    desc: "Valida la paridad de digest criptográfico entre entornos GitOps (AWS, Proxmox, Prod)"
+    cmds:
+      - node --experimental-strip-types scripts/verify-image-digest-parity.ts
+
+  gitops:verify-parity:strict:
+    desc: "Valida la paridad mediante renderizado obligatorio con 'helm template' (modo estricto sin fallback para CI)"
+    cmds:
+      - node --experimental-strip-types scripts/verify-image-digest-parity.ts --strict
+
   # ----------------------------------------------------------------------------
   # Gestión y Configuración de Hosts con Ansible (Capa 2)
   # ----------------------------------------------------------------------------

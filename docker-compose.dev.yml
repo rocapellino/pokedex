@@ -64,8 +64,11 @@ services:
       - backend-net
 
   # ============================================================================
-  # 6. Exporter de Métricas de Contenedores Docker (cAdvisor)
-  # (PostgreSQL y Redis embebidos nativamente dentro de Grafana Alloy)
+  # 6. Exporter de Métricas de Contenedores Docker (cAdvisor) - Opción A
+  # Retenido exclusivamente en desarrollo local para alimentar métricas container_*
+  # (CPU, Working Set RAM, límites de memoria) a Alloy y Grafana Cloud sin romper
+  # dashboards ni la alerta ContainerHighMemoryUsage. En K8s, Kubelet lo provee de
+  # forma nativa en :10250 sin contenedor satélite.
   # ============================================================================
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.49.1

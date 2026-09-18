@@ -112,25 +112,33 @@ Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privada
 
 - **Manifiesto de ExternalSecret:** Parametrizado en `infra/helm/pokedex/templates/externalsecret.yaml` (`external-secrets.io/v1beta1`) para mapear automáticamente todas las variables requeridas por la aplicación (`DATABASE_URL`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `REDIS_URL`, `ADMIN_API_KEY`, `ADMIN_SESSION_SECRET`, `AI_API_KEY`, `GEMINI_API_KEY`, `BACKUP_ENCRYPTION_KEY`).
 
-- **Rotación Zero-Downtime con Stakater Reloader:**
-  Para evitar que los pods queden desactualizados al rotar credenciales en el proveedor externo, los Deployments incluyen la anotación de [Stakater Reloader](https://github.com/stakater/Reloader):
+- **Recarga y Rotación Zero-Downtime Multi-Entorno:**
+  - **AWS (Cloud):** Se utiliza el operador [Stakater Reloader](https://github.com/stakater/Reloader) mediante anotaciones de Deployment (`reloader.stakater.com/auto: "true"`). Cuando ESO actualiza el recurso `v1/Secret`, Reloader detecta la mutación y ejecuta automáticamente un *rolling upgrade* ordenado de los Pods.
+  - **Proxmox VE (On-Premise / Lean MVP):** Stakater Reloader está **desactivado** (`reloader.enabled: false`) para evitar controladores con RBAC global y ahorrar memoria. Los cambios de configuración son detectados por la anotación nativa de Helm **`checksum/config`** (`spec.template.metadata.annotations`), garantizando un despliegue determinista sin intermediarios satélites.
 
   ```yaml
+  # AWS EKS:
   api:
     deploymentAnnotations:
       reloader.stakater.com/auto: "true"
-  ```
 
-  Cuando ESO actualiza el recurso `v1/Secret`, Reloader detecta la mutación y ejecuta automáticamente un *rolling upgrade* ordenado de los Pods.
+  # Proxmox VE:
+  api:
+    deploymentAnnotations:
+      reloader.stakater.com/auto: null  # Delegado a checksum/config nativo
+  ```
 
 - **Manifiestos de Referencia (`infra/k8s/eso/`):**
   - [`aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml): Conexión hacia AWS Secrets Manager utilizando IAM Roles for Service Accounts (IRSA).
   - [`vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml): Conexión hacia HashiCorp Vault utilizando Kubernetes ServiceAccount token authentication.
   - [`cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml): Manifiesto canónico consolidado con los ClusterSecretStores para AWS y Proxmox.
 
-### 3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets
+### 3.2. Mecanismo Histórico / Deprecado: Bitnami Sealed Secrets
 
-Para clústeres bare-metal o entornos Proxmox VE sin acceso a gestores de secretos cloud:
+> [!NOTE]
+> **Estado: Deprecado.** En Proxmox VE la arquitectura canónica oficial utiliza **ESO + HashiCorp Vault en LXC** (commit #206). Bitnami Sealed Secrets se conserva como referencia histórica para laboratorios locales desconectados sin infraestructura de Vault.
+
+Para clústeres bare-metal aislados sin acceso a gestores de secretos centralizados:
 
 ```text
 [ Desarrollador / CI ]

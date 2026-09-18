@@ -80,10 +80,25 @@ test('🔒 Supply Chain: .github/workflows/ci.yml utiliza validación determinis
     'ci.yml no debe utilizar grep -A 4 para extraer digests de GitOps'
   );
 
-  // Asegurar que invoque el script determinista verify-image-digest-parity.ts
+  // Asegurar que invoque el script determinista verify-image-digest-parity.ts con flag --strict
   assert.match(
     ciWorkflow,
-    /verify-image-digest-parity\.ts/,
-    'ci.yml debe invocar scripts/verify-image-digest-parity.ts'
+    /verify-image-digest-parity\.ts.*--strict/,
+    'ci.yml debe invocar scripts/verify-image-digest-parity.ts en modo estricto (--strict)'
+  );
+});
+
+test('🔒 Supply Chain: extractRenderedApiImage en modo estricto (strict: true) falla sin fallback ante errores de Helm', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const validValues = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+
+  // Caso 1: Funciona normalmente con Helm válido en modo estricto
+  const image = extractRenderedApiImage(chartPath, validValues, { strict: true });
+  assert.match(image, /^ghcr\.io\/rocapellino\/pokedex-api@sha256:[a-f0-9]{64}$/);
+
+  // Caso 2: Si el chart es inválido o no existe, en modo estricto NUNCA usa fallback a AST y lanza error
+  assert.throws(
+    () => extractRenderedApiImage(path.join(ROOT_DIR, 'non-existent-chart'), validValues, { strict: true }),
+    /Ruta de Helm chart no encontrada/
   );
 });

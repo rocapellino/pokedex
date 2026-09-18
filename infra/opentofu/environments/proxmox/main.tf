@@ -6,7 +6,7 @@
 # 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count              = var.compute_type == "lxc" ? 1 : 0
+  count              = (var.compute_type == "lxc" || var.vault_enabled) ? 1 : 0
   content_type       = "vztmpl"
   datastore_id       = "local"
   node_name          = var.node_name
@@ -162,6 +162,74 @@ resource "proxmox_virtual_environment_vm" "k8s_nodes" {
   lifecycle {
     ignore_changes = [
       initialization[0].user_account[0].password,
+    ]
+  }
+}
+
+# ------------------------------------------------------------------------------
+# 3. HashiCorp Vault (Community Edition) - Contenedor LXC Dedicado
+# ------------------------------------------------------------------------------
+resource "proxmox_virtual_environment_container" "vault" {
+  count       = var.vault_enabled ? 1 : 0
+  node_name   = var.node_name
+  vm_id       = var.vault_vm_id
+  description = "HashiCorp Vault (Community Edition) en Contenedor LXC (OpenTofu Managed)"
+  tags        = ["vault", "security", "lxc", "onprem", "pokedex", var.environment_tier]
+
+  unprivileged  = var.vault_unprivileged
+  started       = true
+  start_on_boot = true
+
+  cpu {
+    cores        = var.vault_cores
+    architecture = "amd64"
+  }
+
+  memory {
+    dedicated = var.vault_memory
+    swap      = 512
+  }
+
+  disk {
+    datastore_id = "local-lvm"
+    size         = var.vault_disk_size
+  }
+
+  operating_system {
+    template_file_id = proxmox_download_file.debian_lxc_template[0].id
+    type             = "debian"
+  }
+
+  network_interface {
+    name   = "eth0"
+    bridge = var.network_bridge
+  }
+
+  initialization {
+    hostname = var.vault_hostname
+    dns {
+      servers = [var.network_gateway, "1.1.1.1"]
+    }
+    ip_config {
+      ipv4 {
+        address = var.vault_network_ip
+        gateway = var.network_gateway
+      }
+    }
+    user_account {
+      keys     = [var.ssh_public_key]
+      password = var.vm_user_password
+    }
+  }
+
+  features {
+    nesting = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      initialization[0].user_account[0].password,
+      operating_system[0].template_file_id,
     ]
   }
 }

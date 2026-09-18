@@ -30,3 +30,13 @@ network_gateway        = "10.10.13.1"
 ssh_public_key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKey devops@proxmox"
 # Contraseña de consola opcional (por defecto null, acceso estrictamente por SSH key):
 # vm_user_password     = "CUSTOM_SECRET_PASSWORD"
+
+# Configuración de HashiCorp Vault (Community Edition) LXC:
+vault_enabled          = true
+vault_vm_id            = 810
+vault_hostname         = "vault"
+vault_cores            = 2
+vault_memory           = 1024
+vault_disk_size        = 16
+vault_network_ip       = "10.10.13.110/24"
+vault_unprivileged     = true
