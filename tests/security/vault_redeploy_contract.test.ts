@@ -72,5 +72,31 @@ test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y pol
 
   const spofDoc = path.join(ROOT_DIR, 'docs/architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md');
   assert.ok(fs.existsSync(spofDoc), 'Debe existir el análisis formal de SPOF y dominios de falla on-premise');
+
+  const matrixDoc = path.join(ROOT_DIR, 'docs/architecture/RESPONSIBILITY_MATRIX.md');
+  assert.ok(fs.existsSync(matrixDoc), 'Debe existir la matriz canónica de responsabilidades');
+  const matrixContent = fs.readFileSync(matrixDoc, 'utf-8');
+  assert.match(matrixContent, /OpenTofu/, 'Debe documentar OpenTofu');
+  assert.match(matrixContent, /Bastion/, 'Debe documentar Bastion');
+  assert.match(matrixContent, /Vault/, 'Debe documentar Vault');
+  assert.match(matrixContent, /ArgoCD/, 'Debe documentar ArgoCD');
+  assert.match(matrixContent, /Grafana Alloy/, 'Debe documentar Grafana Alloy');
+  assert.match(matrixContent, /ESLint/, 'Debe documentar demarcación de ESLint');
+  assert.match(matrixContent, /MegaLinter/, 'Debe documentar demarcación de MegaLinter');
+  assert.match(matrixContent, /Semgrep/, 'Debe documentar demarcación de Semgrep');
+  assert.match(matrixContent, /SonarQube/, 'Debe documentar demarcación de SonarQube');
+  assert.match(matrixContent, /Checkov/, 'Debe documentar demarcación de Checkov');
+  assert.match(matrixContent, /Trivy/, 'Debe documentar demarcación de Trivy');
+
+  const declaredVsRenderedDoc = path.join(ROOT_DIR, 'docs/architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md');
+  assert.ok(fs.existsSync(declaredVsRenderedDoc), 'Debe existir el documento de análisis declarado vs renderizado');
+  const renderedContent = fs.readFileSync(declaredVsRenderedDoc, 'utf-8');
+  assert.match(renderedContent, /K3s Runtime/, 'Debe auditar K3s');
+  assert.match(renderedContent, /Cilium/, 'Debe auditar Cilium');
+  assert.match(renderedContent, /PgBouncer/, 'Debe auditar PgBouncer');
+  assert.match(renderedContent, /Stakater Reloader/, 'Debe auditar Reloader');
+  assert.match(renderedContent, /cAdvisor/, 'Debe auditar cAdvisor');
 });
+
+
 
