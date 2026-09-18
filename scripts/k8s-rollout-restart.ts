@@ -16,7 +16,7 @@
  *  --live:     Ejecuta 'kubectl rollout restart' y monitorea 'kubectl rollout status' en el clúster.
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -100,9 +100,9 @@ async function run() {
 
   console.log('='.repeat(78));
   console.log('🔄 Pokédex Application Rollout Restart & Secret Synchronization');
-  console.log(`   Namespace   : ${opts.namespace}`);
-  console.log(`   Deployments : ${opts.deployments.join(', ')}`);
-  console.log(`   Modo        : ${opts.isSimulate ? 'Simulación / Validación Contractual (CI)' : 'Ejecución en Vivo (Kubectl)'}`);
+  console.log('   Namespace   :', opts.namespace);
+  console.log('   Deployments :', opts.deployments.join(', '));
+  console.log('   Modo        :', opts.isSimulate ? 'Simulación / Validación Contractual (CI)' : 'Ejecución en Vivo (Kubectl)');
   console.log('='.repeat(78));
 
   if (opts.isSimulate) {
@@ -112,7 +112,7 @@ async function run() {
     if (!result.valid) {
       console.error('❌ Se detectaron inconsistencias arquitectónicas:');
       for (const err of result.reasons) {
-        console.error(`   - ${err}`);
+        console.error('   -', err);
       }
       process.exit(1);
     }
@@ -126,16 +126,16 @@ async function run() {
     return;
   }
 
-  // Modo en vivo con kubectl
+  // Modo en vivo con kubectl sin invocación de shell (CWE-78 compliant)
   for (const dep of opts.deployments) {
-    console.log(`\n🚀 Reiniciando deployment ${dep} en namespace ${opts.namespace}...`);
+    console.log('\n🚀 Reiniciando deployment:', dep, 'en namespace:', opts.namespace);
     try {
-      execSync(`kubectl rollout restart deployment ${dep} -n ${opts.namespace}`, { stdio: 'inherit' });
-      console.log(`⏳ Esperando estado saludable de ${dep} (timeout ${opts.timeoutSeconds}s)...`);
-      execSync(`kubectl rollout status deployment ${dep} -n ${opts.namespace} --timeout=${opts.timeoutSeconds}s`, { stdio: 'inherit' });
-      console.log(`✅ Deployment ${dep} reiniciado y en servicio activo.`);
+      execFileSync('kubectl', ['rollout', 'restart', 'deployment', dep, '-n', opts.namespace], { stdio: 'inherit' });
+      console.log('⏳ Esperando estado saludable de:', dep, 'timeout:', `${opts.timeoutSeconds}s`);
+      execFileSync('kubectl', ['rollout', 'status', `deployment/${dep}`, '-n', opts.namespace, `--timeout=${opts.timeoutSeconds}s`], { stdio: 'inherit' });
+      console.log('✅ Deployment reiniciado y en servicio activo:', dep);
     } catch (err) {
-      console.error(`❌ Error al reiniciar o verificar el deployment ${dep}:`, err);
+      console.error('❌ Error al reiniciar o verificar el deployment:', dep, err);
       process.exit(1);
     }
   }
