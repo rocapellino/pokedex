@@ -3,9 +3,8 @@
 # ==============================================================================
 
 proxmox_endpoint       = "https://10.10.13.10:8006/"
-proxmox_username       = "root@pam"
-proxmox_password       = "YOUR_PASSWORD_HERE"
-# proxmox_api_token    = "root@pam!opentofu=YOUR_TOKEN_UUID"
+# Autenticación segura mediante API Token (USER@REALM!TOKENID=UUID)
+proxmox_api_token      = "root@pam!opentofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 proxmox_insecure       = true
 # Tipo de cómputo y entorno:
 # compute_type: "lxc" (ultraliviano para preprod/lab) o "vm" (aislamiento KVM completo para prod)
@@ -23,4 +22,5 @@ network_bridge         = "vmbr0"
 network_ip             = "10.10.13.100/24"
 network_gateway        = "10.10.13.1"
 ssh_public_key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKey devops@proxmox"
-vm_user_password       = "YOUR_CONSOLE_PASSWORD"
+# Contraseña de consola opcional (por defecto null, acceso estrictamente por SSH key):
+# vm_user_password     = "CUSTOM_SECRET_PASSWORD"

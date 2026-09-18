@@ -6,24 +6,15 @@ variable "proxmox_endpoint" {
   description = "URL HTTPS de la API de Proxmox VE (ej: https://10.10.13.10:8006/)"
 }
 
-variable "proxmox_username" {
-  type        = string
-  default     = "root@pam"
-  description = "Usuario para autenticación en la API de Proxmox VE"
-}
-
-variable "proxmox_password" {
-  type        = string
-  sensitive   = true
-  default     = "Password33"
-  description = "Contraseña para autenticación en la API de Proxmox VE"
-}
-
 variable "proxmox_api_token" {
   type        = string
   sensitive   = true
-  default     = null
-  description = "Token de API en formato USER@REALM!TOKENID=UUID (opcional si se usa username/password)"
+  description = "Token de API de Proxmox VE en formato USER@REALM!TOKENID=UUID (autenticación segura y desacoplada de contraseñas)"
+
+  validation {
+    condition     = can(regex(".+@.+!.+=.+", var.proxmox_api_token))
+    error_message = "El token de API de Proxmox debe tener el formato USER@REALM!TOKENID=UUID (ej: root@pam!opentofu=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "node_name" {
@@ -122,8 +113,8 @@ variable "ssh_public_key" {
 variable "vm_user_password" {
   type        = string
   sensitive   = true
-  default     = "Password33"
-  description = "Contraseña para el usuario de consola en la VM"
+  default     = null
+  description = "Contraseña opcional para el usuario de consola (dejar en null para autenticación exclusiva vía SSH Key)"
 }
 
 variable "network_bridge" {

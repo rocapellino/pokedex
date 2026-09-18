@@ -82,6 +82,13 @@ La implementación en OpenTofu desacopla el tipo de cómputo del resto de la arq
 - Los outputs exponen identificadores genéricos estandarizados: `instance_id`, `instance_name`, `instance_ip`, manteniendo compatibilidad hacia atrás con los alias existentes `vm_id`, `vm_name`, `vm_ip`.
 - Los artefactos de despliegue superiores (Helm Charts de Pokédex, manifiestos de Kubernetes, scripts de instalación de K3s) operan de manera 100% agnóstica al sustrato de virtualización subyacente.
 
+### 4. Eliminación de Contraseñas por Defecto y Autenticación Exclusiva por API Token
+
+Como principio fundamental de seguridad ([ADR-005](./ADR-005-secret-management.md)):
+- **Desacople de Contraseñas de Hipervisor**: Se elimina por completo el uso de `username`/`password` (`root@pam`) en el proveedor OpenTofu, adoptando **exclusivamente Proxmox API Tokens** (`USER@REALM!TOKENID=UUID`) con separación de privilegios configurada.
+- **Tolerancia Cero a Secretos por Defecto**: Ninguna variable de credenciales (`proxmox_api_token`, `vm_user_password`) contiene valores por defecto en el código fuente.
+- **Acceso a Nodos por SSH Key**: La autenticación hacia las instancias de Kubernetes es obligatoria y validada mediante llave pública SSH (`ssh_public_key`). La contraseña de consola queda deshabilitada por defecto (`vm_user_password = null`) con reglas de `lifecycle { ignore_changes }` para prevenir destrucciones accidentales durante rotaciones.
+
 ## Consecuencias
 
 ### Positivas

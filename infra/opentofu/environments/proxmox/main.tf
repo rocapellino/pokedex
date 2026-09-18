@@ -70,6 +70,12 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
   features {
     nesting = true
   }
+
+  lifecycle {
+    ignore_changes = [
+      initialization[0].user_account[0].password,
+    ]
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -149,5 +155,11 @@ resource "proxmox_virtual_environment_vm" "k8s_nodes" {
   }
 
   tags = ["kubernetes", "kvm", "onprem", "pokedex", "production"]
+
+  lifecycle {
+    ignore_changes = [
+      initialization[0].user_account[0].password,
+    ]
+  }
 }
 
