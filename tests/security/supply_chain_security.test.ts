@@ -107,3 +107,65 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican
   }
 });
 
+test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)', () => {
+  const parseImageDigest = (filePath: string, component: 'api' | 'web') => {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const sectionRegex = new RegExp(`${component}:[\\s\\S]*?image:[\\s\\S]*?digest:\\s*"([^"]+)"`);
+    const match = content.match(sectionRegex);
+    assert.ok(match, `Debe encontrar sección ${component}.image con digest inmutable en ${filePath}`);
+    return match[1];
+  };
+
+  const assertNoConfusingTag = (filePath: string, component: 'api' | 'web') => {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const tagRegex = new RegExp(`${component}:[\\s\\S]*?image:[\\s\\S]*?tag:\\s*"[^"]+"`);
+    assert.ok(!tagRegex.test(content), `${filePath} no debe contener atributo 'tag' redundante para ${component} (SSOT es digest)`);
+  };
+
+  const awsPath = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
+  const proxmoxPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const prodPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+
+  // Verificar ausencia de campo tag redundante
+  assertNoConfusingTag(awsPath, 'api');
+  assertNoConfusingTag(awsPath, 'web');
+  assertNoConfusingTag(proxmoxPath, 'api');
+  assertNoConfusingTag(proxmoxPath, 'web');
+  assertNoConfusingTag(prodPath, 'api');
+  assertNoConfusingTag(prodPath, 'web');
+
+  const awsApiDigest = parseImageDigest(awsPath, 'api');
+  const proxmoxApiDigest = parseImageDigest(proxmoxPath, 'api');
+  const prodApiDigest = parseImageDigest(prodPath, 'api');
+
+  const awsWebDigest = parseImageDigest(awsPath, 'web');
+  const proxmoxWebDigest = parseImageDigest(proxmoxPath, 'web');
+  const prodWebDigest = parseImageDigest(prodPath, 'web');
+
+  // 1. Paridad estricta inter-entornos para API por digest
+  assert.strictEqual(awsApiDigest, proxmoxApiDigest, 'Digest de api debe ser idéntico entre AWS y Proxmox');
+  assert.strictEqual(awsApiDigest, prodApiDigest, 'Digest de api debe ser idéntico entre AWS y Prod');
+
+  // 2. Paridad estricta inter-entornos para Web por digest
+  assert.strictEqual(awsWebDigest, proxmoxWebDigest, 'Digest de web debe ser idéntico entre AWS y Proxmox');
+  assert.strictEqual(awsWebDigest, prodWebDigest, 'Digest de web debe ser idéntico entre AWS y Prod');
+
+  // 3. Diferenciación de digests entre servicios (previene copy-paste cruzado)
+  assert.notStrictEqual(awsApiDigest, awsWebDigest, 'Los digests de api y web deben ser distintos');
+
+  // 4. Formato estricto sha256
+  assert.match(awsApiDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de api debe ser un hash sha256 válido');
+  assert.match(awsWebDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de web debe ser un hash sha256 válido');
+});
+
+test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)', () => {
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+
+  assert.match(ciWorkflow, /Validar consistencia .* de Digest/, 'Publish debe tener un paso explícito de validación de consistencia de digests');
+  assert.match(ciWorkflow, /GITOPS_AWS_DIGEST=/, 'Debe extraer el digest de GitOps AWS');
+  assert.match(ciWorkflow, /GITOPS_PROXMOX_DIGEST=/, 'Debe extraer el digest de GitOps Proxmox');
+  assert.match(ciWorkflow, /HELM_PROD_DIGEST=/, 'Debe extraer el digest de Helm Prod');
+  assert.match(ciWorkflow, /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Cosign debe firmar exactamente el digest validado');
+});
+
+

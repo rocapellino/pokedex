@@ -14,8 +14,9 @@ Para asegurar la plataforma Pokédex ante estos riesgos y garantizar conformidad
 
 Se adopta una estrategia de seguridad de cadena de suministro estructurada en cinco pilares complementarios:
 
-1. **Inmutabilidad Criptográfica Estricta (Digest Pinning)**:
-   - Toda imagen publicada en GitHub Container Registry (GHCR) es identificada y consumida por su digest criptográfico SHA-256 inmutable (`image@sha256:...`).
+1. **Inmutabilidad Criptográfica Estricta y Fuente Única de Verdad (Digest Pinning SSOT)**:
+   - Toda imagen consumida en manifiestos de producción y GitOps (`aws`, `proxmox`, `prod`) es modelada exclusivamente por su digest criptográfico SHA-256 inmutable (`repository` + `digest: "sha256:..."`).
+   - Se elimina el atributo redundante `tag:` en los valores de GitOps para erradicar la ambigüedad de doble estado (*tag-digest drift*). La versión semántica humana se confina a los metadatos y etiquetas del Pod (`app.kubernetes.io/version`).
    - Se prohíbe de forma taxativa el uso de etiquetas mutables (`:latest`) en manifiestos de producción y charts de Helm, validado automáticamente por políticas de admisión Kyverno (`disallow-latest-tag`) y gates de CI.
 
 2. **Inventario de Dependencias Mandatorio (CycloneDX SBOM)**:

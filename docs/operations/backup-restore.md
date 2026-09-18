@@ -13,13 +13,23 @@ Describir el ciclo de vida operativo de las copias de seguridad de PostgreSQL, l
 
 ## 3. Procedimientos Operativos
 
-### Ejecución de Simulacro Automatizado (DR)
+### Ejecución de Simulacro del Mecanismo (Smoke Test)
 
 ```bash
-# Simulación no destructiva en entorno de desarrollo / CI
-task dr:verify
-# O invocando directamente el script:
+# Simulación no destructiva del mecanismo en entorno de desarrollo / CI
+task dr:drill
+# O invocando directamente el script con bandera dry-run:
 bash scripts/dr_verify_restore.sh --dry-run
+```
+
+### Certificación de Copia de Seguridad Real
+
+```bash
+# Certificación criptográfica y restauración real del snapshot productivo
+export BACKUP_ENCRYPTION_KEY="<tu-clave-secreta>"
+task dr:verify
+# O invocando directamente el script sobre un archivo específico:
+bash scripts/dr_verify_restore.sh /ruta/al/backup/pokedex_2026-09-17.sql.gz.enc
 ```
 
 ### Restauración Manual de Emergencia

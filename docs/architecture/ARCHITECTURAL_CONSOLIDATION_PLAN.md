@@ -37,9 +37,17 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
   2. `CiliumNetworkPolicy` L7 con filtrado FQDN por kernel eBPF (`generativelanguage.googleapis.com`, `*.pokeapi.co`).
   3. `Envoy Egress Gateway` (Deployment + ConfigMap + Service dedicados).
 * **Diagnóstico:** El Envoy Egress Gateway actúa como proxy intermedio de capa 7 duplicando lo que Cilium ya realiza de forma nativa en el socket del kernel mediante eBPF sin saltos de red adicionales ni consumo de pods proxy.
-* **Acción de Poda (Fase A):**
+* **Acción de Poda (Fase A - Prioridad 🟠):**
   - **Desmantelar Envoy Egress Gateway** (`infra/helm/pokedex/templates/egress-gateway.yaml`).
   - **Consolidar en Cilium eBPF** (`CiliumNetworkPolicy`) como estándar único Zero-Trust L7 para entornos con Cilium CNI, y NetworkPolicies estándar como baseline L4.
+  - **Protocolo de Validación Pre-Poda (Staging/Sandbox):** Antes de eliminar definitivamente los manifiestos de Envoy, se debe certificar la matriz de 7 pruebas en un entorno con Cilium eBPF activo:
+    1. **Gemini API:** Peticiones HTTPS hacia `generativelanguage.googleapis.com:443` operan sin degradación de latencia ni fallos de handshake.
+    2. **PokeAPI:** Resolución y consumo REST hacia `*.pokeapi.co:443` permitidos.
+    3. **GitHub Content:** Descarga de assets/sprites desde `*.githubusercontent.com:443` permitida.
+    4. **Anti-SSRF:** Bloqueo irrecuperable de peticiones hacia `169.254.169.254` (Cloud IMDS) y subredes RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+    5. **DNS Inspection:** CoreDNS interceptado y resuelto vía proxy DNS eBPF de Cilium sin desbordamiento de caché ni TTL drops.
+    6. **TLS SNI Passthrough:** Handshakes cifrados validados mediante SNI en socket sin requerir certificados CA privados ni terminación TLS.
+    7. **Fail-Closed Estricto:** Cualquier destino externo no explícitamente en la allowlist (ej. `curl -I https://example.com` o puerto 80) debe ser rechazado/descartado inmediatamente.
 
 ### 2.2. Agentes de Telemetría y Monitoreo
 * **Situación:** En desarrollo y producción conviven agentes independientes:
@@ -61,6 +69,23 @@ Supply Chain & QA     Cosign, Sigstore, Trivy, SBOM CycloneDX, Semgrep,
 * **Acción de Poda (Fase D):**
   - Consolidar la verificación de código en `npm run lint` (TypeScript + ESLint estricto) + Semgrep (SAST de seguridad enfocado), delegando la orquestación a tareas rápidas sin sobrecosto de contenedores monolíticos en cada commit.
 
+### 2.5. Ergonomía del Monorepo: Modularización de `Taskfile.yml` (Prioridad 🟡)
+* **Situación:** `Taskfile.yml` cuenta con ~550 líneas agrupando 11 dominios heterogéneos (desarrollo, testing, observabilidad, DR, GitOps, Kubernetes, secretos, Ansible, OpenTofu, Helm). Coexisten además aliases de compatibilidad (`docker:up` -> `dev:compose`, `tofu:*` -> `infra:*`).
+* **Evaluación de Ergonomía:**
+  - **Monolítico (Decisión Actual):** Ofrece descubrimiento inmediato con `task --list`, cero fricción de búsqueda (`Ctrl+F` global), consistencia multiplataforma (Windows/Linux) y compatibilidad directa con la suite de auditoría (`tests/security/deploy_scripts_security.test.ts`).
+  - **Modularización Futura (`includes:`):** Cuando el equipo crezca o se requiera aislar responsabilidades de mantenimiento, se adoptará la descomposición nativa de go-task (`taskfiles/Taskfile.{dev,k8s,infra,security,gitops}.yml`) utilizando `flatten: true` para preservar la nomenclatura canónica sin introducir prefijos redundantes.
+* **Resolución:** Mantener `Taskfile.yml` unificado en la fase actual por ergonomía y estabilidad de CI/tests, conservando los aliases de compatibilidad documentados.
+
+### 2.6. Gestión de Secretos: Consolidación en External Secrets Operator (Prioridad 🟡)
+* **Situación:** Coexisten conceptualmente dos mecanismos para Kubernetes: External Secrets Operator (ESO) y Bitnami Sealed Secrets (`scripts/seal-secret.ts`).
+* **Diagnóstico de Superficie Conceptual:**
+  - Mantener ambos genera ambigüedad sobre la autoridad de las credenciales, dónde residen y quién las rota.
+  - Ni AWS EKS ni Proxmox VE utilizan Sealed Secrets en sus manifiestos GitOps (`gitops/environments/*/values.yaml` ambos implementan `externalSecrets.enabled: true` apuntando a AWS Secrets Manager y HashiCorp Vault respectivamente).
+  - Sealed Secrets no soporta rotación periódica desatendida ni polling aguas arriba.
+* **Acción de Poda (Fase E):**
+  - **Mecanismo Canónico Único:** **External Secrets Operator (ESO) + Secret Manager Upstream (AWS/Vault) $\to$ `v1/Secret` efímero $\to$ Stakater Reloader**.
+  - **Deprecación de Sealed Secrets:** Se declara Sealed Secrets como mecanismo legado/deprecado. Se retira su necesidad operativa y se mantiene `scripts/seal-secret.ts` únicamente como utilidad histórica aislada.
+
 ---
 
 ## 3. Política de Contención: "Una Sola Herramienta por Dominio"
@@ -69,12 +94,14 @@ Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la reg
 
 | Dominio Operativo | Herramienta Autorizada | Alternativas Descartadas / Desmanteladas |
 |---|---|---|
+| **Gestión de Secretos** | **External Secrets Operator (ESO)** | Bitnami Sealed Secrets (deprecado) |
 | **GitOps** | ArgoCD (targetRevision fija por release) | Scripts de deploy imperativos |
 | **Ingress & TLS** | cert-manager + Nginx Ingress / ALB | Gestión manual de certificados |
 | **Zero-Trust L7** | CiliumNetworkPolicy eBPF FQDN | Envoy Egress Gateway proxy |
 | **Telemetría** | Grafana Alloy + Grafana Cloud OTLP | Stack de monitoreo local legado (`docker_monitoreo`) |
 | **Auditoría de Imagen** | Trivy (SCA/SBOM) + Cosign (Keyless) | Múltiples scanners redundantes |
 | **Disaster Recovery** | `backup-cronjob` + `backup-restore-verify` | Scripts manuales ad-hoc sin restore drill |
+| **Task Runner Monorepo** | Task (`Taskfile.yml` unificado) | Makefiles dispersos o scripts Bash ad-hoc |
 
 ---
 
@@ -84,4 +111,6 @@ Para salvaguardar la mantenibilidad del proyecto a largo plazo, se adopta la reg
 - [x] Unificación de telemetría dev/cloud en Grafana Alloy y OTLP.
 - [x] Inmutabilidad estricta por SHA-256 digest pinning en GitOps (`aws`, `proxmox`).
 - [x] Formalización del CronJob de verificación periódica de Disaster Recovery (`dr-restore-verify`).
-- [ ] Poda de `egress-gateway.yaml` (programada para el próximo ciclo de refactorización de Helm).
+- [x] Poda de `egress-gateway.yaml` ejecutada: consolidación del filtrado L7 en `CiliumNetworkPolicy` (eBPF FQDN) y baseline L4 con Anti-SSRF.
+- [x] Evaluación y estrategia de modularización de `Taskfile.yml` formalizada (monolito ergonómico actual con blueprint de migración a `includes` con `flatten: true`).
+- [x] Consolidación de Gestión de Secretos formalizada: ESO como mecanismo único y autoridad absoluta; Sealed Secrets deprecado.

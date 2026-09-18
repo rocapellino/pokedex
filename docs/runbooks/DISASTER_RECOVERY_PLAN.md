@@ -99,14 +99,28 @@ flowchart LR
 
 ## 4. Simulacro y Verificación Automatizada
 
-El repositorio incluye el script de validación `scripts/dr_verify_restore.sh`, el cual se puede ejecutar de forma no destructiva en cualquier entorno o pipeline de CI/CD:
+El repositorio implementa una estricta separación conceptual y operativa entre la prueba del mecanismo y la certificación de los datos:
 
+### 4.1. Simulacro del Mecanismo (Smoke Test: `dr:drill`)
+Orientado a validar en CI/CD y entornos de prueba que el pipeline, herramientas criptográficas, compresión y motor PostgreSQL efímero operan correctamente sin necesitar acceso a copias de seguridad de producción:
 ```bash
+task dr:drill
+# O directamente:
 bash scripts/dr_verify_restore.sh --dry-run
 ```
 
-Este script ejecuta:
-- Generación de clave efímera dinámica con `openssl rand -hex 32` en modo simulación (sin claves predeterminadas).
-- Verificación criptográfica SHA-256, descifrado AES-256 y descompresión gzip.
+### 4.2. Certificación de Respaldo Real (`dr:verify`)
+Orientado a auditar de forma fail-closed que el último snapshot real generado en producción es descifrable con `BACKUP_ENCRYPTION_KEY`, consistente y restaura los esquemas e índices del negocio:
+```bash
+export BACKUP_ENCRYPTION_KEY="<clave-producción>"
+task dr:verify
+# O directamente:
+bash scripts/dr_verify_restore.sh
+```
+
+El protocolo automatizado valida:
+- Generación de clave efímera dinámica con `openssl rand -hex 32` en modo simulación (en modo real exige `BACKUP_ENCRYPTION_KEY` obligatoria).
+- Verificación criptográfica SHA-256 (`.sha256`), descifrado AES-256-CBC con PBKDF2 y descompresión gzip.
 - Prueba de restauración real en base de datos PostgreSQL efímera (vía Docker) o remota (`DR_POSTGRES_URL`), validando existencia de la tabla `pokedex_entries`, conteo de filas, lectura representativa e integridad de índices.
+- Salvaguarda fail-closed que impide restauraciones accidentales contra bases de datos que contengan 'prod' o 'production' sin confirmación explícita (`ALLOW_PROD_RESTORE=true`).
 - Medición del tiempo transcurrido contra el objetivo oficial de RTO (< 2 horas).

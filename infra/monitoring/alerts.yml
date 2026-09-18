@@ -196,8 +196,8 @@ groups:
           severity: critical
           service: pokedex-backup
         annotations:
-          summary: "Simulacro periódico de restauración DR fallido"
-          description: "El Job de verificación de restauración {{ $labels.job_name }} falló; posible corrupción en respaldos."
+          summary: "Certificación periódica de restauración de backup real fallida (dr:verify)"
+          description: "El Job de certificación de restauración real {{ $labels.job_name }} falló; posible corrupción en respaldos, ausencia de snapshot o clave de descifrado inválida."
 
       - alert: TlsCertExpiringSoon
         expr: (certmanager_certificate_expiration_timestamp_seconds{namespace="pokemon-app"} - time()) / 86400 < 15

@@ -114,11 +114,13 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   assert.ok(!content.includes('deploy_proxmox.yml'), 'No debe referenciar deploy_proxmox.yml');
 });
 
-test('🛡️ Disaster Recovery Tooling: Taskfile.yml define tarea dr:verify para simulación no destructiva', () => {
+test('🛡️ Disaster Recovery Tooling: Taskfile.yml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)', () => {
   const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
   const content = fs.readFileSync(taskfilePath, 'utf-8');
+  assert.ok(content.includes('dr:drill:'), 'Taskfile.yml debe definir tarea dr:drill');
   assert.ok(content.includes('dr:verify:'), 'Taskfile.yml debe definir tarea dr:verify');
-  assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:verify debe invocar dr_verify_restore.sh --dry-run');
+  assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
+  assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
 });
 
 test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
@@ -214,30 +216,28 @@ test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN 
   assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir resolución DNS interna hacia CoreDNS');
 });
 
-test('🛡️ Helm Security: Egress Gateway (Envoy) implementa forward proxy seguro y NetworkPolicy perimetral', () => {
-  const egPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/egress-gateway.yaml');
-  assert.ok(fs.existsSync(egPath), 'egress-gateway.yaml debe existir');
-  const content = fs.readFileSync(egPath, 'utf-8');
+test('🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)', () => {
+  const cnpPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
+  assert.ok(fs.existsSync(cnpPath), 'cilium-network-policies.yaml debe existir');
+  const content = fs.readFileSync(cnpPath, 'utf-8');
 
-  // Verificar despliegue endurecido de Envoy
-  assert.ok(content.includes('app.kubernetes.io/component: egress-gateway'), 'Debe etiquetar los componentes como egress-gateway');
-  assert.ok(content.includes('runAsNonRoot: true'), 'El contenedor de Egress Gateway debe correr como no root');
-  assert.ok(content.includes('readOnlyRootFilesystem: true'), 'El contenedor debe tener sistema de archivos de solo lectura');
-  assert.ok(content.includes('- ALL'), 'Debe descartar todas las capacidades del kernel');
-
-  // Verificar NetworkPolicy perimetral del Gateway con Anti-SSRF
-  assert.ok(content.includes('169.254.169.254/32'), 'NetworkPolicy del Gateway debe bloquear IMDS Cloud Metadata');
-  assert.ok(content.includes('10.0.0.0/8'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase A');
-  assert.ok(content.includes('172.16.0.0/12'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase B');
-  assert.ok(content.includes('192.168.0.0/16'), 'NetworkPolicy del Gateway debe bloquear RFC1918 Clase C');
+  assert.ok(content.includes('kind: CiliumNetworkPolicy'), 'Debe ser de tipo CiliumNetworkPolicy');
+  assert.ok(content.includes('generativelanguage.googleapis.com'), 'Debe permitir generativelanguage.googleapis.com');
+  assert.ok(content.includes('*.pokeapi.co'), 'Debe permitir *.pokeapi.co');
+  assert.ok(content.includes('*.githubusercontent.com'), 'Debe permitir *.githubusercontent.com');
+  assert.ok(content.includes('port: "443"'), 'Debe permitir puerto HTTPS 443');
+  assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir DNS interno en CoreDNS');
 });
 
-test('🛡️ Helm Security: network-policies.yaml soporta enrutamiento exclusivo por Egress Gateway', () => {
+test('🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto', () => {
   const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
   const content = fs.readFileSync(npPath, 'utf-8');
 
-  assert.ok(content.includes('useEgressGateway'), 'Debe incluir condicional para useEgressGateway');
-  assert.ok(content.includes('app.kubernetes.io/component: egress-gateway'), 'Debe dirigir el tráfico hacia egress-gateway cuando useEgressGateway está activo');
+  assert.ok(!content.includes('egress-gateway'), 'network-policies.yaml no debe contener dependencias de egress-gateway tras la poda');
+  assert.ok(content.includes('169.254.169.254/32'), 'Debe bloquear IMDS Cloud Metadata');
+  assert.ok(content.includes('10.0.0.0/8'), 'Debe bloquear RFC1918 Clase A');
+  assert.ok(content.includes('172.16.0.0/12'), 'Debe bloquear RFC1918 Clase B');
+  assert.ok(content.includes('192.168.0.0/16'), 'Debe bloquear RFC1918 Clase C');
 });
 
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
@@ -284,7 +284,6 @@ test('🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountT
   const workloads = [
     'infra/helm/pokedex/templates/seed-job.yaml',
     'infra/helm/pokedex/templates/backup-cronjob.yaml',
-    'infra/helm/pokedex/templates/egress-gateway.yaml',
     'infra/helm/pokedex/templates/api-deployment.yaml',
     'infra/helm/pokedex/templates/web-deployment.yaml',
     'infra/helm/pokedex/templates/postgres-statefulset.yaml',
