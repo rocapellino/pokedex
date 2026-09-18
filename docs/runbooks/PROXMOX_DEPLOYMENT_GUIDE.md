@@ -334,3 +334,24 @@ npm run k8s:verify-vault-architecture
 # o ejecutar la suite de pruebas de contrato:
 npm test -- tests/security/vault_redeploy_contract.test.ts
 ```
+
+---
+
+## 11. Operaciones Excepcionales: Procedimiento "Break-Glass" en Bastion Host
+
+En caso de indisponibilidad de GitHub Actions, falla en el controlador de ArgoCD o emergencias P1 que requieran intervención manual directa sobre el clúster K3s o Vault, se debe invocar el **Procedimiento Break-Glass**:
+
+* **Topología:** `Administrador -> SSH -> Bastion Host (LXC 802) -> kubectl / helm / vault / ansible -> K3s`.
+* **Auditoría Activa:** Todos los comandos ejecutados quedan registrados con usuario, IP, comando, timestamp y código de salida en `/var/log/bastion/audit.log` y en syslog (`authpriv.notice`).
+* **Zero-Drift:** Cualquier modificación manual ejecutada durante la emergencia debe ser reconciliada en Git dentro de las 4 horas posteriores para evitar discrepancias con ArgoCD.
+* **Guía Completa:** Ver el documento detallado en [Procedimiento Break-Glass](BREAK_GLASS_PROCEDURE.md).
+
+---
+
+## 12. Aislamiento de Entornos y Dominio de Fallas (SPOF) On-Premise
+
+* **Aislamiento Lógico en Plataforma Física Única:** Pre-producción (LXC 800) y Producción (VM 801) comparten el mismo hardware físico de Proxmox VE (CPU, RAM, storage NVMe, NIC física).
+* **Particionamiento Lógico de Vault:** Para no duplicar recursos, Vault utiliza aislamiento lógico de secretos (`secret/data/pokedex/preprod/*` con rol `pokedex-preprod-role` y `secret/data/pokedex/prod/*` con rol `pokedex-prod-role`).
+* **SPOF Explícito y Mitigación:** La caída del hipervisor físico o corte de energía detiene ambos entornos. Las mitigaciones incluyen copias de seguridad automáticas con Proxmox Backup Server (PBS), snapshots de Raft en Vault y reprovisionamiento 100% reproducible con OpenTofu y Ansible.
+* **Análisis Detallado:** Ver [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
+

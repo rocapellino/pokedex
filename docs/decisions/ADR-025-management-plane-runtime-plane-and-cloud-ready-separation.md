@@ -75,10 +75,31 @@ Cada herramienta tiene un límite claro e indelegable:
 3. **ArgoCD:** Reconcilia el estado deseado en Kubernetes (Deployments, Services, ConfigMaps, ExternalSecrets, NetworkPolicies).
 4. **GitHub Actions:** Valida calidad, seguridad (SAST, SCA, IaC), compila imágenes OCI con digest inmutable, firma artefactos y publica releases.
 
+---
+
+### 6. Operación Excepcional Break-Glass y Auditoría en Bastion
+
+Se formaliza la distinción estricta entre el flujo normal y el flujo de contingencia:
+- **Flujo Normal:** `Developer -> Git -> GitHub Actions -> ArgoCD -> K3s`.
+- **Flujo Break-Glass:** `Administrador -> Bastion -> kubectl / helm / vault / ansible -> K3s`.
+- **Auditoría Obligatoria:** Todo comando ejecutado en el Bastion queda registrado en `/var/log/bastion/audit.log` y syslog mediante interceptación en shell (`_bastion_audit`), garantizando no-repudio.
+- **Reconciliación Mandatoria:** Cualquier mutación excepcional debe ser reconciliada en Git dentro de las 4 horas posteriores (Zero-Drift). Ver runbook: [Procedimiento Break-Glass](../runbooks/BREAK_GLASS_PROCEDURE.md).
+
+---
+
+### 7. Aislamiento Lógico de Entornos y SPOF On-Premise
+
+- **Dominio Compartido:** Pre-producción y Producción comparten el mismo hardware físico de Proxmox (CPU, RAM, disco y red). El aislamiento es estrictamente lógico (cgroups, namespaces y KVM).
+- **Particionamiento Lógico de Vault:** Para evitar duplicación de infraestructura, un único Vault CE gestiona secretos segregados por rutas (`secret/data/pokedex/preprod/*` vs `secret/data/pokedex/prod/*`) con roles de acceso diferenciados (`pokedex-preprod-role` vs `pokedex-prod-role`).
+- **SPOF Documentado:** Se asume explícitamente el nodo Proxmox como Single Point of Failure (SPOF). Las mitigaciones arquitecturales comprenden copias de seguridad automáticas (Proxmox Backup Server), esquemas Shamir 5/3 para Vault y despliegues declarativos reproducibles con OpenTofu y Ansible. Ver análisis completo: [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
+
 ## Consecuencias
 - **Positivas:** 
   - Justificación arquitectónica sólida: la infraestructura existente no es redundante, sino modular y estructurada por planos.
   - Elimina la confusión sobre dos plataformas activas al clarificar que AWS es un esqueleto cloud-ready.
-  - Previene que el Bastion degenere en un punto de divergencia manual (snowflake server).
+  - El contenedor Bastion queda formalmente justificado como host de auditoría y punto de break-glass seguro.
+  - La separación de ambientes en Vault se resuelve lógicamente sin sobrecosto de contenedores adicionales.
+  - El SPOF del host Proxmox queda formalmente asumido, documentado y mitigado.
 - **Negativas:** 
-  - Requiere mantener la disciplina de no realizar cambios manuales desde el Bastion que no provengan del repositorio Git.
+  - Requiere mantener la disciplina de no realizar cambios manuales desde el Bastion sin posterior reconciliación en Git.
+

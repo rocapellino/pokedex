@@ -78,3 +78,66 @@
         version: main
         force: false
       ignore_errors: true
+
+    # --------------------------------------------------------------------------
+    # Auditoría Forense y Trazabilidad Break-Glass (ADR-025)
+    # --------------------------------------------------------------------------
+    - name: Crear directorio para registros de auditoría de Bastion
+      ansible.builtin.file:
+        path: /var/log/bastion
+        state: directory
+        owner: root
+        group: adm
+        mode: '0750'
+
+    - name: Configurar captura de auditoría para sesiones interactivas
+      ansible.builtin.copy:
+        dest: /etc/profile.d/bastion-audit.sh
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # ====================================================================
+          # Auditoría de Comandos Break-Glass en Bastion Host (ADR-025)
+          # ====================================================================
+          export HISTTIMEFORMAT="%Y-%m-%dT%H:%M:%S%z "
+          shopt -s histappend
+
+          _bastion_audit() {
+            local exit_code=$?
+            local last_cmd
+            last_cmd=$(HISTTIMEFORMAT="" history 1 | sed -e 's/^[ ]*[0-9]*[ ]*//')
+            if [ -n "$last_cmd" ] && [ "$last_cmd" != "$_LAST_AUDITED_CMD" ]; then
+              _LAST_AUDITED_CMD="$last_cmd"
+              local timestamp
+              timestamp=$(date --iso-8601=seconds)
+              local remote_ip="${SSH_CLIENT%% *}"
+              [ -z "$remote_ip" ] && remote_ip="local"
+              local log_entry="[$timestamp] [BREAK-GLASS] USER=${USER} UID=${EUID} IP=${remote_ip} PWD=${PWD} EXIT=${exit_code} CMD=${last_cmd}"
+              echo "$log_entry" >> /var/log/bastion/audit.log 2>/dev/null || true
+              logger -p authpriv.notice -t "bastion-audit[$$]" "$log_entry" 2>/dev/null || true
+            fi
+          }
+
+          if [ -z "$PROMPT_COMMAND" ]; then
+            PROMPT_COMMAND="_bastion_audit"
+          else
+            PROMPT_COMMAND="_bastion_audit; ${PROMPT_COMMAND}"
+          fi
+
+    - name: Configurar rotación de logs de auditoría en Bastion
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/bastion-audit
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          /var/log/bastion/*.log {
+              weekly
+              missingok
+              rotate 12
+              compress
+              delaycompress
+              notifempty
+              create 0640 root adm
+          }
