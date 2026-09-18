@@ -87,6 +87,16 @@ test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y pol
   assert.match(matrixContent, /SonarQube/, 'Debe documentar demarcación de SonarQube');
   assert.match(matrixContent, /Checkov/, 'Debe documentar demarcación de Checkov');
   assert.match(matrixContent, /Trivy/, 'Debe documentar demarcación de Trivy');
+
+  const declaredVsRenderedDoc = path.join(ROOT_DIR, 'docs/architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md');
+  assert.ok(fs.existsSync(declaredVsRenderedDoc), 'Debe existir el documento de análisis declarado vs renderizado');
+  const renderedContent = fs.readFileSync(declaredVsRenderedDoc, 'utf-8');
+  assert.match(renderedContent, /K3s Runtime/, 'Debe auditar K3s');
+  assert.match(renderedContent, /Cilium/, 'Debe auditar Cilium');
+  assert.match(renderedContent, /PgBouncer/, 'Debe auditar PgBouncer');
+  assert.match(renderedContent, /Stakater Reloader/, 'Debe auditar Reloader');
+  assert.match(renderedContent, /cAdvisor/, 'Debe auditar cAdvisor');
 });
+
 
 

@@ -80,6 +80,7 @@ flowchart TD
 * 🔐 [**SECRETS_MANAGEMENT_SEALED_SECRETS.md**](./architecture/SECRETS_MANAGEMENT_SEALED_SECRETS.md): Gestión segura de credenciales sin secretos en claro en Git mediante Bitnami Sealed Secrets y escaneo con Gitleaks.
 * 📋 [**RESPONSIBILITY_MATRIX.md**](./architecture/RESPONSIBILITY_MATRIX.md): **Matriz canónica de responsabilidades** de componentes (OpenTofu, Ansible, Bastion, Vault, ESO, ArgoCD, Cilium, Alloy) y demarcación técnica de herramientas DevSecOps.
 * 🏢 [**ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md**](./architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md): Análisis de aislamiento lógico vs físico, dominios de falla compartidos y mitigaciones del SPOF on-premise en Proxmox.
+* 🔍 [**DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md**](./architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md): Comparativa exhaustiva entre arquitectura declarada vs. realmente renderizada en Helm/GitOps (AWS vs Proxmox).
 
 ---
 
