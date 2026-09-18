@@ -108,18 +108,56 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican
 });
 
 test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)', () => {
-  const parseImageDigest = (filePath: string, component: 'api' | 'web') => {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const sectionRegex = new RegExp(`${component}:[\\s\\S]*?image:[\\s\\S]*?digest:\\s*"([^"]+)"`);
-    const match = content.match(sectionRegex);
-    assert.ok(match, `Debe encontrar sección ${component}.image con digest inmutable en ${filePath}`);
-    return match[1];
+  const parseImageDigest = (filePath: string, component: 'api' | 'web'): string => {
+    const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/);
+    let inComponent = false;
+    let inImage = false;
+    for (const line of lines) {
+      if (line.startsWith(`${component}:`)) {
+        inComponent = true;
+        inImage = false;
+        continue;
+      }
+      if (inComponent && !line.startsWith(' ') && !line.startsWith('\t') && line.includes(':')) {
+        inComponent = false;
+        inImage = false;
+      }
+      if (inComponent && line.trim().startsWith('image:')) {
+        inImage = true;
+        continue;
+      }
+      if (inComponent && inImage && line.trim().startsWith('digest:')) {
+        const parts = line.split('"');
+        if (parts.length >= 2) {
+          return parts[1];
+        }
+      }
+    }
+    throw new Error(`Debe encontrar sección ${component}.image con digest inmutable en ${filePath}`);
   };
 
   const assertNoConfusingTag = (filePath: string, component: 'api' | 'web') => {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const tagRegex = new RegExp(`${component}:[\\s\\S]*?image:[\\s\\S]*?tag:\\s*"[^"]+"`);
-    assert.ok(!tagRegex.test(content), `${filePath} no debe contener atributo 'tag' redundante para ${component} (SSOT es digest)`);
+    const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/);
+    let inComponent = false;
+    let inImage = false;
+    for (const line of lines) {
+      if (line.startsWith(`${component}:`)) {
+        inComponent = true;
+        inImage = false;
+        continue;
+      }
+      if (inComponent && !line.startsWith(' ') && !line.startsWith('\t') && line.includes(':')) {
+        inComponent = false;
+        inImage = false;
+      }
+      if (inComponent && line.trim().startsWith('image:')) {
+        inImage = true;
+        continue;
+      }
+      if (inComponent && inImage && line.trim().startsWith('tag:')) {
+        assert.fail(`${filePath} no debe contener atributo 'tag' redundante para ${component} (SSOT es digest)`);
+      }
+    }
   };
 
   const awsPath = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
