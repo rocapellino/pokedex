@@ -32,6 +32,40 @@ variable "node_name" {
   description = "Nombre del nodo Proxmox donde desplegar los recursos"
 }
 
+variable "compute_type" {
+  type        = string
+  default     = "lxc"
+  description = "Tipo de cómputo en Proxmox: 'lxc' (ligero para Pre-Prod/Lab) o 'vm' (aislamiento KVM completo para Producción)"
+
+  validation {
+    condition     = contains(["lxc", "vm"], var.compute_type)
+    error_message = "El valor de compute_type debe ser 'lxc' o 'vm'."
+  }
+}
+
+variable "environment_tier" {
+  type        = string
+  default     = "preprod"
+  description = "Nivel de entorno: 'preprod' (LXC recomendado) o 'prod' (VM recomendada)"
+
+  validation {
+    condition     = contains(["preprod", "prod", "lab"], var.environment_tier)
+    error_message = "El valor de environment_tier debe ser 'preprod', 'prod' o 'lab'."
+  }
+}
+
+variable "vm_image_url" {
+  type        = string
+  default     = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.raw"
+  description = "URL oficial de descarga de la imagen Cloud-Init Debian 12 para VMs de Producción"
+}
+
+variable "vm_image_file_name" {
+  type        = string
+  default     = "debian-12-genericcloud-amd64.raw"
+  description = "Nombre de archivo de imagen Cloud-Init para VMs"
+}
+
 variable "vm_count" {
   type        = number
   default     = 1

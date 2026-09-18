@@ -7,6 +7,11 @@ proxmox_username       = "root@pam"
 proxmox_password       = "YOUR_PASSWORD_HERE"
 # proxmox_api_token    = "root@pam!opentofu=YOUR_TOKEN_UUID"
 proxmox_insecure       = true
+# Tipo de cómputo y entorno:
+# compute_type: "lxc" (ultraliviano para preprod/lab) o "vm" (aislamiento KVM completo para prod)
+compute_type           = "lxc"
+environment_tier       = "preprod"
+
 node_name              = "pve"
 vm_count               = 1
 vm_cores               = 4
