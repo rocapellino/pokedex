@@ -9,9 +9,14 @@ metadata:
 spec:
   provider:
     vault:
-      server: "http://10.10.13.110:8200"
+      server: "https://10.10.13.110:8200"
       path: "secret"
       version: "v2"
+      caProvider:
+        type: ConfigMap
+        name: vault-ca
+        key: ca.crt
+        namespace: external-secrets
       auth:
         kubernetes:
           mountPath: "kubernetes"
