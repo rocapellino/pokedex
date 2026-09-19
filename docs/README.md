@@ -26,6 +26,9 @@ flowchart TD
     ARCH --> A7["☸️ KUBERNETES_SCALING_ANALYSIS.md"]
     ARCH --> A8["📂 MONOREPO_STRUCTURE.md"]
     ARCH --> A9["🔐 SECRETS_MANAGEMENT_SEALED_SECRETS.md"]
+    ARCH --> A10["📋 RESPONSIBILITY_MATRIX.md"]
+    ARCH --> A11["🏢 ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md"]
+    ARCH --> A12["🔍 DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md"]
 
     API --> AP1["📡 API_SPECIFICATION.md"]
 
@@ -40,12 +43,13 @@ flowchart TD
     RUN --> R3["🧪 STRESS_TESTING_GUIDE.md"]
     RUN --> R4["🖥️ PROXMOX_DEPLOYMENT_GUIDE.md"]
     RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]
+    RUN --> R6["🚨 BREAK_GLASS_PROCEDURE.md"]
 
     SEC --> S1["🛡️ SECURITY.md (Root)"]
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-022"]
+    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-025)"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -60,7 +64,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7 doc;
 ```
 
 ---

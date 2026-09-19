@@ -1,6 +1,6 @@
-# 🔐 Guía de Gestión de Secretos: .env, Gitleaks, Sealed Secrets y External Secrets Operator
+# 🔐 Guía de Gestión de Secretos: HashiCorp Vault CE, ESO, .env y Gitleaks
 
-Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps.
+Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps, de conformidad con el [ADR-005](../decisions/ADR-005-secret-management.md), el [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md) y el [ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md).
 
 ---
 
@@ -8,11 +8,12 @@ Este documento describe la arquitectura, herramientas y estándares implementado
 
 1. [Estrategia de Secretos en Entornos Locales (`.env.example`)](#1-estrategia-de-secretos-en-entornos-locales-envexample)
 2. [Prevención y Detección de Fugas con Gitleaks (CI/CD)](#2-prevención-y-detección-de-fugas-con-gitleaks-cicd)
-3. [Estrategia Híbrida de Secretos en Kubernetes](#3-estrategia-híbrida-de-secretos-en-kubernetes)
-   - [3.1. Enfoque Cloud Enterprise: External Secrets Operator (ESO) & `existingSecret`](#31-enfoque-cloud-enterprise-external-secrets-operator-eso--existingsecret)
-   - [3.2. Enfoque On-Premise / GitOps: Bitnami Sealed Secrets](#32-enfoque-on-premise--gitops-bitnami-sealed-secrets)
+3. [Arquitectura Canónica de Secretos en Kubernetes (ESO)](#3-arquitectura-canónica-de-secretos-en-kubernetes-eso)
+   - [3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE](#31-entorno-on-premise-proxmox-ve-hashicorp-vault-ce)
+   - [3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager](#32-entorno-cloud-aws-eks-aws-secrets-manager)
+   - [3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets](#33-transición-y-soporte-histórico-bitnami-sealed-secrets)
 4. [Helper de Resolución Dinámica en Helm (`pokedex.secretName`)](#4-helper-de-resolución-dinámica-en-helm-pokedexsecretname)
-5. [Flujo de Trabajo Operativo para Desarrolladores](#5-flujo-de-trabajo-operativo-para-desarrolladores)
+5. [Rotación y Reinicio Progresivo (Rollout Restart)](#5-rotación-y-reinicio-progresivo-rollout-restart)
 
 ---
 
@@ -23,20 +24,11 @@ Este documento describe la arquitectura, herramientas y estándares implementado
 - **Variables Críticas Obligatorias:**
   - `ADMIN_API_KEY`: Clave administrativa requerida para operaciones de mutación directa y generación de tokens.
   - `ADMIN_SESSION_SECRET`: Secreto criptográfico independiente y obligatorio para firma y verificación de tokens HMAC SHA-256 de sesión.
-  - `AI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Google Gemini 2.5 Flash).
-  - `DATABASE_URL` / `POSTGRES_PASSWORD`: Credenciales de persistencia ACID.
-  - `REDIS_PASSWORD`: Credenciales de acceso a la caché y rate limiter.
+  - `AI_API_KEY` / `GEMINI_API_KEY`: Clave requerida para los microservicios de Inteligencia Artificial (Google Gemini Flash).
+  - `DATABASE_URL` / `POSTGRES_PASSWORD`: Credenciales de persistencia PostgreSQL.
+  - `REDIS_PASSWORD` / `REDIS_URL`: Credenciales de acceso a la caché y rate limiter.
+  - `BACKUP_ENCRYPTION_KEY`: Frase de paso para cifrado AES-256-CBC de respaldos.
 - **Protección en `.gitignore`:** Reglas estrictas ignoran `.env`, `.env.*`, claves privadas (`*.pem`, `*.key`) y certificados.
-
-### Uso con Docker Compose
-
-```bash
-# Crear el archivo local a partir de la plantilla:
-cp .env.example .env
-
-# Levantar con Docker Compose:
-docker compose up -d
-```
 
 ---
 
@@ -55,164 +47,76 @@ Para garantizar que ningún desarrollador comitee accidentalmente tokens, API ke
 
 ---
 
-## 3. Estrategia Híbrida de Secretos en Kubernetes
+## 3. Arquitectura Canónica de Secretos en Kubernetes (ESO)
 
-En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no constituye cifrado**. El proyecto soporta dos modelos enterprise según el entorno de despliegue:
-
-### 3.1. Enfoque Cloud Enterprise: External Secrets Operator (ESO) & `existingSecret`
-
-Para entornos de producción cloud (AWS EKS, GCP GKE, Azure AKS) o nubes privadas con HashiCorp Vault:
+En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no constituye cifrado**. El proyecto estandariza la sincronización declarativa desacoplada mediante **External Secrets Operator (ESO)**:
 
 ```text
-[ AWS Secrets Manager / Vault / GCP Secret Manager ]
-                         │
-                         ▼ (Sincronización periódica)
-         ┌───────────────────────────────┐
-         │  External Secrets Operator   │
-         │  (Resource: ExternalSecret)   │
-         └───────────────┬───────────────┘
-                         │ (Genera Secret en memoria k8s)
-                         ▼
-         ┌───────────────────────────────┐
-         │ K8s Secret: pokemon-secrets   │
-         └───────────────┬───────────────┘
-                         │ (Montado como env/secretKeyRef)
-                         ▼
-          [ Pods: pokemon-api, postgres, redis ]
+                                  External Secrets Operator (ESO)
+                                                │
+                 ┌──────────────────────────────┴──────────────────────────────┐
+                 ▼                                                             ▼
+       On-Premise (Proxmox VE)                                         Cloud (AWS EKS)
+       ClusterSecretStore: vault-backend                              ClusterSecretStore: aws-secrets-manager
+       Server: https://10.10.13.110:8200                               Provider: AWS Secrets Manager (IRSA)
+       Auth: Kubernetes ServiceAccount (pokedex-role)                 Auth: AWS IAM Roles for Service Accounts
+                 │                                                             │
+                 └──────────────────────────────┬──────────────────────────────┘
+                                                ▼
+                                    ExternalSecret (pokedex)
+                                                │
+                                                ▼
+                                 v1/Secret pokemon-secrets (K8s)
+                                                │ (envFrom)
+                                                ▼
+                                     Pods (pokedex-api / web)
 ```
 
-- **Desacoplamiento en Helm y Especificidades por Proveedor:** En entornos productivos ([`gitops/environments/aws/values.yaml`](../../gitops/environments/aws/values.yaml) y [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)), se modela la referencia remota adaptada a la API nativa de cada SecretStore:
+### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE
+- **Instancia:** Desplegada en contenedor LXC dedicado (ID `110`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
+- **Segregación Lógica de Secretos:**
+  - Pre-producción: `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role`.
+  - Producción: `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role`.
+- **Manifiesto:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml).
 
-  | Proveedor | ClusterSecretStore | Sintaxis `remoteRef.key` | Justificación de la Ruta |
-  |---|---|---|---|
-  | **AWS Secrets Manager** *(Cloud / AWS)* | `aws-secrets-manager` | `pokedex/production` | Nomenclatura jerárquica plana por nombre de secreto nativo en AWS. |
-  | **HashiCorp Vault** *(On-Prem / Proxmox)* | `vault-backend` | `secret/data/pokedex/production` | El motor Vault KV versión 2 exige el prefijo intermedio `/data/` entre el mount point (`secret/`) y el path (`pokedex/production`) para acceder al payload. |
+### 3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager
+- **Instancia:** Almacén gestionado nativo de AWS con autenticación IAM mediante IRSA (`eks.amazonaws.com/role-arn`).
+- **Manifiesto:** [`infra/k8s/eso/aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml).
 
-  ```yaml
-  # Ejemplo Cloud (AWS Secrets Manager):
-  externalSecrets:
-    enabled: true
-    secretStoreRef:
-      name: "aws-secrets-manager"
-      kind: "ClusterSecretStore"
-    remoteRef:
-      key: "pokedex/production"
-
-  # Ejemplo On-Prem (HashiCorp Vault KV v2):
-  externalSecrets:
-    enabled: true
-    secretStoreRef:
-      name: "vault-backend"
-      kind: "ClusterSecretStore"
-    remoteRef:
-      key: "secret/data/pokedex/production"
-  ```
-
-  Esto instruye a Helm a **no generar ningún recurso `kind: Secret` estático**, delegando la creación y rotación de credenciales al operador.
-
-- **Manifiesto de ExternalSecret:** Parametrizado en `infra/helm/pokedex/templates/externalsecret.yaml` (`external-secrets.io/v1beta1`) para mapear automáticamente todas las variables requeridas por la aplicación (`DATABASE_URL`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `REDIS_URL`, `ADMIN_API_KEY`, `ADMIN_SESSION_SECRET`, `AI_API_KEY`, `GEMINI_API_KEY`, `BACKUP_ENCRYPTION_KEY`).
-
-- **Recarga y Rotación Zero-Downtime Multi-Entorno:**
-  - **AWS (Cloud):** Se utiliza el operador [Stakater Reloader](https://github.com/stakater/Reloader) mediante anotaciones de Deployment (`reloader.stakater.com/auto: "true"`). Cuando ESO actualiza el recurso `v1/Secret`, Reloader detecta la mutación y ejecuta automáticamente un *rolling upgrade* ordenado de los Pods.
-  - **Proxmox VE (On-Premise / Lean MVP):** Stakater Reloader está **desactivado** (`reloader.enabled: false`) para evitar controladores con RBAC global y ahorrar memoria. Los cambios de configuración son detectados por la anotación nativa de Helm **`checksum/config`** (`spec.template.metadata.annotations`), garantizando un despliegue determinista sin intermediarios satélites.
-
-  ```yaml
-  # AWS EKS:
-  api:
-    deploymentAnnotations:
-      reloader.stakater.com/auto: "true"
-
-  # Proxmox VE:
-  api:
-    deploymentAnnotations:
-      reloader.stakater.com/auto: null  # Delegado a checksum/config nativo
-  ```
-
-- **Manifiestos de Referencia (`infra/k8s/eso/`):**
-  - [`aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml): Conexión hacia AWS Secrets Manager utilizando IAM Roles for Service Accounts (IRSA).
-  - [`vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml): Conexión hacia HashiCorp Vault utilizando Kubernetes ServiceAccount token authentication.
-  - [`cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml): Manifiesto canónico consolidado con los ClusterSecretStores para AWS y Proxmox.
-
-### 3.2. Mecanismo Histórico / Deprecado: Bitnami Sealed Secrets
-
-> [!NOTE]
-> **Estado: Deprecado.** En Proxmox VE la arquitectura canónica oficial utiliza **ESO + HashiCorp Vault en LXC** (commit #206). Bitnami Sealed Secrets se conserva como referencia histórica para laboratorios locales desconectados sin infraestructura de Vault.
-
-Para clústeres bare-metal aislados sin acceso a gestores de secretos centralizados:
-
-```text
-[ Desarrollador / CI ]
-         │ (kubeseal + Clave Pública del Clúster)
-         ▼
-┌────────────────────────────────────────────────────────┐
-│ 🔏 SealedSecret (YAML Cifrado 100% Seguro para Git)   │
-└────────────────────────┬───────────────────────────────┘
-                         │ (git commit / ArgoCD sync)
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│ ☸️ Clúster Kubernetes                                  │
-│ └── sealed-secrets-controller (Clave Privada)          │
-│       │ (Descifra en memoria del clúster)             │
-│       ▼                                                │
-│ 🔓 K8s Secret Nativo (`pokemon-secrets`)               │
-└────────────────────────────────────────────────────────┘
-```
+### 3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets
+- Bitnami Sealed Secrets se utilizó en fases iniciales del proyecto para cifrar credenciales asimétricamente en Git (`SealedSecret`).
+- **Estado Actual:** Superado por Vault CE + ESO. Se preserva la utilidad tipada [`scripts/seal-secret.ts`](../../scripts/seal-secret.ts) exclusivamente como mecanismo de migración o respaldo local fuera de línea.
 
 ---
 
 ## 4. Helper de Resolución Dinámica en Helm (`pokedex.secretName`)
 
-Para garantizar que todos los componentes (API, PostgreSQL, Redis, PgBouncer) consuman el secreto correcto de forma uniforme y sin duplicar lógica, se implementó el helper en `infra/helm/pokedex/templates/_helpers.tpl`:
+El Chart de Helm ([`infra/helm/pokedex`](../../infra/helm/pokedex)) desacopla el nombre del Secret mediante un helper canónico en `_helpers.tpl`:
 
-```gotemplate
+```yaml
+{{/*
+Retorna el nombre del Secret que contiene las credenciales de la app.
+Prioridad: .Values.secrets.existingSecret -> pokemon-secrets
+*/}}
 {{- define "pokedex.secretName" -}}
-{{- if .Values.secrets.existingSecret -}}
-    {{- .Values.secrets.existingSecret -}}
-{{- else if and .Values.externalSecrets.enabled .Values.externalSecrets.targetSecretName -}}
-    {{- .Values.externalSecrets.targetSecretName -}}
-{{- else -}}
-    {{- default (printf "%s-secrets" (include "pokedex.fullname" .)) .Values.secrets.name -}}
-{{- end -}}
-{{- end -}}
+{{- if .Values.secrets.existingSecret }}
+{{- .Values.secrets.existingSecret }}
+{{- else }}
+{{- include "pokedex.fullname" . }}-secrets
+{{- end }}
+{{- end }}
 ```
 
-**Comportamiento de `secret.yaml`:**
-El template `secret.yaml` contiene la condición:
-`{{- if and (not .Values.secrets.existingSecret) (not .Values.externalSecrets.enabled) -}}`
-garantizando que en producción nunca se renderice un Secret en blanco ni se sobreescriba un secreto preexistente inyectado por el operador.
+Tanto en AWS como en Proxmox, `.Values.secrets.existingSecret: "pokemon-secrets"` mapea directamente hacia el Secret sincronizado por ESO.
 
 ---
 
-## 5. Flujo de Trabajo Operativo para Desarrolladores
+## 5. Rotación y Reinicio Progresivo (Rollout Restart)
 
-### 5.1. Para Despliegues Locales / Desarrollo
-
-Helm genera el secreto por defecto `pokemon-secrets` con valores autogenerados o provistos en `values.yaml`.
-
-### 5.2. Para Sellar Secretos con Sealed Secrets (Proxmox)
-
-```bash
-# Vía Taskfile:
-task secrets:seal
-
-# Vía Python:
-python scripts/seal_secret.py --name pokemon-secrets --namespace pokemon-app
-```
-
-### 5.3. Para Producción con Secret Pre-creado
-
-```bash
-# Crear el secret en Kubernetes de forma segura mediante archivo temporal o kubectl:
-kubectl create secret generic pokedex-prod-secrets \
-  --namespace pokemon-app \
-  --from-literal=admin-api-key="<CLAVE_ADMIN_PROD>" \
-  --from-literal=admin-session-secret="<HMAC_SECRET_PROD>" \
-  --from-literal=ai-api-key="<GEMINI_KEY_PROD>" \
-  --from-literal=postgres-password="<PG_PASS_PROD>" \
-  --from-literal=redis-password="<REDIS_PASS_PROD>"
-
-# Desplegar Helm enlazando al secreto existente:
-helm upgrade --install pokedex ./infra/helm/pokedex \
-  --namespace pokemon-app \
-  --values ./infra/helm/pokedex/values.prod.yaml
-```
+* **En AWS EKS:** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
+* **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-024](../decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
+  ```bash
+  npm run k8s:rollout-restart -- --live
+  # o vía Taskfile:
+  task k8s:rollout-restart -- --live
+  ```
