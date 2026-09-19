@@ -4,18 +4,20 @@
 
 import { sanitizeHtml, escapeText } from './sanitizer.js';
 import type { Pokemon, EvolutionNode, PokemonStats } from './types.js';
+import {
+  TYPE_COLORS,
+  normalizeStr,
+  getTypeColor,
+  getGeneration,
+  formatPokemonId,
+  showToast,
+  renderTypeBadge,
+  renderTypeBadges,
+  renderEmptyState,
+  fetchAllPokemons,
+} from './shared/index.js';
 
-/**
- * Normaliza cadenas removiendo acentos, espacios y convirtiendo a minúsculas.
- */
-function normalizeStr(str: unknown): string {
-  if (!str) return '';
-  return String(str)
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
-}
+export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId };
 
 let allPokemons: Pokemon[] = [];
 let filteredPokemons: Pokemon[] = [];
@@ -25,53 +27,11 @@ let currentType = 'all';
 let currentGeneration = 'all';
 let searchQuery = '';
 
-const TYPE_COLORS: Record<string, string> = {
-  'Eléctrico': '#f59e0b',
-  'Fuego': '#ef4444',
-  'Agua': '#3b82f6',
-  'Planta': '#10b981',
-  'Psíquico': '#ec4899',
-  'Roca': '#b45309',
-  'Tierra': '#d97706',
-  'Hielo': '#06b6d4',
-  'Fantasma': '#8b5cf6',
-  'Dragón': '#6366f1',
-  'Normal': '#6b7280',
-  'Lucha': '#dc2626',
-  'Veneno': '#a855f7',
-  'Bicho': '#84cc16',
-  'Volador': '#38bdf8',
-  'Acero': '#94a3b8',
-  'Siniestro': '#334155',
-  'Hada': '#f472b6',
-};
-
-function getTypeColor(tipo?: string): string {
-  if (!tipo) return '#6b7280';
-  const match = Object.keys(TYPE_COLORS).find((k) => normalizeStr(k) === normalizeStr(tipo));
-  return match ? TYPE_COLORS[match] : '#6b7280';
-}
-
-function getGeneration(id: number): number {
-  if (id <= 151) return 1;
-  if (id <= 251) return 2;
-  if (id <= 386) return 3;
-  if (id <= 493) return 4;
-  if (id <= 649) return 5;
-  if (id <= 721) return 6;
-  if (id <= 809) return 7;
-  if (id <= 905) return 8;
-  return 9;
-}
-
 export async function loadPokemons(): Promise<void> {
   const container = document.getElementById('pokemonGrid');
   if (!container) return;
   try {
-    const res = await fetch('/pokemons');
-    if (!res.ok) throw new Error(`HTTP ${res.status}: Error al conectar con la API`);
-    allPokemons = (await res.json()) as Pokemon[];
-
+    allPokemons = await fetchAllPokemons();
     allPokemons.sort((a, b) => a.id - b.id);
 
     applyFilters();
@@ -79,14 +39,13 @@ export async function loadPokemons(): Promise<void> {
   } catch (err: any) {
     console.error('Error al cargar datos:', err);
     showToast(`Error al cargar datos: ${err?.message || err}`, true);
-    container.innerHTML = sanitizeHtml(`
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <h3 class="empty-title">Error al conectar con el backend</h3>
-        <p class="error-detail">${escapeText(err?.message || err)}</p>
-        <button class="btn btn-primary mt-4" id="btnRetryConnection">Reintentar Conexión</button>
-      </div>
-    `);
+    container.innerHTML = renderEmptyState({
+      icon: '⚠️',
+      title: 'Error al conectar con el backend',
+      description: err?.message || String(err),
+      retryBtnId: 'btnRetryConnection',
+      retryBtnText: 'Reintentar Conexión',
+    });
   }
 }
 
@@ -699,25 +658,7 @@ export function closeDetailModal(): void {
   document.getElementById('detailModal')?.classList.remove('active');
 }
 
-export function showToast(message: string, isError = false): void {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
-  const toast = document.createElement('div');
-  toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-
-  const span = document.createElement('span');
-  span.textContent = message;
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'toast-close';
-  closeBtn.textContent = '×';
-  closeBtn.addEventListener('click', () => toast.remove());
-
-  toast.appendChild(span);
-  toast.appendChild(closeBtn);
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
+// showToast se exporta desde ./shared/index.js
 
 window.addEventListener(
   'error',

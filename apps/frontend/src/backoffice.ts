@@ -4,6 +4,20 @@
 
 import { sanitizeHtml, escapeText } from './sanitizer.js';
 import type { Pokemon, SessionInfo } from './types.js';
+import {
+  TYPE_COLORS,
+  normalizeStr,
+  getTypeColor,
+  formatPokemonId,
+  showToast,
+  fetchPokemonsWithCount,
+  createPokemon,
+  updatePokemon,
+  deletePokemon,
+  getSessionStatus,
+  loginWithApiKey,
+  logoutSession,
+} from './shared/index.js';
 
 let currentPokemons: Pokemon[] = [];
 let totalRecords = 0;
@@ -14,42 +28,6 @@ let currentType = 'all';
 let pendingDeleteId: number | null = null;
 let searchDebounceTimeout: any = null;
 
-const TYPE_COLORS: Record<string, string> = {
-  'Eléctrico': '#f59e0b',
-  'Fuego': '#ef4444',
-  'Agua': '#3b82f6',
-  'Planta': '#10b981',
-  'Psíquico': '#ec4899',
-  'Roca': '#b45309',
-  'Tierra': '#d97706',
-  'Hielo': '#06b6d4',
-  'Fantasma': '#8b5cf6',
-  'Dragón': '#6366f1',
-  'Normal': '#6b7280',
-  'Lucha': '#dc2626',
-  'Veneno': '#a855f7',
-  'Bicho': '#84cc16',
-  'Volador': '#38bdf8',
-  'Acero': '#94a3b8',
-  'Siniestro': '#334155',
-  'Hada': '#f472b6',
-};
-
-function normalizeStr(str?: string): string {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
-}
-
-function getTypeColor(tipo?: string): string {
-  if (!tipo) return '#6b7280';
-  const match = Object.keys(TYPE_COLORS).find((k) => k.toLowerCase() === tipo.toLowerCase().trim());
-  return match ? TYPE_COLORS[match] : '#6b7280';
-}
-
 // ============================================================================
 // Autenticación de Sesión de Administrador (HttpOnly Cookie + Zero Token Exposure)
 // ============================================================================
@@ -58,15 +36,9 @@ let adminSessionExpiresAt: number | null = null;
 
 export async function checkAdminSession(): Promise<boolean> {
   try {
-    const res = await fetch('/api/v1/auth/session', { credentials: 'same-origin' });
-    if (res.ok) {
-      const data = await res.json();
-      isAdminActive = Boolean(data.authenticated);
-      adminSessionExpiresAt = data.expiresAt ? Number(data.expiresAt) : null;
-    } else {
-      isAdminActive = false;
-      adminSessionExpiresAt = null;
-    }
+    const data = await getSessionStatus();
+    isAdminActive = Boolean(data.authenticated);
+    adminSessionExpiresAt = data.expiresAt ? Number(data.expiresAt) : null;
   } catch {
     isAdminActive = false;
     adminSessionExpiresAt = null;
@@ -96,7 +68,7 @@ export async function clearAdminSession(): Promise<void> {
   isAdminActive = false;
   adminSessionExpiresAt = null;
   try {
-    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    await logoutSession();
   } catch {
     // Ignorar fallos de red en logout
   }
@@ -153,19 +125,7 @@ export async function handleAuthSubmit(e: Event): Promise<void> {
   }
 
   try {
-    const res = await fetch('/api/v1/auth/session', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: val }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || err.error || `HTTP ${res.status}: Clave no autorizada`);
-    }
-
-    const data = (await res.json()) as SessionInfo;
+    const data = await loginWithApiKey(val);
     setAdminSessionActive(true, data.expiresAt);
     closeAuthModal();
     showToast('🔐 Sesión administrativa autenticada (cookie HttpOnly emitida).');
@@ -216,19 +176,14 @@ export async function loadAdminData(): Promise<void> {
     `);
 
     const offset = (currentPage - 1) * pageSize;
-    const params = new URLSearchParams({
-      limit: String(pageSize),
-      offset: String(offset),
+    const { pokemons, total } = await fetchPokemonsWithCount({
+      limit: pageSize,
+      offset,
+      nombre: currentSearch.trim(),
+      tipo: currentType,
     });
-    if (currentSearch.trim()) params.set('nombre', currentSearch.trim());
-    if (currentType && currentType !== 'all') params.set('tipo', currentType);
-
-    const res = await fetch(`/pokemons?${params.toString()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}: Error al conectar con la API`);
-
-    const countHeader = res.headers.get('X-Total-Count');
-    currentPokemons = (await res.json()) as Pokemon[];
-    totalRecords = countHeader ? Number.parseInt(countHeader, 10) : currentPokemons.length;
+    currentPokemons = pokemons;
+    totalRecords = total;
 
     renderTable();
     updateKPIs();
@@ -428,7 +383,7 @@ export function openEditModal(id: number): void {
   if (!p) return;
 
   const title = document.getElementById('crudModalTitle');
-  if (title) title.innerText = `✏️ Editar Pokémon #${String(p.id).padStart(3, '0')} - ${p.nombre}`;
+  if (title) title.innerText = `✏️ Editar Pokémon ${formatPokemonId(p.id)} - ${p.nombre}`;
   (document.getElementById('formPokemonId') as HTMLInputElement).value = String(p.id);
   (document.getElementById('nombre') as HTMLInputElement).value = p.nombre;
   (document.getElementById('imagen') as HTMLInputElement).value = p.imagen || '';
@@ -482,28 +437,10 @@ export async function handleFormSubmit(e: Event): Promise<void> {
 
   try {
     const isEdit = Boolean(id);
-    const url = isEdit ? `/pokemons/${id}` : '/pokemons';
-    const method = isEdit ? 'PUT' : 'POST';
-
-    const res = await fetch(url, {
-      method: method,
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.status === 401) {
-      showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
-      clearAdminSession();
-      openAuthModal();
-      return;
-    }
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || errData.error || `HTTP ${res.status}`);
+    if (isEdit) {
+      await updatePokemon(Number(id), payload);
+    } else {
+      await createPokemon(payload);
     }
 
     closeCrudModal();
@@ -514,6 +451,12 @@ export async function handleFormSubmit(e: Event): Promise<void> {
     );
     await loadAdminData();
   } catch (err: any) {
+    if (err?.status === 401) {
+      showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
+      clearAdminSession();
+      openAuthModal();
+      return;
+    }
     showToast(`Error al guardar: ${err?.message || err}`, true);
   } finally {
     submitBtn.disabled = false;
@@ -531,7 +474,7 @@ export function openDeleteModal(id: number): void {
   const nameEl = document.getElementById('deletePokemonName');
   const idEl = document.getElementById('deletePokemonId');
   if (nameEl) nameEl.innerText = p.nombre;
-  if (idEl) idEl.innerText = String(p.id).padStart(3, '0');
+  if (idEl) idEl.innerText = formatPokemonId(p.id);
   document.getElementById('deleteModal')?.classList.add('active');
 }
 
@@ -555,28 +498,18 @@ export async function executeDelete(): Promise<void> {
   btn.innerText = 'Eliminando...';
 
   try {
-    const res = await fetch(`/pokemons/${pendingDeleteId}`, {
-      method: 'DELETE',
-      credentials: 'same-origin',
-    });
-
-    if (res.status === 401) {
+    await deletePokemon(pendingDeleteId);
+    closeDeleteModal();
+    showToast(`🗑️ Pokémon #${pendingDeleteId} eliminado del catálogo.`);
+    await loadAdminData();
+  } catch (err: any) {
+    if (err?.status === 401) {
       showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
       clearAdminSession();
       closeDeleteModal();
       openAuthModal();
       return;
     }
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || errData.error || `HTTP ${res.status}`);
-    }
-
-    closeDeleteModal();
-    showToast(`🗑️ Pokémon #${pendingDeleteId} eliminado del catálogo.`);
-    await loadAdminData();
-  } catch (err: any) {
     showToast(`Error al eliminar: ${err?.message || err}`, true);
   } finally {
     btn.disabled = false;
@@ -592,26 +525,6 @@ export async function invalidateCache(): Promise<void> {
   } catch (err: any) {
     showToast(`Error al sincronizar: ${err?.message || err}`, true);
   }
-}
-
-export function showToast(message: string, isError = false): void {
-  const container = document.getElementById('toastContainer');
-  if (!container) return;
-  const toast = document.createElement('div');
-  toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-
-  const span = document.createElement('span');
-  span.textContent = message;
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'toast-close';
-  closeBtn.textContent = '×';
-  closeBtn.addEventListener('click', () => toast.remove());
-
-  toast.appendChild(span);
-  toast.appendChild(closeBtn);
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
 }
 
 window.addEventListener(
