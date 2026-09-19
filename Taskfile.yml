@@ -3,7 +3,7 @@ version: '3'
 
 tasks:
   default:
-    desc: "Muestra la lista de tareas disponibles"
+    desc: "Interfaz oficialmente soportada: Muestra el catálogo de tareas disponibles (task --list)"
     cmds:
       - task --list
 
@@ -21,6 +21,11 @@ tasks:
     desc: "Compila y empaqueta el servidor TypeScript con esbuild y el frontend con Vite"
     cmds:
       - npm run build
+
+  start:
+    desc: "Ejecuta el bundle de producción compilado (npm start)"
+    cmds:
+      - npm start
 
   turbo:build:
     desc: "Compila el monorepo con aceleración y caché declarativo de Turborepo"
@@ -169,14 +174,18 @@ tasks:
       - kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 
   docker:up:
-    desc: "[Alias compatibilidad] Levanta stack de desarrollo interactivo (usa dev:compose)"
+    desc: "[DEPRECADO] Alias legado de desarrollo interactivo (usa task dev:compose) - Retiro en v2.0"
     deps: [network]
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task docker:up' es un alias legado. Use 'task dev:compose'."
+        silent: false
       - task: dev:compose
 
   docker:down:
-    desc: "[Alias compatibilidad] Detiene stack interactivo de Docker Compose (usa dev:compose:down)"
+    desc: "[DEPRECADO] Alias legado para detener Docker Compose (usa task dev:compose:down) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task docker:down' es un alias legado. Use 'task dev:compose:down'."
+        silent: false
       - task: dev:compose:down
 
   # ----------------------------------------------------------------------------
@@ -372,8 +381,10 @@ tasks:
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/validate_hosts.yml {{.CLI_ARGS}}
 
   deploy:proxmox:
-    desc: "[Alias compatibilidad] Aprovisiona el baseline y hardening en Proxmox (usa ansible:prepare)"
+    desc: "[DEPRECADO] Alias legado de aprovisionamiento en Proxmox (usa task ansible:prepare) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task deploy:proxmox' es un alias legado. Use 'task ansible:prepare'."
+        silent: false
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml {{.CLI_ARGS}}
 
 
@@ -432,83 +443,113 @@ tasks:
       - tofu apply
 
   tofu:init:proxmox:
-    desc: "[Alias compatibilidad] Inicializa el entorno OpenTofu para Proxmox VE"
+    desc: "[DEPRECADO] Alias legado de inicialización OpenTofu Proxmox (usa task infra:validate) - Retiro en v2.0"
     dir: infra/opentofu/environments/proxmox
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:init:proxmox' es un alias legado. Se recomienda 'tofu -chdir=infra/opentofu/environments/proxmox init' o 'task infra:validate'."
+        silent: false
       - tofu init
 
   tofu:plan:proxmox:
-    desc: "[Alias compatibilidad] Ejecuta tofu plan para Proxmox VE"
+    desc: "[DEPRECADO] Alias legado de plan OpenTofu Proxmox (usa task infra:plan:proxmox) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:plan:proxmox' es un alias legado. Use 'task infra:plan:proxmox'."
+        silent: false
       - task: infra:plan:proxmox
 
   tofu:apply:proxmox:
-    desc: "[Alias compatibilidad] Aplica la infraestructura en Proxmox VE"
+    desc: "[DEPRECADO] Alias legado de apply OpenTofu Proxmox (usa task infra:apply:proxmox) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:apply:proxmox' es un alias legado. Use 'task infra:apply:proxmox'."
+        silent: false
       - task: infra:apply:proxmox
 
   tofu:init:aws:
-    desc: "[Alias compatibilidad] Inicializa el entorno OpenTofu para AWS EKS"
+    desc: "[DEPRECADO] Alias legado de inicialización OpenTofu AWS (usa task infra:validate) - Retiro en v2.0"
     dir: infra/opentofu/environments/aws
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:init:aws' es un alias legado. Se recomienda 'tofu -chdir=infra/opentofu/environments/aws init' o 'task infra:validate'."
+        silent: false
       - tofu init
 
   tofu:plan:aws:
-    desc: "[Alias compatibilidad] Ejecuta tofu plan para AWS EKS"
+    desc: "[DEPRECADO] Alias legado de plan OpenTofu AWS (usa task infra:plan:aws) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:plan:aws' es un alias legado. Use 'task infra:plan:aws'."
+        silent: false
       - task: infra:plan:aws
 
   tofu:apply:aws:
-    desc: "[Alias compatibilidad] Aplica la infraestructura en AWS EKS"
+    desc: "[DEPRECADO] Alias legado de apply OpenTofu AWS (usa task infra:apply:aws) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:apply:aws' es un alias legado. Use 'task infra:apply:aws'."
+        silent: false
       - task: infra:apply:aws
 
   tofu:init:cloud:
-    desc: "[Alias compatibilidad] Alias de tofu:init:aws"
+    desc: "[DEPRECADO] Alias legado de inicialización cloud (usa task infra:validate) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:init:cloud' es un alias legado. Se recomienda 'task infra:validate' o 'task tofu:init:aws'."
+        silent: false
       - task: tofu:init:aws
 
   tofu:plan:cloud:
-    desc: "[Alias compatibilidad] Alias de tofu:plan:aws"
+    desc: "[DEPRECADO] Alias legado de plan cloud (usa task infra:plan:aws) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:plan:cloud' es un alias legado. Use 'task infra:plan:aws'."
+        silent: false
       - task: tofu:plan:aws
 
   tofu:apply:cloud:
-    desc: "[Alias compatibilidad] Alias de tofu:apply:aws"
+    desc: "[DEPRECADO] Alias legado de apply cloud (usa task infra:apply:aws) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:apply:cloud' es un alias legado. Use 'task infra:apply:aws'."
+        silent: false
       - task: tofu:apply:aws
 
   tofu:validate:
-    desc: "[Alias compatibilidad] Valida la sintaxis de los entornos de OpenTofu"
+    desc: "[DEPRECADO] Alias legado de validación OpenTofu (usa task infra:validate) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task tofu:validate' es un alias legado. Use 'task infra:validate'."
+        silent: false
       - task: infra:validate
 
   # ----------------------------------------------------------------------------
   # Stack TypeScript & Node.js (Servidor Unificado + Gemini SDK - Aliases de Compatibilidad)
   # ----------------------------------------------------------------------------
   ts:install:
-    desc: "[Alias compatibilidad] Instala dependencias con npm ci (usa install)"
+    desc: "[DEPRECADO] Alias legado de instalación de dependencias (usa task install) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task ts:install' es un alias legado. Use 'task install'."
+        silent: false
       - npm ci
 
   ts:dev:
-    desc: "[Alias compatibilidad] Inicia el servidor Express con recarga rápida (usa dev)"
+    desc: "[DEPRECADO] Alias legado de inicio de servidor en desarrollo (usa task dev) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task ts:dev' es un alias legado. Use 'task dev'."
+        silent: false
       - npm run dev
 
   ts:build:
-    desc: "[Alias compatibilidad] Compila el bundle de producción (usa build)"
+    desc: "[DEPRECADO] Alias legado de compilación de producción (usa task build) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task ts:build' es un alias legado. Use 'task build'."
+        silent: false
       - npm run build
 
   ts:start:
-    desc: "[Alias compatibilidad] Ejecuta el bundle de producción compilado"
+    desc: "[DEPRECADO] Alias legado de arranque de producción (usa task start) - Retiro en v2.0"
     cmds:
-      - npm start
+      - cmd: echo "⚠️  [DEPRECADO] 'task ts:start' es un alias legado. Use 'task start' o 'npm start'."
+        silent: false
+      - task: start
 
   ts:lint:
-    desc: "[Alias compatibilidad] Verifica tipos y linting (usa lint)"
+    desc: "[DEPRECADO] Alias legado de verificación de tipos y linter (usa task lint) - Retiro en v2.0"
     cmds:
+      - cmd: echo "⚠️  [DEPRECADO] 'task ts:lint' es un alias legado. Use 'task lint' o 'npm run lint'."
+        silent: false
       - npm run lint
 
   # ----------------------------------------------------------------------------

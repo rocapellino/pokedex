@@ -117,7 +117,7 @@ flowchart TD
 
 * El desarrollador crea su rama local y realiza los cambios en backend (`server.ts`, `src/`), frontend (`apps/frontend/`) o infraestructura (`infra/`, `gitops/`).
 * Mediante el orquestador multiplataforma **Taskfile** (`task`) ejecuta verificaciones tempranas:
-  * `task ts:lint`: Chequeo estricto de tipos con TypeScript (`tsc --noEmit`).
+  * `task lint`: Chequeo estricto de tipos con TypeScript y linter unificado.
   * `task build`: Compilación y empaquetado de producción con esbuild.
   * `npm test`: Suite completa de 54 pruebas unitarias, de persistencia y pentesting lógico.
   * `task audit`: Detección de duplicación de código y auditoría de archivos.

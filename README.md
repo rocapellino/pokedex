@@ -430,6 +430,8 @@ La documentación técnica detallada se encuentra organizada en el directorio [`
 - 📐 [ADR-020: Gobernanza Unificada de Despliegue y Retiro de Scripts Legados](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
 - 📐 [ADR-021: Orquestación GitOps Avanzada con ArgoCD, Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
 - 📐 [ADR-022: Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader](docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)
+- 📐 [ADR-026: Ciclo de Vida, Estrategia en Cuatro Fases y Deprecación de Aliases en Taskfile CLI](docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md)
+- 🛠️ [Referencia Oficial del CLI Canónico con Taskfile y Estrategia de Aliases](docs/operations/TASKFILE_CLI_REFERENCE.md)
 
 ---
 

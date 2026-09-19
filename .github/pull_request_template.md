@@ -32,14 +32,14 @@
 
 ## 🧪 Pruebas y Verificaciones Realizadas
 - [ ] **Tests Unitarios y Cobertura:** `npm run test:coverage` (`task test`)
-- [ ] **Verificación de Tipos (TypeScript):** `npm run lint` (`task ts:lint`)
+- [ ] **Verificación de Tipos (TypeScript):** `npm run lint` (`task lint`)
 - [ ] **Pruebas E2E (Playwright):** `npm run test:e2e` (`task test:e2e`)
 - [ ] **Accesibilidad WCAG 2.1 (Axe-core):** `npm run test:a11y` (`task test:a11y`)
 - [ ] **Auditoría Core Web Vitals (Lighthouse):** `task perf:lighthouse`
 - [ ] **MegaLinter Local / CI:** Validado sin errores de sintaxis (`Hadolint, Shellcheck, Yamllint`)
 - [ ] **SonarCloud Quality Gate:** Analizado y conforme a estándar A
 - [ ] **Seguridad & SAST:** Escaneo con Semgrep, Checkov, Trivy y Gitleaks (`task security`)
-- [ ] **Validación Docker / Helm:** Compilación local exitosa (`task docker:up`, `task helm:lint`)
+- [ ] **Validación Docker / Helm:** Compilación local exitosa (`task dev:compose`, `task helm:lint`)
 
 ---
 
