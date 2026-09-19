@@ -11,7 +11,8 @@ infra/
 ├── helm/                    # Helm 3 Chart oficial y orquestación unificada en Kubernetes
 │   └── pokedex/             # Chart parametrizable (Deployments, HPA, Services, PDB, Ingress)
 │       ├── templates/       # Plantillas Kubernetes estandarizadas
-│       ├── values.yaml      # Configuración base / desarrollo local
+│       ├── values.yaml      # Configuración base segura (Secure by Default / Safe defaults)
+│       ├── values.dev.yaml  # Overrides para desarrollo local / Kind / Minikube
 │       └── values.prod.yaml # Perfil endurecido de producción
 ├── opentofu/                # Aprovisionamiento declarativo híbrido con OpenTofu
 │   └── environments/
@@ -40,7 +41,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 
 * **Servicios:** API backend (`pokedex-api`), Frontend proxy (`pokedex-web`), PostgreSQL StatefulSet con persistencia PVC y Redis caché.
 * **Resiliencia & Escalamiento:** Horizontal Pod Autoscaler (**HPA v2**) para web y API, Pod Disruption Budgets (**PDB**) y NetworkPolicies Zero-Trust.
-* **Gestión de Entornos:** `values.yaml` para desarrollo local y `values.prod.yaml` para entornos de producción.
+* **Gestión de Entornos:** `values.yaml` como base segura (*Secure by Default*), `values.dev.yaml` para desarrollo local y `values.prod.yaml` / [`gitops/environments/`](../gitops/environments/) para producción.
 * **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)

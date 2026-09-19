@@ -48,8 +48,8 @@ api:
     seccompProfile:
       type: RuntimeDefault
   env:
-    nodeEnv: "development"
-    corsOrigins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080,http://localhost:5000"
+    nodeEnv: "production"
+    corsOrigins: "https://pokedex.example.com"
     # OTLP collector endpoint (Grafana Alloy en namespace monitoring o Tempo local)
     otelEndpoint: "http://grafana-cloud-alloy.monitoring.svc.cluster.local:4317"
     otelServiceName: "pokedex-api"
@@ -196,12 +196,10 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
-    # --- TLS: redirección forzada HTTP→HTTPS (308) en producción ---
-    # Establecer "true" en producción cuando cert-manager provea el certificado.
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # --- TLS: redirección forzada HTTP→HTTPS (308) por defecto seguro (ADR-016) ---
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     # --- cert-manager: emisor de certificado TLS ---
-    # Descomentar en producción (Let's Encrypt) o staging (selfsigned):
-    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # --- Rate Limiting L7: protección contra ráfagas y DDoS volumétrico (ADR-016) ---
     nginx.ingress.kubernetes.io/limit-rps: "20"
     nginx.ingress.kubernetes.io/limit-connections: "10"
@@ -231,7 +229,7 @@ ingress:
         return 403;
       }
   hosts:
-    - host: pokedex.local
+    - host: pokedex.example.com
       paths:
         - path: /api/
           pathType: Prefix
@@ -254,14 +252,12 @@ ingress:
               name: pokemon-web-svc
               port:
                 number: 8080
-  # --- TLS: Activar en producción con cert-manager (ADR-016) ---
-  # En desarrollo local (Kind) mantener tls: [] y ssl-redirect: "false"
-  tls: []
-  # Ejemplo de configuración para producción con Let's Encrypt:
-  # tls:
-  #   - hosts:
-  #       - pokedex.example.com
-  #     secretName: pokedex-tls-cert
+  # --- TLS: Habilitado por defecto seguro (ADR-016) ---
+  # En desarrollo local (Kind/Minikube) sobrescribir en values.dev.yaml con tls: [] y ssl-redirect: "false"
+  tls:
+    - hosts:
+        - pokedex.example.com
+      secretName: pokedex-tls-cert
 
 # ------------------------------------------------------------------------------
 # 7. Credenciales y Secretos de Aplicación
@@ -312,12 +308,12 @@ networkPolicies:
   enabled: true
   egress:
     antiSsrf: true
-    externalHttps: true
+    externalHttps: false
     allowedExternalCidrs: []
 
-# Aislamiento de Capa 7 (L7 Egress) mediante Cilium eBPF FQDN NetworkPolicy
+# Aislamiento de Capa 7 (L7 Egress) mediante Cilium eBPF FQDN NetworkPolicy (Zero-Trust por defecto)
 ciliumNetworkPolicy:
-  enabled: false
+  enabled: true
   fqdnAllowlist:
     - matchName: "generativelanguage.googleapis.com"
     - matchPattern: "*.githubusercontent.com"
@@ -410,9 +406,10 @@ monitoring:
 # ------------------------------------------------------------------------------
 # 13. Stakater Reloader (Rotación Dinámica Zero-Downtime - ADR-022)
 # ------------------------------------------------------------------------------
+# Desactivado por defecto seguro (evita asumir que el operador esté instalado en el clúster)
 reloader:
-  enabled: true
-  auto: true
+  enabled: false
+  auto: false
 
 
 

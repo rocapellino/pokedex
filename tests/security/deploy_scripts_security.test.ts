@@ -1748,3 +1748,39 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   }
 });
 
+test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo', () => {
+  const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
+  const valuesDevPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.dev.yaml');
+  const helmGuidePath = path.join(ROOT_DIR, 'docs/runbooks/HELM_DEPLOYMENT_GUIDE.md');
+  const infraReadmePath = path.join(ROOT_DIR, 'infra/README.md');
+
+  // 1. Ambos archivos de configuración existen físicamente
+  assert.ok(fs.existsSync(valuesPath), 'values.yaml debe existir en infra/helm/pokedex/');
+  assert.ok(fs.existsSync(valuesDevPath), 'values.dev.yaml debe existir en infra/helm/pokedex/');
+
+  const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
+  const valuesDevContent = fs.readFileSync(valuesDevPath, 'utf-8');
+
+  // 2. values.yaml implementa Secure by Default: producción, HTTPS obligatorio, TLS, Cilium L7 y Reloader deshabilitado
+  assert.ok(valuesContent.includes('nodeEnv: "production"'), 'values.yaml debe configurar nodeEnv: "production" por defecto');
+  assert.ok(valuesContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "true"'), 'values.yaml debe forzar ssl-redirect: "true" por defecto');
+  assert.ok(valuesContent.includes('cert-manager.io/cluster-issuer: "letsencrypt-prod"'), 'values.yaml debe definir cluster-issuer letsencrypt-prod');
+  assert.ok(valuesContent.includes('secretName: pokedex-tls-cert'), 'values.yaml debe tener bloque tls configurado con secretName');
+  assert.ok(/ciliumNetworkPolicy:\s+enabled:\s*true/.test(valuesContent), 'values.yaml debe activar ciliumNetworkPolicy.enabled: true');
+  assert.ok(/reloader:\s+enabled:\s*false/.test(valuesContent), 'values.yaml debe configurar reloader.enabled: false');
+
+  // 3. values.dev.yaml proporciona overrides permisivos para desarrollo local (Kind/Minikube)
+  assert.ok(valuesDevContent.includes('nodeEnv: "development"'), 'values.dev.yaml debe configurar nodeEnv: "development"');
+  assert.ok(valuesDevContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "false"'), 'values.dev.yaml debe permitir ssl-redirect: "false"');
+  assert.ok(/tls:\s*\[\]/.test(valuesDevContent), 'values.dev.yaml debe permitir tls: [] vacío para desarrollo HTTP');
+  assert.ok(/ciliumNetworkPolicy:\s+enabled:\s*false/.test(valuesDevContent), 'values.dev.yaml debe desactivar ciliumNetworkPolicy para entornos locales');
+  assert.ok(/reloader:\s+enabled:\s*false/.test(valuesDevContent), 'values.dev.yaml debe mantener reloader desactivado en desarrollo');
+
+  // 4. Documentación formaliza la separación conceptual
+  const helmGuideContent = fs.readFileSync(helmGuidePath, 'utf-8');
+  const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
+  assert.ok(helmGuideContent.includes('values.dev.yaml'), 'HELM_DEPLOYMENT_GUIDE.md debe documentar values.dev.yaml');
+  assert.ok(helmGuideContent.includes('Secure by Default'), 'HELM_DEPLOYMENT_GUIDE.md debe documentar el principio Secure by Default');
+  assert.ok(infraReadmeContent.includes('values.dev.yaml'), 'infra/README.md debe documentar values.dev.yaml');
+});
+
