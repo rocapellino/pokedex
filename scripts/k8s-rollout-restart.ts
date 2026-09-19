@@ -71,8 +71,8 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('caProvider:')) {
       reasons.push('vault-backend.yaml debe configurar caProvider para validación criptográfica de TLS');
     }
-    if (!content.includes('role: "pokedex-role"')) {
-      reasons.push('vault-backend.yaml debe utilizar el rol pokedex-role para autenticación Kubernetes');
+    if (!content.includes('role: "pokedex-prod-role"')) {
+      reasons.push('vault-backend.yaml debe utilizar el rol pokedex-prod-role para autenticación Kubernetes');
     }
   } else {
     reasons.push(`Archivo no encontrado: ${vaultBackendPath}`);
@@ -93,8 +93,11 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('community.general.ufw')) {
       reasons.push('setup_vault.yml debe configurar firewall perimetral UFW para puerto 8200');
     }
-    if (!content.includes('pokedex-policy') || !content.includes('pokedex-role')) {
-      reasons.push('setup_vault.yml debe configurar pokedex-policy y el rol pokedex-role');
+    if (!content.includes('pokedex-prod-policy') || !content.includes('pokedex-prod-role') || !content.includes('pokedex-preprod-policy') || !content.includes('pokedex-preprod-role')) {
+      reasons.push('setup_vault.yml debe configurar políticas y roles segregados pokedex-prod-role y pokedex-preprod-role');
+    }
+    if (content.includes('auth/kubernetes/role/pokedex-role\n') || content.includes('auth/kubernetes/role/pokedex-role ') || content.includes('pokedex-policy.hcl')) {
+      reasons.push('setup_vault.yml no debe incluir rol o política comodín pokedex-role/pokedex-policy (violación de Least Privilege)');
     }
   } else {
     reasons.push(`Archivo no encontrado: ${setupVaultPlaybook}`);

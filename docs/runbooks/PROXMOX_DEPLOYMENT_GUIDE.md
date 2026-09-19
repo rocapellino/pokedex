@@ -66,7 +66,7 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
 
     ```text
     Proxmox (LXC 810: Vault CE @ 10.10.13.110:8200)
-       ↓ (k8s auth method / pokedex-role)
+       ↓ (k8s auth method / pokedex-prod-role [Least Privilege])
     ESO (External Secrets Operator en K3s)
        ↓ (ClusterSecretStore / vault-backend)
     ExternalSecret (pokedex-secrets @ secret/data/pokedex/production)

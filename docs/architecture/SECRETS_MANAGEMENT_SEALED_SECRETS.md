@@ -56,28 +56,31 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
                                                 │
                  ┌──────────────────────────────┴──────────────────────────────┐
                  ▼                                                             ▼
-       On-Premise (Proxmox VE)                                         Cloud (AWS EKS)
-       ClusterSecretStore: vault-backend                              ClusterSecretStore: aws-secrets-manager
-       Server: https://10.10.13.110:8200                               Provider: AWS Secrets Manager (IRSA)
-       Auth: Kubernetes ServiceAccount (pokedex-role)                 Auth: AWS IAM Roles for Service Accounts
-                 │                                                             │
-                 └──────────────────────────────┬──────────────────────────────┘
-                                                ▼
-                                    ExternalSecret (pokedex)
-                                                │
-                                                ▼
-                                 v1/Secret pokemon-secrets (K8s)
-                                                │ (envFrom)
-                                                ▼
-                                     Pods (pokedex-api / web)
+        On-Premise (Proxmox VE)                                         Cloud (AWS EKS)
+        ClusterSecretStore: vault-backend                              ClusterSecretStore: aws-secrets-manager
+        Server: https://10.10.13.110:8200                               Provider: AWS Secrets Manager (IRSA)
+        Auth: K8s SA (pokedex-prod-role / preprod-role)                 Auth: AWS IAM Roles for Service Accounts
+                  │                                                             │
+                  └──────────────────────────────┬──────────────────────────────┘
+                                                 ▼
+                                     ExternalSecret (pokedex)
+                                                 │
+                                                 ▼
+                                  v1/Secret pokemon-secrets (K8s)
+                                                 │ (envFrom)
+                                                 ▼
+                                      Pods (pokedex-api / web)
 ```
 
-### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE
+### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE (Zero-Trust Least Privilege)
 - **Instancia:** Desplegada en contenedor LXC dedicado (ID `810`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
-- **Segregación Lógica de Secretos:**
-  - Pre-producción: `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role`.
-  - Producción: `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role`.
-- **Manifiesto:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml).
+- **Segregación Estricta de Secretos y Roles RBAC (Erradicación de Roles Comodín):**
+  - **Pre-producción:** `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role` (política `pokedex-preprod-policy`).
+  - **Producción:** `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role` (política `pokedex-prod-policy`).
+  - *Principio de Blast Radius Reducido:* Se eliminó el rol global genérico `pokedex-role` y su política comodín `secret/data/pokedex/*`. Las credenciales comprometidas en pre-producción no tienen alcance ni visibilidad sobre los secretos de producción.
+- **Manifiestos:**
+  - Producción: [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
+  - Pre-producción: [`infra/k8s/eso/vault-backend-preprod.yaml`](../../infra/k8s/eso/vault-backend-preprod.yaml) (`ClusterSecretStore/vault-backend-preprod`).
 
 ### 3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager
 - **Instancia:** Almacén gestionado nativo de AWS con autenticación IAM mediante IRSA (`eks.amazonaws.com/role-arn`).
