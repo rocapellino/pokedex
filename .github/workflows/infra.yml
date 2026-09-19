@@ -178,7 +178,7 @@ jobs:
         run: |
           helm upgrade --install pokedex infra/helm/pokedex \
             --namespace pokemon-app --create-namespace \
-            -f infra/helm/pokedex/values.yaml \
+            -f infra/helm/pokedex/values.dev.yaml \
             --set api.image.repository=pokedex-api \
             --set api.image.tag=local \
             --set api.image.pullPolicy=Never \
