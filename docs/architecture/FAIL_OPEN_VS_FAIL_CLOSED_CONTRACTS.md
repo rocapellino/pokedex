@@ -75,12 +75,12 @@ sequenceDiagram
 ```
 
 1. **Gobernanza de Probes de Kubernetes**:
-   - `/healthz` únicamente valida que el hilo principal de eventos de Node.js responda.
-   - `/readyz` valida activamente `health.postgres_connected`. Si la conexión se pierde, el pod pasa a estado `Unready` en menos de 5 segundos (`periodSeconds: 5`, `failureThreshold: 2`).
+   * `/healthz` únicamente valida que el hilo principal de eventos de Node.js responda.
+   * `/readyz` valida activamente `health.postgres_connected`. Si la conexión se pierde, el pod pasa a estado `Unready` en menos de 5 segundos (`periodSeconds: 5`, `failureThreshold: 2`).
 
 2. **Protección Contra Pérdida de Datos**:
-   - La función `requireWritableStorage` actúa como guardia obligatoria antes de cualquier mutación en `/pokemons`.
-   - Se elimina de raíz el riesgo de registrar datos en estructuras volátiles que desaparecerían ante un reinicio del pod.
+   * La función `requireWritableStorage` actúa como guardia obligatoria antes de cualquier mutación en `/pokemons`.
+   * Se elimina de raíz el riesgo de registrar datos en estructuras volátiles que desaparecerían ante un reinicio del pod.
 
 ---
 
@@ -109,23 +109,25 @@ sequenceDiagram
 ```
 
 1. **Revocación de Sesión (Cero Falsos Positivos de Confianza)**:
-   - El token de sesión emitido incluye un identificador aleatorio criptográfico `jti` (16 bytes hex).
-   - La verificación de firma HMAC SHA-256 es local y rápida.
-   - La consulta de revocación remota en Redis se rige por:
+   * El token de sesión emitido incluye un identificador aleatorio criptográfico `jti` (16 bytes hex).
+   * La verificación de firma HMAC SHA-256 es local y rápida.
+   * La consulta de revocación remota en Redis se rige por:
+
      ```typescript
      if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
        return { valid: false, reason: 'service_unavailable' };
      }
      ```
-   - Si Redis está configurado pero no responde, la solicitud administrativa es **rechazada con 503**, previniendo que un administrador desvinculado o con credencial comprometida continúe operando.
+
+   * Si Redis está configurado pero no responde, la solicitud administrativa es **rechazada con 503**, previniendo que un administrador desvinculado o con credencial comprometida continúe operando.
 
 2. **Doble Capa de Rate Limiting**:
-   - **Capa 1: In-Memory / express-rate-limit**:
+   * **Capa 1: In-Memory / express-rate-limit**:
      Defensa perimetral inmediata en cada pod. Si Redis no está disponible, esta capa asegura que ningún cliente pueda inundar el pod con más peticiones de las configuradas.
-   - **Capa 2: Distribuido / Redis Lua Scripts**:
+   * **Capa 2: Distribuido / Redis Lua Scripts**:
      Garantiza cuotas globales en despliegues con réplicas elásticas (HPA).
-     - Endpoints IA: `failClosedOnRedisOutage: true` -> **Fail-Closed (503)**.
-     - Endpoints de Catálogo: `failClosedOnRedisOutage: false` -> **Fail-Open** con conmutación a Map local.
+     * Endpoints IA: `failClosedOnRedisOutage: true` -> **Fail-Closed (503)**.
+     * Endpoints de Catálogo: `failClosedOnRedisOutage: false` -> **Fail-Open** con conmutación a Map local.
 
 ---
 
@@ -136,6 +138,7 @@ Para la invalidación de listados paginados y filtrados, la Pokédex no ejecuta 
 * Clave de versión global: `pokedex:list_version`
 * Claves de listados: `pokedex:list:v{VERSION}:{HASH_PARAMETROS}` con TTL de 60 segundos.
 * Invalidador:
+
   ```typescript
   export async function invalidateCache(id?: number): Promise<void> {
     if (!isRedisConnected || !redisClient) return;
@@ -149,6 +152,7 @@ Para la invalidación de listados paginados y filtrados, la Pokédex no ejecuta 
   ```
 
 Si la llamada `redisClient.incr` fallara por un micro-corte de red:
+
 1. La base de datos PostgreSQL ya persistió el nuevo estado de forma ACID.
 2. La clave de caché anterior en Redis continuará respondiendo datos previos como máximo durante **60 segundos** (TTL preestablecido).
 3. Transcurridos los 60 segundos, la clave expira automáticamente en Redis y la siguiente consulta regenerará los datos frescos desde PostgreSQL.
