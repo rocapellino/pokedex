@@ -605,6 +605,11 @@ tasks:
     cmds:
       - npm run k8s:verify-vault-architecture
 
+  k3s:setup:proxmox:
+    desc: "Ejecuta el playbook de Ansible para aprovisionar K3s y Cilium CNI en Proxmox VE"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_k3s.yml
+
   vault:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"
     cmds:

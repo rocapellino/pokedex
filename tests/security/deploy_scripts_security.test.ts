@@ -2074,5 +2074,23 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   const proxmoxValues = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml'), 'utf-8');
   assert.ok(!proxmoxValues.includes('nginx.ingress.kubernetes.io/configuration-snippet: null'), 'proxmox/values.yaml no debe contener anotaciones huérfanas de Nginx');
   assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
+
+  // 6. Taskfile.yml expone k3s:setup:proxmox enlazado a setup_k3s.yml
+  const taskfileContent = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yml'), 'utf-8');
+  assert.ok(taskfileContent.includes('k3s:setup:proxmox:'), 'Taskfile.yml debe exponer k3s:setup:proxmox');
+  assert.ok(
+    taskfileContent.includes('infra/ansible/playbooks/setup_k3s.yml'),
+    'k3s:setup:proxmox debe invocar setup_k3s.yml'
+  );
+
+  // 7. TASKFILE_CLI_REFERENCE.md documenta la tarea canónica
+  const taskRefContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/operations/TASKFILE_CLI_REFERENCE.md'), 'utf-8');
+  assert.ok(taskRefContent.includes('`task k3s:setup:proxmox`'), 'TASKFILE_CLI_REFERENCE.md debe documentar task k3s:setup:proxmox');
+
+  // 8. PROXMOX_DEPLOYMENT_GUIDE.md documenta setup_k3s.yml y resolución DNS k8s-proxmox.internal.lan
+  const proxmoxGuideContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md'), 'utf-8');
+  assert.ok(proxmoxGuideContent.includes('task k3s:setup:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar task k3s:setup:proxmox');
+  assert.ok(proxmoxGuideContent.includes('setup_k3s.yml'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe referenciar setup_k3s.yml');
+  assert.ok(proxmoxGuideContent.includes('k8s-proxmox.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-proxmox.internal.lan');
 });
 

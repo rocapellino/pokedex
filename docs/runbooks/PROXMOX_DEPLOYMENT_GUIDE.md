@@ -244,7 +244,30 @@ curl --cacert infra/k8s/eso/vault-ca.crt https://10.10.13.110:8200/v1/sys/health
 
 ## 7. Instalación de Kubernetes Runtime (K3s) y CNI Cilium
 
-Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquear destinos públicos no autorizados (como `https://example.com`) al tiempo que se permite el acceso a `generativelanguage.googleapis.com` y `pokeapi.co`, K3s se instala delegando el CNI a **Cilium eBPF**:
+Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquear destinos públicos no autorizados (como `https://example.com`) al tiempo que se permite el acceso a `generativelanguage.googleapis.com` y `pokeapi.co`, K3s se instala delegando el CNI a **Cilium eBPF**.
+
+### Opción A (Recomendada): Provisión Declarativa con Ansible Playbook
+
+El proceso está totalmente automatizado y es idempotente mediante el playbook [`infra/ansible/playbooks/setup_k3s.yml`](../../infra/ansible/playbooks/setup_k3s.yml):
+
+```bash
+# Ejecutar el playbook de aprovisionamiento desatendido de K3s + Cilium CNI:
+ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_k3s.yml
+
+# O canónicamente vía Taskfile:
+task k3s:setup:proxmox
+```
+
+Este playbook ejecuta de forma desatendida:
+1. Verificación del binario y servicio de K3s preexistente.
+2. Descarga e instalación de K3s con `--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage`.
+3. Verificación de salud del Kube-apiserver en `https://127.0.0.1:6443/readyz`.
+4. Instalación de Cilium CNI v1.16.1 mediante Helm en el namespace `kube-system` (modo optimizado en memoria RAM sin Hubble UI).
+5. Espera activa hasta que el nodo reporte estado `Ready`.
+
+### Opción B: Instalación Manual Paso a Paso
+
+Si se requiere realizar la instalación manual para depuración o laboratorio:
 
 ```bash
 # 1. Instalación de K3s con Flannel desactivado (preparado para Cilium)
@@ -272,6 +295,24 @@ Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoC
 
 1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml)
 2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) (con `ciliumNetworkPolicy.enabled: true` y `networkPolicies.egress.externalHttps: false`)
+
+### Requisitos de Red y Resolución DNS de ArgoCD
+
+[`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) apunta al clúster de K3s mediante la URL `server: https://k8s-proxmox.internal.lan:6443`.
+Para que la instancia de ArgoCD o la estación de control puedan alcanzar el apiserver en la subred `10.10.13.0/24`:
+* **Entorno con DNS Corporativo / CoreDNS:** Asegurar que el registro A `k8s-proxmox.internal.lan` resuelva a la IP del nodo K8s `10.10.13.100`.
+* **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir la entrada estática en `/etc/hosts` del servidor o pod donde corre ArgoCD:
+  ```text
+  10.10.13.100  k8s-proxmox.internal.lan
+  ```
+
+### Ingress Controller Estandarizado (Traefik)
+
+El entorno Proxmox estandariza sobre el controlador Ingress **Traefik** nativo integrado en K3s (`ingress.className: "traefik"`). El enrutamiento HTTP se gobierna mediante la anotación canónica:
+```yaml
+traefik.ingress.kubernetes.io/router.entrypoints: "web"
+```
+No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reduciendo el consumo de memoria y la complejidad operacional.
 
 ### Sincronización Manual o Automatizada
 
