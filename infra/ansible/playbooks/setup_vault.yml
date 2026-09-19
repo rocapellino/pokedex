@@ -483,7 +483,7 @@
         cmd: >
           vault write auth/kubernetes/role/pokedex-preprod-role
           bound_service_account_names=external-secrets-sa,pokedex-preprod-sa
-          bound_service_account_namespaces=external-secrets,pokedex-preprod
+          bound_service_account_namespaces=external-secrets,pokemon-app,pokedex-preprod
           policies=pokedex-preprod-policy
           ttl=1h
       environment:

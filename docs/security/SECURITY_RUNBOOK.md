@@ -52,8 +52,8 @@ graph TD
    ```
 2. **Actualizar el Secret en Kubernetes:**
    ```bash
-   kubectl create secret generic pokedex-secrets \
-     --namespace pokedex \
+   kubectl create secret generic pokemon-secrets \
+     -n pokemon-app \
      --from-literal=admin-api-key="$NEW_API_KEY" \
      --from-literal=admin-session-secret="$NEW_SESSION_SECRET" \
      --dry-run=client -o yaml | kubectl apply -f -
@@ -63,12 +63,12 @@ graph TD
    Para limpiar claves huérfanas de revocación de forma no destructiva (preservando contadores de rate limiting distribuido y cuotas de IA):
    ```bash
    # Limpieza granular selectiva (NO usar FLUSHDB para evitar pérdida de métricas/rate-limits):
-   kubectl exec -it deployment/redis -n pokedex -- sh -c "redis-cli --scan --pattern 'pokedex:revoked:*' | xargs -r redis-cli del"
+   kubectl exec -it deployment/redis -n pokemon-app -- sh -c "redis-cli --scan --pattern 'pokedex:revoked:*' | xargs -r redis-cli del"
    ```
 4. **Reiniciar los Pods de la API para cargar las nuevas credenciales:**
    ```bash
-   kubectl rollout restart deployment/pokedex -n pokedex
-   kubectl rollout status deployment/pokedex -n pokedex
+   kubectl rollout restart deployment/pokemon-api -n pokemon-app
+   kubectl rollout status deployment/pokemon-api -n pokemon-app
    ```
 5. **Verificar:**
    Intentar acceder a `/pokemons` (POST/PUT/DELETE) con el token antiguo; debe responder estrictamente `401 Unauthorized`.
@@ -87,7 +87,7 @@ graph TD
 2. **Inyectar la revocación forzada directamente en Redis con TTL correspondiente:**
    ```bash
    # Si el token expira en 900 segundos:
-   kubectl exec -it deployment/redis -n pokedex -- redis-cli SETEX "pokedex:revoked:<JTI>" 900 "1"
+   kubectl exec -it deployment/redis -n pokemon-app -- redis-cli SETEX "pokedex:revoked:<JTI>" 900 "1"
    ```
 3. **Verificar revocación:**
    ```bash
@@ -104,18 +104,18 @@ graph TD
 #### Diagnóstico y Recuperación:
 1. **Comprobar estado del pod de Redis:**
    ```bash
-   kubectl get pods -n pokedex -l app.kubernetes.io/name=redis
-   kubectl logs deployment/redis -n pokedex --tail=100
+   kubectl get pods -n pokemon-app -l app=redis
+   kubectl logs deployment/redis -n pokemon-app --tail=100
    ```
 2. **Verificar conectividad de red interna:**
    ```bash
-   kubectl exec -it deployment/pokedex -n pokedex -- nc -zv redis-service 6379
+   kubectl exec -it deployment/pokemon-api -n pokemon-app -- nc -zv pokemon-redis-svc 6379
    ```
 3. **Si el pod está en CrashLoopBackOff o OOMKilled:**
    - Verificar límites de recursos en `infra/helm/pokedex/values.yaml`.
    - Reiniciar el pod de Redis:
      ```bash
-     kubectl rollout restart deployment/redis -n pokedex
+     kubectl rollout restart deployment/redis -n pokemon-app
      ```
 4. **Validar retorno a la normalidad:**
    ```bash
@@ -159,11 +159,11 @@ graph TD
    ```
 2. **Inspeccionar estado de la base de datos:**
    ```bash
-   kubectl logs deployment/postgresql -n pokedex --tail=100
+   kubectl logs statefulset/postgres -n pokemon-app --tail=100
    ```
 3. **Restaurar conectividad o recrear réplica:**
    ```bash
-   kubectl rollout restart deployment/postgresql -n pokedex
+   kubectl rollout restart statefulset/postgres -n pokemon-app
    ```
 4. **Verificar reconexión automática:**
    Una vez que PostgreSQL responda en el puerto 5432, el pool de conexiones de la aplicación restaurará `isWritableStorageAvailable()` y `/readyz` retornará 200 `ready`.
