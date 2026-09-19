@@ -50,6 +50,21 @@ flowchart LR
    - La clave se inyecta de forma segura mediante variable de entorno `BACKUP_ENCRYPTION_KEY` proveniente de Kubernetes Secret / External Secrets Operator. Sin fallback hardcodeado.
 5. **Verificación de Integridad**: Cada volcado genera un archivo anexo `.sha256` para validar que el archivo no fue manipulado ni se corrompió durante la transferencia o almacenamiento.
 
+### 2.2. Estado de Implementación: Respaldo Local Activo vs. Esqueletos Off-Site Inactivos
+
+> [!WARNING]
+> **Riesgo Residual Transitorio (SPOF de Host Físico):**
+> La arquitectura implementa con éxito la generación de respaldos, cifrado criptográfico, verificación de checksums y drills periódicos de restauración dentro del clúster K8s. Sin embargo, **las copias se almacenan actualmente en el PVC local del host Proxmox**. La pérdida total del servidor físico destruiría simultáneamente la base de datos primaria y los respaldos locales hasta que se active una vía remota.
+>
+> Los dos esqueletos off-site están diseñados, parametrizados y listos para activar (*Cloud-Ready* y *PBS-Ready*), pero permanecen **INACTIVOS** (`backup.offsite.enabled: false`) hasta la contratación/asignación de storage externo.
+
+| Componente | Nivel / Tipo | Estado Actual | Destino de los Datos |
+| :--- | :--- | :---: | :--- |
+| **Respaldo Local PostgreSQL** | Base de Datos (K8s) | **ACTIVO** | PVC `/backups` (Almacenamiento local del host Proxmox) |
+| **Restore Verification Semanal** | K8s (`dr-restore-verify`) | **ACTIVO** | Verificación en contenedor efímero aislado (04:00 UTC) |
+| **Off-Site Cloud Backup (S3-compat)** | Object Storage Agnóstico | **ESQUELETO (INACTIVO)** | Endpoint remoto S3/R2/B2/MinIO (Documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)) |
+| **Off-Site PBS Remote Sync** | Hipervisor (Proxmox VE) | **ESQUELETO (INACTIVO)** | Sync Job hacia PBS secundario (Documentado en [setup_pbs_backup_blueprint.yml](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml)) |
+
 ---
 
 ## 3. Procedimiento de Restauración Paso a Paso

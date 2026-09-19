@@ -99,3 +99,31 @@ test('🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa v
   assert.ok(content.includes('readOnlyRootFilesystem: true'), 'Debe montar filesystem de solo lectura');
 });
 
+test('🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible agnóstico y PBS Remote Sync) formalizados como inactivos', () => {
+  const blueprintDocPath = path.join(ROOT_DIR, 'docs/operations/OFFSITE_BACKUP_BLUEPRINTS.md');
+  assert.ok(fs.existsSync(blueprintDocPath), 'OFFSITE_BACKUP_BLUEPRINTS.md debe existir');
+  const blueprintContent = fs.readFileSync(blueprintDocPath, 'utf-8');
+
+  assert.ok(blueprintContent.includes('S3-Compatible'), 'Debe documentar esqueleto S3-compatible');
+  assert.ok(blueprintContent.includes('Proxmox Backup Server'), 'Debe documentar esqueleto PBS');
+  assert.ok(blueprintContent.includes('PREPARADO (INACTIVO)'), 'Debe formalizar que los esqueletos off-site están inactivos');
+  assert.ok(blueprintContent.includes('Riesgo Residual Asumido'), 'Debe advertir sobre el riesgo residual de SPOF del host');
+
+  const pbsPlaybookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_pbs_backup_blueprint.yml');
+  assert.ok(fs.existsSync(pbsPlaybookPath), 'setup_pbs_backup_blueprint.yml debe existir');
+  const pbsContent = fs.readFileSync(pbsPlaybookPath, 'utf-8');
+  assert.ok(pbsContent.includes('pbs_remote_offsite_enabled: false'), 'PBS playbook debe tener offsite inactivo por defecto');
+  assert.ok(pbsContent.includes('proxmox-backup-manager sync-job'), 'PBS playbook debe definir el esqueleto de sync job');
+
+  const esoTemplatePath = path.join(ROOT_DIR, 'infra/k8s/eso/backup-offsite-externalsecret.yaml.template');
+  assert.ok(fs.existsSync(esoTemplatePath), 'backup-offsite-externalsecret.yaml.template debe existir');
+
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
+  assert.match(proxmoxValues, /offsite:\s*\r?\n\s*enabled:\s*false/, 'Proxmox GitOps values debe declarar offsite inactivo');
+
+  const drpPlanPath = path.join(ROOT_DIR, 'docs/runbooks/DISASTER_RECOVERY_PLAN.md');
+  const drpPlan = fs.readFileSync(drpPlanPath, 'utf-8');
+  assert.ok(drpPlan.includes('2.2. Estado de Implementación'), 'DRP debe incluir sección 2.2 de estado de implementación');
+  assert.ok(drpPlan.includes('ESQUELETO (INACTIVO)'), 'DRP debe formalizar off-site como esqueleto inactivo');
+});

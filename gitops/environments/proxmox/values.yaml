@@ -149,3 +149,19 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
+# ------------------------------------------------------------------------------
+# Disaster Recovery & Off-Site Backup (Esqueleto Blueprint - Estado: INACTIVO)
+# ------------------------------------------------------------------------------
+# El respaldo local cifrado (AES-256 + SHA256 + restore drill) está activo.
+# La sincronización off-site remota permanece como esqueleto agnóstico inactivo
+# hasta la provisión de un bucket externo (S3/R2) o servidor PBS remoto.
+backup:
+  enabled: true
+  offsite:
+    enabled: false
+    provider: "s3-compatible"
+    bucket: "pokedex-backups-offsite"
+    region: "us-east-1"
+    prefix: "proxmox/postgres"
+    secretName: "backup-offsite-creds"
+
