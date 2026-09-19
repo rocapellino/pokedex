@@ -378,13 +378,20 @@ backup:
     enabled: false
     size: 5Gi
     storageClass: ""
-  # Arquitectura 3-2-1: Copia off-site remota a Object Storage (S3 / MinIO / B2)
+  # ----------------------------------------------------------------------------
+  # Arquitectura 3-2-1: Copia off-site remota a Object Storage (Cloud-Ready Agnóstico)
+  # ESTADO: Esqueleto preparado (INACTIVO: enabled: false) hasta la provisión de credenciales.
+  # Compatible con: AWS S3, Cloudflare R2, Backblaze B2, MinIO remoto, Google Cloud Storage.
+  # ----------------------------------------------------------------------------
   offsite:
     enabled: false
-    endpoint: "" # ej: https://s3.amazonaws.com o http://minio.storage.svc:9000
+    provider: "s3-compatible" # "s3-compatible" | "aws-s3" | "cloudflare-r2" | "backblaze-b2" | "minio"
+    endpoint: ""              # Requerido para proveedores no-AWS (ej: https://<id>.r2.cloudflarestorage.com)
     bucket: "pokedex-backups-offsite"
     region: "us-east-1"
-    secretName: "" # Secreto que contiene credenciales AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY
+    prefix: "database/postgres"
+    secretName: ""            # Nombre del K8s Secret con credenciales inyectadas vía Vault / ExternalSecrets
+    objectLock: false         # Inmutabilidad WORM del proveedor contra ransomware
   # Verificación Periódica Automatizada de DR (Restore Drill)
   restoreVerification:
     enabled: true

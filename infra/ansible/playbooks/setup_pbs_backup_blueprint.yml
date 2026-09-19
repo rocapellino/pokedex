@@ -1,0 +1,98 @@
+---
+# ==============================================================================
+# Playbook Blueprint: Integración On-Premise Proxmox Backup Server (PBS)
+# ESTADO DE ARQUITECTURA: ESQUELETO BLUEPRINT (INACTIVO)
+# ==============================================================================
+# Propósito:
+#   Proporciona el esqueleto declarativo para configurar el cliente de Proxmox
+#   Backup Server (PBS) en Proxmox VE con cifrado client-side y un Sync Job
+#   remoto fuera de sitio (off-site), cerrando el dominio de falla (SPOF) del
+#   host físico.
+#
+# Requisitos previos para activación:
+#   1. Servidor PBS secundario / remoto aprovisionado (IP/FQDN accesible vía TLS 8007).
+#   2. Datastore y usuario con permisos 'Datastore.Backup' y 'Datastore.Audit'.
+#   3. Clave simétrica de cifrado en cliente custodiada fuera del host Proxmox.
+# ==============================================================================
+
+- name: "ESQUELETO BLUEPRINT: Configuración de Cliente PBS y Sync Remoto Off-Site"
+  hosts: proxmox_hosts
+  become: true
+  gather_facts: false
+  vars:
+    # --------------------------------------------------------------------------
+    # Parámetros del Servidor PBS Primario (Local / LAN)
+    # --------------------------------------------------------------------------
+    pbs_storage_id: "pbs-pokedex-local"
+    pbs_server_ip: "10.10.13.50"
+    pbs_datastore_name: "pokedex-datastores"
+    pbs_user: "backup-user@pbs"
+    pbs_fingerprint: "SHA256:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"
+    pbs_encryption_key_path: "/etc/pve/priv/storage/pbs-pokedex.enc"
+
+    # --------------------------------------------------------------------------
+    # Parámetros del Servidor PBS Secundario Off-Site (Copia Fuera del Host)
+    # --------------------------------------------------------------------------
+    pbs_remote_offsite_enabled: false
+    pbs_remote_offsite_id: "pbs-offsite-replica"
+    pbs_remote_offsite_server: "pbs-remote.external.example.com"
+    pbs_remote_offsite_datastore: "pokedex-offsite-vault"
+    pbs_remote_sync_schedule: "0 03 * * *" # Diario a las 03:00 UTC (posterior al backup local)
+
+    # --------------------------------------------------------------------------
+    # Política de Retención GFS (Grandfather-Father-Son)
+    # --------------------------------------------------------------------------
+    pbs_prune_keep_last: 7
+    pbs_prune_keep_daily: 7
+    pbs_prune_keep_weekly: 4
+    pbs_prune_keep_monthly: 12
+
+    # Invitados a respaldar (VM 801 K3s Prod + LXC 810 Vault Prod)
+    target_vmid_list: "801,810"
+
+  tasks:
+    - name: "Validar que el playbook se ejecute solo cuando se solicite activación explícita"
+      ansible.builtin.debug:
+        msg: >
+          [BLUEPRINT PBS] Este playbook es un esqueleto de referencia arquitectural.
+          Estado actual: INACTIVO. Para aplicar en producción, asegúrese de reemplazar
+          las variables de conexión y fingerprint con valores reales del servidor PBS.
+
+    - name: "Verificar presencia del paquete proxmox-backup-client en Proxmox VE"
+      ansible.builtin.package:
+        name: proxmox-backup-client
+        state: present
+      when: pbs_remote_offsite_enabled | bool
+
+    - name: "Registrar almacenamiento PBS en el subsistema de storage de Proxmox (/etc/pve/storage.cfg)"
+      ansible.builtin.command:
+        cmd: >
+          pvesm add pbs {{ pbs_storage_id }}
+          --server {{ pbs_server_ip }}
+          --datastore {{ pbs_datastore_name }}
+          --username {{ pbs_user }}
+          --fingerprint {{ pbs_fingerprint }}
+          --encryption-key {{ pbs_encryption_key_path }}
+          --prune-backups keep-daily={{ pbs_prune_keep_daily }},keep-weekly={{ pbs_prune_keep_weekly }},keep-monthly={{ pbs_prune_keep_monthly }}
+      register: pvesm_add_result
+      failed_when: pvesm_add_result.rc != 0 and 'already exists' not in pvesm_add_result.stderr
+      changed_when: pvesm_add_result.rc == 0
+      when: pbs_remote_offsite_enabled | bool
+
+    - name: "Programar tarea de respaldo automático vzdump hacia PBS para K3s (801) y Vault (810)"
+      ansible.builtin.copy:
+        dest: /etc/pve/vzdump.cron
+        content: |
+          # Job diario de respaldo Pokédex hacia PBS (02:30 UTC)
+          30 02 * * * root vzdump {{ target_vmid_list }} --storage {{ pbs_storage_id }} --mode snapshot --compress zstd --mailnotification failure --quiet 1
+        owner: root
+        group: root
+        mode: '0644'
+      when: pbs_remote_offsite_enabled | bool
+
+    - name: "Esqueleto de comando para configurar el Remote Sync Job hacia PBS Off-Site"
+      ansible.builtin.debug:
+        msg: >
+          Para enlazar la copia off-site entre el PBS local y el PBS remoto:
+          proxmox-backup-manager remote create {{ pbs_remote_offsite_id }} --auth-id {{ pbs_user }} --server {{ pbs_remote_offsite_server }} --fingerprint {{ pbs_fingerprint }}
+          proxmox-backup-manager sync-job create sync-to-offsite --remote {{ pbs_remote_offsite_id }} --remote-store {{ pbs_remote_offsite_datastore }} --store {{ pbs_datastore_name }} --schedule '{{ pbs_remote_sync_schedule }}'

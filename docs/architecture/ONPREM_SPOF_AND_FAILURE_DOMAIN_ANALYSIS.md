@@ -64,7 +64,9 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 ### 3.3. Corrupción o Degradación de Storage
 - **Impacto:** I/O errors en etcd/SQLite de K3s o en la base de datos de Pokédex.
 - **Mitigación Arquitectural:**
-  - Backups automáticos programados mediante **Proxmox Backup Server (PBS)** hacia storage secundario externo.
+  - Backups automáticos programados de base de datos con cifrado AES-256-CBC y checksums SHA-256 hacia PVC local `/backups`.
+  - Verificación periódica de restauración mediante CronJob semanal en clúster.
+  - Esqueleto para réplica off-site hacia Object Storage (S3-compatible agnóstico) y Proxmox Backup Server (PBS) con Sync Job remoto (estado: **Esqueleto Preparado / Inactivo**, documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)).
   - Snapshots transaccionales de Raft en Vault exportables vía script de resguardo.
   - **Objetivos de Recuperación Canónicos:**
     - **RPO Canónico:** `< 24 horas` (respaldo diario a las 02:00 UTC).
@@ -146,6 +148,9 @@ flowchart TD
    - **Escenario B (Falla de Disco / Corrupción del SO en VM o LXC):** La restauración de la imagen completa desde PBS a través de la red local toma entre **15 y 20 minutos**.
    - **Escenario C (Destrucción total del nodo físico / Reemplazo de servidor):** Reinstalación de Proxmox base + despliegue automatizado con OpenTofu y Ansible toma entre **30 y 45 minutos**.
    - En todos los casos, el tiempo total está muy por debajo del techo canónico de **2 horas**, garantizando el cumplimiento del SLA de **99.5% mensual** (presupuesto de error de 3.65h).
+
+> [!NOTE]
+> **Estado Operativo Actual de Copias Off-Site:** Los procedimientos de respaldo local, cifrado y verificación en clúster están 100% operativos. Los esqueletos para exportación off-site hacia Object Storage y sincronización remota de PBS se encuentran preparados en modo blueprint/esqueleto pero inactivos (`enabled: false`) hasta la provisión del destino externo. Ver detalles de arquitectura en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md).
 
 ---
 
