@@ -109,5 +109,27 @@ test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y pol
   assert.match(renderedContent, /cAdvisor/, 'Debe auditar cAdvisor');
 });
 
+test('📊 DR & SLA Canonical Contract: Unificación de SLA (99.5%), RPO (< 24h) y RTO (< 2h) en SSOT arquitectural', () => {
+  const spofDocPath = path.join(ROOT_DIR, 'docs/architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md');
+  assert.ok(fs.existsSync(spofDocPath), 'ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md debe existir');
+  const spofContent = fs.readFileSync(spofDocPath, 'utf-8');
 
+  assert.match(spofContent, /99\.5%\s*mensual/, 'SPOF doc debe formalizar SLA canónico del 99.5% mensual');
+  assert.match(spofContent, /<\s*24\s*horas/, 'SPOF doc debe formalizar RPO canónico < 24 horas');
+  assert.match(spofContent, /<\s*2\s*horas/, 'SPOF doc debe formalizar RTO canónico < 2 horas');
+  assert.match(spofContent, /Tier 1:/, 'SPOF doc debe detallar Tier 1 de recuperación');
+  assert.match(spofContent, /Tier 2:/, 'SPOF doc debe detallar Tier 2 de recuperación');
+  assert.match(spofContent, /Tier 3:/, 'SPOF doc debe detallar Tier 3 de recuperación');
 
+  const drpDocPath = path.join(ROOT_DIR, 'docs/runbooks/DISASTER_RECOVERY_PLAN.md');
+  const drpContent = fs.readFileSync(drpDocPath, 'utf-8');
+  assert.match(drpContent, /99\.5%\s*mensual/, 'DRP debe formalizar SLA canónico del 99.5% mensual');
+  assert.match(drpContent, /<\s*24\s*horas/, 'DRP debe formalizar RPO canónico < 24 horas');
+  assert.match(drpContent, /<\s*2\s*horas/, 'DRP debe formalizar RTO canónico < 2 horas');
+
+  const adrDocPath = path.join(ROOT_DIR, 'docs/decisions/ADR-006-disaster-recovery-strategy.md');
+  const adrContent = fs.readFileSync(adrDocPath, 'utf-8');
+  assert.match(adrContent, /99\.5%\s*mensual/, 'ADR-006 debe formalizar SLA canónico del 99.5% mensual');
+  assert.match(adrContent, /<\s*24\s*horas/, 'ADR-006 debe formalizar RPO canónico < 24 horas');
+  assert.match(adrContent, /<\s*2\s*horas/, 'ADR-006 debe formalizar RTO canónico < 2 horas');
+});

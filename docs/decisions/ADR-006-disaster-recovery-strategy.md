@@ -13,8 +13,9 @@ Se formaliza una **estrategia de Disaster Recovery 3-2-1** con verificación aut
 2. **Topología 3-2-1**: Tres copias de datos, dos medios de almacenamiento distintos (volumen local y réplica remota/offsite S3/MinIO), y una copia fuera del sitio (*offsite*).
 3. **Simulacro y Verificación Automatizada**: El script `scripts/dr_verify_restore.sh` valida la integridad en motor PostgreSQL real (contenedor efímero o base aislada). Se prohíbe certificar recuperaciones basadas exclusivamente en validaciones textuales o sintácticas.
 4. **SLAs Comprometidos**:
-   - **RPO (Recovery Point Objective)**: < 24 horas.
-   - **RTO (Recovery Time Objective)**: < 2 horas (tiempo medido experimentalmente inferior a 60 segundos).
+   - **Disponibilidad (SLA)**: 99.5% mensual (presupuesto de error de ~3.65h/mes, alineado con arquitectura lean mononodo).
+   - **RPO (Recovery Point Objective)**: < 24 horas (respaldo diario a las 02:00 UTC).
+   - **RTO (Recovery Time Objective)**: < 2 horas (tiempo medido experimentalmente inferior a 60 segundos en BD; restauración PBS de VM en ~15-20 min; reconstrucción bare-metal en ~30-45 min).
 
 ## Consecuencias
 - **Positivas**: Resiliencia probada, garantía criptográfica de inmutabilidad del volcado, capacidad de respuesta inmediata ante desastres.
