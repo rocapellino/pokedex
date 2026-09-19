@@ -29,6 +29,7 @@ flowchart TD
     ARCH --> A10["📋 RESPONSIBILITY_MATRIX.md"]
     ARCH --> A11["🏢 ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md"]
     ARCH --> A12["🔍 DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md"]
+    ARCH --> A13["🛡️ FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md"]
 
     API --> AP1["📡 API_SPECIFICATION.md"]
 
@@ -49,7 +50,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-026)"]
+    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-027)"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -65,7 +66,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8 doc;
 ```
 
 ---
@@ -86,6 +87,7 @@ flowchart TD
 * 📋 [**RESPONSIBILITY_MATRIX.md**](./architecture/RESPONSIBILITY_MATRIX.md): **Matriz canónica de responsabilidades** de componentes (OpenTofu, Ansible, Bastion, Vault, ESO, ArgoCD, Cilium, Alloy) y demarcación técnica de herramientas DevSecOps.
 * 🏢 [**ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md**](./architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md): Análisis de aislamiento lógico vs físico, dominios de falla compartidos y mitigaciones del SPOF on-premise en Proxmox.
 * 🔍 [**DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md**](./architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md): Comparativa exhaustiva entre arquitectura declarada vs. realmente renderizada en Helm/GitOps (AWS vs Proxmox).
+* 🛡️ [**FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md**](./architecture/FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md): Especificación formal de contratos de resiliencia ante contingencias de DB y Redis (Fail-Open vs. Fail-Closed).
 
 ---
 
@@ -156,6 +158,7 @@ flowchart TD
 * 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
 * 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
 * 📐 [**ADR-026**](./decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md): Ciclo de Vida, Estrategia en Cuatro Fases y Deprecación de Aliases en Taskfile CLI.
+* 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
 
 ---
 
