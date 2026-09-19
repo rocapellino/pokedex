@@ -46,12 +46,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_KEEP_VERSIONS: ${{ inputs.keep_versions }}
         run: |
           DRY_RUN_FLAG=""
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "$INPUT_DRY_RUN" = "true" ]; then
             DRY_RUN_FLAG="--dry-run"
           fi
-          KEEP_COUNT="${{ inputs.keep_versions || 3 }}"
+          KEEP_COUNT="${INPUT_KEEP_VERSIONS:-3}"
           echo "Ejecutando retención en GHCR (keep=$KEEP_COUNT, dry-run=$DRY_RUN_FLAG)..."
           node --experimental-strip-types scripts/ghcr-retention.ts --keep="$KEEP_COUNT" $DRY_RUN_FLAG
 
