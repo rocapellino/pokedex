@@ -66,7 +66,9 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 - **Mitigación Arquitectural:**
   - Backups automáticos programados mediante **Proxmox Backup Server (PBS)** hacia storage secundario externo.
   - Snapshots transaccionales de Raft en Vault exportables vía script de resguardo.
-  - RPO (Recovery Point Objective): 24 horas (nightly snapshot). RTO (Recovery Time Objective): < 20 minutos restaurando desde PBS.
+  - **Objetivos de Recuperación Canónicos:**
+    - **RPO Canónico:** `< 24 horas` (respaldo diario a las 02:00 UTC).
+    - **RTO Canónico Contractual:** `< 2 horas` (con tiempos operativos de restauración de VM/LXC vía PBS de ~15-20 minutos, y verificación a nivel base de datos en ~1.5s / < 5 min).
 
 ### 3.4. Pérdida de Conectividad de Red (NIC / Switch Físico)
 - **Impacto:** Aislamiento del nodo; pérdida de acceso a GitHub, clientes externos y telemetría.
@@ -96,7 +98,58 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 
 ---
 
-## 5. Resumen de Controles y Resiliencia
+## 5. Formalización Canónica de Resiliencia: SLA, RPO y RTO
+
+Para eliminar discrepancias de métricas en la documentación y proporcionar una única fuente de verdad (SSOT), se formaliza el acuerdo de nivel de servicio y objetivos de recuperación para el despliegue On-Premise:
+
+### 5.1. Definición Canónica (SSOT)
+
+| Métrica | Valor Canónico | Justificación y Ventana de Tolerancia |
+| :--- | :---: | :--- |
+| **SLA de Disponibilidad** | **99.5% mensual** | Equivale a una indisponibilidad no planificada máxima de **~3.65 horas al mes**, coherente y realista con una infraestructura mononodo física sin clúster de alta disponibilidad por hardware. |
+| **RPO** *(Recovery Point Objective)* | **< 24 horas** | Pérdida máxima admisible de datos. Garantizado por el ciclo diario de copias de seguridad a las `02:00 UTC` (estrategia 3-2-1 con retención de 7 snapshots). |
+| **RTO** *(Recovery Time Objective)* | **< 2 horas** | Techo máximo contractual de recuperación completa del servicio ante un siniestro catastrófico del host o sus componentes. |
+
+### 5.2. Verificación de Cumplimiento: Estrategia de Backup vs. RPO / RTO
+
+La estrategia de respaldo y contingencia cumple holgadamente con los límites canónicos definidos a través de una arquitectura por niveles (*tiered recovery*):
+
+```mermaid
+flowchart TD
+    subgraph S1["Tier 1: Datos de Aplicación (K8s / PostgreSQL)"]
+        T1A["Cifrado AES-256-CBC + SHA-256"] --> T1B["dr_verify_restore.sh"]
+        T1B --> T1C["RTO Medido: ~1.5s (Benchmark) / < 5 min (K8s)"]
+    end
+
+    subgraph S2["Tier 2: Imágenes de Sistema (Proxmox VE / PBS)"]
+        T2A["Proxmox Backup Server (Deduplicación LAN)"] --> T2B["Restauración VM 801 / LXC 810"]
+        T2B --> T2C["RTO Operativo: ~15 - 20 minutos"]
+    end
+
+    subgraph S3["Tier 3: Reconstrucción en Frío (Bare-Metal Failure)"]
+        T3A["OpenTofu (Infra) + Ansible (Config)"] --> T3B["Provisión desde cero"]
+        T3B --> T3C["RTO de Reconstrucción: ~30 - 45 minutos"]
+    end
+
+    T1C --> OK["Todos los Tiers cumplen RTO < 2 horas y SLA 99.5%"]
+    T2C --> OK
+    T3C --> OK
+```
+
+1. **Cumplimiento de RPO (< 24 horas):**
+   - El CronJob en Kubernetes genera volcados consistentes con `pg_dump` diariamente a las `02:00 UTC`.
+   - Proxmox Backup Server (PBS) ejecuta respaldos diarios nocturnos de las imágenes completas de los discos de VM 801 (K3s) y LXC 810 (Vault).
+   - En el peor escenario de falla justo antes del respaldo nocturno, el delta máximo de pérdida de datos es estrictamente inferior a 24 horas.
+
+2. **Cumplimiento de RTO (< 2 horas):**
+   - **Escenario A (Corrupción de Base de Datos / Lógica de Negocio):** Se restaura desde el snapshot cifrado local en PVC o réplica externa en menos de **5 minutos** (benchmark sintético de **~1.5 segundos**).
+   - **Escenario B (Falla de Disco / Corrupción del SO en VM o LXC):** La restauración de la imagen completa desde PBS a través de la red local toma entre **15 y 20 minutos**.
+   - **Escenario C (Destrucción total del nodo físico / Reemplazo de servidor):** Reinstalación de Proxmox base + despliegue automatizado con OpenTofu y Ansible toma entre **30 y 45 minutos**.
+   - En todos los casos, el tiempo total está muy por debajo del techo canónico de **2 horas**, garantizando el cumplimiento del SLA de **99.5% mensual** (presupuesto de error de 3.65h).
+
+---
+
+## 6. Resumen de Controles y Resiliencia
 
 ```mermaid
 graph TD
