@@ -362,3 +362,12 @@ jobs:
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
           echo "✅ Firma de imagen, Atestación de SBOM y Firma de Helm Chart verificadas criptográficamente con éxito."
 
+      - name: 🧹 Aplicar política de retención en GHCR (Mantener últimos 3 activos)
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
+        with:
+          keep-n-tagged: 3
+          delete-untagged: true
+          dry-run: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
