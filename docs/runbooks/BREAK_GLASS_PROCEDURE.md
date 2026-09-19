@@ -96,17 +96,42 @@ Los registros rotan semanalmente mediante `logrotate` (`/etc/logrotate.d/bastion
 
 ## 5. Procedimiento de Ejecución en Caso de Emergencia
 
+### 5.0. Inmutabilidad de Código en Bastion: Fijar Commit SHA Conocido (Known-Good State)
+
+> [!IMPORTANT]
+> **Nunca opere sobre una rama mutable (`main`) durante una emergencia.**
+> Durante un incidente crítico, la rama remota `main` puede contener commits no probados, merges incompletos o regresiones en curso. Toda intervención manual u orquestación desde el Bastion debe anclarse estrictamente a un **Commit SHA verificado (Known-Good State)** o a un Tag de release oficial (`vX.Y.Z`).
+
+```bash
+# 1. Acceder al repositorio local del Bastion
+cd /opt/devops/pokedex
+
+# 2. Obtener los últimos objetos, referencias y tags remotos sin alterar el working tree
+git fetch --all --tags
+
+# 3. Mover el HEAD a un Commit SHA o Tag inmutable de versión conocida y estable
+git checkout <KNOWN_GOOD_COMMIT_SHA>
+
+# 4. Confirmar estado inmutable y detached HEAD
+git status
+```
+
+**Garantías del Modelo Inmutable:**
+- **Determinismo Absoluto:** Garantiza que los manifiestos, scripts y playbooks ejecutados reflejen el estado criptográfico deseado.
+- **Trazabilidad Forense:** El checkout del SHA queda registrado en `/var/log/bastion/audit.log` vinculando inequívocamente la acción del operador a la versión exacta del código.
+- **Aislamiento ante Drift:** Evita que pushes concurrentes a ramas remotas contaminen la operación de recuperación.
+
 ### Escenario A: Reinicio de Emergencia de Pods / Despliegue
 Si los pods se encuentran bloqueados o una rotación de secretos en Vault no ha sido propagada:
 ```bash
 # 1. Comprobar estado de pods y pods atascados
-kubectl get pods -n pokedex -o wide
+kubectl get pods -n pokemon-app -o wide
 
 # 2. Reiniciar deployment de forma progresiva
-kubectl rollout restart deployment/pokedex-api -n pokedex
+kubectl rollout restart deployment/pokedex-api -n pokemon-app
 
 # 3. Monitorear estado de actualización
-kubectl rollout status deployment/pokedex-api -n pokedex --timeout=60s
+kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=60s
 ```
 
 ### Escenario B: Unseal Manual de Vault tras Reinicio de Proxmox
@@ -128,10 +153,10 @@ vault status
 Si ArgoCD está inoperativo y se requiere aplicar un Hotfix urgente:
 ```bash
 # 1. Realizar backup del manifiesto vivo
-kubectl get deployment pokedex-api -n pokedex -o yaml > /tmp/pokedex-api-backup.yaml
+kubectl get deployment pokedex-api -n pokemon-app -o yaml > /tmp/pokedex-api-backup.yaml
 
 # 2. Aplicar corrección de emergencia
-kubectl patch deployment pokedex-api -n pokedex -p '{"spec":{"replicas":3}}'
+kubectl patch deployment pokedex-api -n pokemon-app -p '{"spec":{"replicas":3}}'
 ```
 
 ---

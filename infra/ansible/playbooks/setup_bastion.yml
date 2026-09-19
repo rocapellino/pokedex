@@ -7,6 +7,14 @@
   become: true
   gather_facts: true
 
+  vars:
+    # URL oficial del repositorio para orquestación interna
+    pokedex_git_repo: "https://github.com/rocapellino/pokedex.git"
+    pokedex_git_dest: "/opt/devops/pokedex"
+    # Anclaje inmutable a Commit SHA o Tag de versión verificada (Known-Good State).
+    # Previene mutabilidad y deriva (drift) al no depender de ramas flotantes como 'main' en incidentes.
+    pokedex_git_version: "{{ bastion_git_commit_sha | default(bastion_git_version | default('HEAD')) }}"
+
   tasks:
     - name: Actualizar cache de APT
       ansible.builtin.apt:
@@ -71,11 +79,11 @@
         group: root
         mode: '0755'
 
-    - name: Clonar o sincronizar repositorio Pokédex para orquestación interna
+    - name: Clonar o sincronizar repositorio Pokédex anclado a Commit SHA / Tag inmutable (Break-Glass)
       ansible.builtin.git:
-        repo: "https://github.com/rocapellino/pokedex.git"
-        dest: /opt/devops/pokedex
-        version: main
+        repo: "{{ pokedex_git_repo }}"
+        dest: "{{ pokedex_git_dest }}"
+        version: "{{ pokedex_git_version }}"
         force: false
       ignore_errors: true
 
