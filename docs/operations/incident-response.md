@@ -39,3 +39,9 @@ Definir la matriz de escalado, niveles de severidad y acciones inmediatas de dia
    ```bash
    kubectl get netpol,ciliumnetworkpolicies -n pokemon-app
    ```
+
+## 4. Acceso de Emergencia (Break-Glass)
+
+Ante incidentes SEV-1 con pérdida de conectividad a la interfaz de ArgoCD o indisponibilidad del plano de control GitOps, active el protocolo de contingencia a través del nodo perimetral Bastion (LXC 100), conforme al runbook formal [BREAK_GLASS_PROCEDURE.md](../runbooks/BREAK_GLASS_PROCEDURE.md).
+
+Toda acción e invocación manual (`kubectl`, `helm`, `ansible`, `vault`) ejecutada dentro del Bastion queda auditada cronológicamente en `/var/log/bastion/audit.log` y reenviada a syslog (`authpriv.notice`).

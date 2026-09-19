@@ -71,7 +71,10 @@ test('📦 Storage Layer: getNextPokemonId genera IDs continuos', async () => {
 });
 
 test('📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correctamente', async () => {
-  const { pokedexEntries, pokedexIdSeq } = await import('../apps/backend/src/db/schema.js');
+  const schemaMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/src/db/schema.js'))
+    ? await import('../apps/backend/src/db/schema.js')
+    : await import('../apps/backend/src/db/schema.ts');
+  const { pokedexEntries, pokedexIdSeq } = schemaMod;
   assert.ok(pokedexEntries);
   assert.ok(pokedexIdSeq);
   assert.equal(pokedexIdSeq.seqName, 'pokedex_id_seq');

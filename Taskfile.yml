@@ -183,7 +183,7 @@ tasks:
   # Observabilidad & Telemetría (Grafana Cloud & Local Dev)
   # ----------------------------------------------------------------------------
   monitoring:grafana-cloud:install:
-    desc: "Despliega el stack de telemetría de Grafana Cloud (Alloy, Beyla eBPF, Node Exporter, KSM) en Kubernetes"
+    desc: "Despliega el stack de telemetría de Grafana Cloud (Grafana Alloy unificado) en Kubernetes"
     cmds:
       - powershell -ExecutionPolicy Bypass -File infra/monitoring/deploy-grafana-cloud.ps1
 
@@ -328,12 +328,12 @@ tasks:
   secrets:seal:
     desc: "[Legacy/Deprecado] Sella credenciales con Bitnami Sealed Secrets (preferir ESO con Secret Manager)"
     cmds:
-      - npx tsx scripts/seal-secret.ts
+      - node --experimental-strip-types scripts/seal-secret.ts
 
   secrets:audit-rotation:
     desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
     cmds:
-      - npx tsx scripts/verify-secret-rotation.ts
+      - npm run secrets:audit-rotation
 
   gitops:verify-parity:
     desc: "Valida la paridad de digest criptográfico entre entornos GitOps (AWS, Proxmox, Prod)"
@@ -552,17 +552,32 @@ tasks:
   linear:sonar-sync:
     desc: "Sincroniza el estado de SonarCloud y genera tickets en Linear ante Quality Gate fallido o vulnerabilidades"
     cmds:
-      - npx tsx scripts/sonar-linear-sync.ts
+      - node --experimental-strip-types scripts/sonar-linear-sync.ts
 
   k8s:rollout-restart:
     desc: "Aplica un reinicio progresivo (rollout restart) a los pods de la app para cargar secretos de Vault"
     cmds:
       - npm run k8s:rollout-restart -- {{.CLI_ARGS}}
 
+  k8s:verify-vault:
+    desc: "Valida la arquitectura de Vault CE y la sincronización con External Secrets Operator (ESO)"
+    cmds:
+      - npm run k8s:verify-vault-architecture
+
   vault:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"
     cmds:
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+
+  security:egress:
+    desc: "Ejecuta las pruebas automatizadas de política de egress L7 Anti-SSRF (CiliumNetworkPolicy)"
+    cmds:
+      - npm run test:security:egress
+
+  security:egress:probe:
+    desc: "Ejecuta la sonda activa de seguridad y filtrado de egress L7"
+    cmds:
+      - npm run probe:security:egress
 
 
 
