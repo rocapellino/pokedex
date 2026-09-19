@@ -11,7 +11,7 @@ Este documento establece la **única fuente de verdad (SSOT)** para la nomenclat
 >
 > Ningún runbook, manifiesto, pipeline o comando operativo debe utilizar los namespaces legados `pokedex` o `pokedex-preprod`.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                       PLATAFORMA KUBERNETES (K3s / EKS)                     │
 ├──────────────────────────────┬──────────────────────────────────────────────┤
@@ -34,7 +34,7 @@ Este documento establece la **única fuente de verdad (SSOT)** para la nomenclat
 
 | Namespace | Tipo | Responsabilidad / Carga de Trabajo | Políticas Asociadas |
 | :--- | :--- | :--- | :--- |
-| **`pokemon-app`** | **Aplicación (Workload)** | Microservicio Backend (`pokemon-api`), Frontend Web (`pokedex-web`), Base de Datos (`postgres`), Caché (`redis`), Connection Pooler (`pgbouncer`), Jobs de seed y probes de egreso anti-SSRF. | Pod Security Standard: `restricted`<br>Cilium / K8s NetworkPolicies L3/L4/L7<br>ResourceQuota & LimitRange dedicados |
+| **`pokemon-app`** | **Aplicación (Workload)** | Microservicio Backend (`pokemon-api`), Frontend Web (`pokedex-web`), Base de Datos (`postgres`), Caché (`redis`), Connection Pooler (`pgbouncer`), Jobs de seed y probes de egreso anti-SSRF. | Pod Security Standard: `restricted` • Cilium / K8s NetworkPolicies L3/L4/L7 • ResourceQuota & LimitRange dedicados |
 | **`kube-system`** | Plataforma / Core | Plano de control K3s, CNI (Cilium / Flannel), CoreDNS, Kube-Proxy, Local-Path Provisioner. | Pod Security Standard: `privileged` |
 | **`external-secrets`** | Plataforma / Seguridad | External Secrets Operator (ESO) controller, webhook y ServiceAccount (`external-secrets-sa`) para sincronización con Vault. | Pod Security Standard: `baseline` |
 | **`monitoring`** | Plataforma / Observabilidad | Grafana Alloy (agente de telemetría OTLP), Prometheus, Alertmanager, Node Exporter. | Pod Security Standard: `baseline` |
