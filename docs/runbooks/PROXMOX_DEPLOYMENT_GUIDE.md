@@ -3,6 +3,7 @@
 Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y operar la infraestructura de **Pokédex** en servidores **Proxmox Virtual Environment (PVE)**.
 
 De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Management Plane y Runtime Plane)**:
+
 - **On-Premise (Proxmox VE):** Es la plataforma operacionalmente activa donde corren los entornos de Pre-producción y Producción.
 - **Cloud (AWS):** Se define como un **Target Arquitectónico Cloud-Ready (no activo concurrentemente)**, garantizando que el Helm chart universal y los contratos de la aplicación puedan migrar a la nube sin rediseñar la arquitectura.
 
@@ -49,6 +50,7 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
 ```
 
 ### Cadena Estricta de Responsabilidad On-Premise (Source of Truth)
+
 1. **OpenTofu (IaaS):** Crea infraestructura inmutable (VMs, LXCs, CPU, RAM, disco, redes, IPs y firewall perimetral).
 2. **Ansible (Config):** Configura sistemas operativos (paquetes base, hardening de kernel/SSH, UFW, runtime K3s, HashiCorp Vault y herramientas en Bastion).
 3. **ArgoCD (GitOps):** Reconcilia el estado deseado en Kubernetes (Deployments, Services, ConfigMaps, ExternalSecrets, NetworkPolicies).
@@ -58,11 +60,11 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
 
 ## 2. Gestión Canónica de Secretos (ESO + Vault) y Justificación de Redeploy
 
-* **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
-* **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos locales hacia los nodos.
-* **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado, la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a **HashiCorp Vault (Community Edition)**:
+- **Cero Archivos de Secretos en Disco Productivo:** No se almacenan archivos `.env` ni credenciales en texto claro en los servidores de Proxmox.
+- **Exclusión Estricta en Automatizaciones:** Las tareas de Ansible aplican la lista canónica de exclusiones [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt), impidiendo la transferencia accidental de archivos locales hacia los nodos.
+- **Mecanismo Canónico Universal (ESO):** Conforme al estándar de arquitectura consolidado, la sincronización de secretos en Proxmox se realiza exclusivamente mediante **External Secrets Operator (ESO)** conectado a **HashiCorp Vault (Community Edition)**:
 
-  * **Topología Canónica:**
+  - **Topología Canónica:**
 
     ```text
     Proxmox (LXC 810: Vault CE @ 10.10.13.110:8200)
@@ -76,9 +78,9 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
     Deployment Pods (pokedex-api / pokedex-web)
     ```
 
-  * **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, IP `10.10.13.110`, hostname `vault`) gestionado por OpenTofu y configurado por Ansible.
-  * **Definición Canónica ESO:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
-  * **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
+  - **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, IP `10.10.13.110`, hostname `vault`) gestionado por OpenTofu y configurado por Ansible.
+  - **Definición Canónica ESO:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
+  - **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
 
 ### ¿Es necesario un redeploy de la app para que utilice el Vault?
 
@@ -97,11 +99,11 @@ El módulo en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/envi
 
 ### Parámetros de Seguridad Obligatorios
 
-* **Autenticación Exclusiva por API Token:** `proxmox_api_token = "USER@REALM!TOKENID=UUID"` (se prohíbe `root@pam + password`).
-* **Verificación TLS Estricta:** `proxmox_insecure = false` por defecto.
-* **Acceso por SSH Key:** `ssh_public_key` obligatorio; passwords de usuario nulos.
-* **Cadena de Suministro Segura:** Plantillas descargadas exclusivamente vía HTTPS con validación criptográfica SHA256.
-* **Aprovisionamiento Conjunto de HashiCorp Vault CE:** El módulo aprovisiona automáticamente el contenedor LXC dedicado para HashiCorp Vault (`vault_enabled = true`, ID `810`, IP `10.10.13.110/24`) para servir como backend de secretos para ESO.
+- **Autenticación Exclusiva por API Token:** `proxmox_api_token = "USER@REALM!TOKENID=UUID"` (se prohíbe `root@pam + password`).
+- **Verificación TLS Estricta:** `proxmox_insecure = false` por defecto.
+- **Acceso por SSH Key:** `ssh_public_key` obligatorio; passwords de usuario nulos.
+- **Cadena de Suministro Segura:** Plantillas descargadas exclusivamente vía HTTPS con validación criptográfica SHA256.
+- **Aprovisionamiento Conjunto de HashiCorp Vault CE:** El módulo aprovisiona automáticamente el contenedor LXC dedicado para HashiCorp Vault (`vault_enabled = true`, ID `810`, IP `10.10.13.110/24`) para servir como backend de secretos para ESO.
 
 ```bash
 # Validar sintaxis y planificar con OpenTofu (comandos canónicos)
@@ -144,7 +146,9 @@ Proxmox   K3s     Vault
 ```
 
 ### 🛡️ Guardarraíles Operativos de Bastion (Anti-Drift y SSOT)
+
 Para evitar que el Bastion degenere en un punto de divergencia manual ("snowflake server"), se establecen las siguientes reglas estrictas:
+
 - **Prohibido:** El Bastion **NO** se utiliza para aplicar cambios manuales persistentes, `kubectl apply` ad-hoc, `git pull` manuales ni edición de manifiestos en caliente.
 - **Permitido:** Se reserva exclusivamente para:
   1. **Administración y Orquestación:** Ejecución de playbooks de Ansible controlados.
@@ -153,6 +157,7 @@ Para evitar que el Bastion degenere en un punto de divergencia manual ("snowflak
 - **Git como Única Fuente de Verdad:** El flujo operativo normal es siempre declarativo: `Git -> CI -> ArgoCD -> K3s`. Bastion no almacena el estado del sistema.
 
 ### Herramientas Centralizadas en Bastion
+
 - **Orquestación:** `ansible` y `ansible-playbook` con los playbooks del repositorio.
 - **Kubernetes:** `kubectl` y `helm` preinstalados para interactuar con el clúster (`10.10.13.100`).
 - **Secretos:** `vault` CLI para inspeccionar y operar HashiCorp Vault (`10.10.13.110:8200`).
@@ -259,6 +264,7 @@ task k3s:setup:proxmox
 ```
 
 Este playbook ejecuta de forma desatendida:
+
 1. Verificación del binario y servicio de K3s preexistente.
 2. Descarga e instalación de K3s con `--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage`.
 3. Verificación de salud del Kube-apiserver en `https://127.0.0.1:6443/readyz`.
@@ -300,8 +306,10 @@ Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoC
 
 [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) apunta al clúster de K3s mediante la URL `server: https://k8s-proxmox.internal.lan:6443`.
 Para que la instancia de ArgoCD o la estación de control puedan alcanzar el apiserver en la subred `10.10.13.0/24`:
-* **Entorno con DNS Corporativo / CoreDNS:** Asegurar que el registro A `k8s-proxmox.internal.lan` resuelva a la IP del nodo K8s `10.10.13.100`.
-* **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir la entrada estática en `/etc/hosts` del servidor o pod donde corre ArgoCD:
+
+- **Entorno con DNS Corporativo / CoreDNS:** Asegurar que el registro A `k8s-proxmox.internal.lan` resuelva a la IP del nodo K8s `10.10.13.100`.
+- **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir la entrada estática en `/etc/hosts` del servidor o pod donde corre ArgoCD:
+
   ```text
   10.10.13.100  k8s-proxmox.internal.lan
   ```
@@ -309,9 +317,11 @@ Para que la instancia de ArgoCD o la estación de control puedan alcanzar el api
 ### Ingress Controller Estandarizado (Traefik)
 
 El entorno Proxmox estandariza sobre el controlador Ingress **Traefik** nativo integrado en K3s (`ingress.className: "traefik"`). El enrutamiento HTTP se gobierna mediante la anotación canónica:
+
 ```yaml
 traefik.ingress.kubernetes.io/router.entrypoints: "web"
 ```
+
 No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reduciendo el consumo de memoria y la complejidad operacional.
 
 ### Sincronización Manual o Automatizada
@@ -383,17 +393,16 @@ npm test -- tests/security/vault_redeploy_contract.test.ts
 
 En caso de indisponibilidad de GitHub Actions, falla en el controlador de ArgoCD o emergencias P1 que requieran intervención manual directa sobre el clúster K3s o Vault, se debe invocar el **Procedimiento Break-Glass**:
 
-* **Topología:** `Administrador -> SSH -> Bastion Host (LXC 820) -> kubectl / helm / vault / ansible -> K3s`.
-* **Auditoría Activa:** Todos los comandos ejecutados quedan registrados con usuario, IP, comando, timestamp y código de salida en `/var/log/bastion/audit.log` y en syslog (`authpriv.notice`).
-* **Zero-Drift:** Cualquier modificación manual ejecutada durante la emergencia debe ser reconciliada en Git dentro de las 4 horas posteriores para evitar discrepancias con ArgoCD.
-* **Guía Completa:** Ver el documento detallado en [Procedimiento Break-Glass](BREAK_GLASS_PROCEDURE.md).
+- **Topología:** `Administrador -> SSH -> Bastion Host (LXC 820) -> kubectl / helm / vault / ansible -> K3s`.
+- **Auditoría Activa:** Todos los comandos ejecutados quedan registrados con usuario, IP, comando, timestamp y código de salida en `/var/log/bastion/audit.log` y en syslog (`authpriv.notice`).
+- **Zero-Drift:** Cualquier modificación manual ejecutada durante la emergencia debe ser reconciliada en Git dentro de las 4 horas posteriores para evitar discrepancias con ArgoCD.
+- **Guía Completa:** Ver el documento detallado en [Procedimiento Break-Glass](BREAK_GLASS_PROCEDURE.md).
 
 ---
 
 ## 12. Aislamiento de Entornos y Dominio de Fallas (SPOF) On-Premise
 
-* **Aislamiento Lógico en Plataforma Física Única:** Pre-producción (LXC 800) y Producción (VM 801) comparten el mismo hardware físico de Proxmox VE (CPU, RAM, storage NVMe, NIC física).
-* **Particionamiento Lógico de Vault:** Para no duplicar recursos, Vault utiliza aislamiento lógico de secretos (`secret/data/pokedex/preprod/*` con rol `pokedex-preprod-role` y `secret/data/pokedex/prod/*` con rol `pokedex-prod-role`).
-* **SPOF Explícito y Mitigación:** La caída del hipervisor físico o corte de energía detiene ambos entornos. Las mitigaciones incluyen copias de seguridad automáticas con Proxmox Backup Server (PBS), snapshots de Raft en Vault y reprovisionamiento 100% reproducible con OpenTofu y Ansible.
-* **Análisis Detallado:** Ver [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
-
+- **Aislamiento Lógico en Plataforma Física Única:** Pre-producción (LXC 800) y Producción (VM 801) comparten el mismo hardware físico de Proxmox VE (CPU, RAM, storage NVMe, NIC física).
+- **Particionamiento Lógico de Vault:** Para no duplicar recursos, Vault utiliza aislamiento lógico de secretos (`secret/data/pokedex/preprod/*` con rol `pokedex-preprod-role` y `secret/data/pokedex/prod/*` con rol `pokedex-prod-role`).
+- **SPOF Explícito y Mitigación:** La caída del hipervisor físico o corte de energía detiene ambos entornos. Las mitigaciones incluyen copias de seguridad automáticas con Proxmox Backup Server (PBS), snapshots de Raft en Vault y reprovisionamiento 100% reproducible con OpenTofu y Ansible.
+- **Análisis Detallado:** Ver [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
