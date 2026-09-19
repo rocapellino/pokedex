@@ -1842,8 +1842,8 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   ];
 
   for (const alias of deprecatedAliases) {
-    const aliasRegex = new RegExp(`^  ${alias.replace(/:/g, '\\:')}:`, 'm');
-    assert.ok(aliasRegex.test(taskfileContent), `Taskfile.yml debe contener el alias ${alias}`);
+    const hasAlias = taskfileContent.split('\n').some((line: string) => line.startsWith(`  ${alias}:`));
+    assert.ok(hasAlias, `Taskfile.yml debe contener el alias ${alias}`);
     assert.ok(
       taskfileContent.includes(`⚠️  [DEPRECADO] 'task ${alias}'`),
       `El alias ${alias} debe emitir advertencia de deprecación`
