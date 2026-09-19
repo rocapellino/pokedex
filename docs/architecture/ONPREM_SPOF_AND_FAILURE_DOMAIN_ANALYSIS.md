@@ -9,7 +9,7 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
 > [!IMPORTANT]
 > **Aislamiento Lógico vs. Físico**: Los entornos de **Pre-producción** (LXC 800) y **Producción** (VM 801 K3s) operan como entidades lógicamente aisladas dentro de una **misma plataforma física compartida** (servidor host Proxmox VE).
 >
-> Esto significa que no existen límites de tolerancia a fallos de hardware entre ambos entornos. Una indisponibilidad en el hardware del host Proxmox afectará simultáneamente a Pre-producción, Producción, Vault (LXC 110) y Bastion (LXC 802).
+> Esto significa que no existen límites de tolerancia a fallos de hardware entre ambos entornos. Una indisponibilidad en el hardware del host Proxmox afectará simultáneamente a Pre-producción, Producción, Vault (LXC 810) y Bastion (LXC 820).
 
 ```text
                                Proxmox VE Host Físico (Single Hardware Node)
@@ -19,7 +19,7 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
   │                                                                                         │
   │   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌─────────────────┐ │
   │   │   Pre-prod LXC   │  │   K3s Prod VM    │  │    Vault LXC     │  │   Bastion LXC   │ │
-  │   │     (CT 800)     │  │     (VM 801)     │  │     (CT 110)     │  │    (CT 802)     │ │
+  │   │     (CT 800)     │  │     (VM 801)     │  │     (CT 810)     │  │    (CT 820)     │ │
   │   │                  │  │                  │  │                  │  │                 │ │
   │   │  Linux Namespaces│  │  KVM Hypervisor  │  │  Raft Storage    │  │ Break-Glass     │ │
   │   │  cgroups v2      │  │  Dedicated Kernel│  │  Shamir 5/3      │  │ Audit Logs      │ │
@@ -50,7 +50,7 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 - **Comportamiento post-rearranque:**
   1. Proxmox inicia y arranca las VMs/LXCs configuradas con `onboot: 1`.
   2. K3s Runtime (VM 801) levanta y los pods quedan a la espera de sus secretos.
-  3. HashiCorp Vault (LXC 110) arranca en estado **sellado (sealed / HTTP 503)** por diseño de seguridad.
+  3. HashiCorp Vault (LXC 810) arranca en estado **sellado (sealed / HTTP 503)** por diseño de seguridad.
   4. External Secrets Operator (ESO) queda bloqueado esperando la disponibilidad de Vault.
 - **Acción Operativa:** Requiere procedimiento [Break-Glass](../runbooks/BREAK_GLASS_PROCEDURE.md) desde Bastion para inyectar 3 de las 5 llaves Shamir (`vault operator unseal`).
 

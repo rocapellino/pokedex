@@ -15,7 +15,7 @@ Su objetivo es responder con precisión:
 |---|:---:|:---:|:---:|---|---|
 | **K3s Runtime** | `-` (EKS) | `✓` (LXC 800) | `✓` (VM 801) | **Desplegado Real** | K3s es el motor exclusivo on-premise; AWS target utiliza EKS. |
 | **Cilium (eBPF)** | `(P)` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Renderizado en Helm / Dependiente de CNI** | Helm renderiza `CiliumNetworkPolicy` L7 en todos los entornos. En Proxmox requiere instalación de Cilium CNI vía Helm (`kube-system`). En AWS requiere Cilium CNI chaining. |
-| **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 110) | `✓` (LXC 110) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
+| **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 810) | `✓` (LXC 810) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
 | **External Secrets (ESO)** | `✓` (AWS SM) | `✓` (Vault) | `✓` (Vault) | **Desplegado Real** | Renderizado activamente en Helm. En AWS conecta a `aws-secrets-manager`; en Proxmox conecta a `vault-backend`. |
 | **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En AWS renderiza anotación `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-024 (Lean MVP). |
 | **PgBouncer** | `-` (Inactivo) | `-` (Inactivo) | `-` (Inactivo) | **Código Preparado (No Renderizado)** | Existe template `pgbouncer-deployment.yaml` y está habilitado en `values.prod.yaml`, pero **ninguna aplicación de ArgoCD** (`app-proxmox.yaml`, `app-cloud.yaml`) lo activa. Se usa pool nativo `pg.Pool` (40 conns). |

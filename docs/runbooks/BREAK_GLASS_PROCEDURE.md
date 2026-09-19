@@ -15,7 +15,7 @@ Developer ──▶ Git Commit / PR ──▶ GitHub Actions (CI) ──▶ Argo
 
 Flujo Excepcional Break-Glass (Emergencia Auditada):
 ===================================================
-Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 802) ──▶ kubectl / helm / vault / ansible ──▶ K3s / Proxmox
+Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 820) ──▶ kubectl / helm / vault / ansible ──▶ K3s / Proxmox
                                             │
                                             ▼
                                 Auditoría Inmutable
@@ -25,7 +25,7 @@ Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 802) ──▶
 | Dimensión | Flujo Normal (GitOps) | Flujo Break-Glass (Bastion) |
 |---|---|---|
 | **Actor** | Developer / Bot CI | Administrador SRE / Infraestructura |
-| **Punto de Entrada** | Pull Request en GitHub | SSH al LXC Bastion (10.10.13.111) |
+| **Punto de Entrada** | Pull Request en GitHub | SSH al LXC Bastion (10.10.13.120) |
 | **Herramientas** | ArgoCD, OpenTofu Cloud, CI | `kubectl`, `helm`, `vault`, `ansible` |
 | **Latencia de Despliegue** | 2-5 minutos (pipelines CI/CD) | Inmediata (< 10 segundos) |
 | **Casos de Uso** | Features, releases, parches estándar | Caída de GitHub/ArgoCD, outage severo, incidentes P1 |
@@ -56,7 +56,7 @@ El acceso al Bastion Host está restringido por clave SSH pública Ed25519 y fir
 
 ```bash
 # Conexión SSH al Bastion Host desde la estación del Administrador
-ssh -i ~/.ssh/pokedex_admin_ed25519 sysadmin@10.10.13.111
+ssh -i ~/.ssh/pokedex_admin_ed25519 sysadmin@10.10.13.120
 ```
 
 Una vez iniciada la sesión interactiva, el entorno carga automáticamente las credenciales necesarias:
@@ -110,7 +110,7 @@ kubectl rollout status deployment/pokedex-api -n pokedex --timeout=60s
 ```
 
 ### Escenario B: Unseal Manual de Vault tras Reinicio de Proxmox
-Si el LXC 110 (Vault) se reinicia y entra en estado sellado (HTTP 503):
+Si el LXC 810 (Vault) se reinicia y entra en estado sellado (HTTP 503):
 ```bash
 # 1. Verificar estado de sellado
 vault status
