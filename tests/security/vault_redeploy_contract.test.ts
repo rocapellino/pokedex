@@ -68,9 +68,14 @@ test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y pol
   assert.match(content, /\/var\/log\/bastion\/audit\.log/, 'Bastion debe configurar log dedicado para auditoría');
   assert.match(content, /_bastion_audit/, 'Bastion debe capturar comandos con función interceptora de auditoría');
   assert.match(content, /authpriv\.notice/, 'Bastion debe reenviar eventos de auditoría a syslog');
+  assert.match(content, /pokedex_git_version/, 'Bastion debe parametrizar la versión del repositorio');
+  assert.match(content, /bastion_git_commit_sha/, 'Bastion debe admitir anclaje inmutable a Commit SHA');
+  assert.doesNotMatch(content, /version:\s*main/, 'Bastion no debe fijar una rama mutable como main');
 
   const breakGlassRunbook = path.join(ROOT_DIR, 'docs/runbooks/BREAK_GLASS_PROCEDURE.md');
   assert.ok(fs.existsSync(breakGlassRunbook), 'Debe existir el runbook de procedimiento Break-Glass');
+  const breakGlassContent = fs.readFileSync(breakGlassRunbook, 'utf-8');
+  assert.match(breakGlassContent, /KNOWN_GOOD_COMMIT_SHA/, 'El runbook debe exigir el uso de un Commit SHA conocido y verificado');
 
   const spofDoc = path.join(ROOT_DIR, 'docs/architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md');
   assert.ok(fs.existsSync(spofDoc), 'Debe existir el análisis formal de SPOF y dominios de falla on-premise');

@@ -170,9 +170,10 @@ apt-get update && apt-get install -y ansible git curl wget jq python3-pip python
 curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
 
-# 3. Clonar el repositorio Pokédex para orquestación interna
+# 3. Clonar el repositorio Pokédex para orquestación interna (anclado a Commit SHA inmutable)
 git clone https://github.com/rocapellino/pokedex.git /opt/devops/pokedex
 cd /opt/devops/pokedex
+git checkout <KNOWN_GOOD_COMMIT_SHA_OR_TAG>
 
 # 4. Orquestar el setup de Vault en 10.10.13.110 directamente desde la LAN
 ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
