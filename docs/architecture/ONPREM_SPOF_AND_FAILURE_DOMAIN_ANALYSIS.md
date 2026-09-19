@@ -32,7 +32,7 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
 ## 2. Matriz de Dominios de Falla Compartidos (Shared Failure Domains)
 
 | Vector de Recurso | Nivel de Compartición | Mecanismo de Aislamiento Lógico | Límite del Aislamiento (Riesgo Residual) |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | **CPU** | Host Cores compartidos | KVM vCPUs con scheduling CFS, LXC cgroups limits | Throttling cruzado si un proceso de Pre-prod consume 100% de CPU del host. |
 | **RAM** | Memoria física ECC compartida | VM con asignación estática fija; LXCs con límites de memoria | Si el host entra en saturación severa, el kernel OOM-killer puede matar procesos arbitrarios. |
 | **Storage (Disco)** | Mismo ZFS Pool / Disco NVMe | Datasets ZFS separados, cuotas por contenedor/VM | Contención de I/O (IOPS saturation) o corrupción a nivel de bloque del hardware físico. |
@@ -46,6 +46,7 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
 A continuación se define el comportamiento de la plataforma ante contingencias específicas y las mitigaciones implementadas:
 
 ### 3.1. Caída o Reinicio Imprevisto de Proxmox (Host Crash / Power Loss)
+
 - **Impacto:** Caída total de Producción, Pre-producción, Vault y Bastion.
 - **Comportamiento post-rearranque:**
   1. Proxmox inicia y arranca las VMs/LXCs configuradas con `onboot: 1`.
@@ -55,6 +56,7 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 - **Acción Operativa:** Requiere procedimiento [Break-Glass](../runbooks/BREAK_GLASS_PROCEDURE.md) desde Bastion para inyectar 3 de las 5 llaves Shamir (`vault operator unseal`).
 
 ### 3.2. Falta de RAM y Activación del Linux OOM Killer
+
 - **Impacto:** Terminación forzada de procesos por parte del kernel.
 - **Mitigación Arquitectural:**
   - K3s Prod VM tiene asignación de memoria estática y no ballooning dinámico.
@@ -62,6 +64,7 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
   - En Kubernetes, se definen `requests` y `limits` estrictos en los manifiestos de la aplicación y `ResourceQuota` en cada namespace.
 
 ### 3.3. Corrupción o Degradación de Storage
+
 - **Impacto:** I/O errors en etcd/SQLite de K3s o en la base de datos de Pokédex.
 - **Mitigación Arquitectural:**
   - Backups automáticos programados de base de datos con cifrado AES-256-CBC y checksums SHA-256 hacia PVC local `/backups`.
@@ -73,12 +76,14 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
     - **RTO Canónico Contractual:** `< 2 horas` (con tiempos operativos de restauración de VM/LXC vía PBS de ~15-20 minutos, y verificación a nivel base de datos en ~1.5s / < 5 min).
 
 ### 3.4. Pérdida de Conectividad de Red (NIC / Switch Físico)
+
 - **Impacto:** Aislamiento del nodo; pérdida de acceso a GitHub, clientes externos y telemetría.
 - **Comportamiento:**
   - El tráfico local entre LXCs y la VM K3s a través de `vmbr0` permanece funcional si es enrutado localmente.
   - La sincronización de ArgoCD se detiene temporalmente sin afectar los pods en ejecución (principio de resiliencia desconectada).
 
 ### 3.5. Actualización de K3s / Mantenimiento Programado
+
 - **Impacto:** Reinicio temporal del servicio `k3s.service` o reboot de la VM 801.
 - **Comportamiento:**
   - K3s mononodo implica downtime del plano de control durante la actualización (< 60 segundos).
