@@ -14,6 +14,11 @@
     # Anclaje inmutable a Commit SHA o Tag de versión verificada (Known-Good State).
     # Previene mutabilidad y deriva (drift) al no depender de ramas flotantes como 'main' en incidentes.
     pokedex_git_version: "{{ bastion_git_commit_sha | default(bastion_git_version | default('HEAD')) }}"
+    # Parámetros para reenvío remoto de auditoría (No-Repudio / SIEM / Loki / Syslog centralizado)
+    bastion_remote_syslog_enabled: "{{ remote_syslog_enabled | default(false) }}"
+    bastion_remote_syslog_host: "{{ remote_syslog_host | default('') }}"
+    bastion_remote_syslog_port: "{{ remote_syslog_port | default(514) }}"
+    bastion_remote_syslog_proto: "{{ remote_syslog_proto | default('tcp') }}"
 
   tasks:
     - name: Actualizar cache de APT
@@ -36,6 +41,7 @@
           - rsync
           - dnsutils
           - netcat-openbsd
+          - rsyslog
           - ca-certificates
           - gnupg
           - lsb-release
@@ -149,3 +155,30 @@
               notifempty
               create 0640 root adm
           }
+
+    - name: Configurar reenvío remoto de auditoría en rsyslog hacia SIEM / Loki (No-Repudio)
+      ansible.builtin.copy:
+        dest: /etc/rsyslog.d/50-bastion-remote-audit.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # ====================================================================
+          # Reenvío de Auditoría de Bastion hacia Syslog Centralizado / SIEM / Loki
+          # Garantiza no-repudio al exportar eventos fuera del host Bastion.
+          # ====================================================================
+          {% if bastion_remote_syslog_enabled | bool and bastion_remote_syslog_host != '' %}
+          authpriv.* {% if bastion_remote_syslog_proto == 'tcp' %}@@{% else %}@{% endif %}{{ bastion_remote_syslog_host }}:{{ bastion_remote_syslog_port }}
+          {% else %}
+          # Reenvío remoto preparado (activar con -e "remote_syslog_enabled=true remote_syslog_host=<IP>")
+          # authpriv.* @@syslog.internal.lan:514
+          {% endif %}
+      notify: Reiniciar rsyslog
+      ignore_errors: true
+
+  handlers:
+    - name: Reiniciar rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+      ignore_errors: true

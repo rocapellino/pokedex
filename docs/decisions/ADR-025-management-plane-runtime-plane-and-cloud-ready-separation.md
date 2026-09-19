@@ -83,7 +83,7 @@ Se formaliza la distinción estricta entre el flujo normal y el flujo de conting
 - **Flujo Normal:** `Developer -> Git -> GitHub Actions -> ArgoCD -> K3s`.
 - **Flujo Break-Glass:** `Administrador -> Bastion -> kubectl / helm / vault / ansible -> K3s`.
 - **Inmutabilidad de Código en Emergencia:** Durante operaciones de Break-Glass en el Bastion (`/opt/devops/pokedex`), se prohíbe operar a ciegas sobre la punta flotante de `main`. El operador debe fijar un **Commit SHA o Tag verificado (Known-Good State)** mediante `git fetch` y `git checkout <SHA>`, previniendo drift y garantizando determinismo absoluto durante incidentes.
-- **Auditoría Obligatoria:** Todo comando ejecutado en el Bastion queda registrado en `/var/log/bastion/audit.log` y syslog mediante interceptación en shell (`_bastion_audit`), garantizando no-repudio.
+- **Auditoría Local y Reenvío Remoto para No-Repudio:** Todo comando ejecutado en el Bastion queda registrado localmente en `/var/log/bastion/audit.log` y es reenviado inmediatamente en tiempo real vía `logger -p authpriv.notice` y `rsyslog` hacia el stack centralizado de logs (Grafana Alloy / Loki / SIEM). Se establece formalmente que el archivo local no es inmutable por sí mismo; la garantía de no-repudio descansa en la exportación remota inmediata hacia almacenamiento externo fuera del dominio de fallo del Bastion.
 - **Reconciliación Mandatoria:** Cualquier mutación excepcional debe ser reconciliada en Git dentro de las 4 horas posteriores (Zero-Drift). Ver runbook: [Procedimiento Break-Glass](../runbooks/BREAK_GLASS_PROCEDURE.md).
 
 ---

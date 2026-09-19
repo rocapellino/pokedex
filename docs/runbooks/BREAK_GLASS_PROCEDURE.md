@@ -18,8 +18,8 @@ Flujo Excepcional Break-Glass (Emergencia Auditada):
 Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 820) ──▶ kubectl / helm / vault / ansible ──▶ K3s / Proxmox
                                             │
                                             ▼
-                                Auditoría Inmutable
-                          (/var/log/bastion/audit.log & syslog)
+                          Auditoría Local + Reenvío Syslog / Loki
+                    (/var/log/bastion/audit.log & syslog ──▶ SIEM / Loki)
 ```
 
 | Dimensión | Flujo Normal (GitOps) | Flujo Break-Glass (Bastion) |
@@ -29,7 +29,7 @@ Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 820) ──▶
 | **Herramientas** | ArgoCD, OpenTofu Cloud, CI | `kubectl`, `helm`, `vault`, `ansible` |
 | **Latencia de Despliegue** | 2-5 minutos (pipelines CI/CD) | Inmediata (< 10 segundos) |
 | **Casos de Uso** | Features, releases, parches estándar | Caída de GitHub/ArgoCD, outage severo, incidentes P1 |
-| **Rastro de Auditoría** | Git commit log & PR review | `/var/log/bastion/audit.log` & syslog local |
+| **Rastro de Auditoría** | Git commit log & PR review | Buffer local `/var/log/bastion/audit.log` + Reenvío Syslog / Loki / SIEM |
 
 ---
 
@@ -66,9 +66,19 @@ Una vez iniciada la sesión interactiva, el entorno carga automáticamente las c
 
 ---
 
-## 4. Auditoría Activa de Comandos en Bastion
+## 4. Auditoría Activa de Comandos en Bastion (Local + Reenvío Syslog / SIEM para No-Repudio)
 
 Para garantizar la rendición de cuentas (accountability) y prevenir abusos sin control, **todos** los comandos interactivos ejecutados en el Bastion son interceptados a través de `/etc/profile.d/bastion-audit.sh` mediante el hook `PROMPT_COMMAND`.
+
+### Arquitectura de No-Repudio: Buffer Local vs Reenvío Remoto
+
+> [!NOTE]
+> **Distinción Técnica de Inmutabilidad:**
+> Un archivo de texto local como `/var/log/bastion/audit.log` no es intrínsecamente inmutable: un operador con privilegios de superusuario (`root`) o el proceso de `logrotate` pueden modificarlo, rotarlo o vaciarlo.
+> 
+> Por ello, el **no-repudio real** de la plataforma Pokédex no depende exclusivamente del disco local, sino de un pipeline de doble capa:
+> 1. **Buffer Local (`/var/log/bastion/audit.log`):** Permite inspección inmediata de baja latencia por parte del operador y retención rotativa (12 semanas vía `logrotate`).
+> 2. **Reenvío Remoto en Tiempo Real (`logger -p authpriv.notice` ──▶ `rsyslog` ──▶ SIEM / Loki):** Cada instrucción ejecutada es enviada simultáneamente a la facility `authpriv` de syslog y exportada fuera del Bastion hacia el almacenamiento centralizado de observabilidad (Grafana Alloy / Loki / SIEM). Si un atacante comprometiera el Bastion y eliminara el archivo local, la evidencia ya se encuentra asegurada fuera de su dominio de fallo.
 
 ### Formato de Registro de Auditoría
 
@@ -76,21 +86,24 @@ Cada comando genera una entrada estructurada en `/var/log/bastion/audit.log` y u
 
 ```text
 [2026-09-18T17:15:02-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl get nodes -o wide
-[2026-09-18T17:16:30-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl rollout restart deployment pokedex-api -n pokedex
-[2026-09-18T17:20:12-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=1 CMD=helm rollback pokedex-app 3 -n pokedex
+[2026-09-18T17:16:30-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl rollout restart deployment pokedex-api -n pokemon-app
+[2026-09-18T17:20:12-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=1 CMD=helm rollback pokedex-app 3 -n pokemon-app
 ```
 
 ### Inspección de Logs por el Equipo de Seguridad
 
 ```bash
-# Ver las últimas acciones de break-glass en tiempo real
+# 1. Inspección local en tiempo real dentro del Bastion
 sudo tail -f /var/log/bastion/audit.log
 
-# Buscar comandos ejecutados durante un incidente específico
+# 2. Búsqueda de comandos en el buffer local
 sudo grep "kubectl scale" /var/log/bastion/audit.log
+
+# 3. Consulta inmutable centralizada en Grafana Loki (LogQL)
+# {app="bastion-audit"} |= "BREAK-GLASS"
 ```
 
-Los registros rotan semanalmente mediante `logrotate` (`/etc/logrotate.d/bastion-audit`), conservando 12 semanas de histórico comprimido.
+Los registros locales rotan semanalmente mediante `logrotate` (`/etc/logrotate.d/bastion-audit`), conservando 12 semanas de histórico comprimido.
 
 ---
 
