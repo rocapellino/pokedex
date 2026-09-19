@@ -21,14 +21,14 @@ test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore v
   assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Proxmox');
 });
 
-test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-role', () => {
+test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-prod-role', () => {
   const vaultBackendPath = path.join(ROOT_DIR, 'infra/k8s/eso/vault-backend.yaml');
   const content = fs.readFileSync(vaultBackendPath, 'utf-8');
 
   assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
   assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
   assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
-  assert.match(content, /role:\s*"pokedex-role"/, 'Debe autenticar con el rol pokedex-role');
+  assert.match(content, /role:\s*"pokedex-prod-role"/, 'Debe autenticar con el rol pokedex-prod-role');
   assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
 });
 
@@ -47,7 +47,7 @@ test('🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout r
   );
 });
 
-test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-prod y Prod', () => {
+test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-prod y Prod (Zero-Trust Least Privilege)', () => {
   const setupVaultPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yml');
   const content = fs.readFileSync(setupVaultPath, 'utf-8');
 
@@ -57,6 +57,8 @@ test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-pr
   assert.match(content, /secret\/data\/pokedex\/prod\/\*/, 'La política de prod debe restringir a secret/data/pokedex/prod/*');
   assert.match(content, /auth\/kubernetes\/role\/pokedex-preprod-role/, 'Debe configurar el rol de autenticación K8s pokedex-preprod-role');
   assert.match(content, /auth\/kubernetes\/role\/pokedex-prod-role/, 'Debe configurar el rol de autenticación K8s pokedex-prod-role');
+  assert.doesNotMatch(content, /auth\/kubernetes\/role\/pokedex-role\b/, 'No debe existir el rol genérico pokedex-role (violación de Least Privilege)');
+  assert.doesNotMatch(content, /dest:\s*"\{\{\s*vault_config_dir\s*\}\}\/pokedex-policy\.hcl"/, 'No debe existir la política genérica pokedex-policy');
 });
 
 test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y políticas operativas', () => {

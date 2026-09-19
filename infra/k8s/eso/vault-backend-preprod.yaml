@@ -1,11 +1,11 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ClusterSecretStore
 metadata:
-  name: vault-backend
+  name: vault-backend-preprod
   labels:
     app.kubernetes.io/name: pokedex
     app.kubernetes.io/component: secrets-management
-    environment: proxmox
+    environment: proxmox-preprod
 spec:
   provider:
     vault:
@@ -20,7 +20,7 @@ spec:
       auth:
         kubernetes:
           mountPath: "kubernetes"
-          role: "pokedex-prod-role"
+          role: "pokedex-preprod-role"
           serviceAccountRef:
             name: external-secrets-sa
             namespace: external-secrets

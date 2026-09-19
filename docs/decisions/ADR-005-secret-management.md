@@ -9,12 +9,14 @@ El almacenamiento de credenciales en texto claro dentro de repositorios Git viol
 ## Decisión
 Se adopta **External Secrets Operator (ESO)** como el estándar desacoplado universal de sincronización de secretos en Kubernetes:
 
-1. **Backend On-Premise Canónico (Proxmox VE):** HashiCorp Vault CE en LXC 810 con almacenamiento Raft, TLS estricto, esquema Shamir 5/3 y Zero-Disk persistence (`ClusterSecretStore/vault-backend`). Los secretos se segregan lógicamente entre Pre-prod (`secret/data/pokedex/preprod/*`) y Prod (`secret/data/pokedex/prod/*`).
+1. **Backend On-Premise Canónico (Proxmox VE):** HashiCorp Vault CE en LXC 810 con almacenamiento Raft, TLS estricto, esquema Shamir 5/3 y Zero-Disk persistence. Se implementa el principio de **Mínimo Privilegio (Zero-Trust)** erradicando roles o políticas comodín (`pokedex-role` / `pokedex-policy`):
+   - **Producción:** Acceso restringido a `secret/data/pokedex/prod/*` mediante `pokedex-prod-role` (`ClusterSecretStore/vault-backend`).
+   - **Pre-producción:** Acceso restringido a `secret/data/pokedex/preprod/*` mediante `pokedex-preprod-role` (`ClusterSecretStore/vault-backend-preprod`).
 2. **Backend Cloud-Ready (AWS EKS):** AWS Secrets Manager mediante autenticación IAM IRSA (`ClusterSecretStore/aws-secrets-manager`).
 3. **Mecanismo de Inyección en Pods:** `v1/Secret pokemon-secrets` generado automáticamente por ESO y consumido por los pods mediante `envFrom`.
 4. **Soporte Histórico Legacy:** Bitnami Sealed Secrets se mantiene como mecanismo legacy de soporte para entornos sin conectividad de vault mediante la utilidad tipada `scripts/seal-secret.ts`.
 5. **Recarga Dinámica:** Stakater Reloader en entornos Cloud (AWS), y reinicio progresivo determinista (`k8s-rollout-restart.ts`) en Proxmox VE para preservar el perfil Lean MVP (ADR-024).
 
 ## Consecuencias
-- **Positivas**: Cero secretos en claro en Git, segregación por ambiente lógico, almacenamiento Raft transaccional, rotación auditable y eliminación de archivos de credenciales en disco.
+- **Positivas**: Cero secretos en claro en Git, segregación estricta por ambiente con blast radius nulo entre pre-prod y prod, almacenamiento Raft transaccional, rotación auditable y eliminación de archivos de credenciales en disco.
 - **Compensaciones**: Requiere la custodia segura de las llaves Shamir (3 de 5 requeridas para el unseal tras reinicio del hipervisor Proxmox).
