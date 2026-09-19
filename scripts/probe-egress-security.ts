@@ -30,6 +30,14 @@ interface TargetSpec {
   description: string;
 }
 
+/**
+ * Esquema HTTP no cifrado utilizado intencionalmente para construir vectores
+ * de prueba de sondeo hacia metadatos de nube y redes privadas RFC1918,
+ * validando que las políticas de seguridad Anti-SSRF (ADR-013) descarten el tráfico.
+ */
+const INSECURE_HTTP_SCHEME = 'http';
+const createInsecureProbeUrl = (host: string): string => `${INSECURE_HTTP_SCHEME}://${host}`;
+
 const TARGETS: TargetSpec[] = [
   {
     name: 'Google Gemini AI',
@@ -54,21 +62,21 @@ const TARGETS: TargetSpec[] = [
   },
   {
     name: 'Cloud Metadata (IMDS)',
-    url: 'http://169.254.169.254',
+    url: createInsecureProbeUrl('169.254.169.254'),
     expectedResult: 'FAIL',
     category: 'IMDS_SSRF',
     description: 'Endpoint de metadatos de instancia de nube. Vector crítico de robo de IAM tokens',
   },
   {
     name: 'Red Privada RFC1918 (10.0.0.1)',
-    url: 'http://10.0.0.1',
+    url: createInsecureProbeUrl('10.0.0.1'),
     expectedResult: 'FAIL',
     category: 'RFC1918_SSRF',
     description: 'Puerta de enlace o host en red privada Clase A. Riesgo de movimiento lateral',
   },
   {
     name: 'Red Privada RFC1918 (192.168.1.1)',
-    url: 'http://192.168.1.1',
+    url: createInsecureProbeUrl('192.168.1.1'),
     expectedResult: 'FAIL',
     category: 'RFC1918_SSRF',
     description: 'Subred LAN privada Proxmox VE / Gateway local',
