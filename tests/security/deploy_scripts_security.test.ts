@@ -2036,3 +2036,43 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   );
 });
 
+test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yml', () => {
+  // 1. END_TO_END_COHERENCE_AUDIT.md existe y documenta la matriz canónica
+  const auditPath = path.join(ROOT_DIR, 'docs/architecture/END_TO_END_COHERENCE_AUDIT.md');
+  assert.ok(fs.existsSync(auditPath), 'END_TO_END_COHERENCE_AUDIT.md debe existir');
+  const auditContent = fs.readFileSync(auditPath, 'utf-8');
+  assert.ok(auditContent.includes('[IMPLEMENTADO]'), 'Debe definir estado IMPLEMENTADO');
+  assert.ok(auditContent.includes('[DECLARADO]'), 'Debe definir estado DECLARADO');
+  assert.ok(auditContent.includes('[EJECUTADO]'), 'Debe definir estado EJECUTADO');
+  assert.ok(auditContent.includes('[DOCUMENTADO]'), 'Debe definir estado DOCUMENTADO');
+  assert.ok(auditContent.includes('[INCONSISTENTE]'), 'Debe definir estado INCONSISTENTE');
+  assert.ok(auditContent.includes('10.10.13.0/24'), 'Debe documentar la subred normalizada 10.10.13.0/24');
+
+  // 2. docs/README.md indexa END_TO_END_COHERENCE_AUDIT.md
+  const readmeContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/README.md'), 'utf-8');
+  assert.ok(readmeContent.includes('END_TO_END_COHERENCE_AUDIT.md'), 'docs/README.md debe indexar END_TO_END_COHERENCE_AUDIT.md');
+
+  // 3. Normalización de subredes en Ansible (hosts.ini y hosts.yml alineados a 10.10.13.0/24)
+  const hostsIni = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini'), 'utf-8');
+  assert.ok(hostsIni.includes('10.10.13.100'), 'hosts.ini debe asignar k8s-master-01 en 10.10.13.100');
+  assert.ok(hostsIni.includes('mgmt_cidr=10.10.13.0/24'), 'hosts.ini debe definir mgmt_cidr en 10.10.13.0/24');
+  assert.ok(hostsIni.includes('k8s_cluster_cidr=10.10.13.0/24'), 'hosts.ini debe definir k8s_cluster_cidr en 10.10.13.0/24');
+  assert.ok(!hostsIni.includes('docker_compose_version'), 'hosts.ini no debe contener vestigios de docker-compose');
+
+  const hostsYml = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml'), 'utf-8');
+  assert.ok(hostsYml.includes('10.10.13.100'), 'hosts.yml debe asignar k8s-master-01 en 10.10.13.100');
+  assert.ok(hostsYml.includes('10.10.13.0/24'), 'hosts.yml debe definir CIDR en 10.10.13.0/24');
+
+  // 4. Playbook declarativo setup_k3s.yml existe y configura K3s con Cilium eBPF
+  const setupK3sPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_k3s.yml');
+  assert.ok(fs.existsSync(setupK3sPath), 'setup_k3s.yml debe existir para automatizar la provisión de K3s');
+  const setupK3sContent = fs.readFileSync(setupK3sPath, 'utf-8');
+  assert.ok(setupK3sContent.includes('--flannel-backend=none'), 'setup_k3s.yml debe desacoplar Flannel con --flannel-backend=none');
+  assert.ok(setupK3sContent.includes('cilium'), 'setup_k3s.yml debe desplegar Cilium CNI');
+
+  // 5. Ingress en Proxmox GitOps no debe contener snippets nulos de Nginx
+  const proxmoxValues = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml'), 'utf-8');
+  assert.ok(!proxmoxValues.includes('nginx.ingress.kubernetes.io/configuration-snippet: null'), 'proxmox/values.yaml no debe contener anotaciones huérfanas de Nginx');
+  assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
+});
+
