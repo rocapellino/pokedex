@@ -48,7 +48,7 @@ backup:
 
 ### 2.2. Inyección de Credenciales Zero-Trust con Vault y ExternalSecrets
 
-Las credenciales nunca deben registrarse en Git. Se utiliza el esqueleto de plantilla [`infra/k8s/eso/backup-offsite-externalsecret.yaml.template`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/k8s/eso/backup-offsite-externalsecret.yaml.template):
+Las credenciales nunca deben registrarse en Git. Se utiliza el esqueleto de plantilla [`infra/k8s/eso/backup-offsite-externalsecret.yaml.template`](../../infra/k8s/eso/backup-offsite-externalsecret.yaml.template):
 
 ```yaml
 apiVersion: external-secrets.io/v1beta1
@@ -131,7 +131,7 @@ Diseñado para respaldar no solo la base de datos, sino las **imágenes completa
 
 ### 3.1. Automatización mediante Ansible Blueprint
 
-El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/infra/ansible/playbooks/setup_pbs_backup_blueprint.yml) define la configuración completa del cliente y las tareas programadas:
+El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml) define la configuración completa del cliente y las tareas programadas:
 
 - **Almacenamiento Seguro:** `pvesm add pbs` utilizando clave criptográfica client-side (`/etc/pve/priv/storage/pbs-pokedex.enc`).
 - **Respaldo Automático:** Tarea en `/etc/pve/vzdump.cron` para VM 801 y LXC 810 diariamente a las `02:30 UTC`.

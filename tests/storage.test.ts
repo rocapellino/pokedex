@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   getAllPokemons,
   getPokemonById,
@@ -9,6 +11,8 @@ import {
   getStorageHealth
 } from '../apps/backend/src/services/db.js';
 import { Pokemon } from '../apps/backend/src/types.js';
+
+const ROOT_DIR = path.resolve();
 
 test('📦 Storage Layer: getStorageHealth reporta estado por defecto', () => {
   const health = getStorageHealth();
