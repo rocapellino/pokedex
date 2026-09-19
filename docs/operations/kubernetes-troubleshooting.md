@@ -47,7 +47,7 @@ Runbook de referencia rápida para identificar y mitigar fallos frecuentes en Po
   kubectl describe externalsecret -n pokemon-app
   kubectl describe secretstore -n pokemon-app
 
-  # En On-Premise Proxmox, validar estado de Vault en el host dedicado (LXC 101):
+  # En On-Premise Proxmox, validar estado de Vault en el host dedicado (LXC 810):
   vault status
   # Si Vault está sellado (Sealed: true), ejecutar el proceso de unseal con los shares correspondientes:
   vault operator unseal <unseal-key>
@@ -58,5 +58,5 @@ Runbook de referencia rápida para identificar y mitigar fallos frecuentes en Po
 - **Causa común**: Fallo en plano de control de GitOps, bloqueo de red administrativa o emergencia fuera de horario.
 - **Acción**:
   - Seguir estrictamente el runbook formal [BREAK_GLASS_PROCEDURE.md](../runbooks/BREAK_GLASS_PROCEDURE.md).
-  - Acceder exclusivamente a través del nodo perimetral Bastion (LXC 100).
+  - Acceder exclusivamente a través del nodo perimetral Bastion (LXC 820).
   - Toda sesión e invocación de `kubectl`, `helm`, `ansible` o `vault` queda registrada y auditada en `/var/log/bastion/audit.log` y syslog `authpriv.notice`.

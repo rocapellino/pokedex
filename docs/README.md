@@ -115,7 +115,7 @@ flowchart TD
 * 🧪 [**STRESS_TESTING_GUIDE.md**](./runbooks/STRESS_TESTING_GUIDE.md): Guía para ejecución de pruebas de carga y estrés con k6 y generador concurrente de tráfico.
 * 🖥️ [**PROXMOX_DEPLOYMENT_GUIDE.md**](./runbooks/PROXMOX_DEPLOYMENT_GUIDE.md): Guía de despliegue y virtualización en clústeres locales Proxmox VE con contenedores LXC, Cloud-Init, Ansible y OpenTofu.
 * 📋 [**DISASTER_RECOVERY_PLAN.md**](./runbooks/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.
-* 🚨 [**BREAK_GLASS_PROCEDURE.md**](./runbooks/BREAK_GLASS_PROCEDURE.md): Protocolo de contingencia y acceso de emergencia Break-Glass mediante Bastion auditado (LXC 100).
+* 🚨 [**BREAK_GLASS_PROCEDURE.md**](./runbooks/BREAK_GLASS_PROCEDURE.md): Protocolo de contingencia y acceso de emergencia Break-Glass mediante Bastion auditado (LXC 820).
 
 ---
 

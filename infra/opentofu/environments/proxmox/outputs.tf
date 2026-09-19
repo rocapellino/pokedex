@@ -62,8 +62,8 @@ output "vault_ip" {
 }
 
 output "vault_endpoint" {
-  description = "URL HTTP del servicio HashiCorp Vault en Proxmox"
-  value       = var.vault_enabled ? "http://${split("/", var.vault_network_ip)[0]}:8200" : null
+  description = "URL HTTPS del servicio HashiCorp Vault en Proxmox"
+  value       = var.vault_enabled ? "https://${split("/", var.vault_network_ip)[0]}:8200" : null
 }
 
 # ==============================================================================

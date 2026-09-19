@@ -341,7 +341,7 @@ npm test -- tests/security/vault_redeploy_contract.test.ts
 
 En caso de indisponibilidad de GitHub Actions, falla en el controlador de ArgoCD o emergencias P1 que requieran intervención manual directa sobre el clúster K3s o Vault, se debe invocar el **Procedimiento Break-Glass**:
 
-* **Topología:** `Administrador -> SSH -> Bastion Host (LXC 802) -> kubectl / helm / vault / ansible -> K3s`.
+* **Topología:** `Administrador -> SSH -> Bastion Host (LXC 820) -> kubectl / helm / vault / ansible -> K3s`.
 * **Auditoría Activa:** Todos los comandos ejecutados quedan registrados con usuario, IP, comando, timestamp y código de salida en `/var/log/bastion/audit.log` y en syslog (`authpriv.notice`).
 * **Zero-Drift:** Cualquier modificación manual ejecutada durante la emergencia debe ser reconciliada en Git dentro de las 4 horas posteriores para evitar discrepancias con ArgoCD.
 * **Guía Completa:** Ver el documento detallado en [Procedimiento Break-Glass](BREAK_GLASS_PROCEDURE.md).

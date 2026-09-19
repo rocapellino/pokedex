@@ -73,7 +73,7 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
 ```
 
 ### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE
-- **Instancia:** Desplegada en contenedor LXC dedicado (ID `110`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
+- **Instancia:** Desplegada en contenedor LXC dedicado (ID `810`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
 - **Segregación Lógica de Secretos:**
   - Pre-producción: `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role`.
   - Producción: `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role`.
