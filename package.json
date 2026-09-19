@@ -33,6 +33,8 @@
     "secrets:audit-rotation": "node --experimental-strip-types scripts/verify-secret-rotation.ts",
     "gitops:verify-parity": "node --experimental-strip-types scripts/verify-image-digest-parity.ts",
     "gitops:verify-parity:strict": "node --experimental-strip-types scripts/verify-image-digest-parity.ts --strict",
+    "gitops:pin": "node --experimental-strip-types scripts/update-gitops-pin.ts",
+    "gitops:pin:check": "node --experimental-strip-types scripts/update-gitops-pin.ts --check",
     "test:security:egress": "node --experimental-strip-types --test tests/security/egress_anti_ssrf.test.ts",
     "probe:security:egress": "node --experimental-strip-types scripts/probe-egress-security.ts --simulate --profile=cilium-l7",
     "k8s:rollout-restart": "node --experimental-strip-types scripts/k8s-rollout-restart.ts",
