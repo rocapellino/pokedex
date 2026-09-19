@@ -9,7 +9,7 @@ Este documento formaliza la **auditoría integral de coherencia operacional** en
 Habiendo superado la fase inicial de reducción de componentes y superficie de ataque, el riesgo técnico crítico del proyecto **Pokédex** radica en la **fidelidad operacional**:
 > *Garantizar que lo que aprovisiona OpenTofu, lo que configura Ansible, lo que despliega Helm y lo que reconcilia ArgoCD coincida con exactitud milimétrica con los manuales y contratos de arquitectura.*
 
-```
+```text
                     POKÉDEX PLATFORM
                            │
                  ┌─────────┴─────────┐
@@ -53,6 +53,7 @@ flowchart LR
 ## 3. Taxonomía de Estados Operacionales
 
 Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiquetas:
+
 * **`[IMPLEMENTADO]` (IMP):** Manifiestos, plantillas o código fuente existen físicamente y son sintácticamente ejecutables.
 * **`[DECLARADO]` (DEC):** Parametrizado explícitamente en variables, values o configuraciones de entorno.
 * **`[EJECUTADO]` (EJE):** Activo en ejecución en un clúster vivo o verificado continuamente en pipelines de CI/CD.
@@ -83,6 +84,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ## 5. Radiografía de Inconsistencias Detectadas y Mitigaciones Aplicadas
 
 ### 5.1. Inconsistencia de Subredes: Ansible (`192.168.1.x`) vs. OpenTofu/Vault (`10.10.13.x`)
+
 * **Diagnóstico Previo:**  
   [`infra/opentofu/environments/proxmox/variables.tf`](../../infra/opentofu/environments/proxmox/variables.tf) aprovisionaba el nodo K8s en `10.10.13.100/24`, el Vault en `10.10.13.110/24` y el Bastion en `10.10.13.120/24`. Sin embargo, [`infra/ansible/inventory/hosts.ini`](../../infra/ansible/inventory/hosts.ini) y [`hosts.yml`](../../infra/ansible/inventories/proxmox/hosts.yml) configuraban `k8s-master-01` en `192.168.1.10` y mantenían una variable obsoleta `docker_compose_version=v2.24.5`.
 * **Mitigación Aplicada:**  
@@ -95,6 +97,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ---
 
 ### 5.2. Brecha de Automatización en K3s Runtime
+
 * **Diagnóstico Previo:**  
   La instalación de K3s con desacoplamiento de Flannel (`--flannel-backend=none --disable-network-policy`) y la instalación del Helm chart de Cilium figuraban únicamente como pasos manuales en la guía operativa [`PROXMOX_DEPLOYMENT_GUIDE.md`](../runbooks/PROXMOX_DEPLOYMENT_GUIDE.md#L251).
 * **Mitigación Aplicada:**  
@@ -108,6 +111,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ---
 
 ### 5.3. Interacción CiliumNetworkPolicy vs. NetworkPolicy Fallback
+
 * **Diagnóstico Previo:**  
   En [`network-policies.yaml`](../../infra/helm/pokedex/templates/network-policies.yaml#L143), la regla estándar de egreso HTTPS se desactiva cuando `ciliumNetworkPolicy.enabled: true`. En un clúster sin Cilium CNI, las peticiones externas a PokéAPI y Gemini se bloquean silenciosamente.
 * **Mitigación y Regla Arquitectural:**  
@@ -117,6 +121,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ---
 
 ### 5.4. Inconsistencia de Ingress Controller en Proxmox
+
 * **Diagnóstico Previo:**  
   [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) declaraba `className: "traefik"` pero inyectaba anotaciones específicas de Nginx (`nginx.ingress.kubernetes.io/*`) con valores nulos o desactivados.
 * **Mitigación Aplicada:**  
@@ -125,6 +130,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ---
 
 ### 5.5. Resolución de Nombres en ArgoCD GitOps
+
 * **Diagnóstico Previo:**  
   [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) apunta al clúster mediante `server: https://k8s-proxmox.internal.lan:6443`.
 * **Regla Arquitectural:**  
@@ -133,6 +139,7 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ---
 
 ### 5.6. Taxonomía de Secretos en Vault: `pokedex/production` vs `pokedex/prod/*`
+
 * **Diagnóstico Previo:**  
   La documentación referenciaba rutas bajo `secret/data/pokedex/prod/*`, mientras que el `ClusterSecretStore` y `values.yaml` consultan la clave singular `pokedex/production`.
 * **Mitigación Aplicada:**  
@@ -143,7 +150,9 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 ## 6. Control Automatizado de Coherencia en CI/CD
 
 La consistencia de esta matriz se vigila activamente en el pipeline de GitHub Actions mediante pruebas estáticas en [`tests/security/deploy_scripts_security.test.ts`](../../tests/security/deploy_scripts_security.test.ts):
+
 1. **Coherencia de Subredes:** Valida que `hosts.ini` y `hosts.yml` utilicen la subred `10.10.13.0/24` en paridad con OpenTofu.
 2. **Presencia de Automatización K3s:** Valida la existencia del playbook `setup_k3s.yml` y sus parámetros de instalación (`--flannel-backend=none`).
 3. **Paridad Criptográfica de Imágenes (1:1):** Certifica que AWS GitOps, Proxmox GitOps y Helm Prod apunten al mismo digest inmutable SHA256 publicado por CI.
 4. **Validación de Namespace Universal:** Asegura que todos los componentes apunten al namespace canónico `pokemon-app`.
+
