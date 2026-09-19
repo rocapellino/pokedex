@@ -179,4 +179,3 @@ flowchart TD
 * 📈 [**capacity-and-quotas.md**](./operations/capacity-and-quotas.md): Dimensionamiento de recursos, límites y cuotas operacionales por namespace.
 * 🛠️ [**TASKFILE_CLI_REFERENCE.md**](./operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI unificado con Taskfile, catálogo canónico y estrategia en 4 fases de ciclo de vida de aliases.
 * 📦 [**GHCR_RETENTION_POLICY.md**](./operations/GHCR_RETENTION_POLICY.md): Política de retención en GitHub Container Registry, purgado automático y garantía de 3 versiones activas.
-
