@@ -248,6 +248,16 @@ tasks:
     cmds:
       - kubectl apply -f gitops/health-checks/argocd-cm-healthchecks.yaml
 
+  gitops:pin:
+    desc: "Actualiza el targetRevision en manifiestos de ArgoCD (Uso: task gitops:pin TAG=v1.75.10)"
+    cmds:
+      - node --experimental-strip-types scripts/update-gitops-pin.ts --tag={{.TAG}}
+
+  gitops:pin:check:
+    desc: "Audita la paridad y validez del targetRevision entre las aplicaciones de ArgoCD"
+    cmds:
+      - node --experimental-strip-types scripts/update-gitops-pin.ts --check
+
   gitops:sync:proxmox:
     desc: "Sincroniza la aplicación ArgoCD para el entorno on-premise Proxmox"
     cmds:

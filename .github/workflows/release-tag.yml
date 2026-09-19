@@ -10,12 +10,13 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   auto-tag-and-release:
     name: 🚀 Bump Version & Create GitHub Release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'chore(release)')"
+    if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'chore(gitops)')"
 
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
@@ -42,3 +43,41 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 4. Actualizar targetRevision en Manifiestos de ArgoCD
+        if: steps.tag_version.outputs.new_tag
+        run: |
+          node --experimental-strip-types scripts/update-gitops-pin.ts --tag="${{ steps.tag_version.outputs.new_tag }}"
+
+      - name: 5. Crear Pull Request de Promoción de Pinning en GitOps
+        if: steps.tag_version.outputs.new_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
+        run: |
+          BRANCH="gitops/pin-${NEW_TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add gitops/apps/
+          git commit -m "chore(gitops): bump argocd targetRevision to ${NEW_TAG} [skip-release]"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "chore(gitops): bump argocd targetRevision to ${NEW_TAG}" \
+            --body "### 🚀 Automated GitOps Pinning Promotion
+
+Este Pull Request actualiza de forma controlada el \`targetRevision\` de las aplicaciones de ArgoCD al tag de release **${NEW_TAG}**.
+
+#### Aplicaciones actualizadas:
+- \`gitops/apps/root-application.yaml\`
+- \`gitops/apps/app-proxmox.yaml\`
+- \`gitops/apps/app-cloud.yaml\`
+
+#### Flujo de Gobernanza:
+1. Release tag **${NEW_TAG}** generado en CI.
+2. Manifiestos de GitOps actualizados con pinning inmutable.
+3. Requiere revisión y merge manual antes de que ArgoCD sincronice el clúster.
+
+> Nota: Este commit incluye \`[skip-release]\` para evitar bucles recursivos de release." \
+            --base main \
+            --head "$BRANCH"

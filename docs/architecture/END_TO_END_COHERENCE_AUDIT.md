@@ -147,11 +147,23 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 
 ---
 
+### 5.7. Desfase de Versión en ArgoCD (Hallazgo P1) y Pipeline de Promoción Automatizada
+
+* **Diagnóstico Previo:**  
+  Los manifiestos de ArgoCD (`root-application.yaml`, `app-proxmox.yaml` y `app-cloud.yaml`) se encontraban congelados en `targetRevision: v1.57.1`, mientras el repositorio ya había avanzado hasta `v1.75.10` (más de 38 commits de desfase). Esto provocaba que ArgoCD sincronizara un estado legado y obsoleto en el clúster.
+* **Mitigación y Arquitectura de Promoción:**  
+  1. Se actualizó inmediatamente el `targetRevision` de todas las aplicaciones de ArgoCD a la versión liberada actual `v1.75.10`.
+  2. Se rechazó el uso de ramas mutables (`main` / `HEAD`) para preservar el principio de despliegues deterministas y rollbacks inmutables.
+  3. Se formalizó el pipeline automatizado de promoción en `.github/workflows/release-tag.yml`: tras la creación de cada tag semántico en `main`, un paso automático ejecuta `scripts/update-gitops-pin.ts`, genera la rama `gitops/pin-<tag>` y abre un Pull Request con el commit `chore(gitops): bump argocd targetRevision to <tag> [skip-release]` para revisión y merge controlado.
+
+---
+
 ## 6. Control Automatizado de Coherencia en CI/CD
 
-La consistencia de esta matriz se vigila activamente en el pipeline de GitHub Actions mediante pruebas estáticas en [`tests/security/deploy_scripts_security.test.ts`](../../tests/security/deploy_scripts_security.test.ts):
+La consistencia de esta matriz se vigila activamente en el pipeline de GitHub Actions mediante pruebas estáticas en [`tests/security/deploy_scripts_security.test.ts`](../../tests/security/deploy_scripts_security.test.ts) y [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts):
 
 1. **Coherencia de Subredes:** Valida que `hosts.ini` y `hosts.yml` utilicen la subred `10.10.13.0/24` en paridad con OpenTofu.
 2. **Presencia de Automatización K3s:** Valida la existencia del playbook `setup_k3s.yml` y sus parámetros de instalación (`--flannel-backend=none`).
 3. **Paridad Criptográfica de Imágenes (1:1):** Certifica que AWS GitOps, Proxmox GitOps y Helm Prod apunten al mismo digest inmutable SHA256 publicado por CI.
 4. **Validación de Namespace Universal:** Asegura que todos los componentes apunten al namespace canónico `pokemon-app`.
+5. **Paridad y Gobernanza de Pinning en ArgoCD:** Certifica que todas las aplicaciones de ArgoCD utilicen versiones SemVer inmutables idénticas y valida el pipeline de promoción continua.
