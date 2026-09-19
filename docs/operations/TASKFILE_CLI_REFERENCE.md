@@ -83,21 +83,27 @@ flowchart LR
 ```
 
 ### Fase 1: Documentar Aliases (Inventario y Mapeo)
+
 - Se registran de forma exhaustiva todos los aliases históricos en esta guía de referencia y en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md).
 - Toda la documentación oficial de despliegue, guías de Proxmox y READMEs se actualizan para emplear exclusivamente la sintaxis canónica (`task infra:plan:proxmox`, `task ansible:prepare`, `task lint`).
 
 ### Fase 2: Medir Uso y Telemetría Informativa
+
 - Cada alias en `Taskfile.yml` incorpora una directiva informativa visible en consola:
+
   ```bash
   ⚠️  [DEPRECADO] 'task <alias>' es un alias de compatibilidad. Use 'task <canónico>'.
   ```
+
 - Las ejecuciones en CI/CD y terminales locales muestran inmediatamente la advertencia, orientando a desarrolladores y operadores sobre la alternativa soportada.
 
 ### Fase 3: Deprecación Formal
+
 - Las descripciones de las tareas en `Taskfile.yml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
 - Se mantiene 100% la funcionalidad subyacente para no bloquear pipelines existentes durante todo el ciclo de versiones `v1.x`.
 
 ### Fase 4: Eliminación Definitiva (v2.0)
+
 - En el hito de lanzamiento mayor `v2.0`, tras verificar la ausencia de llamadas en pipelines de integración continua y scripts de automatización, los bloques de alias serán retirados permanentemente de `Taskfile.yml`.
 
 ---
