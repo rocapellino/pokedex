@@ -1,0 +1,139 @@
+---
+# ==============================================================================
+# Playbook: Provisión Declarativa de Kubernetes (K3s) y CNI Cilium (eBPF)
+# ==============================================================================
+# Automatiza el aprovisionamiento del runtime K3s y CNI Cilium en el nodo Proxmox,
+# cerrando la brecha de ejecución manual entre OpenTofu y Helm/GitOps.
+#
+# Flags Canónicos de K3s:
+# - --flannel-backend=none     : Delega el CNI a Cilium eBPF
+# - --disable-network-policy  : Delega NetworkPolicies a Cilium / CiliumNetworkPolicy
+# - --disable servicelb        : Desactiva Klipper LB (evita conflictos de IP pública)
+# - --disable local-storage    : Desactiva local-path-provisioner predeterminado
+# - --write-kubeconfig-mode 644: Permite lectura controlada para automatización local
+# ==============================================================================
+- name: Aprovisionar Runtime Kubernetes K3s y CNI Cilium
+  hosts: k8s_control_plane
+  become: true
+  vars:
+    k3s_version: "v1.31.2+k3s1"
+    cilium_version: "1.16.1"
+    k3s_install_exec: "--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage --write-kubeconfig-mode 644"
+    cilium_namespace: "kube-system"
+    cilium_operator_replicas: 1
+    cilium_hubble_enabled: false
+
+  tasks:
+    # --------------------------------------------------------------------------
+    # 1. Verificación de Estado Previo de K3s
+    # --------------------------------------------------------------------------
+    - name: Verificar si K3s ya se encuentra instalado
+      ansible.builtin.stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Comprobar servicio k3s si el binario existe
+      ansible.builtin.systemd:
+        name: k3s
+      register: k3s_service_status
+      when: k3s_binary.stat.exists
+      ignore_errors: true
+
+    # --------------------------------------------------------------------------
+    # 2. Descarga e Instalación Declarativa de K3s
+    # --------------------------------------------------------------------------
+    - name: Instalar K3s con CNI Flannel desacoplado (Preparado para Cilium eBPF)
+      ansible.builtin.shell: |
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="{{ k3s_version }}" INSTALL_K3S_EXEC="{{ k3s_install_exec }}" sh -s -
+      environment:
+        INSTALL_K3S_EXEC: "{{ k3s_install_exec }}"
+      when: not k3s_binary.stat.exists or (k3s_service_status.status.ActiveState | default('inactive') != 'active')
+      register: k3s_install_result
+      changed_when: k3s_install_result.rc == 0
+
+    - name: Asegurar que el servicio k3s esté iniciado y habilitado en el arranque
+      ansible.builtin.systemd:
+        name: k3s
+        state: started
+        enabled: true
+
+    - name: Esperar a que kubeconfig esté disponible en /etc/rancher/k3s/k3s.yaml
+      ansible.builtin.wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
+        state: present
+        timeout: 60
+
+    # --------------------------------------------------------------------------
+    # 3. Verificación de Conectividad Kube-apiserver
+    # --------------------------------------------------------------------------
+    - name: Esperar a que Kube-apiserver responda en localhost:6443
+      ansible.builtin.command:
+        cmd: k3s kubectl get nodes
+      register: k8s_node_check
+      retries: 10
+      delay: 6
+      until: k8s_node_check.rc == 0
+      changed_when: false
+
+    # --------------------------------------------------------------------------
+    # 4. Despliegue Declarativo de Cilium CNI vía Helm
+    # --------------------------------------------------------------------------
+    - name: Comprobar si Helm está disponible en el nodo
+      ansible.builtin.command:
+        cmd: which helm
+      register: helm_check
+      failed_when: false
+      changed_when: false
+
+    - name: Instalar Helm si no está presente en el nodo
+      ansible.builtin.shell: |
+        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      when: helm_check.rc != 0
+      register: helm_install
+      changed_when: helm_install.rc == 0
+
+    - name: Configurar repositorio Helm oficial de Cilium
+      ansible.builtin.command:
+        cmd: helm repo add cilium https://helm.cilium.io/
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: cilium_repo_add
+      changed_when: "'already exists' not in cilium_repo_add.stdout"
+
+    - name: Actualizar repositorios de Helm
+      ansible.builtin.command:
+        cmd: helm repo update
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      changed_when: false
+
+    - name: Desplegar / Actualizar Cilium CNI (Modo Lean eBPF con FQDN Egress Allowlist)
+      ansible.builtin.command:
+        cmd: >
+          helm upgrade --install cilium cilium/cilium
+          --version {{ cilium_version }}
+          --namespace {{ cilium_namespace }}
+          --set operator.replicas={{ cilium_operator_replicas }}
+          --set hubble.enabled={{ cilium_hubble_enabled | lower }}
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: cilium_deploy
+      changed_when: "'Release \"cilium\" has been upgraded' in cilium_deploy.stdout or 'Release \"cilium\" does not exist' in cilium_deploy.stdout"
+
+    # --------------------------------------------------------------------------
+    # 5. Validación de Estado del Nodo
+    # --------------------------------------------------------------------------
+    - name: Esperar a que el nodo reporte estado Ready tras inicialización de Cilium
+      ansible.builtin.command:
+        cmd: k3s kubectl wait --for=condition=Ready node --all --timeout=120s
+      changed_when: false
+
+    - name: Confirmar pods activos de Cilium en kube-system
+      ansible.builtin.command:
+        cmd: k3s kubectl get pods -n {{ cilium_namespace }} -l k8s-app=cilium
+      register: cilium_pods
+      changed_when: false
+
+    - name: Mostrar estado de pods de Cilium
+      ansible.builtin.debug:
+        var: cilium_pods.stdout_lines

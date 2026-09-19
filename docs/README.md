@@ -31,6 +31,7 @@ flowchart TD
     ARCH --> A12["🔍 DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md"]
     ARCH --> A13["🛡️ FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md"]
     ARCH --> A14["🏷️ KUBERNETES_NAMESPACE_TAXONOMY.md"]
+    ARCH --> A15["🔍 END_TO_END_COHERENCE_AUDIT.md"]
 
     API --> AP1["📡 API_SPECIFICATION.md"]
 
@@ -67,7 +68,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8 doc;
 ```
 
 ---
@@ -90,6 +91,7 @@ flowchart TD
 * 🔍 [**DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md**](./architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md): Comparativa exhaustiva entre arquitectura declarada vs. realmente renderizada en Helm/GitOps (AWS vs Proxmox).
 * 🛡️ [**FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md**](./architecture/FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md): Especificación formal de contratos de resiliencia ante contingencias de DB y Redis (Fail-Open vs. Fail-Closed).
 * 🏷️ [**KUBERNETES_NAMESPACE_TAXONOMY.md**](./architecture/KUBERNETES_NAMESPACE_TAXONOMY.md): **Taxonomía canónica de namespaces de Kubernetes** (`pokemon-app` como SSOT), segregación de namespaces de plataforma y disambiguación de rutas/roles en HashiCorp Vault.
+* 🔍 [**END_TO_END_COHERENCE_AUDIT.md**](./architecture/END_TO_END_COHERENCE_AUDIT.md): **Auditoría de coherencia operacional extremo a extremo** a través de los 8 eslabones de la cadena (OpenTofu $\rightarrow$ Ansible $\rightarrow$ K3s $\rightarrow$ Helm $\rightarrow$ GitOps $\rightarrow$ ESO/Vault $\rightarrow$ NetworkPolicy $\rightarrow$ CI/CD).
 
 ---
 
