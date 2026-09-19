@@ -51,6 +51,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Automatización (Ansible)** | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
 | | `task ansible:harden` | Aplica blindaje perimetral y reglas de firewall UFW en hosts. |
 | | `task ansible:validate` | Auditoría y compliance de hosts sin alterar estado. |
+| | `task k3s:setup:proxmox` | Aprovisiona K3s y Cilium CNI en Proxmox mediante Ansible (`setup_k3s.yml`). |
+| | `task vault:setup:proxmox` | Aprovisiona e inicializa HashiCorp Vault CE en Proxmox (`setup_vault.yml`). |
 | **Empaquetado (Helm)** | `task helm:lint` | Valida sintaxis y buenas prácticas del Chart de Helm. |
 | | `task helm:template` | Renderiza manifiestos Kubernetes generados por el Chart. |
 | **Kubernetes Runtime** | `task k8s:up` | Despliega o actualiza el release de Helm en el clúster activo. |
@@ -60,6 +62,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task gitops:sync:proxmox` | Fuerza sincronización declarativa para Proxmox VE. |
 | | `task gitops:sync:cloud` | Fuerza sincronización declarativa para AWS EKS. |
 | | `task gitops:health-checks` | Aplica evaluadores de salud personalizados para CRDs. |
+| **Seguridad & Egress L7** | `task security:egress` | Ejecuta pruebas automatizadas de política de egress L7 Anti-SSRF. |
+| | `task security:egress:probe` | Ejecuta la sonda activa de seguridad y filtrado egress L7 en clúster. |
 | **Gobernanza & Auditoría** | `task governance:audit-scripts` | Valida lista blanca estricta de scripts y prohíbe scripts imperativos. |
 | | `task security` | Escaneos SAST y auditoría de secretos (Semgrep, Gitleaks, Checkov). |
 
