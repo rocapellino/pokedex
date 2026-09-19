@@ -29,7 +29,8 @@ infra/helm/
 └── pokedex/
     ├── Chart.yaml                       # Metadatos del Chart (versión 1.0.0, appVersion 1.9.5)
     ├── .helmignore                      # Patrones de exclusión de empaquetado
-    ├── values.yaml                      # Configuración por defecto (desarrollo / local)
+    ├── values.yaml                      # Configuración base segura (Secure by Default / Safe defaults)
+    ├── values.dev.yaml                  # Overrides para desarrollo local / Kind / Minikube (HTTP permisivo)
     ├── values.prod.yaml                 # Overrides para producción (HA, TLS, Zero-Trust, PgBouncer, ESO)
     └── templates/
         ├── _helpers.tpl                 # Macros de nombres, etiquetas y helper pokedex.secretName
@@ -71,8 +72,11 @@ El proyecto incluye tareas automatizadas en `Taskfile.yml` que encapsulan la eje
 # Validar sintaxis y reglas del Chart
 task helm:lint
 
-# Renderizar los manifiestos por defecto (desarrollo)
+# Renderizar los manifiestos base seguros (Secure by Default)
 task helm:template
+
+# Renderizar con overrides para desarrollo local (Kind/Minikube)
+task helm:template:dev
 
 # Renderizar con el perfil de producción y reglas Zero-Trust
 task helm:template:prod
@@ -85,19 +89,24 @@ task helm:package
 
 ## 5. Instalación y Despliegue
 
-### 5.1 Despliegue en Desarrollo / Local
+### 5.1 Despliegue en Desarrollo / Local (Overrides Explícitos)
 
-En desarrollo, Helm genera automáticamente un secreto local con contraseñas por defecto:
+El Chart implementa el principio de **Secure by Default**: la base `values.yaml` fuerza HTTPS, TLS, modo de ejecución `production`, Zero-Trust con Cilium L7 y desactivación de Reloader no controlado.
+
+Para entornos locales de desarrollo (Kind, Minikube o Docker Desktop sin Ingress TLS ni Cilium), se deben utilizar los overrides explícitos de `values.dev.yaml`:
 
 ```bash
 # Crear namespace
 kubectl create namespace pokemon-app
 
-# Instalar el release pokedex con valores por defecto
+# Instalar el release pokedex con overrides de desarrollo
 helm install pokedex ./infra/helm/pokedex \
   --namespace pokemon-app \
-  --create-namespace
+  --create-namespace \
+  -f ./infra/helm/pokedex/values.dev.yaml
 ```
+
+Si por accidente un operador ejecuta `helm install ...` sin especificar valores adicionales, obtendrá un despliegue seguro con restricciones de producción en lugar de una superficie expuesta y permisiva.
 
 ### 5.2 Despliegue en Producción (Zero-Trust & Secretos Desacoplados)
 

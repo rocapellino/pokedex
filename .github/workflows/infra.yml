@@ -36,19 +36,21 @@ jobs:
         with:
           version: v3.17.0
 
-      - name: 2b. Validar y Renderizar Helm Chart (Dev, Prod, Proxmox, AWS y Cilium L7 eBPF)
+      - name: 2b. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, AWS y Cilium L7 eBPF)
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key
-          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.dev.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
+          helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-base.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
           helm template pokedex infra/helm/pokedex -f gitops/environments/proxmox/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-proxmox.yaml
           helm template pokedex infra/helm/pokedex -f gitops/environments/aws/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-aws.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
-          echo "✅ Helm Chart validado y renderizado con éxito para dev, prod, proxmox, aws y Cilium L7 eBPF."
+          echo "✅ Helm Chart validado y renderizado con éxito para dev, base secure, prod, proxmox, aws y Cilium L7 eBPF."
 
       - name: 2c. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
         run: |
           test -s /tmp/rendered-dev.yaml || { echo "❌ Error: rendered-dev.yaml está vacío"; exit 1; }
+          test -s /tmp/rendered-base.yaml || { echo "❌ Error: rendered-base.yaml está vacío"; exit 1; }
           test -s /tmp/rendered-prod.yaml || { echo "❌ Error: rendered-prod.yaml está vacío"; exit 1; }
           test -s /tmp/rendered-proxmox.yaml || { echo "❌ Error: rendered-proxmox.yaml está vacío"; exit 1; }
           test -s /tmp/rendered-aws.yaml || { echo "❌ Error: rendered-aws.yaml está vacío"; exit 1; }
@@ -80,7 +82,7 @@ jobs:
           echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum --check --strict
           tar -xz -C /tmp -f /tmp/kubeconform.tar.gz kubeconform
           /tmp/kubeconform -v
-          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-aws.yaml
+          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-aws.yaml
           echo "✅ Validación de esquemas OpenAPI de Kubernetes con Kubeconform completada con éxito."
 
       - name: 2e. Instalar y Ejecutar Kube-Linter (Auditoría de Buenas Prácticas K8s)

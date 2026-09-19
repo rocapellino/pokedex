@@ -81,3 +81,16 @@ hpa:
 
 reloader:
   enabled: false
+
+# ------------------------------------------------------------------------------
+# Políticas de Red para Desarrollo Local (Permisivo para clústeres sin Cilium CNI)
+# ------------------------------------------------------------------------------
+networkPolicies:
+  enabled: true
+  egress:
+    antiSsrf: true
+    externalHttps: true
+    allowedExternalCidrs: []
+
+ciliumNetworkPolicy:
+  enabled: false
