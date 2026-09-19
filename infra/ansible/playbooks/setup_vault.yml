@@ -46,7 +46,7 @@
       ansible.builtin.get_url:
         url: https://apt.releases.hashicorp.com/gpg
         dest: /usr/share/keyrings/hashicorp-archive-keyring.asc
-        mode: '0644'
+        mode: '0640'
 
     - name: Convertir clave GPG de HashiCorp a formato binario
       ansible.builtin.command:
@@ -163,7 +163,7 @@
         src: "{{ vault_tls_dir }}/vault-ca.crt"
         dest: /usr/local/share/ca-certificates/vault-ca.crt
         remote_src: true
-        mode: '0644'
+        mode: '0640'
       notify: Actualizar certificados del sistema
 
     - name: Generar archivo de configuración OpenSSL para SANs del servidor
@@ -171,7 +171,7 @@
         dest: "{{ vault_tls_dir }}/openssl.cnf"
         owner: root
         group: root
-        mode: '0644'
+        mode: '0640'
         content: |
           [req]
           default_bits = 2048
@@ -235,7 +235,7 @@
         path: "{{ vault_tls_dir }}/vault.crt"
         owner: vault
         group: vault
-        mode: '0644'
+        mode: '0640'
 
     # --------------------------------------------------------------------------
     # 5. Configuración de Servicio Vault y Memory Lock (mlock) Hardening
@@ -251,14 +251,14 @@
         state: directory
         owner: root
         group: root
-        mode: '0755'
+        mode: '0750'
 
     - name: Configurar límites de memoria y capacidades en systemd drop-in
       ansible.builtin.copy:
         dest: /etc/systemd/system/vault.service.d/override.conf
         owner: root
         group: root
-        mode: '0644'
+        mode: '0640'
         content: |
           [Service]
           LimitMEMLOCK=infinity
@@ -526,7 +526,7 @@
       ansible.builtin.copy:
         dest: "{{ playbook_dir }}/../../k8s/eso/vault-ca.crt"
         content: "{{ vault_ca_public_cert.content | b64decode }}"
-        mode: '0644'
+        mode: '0640'
       delegate_to: localhost
       become: false
 
