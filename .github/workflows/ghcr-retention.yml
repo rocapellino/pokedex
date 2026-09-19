@@ -1,0 +1,64 @@
+name: 🧹 GHCR Retention - Prune Older Packages
+
+on:
+  schedule:
+    - cron: '0 4 * * 0' # Semanal los domingos a las 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Modo Dry-Run (solo simular, no eliminar)'
+        type: boolean
+        required: false
+        default: false
+      keep_versions:
+        description: 'Número de versiones activas a conservar'
+        type: number
+        required: false
+        default: 3
+  workflow_run:
+    workflows: ["🚀 CI/CD Pipeline - Quality Gates & Release"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  prune-ghcr:
+    name: "🧹 Purgar imágenes antiguas en GHCR (Retención: 3)"
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias del monorepo
+        run: npm ci --ignore-scripts
+
+      - name: Aplicar política de retención en GHCR vía script tipado
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          DRY_RUN_FLAG=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+          KEEP_COUNT="${{ inputs.keep_versions || 3 }}"
+          echo "Ejecutando retención en GHCR (keep=$KEEP_COUNT, dry-run=$DRY_RUN_FLAG)..."
+          node --experimental-strip-types scripts/ghcr-retention.ts --keep="$KEEP_COUNT" $DRY_RUN_FLAG
+
+      - name: Purgar capas y firmas huérfanas mediante dataaxiom/ghcr-cleanup-action
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
+        with:
+          keep-n-tagged: ${{ inputs.keep_versions || 3 }}
+          delete-untagged: true
+          dry-run: ${{ inputs.dry_run || false }}
+          token: ${{ secrets.GITHUB_TOKEN }}

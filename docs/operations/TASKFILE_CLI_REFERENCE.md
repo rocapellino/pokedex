@@ -64,6 +64,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task gitops:health-checks` | Aplica evaluadores de salud personalizados para CRDs. |
 | **Seguridad & Egress L7** | `task security:egress` | Ejecuta pruebas automatizadas de política de egress L7 Anti-SSRF. |
 | | `task security:egress:probe` | Ejecuta la sonda activa de seguridad y filtrado egress L7 en clúster. |
+| **Supply Chain & Registro (GHCR)** | `task ghcr:retention` | Aplica política de retención en GHCR conservando estrictamente los últimos 3 releases. |
+| | `task ghcr:retention:dry-run` | Inspecciona versiones en GHCR y simula la purga sin mutaciones (Dry-Run). |
 | **Gobernanza & Auditoría** | `task governance:audit-scripts` | Valida lista blanca estricta de scripts y prohíbe scripts imperativos. |
 | | `task security` | Escaneos SAST y auditoría de secretos (Semgrep, Gitleaks, Checkov). |
 

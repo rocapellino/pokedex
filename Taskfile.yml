@@ -625,5 +625,16 @@ tasks:
     cmds:
       - npm run probe:security:egress
 
+  ghcr:retention:
+    desc: "Aplica la política de retención en GHCR conservando estrictamente las últimas 3 versiones"
+    cmds:
+      - npm run ghcr:retention
+
+  ghcr:retention:dry-run:
+    desc: "Inspecciona las versiones en GHCR y simula la purga sin mutaciones (Dry-Run)"
+    cmds:
+      - npm run ghcr:retention:dry-run
+
+
 
 
