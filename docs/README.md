@@ -115,6 +115,7 @@ flowchart TD
 * 🧪 [**STRESS_TESTING_GUIDE.md**](./runbooks/STRESS_TESTING_GUIDE.md): Guía para ejecución de pruebas de carga y estrés con k6 y generador concurrente de tráfico.
 * 🖥️ [**PROXMOX_DEPLOYMENT_GUIDE.md**](./runbooks/PROXMOX_DEPLOYMENT_GUIDE.md): Guía de despliegue y virtualización en clústeres locales Proxmox VE con contenedores LXC, Cloud-Init, Ansible y OpenTofu.
 * 📋 [**DISASTER_RECOVERY_PLAN.md**](./runbooks/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.
+* 🚨 [**BREAK_GLASS_PROCEDURE.md**](./runbooks/BREAK_GLASS_PROCEDURE.md): Protocolo de contingencia y acceso de emergencia Break-Glass mediante Bastion auditado (LXC 100).
 
 ---
 
@@ -150,6 +151,9 @@ flowchart TD
 * 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados.
 * 📐 [**ADR-021**](./decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md): Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks de Ciclo de Vida, Health Checks Declarativos y Patrón App-of-Apps.
 * 📐 [**ADR-022**](./decisions/ADR-022-automated-credential-rotation-and-reloader.md): Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader.
+* 📐 [**ADR-023**](./decisions/ADR-023-typescript-native-compiler-adoption.md): Adopción del Compilador Nativo de TypeScript (`node --experimental-strip-types`) y Desacoplamiento de Bundlers.
+* 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
+* 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
 
 ---
 
@@ -162,3 +166,4 @@ flowchart TD
 * ☸️ [**kubernetes-troubleshooting.md**](./operations/kubernetes-troubleshooting.md): Diagnóstico rápido para CrashLoopBackOff, ImagePullBackOff, fallos de endpoints y ExternalSecrets.
 * ⏪ [**rollback.md**](./operations/rollback.md): Protocolos de reversión controlada vía ArgoCD, Helm de emergencia y Git revert.
 * 🔐 [**secret-rotation.md**](./operations/secret-rotation.md): Protocolo de rotación periódica y de emergencia de secretos con External Secrets Operator y Stakater Reloader.
+* 📈 [**capacity-and-quotas.md**](./operations/capacity-and-quotas.md): Dimensionamiento de recursos, límites y cuotas operacionales por namespace.

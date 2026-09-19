@@ -40,10 +40,23 @@ Runbook de referencia rápida para identificar y mitigar fallos frecuentes en Po
 
 ### Fallo 4: ExternalSecret en estado `SecretSyncedError`
 
-- **Causa común**: Falta de permisos en IAM / Vault o secreto ausente en el almacén externo.
+- **Causa común**: Falta de permisos en IAM / Vault, secreto ausente en el almacén externo, o Vault se encuentra en estado *Sealed*.
 - **Acción**:
 
   ```bash
   kubectl describe externalsecret -n pokemon-app
   kubectl describe secretstore -n pokemon-app
+
+  # En On-Premise Proxmox, validar estado de Vault en el host dedicado (LXC 101):
+  vault status
+  # Si Vault está sellado (Sealed: true), ejecutar el proceso de unseal con los shares correspondientes:
+  vault operator unseal <unseal-key>
   ```
+
+### Fallo 5: Indisponibilidad de ArgoCD o Pérdida de Control Remoto (Break-Glass)
+
+- **Causa común**: Fallo en plano de control de GitOps, bloqueo de red administrativa o emergencia fuera de horario.
+- **Acción**:
+  - Seguir estrictamente el runbook formal [BREAK_GLASS_PROCEDURE.md](../runbooks/BREAK_GLASS_PROCEDURE.md).
+  - Acceder exclusivamente a través del nodo perimetral Bastion (LXC 100).
+  - Toda sesión e invocación de `kubectl`, `helm`, `ansible` o `vault` queda registrada y auditada en `/var/log/bastion/audit.log` y syslog `authpriv.notice`.

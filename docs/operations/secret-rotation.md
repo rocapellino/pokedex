@@ -8,17 +8,17 @@ Establecer el protocolo para la rotación periódica y de emergencia de claves c
 
 | Secreto | Mecanismo de Inyección | Periodicidad de Rotación | Impacto de Rotación |
 | :--- | :--- | :--- | :--- |
-| **`POSTGRES_PASSWORD`** | ExternalSecret / SealedSecret | 90 días | Reinicio de conexiones en PgBouncer |
-| **`REDIS_PASSWORD`** | ExternalSecret / SealedSecret | 90 días | Reinicio de conexiones del pool Redis |
-| **`ADMIN_API_KEY`** | ExternalSecret / SealedSecret | 60 días | Exige actualizar clientes de administración |
-| **`ADMIN_SESSION_SECRET`** | ExternalSecret / SealedSecret | 60 días | Invalida sesiones activas en curso |
+| **`POSTGRES_PASSWORD`** | ExternalSecret (Vault / AWS SM) | 90 días | Reinicio de pool de conexiones (`pg.Pool` nativo / PgBouncer) |
+| **`REDIS_PASSWORD`** | ExternalSecret (Vault / AWS SM) | 90 días | Reinicio de conexiones del pool Redis |
+| **`ADMIN_API_KEY`** | ExternalSecret (Vault / AWS SM) | 60 días | Exige actualizar clientes de administración |
+| **`ADMIN_SESSION_SECRET`** | ExternalSecret (Vault / AWS SM) | 60 días | Invalida sesiones activas en curso |
 | **`BACKUP_ENCRYPTION_KEY`** | Secret de Kubernetes / CI | 180 días | Cifra volcados futuros (no altera pasados) |
 
 ## 3. Procedimiento de Rotación
 
 ### Paso 1: Actualizar el secreto en el proveedor upstream (AWS Secrets Manager o Vault)
 
-Actualizar el valor de la clave correspondiente en el almacén de secretos.
+Actualizar el valor de la clave correspondiente en el almacén de secretos (HashiCorp Vault en On-Premise Proxmox o AWS Secrets Manager en Cloud).
 
 ### Paso 2: Forzar sincronización en External Secrets Operator
 
@@ -36,8 +36,12 @@ El mecanismo de propagación depende del entorno de ejecución:
 * **Entorno On-Premise (Proxmox VE / K3s - Perfil Lean MVP):**
   Stakater Reloader está **desactivado intencionalmente** (`reloader.enabled: false`) para reducir la sobrecarga de controladores en clúster y mantener un footprint ultraliviano (< 1 GB RAM total).
   - Los cambios en configuración (`ConfigMap`) provocan automáticamente un *RollingUpdate* mediante la anotación nativa de Helm **`checksum/config`** (`spec.template.metadata.annotations`).
-  - Para aplicar la rotación de secretos inmediatamente tras la sincronización de ESO sin esperar a un nuevo release de Helm, ejecute un reinicio progresivo:
+  - Para aplicar la rotación de secretos inmediatamente tras la sincronización de ESO sin esperar a un nuevo release de Helm, ejecute un reinicio progresivo usando la herramienta tipada del repositorio o `kubectl`:
     ```bash
+    # Vía Taskfile / Script TypeScript tipado:
+    task k8s:rollout-restart -- --live
+
+    # O directamente vía kubectl:
     kubectl rollout restart deployment/pokemon-api deployment/pokemon-web -n pokemon-app
     ```
 

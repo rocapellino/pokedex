@@ -533,7 +533,10 @@ test('🛡️ Tooling Security: scripts/seal-secret.ts implementa verificación 
   assert.ok(content.includes('verifyBinaryIntegrity'), 'Debe definir verifyBinaryIntegrity');
   assert.ok(content.includes('KUBESEAL_SHA256'), 'Debe soportar KUBESEAL_SHA256');
 
-  const { verifyBinaryIntegrity } = await import('../../scripts/seal-secret.js');
+  const sealSecretMod: any = fs.existsSync(path.join(ROOT_DIR, 'scripts/seal-secret.js'))
+    ? await import('../../scripts/seal-secret.js')
+    : await import('../../scripts/seal-secret.ts');
+  const { verifyBinaryIntegrity } = sealSecretMod;
   assert.equal(verifyBinaryIntegrity(scriptPath, undefined), true, 'Sin hash esperado debe retornar true');
 
   // Con hash inválido debe retornar false
@@ -1095,7 +1098,10 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
 });
 
 test('🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil', async () => {
-  const { closeStorage } = await import('../../apps/backend/src/services/db.js');
+  const dbMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/src/services/db.js'))
+    ? await import('../../apps/backend/src/services/db.js')
+    : await import('../../apps/backend/src/services/db.ts');
+  const { closeStorage } = dbMod;
   assert.equal(typeof closeStorage, 'function', 'closeStorage debe ser una función exportada');
 
   // closeStorage debe ser idempotente y resolver sin error
@@ -1103,7 +1109,10 @@ test('🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan
     await closeStorage();
   }, 'closeStorage debe resolver limpiamente sin arrojar errores');
 
-  const { getLifecycleStatus, setShuttingDownForTest } = await import('../../apps/backend/server.js');
+  const serverMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/server.js'))
+    ? await import('../../apps/backend/server.js')
+    : await import('../../apps/backend/server.ts');
+  const { getLifecycleStatus, setShuttingDownForTest } = serverMod;
   assert.equal(typeof getLifecycleStatus, 'function', 'getLifecycleStatus debe ser una función');
   assert.equal(typeof setShuttingDownForTest, 'function', 'setShuttingDownForTest debe ser una función');
 
@@ -1398,7 +1407,10 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   assert.ok(loggerContent.includes('spanId') || loggerContent.includes('traceparent'), 'logger.ts debe incluir spanId/traceparent en LogTraceContext');
 
   // 5. Test funcional de requestTracer con W3C Trace Context
-  const { requestTracer } = await import('../../apps/backend/src/middleware/request-tracer.js');
+  const tracerMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/src/middleware/request-tracer.js'))
+    ? await import('../../apps/backend/src/middleware/request-tracer.js')
+    : await import('../../apps/backend/src/middleware/request-tracer.ts');
+  const { requestTracer } = tracerMod;
   let nextCalled = false;
   const mockReq: any = {
     headers: {
