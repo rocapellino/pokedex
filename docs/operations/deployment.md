@@ -55,7 +55,7 @@ curl -f http://<INGRESS_IP>/version
 
 Conforme a lo establecido en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md):
 
-1. **CLI Canónico Único**: Todas las operaciones de compilación, validación, pruebas, infraestructura y despliegue se ejecutan exclusivamente mediante `Taskfile.yml` (`task --list`) o scripts tipados en `package.json`.
+1. **CLI Canónico Único**: Todas las operaciones de compilación, validación, pruebas, infraestructura y despliegue se ejecutan exclusivamente mediante `Taskfile.yml` (`task --list`) o scripts tipados en `package.json`. Consulte la [Referencia Oficial del CLI Canónico](./TASKFILE_CLI_REFERENCE.md) y [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md) para el catálogo canónico y la estrategia de retiro de aliases en cuatro fases.
 2. **Prohibición de Scripts Imperativos**: Queda estrictamente prohibido el uso o creación de scripts shell imperativos de despliegue (`deploy*.sh`, `*deploy.sh`). El aprovisionamiento y entrega es 100% declarativo vía Helm 3, ArgoCD y OpenTofu.
 3. **Inventario Canónico Auditable**: La única secuencia shell autorizada en el repositorio es `scripts/dr_verify_restore.sh` para pruebas de DR. Para verificar el cumplimiento:
 

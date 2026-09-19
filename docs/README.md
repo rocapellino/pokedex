@@ -49,7 +49,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-025)"]
+    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-026)"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -57,6 +57,7 @@ flowchart TD
     OPS --> OP5["☸️ kubernetes-troubleshooting.md"]
     OPS --> OP6["⏪ rollback.md"]
     OPS --> OP7["🔐 secret-rotation.md"]
+    OPS --> OP8["🛠️ TASKFILE_CLI_REFERENCE.md"]
 
     classDef main fill:#2563eb,stroke:#1d4ed8,color:#fff;
     classDef section fill:#0891b2,stroke:#0e7490,color:#fff;
@@ -64,7 +65,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8 doc;
 ```
 
 ---
@@ -154,6 +155,7 @@ flowchart TD
 * 📐 [**ADR-023**](./decisions/ADR-023-typescript-native-compiler-adoption.md): Adopción del Compilador Nativo de TypeScript (`node --experimental-strip-types`) y Desacoplamiento de Bundlers.
 * 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
 * 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
+* 📐 [**ADR-026**](./decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md): Ciclo de Vida, Estrategia en Cuatro Fases y Deprecación de Aliases en Taskfile CLI.
 
 ---
 
@@ -167,3 +169,4 @@ flowchart TD
 * ⏪ [**rollback.md**](./operations/rollback.md): Protocolos de reversión controlada vía ArgoCD, Helm de emergencia y Git revert.
 * 🔐 [**secret-rotation.md**](./operations/secret-rotation.md): Protocolo de rotación periódica y de emergencia de secretos con External Secrets Operator y Stakater Reloader.
 * 📈 [**capacity-and-quotas.md**](./operations/capacity-and-quotas.md): Dimensionamiento de recursos, límites y cuotas operacionales por namespace.
+* 🛠️ [**TASKFILE_CLI_REFERENCE.md**](./operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI unificado con Taskfile, catálogo canónico y estrategia en 4 fases de ciclo de vida de aliases.

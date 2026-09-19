@@ -104,9 +104,9 @@ El módulo en [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/envi
 * **Aprovisionamiento Conjunto de HashiCorp Vault CE:** El módulo aprovisiona automáticamente el contenedor LXC dedicado para HashiCorp Vault (`vault_enabled = true`, ID `810`, IP `10.10.13.110/24`) para servir como backend de secretos para ESO.
 
 ```bash
-# Inicializar y planificar con OpenTofu
-task tofu:init:proxmox
-task tofu:plan:proxmox
+# Validar sintaxis y planificar con OpenTofu (comandos canónicos)
+task infra:validate
+task infra:plan:proxmox
 
 # O mediante comandos directos de OpenTofu:
 cd infra/opentofu/environments/proxmox
@@ -188,8 +188,8 @@ Una vez que el nodo Proxmox está accesible por SSH, se ejecutan los playbooks d
 ### Baseline de Nodo (Recomendado)
 
 ```bash
-# Vía Taskfile
-task deploy:proxmox -- -e "ansible_host=10.10.13.100"
+# Vía Taskfile (comando canónico)
+task ansible:prepare -- -e "ansible_host=10.10.13.100"
 
 # O mediante Ansible CLI directo:
 ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml

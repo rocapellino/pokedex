@@ -69,12 +69,12 @@ task k8s:up
 # Ver estado de los recursos desplegados
 task k8s:status
 
-# Validar sintaxis de entornos OpenTofu
-task tofu:validate
+# Validar sintaxis de entornos OpenTofu (comando canónico)
+task infra:validate
 
-# Planificar aprovisionamiento en Proxmox VE
-task tofu:plan:proxmox
+# Planificar aprovisionamiento en Proxmox VE (comando canónico)
+task infra:plan:proxmox
 
-# Planificar aprovisionamiento en AWS EKS
-task tofu:plan:cloud
+# Planificar aprovisionamiento en AWS EKS (comando canónico)
+task infra:plan:aws
 ```

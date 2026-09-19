@@ -1784,3 +1784,109 @@ test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml pro
   assert.ok(infraReadmeContent.includes('values.dev.yaml'), 'infra/README.md debe documentar values.dev.yaml');
 });
 
+test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada', () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const cliRefPath = path.join(ROOT_DIR, 'docs/operations/TASKFILE_CLI_REFERENCE.md');
+  const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
+  const infraReadmePath = path.join(ROOT_DIR, 'infra/README.md');
+  const tofuReadmePath = path.join(ROOT_DIR, 'infra/opentofu/README.md');
+  const proxmoxGuidePath = path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md');
+  const readmePath = path.join(ROOT_DIR, 'README.md');
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+
+  // 1. ADR-026 existe físicamente en docs/decisions/ y está en estado Aceptado
+  assert.ok(fs.existsSync(adrPath), 'ADR-026 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adrPath, 'utf-8');
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-026 debe estar en estado Aceptado');
+  assert.ok(adrContent.includes('task --list'), 'ADR-026 debe formalizar task --list como interfaz oficialmente soportada');
+  assert.ok(adrContent.includes('Fase 1: Documentar Aliases'), 'ADR-026 debe documentar Fase 1');
+  assert.ok(adrContent.includes('Fase 2: Medir Uso'), 'ADR-026 debe documentar Fase 2');
+  assert.ok(adrContent.includes('Fase 3: Deprecación Formal'), 'ADR-026 debe documentar Fase 3');
+  assert.ok(adrContent.includes('Fase 4: Eliminación Definitiva'), 'ADR-026 debe documentar Fase 4');
+
+  // 2. TASKFILE_CLI_REFERENCE.md existe físicamente y documenta catálogo canónico y fases
+  assert.ok(fs.existsSync(cliRefPath), 'TASKFILE_CLI_REFERENCE.md debe existir en docs/operations/');
+  const cliRefContent = fs.readFileSync(cliRefPath, 'utf-8');
+  assert.ok(cliRefContent.includes('task --list'), 'TASKFILE_CLI_REFERENCE.md debe consagrar task --list');
+  assert.ok(cliRefContent.includes('Fase 1: Documentar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 1');
+  assert.ok(cliRefContent.includes('Fase 2: Medir Uso'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 2');
+  assert.ok(cliRefContent.includes('Fase 3: Deprecate'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 3');
+  assert.ok(cliRefContent.includes('Fase 4: Eliminar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 4');
+
+  // 3. Taskfile.yml define default con task --list y start como tarea canónica
+  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yml debe ejecutar task --list en tarea default');
+  assert.ok(taskfileContent.includes('start:'), 'Taskfile.yml debe incluir la tarea start canónica');
+
+  // 4. Los 17 aliases históricos están marcados con [DEPRECADO] y emiten advertencia con comando sustituto
+  const deprecatedAliases = [
+    'tofu:init:proxmox',
+    'tofu:plan:proxmox',
+    'tofu:apply:proxmox',
+    'tofu:init:aws',
+    'tofu:plan:aws',
+    'tofu:apply:aws',
+    'tofu:init:cloud',
+    'tofu:plan:cloud',
+    'tofu:apply:cloud',
+    'tofu:validate',
+    'ts:install',
+    'ts:dev',
+    'ts:build',
+    'ts:start',
+    'ts:lint',
+    'docker:up',
+    'docker:down',
+    'deploy:proxmox'
+  ];
+
+  for (const alias of deprecatedAliases) {
+    const hasAlias = taskfileContent.split('\n').some((line: string) => line.startsWith(`  ${alias}:`));
+    assert.ok(hasAlias, `Taskfile.yml debe contener el alias ${alias}`);
+    assert.ok(
+      taskfileContent.includes(`⚠️  [DEPRECADO] 'task ${alias}'`),
+      `El alias ${alias} debe emitir advertencia de deprecación`
+    );
+  }
+
+  // 5. La documentación activa utiliza comandos canónicos y no aliases deprecados
+  const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
+  assert.ok(infraReadmeContent.includes('task infra:plan:proxmox'), 'infra/README.md debe usar comando canónico task infra:plan:proxmox');
+  assert.ok(infraReadmeContent.includes('task infra:plan:aws'), 'infra/README.md debe usar comando canónico task infra:plan:aws');
+  assert.ok(!infraReadmeContent.includes('task tofu:plan:proxmox'), 'infra/README.md no debe contener task tofu:plan:proxmox');
+  assert.ok(!infraReadmeContent.includes('task tofu:plan:cloud'), 'infra/README.md no debe contener task tofu:plan:cloud');
+
+  const tofuReadmeContent = fs.readFileSync(tofuReadmePath, 'utf-8');
+  assert.ok(tofuReadmeContent.includes('task infra:plan:proxmox'), 'infra/opentofu/README.md debe usar task infra:plan:proxmox');
+  assert.ok(tofuReadmeContent.includes('task infra:plan:aws'), 'infra/opentofu/README.md debe usar task infra:plan:aws');
+  assert.ok(!tofuReadmeContent.includes('task tofu:plan:aws'), 'infra/opentofu/README.md no debe contener task tofu:plan:aws');
+
+  const proxmoxGuideContent = fs.readFileSync(proxmoxGuidePath, 'utf-8');
+  assert.ok(proxmoxGuideContent.includes('task infra:plan:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task infra:plan:proxmox');
+  assert.ok(proxmoxGuideContent.includes('task ansible:prepare'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task ansible:prepare');
+  assert.ok(!proxmoxGuideContent.includes('task tofu:plan:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task tofu:plan:proxmox');
+  assert.ok(!proxmoxGuideContent.includes('task deploy:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task deploy:proxmox');
+
+  // 6. deployment.md referencia TASKFILE_CLI_REFERENCE.md y ADR-026
+  const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
+  assert.ok(deploymentContent.includes('TASKFILE_CLI_REFERENCE.md'), 'deployment.md debe enlazar TASKFILE_CLI_REFERENCE.md');
+  assert.ok(deploymentContent.includes('ADR-026'), 'deployment.md debe enlazar ADR-026');
+
+  // 7. README.md y docs/README.md enlazan ADR-026 y TASKFILE_CLI_REFERENCE.md
+  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(readmeContent.includes('ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md'), 'README.md debe enlazar ADR-026');
+  assert.ok(readmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
+  assert.ok(docsReadmeContent.includes('ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md'), 'docs/README.md debe enlazar ADR-026');
+  assert.ok(docsReadmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'docs/README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
+
+  // 8. Los 26 ADRs existen físicamente en disco
+  for (let i = 1; i <= 26; i++) {
+    const num = String(i).padStart(3, '0');
+    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
+    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
+    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  }
+});
+

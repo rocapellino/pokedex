@@ -50,25 +50,31 @@ infra/opentofu/
 
 ---
 
-## 🚀 Uso Operativo
+## 🚀 Uso Operativo (Comandos Canónicos)
 
 ### Aprovisionamiento en AWS (EKS)
 ```bash
-task tofu:init:aws
-task tofu:plan:aws
-task tofu:apply:aws
+# Validación previa e inicialización
+task infra:validate
+
+# Planificación y aplicación en AWS EKS
+task infra:plan:aws
+task infra:apply:aws
 ```
 
 ### Aprovisionamiento en Proxmox VE
 ```bash
-task tofu:init:proxmox
-task tofu:plan:proxmox
-task tofu:apply:proxmox
+# Validación previa e inicialización
+task infra:validate
+
+# Planificación y aplicación en Proxmox VE
+task infra:plan:proxmox
+task infra:apply:proxmox
 ```
 
 ### Validación Global de Sintaxis
 ```bash
-task tofu:validate
+task infra:validate
 ```
 
 ---
