@@ -1960,3 +1960,79 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   assert.ok(dbTs.includes('invalidateCache'), 'db.ts debe implementar invalidateCache con versionado atómico');
 });
 
+test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault', () => {
+  // 1. KUBERNETES_NAMESPACE_TAXONOMY.md existe y formaliza pokemon-app como SSOT
+  const taxonomyPath = path.join(ROOT_DIR, 'docs/architecture/KUBERNETES_NAMESPACE_TAXONOMY.md');
+  assert.ok(fs.existsSync(taxonomyPath), 'KUBERNETES_NAMESPACE_TAXONOMY.md debe existir');
+  const taxonomyContent = fs.readFileSync(taxonomyPath, 'utf-8');
+  assert.ok(taxonomyContent.includes('pokemon-app (SSOT Canónico)'), 'Taxonomía debe formalizar pokemon-app como SSOT');
+  assert.ok(taxonomyContent.includes('pokedex-preprod-role'), 'Taxonomía debe documentar pokedex-preprod-role');
+  assert.ok(taxonomyContent.includes('pokedex-prod-role'), 'Taxonomía debe documentar pokedex-prod-role');
+  assert.ok(taxonomyContent.includes('secret/data/pokedex/preprod/*'), 'Taxonomía debe documentar ruta de secretos preprod');
+  assert.ok(taxonomyContent.includes('secret/data/pokedex/prod/*'), 'Taxonomía debe documentar ruta de secretos prod');
+
+  // 2. docs/README.md enlaza la taxonomía
+  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+  const docsReadme = fs.readFileSync(docsReadmePath, 'utf-8');
+  assert.ok(docsReadme.includes('KUBERNETES_NAMESPACE_TAXONOMY.md'), 'docs/README.md debe indexar KUBERNETES_NAMESPACE_TAXONOMY.md');
+
+  // 3. SECURITY_RUNBOOK.md utiliza -n pokemon-app y nombres de deployment/service/statefulset estándar
+  const secRunbookPath = path.join(ROOT_DIR, 'docs/security/SECURITY_RUNBOOK.md');
+  const secRunbook = fs.readFileSync(secRunbookPath, 'utf-8');
+  assert.ok(!secRunbook.includes('-n pokedex'), 'SECURITY_RUNBOOK.md no debe contener -n pokedex');
+  assert.ok(!secRunbook.includes('--namespace pokedex'), 'SECURITY_RUNBOOK.md no debe contener --namespace pokedex');
+  assert.ok(secRunbook.includes('-n pokemon-app'), 'SECURITY_RUNBOOK.md debe utilizar -n pokemon-app');
+  assert.ok(secRunbook.includes('deployment/pokemon-api'), 'SECURITY_RUNBOOK.md debe referenciar deployment/pokemon-api');
+  assert.ok(secRunbook.includes('statefulset/postgres'), 'SECURITY_RUNBOOK.md debe referenciar statefulset/postgres');
+  assert.ok(secRunbook.includes('pokemon-redis-svc'), 'SECURITY_RUNBOOK.md debe referenciar pokemon-redis-svc');
+  assert.ok(secRunbook.includes('secret generic pokemon-secrets'), 'SECURITY_RUNBOOK.md debe referenciar pokemon-secrets');
+
+  // 4. Verificación exhaustiva: Ningún archivo markdown en docs/ utiliza -n pokedex o --namespace pokedex
+  const scanDir = (dir: string): string[] => {
+    let files: string[] = [];
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        files = files.concat(scanDir(fullPath));
+      } else if (item.isFile() && item.name.endsWith('.md')) {
+        files.push(fullPath);
+      }
+    }
+    return files;
+  };
+
+  const allDocs = scanDir(path.join(ROOT_DIR, 'docs')).filter((f) => f !== taxonomyPath);
+  const legacyNsRegex = /(?:-n|--namespace)\s+pokedex\b/;
+  for (const docFile of allDocs) {
+    const docContent = fs.readFileSync(docFile, 'utf-8');
+    assert.ok(
+      !legacyNsRegex.test(docContent),
+      `El documento ${path.relative(ROOT_DIR, docFile)} no debe contener referencias obsoletas '-n pokedex' o '--namespace pokedex'`
+    );
+  }
+
+  // 5. GitOps y Helm: Paridad en destino de namespace
+  const helmValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
+  const helmValues = fs.readFileSync(helmValuesPath, 'utf-8');
+  assert.match(helmValues, /namespace:\s*pokemon-app/, 'Helm values.yaml debe definir namespace: pokemon-app');
+
+  const appProxmox = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml'), 'utf-8');
+  assert.match(appProxmox, /namespace:\s*pokemon-app/, 'app-proxmox.yaml debe definir namespace: pokemon-app');
+
+  const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
+  assert.match(appCloud, /namespace:\s*pokemon-app/, 'app-cloud.yaml debe definir namespace: pokemon-app');
+
+  // 6. setup_vault.yml vincula los roles K8s al namespace pokemon-app
+  const setupVault = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yml'), 'utf-8');
+  assert.match(
+    setupVault,
+    /pokedex-preprod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,
+    'pokedex-preprod-role en setup_vault.yml debe incluir pokemon-app'
+  );
+  assert.match(
+    setupVault,
+    /pokedex-prod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,
+    'pokedex-prod-role en setup_vault.yml debe incluir pokemon-app'
+  );
+});
+
