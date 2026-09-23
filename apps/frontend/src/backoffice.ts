@@ -591,6 +591,14 @@ export function initEventListeners(): void {
     el.addEventListener('click', closeAuthModal);
   });
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeCrudModal();
+      closeDeleteModal();
+      closeAuthModal();
+    }
+  });
+
   const tableBody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   if (tableBody) {
     tableBody.addEventListener('click', (e) => {

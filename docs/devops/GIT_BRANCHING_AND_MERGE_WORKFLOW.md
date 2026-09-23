@@ -57,7 +57,7 @@ flowchart TD
 
     subgraph RevisionGitHub ["3. GitHub Pull Request & CI/CD"]
         OpenPR["Abrir Pull Request en GitHub"]
-        CIWorkflow["Disparo automático de GitHub Actions<br/>api.yml / security-gitleaks.yml"]
+        CIWorkflow["Disparo automático de GitHub Actions<br/>ci.yml / security-gitleaks.yml"]
         CheckCI{"¿Pasan todos<br/>los checks de CI?"}
         FixLocally["Corregir localmente y hacer git push"]
         ReviewCopilot{"Code Review &<br/>Aprobación"}
@@ -257,7 +257,7 @@ git push -u origin rocapellino/pex-8-nueva-funcionalidad
 ### Paso 7: Validación de CI y Code Review
 
 * **GitHub Actions** ejecutará automáticamente los workflows relevantes:
-  * `api.yml` (Pruebas unitarias, compilación TypeScript).
+  * `ci.yml` (Lint, compilación TypeScript, tests unitarios, pentesting, fuzzing y npm audit).
   * `security-gitleaks.yml` (Escaneo de secretos).
   * `security-trivy.yml` (Escaneo de vulnerabilidades).
 * Si algún check falla:

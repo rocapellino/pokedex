@@ -128,11 +128,10 @@ flowchart TD
 
 * Al realizar `git push` y abrir un Pull Request:
   * El bot de Linear vincula el PR al ticket y actualiza el estado a **In Progress** / **In Review**.
-  * Se ejecutan pipelines paralelos protegidos:
-    * **`ci.yml`**: Calidad y complejidad, tests unitarios, Semgrep SAST, Gitleaks, Checkov IaC y escaneo de vulnerabilidades Trivy.
-    * **`api.yml`**: Verificación estricta de compilación y tipado en Node.js 22 LTS.
-    * **`web.yml`**: Validación de sintaxis de JavaScript y configuración de servidor Nginx.
-    * **`infra.yml`**: Linting de Helm Charts y validación HCL de OpenTofu con Checkov.
+  * Se ejecutan pipelines optimizados y sin solapamiento:
+    * **`ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest/fuzzing, npm audit, Semgrep SAST, Dependency Review y empaquetado seguro.
+    * **`web.yml`**: Compilación Vite, linter Nginx y suite E2E Playwright con Axe-core.
+    * **`infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
     * **`security-gitleaks.yml`**: Detección estricta de credenciales en commits.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)

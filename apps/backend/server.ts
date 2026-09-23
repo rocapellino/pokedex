@@ -155,7 +155,7 @@ function getBackofficeHtml(): string {
 
 // Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
 // antes de que express.static sirva cualquier archivo estático
-app.get(['/admin', '/backoffice', '/backoffice.html'], authRateLimiter, adminIpRestricted, (_req: Request, res: Response) => {
+app.get(['/admin', '/backoffice', '/backoffice.html'], globalRateLimiter, adminIpRestricted, (_req: Request, res: Response) => {
   const html = getBackofficeHtml();
   if (!html) {
     return res.status(404).json({ error: 'Panel administrativo no disponible' });

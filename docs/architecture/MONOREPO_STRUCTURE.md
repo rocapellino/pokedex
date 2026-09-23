@@ -19,7 +19,7 @@ El monorepo está organizado siguiendo una separación estricta de responsabilid
 * **`infra/`**: Infraestructura como Código (IaC), Chart oficial de **`helm/pokedex`**, políticas de control de admisión Kyverno (`k8s/`), aprovisionamiento con OpenTofu (`opentofu/`) y playbooks de Ansible (`ansible/`).
 * **`gitops/`**: Manifiestos declarativos de sincronización continua con ArgoCD (`apps/`) y sobrescrituras de configuración por entorno (`environments/`).
 * **`docs/`**: Centraliza toda la documentación técnica, diseños de arquitectura, seguridad, contratos de API y runbooks.
-* **`scripts/`**: Utilidades de DX, auditorías de calidad de código, pruebas de estrés concurrentes y sellado de secretos.
+* **`scripts/`**: Utilidades de DX, auditorías de calidad de código, benchmarks y pruebas de estrés concurrentes.
 * **`tests/`**: Suite exhaustiva de pruebas unitarias, de integración, pentesting lógico, fuzzing y E2E/a11y con Playwright.
 
 ---
@@ -39,29 +39,50 @@ pokedex/
 │   │   ├── package.json          # Manifiesto y scripts del paquete backend
 │   │   ├── tsconfig.json         # Configuración del compilador TypeScript
 │   │   ├── Dockerfile            # Imagen de producción multi-stage no-root
-│   │   ├── server.ts             # Servidor Express, Rate Limiter, Metrics Prometheus
+│   │   ├── server.ts             # Servidor Express, ensamblador de rutas y middlewares
 │   │   └── src/                  # Módulos de dominio y servicios backend TypeScript
 │   │       ├── types.ts          # Interfaces nativas fuertemente tipadas
+│   │       ├── routes/           # Routers modulares de Express (ARCH-002)
+│   │       │   ├── pokemons.ts   # CRUD Pokémon con validación Zod y ETags
+│   │       │   ├── auth.ts       # Emisión y revocación de sesiones HMAC efímeras
+│   │       │   ├── ai.ts         # Endpoints Google Gemini 2.5 Flash con rate limiting
+│   │       │   └── health.ts     # Sondas /healthz, /readyz, /version y métricas Prometheus
+│   │       ├── middleware/       # Middlewares especializados
+│   │       │   ├── auth.ts       # Verificación dual HMAC/API-Key y control CSRF
+│   │       │   ├── rate-limiter.ts # Rate limiters híbridos Redis/memoria fail-closed
+│   │       │   ├── metrics.ts    # Colector de telemetría HTTP Prometheus
+│   │       │   └── request-tracer.ts # Trazabilidad distribuida X-Request-Id
 │   │       ├── data/
 │   │       │   └── pokedex.json  # Catálogo oficial de 1.025 Pokémon (Generaciones I a IX)
 │   │       ├── services/
-│   │       │   ├── ai.ts         # Integración Google AI Studio (@google/genai) con Gemini 2.5 Flash
-│   │       │   ├── auth.ts       # Autenticación timing-safe y sesiones HMAC SHA-256 independientes
-│   │       │   └── db.ts         # Persistencia ACID PostgreSQL 16 (JSONB) + Redis 7 con scripts Lua
+│   │       │   ├── ai.ts         # Integración Google AI Studio (@google/genai) con Gemini
+│   │       │   ├── auth.ts       # Criptografía timing-safe y sesiones revocables
+│   │       │   └── db.ts         # Persistencia PostgreSQL 16 (JSONB/Drizzle) + Redis 7
 │   │       ├── utils/
+│   │       │   ├── lifecycle.ts  # Estado de ciclo de vida para graceful shutdown
+│   │       │   ├── async-handler.ts # Captura de promesas asíncronas
 │   │       │   └── pagination.ts # Normalización de paginación y límites anti-DoS
 │   │       ├── validation/
 │   │       │   └── pokemon.ts    # Sanitizador contra inyecciones XSS y validador de esquema
 │   │       └── seed.ts           # Inicializador y CLI de carga masiva en base de datos
-│   └── frontend/                 # Frontend Web (@pokedex/frontend)
-│       ├── package.json          # Manifiesto del frontend
+│   └── frontend/                 # Frontend Web (@pokedex/frontend) — Vanilla TypeScript + Vite + Nginx
+│       ├── package.json          # Manifiesto del frontend y dependencias de build
+│       ├── vite.config.ts        # Configuración de Vite para empaquetado multi-página (MPA)
+│       ├── tsconfig.json         # Configuración del compilador TypeScript
 │       ├── Dockerfile            # Imagen Alpine no-root con digest criptográfico pinned
 │       ├── nginx.conf            # Configuración endurecida con CSP, compresión y reverse proxy
-│       └── public/               # Assets estáticos (HTML5, CSS3, JS Vanilla con protección XSS)
-│           ├── index.html        # Catálogo público interactivo
-│           ├── backoffice.html   # Consola de administración CRUD
-│           ├── css/              # Estilos visuales y diseño Bento
-│           └── js/               # Lógica de cliente, modales y selector de tema
+│       ├── nginx.conf.template   # Plantilla Nginx con inyección de variables por envsubst
+│       ├── index.html            # Catálogo público interactivo (Entrypoint Vite)
+│       ├── backoffice.html       # Consola de administración CRUD (Entrypoint Vite)
+│       ├── src/                  # Código fuente TypeScript con tipado estricto (sin React ni JSX)
+│       │   ├── pokedex.ts        # Lógica de catálogo, filtros y renderizado seguro
+│       │   ├── backoffice.ts     # Operaciones CRUD, autenticación y telemetría
+│       │   ├── theme.ts          # Selector de tema (Claro / Oscuro / Sistema) Zero-FOUC
+│       │   ├── sanitizer.ts      # Envoltorio de seguridad DOMPurify anti-XSS
+│       │   └── types.ts          # Tipos e interfaces de Pokémon
+│       └── public/               # Assets estáticos servidos al navegador (CSS, favicon)
+│           ├── css/              # Estilos visuales con variables CSS y glassmorphism
+│           └── favicon.*         # Iconografía y branding
 ├── Dockerfile                    # Construcción multi-stage de producción (Node.js 22 Alpine, UID 1001)
 ├── docker-compose.yml            # Orquestación multicontenedor local (API, Web, Postgres, Redis)
 ├── package.json                  # Manifiesto, dependencias y scripts de ejecución
@@ -90,7 +111,7 @@ pokedex/
 │   ├── unit/                     # Pruebas unitarias de modelos y validaciones
 │   ├── security/                 # Pentests lógicos, evasión de auth y validación fail-closed
 │   └── fuzz/                     # Fuzzing de endpoints con payloads malformados
-└── scripts/                      # Utilidades de DX, auditoría y sellado de secretos
+└── scripts/                      # Utilidades de DX, auditoría y pruebas de estrés concurrentes
 ```
 
 ---
