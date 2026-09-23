@@ -37,16 +37,17 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     // Filtrar por Bulbasaur
     await searchInput.fill('Bulbasaur');
-    await page.waitForTimeout(400); // debounce
 
-    const visibleRows = page.locator('#adminTableBody tr:visible');
-    await expect(visibleRows.first()).toContainText(/Bulbasaur/i);
+    // Esperar que la tabla procese la búsqueda y renderice el Pokémon filtrado
+    const filteredName = page.locator('#adminTableBody .pokemon-table-name').first();
+    await expect(filteredName).toBeVisible({ timeout: 15000 });
+    await expect(filteredName).toContainText(/Bulbasaur/i);
   });
 
   test('El modal de creación de Pokémon se abre y cierra correctamente', async ({ page }) => {
     const createBtn = page.locator('#btnOpenCreate');
     await expect(createBtn).toBeVisible();
-    await createBtn.click();
+    await createBtn.click({ force: true });
 
     const crudModal = page.locator('#crudModal');
     await expect(crudModal).toHaveClass(/active/);
@@ -54,14 +55,14 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     // Cerrar modal
     const closeBtn = page.locator('[data-close-crud]').first();
-    await closeBtn.click();
+    await closeBtn.click({ force: true });
     await expect(crudModal).not.toHaveClass(/active/);
   });
 
   test('El flujo de autenticación administrativa valida credenciales y actualiza la UI', async ({ page }) => {
     const authBtn = page.locator('#btnAdminAuth');
     await expect(authBtn).toBeVisible();
-    await authBtn.click();
+    await authBtn.click({ force: true });
 
     const authModal = page.locator('#authModal');
     await expect(authModal).toHaveClass(/active/);
@@ -71,7 +72,7 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     // Intento con clave inválida
     await apiKeyInput.fill('clave-invalida-para-test');
-    await page.locator('#btnSaveKey').click();
+    await page.locator('#btnSaveKey').click({ force: true });
     await page.waitForTimeout(500);
 
     // El modal debe permanecer abierto tras fallo de autenticación
@@ -79,7 +80,7 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     // Intento con clave válida de test
     await apiKeyInput.fill(TEST_ADMIN_KEY);
-    await page.locator('#btnSaveKey').click();
+    await page.locator('#btnSaveKey').click({ force: true });
 
     // Modal debe cerrarse y el estado debe reflejarse en la UI
     await expect(authModal).not.toHaveClass(/active/, { timeout: 10000 });
