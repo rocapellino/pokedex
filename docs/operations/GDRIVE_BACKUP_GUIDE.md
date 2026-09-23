@@ -100,7 +100,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup 
 
 ## 4. Alternativa B: Despliegue en el Host Proxmox VE (Nivel Hipervisor)
 
-Diseñado para producción on-premise en Proxmox VE. Desacopla el respaldo del clúster de Kubernetes, ejecutándose como un servicio nativo con temporizador de Systemd.
+> [!WARNING]
+> **Brecha Arquitectónica Factual: Desconexión entre PVC de K8s y Host Proxmox**
+> Este playbook aprovisiona un **Mecanismo Preparado en Host** (Rclone + Systemd Timer en el hipervisor Proxmox VE), pero **no existe un puente implementado** que transfiera los respaldos generados por el CronJob de Kubernetes en el PVC `pokedex-backup-pvc` hacia el directorio local del host `/var/lib/pve/local-btrfs/pokedex-backups`.
+>
+> Por ende, **Google Drive NO debe considerarse todavía el backup off-site activo del Pokédex en Proxmox**, sino un mecanismo de sincronización preparado a nivel hipervisor que requiere la conexión de su origen de datos (vía bind-mount de K3s o migración a un CronJob nativo en Kubernetes con Rclone).
 
 ### Manifiesto de Automatización Ansible
 

@@ -6,7 +6,13 @@
 # Propósito:
 #   Configura la sincronización desatendida de respaldos cifrados de PostgreSQL
 #   hacia Google Drive mediante Rclone y un Systemd Timer en el host Proxmox VE.
-#   Cierra el dominio de falla (SPOF) del hardware local sin incurrir en costos cloud.
+#
+# Nota Arquitectónica / Factual:
+#   Este playbook configura el mecanismo técnico en el host hipervisor Proxmox VE.
+#   Opera sobre el directorio local 'gdrive_local_backup_dir' (/var/lib/pve/local-btrfs/pokedex-backups).
+#   Requiere que dicho directorio reciba los volcados desde el PersistentVolumeClaim
+#   de Kubernetes ('pokedex-backup-pvc') mediante bind-mount de K3s o script puente.
+#   Hasta tanto se active dicho puente, opera como Mecanismo Preparado en Host.
 #
 # Requisitos previos:
 #   1. Rclone instalado o descargable en Proxmox VE.

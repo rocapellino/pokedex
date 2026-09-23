@@ -285,6 +285,39 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 
 ---
 
+### 2.5 Operaciones y Disaster Recovery
+
+---
+
+#### [OPS-001] Desconexión y falta de puente entre PVC de backup K8s (`pokedex-backup-pvc`) y sincronización Google Drive en Proxmox
+
+- **Categoría:** Disaster Recovery / Operaciones
+- **Severidad:** P1 (Alto)
+- **Confianza:** HIGH
+- **Estado:** CONFIRMED
+- **Skills Detectoras:** `repo-architecture`, `repo-security`, `repo-docs`
+- **Descripción:** Se agregó el playbook `infra/ansible/playbooks/setup_gdrive_backup.yml` que instala `rclone` y un timer de systemd para sincronizar `/var/lib/pve/local-btrfs/pokedex-backups` hacia Google Drive. Sin embargo, el backup real de PostgreSQL en Kubernetes se deposita en el PersistentVolumeClaim `pokedex-backup-pvc` dentro de la VM/nodo K3s. No existe actualmente un mecanismo que transfiera o monte los volcados desde el PVC de Kubernetes hacia el directorio `/var/lib/pve/...` del host hipervisor Proxmox.
+  Existen por ende dos sistemas desacoplados:
+  1. **Sistema 1 (Clúster K8s):** `PostgreSQL -> pg_dump -> pokedex-backup-pvc`.
+  2. **Sistema 2 (Host Proxmox):** `/var/lib/pve/local-btrfs/pokedex-backups -> rclone -> Google Drive`.
+  Al faltar el puente intermedio, **Google Drive NO es actualmente el backup off-site del Pokédex**. El estado fáctico riguroso es: *"Existe un mecanismo preparado para sincronizar un directorio del host Proxmox hacia Google Drive, pero carece de conexión con el almacenamiento de backup del clúster."*
+- **Evidencia:**
+  - `infra/helm/pokedex/templates/backup-cronjob.yaml:L1-20` (crea y monta `pokedex-backup-pvc` en el pod de backup).
+  - `infra/ansible/playbooks/setup_gdrive_backup.yml:L26` (`gdrive_local_backup_dir: "/var/lib/pve/local-btrfs/pokedex-backups"`).
+  - Inexistencia de exportación o montaje entre el storage de K3s y el directorio del host en el playbook.
+- **Archivos Afectados:**
+  - `infra/ansible/playbooks/setup_gdrive_backup.yml`
+  - `docs/operations/GDRIVE_BACKUP_GUIDE.md`
+  - `docs/runbooks/DISASTER_RECOVERY_PLAN.md`
+- **Impacto:** Falsa sensación de cobertura de Disaster Recovery off-site. Si el servidor físico Proxmox sufre una pérdida total (SPOF de host), los respaldos dentro del PVC local se pierden simultáneamente, ya que la réplica a Google Drive no está recibiendo los datos generados por el clúster.
+- **Recomendación:** Implementar el puente faltante mediante una de las dos vías arquitectónicas:
+  1. *Opción K8s-Native (Recomendada):* Ejecutar Rclone como CronJob de Kubernetes que monte directamente `pokedex-backup-pvc` y use un Secret con `GDRIVE_TOKEN`, eliminando el acoplamiento con el hipervisor.
+  2. *Opción Host-Bridge:* Si K3s corre con `local-path` sobre el host, configurar una tarea programada en el host que extraiga o sincronice el subvolumen del PVC hacia `/var/lib/pve/local-btrfs/pokedex-backups`.
+  3. *Alineación Documental Factual:* Registrar formalmente en el DRP y guías operativas que la Alternativa B es un mecanismo preparado en host, requiriendo el puente para alcanzar operatividad real.
+- **Esfuerzo:** M
+
+---
+
 ## 3. Matriz de Priorización de Hallazgos
 
 ### P0 — Crítico (Bloqueante)
@@ -293,7 +326,11 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 
 ### P1 — Alto
 
-- *No se identificaron hallazgos P1.*
+Ordenados por impacto, evidencia, riesgo y esfuerzo:
+
+| ID | Área | Hallazgo | Evidencia | Esfuerzo | Estado |
+| --- | --- | --- | --- | --- | --- |
+| **OPS-001** | Operaciones / DR | Desconexión y falta de puente entre PVC de backup K8s (`pokedex-backup-pvc`) y sincronización Google Drive en Proxmox | `backup-cronjob.yaml:L1-20`, `setup_gdrive_backup.yml:L26` | M | CONFIRMED |
 
 ### P2 — Medio
 
