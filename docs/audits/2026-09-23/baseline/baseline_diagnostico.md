@@ -91,16 +91,19 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Seguridad
 - **Severidad:** P2 (Medio)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Endpoint y botón en UI retirados)
 - **Skills Detectoras:** `repo-security`, `repo-quality`
-- **Descripción:** El backend incluye un endpoint `GET /download` que empaqueta dinámicamente un archivo `.tar.gz` con el código del repositorio y lo entrega como stream HTTP. Aunque el endpoint está protegido por defecto en producción mediante la variable `ENABLE_REPO_DOWNLOAD` (retornando HTTP 403) y filtra archivos `.env`, la existencia de lógica de empaquetado de código local dentro de la imagen de producción representa un riesgo residual si la variable es habilitada por error.
+- **Descripción:** El backend incluía un endpoint `GET /download` que servía el archivo `.zip` del repositorio. Se procedió a su retiro definitivo tanto en la API Express (`apps/backend/server.ts`) como en el botón de la interfaz administrativa (`apps/frontend/backoffice.html`), eliminando completamente la superficie de ataque y la lógica innecesaria de distribución de código en runtime.
 - **Evidencia:**
-  - `apps/backend/server.ts:L1000-1120`.
-  - `.env.example:L98-100`.
-- **Archivos Afectados:**
+  - `apps/backend/server.ts` (rutas `/download`, `/download-zip` retiradas).
+  - `apps/frontend/backoffice.html` (botón de descarga removido).
+  - `tests/pentest.test.ts` (aserción de ataque de superficie validada).
+- **Archivos Remediados:**
   - `apps/backend/server.ts`
-- **Impacto:** Riesgo potencial de exfiltración de código fuente o archivos del contenedor si se activa indebidamente en producción.
-- **Recomendación:** Eliminar el endpoint en imágenes de producción o restringirlo exclusivamente a entornos locales de desarrollo con verificación explícita de red loopback.
+  - `apps/frontend/backoffice.html`
+  - `.env.example`
+  - `tests/pentest.test.ts`
+- **Resolución (2026-09-23):** Se eliminó el endpoint y sus alias de `server.ts`, el botón en el header de `backoffice.html`, y la variable `ENABLE_REPO_DOWNLOAD` de `.env.example`.
 - **Esfuerzo:** S
 
 ---
@@ -114,16 +117,15 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Dependencias / Arquitectura
 - **Severidad:** P3 (Bajo)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Consolidado en apps/backend/package.json)
 - **Skills Detectoras:** `repo-dependencies`, `repo-architecture`
-- **Descripción:** Todas las dependencias de runtime del backend (`@google/genai`, `cors`, `express`, `ioredis`, `pg`, `pino`, `zod`) están declaradas simultáneamente en el `package.json` raíz (L48-56) y en `apps/backend/package.json` (L17-27). En un monorepo con npm workspaces, la raíz debe albergar exclusivamente herramientas de desarrollo globales (`turbo`, `commitlint`, `@types/*`, compiladores), mientras que las librerías de aplicación deben residir en su workspace correspondiente.
+- **Descripción:** Previamente existían dependencias de runtime del backend declaradas en el `package.json` raíz. Se verificó que la raíz contiene exclusivamente `devDependencies` y `overrides`, mientras que las dependencias de aplicación residen estrictamente en `apps/backend/package.json`.
 - **Evidencia:**
-  - `package.json:L48-56`.
+  - `package.json` (sin sección `dependencies` de aplicación).
   - `apps/backend/package.json:L17-27`.
-- **Archivos Afectados:**
+- **Archivos Remediados:**
   - `package.json`
-- **Impacto:** Ambigüedad en el hoisting de módulos, posibilidad de que otros paquetes consuman dependencias no declaradas explícitamente (phantom dependencies) y riesgo de divergencia de versiones.
-- **Recomendación:** Remover las `dependencies` de aplicación del `package.json` raíz, consolidándolas en `apps/backend/package.json`.
+- **Resolución (2026-09-23):** Se confirmó la consolidación estricta de dependencias en sus respectivos workspaces sin dependencias de aplicación fantasma en la raíz.
 - **Esfuerzo:** XS
 
 ---
@@ -160,20 +162,14 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** CI/CD / Limpieza
 - **Severidad:** P3 (Bajo)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Triggers unificados en main)
 - **Skills Detectoras:** `repo-ci`, `repo-cleanup`
-- **Descripción:** Seis workflows (`api.yml`, `web.yml`, `infra.yml`, `security-code-scanning.yml`, `security-gitleaks.yml`, `security-trivy.yml`) escuchan eventos en `branches: [ main, master ]`, mientras que el pipeline principal `ci.yml` y el workflow de release `release-tag.yml` operan estrictamente sobre `main`. La rama `master` no existe en el repositorio.
+- **Descripción:** Se verificó que los workflows en `.github/workflows/` escuchan exclusivamente eventos en la rama `main`. No existen triggers residuales apuntando a la rama `master`.
 - **Evidencia:**
-  - `.github/workflows/api.yml:L8,16`.
-  - `.github/workflows/web.yml:L8,14`.
-  - `.github/workflows/infra.yml:L8,13`.
-  - `.github/workflows/security-code-scanning.yml:L9,16`.
-  - `.github/workflows/security-gitleaks.yml:L8,10`.
-  - `.github/workflows/security-trivy.yml:L9,10,19,20`.
-- **Archivos Afectados:**
-  - Los 6 workflows mencionados en `.github/workflows/`.
-- **Impacto:** Deuda técnica de configuración residual sin utilidad operativa.
-- **Recomendación:** Remover la referencia a `master`, dejando únicamente `main` en todos los workflows.
+  - `.github/workflows/*.yml` (triggers estandarizados en `branches: [ main ]`).
+- **Archivos Remediados:**
+  - Workflows en `.github/workflows/`.
+- **Resolución (2026-09-23):** Se estandarizaron los triggers de workflows para operar exclusivamente sobre `main`.
 - **Esfuerzo:** XS
 
 ---
@@ -247,17 +243,18 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Limpieza / Seguridad
 - **Severidad:** P3 (Bajo)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Script y tarea eliminados)
 - **Skills Detectoras:** `repo-cleanup`, `repo-security`
-- **Descripción:** El script `scripts/seal-secret.ts` utilizaba Bitnami Sealed Secrets (`kubeseal`). Tras adoptarse External Secrets Operator (ESO) con HashiCorp Vault y AWS Secrets Manager (ADR-005), la tarea `secrets:seal` fue marcada como legacy en Taskfile, pero el archivo TypeScript aún permanece en el árbol de código.
+- **Descripción:** El script `scripts/seal-secret.ts` utilizaba Bitnami Sealed Secrets (`kubeseal`). Tras adoptarse External Secrets Operator (ESO) con HashiCorp Vault y AWS Secrets Manager (ADR-005), la tarea `secrets:seal` y el script TypeScript quedaron como artefactos obsoletos. Se eliminó el archivo `scripts/seal-secret.ts` y la tarea correspondiente en `Taskfile.yml`.
 - **Evidencia:**
-  - `scripts/seal-secret.ts:L1-170`.
-  - `Taskfile.yml:L347-351`.
-- **Archivos Afectados:**
+  - `scripts/seal-secret.ts` (retirado del repositorio).
+  - `Taskfile.yml` (tarea `secrets:seal` retirada).
+  - `tests/security/deploy_scripts_security.test.ts` (validación de retiro en test suite).
+- **Archivos Remediados:**
   - `scripts/seal-secret.ts`
   - `Taskfile.yml`
-- **Impacto:** Mantenimiento de código que ya no forma parte del flujo de aprovisionamiento recomendado.
-- **Recomendación:** Retirar el script `scripts/seal-secret.ts` y eliminar la tarea `secrets:seal`.
+  - `tests/security/deploy_scripts_security.test.ts`
+- **Resolución (2026-09-23):** Se eliminó `scripts/seal-secret.ts`, se retiró `secrets:seal` de `Taskfile.yml`, y se actualizó la aserción en `deploy_scripts_security.test.ts` para verificar la ausencia de dicho archivo legacy.
 - **Esfuerzo:** XS
 
 ---
@@ -334,7 +331,7 @@ Ordenados por impacto, evidencia, riesgo y esfuerzo:
 | ID | Área | Hallazgo | Evidencia | Esfuerzo | Estado |
 | --- | --- | --- | --- | --- | --- |
 | **ARCH-001** | Arquitectura / Docs | Discrepancia: documentación histórica cita React pero código real es Vanilla TypeScript | `apps/frontend/package.json:L13-20`, `.github/workflows/web.yml:L2` | S | CONFIRMED |
-| **SEC-002** | Seguridad | Exposición condicional del endpoint `GET /download` | `apps/backend/server.ts:L1000-1120`, `.env.example:L98-100` | S | CONFIRMED |
+| **SEC-002** | Seguridad | Exposición condicional del endpoint `GET /download` | `apps/backend/server.ts:L1000-1120`, `.env.example:L98-100` | S | REMEDIATED |
 | **CI-001** | CI/CD | Duplicación de Quality Gates y Checkov entre `ci.yml`, `api.yml` e `infra.yml` | `api.yml:L32-60`, `infra.yml:L80-88`, `ci.yml:L26-88` | S | CONFIRMED |
 | **ARCH-002** | Arquitectura | Monolito de rutas concentrado en `apps/backend/server.ts` (1,201 líneas) | `apps/backend/server.ts:L35-1201` | M | CONFIRMED |
 | **TST-001** | Testing | Cobertura E2E ausente para flujos administrativos del panel `/backoffice` | `tests/e2e/pokedex.spec.ts:L1-90` | M | CONFIRMED |
@@ -345,10 +342,10 @@ Ordenados por impacto, evidencia, riesgo y esfuerzo:
 
 | ID | Área | Hallazgo | Evidencia | Esfuerzo | Estado |
 | --- | --- | --- | --- | --- | --- |
-| **DEP-001** | Dependencias | Dependencias de runtime backend duplicadas en `package.json` raíz | `package.json:L48-56` vs `apps/backend/package.json:L17-27` | XS | CONFIRMED |
-| **CI-002** | CI/CD | Filtro de rama inexistente `master` en 6 workflows | `api.yml`, `web.yml`, `infra.yml`, `security-*.yml` | XS | CONFIRMED |
+| **DEP-001** | Dependencias | Dependencias de runtime backend duplicadas en `package.json` raíz | `package.json` vs `apps/backend/package.json:L17-27` | XS | REMEDIATED |
+| **CI-002** | CI/CD | Filtro de rama inexistente `master` en 6 workflows | `.github/workflows/*.yml` | XS | REMEDIATED |
 | **CLN-001** | Limpieza | 17 alias deprecados en `Taskfile.yml` para v2.0 | `Taskfile.yml:L176-564` | XS | CONFIRMED |
-| **CLN-002** | Limpieza | Script legacy `scripts/seal-secret.ts` retenido tras adopción de ESO | `scripts/seal-secret.ts:L1-170`, `Taskfile.yml:L347` | XS | CONFIRMED |
+| **CLN-002** | Limpieza | Script legacy `scripts/seal-secret.ts` retenido tras adopción de ESO | `scripts/seal-secret.ts`, `Taskfile.yml` | XS | REMEDIATED |
 | **SEC-001** | Seguridad | Excepciones históricas en allowlist de `.gitleaks.toml` | `.gitleaks.toml:L28-51` | XS | CONFIRMED |
 | **CI-003** | CI/CD | MegaLinter en modo no bloqueante (`continue-on-error`) | `.github/workflows/mega-linter.yml:L27`, `.mega-linter.yml:L34` | S | CONFIRMED |
 | **MOD-001** | Modernización | Oportunidad de emitir ESM nativo en backend en lugar de CommonJS | `apps/backend/package.json:L5,8` | S | RECOMMENDATION |
@@ -369,12 +366,14 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 ## 5. Deuda Técnica Clasificada
 
 - **Deuda Técnica Confirmada:**
-  - Duplicación de dependencias de runtime en raíz (`DEP-001`).
-  - 17 alias de comandos deprecados en `Taskfile.yml` (`CLN-001`).
-  - Triggers residuales a rama `master` en workflows de GitHub Actions (`CI-002`).
-  - Script legacy `scripts/seal-secret.ts` (`CLN-002`).
+  - 17 alias de comandos deprecados en `Taskfile.yml` (`CLN-001` - retiro programado v2.0).
+- **Deuda Técnica Remediada (2026-09-23):**
+  - Desconexión y falta de puente PVC K8s vs GDrive (`OPS-001` - CronJob K8s nativo implementado).
+  - Exposición de endpoint `/download` y botón UI (`SEC-002` - rutas y botón eliminados).
+  - Duplicación de dependencias de runtime en raíz (`DEP-001` - consolidado en workspace backend).
+  - Triggers residuales a rama `master` en workflows de CI (`CI-002` - unificado en main).
+  - Script legacy `scripts/seal-secret.ts` y tarea `secrets:seal` (`CLN-002` - eliminados).
 - **Deuda Técnica Potencial:**
-  - Riesgo residual en caso de habilitación indebida de `ENABLE_REPO_DOWNLOAD` (`SEC-002`).
   - MegaLinter ejecutando sin bloquear PRs (`CI-003`).
 - **Deuda Técnica Documental:**
   - Documentación y ADRs históricos que referencian React en lugar de Vanilla TypeScript (`ARCH-001`).
@@ -383,7 +382,7 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 - **Deuda Técnica de Testing:**
   - Falta de suite E2E de Playwright para `/backoffice.html` (`TST-001`).
 - **Deuda Técnica de Arquitectura:**
-  - Controlador monolítico de 1,201 líneas en `apps/backend/server.ts` (`ARCH-002`).
+  - Controlador monolítico de rutas y lógica en `apps/backend/server.ts` (`ARCH-002`).
 - **Deuda Técnica de CI/CD:**
   - Solapamiento y doble ejecución de gates de test y Checkov entre `ci.yml`, `api.yml` e `infra.yml` (`CI-001`).
 
@@ -416,22 +415,22 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 - **Branch:** `main`
 - **Fecha:** 2026-09-23
 - **Estado del working tree:** Limpio (archivos de auditoría no rastreados)
-- **Findings Totales:** 13 (1 remediado, 12 pendientes)
+- **Findings Totales:** 13 (5 remediados, 8 pendientes)
   - **P0 (Crítico):** 0
   - **P1 (Alto):** 1 (`OPS-001` — REMEDIATED)
-  - **P2 (Medio):** 5 (`ARCH-001`, `ARCH-002`, `SEC-002`, `CI-001`, `TST-001`)
-  - **P3 (Bajo):** 7 (`DEP-001`, `CI-002`, `CI-003`, `CLN-001`, `CLN-002`, `SEC-001`, `MOD-001`)
+  - **P2 (Medio):** 5 (1 remediado: `SEC-002`; 4 pendientes: `ARCH-001`, `ARCH-002`, `CI-001`, `TST-001`)
+  - **P3 (Bajo):** 7 (3 remediados: `DEP-001`, `CI-002`, `CLN-002`; 4 pendientes: `CI-003`, `CLN-001`, `SEC-001`, `MOD-001`)
 - **Distribución de Findings por Dominio Técnico:**
   - **Operaciones / Disaster Recovery:** 1 (`OPS-001` - Remediado)
-  - **Seguridad:** 2 (`SEC-001`, `SEC-002`)
-  - **Dependencias:** 1 (`DEP-001`)
+  - **Seguridad:** 2 (`SEC-001`, `SEC-002` - Remediado)
+  - **Dependencias:** 1 (`DEP-001` - Remediado)
   - **Arquitectura:** 2 (`ARCH-001`, `ARCH-002`)
   - **Calidad:** 0 independientes (consolidados en `ARCH-002` y `CI-003`)
   - **Testing:** 1 (`TST-001`)
-  - **CI/CD:** 3 (`CI-001`, `CI-002`, `CI-003`)
-  - **Candidatos de Cleanup:** 2 (`CLN-001`, `CLN-002`)
+  - **CI/CD:** 3 (`CI-001`, `CI-002` - Remediado, `CI-003`)
+  - **Candidatos de Cleanup:** 2 (`CLN-001`, `CLN-002` - Remediado)
   - **Oportunidades de Modernización:** 1 (`MOD-001`)
-- **Deuda Técnica Total:** 11 hallazgos confirmados activos + 1 remediado (`OPS-001`) + 1 recomendación de modernización
+- **Deuda Técnica Total:** 7 hallazgos confirmados activos + 5 remediados (`OPS-001`, `SEC-002`, `DEP-001`, `CI-002`, `CLN-002`) + 1 recomendación de modernización
 - **Limitaciones del Análisis:**
   1. No se realizaron conexiones en vivo a clústeres remotos de Kubernetes, hosts Proxmox ni cuentas de AWS; el análisis de IaC, Helm y GitOps se basó en el código, perfiles renderizados (`helm template`) y aserciones de policy-as-code.
   2. Las capacidades generativas de IA de Google Gemini no se ejecutaron dinámicamente de punta a punta ante la falta de `GEMINI_API_KEY` en el entorno local offline; se analizó su contrato, circuit breaker y sanitización anti-XSS (`sanitizeAIHtml`).

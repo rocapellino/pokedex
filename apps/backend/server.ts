@@ -1013,29 +1013,6 @@ app.post('/api/v1/ai/image', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaL
   res.json(result);
 }));
 
-// ---------------------------------------------------------------------------
-// Download Repository ZIP Endpoint (Protegido con verifyAdmin y Rate Limiting)
-// DevSecOps Hardening: En producción, deshabilitado por defecto para reducir superficie de ataque
-// ---------------------------------------------------------------------------
-app.get(['/download', '/download-zip', '/download/repo'], mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, (_req: Request, res: Response) => {
-  if (process.env.NODE_ENV === 'production' && process.env.ENABLE_REPO_DOWNLOAD !== 'true') {
-    return res.status(403).json({
-      error: 'Acceso denegado: La descarga del código fuente del repositorio se encuentra deshabilitada en producción por directivas de seguridad.'
-    });
-  }
-  const zipPath = path.join(PUBLIC_DIR, 'pokedex-updated.zip');
-  if (!fs.existsSync(zipPath)) {
-    return res.status(404).json({ error: 'El archivo ZIP del repositorio no está disponible en este entorno.' });
-  }
-  res.download(zipPath, 'pokedex-v2-migrated.zip', (err) => {
-    if (err) {
-      logger.error('Error al generar o servir archivo zip del repositorio', { error: err?.message || String(err) });
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'No se pudo generar o descargar el archivo ZIP.' });
-      }
-    }
-  });
-});
 
 // ---------------------------------------------------------------------------
 // Control de Acceso por IP para el Backoffice Administrativo
