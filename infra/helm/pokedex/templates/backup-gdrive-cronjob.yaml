@@ -1,0 +1,104 @@
+{{- if and .Values.backup .Values.backup.enabled .Values.backup.gdrive .Values.backup.gdrive.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "pokedex.fullname" . }}-gdrive-sync
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-offsite
+spec:
+  schedule: "{{ .Values.backup.gdrive.schedule | default "0 3 * * *" }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "pokedex.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup-offsite
+        spec:
+          restartPolicy: OnFailure
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          containers:
+            - name: gdrive-sync
+              image: "{{ .Values.backup.gdrive.image.repository | default "rclone/rclone" }}:{{ .Values.backup.gdrive.image.tag | default "1.68.2" }}"
+              imagePullPolicy: {{ .Values.backup.gdrive.image.pullPolicy | default "IfNotPresent" }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              env:
+                - name: RCLONE_CONFIG_GDRIVE_TYPE
+                  value: "drive"
+                - name: GDRIVE_FOLDER
+                  value: "{{ .Values.backup.gdrive.folder | default "PokedexBackups/proxmox" }}"
+                - name: RCLONE_CONFIG_GDRIVE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backup.gdrive.secretName | default (include "pokedex.secretName" .) }}
+                      key: {{ .Values.backup.gdrive.tokenKey | default "GDRIVE_TOKEN" }}
+                      optional: true
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  if [ -z "${RCLONE_CONFIG_GDRIVE_TOKEN:-}" ]; then
+                    echo "⚠️ [DR Off-Site] Variable GDRIVE_TOKEN no provista en el Secret; sincronización omitida."
+                    exit 0
+                  fi
+                  echo "☁️ [DR Off-Site] Sincronizando volcados cifrados desde PVC hacia Google Drive (gdrive:${GDRIVE_FOLDER})..."
+                  rclone sync /backups "gdrive:${GDRIVE_FOLDER}" --include "pokedex_*.sql.gz.enc*" --include "*.sha256" --verbose
+                  echo "✅ [DR Off-Site] ¡Sincronización a Google Drive completada exitosamente!"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                {{- toYaml .Values.backup.gdrive.resources | nindent 16 }}
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: {{ include "pokedex.fullname" . }}-backup-pvc
+            - name: tmp
+              emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-gdrive-sync-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-offsite
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: backup-offsite
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - ports:
+        - protocol: TCP
+          port: 443
+{{- end }}

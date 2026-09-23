@@ -246,6 +246,9 @@ backup:
     enabled: true
     size: 5Gi
     storageClass: "standard"
+  gdrive:
+    enabled: true
+    folder: "PokedexBackups/prod"
 
 
 

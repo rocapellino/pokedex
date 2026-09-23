@@ -98,9 +98,53 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup 
 
 ---
 
-## 4. Alternativa B: Despliegue en el Host Proxmox VE (Nivel Hipervisor)
+## 4. Alternativa B: Implementación Oficial K8s-Native en Kubernetes (Puente Resuelto)
 
-Diseñado para producción on-premise en Proxmox VE. Desacopla el respaldo del clúster de Kubernetes, ejecutándose como un servicio nativo con temporizador de Systemd.
+Esta es la **arquitectura oficial y recomendada** para entornos de producción en Kubernetes (Proxmox VE / K3s). Resuelve la brecha de desconexión montando directamente el PersistentVolumeClaim `pokedex-backup-pvc` en modo de solo lectura (`readOnly: true`) dentro de un pod de Rclone desacoplado y blindado.
+
+### Manifiesto Declarativo en Helm
+
+El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml) orquesta el ciclo de vida:
+
+1. **CronJob `pokedex-gdrive-sync`:**
+   - **Horario:** Diario a las 03:00 UTC (1 hora posterior al snapshot local de K8s a las 02:00).
+   - **Imagen:** `rclone/rclone:1.68.2`.
+   - **Volumen:** `claimName: pokedex-backup-pvc` montado en `/backups` con **`readOnly: true`** (garantiza inmutabilidad física del almacenamiento de copias).
+   - **Credenciales:** Inyectadas de forma segura desde el Secret de K8s (`GDRIVE_TOKEN` de `pokemon-secrets` o Vault).
+   - **Aislamiento de Red (Zero-Trust):** NetworkPolicy dedicada que restringe el tráfico saliente únicamente a `kube-dns` (puerto 53) y Google Drive API (puerto 443 HTTPS).
+   - **Hardening:** `automountServiceAccountToken: false`, `runAsNonRoot: true`, `readOnlyRootFilesystem: true`, `drop: [ALL]`.
+
+2. **Activación en GitOps (`gitops/environments/proxmox/values.yaml`):**
+
+   ```yaml
+   backup:
+     enabled: true
+     persistence:
+       enabled: true
+     gdrive:
+       enabled: true
+       folder: "PokedexBackups/proxmox"
+   ```
+
+3. **Ejecución y Verificación en Kubernetes:**
+
+   ```bash
+   # Comprobar existencia del CronJob
+   kubectl get cronjob pokedex-gdrive-sync -n pokemon-app
+
+   # Disparar sincronización manual bajo demanda para drill de prueba
+   kubectl create job --from=cronjob/pokedex-gdrive-sync manual-gdrive-sync -n pokemon-app
+
+   # Inspeccionar logs del pod de sincronización
+   kubectl logs job/manual-gdrive-sync -n pokemon-app
+   ```
+
+---
+
+## 5. Alternativa C: Sincronización en el Host Proxmox VE (Nivel Hipervisor)
+
+> [!NOTE]
+> Esta alternativa es un mecanismo secundario que opera fuera de Kubernetes a nivel del sistema operativo base del hipervisor. Si se utiliza esta vía en lugar de la Alternativa B K8s-Native, se requiere configurar previamente un bind-mount o exportación del storage de K3s hacia `/var/lib/pve/local-btrfs/pokedex-backups`.
 
 ### Manifiesto de Automatización Ansible
 
