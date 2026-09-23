@@ -345,7 +345,7 @@ tasks:
       - gitleaks detect --verbose --no-git
 
   secrets:seal:
-    desc: "[Legacy/Deprecado] Sella credenciales con Bitnami Sealed Secrets (preferir ESO con Secret Manager)"
+    desc: "[Offline/Migración] Utilidad de transición criptográfica para entornos sin Vault (ADR-005)"
     cmds:
       - node --experimental-strip-types scripts/seal-secret.ts
 
