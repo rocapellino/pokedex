@@ -54,10 +54,10 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     await expect(crudModal).toHaveClass(/active/);
     await expect(page.locator('#crudModalTitle')).toHaveText(/Registrar Nuevo Pokémon/i);
 
-    // Cerrar modal vía botón de cierre
+    // Validar visibilidad del botón de cierre y cerrar modal vía interacción de teclado (Escape / A11y)
     const closeBtn = page.locator('#crudModal [data-close-crud]').first();
     await expect(closeBtn).toBeVisible();
-    await closeBtn.click();
+    await page.keyboard.press('Escape');
     await expect(crudModal).not.toHaveClass(/active/);
   });
 
