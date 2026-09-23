@@ -41,9 +41,6 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-  syncWindows:
-    - kind: allow
-      schedule: "* * * * *"
-      duration: 1h
-      applications:
-        - pokedex-preprod
+  # syncWindows: Omitido intencionalmente en pre-producción para permitir Continuous Delivery
+  # y validación automatizada de pruebas 24/7 sin ventanas de bloqueo.
+
