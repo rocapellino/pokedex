@@ -20,7 +20,7 @@ Este documento define la política oficial, las métricas de servicio (RPO/RTO),
 | **RPO** | < 24 horas | **≤ 24 horas** (Snapshot diario garantizado) | Periodicidad del `CronJob` de backup ejecutado a las 02:00 UTC con retención de 7 snapshots rotativos inmutables. |
 | **RTO (Tier 1 - BD/App)** | < 2 horas | **~1.5 segundos** (Restauración completa verificada) | Benchmark automatizado con `scripts/dr_verify_restore.sh --dry-run` en contenedor efímero `postgres:16-alpine` (descifrado AES-256-CBC PBKDF2 + verificación SHA-256 + descompresión gzip + importación DDL/DML real con 21 índices y aserciones de consistencia). |
 | **RTO (Tier 2 - VM/PBS)** | < 2 horas | **~15 - 20 minutos** (Restauración de imagen de disco) | Restauración de imagen completa de VM 801 o LXC 810 desde Proxmox Backup Server (PBS) a través de enlace de red local. |
-| **RTO (Tier 3 - Host/IaC)**| < 2 horas | **~30 - 45 minutos** (Reconstrucción bare-metal) | Provisión automatizada de infraestructura reproducible mediante OpenTofu y playbooks de Ansible sobre host reinstalado. |
+| **RTO (Tier 3 - Host/IaC)** | < 2 horas | **~30 - 45 minutos** (Reconstrucción bare-metal) | Provisión automatizada de infraestructura reproducible mediante OpenTofu y playbooks de Ansible sobre host reinstalado. |
 
 ---
 
@@ -58,10 +58,12 @@ flowchart LR
 >
 > Los dos esqueletos off-site están diseñados, parametrizados y listos para activar (*Cloud-Ready* y *PBS-Ready*), pero permanecen **INACTIVOS** (`backup.offsite.enabled: false`) hasta la contratación/asignación de storage externo.
 
-| Componente | Nivel / Tipo | Estado Actual | Destino de los Datos |
+| Componente | Nivel / Entorno | Estado Renderizado / Operacional | Destino de los Datos |
 | :--- | :--- | :---: | :--- |
-| **Respaldo Local PostgreSQL** | Base de Datos (K8s) | **ACTIVO** | PVC `/backups` (Almacenamiento local del host Proxmox) |
-| **Restore Verification Semanal** | K8s (`dr-restore-verify`) | **ACTIVO** | Verificación en contenedor efímero aislado (04:00 UTC) |
+| **Respaldo Local PostgreSQL** | Proxmox Prod (VM 801 K3s) | **ACTIVO (Renderizado)** | PVC dedicado `pokedex-backup-pvc` (`5Gi`, montado solo en pods de backup) |
+| **Respaldo Local Pre-prod** | Proxmox Pre-prod (LXC 800) | **INACTIVO (`enabled: false`)** | Desactivado intencionalmente para evitar saturación de I/O en LXC de lab |
+| **Respaldo Local Dev** | Local (Docker / Kind) | **INACTIVO (`enabled: false`)** | Base de datos efímera; respaldos puntuales vía script `dev-backup-gdrive.ts` |
+| **Restore Verification Semanal** | Proxmox Prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |
 | **Off-Site Cloud Backup (S3-compat)** | Object Storage Agnóstico | **ESQUELETO (INACTIVO)** | Endpoint remoto S3/R2/B2/MinIO (Documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)) |
 | **Off-Site PBS Remote Sync** | Hipervisor (Proxmox VE) | **ESQUELETO (INACTIVO)** | Sync Job hacia PBS secundario (Documentado en [setup_pbs_backup_blueprint.yml](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml)) |
 
@@ -69,33 +71,47 @@ flowchart LR
 
 ## 3. Procedimiento de Restauración Paso a Paso
 
+> [!NOTE]
+> **Aislamiento de Privilegios:** Por principios de Least Privilege, el Pod de PostgreSQL (`statefulset/pokedex-postgres`) **no** tiene montado el PVC de copias de seguridad (`pokedex-backup-pvc`). El PVC de backups es accedido exclusivamente por el CronJob de volcado, los jobs de verificación de DR o un pod auxiliar de inspección.
+
 ### Escenario A: Restauración sobre Clúster Operativo
 
-1. **Obtener el último backup cifrado y su checksum:**
+1. **Obtener el último backup cifrado desde el PVC `pokedex-backup-pvc`:**
+
+   Ejecutar un pod auxiliar efímero que monte el PVC de backups para listar o extraer el archivo más reciente:
 
    ```bash
-   LATEST_BACKUP=$(kubectl exec -it -n pokemon-app deploy/pokedex-postgres -- find /backups -name "pokedex_*.sql.gz.enc" | sort -r | head -n 1)
-   echo "Restaurando desde: ${LATEST_BACKUP}"
+   LATEST_BACKUP=$(kubectl run dr-inspector --rm -i --restart=Never \
+     --image=alpine:3.20 --overrides='
+     {
+       "spec": {
+         "volumes": [{"name": "backup-vol", "persistentVolumeClaim": {"claimName": "pokedex-backup-pvc"}}],
+         "containers": [{"name": "inspector", "image": "alpine:3.20", "command": ["sh", "-c", "find /backups -name \"pokedex_*.sql.gz.enc\" | sort -r | head -n 1"], "volumeMounts": [{"name": "backup-vol", "mountPath": "/backups"}]}]
+       }
+     }' 2>/dev/null)
+   echo "Último backup identificado en PVC: ${LATEST_BACKUP}"
    ```
 
-2. **Ejecutar la verificación y restauración automática:**
+2. **Ejecutar la verificación y certificación de restauración (DR Drill):**
 
    ```bash
-   bash scripts/dr_verify_restore.sh "${LATEST_BACKUP}"
+   bash scripts/dr_verify_restore.sh --dry-run
    ```
 
-3. **Restaurar directamente en la base de datos activa:**
+3. **Restaurar directamente en la base de datos PostgreSQL activa:**
+
+   Una vez descargado o transmitido el volcado cifrado, inyectarlo mediante pipe seguro hacia el StatefulSet de PostgreSQL (`pod/pokedex-postgres-0`):
 
    ```bash
-   openssl enc -d -aes-256-cbc -pbkdf2 -in "${LATEST_BACKUP}" -k "${BACKUP_ENCRYPTION_KEY}" | \
+   openssl enc -d -aes-256-cbc -pbkdf2 -in "${LOCAL_BACKUP_FILE}" -k "${BACKUP_ENCRYPTION_KEY}" | \
      gzip -d | \
-     kubectl exec -i -n pokemon-app deploy/pokedex-postgres -- psql -U pokedex_app -d pokedex_db
+     kubectl exec -i -n pokemon-app statefulset/pokedex-postgres -c postgresql -- psql -U pokedex_app -d pokedex_db
    ```
 
-4. **Validar conteo y consistencia:**
+4. **Validar conteo y consistencia en PostgreSQL:**
 
    ```bash
-   kubectl exec -i -n pokemon-app deploy/pokedex-postgres -- \
+   kubectl exec -i -n pokemon-app statefulset/pokedex-postgres -c postgresql -- \
      psql -U pokedex_app -d pokedex_db -c "SELECT COUNT(*) FROM pokedex_entries;"
    ```
 
@@ -121,7 +137,9 @@ flowchart LR
 El repositorio implementa una estricta separación conceptual y operativa entre la prueba del mecanismo y la certificación de los datos:
 
 ### 4.1. Simulacro del Mecanismo (Smoke Test: `dr:drill`)
+
 Orientado a validar en CI/CD y entornos de prueba que el pipeline, herramientas criptográficas, compresión y motor PostgreSQL efímero operan correctamente sin necesitar acceso a copias de seguridad de producción:
+
 ```bash
 task dr:drill
 # O directamente:
@@ -129,7 +147,9 @@ bash scripts/dr_verify_restore.sh --dry-run
 ```
 
 ### 4.2. Certificación de Respaldo Real (`dr:verify`)
+
 Orientado a auditar de forma fail-closed que el último snapshot real generado en producción es descifrable con `BACKUP_ENCRYPTION_KEY`, consistente y restaura los esquemas e índices del negocio:
+
 ```bash
 export BACKUP_ENCRYPTION_KEY="<clave-producción>"
 task dr:verify
@@ -138,6 +158,7 @@ bash scripts/dr_verify_restore.sh
 ```
 
 El protocolo automatizado valida:
+
 - Generación de clave efímera dinámica con `openssl rand -hex 32` en modo simulación (en modo real exige `BACKUP_ENCRYPTION_KEY` obligatoria).
 - Verificación criptográfica SHA-256 (`.sha256`), descifrado AES-256-CBC con PBKDF2 y descompresión gzip.
 - Prueba de restauración real en base de datos PostgreSQL efímera (vía Docker) o remota (`DR_POSTGRES_URL`), validando existencia de la tabla `pokedex_entries`, conteo de filas, lectura representativa e integridad de índices.

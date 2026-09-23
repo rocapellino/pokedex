@@ -72,9 +72,9 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 | **4. K8s Runtime** | Instalación K3s / CNI | `kindest/node` `[EJE]` | Playbook `setup_k3s.yml` | Playbook `setup_k3s.yml` | AWS Managed | **Normalizado**: Automatizado vía `infra/ansible/playbooks/setup_k3s.yml`. |
 | **5. CNI & Egress** | Cilium eBPF L7 | Kindnet L4 fallback | Cilium CNI `[IMP, DEC]` | Cilium CNI `[IMP, DEC, DOC]` | Cilium Chaining `[DEC]` | **Coherente**: Pre-requisito CNI documentado; `values.dev.yaml` desactiva Cilium en local. |
 | **6. Secret Vault** | HashiCorp Vault CE | Env Vars `[EJE]` | LXC 810 `[IMP, DEC]` | LXC 810 `[IMP, DEC, EJE, DOC]` | AWS Secrets Mgr | **Coherente**: Aislamiento lógico `secret/data/pokedex/preprod/*` vs `prod/*`. |
-| **7. Secret Sync** | External Secrets Operator | Simulado / Envs | `vault-backend-preprod` | `vault-backend` | `aws-secrets-manager` | **Coherente**: Clave `pokedex/production` sincronizada en Secret `pokemon-secrets`. |
-| **8. Helm Base** | Safe Defaults vs Overrides | `values.dev.yaml` | `values.yaml` | `values.prod.yaml` | `values.prod.yaml` | **Coherente**: Base segura (`values.yaml`) con overrides específicos por ambiente. |
-| **9. GitOps** | ArgoCD Applications | `-` | `-` | `app-proxmox.yaml` | `app-cloud.yaml` | **Coherente**: Sincronización declarativa apuntando al namespace canónico `pokemon-app`. |
+| **7. Secret Sync** | External Secrets Operator | Simulado / Envs | `vault-backend-preprod` | `vault-backend` | `aws-secrets-manager` | **Normalizado**: Claves canónicas `pokedex/preprod` (Pre-prod LXC 800) y `pokedex/prod` (Prod VM 801 / AWS). |
+| **8. Helm Base** | Safe Defaults vs Overrides | `values.dev.yaml` | `values.yaml` + `proxmox-preprod/values.yaml` | `values.prod.yaml` + `proxmox/values.yaml` | `values.prod.yaml` + `aws/values.yaml` | **Coherente**: Base segura (`values.yaml`) con overrides específicos por ambiente. |
+| **9. GitOps** | ArgoCD Applications | `-` | `app-proxmox-preprod.yaml` | `app-proxmox.yaml` | `app-cloud.yaml` | **Coherente**: Sincronización declarativa en ArgoCD para Pre-prod (LXC 800), Prod On-Prem (VM 801) y Cloud (AWS EKS). |
 | **10. Ingress** | Controller & Enrutamiento | Ingress Nginx | Traefik K3s nativo | Traefik K3s nativo | AWS ALB Ingress | **Normalizado**: Eliminadas anotaciones residuales de Nginx en Proxmox (`className: traefik`). |
 | **11. Workload** | API, Web, Postgres, Redis | `[IMP, EJE]` | `[IMP, DEC]` | `[IMP, DEC, DOC]` | `[IMP, DEC, DOC]` | **Coherente**: Paridad de imágenes SHA256 inmutables (1:1) certificada en CI. |
 | **12. CI/CD** | Quality & Security Gates | `[IMP, EJE]` (17 gates) | `-` | `-` | `-` | **Coherente**: Verificación estricta de Cosign, SBOM, Trivy, Semgrep, Checkov y paridad GitOps. |
@@ -138,12 +138,12 @@ Cada recurso se clasifica rigurosamente bajo una o varias de las siguientes etiq
 
 ---
 
-### 5.6. Taxonomía de Secretos en Vault: `pokedex/production` vs `pokedex/prod/*`
+### 5.6. Taxonomía Canónica de Secretos: Normalización a `pokedex/prod` y `pokedex/preprod`
 
 * **Diagnóstico Previo:**  
-  La documentación referenciaba rutas bajo `secret/data/pokedex/prod/*`, mientras que el `ClusterSecretStore` y `values.yaml` consultan la clave singular `pokedex/production`.
-* **Mitigación Aplicada:**  
-  En [`setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml#L441), la política `pokedex-prod-policy` autoriza tanto `secret/data/pokedex/prod/*` como `secret/data/pokedex/production`, garantizando compatibilidad retroactiva sin violar el principio de mínimo privilegio (*Least Privilege*).
+  Existía una discrepancia entre la documentación y políticas (`secret/data/pokedex/prod/*`), mientras que el `ClusterSecretStore`, `values.yaml` y manifiestos de ESO utilizaban la clave alternativa `pokedex/production`.
+* **Normalización Definitiva:**  
+  Se unificó contractualmente la taxonomía de secretos a `prod` y `preprod` en toda la cadena: Vault (`pokedex-prod-policy` y `pokedex-preprod-policy`), External Secrets Operator (`remoteRef.key: pokedex/prod`), Helm Charts (`values.yaml`, `values.prod.yaml` y GitOps Proxmox/AWS), pruebas unitarias y scripts operativos.
 
 ---
 

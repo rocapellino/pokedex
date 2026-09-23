@@ -7,67 +7,30 @@ description: Revisión estructurada de Pull Requests.
 
 ## Objetivo
 
-Revisión estructurada de Pull Requests.
+Realizar revisiones de código estructuradas, rigurosas y exhaustivas sobre Pull Requests (PRs), ramas o deltas de código en `rocapellino/pokedex`, asegurando que no se introduzcan regresiones funcionales, riesgos de seguridad ni drift arquitectónico o documental.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Correctitud, arquitectura, seguridad, pruebas, dependencias, CI/CD, observabilidad y documentación.
-- Detectar cambios fuera de alcance.
-- Separar blocking/non-blocking.
-- Verificar que tests cubran el comportamiento cambiado.
-- Revisar permisos y workflows si cambia .github.
-- Revisar Helm/K8s/OpenTofu/Ansible si cambia infraestructura.
-- No aprobar por defecto: entregar evidencia y preguntas concretas.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Correctitud y Lógica de Negocio:** Validación de algoritmos, manejo de errores asíncronos y robustez en la API Express y frontend.
+- **Cobertura y Pruebas Obligatorias:** Exigir que todo cambio de lógica cuente con pruebas automatizadas que cubran tanto el camino feliz como condiciones de borde o fallo.
+- **Seguridad en el Cambio:**
+  - Ausencia de secretos expuestos, tokens o variables de entorno confidenciales en el diff.
+  - Validación estricta con Zod en endpoints nuevos o modificados.
+  - Revisión de permisos mínimos si el PR altera `.github/workflows/`.
+- **Integridad de Infraestructura y GitOps:** Verificar que cambios en `infra/` o `gitops/` preserven OCI digest pinning, namespaces canónicos (`pokemon-app`) y contratos de External Secrets.
+- **Segregación de Observaciones:** Distinguir claramente entre observaciones **Bloqueantes** (P0/P1 que impiden el merge) y **No Bloqueantes** (P2/P3 sugerencias o mejoras cosméticas).
+- **Cierre Documental del PR:** Comprobar que cualquier alteración de configuración o flujo esté documentada en los runbooks o ADRs correspondientes.
 
 ## Comandos
 
-- `/repo-pr`
-- `/repo-pr security`
-- `/repo-pr architecture`
-- `/repo-pr tests`
+- `/repo-pr`: Revisión exhaustiva y multidimensional del Pull Request actual.
+- `/repo-pr security`: Enfoque prioritario en seguridad de código, permisos y secretos.
+- `/repo-pr architecture`: Revisión de acoplamiento, contratos y coherencia del monorepo.
+- `/repo-pr tests`: Verificación de suficiencia, calidad y ejecución de tests para el diff.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Si el PR requiere una reestructuración profunda, definirla mediante [change-plan.md](../_shared/change-plan.md).

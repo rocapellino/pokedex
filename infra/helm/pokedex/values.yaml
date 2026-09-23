@@ -285,15 +285,15 @@ externalSecrets:
   targetSecretName: "pokemon-secrets"
   annotations: {}
   # Convención de Nomenclatura según Proveedor:
-  # - AWS Secrets Manager: key: "pokedex/production" (sin prefijo secret/data)
-  # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/production" (prefijo API requerido por Vault KV engine v2)
+  # - AWS Secrets Manager: key: "pokedex/prod" (sin prefijo secret/data)
+  # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/prod" (prefijo API requerido por Vault KV engine v2)
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "secret/data/pokedex/production"
+    key: "secret/data/pokedex/prod"
   # data: []       # Lista explícita de campos (opcional, por defecto usa las credenciales estándar)
-  # dataFrom: []   # Extracción masiva (ej. - extract: { key: "secret/data/pokedex/production" })
+  # dataFrom: []   # Extracción masiva (ej. - extract: { key: "secret/data/pokedex/prod" })
   secretStore:
     create: false
     kind: "SecretStore" # "SecretStore" o "ClusterSecretStore"
@@ -371,7 +371,7 @@ backup:
   schedule: "0 2 * * *"
   retentionDays: 7
   persistence:
-    enabled: false
+    enabled: true
     size: 5Gi
     storageClass: ""
   # ----------------------------------------------------------------------------

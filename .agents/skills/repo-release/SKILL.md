@@ -7,68 +7,33 @@ description: Verificación de readiness antes de release.
 
 ## Objetivo
 
-Verificación de readiness antes de release.
+Verificar exhaustivamente los criterios de preparación y *readiness* operacional antes de autorizar un release, etiquetado (*tagging*) o despliegue a producción en `rocapellino/pokedex`.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Versionado y changelog.
-- Git status y commits.
-- Dependencias y vulnerabilidades.
-- Tests, build y quality gates.
-- Docker image, SBOM, firma y digest.
-- Helm/GitOps parity.
-- Migraciones y rollback.
-- Documentación y runbooks.
-- Confirmar que no existan cambios críticos sin promover.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Semántica de Versiones y Changelog:** Coherencia de tags semver (`vX.Y.Z`) en `package.json`, Helm `Chart.yaml` y actualización del historial de cambios.
+- **Estado del Árbol Git:** Verificar que el working tree esté limpio, sin archivos sin rastrear ni commits no integrados.
+- **Gates de Calidad y Seguridad Bloqueantes:**
+  - Compilación limpia (`npm run build`).
+  - Cero vulnerabilidades críticas o altas no remediadas (SCA / SAST).
+  - 100% de tests unitarios, de integración y seguridad pasando (`npm test`).
+- **Validación de Artefactos e Inmutabilidad:**
+  - Existencia de SBOM CycloneDX generado.
+  - Firma criptográfica Cosign y atestación SLSA Provenance.
+  - OCI digest pinning verificado y consistente entre Helm y GitOps (`npm run gitops:verify-parity:strict`).
+- **Sincronización GitOps (ArgoCD):** Paridad declarativa entre `gitops/apps/` (`pokedex-preprod`, `pokedex-proxmox`, `pokedex-cloud`) y las plantillas base.
+- **Readiness de Persistencia:** Revisión de migraciones Drizzle pendientes y validación de compatibilidad hacia atrás para evitar downtime.
+- **Procedimientos de Rollback y Runbooks:** Confirmar que los runbooks de contingencia y rollback estén vigentes.
 
 ## Comandos
 
-- `/repo-release`
-- `/repo-release dry-run`
-- `/repo-release production`
+- `/repo-release`: Auditoría completa de preparación de release.
+- `/repo-release dry-run`: Simulación de validación de gates sin realizar cambios ni tags.
+- `/repo-release production`: Certificación formal de release para despliegue en producción.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Formalizar cualquier ajuste pre-release con [change-plan.md](../_shared/change-plan.md).

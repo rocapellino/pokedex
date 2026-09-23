@@ -7,69 +7,32 @@ description: Medir evolución técnica sin convertir una métrica en una calific
 
 ## Objetivo
 
-Medir evolución técnica sin convertir una métrica en una calificación global.
+Medir, auditar y documentar la evolución técnica de `rocapellino/pokedex` a lo largo del tiempo, identificando tendencias de deuda técnica, cobertura de pruebas, hotspots y tiempos de entrega sin imponer calificaciones numéricas artificiales o subjetivas.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- LOC y distribución por área.
-- Complejidad/duplicación.
-- Dependencias y vulnerabilidades.
-- Cobertura y cantidad de tests.
-- Duración de CI.
-- Frecuencia de cambios y hotspots.
-- Technical debt por prioridad.
-- Tendencias contra baseline anterior.
-- Usar métricas para detectar dirección, no para producir un score arbitrario.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Distribución de Código y Complejidad:**
+  - Volumen de líneas de código (LOC) segmentadas por workspace (`apps/backend`, `apps/frontend`, `infra/`, `scripts/`).
+  - Detección de funciones y módulos con alta complejidad ciclomática o acoplamiento excesivo.
+- **Métricas de Calidad y Pruebas:**
+  - Cantidad y tipología de pruebas (unitarias, integración, E2E, seguridad de infraestructura).
+  - Cobertura LCOV en componentes críticos (`coverage/lcov.info`).
+- **Rendimiento de Pipelines de CI:**
+  - Tiempos de ejecución por job en GitHub Actions (`build`, `test`, `lint`, `security-sast`).
+  - Tasa de éxito y cuellos de botella en la compilación y test suites.
+- **Hotspots de Modificación:** Identificar archivos con alta frecuencia de cambios (*churn*) y correlacionarlos con áreas de mayor incidencia de defectos.
+- **Evolución de Deuda Técnica:** Tendencia de hallazgos P0, P1, P2 y P3 a lo largo de los sucesivos baselines en `docs/audits/`.
 
 ## Comandos
 
-- `/repo-metrics`
-- `/repo-metrics trend`
-- `/repo-metrics ci`
-- `/repo-metrics debt`
+- `/repo-metrics`: Tablero consolidado de métricas técnicas actuales.
+- `/repo-metrics trend`: Comparativa de tendencias históricas contra el baseline previo.
+- `/repo-metrics ci`: Análisis de tiempos y fiabilidad de los workflows de integración continua.
+- `/repo-metrics debt`: Cuantificación y distribución del inventario de deuda técnica pendiente.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Si las métricas demandan refactors estructurales, articular la propuesta con [change-plan.md](../_shared/change-plan.md).

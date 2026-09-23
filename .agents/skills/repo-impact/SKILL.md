@@ -7,67 +7,28 @@ description: Analizar impacto antes de implementar un cambio.
 
 ## Objetivo
 
-Analizar impacto antes de implementar un cambio.
+Analizar de forma exhaustiva, en modo de sólo lectura, el radio de impacto, dependencias cruzadas, riesgos de regresión y consecuencias arquitectónicas de cualquier cambio propuesto antes de su implementación en `rocapellino/pokedex`.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Resolver referencias directas e indirectas.
-- Mapear módulos, endpoints, componentes, tests, workflows, manifests y docs afectados.
-- Detectar breaking changes y contratos.
-- Identificar migraciones DB/cache/config necesarias.
-- Identificar cambios de seguridad y observabilidad.
-- Producir plan de cambio pequeño y reversible.
-- No editar código durante impact analysis.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Mapeo de Referencias:** Rastrear dependencias directas e indirectas de los archivos o símbolos a modificar (imports, re-exports, llamadas a funciones y tipos).
+- **Contratos de API y Frontend:** Evaluar si las modificaciones en rutas, esquemas Zod o DTOs del backend impactan al cliente frontend (`apps/frontend`).
+- **Persistencia y Base de Datos:** Detectar si el cambio requiere migraciones Drizzle, alteración de esquemas PostgreSQL o invalidación de cachés Redis.
+- **Infraestructura y GitOps:** Evaluar si el cambio impacta valores Helm, variables de entorno, plantillas de ArgoCD o configuraciones de OpenTofu/Ansible.
+- **Suites de Pruebas Afectadas:** Identificar con precisión qué tests unitarios, de integración o de seguridad deben ejecutarse o actualizarse.
+- **Pipelines y Gates de CI/CD:** Determinar si se afectan jobs de GitHub Actions, secretos de CI o políticas de calidad.
+- **Diseño del Plan de Cambio:** Generar un plan secuencial, de bajo acoplamiento y con estrategia de rollback explícita.
 
 ## Comandos
 
-- `/repo-impact <cambio>`
-- `/repo-impact file`
-- `/repo-impact dependency`
-- `/repo-impact api`
+- `/repo-impact <cambio>`: Análisis integral de impacto para un cambio o requerimiento específico.
+- `/repo-impact file`: Análisis enfocado en la modificación o supresión de un archivo determinado.
+- `/repo-impact dependency`: Evaluación del impacto de agregar, actualizar o remover una dependencia.
+- `/repo-impact api`: Análisis de compatibilidad hacia atrás ante modificaciones en endpoints o DTOs.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Formalizar siempre el resultado del análisis mediante la plantilla [change-plan.md](../_shared/change-plan.md).

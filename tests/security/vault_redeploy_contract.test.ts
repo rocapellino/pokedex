@@ -11,14 +11,25 @@ test('🔒 Proxmox Secret Architecture: Validación contractual de Vault CE, ESO
   assert.ok(result.valid, `La arquitectura de secretos en Proxmox debe ser 100% coherente: ${result.reasons.join('; ')}`);
 });
 
-test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore vault-backend y clave pokedex/production', () => {
+test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore vault-backend y clave pokedex/prod', () => {
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
   const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');
 
   assert.match(content, /secretStoreRef:\s*\r?\n\s*name:\s*"vault-backend"/, 'Debe usar vault-backend como secretStoreRef');
   assert.match(content, /kind:\s*"ClusterSecretStore"/, 'Debe ser de clase ClusterSecretStore');
-  assert.match(content, /key:\s*"pokedex\/production"/, 'Debe mapear la clave pokedex/production en el KV v2');
+  assert.match(content, /key:\s*"pokedex\/prod"/, 'Debe mapear la clave pokedex/prod en el KV v2');
   assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Proxmox');
+});
+
+test('🔒 Proxmox Pre-prod GitOps Values: ExternalSecrets apunta a vault-backend-preprod y clave pokedex/preprod', () => {
+  const preprodValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
+  assert.ok(fs.existsSync(preprodValuesPath), 'gitops/environments/proxmox-preprod/values.yaml debe existir');
+  const content = fs.readFileSync(preprodValuesPath, 'utf-8');
+
+  assert.match(content, /secretStoreRef:\s*\r?\n\s*name:\s*"vault-backend-preprod"/, 'Debe usar vault-backend-preprod como secretStoreRef');
+  assert.match(content, /kind:\s*"ClusterSecretStore"/, 'Debe ser de clase ClusterSecretStore');
+  assert.match(content, /key:\s*"pokedex\/preprod"/, 'Debe mapear la clave pokedex/preprod en el KV v2');
+  assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Pre-prod');
 });
 
 test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-prod-role', () => {
@@ -29,6 +40,18 @@ test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y r
   assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
   assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
   assert.match(content, /role:\s*"pokedex-prod-role"/, 'Debe autenticar con el rol pokedex-prod-role');
+  assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
+});
+
+test('🔒 Vault Pre-prod ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-preprod-role', () => {
+  const vaultBackendPreprodPath = path.join(ROOT_DIR, 'infra/k8s/eso/vault-backend-preprod.yaml');
+  assert.ok(fs.existsSync(vaultBackendPreprodPath), 'vault-backend-preprod.yaml debe existir');
+  const content = fs.readFileSync(vaultBackendPreprodPath, 'utf-8');
+
+  assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
+  assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
+  assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
+  assert.match(content, /role:\s*"pokedex-preprod-role"/, 'Debe autenticar con el rol pokedex-preprod-role');
   assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
 });
 

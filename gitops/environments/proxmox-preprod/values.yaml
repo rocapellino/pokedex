@@ -1,22 +1,24 @@
 # ==============================================================================
-# Sobrescritura de Values para Entorno On-Premise (Proxmox VE / K8s Interno)
-# Perfil: Minimal Viable Platform (MVP) / Lean On-Premise
-# Racional de Consolidación Arquitectónica:
-# - Secrets: External Secrets Operator (ESO) canónico -> HashiCorp Vault (vault-backend)
-# - Reloader: Desactivado. Sustituido por anotación nativa Helm checksum/config en Pod template.
-# - PgBouncer: Desactivado. Sustituido por pool nativo pg.Pool en Node.js (20 conns/pod = 40 total).
-# - Beyla (eBPF): Desactivado. Sustituido por instrumentación W3C nativa + Prometheus /metrics.
-# - Node Exporter: Desactivado. Sustituido por telemetría RRD nativa del hipervisor Proxmox VE.
-# - Observabilidad: Grafana Alloy con OTLP (:4317/:4318) + recolección de logs en /var/log/pods.
+# Sobrescritura de Values para Entorno Pre-producción (LXC 800 Proxmox VE)
+# ==============================================================================
+# Perfil: Pre-producción On-Premise / Staging K3s en LXC 800
+# Formalizado bajo Opción A (ADR-021 / ADR-025): Entorno GitOps operacional real.
+#
+# Racional Arquitectónico:
+# - Secrets: External Secrets Operator (ESO) conectado a 'vault-backend-preprod'
+#   (autenticación con pokedex-preprod-role contra secret/data/pokedex/preprod/*).
+# - Reloader: Desactivado (reloader.enabled: false). Perfil Lean en LXC.
+# - Rollout Restart: Procedimiento progresivo oficial ante rotación de credenciales.
+# - Capacidad: Dimensionamiento ajustado a contenedor LXC 800 (1 réplica por app).
 # ==============================================================================
 
 global:
-  environment: onprem-proxmox
+  environment: onprem-proxmox-preprod
   namespace: pokemon-app
   imagePullSecrets: []
 
 api:
-  replicaCount: 2
+  replicaCount: 1
   deploymentAnnotations:
     reloader.stakater.com/auto: null
   podAnnotations: {}
@@ -26,16 +28,16 @@ api:
     pullPolicy: IfNotPresent
   resources:
     limits:
-      cpu: "1000m"
-      memory: "1Gi"
+      cpu: "500m"
+      memory: "512Mi"
     requests:
-      cpu: "200m"
-      memory: "256Mi"
+      cpu: "100m"
+      memory: "128Mi"
   autoscaling:
-    enabled: false  # En Proxmox mantenemos capacidad fija garantizada
+    enabled: false
 
 web:
-  replicaCount: 2
+  replicaCount: 1
   deploymentAnnotations:
     reloader.stakater.com/auto: null
   podAnnotations: {}
@@ -45,10 +47,10 @@ web:
     pullPolicy: IfNotPresent
   resources:
     limits:
-      cpu: "500m"
-      memory: "256Mi"
+      cpu: "250m"
+      memory: "128Mi"
     requests:
-      cpu: "100m"
+      cpu: "50m"
       memory: "64Mi"
   autoscaling:
     enabled: false
@@ -58,9 +60,8 @@ ingress:
   className: "traefik"
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: "web"
-
   hosts:
-    - host: pokedex.proxmox.internal.lan
+    - host: pokedex.preprod.proxmox.internal.lan
       paths:
         - path: /api/
           pathType: Prefix
@@ -122,17 +123,12 @@ externalSecrets:
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
   secretStoreRef:
-    name: "vault-backend"
+    name: "vault-backend-preprod"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "pokedex/prod"
+    key: "pokedex/preprod"
 
-# ------------------------------------------------------------------------------
-# Aislamiento de Red Zero-Trust en Proxmox VE (Cilium eBPF L7 Egress)
-# ------------------------------------------------------------------------------
-# Para garantizar la política Anti-SSRF y Anti-Exfiltración donde dominios no
-# autorizados (ej. https://example.com) y redes privadas (RFC1918 / IMDS) sean
-# bloqueados, se activa CiliumNetworkPolicy L7 FQDN y se desactiva externalHttps L4.
+# Aislamiento de Red Zero-Trust en LXC 800 (Cilium eBPF L7 Egress)
 networkPolicies:
   enabled: true
   egress:
@@ -147,23 +143,5 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
-# ------------------------------------------------------------------------------
-# Disaster Recovery & Off-Site Backup (Esqueleto Blueprint - Estado: INACTIVO)
-# ------------------------------------------------------------------------------
-# El respaldo local cifrado (AES-256 + SHA256 + restore drill) está activo.
-# La sincronización off-site remota permanece como esqueleto agnóstico inactivo
-# hasta la provisión de un bucket externo (S3/R2) o servidor PBS remoto.
 backup:
-  enabled: true
-  persistence:
-    enabled: true
-    size: 5Gi
-    storageClass: ""
-  offsite:
-    enabled: false
-    provider: "s3-compatible"
-    bucket: "pokedex-backups-offsite"
-    region: "us-east-1"
-    prefix: "proxmox/postgres"
-    secretName: "backup-offsite-creds"
-
+  enabled: false # Pre-prod no ejecuta backups persistentes en schedule nocturno para ahorrar I/O en LXC

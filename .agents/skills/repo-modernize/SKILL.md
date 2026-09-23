@@ -7,68 +7,34 @@ description: Evaluar modernización tecnológica con criterio de costo, riesgo y
 
 ## Objetivo
 
-Evaluar modernización tecnológica con criterio de costo, riesgo y beneficio.
+Evaluar objetivamente oportunidades de modernización del stack tecnológico, frameworks, herramientas y dependencias en `rocapellino/pokedex`, aplicando criterios estrictos de retorno de inversión, costo de migración, riesgo operativo y beneficios medibles.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Node/npm/TypeScript, Express, React/Vite y tooling.
-- Test runner, linting, formatting, bundling y monorepo orchestration.
-- Docker/build, Helm/Kubernetes, GitHub Actions y GitOps.
-- Observabilidad OpenTelemetry y métricas.
-- Seguridad y supply chain.
-- Comparar mantener/actualizar/reemplazar/eliminar.
-- No recomendar una herramienta solo por ser nueva.
-- Toda sustitución debe incluir impacto, migración, rollback y compatibilidad.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Criterio Anti-Hype:** Queda prohibido recomendar migraciones o sustitución de herramientas únicamente por novedad o tendencia. Todo reemplazo debe sustentarse en ventajas funcionales, de seguridad o de rendimiento cuantificables.
+- **Runtime y Plataforma:**
+  - Evaluación de versiones de Node.js (manteniendo LTS activo, actualmente Node 22), npm 11+ y TypeScript.
+  - Opciones de orquestación de monorepos y aceleración de builds (`turbo`, esbuild, vite).
+- **Herramientas de Validación y Testing:**
+  - Modernización de test runners (ej. node:test vs suites legacy).
+  - Optimización de linters, formateadores y reglas de compilación estricta (`tsconfig.json`).
+- **Infraestructura, Contenedores e IaC:**
+  - Oportunidades de optimización en imágenes Docker multi-stage (Alpine, distroless).
+  - Capacidades avanzadas de Cilium CNI, Traefik o Helm charts.
+- **Análisis Comparativo Cuádruple:**
+  - Para cada componente analizado, contrastar las cuatro alternativas: *Mantener*, *Actualizar in-place*, *Reemplazar* o *Eliminar*.
+- **Plan de Migración y Rollback:** Toda propuesta aprobada debe incluir estrategia de transición incremental, validación de paridad y plan de marcha atrás.
 
 ## Comandos
 
-- `/repo-modernize`
-- `/repo-modernize runtime`
-- `/repo-modernize tooling`
-- `/repo-modernize platform`
+- `/repo-modernize`: Diagnóstico integral de modernización técnica.
+- `/repo-modernize runtime`: Evaluación de Node.js, TypeScript y motores de ejecución.
+- `/repo-modernize tooling`: Análisis de compiladores, linters, empaquetadores y scripts de build.
+- `/repo-modernize platform`: Oportunidades en Kubernetes, contenedores, Ingress y CI/CD.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Formalizar toda propuesta de migración tecnológica mediante [change-plan.md](../_shared/change-plan.md).

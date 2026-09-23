@@ -18,6 +18,7 @@ test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante
   const environments = [
     'gitops/environments/aws/values.yaml',
     'gitops/environments/proxmox/values.yaml',
+    'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml',
   ];
 

@@ -163,5 +163,5 @@ El cumplimiento de esta taxonomía se valida de forma continua en el pipeline de
 
 1. **Prohibición de Namespaces Obsoletos:** Falla si cualquier documento en `docs/` o `gitops/` contiene `-n pokedex` o `--namespace pokedex`.
 2. **Paridad de Helm Values:** Verifica que `infra/helm/pokedex/values.yaml` especifique `global.namespace: pokemon-app`.
-3. **Paridad de GitOps ArgoCD:** Verifica que `gitops/apps/app-proxmox.yaml` y `gitops/apps/app-cloud.yaml` definan `destination.namespace: pokemon-app`.
+3. **Paridad de GitOps ArgoCD:** Verifica que `gitops/apps/app-proxmox.yaml`, `gitops/apps/app-proxmox-preprod.yaml` y `gitops/apps/app-cloud.yaml` definan `destination.namespace: pokemon-app`.
 4. **Validación de Roles Vault:** Verifica que `setup_vault.yml` enlace los roles `pokedex-preprod-role` y `pokedex-prod-role` al namespace `pokemon-app`.

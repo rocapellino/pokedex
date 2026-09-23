@@ -64,7 +64,7 @@ services:
       - backend-net
 
   # ============================================================================
-  # 6. Exporter de Métricas de Contenedores Docker (cAdvisor) - Opción A
+  # 6. Exporter de Métricas de Contenedores Docker (cAdvisor)
   # Retenido exclusivamente en desarrollo local para alimentar métricas container_*
   # (CPU, Working Set RAM, límites de memoria) a Alloy y Grafana Cloud sin romper
   # dashboards ni la alerta ContainerHighMemoryUsage. En K8s, Kubelet lo provee de
@@ -81,6 +81,36 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - backend-net
+
+  # ============================================================================
+  # 7. Sincronización Off-Site a Google Drive con Rclone (Dev Local)
+  # Perfil bajo demanda: docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup run --rm backup-gdrive
+  # ============================================================================
+  backup-gdrive:
+    image: rclone/rclone:1.68.2
+    container_name: pokemon-backup-gdrive
+    profiles:
+      - backup
+    environment:
+      - RCLONE_CONFIG_GDRIVE_TYPE=drive
+      - RCLONE_CONFIG_GDRIVE_CLIENT_ID=${GDRIVE_CLIENT_ID:-}
+      - RCLONE_CONFIG_GDRIVE_CLIENT_SECRET=${GDRIVE_CLIENT_SECRET:-}
+      - RCLONE_CONFIG_GDRIVE_TOKEN=${GDRIVE_TOKEN:-}
+      - GDRIVE_FOLDER=${GDRIVE_FOLDER:-PokedexBackups/dev}
+    volumes:
+      - ./backups:/backups:ro
+      - ~/.config/rclone:/config/rclone:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ -z "$$RCLONE_CONFIG_GDRIVE_TOKEN" ] && [ ! -f /config/rclone/rclone.conf ]; then
+          echo "❌ [DR Dev] Error: Credenciales de Google Drive ausentes."
+          echo "ℹ️ Configura GDRIVE_TOKEN en .env o genera ~/.config/rclone/rclone.conf con 'rclone authorize drive'"
+          exit 1
+        fi
+        echo "☁️ [DR Dev] Sincronizando copias cifradas hacia Google Drive (gdrive:$${GDRIVE_FOLDER})..."
+        rclone sync /backups gdrive:$${GDRIVE_FOLDER} --include "pokedex_*.sql.gz.enc*" --include "*.sha256" --verbose
+        echo "✅ [DR Dev] ¡Sincronización con Google Drive completada exitosamente!"
 
 
 networks:

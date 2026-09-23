@@ -7,69 +7,32 @@ description: Gobernar el ciclo de vida de dependencias del monorepo.
 
 ## Objetivo
 
-Gobernar el ciclo de vida de dependencias del monorepo.
+Gobernar el ciclo de vida de dependencias en el monorepo `rocapellino/pokedex`, asegurando reproducibilidad de lockfiles, minimización de riesgos de seguridad (SCA/CVEs), eliminación de librerías huérfanas y control estricto de overrides.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- package.json y package-lock como fuentes de verdad.
-- Dependencias directas/transitivas, duplicados, overrides y paquetes sin uso.
-- Compatibilidad Node 22, npm 11 y TypeScript actual.
-- Compatibilidad entre workspaces backend/frontend y tooling.
-- Detectar paquetes EOL/deprecated/vulnerables.
-- Proponer upgrade en lotes pequeños con pruebas de regresión.
-- Detectar dependencias que pueden eliminarse o consolidarse.
-- Evaluar si una herramienta existente ya cubre la necesidad antes de introducir otra.
-- Mantener lockfile reproducible.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Fuentes de Verdad:** `package.json` raíz, `apps/backend/package.json`, `apps/frontend/package.json` y `package-lock.json`.
+- **Compatibilidad de Stack:** Garantizar compatibilidad estricta con Node.js 22 LTS, npm 11+ y TypeScript estricto.
+- **Auditoría de Overrides:** Revisar la sección `"overrides"` en `package.json` para verificar si las resoluciones forzadas siguen siendo necesarias o introducen inestabilidad.
+- **Detección de Vulnerabilidades (SCA):** Integración con npm audit, Dependabot y herramientas SCA para clasificar CVEs reales frente a falsos positivos.
+- **Dependencias Huérfanas y Duplicadas:**
+  - Identificar paquetes instalados pero sin imports activos en código fuente.
+  - Detectar versiones discrepantes o duplicadas entre los workspaces `backend` y `frontend`.
+- **Estrategia de Actualizaciones:**
+  - Proponer actualizaciones en lotes pequeños (semver incrementales) con validación automática de suites de tests.
+  - Verificar que las dependencias actualizadas no rompan builds de Docker ni generen incompatibilidad en contenedores de producción.
+- **Reproducibilidad:** Mantener un árbol de dependencias determinista y lockfile sincronizado.
 
 ## Comandos
 
-- `/repo-dependencies`
-- `/repo-dependencies security`
-- `/repo-dependencies unused`
-- `/repo-dependencies upgrade-plan`
+- `/repo-dependencies`: Diagnóstico integral del estado de paquetes y librerías del monorepo.
+- `/repo-dependencies security`: Auditoría especializada en vulnerabilidades SCA, parches y CVEs.
+- `/repo-dependencies unused`: Detección de paquetes declarados sin uso en backend o frontend.
+- `/repo-dependencies upgrade-plan`: Generación de un plan secuencial y seguro de actualización de librerías.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.

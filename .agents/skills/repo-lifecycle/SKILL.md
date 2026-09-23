@@ -5,74 +5,71 @@ description: Orquestador del ciclo de vida completo del repositorio Pokedex.
 
 # repo-lifecycle
 
-Esta skill coordina las demás skills para evitar análisis duplicados y convertir hallazgos en cambios verificables.
+## Objetivo
 
-## Flujo recomendado
+Orquestar de extremo a extremo el ciclo de vida de auditoría, análisis, refactorización, pruebas, despliegue y documentación en `rocapellino/pokedex`, coordinando las skills especializadas para evitar análisis redundantes y asegurar cambios verificables.
+
+## Flujo de Orquestación
 
 ```text
 repo-context
-     |
-     v
+     │
+     ▼
 repo-audit
-     |
-     +--> repo-security
-     +--> repo-dependencies
-     +--> repo-architecture
-     +--> repo-quality
-     +--> repo-testing
-     +--> repo-ci
-     +--> repo-cleanup
-     +--> repo-modernize
-     |
-     v
+     │
+     ├──► repo-security
+     ├──► repo-dependencies
+     ├──► repo-architecture
+     ├──► repo-quality
+     ├──► repo-testing
+     ├──► repo-ci
+     ├──► repo-cleanup
+     └──► repo-modernize
+     │
+     ▼
 repo-metrics / backlog
-     |
-     v
+     │
+     ▼
 repo-impact
-     |
-     v
+     │
+     ▼
 repo-refactor
-     |
-     v
+     │
+     ▼
 repo-testing
-     |
-     v
+     │
+     ▼
 repo-pr
-     |
-     v
+     │
+     ▼
 repo-release
-     |
-     v
+     │
+     ▼
 repo-docs
-     |
-     v
+     │
+     ▼
 repo-maintenance
 ```
 
-## Reglas de orquestación
+## Reglas de Orquestación y Gobernanza
 
-- No repetir un análisis si existe un resultado vigente y el árbol relevante no cambió.
-- Ejecutar primero contexto y luego análisis especializados.
-- Priorizar seguridad, dependencias y regresiones antes de modernización.
-- No ejecutar cleanup automáticamente.
-- No considerar una recomendación implementada hasta que exista evidencia en código/CI.
-- Después de cada cambio importante: testing -> PR review -> docs/release según alcance.
-- Ningún cambio se considera cerrado si dejó drift de documentación sin resolver: cada skill debe señalar los documentos impactados (paso 8 de su Flujo) y `repo-docs` debe confirmarlos como actualizados o formalmente pendientes antes de `repo-maintenance`.
-- Mantener baseline para comparar auditorías futuras.
+- **Evitar Redundancia:** No repetir un análisis si existe un resultado vigente y el árbol de código o configuración relevante no ha cambiado.
+- **Precedencia:** Ejecutar siempre `repo-context` antes de invocar análisis especializados.
+- **Priorización de Riesgo:** Priorizar mitigaciones de seguridad (`repo-security`), dependencias críticas (`repo-dependencies`) y regresiones operativas antes de tareas de modernización o refactor.
+- **Validación Fáctica:** No considerar una recomendación como resuelta hasta que exista evidencia ejecutable en código, pruebas o pipelines de CI.
+- **Cierre Documental Obligatorio:** Ningún cambio se considera cerrado si deja drift documental: cada intervención debe señalar los documentos afectados y delegar en `repo-docs` antes de la revisión final.
+- **Matriz de Decisión:** Consultar [references/decision-matrix.md](references/decision-matrix.md) para determinar qué skills invocar según la tipología del cambio.
 
-## Modos
+## Modos de Operación
 
-### Full
-Ejecuta el ciclo completo.
+- **Full:** Ejecución exhaustiva del ciclo completo de vida del repositorio.
+- **Fast:** Validación rápida: `repo-context` + `repo-audit` + `repo-security` + `repo-dependencies` + `repo-testing`.
+- **Change:** Modo enfocado en cambios: `repo-impact` + skills específicas del dominio afectado + `repo-testing`.
+- **Release:** Preparación de release: `repo-security` + `repo-dependencies` + `repo-testing` + `repo-ci` + `repo-release` + `repo-docs`.
+- **Maintenance:** Evaluación de salud periódica y delta respecto al último baseline consolidado.
 
-### Fast
-Contexto + audit + security + dependencies + tests.
+## Referencias Compartidas
 
-### Change
-`repo-impact` + skills relacionadas con los archivos afectados + tests.
-
-### Release
-Security + dependencies + tests + CI + GitOps + release + docs.
-
-### Maintenance
-Delta respecto al último baseline.
+- **Metodología Base:** [methodology.md](../_shared/methodology.md)
+- **Matriz de Decisión:** [references/decision-matrix.md](references/decision-matrix.md)
+- **Planes de Cambio:** [change-plan.md](../_shared/change-plan.md)
