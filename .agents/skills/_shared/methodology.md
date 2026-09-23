@@ -36,6 +36,15 @@ Documentación ──► "Parece que está implementado" ──► Aprobado sin 
   4. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
 - **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado o los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
 
+### Demarcación de Evidencia Histórica vs. SSOT de Arquitectura
+
+Para evitar confusiones en agentes autónomos y análisis automatizados:
+
+- **`docs/architecture/` (Estado Actual):** Es la única fuente documental canónica de especificación arquitectónica activa (siempre validada contra código, render y tests).
+- **`docs/audits/<fecha>/` (Evidencia Histórica):** Aloja diagnósticos, auditorías y snapshots fechados de hitos de revisión pasados.
+- **Regla Estricta:** **Los documentos bajo `docs/audits/<fecha>/` son evidencia histórica y NO constituyen la Fuente Única de Verdad (SSOT)**.
+- **Prohibición de Inferencia de Configuración Vigente:** Ningún agente ni auditoría debe extraer claves de configuración, taxonomías de secretos o contratos vigentes de documentos históricos de auditoría (por ejemplo, discrepancias superadas como `pokedex/production`). La configuración vigente se extrae exclusivamente del código fuente, Helm values y `docs/architecture/`.
+
 ---
 
 ## 2. Contexto Operativo y Tecnológico del Monorepo

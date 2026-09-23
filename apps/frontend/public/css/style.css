@@ -163,8 +163,8 @@ body {
   align-items: center;
   padding: 1.25rem 2rem;
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   margin-bottom: 2rem;
@@ -197,6 +197,7 @@ body {
   letter-spacing: -0.5px;
   background: var(--brand-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -228,6 +229,7 @@ body {
   border-radius: var(--radius-full);
   padding: 3px;
   gap: 2px;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -246,6 +248,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
+  -webkit-user-select: none;
   user-select: none;
   white-space: nowrap;
 }
@@ -427,6 +430,7 @@ body {
   font-family: inherit;
   font-size: 0.95rem;
   transition: all var(--transition-fast);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -445,6 +449,7 @@ body {
 
 .stat-card {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
@@ -477,6 +482,7 @@ body {
 
 .pokemon-card {
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
@@ -624,6 +630,7 @@ body {
   right: 0;
   bottom: 0;
   background: var(--bg-modal-overlay);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -800,6 +807,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   outline: none;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   transition: all var(--transition-fast);
 }
@@ -822,6 +830,7 @@ body {
   margin-bottom: 2rem;
   padding: 0.75rem 1rem;
   background: var(--bg-card);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
@@ -842,6 +851,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -913,7 +923,21 @@ body {
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
-  scrollbar-width: thin;
+}
+
+@supports (scrollbar-width: thin) {
+  .detail-modal-card {
+    scrollbar-width: thin;
+  }
+}
+
+.detail-modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail-modal-card::-webkit-scrollbar-thumb {
+  background: var(--border-glass);
+  border-radius: var(--radius-full);
 }
 
 /* Header estilizado con muescas */
@@ -1313,6 +1337,7 @@ body {
   display: flex;
   align-items: center;
   line-height: 1;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -1419,7 +1444,21 @@ body {
   gap: 0.75rem;
   overflow-x: auto;
   padding: 0.5rem 0.25rem 0.75rem;
-  scrollbar-width: thin;
+}
+
+@supports (scrollbar-width: thin) {
+  .evolution-chain {
+    scrollbar-width: thin;
+  }
+}
+
+.evolution-chain::-webkit-scrollbar {
+  height: 6px;
+}
+
+.evolution-chain::-webkit-scrollbar-thumb {
+  background: var(--border-glass);
+  border-radius: var(--radius-full);
 }
 
 .evolution-card {

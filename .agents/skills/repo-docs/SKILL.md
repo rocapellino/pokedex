@@ -16,7 +16,7 @@ Garantizar que la documentación técnica del repositorio (`README.md`, `docs/ar
 - **Trazabilidad Arquitectónica y ADRs:** Verificar que las decisiones en `docs/decisions/` concuerden con la arquitectura implementada y señalar aquellas que requieran superseding o enmiendas.
 - **Consistencia de Runbooks:** Validar que los procedimientos de despliegue, backup, restauración y rollback contengan rutas existentes, comandos vigentes y parámetros exactos.
 - **Unificación y Eliminación de Duplicados:** Evitar la duplicación de guías entre `README.md` y documentos bajo `docs/`, favoreciendo enlaces cruzados y un único Source of Truth (SSOT).
-- **Distinción Histórica:** Identificar y marcar explícitamente secciones obsoletas o notas históricas para que no se interpreten erróneamente como configuraciones activas.
+- **Distinción Histórica vs. SSOT:** Los documentos bajo `docs/audits/<fecha>/` son evidencia histórica y registros de diagnósticos pasados, **NO son SSOT**. La arquitectura vigente reside exclusivamente en `docs/architecture/` (contrastada con el código). Marcar o advertir explícitamente secciones obsoletas para que ningún agente las interprete erróneamente como configuraciones vigentes.
 - **Cierre Documental en Refactors:** Cuando otra skill o cambio de código altere un contrato o comportamiento, asegurar que los documentos impactados queden actualizados antes de cerrar el ciclo.
 
 ## Comandos

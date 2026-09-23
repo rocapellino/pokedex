@@ -2052,9 +2052,9 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
 });
 
 test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yml', () => {
-  // 1. END_TO_END_COHERENCE_AUDIT.md existe y documenta la matriz canónica
-  const auditPath = path.join(ROOT_DIR, 'docs/architecture/END_TO_END_COHERENCE_AUDIT.md');
-  assert.ok(fs.existsSync(auditPath), 'END_TO_END_COHERENCE_AUDIT.md debe existir');
+  // 1. end_to_end_coherence_audit.md archivado como evidencia histórica en docs/audits/
+  const auditPath = path.join(ROOT_DIR, 'docs/audits/2026-09-23/end_to_end_coherence_audit.md');
+  assert.ok(fs.existsSync(auditPath), 'end_to_end_coherence_audit.md debe existir en docs/audits/2026-09-23/');
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('[IMPLEMENTADO]'), 'Debe definir estado IMPLEMENTADO');
   assert.ok(auditContent.includes('[DECLARADO]'), 'Debe definir estado DECLARADO');
@@ -2063,9 +2063,9 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(auditContent.includes('[INCONSISTENTE]'), 'Debe definir estado INCONSISTENTE');
   assert.ok(auditContent.includes('10.10.13.0/24'), 'Debe documentar la subred normalizada 10.10.13.0/24');
 
-  // 2. docs/README.md indexa END_TO_END_COHERENCE_AUDIT.md
+  // 2. docs/README.md indexa end_to_end_coherence_audit.md en sección de auditorías históricas
   const readmeContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/README.md'), 'utf-8');
-  assert.ok(readmeContent.includes('END_TO_END_COHERENCE_AUDIT.md'), 'docs/README.md debe indexar END_TO_END_COHERENCE_AUDIT.md');
+  assert.ok(readmeContent.includes('end_to_end_coherence_audit.md'), 'docs/README.md debe indexar end_to_end_coherence_audit.md');
 
   // 3. Normalización de subredes en Ansible (hosts.ini y hosts.yml alineados a 10.10.13.0/24)
   const hostsIni = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini'), 'utf-8');

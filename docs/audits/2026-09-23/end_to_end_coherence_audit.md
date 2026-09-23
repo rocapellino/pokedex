@@ -1,5 +1,9 @@
 # 🔍 Auditoría de Coherencia Operacional Extremo a Extremo (End-to-End Coherence Audit)
 
+> [!NOTE]
+> **Evidencia Histórica de Auditoría (Hito: 2026-09-23)**  
+> Este documento constituye un registro y diagnóstico histórico de hallazgos. **NO es la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura y contratos actuales residen formalmente en [`docs/architecture/`](../../architecture/) y en el código renderizado.
+
 Este documento formaliza la **auditoría integral de coherencia operacional** entre el código de infraestructura (IaC), la configuración declarativa (Helm / GitOps), los estados de runtime en Kubernetes y la documentación técnica (ADRs, runbooks y guías de arquitectura).
 
 ---

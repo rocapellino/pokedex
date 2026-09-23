@@ -5,6 +5,7 @@ Este documento detalla la estructura de directorios, convención de organizació
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Filosofía de Diseño del Monorepo](#1-filosofía-de-diseño-del-monorepo)
 2. [Árbol de Directorios Detallado](#2-árbol-de-directorios-detallado)
 3. [Descripción por Módulos y Dominios](#3-descripción-por-módulos-y-dominios)
@@ -14,6 +15,7 @@ Este documento detalla la estructura de directorios, convención de organizació
 ## 1. Filosofía de Diseño del Monorepo
 
 El monorepo está organizado siguiendo una separación estricta de responsabilidades mediante **npm workspaces**:
+
 * **`apps/backend/`**: Servidor API RESTful Node.js + Express en TypeScript (`@pokedex/backend`), lógica de dominio, persistencia ACID PostgreSQL + Redis con scripts Lua, autenticación timing-safe HMAC SHA-256, middlewares de seguridad, métricas Prometheus e integración con Gemini 2.5 Flash.
 * **`apps/frontend/`**: Aplicación web cliente SPA (`@pokedex/frontend`) servida mediante un contenedor Nginx Alpine no-root hardened con CSP, compresión gzip y reverse proxy inverso.
 * **`infra/`**: Infraestructura como Código (IaC), Chart oficial de **`helm/pokedex`**, políticas de control de admisión Kyverno (`k8s/`), aprovisionamiento con OpenTofu (`opentofu/`) y playbooks de Ansible (`ansible/`).
@@ -119,6 +121,7 @@ pokedex/
 ## 3. Descripción por Módulos y Dominios
 
 ### `apps/backend/` (API RESTful Node.js & TypeScript)
+
 * **`server.ts`**: Servidor HTTP de alto rendimiento con **Express 4.21** y compilación previa con **esbuild**.
   * Middlewares de seguridad: cabeceras de hardening (`nosniff`, `SAMEORIGIN`), supresión de `X-Powered-By`, validación CORS fail-closed y body parser limitado a 250 KB.
   * Middlewares de **Rate Limiting** híbridos (scripts atómicos Lua en Redis con fallback local).
@@ -130,9 +133,11 @@ pokedex/
   * **`ai.ts`**: Integración con Google Gemini 2.5 Flash (`@google/genai`) con timeout de 12s, límites de cuota diaria y fallbacks deterministas locales.
 
 ### `apps/frontend/` (Capa de Presentación y Proxy DMZ)
+
 * **Frontend SPA Vanilla**: Catálogo con visualización Bento Grid, filtros dinámicos, paginación, paleta de tipos y consola de administración Backoffice con sanitización contra XSS.
 * **Nginx Reverse Proxy**: Contenedor Alpine no-root con digest criptográfico fijado, compresión gzip y cabeceras CSP.
 
 ### `infra/` y `gitops/` (Infraestructura, Orquestación y GitOps)
+
 * **Helm 3 Chart (`infra/helm/pokedex`)**: Despliegue altamente parametrizado con políticas NetworkPolicy Zero-Trust (Anti-SSRF, PgBouncer enforced isolation), soporte para External Secrets Operator, HPA v2 y PodDisruptionBudgets.
 * **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise y AWS EKS en la nube).

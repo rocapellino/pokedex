@@ -6,7 +6,10 @@ import { aiCircuitBreaker } from '../services/ai.js';
 // Metrics & Observability Tracking (Prometheus Exposition Format)
 // ---------------------------------------------------------------------------
 export const startTime = Date.now();
-export let totalRequests = 0;
+let totalRequests = 0;
+export function getTotalRequests(): number {
+  return totalRequests;
+}
 export const httpRequestsTotal = new Map<string, number>();
 export const httpDurationSum = new Map<string, number>();
 export const httpDurationCount = new Map<string, number>();
