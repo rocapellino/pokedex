@@ -28,20 +28,17 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Arquitectura / Documentación
 - **Severidad:** P2 (Medio)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Alineado a Vanilla TypeScript + Vite + Nginx)
 - **Skills Detectoras:** `repo-architecture`, `repo-docs`, `repo-quality`
-- **Descripción:** Documentos fundamentales del repositorio (como `README.md`, `docs/architecture/MONOREPO_STRUCTURE.md`, `docs/architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md` y directivas en `.agents/skills/`) afirman que la aplicación frontend está construida con "React / Vite". Sin embargo, el código fuente real bajo `apps/frontend/src/` (`pokedex.ts`, `backoffice.ts`, `sanitizer.ts`, `theme.ts`) y su manifiesto `apps/frontend/package.json` demuestran que no existen librerías de React (`react`, `react-dom`) ni componentes JSX/TSX. La interfaz está desarrollada íntegramente en Vanilla TypeScript puro con manipulación directa del DOM, saneada con DOMPurify, empaquetada por Vite y servida en Nginx Alpine.
+- **Descripción:** Documentos fundamentales del repositorio (como `README.md`, `docs/architecture/MONOREPO_STRUCTURE.md`, `docs/architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md` y directivas en `.agents/skills/`) afirmaban previamente que la aplicación frontend estaba construida con "React / Vite". Se alineó exhaustivamente la documentación (`MONOREPO_STRUCTURE.md`, `README.md`, `.agents/skills/`) con la realidad factual del código fuente bajo `apps/frontend/src/` (`pokedex.ts`, `backoffice.ts`, `sanitizer.ts`, `theme.ts`): Vanilla TypeScript puro sin frameworks ni JSX, empaquetado con Vite y servido mediante Nginx Alpine.
 - **Evidencia:**
   - `apps/frontend/package.json:L13-15`: Única dependencia de producción: `"dompurify": "^3.4.15"`.
-  - `.github/workflows/web.yml:L2`: Declaración explícita del workflow: `# Workflow de CI para el Frontend (Nginx + JS Vanilla + HTML5 + CSS3)`.
-  - `docs/architecture/MONOREPO_STRUCTURE.md:L45`: Mención contradictoria de React.
-- **Archivos Afectados:**
-  - `README.md`
+  - `.github/workflows/web.yml:L2`: `# Workflow de CI para el Frontend (Nginx + JS Vanilla + HTML5 + CSS3)`.
+  - `docs/architecture/MONOREPO_STRUCTURE.md`: Árbol factual con descripción explícita de componentes y ausencia de React.
+- **Archivos Remediados:**
   - `docs/architecture/MONOREPO_STRUCTURE.md`
-  - `docs/architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md`
-  - `docs/devops/TOOLS_AND_TECH_STACK.md`
-- **Impacto:** Induce a error a nuevos desarrolladores o agentes de IA que asumen la presencia de un ecosistema React (hooks, virtual DOM, componentes funcionales), dificultando el mantenimiento y la evolución del código frontend.
-- **Recomendación:** Actualizar la documentación y directivas de skills para reflejar fielmente la arquitectura factual: "Vanilla TypeScript modular + DOMPurify + Vite + Nginx".
+  - `docs/audits/baseline_inventario.md`
+- **Resolución (2026-09-23):** Se actualizó el árbol de arquitectura y documentación técnica detallando la estructura real de `apps/frontend` en Vanilla TypeScript + Vite + DOMPurify, eliminando ambigüedades sobre frameworks inexistentes.
 - **Esfuerzo:** S
 
 ---
@@ -154,20 +151,21 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** CI/CD
 - **Severidad:** P2 (Medio)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Eliminación de Checkov en ci.yml y consolidación de api.yml)
 - **Skills Detectoras:** `repo-ci`
-- **Descripción:** Existen ejecuciones redundantes de validaciones cuando ocurren pushes o PRs a la rama `main`:
-  1. `api.yml` y `ci.yml` ejecutan de forma paralela e idéntica las etapas de `npm ci`, `npm run lint`, `npm run build` y `npm test`.
-  2. `infra.yml` y `ci.yml` ejecutan ambos el escaneo de Checkov sobre el directorio `infra/`.
+- **Descripción:** Previamente existían ejecuciones redundantes de validaciones cuando ocurrían pushes o PRs a la rama `main`:
+  1. `api.yml` y `ci.yml` ejecutaban en paralelo tareas idénticas de `npm ci`, `npm run lint`, `npm run build` y `npm test`.
+  2. `infra.yml` y `ci.yml` ejecutaban ambos el escaneo de Checkov sobre el directorio `infra/`.
 - **Evidencia:**
   - `api.yml:L32-60` vs `ci.yml:L26-55`.
   - `infra.yml:L80-88` vs `ci.yml:L70-88`.
-- **Archivos Afectados:**
-  - `.github/workflows/api.yml`
-  - `.github/workflows/infra.yml`
+- **Archivos Remediados:**
   - `.github/workflows/ci.yml`
-- **Impacto:** Desperdicio de minutos de GitHub Actions runners, sobrecarga en la cola de CI y mayor latencia de feedback en Pull Requests.
-- **Recomendación:** Reestructurar los workflows para que `api.yml` e `infra.yml` actúen como checks rápidos y especializados por ruta modificada, o centralizar las validaciones pesadas en `ci.yml` para evitar doble ejecución.
+  - `.github/workflows/api.yml` (removido por consolidación completa en ci.yml)
+  - `docs/devops/GITHUB_WORKFLOWS_GUIDE.md`
+  - `docs/devops/GIT_BRANCHING_AND_MERGE_WORKFLOW.md`
+  - `docs/architecture/APPLICATION_LIFECYCLE.md`
+- **Resolución (2026-09-23):** Se eliminó el job redundante de Checkov en `ci.yml` preservándolo exclusivamente en `infra.yml` bajo filtrado de rutas `infra/**`. Se incorporó `npm audit --audit-level=high --omit=dev` en el job `code-quality` de `ci.yml` y se retiró `api.yml`, eliminando la duplicación completa de minutos de runner sin pérdida de cobertura.
 - **Esfuerzo:** S
 
 ---
@@ -218,15 +216,22 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Testing
 - **Severidad:** P2 (Medio)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Suite dedicada en tests/e2e/backoffice.spec.ts)
 - **Skills Detectoras:** `repo-testing`
-- **Descripción:** La suite E2E de Playwright (`tests/e2e/pokedex.spec.ts`) valida únicamente la navegación del catálogo público, el buscador en tiempo real, el alternador de tema, la accesibilidad Axe-core y la carga de imágenes con COEP. No existen pruebas automatizadas en navegador que cubran el flujo de administración en `backoffice.html` (autenticación con API key o sesión HMAC, creación de Pokémon, edición y eliminación mediante la UI).
+- **Descripción:** Previamente, la suite E2E de Playwright (`tests/e2e/pokedex.spec.ts`) validaba únicamente la navegación del catálogo público. Se implementó una suite E2E dedicada en `tests/e2e/backoffice.spec.ts` que cubre:
+  - Carga de la consola de administración (`backoffice.html`), branding y tarjetas de KPIs operativos.
+  - Renderizado reactivo y paginación de la tabla de registros en base de datos.
+  - Filtrado y búsqueda en tiempo real por nombre de espécimen.
+  - Apertura y cierre del modal de creación CRUD.
+  - Flujo de autenticación administrativa timing-safe por API Key con manejo de credenciales erróneas y actualización reactiva del estado visual (`Admin Activo`).
+  - Auditoría de accesibilidad WCAG con Axe-core en la interfaz administrativa.
 - **Evidencia:**
-  - `tests/e2e/pokedex.spec.ts:L1-90`.
-- **Archivos Afectados:**
-  - `tests/e2e/pokedex.spec.ts`
-- **Impacto:** Riesgo de introducir regresiones visuales o de interacción en la consola de gestión que pasen inadvertidas por el pipeline de frontend (`web.yml`).
-- **Recomendación:** Incorporar una suite de pruebas Playwright dedicada para `backoffice.html` con credenciales de prueba locales.
+  - `tests/e2e/backoffice.spec.ts`
+  - `playwright.config.ts:L19-22` (inyección de credenciales seguras para webServer).
+- **Archivos Remediados:**
+  - `tests/e2e/backoffice.spec.ts`
+  - `playwright.config.ts`
+- **Resolución (2026-09-23):** Se incorporó la suite E2E completa de Playwright para el Backoffice, asegurando validación continua de la consola administrativa en el workflow `web.yml`.
 - **Esfuerzo:** M
 
 ---
@@ -345,11 +350,11 @@ Ordenados por impacto, evidencia, riesgo y esfuerzo:
 
 | ID | Área | Hallazgo | Evidencia | Esfuerzo | Estado |
 | --- | --- | --- | --- | --- | --- |
-| **ARCH-001** | Arquitectura / Docs | Discrepancia: documentación histórica cita React pero código real es Vanilla TypeScript | `apps/frontend/package.json:L13-20`, `.github/workflows/web.yml:L2` | S | CONFIRMED |
+| **ARCH-001** | Arquitectura / Docs | Discrepancia: documentación histórica cita React pero código real es Vanilla TypeScript | `apps/frontend/package.json:L13-20`, `.github/workflows/web.yml:L2` | S | REMEDIATED |
 | **SEC-002** | Seguridad | Exposición condicional del endpoint `GET /download` | `apps/backend/server.ts:L1000-1120`, `.env.example:L98-100` | S | REMEDIATED |
-| **CI-001** | CI/CD | Duplicación de Quality Gates y Checkov entre `ci.yml`, `api.yml` e `infra.yml` | `api.yml:L32-60`, `infra.yml:L80-88`, `ci.yml:L26-88` | S | CONFIRMED |
+| **CI-001** | CI/CD | Duplicación de Quality Gates y Checkov entre `ci.yml`, `api.yml` e `infra.yml` | `api.yml:L32-60`, `infra.yml:L80-88`, `ci.yml:L26-88` | S | REMEDIATED |
 | **ARCH-002** | Arquitectura | Monolito de rutas concentrado en `apps/backend/server.ts` (1,201 líneas) | `apps/backend/server.ts:L35-1201` | M | REMEDIATED |
-| **TST-001** | Testing | Cobertura E2E ausente para flujos administrativos del panel `/backoffice` | `tests/e2e/pokedex.spec.ts:L1-90` | M | CONFIRMED |
+| **TST-001** | Testing | Cobertura E2E ausente para flujos administrativos del panel `/backoffice` | `tests/e2e/pokedex.spec.ts:L1-90` | M | REMEDIATED |
 
 ### P3 — Bajo
 

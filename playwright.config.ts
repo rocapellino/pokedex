@@ -16,6 +16,10 @@ export default defineConfig({
         url: 'http://127.0.0.1:3000/healthz',
         reuseExistingServer: !process.env.CI,
         timeout: 30000,
+        env: {
+          ADMIN_API_KEY: process.env.ADMIN_API_KEY ?? 'test-admin-e2e-token-secret-1234567890',
+          ADMIN_SESSION_SECRET: process.env.ADMIN_SESSION_SECRET ?? 'test-admin-session-secret-at-least-32-chars-long',
+        },
       },
   projects: [
     {

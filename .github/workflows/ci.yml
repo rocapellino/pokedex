@@ -53,6 +53,9 @@ jobs:
       - name: 7. Ejecutar Suite Dinámica de API Fuzzing (DAST)
         run: npm run test:fuzz
 
+      - name: 8. Auditoría de Vulnerabilidades de Dependencias (SCA)
+        run: npm audit --audit-level=high --omit=dev
+
   semgrep:
     name: "🔍 Semgrep (SAST)"
     runs-on: ubuntu-latest
@@ -66,25 +69,6 @@ jobs:
 
       - name: Escanear código fuente
         run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage --exclude infra
-
-  checkov:
-    name: "🏗️ Checkov (Seguridad IaC / Helm)"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout del código
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Ejecutar Checkov sobre Infraestructura, OpenTofu y Helm
-        uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
-        with:
-          framework: terraform,kubernetes,helm
-          directory: infra/
-          config_file: .checkov.yaml
-          skip_path: infra/k8s/kyverno-test,infra/k8s/jobs
-          output_format: cli
-          soft_fail: false
 
   dependency-review:
     name: "🛡️ Dependency Review (SCA Gate en PR)"
@@ -107,7 +91,7 @@ jobs:
   # =======================================================
   build-docker:
     name: "🐳 Compilar Imagen Docker"
-    needs: [code-quality, semgrep, checkov]
+    needs: [code-quality, semgrep]
     runs-on: ubuntu-latest
     permissions:
       contents: read

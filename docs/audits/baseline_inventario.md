@@ -339,7 +339,7 @@ Analizar oportunidades relacionadas con:
 * npm
 * TypeScript
 * Express
-* React/Vite
+* Vanilla TypeScript / Vite
 * testing
 * tooling
 * Docker
