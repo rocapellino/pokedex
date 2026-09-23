@@ -50,9 +50,14 @@ spec:
         factor: 2
         maxDuration: 3m
   syncWindows:
-    - kind: allow
-      schedule: "* * * * *"
-      duration: 1h
+    # Ventana de protección (freeze) en fines de semana para producción:
+    # Bloquea sincronizaciones automáticas desde el viernes 18:00 UTC hasta el lunes 08:00 UTC (62h).
+    # manualSync: true permite sincronización manual de emergencia en caso de hotfix.
+    - kind: deny
+      schedule: "0 18 * * 5"
+      duration: 62h
+      manualSync: true
       applications:
         - pokedex-cloud
+
 

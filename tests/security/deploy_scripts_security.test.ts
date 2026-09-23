@@ -1654,17 +1654,30 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const ingressContent = fs.readFileSync(ingressPath, 'utf-8');
   assert.ok(ingressContent.includes('argocd.argoproj.io/sync-wave: "4"'), 'Ingress debe estar en sync-wave 4');
 
-  // 5. app-proxmox.yaml, app-proxmox-preprod.yaml y app-cloud.yaml configuran syncWindows y opciones avanzadas
+  // 5. app-proxmox.yaml, app-proxmox-preprod.yaml y app-cloud.yaml configuran syncWindows semánticos y opciones avanzadas
   const appProxmoxPreprodPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml');
   const proxmoxContent = fs.readFileSync(appProxmoxPath, 'utf-8');
   const preprodContent = fs.readFileSync(appProxmoxPreprodPath, 'utf-8');
   const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
   assert.ok(proxmoxContent.includes('ServerSideApply=true'), 'app-proxmox.yaml debe configurar ServerSideApply');
-  assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
   assert.ok(preprodContent.includes('ServerSideApply=true'), 'app-proxmox-preprod.yaml debe configurar ServerSideApply');
-  assert.ok(preprodContent.includes('syncWindows:'), 'app-proxmox-preprod.yaml debe configurar syncWindows');
   assert.ok(cloudContent.includes('ServerSideApply=true'), 'app-cloud.yaml debe configurar ServerSideApply');
+
+  // Validar semántica real de syncWindows en Producción (Protección de fin de semana con kind: deny)
+  assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
+  assert.match(proxmoxContent, /kind:\s*deny/, 'app-proxmox.yaml debe configurar una ventana de protección (kind: deny)');
+  assert.match(proxmoxContent, /schedule:\s*["']0 18 \* \* 5["']/, 'app-proxmox.yaml debe bloquear despliegues en fin de semana (viernes 18:00 UTC)');
+  assert.match(proxmoxContent, /duration:\s*62h/, 'app-proxmox.yaml debe extender la protección por 62 horas');
+  assert.match(proxmoxContent, /manualSync:\s*true/, 'app-proxmox.yaml debe permitir sync manual de emergencia');
+  assert.ok(!proxmoxContent.includes('* * * * *'), 'app-proxmox.yaml no debe tener el antipatrón * * * * *');
+
   assert.ok(cloudContent.includes('syncWindows:'), 'app-cloud.yaml debe configurar syncWindows');
+  assert.match(cloudContent, /kind:\s*deny/, 'app-cloud.yaml debe configurar una ventana de protección (kind: deny)');
+  assert.ok(!cloudContent.includes('* * * * *'), 'app-cloud.yaml no debe tener el antipatrón * * * * *');
+
+  // Pre-producción: Continuous Delivery sin bloqueos artificiales
+  assert.ok(!preprodContent.includes('* * * * *'), 'app-proxmox-preprod.yaml no debe tener el antipatrón * * * * *');
+  assert.ok(!preprodContent.includes('kind: deny'), 'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción');
 
   // 6. Taskfile.yml define tareas gitops:apps:root y gitops:health-checks
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
