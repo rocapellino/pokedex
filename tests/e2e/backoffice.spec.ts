@@ -47,15 +47,17 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
   test('El modal de creación de Pokémon se abre y cierra correctamente', async ({ page }) => {
     const createBtn = page.locator('#btnOpenCreate');
     await expect(createBtn).toBeVisible();
-    await createBtn.click({ force: true });
+    await createBtn.click();
 
     const crudModal = page.locator('#crudModal');
+    await expect(crudModal).toBeVisible();
     await expect(crudModal).toHaveClass(/active/);
     await expect(page.locator('#crudModalTitle')).toHaveText(/Registrar Nuevo Pokémon/i);
 
-    // Cerrar modal
-    const closeBtn = page.locator('[data-close-crud]').first();
-    await closeBtn.click({ force: true });
+    // Cerrar modal vía botón de cierre
+    const closeBtn = page.locator('#crudModal [data-close-crud]').first();
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
     await expect(crudModal).not.toHaveClass(/active/);
   });
 
