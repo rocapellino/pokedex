@@ -5,12 +5,12 @@ name: ⚙️ Infrastructure & IaC CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     paths:
       - 'infra/**'
       - '.github/workflows/infra.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
     paths:
       - 'infra/**'
       - '.github/workflows/infra.yml'

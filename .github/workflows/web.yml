@@ -5,12 +5,12 @@ name: 🌐 Frontend Web CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     paths:
       - 'apps/frontend/**'
       - '.github/workflows/web.yml'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
     paths:
       - 'apps/frontend/**'
       - 'tests/e2e/**'
