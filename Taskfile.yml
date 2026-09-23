@@ -344,11 +344,6 @@ tasks:
     cmds:
       - gitleaks detect --verbose --no-git
 
-  secrets:seal:
-    desc: "[Offline/Migración] Utilidad de transición criptográfica para entornos sin Vault (ADR-005)"
-    cmds:
-      - node --experimental-strip-types scripts/seal-secret.ts
-
   secrets:audit-rotation:
     desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
     cmds:

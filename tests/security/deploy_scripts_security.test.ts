@@ -525,22 +525,9 @@ test('🛡️ Helm Security: values.prod.yaml exige Zero-Trust L7 (Cilium FQDN o
   assert.ok(content.includes('enabled: true'), 'values.prod.yaml debe habilitar ciliumNetworkPolicy');
 });
 
-test('🛡️ Tooling Security: scripts/seal-secret.ts implementa verificación de integridad SHA-256', async () => {
+test('🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)', () => {
   const scriptPath = path.join(ROOT_DIR, 'scripts/seal-secret.ts');
-  assert.ok(fs.existsSync(scriptPath), 'seal-secret.ts debe existir');
-  const content = fs.readFileSync(scriptPath, 'utf-8');
-
-  assert.ok(content.includes('verifyBinaryIntegrity'), 'Debe definir verifyBinaryIntegrity');
-  assert.ok(content.includes('KUBESEAL_SHA256'), 'Debe soportar KUBESEAL_SHA256');
-
-  const sealSecretMod: any = fs.existsSync(path.join(ROOT_DIR, 'scripts/seal-secret.js'))
-    ? await import('../../scripts/seal-secret.js')
-    : await import('../../scripts/seal-secret.ts');
-  const { verifyBinaryIntegrity } = sealSecretMod;
-  assert.equal(verifyBinaryIntegrity(scriptPath, undefined), true, 'Sin hash esperado debe retornar true');
-
-  // Con hash inválido debe retornar false
-  assert.equal(verifyBinaryIntegrity(scriptPath, '0000000000000000000000000000000000000000000000000000000000000000'), false);
+  assert.ok(!fs.existsSync(scriptPath), 'seal-secret.ts debe estar retirado tras adopción de ESO (ADR-005)');
 });
 
 test('🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión', () => {
