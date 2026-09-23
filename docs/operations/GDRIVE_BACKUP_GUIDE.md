@@ -53,7 +53,7 @@ Dado que los servidores y contenedores operan en modo desatendido (*headless*), 
    La terminal imprimirá un bloque JSON similar a este:
 
    ```json
-   {"access_token":"ya29.a0AfH6SM...","token_type":"Bearer","refresh_token":"1//04...","expiry":"2026-09-23T15:30:00Z"}
+   {"access_token":"<TU_ACCESS_TOKEN_OAUTH2>","token_type":"Bearer","refresh_token":"<TU_REFRESH_TOKEN_OAUTH2>","expiry":"2026-09-23T15:30:00Z"}
    ```
 
    > [!TIP]
@@ -74,7 +74,7 @@ Agrega en tu archivo `.env` local:
 BACKUP_ENCRYPTION_KEY=clave_super_secreta_para_cifrar_backups_2026
 
 # Token JSON obtenido en el paso 2
-GDRIVE_TOKEN='{"access_token":"ya29...","token_type":"Bearer","refresh_token":"1//04...","expiry":"..."}'
+GDRIVE_TOKEN='{"access_token":"<TU_ACCESS_TOKEN>","token_type":"Bearer","refresh_token":"<TU_REFRESH_TOKEN>","expiry":"..."}'
 GDRIVE_FOLDER=PokedexBackups/dev
 ```
 
@@ -110,7 +110,7 @@ El playbook [`infra/ansible/playbooks/setup_gdrive_backup.yml`](../../infra/ansi
 
    ```yaml
    gdrive_backup_enabled: true
-   gdrive_token_json: '{"access_token":"ya29...","token_type":"Bearer","refresh_token":"1//04...","expiry":"..."}'
+   gdrive_token_json: '{"access_token":"<TU_ACCESS_TOKEN>","token_type":"Bearer","refresh_token":"<TU_REFRESH_TOKEN>","expiry":"..."}'
    gdrive_folder: "PokedexBackups/proxmox"
    gdrive_local_backup_dir: "/var/lib/pve/local-btrfs/pokedex-backups" # o ruta del PVC local
    gdrive_sync_schedule: "03:00:00" # 03:00 UTC (1 hora tras el snapshot de K8s)
