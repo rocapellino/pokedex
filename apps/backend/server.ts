@@ -1,50 +1,44 @@
 import express, { Request, Response, NextFunction } from 'express';
-import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import crypto from 'crypto';
-import { Pokemon } from './src/types.js';
-import { generateDiagram, generateMockup, generateImage, aiCircuitBreaker } from './src/services/ai.js';
 import {
   initStorage,
-  getAllPokemons,
-  getPokemonById,
-  savePokemon,
-  deletePokemon,
-  getNextPokemonId,
   getStorageHealth,
-  getPostgresVersion,
-  consumeDistributedRateLimit,
-  isWritableStorageAvailable,
   closeStorage,
 } from './src/services/db.js';
 import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
-import { validatePokemonPayload } from './src/validation/pokemon.js';
-import { parsePaginationLimit, parsePaginationOffset } from './src/utils/pagination.js';
-import {
-  generateSessionToken,
-  verifySessionToken,
-  verifySessionTokenDetailed,
-  revokeSessionToken,
-  revokeSessionTokenDetailed,
-} from './src/services/auth.js';
 import { logger } from './src/utils/logger.js';
 import { requestTracer } from './src/middleware/request-tracer.js';
+import { metricsCollector } from './src/middleware/metrics.js';
+import {
+  globalRateLimiter,
+  globalRateLimiterStandard,
+  authRateLimiter,
+  createRateLimiter,
+  type RateLimiterOptions,
+} from './src/middleware/rate-limiter.js';
+import {
+  DEFAULT_DEV_CORS_ORIGINS,
+  getConfiguredCorsOrigins,
+  adminIpRestricted,
+  buildSessionCookie,
+  extractSessionTokenFromRequest,
+  verifyAdmin,
+  requireWritableStorage,
+} from './src/middleware/auth.js';
+import {
+  getLifecycleStatus,
+  setShuttingDownForTest,
+  setIsShuttingDown,
+} from './src/utils/lifecycle.js';
+import { authRouter } from './src/routes/auth.js';
+import { healthRouter } from './src/routes/health.js';
+import { pokemonsRouter } from './src/routes/pokemons.js';
+import { aiRouter } from './src/routes/ai.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
-
-// Estado del ciclo de vida del proceso para Kubernetes y Graceful Shutdown
-let isShuttingDown = false;
-
-export function getLifecycleStatus(): { isShuttingDown: boolean } {
-  return { isShuttingDown };
-}
-
-export function setShuttingDownForTest(val: boolean): void {
-  isShuttingDown = val;
-}
 
 const candidatePublicDirs = [
   path.join(process.cwd(), 'apps', 'frontend', 'dist'),
@@ -54,47 +48,6 @@ const candidatePublicDirs = [
   path.join(process.cwd(), 'public'),
 ];
 const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'dist');
-
-
-// ---------------------------------------------------------------------------
-// Error Boundary Helper: Async Handler para Express 4.x
-// Reenvía automáticamente los rechazos de promesas al middleware global de errores
-// ---------------------------------------------------------------------------
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
-  (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-
-// ---------------------------------------------------------------------------
-// Security Helper: Prevención de Log Injection / CWE-117 (tssecurity:S5145)
-// Sanitiza saltos de línea y caracteres de control antes de escribir al log
-// ---------------------------------------------------------------------------
-function sanitizeLogString(val: unknown): string {
-  if (val === undefined || val === null) return '';
-  return String(val).replace(/[\r\n\t]/g, '_').slice(0, 100);
-}
-
-// ---------------------------------------------------------------------------
-// Metrics & Observability Tracking (Prometheus Exposition Format)
-// ---------------------------------------------------------------------------
-const startTime = Date.now();
-let totalRequests = 0;
-const httpRequestsTotal = new Map<string, number>();
-const httpDurationSum = new Map<string, number>();
-const httpDurationCount = new Map<string, number>();
-const DURATION_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10];
-const httpDurationBuckets = new Map<string, number>();
-
-function normalizeEndpoint(req: Request): string {
-  const p = req.path || '/';
-  if (/^\/pokemons\/\d+$/.test(p)) {
-    return '/pokemons/:id';
-  }
-  if (p.startsWith('/api/v1/ai/')) {
-    return '/api/v1/ai/:service';
-  }
-  return p;
-}
 
 // ---------------------------------------------------------------------------
 // Security: Server Hardening & Security Headers
@@ -118,6 +71,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
   );
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+
   if (process.env.NODE_ENV === 'production' || req.secure || req.headers['x-forwarded-proto'] === 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
@@ -126,17 +80,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Configured or dynamic CORS (Fail-closed en producción contra abusos)
 const isProduction = process.env.NODE_ENV === 'production';
-const configuredCorsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
-  : null;
-
-// Orígenes locales seguros permitidos por defecto en entorno de desarrollo
-const DEFAULT_DEV_CORS_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:8080',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:8080',
-];
+const configuredCorsOrigins = getConfiguredCorsOrigins();
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -172,862 +116,19 @@ app.use(express.json({ limit: '250kb' }));
 app.use(express.urlencoded({ extended: true, limit: '250kb' }));
 
 // Prometheus metrics collection middleware
-app.use((req: Request, res: Response, next: NextFunction) => {
-  totalRequests++;
-  const start = process.hrtime();
-
-  res.on('finish', () => {
-    const [seconds, nanoseconds] = process.hrtime(start);
-    const durationSeconds = seconds + nanoseconds / 1e9;
-    const endpoint = normalizeEndpoint(req);
-    const status = String(res.statusCode);
-    const method = req.method;
-
-    const key = `${endpoint}|${status}|${method}`;
-    httpRequestsTotal.set(key, (httpRequestsTotal.get(key) || 0) + 1);
-
-    httpDurationSum.set(endpoint, (httpDurationSum.get(endpoint) || 0) + durationSeconds);
-    httpDurationCount.set(endpoint, (httpDurationCount.get(endpoint) || 0) + 1);
-
-    for (const b of DURATION_BUCKETS) {
-      if (durationSeconds <= b) {
-        const bKey = `${endpoint}|${b}`;
-        httpDurationBuckets.set(bKey, (httpDurationBuckets.get(bKey) || 0) + 1);
-      }
-    }
-  });
-
-  next();
-});
-
-// ---------------------------------------------------------------------------
-// Rate Limiter Híbrido (Redis Distribuido con Fallback a Memoria Local)
-// ---------------------------------------------------------------------------
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-}
-
-export interface RateLimiterOptions {
-  failClosedOnRedisOutage?: boolean;
-}
-
-export function createRateLimiter(
-  maxRequests: number,
-  windowMs: number,
-  serviceName = 'Servicio',
-  options: RateLimiterOptions = {}
-) {
-  const clients = new Map<string, RateLimitEntry>();
-
-  // Limpieza periódica de IPs inactivas en el almacén local
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of clients.entries()) {
-      if (now > entry.resetTime) {
-        clients.delete(ip);
-      }
-    }
-  }, windowMs * 2).unref();
-
-  return (req: Request, res: Response, next: NextFunction) => {
-    (async () => {
-      // Excluir endpoints de salud y observabilidad de rate limiting para evitar falsos negativos en K8s
-      if (req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics') {
-        return next();
-      }
-
-      // Usar directamente req.ip gestionado de forma segura con trust proxy configurado
-      const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
-      const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
-
-      const unit = windowMs >= 24 * 3600 * 1000 ? 'día' : (windowMs >= 3600 * 1000 ? 'hora' : 'min');
-
-      // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
-      const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
-      if (distResult !== null) {
-        if (!distResult.allowed) {
-          res.setHeader('Retry-After', distResult.retryAfterSeconds);
-          return res.status(429).json({
-            detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/${unit}). Por favor intenta de nuevo en ${distResult.retryAfterSeconds} segundos.`,
-            retry_after_seconds: distResult.retryAfterSeconds,
-          });
-        }
-        return next();
-      }
-
-      // Fail-Closed: para endpoints de alto costo o consumo de cuotas externas (ej. IA Gemini),
-      // si Redis está configurado pero temporalmente fuera de línea, denegar con 503
-      // para prevenir agotamiento de cuota o evasión del límite distribuido entre pods.
-      if (options.failClosedOnRedisOutage && Boolean(process.env.REDIS_URL)) {
-        return res.status(503).json({
-          detail: `Servicio temporalmente no disponible: el limitador de tasa distribuido para ${serviceName} requiere conectividad con Redis.`,
-        });
-      }
-
-      // 2. Fallback resiliente a memoria local si Redis no está configurado o para endpoints públicos
-      const now = Date.now();
-      const entry = clients.get(ip);
-
-      if (!entry || now > entry.resetTime) {
-        clients.set(ip, { count: 1, resetTime: now + windowMs });
-        return next();
-      }
-
-      if (entry.count >= maxRequests) {
-        const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-        res.setHeader('Retry-After', retryAfter);
-        return res.status(429).json({
-          detail: `Límite de peticiones para ${serviceName} excedido (${maxRequests}/${unit}). Por favor intenta de nuevo en ${retryAfter} segundos.`,
-          retry_after_seconds: retryAfter,
-        });
-      }
-
-      entry.count++;
-      next();
-    })().catch(next);
-  };
-}
-
-const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { failClosedOnRedisOutage: true });
-const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', { failClosedOnRedisOutage: true });
-const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
-const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
-const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
-
-// ---------------------------------------------------------------------------
-// Rate Limiting de Doble Capa: Defensa en Profundidad (Dual-Layer Defense)
-// ---------------------------------------------------------------------------
-// 1. express-rate-limit (Standard, in-process):
-//    - Analizado y validado por herramientas SAST (CodeQL, Semgrep).
-//    - Respuesta ultra-rápida en memoria local por proceso/pod.
-//    - Cabeceras estándar IETF (RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset).
-//
-// 2. createRateLimiter (Redis-backed con fallback):
-//    - Fuente de verdad distribuida en entornos multi-pod.
-//    - Si Redis está disponible, aplica el límite de forma consistente entre réplicas.
-//    - Fallback a memoria local si Redis no está configurado.
-//    - Para endpoints IA: fail-closed (503) si Redis falla y REDIS_URL está definido.
-//
-// El límite efectivo es el mínimo de ambos. Los valores DEBEN mantenerse idénticos
-// entre ambos mecanismos para cada ruta. Cualquier desalineación es un bug.
-// ---------------------------------------------------------------------------
-const globalRateLimiterStandard = rateLimit({
-  windowMs: 60 * 1000,
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics',
-  message: { detail: 'Límite global de peticiones excedido. Intenta más tarde.' },
-});
-
-const mutationRateLimiterStandard = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { detail: 'Límite de peticiones para Modificaciones CRUD excedido. Intenta más tarde.' },
-});
-
-const authRateLimiterStandard = rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { detail: 'Límite de intentos de autenticación excedido. Intenta más tarde.' },
-});
-
-const aiRateLimiterStandard = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { detail: 'Límite de peticiones para Endpoints IA excedido. Intenta más tarde.' },
-});
+app.use(metricsCollector);
 
 // Middleware global de rate limiting para protección contra DDoS y saturación general
 app.use(globalRateLimiterStandard);
 app.use(globalRateLimiter);
 
 // ---------------------------------------------------------------------------
-// Security: Verificación de Clave con Prevención de Timing Attacks
+// Rutas Modulares
 // ---------------------------------------------------------------------------
-function safeCompareKeys(provided: string, expected: string): boolean {
-  if (!provided || !expected) return false;
-  try {
-    const bufProvided = Buffer.from(provided.trim(), 'utf8');
-    const bufExpected = Buffer.from(expected.trim(), 'utf8');
-    if (bufProvided.length !== bufExpected.length) {
-      // Simular comparación de tiempo constante para prevenir timing attacks por discrepancia de longitud
-      crypto.timingSafeEqual(bufExpected, bufExpected);
-      return false;
-    }
-    return crypto.timingSafeEqual(bufProvided, bufExpected);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Extrae exclusivamente tokens de sesión efímeros firmados con HMAC.
- */
-export function extractSessionTokenFromRequest(req: Request): string {
-  const authHeader = (req.headers['authorization'] || '') as string;
-  if (authHeader.startsWith('Bearer ')) {
-    return authHeader.slice(7).trim();
-  }
-
-  const cookieHeader = (req.headers.cookie || '') as string;
-  if (cookieHeader) {
-    const cookiePairs = cookieHeader.split(';').map((entry) => entry.trim());
-    for (const pair of cookiePairs) {
-      if (!pair) continue;
-      const [name, ...rest] = pair.split('=');
-      if (name === 'pokedex_admin_session') {
-        const value = rest.join('=');
-        try {
-          return decodeURIComponent(value);
-        } catch {
-          return value;
-        }
-      }
-    }
-  }
-
-  const sessionHeader = (req.headers['x-session-token'] || '') as string;
-  if (sessionHeader) {
-    return sessionHeader.trim();
-  }
-  return '';
-}
-
-function extractSessionToken(req: Request): string {
-  return extractSessionTokenFromRequest(req);
-}
-
-export function buildSessionCookie(token: string, expiresInSeconds: number): string {
-  const value = encodeURIComponent(token.trim());
-  const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
-  const maxAgeSeconds = Math.max(1, Math.floor(expiresInSeconds));
-  const parts = [
-    `pokedex_admin_session=${value}`,
-    'Path=/',
-    `Max-Age=${maxAgeSeconds}`,
-    'HttpOnly',
-    'SameSite=Lax',
-  ];
-
-  if (secure) {
-    parts.push('Secure');
-  }
-
-  return parts.join('; ');
-}
-
-/**
- * Extrae exclusivamente claves de API maestras (X-API-Key o Basic/Custom auth).
- */
-function extractApiKey(req: Request): string {
-  const keyHeader = (req.headers['x-api-key'] || '') as string;
-  if (keyHeader) {
-    return keyHeader.trim();
-  }
-  const authHeader = (req.headers['authorization'] || '') as string;
-  if (authHeader && !authHeader.startsWith('Bearer ')) {
-    return authHeader.trim();
-  }
-  return '';
-}
-
-async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
-  const configuredKey = process.env.ADMIN_API_KEY;
-
-  if (!configuredKey) {
-    logger.warn('Intento de acceso a ruta protegida pero ADMIN_API_KEY no está configurada', { security: true });
-    return res.status(503).json({
-      detail: 'Servicio administrativo no disponible: ADMIN_API_KEY no configurada en el servidor.',
-    });
-  }
-
-  const sessionToken = extractSessionToken(req);
-  const apiKey = extractApiKey(req);
-
-  if (!sessionToken && !apiKey) {
-    return res.status(401).json({
-      detail: 'Credencial de autenticación faltante en la cabecera X-API-Key / Authorization',
-    });
-  }
-
-    // 1. Validar si se suministra un token de sesión firmado de corta duración
-    if (sessionToken) {
-      const sessionCheck = await verifySessionTokenDetailed(sessionToken);
-      if (sessionCheck.valid) {
-        // Mitigación CSRF para mutaciones respaldadas por cookie de sesión
-        const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
-        const isCookieAuth = Boolean(req.headers.cookie && req.headers.cookie.includes('pokedex_admin_session='));
-        const originHeader = (req.headers['origin'] || req.headers['referer']) as string | undefined;
-
-        if (isMutative && isCookieAuth && originHeader) {
-          try {
-            const originUrl = new URL(originHeader);
-            const originHost = originUrl.origin;
-            const allowed = configuredCorsOrigins || DEFAULT_DEV_CORS_ORIGINS;
-            const isAllowed = allowed.includes(originHost) || (req.headers.host && originHost.includes(req.headers.host));
-            if (!isAllowed) {
-              logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', { origin: originHost, path: req.path });
-              return res.status(403).json({
-                detail: 'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
-              });
-            }
-          } catch {
-            return res.status(403).json({
-              detail: 'Cabecera Origin/Referer inválida para operación administrativa.',
-            });
-          }
-        }
-
-        (req as any).authMechanism = 'hmac_session_token';
-        return next();
-      }
-
-      // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
-      if (sessionCheck.reason === 'service_unavailable') {
-        return res.status(503).json({
-          detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
-        });
-      }
-    }
-
-  // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
-  if (apiKey && safeCompareKeys(apiKey, configuredKey)) {
-    (req as any).authMechanism = 'master_api_key';
-    if (process.env.NODE_ENV !== 'test') {
-      const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
-      logger.audit(`Acceso administrativo vía MASTER_API_KEY en ${req.method} ${req.path}`, {
-        clientIp,
-        method: req.method,
-        path: req.path,
-      });
-    }
-    return next();
-  }
-
-  return res.status(401).json({
-    detail: 'Credencial de autenticación administrativa inválida o sesión expirada',
-  });
-}
-
-function requireWritableStorage(_req: Request, res: Response, next: NextFunction) {
-  if (!isWritableStorageAvailable()) {
-    return res.status(503).json({
-      detail: 'Almacenamiento persistente (PostgreSQL) no disponible. Operaciones de escritura suspendidas para prevenir pérdida de datos.',
-    });
-  }
-  next();
-}
-
-function verifyAIKey(req: Request, res: Response, next: NextFunction) {
-  const expectedAiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
-  const configuredAdminKey = process.env.ADMIN_API_KEY;
-
-  if (!expectedAiKey) {
-    return res.status(503).json({
-      detail: 'Servicio de IA no disponible: AI_API_KEY no configurada en el servidor.',
-    });
-  }
-
-  const providedKey = extractApiKey(req);
-  if (!providedKey) {
-    return res.status(401).json({
-      detail: 'Acceso no autorizado al servicio de IA: se requiere clave en X-API-Key / Authorization.',
-    });
-  }
-
-  const isAiValid = safeCompareKeys(providedKey, expectedAiKey);
-  const isAdminValid = configuredAdminKey ? safeCompareKeys(providedKey, configuredAdminKey) : false;
-
-  if (isAiValid || isAdminValid) {
-    return next();
-  }
-
-  return res.status(401).json({
-    detail: 'Acceso no autorizado al servicio de IA: clave proporcionada inválida.',
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Helper: ETag Seguro
-// ---------------------------------------------------------------------------
-function calculateETag(data: unknown): string {
-  const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex').substring(0, 16);
-  return `"${hash}"`;
-}
-
-// ---------------------------------------------------------------------------
-// Autenticación de Operador: Emisión de Tokens de Sesión de Corta Duración
-// ---------------------------------------------------------------------------
-app.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter, (req: Request, res: Response) => {
-  const { apiKey } = req.body || {};
-  const configuredKey = process.env.ADMIN_API_KEY;
-
-  if (!configuredKey) {
-    return res.status(503).json({
-      detail: 'Servicio de autenticación no disponible: ADMIN_API_KEY no configurada en el servidor.',
-    });
-  }
-
-  if (!apiKey || typeof apiKey !== 'string' || !safeCompareKeys(apiKey.trim(), configuredKey)) {
-    return res.status(401).json({
-      detail: 'Clave administrativa inválida.',
-    });
-  }
-
-  const { token, expiresIn, expiresAt } = generateSessionToken();
-  res.setHeader('Set-Cookie', buildSessionCookie(token, expiresIn));
-  // Inmunidad XSS: no se expone el token criptográfico a JavaScript, se transporta exclusivamente en cookie HttpOnly
-  return res.status(200).json({
-    authenticated: true,
-    expires_in: expiresIn,
-    expiresAt,
-  });
-});
-
-app.get('/api/v1/auth/session', asyncHandler(async (req: Request, res: Response) => {
-  const token = extractSessionToken(req);
-  if (!token) {
-    return res.status(200).json({ authenticated: false });
-  }
-  const sessionCheck = await verifySessionTokenDetailed(token);
-  if (!sessionCheck.valid) {
-    return res.status(200).json({ authenticated: false });
-  }
-  return res.status(200).json({
-    authenticated: true,
-    expiresAt: sessionCheck.expiresAt,
-  });
-}));
-
-app.post('/api/v1/auth/logout', authRateLimiterStandard, authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
-  const token = extractSessionToken(req);
-  res.setHeader('Set-Cookie', 'pokedex_admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
-  if (token) {
-    const revokeResult = await revokeSessionTokenDetailed(token);
-    if (!revokeResult.success) {
-      if (revokeResult.reason === 'invalid_signature' || revokeResult.reason === 'invalid_format') {
-        return res.status(400).json({
-          detail: 'Token de sesión inválido o firma HMAC apócrifa.',
-        });
-      }
-      if (revokeResult.reason === 'service_unavailable') {
-        return res.status(503).json({
-          detail: 'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
-        });
-      }
-    }
-  }
-  return res.status(200).json({
-    detail: 'Sesión finalizada y token revocado correctamente.',
-  });
-}));
-
-// ---------------------------------------------------------------------------
-// Healthcheck & Observability Endpoints
-// ---------------------------------------------------------------------------
-app.get('/healthz', (_req: Request, res: Response) => {
-  res.type('text/plain').status(200).send('healthy\n');
-});
-
-app.get('/readyz', (_req: Request, res: Response) => {
-  if (isShuttingDown) {
-    return res.status(503).json({
-      status: 'shutting_down',
-      detail: 'Servidor en proceso de terminación grácil (SIGTERM/SIGINT recibido). No admitiendo tráfico nuevo.',
-    });
-  }
-  const health = getStorageHealth();
-  if (!health.postgres_connected) {
-    return res.status(503).json({
-      status: 'unready',
-      database: health.database,
-      postgres_connected: health.postgres_connected,
-      redis_connected: health.redis_connected,
-      postgres_total_records: health.postgres_total_records,
-      memory_total_records: health.memory_total_records,
-      pokemons_count: health.total_records,
-      detail: 'PostgreSQL no está conectado o el servicio está en modo degradado',
-    });
-  }
-  return res.status(200).json({
-    status: 'ready',
-    database: health.database,
-    postgres_connected: health.postgres_connected,
-    redis_connected: health.redis_connected,
-    postgres_total_records: health.postgres_total_records,
-    memory_total_records: health.memory_total_records,
-    pokemons_count: health.total_records,
-  });
-});
-
-app.get(['/version', '/api/v1/version'], asyncHandler(async (_req: Request, res: Response) => {
-  const health = getStorageHealth();
-  const postgresVersion = await getPostgresVersion();
-  const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
-
-  return res.status(200).json({
-    app: 'pokedex',
-    version: process.env.APP_VERSION || '1.0.0',
-    git_sha: process.env.GIT_SHA || process.env.COMMIT_SHA || 'unknown',
-    node_version: process.version,
-    uptime_seconds: Number.parseFloat(uptimeSeconds),
-    environment: process.env.NODE_ENV || 'development',
-    database: {
-      engine: health.database,
-      postgres_connected: health.postgres_connected,
-      postgres_version: postgresVersion ?? (health.postgres_connected ? 'available' : 'unavailable'),
-      redis_connected: health.redis_connected,
-      mode: health.postgres_connected ? 'normal' : 'degraded',
-    },
-  });
-}));
-
-app.get('/metrics', (_req: Request, res: Response) => {
-  const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
-  const health = getStorageHealth();
-  const degradedMode = health.postgres_connected ? 0 : 1;
-  const storageStatus = health.postgres_connected ? 1 : 0;
-  const redisStatus = health.redis_connected ? 1 : 0;
-
-  const lines: string[] = [
-    '# HELP pokedex_uptime_seconds Tiempo que la aplicación ha estado activa en segundos.',
-    '# TYPE pokedex_uptime_seconds gauge',
-    `pokedex_uptime_seconds ${uptimeSeconds}`,
-    '',
-    '# HELP pokedex_storage_status Estado de conexión con el almacenamiento principal PostgreSQL (1 = conectado, 0 = desconectado).',
-    '# TYPE pokedex_storage_status gauge',
-    `pokedex_storage_status ${storageStatus}`,
-    '',
-    '# HELP pokedex_redis_status Estado de conexión con la capa de caché y rate limiting Redis (1 = conectado, 0 = desconectado).',
-    '# TYPE pokedex_redis_status gauge',
-    `pokedex_redis_status ${redisStatus}`,
-    '',
-    '# HELP pokedex_total_pokemons Cantidad actual de Pokémon registrados en memoria o base de datos.',
-    '# TYPE pokedex_total_pokemons gauge',
-    `pokedex_total_pokemons ${health.total_records}`,
-    '',
-    '# HELP pokedex_degraded_mode Indicador de modo degradado (1 = activo, 0 = normal).',
-    '# TYPE pokedex_degraded_mode gauge',
-    `pokedex_degraded_mode ${degradedMode}`,
-    '',
-    '# HELP pokedex_ai_circuit_breaker_open Estado del disyuntor de llamadas a Gemini (1 = circuito abierto/fallback, 0 = cerrado/operativo).',
-    '# TYPE pokedex_ai_circuit_breaker_open gauge',
-    `pokedex_ai_circuit_breaker_open ${aiCircuitBreaker.isOpen() ? 1 : 0}`,
-    '',
-    '# HELP pokedex_ai_circuit_breaker_failures Fallos acumulados consecutivos registrados por el disyuntor de IA.',
-    '# TYPE pokedex_ai_circuit_breaker_failures gauge',
-    `pokedex_ai_circuit_breaker_failures ${aiCircuitBreaker.getFailureCount()}`,
-    '',
-    '# HELP pokedex_http_requests_total Contador total de solicitudes HTTP recibidas por endpoint y estado.',
-    '# TYPE pokedex_http_requests_total counter',
-  ];
-
-  if (httpRequestsTotal.size === 0) {
-    lines.push(`pokedex_http_requests_total{endpoint="/",status="200",method="GET"} 0`);
-  } else {
-    for (const [key, count] of httpRequestsTotal.entries()) {
-      const [endpoint, status, method] = key.split('|');
-      lines.push(`pokedex_http_requests_total{endpoint="${endpoint}",status="${status}",method="${method}"} ${count}`);
-    }
-  }
-
-  lines.push('');
-  lines.push('# HELP http_requests_total Contador total estándar de solicitudes HTTP recibidas por endpoint, estado y método.');
-  lines.push('# TYPE http_requests_total counter');
-  if (httpRequestsTotal.size === 0) {
-    lines.push(`http_requests_total{endpoint="/",status="200",method="GET"} 0`);
-  } else {
-    for (const [key, count] of httpRequestsTotal.entries()) {
-      const [endpoint, status, method] = key.split('|');
-      lines.push(`http_requests_total{endpoint="${endpoint}",status="${status}",method="${method}"} ${count}`);
-    }
-  }
-
-  lines.push('');
-  lines.push('# HELP http_request_duration_seconds Histograma y percentiles de duración de solicitudes HTTP en segundos.');
-  lines.push('# TYPE http_request_duration_seconds histogram');
-  const endpoints = Array.from(new Set([...httpDurationCount.keys(), '/']));
-  for (const ep of endpoints) {
-    for (const b of DURATION_BUCKETS) {
-      const bCount = httpDurationBuckets.get(`${ep}|${b}`) || 0;
-      lines.push(`http_request_duration_seconds_bucket{endpoint="${ep}",le="${b}"} ${bCount}`);
-    }
-    const infCount = httpDurationCount.get(ep) || 0;
-    lines.push(`http_request_duration_seconds_bucket{endpoint="${ep}",le="+Inf"} ${infCount}`);
-    lines.push(`http_request_duration_seconds_sum{endpoint="${ep}"} ${(httpDurationSum.get(ep) || 0).toFixed(6)}`);
-    lines.push(`http_request_duration_seconds_count{endpoint="${ep}"} ${infCount}`);
-  }
-
-  lines.push('');
-  lines.push('# HELP pokedex_http_request_duration_seconds_sum Suma acumulada de la duración de solicitudes HTTP en segundos.');
-  lines.push('# TYPE pokedex_http_request_duration_seconds_sum counter');
-  if (httpDurationSum.size === 0) {
-    lines.push(`pokedex_http_request_duration_seconds_sum{endpoint="/"} 0`);
-  } else {
-    for (const [endpoint, sum] of httpDurationSum.entries()) {
-      lines.push(`pokedex_http_request_duration_seconds_sum{endpoint="${endpoint}"} ${sum.toFixed(6)}`);
-    }
-  }
-
-  lines.push('');
-  lines.push('# HELP pokedex_http_request_duration_seconds_count Total de solicitudes HTTP medidas para duración.');
-  lines.push('# TYPE pokedex_http_request_duration_seconds_count counter');
-  if (httpDurationCount.size === 0) {
-    lines.push(`pokedex_http_request_duration_seconds_count{endpoint="/"} 0`);
-  } else {
-    for (const [endpoint, count] of httpDurationCount.entries()) {
-      lines.push(`pokedex_http_request_duration_seconds_count{endpoint="${endpoint}"} ${count}`);
-    }
-  }
-
-  res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
-  return res.status(200).send(lines.join('\n') + '\n');
-});
-
-// ---------------------------------------------------------------------------
-// Pokémon REST API Routes (PostgreSQL + Redis Caching con Fallback Resiliente)
-// ---------------------------------------------------------------------------
-app.get('/pokemons', asyncHandler(async (req: Request, res: Response) => {
-  const { tipo, nombre, limit, offset } = req.query;
-
-  // Límite de paginación estricto contra abusos de DoS y saturación de base de datos
-  const parsedLimit = parsePaginationLimit(limit as string | number | undefined);
-  const parsedOffset = parsePaginationOffset(offset as string | number | undefined);
-  const typeStr = typeof tipo === 'string' && tipo.trim() && tipo.toLowerCase() !== 'all' ? tipo.trim() : undefined;
-  const searchStr = typeof nombre === 'string' && nombre.trim() ? nombre.trim() : undefined;
-
-  const { total, pokemons: list } = await getAllPokemons({
-    limit: parsedLimit,
-    offset: parsedOffset,
-    type: typeStr,
-    search: searchStr,
-  });
-
-  const etag = calculateETag(list);
-  if (req.headers['if-none-match'] === etag) {
-    return res.status(304).end();
-  }
-
-  res.setHeader('ETag', etag);
-  res.setHeader('X-Total-Count', String(total));
-  res.setHeader('Access-Control-Expose-Headers', 'ETag, X-Total-Count');
-  res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-  return res.json(list);
-}));
-
-// Búsqueda instantánea vía PostgreSQL / Redis con ETag
-app.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
-  }
-
-  const found = await getPokemonById(id);
-  if (!found) {
-    return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
-  }
-
-  const etag = calculateETag(found);
-  if (req.headers['if-none-match'] === etag) {
-    return res.status(304).end();
-  }
-
-  res.setHeader('ETag', etag);
-  res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-  return res.json(found);
-}));
-
-// Creación persistente con rate limiter, autenticación y validación
-app.post('/pokemons', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const validation = validatePokemonPayload(req.body);
-  if (!validation.valid) {
-    return res.status(422).json({ detail: validation.error });
-  }
-
-  const body = req.body;
-  const newId = await getNextPokemonId();
-  const rawDesc = body.caracteristicas?.descripcion || `${body.nombre} registrado recientemente en la Pokédex.`;
-
-  const newPokemon: Pokemon = {
-    id: newId,
-    nombre: String(body.nombre).trim().slice(0, 60),
-    imagen: body.imagen || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${newId}.png`,
-    tipo: String(body.tipo).trim().slice(0, 30),
-    tipos: Array.isArray(body.tipos) ? body.tipos.map((t: any) => String(t).slice(0, 30)) : [String(body.tipo).trim()],
-    habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
-    fuerza: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
-    caracteristicas: {
-      peso: Number.parseFloat(String(body.caracteristicas?.peso || 10.0)),
-      altura: Number.parseFloat(String(body.caracteristicas?.altura || 1.0)),
-      fuerza: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
-      edad: Number.parseInt(String(body.caracteristicas?.edad || 5), 10),
-      categoria: String(body.caracteristicas?.categoria || 'Descubierto').slice(0, 60),
-      descripcion: String(rawDesc).slice(0, 1000),
-      habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
-    },
-    habilidades: Array.isArray(body.habilidades)
-      ? body.habilidades.map((h: any) => String(h).slice(0, 50))
-      : [String(body.habilidades || 'Adaptable').slice(0, 50)],
-    stats: body.stats || {
-      hp: 50,
-      attack: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
-      defense: 50,
-      sp_attack: 50,
-      sp_defense: 50,
-      speed: 50,
-    },
-    evoluciones: body.evoluciones || [],
-  };
-
-  await savePokemon(newPokemon);
-
-  logger.audit('Pokémon creado', {
-    id: Number(newPokemon.id),
-    nombre: sanitizeLogString(newPokemon.nombre),
-  });
-  return res.status(201).json(newPokemon);
-}));
-
-// Edición persistente con validación e invalidación de caché
-app.put('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ detail: 'ID inválido' });
-  }
-
-  const existing = await getPokemonById(id);
-  if (!existing) {
-    return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
-  }
-
-  const body = req.body;
-  const validation = validatePokemonPayload({ ...existing, ...body });
-  if (!validation.valid) {
-    return res.status(422).json({ detail: validation.error });
-  }
-
-  const updated: Pokemon = {
-    id: existing.id,
-    nombre: body.nombre ? String(body.nombre).trim().slice(0, 60) : existing.nombre,
-    imagen: body.imagen || existing.imagen,
-    tipo: body.tipo ? String(body.tipo).trim().slice(0, 30) : existing.tipo,
-    tipos: body.tipos
-      ? (Array.isArray(body.tipos) ? body.tipos.map((t: any) => String(t).slice(0, 30)) : [String(body.tipos)])
-      : existing.tipos,
-    habitat: body.habitat ? String(body.habitat).slice(0, 50) : existing.habitat,
-    fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : existing.fuerza,
-    habilidades: body.habilidades
-      ? (Array.isArray(body.habilidades) ? body.habilidades.map((h: any) => String(h).slice(0, 50)) : [String(body.habilidades)])
-      : existing.habilidades,
-    caracteristicas: {
-      peso: body.caracteristicas?.peso !== undefined ? Number.parseFloat(String(body.caracteristicas.peso)) : existing.caracteristicas.peso,
-      altura: body.caracteristicas?.altura !== undefined ? Number.parseFloat(String(body.caracteristicas.altura)) : existing.caracteristicas.altura,
-      fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : (body.caracteristicas?.fuerza !== undefined ? Number.parseInt(String(body.caracteristicas.fuerza), 10) : existing.caracteristicas.fuerza),
-      edad: body.caracteristicas?.edad !== undefined ? Number.parseInt(String(body.caracteristicas.edad), 10) : existing.caracteristicas.edad,
-      categoria: body.caracteristicas?.categoria !== undefined ? String(body.caracteristicas.categoria).slice(0, 60) : existing.caracteristicas.categoria,
-      descripcion: body.caracteristicas?.descripcion !== undefined ? String(body.caracteristicas.descripcion).slice(0, 1000) : existing.caracteristicas.descripcion,
-      habitat: body.habitat !== undefined ? String(body.habitat).slice(0, 50) : (body.caracteristicas?.habitat !== undefined ? String(body.caracteristicas.habitat).slice(0, 50) : existing.caracteristicas.habitat),
-    },
-    stats: body.stats ? {
-      hp: body.stats.hp !== undefined ? Number.parseInt(String(body.stats.hp), 10) : (existing.stats?.hp ?? 50),
-      attack: body.stats.attack !== undefined ? Number.parseInt(String(body.stats.attack), 10) : (existing.stats?.attack ?? 50),
-      defense: body.stats.defense !== undefined ? Number.parseInt(String(body.stats.defense), 10) : (existing.stats?.defense ?? 50),
-      sp_attack: body.stats.sp_attack !== undefined ? Number.parseInt(String(body.stats.sp_attack), 10) : (existing.stats?.sp_attack ?? 50),
-      sp_defense: body.stats.sp_defense !== undefined ? Number.parseInt(String(body.stats.sp_defense), 10) : (existing.stats?.sp_defense ?? 50),
-      speed: body.stats.speed !== undefined ? Number.parseInt(String(body.stats.speed), 10) : (existing.stats?.speed ?? 50),
-    } : existing.stats,
-    evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
-  };
-
-  await savePokemon(updated);
-
-  logger.audit('Pokémon actualizado', {
-    id: Number(id),
-    nombre: sanitizeLogString(updated.nombre),
-  });
-  return res.json(updated);
-}));
-
-// Eliminación persistente
-app.delete('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ detail: 'ID inválido' });
-  }
-
-  const existing = await getPokemonById(id);
-  if (!existing) {
-    return res.status(404).json({ detail: `Pokémon con id ${id} no encontrado` });
-  }
-
-  await deletePokemon(id);
-
-  logger.audit('Pokémon eliminado', {
-    id: Number(id),
-    nombre: sanitizeLogString(existing.nombre),
-  });
-  return res.json({
-    mensaje: `Pokémon con id ${id} eliminado correctamente`,
-    pokemon_eliminado: existing,
-  });
-}));
-
-// ---------------------------------------------------------------------------
-// Google AI Studio (Gemini) Endpoints con Rate Limit Minuto, Cuota Diaria y Auth
-// ---------------------------------------------------------------------------
-app.post('/api/v1/ai/diagram', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
-  const { prompt, diagram_type } = req.body || {};
-  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
-  }
-  const cleanPrompt = prompt.trim().slice(0, 1000);
-  const result = await generateDiagram(cleanPrompt, diagram_type);
-  res.json(result);
-}));
-
-app.post('/api/v1/ai/mock', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
-  const { prompt, framework } = req.body || {};
-  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
-  }
-  const cleanPrompt = prompt.trim().slice(0, 1000);
-  const result = await generateMockup(cleanPrompt, framework);
-  res.json(result);
-}));
-
-app.post('/api/v1/ai/image', aiRateLimiterStandard, aiRateLimiter, aiDailyQuotaLimiter, verifyAIKey, asyncHandler(async (req: Request, res: Response) => {
-  const { prompt, aspect_ratio } = req.body || {};
-  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-    return res.status(400).json({ error: 'El campo prompt es requerido y debe ser texto' });
-  }
-  const cleanPrompt = prompt.trim().slice(0, 1000);
-  const result = await generateImage(cleanPrompt, aspect_ratio);
-  res.json(result);
-}));
-
-
-// ---------------------------------------------------------------------------
-// Control de Acceso por IP para el Backoffice Administrativo
-// ---------------------------------------------------------------------------
-const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
-  const allowed = process.env.ADMIN_ALLOWED_IPS;
-  if (allowed) {
-    const list = allowed.split(',').map(s => s.trim()).filter(Boolean);
-    const clientIp = req.ip || req.socket.remoteAddress || '';
-    if (list.length > 0 && !list.includes(clientIp) && clientIp !== '127.0.0.1' && clientIp !== '::1') {
-      return res.status(403).json({ error: 'Acceso restringido: IP no autorizada para el panel de administración' });
-    }
-  }
-  next();
-};
+app.use(authRouter);
+app.use(healthRouter);
+app.use(pokemonsRouter);
+app.use(aiRouter);
 
 // ---------------------------------------------------------------------------
 // Static Assets & Single Page Application Routing (con Caché en Memoria)
@@ -1076,7 +177,7 @@ app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
 // Middleware Global de Manejo de Errores (Express Error Boundary)
 // ---------------------------------------------------------------------------
 app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-  const traceId = req.traceId || (req.headers['x-request-id'] as string) || undefined;
+  const traceId = (req as any).traceId || (req.headers['x-request-id'] as string) || undefined;
   logger.error('Error no controlado en el servidor Express', {
     error: err?.message || String(err),
     stack: err?.stack,
@@ -1103,8 +204,8 @@ export function setupGracefulShutdown(
   const shutdownTimeoutMs = options.shutdownTimeoutMs ?? 15000;
 
   const handleShutdown = async (signal: string) => {
-    if (isShuttingDown) return;
-    isShuttingDown = true;
+    if (getLifecycleStatus().isShuttingDown) return;
+    setIsShuttingDown(true);
     logger.info(`[Lifecycle: Graceful Shutdown] Señal ${signal} recibida. Iniciando secuencia de apagado grácil...`, { signal });
 
     // 1. Temporizador de salvaguarda en caso de sockets o pools bloqueados
@@ -1173,5 +274,14 @@ if (!isRunningTests) {
   });
 }
 
-export { app };
-
+export {
+  app,
+  createRateLimiter,
+  type RateLimiterOptions,
+  buildSessionCookie,
+  extractSessionTokenFromRequest,
+  verifyAdmin,
+  requireWritableStorage,
+  getLifecycleStatus,
+  setShuttingDownForTest,
+};

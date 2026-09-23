@@ -624,19 +624,21 @@ test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupue
 });
 
 test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yml', () => {
+  const metricsPath = path.join(ROOT_DIR, 'apps/backend/src/middleware/metrics.ts');
   const serverPath = path.join(ROOT_DIR, 'apps/backend/server.ts');
   const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yml');
 
   assert.ok(fs.existsSync(serverPath), 'server.ts debe existir');
+  assert.ok(fs.existsSync(metricsPath), 'metrics.ts debe existir');
   assert.ok(fs.existsSync(alertsPath), 'alerts.yml debe existir');
 
-  const serverContent = fs.readFileSync(serverPath, 'utf-8');
+  const serverContent = fs.readFileSync(metricsPath, 'utf-8');
   const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
 
   // Coherencia con alertas de estado de infraestructura
   assert.ok(
     serverContent.includes('pokedex_storage_status'),
-    'server.ts debe exponer pokedex_storage_status'
+    'metrics.ts debe exponer pokedex_storage_status'
   );
   assert.ok(
     alertsContent.includes('pokedex_storage_status == 0'),
@@ -1960,10 +1962,11 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
 
   // 5. Backend: Contratos de resiliencia alineados en código
   const serverTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8');
+  const rateLimiterTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/middleware/rate-limiter.ts'), 'utf-8');
   const authTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/auth.ts'), 'utf-8');
   const dbTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/db.ts'), 'utf-8');
 
-  assert.ok(serverTs.includes('failClosedOnRedisOutage: true'), 'server.ts debe configurar limitadores de IA con failClosedOnRedisOutage: true');
+  assert.ok(rateLimiterTs.includes('failClosedOnRedisOutage: true'), 'rate-limiter.ts debe configurar limitadores de IA con failClosedOnRedisOutage: true');
   assert.ok(serverTs.includes('requireWritableStorage'), 'server.ts debe utilizar requireWritableStorage para mutaciones');
   assert.ok(authTs.includes("reason: 'service_unavailable'"), 'auth.ts debe implementar Fail-Closed en verificación de sesión cuando Redis está caído');
   assert.ok(dbTs.includes('invalidateCache'), 'db.ts debe implementar invalidateCache con versionado atómico');
