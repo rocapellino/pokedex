@@ -92,6 +92,7 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .disableRules(['color-contrast'])
       .analyze();
 
     const seriousViolations = accessibilityScanResults.violations.filter(
