@@ -1,0 +1,49 @@
+# ==============================================================================
+# ArgoCD Application - Despliegue Pre-producción (LXC 800 Proxmox VE)
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pokedex-preprod
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: pokedex
+    environment: onprem-proxmox-preprod
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rocapellino/pokedex.git
+    targetRevision: v1.75.10
+    path: infra/helm/pokedex
+    helm:
+      releaseName: pokedex-preprod
+      valueFiles:
+        - values.yaml
+        - ../../../gitops/environments/proxmox-preprod/values.yaml
+  destination:
+    # URL o nombre del clúster de Kubernetes en LXC 800 registrado en ArgoCD
+    server: https://k8s-preprod.internal.lan:6443
+    namespace: pokemon-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  syncWindows:
+    - kind: allow
+      schedule: "* * * * *"
+      duration: 1h
+      applications:
+        - pokedex-preprod

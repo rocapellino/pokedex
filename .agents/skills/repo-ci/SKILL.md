@@ -7,68 +7,31 @@ description: Optimizar el pipeline de integración y entrega sin duplicar valida
 
 ## Objetivo
 
-Optimizar el pipeline de integración y entrega sin duplicar validaciones.
+Optimizar el pipeline de integración y entrega continua (CI/CD) de GitHub Actions, asegurando máxima velocidad, determinismo y seguridad sin duplicar ejecuciones ni sobrecargar los runners.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Revisar workflows existentes antes de crear otros.
-- Identificar duplicación entre ci.yml, api.yml, infra.yml, mega-linter y workflows auxiliares.
-- Matriz de jobs: lint/typecheck/build/test/security/IaC/K8s/DR/artifacts.
-- Permissions least privilege, concurrency, caching y versiones de actions.
-- Determinar qué debe bloquear PR, merge o release.
-- Reutilizar workflows/composite actions cuando reduzcan duplicación.
-- Separar validaciones rápidas de integración pesada.
-- Verificar artifacts, SBOM, firmas y provenance.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Auditoría de Workflows:** Mapeo de flujos activos (`ci.yml`, `infra.yml`, `security-dast-zap.yml`, `performance-k6.yml`, `dr-simulation.yml`, `security-linear-sync.yml`).
+- **Eliminación de Redundancias:** Detectar validaciones duplicadas entre workflows principales y auxiliares.
+- **Topología de Jobs:** Segmentación eficiente entre validaciones rápidas (lint, typecheck, tests unitarios) y validaciones pesadas (Kind K8s, DAST, k6).
+- **Seguridad en CI:**
+  - Aplicación de permisos de menor privilegio (`permissions:` mínimos explícitos por job).
+  - Pinning estricto de GitHub Actions por SHA de commit o versiones inmutables.
+  - Gestión segura de secretos y mitigación de riesgos en PRs de forks.
+- **Eficiencia y Concurrencia:** Grupos de concurrencia (`concurrency: cancel-in-progress`), estrategias de caché de dependencias npm y Docker layer caching.
+- **Gates de Calidad:** Definir qué validaciones son bloqueantes obligatorias para Pull Requests frente a tareas programadas o post-merge.
+- **Artefactos y Supply Chain:** Generación de SBOM CycloneDX, firma Cosign, atestación SLSA y preservación de logs y reportes.
 
 ## Comandos
 
-- `/repo-ci`
-- `/repo-ci pr`
-- `/repo-ci security`
-- `/repo-ci optimization`
+- `/repo-ci`: Diagnóstico integral de la infraestructura de CI/CD.
+- `/repo-ci pr`: Evaluación de los flujos y gates que validan Pull Requests.
+- `/repo-ci security`: Análisis de permisos, exposición de secretos y hardening de runners.
+- `/repo-ci optimization`: Estrategias para reducir tiempos de build, mejorar cache y concurrencia.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Si se solicitan cambios en `.github/workflows/`, modelar la propuesta con [change-plan.md](../_shared/change-plan.md) y validar con `repo-impact`.

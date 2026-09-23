@@ -7,69 +7,37 @@ description: Gobernar la estrategia de pruebas desde unitarias hasta producción
 
 ## Objetivo
 
-Gobernar la estrategia de pruebas desde unitarias hasta producción simulada.
+Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex`, asegurando determinismo, aislamiento, cobertura de caminos críticos y gates de calidad confiables desde pruebas unitarias locales hasta simulaciones de producción en clústeres reales.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Node Test Runner/tsx y tests existentes.
-- Unitarias, integración, API, seguridad, fuzzing, E2E Playwright, accesibilidad y performance Lighthouse.
-- Cobertura de rutas críticas: auth/session/logout, CRUD, cache, readiness, AI, SSRF/egress y persistencia.
-- Determinismo, aislamiento, fixtures, datos de prueba y cleanup.
-- Detectar tests redundantes o falsos positivos.
-- Quality gates proporcionales al riesgo.
-- Usar Kind para validación canónica de Helm/Kubernetes cuando corresponda.
-- Generar matriz requisito -> test -> CI gate.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Pirámide de Pruebas y Tipologías:**
+  - **Unitarias & Integración:** Ejecutadas vía `tsx --test tests/**/*.test.ts` (Node.js test runner nativo).
+  - **Fuzz Testing:** Pruebas de robustez y mutación de payloads (`tests/fuzzing.test.ts`).
+  - **E2E & Accesibilidad:** Pruebas de navegación en navegador mediante Playwright (`@axe-core/playwright` para a11y WCAG 2.1 AA).
+  - **Rendimiento & Carga:** Pruebas k6 y auditorías de Core Web Vitals / Lighthouse (`lhci`).
+  - **Gobernanza de Seguridad e IaC:** Tests contractuales en `tests/security/` (Egress anti-SSRF, paridad GitOps, rotación de secretos Vault, inmutabilidad de imágenes).
+- **Cobertura de Flujos Críticos:**
+  - Endpoints de autenticación, sesión y autorización.
+  - Operaciones CRUD con Drizzle ORM sobre PostgreSQL.
+  - Caché y rate limiting en Redis con fallback transparente en memoria.
+  - Sondas de salud (`/healthz`, `/readyz`, `/version`).
+- **Determinismo y Aislamiento:**
+  - Fixtures de prueba limpios, mocks de red y aislamiento de bases de datos de test.
+  - Eliminación de condiciones de carrera (*flaky tests*) y tests dependientes del orden de ejecución.
+- **Validación Canónica en Kind:** Uso de clústeres Kind en CI (`infra.yml`) para verificar despliegues reales de Helm antes de promover a GitOps.
 
 ## Comandos
 
-- `/repo-testing`
-- `/repo-testing coverage`
-- `/repo-testing api`
-- `/repo-testing e2e`
-- `/repo-testing security`
+- `/repo-testing`: Auditoría integral de la suite y cobertura de pruebas.
+- `/repo-testing coverage`: Análisis de cobertura de líneas, branches y funciones (`coverage/lcov.info`).
+- `/repo-testing api`: Ejecución y diagnóstico de tests de integración de API.
+- `/repo-testing e2e`: Evaluación de flujos de usuario completos y accesibilidad en frontend.
+- `/repo-testing security`: Ejecución de tests de contratos de seguridad y políticas.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Si se requiere reestructurar suites o añadir nuevos frameworks, modelar la propuesta con [change-plan.md](../_shared/change-plan.md).

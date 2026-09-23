@@ -147,13 +147,13 @@ externalSecrets:
   enabled: false # En values.prod.yaml base permanece false; los entornos GitOps (proxmox/aws) lo activan como SSOT
   refreshInterval: "1h"
   # Especificidad de Nomenclatura por Proveedor (ADR-011 / SECRETS_MANAGEMENT_SEALED_SECRETS.md):
-  # - HashiCorp Vault KV v2 (Proxmox On-Prem): name: "vault-backend" | key: "secret/data/pokedex/production"
-  # - AWS Secrets Manager (Public Cloud):      name: "aws-secrets-manager" | key: "pokedex/production"
+  # - HashiCorp Vault KV v2 (Proxmox On-Prem): name: "vault-backend" | key: "secret/data/pokedex/prod"
+  # - AWS Secrets Manager (Public Cloud):      name: "aws-secrets-manager" | key: "pokedex/prod"
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "secret/data/pokedex/production"
+    key: "secret/data/pokedex/prod"
 
 # ------------------------------------------------------------------------------
 # Recarga Dinámica de Cargas de Trabajo (Stakater Reloader vs checksum/config)
@@ -234,6 +234,19 @@ monitoring:
     scrapeTimeout: "10s"
     additionalLabels:
       release: prometheus-stack
+
+# ------------------------------------------------------------------------------
+# Disaster Recovery & Respaldo Persistente (PostgreSQL)
+# ------------------------------------------------------------------------------
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retentionDays: 7
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: "standard"
+
 
 
 

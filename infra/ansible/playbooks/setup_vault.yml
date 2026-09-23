@@ -385,34 +385,16 @@
         mode: '0640'
         content: |
           # Política de aislamiento lógico estricto para entorno Pre-producción (Zero-Trust Least Privilege)
+          path "secret/data/pokedex/preprod" {
+            capabilities = ["read"]
+          }
           path "secret/data/pokedex/preprod/*" {
             capabilities = ["read"]
           }
-          path "secret/data/pokedex/preproduction" {
-            capabilities = ["read"]
-          }
-          path "secret/data/pokedex/preproduction/*" {
-            capabilities = ["read"]
-          }
-          path "secret/data/pokedex/pre-production" {
-            capabilities = ["read"]
-          }
-          path "secret/data/pokedex/pre-production/*" {
-            capabilities = ["read"]
+          path "secret/metadata/pokedex/preprod" {
+            capabilities = ["read", "list"]
           }
           path "secret/metadata/pokedex/preprod/*" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/preproduction" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/preproduction/*" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/pre-production" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/pre-production/*" {
             capabilities = ["read", "list"]
           }
 
@@ -435,22 +417,16 @@
         mode: '0640'
         content: |
           # Política de aislamiento lógico estricto para entorno Producción (Zero-Trust Least Privilege)
+          path "secret/data/pokedex/prod" {
+            capabilities = ["read"]
+          }
           path "secret/data/pokedex/prod/*" {
             capabilities = ["read"]
           }
-          path "secret/data/pokedex/production" {
-            capabilities = ["read"]
-          }
-          path "secret/data/pokedex/production/*" {
-            capabilities = ["read"]
+          path "secret/metadata/pokedex/prod" {
+            capabilities = ["read", "list"]
           }
           path "secret/metadata/pokedex/prod/*" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/production" {
-            capabilities = ["read", "list"]
-          }
-          path "secret/metadata/pokedex/production/*" {
             capabilities = ["read", "list"]
           }
 

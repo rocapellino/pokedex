@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT_DIR = path.resolve();
 
@@ -127,3 +128,78 @@ test('🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible a
   assert.ok(drpPlan.includes('2.2. Estado de Implementación'), 'DRP debe incluir sección 2.2 de estado de implementación');
   assert.ok(drpPlan.includes('ESQUELETO (INACTIVO)'), 'DRP debe formalizar off-site como esqueleto inactivo');
 });
+
+test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan PersistentVolumeClaim real y evitan almacenamiento efímero (Anti-emptyDir)', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const valuesPath = path.join(chartPath, 'values.yaml');
+  const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
+  assert.match(valuesContent, /persistence:\s*\r?\n\s*enabled:\s*true/, 'values.yaml base debe declarar backup.persistence.enabled: true');
+
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
+  assert.match(proxmoxValues, /persistence:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe declarar backup.persistence.enabled: true');
+
+  const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
+
+  // 1. Validar renderizado de backup-cronjob.yaml
+  const renderedBackup = execSync(
+    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-cronjob.yaml`,
+    { encoding: 'utf-8' }
+  );
+
+  assert.match(renderedBackup, /kind:\s*PersistentVolumeClaim/, 'Debe generar el recurso PersistentVolumeClaim para backup');
+  assert.match(renderedBackup, /name:\s*pokedex-backup-pvc/, 'El PVC de backup debe llamarse pokedex-backup-pvc');
+  assert.match(renderedBackup, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de backup debe montar claimName: pokedex-backup-pvc');
+  assert.doesNotMatch(renderedBackup, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de backup');
+
+  // 2. Validar renderizado de backup-restore-verify-cronjob.yaml
+  const renderedVerify = execSync(
+    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-restore-verify-cronjob.yaml`,
+    { encoding: 'utf-8' }
+  );
+
+  assert.match(renderedVerify, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de verificación debe montar el mismo claimName: pokedex-backup-pvc');
+  assert.doesNotMatch(renderedVerify, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de verificación');
+});
+
+test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)', () => {
+  // 1. Alternativa A: Docker Compose Dev con servicio rclone y script dev
+  const dockerComposeDevPath = path.join(ROOT_DIR, 'docker-compose.dev.yml');
+  assert.ok(fs.existsSync(dockerComposeDevPath), 'docker-compose.dev.yml debe existir');
+  const composeContent = fs.readFileSync(dockerComposeDevPath, 'utf-8');
+  assert.ok(composeContent.includes('backup-gdrive:'), 'Debe definir servicio backup-gdrive');
+  assert.ok(composeContent.includes('rclone/rclone'), 'Debe usar imagen oficial rclone');
+  assert.ok(composeContent.includes('profiles:'), 'Debe aislarse mediante perfiles de compose');
+  assert.ok(composeContent.includes('backup'), 'Debe pertenecer al perfil backup');
+
+  const devScriptPath = path.join(ROOT_DIR, 'scripts/dev-backup-gdrive.ts');
+  assert.ok(fs.existsSync(devScriptPath), 'scripts/dev-backup-gdrive.ts debe existir');
+  const devScriptContent = fs.readFileSync(devScriptPath, 'utf-8');
+  assert.ok(devScriptContent.includes('pg_dump'), 'Script dev debe realizar pg_dump');
+  assert.ok(devScriptContent.includes('aes-256-cbc'), 'Script dev debe cifrar con AES-256-CBC');
+  assert.ok(devScriptContent.includes('sha256'), 'Script dev debe calcular checksum SHA-256');
+
+  // 2. Alternativa B: Playbook Ansible para Proxmox VE
+  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_gdrive_backup.yml');
+  assert.ok(fs.existsSync(playbookPath), 'setup_gdrive_backup.yml debe existir');
+  const playbookContent = fs.readFileSync(playbookPath, 'utf-8');
+  assert.ok(playbookContent.includes('rclone'), 'Playbook debe instalar o configurar rclone');
+  assert.ok(playbookContent.includes('pokedex-gdrive-sync.service'), 'Playbook debe desplegar servicio systemd');
+  assert.ok(playbookContent.includes('pokedex-gdrive-sync.timer'), 'Playbook debe desplegar temporizador systemd');
+  assert.ok(playbookContent.includes("mode: '0600'"), 'rclone.conf debe protegerse con permisos estrictos 0600');
+
+  // 3. Documentación oficial y Taskfile
+  const guidePath = path.join(ROOT_DIR, 'docs/operations/GDRIVE_BACKUP_GUIDE.md');
+  assert.ok(fs.existsSync(guidePath), 'GDRIVE_BACKUP_GUIDE.md debe existir');
+  const guideContent = fs.readFileSync(guidePath, 'utf-8');
+  assert.ok(guideContent.includes('Google Drive'), 'Guía debe documentar Google Drive');
+  assert.ok(guideContent.includes('rclone authorize'), 'Guía debe documentar rclone authorize drive');
+
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  assert.ok(taskfileContent.includes('dr:gdrive:backup:dev:'), 'Taskfile debe definir dr:gdrive:backup:dev');
+  assert.ok(taskfileContent.includes('dr:gdrive:sync:dev:'), 'Taskfile debe definir dr:gdrive:sync:dev');
+  assert.ok(taskfileContent.includes('dr:gdrive:setup:proxmox:'), 'Taskfile debe definir dr:gdrive:setup:proxmox');
+});
+
+

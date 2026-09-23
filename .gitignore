@@ -91,6 +91,8 @@ infra/helm/dist/
 postgres_data/
 redis_data/
 minio_data/
+backups/
+*.sql.gz*
 
 # ==============================================================================
 # Taskfile (go-task) y Herramientas Locales

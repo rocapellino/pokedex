@@ -10,7 +10,7 @@ spec:
   provider:
     fake:
       data:
-        - key: "pokedex/production"
+        - key: "pokedex/prod"
           version: "v1"
           valueMap:
             POSTGRES_PASSWORD: "local-insecure-pg-password"

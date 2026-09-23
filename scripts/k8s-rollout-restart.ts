@@ -55,8 +55,8 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('secretStoreRef:\n    name: "vault-backend"') && !content.includes('secretStoreRef:\r\n    name: "vault-backend"')) {
       reasons.push('Proxmox values.yaml debe referenciar a vault-backend como ClusterSecretStore');
     }
-    if (!content.includes('key: "pokedex/production"')) {
-      reasons.push('Proxmox values.yaml debe apuntar a la ruta de secretos pokedex/production en Vault KV-v2');
+    if (!content.includes('key: "pokedex/prod"')) {
+      reasons.push('Proxmox values.yaml debe apuntar a la ruta de secretos pokedex/prod en Vault KV-v2');
     }
   } else {
     reasons.push(`Archivo no encontrado: ${proxmoxValuesPath}`);
@@ -109,6 +109,46 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
   };
 }
 
+function getSafeKubectlExecutable(): string {
+  const isWin = process.platform === 'win32';
+  const trustedPaths = isWin
+    ? [
+        'C:\\Program Files\\Docker\\Docker\\resources\\bin\\kubectl.exe',
+        'C:\\Program Files\\Kubernetes\\bin\\kubectl.exe',
+        'C:\\ProgramData\\chocolatey\\bin\\kubectl.exe',
+      ]
+    : [
+        '/usr/local/bin/kubectl',
+        '/usr/bin/kubectl',
+        '/bin/kubectl',
+        '/snap/bin/kubectl',
+      ];
+
+  for (const candidate of trustedPaths) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return isWin ? 'kubectl.exe' : 'kubectl';
+}
+
+function getSafeExecutionOptions(): { stdio: 'inherit'; env: NodeJS.ProcessEnv } {
+  const isWin = process.platform === 'win32';
+  // Restringir PATH a directorios fijos de sistema para mitigar CWE-426 / CWE-427 (SonarQube S5883)
+  const safePath = isWin
+    ? (process.env.PATH || 'C:\\Windows\\System32')
+    : '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+
+  return {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      PATH: safePath,
+    },
+  };
+}
+
 async function run() {
   const opts = parseArgs();
   const rootDir = path.resolve(import.meta.dirname, '..');
@@ -141,13 +181,16 @@ async function run() {
     return;
   }
 
-  // Modo en vivo con kubectl sin invocación de shell (CWE-78 compliant)
+  // Modo en vivo con kubectl sin invocación de shell (CWE-78 y CWE-426 compliant)
+  const kubectlBin = getSafeKubectlExecutable();
+  const execOptions = getSafeExecutionOptions();
+
   for (const dep of opts.deployments) {
     console.log('\n🚀 Reiniciando deployment:', dep, 'en namespace:', opts.namespace);
     try {
-      execFileSync('kubectl', ['rollout', 'restart', 'deployment', dep, '-n', opts.namespace], { stdio: 'inherit' });
+      execFileSync(kubectlBin, ['rollout', 'restart', 'deployment', dep, '-n', opts.namespace], execOptions);
       console.log('⏳ Esperando estado saludable de:', dep, 'timeout:', `${opts.timeoutSeconds}s`);
-      execFileSync('kubectl', ['rollout', 'status', `deployment/${dep}`, '-n', opts.namespace, `--timeout=${opts.timeoutSeconds}s`], { stdio: 'inherit' });
+      execFileSync(kubectlBin, ['rollout', 'status', `deployment/${dep}`, '-n', opts.namespace, `--timeout=${opts.timeoutSeconds}s`], execOptions);
       console.log('✅ Deployment reiniciado y en servicio activo:', dep);
     } catch (err) {
       console.error('❌ Error al reiniciar o verificar el deployment:', dep, err);

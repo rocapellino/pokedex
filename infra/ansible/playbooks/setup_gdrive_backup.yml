@@ -1,0 +1,186 @@
+---
+# ==============================================================================
+# Playbook: Sincronización Off-Site a Google Drive con Rclone en Proxmox VE
+# Alternativa B: Ejecución a Nivel de Hipervisor / Host (Costo Cero $0 USD)
+# ==============================================================================
+# Propósito:
+#   Configura la sincronización desatendida de respaldos cifrados de PostgreSQL
+#   hacia Google Drive mediante Rclone y un Systemd Timer en el host Proxmox VE.
+#   Cierra el dominio de falla (SPOF) del hardware local sin incurrir en costos cloud.
+#
+# Requisitos previos:
+#   1. Rclone instalado o descargable en Proxmox VE.
+#   2. Token OAuth2 generado localmente con: rclone authorize "drive"
+# ==============================================================================
+
+- name: "Configuración de Rclone y Timer Systemd para Backup Off-Site a Google Drive"
+  hosts: proxmox_hosts
+  become: true
+  gather_facts: false
+  vars:
+    # --------------------------------------------------------------------------
+    # Parámetros de Activación y Directorios
+    # --------------------------------------------------------------------------
+    gdrive_backup_enabled: false
+    gdrive_folder: "PokedexBackups/proxmox"
+    gdrive_local_backup_dir: "/var/lib/pve/local-btrfs/pokedex-backups"
+    gdrive_sync_schedule: "03:00:00" # Diario a las 03:00 UTC (posterior al snapshot diario de K8s a las 02:00)
+    gdrive_retention_days: 14
+
+    # --------------------------------------------------------------------------
+    # Parámetros de Autenticación Rclone (OAuth2 Google Drive)
+    # --------------------------------------------------------------------------
+    gdrive_rclone_config_dir: "/etc/rclone"
+    gdrive_rclone_config_path: "/etc/rclone/rclone.conf"
+    gdrive_client_id: ""
+    gdrive_client_secret: ""
+    # Token JSON obtenido mediante 'rclone authorize drive'
+    gdrive_token_json: ""
+
+  tasks:
+    - name: "Aviso informativo sobre el estado del componente"
+      ansible.builtin.debug:
+        msg: >
+          [GDRIVE DR BACKUP] Playbook para réplica externa en Google Drive (Costo $0).
+          Estado actual: {{ 'ACTIVO' if (gdrive_backup_enabled | bool) else 'INACTIVO (Esqueleto)' }}.
+          Para activar en el host, configure 'gdrive_backup_enabled: true' y proporcione 'gdrive_token_json'.
+
+    - name: "Instalar rclone en Proxmox VE"
+      ansible.builtin.apt:
+        name: rclone
+        state: present
+        update_cache: false
+      when: gdrive_backup_enabled | bool
+
+    - name: "Crear directorio seguro de configuración /etc/rclone"
+      ansible.builtin.file:
+        path: "{{ gdrive_rclone_config_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+      when: gdrive_backup_enabled | bool
+
+    - name: "Desplegar archivo de configuración rclone.conf (Zero-Trust 0600)"
+      ansible.builtin.copy:
+        dest: "{{ gdrive_rclone_config_path }}"
+        content: |
+          [gdrive]
+          type = drive
+          {% if gdrive_client_id | length > 0 %}
+          client_id = {{ gdrive_client_id }}
+          {% endif %}
+          {% if gdrive_client_secret | length > 0 %}
+          client_secret = {{ gdrive_client_secret }}
+          {% endif %}
+          scope = drive
+          token = {{ gdrive_token_json }}
+        owner: root
+        group: root
+        mode: '0600'
+      when:
+        - gdrive_backup_enabled | bool
+        - gdrive_token_json | length > 0
+
+    - name: "Desplegar script de sincronización /usr/local/bin/pokedex-gdrive-sync.sh"
+      ansible.builtin.copy:
+        dest: /usr/local/bin/pokedex-gdrive-sync.sh
+        content: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          LOG_FILE="/var/log/pokedex-gdrive-sync.log"
+          LOCAL_DIR="{{ gdrive_local_backup_dir }}"
+          REMOTE_DIR="gdrive:{{ gdrive_folder }}"
+
+          echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] 🚀 [DR Sync] Iniciando sincronización hacia Google Drive (${REMOTE_DIR})..." >> "${LOG_FILE}"
+
+          if [ ! -d "${LOCAL_DIR}" ]; then
+            echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] ⚠️ Directorio local ${LOCAL_DIR} no existe. Omitiendo." >> "${LOG_FILE}"
+            exit 0
+          fi
+
+          # Sincronizar archivos cifrados y firmas SHA-256
+          rclone sync "${LOCAL_DIR}" "${REMOTE_DIR}" \
+            --include "pokedex_*.sql.gz.enc*" \
+            --include "*.sha256" \
+            --log-file="${LOG_FILE}" \
+            --log-level=INFO
+
+          # Aplicar política de retención en Google Drive (> {{ gdrive_retention_days }} días)
+          rclone delete "${REMOTE_DIR}" \
+            --min-age "{{ gdrive_retention_days }}d" \
+            --include "pokedex_*.sql.gz.enc*" \
+            --log-file="${LOG_FILE}" \
+            --log-level=INFO || true
+
+          echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] ✅ [DR Sync] Sincronización off-site completada con éxito." >> "${LOG_FILE}"
+        owner: root
+        group: root
+        mode: '0700'
+      when: gdrive_backup_enabled | bool
+
+    - name: "Desplegar unidad systemd pokedex-gdrive-sync.service"
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/pokedex-gdrive-sync.service
+        content: |
+          [Unit]
+          Description=Pokedex PostgreSQL Google Drive Off-Site Backup Sync
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/local/bin/pokedex-gdrive-sync.sh
+          User=root
+          StandardOutput=journal
+          StandardError=journal
+        owner: root
+        group: root
+        mode: '0640'
+      when: gdrive_backup_enabled | bool
+
+    - name: "Desplegar temporizador systemd pokedex-gdrive-sync.timer"
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/pokedex-gdrive-sync.timer
+        content: |
+          [Unit]
+          Description=Ejecutar sincronización diaria a Google Drive a las {{ gdrive_sync_schedule }} UTC
+
+          [Timer]
+          OnCalendar=*-*-* {{ gdrive_sync_schedule }}
+          Persistent=true
+          RandomizedDelaySec=300
+
+          [Install]
+          WantedBy=timers.target
+        owner: root
+        group: root
+        mode: '0640'
+      when: gdrive_backup_enabled | bool
+
+    - name: "Habilitar e iniciar temporizador de sincronización"
+      ansible.builtin.systemd:
+        name: pokedex-gdrive-sync.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: gdrive_backup_enabled | bool
+
+    - name: "Configurar rotación de logs en /etc/logrotate.d/pokedex-gdrive-sync"
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/pokedex-gdrive-sync
+        content: |
+          /var/log/pokedex-gdrive-sync.log {
+              weekly
+              missingok
+              rotate 4
+              compress
+              delaycompress
+              notifempty
+              create 0640 root root
+          }
+        owner: root
+        group: root
+        mode: '0640'
+      when: gdrive_backup_enabled | bool

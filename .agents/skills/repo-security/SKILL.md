@@ -7,71 +7,43 @@ description: Evaluación DevSecOps profunda y repetible.
 
 ## Objetivo
 
-Evaluación DevSecOps profunda y repetible.
+Ejecutar auditorías y evaluaciones de seguridad DevSecOps profundas, repetibles y rigurosas sobre todas las capas de `rocapellino/pokedex`: código de aplicación, dependencias, pipelines de CI/CD, infraestructura de contenedores, políticas de clúster Kubernetes y supply chain.
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Secrets, credenciales, API keys, tokens y rotación.
-- AuthN/AuthZ, sesiones, API keys, RBAC y revocación.
-- Validación Zod, SSRF/egress, CORS, headers, rate limiting, abuso de endpoints y errores.
-- Dependencias SCA y supply chain.
-- Dockerfiles, imágenes, Helm, Kubernetes, NetworkPolicies, Pod Security y admission.
-- GitHub Actions: permissions, pinning, secrets, forks, artifacts y workflows privilegiados.
-- SBOM, provenance, firmas, digest pinning y dependencias de terceros.
-- Integrar herramientas existentes antes de agregar nuevas: Gitleaks, CodeQL, Semgrep, Trivy, Checkov, Dependency Review, Cosign.
-- Distinguir hallazgo confirmado de recomendación.
-- Verificar que `.gitignore` y `.dockerignore` excluyan secretos, `.env`, kubeconfigs, claves/certificados y credenciales — y que el build context de cada Dockerfile no filtre esos archivos por ausencia o desactualización del `.dockerignore`.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Gestión de Secretos y Rotación:**
+  - Búsqueda de secretos, tokens o credenciales expuestas en código, historial git o artefactos de build.
+  - Verificación del contrato de External Secrets Operator (ESO) con HashiCorp Vault CE (`pokedex/prod` y `pokedex/preprod`).
+  - Cumplimiento de la auditoría de rotación dual ([ADR-022](../../docs/decisions/ADR-022-secret-rotation-and-rollout-restart.md)).
+- **Seguridad de Aplicación y API:**
+  - Validación de esquemas Zod en todas las entradas de datos externos.
+  - Aislamiento Egress y protección anti-SSRF mediante Cilium L7 NetworkPolicies.
+  - Cabeceras de seguridad HTTP (CSP, Permissions-Policy, X-Content-Type-Options, Referrer-Policy).
+  - Rate limiting distribuido respaldado en Redis.
+- **Seguridad en Contenedores y Kubernetes:**
+  - Dockerfiles multi-stage basados en imágenes mínimas (Alpine/distroless), sin usuarios root (`USER 10001:10001`).
+  - Pod Security Standards (`baseline` / `restricted`), `readOnlyRootFilesystem: true`, y supresión de `ALL` capabilities.
+  - Restricciones de admisión mediante políticas Kyverno.
+- **Supply Chain Security:**
+  - Pinning estricto de imágenes mediante digest SHA256 inmutable en Helm y GitOps.
+  - Verificación de firma criptográfica con Cosign y atestaciones SLSA Provenance.
+  - Generación obligatoria de SBOM en formato CycloneDX.
+- **Hardening de CI/CD:**
+  - Permisos de menor privilegio (`permissions:`) explícitos por job en GitHub Actions.
+  - Pinning de acciones de terceros por SHA de commit.
+  - Protección de contextos de build mediante `.dockerignore` y `.gitignore`.
 
 ## Comandos
 
-- `/repo-security`
-- `/repo-security app`
-- `/repo-security supply-chain`
-- `/repo-security ci`
-- `/repo-security k8s`
+- `/repo-security`: Evaluación integral de seguridad DevSecOps de extremo a extremo.
+- `/repo-security app`: Auditoría de código backend, middlewares de seguridad, Zod y saneamiento.
+- `/repo-security supply-chain`: Verificación de SBOM, firmas Cosign, OCI digests y procedencia.
+- `/repo-security ci`: Auditoría de permisos de runners, secretos y workflows de GitHub Actions.
+- `/repo-security k8s`: Evaluación de NetworkPolicies, Pod Security, Kyverno y secretos de K8s.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Toda remediación de vulnerabilidad debe planificarse con [change-plan.md](../_shared/change-plan.md) y evaluarse con `repo-impact`.

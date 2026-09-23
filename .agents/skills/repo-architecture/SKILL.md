@@ -7,69 +7,32 @@ description: Analizar arquitectura de aplicación, plataforma e infraestructura 
 
 ## Objetivo
 
-Analizar arquitectura de aplicación, plataforma e infraestructura y mantenerla coherente.
+Analizar integralmente la arquitectura de la aplicación, plataforma e infraestructura de `rocapellino/pokedex`, asegurando coherencia técnica entre el código, los manifiestos declarativos y las decisiones arquitectónicas registradas (ADRs).
 
-## Contexto específico de `rocapellino/pokedex`
+## Alcance y Verificaciones de Dominio
 
-Esta skill debe asumir como punto de partida un monorepo con:
-- `apps/backend` y `apps/frontend`
-- Node.js 22 / npm 11 / TypeScript
-- Express, Vanilla TypeScript/Vite, PostgreSQL, Redis
-- Docker Compose para desarrollo
-- Kubernetes + Helm + Kind
-- ArgoCD/GitOps
-- OpenTofu y Ansible
-- GitHub Actions
-- seguridad SAST/SCA/secrets/IaC, SBOM y firma de imágenes
-- OpenTelemetry/observabilidad
-- documentación extensa bajo `docs/`
-
-No asumir que cada componente documentado está vigente: comprobarlo contra el código y configuración actuales.
-
-## Alcance
-
-- Mapa frontend -> Nginx -> API -> PostgreSQL/Redis/AI.
-- Límites del monorepo y dependencias entre apps.
-- Flujos de datos, auth, cache, persistencia y observabilidad.
-- Docker Compose vs Kubernetes/Helm/ArgoCD.
-- OpenTofu/Ansible/infra boundaries.
-- GitOps source of truth y promoción de imágenes por digest.
-- Network isolation, ingress, egress y service boundaries.
-- ADRs: detectar decisiones contradichas por el código actual.
-- Proponer target architecture solo cuando resuelva un problema concreto.
-
-## Flujo
-
-1. Ejecutar `repo-context` si el contexto no está disponible.
-2. Inspeccionar fuentes de verdad antes de documentación derivada.
-3. Comparar estado actual con prácticas aplicables al stack real.
-4. Registrar evidencia exacta.
-5. Clasificar hallazgos por prioridad, confianza y esfuerzo.
-6. Proponer acciones incrementales.
-7. Si el usuario pide cambios, generar primero un plan y usar `repo-impact` cuando corresponda.
-8. Si el hallazgo o cambio afecta comportamiento documentado (README, `docs/`, ADRs, runbooks), señalar los documentos impactados y delegar en `repo-docs` antes de dar el ciclo por cerrado.
+- **Flujo de Aplicación:** Mapeo frontend (Vanilla TS/Vite) -> Nginx Alpine -> API Express -> PostgreSQL / Redis / Gemini AI.
+- **Límites de Monorepo:** Aislamiento de dependencias entre `apps/backend` y `apps/frontend`, tipado compartido y contratos de DTOs.
+- **Arquitectura de Cómputo & Plataforma:**
+  - Paridad y delimitación: Docker Compose (`dev`) vs. K3s On-Prem (Pre-prod LXC 800 / Prod VM 801) vs. AWS EKS (`cloud-ready`).
+  - OpenTofu e infraestructura base vs. Ansible vs. manifiestos Kubernetes nativos.
+- **GitOps & Inmutabilidad:**
+  - Árbol de aplicaciones ArgoCD (`root-application.yaml`, `app-proxmox.yaml`, `app-proxmox-preprod.yaml`, `app-cloud.yaml`).
+  - Promoción de artefactos mediante OCI digest pinning inmutable (`sha256`).
+- **Aislamiento de Red:** Políticas Ingress (Traefik), Cilium L7 NetworkPolicies, bloqueo Egress anti-SSRF y service boundaries.
+- **Auditoría de ADRs:** Identificar divergencias o contradicciones entre decisiones formales en `docs/decisions/` y la implementación activa en código.
+- **Evolución Arquitectónica:** Proponer target architecture únicamente cuando resuelva un cuello de botella o riesgo concreto documentado.
 
 ## Comandos
 
-- `/repo-architecture`
-- `/repo-architecture app`
-- `/repo-architecture platform`
-- `/repo-architecture gitops`
+- `/repo-architecture`: Análisis arquitectónico integral de extremo a extremo.
+- `/repo-architecture app`: Análisis específico de capas de backend, frontend y persistencia.
+- `/repo-architecture platform`: Análisis de K8s, K3s, Ingress, NetworkPolicies y computación.
+- `/repo-architecture gitops`: Validación del árbol de reconciliación ArgoCD, valores Helm y digests OCI.
 
-## Salida mínima
+## Formato de Salida y Gobernanza
 
-| ID | Área | Hallazgo | Evidencia | Riesgo | Prioridad | Confianza | Esfuerzo | Acción |
-|---|---|---|---|---|---|---|---|---|
-
-# Reglas comunes
-- Evidence-first: no afirmar algo que no pueda sustentarse en archivos, configuración, ejecución o documentación verificable.
-- Separar estado actual, recomendación y decisión.
-- No inventar CVEs, versiones, arquitectura, cobertura ni compliance.
-- No introducir una herramienta si otra existente ya cubre el objetivo, salvo beneficio demostrado.
-- Prioridad: P0 crítico, P1 alto, P2 medio, P3 bajo.
-- Confidence: HIGH/MEDIUM/LOW.
-- Effort: XS/S/M/L/XL.
-- Toda eliminación requiere evidencia de no uso y propuesta reversible.
-- Las skills de análisis son read-only salvo que el usuario solicite explícitamente ejecución.
-- Para cambios, usar repo-impact -> repo-refactor -> repo-testing -> repo-pr/release.
-
+- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
+- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+- **Planes de Cambio:** Si se solicitan modificaciones arquitectónicas, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.

@@ -645,6 +645,22 @@ tasks:
     cmds:
       - npm run ghcr:retention:dry-run
 
+  dr:gdrive:backup:dev:
+    desc: "Ejecuta el volcado local de PostgreSQL y lo sincroniza a Google Drive con Docker Compose (Alternativa A)"
+    cmds:
+      - npx tsx scripts/dev-backup-gdrive.ts {{.CLI_ARGS}}
+
+  dr:gdrive:sync:dev:
+    desc: "Sincroniza el directorio local ./backups hacia Google Drive con Rclone en Docker Compose"
+    cmds:
+      - docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup run --rm backup-gdrive
+
+  dr:gdrive:setup:proxmox:
+    desc: "Aprovisiona el cliente Rclone y el temporizador Systemd en el host Proxmox VE (Alternativa B)"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_gdrive_backup.yml
+
+
 
 
 

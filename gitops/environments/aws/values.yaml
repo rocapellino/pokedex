@@ -93,7 +93,7 @@ externalSecrets:
     name: "aws-secrets-manager"
     kind: "ClusterSecretStore"
   remoteRef:
-    key: "pokedex/production"
+    key: "pokedex/prod"
 
 # Stakater Reloader habilitado en Cloud para detectar mutaciones asíncronas de v1/Secret
 # generadas por ESO tras rotaciones en AWS Secrets Manager (checksum/config no cubre este caso):

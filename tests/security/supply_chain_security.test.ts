@@ -90,6 +90,7 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican
   const envFiles = [
     'gitops/environments/aws/values.yaml',
     'gitops/environments/proxmox/values.yaml',
+    'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml'
   ];
 

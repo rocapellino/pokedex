@@ -71,7 +71,7 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
        ↓ (k8s auth method / pokedex-prod-role [Least Privilege])
     ESO (External Secrets Operator en K3s)
        ↓ (ClusterSecretStore / vault-backend)
-    ExternalSecret (pokedex-secrets @ secret/data/pokedex/production)
+    ExternalSecret (pokedex-secrets @ secret/data/pokedex/prod)
        ↓
     pokemon-secrets (K8s Secret nativo consumido vía envFrom)
        ↓
@@ -297,21 +297,43 @@ kubectl get pods -n kube-system -l k8s-app=cilium
 
 ## 8. Despliegue y Sincronización GitOps con ArgoCD
 
-Todo despliegue de las cargas de trabajo de Pokédex se realiza mediante **ArgoCD** consumiendo el Helm chart universal:
+Todo despliegue de las cargas de trabajo de Pokédex en Proxmox se realiza mediante **ArgoCD** consumiendo el Helm chart universal bajo dos aplicaciones declarativas:
 
-1. **Definición de la Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml)
-2. **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) (con `ciliumNetworkPolicy.enabled: true` y `networkPolicies.egress.externalHttps: false`)
+### 1. Producción On-Premise (VM 801 K3s)
+
+- **Definición de Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) (`name: pokedex-proxmox`)
+- **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)
+- **Secret Backend (ESO):** `vault-backend` consumiendo `pokedex/prod` (`secret/data/pokedex/prod/*`)
+- **Apiserver K3s:** `https://k8s-proxmox.internal.lan:6443` (IP `10.10.13.100`)
+- **Ingress Host:** `pokedex.proxmox.internal.lan`
+- **Replicas:** 2 por microservicio (HA local), PgBouncer nativo desactivado, Reloader deshabilitado (rollout restart gobernado).
+
+### 2. Pre-producción On-Premise (LXC 800 K3s)
+
+- **Definición de Aplicación ArgoCD:** [`gitops/apps/app-proxmox-preprod.yaml`](../../gitops/apps/app-proxmox-preprod.yaml) (`name: pokedex-preprod`)
+- **Capa de Valores de Entorno:** [`gitops/environments/proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml)
+- **Secret Backend (ESO):** `vault-backend-preprod` consumiendo `pokedex/preprod` (`secret/data/pokedex/preprod/*`)
+- **Apiserver K3s:** `https://k8s-preprod.internal.lan:6443` (IP `10.10.13.99`)
+- **Ingress Host:** `pokedex.preprod.proxmox.internal.lan`
+- **Replicas:** 1 por microservicio (perfil lean para LXC sin sobrecargar I/O), Reloader deshabilitado (rollout restart gobernado).
 
 ### Requisitos de Red y Resolución DNS de ArgoCD
 
-[`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) apunta al clúster de K3s mediante la URL `server: https://k8s-proxmox.internal.lan:6443`.
-Para que la instancia de ArgoCD o la estación de control puedan alcanzar el apiserver en la subred `10.10.13.0/24`:
+Las aplicaciones de ArgoCD apuntan a los clústeres de K3s mediante sus nombres DNS internos:
 
-- **Entorno con DNS Corporativo / CoreDNS:** Asegurar que el registro A `k8s-proxmox.internal.lan` resuelva a la IP del nodo K8s `10.10.13.100`.
-- **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir la entrada estática en `/etc/hosts` del servidor o pod donde corre ArgoCD:
+- Producción: `server: https://k8s-proxmox.internal.lan:6443`
+- Pre-producción: `server: https://k8s-preprod.internal.lan:6443`
+
+Para que la instancia de ArgoCD o la estación de control puedan alcanzar los apiservers en la subred `10.10.13.0/24`:
+
+- **Entorno con DNS Corporativo / CoreDNS:** Asegurar que los registros A resuelvan a las IPs correspondientes:
+  - `k8s-proxmox.internal.lan` → `10.10.13.100` (VM 801)
+  - `k8s-preprod.internal.lan` → `10.10.13.99` (LXC 800)
+- **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir las entradas estáticas en `/etc/hosts` del servidor o pod donde corre ArgoCD:
 
   ```text
   10.10.13.100  k8s-proxmox.internal.lan
+  10.10.13.99   k8s-preprod.internal.lan
   ```
 
 ### Ingress Controller Estandarizado (Traefik)
@@ -327,8 +349,11 @@ No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reducien
 ### Sincronización Manual o Automatizada
 
 ```bash
-# Sincronizar el entorno Proxmox vía Taskfile
+# Sincronizar el entorno Proxmox Producción vía Taskfile
 task gitops:sync:proxmox
+
+# O sincronizar Pre-producción vía ArgoCD CLI
+argocd app sync pokedex-preprod
 
 # O verificar el estado de los Pods en el namespace pokemon-app:
 task k8s:status

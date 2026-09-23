@@ -1654,11 +1654,15 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const ingressContent = fs.readFileSync(ingressPath, 'utf-8');
   assert.ok(ingressContent.includes('argocd.argoproj.io/sync-wave: "4"'), 'Ingress debe estar en sync-wave 4');
 
-  // 5. app-proxmox.yaml y app-cloud.yaml configuran syncWindows y opciones avanzadas
+  // 5. app-proxmox.yaml, app-proxmox-preprod.yaml y app-cloud.yaml configuran syncWindows y opciones avanzadas
+  const appProxmoxPreprodPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml');
   const proxmoxContent = fs.readFileSync(appProxmoxPath, 'utf-8');
+  const preprodContent = fs.readFileSync(appProxmoxPreprodPath, 'utf-8');
   const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
   assert.ok(proxmoxContent.includes('ServerSideApply=true'), 'app-proxmox.yaml debe configurar ServerSideApply');
   assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
+  assert.ok(preprodContent.includes('ServerSideApply=true'), 'app-proxmox-preprod.yaml debe configurar ServerSideApply');
+  assert.ok(preprodContent.includes('syncWindows:'), 'app-proxmox-preprod.yaml debe configurar syncWindows');
   assert.ok(cloudContent.includes('ServerSideApply=true'), 'app-cloud.yaml debe configurar ServerSideApply');
   assert.ok(cloudContent.includes('syncWindows:'), 'app-cloud.yaml debe configurar syncWindows');
 
@@ -1718,8 +1722,13 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   const webDeployContent = fs.readFileSync(webDeployPath, 'utf-8');
   assert.ok(webDeployContent.includes('.Values.web.deploymentAnnotations'), 'web-deployment.yaml debe soportar web.deploymentAnnotations');
 
-  // 4. Script de auditoría de rotación existe y aprueba
+  // 4. Script de auditoría de rotación existe y valida arquitectura dual (ADR-022)
   assert.ok(fs.existsSync(auditScriptPath), 'scripts/verify-secret-rotation.ts debe existir');
+  const auditScriptContent = fs.readFileSync(auditScriptPath, 'utf-8');
+  assert.ok(auditScriptContent.includes('Reloader = REQUIRED'), 'verify-secret-rotation.ts debe verificar Reloader REQUIRED en AWS');
+  assert.ok(auditScriptContent.includes('Reloader = FORBIDDEN'), 'verify-secret-rotation.ts debe verificar Reloader FORBIDDEN en Proxmox');
+  assert.ok(auditScriptContent.includes('rollout restart = REQUIRED'), 'verify-secret-rotation.ts debe verificar rollout restart REQUIRED en Proxmox');
+  assert.ok(auditScriptContent.includes('refreshInterval <= 24h'), 'verify-secret-rotation.ts debe auditar refreshInterval <= 24h');
 
   // 5. Taskfile.yml y package.json exponen secrets:audit-rotation
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
@@ -2018,6 +2027,9 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
 
   const appProxmox = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml'), 'utf-8');
   assert.match(appProxmox, /namespace:\s*pokemon-app/, 'app-proxmox.yaml debe definir namespace: pokemon-app');
+
+  const appProxmoxPreprod = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
+  assert.match(appProxmoxPreprod, /namespace:\s*pokemon-app/, 'app-proxmox-preprod.yaml debe definir namespace: pokemon-app');
 
   const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
   assert.match(appCloud, /namespace:\s*pokemon-app/, 'app-cloud.yaml debe definir namespace: pokemon-app');
