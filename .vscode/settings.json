@@ -2,5 +2,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "rocapellino",
         "projectKey": "rocapellino_pokedex"
-    }
+    },
+    "css.lint.browserCompatibility": "ignore"
 }
