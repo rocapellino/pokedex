@@ -51,15 +51,30 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Arquitectura / Calidad
 - **Severidad:** P2 (Medio)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Rutas desacopladas en src/routes/ y src/middleware/)
 - **Skills Detectoras:** `repo-architecture`, `repo-quality`
-- **Descripción:** El archivo `apps/backend/server.ts` posee 1,201 líneas de código. Aunque delega parte de la lógica en submódulos de `apps/backend/src/` (`services/`, `middleware/`, `validation/`, `db/`), todas las rutas y controladores (CRUD de Pokémon, emisión y verificación de sesiones administrativas, endpoints de IA de Gemini, health checks `/healthz` y `/readyz`, endpoint de descarga y recolector interno de métricas Prometheus) están declarados inline sobre la instancia raíz de `app` de Express.
+- **Descripción:** El archivo `apps/backend/server.ts` concentraba más de 1,180 líneas de código integrando rutas, controladores, métricas Prometheus, autenticación y ciclo de vida. Se desacopló íntegramente en módulos cohesivos bajo `apps/backend/src/`:
+  - `src/routes/pokemons.ts` (CRUD con validación y ETag).
+  - `src/routes/auth.ts` (Sesiones HMAC efímeras y revocación).
+  - `src/routes/ai.ts` (Servicios Gemini con rate limiters y disyuntor).
+  - `src/routes/health.ts` (Probes `/healthz`, `/readyz`, `/version`, `/metrics`).
+  - `src/middleware/auth.ts` y `src/middleware/rate-limiter.ts`.
+  - `src/middleware/metrics.ts` y `src/utils/lifecycle.ts`.
 - **Evidencia:**
-  - `apps/backend/server.ts:L35-1201`.
-- **Archivos Afectados:**
+  - `apps/backend/server.ts` (reducido a ~240 líneas de orquestación y middlewares).
+  - `apps/backend/src/routes/` y `apps/backend/src/middleware/`.
+- **Archivos Remediados:**
   - `apps/backend/server.ts`
-- **Impacto:** Alta concentración de responsabilidades en un solo archivo, aumento de la complejidad ciclomática global, mayor propensión a conflictos de merge en flujos concurrentes y dificultad para testear controladores de forma aislada.
-- **Recomendación:** Desacoplar `server.ts` extrayendo las rutas en routers modulares de Express (`src/routes/pokemons.ts`, `src/routes/auth.ts`, `src/routes/ai.ts`, `src/routes/health.ts`).
+  - `apps/backend/src/routes/pokemons.ts`
+  - `apps/backend/src/routes/auth.ts`
+  - `apps/backend/src/routes/ai.ts`
+  - `apps/backend/src/routes/health.ts`
+  - `apps/backend/src/middleware/auth.ts`
+  - `apps/backend/src/middleware/rate-limiter.ts`
+  - `apps/backend/src/middleware/metrics.ts`
+  - `apps/backend/src/utils/lifecycle.ts`
+  - `apps/backend/src/utils/async-handler.ts`
+- **Resolución (2026-09-23):** Modularización completa y preservación del 100% de los contratos de pruebas (211/211 passing).
 - **Esfuerzo:** M
 
 ---
@@ -333,7 +348,7 @@ Ordenados por impacto, evidencia, riesgo y esfuerzo:
 | **ARCH-001** | Arquitectura / Docs | Discrepancia: documentación histórica cita React pero código real es Vanilla TypeScript | `apps/frontend/package.json:L13-20`, `.github/workflows/web.yml:L2` | S | CONFIRMED |
 | **SEC-002** | Seguridad | Exposición condicional del endpoint `GET /download` | `apps/backend/server.ts:L1000-1120`, `.env.example:L98-100` | S | REMEDIATED |
 | **CI-001** | CI/CD | Duplicación de Quality Gates y Checkov entre `ci.yml`, `api.yml` e `infra.yml` | `api.yml:L32-60`, `infra.yml:L80-88`, `ci.yml:L26-88` | S | CONFIRMED |
-| **ARCH-002** | Arquitectura | Monolito de rutas concentrado en `apps/backend/server.ts` (1,201 líneas) | `apps/backend/server.ts:L35-1201` | M | CONFIRMED |
+| **ARCH-002** | Arquitectura | Monolito de rutas concentrado en `apps/backend/server.ts` (1,201 líneas) | `apps/backend/server.ts:L35-1201` | M | REMEDIATED |
 | **TST-001** | Testing | Cobertura E2E ausente para flujos administrativos del panel `/backoffice` | `tests/e2e/pokedex.spec.ts:L1-90` | M | CONFIRMED |
 
 ### P3 — Bajo
@@ -373,6 +388,7 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
   - Duplicación de dependencias de runtime en raíz (`DEP-001` - consolidado en workspace backend).
   - Triggers residuales a rama `master` en workflows de CI (`CI-002` - unificado en main).
   - Script legacy `scripts/seal-secret.ts` y tarea `secrets:seal` (`CLN-002` - eliminados).
+  - Controlador monolítico de rutas en `apps/backend/server.ts` (`ARCH-002` - modularizado en src/routes/).
 - **Deuda Técnica Potencial:**
   - MegaLinter ejecutando sin bloquear PRs (`CI-003`).
 - **Deuda Técnica Documental:**
@@ -381,8 +397,6 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
   - Excepciones y hashes históricos allowlisteados en `.gitleaks.toml` (`SEC-001`).
 - **Deuda Técnica de Testing:**
   - Falta de suite E2E de Playwright para `/backoffice.html` (`TST-001`).
-- **Deuda Técnica de Arquitectura:**
-  - Controlador monolítico de rutas y lógica en `apps/backend/server.ts` (`ARCH-002`).
 - **Deuda Técnica de CI/CD:**
   - Solapamiento y doble ejecución de gates de test y Checkov entre `ci.yml`, `api.yml` e `infra.yml` (`CI-001`).
 
@@ -415,22 +429,22 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 - **Branch:** `main`
 - **Fecha:** 2026-09-23
 - **Estado del working tree:** Limpio (archivos de auditoría no rastreados)
-- **Findings Totales:** 13 (5 remediados, 8 pendientes)
+- **Findings Totales:** 13 (6 remediados, 7 pendientes)
   - **P0 (Crítico):** 0
   - **P1 (Alto):** 1 (`OPS-001` — REMEDIATED)
-  - **P2 (Medio):** 5 (1 remediado: `SEC-002`; 4 pendientes: `ARCH-001`, `ARCH-002`, `CI-001`, `TST-001`)
+  - **P2 (Medio):** 5 (2 remediados: `SEC-002`, `ARCH-002`; 3 pendientes: `ARCH-001`, `CI-001`, `TST-001`)
   - **P3 (Bajo):** 7 (3 remediados: `DEP-001`, `CI-002`, `CLN-002`; 4 pendientes: `CI-003`, `CLN-001`, `SEC-001`, `MOD-001`)
 - **Distribución de Findings por Dominio Técnico:**
   - **Operaciones / Disaster Recovery:** 1 (`OPS-001` - Remediado)
   - **Seguridad:** 2 (`SEC-001`, `SEC-002` - Remediado)
   - **Dependencias:** 1 (`DEP-001` - Remediado)
-  - **Arquitectura:** 2 (`ARCH-001`, `ARCH-002`)
+  - **Arquitectura:** 2 (`ARCH-001`, `ARCH-002` - Remediado)
   - **Calidad:** 0 independientes (consolidados en `ARCH-002` y `CI-003`)
   - **Testing:** 1 (`TST-001`)
   - **CI/CD:** 3 (`CI-001`, `CI-002` - Remediado, `CI-003`)
   - **Candidatos de Cleanup:** 2 (`CLN-001`, `CLN-002` - Remediado)
   - **Oportunidades de Modernización:** 1 (`MOD-001`)
-- **Deuda Técnica Total:** 7 hallazgos confirmados activos + 5 remediados (`OPS-001`, `SEC-002`, `DEP-001`, `CI-002`, `CLN-002`) + 1 recomendación de modernización
+- **Deuda Técnica Total:** 6 hallazgos confirmados activos + 6 remediados (`OPS-001`, `SEC-002`, `DEP-001`, `CI-002`, `CLN-002`, `ARCH-002`) + 1 recomendación de modernización
 - **Limitaciones del Análisis:**
   1. No se realizaron conexiones en vivo a clústeres remotos de Kubernetes, hosts Proxmox ni cuentas de AWS; el análisis de IaC, Helm y GitOps se basó en el código, perfiles renderizados (`helm template`) y aserciones de policy-as-code.
   2. Las capacidades generativas de IA de Google Gemini no se ejecutaron dinámicamente de punta a punta ante la falta de `GEMINI_API_KEY` en el entorno local offline; se analizó su contrato, circuit breaker y sanitización anti-XSS (`sanitizeAIHtml`).
