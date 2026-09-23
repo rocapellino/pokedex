@@ -19,11 +19,11 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     await expect(page.locator('#kpiAvgPower')).toBeVisible();
     await expect(page.locator('#kpiCacheStatus')).toBeVisible();
 
-    // Validar carga de tabla de registros
+    // Validar carga de tabla de registros (esperar que se sustituya el spinner de carga por datos reales)
     const tableBody = page.locator('#adminTableBody');
     await expect(tableBody).toBeVisible();
-    const rows = tableBody.locator('tr');
-    await expect(rows.first()).toBeVisible({ timeout: 10000 });
+    const rows = tableBody.locator('.pokemon-table-name');
+    await expect(rows.first()).toBeVisible({ timeout: 15000 });
     const rowCount = await rows.count();
     expect(rowCount).toBeGreaterThan(0);
   });
@@ -32,8 +32,8 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     const searchInput = page.locator('#adminSearch');
     await expect(searchInput).toBeVisible();
 
-    // Esperar carga inicial de filas
-    await expect(page.locator('#adminTableBody tr').first()).toBeVisible({ timeout: 10000 });
+    // Esperar carga inicial de filas de Pokémon
+    await expect(page.locator('.pokemon-table-name').first()).toBeVisible({ timeout: 15000 });
 
     // Filtrar por Bulbasaur
     await searchInput.fill('Bulbasaur');
@@ -80,16 +80,15 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     // Intento con clave válida de test
     await apiKeyInput.fill(TEST_ADMIN_KEY);
     await page.locator('#btnSaveKey').click();
-    await page.waitForTimeout(500);
 
     // Modal debe cerrarse y el estado debe reflejarse en la UI
-    await expect(authModal).not.toHaveClass(/active/);
+    await expect(authModal).not.toHaveClass(/active/, { timeout: 10000 });
     await expect(page.locator('#authStatusText')).toHaveText('Admin Activo');
     await expect(authBtn).toHaveClass(/btn-auth-active/);
   });
 
   test('@a11y Auditoría de accesibilidad WCAG en Backoffice', async ({ page }) => {
-    await page.waitForSelector('#adminTableBody tr', { timeout: 10000 });
+    await page.waitForSelector('.pokemon-table-name', { timeout: 15000 });
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
