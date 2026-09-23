@@ -392,6 +392,27 @@ backup:
   restoreVerification:
     enabled: true
     schedule: "0 4 * * 0" # Semanal los domingos a las 04:00 UTC (posterior al snapshot diario)
+  # Sincronización Off-Site a Google Drive (Puente K8s-Native Rclone)
+  # Sincroniza directamente desde pokedex-backup-pvc hacia Google Drive (Costo $0 USD)
+  gdrive:
+    enabled: false
+    schedule: "0 3 * * *" # Diario a las 03:00 UTC (1 hora tras el snapshot diario de las 02:00)
+    folder: "PokedexBackups/proxmox"
+    secretName: "" # Default: pokemon-secrets
+    tokenKey: "GDRIVE_TOKEN"
+    image:
+      repository: rclone/rclone
+      tag: "1.68.2"
+      pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: "300m"
+        memory: "256Mi"
+        ephemeral-storage: "512Mi"
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+        ephemeral-storage: "128Mi"
 
 # ------------------------------------------------------------------------------
 # 12. Monitoreo & Observabilidad (Prometheus Operator / ServiceMonitor)

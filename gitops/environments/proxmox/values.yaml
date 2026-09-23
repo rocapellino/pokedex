@@ -166,4 +166,9 @@ backup:
     region: "us-east-1"
     prefix: "proxmox/postgres"
     secretName: "backup-offsite-creds"
+  # Sincronización Off-Site Nativa a Google Drive (Puente K8s-Native Rclone)
+  # Sincroniza directamente desde pokedex-backup-pvc hacia Google Drive sin tocar el host
+  gdrive:
+    enabled: true
+    folder: "PokedexBackups/proxmox"
 

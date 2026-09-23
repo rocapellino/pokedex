@@ -202,4 +202,44 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   assert.ok(taskfileContent.includes('dr:gdrive:setup:proxmox:'), 'Taskfile debe definir dr:gdrive:setup:proxmox');
 });
 
+test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const cronjobTemplatePath = path.join(chartPath, 'templates/backup-gdrive-cronjob.yaml');
+  assert.ok(fs.existsSync(cronjobTemplatePath), 'backup-gdrive-cronjob.yaml debe existir en los templates de Helm');
+
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  assert.ok(fs.existsSync(proxmoxValuesPath), 'proxmox values.yaml debe existir');
+  const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
+  assert.match(proxmoxValues, /gdrive:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe tener backup.gdrive.enabled: true');
+
+  // Renderizar con Helm usando values.prod.yaml
+  const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
+  const rendered = execSync(
+    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-gdrive-cronjob.yaml`,
+    { encoding: 'utf-8' }
+  );
+
+  // 1. Validar CronJob y Componentes
+  assert.match(rendered, /kind:\s*CronJob/, 'Debe generar el recurso CronJob');
+  assert.match(rendered, /name:\s*pokedex-gdrive-sync/, 'El CronJob debe llamarse pokedex-gdrive-sync');
+  assert.match(rendered, /rclone\/rclone/, 'Debe utilizar la imagen oficial de Rclone');
+
+  // 2. Validar puente al PVC con readOnly: true (Inmutabilidad del almacenamiento local)
+  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'Debe montar claimName: pokedex-backup-pvc para enlazar el puente de DR');
+  assert.match(rendered, /mountPath:\s*\/backups\s*\r?\n\s*readOnly:\s*true/, 'El volumen /backups DEBE ser montado obligatoriamente como readOnly: true');
+
+  // 3. Validar Hardening y Least Privilege
+  assert.match(rendered, /automountServiceAccountToken:\s*false/, 'Debe declarar automountServiceAccountToken: false');
+  assert.match(rendered, /runAsNonRoot:\s*true/, 'Debe ejecutar como runAsNonRoot');
+  assert.match(rendered, /readOnlyRootFilesystem:\s*true/, 'El contenedor debe tener readOnlyRootFilesystem: true');
+  assert.match(rendered, /-\s*ALL/, 'Debe descartar todas las capacidades del kernel');
+
+  // 4. Validar Aislamiento de Red Zero-Trust en NetworkPolicy
+  assert.match(rendered, /kind:\s*NetworkPolicy/, 'Debe generar recurso NetworkPolicy');
+  assert.match(rendered, /name:\s*pokedex-allow-gdrive-sync-egress/, 'NetworkPolicy debe llamarse pokedex-allow-gdrive-sync-egress');
+  assert.match(rendered, /port:\s*53/, 'Debe permitir resolución DNS en puerto 53');
+  assert.match(rendered, /port:\s*443/, 'Debe permitir salida HTTPS a la API de Google Drive en puerto 443');
+});
+
+
 

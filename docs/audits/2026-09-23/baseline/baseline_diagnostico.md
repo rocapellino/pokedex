@@ -294,26 +294,21 @@ No se detectaron hallazgos críticos bloqueantes (**P0: 0**) ni vulnerabilidades
 - **Categoría:** Disaster Recovery / Operaciones
 - **Severidad:** P1 (Alto)
 - **Confianza:** HIGH
-- **Estado:** CONFIRMED
+- **Estado:** REMEDIATED (Vía K8s-Native implementada)
 - **Skills Detectoras:** `repo-architecture`, `repo-security`, `repo-docs`
-- **Descripción:** Se agregó el playbook `infra/ansible/playbooks/setup_gdrive_backup.yml` que instala `rclone` y un timer de systemd para sincronizar `/var/lib/pve/local-btrfs/pokedex-backups` hacia Google Drive. Sin embargo, el backup real de PostgreSQL en Kubernetes se deposita en el PersistentVolumeClaim `pokedex-backup-pvc` dentro de la VM/nodo K3s. No existe actualmente un mecanismo que transfiera o monte los volcados desde el PVC de Kubernetes hacia el directorio `/var/lib/pve/...` del host hipervisor Proxmox.
-  Existen por ende dos sistemas desacoplados:
-  1. **Sistema 1 (Clúster K8s):** `PostgreSQL -> pg_dump -> pokedex-backup-pvc`.
-  2. **Sistema 2 (Host Proxmox):** `/var/lib/pve/local-btrfs/pokedex-backups -> rclone -> Google Drive`.
-  Al faltar el puente intermedio, **Google Drive NO es actualmente el backup off-site del Pokédex**. El estado fáctico riguroso es: *"Existe un mecanismo preparado para sincronizar un directorio del host Proxmox hacia Google Drive, pero carece de conexión con el almacenamiento de backup del clúster."*
+- **Descripción:** Se detectó que el playbook `infra/ansible/playbooks/setup_gdrive_backup.yml` sincronizaba un directorio del host Proxmox (`/var/lib/pve/local-btrfs/pokedex-backups`) hacia Google Drive, mientras que el backup real de PostgreSQL en Kubernetes se deposita en el PersistentVolumeClaim `pokedex-backup-pvc` dentro del clúster. No existía un mecanismo que transfiriera los volcados entre ambos sistemas.
 - **Evidencia:**
   - `infra/helm/pokedex/templates/backup-cronjob.yaml:L1-20` (crea y monta `pokedex-backup-pvc` en el pod de backup).
   - `infra/ansible/playbooks/setup_gdrive_backup.yml:L26` (`gdrive_local_backup_dir: "/var/lib/pve/local-btrfs/pokedex-backups"`).
-  - Inexistencia de exportación o montaje entre el storage de K3s y el directorio del host en el playbook.
-- **Archivos Afectados:**
-  - `infra/ansible/playbooks/setup_gdrive_backup.yml`
-  - `docs/operations/GDRIVE_BACKUP_GUIDE.md`
-  - `docs/runbooks/DISASTER_RECOVERY_PLAN.md`
-- **Impacto:** Falsa sensación de cobertura de Disaster Recovery off-site. Si el servidor físico Proxmox sufre una pérdida total (SPOF de host), los respaldos dentro del PVC local se pierden simultáneamente, ya que la réplica a Google Drive no está recibiendo los datos generados por el clúster.
-- **Recomendación:** Implementar el puente faltante mediante una de las dos vías arquitectónicas:
-  1. *Opción K8s-Native (Recomendada):* Ejecutar Rclone como CronJob de Kubernetes que monte directamente `pokedex-backup-pvc` y use un Secret con `GDRIVE_TOKEN`, eliminando el acoplamiento con el hipervisor.
-  2. *Opción Host-Bridge:* Si K3s corre con `local-path` sobre el host, configurar una tarea programada en el host que extraiga o sincronice el subvolumen del PVC hacia `/var/lib/pve/local-btrfs/pokedex-backups`.
-  3. *Alineación Documental Factual:* Registrar formalmente en el DRP y guías operativas que la Alternativa B es un mecanismo preparado en host, requiriendo el puente para alcanzar operatividad real.
+- **Archivos Afectados / Remediados:**
+  - `infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml` (NUEVO: CronJob nativo y NetworkPolicy)
+  - `infra/helm/pokedex/values.yaml` (configuración de `backup.gdrive`)
+  - `infra/helm/pokedex/values.prod.yaml` (`backup.gdrive.enabled: true`)
+  - `gitops/environments/proxmox/values.yaml` (`backup.gdrive.enabled: true`)
+  - `tests/security/dr_backup_security.test.ts` (test de aserción declarativa)
+  - `docs/operations/GDRIVE_BACKUP_GUIDE.md` (documentación de arquitectura)
+  - `docs/runbooks/DISASTER_RECOVERY_PLAN.md` (actualización de matriz RPO/RTO)
+- **Resolución (2026-09-23):** Se implementó la **Vía K8s-Native (Recomendada)** mediante `infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`. El CronJob `pokedex-gdrive-sync` monta `pokedex-backup-pvc` directamente en modo solo lectura (`readOnly: true`), protegiendo la integridad de los dumps. Utiliza la imagen oficial hardened `rclone/rclone:1.68.2`, variables de entorno declarativas dinámicas (`RCLONE_CONFIG_GDRIVE_*`), `automountServiceAccountToken: false`, `readOnlyRootFilesystem: true`, eliminación total de capabilities Linux (`drop: [ALL]`), y `NetworkPolicy` de egress restringida (DNS 53 UDP/TCP y HTTPS 443 TCP).
 - **Esfuerzo:** M
 
 ---
@@ -330,7 +325,7 @@ Ordenados por impacto, evidencia, riesgo y esfuerzo:
 
 | ID | Área | Hallazgo | Evidencia | Esfuerzo | Estado |
 | --- | --- | --- | --- | --- | --- |
-| **OPS-001** | Operaciones / DR | Desconexión y falta de puente entre PVC de backup K8s (`pokedex-backup-pvc`) y sincronización Google Drive en Proxmox | `backup-cronjob.yaml:L1-20`, `setup_gdrive_backup.yml:L26` | M | CONFIRMED |
+| **OPS-001** | Operaciones / DR | Desconexión y falta de puente entre PVC de backup K8s (`pokedex-backup-pvc`) y sincronización Google Drive en Proxmox | `backup-cronjob.yaml:L1-20`, `setup_gdrive_backup.yml:L26` | M | REMEDIATED |
 
 ### P2 — Medio
 
@@ -411,7 +406,7 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 | **Cantidad de roles Ansible** | 5 | `infra/ansible/roles/` |
 | **Cantidad de aplicaciones declarativas ArgoCD** | 3 | `root-application`, `app-proxmox`, `app-cloud` |
 | **Cantidad de Dockerfiles multi-stage** | 2 | Backend y Frontend (con espejo en raíz) |
-| **Total de Hallazgos Diagnosticados** | 12 | 0 P0, 0 P1, 5 P2, 7 P3 |
+| **Total de Hallazgos Diagnosticados** | 13 | 0 P0, 1 P1 (remediado), 5 P2, 7 P3 |
 
 ---
 
@@ -421,12 +416,13 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
 - **Branch:** `main`
 - **Fecha:** 2026-09-23
 - **Estado del working tree:** Limpio (archivos de auditoría no rastreados)
-- **Findings Totales:** 12
+- **Findings Totales:** 13 (1 remediado, 12 pendientes)
   - **P0 (Crítico):** 0
-  - **P1 (Alto):** 0
+  - **P1 (Alto):** 1 (`OPS-001` — REMEDIATED)
   - **P2 (Medio):** 5 (`ARCH-001`, `ARCH-002`, `SEC-002`, `CI-001`, `TST-001`)
   - **P3 (Bajo):** 7 (`DEP-001`, `CI-002`, `CI-003`, `CLN-001`, `CLN-002`, `SEC-001`, `MOD-001`)
 - **Distribución de Findings por Dominio Técnico:**
+  - **Operaciones / Disaster Recovery:** 1 (`OPS-001` - Remediado)
   - **Seguridad:** 2 (`SEC-001`, `SEC-002`)
   - **Dependencias:** 1 (`DEP-001`)
   - **Arquitectura:** 2 (`ARCH-001`, `ARCH-002`)
@@ -435,7 +431,7 @@ Cambios de bajo riesgo y mínimo esfuerzo (XS/S) recomendados para posterior eje
   - **CI/CD:** 3 (`CI-001`, `CI-002`, `CI-003`)
   - **Candidatos de Cleanup:** 2 (`CLN-001`, `CLN-002`)
   - **Oportunidades de Modernización:** 1 (`MOD-001`)
-- **Deuda Técnica Total:** 11 hallazgos confirmados + 1 recomendación de modernización
+- **Deuda Técnica Total:** 11 hallazgos confirmados activos + 1 remediado (`OPS-001`) + 1 recomendación de modernización
 - **Limitaciones del Análisis:**
   1. No se realizaron conexiones en vivo a clústeres remotos de Kubernetes, hosts Proxmox ni cuentas de AWS; el análisis de IaC, Helm y GitOps se basó en el código, perfiles renderizados (`helm template`) y aserciones de policy-as-code.
   2. Las capacidades generativas de IA de Google Gemini no se ejecutaron dinámicamente de punta a punta ante la falta de `GEMINI_API_KEY` en el entorno local offline; se analizó su contrato, circuit breaker y sanitización anti-XSS (`sanitizeAIHtml`).
