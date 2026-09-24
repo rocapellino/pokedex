@@ -1,177 +1,48 @@
 // ==============================================================================
-// Capa de Acceso a Datos & Caching (PostgreSQL & Redis) con Drizzle ORM & Fallback
+// Fachada Unificada de Almacenamiento & Persistencia (PostgreSQL, Redis & Memoria)
+// Arquitectura Modular Desacoplada (IMP-ARC-001)
 // ==============================================================================
-import pg from 'pg';
-import { Redis } from 'ioredis';
-import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
-import { Pokemon } from '../types.js';
-import { initialPokemons } from '../data/initialPokemons.js';
-import { logger } from '../utils/logger.js';
-import { pokedexEntries, createDrizzleClient, AppDatabase, runMigrations } from '../db/index.js';
+import {
+  connectPg,
+  closePg,
+  getDrizzleDb,
+  getPostgresVersion,
+  isPgConnectedStatus,
+  getLastKnownPgCount
+} from './postgres.js';
+import {
+  connectRedis,
+  closeRedis,
+  isCacheConnected,
+  getRedisClient,
+  invalidateCache,
+  consumeDistributedRateLimit,
+  setRevokedJti,
+  isJtiRevokedInRedis
+} from './cache.js';
+import {
+  getAllPokemons,
+  getPokemonById,
+  savePokemon,
+  deletePokemon,
+  getNextPokemonId,
+  isWritableStorageAvailable,
+  getMemoryMapSize
+} from './pokemon.repository.js';
 
-const { Pool } = pg;
-
-// ------------------------------------------------------------------------------
-// 1. Configuración de Conexiones
-// ------------------------------------------------------------------------------
-const DATABASE_URL = process.env.DATABASE_URL || (
-  process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
-    ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
-    : undefined
-);
-const REDIS_URL = process.env.REDIS_URL || (
-  process.env.REDIS_HOST
-    ? `redis://${process.env.REDIS_PASSWORD ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@` : ''}${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
-    : undefined
-);
-
-let pgPool: pg.Pool | null = null;
-let drizzleDb: AppDatabase | null = null;
-let redisClient: Redis | null = null;
-
-let isPgConnected = false;
-let isRedisConnected = false;
-let lastKnownPgCount: number | null = null;
-
-// Almacén en memoria sincronizado como fallback resiliente
-const memoryMap = new Map<number, Pokemon>();
-for (const p of initialPokemons) {
-  memoryMap.set(p.id, JSON.parse(JSON.stringify(p)));
-}
-let inMemorySequence = initialPokemons.reduce((max, p) => Math.max(max, p.id), 1008);
-
-// ------------------------------------------------------------------------------
-// 2. Inicialización de Clientes & Reconexión Resiliente
-// ------------------------------------------------------------------------------
 let heartbeatTimer: NodeJS.Timeout | null = null;
 
-async function connectPg(): Promise<boolean> {
-  if (!DATABASE_URL) return false;
-  try {
-    if (!pgPool) {
-      const isProduction = process.env.NODE_ENV === 'production';
-      const isLoopback = DATABASE_URL.includes('localhost') || DATABASE_URL.includes('127.0.0.1');
-      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || DATABASE_URL.includes('sslmode=require');
-      const shouldUseSsl = isSslExplicitlyRequired || (isProduction && process.env.DB_SSL !== 'false' && !isLoopback);
-
-      const sslConfig = shouldUseSsl
-        ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' }
-        : undefined;
-
-      pgPool = new Pool({
-        connectionString: DATABASE_URL,
-        max: 10,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-        ssl: sslConfig,
-      });
-
-      pgPool.on('error', (err) => {
-        logger.error('[Storage: PostgreSQL Error] Idle client error', { error: err.message });
-        isPgConnected = false;
-      });
-
-      drizzleDb = createDrizzleClient(pgPool);
-    }
-
-    const client = await pgPool.connect();
-    try {
-      if (!drizzleDb) {
-        drizzleDb = createDrizzleClient(pgPool);
-      }
-
-      // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
-      try {
-        await runMigrations(DATABASE_URL);
-      } catch (migErr: any) {
-        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: migErr?.message });
-      }
-
-      const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);
-      const countTotal = Number(countRow?.total ?? 0);
-
-      if (countTotal === 0) {
-        logger.info('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
-        for (const p of initialPokemons) {
-          await drizzleDb
-            .insert(pokedexEntries)
-            .values({
-              id: p.id,
-              nombre: p.nombre,
-              tipo: p.tipo,
-              data: p,
-            })
-            .onConflictDoNothing({ target: pokedexEntries.id });
-        }
-        lastKnownPgCount = initialPokemons.length;
-      } else {
-        lastKnownPgCount = countTotal;
-      }
-
-      await client.query(`
-        SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true);
-      `);
-      isPgConnected = true;
-      logger.info('[Storage: PostgreSQL] Conectado, Drizzle ORM activo, tabla y secuencia pokedex_id_seq sincronizadas');
-      return true;
-    } finally {
-      client.release();
-    }
-  } catch (err: any) {
-    logger.warn(`[Storage: PostgreSQL] No disponible (${err.message}). Operando con almacén en memoria`);
-    isPgConnected = false;
-    return false;
-  }
-}
-
-async function connectRedis(): Promise<boolean> {
-  if (!REDIS_URL) return false;
-  try {
-    if (!redisClient) {
-      redisClient = new Redis(REDIS_URL, {
-        maxRetriesPerRequest: 1,
-        lazyConnect: true,
-        connectTimeout: 2000,
-        retryStrategy: () => null,
-      });
-
-      redisClient.on('connect', () => {
-        isRedisConnected = true;
-        logger.info('[Cache: Redis] Conexión activa a Redis');
-      });
-
-      redisClient.on('error', () => {
-        isRedisConnected = false;
-      });
-
-      redisClient.on('close', () => {
-        isRedisConnected = false;
-      });
-
-      await redisClient.connect();
-    }
-
-    await redisClient.ping();
-    isRedisConnected = true;
-    return true;
-  } catch (err: any) {
-    logger.warn(`[Cache: Redis] No disponible (${err.message}). Caching en memoria desactivado`);
-    if (redisClient) {
-      try { redisClient.disconnect(); } catch {}
-      redisClient = null;
-    }
-    isRedisConnected = false;
-    return false;
-  }
-}
+// ------------------------------------------------------------------------------
+// 1. Heartbeat y Ciclo de Vida del Almacenamiento
+// ------------------------------------------------------------------------------
 
 export function startStorageHeartbeat(intervalMs = 5000): void {
   if (heartbeatTimer) return;
   heartbeatTimer = setInterval(async () => {
-    if (DATABASE_URL && !isPgConnected) {
+    if (process.env.DATABASE_URL && !isPgConnectedStatus()) {
       await connectPg();
     }
-    if (REDIS_URL && !isRedisConnected) {
+    if (Boolean(process.env.REDIS_URL || process.env.REDIS_HOST) && !isCacheConnected()) {
       await connectRedis();
     }
   }, intervalMs);
@@ -193,334 +64,19 @@ export async function initStorage(): Promise<void> {
   startStorageHeartbeat();
 }
 
-// ------------------------------------------------------------------------------
-// 3. Operaciones CRUD (Drizzle ORM con Fallback Resiliente a Memoria)
-// ------------------------------------------------------------------------------
-
-export async function getAllPokemons(options: {
-  limit?: number;
-  offset?: number;
-  type?: string;
-  search?: string;
-} = {}): Promise<{ total: number; pokemons: Pokemon[] }> {
-  const { limit = 20, offset = 0, type, search } = options;
-
-  // 1. Intentar consultar caché de Redis para listados con versionado O(1)
-  let listCacheKey = '';
-  if (isRedisConnected && redisClient) {
-    try {
-      const version = (await redisClient.get('pokedex:list_version')) || '1';
-      listCacheKey = `pokedex:list:v${version}:${(type || 'all').toLowerCase()}:${(search || 'all').toLowerCase()}:${limit}:${offset}`;
-      const cached = await redisClient.get(listCacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch {
-      // Degradar silenciosamente ante fallo de lectura de Redis
-    }
-  }
-
-  let resultData: { total: number; pokemons: Pokemon[] } | null = null;
-
-  // 2. Intentar consultar PostgreSQL vía Drizzle ORM
-  if (isPgConnected && drizzleDb) {
-    try {
-      const conditions = [];
-      if (type) {
-        conditions.push(ilike(pokedexEntries.tipo, type));
-      }
-      if (search) {
-        conditions.push(ilike(pokedexEntries.nombre, `%${search}%`));
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      const [countRow] = await drizzleDb
-        .select({ total: count() })
-        .from(pokedexEntries)
-        .where(whereClause);
-      const total = Number(countRow?.total ?? 0);
-
-      const rows = await drizzleDb
-        .select({ data: pokedexEntries.data })
-        .from(pokedexEntries)
-        .where(whereClause)
-        .orderBy(asc(pokedexEntries.id))
-        .limit(limit)
-        .offset(offset);
-
-      const pokemons = rows.map(r => r.data);
-      resultData = { total, pokemons };
-    } catch (err) {
-      logger.error('[Storage: PostgreSQL Error] Fallback a memoria', { error: err });
-    }
-  }
-
-  // 3. Fallback a Memoria si PostgreSQL no respondió
-  if (!resultData) {
-    let list = Array.from(memoryMap.values());
-    if (type) {
-      list = list.filter(p => p.tipo.toLowerCase() === type.toLowerCase() || p.tipos?.some(t => t.toLowerCase() === type.toLowerCase()));
-    }
-    if (search) {
-      list = list.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
-    }
-    list.sort((a, b) => a.id - b.id);
-    const total = list.length;
-    const pokemons = list.slice(offset, offset + limit);
-    resultData = { total, pokemons };
-  }
-
-  // 4. Poblar caché de Redis con TTL de 60 segundos
-  if (isRedisConnected && redisClient && resultData && listCacheKey) {
-    redisClient.setex(listCacheKey, 60, JSON.stringify(resultData)).catch(() => {});
-  }
-
-  return resultData;
-}
-
-export async function getPokemonById(id: number): Promise<Pokemon | null> {
-  // Intentar caché de Redis primero
-  const cacheKey = `pokedex:item:${id}`;
-  if (isRedisConnected && redisClient) {
-    try {
-      const cached = await redisClient.get(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch {
-      // Ignorar error de lectura de cache
-    }
-  }
-
-  // Consultar PostgreSQL vía Drizzle ORM
-  if (isPgConnected && drizzleDb) {
-    try {
-      const [entry] = await drizzleDb
-        .select({ data: pokedexEntries.data })
-        .from(pokedexEntries)
-        .where(eq(pokedexEntries.id, id))
-        .limit(1);
-
-      if (entry) {
-        const item = entry.data;
-        // Guardar en caché Redis por 5 minutos
-        if (isRedisConnected && redisClient) {
-          redisClient.setex(cacheKey, 300, JSON.stringify(item)).catch(() => {});
-        }
-        return item;
-      }
-      return null;
-    } catch (err) {
-      logger.error('[Storage: PostgreSQL Error] Fallback a memoria para getById', { error: err });
-    }
-  }
-
-  // Fallback a Memoria
-  const found = memoryMap.get(id) || null;
-  if (found && isRedisConnected && redisClient) {
-    redisClient.setex(cacheKey, 300, JSON.stringify(found)).catch(() => {});
-  }
-  return found;
-}
-
-export function isWritableStorageAvailable(): boolean {
-  if (Boolean(process.env.DATABASE_URL)) {
-    return isPgConnected && pgPool !== null && drizzleDb !== null;
-  }
-  return true;
-}
-
-export async function savePokemon(pokemon: Pokemon): Promise<void> {
-  // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar la escritura para evitar pérdida de datos
-  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool || !drizzleDb)) {
-    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para escritura. Operación cancelada.');
-  }
-
-  // 1. Guardar primero en PostgreSQL vía Drizzle ORM (Source of Truth)
-  if (isPgConnected && drizzleDb) {
-    await drizzleDb
-      .insert(pokedexEntries)
-      .values({
-        id: pokemon.id,
-        nombre: pokemon.nombre,
-        tipo: pokemon.tipo,
-        data: pokemon,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
-      })
-      .onConflictDoUpdate({
-        target: pokedexEntries.id,
-        set: {
-          nombre: pokemon.nombre,
-          tipo: pokemon.tipo,
-          data: pokemon,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        },
-      });
-
-    if (lastKnownPgCount !== null && !memoryMap.has(pokemon.id)) {
-      lastKnownPgCount++;
-    }
-  }
-
-  // 2. Actualizar réplica en memoria y caché tras éxito en BD (o si BD está ausente en modo local)
-  memoryMap.set(pokemon.id, pokemon);
-  await invalidateCache(pokemon.id);
-}
-
-export async function deletePokemon(id: number): Promise<boolean> {
-  // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar eliminación
-  if (Boolean(process.env.DATABASE_URL) && (!isPgConnected || !pgPool || !drizzleDb)) {
-    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para eliminación. Operación cancelada.');
-  }
-
-  let deleted = false;
-
-  // 1. Eliminar primero en PostgreSQL vía Drizzle ORM (Source of Truth)
-  if (isPgConnected && drizzleDb) {
-    const deletedRows = await drizzleDb
-      .delete(pokedexEntries)
-      .where(eq(pokedexEntries.id, id))
-      .returning({ id: pokedexEntries.id });
-
-    deleted = deletedRows.length > 0;
-    if (deleted && lastKnownPgCount !== null && lastKnownPgCount > 0) {
-      lastKnownPgCount--;
-    }
-  } else {
-    deleted = memoryMap.has(id);
-  }
-
-  // 2. Si la eliminación en BD fue exitosa, remover de memoria y desalojar caché
-  if (deleted) {
-    memoryMap.delete(id);
-    await invalidateCache(id);
-  }
-
-  return deleted;
-}
-
-export async function getNextPokemonId(): Promise<number> {
-  if (isPgConnected && drizzleDb) {
-    try {
-      const res = await drizzleDb.execute<{ next_id: string }>(
-        sql`SELECT nextval('pokedex_id_seq') AS next_id`
-      );
-      if (res.rows.length > 0) {
-        return Number.parseInt(res.rows[0].next_id, 10);
-      }
-    } catch (err) {
-      logger.warn('[Storage: PostgreSQL Error] Fallback a cálculo en memoria para getNextPokemonId', { error: err });
-    }
-  }
-
-  inMemorySequence = Math.max(
-    inMemorySequence,
-    Array.from(memoryMap.keys()).reduce((max, id) => Math.max(max, id), 1008)
-  ) + 1;
-  return inMemorySequence;
-}
-
-// ------------------------------------------------------------------------------
-// 4. Utilidades de Caché & Salud
-// ------------------------------------------------------------------------------
-
-export async function invalidateCache(id?: number): Promise<void> {
-  if (!isRedisConnected || !redisClient) return;
-
-  try {
-    if (id !== undefined) {
-      await redisClient.del(`pokedex:item:${id}`);
-    }
-
-    // Invalidación atómica O(1) sin escaneo bloqueante:
-    // El incremento de versión deja obsoletas todas las claves pokedex:list:v* anteriores
-    // permitiendo que expiren pasivamente mediante su TTL de 60 segundos
-    await redisClient.incr('pokedex:list_version');
-  } catch (err) {
-    // Ignorar errores de invalidación de caché
-  }
-}
-
-// Rate limiter distribuido respaldado por Redis con script Lua 100% atómico
-export async function consumeDistributedRateLimit(
-  key: string,
-  limit: number,
-  windowMs: number
-): Promise<{ allowed: boolean; retryAfterSeconds: number; remaining: number } | null> {
-  if (!isRedisConnected || !redisClient) {
-    return null; // Fallback a ventana local en memoria
-  }
-
-  try {
-    const redisKey = `ratelimit:${key}`;
-    const luaScript = `
-      local current = redis.call('INCR', KEYS[1])
-      if current == 1 then
-        redis.call('PEXPIRE', KEYS[1], ARGV[1])
-      end
-      local pttl = redis.call('PTTL', KEYS[1])
-      return {current, pttl}
-    `;
-    const result = (await redisClient.eval(luaScript, 1, redisKey, windowMs)) as [number, number];
-    const count = Number(result[0]);
-    const pttl = Number(result[1]);
-    const retryAfterSeconds = pttl > 0 ? Math.ceil(pttl / 1000) : Math.ceil(windowMs / 1000);
-
-    if (count > limit) {
-      return { allowed: false, retryAfterSeconds, remaining: 0 };
-    }
-
-    return { allowed: true, retryAfterSeconds, remaining: limit - count };
-  } catch (err) {
-    return null; // Degradación elegante ante errores temporales de Redis
-  }
-}
-
-// ------------------------------------------------------------------------------
-// 5. Gestión Distribuida de Revocación de Sesiones (Redis)
-// ------------------------------------------------------------------------------
-
 /**
- * Registra un identificador de token (jti) como revocado en Redis con TTL automático.
+ * Cierra limpiamente las conexiones de persistencia y caché (PostgreSQL y Redis)
+ * y detiene cualquier timer de reconexión o heartbeat activo.
+ * Esencial para Graceful Shutdown en Kubernetes ante señales SIGTERM/SIGINT.
  */
-export async function setRevokedJti(jti: string, ttlSeconds: number): Promise<boolean> {
-  if (!isRedisConnected || !redisClient || !jti) {
-    return false;
-  }
-  try {
-    const key = `revoked:${jti}`;
-    const safeTtl = Math.max(1, Math.floor(ttlSeconds));
-    await redisClient.set(key, '1', 'EX', safeTtl);
-    return true;
-  } catch {
-    return false;
-  }
+export async function closeStorage(): Promise<void> {
+  stopStorageHeartbeat();
+  await Promise.allSettled([closePg(), closeRedis()]);
 }
 
-/**
- * Consulta si un identificador de token (jti) ha sido revocado en Redis.
- * Retorna true si está revocado, false si es válido, o null si Redis no está disponible.
- */
-export async function isJtiRevokedInRedis(jti: string): Promise<boolean | null> {
-  if (!isRedisConnected || !redisClient || !jti) {
-    return null;
-  }
-  try {
-    const exists = await redisClient.exists(`revoked:${jti}`);
-    return exists === 1;
-  } catch {
-    return null;
-  }
-}
-
-export function getRedisClient(): Redis | null {
-  return isRedisConnected ? redisClient : null;
-}
-
-export function getDrizzleDb(): AppDatabase | null {
-  return isPgConnected ? drizzleDb : null;
-}
+// ------------------------------------------------------------------------------
+// 2. Diagnóstico & Salud del Almacenamiento
+// ------------------------------------------------------------------------------
 
 export function getStorageHealth(): {
   database: 'postgresql' | 'memory';
@@ -530,77 +86,40 @@ export function getStorageHealth(): {
   memory_total_records: number;
   total_records: number;
 } {
-  const effectivePgCount = isPgConnected ? (lastKnownPgCount ?? memoryMap.size) : null;
+  const pgConnected = isPgConnectedStatus();
+  const redisConnected = isCacheConnected();
+  const memorySize = getMemoryMapSize();
+  const effectivePgCount = pgConnected ? (getLastKnownPgCount() ?? memorySize) : null;
+
   return {
-    database: isPgConnected ? 'postgresql' : 'memory',
-    postgres_connected: isPgConnected,
-    redis_connected: isRedisConnected,
+    database: pgConnected ? 'postgresql' : 'memory',
+    postgres_connected: pgConnected,
+    redis_connected: redisConnected,
     postgres_total_records: effectivePgCount,
-    memory_total_records: memoryMap.size,
-    total_records: effectivePgCount ?? memoryMap.size,
+    memory_total_records: memorySize,
+    total_records: effectivePgCount ?? memorySize,
   };
 }
 
-/**
- * Consulta y parsea la versión activa de PostgreSQL para endpoints de diagnóstico.
- * Si PostgreSQL no está conectado, retorna null.
- */
-export async function getPostgresVersion(): Promise<string | null> {
-  if (!isPgConnected || !drizzleDb) return null;
-  try {
-    const res = await drizzleDb.execute<{ version: string }>(sql`SELECT version()`);
-    const raw = (res.rows[0]?.version as string) || '';
-    const match = raw.match(/^PostgreSQL\s+\S+/);
-    return match ? match[0] : (raw || null);
-  } catch {
-    return null;
-  }
-}
+// ------------------------------------------------------------------------------
+// 3. Re-exportaciones de Contratos Públicos (Compatibilidad Retrocompatible 100%)
+// ------------------------------------------------------------------------------
 
-/**
- * Cierra limpiamente las conexiones de persistencia y caché (PostgreSQL y Redis)
- * y detiene cualquier timer de reconexión o heartbeat activo.
- * Esencial para Graceful Shutdown en Kubernetes ante señales SIGTERM/SIGINT.
- */
-export async function closeStorage(): Promise<void> {
-  if (heartbeatTimer) {
-    clearInterval(heartbeatTimer);
-    heartbeatTimer = null;
-  }
+export { getDrizzleDb, getPostgresVersion } from './postgres.js';
 
-  const closePg = async () => {
-    if (pgPool) {
-      try {
-        await pgPool.end();
-        logger.info('[Storage: PostgreSQL] Pool de conexiones cerrado limpiamente');
-      } catch (err: any) {
-        logger.warn('[Storage: PostgreSQL] Error al cerrar pool', { error: err?.message || String(err) });
-      } finally {
-        pgPool = null;
-        drizzleDb = null;
-        isPgConnected = false;
-      }
-    }
-  };
+export {
+  getAllPokemons,
+  getPokemonById,
+  savePokemon,
+  deletePokemon,
+  getNextPokemonId,
+  isWritableStorageAvailable
+} from './pokemon.repository.js';
 
-  const closeRedis = async () => {
-    if (redisClient) {
-      try {
-        await redisClient.quit();
-        logger.info('[Cache: Redis] Conexión cerrada limpiamente');
-      } catch (err: any) {
-        try {
-          redisClient.disconnect();
-        } catch {
-          // Ignorar si ya estaba desconectado
-        }
-      } finally {
-        redisClient = null;
-        isRedisConnected = false;
-      }
-    }
-  };
-
-  await Promise.allSettled([closePg(), closeRedis()]);
-}
-
+export {
+  invalidateCache,
+  consumeDistributedRateLimit,
+  setRevokedJti,
+  isJtiRevokedInRedis,
+  getRedisClient
+} from './cache.js';

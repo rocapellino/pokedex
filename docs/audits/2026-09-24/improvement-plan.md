@@ -176,21 +176,25 @@ Los siguientes elementos señalados en análisis previos han sido completamente 
 
 - **ID:** `IMP-ARC-001`
 - **Finding:** `ASA-001`
-- **Estado:** LISTO PARA IMPLEMENTACIÓN (FASE 2)
+- **Estado:** IMPLEMENTADO
 - **Prioridad:** **P2**
-- **Motivo:** `apps/backend/src/services/db.ts` (531 LOC, $C_a = 12$) agrupa 6 responsabilidades disímiles. Es el archivo candidato principal a degradarse en God Module ante cualquier nueva entidad de dominio.
+- **Motivo:** `apps/backend/src/services/db.ts` (607 LOC originales, $C_a = 12$) agrupaba 6 responsabilidades disímiles. Es el archivo candidato principal a degradarse en God Module ante cualquier nueva entidad de dominio.
 - **Archivos afectados:**
-  - `apps/backend/src/services/db.ts` (Reducción a fachada de compatibilidad retrocompatible < 180 LOC).
-  - `apps/backend/src/services/pokemon.repository.ts` (Nuevo módulo para consultas Drizzle, seed y fallback de memoria).
-  - `apps/backend/src/services/cache.ts` (Nuevo módulo para el cliente Redis y versionado atómico de claves).
-  - `apps/backend/src/services/storage-health.ts` (Nuevo módulo para el sondeo periódico de conectividad).
+  - `apps/backend/src/services/db.ts` (Reducción a fachada de compatibilidad retrocompatible de 125 LOC, < 180 LOC).
+  - `apps/backend/src/services/pokemon.repository.ts` (Nuevo módulo de 211 LOC para consultas Drizzle, seed y fallback de memoria).
+  - `apps/backend/src/services/cache.ts` (Nuevo módulo de 172 LOC para el cliente Redis y versionado atómico de claves).
+  - `apps/backend/src/services/postgres.ts` (Nuevo módulo de 134 LOC para pool PostgreSQL, Drizzle client y migraciones).
 - **Dependencias:** Conservar estrictamente todos los identificadores exportados en `db.ts` (en particular `invalidateCache`, `getStorageHealth`, `savePokemon`, `getAllPokemons`, `getNextPokemonId`, `initStorage`) para garantizar paridad con `tests/security/deploy_scripts_security.test.ts`, tests unitarios y controladores HTTP.
 - **Cambio propuesto:**
   1. Crear `src/services/pokemon.repository.ts` conteniendo la lógica de acceso a datos de Pokémon y el fallback in-memory sincronizado.
   2. Crear `src/services/cache.ts` aislando el cliente `ioredis` y la lógica de rate-limit distribuido.
-  3. Dejar `db.ts` como fachada pura (*Facade Pattern*) que re-exporta limpiamente las interfaces para no romper ninguna llamada existente.
+  3. Crear `src/services/postgres.ts` aislando la inicialización y ciclo de vida de la base de datos relacional.
+  4. Dejar `db.ts` como fachada pura (*Facade Pattern*) que re-exporta limpiamente las interfaces para no romper ninguna llamada existente.
 - **Riesgo:** Medio. Requiere asegurar que el estado in-memory del fallback se mantenga consistente durante las pruebas.
-- **Validación:** `npm test` (216 tests pasando), `npm run validate`.
+- **Validación:**
+  - `npx madge --circular`: Cero dependencias circulares detectadas.
+  - `npm test`: 217/217 pruebas pasando (100%).
+  - LOC de `db.ts`: 125 líneas.
 - **Rollback:** `git checkout -- apps/backend/src/services/`.
 
 ---
@@ -250,12 +254,12 @@ Los siguientes elementos señalados en análisis previos han sido completamente 
 
 - **ID:** `IMP-SEC-001`
 - **Finding:** Derivado del hardening de DR
-- **Estado:** LISTO PARA IMPLEMENTACIÓN (FASE 2)
+- **Estado:** IMPLEMENTADO
 - **Prioridad:** **P2**
 - **Motivo:** Consolidar que ningún volcado a Google Drive ocurra si la clave de cifrado `BACKUP_ENCRYPTION_KEY` tiene una entropía insuficiente o no coincide con los estándares de derivación de claves PBKDF2 documentados.
-- **Archivos afectados:** `infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`, `scripts/dr-drill.ts`.
+- **Archivos afectados:** `infra/helm/pokedex/templates/backup-cronjob.yaml`, `scripts/dr-drill.ts`, `tests/security/dr_e2e_drill.test.ts`.
 - **Dependencias:** `IMP-REL-001`.
-- **Cambio propuesto:** Añadir validación estricta de longitud mínima de clave (>= 32 caracteres) previa al cifrado simétrico en el script de volcado.
+- **Cambio propuesto:** Añadir validación estricta de longitud mínima de clave (>= 32 caracteres) previa al cifrado simétrico en el script de volcado y en el template Helm del CronJob.
 - **Riesgo:** Mínimo.
 - **Validación:** `npm test` y simulación con `dr:drill:e2e`.
 - **Rollback:** Revert del template de CronJob.
