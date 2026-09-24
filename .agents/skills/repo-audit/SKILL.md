@@ -19,15 +19,17 @@ Ejecutar auditorías técnicas integrales, estrictamente de sólo lectura, para 
 - **Resiliencia y Confiabilidad:** Verificación de planes de backup (local / Google Drive / NAS), SLAs, RPO/RTO y pruebas de Disaster Recovery.
 - **Taxonomía de Hallazgos:** Calificar cada discrepancia objetivamente según su impacto real (P0 a P3), nivel de confianza y esfuerzo de mitigación.
 
-## Comandos
+## Comandos y Delegación por Dominio
 
-- `/repo-audit`: Auditoría integral completa de todas las dimensiones técnicas.
-- `/repo-audit security`: Enfoque exclusivo en vulnerabilidades, secretos, supply chain y permisos.
-- `/repo-audit architecture`: Enfoque en límites del monorepo, acoplamiento y coherencia GitOps.
-- `/repo-audit dependencies`: Auditoría de ciclo de vida de paquetes, CVEs y overrides.
-- `/repo-audit cleanup`: Auditoría de deuda técnica, código huérfano y artefactos retirados.
-- `/repo-audit modernization`: Evaluación de costos y beneficios de potenciales actualizaciones.
-- `/repo-audit delta`: Auditoría incremental enfocada en los cambios recientes respecto a la rama principal.
+`repo-audit` actúa como un agregador y orquestador de sólo lectura que delega el análisis exhaustivo en las skills especializadas de cada dominio para evitar duplicación de verificaciones:
+
+- `/repo-audit`: Auditoría integral completa coordinando todas las dimensiones técnicas.
+- `/repo-audit security`: Enfoque exclusivo en vulnerabilidades, secretos, supply chain y permisos (delega en `repo-security`).
+- `/repo-audit architecture`: Enfoque en límites del monorepo, acoplamiento y coherencia GitOps (delega en `repo-architecture`).
+- `/repo-audit quality`: Calidad estática de código, tipado y prevención de God Files (delega en `repo-quality`).
+- `/repo-audit dependencies`: Auditoría de ciclo de vida de paquetes, CVEs y overrides (delega en `repo-dependencies`).
+- `/repo-audit maintenance`: Auditoría de deuda técnica, archivos huérfanos y artefactos retirados (delega en `repo-maintenance`).
+- `/repo-audit delta`: Auditoría incremental enfocada en los cambios recientes clasificados según `repo-impact`.
 
 ## Formato de Salida y Gobernanza
 

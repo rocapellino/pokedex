@@ -1,6 +1,6 @@
 # Métricas Estructurales de Código
 
-Este documento define el catálogo de métricas analíticas utilizadas por `architecture-structure-audit` para evaluar la salud arquitectónica de `rocapellino/pokedex`.
+Este documento define el catálogo de métricas analíticas utilizadas por `repo-quality` para evaluar la salud arquitectónica de `rocapellino/pokedex`.
 
 ---
 

@@ -21,12 +21,14 @@ Realizar revisiones de código estructuradas, rigurosas y exhaustivas sobre Pull
 - **Segregación de Observaciones:** Distinguir claramente entre observaciones **Bloqueantes** (P0/P1 que impiden el merge) y **No Bloqueantes** (P2/P3 sugerencias o mejoras cosméticas).
 - **Cierre Documental del PR:** Comprobar que cualquier alteración de configuración o flujo esté documentada en los runbooks o ADRs correspondientes.
 
-## Comandos
+## Comandos y Delegación por Dominio
 
-- `/repo-pr`: Revisión exhaustiva y multidimensional del Pull Request actual.
-- `/repo-pr security`: Enfoque prioritario en seguridad de código, permisos y secretos.
-- `/repo-pr architecture`: Revisión de acoplamiento, contratos y coherencia del monorepo.
-- `/repo-pr tests`: Verificación de suficiencia, calidad y ejecución de tests para el diff.
+Para evitar análisis redundantes, `repo-pr` delega en `repo-impact` para identificar el radio de cambio del diff y activar selectivamente las skills de dominio correspondientes según [change-impact-matrix.md](../_shared/change-impact-matrix.md):
+
+- `/repo-pr`: Orquesta la revisión completa, invocando `repo-impact` para clasificar el diff y ejecutando los quality gates requeridos.
+- `/repo-pr security`: Enfoque prioritario en seguridad de código, permisos y secretos (delega en `repo-security`).
+- `/repo-pr architecture`: Revisión de acoplamiento, contratos y coherencia del monorepo (delega en `repo-architecture` y `repo-quality`).
+- `/repo-pr tests`: Verificación de suficiencia, calidad y ejecución de tests para el diff (delega en `repo-testing`).
 
 ## Formato de Salida y Gobernanza
 

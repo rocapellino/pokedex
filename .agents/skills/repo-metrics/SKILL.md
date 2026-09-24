@@ -9,6 +9,10 @@ description: Medir evolución técnica sin convertir una métrica en una calific
 
 Medir, auditar y documentar la evolución técnica de `rocapellino/pokedex` a lo largo del tiempo, identificando tendencias de deuda técnica, cobertura de pruebas, hotspots y tiempos de entrega sin imponer calificaciones numéricas artificiales o subjetivas.
 
+## Rol Arquitectónico (Telemetría Auxiliar)
+
+`repo-metrics` opera como un módulo analítico **auxiliar** y de sólo lectura. No constituye un paso bloqueante ni secuencial obligatorio en el flujo estándar de `repo-lifecycle`. Su función principal es proveer soporte de telemetría a `repo-maintenance` (salud periódica y baselines), a `repo-quality hotspots` (complejidad y churn) y a reportes ejecutivos bajo demanda.
+
 ## Alcance y Verificaciones de Dominio
 
 - **Distribución de Código y Complejidad:**

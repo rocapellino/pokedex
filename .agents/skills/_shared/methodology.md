@@ -36,6 +36,13 @@ Documentación ──► "Parece que está implementado" ──► Aprobado sin 
   4. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
 - **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado o los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
 
+### Relación entre Prevalencia Fáctica y Decisiones de Arquitectura (ADRs)
+
+Los **Architectural Decision Records** (`docs/decisions/ADR-*.md`) con estado *Aceptado* representan la intención y el contrato arquitectónico formal acordado:
+
+- **Estado Observado vs. Intención Formal:** La cadena de prevalencia fáctica (código, render, tests) dictamina con exactitud el estado *fáctico y observable* del repositorio. El ADR aceptado dictamina el *contrato arquitectónico formal*.
+- **Clasificación de Divergencia (ADR Drift):** Si el código o render diverge de un ADR aceptado, la verdad fáctica no valida automáticamente el cambio ni anula el ADR. Dicha discrepancia se clasifica estrictamente como **`ADR Drift` (P1/P2)**, requiriendo intervención explícita: alinear el código con la decisión formal, o tramitar una enmienda formal del ADR (*Superseded* / *Amended*).
+
 ### Demarcación de Evidencia Histórica vs. SSOT de Arquitectura
 
 Para evitar confusiones en agentes autónomos y análisis automatizados:

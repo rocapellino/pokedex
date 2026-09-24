@@ -71,7 +71,7 @@ Cualquier refactorización derivada de un hallazgo **HIGH** o **CRITICAL** debe 
    - Ejecutar `npm test` en cada paso.
    - Eliminar el código legado una vez verificado el reemplazo.
 5. **Verificación post-refactor (Control de Regresión):**
-   - Ejecutar nuevamente `architecture-structure-audit` para certificar:
+   - Ejecutar nuevamente `repo-quality structure` para certificar:
      - Que el archivo original se redujo sanamente.
      - Que no se introdujo el antipatrón **Monolith Relocated** en los nuevos archivos creados.
      - Que no se crearon dependencias circulares.
