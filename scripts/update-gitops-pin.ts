@@ -24,6 +24,7 @@ export const DEFAULT_GITOPS_APP_FILES = [
   'gitops/apps/root-application.yaml',
   'gitops/apps/app-proxmox.yaml',
   'gitops/apps/app-cloud.yaml',
+  'gitops/apps/app-proxmox-preprod.yaml',
 ];
 
 const SEMVER_TAG_REGEX = /^v\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
