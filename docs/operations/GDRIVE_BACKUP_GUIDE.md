@@ -210,3 +210,23 @@ Si el host físico Proxmox sufre una pérdida total:
    ```
 
    El script verificará el checksum SHA-256, probará el descifrado AES-256, descomprimirá y validará la estructura DDL/DML contra la base de datos de destino.
+
+3. **Ejecutar simulacro integral end-to-end con 11 métricas contractuales**:
+
+   ```bash
+   npm run dr:drill:e2e
+   # O vía Taskfile:
+   task dr:drill:e2e
+   ```
+
+   Este comando audita la cadena operacional completa (generación, copia remota, descarga, validación de checksum, descifrado, restore en PostgreSQL y validación de datos), certificando RTO < 2h y RPO < 24h.
+
+---
+
+## 6. Política Operacional Fail-Closed en Kubernetes
+
+Para prevenir falsos positivos en el estado de respaldo off-site:
+
+- En `backup-gdrive-cronjob.yaml`, `RCLONE_CONFIG_GDRIVE_TOKEN` se define con `optional: false`.
+- El contenedor ejecuta la validación: `: "${RCLONE_CONFIG_GDRIVE_TOKEN:?GDRIVE_TOKEN is mandatory when gdrive backup is enabled}"`.
+- Si el Secret no contiene el token o la variable está vacía, el Job termina inmediatamente con fallo (`JOB FAILED`), alertando a los operadores en lugar de enmascarar la omisión como exitosa.

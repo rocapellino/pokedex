@@ -239,7 +239,67 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   assert.match(rendered, /name:\s*pokedex-allow-gdrive-sync-egress/, 'NetworkPolicy debe llamarse pokedex-allow-gdrive-sync-egress');
   assert.match(rendered, /port:\s*53/, 'Debe permitir resolución DNS en puerto 53');
   assert.match(rendered, /port:\s*443/, 'Debe permitir salida HTTPS a la API de Google Drive en puerto 443');
+
+  // 5. Validar fail-closed obligatorio para GDRIVE_TOKEN (P1 Operacional)
+  assert.match(
+    rendered,
+    /key:\s*GDRIVE_TOKEN\s*\r?\n\s*optional:\s*false/,
+    'RCLONE_CONFIG_GDRIVE_TOKEN debe ser estrictamente obligatorio (optional: false) cuando gdrive.enabled=true'
+  );
+  assert.match(
+    rendered,
+    /: "\$\{RCLONE_CONFIG_GDRIVE_TOKEN:\?GDRIVE_TOKEN is mandatory when gdrive backup is enabled\}"/,
+    'Debe implementar la aserción de shell fail-closed para GDRIVE_TOKEN'
+  );
 });
+
+test('🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (fail-closed) si GDRIVE_TOKEN está ausente o vacío', () => {
+  // Simular la ejecución exacta del comando de entrada del CronJob cuando falta el token
+  const failScript = `set -eu; : "\${RCLONE_CONFIG_GDRIVE_TOKEN:?GDRIVE_TOKEN is mandatory when gdrive backup is enabled}"; echo "SUCCEEDED"`;
+
+  const getShellCmd = (script: string) => {
+    if (process.platform === 'win32') {
+      const gitSh = 'C:\\Program Files\\Git\\bin\\sh.exe';
+      if (fs.existsSync(gitSh)) {
+        return `"${gitSh}" -c "${script.replace(/"/g, '\\"')}"`;
+      }
+      return `bash -c "${script.replace(/"/g, '\\"')}"`;
+    }
+    return `sh -c '${script}'`;
+  };
+
+  assert.throws(
+    () => {
+      execSync(getShellCmd(failScript), {
+        env: { ...process.env, RCLONE_CONFIG_GDRIVE_TOKEN: '' },
+        stdio: 'pipe',
+      });
+    },
+    (err: any) => {
+      const stderr = err.stderr ? err.stderr.toString() : '';
+      return stderr.includes('GDRIVE_TOKEN is mandatory when gdrive backup is enabled');
+    },
+    'El job DEBE fallar inmediatamente con código de error y mensaje explícito si GDRIVE_TOKEN está vacío'
+  );
+
+  assert.throws(
+    () => {
+      const cleanEnv = { ...process.env };
+      delete cleanEnv.RCLONE_CONFIG_GDRIVE_TOKEN;
+      execSync(getShellCmd(failScript), {
+        env: cleanEnv,
+        stdio: 'pipe',
+      });
+    },
+    (err: any) => {
+      const stderr = err.stderr ? err.stderr.toString() : '';
+      return stderr.includes('GDRIVE_TOKEN is mandatory when gdrive backup is enabled');
+    },
+    'El job DEBE fallar inmediatamente si RCLONE_CONFIG_GDRIVE_TOKEN no está definido'
+  );
+});
+
+
 
 
 

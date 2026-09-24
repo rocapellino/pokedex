@@ -23,6 +23,7 @@
     "test": "tsx --test tests/**/*.test.ts",
     "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info tests/**/*.test.ts",
     "test:fuzz": "tsx --test tests/fuzzing.test.ts",
+    "dr:drill:e2e": "tsx scripts/dr-drill.ts",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test -g @a11y",
     "playwright:install": "playwright install chromium",
