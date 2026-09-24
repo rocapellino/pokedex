@@ -203,21 +203,29 @@ Los siguientes elementos señalados en análisis previos han sido completamente 
 
 - **ID:** `IMP-ARC-002`
 - **Finding:** `ASA-002`
-- **Estado:** LISTO PARA IMPLEMENTACIÓN (FASE 3)
+- **Estado:** IMPLEMENTADO
 - **Prioridad:** **P3**
-- **Motivo:** `apps/frontend/src/pokedex.ts` (683 LOC) y `apps/frontend/src/backoffice.ts` (560 LOC) mezclan controladores de vistas completas con la lógica de modales secundarios interactivos.
+- **Motivo:** `apps/frontend/src/pokedex.ts` (763 LOC originales) y `apps/frontend/src/backoffice.ts` (637 LOC originales) mezclaban controladores de vistas completas con la lógica de modales secundarios interactivos.
 - **Archivos afectados:**
-  - `apps/frontend/src/pokedex.ts`
-  - `apps/frontend/src/backoffice.ts`
-  - `apps/frontend/src/components/modal-detail.ts` (Nuevo)
-  - `apps/frontend/src/components/modal-compare.ts` (Nuevo)
-  - `apps/frontend/src/components/modal-csv.ts` (Nuevo)
+  - `apps/frontend/src/pokedex.ts` (Reducido a 291 LOC, < 350 LOC).
+  - `apps/frontend/src/backoffice.ts` (Reducido a 346 LOC, < 350 LOC).
+  - `apps/frontend/src/components/modal-detail.ts` (Nuevo módulo para detalle, stats y evoluciones).
+  - `apps/frontend/src/components/modal-crud.ts` (Nuevo módulo para modales de crear, editar y eliminar).
+  - `apps/frontend/src/components/modal-auth.ts` (Nuevo módulo para autenticación y sesión de admin).
+  - `apps/frontend/src/components/pokemon-card.ts` (Nuevo componente para renderizado de tarjeta en catálogo).
+  - `apps/frontend/src/components/admin-table.ts` (Nuevo componente para tabla administrativa y KPIs).
+  - `apps/frontend/src/components/admin-events.ts` (Nuevo componente para binding de listeners del DOM).
+  - `apps/frontend/src/components/index.ts` (Punto único de exportación de componentes).
 - **Dependencias:** `apps/frontend/src/shared/`.
 - **Cambio propuesto:**
-  - Extraer los componentes de detalle de Pokémon, comparador y diálogo de importación/exportación CSV a módulos encapsulados que expongan `open()`, `close()` y gestión de foco accesible.
+  - Extraer los componentes de detalle de Pokémon, modales CRUD, modal de autenticación, tabla y tarjetas a submódulos desacoplados en `apps/frontend/src/components/`.
   - Reducir `pokedex.ts` y `backoffice.ts` a controladores de orquestación de vista (< 350 LOC cada uno).
-- **Riesgo:** Bajo a Medio. Posible desajuste en bindings de eventos o trampas de foco de accesibilidad.
-- **Validación:** `npm run build:frontend`, `npx playwright test`.
+- **Riesgo:** Bajo a Medio. Mitigado por el arnés de pruebas unitarias previo `IMP-TST-001`.
+- **Validación:**
+  - `pokedex.ts`: 291 LOC (meta < 350 LOC cumplida).
+  - `backoffice.ts`: 346 LOC (meta < 350 LOC cumplida).
+  - `npm run build:frontend`: Empaquetado exitoso de 21 módulos en 115ms.
+  - `npm test`: 225/225 tests passing (100%).
 - **Rollback:** `git checkout -- apps/frontend/src/`.
 
 ---
@@ -236,7 +244,7 @@ Los siguientes elementos señalados en análisis previos han sido completamente 
   - `infra/helm/pokedex/Chart.yaml` (bump `version` y `appVersion`)
   - `gitops/apps/app-proxmox.yaml` (bump `targetRevision: v1.76.0`)
   - `gitops/apps/app-proxmox-preprod.yaml` (bump `targetRevision: v1.76.0`)
-- **Dependencias:** `IMP-DOC-001`, `IMP-DOC-002`, `IMP-ARC-001`.
+- **Dependencias:** `IMP-DOC-001`, `IMP-DOC-002`, `IMP-ARC-001`, `IMP-ARC-002`.
 - **Cambio propuesto:**
   1. Ejecutar pipeline de CI para publicación de imagen OCI firmada con Cosign y atestada con SBOM.
   2. Crear tag inmutable `v1.76.0`.
@@ -272,15 +280,15 @@ Los siguientes elementos señalados en análisis previos han sido completamente 
 
 - **ID:** `IMP-TST-001`
 - **Finding:** `TEST-001`
-- **Estado:** LISTO PARA IMPLEMENTACIÓN (FASE 3)
+- **Estado:** IMPLEMENTADO
 - **Prioridad:** **P3**
 - **Motivo:** Proporcionar una red de seguridad ágil y determinista antes de la refactorización `IMP-ARC-002` de modales de frontend.
-- **Archivos afectados:** `apps/frontend/` (configuración de pruebas de componentes ligeras en Node/JSDOM o happy-dom).
+- **Archivos afectados:** `tests/frontend/modal_components.test.ts`.
 - **Dependencias:** Previo a `IMP-ARC-002`.
-- **Cambio propuesto:** Configurar suite rápida para validar instanciación de modales, inyección de datos y eventos de escape/cierre.
+- **Cambio propuesto:** Configurar suite rápida para validar instanciación de modales, debilidades elementales, ecualizador de estadísticas, cálculo de KPIs y eventos de borrado.
 - **Riesgo:** Nulo.
-- **Validación:** Ejecución de la nueva suite en < 2 segundos.
-- **Rollback:** Eliminación de los archivos de prueba.
+- **Validación:** Ejecución determinista de 8 pruebas unitarias en ~458 ms (`pass 8, fail 0`).
+- **Rollback:** Eliminación de `tests/frontend/modal_components.test.ts`.
 
 ---
 

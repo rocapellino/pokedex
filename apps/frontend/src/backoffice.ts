@@ -1,9 +1,10 @@
 /**
  * Pokédex Backoffice - Gestor Administrativo CRUD (TypeScript + DOMPurify)
+ * Controlador de Vista de Administración Modularizado (< 300 LOC)
  */
 
 import { sanitizeHtml, escapeText } from './sanitizer.js';
-import type { Pokemon, SessionInfo } from './types.js';
+import type { Pokemon } from './types.js';
 import {
   TYPE_COLORS,
   normalizeStr,
@@ -14,10 +15,41 @@ import {
   createPokemon,
   updatePokemon,
   deletePokemon,
-  getSessionStatus,
-  loginWithApiKey,
-  logoutSession,
 } from './shared/index.js';
+import {
+  openCreateModal as openCreateModalComponent,
+  openEditModal as openEditModalComponent,
+  closeCrudModal as closeCrudModalComponent,
+  openDeleteModal as openDeleteModalComponent,
+  closeDeleteModal as closeDeleteModalComponent,
+  getPendingDeleteId,
+  extractPokemonPayload,
+  openAuthModal as openAuthModalComponent,
+  closeAuthModal as closeAuthModalComponent,
+  checkAdminSession,
+  isSessionActive,
+  setAdminSessionActive,
+  clearAdminSession,
+  updateAuthUI,
+  handleAuthSubmit,
+  renderAdminTable,
+  renderKPIs,
+  bindBackofficeEvents,
+} from './components/index.js';
+
+export {
+  checkAdminSession,
+  isSessionActive,
+  setAdminSessionActive,
+  clearAdminSession,
+  updateAuthUI,
+  handleAuthSubmit,
+  showToast,
+  getTypeColor,
+  normalizeStr,
+  TYPE_COLORS,
+  formatPokemonId,
+};
 
 let currentPokemons: Pokemon[] = [];
 let totalRecords = 0;
@@ -25,118 +57,14 @@ let currentPage = 1;
 let pageSize = 50;
 let currentSearch = '';
 let currentType = 'all';
-let pendingDeleteId: number | null = null;
 let searchDebounceTimeout: any = null;
 
-// ============================================================================
-// Autenticación de Sesión de Administrador (HttpOnly Cookie + Zero Token Exposure)
-// ============================================================================
-let isAdminActive = false;
-let adminSessionExpiresAt: number | null = null;
-
-export async function checkAdminSession(): Promise<boolean> {
-  try {
-    const data = await getSessionStatus();
-    isAdminActive = Boolean(data.authenticated);
-    adminSessionExpiresAt = data.expiresAt ? Number(data.expiresAt) : null;
-  } catch {
-    isAdminActive = false;
-    adminSessionExpiresAt = null;
-  }
-  updateAuthUI();
-  return isAdminActive;
-}
-
-export function isSessionActive(): boolean {
-  if (!isAdminActive) return false;
-  if (adminSessionExpiresAt && Date.now() > adminSessionExpiresAt) {
-    isAdminActive = false;
-    adminSessionExpiresAt = null;
-    updateAuthUI();
-    return false;
-  }
-  return true;
-}
-
-export function setAdminSessionActive(active: boolean, expiresAt?: number): void {
-  isAdminActive = active;
-  adminSessionExpiresAt = expiresAt ? Number(expiresAt) : null;
-  updateAuthUI();
-}
-
-export async function clearAdminSession(): Promise<void> {
-  isAdminActive = false;
-  adminSessionExpiresAt = null;
-  try {
-    await logoutSession();
-  } catch {
-    // Ignorar fallos de red en logout
-  }
-  updateAuthUI();
-  closeAuthModal();
-  showToast('ℹ️ Sesión administrativa cerrada.');
-}
-
-export function updateAuthUI(): void {
-  const active = isSessionActive();
-  const statusText = document.getElementById('authStatusText');
-  const btn = document.getElementById('btnAdminAuth');
-  const clearBtn = document.getElementById('btnClearKeyBtn');
-  const input = document.getElementById('adminApiKeyInput') as HTMLInputElement | null;
-
-  if (input) input.value = '';
-
-  if (active) {
-    if (statusText) statusText.innerText = 'Admin Activo';
-    if (btn) btn.classList.add('btn-auth-active');
-    if (clearBtn) clearBtn.classList.remove('hidden');
-  } else {
-    if (statusText) statusText.innerText = 'Autenticar';
-    if (btn) btn.classList.remove('btn-auth-active');
-    if (clearBtn) clearBtn.classList.add('hidden');
-  }
-}
-
 export function openAuthModal(): void {
-  updateAuthUI();
-  document.getElementById('authModal')?.classList.add('active');
-  const input = document.getElementById('adminApiKeyInput');
-  if (input) setTimeout(() => input.focus(), 100);
+  openAuthModalComponent();
 }
 
 export function closeAuthModal(): void {
-  document.getElementById('authModal')?.classList.remove('active');
-}
-
-export async function handleAuthSubmit(e: Event): Promise<void> {
-  e.preventDefault();
-  const input = document.getElementById('adminApiKeyInput') as HTMLInputElement | null;
-  const submitBtn = document.getElementById('btnSaveKey') as HTMLButtonElement | null;
-  const val = input ? input.value.trim() : '';
-
-  if (!val) {
-    showToast('Ingresa una clave válida.', true);
-    return;
-  }
-
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Verificando...';
-  }
-
-  try {
-    const data = await loginWithApiKey(val);
-    setAdminSessionActive(true, data.expiresAt);
-    closeAuthModal();
-    showToast('🔐 Sesión administrativa autenticada (cookie HttpOnly emitida).');
-  } catch (err: any) {
-    showToast(`❌ Error de autenticación: ${err?.message || err}`, true);
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerText = 'Autenticar Sesión';
-    }
-  }
+  closeAuthModalComponent();
 }
 
 export async function checkHealthStatus(): Promise<void> {
@@ -237,110 +165,13 @@ export function handlePageSizeChange(): void {
 export function renderTable(): void {
   const tbody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   const pagination = document.getElementById('adminPagination');
-  if (!tbody) return;
-
-  if (currentPokemons.length === 0) {
-    tbody.innerHTML = sanitizeHtml(`
-      <tr>
-        <td colspan="8" class="table-empty">
-          🔍 No se encontraron registros con los filtros seleccionados.
-        </td>
-      </tr>
-    `);
-    if (pagination) pagination.style.display = 'none';
-    return;
-  }
-
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
-
-  const rawRows = currentPokemons
-    .map((p) => {
-      const car = p.caracteristicas || {};
-      const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
-      const safeImg = p.imagen ? escapeText(p.imagen) : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
-      const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : (p.habilidades || 'Ninguna');
-
-      return `
-      <tr>
-        <td>
-          <span class="id-tag">#${String(p.id).padStart(3, '0')}</span>
-        </td>
-        <td>
-          <div class="avatar-cell">
-            <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="table-avatar">
-          </div>
-        </td>
-        <td>
-          <div class="name-cell">
-            <strong class="pokemon-table-name">${escapeText(p.nombre)}</strong>
-            <span class="habilidades-preview">${escapeText(safeHab)}</span>
-          </div>
-        </td>
-        <td>
-          <span class="type-badge" data-type="${escapeText(normalizeStr(p.tipo))}">
-            ${escapeText(p.tipo)}
-          </span>
-        </td>
-        <td>
-          <div class="force-meter">
-            <div class="force-bar-wrapper">
-              <div class="force-bar" data-width="${maxBarWidth}"></div>
-            </div>
-            <span class="force-value">${p.fuerza || 0}</span>
-          </div>
-        </td>
-        <td>
-          <div class="weight-height-cell">
-            <span>⚖️ ${car.peso || 0} kg</span>
-            <span>📏 ${car.altura || 0} m</span>
-          </div>
-        </td>
-        <td>
-          <span class="habitat-tag">${escapeText(car.habitat || 'Kanto')}</span>
-        </td>
-        <td class="text-center">
-          <div class="actions-group">
-            <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="${p.id}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-              Editar
-            </button>
-            <button class="btn-action btn-delete" title="Eliminar Pokémon" data-delete-id="${p.id}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-    })
-    .join('');
-
-  tbody.innerHTML = sanitizeHtml(rawRows);
-
-  tbody.querySelectorAll('.force-bar[data-width]').forEach((el) => {
-    const bar = el as HTMLElement;
-    bar.style.width = bar.dataset.width + '%';
-  });
-
-  if (pagination) {
-    if (totalPages > 1) {
-      pagination.classList.remove('hidden');
-      pagination.style.display = '';
-      const pageInfo = document.getElementById('adminPageInfo');
-      if (pageInfo) {
-        pageInfo.innerText = `Página ${currentPage} de ${totalPages} (Mostrando ${currentPokemons.length} de ${totalRecords} Pokémon)`;
-      }
-      const prevBtn = document.getElementById('adminBtnPrev') as HTMLButtonElement | null;
-      const nextBtn = document.getElementById('adminBtnNext') as HTMLButtonElement | null;
-      if (prevBtn) prevBtn.disabled = currentPage === 1;
-      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-    } else {
-      pagination.classList.add('hidden');
-    }
+  if (tbody) {
+    renderAdminTable(tbody, pagination, currentPokemons, totalRecords, pageSize, currentPage);
   }
 }
 
 export function changeAdminPage(delta: number): void {
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+  const totalPages = Math.ceil(totalRecords / pageSize);
   const newPage = currentPage + delta;
   if (newPage >= 1 && newPage <= totalPages) {
     currentPage = newPage;
@@ -350,59 +181,19 @@ export function changeAdminPage(delta: number): void {
 }
 
 export function updateKPIs(): void {
-  const totalEl = document.getElementById('kpiTotal');
-  if (totalEl) totalEl.innerText = String(totalRecords);
-  if (currentPokemons.length === 0) return;
-
-  const totalForce = currentPokemons.reduce((acc, p) => acc + (p.fuerza || 0), 0);
-  const avgForce = Math.round(totalForce / currentPokemons.length);
-  const uniqueTypes = new Set(currentPokemons.map((p) => p.tipo).filter(Boolean));
-
-  const avgPowerEl = document.getElementById('kpiAvgPower') || document.getElementById('kpiAvgForce');
-  if (avgPowerEl) avgPowerEl.innerText = `${avgForce} pts`;
-
-  const typesEl = document.getElementById('kpiTypes') || document.getElementById('kpiTypesCount');
-  if (typesEl) typesEl.innerText = String(uniqueTypes.size);
+  renderKPIs(currentPokemons, totalRecords);
 }
 
-// ============================================================================
-// Modales de Crear / Editar
-// ============================================================================
 export function openCreateModal(): void {
-  const title = document.getElementById('crudModalTitle');
-  if (title) title.innerText = '➕ Registrar Nuevo Pokémon';
-  const idInput = document.getElementById('formPokemonId') as HTMLInputElement | null;
-  if (idInput) idInput.value = '';
-  const form = document.getElementById('crudForm') as HTMLFormElement | null;
-  if (form) form.reset();
-  document.getElementById('crudModal')?.classList.add('active');
+  openCreateModalComponent();
 }
 
 export function openEditModal(id: number): void {
-  const p = currentPokemons.find((x) => x.id === id);
-  if (!p) return;
-
-  const title = document.getElementById('crudModalTitle');
-  if (title) title.innerText = `✏️ Editar Pokémon ${formatPokemonId(p.id)} - ${p.nombre}`;
-  (document.getElementById('formPokemonId') as HTMLInputElement).value = String(p.id);
-  (document.getElementById('nombre') as HTMLInputElement).value = p.nombre;
-  (document.getElementById('imagen') as HTMLInputElement).value = p.imagen || '';
-  (document.getElementById('tipo') as HTMLInputElement).value = p.tipo;
-  (document.getElementById('fuerza') as HTMLInputElement).value = String(p.fuerza || 50);
-
-  const car = p.caracteristicas || {};
-  (document.getElementById('peso') as HTMLInputElement).value = String(car.peso || 6.0);
-  (document.getElementById('altura') as HTMLInputElement).value = String(car.altura || 0.4);
-  (document.getElementById('habitat') as HTMLInputElement).value = String(car.habitat || 'Kanto');
-  (document.getElementById('habilidades') as HTMLInputElement).value = Array.isArray(p.habilidades)
-    ? p.habilidades.join(', ')
-    : p.habilidades || '';
-
-  document.getElementById('crudModal')?.classList.add('active');
+  openEditModalComponent(id, currentPokemons);
 }
 
 export function closeCrudModal(): void {
-  document.getElementById('crudModal')?.classList.remove('active');
+  closeCrudModalComponent();
 }
 
 export async function handleFormSubmit(e: Event): Promise<void> {
@@ -414,31 +205,15 @@ export async function handleFormSubmit(e: Event): Promise<void> {
     return;
   }
 
-  const id = (document.getElementById('formPokemonId') as HTMLInputElement).value;
+  const { id, payload } = extractPokemonPayload();
   const submitBtn = document.getElementById('btnSubmitForm') as HTMLButtonElement;
   submitBtn.disabled = true;
   submitBtn.innerText = 'Guardando...';
 
-  const payload = {
-    nombre: (document.getElementById('nombre') as HTMLInputElement).value.trim(),
-    imagen: (document.getElementById('imagen') as HTMLInputElement).value.trim(),
-    tipo: (document.getElementById('tipo') as HTMLInputElement).value,
-    fuerza: Number.parseInt((document.getElementById('fuerza') as HTMLInputElement).value, 10),
-    habilidades: (document.getElementById('habilidades') as HTMLInputElement).value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-    caracteristicas: {
-      peso: Number.parseFloat((document.getElementById('peso') as HTMLInputElement).value),
-      altura: Number.parseFloat((document.getElementById('altura') as HTMLInputElement).value),
-      habitat: (document.getElementById('habitat') as HTMLInputElement).value.trim(),
-    },
-  };
-
   try {
-    const isEdit = Boolean(id);
+    const isEdit = typeof id === 'number' && !Number.isNaN(id);
     if (isEdit) {
-      await updatePokemon(Number(id), payload);
+      await updatePokemon(id, payload);
     } else {
       await createPokemon(payload);
     }
@@ -464,27 +239,17 @@ export async function handleFormSubmit(e: Event): Promise<void> {
   }
 }
 
-// ============================================================================
-// Modal de Eliminación
-// ============================================================================
 export function openDeleteModal(id: number): void {
-  const p = currentPokemons.find((x) => x.id === id);
-  if (!p) return;
-  pendingDeleteId = id;
-  const nameEl = document.getElementById('deletePokemonName');
-  const idEl = document.getElementById('deletePokemonId');
-  if (nameEl) nameEl.innerText = p.nombre;
-  if (idEl) idEl.innerText = formatPokemonId(p.id);
-  document.getElementById('deleteModal')?.classList.add('active');
+  openDeleteModalComponent(id, currentPokemons);
 }
 
 export function closeDeleteModal(): void {
-  document.getElementById('deleteModal')?.classList.remove('active');
-  pendingDeleteId = null;
+  closeDeleteModalComponent();
 }
 
 export async function executeDelete(): Promise<void> {
-  if (!pendingDeleteId) return;
+  const pendingId = getPendingDeleteId();
+  if (!pendingId) return;
 
   if (!isSessionActive()) {
     showToast('⚠️ Se requiere autenticación de administrador para eliminar registros.', true);
@@ -498,9 +263,9 @@ export async function executeDelete(): Promise<void> {
   btn.innerText = 'Eliminando...';
 
   try {
-    await deletePokemon(pendingDeleteId);
+    await deletePokemon(pendingId);
     closeDeleteModal();
-    showToast(`🗑️ Pokémon #${pendingDeleteId} eliminado del catálogo.`);
+    showToast(`🗑️ Pokémon #${pendingId} eliminado del catálogo.`);
     await loadAdminData();
   } catch (err: any) {
     if (err?.status === 401) {
@@ -543,80 +308,25 @@ window.addEventListener(
 );
 
 export function initEventListeners(): void {
-  const crudForm = document.getElementById('crudForm');
-  if (crudForm) crudForm.addEventListener('submit', handleFormSubmit);
-
-  const authForm = document.getElementById('authForm');
-  if (authForm) authForm.addEventListener('submit', handleAuthSubmit);
-
-  const btnAdminAuth = document.getElementById('btnAdminAuth');
-  if (btnAdminAuth) btnAdminAuth.addEventListener('click', openAuthModal);
-
-  const btnSyncCache = document.getElementById('btnSyncCache');
-  if (btnSyncCache) btnSyncCache.addEventListener('click', invalidateCache);
-
-  const btnOpenCreate = document.getElementById('btnOpenCreate');
-  if (btnOpenCreate) btnOpenCreate.addEventListener('click', openCreateModal);
-
-  const btnClearKeyBtn = document.getElementById('btnClearKeyBtn');
-  if (btnClearKeyBtn) btnClearKeyBtn.addEventListener('click', clearAdminSession);
-
-  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-  if (btnConfirmDelete) btnConfirmDelete.addEventListener('click', executeDelete);
-
-  const adminBtnPrev = document.getElementById('adminBtnPrev');
-  if (adminBtnPrev) adminBtnPrev.addEventListener('click', () => changeAdminPage(-1));
-
-  const adminBtnNext = document.getElementById('adminBtnNext');
-  if (adminBtnNext) adminBtnNext.addEventListener('click', () => changeAdminPage(1));
-
-  const adminSearchInput = document.getElementById('adminSearch') || document.getElementById('adminSearchInput');
-  if (adminSearchInput) adminSearchInput.addEventListener('input', handleAdminSearch);
-
-  const adminTypeFilter = document.getElementById('adminTypeFilter');
-  if (adminTypeFilter) adminTypeFilter.addEventListener('change', handleAdminTypeFilter);
-
-  const adminPageSize = document.getElementById('adminPageSize');
-  if (adminPageSize) adminPageSize.addEventListener('change', handlePageSizeChange);
-
-  document.querySelectorAll('[data-close-crud]').forEach((el) => {
-    el.addEventListener('click', closeCrudModal);
+  bindBackofficeEvents({
+    onFormSubmit: handleFormSubmit,
+    onAuthSubmit: handleAuthSubmit,
+    onOpenAuth: openAuthModal,
+    onSyncCache: invalidateCache,
+    onOpenCreate: openCreateModal,
+    onClearKey: clearAdminSession,
+    onConfirmDelete: executeDelete,
+    onPrevPage: () => changeAdminPage(-1),
+    onNextPage: () => changeAdminPage(1),
+    onSearch: handleAdminSearch,
+    onTypeFilter: handleAdminTypeFilter,
+    onPageSizeChange: handlePageSizeChange,
+    onCloseCrud: closeCrudModal,
+    onCloseDelete: closeDeleteModal,
+    onCloseAuth: closeAuthModal,
+    onEditClick: (id) => openEditModal(id),
+    onDeleteClick: (id) => openDeleteModal(id),
   });
-
-  document.querySelectorAll('[data-close-delete]').forEach((el) => {
-    el.addEventListener('click', closeDeleteModal);
-  });
-
-  document.querySelectorAll('[data-close-auth]').forEach((el) => {
-    el.addEventListener('click', closeAuthModal);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeCrudModal();
-      closeDeleteModal();
-      closeAuthModal();
-    }
-  });
-
-  const tableBody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
-  if (tableBody) {
-    tableBody.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      const editBtn = target?.closest('[data-edit-id]') as HTMLElement | null;
-      if (editBtn) {
-        const id = Number(editBtn.dataset.editId);
-        if (!Number.isNaN(id)) openEditModal(id);
-        return;
-      }
-      const deleteBtn = target?.closest('[data-delete-id]') as HTMLElement | null;
-      if (deleteBtn) {
-        const id = Number(deleteBtn.dataset.deleteId);
-        if (!Number.isNaN(id)) openDeleteModal(id);
-        return;
-      }
-    });
-  }
 }
 
 if (document.readyState === 'loading') {
