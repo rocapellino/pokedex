@@ -1,9 +1,10 @@
 /**
  * Pokédex Pública - Visualizador Dinámico de Pokémon (TypeScript + DOMPurify)
+ * Controlador de Vista Principal Modularizado (< 300 LOC)
  */
 
-import { sanitizeHtml, escapeText } from './sanitizer.js';
-import type { Pokemon, EvolutionNode, PokemonStats } from './types.js';
+import { sanitizeHtml } from './sanitizer.js';
+import type { Pokemon } from './types.js';
 import {
   TYPE_COLORS,
   normalizeStr,
@@ -11,13 +12,16 @@ import {
   getGeneration,
   formatPokemonId,
   showToast,
-  renderTypeBadge,
-  renderTypeBadges,
   renderEmptyState,
   fetchAllPokemons,
 } from './shared/index.js';
+import {
+  openDetailModal as openDetailModalComponent,
+  closeDetailModal,
+  renderPokemonCard,
+} from './components/index.js';
 
-export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId };
+export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
 
 let allPokemons: Pokemon[] = [];
 let filteredPokemons: Pokemon[] = [];
@@ -26,6 +30,10 @@ const ITEMS_PER_PAGE = 48;
 let currentType = 'all';
 let currentGeneration = 'all';
 let searchQuery = '';
+
+export function openDetailModal(id: number): void {
+  openDetailModalComponent(id, allPokemons);
+}
 
 export async function loadPokemons(): Promise<void> {
   const container = document.getElementById('pokemonGrid');
@@ -126,86 +134,7 @@ export function renderPokemons(): void {
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredPokemons.length);
   const currentBatch = filteredPokemons.slice(startIndex, endIndex);
 
-  const rawHtml = currentBatch
-    .map((p) => {
-      const car = p.caracteristicas || {};
-      const formattedId = String(p.id).padStart(3, '0');
-
-      let stageBadge = '';
-      if (p.evoluciones) {
-        if (Array.isArray(p.evoluciones) && p.evoluciones.length > 0) {
-          const myNode = p.evoluciones.find((x) => x.id === p.id);
-          if (myNode && myNode.etapa) {
-            stageBadge = `<span class="stage-badge">${escapeText(myNode.etapa)}</span>`;
-          }
-        } else if ((p.evoluciones as any).arbol) {
-          const findStageInTree = (n?: EvolutionNode): string | null => {
-            if (!n) return null;
-            if (n.id === p.id && n.etapa) return n.etapa;
-            for (const c of n.evolves_to || []) {
-              const res = findStageInTree(c);
-              if (res) return res;
-            }
-            return null;
-          };
-          const stage = findStageInTree((p.evoluciones as any).arbol);
-          if (stage) {
-            stageBadge = `<span class="stage-badge">${escapeText(stage)}</span>`;
-          }
-        }
-      }
-
-      const normType = normalizeStr(p.tipo || 'normal');
-      const safeImg = p.imagen ? escapeText(p.imagen) : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
-      return `
-        <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${escapeText(normType)}">
-          <div class="card-header">
-            <span class="pokemon-id">#${formattedId}</span>
-            <div class="flex-center-gap">
-              ${stageBadge}
-              <span class="gen-badge">Gen ${getGeneration(p.id)}</span>
-            </div>
-          </div>
-
-          <div class="image-container">
-            <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="pokemon-img" loading="lazy" crossorigin="anonymous">
-          </div>
-
-          <h2 class="pokemon-name">${escapeText(p.nombre)}</h2>
-          
-          <div class="text-center mb-2">
-            <span class="type-badge" data-type="${escapeText(normType)}">
-              ${escapeText(p.tipo)}
-            </span>
-          </div>
-
-          <div class="stats-matrix">
-            <div class="stat-item">
-              <span class="stat-item-label">Peso</span>
-              <span class="stat-item-val">${car.peso || 0} kg</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-item-label">Altura</span>
-              <span class="stat-item-val">${car.altura || 0} m</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-item-label">Fuerza</span>
-              <span class="stat-item-val">${p.fuerza || 0}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-item-label">Región</span>
-              <span class="stat-item-val">${escapeText(car.habitat || 'Kanto')}</span>
-            </div>
-          </div>
-
-          <div class="card-hint">
-            <span>Toca para ver detalles completos</span>
-          </div>
-        </article>
-      `;
-    })
-    .join('');
-
+  const rawHtml = currentBatch.map(renderPokemonCard).join('');
   container.innerHTML = sanitizeHtml(rawHtml);
 
   if (totalPages > 1) {
@@ -259,406 +188,6 @@ export function updateStats(list: Pokemon[]): void {
   if (elAvgWeight) elAvgWeight.innerText = `${avgWeight} kg`;
   if (elTypesCount) elTypesCount.innerText = String(uniqueTypes.size);
 }
-
-const TYPE_WEAKNESSES: Record<string, string[]> = {
-  Normal: ['Lucha'],
-  Fuego: ['Agua', 'Tierra', 'Roca'],
-  Agua: ['Planta', 'Eléctrico'],
-  Planta: ['Fuego', 'Volador', 'Hielo', 'Veneno', 'Bicho'],
-  Eléctrico: ['Tierra'],
-  Hielo: ['Fuego', 'Lucha', 'Roca', 'Acero'],
-  Lucha: ['Volador', 'Psíquico', 'Hada'],
-  Veneno: ['Tierra', 'Psíquico'],
-  Tierra: ['Agua', 'Planta', 'Hielo'],
-  Volador: ['Eléctrico', 'Hielo', 'Roca'],
-  Psíquico: ['Bicho', 'Fantasma', 'Siniestro'],
-  Psíquica: ['Bicho', 'Fantasma', 'Siniestro'],
-  Bicho: ['Fuego', 'Volador', 'Roca'],
-  Roca: ['Agua', 'Planta', 'Lucha', 'Tierra', 'Acero'],
-  Fantasma: ['Fantasma', 'Siniestro'],
-  Dragón: ['Hielo', 'Dragón', 'Hada'],
-  Acero: ['Fuego', 'Lucha', 'Tierra'],
-  Siniestro: ['Lucha', 'Bicho', 'Hada'],
-  Hada: ['Veneno', 'Acero'],
-};
-
-function calculateWeaknesses(types: string[]): string[] {
-  const weakSet = new Set<string>();
-  types.forEach((t) => {
-    const list = TYPE_WEAKNESSES[t] || [];
-    list.forEach((w) => weakSet.add(w));
-  });
-  return Array.from(weakSet);
-}
-
-function renderStatEqualizer(stats?: PokemonStats): string {
-  const statDefs = [
-    { key: 'hp', label: 'PS', max: 140 },
-    { key: 'attack', label: 'Ataque', max: 140 },
-    { key: 'defense', label: 'Defensa', max: 140 },
-    { key: 'sp_attack', label: 'Ataque<br>Especial', max: 140 },
-    { key: 'sp_defense', label: 'Defensa<br>Especial', max: 140 },
-    { key: 'speed', label: 'Velocidad', max: 140 },
-  ];
-
-  return statDefs
-    .map((s) => {
-      const val = stats ? (stats[s.key] ?? 50) : 50;
-      const activeSegments = Math.min(15, Math.max(1, Math.round((val / s.max) * 15)));
-
-      let segmentsHtml = '';
-      for (let i = 1; i <= 15; i++) {
-        const isActive = i <= activeSegments;
-        segmentsHtml += `<div class="equalizer-segment ${isActive ? 'active' : ''}"></div>`;
-      }
-
-      return `
-      <div class="equalizer-col">
-        <div class="equalizer-bar-stack">
-          ${segmentsHtml}
-        </div>
-        <div class="equalizer-label">${s.label}</div>
-      </div>
-    `;
-    })
-    .join('');
-}
-
-function getTriggerIcon(metodo?: string | null): string {
-  if (!metodo) return '⬆️';
-  const m = metodo.toLowerCase();
-  if (m.includes('nivel')) return '📈';
-  if (
-    m.includes('piedra') ||
-    m.includes('usar') ||
-    m.includes('mineral') ||
-    m.includes('bloque') ||
-    m.includes('manzana') ||
-    m.includes('tetera') ||
-    m.includes('cuenco')
-  )
-    return '💎';
-  if (m.includes('intercambio')) return '🔄';
-  if (m.includes('amistad') || m.includes('felicidad')) return '💖';
-  if (m.includes('movimiento') || m.includes('conociendo')) return '⚔️';
-  if (m.includes('lluvia')) return '🌧️';
-  if (m.includes('noche') || m.includes('sombras')) return '🌙';
-  if (m.includes('día') || m.includes('solar')) return '☀️';
-  return '⚡';
-}
-
-function renderTransitionConnector(node?: EvolutionNode): string {
-  if (!node || !node.metodo) {
-    return `<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
-  }
-  const safeMetodo = escapeText(node.metodo);
-  return `
-    <div class="evolution-transition-connector">
-      <div class="evolution-trigger-badge" title="${safeMetodo}">
-        <span>${getTriggerIcon(node.metodo)}</span>
-        <span>${safeMetodo}</span>
-      </div>
-      <div class="evolution-chevron-arrow">&gt;</div>
-    </div>
-  `;
-}
-
-function renderSingleEvolutionNode(node: EvolutionNode, currentId: number, showMethod = false): string {
-  const nodeId = Number(node.id) || 0;
-  const isCurrent = nodeId === currentId;
-  const formattedId = String(nodeId).padStart(4, '0');
-  const targetPk = allPokemons.find((x) => x.id === nodeId);
-  const nodeTypes = targetPk && targetPk.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
-  const safeNombre = escapeText(node.nombre || 'Pokémon');
-  const safeImagen = escapeText(
-    node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
-  );
-  const safeMetodo = node.metodo ? escapeText(node.metodo) : '';
-
-  const methodBadge =
-    showMethod && node.metodo
-      ? `<div class="evolution-method-tag" title="${safeMetodo}">${getTriggerIcon(node.metodo)} ${safeMetodo}</div>`
-      : '';
-
-  return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" title="${
-      isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre
-    }">
-      <div class="evolution-circle-frame">
-        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
-      </div>
-      <div class="evolution-name-tag">
-        ${safeNombre} <span class="evolution-number-sub">N.º ${escapeText(formattedId)}</span>
-      </div>
-      ${methodBadge}
-      <div class="evolution-types-row">
-        ${nodeTypes
-          .map((t) => `<span class="evolution-type-mini" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`)
-          .join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderEvolutionSystem(evolData: any, currentId: number): string {
-  if (Array.isArray(evolData)) {
-    if (evolData.length <= 1) {
-      return `
-        <div class="pokedex-evolutions-official-panel">
-          <div class="evolutions-panel-header">Evoluciones</div>
-          <div class="evolutions-nodes-track">
-            ${evolData.map((node) => renderSingleEvolutionNode(node, currentId, true)).join('')}
-          </div>
-        </div>
-      `;
-    }
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${evolData
-            .map((node, idx) => {
-              const arrow = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${arrow}${renderSingleEvolutionNode(node, currentId)}`;
-            })
-            .join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  if (!evolData || !evolData.arbol) {
-    const fallbackNode: EvolutionNode = {
-      id: currentId,
-      nombre: 'Pokémon',
-      imagen: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentId}.png`,
-    };
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${renderSingleEvolutionNode(fallbackNode, currentId)}
-        </div>
-      </div>
-    `;
-  }
-
-  const root: EvolutionNode = evolData.arbol;
-  const isBranched = evolData.es_ramificada;
-
-  if (!root.evolves_to || root.evolves_to.length === 0) {
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${renderSingleEvolutionNode(root, currentId)}
-        </div>
-      </div>
-    `;
-  }
-
-  if (root.evolves_to.length > 1 && (!root.evolves_to[0].evolves_to || root.evolves_to[0].evolves_to.length === 0)) {
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="branched-evolution-container">
-          <div class="branched-parent-row">
-            ${renderSingleEvolutionNode(root, currentId)}
-          </div>
-          <div class="branched-fork-indicator">
-            <span class="fork-arrow-down">⬇️</span>
-            <span>Evoluciones según atributo, piedra o método utilizado</span>
-          </div>
-          <div class="branched-children-grid">
-            ${root.evolves_to.map((child) => renderSingleEvolutionNode(child, currentId, true)).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (!isBranched) {
-    const linearList: EvolutionNode[] = [];
-    let cur: EvolutionNode | null = root;
-    while (cur) {
-      linearList.push(cur);
-      cur = cur.evolves_to && cur.evolves_to.length > 0 ? cur.evolves_to[0] : null;
-    }
-
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${linearList
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId)}`;
-            })
-            .join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  const linearPrefix: EvolutionNode[] = [];
-  let cur: EvolutionNode | null = root;
-  while (cur && cur.evolves_to && cur.evolves_to.length === 1) {
-    linearPrefix.push(cur);
-    cur = cur.evolves_to[0];
-  }
-  if (cur) linearPrefix.push(cur);
-
-  const branches = cur ? cur.evolves_to || [] : [];
-
-  return `
-    <div class="pokedex-evolutions-official-panel">
-      <div class="evolutions-panel-header">Evoluciones</div>
-      <div class="branched-evolution-container">
-        <div class="evolutions-nodes-track">
-          ${linearPrefix
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId)}`;
-            })
-            .join('')}
-        </div>
-        ${
-          branches.length > 0
-            ? `
-          <div class="branched-fork-indicator">
-            <span class="fork-arrow-down">⬇️</span>
-            <span>Evoluciones alternativas</span>
-          </div>
-          <div class="branched-children-grid">
-            ${branches.map((child) => renderSingleEvolutionNode(child, currentId, true)).join('')}
-          </div>
-        `
-            : ''
-        }
-      </div>
-    </div>
-  `;
-}
-
-export function openDetailModal(id: number): void {
-  const p = allPokemons.find((x) => x.id === id);
-  if (!p) return;
-
-  const car = p.caracteristicas || {};
-  const stats = p.stats || { hp: 45, attack: 49, defense: 49, sp_attack: 65, sp_defense: 65, speed: 45 };
-  const tipos = Array.isArray(p.tipos) && p.tipos.length > 0 ? p.tipos : [p.tipo || 'Normal'];
-  const habilidades = Array.isArray(p.habilidades) ? p.habilidades : [p.habilidades || 'Espesura'];
-  const habilidadPrincipal = habilidades[0] || 'Espesura';
-  const evoluciones = p.evoluciones;
-  const weaknesses = calculateWeaknesses(tipos);
-  const formattedId = String(p.id).padStart(4, '0');
-
-  const desc =
-    car.descripcion ||
-    `${p.nombre} es una especie de tipo ${tipos.join('/')} registrada en la Pokédex. Habita comúnmente en la región de ${
-      car.habitat || 'Kanto'
-    } y es reconocido por su desempeño en batalla.`;
-
-  const evolutionsHtml = renderEvolutionSystem(evoluciones, p.id);
-
-  const detailTitle = document.getElementById('detailTitle');
-  if (detailTitle?.parentElement) {
-    detailTitle.parentElement.style.display = 'none';
-  }
-
-  const detailContent = document.getElementById('detailContent');
-  if (!detailContent) return;
-
-  const rawModalHtml = `
-    <div class="pokedex-notched-header">
-      <h2 class="pokedex-notched-title">
-        ${escapeText(p.nombre)} <span class="pokedex-notched-number">N.º ${escapeText(formattedId)}</span>
-      </h2>
-      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <div class="pokedex-entry-grid">
-      <div class="pokedex-left-col">
-        <div class="pokedex-artwork-box">
-          <img src="${escapeText(p.imagen || '')}" alt="${escapeText(p.nombre)}" class="pokedex-artwork-img">
-        </div>
-
-        <div class="pokedex-stats-panel">
-          <div class="stats-panel-title">Puntos de base</div>
-          <div class="stats-equalizer-grid">
-            ${renderStatEqualizer(stats)}
-          </div>
-        </div>
-      </div>
-
-      <div class="pokedex-right-col">
-        <p class="pokedex-description-text">${escapeText(desc)}</p>
-
-        <div class="pokedex-blue-card">
-          <div class="blue-card-item">
-            <span class="blue-card-label">Altura</span>
-            <span class="blue-card-value">${((car.altura as number) || 0.7).toString().replace('.', ',')} m</span>
-          </div>
-          <div class="blue-card-item">
-            <span class="blue-card-label">Categoría</span>
-            <span class="blue-card-value">${escapeText(car.categoria || car.habitat || 'Kanto')}</span>
-          </div>
-          <div class="blue-card-item">
-            <span class="blue-card-label">Peso</span>
-            <span class="blue-card-value">${((car.peso as number) || 6.9).toString().replace('.', ',')} kg</span>
-          </div>
-          <div class="blue-card-item">
-            <span class="blue-card-label">Habilidad</span>
-            <span class="blue-card-value">
-              ${escapeText(habilidadPrincipal)}
-            </span>
-          </div>
-          <div class="blue-card-item col-span-full">
-            <span class="blue-card-label">Género</span>
-            <span class="gender-symbols">♂ ♀</span>
-          </div>
-        </div>
-
-        <div class="type-section-group">
-          <h4 class="type-group-title">Tipo</h4>
-          <div class="type-pill-badges-row">
-            ${tipos
-              .map(
-                (t) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`
-              )
-              .join('')}
-          </div>
-        </div>
-
-        <div class="type-section-group">
-          <h4 class="type-group-title">Debilidad</h4>
-          <div class="type-pill-badges-row">
-            ${weaknesses
-              .map(
-                (w) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(w))}">${escapeText(w)}</span>`
-              )
-              .join('')}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    ${evolutionsHtml}
-  `;
-
-  detailContent.innerHTML = sanitizeHtml(rawModalHtml);
-  document.getElementById('detailModal')?.classList.add('active');
-}
-
-export function closeDetailModal(): void {
-  document.getElementById('detailModal')?.classList.remove('active');
-}
-
-// showToast se exporta desde ./shared/index.js
 
 window.addEventListener(
   'error',
