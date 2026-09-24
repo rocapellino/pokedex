@@ -1,8 +1,12 @@
 # Validación Funcional del Proceso de Pull Requests en Skills
 
-**Fecha:** 2026-09-24  
-**Repositorio:** `rocapellino/pokedex`  
-**Área:** Framework de Agentes (`.agents/skills/`)  
+> [!NOTE]
+> **Evidencia Histórica (Solo Lectura):**
+> Este documento representa un registro de validación puntual y fechado realizado el 2026-09-24. Conforme a `AGENTS.md`, una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio ni de la configuración vigente.
+
+**Fecha:** 2026-09-24
+**Repositorio:** `rocapellino/pokedex`
+**Área:** Framework de Agentes (`.agents/skills/`)
 **Documento:** Evidencia de Prueba Funcional Controlada (Fase 10)
 
 ---

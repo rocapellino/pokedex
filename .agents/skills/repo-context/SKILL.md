@@ -32,6 +32,8 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 ## Formato de Salida y Gobernanza
 
 - **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+- **Regla Cardinal de Auditoría:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio (las fuentes vigentes son `gitops/`, `infra/`, `apps/`, `scripts/`, `tests/` y `docs/architecture/`).
+- **Política de Idioma:** Aplicar [language-policy.md](../_shared/language-policy.md) para toda comunicación humana (español obligatorio, identificadores técnicos en inglés).
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si se requiere alterar contratos de configuración base, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.

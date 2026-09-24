@@ -1,8 +1,12 @@
 # Diagnóstico y Análisis Estructural del Proceso de Pull Requests en Skills
 
-**Fecha:** 2026-09-24  
-**Repositorio:** `rocapellino/pokedex`  
-**Área:** Framework de Agentes (`.agents/skills/`)  
+> [!NOTE]
+> **Evidencia Histórica (Solo Lectura):**
+> Este documento representa un diagnóstico puntual y fechado realizado el 2026-09-24. Conforme a `AGENTS.md`, una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio ni de la configuración vigente.
+
+**Fecha:** 2026-09-24
+**Repositorio:** `rocapellino/pokedex`
+**Área:** Framework de Agentes (`.agents/skills/`)
 **Documento:** Diagnóstico de Proceso de Preparación y Generación de PRs (Fase 0)
 
 ---
@@ -149,22 +153,22 @@ Para evitar duplicaciones y mantener límites claros entre skills:
 
 ## 7. Propuesta de Cambios por Fase
 
-1. **Fase 1 — Política transversal de idioma:**  
+1. **Fase 1 — Política transversal de idioma:**
    Crear `.agents/skills/_shared/language-policy.md`.
-2. **Fase 2 — Actualizar `repo-pr`:**  
+2. **Fase 2 — Actualizar `repo-pr`:**
    Actualizar `.agents/skills/repo-pr/SKILL.md` para incluir el flujo dinámico de consumo del template de PR y redacción en español.
-3. **Fase 3 — Integración con `pre-commit-config.yaml`:**  
+3. **Fase 3 — Integración con `pre-commit-config.yaml`:**
    Actualizar `.agents/skills/repo-quality/SKILL.md` para inspeccionar y ejecutar `pre-commit` si está disponible, categorizando su resultado.
-4. **Fase 4 — PR Readiness Gate:**  
+4. **Fase 4 — PR Readiness Gate:**
    Definir el gate de preparación con estados contractuales y verificación de evidencias antes de dar por listo un PR.
-5. **Fase 5 — Responsabilidades en `repo-lifecycle`:**  
-   Actualizar `.agents/skills/repo-lifecycle/SKILL.md` para reflejar el flujo secuencial completo:  
+5. **Fase 5 — Responsabilidades en `repo-lifecycle`:**
+   Actualizar `.agents/skills/repo-lifecycle/SKILL.md` para reflejar el flujo secuencial completo:
    `repo-context` → `repo-audit` → `repo-impact` → skills de dominio → implementación → quality gates (`repo-quality`) → documentación (`repo-docs`) → `repo-pr` → `repo-release`.
-6. **Fase 6 — Referencias Especializadas de `repo-pr`:**  
+6. **Fase 6 — Referencias Especializadas de `repo-pr`:**
    Crear `.agents/skills/repo-pr/references/pr-template-policy.md` y `.agents/skills/repo-pr/references/pr-validation-policy.md`.
-7. **Fase 7 a 9 — Validación:**  
+7. **Fase 7 a 9 — Validación:**
    Validar con `npm run lint:md` asegurando 0 errores Markdown.
-8. **Fase 10 — Prueba Funcional:**  
+8. **Fase 10 — Prueba Funcional:**
    Documentar simulación controlada en `docs/audits/2026-09-24/skills/pr-process-validation.md`.
 
 ---

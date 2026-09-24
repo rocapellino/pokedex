@@ -53,68 +53,43 @@ Una vez localizado el archivo, el agente debe ejecutar los siguientes pasos anal
 
 ---
 
-## 4. Secciones Canónicas Actuales y Criterio de Mapeo
+## 4. Modelo de Parseo Semántico y Mapeo Dinámico
 
-Basado en la inspección de [`.github/pull_request_template.md`](../../../../.github/pull_request_template.md), el mapeo de evidencias debe ceñirse a los siguientes criterios:
+Para no acoplar la skill a una versión estática del template, el agente debe interpretar la estructura mediante un modelo gramatical agnóstico basado en los siguientes elementos de Markdown:
 
-### A. Issues Vinculados (`## 📌 Issues Vinculados`)
+### A. Elementos Gramaticales y Reglas de Interpretación
 
-- **Linear:** Identificador de ticket (ej. `PEX-12`). Si no existe ticket de Linear, marcar explícitamente `N/A (Tarea operativa / interna)`.
-- **GitHub:** Número de issue asociado (ej. `Closes #123`). Si no existe issue de GitHub, omitir o indicar `N/A`.
+1. **Encabezados (`#`, `##`, `###`):**
+   - Delimitan las secciones y jerarquías obligatorias del documento.
+   - Cada encabezado presente en el template físico debe preservarse intacto en el cuerpo del PR final.
 
-### B. Tipo de Cambio (`## 🏷️ Tipo de Cambio`)
+2. **Casillas de Verificación (`- [ ]`, `- [x]`):**
+   - Representan requisitos de validación, tipologías o subsistemas impactados.
+   - **Regla Estricta:** Solo se marca `[x]` si existe evidencia verificable en tiempo de ejecución de que la comprobación fue exitosa o el subsistema fue efectivamente modificado.
+   - Si una verificación no se ejecutó, no aplica o falló, debe permanecer desmarcada (`- [ ]`) y complementarse con su estado formal (`N/A: <motivo>`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_EXECUTED` o `FAIL: <detalle>`).
 
-Marcar con `[x]` estrictamente **una** tipología principal según Conventional Commits:
+3. **Comentarios HTML (`<!-- ... -->`):**
+   - Funcionan como directivas e instrucciones de llenado destinadas al autor.
+   - El agente debe leer la directiva para saber qué información se solicita en ese bloque, proveyendo el contenido correspondiente en el texto visible.
 
-- `feat`: Nueva funcionalidad (impacta minor release).
-- `fix`: Corrección de bug (impacta patch release).
-- `refactor`: Refactorización interna sin cambio funcional.
-- `infra`: Helm, OpenTofu, Kubernetes, Proxmox, AWS.
-- `ci`/`cd`: Modificación en GitHub Actions, MegaLinter, Workflows.
-- `test`: Pruebas unitarias, E2E o integración.
-- `chore`: Mantenimiento, dependencias o tooling.
-- `docs`: Documentación técnica.
+4. **Bloques de Texto Libre y Placeholders:**
+   - Indican campos descriptivos a completar por el agente (resúmenes, motivación, planes de rollback, etc.).
+   - La redacción de estos bloques debe ser siempre en **español** técnico ([language-policy.md](../../_shared/language-policy.md)).
 
-### C. Resumen de Cambios (`## 📝 Resumen de Cambios`)
+### B. Heurística de Asociación de Evidencias
 
-- Redacción obligatoria en **español** ([language-policy.md](../../_shared/language-policy.md)).
-- Debe sintetizar:
-  1. **Contexto:** Qué motivó el cambio.
-  2. **Solución Técnica:** Qué componentes y lógica se modificaron.
-  3. **Impacto:** Consecuencias en arquitectura, dependencias o runtime.
+El agente correlaciona dinámicamente las secciones descubiertas con los artefactos de las skills de dominio:
 
-### D. Componentes Afectados (`## 📦 Componentes Afectados`)
-
-Marcar con `[x]` únicamente los subsistemas tocados en el diff según la clasificación de `repo-impact`:
-
-- `apps/backend`
-- `apps/frontend`
-- `infra`
-- `scripts`
-- `docs` / `.github`
-
-### E. Pruebas y Verificaciones Realizadas (`## 🧪 Pruebas y Verificaciones Realizadas`)
-
-> [!CAUTION]
-> **Prohibición de Marcar sin Evidencia:**
-> Solo se marcará `[x]` si la prueba o herramienta fue ejecutada localmente o en un runner con resultado exitoso comprovable.
-> Si una validación no fue ejecutada, debe permanecer como `[ ]` y anotarse su estado (`NOT_EXECUTED`, `NOT_AVAILABLE` o `NOT_APPLICABLE`).
-
-Mapeo de validaciones:
-
-1. **Tests Unitarios y Cobertura:** Requiere evidencia de `npm test` o `npm run test:coverage`.
-2. **Verificación de Tipos (TypeScript):** Requiere evidencia de `npm run lint` o `tsc --noEmit`.
-3. **Pruebas E2E (Playwright):** Requiere ejecución de `npm run test:e2e`. Si el cambio no afecta frontend, documentar como `N/A: Cambio exclusivo de backend/infra`.
-4. **Accesibilidad WCAG 2.1:** Requiere `npm run test:a11y`. Si no aplica, documentar `N/A`.
-5. **Auditoría Core Web Vitals (Lighthouse):** Si no aplica, documentar `N/A`.
-6. **MegaLinter Local / CI:** Indicar si se validó localmente o si se delega a la ejecución del workflow en GitHub Actions.
-7. **SonarCloud Quality Gate:** Indicar estado reportado o delegación a CI.
-8. **Seguridad & SAST:** Requiere escaneos de Semgrep, Gitleaks o Trivy provistos por `repo-security`.
-9. **Validación Docker / Helm:** Requiere compilación local exitosa si se modificó Dockerfile o Helm charts.
-
-### F. Variables de Entorno & Breaking Changes (`## ⚠️ Variables de Entorno & Breaking Changes`)
-
-- Responder explícitamente a ambas preguntas con `[x]` o `[ ]` más justificación en español.
+- **Secciones de Resumen / Descripción / Contexto:** Se completan sintetizando: (1) problema resuelto, (2) solución técnica implementada y (3) alcance arquitectónico del cambio.
+- **Secciones de Identificadores / Issues:** Se completan con las referencias cruzadas detectadas (Linear, GitHub Issues) o explícitamente `N/A (Tarea operativa / interna)`.
+- **Secciones de Tipología / Categoría:** Se asocia la tipología correspondiente según Conventional Commits (`feat`, `fix`, `refactor`, `infra`, `ci`, `test`, `chore`, `docs`).
+- **Secciones de Componentes Impactados:** Se determinan a partir de las rutas del diff analizadas por `repo-impact` (`apps/backend`, `apps/frontend`, `infra`, `scripts`, `docs`, `.github`).
+- **Secciones de Pruebas y Verificaciones:** Se mapean contra los resultados reales ejecutados en el workspace:
+  - Pruebas unitarias/integración: provistas por `repo-testing`.
+  - Linters, tipos y pre-commit: provistos por `repo-quality`.
+  - Análisis estático de seguridad y secretos: provistos por `repo-security`.
+  - Coherencia documental y Markdown Quality Gate: provistos por `repo-docs`.
+- **Secciones de Breaking Changes / Configuración:** Se evalúa si el diff introduce variables requeridas o incompatibilidades hacia atrás.
 
 ---
 
