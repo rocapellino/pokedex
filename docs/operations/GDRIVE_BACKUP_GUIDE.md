@@ -108,7 +108,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
 
 1. **CronJob `pokedex-gdrive-sync`:**
    - **Horario:** Diario a las 03:00 UTC (1 hora posterior al snapshot local de K8s a las 02:00).
-   - **Imagen:** `rclone/rclone:1.68.2`.
+   - **Imagen:** `rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b` (Rclone 1.68.2 fijado por digest SHA-256 inmutable).
    - **Volumen:** `claimName: pokedex-backup-pvc` montado en `/backups` con **`readOnly: true`** (garantiza inmutabilidad física del almacenamiento de copias).
    - **Credenciales:** Inyectadas de forma segura desde el Secret de K8s (`GDRIVE_TOKEN` de `pokemon-secrets` o Vault).
    - **Aislamiento de Red (Zero-Trust):** NetworkPolicy dedicada que restringe el tráfico saliente únicamente a `kube-dns` (puerto 53) y Google Drive API (puerto 443 HTTPS).

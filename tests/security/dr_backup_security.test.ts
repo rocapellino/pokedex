@@ -169,6 +169,7 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   const composeContent = fs.readFileSync(dockerComposeDevPath, 'utf-8');
   assert.ok(composeContent.includes('backup-gdrive:'), 'Debe definir servicio backup-gdrive');
   assert.ok(composeContent.includes('rclone/rclone'), 'Debe usar imagen oficial rclone');
+  assert.match(composeContent, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'docker-compose.dev.yml debe fijar rclone por digest SHA-256 inmutable');
   assert.ok(composeContent.includes('profiles:'), 'Debe aislarse mediante perfiles de compose');
   assert.ok(composeContent.includes('backup'), 'Debe pertenecer al perfil backup');
 
@@ -223,6 +224,7 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   assert.match(rendered, /kind:\s*CronJob/, 'Debe generar el recurso CronJob');
   assert.match(rendered, /name:\s*pokedex-gdrive-sync/, 'El CronJob debe llamarse pokedex-gdrive-sync');
   assert.match(rendered, /rclone\/rclone/, 'Debe utilizar la imagen oficial de Rclone');
+  assert.match(rendered, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'El CronJob de Rclone debe utilizar pinning por digest SHA-256 inmutable');
 
   // 2. Validar puente al PVC con readOnly: true (Inmutabilidad del almacenamiento local)
   assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'Debe montar claimName: pokedex-backup-pvc para enlazar el puente de DR');

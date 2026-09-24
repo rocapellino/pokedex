@@ -28,7 +28,7 @@ spec:
             fsGroup: 1000
           containers:
             - name: gdrive-sync
-              image: "{{ .Values.backup.gdrive.image.repository | default "rclone/rclone" }}:{{ .Values.backup.gdrive.image.tag | default "1.68.2" }}"
+              image: "{{ .Values.backup.gdrive.image.repository | default "rclone/rclone" }}{{ if .Values.backup.gdrive.image.digest }}@{{ .Values.backup.gdrive.image.digest }}{{ else }}:{{ .Values.backup.gdrive.image.tag | default "1.68.2" }}{{ end }}"
               imagePullPolicy: {{ .Values.backup.gdrive.image.pullPolicy | default "IfNotPresent" }}
               securityContext:
                 allowPrivilegeEscalation: false
