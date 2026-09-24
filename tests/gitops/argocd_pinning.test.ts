@@ -61,7 +61,7 @@ test('🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 
   assert.ok(parity.canonicalVersion, 'Debe existir una versión canónica única');
   assert.match(parity.canonicalVersion, /^v\d+\.\d+\.\d+$/, 'La versión canónica debe ser SemVer');
 
-  // Verificar explícitamente los 3 archivos
+  // Verificar explícitamente los 4 archivos
   for (const relPath of DEFAULT_GITOPS_APP_FILES) {
     const fullPath = path.join(ROOT_DIR, relPath);
     assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
@@ -85,7 +85,7 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
 
   assert.equal(result.success, true);
   assert.equal(result.newTag, 'v1.99.0');
-  assert.equal(result.updatedFiles.length, 3);
+  assert.equal(result.updatedFiles.length, 4);
 
   // Asegurar que en dryRun los archivos en disco NO cambiaron
   const parity = checkGitOpsPinParity(DEFAULT_GITOPS_APP_FILES, ROOT_DIR);
