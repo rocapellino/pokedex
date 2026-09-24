@@ -32,4 +32,6 @@ Analizar de forma exhaustiva, en modo de sólo lectura, el radio de impacto, dep
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Formalizar siempre el resultado del análisis mediante la plantilla [change-plan.md](../_shared/change-plan.md).
+- **Matriz de Impacto:** Consultar [change-impact-matrix.md](../_shared/change-impact-matrix.md) para verificar la cascada obligatoria y los criterios de no-afectación.
+- **Modelo de Estados:** Evaluar el impacto transversal en los 4 niveles ([state-model.md](../_shared/state-model.md)): candidato (`main`), release (`tag`), declarado (`gitops`) y observado (`runtime`).
 - **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (planes de cambio) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.
