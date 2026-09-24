@@ -43,8 +43,16 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 
 - **Core & Lifecycle:** `repo-context`, `repo-lifecycle`, `repo-impact`, `repo-audit` (coordinador).
 - **Engineering:** `repo-quality` (calidad de código, modularidad y prevención de God Files), `repo-architecture` (sistema, plataforma y GitOps), `repo-testing` (pirámide de pruebas), `repo-dependencies` (árbol de paquetes npm y librerías huérfanas).
-- **Delivery & Security:** `repo-security` (DevSecOps, secretos, Cilium L7 y supply chain), `repo-ci` (pipelines de GitHub Actions), `repo-pr` (revisión de PRs), `repo-release` (corte y readiness de versión).
+- **Delivery & Security:** `repo-security` (DevSecOps, secretos, Cilium L7 y supply chain), `repo-ci` (pipelines de GitHub Actions), `repo-pr` (preparación, validación y revisión de PRs), `repo-release` (corte y readiness de versión).
 - **Governance & Maintenance:** `repo-docs` (integridad documental y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
 
 > [!NOTE]
 > Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` + `npm run lint:md`).
+
+---
+
+## 4. Política Transversal de Idioma
+
+El idioma operativo para toda comunicación humana (Pull Requests, descripciones, títulos, comentarios de revisión, issues, reportes, planes y respuestas) es estrictamente el **español** ([`_shared/language-policy.md`](.agents/skills/_shared/language-policy.md)).
+
+Los identificadores técnicos, nombres de herramientas (GitHub Actions, Helm, pre-commit, ArgoCD), comandos de terminal, código y nombres de archivos se preservan en inglés.

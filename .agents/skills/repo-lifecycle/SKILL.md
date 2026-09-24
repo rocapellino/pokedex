@@ -7,83 +7,126 @@ description: Orquestador del ciclo de vida completo del repositorio Pokedex.
 
 ## Objetivo
 
-Orquestar de extremo a extremo el ciclo de vida de auditoría, análisis, refactorización, pruebas, despliegue y documentación en `rocapellino/pokedex`, coordinando las skills especializadas para evitar análisis redundantes y asegurar cambios verificables.
+Orquestar de extremo a extremo el ciclo de vida de desarrollo, análisis, refactorización, calidad, pruebas, documentación, preparación de Pull Requests y publicación de releases en `rocapellino/pokedex`. Esta skill coordina la invocación condicional de las skills especializadas, evitando redundancias y garantizando cambios verificables y gobernados.
 
-## Flujo de Orquestación
+---
+
+## Flujo Conceptual de Orquestación
+
+El ciclo de vida del repositorio sigue una secuencia estricta y desacoplada donde cada skill opera bajo su ámbito de responsabilidad:
 
 ```text
-               1. repo-context (Construir contexto de partida)
+               1. repo-context (Construir contexto técnico y operativo)
                                │
                                ▼
                2. repo-audit (Diagnóstico integral o delta)
                                │
                                ▼
-               3. repo-impact (Identificar archivos modificados)
-                               │
-         ┌─────────────────────┴─────────────────────┐
-         ▼                                           ▼
-¿Afecta solo Docs / Markdown?              ¿Afecta Código / Infra?
-         │                                           │
-         ▼                                           ▼
-  [Fast Track Docs]                     [Selective Domain Execution]
-  - repo-docs (Drift)                   - Engineering (repo-quality / repo-architecture)
-  - Markdown Quality Gate               - Delivery (repo-security / repo-ci / repo-release)
-         │                              - repo-testing (Suites dirigidas)
-         │                                           │
-         └─────────────────────┬─────────────────────┘
-                               ▼
-               4. repo-refactor (Si requiere cambio)
+               3. repo-impact (Identificar archivos y clasificar radio de cambio)
                                │
                                ▼
-               5. Conditional Quality Gates (Gating por dominio)
+               4. Skills Especializadas (Activadas según impacto)
                                │
                                ▼
-               6. repo-release (Solo si amerita corte de versión)
+               5. Implementación / Refactor (repo-refactor si aplica)
                                │
                                ▼
-               7. repo-docs (Cierre documental obligatorio)
+               6. Quality Gates & Pre-Commit (repo-quality & suites técnicas)
                                │
                                ▼
-               8. repo-maintenance (Registro en backlog / baseline)
+               7. Cierre Documental & Markdown Quality (repo-docs & lint:md)
+                               │
+                               ▼
+               8. Preparación y Gate de Pull Request (repo-pr)
+                               │
+                               ▼
+               9. Corte y Promoción de Release (repo-release, si amerita tag)
+                               │
+                               ▼
+              10. Registro y Mantenimiento de Backlog (repo-maintenance)
 ```
+
+---
+
+## Despacho Condicional por Tipología de Cambio
+
+No todas las skills son obligatorias para todos los cambios. Las validaciones a ejecutar dependen estrictamente del impacto clasificado en [change-impact-matrix.md](../_shared/change-impact-matrix.md):
+
+### 1. Cambio Backend (`apps/backend/`)
+
+```text
+impact ──► testing ──► quality (lint/pre-commit) ──► security (App SAST) ──► architecture ──► docs ──► pr
+```
+
+### 2. Cambio Documentación Pura (`docs/`, `*.md`) — Fast Track
+
+```text
+impact ──► docs ──► markdown quality gate (0 errores MDxxx) ──► pr
+```
+
+*Exento de compilar código, correr tests unitarios de apps o levantar contenedores Docker.*
+
+### 3. Cambio en Workflows de CI/CD (`.github/workflows/`)
+
+```text
+impact ──► quality (sintaxis YAML/pre-commit) ──► security (permisos OIDC) ──► ci ──► docs ──► pr
+```
+
+### 4. Cambio en Helm / GitOps (`infra/helm/`, `gitops/`)
+
+```text
+impact ──► quality ──► security ──► architecture (AST/paridad) ──► release (pinning) ──► docs ──► pr
+```
+
+---
+
+## Demarcación Estricta de Responsabilidades
+
+Para evitar duplicaciones y mantener límites arquitectónicos claros:
+
+1. **`repo-lifecycle` (Orquestación):**
+   - Decide el flujo y el orden de invocación de las skills.
+   - No implementa directamente comprobaciones de código ni linters.
+2. **`repo-quality` (Quality Gates Técnicos):**
+   - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml).
+   - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
+3. **`repo-pr` (Preparación y Gate de Pull Request):**
+   - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../.github/pull_request_template.md)).
+   - Consume las evidencias generadas por `repo-quality`, `repo-testing`, `repo-security` y `repo-docs`.
+   - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)).
+   - Ejecuta el PR Readiness Gate formal. **No realiza auditorías completas redundantes.**
+4. **`repo-docs` (Integridad Documental):**
+   - Responsable de verificar la consistencia documental, claims verification y el Markdown Quality Gate (`npm run lint:md`).
+5. **`repo-release` (Gobernanza de Release y Promoción):**
+   - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
+   - `repo-pr` no asume que la apertura o merge de un PR equivale a la publicación o despliegue de un release.
+
+---
 
 ## Reglas de Orquestación y Gobernanza
 
-- **Evitar Redundancia:** No repetir un análisis si existe un resultado vigente y el árbol de código o configuración relevante no ha cambiado.
+- **Evitar Redundancia:** No repetir análisis si el árbol de código o configuración relevante no ha cambiado.
 - **Precedencia:** Ejecutar siempre `repo-context` antes de invocar análisis especializados.
-- **Priorización de Riesgo:** Priorizar mitigaciones de seguridad (`repo-security`), dependencias críticas (`repo-dependencies`) y regresiones operativas antes de tareas de modernización o refactor.
-- **Validación Fáctica:** No considerar una recomendación como resuelta hasta que exista evidencia ejecutable en código, pruebas o pipelines de CI.
-- **Cierre Documental Obligatorio:** Ningún cambio se considera cerrado si deja drift documental: cada intervención debe señalar los documentos afectados y delegar en `repo-docs` antes de la revisión final.
-- **Matriz de Impacto y Gating:** Consultar [change-impact-matrix.md](../_shared/change-impact-matrix.md) para determinar qué skills y quality gates invocar según la tipología del cambio.
+- **Validación Fáctica:** No considerar una recomendación como resuelta sin evidencia demostrable.
+- **Cierre Documental Obligatorio:** Todo cambio debe cerrar su drift documental antes de la preparación del PR.
+- **Política de Idioma:** Toda interacción y documentación orientada a personas debe cumplir con [language-policy.md](../_shared/language-policy.md) en español.
 
-## Pipeline de Post-Change Audit (Gating Condicional por Dominio)
-
-Tras cualquier modificación en el repositorio, el orquestador **NO** ejecuta una batería universal a ciegas. En su lugar, aplica el principio de **despacho condicional** consultando la tabla de gating de [`_shared/change-impact-matrix.md`](../_shared/change-impact-matrix.md):
-
-1. **Identificación de Dominio (`repo-impact`):** Clasifica los archivos alterados en uno o más dominios: Backend Core, Frontend SPA, Infraestructura Helm, GitOps Declarativo, Plataforma (Ansible/OpenTofu), CI/CD, Dependencias o Documentación Pura.
-2. **Despacho Selectivo de Skills y Gates:**
-   - **Documentación Pura (`docs/`, `*.md`):** *Fast Track*. Ejecuta exclusivamente `repo-docs` y el Markdown Quality Gate (`npm run lint:md -- <archivos>`). Se exime de builds, pruebas unitarias y scans de seguridad.
-   - **Backend Core (`apps/backend/`):** Ejecuta `repo-quality`, `repo-testing` (`npm run lint`, `npm run build:backend`, `npm test`, `npm run test:fuzz`) y `repo-security` (SAST de aplicación).
-   - **Frontend SPA (`apps/frontend/`):** Ejecuta `repo-quality` y `repo-testing` (`npm run build:frontend`, `npm run typecheck`, component tests, E2E Playwright).
-   - **Infraestructura Helm (`infra/helm/`):** Ejecuta `repo-architecture` y `repo-security` (`helm lint`, `gitops:verify-parity:strict`, validación AST).
-   - **GitOps (`gitops/`):** Ejecuta `repo-architecture` y `repo-release` (`gitops:pin:check`, `gitops:verify-parity:strict`).
-   - **Plataforma / Ansible / OpenTofu (`infra/ansible/`, `infra/opentofu/`):** Ejecuta `repo-architecture` y `repo-security` (`secrets:audit-rotation`, linters de IaC).
-   - **CI/CD (`.github/workflows/`):** Ejecuta `repo-ci` y `repo-security` (sintaxis YAML, permisos OIDC).
-   - **Dependencias (`package.json`, lockfiles):** Ejecuta `repo-dependencies`, `repo-security` y `repo-testing` (`npm audit`, lockfile parity, suite de pruebas).
-   - **Corte de Release:** Ejecuta validación integral (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD (`repo-release`).
-3. **Cierre Documental y Markdown Quality Gate:** Si cualquier archivo `.md` fue creado o modificado durante el cambio o su documentación, se ejecuta obligatoriamente `npm run lint:md` certificando **0 errores `MDxxx`**.
+---
 
 ## Modos de Operación
 
-- **Full:** Ejecución exhaustiva del ciclo completo de vida del repositorio.
-- **Fast:** Validación rápida: `repo-context` + `repo-audit` + `repo-security` + `repo-dependencies` + `repo-testing`.
-- **Change:** Modo enfocado en cambios: `repo-impact` + skills específicas del dominio afectado + `repo-testing`.
-- **Release:** Preparación de release: `repo-security` + `repo-dependencies` + `repo-testing` + `repo-ci` + `repo-release` + `repo-docs`.
-- **Maintenance:** Evaluación de salud periódica y delta respecto al último baseline consolidado.
+- **Full:** Ciclo completo desde contexto y auditoría integral hasta release y mantenimiento.
+- **Fast:** Validación rápida de cambios acotados (`repo-context` + `repo-impact` + gates de dominio).
+- **Change:** Modo estándar para desarrollo de features o correcciones de bugs (`repo-impact` + skills de dominio + `repo-pr`).
+- **Release:** Preparación formal de corte de versión y actualización GitOps (`repo-release`).
+- **Maintenance:** Evaluación periódica de salud, higiene y backlog (`repo-maintenance`).
+
+---
 
 ## Referencias Compartidas
 
 - **Metodología Base:** [methodology.md](../_shared/methodology.md)
+- **Política de Idioma:** [language-policy.md](../_shared/language-policy.md)
 - **Modelo de Estados:** [state-model.md](../_shared/state-model.md)
 - **Matriz de Impacto:** [change-impact-matrix.md](../_shared/change-impact-matrix.md)
 - **Planes de Cambio:** [change-plan.md](../_shared/change-plan.md)
