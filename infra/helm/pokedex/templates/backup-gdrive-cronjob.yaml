@@ -85,6 +85,7 @@ spec:
   policyTypes:
     - Egress
   egress:
+    # 1. Resolución DNS interna en CoreDNS
     - to:
         - namespaceSelector: {}
           podSelector:
@@ -95,7 +96,61 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    - ports:
+    # 2. Fallback L4 Anti-SSRF para clústeres sin Cilium (Flannel / Calico básico).
+    # En clústeres con Cilium activo, el filtrado granular se delega a CiliumNetworkPolicy L7 FQDN
+    # para evitar abrir puertos genéricos 443 hacia cualquier destino.
+    {{- if not (and .Values.ciliumNetworkPolicy .Values.ciliumNetworkPolicy.enabled) }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32 # AWS/GCP/Azure IMDS Metadata Endpoint (Anti-SSRF)
+              - 10.0.0.0/8         # RFC1918 Red Privada
+              - 172.16.0.0/12      # RFC1918 Red Privada / K8s internal subnets
+              - 192.168.0.0/16     # RFC1918 Red Privada
+              - 127.0.0.0/8        # Loopback
+      ports:
         - protocol: TCP
           port: 443
+    {{- end }}
+{{- if and .Values.ciliumNetworkPolicy .Values.ciliumNetworkPolicy.enabled }}
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-gdrive-sync-cilium-l7-policy
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup-offsite
+spec:
+  description: "Aislamiento de Capa 7 (L7 Egress) con Cilium eBPF y FQDN Allowlist para Google Drive Sync (Rclone)"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: backup-offsite
+  egress:
+    # 1. Resolución DNS interna en CoreDNS con inspección de nombres
+    - toEndpoints:
+        - matchLabels:
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
+    # 2. Tráfico Saliente HTTPS L7 restringido estrictamente a FQDNs autorizados de Google Drive
+    - toFQDNs:
+        {{- if and .Values.backup.gdrive.fqdnAllowlist }}
+        {{- toYaml .Values.backup.gdrive.fqdnAllowlist | nindent 8 }}
+        {{- else }}
+        - matchPattern: "*.googleapis.com"
+        - matchName: "accounts.google.com"
+        {{- end }}
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
 {{- end }}
+{{- end }}
+

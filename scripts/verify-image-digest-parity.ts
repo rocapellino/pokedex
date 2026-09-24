@@ -1,3 +1,33 @@
+/**
+ * ==============================================================================
+ * scripts/verify-image-digest-parity.ts
+ * ==============================================================================
+ * Verificación Criptográfica de Paridad de Digest OCI en Manifiestos de Kubernetes
+ *
+ * ARQUITECTURA DE PARIDAD DE DIGESTS (ADR-008 & Modelo GitOps Canónico):
+ *
+ * En este repositorio conviven dos conceptos complementarios pero deliberadamente
+ * desacoplados en el pipeline:
+ *
+ * 1. Paridad Interna Inter-Entornos (Inter-Environment Parity / Intra-GitOps):
+ *    - Ecuación: AWS GitOps == Proxmox GitOps == Helm Production
+ *    - Rol en CI: GATE OBLIGATORIO Y BLOQUEANTE (`--strict`).
+ *    - Propósito: Garantiza que no exista deriva (drift) accidental entre los
+ *      manifiestos de producción y GitOps. Todos los clústeres deben recibir
+ *      exactamente el mismo artefacto inmutable.
+ *
+ * 2. Paridad Publicado vs. Desplegado (Published vs. Deployed Parity):
+ *    - Ecuación: Digest Publicado en GHCR == Digest Declarado en GitOps
+ *    - Rol en CI: DESACOPLADO DEL GATE DE BUILD/RELEASE (opcional con `--published-digest`).
+ *    - Racional: En un modelo GitOps profesional, la construcción de artefactos
+ *      (Build Phase) y el despliegue/promoción (Promotion Phase) están separados.
+ *      Exigir que la imagen recién compilada coincida con los values de GitOps en el
+ *      mismo commit de build crearía un bloqueo circular (chicken-and-egg problem),
+ *      impidiendo publicar nuevas versiones si GitOps está pinneado a un release estable.
+ *    - Uso: Herramienta de auditoría, drift detection y gates en workflows de promoción.
+ * ==============================================================================
+ */
+
 import { execSync } from 'node:child_process';
 import * as path from 'node:path';
 import * as fs from 'node:fs';

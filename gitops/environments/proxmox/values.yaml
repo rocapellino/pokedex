@@ -148,11 +148,11 @@ ciliumNetworkPolicy:
     - matchPattern: "*.pokeapi.co"
 
 # ------------------------------------------------------------------------------
-# Disaster Recovery & Off-Site Backup (Esqueleto Blueprint - Estado: INACTIVO)
+# Disaster Recovery & Off-Site Backup (Estado Operativo Proxmox)
 # ------------------------------------------------------------------------------
-# El respaldo local cifrado (AES-256 + SHA256 + restore drill) está activo.
-# La sincronización off-site remota permanece como esqueleto agnóstico inactivo
-# hasta la provisión de un bucket externo (S3/R2) o servidor PBS remoto.
+# - Backup local: activo (cifrado AES-256 + SHA256 + restore drill semanal en PVC)
+# - Google Drive off-site: activo cuando credentials (GDRIVE_TOKEN) están provisionadas
+# - S3-compatible offsite: inactivo (esqueleto blueprint agnóstico)
 backup:
   enabled: true
   persistence:
