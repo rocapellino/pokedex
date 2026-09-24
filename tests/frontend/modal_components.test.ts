@@ -118,6 +118,7 @@ test('🧩 Admin Table: renderTableRows genera celdas y botones de acción data-
   assert.ok(rowsHtml.includes('data-delete-id="1"'));
   assert.ok(rowsHtml.includes('data-edit-id="4"'));
   assert.ok(rowsHtml.includes('data-delete-id="4"'));
+  assert.ok(rowsHtml.includes('pokemon-table-name'));
   assert.ok(rowsHtml.includes('Bulbasaur'));
   assert.ok(rowsHtml.includes('Charmander'));
 });
