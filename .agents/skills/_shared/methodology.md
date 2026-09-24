@@ -79,7 +79,7 @@ Toda auditoría, evaluación o análisis especializado debe seguir rigurosamente
 5. **Clasificación:** Clasificar cada hallazgo según Severidad/Prioridad, Nivel de Confianza y Estimación de Esfuerzo.
 6. **Propuesta Accionable:** Diseñar recomendaciones e intervenciones incrementales, priorizando reversibilidad y bajo acoplamiento.
 7. **Plan de Cambio:** Si el usuario solicita implementar modificaciones, generar primero un plan estructurado (usando `repo-impact` y la plantilla `_shared/change-plan.md`).
-8. **Cierre Documental:** Si el cambio altera comportamientos documentados (README, `docs/`, ADRs o runbooks), identificar los archivos impactados y delegar en `repo-docs` antes de concluir.
+8. **Cierre Documental y Quality Gate de Markdown:** Si el análisis genera o modifica archivos Markdown (reportes, planes, README, `docs/`), debe ejecutarse obligatoriamente el procedimiento centralizado [`_shared/markdown-quality.md`](markdown-quality.md). Ningún artefacto Markdown se considera terminado si contiene violaciones `MDxxx`.
 
 ---
 
@@ -102,3 +102,4 @@ Toda auditoría, evaluación o análisis especializado debe seguir rigurosamente
 - **Niveles de Confianza:** `HIGH` (evidencia directa e irrefutable), `MEDIUM` (fuerte inferencia técnica), `LOW` (sospecha que requiere validación en runtime).
 - **Esfuerzo Estimado:** `XS` (< 1h), `S` (1-4h), `M` (1-2 días), `L` (3-5 días), `XL` (> 1 sprint).
 - **Pipeline de Cambios:** Todo cambio de código debe seguir la secuencia `repo-impact` → `repo-refactor` → `repo-testing` → `repo-pr`/`repo-release`.
+- **Markdown Quality Gate Obligatorio:** Todo archivo `.md` creado, generado o actualizado por cualquier skill debe validarse contra markdownlint (`.markdownlint.json`) mediante `npm run lint:md -- <archivos>` siguiendo el procedimiento [`_shared/markdown-quality.md`](markdown-quality.md). Está estrictamente prohibido deshabilitar reglas para forzar un pase. Un archivo Markdown con errores `MDxxx` **no es un artefacto terminado**.

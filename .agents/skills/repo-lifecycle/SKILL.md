@@ -73,3 +73,4 @@ repo-maintenance
 - **Metodología Base:** [methodology.md](../_shared/methodology.md)
 - **Matriz de Decisión:** [references/decision-matrix.md](references/decision-matrix.md)
 - **Planes de Cambio:** [change-plan.md](../_shared/change-plan.md)
+- **Quality Gate de Markdown:** [markdown-quality.md](../_shared/markdown-quality.md)
