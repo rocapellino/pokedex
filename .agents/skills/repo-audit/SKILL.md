@@ -35,3 +35,4 @@ Ejecutar auditorías técnicas integrales, estrictamente de sólo lectura, para 
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si el usuario solicita remediar un hallazgo, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y transferir la ejecución a `repo-impact` y `repo-refactor`.
+- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes, baselines, deltas) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

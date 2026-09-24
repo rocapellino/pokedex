@@ -30,3 +30,4 @@ Ejecutar refactorizaciones controladas e incrementales en el código fuente de `
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Obligatorio formalizar el plan con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact` antes de tocar código.
+- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (planes de refactorización) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

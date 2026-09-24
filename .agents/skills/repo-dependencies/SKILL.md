@@ -36,3 +36,4 @@ Gobernar el ciclo de vida de dependencias en el monorepo `rocapellino/pokedex`, 
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.
+- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de dependencias) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.
