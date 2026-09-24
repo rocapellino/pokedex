@@ -142,6 +142,9 @@ export async function runDrDrill(options: DrDrillOptions = {}): Promise<DrDrillM
   fs.mkdirSync(localRestoreDir, { recursive: true });
 
   const encryptionKey = options.encryptionKey || process.env.BACKUP_ENCRYPTION_KEY || 'pokedex_dr_drill_dynamic_key_2026';
+  if (!encryptionKey || encryptionKey.length < 32) {
+    throw new Error(`[DR Security] BACKUP_ENCRYPTION_KEY tiene entropía insuficiente (${encryptionKey?.length || 0} caracteres < 32 mínimos requeridos)`);
+  }
 
   // 2. Generar fuente de datos canónica Pokédex (DDL + DML)
   const defaultSql = `

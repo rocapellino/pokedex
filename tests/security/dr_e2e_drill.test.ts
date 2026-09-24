@@ -119,3 +119,17 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
   assert.ok(metrics.tiempoRestoreMs > 0, 'tiempoRestoreMs en BD real debe ser mayor a 0');
 });
 
+test('🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)', async () => {
+  await assert.rejects(
+    async () => {
+      await runDrDrill({
+        encryptionKey: 'short_key_under_32_chars',
+        verbose: false,
+        skipPostgresContainer: true,
+      });
+    },
+    /entropía insuficiente/i,
+    'Debe fallar si la clave tiene menos de 32 caracteres'
+  );
+});
+
