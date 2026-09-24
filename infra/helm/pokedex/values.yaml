@@ -405,6 +405,10 @@ backup:
       tag: "1.68.2" # rclone 1.68.2
       digest: "sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b" # rclone 1.68.2
       pullPolicy: IfNotPresent
+    # Aislamiento de Red L7 Egress (CiliumNetworkPolicy FQDN Allowlist)
+    fqdnAllowlist:
+      - matchPattern: "*.googleapis.com"
+      - matchName: "accounts.google.com"
     resources:
       limits:
         cpu: "300m"

@@ -236,11 +236,26 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   assert.match(rendered, /readOnlyRootFilesystem:\s*true/, 'El contenedor debe tener readOnlyRootFilesystem: true');
   assert.match(rendered, /-\s*ALL/, 'Debe descartar todas las capacidades del kernel');
 
-  // 4. Validar Aislamiento de Red Zero-Trust en NetworkPolicy
+  // 4. Validar Aislamiento de Red Zero-Trust en NetworkPolicy y CiliumNetworkPolicy L7
   assert.match(rendered, /kind:\s*NetworkPolicy/, 'Debe generar recurso NetworkPolicy');
   assert.match(rendered, /name:\s*pokedex-allow-gdrive-sync-egress/, 'NetworkPolicy debe llamarse pokedex-allow-gdrive-sync-egress');
   assert.match(rendered, /port:\s*53/, 'Debe permitir resolución DNS en puerto 53');
-  assert.match(rendered, /port:\s*443/, 'Debe permitir salida HTTPS a la API de Google Drive en puerto 443');
+
+  // En producción (con Cilium habilitado), el filtrado L7 se delega a CiliumNetworkPolicy con FQDN allowlist
+  assert.match(rendered, /kind:\s*CiliumNetworkPolicy/, 'Debe generar recurso CiliumNetworkPolicy');
+  assert.match(rendered, /name:\s*pokedex-gdrive-sync-cilium-l7-policy/, 'CiliumNetworkPolicy debe llamarse pokedex-gdrive-sync-cilium-l7-policy');
+  assert.match(rendered, /toFQDNs:/, 'Debe definir sección toFQDNs para filtrado eBPF');
+  assert.match(rendered, /\*\.googleapis\.com/, 'Debe restringir el tráfico HTTPS estrictamente a *.googleapis.com');
+  assert.match(rendered, /accounts\.google\.com/, 'Debe permitir endpoint de auth accounts.google.com');
+
+  // Validar fallback en clústeres sin Cilium (Flannel / Calico básico con Anti-SSRF)
+  const renderedNoCilium = execSync(
+    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" --set ciliumNetworkPolicy.enabled=false -s templates/backup-gdrive-cronjob.yaml`,
+    { encoding: 'utf-8' }
+  );
+  assert.ok(!renderedNoCilium.includes('kind: CiliumNetworkPolicy'), 'No debe generar CiliumNetworkPolicy si ciliumNetworkPolicy.enabled=false');
+  assert.match(renderedNoCilium, /169\.254\.169\.254\/32/, 'Fallback de NetworkPolicy debe bloquear endpoint IMDS (Anti-SSRF)');
+  assert.match(renderedNoCilium, /port:\s*443/, 'Fallback debe permitir port 443 bajo ipBlock Anti-SSRF');
 
   // 5. Validar fail-closed obligatorio para GDRIVE_TOKEN (P1 Operacional)
   assert.match(
