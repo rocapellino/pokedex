@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 const ROOT_DIR = path.resolve();
 
@@ -257,23 +257,21 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (
   // Simular la ejecución exacta del comando de entrada del CronJob cuando falta el token
   const failScript = `set -eu; : "\${RCLONE_CONFIG_GDRIVE_TOKEN:?GDRIVE_TOKEN is mandatory when gdrive backup is enabled}"; echo "SUCCEEDED"`;
 
-  const getShellCmd = (script: string) => {
+  const runShellScript = (script: string, env: NodeJS.ProcessEnv) => {
+    let shBinary = 'sh';
     if (process.platform === 'win32') {
       const gitSh = 'C:\\Program Files\\Git\\bin\\sh.exe';
-      if (fs.existsSync(gitSh)) {
-        return `"${gitSh}" -c "${script.replace(/"/g, '\\"')}"`;
-      }
-      return `bash -c "${script.replace(/"/g, '\\"')}"`;
+      shBinary = fs.existsSync(gitSh) ? gitSh : 'bash';
     }
-    return `sh -c '${script}'`;
+    return execFileSync(shBinary, ['-c', script], {
+      env,
+      stdio: 'pipe',
+    });
   };
 
   assert.throws(
     () => {
-      execSync(getShellCmd(failScript), {
-        env: { ...process.env, RCLONE_CONFIG_GDRIVE_TOKEN: '' },
-        stdio: 'pipe',
-      });
+      runShellScript(failScript, { ...process.env, RCLONE_CONFIG_GDRIVE_TOKEN: '' });
     },
     (err: any) => {
       const stderr = err.stderr ? err.stderr.toString() : '';
@@ -286,10 +284,7 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (
     () => {
       const cleanEnv = { ...process.env };
       delete cleanEnv.RCLONE_CONFIG_GDRIVE_TOKEN;
-      execSync(getShellCmd(failScript), {
-        env: cleanEnv,
-        stdio: 'pipe',
-      });
+      runShellScript(failScript, cleanEnv);
     },
     (err: any) => {
       const stderr = err.stderr ? err.stderr.toString() : '';
