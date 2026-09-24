@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,7 +17,7 @@ jobs:
   auto-tag-and-release:
     name: 🚀 Bump Version & Create GitHub Release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'chore(gitops)')"
+    if: github.event_name == 'workflow_dispatch' || (!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'chore(gitops)'))
 
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
