@@ -258,10 +258,8 @@ jobs:
           version: 'v3.17.0'
 
       - name: Validar consistencia criptográfica de Digest en Manifiestos Renderizados (Helm Template Estricto)
-        env:
-          PUBLISHED_DIGEST: ${{ steps.image-digest.outputs.digest }}
         run: |
-          node --experimental-strip-types scripts/verify-image-digest-parity.ts --published-digest "$PUBLISHED_DIGEST" --strict
+          node --experimental-strip-types scripts/verify-image-digest-parity.ts --strict
 
       - name: Validar, empaquetar y publicar Helm Chart como OCI
         id: helm-push
