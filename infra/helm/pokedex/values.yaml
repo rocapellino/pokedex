@@ -402,7 +402,8 @@ backup:
     tokenKey: "GDRIVE_TOKEN"
     image:
       repository: rclone/rclone
-      tag: "1.68.2"
+      tag: "1.68.2" # rclone 1.68.2
+      digest: "sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b" # rclone 1.68.2
       pullPolicy: IfNotPresent
     resources:
       limits:

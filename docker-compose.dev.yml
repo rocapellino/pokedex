@@ -87,7 +87,7 @@ services:
   # Perfil bajo demanda: docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup run --rm backup-gdrive
   # ============================================================================
   backup-gdrive:
-    image: rclone/rclone:1.68.2
+    image: rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b # rclone 1.68.2
     container_name: pokemon-backup-gdrive
     profiles:
       - backup
