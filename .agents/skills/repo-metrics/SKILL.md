@@ -36,3 +36,4 @@ Medir, auditar y documentar la evolución técnica de `rocapellino/pokedex` a lo
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si las métricas demandan refactors estructurales, articular la propuesta con [change-plan.md](../_shared/change-plan.md).
+- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de métricas) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

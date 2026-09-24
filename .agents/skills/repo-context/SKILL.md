@@ -35,3 +35,4 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si se requiere alterar contratos de configuración base, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.
+- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (contextos operativos, instrucciones) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

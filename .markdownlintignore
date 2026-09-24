@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+.gemini/
+apps/backend/dist/
+apps/frontend/dist/
