@@ -1,4 +1,4 @@
-# <img src="apps/frontend/public/favicon.svg" alt="Pokéball" width="32" height="32" align="middle" /> Pokémon DevOps Platform
+# ![Pokéball](apps/frontend/public/favicon.svg) Pokémon DevOps Platform
 
 Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una Pokédex reactiva para la consulta y gestión del catálogo oficial de Pokémon. Diseñada bajo principios de separación de responsabilidades, seguridad por defecto (*fail-closed*) y despliegue continuo mediante contenedores y orquestación con Kubernetes y GitOps.
 
@@ -15,7 +15,7 @@ Plataforma full-stack y referencia de arquitectura DevSecOps que implementa una 
 
 ## 📑 Tabla de Contenidos
 
-- [Pokémon DevOps Platform](#pokémon-devops-platform)
+- [Pokémon DevOps Platform](#-pokémon-devops-platform)
   - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
   - [Demo y Acceso Rápido](#demo-y-acceso-rápido)
   - [Características Principales](#características-principales)
