@@ -166,3 +166,41 @@ El protocolo automatizado valida:
 - Prueba de restauración real en base de datos PostgreSQL efímera (vía Docker) o remota (`DR_POSTGRES_URL`), validando existencia de la tabla `pokedex_entries`, conteo de filas, lectura representativa e integridad de índices.
 - Salvaguarda fail-closed que impide restauraciones accidentales contra bases de datos que contengan 'prod' o 'production' sin confirmación explícita (`ALLOW_PROD_RESTORE=true`).
 - Medición del tiempo transcurrido contra el objetivo oficial de RTO (< 2 horas).
+
+### 4.3. Simulacro End-to-End de Cadena Inversa (`dr:drill:e2e`)
+
+Demuestra operacionalmente la recuperación total desde el repositorio remoto hasta la validación de negocio en el motor de base de datos:
+
+```text
+Google Drive (Off-site) -> Descarga -> Checksum SHA-256 OK -> Descifrado AES-256 OK -> Restore PostgreSQL -> Validación de Datos
+```
+
+Ejecución canónica:
+
+```bash
+npm run dr:drill:e2e
+# O mediante Taskfile:
+task dr:drill:e2e
+```
+
+El simulacro audita y reporta obligatoriamente 11 métricas contractuales:
+
+1. **Backup timestamp:** Marca temporal ISO del volcado.
+2. **Tamaño:** Longitud exacta en bytes y kilobytes del archivo cifrado.
+3. **Checksum:** Suma SHA-256 criptográficamente inmutable del artefacto.
+4. **Presencia del objeto remoto:** Confirmación de existencia y paridad de tamaño en Google Drive / storage off-site.
+5. **Tiempo de copia:** Latencia de sincronización hacia el almacenamiento remoto.
+6. **Tiempo de descarga:** Tiempo requerido para transferir el respaldo desde el almacenamiento remoto al entorno de recuperación.
+7. **Tiempo de descifrado:** Tiempo de descifrado AES-256-CBC PBKDF2 y descompresión gzip.
+8. **Tiempo de restore:** Tiempo de inyección DDL/DML en PostgreSQL aislado.
+9. **Cantidad de registros restaurados:** Conteo verificado mediante consulta SQL directa sobre `pokedex_entries`.
+10. **RPO efectivo:** Tiempo transcurrido entre la toma del snapshot y el incidente simulado (evaluado contra el SLA < 24h).
+11. **RTO efectivo:** Duración acumulada de la cadena de recuperación (descarga + descifrado + restore + validación, evaluado contra el SLA < 2h).
+
+### 4.4. Política Fail-Closed en Respaldo Off-Site
+
+Cuando `backup.gdrive.enabled: true`:
+
+- La clave `GDRIVE_TOKEN` es estrictamente obligatoria en el Secret de Kubernetes (`optional: false`).
+- El contenedor ejecuta la aserción de shell fail-closed: `: "${RCLONE_CONFIG_GDRIVE_TOKEN:?GDRIVE_TOKEN is mandatory when gdrive backup is enabled}"`.
+- Si el token o la conectividad remota fallan, el Job termina con error (`JOB FAILED`), alertando a los operadores y evitando falsos positivos de respaldo exitoso.

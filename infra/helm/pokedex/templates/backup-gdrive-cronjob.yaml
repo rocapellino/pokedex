@@ -46,16 +46,13 @@ spec:
                     secretKeyRef:
                       name: {{ .Values.backup.gdrive.secretName | default (include "pokedex.secretName" .) }}
                       key: {{ .Values.backup.gdrive.tokenKey | default "GDRIVE_TOKEN" }}
-                      optional: true
+                      optional: false
               command:
                 - /bin/sh
                 - -c
                 - |
                   set -eu
-                  if [ -z "${RCLONE_CONFIG_GDRIVE_TOKEN:-}" ]; then
-                    echo "⚠️ [DR Off-Site] Variable GDRIVE_TOKEN no provista en el Secret; sincronización omitida."
-                    exit 0
-                  fi
+                  : "${RCLONE_CONFIG_GDRIVE_TOKEN:?GDRIVE_TOKEN is mandatory when gdrive backup is enabled}"
                   echo "☁️ [DR Off-Site] Sincronizando volcados cifrados desde PVC hacia Google Drive (gdrive:${GDRIVE_FOLDER})..."
                   rclone sync /backups "gdrive:${GDRIVE_FOLDER}" --include "pokedex_*.sql.gz.enc*" --include "*.sha256" --verbose
                   echo "✅ [DR Off-Site] ¡Sincronización a Google Drive completada exitosamente!"
