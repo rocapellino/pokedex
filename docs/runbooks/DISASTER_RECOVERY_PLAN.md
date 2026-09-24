@@ -66,8 +66,11 @@ flowchart LR
 | **Restore Verification Semanal** | Proxmox Prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |
 | **Off-Site Cloud Backup (S3-compat)** | Object Storage Agnóstico | **ESQUELETO (INACTIVO)** | Endpoint remoto S3/R2/B2/MinIO (Documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)) |
 | **Off-Site PBS Remote Sync** | Hipervisor (Proxmox VE) | **ESQUELETO (INACTIVO)** | Sync Job hacia PBS secundario (Documentado en [setup_pbs_backup_blueprint.yml](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml)) |
-| **Off-Site Google Drive (Proxmox)** | Proxmox Prod (K8s / K3s) | **ACTIVO (Renderizado K8s-Native)** | CronJob `pokedex-gdrive-sync` montando `pokedex-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
+| **Off-Site Google Drive (Proxmox)** | Proxmox Prod (K8s / K3s) | **IMPLEMENTADO EN MAIN / PENDIENTE DE PROMOCIÓN GITOPS (v1.76.0)** | CronJob `pokedex-gdrive-sync` montando `pokedex-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
 | **Off-Site Google Drive (Dev)** | Local (Docker) | **ACTIVO (Orquestado)** | Orquestado end-to-end con `dev-backup-gdrive.ts` (`pg_dump` -> cifrado -> Rclone) |
+
+> [!NOTE]
+> **Ciclo de Vida de Despliegue en Proxmox:** El CronJob de sincronización hacia Google Drive (`pokedex-gdrive-sync`) está completamente implementado y verificado en `main`. Su despliegue y ejecución efectiva en el runtime de producción ocurrirá una vez publicado el tag `v1.76.0` y actualizado `targetRevision` en `gitops/apps/app-proxmox.yaml`.
 
 ---
 
