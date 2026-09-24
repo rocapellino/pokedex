@@ -139,6 +139,9 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
    kubectl logs job/manual-gdrive-sync -n pokemon-app
    ```
 
+   > [!NOTE]
+   > **Dependencia de Promoción GitOps:** En clústeres gestionados mediante ArgoCD (como Proxmox Prod), la plantilla `backup-gdrive-cronjob.yaml` es renderizada y aplicada únicamente cuando `targetRevision` en `gitops/apps/app-proxmox.yaml` apunta a una versión igual o superior a `v1.76.0`. Si el clúster reconcilia un tag previo (`v1.75.10`), el recurso permanecerá inactivo hasta completar la promoción de release en GitOps.
+
 ---
 
 ## 5. Alternativa C: Sincronización en el Host Proxmox VE (Nivel Hipervisor)

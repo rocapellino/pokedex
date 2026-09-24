@@ -12,11 +12,14 @@ Este documento formaliza la arquitectura de referencia, los esqueletos de config
 > Los dos esqueletos detallados a continuación están diseñados y parametrizados (*Cloud-Ready* y *PBS-Ready*), pero permanecen **INACTIVOS** (`enabled: false`) a la espera de la designación y aprovisionamiento del almacenamiento externo.
 
 | Componente | Nivel / Capa | Estado Operativo | Ubicación de Datos |
-|---|---|:---:|---|
+| --- | --- | :---: | --- |
 | **Respaldo Local PostgreSQL** | Aplicación (K8s) | **ACTIVO** | PVC `/backups` cifrado con AES-256-CBC + SHA-256 (Host Proxmox) |
 | **Restore Drill Semanal** | K8s (`dr-restore-verify`) | **ACTIVO** | Verificación en base efímera (Semanal domingos 04:00 UTC) |
 | **Esqueleto Cloud Off-Site** | Object Storage (S3-compatible) | **PREPARADO (INACTIVO)** | Endpoint remoto agnóstico (AWS S3, Cloudflare R2, B2, MinIO) |
 | **Esqueleto PBS Remote Sync** | Hipervisor (Proxmox VE) | **PREPARADO (INACTIVO)** | Servidor PBS secundario fuera de las instalaciones |
+
+> [!NOTE]
+> **Vía Off-Site Implementada:** Para la solución off-site implementada y soportada en el repositorio (Google Drive mediante Rclone K8s-Native y Docker), consultar la guía [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md). Los esquemas S3 y PBS detallados en este documento constituyen blueprints agnósticos preparados para contingencia o futura expansión.
 
 ---
 
@@ -85,18 +88,23 @@ spec:
    - Habilitar cifrado en reposo (SSE-S3 o KMS) y versionado.
    - (Recomendado) Activar política de retención inmutable (*Object Lock*) por 30 días.
 2. **Cargar Credenciales en HashiCorp Vault:**
+
    ```bash
    vault kv put secret/pokedex/prod/backup-offsite \
      AWS_ACCESS_KEY_ID="<ACCESS_KEY>" \
      AWS_SECRET_ACCESS_KEY="<SECRET_KEY>" \
      OFFSITE_ENDPOINT="https://<account_id>.r2.cloudflarestorage.com"
    ```
+
 3. **Desplegar el ExternalSecret:**
+
    ```bash
    kubectl apply -f infra/k8s/eso/backup-offsite-externalsecret.yaml
    ```
+
 4. **Habilitar en GitOps:**
    En `gitops/environments/proxmox/values.yaml`, cambiar:
+
    ```yaml
    backup:
      offsite:
@@ -144,12 +152,15 @@ El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](../../infr
 ### 3.2. Procedimiento de Activación de la Vía PBS
 
 1. **Generar la Clave de Cifrado en Proxmox VE:**
+
    ```bash
    proxmox-backup-client key create /etc/pve/priv/storage/pbs-pokedex.enc
    # CRÍTICO: Exportar y custodiar el papel / archivo .enc fuera del host Proxmox
    proxmox-backup-client key paperkey /etc/pve/priv/storage/pbs-pokedex.enc
    ```
+
 2. **Vincular el Almacenamiento en Proxmox:**
+
    ```bash
    pvesm add pbs pbs-pokedex-local \
      --server 10.10.13.50 \
@@ -159,7 +170,9 @@ El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](../../infr
      --encryption-key /etc/pve/priv/storage/pbs-pokedex.enc \
      --prune-backups keep-daily=7,keep-weekly=4,keep-monthly=12
    ```
+
 3. **Configurar el Sync Job hacia el PBS Remoto:**
+
    ```bash
    proxmox-backup-manager remote create pbs-offsite-replica \
      --server pbs-remote.external.example.com \
@@ -177,7 +190,7 @@ El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](../../infr
 ## ⚖️ 4. Matriz Comparativa para la Decisión de Implementación
 
 | Criterio | Vía A: Cloud S3-Compatible | Vía B: Proxmox Backup Server (PBS) Remoto |
-|---|---|---|
+| --- | --- | --- |
 | **Alcance de los Datos** | Base de datos PostgreSQL (`.sql.gz.enc` + checksum) | Imágenes completas de SO y discos (VM 801 + LXC 810 + PostgreSQL) |
 | **Complejidad de Infraestructura** | Mínima (servicio SaaS administrado, ej. Cloudflare R2 / AWS S3) | Media-Alta (requiere servidor o VPS dedicado ejecutando PBS OS) |
 | **Costo Operativo** | Muy bajo (pocos gigabytes mensuales, cero costo de egreso en R2) | Costo de servidor / storage mensual (VPS o máquina física secundaria) |
