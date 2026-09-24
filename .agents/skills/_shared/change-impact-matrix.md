@@ -73,3 +73,22 @@ No todos los archivos de un subsistema deben alterarse ante un cambio. La skill 
 2. **Promoción Desacoplada de CI:** Si se publica una nueva imagen en CI pero el release actual de producción permanece deliberadamente fijado en un tag anterior, **no debe modificarse `targetRevision` en GitOps** de forma inmediata.
 3. **Persistencia Agnóstica:** Si se modifica la programación de un CronJob (`schedule`), pero el volumen PVC y el script de restore permanecen intactos, **no deben modificarse las políticas de almacenamiento ni OpenTofu**.
 4. **Entorno Aislado:** Si un cambio aplica únicamente al perfil on-premise Proxmox (ej. `values.yaml`), **no debe modificarse el perfil de AWS (`values.prod.yaml`)**.
+
+---
+
+## 4. Matriz de Gating Condicional por Dominio
+
+La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes obligatorios** según el dominio tocado por el cambio:
+
+| Tipo de Cambio | Archivos / Rutas Típicas | Skills Obligatorias | Quality Gates Requeridos | Gates Exentos / Omitidos |
+| :--- | :--- | :--- | :--- | :--- |
+| **Backend Core** | `apps/backend/src/` | `repo-quality`, `repo-testing`, `repo-security` (App) | `npm run lint`, `npm run build:backend`, `npm test` (unit/integración), `test:fuzz` | Playwright E2E UI, Helm render, Terraform/Ansible |
+| **Frontend SPA** | `apps/frontend/src/` | `repo-quality`, `repo-testing` | `npm run build:frontend`, `npm run typecheck`, tests unitarios de componentes, Playwright E2E (`tests/e2e/`) | Helm render, Vault rotation, Egress anti-SSRF, Fuzzing |
+| **Infraestructura Helm** | `infra/helm/` | `repo-architecture`, `repo-release`, `repo-security` | `helm lint`, `gitops:verify-parity:strict`, validación de templates AST | Backend unit tests, Playwright UI tests |
+| **GitOps Declarativo** | `gitops/` | `repo-architecture`, `repo-release` | `gitops:pin:check`, `gitops:verify-parity:strict` | Pruebas de fuzzing, frontend build |
+| **Plataforma / Ansible / OpenTofu** | `infra/ansible/`, `infra/opentofu/` | `repo-architecture`, `repo-security` (K8s/Vault) | `secrets:audit-rotation`, linter de Ansible/Tofu | Frontend builds, backend unit tests |
+| **Workflows de CI/CD** | `.github/workflows/` | `repo-ci`, `repo-security` (CI) | Validación sintáctica YAML, auditoría de permisos de tokens (`permissions:`) | Pruebas E2E de navegador, migraciones DB |
+| **Dependencias Monorepo** | `package.json`, `package-lock.json` | `repo-dependencies`, `repo-security` (SCA), `repo-testing` | `npm audit`, `npm test`, paridad de lockfile | Helm render, Playwright E2E (salvo si toca deps de browser) |
+| **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**) | Builds de código, tests unitarios, Docker builds, scans |
+| **Enmienda de ADR** | `docs/decisions/` | `repo-architecture`, `repo-docs` | `npm run lint:md`, validación cruzada con `source-of-truth.md` | Validación de clúster, builds de frontend |
+| **Corte de Release** | `package.json` (bump), `Chart.yaml`, GitOps pins | `repo-release`, `repo-security` (Supply Chain), `repo-docs` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |

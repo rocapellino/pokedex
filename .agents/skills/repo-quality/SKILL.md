@@ -15,7 +15,8 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - **Arquitectura de Software y Separación de Capas:**
   - En `apps/backend`: Separación clara entre rutas, middlewares, controladores, servicios de dominio, repositorios Drizzle y validadores Zod.
   - En `apps/frontend`: Organización modular en Vanilla TypeScript, separación de UI del estado, encapsulamiento de llamadas API y saneamiento con DOMPurify.
-- **Complejidad y Acoplamiento:** Detección de módulos sobrecargados (*God files*), funciones de excesiva longitud o lógica profundamente anidada.
+- **Prevención de God Files y Monolitos Relocalizados:** Detección de módulos sobrecargados (*God files*), funciones desproporcionadas y carpetas cajón de sastre sin cohesión (control de regresión histórica estilo `server.ts` 1.178 LOC → 280 LOC).
+- **Métricas Estructurales y Acoplamiento:** Evaluación multidimensional de acoplamiento aferente/eferente ($C_a$, $C_e$), índice de inestabilidad ($I$), cohesión (LCOM), complejidad ciclomática y detección de dependencias circulares.
 - **Manejo Robusto de Errores y Logging:**
   - Registro estructurado con Pino incorporando correlación (`X-Request-Id`).
   - Prohibición estricta de captura silenciosa de excepciones (`catch (e) {}` sin log o manejo).
@@ -24,10 +25,19 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 
 ## Comandos
 
-- `/repo-quality`: Evaluación integral de calidad de código en el monorepo.
-- `/repo-quality backend`: Auditoría específica de mantenibilidad y patrones en `apps/backend`.
+- `/repo-quality`: Evaluación integral de calidad y mantenibilidad del código en el monorepo.
+- `/repo-quality backend`: Auditoría específica de patrones, middlewares y rutas en `apps/backend`.
 - `/repo-quality frontend`: Auditoría de componentes, manipulación de DOM y modularidad en `apps/frontend`.
-- `/repo-quality hotspots`: Identificación de los archivos con mayor deuda técnica o complejidad.
+- `/repo-quality structure`: Evaluación multidimensional de cohesión, acoplamiento ($C_a, C_e, I$) y dependencias circulares.
+- `/repo-quality godfiles`: Detección precoz de archivos o módulos con acumulación patológica de responsabilidades.
+- `/repo-quality hotspots`: Identificación de los archivos con mayor deuda técnica, complejidad y churn.
+
+## Referencias Especializadas
+
+- **Métricas Estructurales:** [references/structural-metrics.md](references/structural-metrics.md)
+- **Acoplamiento y Cohesión:** [references/coupling-and-cohesion.md](references/coupling-and-cohesion.md)
+- **Detección de Monolitos:** [references/monolith-detection.md](references/monolith-detection.md)
+- **Guías de Refactorización:** [references/refactoring-guidelines.md](references/refactoring-guidelines.md)
 
 ## Formato de Salida y Gobernanza
 

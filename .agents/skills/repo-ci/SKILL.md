@@ -24,9 +24,9 @@ Optimizar el pipeline de integración y entrega continua (CI/CD) de GitHub Actio
 
 ## Comandos
 
-- `/repo-ci`: Diagnóstico integral de la infraestructura de CI/CD.
+- `/repo-ci`: Diagnóstico integral de la infraestructura y pipelines de CI/CD.
 - `/repo-ci pr`: Evaluación de los flujos y gates que validan Pull Requests.
-- `/repo-ci security`: Análisis de permisos, exposición de secretos y hardening de runners.
+- `/repo-ci security`: Análisis de permisos, exposición de secretos y hardening de runners (delega formalmente en `repo-security ci`).
 - `/repo-ci optimization`: Estrategias para reducir tiempos de build, mejorar cache y concurrencia.
 
 ## Formato de Salida y Gobernanza
