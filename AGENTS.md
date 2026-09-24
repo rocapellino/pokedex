@@ -21,7 +21,8 @@ Al analizar el repositorio, buscar dependencias, validar configuraciones de infr
 
 > [!IMPORTANT]
 > **Regla de Oro:** **NUNCA inferir el estado actual, rutas de secretos o configuración vigente desde `docs/audits/`**.
-> Por ejemplo, referencias pasadas a `pokedex/production` en auditorías son evidencia histórica. La configuración operativa actual utiliza estrictamente **`pokedex/prod`** y **`pokedex/preprod`**.
+> **Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.**
+> Por ejemplo, referencias pasadas a `pokedex/production` o snapshots de validación previa en auditorías son evidencia histórica. La configuración operativa actual utiliza estrictamente **`pokedex/prod`** y **`pokedex/preprod`**.
 
 ---
 

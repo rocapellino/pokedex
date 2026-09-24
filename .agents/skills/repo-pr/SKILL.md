@@ -25,14 +25,14 @@ Gobernar el ciclo completo de preparación, validación y revisión de Pull Requ
 
 `repo-pr` es un consumidor de evidencias, no una segunda suite de auditoría:
 
-- **Quality Gates y Pre-Commit:** Consume de `repo-quality` los resultados de `npm run lint`, `typecheck` y el estado de los hooks en `.pre-commit-config.yaml` (`EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE`, `NOT_APPLICABLE`, `NOT_EXECUTED`).
+- **Quality Gates y Pre-Commit:** Consume de `repo-quality` los resultados de `npm run lint`, `typecheck` y el estado de `pre-commit` evaluado dinámicamente (`EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE`).
 - **Pruebas y Cobertura:** Consume de `repo-testing` los resultados de `npm test`, `test:coverage`, `test:fuzz` y Playwright E2E.
 - **Seguridad y SAST:** Consume de `repo-security` los escaneos de Semgrep, Gitleaks, Trivy y Dependency Review.
 - **Cierre Documental:** Consume de `repo-docs` la verificación de drift y la ejecución del Markdown Quality Gate (`0 errores MDxxx`).
 
 ### 3. PR Readiness Gate Contractual
 
-Antes de dar por preparado o aprobado un PR, valida los 15 controles del Readiness Gate clasificando cada dimensión en:
+Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate clasificando cada dimensión en:
 
 - `PASS`: Verificación ejecutada y exitosa con evidencia comprobable.
 - `FAIL`: Verificación fallida con errores pendientes de corrección.
@@ -69,11 +69,8 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 
 - `/repo-pr`: Orquesta el flujo completo de evaluación y preparación de un PR para el cambio activo.
 - `/repo-pr prepare`: Descubre el template real, recopila evidencias y genera el título y descripción canónicos en español.
-- `/repo-pr gate`: Evalúa exhaustivamente los 15 puntos del PR Readiness Gate emitiendo el veredicto formal (`PASS`, `FAIL` o `BLOCKED`).
+- `/repo-pr gate`: Evalúa exhaustivamente los controles del PR Readiness Gate emitiendo el veredicto formal (`PASS`, `FAIL` o `BLOCKED`).
 - `/repo-pr review`: Ejecuta una revisión técnica estructurada sobre un diff o PR existente, segregando observaciones P0-P3.
-- `/repo-pr security`: Revisión focalizada en seguridad, secretos y permisos mínimos (delega en `repo-security`).
-- `/repo-pr architecture`: Revisión de contratos, límites y acoplamiento (delega en `repo-architecture` y `repo-quality`).
-- `/repo-pr tests`: Verificación de suficiencia de pruebas automatizadas para el cambio (delega en `repo-testing`).
 
 ---
 
@@ -86,8 +83,9 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 
 ## Formato de Salida y Gobernanza
 
+- **Regla Cardenal:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.
+- **Política de Idioma:** Aplicar [_shared/language-policy.md](../_shared/language-policy.md) para toda comunicación humana, descripciones de PR y comentarios de revisión en español.
 - **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Política de Idioma:** Toda comunicación humana, descripción de PR o comentario de revisión debe redactarse en español conforme a [language-policy.md](../_shared/language-policy.md).
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar los informes de revisión siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si la preparación del PR evidencia drift no resuelto, planificarlo mediante [change-plan.md](../_shared/change-plan.md).

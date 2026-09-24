@@ -21,18 +21,19 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
   - Registro estructurado con Pino incorporando correlación (`X-Request-Id`).
   - Prohibición estricta de captura silenciosa de excepciones (`catch (e) {}` sin log o manejo).
   - Códigos de estado HTTP semánticos y esquemas de error normalizados.
-- **Gobernanza de Pre-Commit y Quality Gates Locales:**
-  - Detección de archivos de configuración de hooks (`.pre-commit-config.yaml` / `pre-commit-config.yaml`).
-  - Identificación de los hooks configurados (`pre-commit-hooks`, `gitleaks`, `conventional-pre-commit`, etc.) y determinación de aplicabilidad al cambio.
-  - Verificación de disponibilidad del binario en el entorno local (`pre-commit --version`).
-  - Ejecución controlada sobre los archivos modificados (`pre-commit run --files <archivos>`).
-  - Clasificación estricta del resultado: `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE` (herramienta ausente en el PATH local, delegando a CI sin asumir falso positivo), `NOT_APPLICABLE` o `NOT_EXECUTED`.
-  - Principio de complementariedad: `pre-commit` es un control previo local que complementa y no reemplaza a los pipelines de CI/CD.
+- **Gobernanza Dinámica de Pre-Commit y Quality Gates Locales:**
+  - Inspección dinámica de configuración: Verificar si existe archivo de configuración de hooks en la raíz del repositorio (`.pre-commit-config.yaml`). Si no existe, clasificar el estado como `NOT_CONFIGURED`.
+  - Si existe configuración, parsear dinámicamente los repositorios y hooks declarados en tiempo de ejecución, determinando su aplicabilidad frente a las extensiones y rutas de los archivos modificados en el diff.
+  - Verificación de disponibilidad del CLI en el entorno local (`pre-commit --version`). Si el comando no está disponible en el PATH, reportar `NOT_AVAILABLE_LOCAL / CI_REQUIRED` delegando la validación a CI sin registrar falsos fallos locales.
+  - Si el CLI está disponible y aplican hooks, ejecutar selectivamente sobre los archivos modificados (`pre-commit run --files <archivos>`).
+  - Clasificación fáctica del resultado: `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
+  - Principio de complementariedad: `pre-commit` es un control previo local que complementa y no sustituye los pipelines integrales de CI/CD.
 
 ## Comandos
 
 - `/repo-quality`: Evaluación integral de calidad y mantenibilidad del código en el monorepo.
-- `/repo-quality precommit`: Detección, auditoría y ejecución selectiva de hooks configurados en `.pre-commit-config.yaml`.
+- `/repo-quality precommit`: Detección dinámica, auditoría y ejecución selectiva de hooks de pre-commit sobre el diff activo.
+
 - `/repo-quality backend`: Auditoría específica de patrones, middlewares y rutas en `apps/backend`.
 - `/repo-quality frontend`: Auditoría de componentes, manipulación de DOM y modularidad en `apps/frontend`.
 - `/repo-quality structure`: Evaluación multidimensional de cohesión, acoplamiento ($C_a, C_e, I$) y dependencias circulares.
