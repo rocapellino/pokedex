@@ -214,3 +214,12 @@ test('🛡️ GitOps Configuration: Proxmox values.yaml habilita Cilium L7 Zero-
     'Proxmox values.yaml debe desactivar externalHttps L4 para evitar el bypass de 0.0.0.0/0'
   );
 });
+
+test('🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7', () => {
+  const probeScript = path.join(ROOT_DIR, 'scripts/probe-egress-security.ts');
+  const output = execSync(`node --experimental-strip-types "${probeScript}" --simulate --profile=cilium-l7`, {
+    encoding: 'utf-8',
+  });
+  assert.match(output, /🛡️\s+Pokédex Egress Network Security & Anti-SSRF Probe/);
+  assert.match(output, /¡Todos los controles de Egress y Anti-SSRF validados con éxito!/);
+});

@@ -172,3 +172,11 @@ backup:
     enabled: true
     folder: "PokedexBackups/proxmox"
 
+# ------------------------------------------------------------------------------
+# Resiliencia de Cache & Sesiones (Redis Persistente)
+# ------------------------------------------------------------------------------
+redis:
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
