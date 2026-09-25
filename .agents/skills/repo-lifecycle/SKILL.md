@@ -109,7 +109,6 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 - **Precedencia:** Ejecutar siempre `repo-context` antes de invocar análisis especializados.
 - **Validación Fáctica:** No considerar una recomendación como resuelta sin evidencia demostrable.
 - **Cierre Documental Obligatorio:** Todo cambio debe cerrar su drift documental antes de la preparación del PR.
-- **Política de Idioma:** Toda interacción y documentación orientada a personas debe cumplir con [language-policy.md](../_shared/language-policy.md) en español.
 
 ---
 

@@ -43,6 +43,21 @@ Para cada funcionalidad relevante del repositorio, se evalúa su estado real a t
 3. **Contratos de Secretos y Configuración:**
    - La clave de Vault o SecretStore apuntada en GitOps (`pokedex/prod`) debe existir en la infraestructura y ser compatible con la versión de la aplicación desplegada.
 
+### 3.1. Desglose Atómico de Supply Chain en RELEASE
+
+Para erradicar la asunción de *"tag existe = todo validado"*, la certificación del nivel `RELEASE` descompone su evaluación en seis comprobaciones independientes:
+
+| Sub-dimensión | Criterio de Verificación | Evidencia Fáctica Requerida |
+| :--- | :--- | :--- |
+| **`Git Tag`** | Existencia inmutable y firma del tag en Git (`vX.Y.Z`). | `git rev-parse`, `gitsign verify-tag` o firma GPG. Si está *unsigned*, se reporta `WARNING (P2)`. |
+| **`OCI Image`** | Existencia del artefacto en GHCR bajo la etiqueta de versión. | Consulta al registry (`ghcr.io/rocapellino/pokedex-api:vX.Y.Z`). |
+| **`OCI Digest`** | Presencia de digest inmutable SHA-256 y paridad 1:1 con GitOps. | `npm run gitops:verify-parity:strict`. |
+| **`Cosign Signature`** | Firma criptográfica Sigstore en imagen Docker y Helm Chart. | `cosign verify <image>@sha256:...`. |
+| **`SBOM`** | SBOM CycloneDX generado y adjunto al digest OCI. | Inspección de capa SBOM en GHCR (`cosign download sbom`). |
+| **`SLSA Provenance`** | Atestación *in-toto* de procedencia verificable. | `cosign verify-attestation --type cyclonedx ...`. |
+
+Cada sub-dimensión debe clasificarse estrictamente como `PASS`, `FAIL`, `UNKNOWN` (en caso de no contar con credenciales o conectividad al registry) o `NOT_APPLICABLE`.
+
 ---
 
 ## 4. Consistencia Documental (Documentation Consistency)
@@ -59,14 +74,15 @@ Se auditan afirmaciones en `README.md`, `docs/architecture/` y `docs/operations/
 
 ## 5. Chequeo de Preparación para Promoción (Promotion Readiness)
 
-Antes de autorizar la promoción de un nuevo release hacia GitOps, se evalúan 8 dimensiones críticas:
+Antes de autorizar la promoción de un nuevo release hacia GitOps, se evalúan 9 dimensiones críticas:
 
 | Dimensión | Estados Posibles | Criterio de Aprobación |
 | :--- | :---: | :--- |
-| **Release Consistency** | PASS / WARNING / BLOCKER | El Git Tag existe, es inmutable y tiene notas de versión completas. |
+| **Release & Tag Consistency** | PASS / WARNING / BLOCKER | El Git Tag existe, es inmutable y tiene notas de versión. Si el tag está *unsigned*, se reporta `WARNING (P2)`. |
 | **Code Consistency** | PASS / WARNING / BLOCKER | Working tree limpio, tipos TypeScript verificados (`typecheck`), tests pasando. |
 | **Helm Consistency** | PASS / WARNING / BLOCKER | `helm lint` y `helm template` renderizan sin errores sintácticos. |
-| **Image Consistency** | PASS / WARNING / BLOCKER | Imágenes publicadas en GHCR, firmadas con Cosign y con atestación SBOM. |
+| **OCI Artifact Consistency** | PASS / WARNING / BLOCKER | Imágenes Docker y Helm Charts publicados en GHCR y firmados con Cosign (`cosign verify`). |
+| **Provenance & SBOM Attestation** | PASS / WARNING / BLOCKER | Atestación *in-toto* y SBOM CycloneDX asociados al *digest* OCI verificados (`cosign verify-attestation`). |
 | **Secrets Consistency** | PASS / WARNING / BLOCKER | Claves de Vault y ExternalSecrets coinciden con el contrato del nuevo release. |
 | **GitOps Consistency** | PASS / WARNING / BLOCKER | Los values por entorno no contienen flags obsoletos o incompatibles. |
 | **DR Consistency** | PASS / WARNING / BLOCKER | Procedimientos de backup y restore validados (simulacro o test de restore). |

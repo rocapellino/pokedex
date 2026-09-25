@@ -53,5 +53,4 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Planificar las mejoras incrementales mediante [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-refactor`.
-- **Política de Idioma:** Toda comunicación humana, reporte o recomendación generada debe adherirse a [language-policy.md](../_shared/language-policy.md) (comunicación en español, identificadores técnicos en inglés).
 - **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de calidad, planes) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

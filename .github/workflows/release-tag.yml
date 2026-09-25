@@ -12,6 +12,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   auto-tag-and-release:
@@ -25,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 2. Determinar Versión Semántica y Generar Tag
+      - name: 2. Determinar Versión Semántica y Generar Changelog
         id: tag_version
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
@@ -33,8 +34,31 @@ jobs:
           default_bump: patch
           tag_prefix: "v"
           release_branches: "main"
+          dry_run: true
 
-      - name: 3. Crear Release en GitHub con Changelog Automático
+      - name: 3. Instalar Gitsign (Keyless Sigstore)
+        if: steps.tag_version.outputs.new_tag
+        run: |
+          GITSIGN_VERSION="0.17.1"
+          curl --proto '=https' -sSfL "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64.tar.gz" -o "$RUNNER_TEMP/gitsign.tar.gz"
+          tar -xzf "$RUNNER_TEMP/gitsign.tar.gz" -C "$RUNNER_TEMP" gitsign
+          sudo mv "$RUNNER_TEMP/gitsign" /usr/local/bin/gitsign
+          sudo chmod +x /usr/local/bin/gitsign
+
+      - name: 4. Firmar y Publicar Git Tag con Gitsign (Keyless Sigstore OIDC)
+        if: steps.tag_version.outputs.new_tag
+        env:
+          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local gpg.format x509
+          git config --local gpg.x509.program gitsign
+          git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}"
+          gitsign verify-tag "${NEW_TAG}"
+          git push origin "${NEW_TAG}"
+
+      - name: 5. Crear Release en GitHub con Changelog Automático
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: steps.tag_version.outputs.new_tag
         with:
@@ -45,12 +69,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 4. Actualizar targetRevision en Manifiestos de ArgoCD
+      - name: 6. Actualizar targetRevision en Manifiestos de ArgoCD
         if: steps.tag_version.outputs.new_tag
         run: |
           node --experimental-strip-types scripts/update-gitops-pin.ts --tag="${{ steps.tag_version.outputs.new_tag }}"
 
-      - name: 5. Crear Pull Request de Promoción de Pinning en GitOps
+      - name: 7. Crear Pull Request de Promoción de Pinning en GitOps
         if: steps.tag_version.outputs.new_tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,22 +87,27 @@ jobs:
           git add gitops/apps/
           git commit -m "chore(gitops): bump argocd targetRevision to ${NEW_TAG} [skip-release]"
           git push origin "$BRANCH"
+          BODY=$(cat <<EOF
+          ### 🚀 Automated GitOps Pinning Promotion
+
+          Este Pull Request actualiza de forma controlada el \`targetRevision\` de las aplicaciones de ArgoCD al tag de release **${NEW_TAG}**.
+
+          #### Aplicaciones actualizadas:
+          - \`gitops/apps/root-application.yaml\`
+          - \`gitops/apps/app-proxmox-preprod.yaml\`
+          - \`gitops/apps/app-proxmox.yaml\`
+          - \`gitops/apps/app-cloud.yaml\`
+
+          #### Flujo de Gobernanza:
+          1. Release tag **${NEW_TAG}** generado y firmado criptográficamente con Sigstore Gitsign en CI.
+          2. Manifiestos de GitOps actualizados con pinning inmutable.
+          3. Requiere revisión y merge manual antes de que ArgoCD sincronice el clúster.
+
+          > Nota: Este commit incluye \`[skip-release]\` para evitar bucles recursivos de release.
+          EOF
+          )
           gh pr create \
             --title "chore(gitops): bump argocd targetRevision to ${NEW_TAG}" \
-            --body "### 🚀 Automated GitOps Pinning Promotion
-
-Este Pull Request actualiza de forma controlada el \`targetRevision\` de las aplicaciones de ArgoCD al tag de release **${NEW_TAG}**.
-
-#### Aplicaciones actualizadas:
-- \`gitops/apps/root-application.yaml\`
-- \`gitops/apps/app-proxmox.yaml\`
-- \`gitops/apps/app-cloud.yaml\`
-
-#### Flujo de Gobernanza:
-1. Release tag **${NEW_TAG}** generado en CI.
-2. Manifiestos de GitOps actualizados con pinning inmutable.
-3. Requiere revisión y merge manual antes de que ArgoCD sincronice el clúster.
-
-> Nota: Este commit incluye \`[skip-release]\` para evitar bucles recursivos de release." \
+            --body "$BODY" \
             --base main \
             --head "$BRANCH"

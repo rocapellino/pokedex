@@ -6,9 +6,9 @@
  * versión en las aplicaciones de ArgoCD (root-application, app-proxmox, app-cloud).
  *
  * Uso CLI:
- *   node --experimental-strip-types scripts/update-gitops-pin.ts --tag=v1.75.10
+ *   node --experimental-strip-types scripts/update-gitops-pin.ts --tag=vX.Y.Z
  *   node --experimental-strip-types scripts/update-gitops-pin.ts --check
- *   node --experimental-strip-types scripts/update-gitops-pin.ts --tag=v1.75.10 --dry-run
+ *   node --experimental-strip-types scripts/update-gitops-pin.ts --tag=vX.Y.Z --dry-run
  * ==============================================================================
  */
 

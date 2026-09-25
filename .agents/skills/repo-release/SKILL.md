@@ -17,10 +17,14 @@ Verificar exhaustivamente los criterios de preparación y *readiness* operaciona
   - Compilación limpia (`npm run build`).
   - Cero vulnerabilidades críticas o altas no remediadas (SCA / SAST).
   - 100% de tests unitarios, de integración y seguridad pasando (`npm test`).
-- **Validación de Artefactos e Inmutabilidad:**
-  - Existencia de SBOM CycloneDX generado.
-  - Firma criptográfica Cosign y atestación SLSA Provenance.
-  - OCI digest pinning verificado y consistente entre Helm y GitOps (`npm run gitops:verify-parity:strict`).
+- **Validación de Integridad de Supply Chain (RELEASE):**
+  Descompone el nivel `RELEASE` en 6 comprobaciones atómicas e independientes, evaluando cada una estrictamente como `PASS`, `FAIL`, `UNKNOWN` o `NOT_APPLICABLE`:
+  1. `Git Tag`: Existencia, inmutabilidad y firma (GPG/SSH/Sigstore; tags *unsigned* catalogados como `P2 / WARNING`).
+  2. `OCI Image`: Publicación confirmada de la imagen en GHCR bajo la etiqueta SemVer.
+  3. `OCI Digest`: Presencia de digest SHA-256 inmutable y paridad estricta entre Helm y GitOps (`npm run gitops:verify-parity:strict`).
+  4. `Cosign Signature`: Firma criptográfica keyless verificada en imagen y Helm Chart (`cosign verify`).
+  5. `SBOM`: Existencia de SBOM CycloneDX generado y adjunto al digest OCI.
+  6. `SLSA Provenance`: Atestación *in-toto* de procedencia generada y verificable (`cosign verify-attestation`).
 - **Auditoría de Consistencia de Despliegue (MAIN → RELEASE → GITOPS → RUNTIME):**
   - Mapeo y contraste de capacidades entre estado candidato (`main`), estado promocionable (`git tag`), estado declarado (`gitops/apps/`) y estado observado (`runtime`).
   - Detección de drift entre templates implementados y el `targetRevision` activo en ArgoCD.

@@ -68,6 +68,9 @@ Para cada verificación individual, se aplica la siguiente escala:
 - **`NOT_EXECUTED`:** Comprobación que aplicaba pero no se ejecutó. **Nunca equivale a PASS**.
 - **`CI_REQUIRED`:** Herramienta no disponible en el runtime local; verificación formal delegada obligatoriamente a CI.
 
+> [!IMPORTANT]
+> **Prohibición Estricta de Conversión:** Ninguna skill ni agente puede convertir un control con estado `CI_REQUIRED` o `NOT_EXECUTED` en `PASS`. `CI_REQUIRED` documenta con rigor fáctico que la herramienta no está disponible en el entorno local (ej. ausencia de binario `pre-commit`) y que la certificación depende exclusivamente de los runners de GitHub Actions. Falsear `CI_REQUIRED` como `PASS` constituye una violación severa de prevalencia fáctica.
+
 ---
 
 ## 5. Checklist Contractual del PR Readiness Gate

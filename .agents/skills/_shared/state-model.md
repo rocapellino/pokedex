@@ -42,7 +42,18 @@ El repositorio opera bajo una arquitectura de cuatro niveles secuenciales y desa
 1. **`MAIN` (Estado Candidato):**
    Representa el código fuente, plantillas de Helm, scripts y configuraciones integradas en la rama `main`. Es un estado candidato a release, sometido a pruebas automatizadas continuas (CI), pero **NO representa producción**.
 2. **`RELEASE` (Estado Promocionable):**
-   Punto inmutable en la historia del repositorio identificado por un tag SemVer (`vX.Y.Z`). Cuenta con imágenes de contenedores compiladas, firmadas criptográficamente con Cosign, atestación SLSA Provenance y SBOM CycloneDX publicado en GHCR.
+   Punto inmutable en la historia del repositorio identificado por un tag SemVer (`vX.Y.Z`). La existencia del Git Tag **no presupone la validez automática del release**. Para evitar la falacia de *"release = todo validado"*, el nivel `RELEASE` descompone su evaluación en seis comprobaciones independientes de la cadena de suministro (*supply chain*), evaluadas individualmente como `PASS`, `FAIL`, `UNKNOWN` o `NOT_APPLICABLE`:
+
+   ```text
+   RELEASE (vX.Y.Z)
+    ├── 1. Git Tag (Existencia, inmutabilidad y firma GPG/SSH/Sigstore)
+    ├── 2. OCI Image (Publicación verificada de la imagen en GHCR)
+    ├── 3. OCI Digest (Digest SHA-256 inmutable y paridad con GitOps/Helm)
+    ├── 4. Cosign Signature (Firma criptográfica keyless en imagen y chart)
+    ├── 5. SBOM (Archivo CycloneDX generado y adjunto al digest OCI)
+    └── 6. SLSA Provenance (Atestación in-toto de procedencia verificada)
+   ```
+
 3. **`GITOPS` (Estado Declarado / Desplegable):**
    Manifiestos de Kubernetes y configuraciones declaradas en `gitops/` que especifican qué versión (`targetRevision`) y qué valores (`values.yaml`) debe reconciliar ArgoCD para cada entorno (`proxmox`, `proxmox-preprod`, `cloud-aws`).
 4. **`RUNTIME` (Estado Observado):**
@@ -74,3 +85,4 @@ Para evitar ambigüedades operativas, toda capacidad o feature técnica debe cla
 > 2. **`RELEASE != Runtime`:** La publicación de un tag no implica su despliegue inmediato. GitOps gobierna el momento de promoción.
 > 3. **`GITOPS != Runtime`:** La declaración en ArgoCD es una intención; si el clúster está offline, en `SyncWindow Deny` (freeze) o con errores de reconciliación, el runtime diverge.
 > 4. **Prohibición de Inventar Telemetría:** Si un agente o auditor no tiene acceso directo al clúster, el estado de `RUNTIME` debe declararse formalmente como `UNKNOWN`.
+> 5. **Prohibición de Asumir Supply Chain Completo:** La verificación de que un Git Tag existe jamás certifica automáticamente la firma Cosign, la atestación SLSA ni la existencia de artefactos OCI. Cada una de las 6 sub-dimensiones de `RELEASE` debe auditarse con evidencia fáctica independiente (`PASS`, `FAIL`, `UNKNOWN` o `NOT_APPLICABLE`).
