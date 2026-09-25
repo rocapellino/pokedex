@@ -1,5 +1,9 @@
 # 🔐 Guía de Gestión de Secretos: HashiCorp Vault CE, ESO, .env y Gitleaks
 
+> [!NOTE]
+> **ESTADO DEL DOCUMENTO: VIGENTE (SSOT Actual)**
+> Este documento representa la Fuente Única de Verdad para la gestión de credenciales y secretos en Pokédex mediante HashiCorp Vault CE, AWS Secrets Manager y External Secrets Operator (ESO).
+
 Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps, de conformidad con el [ADR-005](../decisions/ADR-005-secret-management.md), el [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md) y el [ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md).
 
 ---
@@ -72,9 +76,10 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
                                       Pods (pokedex-api / web)
 ```
 
-### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE (Zero-Trust Least Privilege)
+### 3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE
+
 - **Instancia:** Desplegada en contenedor LXC dedicado (ID `810`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
-- **Segregación Estricta de Secretos y Roles RBAC (Erradicación de Roles Comodín):**
+- **Segregación Estricta de Secretos y Roles RBAC (Erradicación de Roles Comodín - Zero-Trust):**
   - **Pre-producción:** `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role` (política `pokedex-preprod-policy`).
   - **Producción:** `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role` (política `pokedex-prod-policy`).
   - *Principio de Blast Radius Reducido:* Se eliminó el rol global genérico `pokedex-role` y su política comodín `secret/data/pokedex/*`. Las credenciales comprometidas en pre-producción no tienen alcance ni visibilidad sobre los secretos de producción.
@@ -83,12 +88,14 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
   - Pre-producción: [`infra/k8s/eso/vault-backend-preprod.yaml`](../../infra/k8s/eso/vault-backend-preprod.yaml) (`ClusterSecretStore/vault-backend-preprod`).
 
 ### 3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager
+
 - **Instancia:** Almacén gestionado nativo de AWS con autenticación IAM mediante IRSA (`eks.amazonaws.com/role-arn`).
 - **Manifiesto:** [`infra/k8s/eso/aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml).
 
 ### 3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets
+
 - Bitnami Sealed Secrets se utilizó en fases iniciales del proyecto para cifrar credenciales asimétricamente en Git (`SealedSecret`).
-- **Estado Actual:** Superado por Vault CE + ESO. Se preserva la utilidad tipada [`scripts/seal-secret.ts`](../../scripts/seal-secret.ts) exclusivamente como mecanismo de migración o respaldo local fuera de línea.
+- **Estado Actual:** Superado por Vault CE + ESO. La utilidad legada `scripts/seal-secret.ts` fue retirada formalmente bajo el hito `CLN-002`, consolidando la totalidad de la plataforma en manifiestos declarativos de External Secrets Operator.
 
 ---
 
@@ -116,8 +123,9 @@ Tanto en AWS como en Proxmox, `.Values.secrets.existingSecret: "pokemon-secrets"
 
 ## 5. Rotación y Reinicio Progresivo (Rollout Restart)
 
-* **En AWS EKS:** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
-* **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-024](../decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
+- **En AWS EKS:** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
+- **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-024](../decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
+
   ```bash
   npm run k8s:rollout-restart -- --live
   # o vía Taskfile:
