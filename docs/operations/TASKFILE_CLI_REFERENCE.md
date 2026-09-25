@@ -112,21 +112,21 @@ flowchart LR
 
 | Alias Histórico Deprecado | Tarea Canónica Sustituta | Fase Actual | Fecha / Versión de Retiro |
 | :--- | :--- | :---: | :---: |
-| `task tofu:init:proxmox` | `task infra:validate` *(o tofu init en directorio)* | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:plan:proxmox` | `task infra:plan:proxmox` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:apply:proxmox` | `task infra:apply:proxmox` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:init:aws` | `task infra:validate` *(o tofu init en directorio)* | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:plan:aws` | `task infra:plan:aws` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:apply:aws` | `task infra:apply:aws` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:init:cloud` | `task infra:validate` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:plan:cloud` | `task infra:plan:aws` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:apply:cloud` | `task infra:apply:aws` | Fase 3 (Deprecado) | v2.0 |
-| `task tofu:validate` | `task infra:validate` | Fase 3 (Deprecado) | v2.0 |
-| `task ts:install` | `task install` | Fase 3 (Deprecado) | v2.0 |
-| `task ts:dev` | `task dev` | Fase 3 (Deprecado) | v2.0 |
-| `task ts:build` | `task build` | Fase 3 (Deprecado) | v2.0 |
-| `task ts:start` | `task start` | Fase 3 (Deprecado) | v2.0 |
-| `task ts:lint` | `task lint` | Fase 3 (Deprecado) | v2.0 |
-| `task docker:up` | `task dev:compose` | Fase 3 (Deprecado) | v2.0 |
-| `task docker:down` | `task dev:compose:down` | Fase 3 (Deprecado) | v2.0 |
-| `task deploy:proxmox` | `task ansible:prepare` | Fase 3 (Deprecado) | v2.0 |
+| `task tofu:init:proxmox` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:plan:proxmox` | `task infra:plan:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:apply:proxmox` | `task infra:apply:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:init:aws` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:plan:aws` | `task infra:plan:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:apply:aws` | `task infra:apply:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:init:cloud` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:plan:cloud` | `task infra:plan:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:apply:cloud` | `task infra:apply:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:validate` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task ts:install` | `task install` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task ts:dev` | `task dev` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task ts:build` | `task build` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task ts:start` | `task start` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task ts:lint` | `task lint` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task docker:up` | `task dev:compose` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task docker:down` | `task dev:compose:down` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task deploy:proxmox` | `task ansible:prepare` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
