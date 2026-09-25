@@ -54,7 +54,10 @@ jobs:
           git config --local gpg.format x509
           git config --local gpg.x509.program gitsign
           git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}"
-          gitsign verify-tag "${NEW_TAG}"
+          gitsign verify-tag \
+            --certificate-identity-regexp="^https://github\.com/${{ github.repository }}/" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+            "${NEW_TAG}"
           git push origin "${NEW_TAG}"
 
       - name: 5. Crear Release en GitHub con Changelog Automático
