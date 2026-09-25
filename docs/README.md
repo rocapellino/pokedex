@@ -25,7 +25,7 @@ flowchart TD
     ARCH --> A6["☁️ CLOUD_INFRASTRUCTURE_DESIGN.md"]
     ARCH --> A7["☸️ KUBERNETES_SCALING_ANALYSIS.md"]
     ARCH --> A8["📂 MONOREPO_STRUCTURE.md"]
-    ARCH --> A9["🔐 SECRETS_MANAGEMENT_SEALED_SECRETS.md"]
+    ARCH --> A9["🔐 SECRETS_MANAGEMENT.md"]
     ARCH --> A10["📋 RESPONSIBILITY_MATRIX.md"]
     ARCH --> A11["🏢 ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md"]
     ARCH --> A12["🔍 DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md"]
@@ -85,7 +85,7 @@ flowchart TD
 - 🎨 [**MOCKUPS_Y_DISENO_UI.md**](./architecture/MOCKUPS_Y_DISENO_UI.md): Maquetación, arquitectura de componentes, esquemas wireframe ASCII y tokens de diseño para catálogo, modales y panel administrativo Backoffice.
 - 🔬 [**ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md**](./architecture/ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md): Análisis comparativo de lenguajes de programación (TypeScript vs Python vs Go), arquitectura limpia y justificación del stack Node.js 22 LTS.
 - 📂 [**MONOREPO_STRUCTURE.md**](./architecture/MONOREPO_STRUCTURE.md): Organización de directorios del monorepo (`apps/`, `infra/`, `gitops/`, `src/`, `scripts/`, `docs/`) y responsabilidades por dominio.
-- 🔐 [**SECRETS_MANAGEMENT_SEALED_SECRETS.md**](./architecture/SECRETS_MANAGEMENT_SEALED_SECRETS.md): Gestión segura de credenciales sin secretos en claro en Git mediante Bitnami Sealed Secrets y escaneo con Gitleaks.
+- 🔐 [**SECRETS_MANAGEMENT.md**](./architecture/SECRETS_MANAGEMENT.md): Gestión desacoplada y rotación de credenciales en Kubernetes mediante External Secrets Operator (ESO), HashiCorp Vault CE, AWS Secrets Manager y escaneo con Gitleaks.
 - 📋 [**RESPONSIBILITY_MATRIX.md**](./architecture/RESPONSIBILITY_MATRIX.md): **Matriz canónica de responsabilidades** de componentes (OpenTofu, Ansible, Bastion, Vault, ESO, ArgoCD, Cilium, Alloy) y demarcación técnica de herramientas DevSecOps.
 - 🏢 [**ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md**](./architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md): Análisis de aislamiento lógico vs físico, dominios de falla compartidos y mitigaciones del SPOF on-premise en Proxmox.
 - 🔍 [**DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md**](./architecture/DECLARED_VS_RENDERED_ARCHITECTURE_ANALYSIS.md): Comparativa exhaustiva entre arquitectura declarada vs. realmente renderizada en Helm/GitOps (AWS vs Proxmox).

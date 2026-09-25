@@ -146,7 +146,7 @@ secrets:
 externalSecrets:
   enabled: false # En values.prod.yaml base permanece false; los entornos GitOps (proxmox/aws) lo activan como SSOT
   refreshInterval: "1h"
-  # Especificidad de Nomenclatura por Proveedor (ADR-011 / SECRETS_MANAGEMENT_SEALED_SECRETS.md):
+  # Especificidad de Nomenclatura por Proveedor (ADR-011 / SECRETS_MANAGEMENT.md):
   # - HashiCorp Vault KV v2 (Proxmox On-Prem): name: "vault-backend" | key: "secret/data/pokedex/prod"
   # - AWS Secrets Manager (Public Cloud):      name: "aws-secrets-manager" | key: "pokedex/prod"
   secretStoreRef:
@@ -249,7 +249,3 @@ backup:
   gdrive:
     enabled: true
     folder: "PokedexBackups/prod"
-
-
-
-
