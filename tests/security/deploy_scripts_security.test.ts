@@ -38,7 +38,7 @@ test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hard
   const baseContent = fs.readFileSync(baselinePath, 'utf-8');
   const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yml');
   const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yml');
-  const combinedContent = baseContent + 
+  const combinedContent = baseContent +
     (fs.existsSync(roleBaseOs) ? fs.readFileSync(roleBaseOs, 'utf-8') : '') +
     (fs.existsSync(roleRuntime) ? fs.readFileSync(roleRuntime, 'utf-8') : '');
 
@@ -72,7 +72,7 @@ test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default har
   const filePath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf');
   assert.ok(fs.existsSync(filePath), 'variables.tf de Proxmox debe existir');
   const content = fs.readFileSync(filePath, 'utf-8');
-  
+
   // Extraer el bloque de la variable ssh_public_key
   const match = content.match(/variable\s+"ssh_public_key"\s*\{([\s\S]*?)\}/);
   assert.ok(match, 'Debe existir la variable ssh_public_key');
@@ -127,7 +127,7 @@ test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists ma
   const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
   assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');
   const content = fs.readFileSync(filePath, 'utf-8');
-  
+
   // No debe contener rangos /8 ni /12 globales en allow
   assert.ok(!content.includes('allow 10.0.0.0/8;'), 'nginx.conf no debe permitir 10.0.0.0/8 indiscriminado');
   assert.ok(!content.includes('allow 172.16.0.0/12;'), 'nginx.conf no debe permitir 172.16.0.0/12 indiscriminado');
@@ -156,7 +156,7 @@ test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Z
   // Asegurar que PostgreSQL y Redis declaran Egress en policyTypes y tienen default-deny egress: []
   assert.ok(content.includes('allow-postgres-ingress'), 'Debe definir allow-postgres-ingress');
   assert.ok(content.includes('allow-redis-ingress'), 'Debe definir allow-redis-ingress');
-  
+
   // Ambas deben incluir Egress en policyTypes
   const postgresSection = content.split('allow-postgres-ingress')[1]?.split('---')[0] || '';
   assert.ok(postgresSection.includes('- Egress'), 'PostgreSQL NetworkPolicy debe incluir Egress en policyTypes');
@@ -171,7 +171,7 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yml');
   assert.ok(fs.existsSync(playbookPath), 'security_hardening.yml debe existir');
   const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yml');
-  const content = fs.readFileSync(playbookPath, 'utf-8') + 
+  const content = fs.readFileSync(playbookPath, 'utf-8') +
     (fs.existsSync(roleFirewall) ? fs.readFileSync(roleFirewall, 'utf-8') : '');
 
   // SSH no debe estar abierto a any sin src
@@ -1830,8 +1830,8 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yml debe ejecutar task --list en tarea default');
   assert.ok(taskfileContent.includes('start:'), 'Taskfile.yml debe incluir la tarea start canónica');
 
-  // 4. Los 17 aliases históricos están marcados con [DEPRECADO] y emiten advertencia con comando sustituto
-  const deprecatedAliases = [
+  // 4. Fase 4 de ADR-026: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yml
+  const retiredAliases = [
     'tofu:init:proxmox',
     'tofu:plan:proxmox',
     'tofu:apply:proxmox',
@@ -1852,12 +1852,13 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
     'deploy:proxmox'
   ];
 
-  for (const alias of deprecatedAliases) {
+  for (const alias of retiredAliases) {
     const hasAlias = taskfileContent.split('\n').some((line: string) => line.startsWith(`  ${alias}:`));
-    assert.ok(hasAlias, `Taskfile.yml debe contener el alias ${alias}`);
-    assert.ok(
-      taskfileContent.includes(`⚠️  [DEPRECADO] 'task ${alias}'`),
-      `El alias ${alias} debe emitir advertencia de deprecación`
+    assert.strictEqual(hasAlias, false, `Taskfile.yml no debe contener el alias retirado ${alias}`);
+    assert.strictEqual(
+      taskfileContent.includes(`task ${alias}`),
+      false,
+      `Taskfile.yml no debe referenciar el alias retirado ${alias}`
     );
   }
 
@@ -2108,4 +2109,3 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(proxmoxGuideContent.includes('setup_k3s.yml'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe referenciar setup_k3s.yml');
   assert.ok(proxmoxGuideContent.includes('k8s-proxmox.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-proxmox.internal.lan');
 });
-

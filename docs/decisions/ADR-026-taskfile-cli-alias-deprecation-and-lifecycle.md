@@ -9,6 +9,7 @@ Aceptado
 Con la consolidación de `Taskfile.yml` como la interfaz unificada de línea de comandos (ADR-020), se incorporaron múltiples comandos canónicos para gobernar el ciclo de vida del monorepo, IaC con OpenTofu, automatización con Ansible, empaquetado Helm y GitOps con ArgoCD.
 
 Para no romper los hábitos de desarrollo ni la compatibilidad con scripts históricos preexistentes, se introdujeron diversos aliases etiquetados como `[Alias compatibilidad]`, tales como:
+
 - Comandos de infraestructura: `tofu:init:proxmox`, `tofu:plan:proxmox`, `tofu:apply:proxmox`, `tofu:init:aws`, `tofu:plan:aws`, `tofu:apply:aws`, `tofu:init:cloud`, `tofu:plan:cloud`, `tofu:apply:cloud`, `tofu:validate`.
 - Comandos de aplicación TypeScript: `ts:install`, `ts:dev`, `ts:build`, `ts:start`, `ts:lint`.
 - Comandos locales y de despliegue: `docker:up`, `docker:down`, `deploy:proxmox`.
@@ -50,8 +51,10 @@ flowchart LR
    - Marcar explícitamente en el metadato `desc:` de cada alias la leyenda `[DEPRECADO]`, visible en el catálogo emitido por `task --list`.
    - Garantizar la compatibilidad hacia atrás durante todo el ciclo mayor `v1.x`.
 
-4. **Fase 4 - Eliminación Definitiva (v2.0)**:
-   - Programar la eliminación definitiva de las entradas de alias en el release mayor `v2.0` del proyecto, una vez que la telemetría y auditorías de CI confirmen uso nulo.
+4. **Fase 4 - Eliminación Definitiva (Completada en v1.76.0)**:
+   - Eliminación formal y purga definitiva de los 18 aliases legados de `Taskfile.yml`.
+   - Certificación de ausencia mediante pruebas automatizadas en `tests/security/deploy_scripts_security.test.ts`.
+   - Reducción de la superficie de comandos y consolidación de la interfaz canónica `task --list`.
 
 ### 3. Matriz de Correspondencia Canónica
 
