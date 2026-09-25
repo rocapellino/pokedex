@@ -48,10 +48,10 @@ A continuación se detalla el comportamiento de la cadena de defensa completa:
 - **Prioridad:** `P1`
 - **Confianza:** `HIGH`
 - **Esfuerzo:** `M`
-- **Evidencia:** [`tests/security/egress_anti_ssrf.test.ts:L47-L50`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/tests/security/egress_anti_ssrf.test.ts#L47-L50), [`scripts/probe-egress-security.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/scripts/probe-egress-security.ts)
+- **Evidencia:** `tests/security/egress_anti_ssrf.test.ts`, `scripts/probe-egress-security.ts`
 - **Estado actual:** Los controles más estrictos de aislamiento de red (Cilium L7 eBPF y NetworkPolicies L4) y de admisión (Kyverno) solo existen cuando la aplicación corre dentro de un clúster Kubernetes. En ejecución local (`npm run dev`) o en pruebas unitarias directas, estos controles no están presentes.
 - **Riesgo/impacto:** Si un desarrollador introduce un fallo en la capa de código (ej: debilita una expresión regular de URL) y prueba solo localmente, la vulnerabilidad parece pasar desapercibida hasta que se ejecuta la suite de pentest o se despliega en staging/Kind.
-- **Recomendación:** Mantener la suite [`tests/pentest.test.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/tests/pentest.test.ts) y [`scripts/probe-egress-security.ts --simulate`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/scripts/probe-egress-security.ts) como Quality Gate local obligatorio en pre-commit y CI para emular las decisiones de Cilium y NetworkPolicy.
+- **Recomendación:** Mantener la suite `tests/pentest.test.ts` y `scripts/probe-egress-security.ts --simulate` como Quality Gate local obligatorio en pre-commit y CI para emular las decisiones de Cilium y NetworkPolicy.
 - **Verificación:** Ejecución de `npm run test:security:egress` y `npm run probe:security:egress`.
 - **Impacto en documentación:** Actualizar matriz de amenazas en `docs/architecture/`.
 
@@ -63,7 +63,7 @@ A continuación se detalla el comportamiento de la cadena de defensa completa:
 - **Prioridad:** `P2`
 - **Confianza:** `HIGH`
 - **Esfuerzo:** `S`
-- **Evidencia:** [`tests/pentest.test.ts:L37-L77`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/tests/pentest.test.ts#L37-L77), [.github/workflows/ci.yml:L59-L72](file:///c:/Users/Rodrigo/Documents/Git/pokedex/.github/workflows/ci.yml#L59-L72)
+- **Evidencia:** `tests/pentest.test.ts`, `.github/workflows/ci.yml`
 - **Estado actual:** Semgrep y analizadores SAST estándar basados en reglas léxicas/sintácticas no detectan:
   1. Alteración de firmas HMAC o algoritmos `none` si la estructura del código parece válida.
   2. Evasión de cuotas de consumo de IA por IP o bypass de Circuit Breakers.
@@ -81,7 +81,7 @@ A continuación se detalla el comportamiento de la cadena de defensa completa:
 - **Prioridad:** `P2`
 - **Confianza:** `HIGH`
 - **Esfuerzo:** `M`
-- **Evidencia:** [`tests/pentest.test.ts:L580-L626`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/tests/pentest.test.ts#L580-L626), [`apps/backend/src/services/auth.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/apps/backend/src/services/auth.ts)
+- **Evidencia:** `tests/pentest.test.ts`, `apps/backend/src/services/auth.ts`
 - **Estado actual:** Si una instancia de Redis sufre un `FLUSHALL` inadvertido o reinicia sin almacenamiento persistente (AOF/PVC), los tokens revocados persisten únicamente en la memoria local del Pod donde se invocó el logout. Los demás Pods del clúster aceptarán el token como válido hasta que transcurra su tiempo de vida natural (TTL de 8 horas).
 - **Riesgo/impacto:** Ventana temporal de reutilización de sesión (Replay Attack) tras reinicio catastrófico de Redis.
 - **Mitigaciones existentes:**
@@ -97,7 +97,7 @@ A continuación se detalla el comportamiento de la cadena de defensa completa:
 ## 4. Cambios Propuestos y Roadmap de Resiliencia
 
 1. **Inmediato (P1):**
-   - Asegurar que la simulación de políticas de red de [`probe-egress-security.ts`](file:///c:/Users/Rodrigo/Documents/Git/pokedex/scripts/probe-egress-security.ts) permanezca integrada en el comando `npm test` para alertar inmediatamente a los desarrolladores en local si se amplían los endpoints salientes.
+   - Asegurar que la simulación de políticas de red de `scripts/probe-egress-security.ts` permanezca integrada en el comando `npm test` para alertar inmediatamente a los desarrolladores en local si se amplían los endpoints salientes.
 2. **Medio Plazo (P2):**
    - Evaluar la incorporación de PersistentVolumeClaim para Redis en el Helm chart de producción para erradicar el riesgo residual `[SEC-CHAOS-003]`.
    - Incorporar reglas Semgrep personalizadas en `.semgrep/` para validar el uso mandatorio de `validatePokemonPayload()` y `validateImageUrl()` en nuevos endpoints.
