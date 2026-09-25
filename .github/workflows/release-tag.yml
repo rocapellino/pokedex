@@ -40,8 +40,7 @@ jobs:
         if: steps.tag_version.outputs.new_tag
         run: |
           GITSIGN_VERSION="0.17.1"
-          curl --proto '=https' -sSfL "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64.tar.gz" -o "$RUNNER_TEMP/gitsign.tar.gz"
-          tar -xzf "$RUNNER_TEMP/gitsign.tar.gz" -C "$RUNNER_TEMP" gitsign
+          curl --proto '=https' -sSfL "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64" -o "$RUNNER_TEMP/gitsign"
           sudo mv "$RUNNER_TEMP/gitsign" /usr/local/bin/gitsign
           sudo chmod +x /usr/local/bin/gitsign
 
