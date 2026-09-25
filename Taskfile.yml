@@ -254,7 +254,7 @@ tasks:
       - kubectl apply -f gitops/health-checks/argocd-cm-healthchecks.yaml
 
   gitops:pin:
-    desc: "Actualiza el targetRevision en manifiestos de ArgoCD (Uso: task gitops:pin TAG=v1.75.10)"
+    desc: "Actualiza el targetRevision en manifiestos de ArgoCD (Uso: task gitops:pin TAG=vX.Y.Z)"
     cmds:
       - node --experimental-strip-types scripts/update-gitops-pin.ts --tag={{.TAG}}
 
@@ -659,8 +659,3 @@ tasks:
     desc: "Aprovisiona el cliente Rclone y el temporizador Systemd en el host Proxmox VE (Alternativa B)"
     cmds:
       - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_gdrive_backup.yml
-
-
-
-
-

@@ -37,7 +37,6 @@ Garantizar que la documentación técnica del repositorio (`README.md`, `docs/ar
 ## Formato de Salida y Gobernanza
 
 - **Regla Cardenal:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.
-- **Política de Idioma:** Aplicar [_shared/language-policy.md](../_shared/language-policy.md) para toda comunicación, reportes y artefactos generados en español.
 - **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
 - **Registro de Fuentes de Verdad:** Consultar [source-of-truth.md](../_shared/source-of-truth.md) para la tabla de autoridad formal por tipo de información.
 - **Matriz de Impacto en Documentación:** Consultar [documentation-impact-matrix.md](../_shared/documentation-impact-matrix.md) para relacionar cambios en código con documentos a revisar.

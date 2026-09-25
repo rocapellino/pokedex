@@ -7,7 +7,7 @@ description: Preparación, validación y revisión estructurada de Pull Requests
 
 ## Objetivo
 
-Gobernar el ciclo completo de preparación, validación y revisión de Pull Requests (PRs) en `rocapellino/pokedex`. Esta skill actúa como el componente canónico para estructurar la representación final de los cambios, verificar el PR Readiness Gate previo a la apertura o merge, y realizar revisiones de código rigurosas sin duplicar las auditorías técnicas de otras skills.
+Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gate y generador estructurado de Pull Requests (PRs) en `rocapellino/pokedex`. Esta skill no orquesta auditorías ni ejecuta suites de prueba por su cuenta; consume los resultados fácticos provistos por las skills de dominio (`repo-quality`, `repo-testing`, `repo-security`, `repo-docs`) bajo la orquestación de `repo-lifecycle`, estructurando la representación final del cambio y ejecutando revisiones de código rigurosas.
 
 ---
 
@@ -32,13 +32,25 @@ Gobernar el ciclo completo de preparación, validación y revisión de Pull Requ
 
 ### 3. PR Readiness Gate Contractual
 
-Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate clasificando cada dimensión en:
+Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate distinguiendo formalmente tres niveles:
 
-- `PASS`: Verificación ejecutada y exitosa con evidencia comprobable.
-- `FAIL`: Verificación fallida con errores pendientes de corrección.
-- `NOT_APPLICABLE`: Comprobación no aplicable según la matriz de impacto.
-- `NOT_EXECUTED`: Comprobación pendiente de ejecución. **Nunca equivale a PASS**.
-- `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR.
+- **PR Preparation State (Estado de Preparación Local):**
+  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1.
+  - `NOT_READY`: Faltan verificaciones locales aplicables, documentación incompleta o fallos pendientes de resolver.
+  - `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR (divergencia de rama base, template ausente, drift arquitectónico crítico).
+- **CI State (Estado de Integración Continua):**
+  - `PENDING_CI`: PR abierto en `READY_FOR_PR`; workflows remotos en GitHub Actions pendientes o en ejecución.
+  - `ALL_GATES_PASSED`: 100% de los checks requeridos en CI concluidos con éxito.
+  - `CI_FAILED`: Al menos un workflow requerido falló en CI.
+- **Individual Gate (Control Individual de Validación):**
+  - `PASS`: Comprobación ejecutada y aprobada con evidencia fáctica comprobable.
+  - `FAIL`: Comprobación ejecutada con fallos no resueltos.
+  - `NOT_APPLICABLE`: Comprobación no aplicable según la matriz de impacto.
+  - `NOT_EXECUTED`: Comprobación aplicable que no fue ejecutada. **Nunca equivale a PASS**.
+  - `CI_REQUIRED`: Herramienta no disponible localmente; delegada obligatoriamente a CI.
+
+> [!IMPORTANT]
+> **Regla de Integridad de Gates:** Queda terminantemente prohibido convertir `CI_REQUIRED` o `NOT_EXECUTED` en `PASS`.
 
 Consulta los criterios y el checklist en [pr-validation-policy.md](references/pr-validation-policy.md).
 
@@ -67,9 +79,9 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 
 ## Comandos
 
-- `/repo-pr`: Orquesta el flujo completo de evaluación y preparación de un PR para el cambio activo.
-- `/repo-pr prepare`: Descubre el template real, recopila evidencias y genera el título y descripción canónicos en español.
-- `/repo-pr gate`: Evalúa exhaustivamente los controles del PR Readiness Gate emitiendo el veredicto formal (`PASS`, `FAIL` o `BLOCKED`).
+- `/repo-pr`: Consolida evidencias de las skills de dominio, evalúa el PR Readiness Gate y genera la propuesta canónica de PR.
+- `/repo-pr prepare`: Descubre el template real, recopila evidencias preexistentes y genera el título y descripción canónicos en español.
+- `/repo-pr gate`: Evalúa exhaustivamente los controles del PR Readiness Gate a partir de las evidencias recolectadas, emitiendo el veredicto formal de preparación (`READY_FOR_PR`, `NOT_READY` o `BLOCKED`).
 - `/repo-pr review`: Ejecuta una revisión técnica estructurada sobre un diff o PR existente, segregando observaciones P0-P3.
 
 ---
@@ -84,7 +96,6 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 ## Formato de Salida y Gobernanza
 
 - **Regla Cardenal:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.
-- **Política de Idioma:** Aplicar [_shared/language-policy.md](../_shared/language-policy.md) para toda comunicación humana, descripciones de PR y comentarios de revisión en español.
 - **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar los informes de revisión siguiendo [report-template.md](../_shared/report-template.md).
