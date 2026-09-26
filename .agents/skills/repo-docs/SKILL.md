@@ -115,6 +115,7 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 
 ## Referencias Especializadas de la Skill
 
+- **Gobernanza y Contratos Documentales:** [repo-doc-governance](../repo-doc-governance/SKILL.md)
 - **Ciclo de Vida Documental:** [documentation-lifecycle-policy.md](references/documentation-lifecycle-policy.md)
 - **Consistencia y Validación Cruzada:** [documentation-consistency-policy.md](references/documentation-consistency-policy.md)
 - **Validación, Calidad y Reportes:** [documentation-validation-policy.md](references/documentation-validation-policy.md)
