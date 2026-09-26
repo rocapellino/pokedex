@@ -54,6 +54,40 @@ const DEFAULT_ENVIRONMENTS = [
   { name: 'Helm Production', file: 'infra/helm/pokedex/values.prod.yaml' },
 ];
 
+interface CacheEntry {
+  valuesMtime: number;
+  chartMtime: number;
+  image: string;
+}
+
+const apiImageRenderCache = new Map<string, CacheEntry>();
+
+/**
+ * Limpia la caché en memoria de renderizado Helm (utilizada en pruebas y benchmarking).
+ */
+export function clearRenderCache(): void {
+  apiImageRenderCache.clear();
+}
+
+function getChartMtime(chartDir: string): number {
+  try {
+    const files = [
+      path.join(chartDir, 'Chart.yaml'),
+      path.join(chartDir, 'values.yaml'),
+      path.join(chartDir, 'templates/api-deployment.yaml'),
+    ];
+    let max = 0;
+    for (const f of files) {
+      if (fs.existsSync(f)) {
+        max = Math.max(max, fs.statSync(f).mtimeMs);
+      }
+    }
+    return max;
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * Renderiza el Deployment de la API para un conjunto de values y extrae
  * la imagen compilada final que Kubernetes recibirá.
@@ -62,11 +96,12 @@ const DEFAULT_ENVIRONMENTS = [
  * @param valuesPath Ruta al archivo de values
  * @param options Opciones de ejecución: si strict=true (CI release), helm template es
  *                obligatorio y se desactiva por completo el fallback a values AST.
+ *                skipCache desactiva la lectura de la caché en memoria.
  */
 export function extractRenderedApiImage(
   chartPath: string,
   valuesPath: string,
-  options: { strict?: boolean } = {}
+  options: { strict?: boolean; skipCache?: boolean } = {}
 ): string {
   const resolvedValues = path.resolve(process.cwd(), valuesPath);
   const resolvedChart = path.resolve(process.cwd(), chartPath);
@@ -77,6 +112,17 @@ export function extractRenderedApiImage(
   }
   if (!fs.existsSync(resolvedChart)) {
     throw new Error(`Ruta de Helm chart no encontrada: ${resolvedChart}`);
+  }
+
+  const valuesMtime = fs.statSync(resolvedValues).mtimeMs;
+  const chartMtime = getChartMtime(resolvedChart);
+  const cacheKey = `${resolvedChart}::${resolvedValues}::strict=${isStrict}`;
+
+  if (!options.skipCache) {
+    const cached = apiImageRenderCache.get(cacheKey);
+    if (cached && cached.valuesMtime === valuesMtime && cached.chartMtime === chartMtime) {
+      return cached.image;
+    }
   }
 
   // 1. Renderizado real vía Helm CLI
@@ -115,7 +161,9 @@ export function extractRenderedApiImage(
 
       const apiContainer = containers.find((c) => c.name === 'api');
       if (apiContainer && apiContainer.image) {
-        return apiContainer.image.trim();
+        const imageResult = apiContainer.image.trim();
+        apiImageRenderCache.set(cacheKey, { valuesMtime, chartMtime, image: imageResult });
+        return imageResult;
       }
     }
 
@@ -151,11 +199,16 @@ export function extractRenderedApiImage(
   const digest = (envApiImage.digest as string) || (baseApiImage.digest as string);
   const tag = (envApiImage.tag as string) || (baseApiImage.tag as string);
 
+  let fallbackImage: string | null = null;
   if (digest) {
-    return `${repository}@${digest.trim()}`;
+    fallbackImage = `${repository}@${digest.trim()}`;
+  } else if (tag) {
+    fallbackImage = `${repository}:${tag.trim()}`;
   }
-  if (tag) {
-    return `${repository}:${tag.trim()}`;
+
+  if (fallbackImage) {
+    apiImageRenderCache.set(cacheKey, { valuesMtime, chartMtime, image: fallbackImage });
+    return fallbackImage;
   }
 
   throw new Error(`No se pudo extraer la imagen del contenedor api en ${valuesPath}`);

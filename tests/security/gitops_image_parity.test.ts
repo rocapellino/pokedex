@@ -7,6 +7,7 @@ import {
   extractRenderedApiImage,
   parseImmutableDigest,
   verifyImageDigestParity,
+  clearRenderCache,
 } from '../../scripts/verify-image-digest-parity.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -102,4 +103,23 @@ test('🔒 Supply Chain: extractRenderedApiImage en modo estricto (strict: true)
     () => extractRenderedApiImage(path.join(ROOT_DIR, 'non-existent-chart'), validValues, { strict: true }),
     /Ruta de Helm chart no encontrada/
   );
+});
+
+test('🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas e invalida con clearRenderCache', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const validValues = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
+
+  clearRenderCache();
+  const startFresh = performance.now();
+  const imageFresh = extractRenderedApiImage(chartPath, validValues, { strict: true });
+  const durationFresh = performance.now() - startFresh;
+
+  const startCached = performance.now();
+  const imageCached = extractRenderedApiImage(chartPath, validValues, { strict: true });
+  const durationCached = performance.now() - startCached;
+
+  assert.strictEqual(imageCached, imageFresh, 'La imagen en caché debe ser idéntica a la recién renderizada');
+  assert.ok(durationCached < 50, `La llamada en caché debe resolver en <50ms (tomó ${durationCached.toFixed(2)}ms, frente a ${durationFresh.toFixed(2)}ms inicial)`);
+
+  clearRenderCache();
 });
