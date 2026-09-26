@@ -85,10 +85,8 @@ task gitops:apps:root
 
 ### Health Checks Declarativos para CRDs
 
-Para aplicar la evaluación de salud personalizada de `ExternalSecret`, `SealedSecret` y `ClusterPolicy` en el controlador de ArgoCD:
+Para aplicar la evaluación de salud personalizada de `ExternalSecret` y `ClusterPolicy` en el controlador de ArgoCD:
 
 ```bash
 task gitops:health-checks
 ```
-
-

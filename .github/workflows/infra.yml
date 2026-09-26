@@ -170,7 +170,7 @@ jobs:
           ansible-galaxy collection install -r infra/ansible/requirements.yml
           for playbook in infra/ansible/playbooks/*.yml; do
             echo "Verificando sintaxis de $playbook..."
-            ansible-playbook -i infra/ansible/inventory/hosts.ini "$playbook" --syntax-check
+            ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml "$playbook" --syntax-check
           done
           echo "✅ Todos los playbooks y roles de Ansible validados sintácticamente."
 

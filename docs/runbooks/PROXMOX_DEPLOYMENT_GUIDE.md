@@ -181,7 +181,7 @@ cd /opt/devops/pokedex
 git checkout <KNOWN_GOOD_COMMIT_SHA_OR_TAG>
 
 # 4. Orquestar el setup de Vault en 10.10.13.110 directamente desde la LAN
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_vault.yml
 ```
 
 ---
@@ -197,7 +197,7 @@ Una vez que el nodo Proxmox está accesible por SSH, se ejecutan los playbooks d
 task ansible:prepare -- -e "ansible_host=10.10.13.100"
 
 # O mediante Ansible CLI directo:
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/host_baseline.yml
 ```
 
 ### Hardening Perimetral y Reglas de Firewall (UFW)
@@ -205,7 +205,7 @@ ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/ho
 Para restringir los puertos de control de Kubernetes (`6443`, `10250`, `2379`) exclusivamente a las subredes autorizadas:
 
 ```bash
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml
 ```
 
 ---
@@ -236,7 +236,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/play
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento endurecido de Vault:
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_vault.yml
 
 # O mediante Taskfile:
 task vault:setup:proxmox
@@ -257,7 +257,7 @@ El proceso está totalmente automatizado y es idempotente mediante el playbook [
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento desatendido de K3s + Cilium CNI:
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_k3s.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_k3s.yml
 
 # O canónicamente vía Taskfile:
 task k3s:setup:proxmox

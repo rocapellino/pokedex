@@ -183,12 +183,12 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(content.includes('10250'), 'Debe incluir puerto 10250 (Kubelet)');
   assert.ok(content.includes('2379:2380'), 'Debe incluir puerto 2379:2380 (etcd)');
 
-  // hosts.ini debe proveer los defaults de red
-  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini');
-  assert.ok(fs.existsSync(hostsPath), 'hosts.ini debe existir');
+  // hosts.yml debe proveer los defaults de red
+  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml');
+  assert.ok(fs.existsSync(hostsPath), 'hosts.yml de proxmox debe existir en inventories/');
   const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
-  assert.ok(hostsContent.includes('mgmt_cidr='), 'hosts.ini debe definir mgmt_cidr');
-  assert.ok(hostsContent.includes('k8s_cluster_cidr='), 'hosts.ini debe definir k8s_cluster_cidr');
+  assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yml debe definir mgmt_cidr');
+  assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yml debe definir k8s_cluster_cidr');
 });
 
 test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta', () => {
@@ -1618,11 +1618,11 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(rootAppContent.includes('gitops/apps'), 'root-application.yaml debe apuntar a gitops/apps');
   assert.ok(rootAppContent.includes('resources-finalizer.argocd.argoproj.io'), 'root-application.yaml debe incluir finalizer');
 
-  // 3. Health checks existen y cubren CRDs críticos
+  // 3. Health checks existen y cubren CRDs críticos (ExternalSecret y ClusterPolicy; SealedSecret purgado)
   assert.ok(fs.existsSync(healthChecksPath), 'argocd-cm-healthchecks.yaml debe existir en gitops/health-checks/');
   const healthContent = fs.readFileSync(healthChecksPath, 'utf-8');
   assert.ok(healthContent.includes('external-secrets.io_ExternalSecret'), 'Debe definir health check para ExternalSecret');
-  assert.ok(healthContent.includes('bitnami.com_SealedSecret'), 'Debe definir health check para SealedSecret');
+  assert.ok(!healthContent.includes('bitnami.com_SealedSecret'), 'No debe contener health check residual de SealedSecret');
   assert.ok(healthContent.includes('kyverno.io_ClusterPolicy'), 'Debe definir health check para ClusterPolicy');
 
   // 4. Helm templates declaran Sync Waves deterministas (0 a 4)
@@ -2064,16 +2064,12 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   const adr25Content = fs.readFileSync(adr25Path, 'utf-8');
   assert.ok(adr25Content.includes('10.10.13.0/24'), 'ADR-025 debe formalizar la subred de administración 10.10.13.0/24');
 
-  // 3. Normalización de subredes en Ansible (hosts.ini y hosts.yml alineados a 10.10.13.0/24)
-  const hostsIni = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini'), 'utf-8');
-  assert.ok(hostsIni.includes('10.10.13.100'), 'hosts.ini debe asignar k8s-master-01 en 10.10.13.100');
-  assert.ok(hostsIni.includes('mgmt_cidr=10.10.13.0/24'), 'hosts.ini debe definir mgmt_cidr en 10.10.13.0/24');
-  assert.ok(hostsIni.includes('k8s_cluster_cidr=10.10.13.0/24'), 'hosts.ini debe definir k8s_cluster_cidr en 10.10.13.0/24');
-  assert.ok(!hostsIni.includes('docker_compose_version'), 'hosts.ini no debe contener vestigios de docker-compose');
-
+  // 3. Normalización y unificación de inventarios en Ansible (inventories/proxmox/hosts.yml alineado a 10.10.13.0/24)
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventory')), 'No debe existir carpeta duplicada infra/ansible/inventory');
   const hostsYml = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml'), 'utf-8');
   assert.ok(hostsYml.includes('10.10.13.100'), 'hosts.yml debe asignar k8s-master-01 en 10.10.13.100');
   assert.ok(hostsYml.includes('10.10.13.0/24'), 'hosts.yml debe definir CIDR en 10.10.13.0/24');
+  assert.ok(!hostsYml.includes('docker_compose_version'), 'hosts.yml no debe contener vestigios de docker-compose');
 
   // 4. Playbook declarativo setup_k3s.yml existe y configura K3s con Cilium eBPF
   const setupK3sPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_k3s.yml');
