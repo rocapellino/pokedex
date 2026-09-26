@@ -21,10 +21,59 @@ env:
 
 jobs:
   # =======================================================
-  # 1. QUALITY GATES (Ejecución en paralelo)
+  # 0. CHANGE IMPACT ANALYSIS (DAG Dinámico)
+  # =======================================================
+  detect-impact:
+    name: "🎯 Detect Change Impact"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      has_changes: ${{ steps.impact.outputs.has_changes }}
+      is_unknown: ${{ steps.impact.outputs.is_unknown }}
+      is_global: ${{ steps.impact.outputs.is_global }}
+      docs: ${{ steps.impact.outputs.docs }}
+      backend: ${{ steps.impact.outputs.backend }}
+      frontend: ${{ steps.impact.outputs.frontend }}
+      tests: ${{ steps.impact.outputs.tests }}
+      security: ${{ steps.impact.outputs.security }}
+      docker: ${{ steps.impact.outputs.docker }}
+      kubernetes: ${{ steps.impact.outputs.kubernetes }}
+      helm: ${{ steps.impact.outputs.helm }}
+      opentofu: ${{ steps.impact.outputs.opentofu }}
+      ansible: ${{ steps.impact.outputs.ansible }}
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Ejecutar Change Impact Analysis
+        id: impact
+        run: npx tsx scripts/detect-change-impact.ts --base ${{ github.event.pull_request.base.sha || 'origin/main' }} --github-output --format markdown
+
+  # =======================================================
+  # 1. QUALITY GATES (Ejecución en paralelo condicional)
   # =======================================================
   code-quality:
     name: "🔍 Auditoría de Calidad y Complejidad"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.backend == 'true' ||
+      needs.detect-impact.outputs.frontend == 'true' ||
+      needs.detect-impact.outputs.tests == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,6 +107,11 @@ jobs:
 
   semgrep:
     name: "🔍 Semgrep (SAST)"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.security == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -72,7 +126,11 @@ jobs:
 
   dependency-review:
     name: "🛡️ Dependency Review (SCA Gate en PR)"
-    if: github.event_name == 'pull_request'
+    needs: [detect-impact]
+    if: |
+      github.event_name == 'pull_request' &&
+      (needs.detect-impact.outputs.security == 'true' ||
+       needs.detect-impact.outputs.is_unknown == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -85,13 +143,42 @@ jobs:
         with:
           fail-on-severity: high
 
+  docs-gate:
+    name: "📚 Documentation Quality Gate (0 errores MDxxx)"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.docs == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Validar Markdown Quality Gate
+        run: npm run lint:md -- README.md SECURITY.md docs/audits/2026-09-26/documentation-governance.md
 
   # =======================================================
-  # 2. BUILD DOCKER (Solo si los Quality Gates pasan)
+  # 2. BUILD DOCKER (Solo si se requiere y Quality Gates pasan)
   # =======================================================
   build-docker:
     name: "🐳 Compilar Imagen Docker"
-    needs: [code-quality, semgrep]
+    needs: [detect-impact, code-quality, semgrep]
+    if: |
+      (needs.detect-impact.outputs.docker == 'true' ||
+       needs.detect-impact.outputs.is_unknown == 'true' ||
+       github.event_name == 'push') &&
+      (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') &&
+      (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -268,10 +355,10 @@ jobs:
         run: |
           # 1. Validar sintaxis y templates del Chart
           helm lint ${{ env.CHART_PATH }}
-          
+
           # 2. Empaquetar chart en /tmp
           helm package ${{ env.CHART_PATH }} --destination /tmp
-          
+
           # 3. Autenticación con OCI registry en GHCR y push
           echo "$GITHUB_TOKEN" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
           CHART_OUTPUT=$(helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts 2>&1)
@@ -351,5 +438,3 @@ jobs:
           delete-untagged: true
           dry-run: false
           token: ${{ secrets.GITHUB_TOKEN }}
-
-

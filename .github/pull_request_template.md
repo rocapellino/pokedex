@@ -35,6 +35,25 @@
 
 ---
 
+## 🎯 CI Impact Analysis
+
+*(Generado por `scripts/detect-change-impact.ts` conforme a `.github/ci-impact.yaml`)*
+
+| Dominio | Estado | Justificación / Pipeline |
+| :--- | :---: | :--- |
+| **Documentation** | [ ] Afectado / [ ] Omitido | `docs-ci (Fast Track)` |
+| **Backend Core** | [ ] Afectado / [ ] Omitido | `ci.yml (code-quality)` |
+| **Frontend SPA** | [ ] Afectado / [ ] Omitido | `ci.yml & web.yml` |
+| **Unit & Integration Tests** | [ ] Afectado / [ ] Omitido | `npm test & fuzzing` |
+| **Security & SAST/SCA** | [ ] Afectado / [ ] Omitido | `Semgrep, Trivy & Review` |
+| **Docker Images** | [ ] Afectado / [ ] Omitido | `build-docker & Cosign` |
+| **Kubernetes & GitOps** | [ ] Afectado / [ ] Omitido | `infra.yml & Kind` |
+| **Helm Packaging** | [ ] Afectado / [ ] Omitido | `helm lint & parity` |
+| **OpenTofu IaC** | [ ] Afectado / [ ] Omitido | `infra.yml (Tofu)` |
+| **Ansible Baseline** | [ ] Afectado / [ ] Omitido | `infra.yml (Ansible)` |
+
+---
+
 ## 🧪 Pruebas y Verificaciones Realizadas
 
 *(Completar con [x] las pruebas ejecutadas o registrar "N/A: [motivo]" según la Change Impact Matrix)*
