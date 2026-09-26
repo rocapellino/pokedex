@@ -16,6 +16,11 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'Dockerfile'
+      - 'apps/**/Dockerfile'
+      - 'apps/frontend/**'
+      - 'package*.json'
   workflow_dispatch:
   schedule:
     - cron: '0 4 * * 1' # Escaneo semanal los lunes a las 04:00 UTC

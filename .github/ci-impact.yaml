@@ -133,6 +133,20 @@ rules:
       docker: true
       security: true
 
+  linting:
+    description: "Cambios que activan linters de sintaxis y configuración (MegaLinter ci_light)"
+    paths:
+      - 'Dockerfile'
+      - 'apps/**/Dockerfile'
+      - '.github/workflows/**'
+      - 'infra/**/*.yaml'
+      - 'infra/**/*.yml'
+      - 'scripts/**/*.sh'
+      - 'dr_verify_restore.sh'
+    triggers:
+      linting: true
+      security: true
+
 # Política Fail-Closed ante rutas desconocidas o incapacidad de determinar impacto
 unknown:
   policy: "fail-closed"
