@@ -24,7 +24,7 @@ un dominio específico del ciclo de vida del repositorio.
 | | [`repo-testing`](skills/repo-testing/SKILL.md) | Pirámide de pruebas, cobertura y valor |
 | | [`repo-dependencies`](skills/repo-dependencies/SKILL.md) | Árbol npm, lockfile, CVEs y librerías huérfanas |
 | **Delivery & Security** | [`repo-security`](skills/repo-security/SKILL.md) | DevSecOps, secretos, Cilium L7 y supply chain |
-| | [`repo-ci`](skills/repo-ci/SKILL.md) | Pipelines de GitHub Actions y optimización CI |
+| | [`repo-ci`](skills/repo-ci/SKILL.md) | Topología integral de CI/CD (PR ➔ Job ➔ Tool) |
 | | [`repo-pr`](skills/repo-pr/SKILL.md) | Preparación, validación y revisión de Pull Requests |
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
 | **Governance & Maintenance** | [`repo-doc-governance`](skills/repo-doc-governance/SKILL.md) | Políticas, límites y contratos documentales |
