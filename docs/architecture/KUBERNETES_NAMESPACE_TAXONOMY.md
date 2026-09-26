@@ -6,7 +6,7 @@ Este documento establece la **única fuente de verdad (SSOT)** para la nomenclat
 
 ## 1. Declaración Canónica (SSOT)
 
-> **Regla Operativa Canónica:**  
+> **Regla Operativa Canónica:**
 > En **todos** los clústeres y entornos (Kind local, Proxmox VE Pre-producción LXC 800, Proxmox VE Producción K3s VM 801, y AWS EKS Cloud-Ready), **la aplicación Pokédex se despliega exclusivamente en el namespace `pokemon-app`**.
 >
 > Ningún runbook, manifiesto, pipeline o comando operativo debe utilizar los namespaces legados `pokedex` o `pokedex-preprod`.
@@ -159,7 +159,7 @@ kubectl rollout restart statefulset/postgres -n pokemon-app
 
 ## 5. Control de Regresión Automatizado
 
-El cumplimiento de esta taxonomía se valida de forma continua en el pipeline de CI/CD mediante los siguientes tests automatizados en [`tests/security/deploy_scripts_security.test.ts`](../../tests/security/deploy_scripts_security.test.ts):
+El cumplimiento de esta taxonomía se valida de forma continua en el pipeline de CI/CD mediante los siguientes tests automatizados en [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts):
 
 1. **Prohibición de Namespaces Obsoletos:** Falla si cualquier documento en `docs/` o `gitops/` contiene `-n pokedex` o `--namespace pokedex`.
 2. **Paridad de Helm Values:** Verifica que `infra/helm/pokedex/values.yaml` especifique `global.namespace: pokemon-app`.

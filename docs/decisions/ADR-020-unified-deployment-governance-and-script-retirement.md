@@ -42,7 +42,7 @@ El directorio `scripts/` queda reservado exclusivamente para:
 - Scripts auxiliares fuertemente tipados en TypeScript (ej. `scripts/k8s-rollout-restart.ts`, `scripts/dr-drill.ts`, `scripts/github-security-linear-sync.ts`, `scripts/sonar-linear-sync.ts`).
 - La única secuencia shell autorizada en todo el repositorio: `scripts/dr_verify_restore.sh`, sujeta a validaciones estrictas de checksum SHA-256 y pruebas periódicas automatizadas (ADR-006).
 
-Cualquier nuevo script `.sh` no contemplado en la lista blanca de gobernanza disparará un fallo *fail-closed* en los gates automatizados de CI (`tests/security/deploy_scripts_security.test.ts`).
+Cualquier nuevo script `.sh` no contemplado en la lista blanca de gobernanza disparará un fallo *fail-closed* en los gates automatizados de CI (`tests/security/iac_baseline_security.test.ts`).
 
 ## Consecuencias
 
