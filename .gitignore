@@ -126,3 +126,9 @@ ehthumbs_vista.db
 
 # Logs generales
 *.log
+
+# ==============================================================================
+# Residuos de Scripts Locales
+# ==============================================================================
+# Directorios temporales generados por scripts/dr-drill.ts durante simulacros
+scratch/dr_drill_*/
