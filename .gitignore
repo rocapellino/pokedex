@@ -47,7 +47,6 @@ lighthouse-results/
 secrets/
 *.secrets
 .tools/
-grafana.txt
 
 # ==============================================================================
 # OpenTofu & IaC (Infraestructura como Código)
