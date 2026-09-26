@@ -85,7 +85,7 @@ Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compa
 
 ## 4. Gobernanza y Catálogo de Scripts (`scripts/`)
 
-En cumplimiento estricto del [ADR-020](../decisions/ADR-020-typescript-testing-and-modern-tooling.md), se erradicaron los scripts shell dispersos e históricos. Todos los scripts operativos son programas TypeScript modernos ejecutados mediante `node --experimental-strip-types`:
+En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), se erradicaron los scripts shell dispersos e históricos. Todos los scripts operativos son programas TypeScript modernos ejecutados mediante `node --experimental-strip-types`:
 
 | Script | Lenguaje | Propósito Operativo | ¿Activo en CI/CD o Runbooks? |
 | :--- | :--- | :--- | :--- |

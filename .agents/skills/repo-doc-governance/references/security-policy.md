@@ -25,7 +25,7 @@ El archivo `SECURITY.md` debe estructurarse en las siguientes secciones (máximo
 5. **Fuera de Alcance (*Out-of-Scope*):** Pruebas destructivas (DoS masivo, ingeniería social, spam de issues).
 6. **Proceso y Tiempos de Respuesta:** Acuse de recibo inicial (SLA), triage, plan de remediación y liberación de parches.
 7. **Política de Divulgación Coordinada (*Coordinated Disclosure*):** Compromiso de transparencia y plazos razonables antes de publicación.
-8. **Referencias Técnicas de Seguridad:** Enlaces canónicos hacia [docs/security/](../../../docs/security/) y [docs/architecture/](../../../docs/architecture/).
+8. **Referencias Técnicas de Seguridad:** Enlaces canónicos hacia [docs/security/](../../../../docs/security/) y [docs/architecture/](../../../../docs/architecture/).
 
 ---
 

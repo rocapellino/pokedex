@@ -88,10 +88,10 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
    - Decide el flujo y el orden de invocación de las skills.
    - No implementa directamente comprobaciones de código ni linters.
 2. **`repo-quality` (Quality Gates Técnicos):**
-   - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml).
+   - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml).
    - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
 3. **`repo-pr` (Preparación y Gate de Pull Request):**
-   - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../.github/pull_request_template.md)).
+   - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../../.github/pull_request_template.md)).
    - Consume las evidencias generadas por `repo-quality`, `repo-testing`, `repo-security` y `repo-docs`.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)).
    - Ejecuta el PR Readiness Gate formal. **No realiza auditorías completas redundantes.**
@@ -118,7 +118,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 
 ## Motor de Change Impact Analysis y DAG Dinámico de CI
 
-`repo-lifecycle` gobierna el contrato declarativo [`.github/ci-impact.yaml`](../../.github/ci-impact.yaml) y ejecuta el motor determinista [`scripts/detect-change-impact.ts`](../../scripts/detect-change-impact.ts):
+`repo-lifecycle` gobierna el contrato declarativo [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml) y ejecuta el motor determinista [`scripts/detect-change-impact.ts`](../../../scripts/detect-change-impact.ts):
 
 1. **Nivel Always:** Controles no negociables (escaneo de secretos y estructura de PR) que corren en todo Pull Request.
 2. **Nivel Global:** Alteraciones en archivos transversales (`package.json`, `turbo.json`, `tsconfig.json`, `.pre-commit-config.yaml`, `.github/workflows/**`, `scripts/**`) activan validación integral de todos los dominios.
@@ -139,7 +139,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 
 ## Referencias Compartidas
 
-- **Contrato de Impacto CI:** [ci-impact.yaml](../../.github/ci-impact.yaml)
+- **Contrato de Impacto CI:** [ci-impact.yaml](../../../.github/ci-impact.yaml)
 - **Metodología Base:** [methodology.md](../_shared/methodology.md)
 - **Política de Idioma:** [language-policy.md](../_shared/language-policy.md)
 - **Modelo de Estados:** [state-model.md](../_shared/state-model.md)

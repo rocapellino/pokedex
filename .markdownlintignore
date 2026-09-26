@@ -5,3 +5,6 @@ coverage/
 .gemini/
 apps/backend/dist/
 apps/frontend/dist/
+.terraform/
+**/.terraform/**
+.tools/

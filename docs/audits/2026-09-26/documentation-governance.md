@@ -3,7 +3,7 @@
 - **Fecha de Emisión:** 2026-09-26
 - **Framework de Evaluación:** `repo-doc-governance`
 - **Modo:** `UPDATE` (Remediación Ejecutada y Verificada)
-- **Contrato Normativo:** [documentation-contract.yaml](../../.agents/skills/repo-doc-governance/references/documentation-contract.yaml)
+- **Contrato Normativo:** [documentation-contract.yaml](../../../.agents/skills/repo-doc-governance/references/documentation-contract.yaml)
 
 ---
 
@@ -24,7 +24,7 @@
 ### A. `README.md`
 
 - **[README-BUDGET-001] [RESUELTO]:** Reducido de 503 a **216 líneas** (-57% de volumen), cumpliendo estrictamente con el límite presupuestario de 260 líneas e integrando enlaces canónicos a ADRs y Matriz de Soporte de Componentes.
-- **[README-SECTIONS-001] [RESUELTO]:** Ajustado a las **12 secciones canónicas** estipuladas en [readme-policy.md](../../.agents/skills/repo-doc-governance/references/readme-policy.md).
+- **[README-SECTIONS-001] [RESUELTO]:** Ajustado a las **12 secciones canónicas** estipuladas en [readme-policy.md](../../../.agents/skills/repo-doc-governance/references/readme-policy.md).
 - **[README-ARCH-001] [RESUELTO]:** Clarificado el pooling nativo con `pg.Pool` directamente en PostgreSQL como arquitectura activa y PgBouncer como componente opcional de alta escala.
 - **[README-PERF-001] [RESUELTO]:** Purgada la afirmación no respaldada de tiempo de despliegue inferior a 2 minutos.
 - **[README-BOUND-001] [RESUELTO]:** Eliminado el troubleshooting extenso y las tablas de flags internas, reemplazándolos por enlaces canónicos hacia `docs/`.

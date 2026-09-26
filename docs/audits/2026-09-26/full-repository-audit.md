@@ -211,7 +211,7 @@ Se identificaron **18 enlaces relativos rotos** en la documentación técnica de
 6. `docs/README.md` (3 enlaces): Enlaces a snapshots de auditorías podadas (`audits/2026-09-23/end_to_end_coherence_audit.md`, `baseline_inventario.md`, `baseline_diagnostico.md`).
 7. `docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md`: Enlace a `../../infra/k8s/eso/vault-ca.crt` (el archivo no existe físicamente en el repositorio).
 8. `docs/security/DEVSECOPS_AUDIT.md`: Enlace a `../../apps/frontend/public/js/pokedex.js`.
-9. `README.md`: Enlace `[LICENSE](LICENSE)` apunta a un archivo `LICENSE` que no está presente en la raíz del repositorio.
+9. `README.md`: Enlace a `LICENSE` apuntaba a un archivo ausente en la raíz del repositorio.
 
 ### B. Markdown Quality Gate Global
 
@@ -339,7 +339,7 @@ El ecosistema de skills implementa una separación estricta:
 
 - **Dominio:** Legal / Gobernanza
 - **Ubicación:** Raíz del repositorio / `README.md:185`
-- **Evidencia:** `README.md` enlaza a `[LICENSE](LICENSE)`, pero el archivo no existe en el árbol Git (`Get-ChildItem -Path . -Filter *LICENSE*` no arroja resultado en raíz).
+- **Evidencia:** `README.md` enlazaba a `LICENSE`, pero el archivo no existía en el árbol Git (`Get-ChildItem -Path . -Filter *LICENSE*` no arrojaba resultado en raíz).
 - **Impacto:** Enlace roto en el README y falta de declaración formal de licencia en inspecciones automatizadas de GitHub.
 - **Recomendación:** Crear el archivo `LICENSE` con los términos de la Licencia MIT.
 - **Esfuerzo:** Muy bajo (< 15 minutos).
