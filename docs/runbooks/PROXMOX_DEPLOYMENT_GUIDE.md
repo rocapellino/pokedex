@@ -232,7 +232,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/play
    - Se garantiza la eliminación permanente de cualquier archivo `vault-init.json` en el contenedor LXC.
    - Las llaves maestras se entregan al operador fuera del contenedor.
 6. **Integración con External Secrets Operator (ESO):**
-   - El certificado público de la CA interna se exporta a [`infra/k8s/eso/vault-ca.crt`](../../infra/k8s/eso/vault-ca.crt) y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
+   - El certificado público de la CA interna se exporta a `infra/k8s/eso/vault-ca.crt` y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento endurecido de Vault:

@@ -186,6 +186,6 @@ flowchart TD
 > [!NOTE]
 > **Aviso de Gobernanza:** Los documentos ubicados bajo `docs/audits/<fecha>/` constituyen **evidencia y diagnósticos históricos fechados** correspondientes a hitos específicos de auditoría. **NO constituyen la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura activa se especifica exclusivamente en [`docs/architecture/`](./architecture/).
 
-- 🔍 [**end_to_end_coherence_audit.md**](./audits/2026-09-23/end_to_end_coherence_audit.md): Auditoría de coherencia operacional extremo a extremo (Hito 2026-09-23) a través de los 8 eslabones de la cadena.
-- 📋 [**baseline_inventario.md**](./audits/2026-09-23/baseline/baseline_inventario.md): Inventario técnico factual de baseline del repositorio.
-- 🩺 [**baseline_diagnostico.md**](./audits/2026-09-23/baseline/baseline_diagnostico.md): Diagnóstico técnico de baseline del repositorio.
+- 🔍 [**full-repository-audit.md**](./audits/2026-09-26/full-repository-audit.md): Auditoría integral del repositorio (código, seguridad, arquitectura, CI/CD y catálogo de skills).
+- 📋 [**baseline_post-release.md**](./audits/2026-09-26/baseline_post-release.md): Snapshot canónico post-release de la versión v1.78.3 / v1.78.4.
+- 🩺 [**documentation-governance.md**](./audits/2026-09-26/documentation-governance.md): Auditoría de cumplimiento de contratos y límites de gobernanza documental.

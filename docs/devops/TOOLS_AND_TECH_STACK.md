@@ -94,8 +94,8 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`Dockerfile`](../../Dockerfile), [`package.json`](../../package.json) |
-| **Express** | `4.22+` | Framework HTTP para rutas REST, middlewares y validaciones | [`server.ts`](../../server.ts) |
-| **TypeScript** | `7.x` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`src/types.ts`](../../src/types.ts) |
+| **Express** | `4.22+` | Framework HTTP para rutas REST, middlewares y validaciones | [`apps/backend/server.ts`](../../apps/backend/server.ts) |
+| **TypeScript** | `7.x` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) |
 | **esbuild** | `0.28+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
 
 ### 2.2. Frontend Web
@@ -109,22 +109,22 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`src/services/db.ts`](../../src/services/db.ts), [`docker-compose.yml`](../../docker-compose.yml) |
+| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`docker-compose.yml`](../../docker-compose.yml) |
 | **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](../../infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
-| **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`src/services/db.ts`](../../src/services/db.ts), [`src/services/auth.ts`](../../src/services/auth.ts) |
+| **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`apps/backend/src/services/auth.ts`](../../apps/backend/src/services/auth.ts) |
 
 ### 2.4. Inteligencia Artificial Generativa
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Google AI Studio (`@google/genai`)** | SDK oficial | Integración nativa con **Gemini 2.5 Flash** para diagramas y mockups | [`src/services/ai.ts`](../../src/services/ai.ts) |
+| **Google AI Studio (`@google/genai`)** | SDK oficial | Integración nativa con **Gemini 2.5 Flash** para diagramas y mockups | [`apps/backend/src/services/ai.ts`](../../apps/backend/src/services/ai.ts) |
 
 ### 2.5. Calidad de Código, Testing & Fuzzing
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
-| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/`](../../tests/fuzz) |
+| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
 | **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
 

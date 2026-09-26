@@ -112,7 +112,7 @@ flowchart TD
 
 ## 6. Esquema DDL y Secuencia Atómica
 
-Implementado en [`src/services/db.ts`](../../src/services/db.ts):
+Implementado en [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts):
 
 ### Definición DDL de Tabla
 

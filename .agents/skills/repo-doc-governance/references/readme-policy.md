@@ -27,7 +27,7 @@ El archivo `README.md` debe estructurarse estrictamente en las siguientes seccio
 7. **Puesta en Marcha Local (Quickstart):** Comandos paso a paso (`npm install`, `npm run dev`, `docker compose up`).
 8. **Estrategia y Ejecución de Pruebas:** Comandos para suites unitarias, de integración, linters y Markdown.
 9. **Despliegue y Orquestación:** Resumen agnóstico de despliegue mediante Helm/ArgoCD hacia Kubernetes.
-10. **Seguridad y Cumplimiento:** Resumen de DevSecOps de alto nivel y enlace explícito a [SECURITY.md](../../../SECURITY.md).
+10. **Seguridad y Cumplimiento:** Resumen de DevSecOps de alto nivel y enlace explícito a [SECURITY.md](../../../../SECURITY.md).
 11. **Índice de Documentación:** Enlaces hacia las guías técnicas en `docs/` organizadas por dominio.
 12. **Licencia y Gobernanza:** Licencia del proyecto y lineamientos de contribución.
 

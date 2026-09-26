@@ -31,7 +31,7 @@ Analizar de forma exhaustiva, en modo de sólo lectura, el radio de impacto, dep
 - **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
 - **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
-- **Formato de Salida:** Generar la tabla de impacto para Pull Requests según el contrato [`.github/ci-impact.yaml`](../../.github/ci-impact.yaml) utilizando [`scripts/detect-change-impact.ts`](../../scripts/detect-change-impact.ts).
+- **Formato de Salida:** Generar la tabla de impacto para Pull Requests según el contrato [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml) utilizando [`scripts/detect-change-impact.ts`](../../../scripts/detect-change-impact.ts).
 - **Planes de Cambio:** Formalizar siempre el resultado del análisis mediante la plantilla [change-plan.md](../_shared/change-plan.md).
 - **Matriz de Impacto:** Consultar [change-impact-matrix.md](../_shared/change-impact-matrix.md) para verificar la cascada obligatoria y los criterios de no-afectación.
 - **Modelo de Estados:** Evaluar el impacto transversal en los 4 niveles ([state-model.md](../_shared/state-model.md)): candidato (`main`), release (`tag`), declarado (`gitops`) y observado (`runtime`).

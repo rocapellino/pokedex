@@ -82,5 +82,5 @@ Para clasificar la calidad interna de los módulos, se emplea la escala clásica
 ## 4. Estrategias de Desacoplamiento Seguro
 
 1. **Inversión de Control Ligera:** Pasar dependencias como parámetros en fábricas de funciones en lugar de instanciar clientes globales dentro de cada función.
-2. **Uso del Patrón Result:** Adoptar estructuras como `Result<T, E>` (ver [`src/utils/result.js`](../../apps/backend/src/utils/result.js)) para comunicar errores de forma determinista sin arrojar excepciones descontroladas que rompan el call stack.
+2. **Uso del Patrón Result:** Adoptar estructuras como `Result<T, E>` para comunicar errores de forma determinista sin arrojar excepciones descontroladas que rompan el call stack.
 3. **Contratos Claros de DTO:** Definir esquemas con Zod en la capa de validación para garantizar que únicamente datos desinfectados y con tipos validados ingresen a los servicios de dominio.
