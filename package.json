@@ -19,7 +19,7 @@
     "lint:md": "tsx scripts/lint-markdown.ts",
     "lint:md:fix": "tsx scripts/lint-markdown.ts --fix",
     "lint": "npm run lint --workspace=@pokedex/backend && npm run lint --workspace=@pokedex/frontend && npm run typecheck",
-    "validate": "npm run lint && npm run build && npm test && npm run test:fuzz",
+    "validate": "npm run lint && npm run build && npm test",
     "test": "tsx --test \"tests/**/*.test.ts\"",
     "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \"tests/**/*.test.ts\"",
     "test:fuzz": "tsx --test tests/fuzzing.test.ts",

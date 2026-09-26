@@ -90,21 +90,26 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 2. **`repo-quality` (Quality Gates Técnicos):**
    - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml).
    - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
-3. **`repo-pr` (Preparación y Gate de Pull Request):**
+3. **`repo-testing` (Estrategia y Gobernanza Multidimensional de Pruebas):**
+   - Evalúa cobertura, duplicación, valor, velocidad, estabilidad y relación fáctica con el código fuente.
+   - Aplica la taxonomía de 12 estados (`KEEP`, `KEEP_IMPROVE`, `DUPLICATE`, `REDUNDANT`, `OBSOLETE`, `BROKEN`, `FLAKY`, `SLOW`, `MOVE`, `MERGE`, `DELETE`, `REVIEW`).
+   - Diferencia Application Tests de Policy-as-Test y detecta antipatrones (God Test Files, asertos vacíos, dependencias temporales/externas).
+   - Prohíbe eliminaciones automáticas en primera pasada y modela brechas de cobertura (`TEST_COVERAGE_GAP`).
+4. **`repo-pr` (Preparación y Gate de Pull Request):**
    - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../../.github/pull_request_template.md)).
    - Consume las evidencias generadas por `repo-quality`, `repo-testing`, `repo-security` y `repo-docs`.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)).
    - Ejecuta el PR Readiness Gate formal. **No realiza auditorías completas redundantes.**
-4. **`repo-doc-governance` (Fuente Normativa de Gobernanza Documental):**
+5. **`repo-doc-governance` (Fuente Normativa de Gobernanza Documental):**
    - Establece los límites (*boundaries*), presupuestos (*budgets*), contrato declarativo (`documentation-contract.yaml`) y políticas de contenido para `README.md`, `SECURITY.md` y `docs/`.
    - Clasifica afirmaciones en taxonomía de volatilidad y evalúa la deriva (*drift*) frente a la evidencia real del repositorio.
-5. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
+6. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
    - Responsable de ejecutar el ciclo de vida documental completo: inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
    - Aplica operativamente las políticas definidas por `repo-doc-governance`.
-6. **`repo-release` (Gobernanza de Release y Promoción):**
+7. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
    - `repo-pr` no asume que la apertura o merge de un PR equivale a la publicación o despliegue de un release.
-7. **`repo-maintenance` (Higiene, Tooling y Cleanup):**
+8. **`repo-maintenance` (Higiene, Tooling y Cleanup):**
    - Aplica el protocolo de 7 fases (`DISCOVER → CLASSIFY → EVIDENCE → PROPOSE → APPROVE → EXECUTE → VALIDATE`) para scripts, utilidades y artefactos obsoletos.
    - Aplica la taxonomía de 8 estados (`KEEP`, `KEEP_SIMPLIFY`, `REPLACE`, `CONSOLIDATE`, `DEPRECATE`, `DELETE`, `MOVE`, `REVIEW`) con análisis de consumidores cruzados.
    - Prohíbe eliminaciones automáticas en primera pasada y exige evidencia antes de proponer cambios de tooling.
