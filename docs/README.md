@@ -139,7 +139,7 @@ flowchart TD
 - 📐 [**ADR-002**](./decisions/ADR-002-compose-for-local-development.md): Uso de Docker Compose Restringido a Desarrollo Local.
 - 📐 [**ADR-003**](./decisions/ADR-003-gitops-with-argocd.md): GitOps Declarativo mediante ArgoCD y Digests Inmutables OCI.
 - 📐 [**ADR-004**](./decisions/ADR-004-opentofu-and-ansible-boundaries.md): Delimitación de Responsabilidades entre OpenTofu e IaC Ansible.
-- 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión de Secretos en Reposo con Bitnami Sealed Secrets y ESO.
+- 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión Canónica de Secretos con External Secrets Operator (ESO) y HashiCorp Vault CE.
 - 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres con Validación Activa y Cifrado AES-256.
 - 📐 [**ADR-007**](./decisions/ADR-007-observability-and-metrics.md): Observabilidad Unificada, Métricas RED y Prometheus ServiceMonitor.
 - 📐 [**ADR-008**](./decisions/ADR-008-supply-chain-security.md): Seguridad de Cadena de Suministro (Supply Chain), Inmutabilidad de Artefactos y Atestaciones Criptográficas.

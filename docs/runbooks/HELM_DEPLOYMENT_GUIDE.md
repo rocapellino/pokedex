@@ -17,7 +17,7 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 | **Redis** | `Deployment`, `Service` | `6379` | Caché de alta velocidad para endpoints, revocación distribuida de sesiones y rate limiting en Lua. |
 | **Ingress** | `Ingress` | `80`, `443` | Enrutamiento perimetral L7 (`/` -> web, `/api` -> api) con terminación TLS. |
 | **Seguridad de Red** | `NetworkPolicy`, `PDB` | — | Zero-Trust NetworkPolicies (anti-SSRF, PgBouncer enforced isolation, CoreDNS restriction) y PodDisruptionBudgets. |
-| **Gestión de Secretos** | `Secret`, `ExternalSecret` | — | Soporte para Sealed Secrets, Secrets locales desacoplados (`existingSecret`) y External Secrets Operator. |
+| **Gestión de Secretos** | `Secret`, `ExternalSecret`, `SecretStore` | — | Desacoplamiento canónico mediante External Secrets Operator (ESO) conectado a HashiCorp Vault CE o AWS Secrets Manager, y modo local desacoplado (`existingSecret`). |
 | **Seed Job** | `Job` (Helm Hook) | — | Carga inicial opcional de 1.025 Pokémon (`src/seed.ts` compilado). |
 
 ---
@@ -27,7 +27,7 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 ```text
 infra/helm/
 └── pokedex/
-    ├── Chart.yaml                       # Metadatos del Chart (versión 1.0.0, appVersion 1.9.5)
+    ├── Chart.yaml                       # Metadatos del Chart (versión semántica y appVersion)
     ├── .helmignore                      # Patrones de exclusión de empaquetado
     ├── values.yaml                      # Configuración base segura (Secure by Default / Safe defaults)
     ├── values.dev.yaml                  # Overrides para desarrollo local / Kind / Minikube (HTTP permisivo)

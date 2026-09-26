@@ -1,6 +1,6 @@
 # Matriz de Responsabilidades y Demarcación Arquitectónica (Responsibility Matrix)
 
-Este documento establece la **Matriz Canónica de Responsabilidades** para todos los componentes de infraestructura, orquestación, seguridad, despliegue y calidad del proyecto Pokédex. 
+Este documento establece la **Matriz Canónica de Responsabilidades** para todos los componentes de infraestructura, orquestación, seguridad, despliegue y calidad del proyecto Pokédex.
 
 Su propósito es responder de forma definitiva e inequívoca a la pregunta:
 > **"¿Para qué existe este componente y qué sucedería si se elimina?"**
@@ -10,7 +10,7 @@ Su propósito es responder de forma definitiva e inequívoca a la pregunta:
 ## 1. Matriz de Responsabilidades de Componentes de Plataforma
 
 | Componente | Responsabilidad Primaria | Ambiente / Capa | ¿Obligatorio? | Justificación Arquitectónica / Consecuencia de su Eliminación |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **OpenTofu** | Aprovisionamiento declarativo de infraestructura base (VMs, LXCs, CPU, RAM, NVMe/ZFS, bridges y firewall perimetral). | On-prem (Proxmox) & Cloud-ready (AWS) | **Sí** | Si se elimina, la infraestructura se convierte en configuraciones manuales irreproducibles (*snowflakes*), impidiendo la reconstrucción automatizada en Disaster Recovery. |
 | **Ansible** | Configuración de SO invitado, hardening de kernel/SSH, UFW, runtime K3s, HashiCorp Vault y aprovisionamiento de herramientas en Bastion. | On-prem (Proxmox OS layer) | **Sí** | Si se elimina, no existe automatización para el bootstrap de paquetes, hardening del sistema operativo ni inicialización de Vault. |
 | **Bastion Host (LXC 820)** | Punto único de entrada administrativa (Management Plane), sesión interactiva restringida, auditoría local con reenvío remoto a syslog/Loki para no-repudio y ejecución de *Break-Glass*. | On-prem (10.10.13.120) | **Sí** | Si se elimina, los operadores accederían directamente a los nodos de cómputo y clúster K8s sin registro ni forwarding de auditoría (`/var/log/bastion/audit.log`), violando Zero-Trust. |
@@ -50,7 +50,7 @@ Para erradicar la percepción de redundancia entre analizadores de código y esc
 ```
 
 | Herramienta | Capa de Inspección | Objetivo Específico | ¿Por qué NO la reemplaza otra herramienta? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **ESLint** | Código Fuente TypeScript / JavaScript | Detecta errores de sintaxis, violaciones de tipos de TypeScript y anti-patrones en tiempo de edición (IDE) y CI rápido (< 15s). | No analiza YAML, ni infraestructura, ni vulnerabilidades semánticas profundas. |
 | **MegaLinter** | Archivos No-JS (YAML, Markdown, Dockerfile, GH Actions) | Orquestador unificado de linters para mantener coherencia estilística en documentación, pipelines de CI y manifiestos de K8s. | ESLint no tiene capacidad de parsear YAML, Markdown ni scripts Shell. |
 | **Semgrep** | Abstract Syntax Tree (AST) de la aplicación | SAST semántico basado en reglas personalizadas para detectar inyecciones SQL/NoSQL, evasión de autenticación, SSRF y bugs de seguridad específicos. | A diferencia de Sonar o ESLint, permite escribir reglas de seguridad sintácticas de orden superior orientadas al modelo de amenazas del proyecto. |
@@ -79,7 +79,7 @@ Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compa
        • Recursos: CPU/RAM fijos                      • Recursos: HPA v2 con escalado elástico
 ```
 
-* **Regla de Cero Duplicación:** Los templates de Kubernetes (Deployments, Services, ConfigMaps, NetworkPolicies, ServiceAccounts) residen **únicamente** en `infra/helm/pokedex/`. Ningún archivo YAML de recurso se duplica entre ambientes.
+- **Regla de Cero Duplicación:** Los templates de Kubernetes (Deployments, Services, ConfigMaps, NetworkPolicies, ServiceAccounts) residen **únicamente** en `infra/helm/pokedex/`. Ningún archivo YAML de recurso se duplica entre ambientes.
 
 ---
 
@@ -88,14 +88,18 @@ Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compa
 En cumplimiento estricto del [ADR-020](../decisions/ADR-020-typescript-testing-and-modern-tooling.md), se erradicaron los scripts shell dispersos e históricos. Todos los scripts operativos son programas TypeScript modernos ejecutados mediante `node --experimental-strip-types`:
 
 | Script | Lenguaje | Propósito Operativo | ¿Activo en CI/CD o Runbooks? |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `scripts/k8s-rollout-restart.ts` | TypeScript | Reinicio progresivo de pods y validación contractual de la arquitectura de secretos Proxmox. | **Sí** (`npm run k8s:rollout-restart`, `npm run k8s:verify-vault-architecture`). |
 | `scripts/probe-egress-security.ts` | TypeScript | Sonda de validación de seguridad de red L7 eBPF Anti-SSRF hacia APIs externas. | **Sí** (`npm run probe:security:egress`, Job K8s). |
 | `scripts/verify-image-digest-parity.ts` | TypeScript | Validación de inmutabilidad y paridad de digest SHA-256 de imágenes OCI entre GitOps y GHCR. | **Sí** (`npm run gitops:verify-parity`). |
 | `scripts/verify-secret-rotation.ts` | TypeScript | Verificación de rotación y frescura de credenciales en Vault y K8s. | **Sí** (`npm run secrets:audit-rotation`). |
-| `scripts/github-security-linear-sync.ts`| TypeScript | Sincronización automática de alertas de seguridad de GitHub Dependabot/CodeQL hacia Linear. | **Sí** (Workflow programado de GitHub Actions). |
+| `scripts/update-gitops-pin.ts` | TypeScript | Auditoría y actualización del targetRevision de ArgoCD en manifiestos de GitOps. | **Sí** (`npm run gitops:pin`, `npm run gitops:pin:check`). |
+| `scripts/ghcr-retention.ts` | TypeScript | Poda y gestión de retención de paquetes OCI en GitHub Container Registry. | **Sí** (`npm run ghcr:retention`, workflow programado). |
+| `scripts/dr-drill.ts` | TypeScript | Simulación E2E de Disaster Recovery con volcado PostgreSQL, cifrado AES-256 y restore drill. | **Sí** (`npm run dr:drill:e2e`, workflow DR). |
+| `scripts/dev-backup-gdrive.ts` | TypeScript | Respaldo local de PostgreSQL y sincronización a Google Drive en Docker Compose (Alternativa A). | **Sí** (`task dr:gdrive:backup:dev`). |
+| `scripts/lint-markdown.ts` | TypeScript | Quality Gate de linting y formateo para archivos Markdown del monorepo. | **Sí** (`npm run lint:md`, `npm run lint:md:fix`). |
+| `scripts/github-security-linear-sync.ts` | TypeScript | Sincronización automática de alertas de seguridad de GitHub Dependabot/CodeQL hacia Linear. | **Sí** (Workflow programado de GitHub Actions). |
 | `scripts/sonar-linear-sync.ts` | TypeScript | Sincronización de issues de calidad y deuda técnica de SonarCloud hacia Linear. | **Sí** (Workflow de CI SonarQube). |
-| `scripts/seal-secret.ts` | TypeScript | Utilidad para transición criptográfica de secretos sellados (Bitnami Sealed Secrets). | **Sí** (Mantenimiento de migraciones). |
 | `scripts/dr_verify_restore.sh` | Bash | Script canónico de simulación de Disaster Recovery y restauración de snapshots en entornos aislados. | **Sí** (Único script shell explícitamente autorizado en whitelist por gobernanza). |
 
 ---

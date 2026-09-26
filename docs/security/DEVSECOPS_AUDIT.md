@@ -49,7 +49,7 @@ El repositorio supera los estándares habituales de la industria incorporando de
 1. **Firmado Criptográfico:** `infra/k8s/kyverno-cosign-policy.yaml` verifica firmas Cosign antes de admitir cualquier contenedor.
 2. **Segmentación de Red:** `infra/helm/pokedex/templates/network-policies.yaml` aplica Zero-Trust con default-deny en bases de datos.
 3. **Multiplexación de Conexiones:** Despliegue de `pgbouncer-deployment.yaml` para mitigar la saturación de pools en PostgreSQL.
-4. **Secretos Seguros:** External Secrets y Sealed Secrets para evitar credenciales en texto claro en Git.
+4. **Secretos Seguros:** External Secrets Operator (ESO) y HashiCorp Vault CE / AWS Secrets Manager para evitar credenciales en texto claro en Git.
 5. **Suite de Pentest Automatizada:** Pruebas continuas de inyección, escalación de privilegios HMAC, prototype pollution, SSRF, DoS y fuzzing en `tests/`.
 
 ---
