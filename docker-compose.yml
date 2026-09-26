@@ -75,7 +75,6 @@ services:
       - "5432"  # Aislado en backend-net: NO expuesto al host ni al frontend web
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - backend-net
     healthcheck:

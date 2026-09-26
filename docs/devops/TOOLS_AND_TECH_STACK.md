@@ -204,8 +204,8 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Gestión de Base de Datos y Ciclo de Vida del Esquema
 
-- **Drizzle ORM / Prisma**: La inicialización actual con `init.sql` y `seed.ts` carece de versionado atómico. La adopción de un ORM o Query Builder moderno provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas reproducibles ejecutables desde el `seed-job.yaml` de Kubernetes.
-- **Atlas / Flyway**: Gestión declarativa del control de versiones del esquema relacional de PostgreSQL integrada directamente en la tubería de CI/CD previo al despliegue productivo.
+- **Drizzle ORM**: Adoptado como estándar y única fuente de verdad (SSOT) para la base de datos (ADR-011, ADR-029). Provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas versionadas en `apps/backend/src/db/migrations/`, habiéndose retirado los scripts estáticos `init.sql`.
+- **Atlas / Flyway**: Herramientas complementarias para verificación avanzada de migraciones en CI/CD si se requiere inspección de linter DDL antes del despliegue productivo.
 
 #### Resiliencia y Manejo de Integraciones Externas
 

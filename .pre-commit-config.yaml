@@ -9,6 +9,7 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
         args: ['--unsafe']
+        exclude: '^infra/helm/.*/templates/.*'
       - id: check-json
       - id: check-added-large-files
         args: ['--maxkb=500']
@@ -25,4 +26,3 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [feat, fix, chore, ci, docs, test, refactor, perf, revert]
-
