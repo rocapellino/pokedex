@@ -104,6 +104,10 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 6. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
    - `repo-pr` no asume que la apertura o merge de un PR equivale a la publicación o despliegue de un release.
+7. **`repo-maintenance` (Higiene, Tooling y Cleanup):**
+   - Aplica el protocolo de 7 fases (`DISCOVER → CLASSIFY → EVIDENCE → PROPOSE → APPROVE → EXECUTE → VALIDATE`) para scripts, utilidades y artefactos obsoletos.
+   - Aplica la taxonomía de 8 estados (`KEEP`, `KEEP_SIMPLIFY`, `REPLACE`, `CONSOLIDATE`, `DEPRECATE`, `DELETE`, `MOVE`, `REVIEW`) con análisis de consumidores cruzados.
+   - Prohíbe eliminaciones automáticas en primera pasada y exige evidencia antes de proponer cambios de tooling.
 
 ---
 

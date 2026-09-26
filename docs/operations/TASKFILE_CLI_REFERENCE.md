@@ -30,6 +30,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task turbo:typecheck` | Verificación estricta de tipos de TypeScript (`tsc --noEmit`). |
 | | `task turbo:clean` | Limpieza de caché `.turbo` y artefactos compilados en `dist/`. |
 | **Validación y QA** | `task lint` | Ejecuta linting y análisis de tipos unificado. |
+| | `task lint:md` | Valida la calidad y consistencia de Markdown con markdownlint (0 errores MDxxx). |
+| | `task lint:md:fix` | Aplica autocorrección de formato a la documentación Markdown. |
 | | `task validate` | Suite obligatoria previa a commit (`lint`, `typecheck`, `build`, `test`). |
 | | `task test` | Pruebas unitarias de seguridad y lógica de negocio. |
 | | `task test:e2e` | Pruebas de integración E2E con Playwright. |
@@ -67,6 +69,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Supply Chain & Registro (GHCR)** | `task ghcr:retention` | Aplica política de retención en GHCR conservando estrictamente los últimos 3 releases. |
 | | `task ghcr:retention:dry-run` | Inspecciona versiones en GHCR y simula la purga sin mutaciones (Dry-Run). |
 | **Gobernanza & Auditoría** | `task governance:audit-scripts` | Valida lista blanca estricta de scripts y prohíbe scripts imperativos. |
+| | `task ci:impact` | Calcula el grafo de impacto de cambios y el DAG dinámico de CI. |
 | | `task security` | Escaneos SAST y auditoría de secretos (Semgrep, Gitleaks, Checkov). |
 
 ---

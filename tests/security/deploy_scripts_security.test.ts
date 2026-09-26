@@ -2101,3 +2101,18 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(proxmoxGuideContent.includes('setup_k3s.yml'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe referenciar setup_k3s.yml');
   assert.ok(proxmoxGuideContent.includes('k8s-proxmox.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-proxmox.internal.lan');
 });
+
+test('🛡️ Tooling Governance: scripts/governance-audit-scripts.ts valida lista blanca de scripts shell y rechaza imperativos', async () => {
+  const scriptPath = path.join(ROOT_DIR, 'scripts/governance-audit-scripts.ts');
+  assert.ok(fs.existsSync(scriptPath), 'scripts/governance-audit-scripts.ts debe existir');
+
+  const { auditScriptGovernance, ALLOWED_SH_SCRIPTS, findShellScripts } = await import('../../scripts/governance-audit-scripts.ts');
+  assert.deepEqual(ALLOWED_SH_SCRIPTS, ['scripts/dr_verify_restore.sh']);
+
+  const result = auditScriptGovernance();
+  assert.equal(result.success, true, `La auditoría de gobernanza de scripts debe pasar: ${result.errors.join('; ')}`);
+  assert.equal(result.errors.length, 0);
+
+  const found = findShellScripts(ROOT_DIR);
+  assert.ok(found.includes('scripts/dr_verify_restore.sh'), 'findShellScripts debe encontrar scripts/dr_verify_restore.sh');
+});
