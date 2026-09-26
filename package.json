@@ -21,6 +21,7 @@
     "lint": "npm run lint --workspace=@pokedex/backend && npm run lint --workspace=@pokedex/frontend && npm run typecheck",
     "validate": "npm run lint && npm run build && npm test",
     "test": "tsx --test \"tests/**/*.test.ts\"",
+    "test:unit": "tsx --test \"tests/unit/**/*.test.ts\"",
     "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \"tests/**/*.test.ts\"",
     "test:fuzz": "tsx --test tests/fuzzing.test.ts",
     "dr:drill:e2e": "tsx scripts/dr-drill.ts",
