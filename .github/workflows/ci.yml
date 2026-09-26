@@ -93,6 +93,9 @@ jobs:
       - name: 4. Análisis de Tipos y Calidad con TypeScript
         run: npm run lint
 
+      - name: 4b. Auditoría de Configuration Hygiene (*.ignore)
+        run: npm run lint:ignore:strict
+
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 
