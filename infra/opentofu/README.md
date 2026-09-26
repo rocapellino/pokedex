@@ -53,6 +53,7 @@ infra/opentofu/
 ## 🚀 Uso Operativo (Comandos Canónicos)
 
 ### Aprovisionamiento en AWS (EKS)
+
 ```bash
 # Validación previa e inicialización
 task infra:validate
@@ -63,6 +64,7 @@ task infra:apply:aws
 ```
 
 ### Aprovisionamiento en Proxmox VE
+
 ```bash
 # Validación previa e inicialización
 task infra:validate
@@ -73,6 +75,7 @@ task infra:apply:proxmox
 ```
 
 ### Validación Global de Sintaxis
+
 ```bash
 task infra:validate
 ```

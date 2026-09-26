@@ -16,13 +16,13 @@ Este documento detalla la estructura de directorios, convención de organizació
 
 El monorepo está organizado siguiendo una separación estricta de responsabilidades mediante **npm workspaces**:
 
-* **`apps/backend/`**: Servidor API RESTful Node.js + Express en TypeScript (`@pokedex/backend`), lógica de dominio, persistencia ACID PostgreSQL + Redis con scripts Lua, autenticación timing-safe HMAC SHA-256, middlewares de seguridad, métricas Prometheus e integración con Gemini 2.5 Flash.
-* **`apps/frontend/`**: Aplicación web cliente SPA (`@pokedex/frontend`) servida mediante un contenedor Nginx Alpine no-root hardened con CSP, compresión gzip y reverse proxy inverso.
-* **`infra/`**: Infraestructura como Código (IaC), Chart oficial de **`helm/pokedex`**, políticas de control de admisión Kyverno (`k8s/`), aprovisionamiento con OpenTofu (`opentofu/`) y playbooks de Ansible (`ansible/`).
-* **`gitops/`**: Manifiestos declarativos de sincronización continua con ArgoCD (`apps/`) y sobrescrituras de configuración por entorno (`environments/`).
-* **`docs/`**: Centraliza toda la documentación técnica, diseños de arquitectura, seguridad, contratos de API y runbooks.
-* **`scripts/`**: Utilidades de DX, auditorías de calidad de código, benchmarks y pruebas de estrés concurrentes.
-* **`tests/`**: Suite exhaustiva de pruebas unitarias, de integración, pentesting lógico, fuzzing y E2E/a11y con Playwright.
+- **`apps/backend/`**: Servidor API RESTful Node.js + Express en TypeScript (`@pokedex/backend`), lógica de dominio, persistencia ACID PostgreSQL + Redis con scripts Lua, autenticación timing-safe HMAC SHA-256, middlewares de seguridad, métricas Prometheus e integración con Gemini 2.5 Flash.
+- **`apps/frontend/`**: Aplicación web cliente SPA (`@pokedex/frontend`) servida mediante un contenedor Nginx Alpine no-root hardened con CSP, compresión gzip y reverse proxy inverso.
+- **`infra/`**: Infraestructura como Código (IaC), Chart oficial de **`helm/pokedex`**, políticas de control de admisión Kyverno (`k8s/`), aprovisionamiento con OpenTofu (`opentofu/`) y playbooks de Ansible (`ansible/`).
+- **`gitops/`**: Manifiestos declarativos de sincronización continua con ArgoCD (`apps/`) y sobrescrituras de configuración por entorno (`environments/`).
+- **`docs/`**: Centraliza toda la documentación técnica, diseños de arquitectura, seguridad, contratos de API y runbooks.
+- **`scripts/`**: Utilidades de DX, auditorías de calidad de código, benchmarks y pruebas de estrés concurrentes.
+- **`tests/`**: Suite exhaustiva de pruebas unitarias, de integración, pentesting lógico, fuzzing y E2E/a11y con Playwright.
 
 ---
 
@@ -122,22 +122,22 @@ pokedex/
 
 ### `apps/backend/` (API RESTful Node.js & TypeScript)
 
-* **`server.ts`**: Servidor HTTP de alto rendimiento con **Express 4.21** y compilación previa con **esbuild**.
-  * Middlewares de seguridad: cabeceras de hardening (`nosniff`, `SAMEORIGIN`), supresión de `X-Powered-By`, validación CORS fail-closed y body parser limitado a 250 KB.
-  * Middlewares de **Rate Limiting** híbridos (scripts atómicos Lua en Redis con fallback local).
-  * Autenticación timing-safe mediante `crypto.timingSafeEqual` sobre digests SHA-256.
-  * Exportador nativo de métricas Prometheus (`/metrics`) y endpoints de salud (`/healthz`, `/readyz`).
-* **`src/services/`**:
-  * **`db.ts`**: Cliente relacional PostgreSQL 16 para almacenamiento `JSONB` de entidades y secuencias atómicas (`pokedex_id_seq`), coordinado con Redis 7 para almacenamiento en caché sub-3ms (`pokedex:list:*`) e invalidación reactiva.
-  * **`auth.ts`**: Gestión estricta de credenciales con desacoplamiento entre `ADMIN_API_KEY` (clave administrativa) y `ADMIN_SESSION_SECRET` (firma HMAC SHA-256 de tokens con payload `role`, `exp`, `jti`).
-  * **`ai.ts`**: Integración con Google Gemini 2.5 Flash (`@google/genai`) con timeout de 12s, límites de cuota diaria y fallbacks deterministas locales.
+- **`server.ts`**: Servidor HTTP de alto rendimiento con **Express 4.21** y compilación previa con **esbuild**.
+  - Middlewares de seguridad: cabeceras de hardening (`nosniff`, `SAMEORIGIN`), supresión de `X-Powered-By`, validación CORS fail-closed y body parser limitado a 250 KB.
+  - Middlewares de **Rate Limiting** híbridos (scripts atómicos Lua en Redis con fallback local).
+  - Autenticación timing-safe mediante `crypto.timingSafeEqual` sobre digests SHA-256.
+  - Exportador nativo de métricas Prometheus (`/metrics`) y endpoints de salud (`/healthz`, `/readyz`).
+- **`src/services/`**:
+  - **`db.ts`**: Cliente relacional PostgreSQL 16 para almacenamiento `JSONB` de entidades y secuencias atómicas (`pokedex_id_seq`), coordinado con Redis 7 para almacenamiento en caché sub-3ms (`pokedex:list:*`) e invalidación reactiva.
+  - **`auth.ts`**: Gestión estricta de credenciales con desacoplamiento entre `ADMIN_API_KEY` (clave administrativa) y `ADMIN_SESSION_SECRET` (firma HMAC SHA-256 de tokens con payload `role`, `exp`, `jti`).
+  - **`ai.ts`**: Integración con Google Gemini 2.5 Flash (`@google/genai`) con timeout de 12s, límites de cuota diaria y fallbacks deterministas locales.
 
 ### `apps/frontend/` (Capa de Presentación y Proxy DMZ)
 
-* **Frontend SPA Vanilla**: Catálogo con visualización Bento Grid, filtros dinámicos, paginación, paleta de tipos y consola de administración Backoffice con sanitización contra XSS.
-* **Nginx Reverse Proxy**: Contenedor Alpine no-root con digest criptográfico fijado, compresión gzip y cabeceras CSP.
+- **Frontend SPA Vanilla**: Catálogo con visualización Bento Grid, filtros dinámicos, paginación, paleta de tipos y consola de administración Backoffice con sanitización contra XSS.
+- **Nginx Reverse Proxy**: Contenedor Alpine no-root con digest criptográfico fijado, compresión gzip y cabeceras CSP.
 
 ### `infra/` y `gitops/` (Infraestructura, Orquestación y GitOps)
 
-* **Helm 3 Chart (`infra/helm/pokedex`)**: Despliegue altamente parametrizado con políticas NetworkPolicy Zero-Trust (Anti-SSRF, PgBouncer enforced isolation), soporte para External Secrets Operator, HPA v2 y PodDisruptionBudgets.
-* **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise y AWS EKS en la nube).
+- **Helm 3 Chart (`infra/helm/pokedex`)**: Despliegue altamente parametrizado con políticas NetworkPolicy Zero-Trust (Anti-SSRF, PgBouncer enforced isolation), soporte para External Secrets Operator, HPA v2 y PodDisruptionBudgets.
+- **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise y AWS EKS en la nube).

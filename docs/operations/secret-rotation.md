@@ -30,13 +30,14 @@ kubectl annotate es pokedex-secrets -n pokemon-app force-sync=$(date +%s) --over
 
 El mecanismo de propagación depende del entorno de ejecución:
 
-* **Entorno Cloud (AWS EKS):**
+- **Entorno Cloud (AWS EKS):**
   Gracias al controlador de **Stakater Reloader** y la anotación declarativa en los Deployments (`reloader.stakater.com/auto: "true"` formalizado en [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md)), el clúster detecta la mutación del Secret y ejecuta automáticamente un *RollingUpdate* progresivo sin tiempo de inactividad.
 
-* **Entorno On-Premise (Proxmox VE / K3s - Perfil Lean MVP):**
+- **Entorno On-Premise (Proxmox VE / K3s - Perfil Lean MVP):**
   Stakater Reloader está **desactivado intencionalmente** (`reloader.enabled: false`) para reducir la sobrecarga de controladores en clúster y mantener un footprint ultraliviano (< 1 GB RAM total).
   - Los cambios en configuración (`ConfigMap`) provocan automáticamente un *RollingUpdate* mediante la anotación nativa de Helm **`checksum/config`** (`spec.template.metadata.annotations`).
   - Para aplicar la rotación de secretos inmediatamente tras la sincronización de ESO sin esperar a un nuevo release de Helm, ejecute un reinicio progresivo usando la herramienta tipada del repositorio o `kubectl`:
+
     ```bash
     # Vía Taskfile / Script TypeScript tipado:
     task k8s:rollout-restart -- --live
@@ -46,6 +47,7 @@ El mecanismo de propagación depende del entorno de ejecución:
     ```
 
 Monitorear el estado del despliegue:
+
 ```bash
 kubectl rollout status deployment/pokemon-api -n pokemon-app
 ```

@@ -42,7 +42,7 @@ La versión se pina en `package.json` raíz y en `apps/backend/package.json`:
 ## Riesgos Asumidos
 
 | Riesgo | Severidad | Mitigación |
-|--------|-----------|------------|
+| -------- | ----------- | ------------ |
 | Comportamiento de tipos no completamente estabilizado respecto a tsc 5.x | Media | Pinning `~7.0.2`, CI con `tsc --noEmit` en cada PR |
 | Posibles diferencias en mensajes de error / diagnósticos | Baja | No impacta runtime, solo developer experience |
 | Incompatibilidad con plugins/transformers que asumen API de tsc 5.x | Media | Revisar changelog en cada upgrade de patch |
@@ -62,7 +62,7 @@ La versión se pina en `package.json` raíz y en `apps/backend/package.json`:
 
 Si se detectan regresiones de tipos no aceptables con `~7.0.x`:
 
-1. Abrir issue en https://github.com/microsoft/TypeScript con reproducción mínima.
+1. Abrir issue en <https://github.com/microsoft/TypeScript> con reproducción mínima.
 2. Bajar a la última versión estable de TypeScript 5.x: `"typescript": "~5.7.0"`.
 3. Actualizar este ADR con el motivo del rollback y la fecha.
 

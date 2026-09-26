@@ -24,7 +24,7 @@ features {
 
 Asimismo, el agente `kubelet` requiere acceso en lectura y escritura a ciertos subsistemas del kernel (como `/proc/sys/kernel/panic_on_oops`), montajes de cgroups y `/dev/kmsg`. En consecuencia, la jerarquía de ejecución resultante es:
 
-```
+```text
 Proxmox Host (Kernel)
    │
    └── Privileged LXC (Comparte Kernel del Host + Nesting)
@@ -36,7 +36,7 @@ Proxmox Host (Kernel)
 
 En este modelo, el límite de aislamiento ante una eventual vulnerabilidad de kernel o escape de contenedor en un Pod es significativamente menor que en una VM KVM:
 
-```
+```text
 Proxmox Host (Kernel)
    │
    └── KVM Virtual Machine (Kernel propio y aislado por Hardware / QEMU)
@@ -49,6 +49,7 @@ Proxmox Host (Kernel)
 ### Trade-Off de Rendimiento y Recursos
 
 Por otro lado, la medición empírica de recursos en laboratorio demostró que la virtualización KVM impone un overhead significativo para entornos de desarrollo y pruebas:
+
 - **KVM VM**: ~5.1 GB de RAM consumida por la sobrecarga del emulador QEMU, sistema operativo invitado completo y buffers de virtualización.
 - **LXC Container**: **867 MB** de RAM total consumida para el stack completo (OS Debian 12 + K3s v1.36.4 + PostgreSQL + Redis + 2 réplicas de API Express + Frontend Web Nginx), con inicio en frío en menos de 5 segundos.
 
@@ -78,6 +79,7 @@ Se adopta formalmente una **Estrategia de Cómputo Bi-Modal** en el módulo Open
 ### 3. Abstracción Unificada en Infraestructura como Código (OpenTofu)
 
 La implementación en OpenTofu desacopla el tipo de cómputo del resto de la arquitectura:
+
 - El mismo bloque de código soporta el aprovisionamiento condicional (`count`) tanto de la plantilla/imagen como de la instancia de cómputo (`proxmox_virtual_environment_container` vs `proxmox_virtual_environment_vm`).
 - Los outputs exponen identificadores genéricos estandarizados: `instance_id`, `instance_name`, `instance_ip`, manteniendo compatibilidad hacia atrás con los alias existentes `vm_id`, `vm_name`, `vm_ip`.
 - Los artefactos de despliegue superiores (Helm Charts de Pokédex, manifiestos de Kubernetes, scripts de instalación de K3s) operan de manera 100% agnóstica al sustrato de virtualización subyacente.
@@ -85,6 +87,7 @@ La implementación en OpenTofu desacopla el tipo de cómputo del resto de la arq
 ### 4. Eliminación de Contraseñas por Defecto y Autenticación Exclusiva por API Token
 
 Como principio fundamental de seguridad ([ADR-005](./ADR-005-secret-management.md)):
+
 - **Desacople de Contraseñas de Hipervisor**: Se elimina por completo el uso de `username`/`password` (`root@pam`) en el proveedor OpenTofu, adoptando **exclusivamente Proxmox API Tokens** (`USER@REALM!TOKENID=UUID`) con separación de privilegios configurada.
 - **Tolerancia Cero a Secretos por Defecto**: Ninguna variable de credenciales (`proxmox_api_token`, `vm_user_password`) contiene valores por defecto en el código fuente.
 - **Acceso a Nodos por SSH Key**: La autenticación hacia las instancias de Kubernetes es obligatoria y validada mediante llave pública SSH (`ssh_public_key`). La contraseña de consola queda deshabilitada por defecto (`vm_user_password = null`) con reglas de `lifecycle { ignore_changes }` para prevenir destrucciones accidentales durante rotaciones.

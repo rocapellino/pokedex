@@ -1,12 +1,15 @@
 # ADR-007: Arquitectura de Observabilidad Unificada con Prometheus y OpenTelemetry
 
 ## Estado
+
 Aceptado
 
 ## Contexto
+
 Para garantizar la fiabilidad, diagnóstico proactivo y cumplimiento de SLAs (RPO/RTO y latencia P95/P99 < 2s) en entornos híbridos (Kubernetes local, Proxmox VE y AWS EKS), la plataforma Pokédex requiere una arquitectura de observabilidad estandarizada. Anteriormente existían discrepancias entre las expresiones de alertas Prometheus (`infra/monitoring/alerts.yml`) y las métricas expuestas por el backend Express, careciendo además de integración nativa con Prometheus Operator mediante `ServiceMonitor`.
 
 ## Decisión
+
 Se establece una estrategia de observabilidad de cuatro capas:
 
 1. **Exposición de Métricas Prometheus Nativa (`/metrics`)**:
@@ -27,6 +30,7 @@ Se establece una estrategia de observabilidad de cuatro capas:
    - Alertas críticas para desconexión de base de datos (`PokedexPostgresDisconnected`), falla de Redis (`PokedexRedisDisconnected`), tasa de error 5xx > 1% (`PokedexHighErrorRate5xx`) y latencia P99 > 2.0s (`PokedexHighLatencyP99`).
 
 ## Consecuencias
+
 - **Positivas**:
   - Detección instantánea de fallas en PostgreSQL y Redis antes de que degraden la experiencia de usuario.
   - Alertas 100% alineadas con las métricas reales emitidas por el runtime.

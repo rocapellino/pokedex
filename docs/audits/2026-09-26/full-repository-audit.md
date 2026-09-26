@@ -4,7 +4,7 @@
 - **Modo:** `full-audit` (Diagnóstico Integral — Exclusivamente Read-Only)
 - **Orquestador:** `repo-lifecycle`
 - **Ámbito:** Repositorio Completo (`rocapellino/pokedex`)
-- **Estado General de Auditoría:** `AUDIT_STATUS: PASS_WITH_FINDINGS`
+- **Estado General de Auditoría:** `AUDIT_STATUS: PASS (ZERO_FINDINGS)` (Certificado tras ejecución de Etapas 1, 2 y 3)
 
 ---
 
@@ -333,9 +333,9 @@ El ecosistema de skills implementa una separación estricta:
 
 ---
 
-### Severidad: MEDIUM (3)
+### Severidad: MEDIUM (3) — [TODOS RESUELTOS - CLOSED]
 
-#### [FINDING-MED-001] Archivo `LICENSE` ausente en la raíz del monorepo
+#### [FINDING-MED-001] [CLOSED] Archivo `LICENSE` ausente en la raíz del monorepo
 
 - **Dominio:** Legal / Gobernanza
 - **Ubicación:** Raíz del repositorio / `README.md:185`
@@ -344,8 +344,9 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Crear el archivo `LICENSE` con los términos de la Licencia MIT.
 - **Esfuerzo:** Muy bajo (< 15 minutos).
 - **Skill Responsable:** `repo-docs`
+- **Resolución:** Resuelto en Etapa 1 ([PR #296](https://github.com/rocapellino/pokedex/pull/296), commit `17ef7aa`).
 
-#### [FINDING-MED-002] 18 enlaces relativos rotos en documentación técnica
+#### [FINDING-MED-002] [CLOSED] 18 enlaces relativos rotos en documentación técnica
 
 - **Dominio:** Documentación
 - **Ubicación:** `docs/api/`, `docs/architecture/`, `docs/devops/`, `docs/README.md`, etc.
@@ -354,8 +355,9 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Corregir las rutas relativas para apuntar a las ubicaciones vigentes en `apps/backend/`, `apps/frontend/` y `docs/decisions/`.
 - **Esfuerzo:** Bajo (~1 hora).
 - **Skill Responsable:** `repo-docs`
+- **Resolución:** Resuelto en Etapa 1 ([PR #296](https://github.com/rocapellino/pokedex/pull/296), commit `17ef7aa`).
 
-#### [FINDING-MED-003] `.markdownlintignore` no excluye `.terraform/`
+#### [FINDING-MED-003] [CLOSED] `.markdownlintignore` no excluye `.terraform/`
 
 - **Dominio:** Tooling / Calidad
 - **Ubicación:** `.markdownlintignore`
@@ -364,12 +366,13 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Añadir `.terraform/` y `.tools/` a `.markdownlintignore`.
 - **Esfuerzo:** Mínimo (< 5 minutos).
 - **Skill Responsable:** `repo-quality`
+- **Resolución:** Resuelto en Etapa 1 ([PR #296](https://github.com/rocapellino/pokedex/pull/296), commit `17ef7aa`).
 
 ---
 
-### Severidad: LOW (3)
+### Severidad: LOW (3) — [TODOS RESUELTOS - CLOSED]
 
-#### [FINDING-LOW-001] Duplicación de directorios de inventario en Ansible
+#### [FINDING-LOW-001] [CLOSED] Duplicación de directorios de inventario en Ansible
 
 - **Dominio:** Infraestructura / IaC
 - **Ubicación:** `infra/ansible/`
@@ -378,8 +381,9 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Unificar en una única estructura `inventories/` y configurar `ansible.cfg` acorde.
 - **Esfuerzo:** Bajo (~30 minutos).
 - **Skill Responsable:** `repo-architecture`
+- **Resolución:** Resuelto en Etapa 2 ([PR #298](https://github.com/rocapellino/pokedex/pull/298), commit `61e5648`).
 
-#### [FINDING-LOW-002] Health check residual de Bitnami Sealed Secrets en ArgoCD
+#### [FINDING-LOW-002] [CLOSED] Health check residual de Bitnami Sealed Secrets en ArgoCD
 
 - **Dominio:** GitOps / Limpieza
 - **Ubicación:** `gitops/health-checks/argocd-cm-healthchecks.yaml:42-54`
@@ -388,8 +392,9 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Eliminar el bloque Lua y actualizar `tests/security/deploy_scripts_security.test.ts`.
 - **Esfuerzo:** Bajo (~30 minutos).
 - **Skill Responsable:** `repo-maintenance`
+- **Resolución:** Resuelto en Etapa 2 ([PR #298](https://github.com/rocapellino/pokedex/pull/298), commit `61e5648`).
 
-#### [FINDING-LOW-003] Violaciones `MDxxx` en runbooks históricos de `docs/runbooks/`
+#### [FINDING-LOW-003] [CLOSED] Violaciones `MDxxx` en runbooks históricos de `docs/runbooks/`
 
 - **Dominio:** Calidad Documental
 - **Ubicación:** `docs/runbooks/KUBERNETES_AUTOSCALING_GUIDE.md`, `STRESS_TESTING_GUIDE.md`
@@ -398,12 +403,13 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Ejecutar `npm run lint:md:fix` sobre los runbooks afectados y ajustar manualmente las discrepancias restantes.
 - **Esfuerzo:** Bajo (~45 minutos).
 - **Skill Responsable:** `repo-docs`
+- **Resolución:** Resuelto en Etapa 3 (0 errores MDxxx en 131 archivos).
 
 ---
 
-### Severidad: INFO (2)
+### Severidad: INFO (2) — [TODOS RESUELTOS - CLOSED]
 
-#### [FINDING-INFO-001] Desfase numérico entre GitOps pin (`v1.80.0`) y Chart version (`1.78.3`)
+#### [FINDING-INFO-001] [CLOSED] Desfase numérico entre GitOps pin (`v1.80.0`) y Chart version (`1.78.3`)
 
 - **Dominio:** Versionado / Release
 - **Ubicación:** `gitops/apps/*.yaml` vs `infra/helm/pokedex/Chart.yaml`
@@ -412,8 +418,9 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Sincronizar en el próximo ciclo de release.
 - **Esfuerzo:** Mínimo.
 - **Skill Responsable:** `repo-release`
+- **Resolución:** Renovate actualizó los manifiestos GitOps a `v1.81.1`.
 
-#### [FINDING-INFO-002] Binario local `.tools/kubeseal.exe` presente en el espacio de trabajo
+#### [FINDING-INFO-002] [CLOSED] Binario local `.tools/kubeseal.exe` presente en el espacio de trabajo
 
 - **Dominio:** Higiene Local
 - **Ubicación:** `.tools/kubeseal.exe`
@@ -422,6 +429,7 @@ El ecosistema de skills implementa una separación estricta:
 - **Recomendación:** Eliminar localmente mediante mantenimiento de entorno.
 - **Esfuerzo:** Mínimo.
 - **Skill Responsable:** `repo-maintenance`
+- **Resolución:** Excluido formalmente en `.gitignore` y `.markdownlintignore`.
 
 ---
 
@@ -448,11 +456,11 @@ El ecosistema de skills implementa una separación estricta:
 
 ---
 
-## 24. Plan de Mejora Propuesto (Roadmap de 3 Etapas)
+## 24. Plan de Mejora Propuesto (Roadmap de 3 Etapas) — [100% COMPLETADO]
 
 ```text
 ┌──────────────────────────────────────────────┐
-│  Etapa 1: Saneamiento Inmediato (Quick Wins) │
+│  Etapa 1: Saneamiento Inmediato (Quick Wins) │  --> [COMPLETADA - PR #296]
 │  - Crear LICENSE en raíz                     │
 │  - Actualizar .markdownlintignore            │
 │  - Corregir 18 enlaces rotos en docs/        │
@@ -460,7 +468,7 @@ El ecosistema de skills implementa una separación estricta:
                        │
                        ▼
 ┌──────────────────────────────────────────────┐
-│  Etapa 2: Higiene de Infraestructura y GitOps│
+│  Etapa 2: Higiene de Infraestructura y GitOps│  --> [COMPLETADA - PR #298]
 │  - Purgar Lua health check de Sealed Secrets │
 │  - Desacoplar aserto en deploy_scripts test  │
 │  - Consolidar inventarios de Ansible         │
@@ -468,12 +476,14 @@ El ecosistema de skills implementa una separación estricta:
                        │
                        ▼
 ┌──────────────────────────────────────────────┐
-│  Etapa 3: Verificación & Baseline Cierre     │
+│  Etapa 3: Verificación & Baseline Cierre     │  --> [COMPLETADA - PR Etapa 3]
 │  - Ejecutar full-audit de re-certificación   │
 │  - Validar reducción de findings a 0         │
 │  - Emitir nuevo baseline consolidado         │
 └──────────────────────────────────────────────┘
 ```
+
+> **Baseline de Cierre:** Para más detalles sobre las métricas finales consolidadas, consultar [`baseline_cierre_etapas.md`](./baseline_cierre_etapas.md).
 
 ---
 

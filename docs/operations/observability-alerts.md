@@ -7,7 +7,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 ---
 
 ## 2. Matriz de Alertas y Severidades
- 
+
 | Alerta | Severidad | Métrica / Expresión PromQL | Impacto |
 | :--- | :--- | :--- | :--- |
 | **PokedexAPIDown** | `critical` | `up{job=~".*pokedex.*"} == 0` | Microservicio Pokédex API caído o inalcanzable por scraping. |
@@ -158,10 +158,12 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 ### 3.8. PokedexAPIDown & PokedexDegradedMode
 
 1. **Inspección de Estado y Pods**:
+
    ```bash
    kubectl get pods -n pokemon-app -l app=pokemon-api
    kubectl describe pod -n pokemon-app -l app=pokemon-api
    ```
+
 2. **Remediación**:
    - Si el pod está `CrashLoopBackOff`, inspeccionar logs anteriores: `kubectl logs -n pokemon-app -l app=pokemon-api --previous`.
    - Si está en `PokedexDegradedMode`: verificar conectividad con PostgreSQL y PgBouncer. La API mantiene disponibilidad de lectura usando caché en memoria mientras se restablece la base de datos.
@@ -169,10 +171,12 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 ### 3.9. PostgresDown & PostgresHighConnections
 
 1. **Inspección de PostgreSQL y Pooler**:
+
    ```bash
    kubectl get pods -n pokemon-app -l app=postgres
    kubectl exec -it -n pokemon-app postgres-0 -- psql -U pokedex_app -d pokedex_db -c "SELECT count(*), state FROM pg_stat_activity GROUP BY state;"
    ```
+
 2. **Remediación**:
    - En caso de saturación (> 80%), verificar queries lentas o bloqueos (locks): `SELECT pid, query, age(clock_timestamp(), query_start) FROM pg_stat_activity WHERE state != 'idle' ORDER BY age DESC LIMIT 5;`.
    - Ajustar `max_connections` o parámetros de PgBouncer (`default_pool_size`, `max_client_conn`).
@@ -180,19 +184,23 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 ### 3.10. RedisDown
 
 1. **Inspección de Instancia Redis**:
+
    ```bash
    kubectl get pods -n pokemon-app -l app=redis
    kubectl logs -n pokemon-app -l app=redis --tail=50
    ```
+
 2. **Remediación**:
    - Reiniciar el pod si se encuentra en estado zombie o bloqueado por persistencia AOF/RDB.
 
 ### 3.11. ContainerHighMemoryUsage
 
 1. **Inspección de Consumo de RAM**:
+
    ```bash
    kubectl top pods -n pokemon-app
    ```
+
 2. **Remediación**:
    - Identificar si hay fuga de memoria en Node.js (V8 heap). Analizar perfiles de memoria o escalar temporalmente réplicas para distribuir la carga.
 
@@ -202,10 +210,12 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 > **Alcance de la Alerta**: Esta alerta corresponde **exclusivamente a la certificación real de backups (`dr:verify`)** ejecutada por el CronJob en el clúster. No se dispara por simulacros sintéticos de CI/CD (`dr:drill`), garantizando cero falsos positivos derivados del mecanismo de prueba en pipelines.
 
 1. **Inspección de Logs del Job de Verificación**:
+
    ```bash
    kubectl get jobs,pods -n pokemon-app -l app.kubernetes.io/component=dr-verification
    kubectl logs -n pokemon-app -l app.kubernetes.io/component=dr-verification --tail=100
    ```
+
 2. **Diagnóstico de Causa Raíz**:
    - Comprobar si no existe un snapshot cifrado en `/backups` (fallo de RPO).
    - Comprobar si el fallo responde a discrepancia en el checksum SHA-256 (`.sha256`), clave simétrica inválida (`BACKUP_ENCRYPTION_KEY`) o stream gzip corrupto.
@@ -225,6 +235,7 @@ Las métricas y alertas recolectadas por Grafana Alloy y Beyla se integran con G
 - **Observabilidad Global del Clúster:** [`infra/monitoring/dashboards/cluster-observability.json`](../../infra/monitoring/dashboards/cluster-observability.json)
 
 Para importar estos tableros en la instancia de Grafana Cloud:
+
 1. Acceder a la consola de Grafana Cloud (`Dashboards` > `New` > `Import`).
 2. Pegar el contenido del archivo JSON correspondiente.
 3. Vincular la fuente de datos al Prometheus gestionado por Grafana Cloud.

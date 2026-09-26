@@ -1,9 +1,11 @@
 # ADR-025: Separación Conceptual entre Management Plane, Runtime Plane y Cloud-Ready Target
 
 ## Estado
+
 Aceptado
 
 ## Contexto
+
 El crecimiento de componentes en la infraestructura on-premise (Proxmox VE) y cloud (AWS) generó ambigüedad respecto a si el proyecto mantiene dos plataformas productivas concurrentes y si ciertos nodos (como el contenedor Bastion o HashiCorp Vault) representaban infraestructura redundante o sobrearquitectura.
 
 Resulta fundamental evitar tanto la sobrearquitectura como la minimización ciega de componentes, estableciendo una separación clara entre el plano de administración, el plano de ejecución y los objetivos de portabilidad cloud.
@@ -43,7 +45,8 @@ Internet / GitHub Actions
 Proxmox   K3s     Vault
 ```
 
-#### Guardarraíl Operativo del Bastion (Anti-Drift):
+#### Guardarraíl Operativo del Bastion (Anti-Drift)
+
 - **Prohibido:** El Bastion **NO** es un servidor para ejecutar cambios manuales permanentes, `kubectl apply` ad-hoc, `git pull` manuales ni edición de manifiestos en caliente.
 - **Permitido:** Exclusivamente para administración controlada, diagnóstico, operaciones *break-glass* (recuperación ante desastres) e inicialización automatizada.
 - **SSOT Inmutable:** Git sigue siendo la única fuente de verdad. El flujo normal es siempre `Git -> CI -> ArgoCD -> K3s`.
@@ -60,6 +63,7 @@ Proxmox   K3s     Vault
 ### 4. Reutilización Universal de Lógica: Helm Chart Canónico vs Overlays
 
 Se prohíbe duplicar lógica de empaquetado entre plataformas:
+
 - **Lógica Compartida (`infra/helm/pokedex/`):** Contiene la definición canónica y universal de la aplicación: Deployments, Services, Ingress, NetworkPolicies, HPA, PDB, Health Probes, SecurityContext, Redis, PostgreSQL y telemetría OTLP.
 - **Diferencias de Plataforma (`gitops/environments/`):**
   - `gitops/environments/proxmox/values.yaml`: Define storage local, Traefik ingress, Cilium eBPF L7, ESO con Vault backend y recursos fijos Lean.
@@ -70,6 +74,7 @@ Se prohíbe duplicar lógica de empaquetado entre plataformas:
 ### 5. Cadena Estricta de Responsabilidad On-Premise (Source of Truth)
 
 Cada herramienta tiene un límite claro e indelegable:
+
 1. **OpenTofu:** Instancia infraestructura física/virtualizada (LXC, VM, cores, RAM, almacenamiento, bridges de red, firewall perimetral e IPs).
 2. **Ansible:** Configura el sistema operativo invitado (paquetes base, hardening de kernel/SSH, UFW, runtime de K3s, HashiCorp Vault y aprovisionamiento de herramientas en Bastion).
 3. **ArgoCD:** Reconcilia el estado deseado en Kubernetes (Deployments, Services, ConfigMaps, ExternalSecrets, NetworkPolicies).
@@ -80,6 +85,7 @@ Cada herramienta tiene un límite claro e indelegable:
 ### 6. Operación Excepcional Break-Glass y Auditoría en Bastion
 
 Se formaliza la distinción estricta entre el flujo normal y el flujo de contingencia:
+
 - **Flujo Normal:** `Developer -> Git -> GitHub Actions -> ArgoCD -> K3s`.
 - **Flujo Break-Glass:** `Administrador -> Bastion -> kubectl / helm / vault / ansible -> K3s`.
 - **Inmutabilidad de Código en Emergencia:** Durante operaciones de Break-Glass en el Bastion (`/opt/devops/pokedex`), se prohíbe operar a ciegas sobre la punta flotante de `main`. El operador debe fijar un **Commit SHA o Tag verificado (Known-Good State)** mediante `git fetch` y `git checkout <SHA>`, previniendo drift y garantizando determinismo absoluto durante incidentes.
@@ -95,13 +101,13 @@ Se formaliza la distinción estricta entre el flujo normal y el flujo de conting
 - **SPOF Documentado:** Se asume explícitamente el nodo Proxmox como Single Point of Failure (SPOF). Las mitigaciones arquitecturales comprenden copias de seguridad automáticas (Proxmox Backup Server), esquemas Shamir 5/3 para Vault y despliegues declarativos reproducibles con OpenTofu y Ansible. Ver análisis completo: [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
 
 ## Consecuencias
-- **Positivas:** 
+
+- **Positivas:**
   - Justificación arquitectónica sólida: la infraestructura existente no es redundante, sino modular y estructurada por planos.
   - Elimina la confusión sobre dos plataformas activas al clarificar que AWS es un esqueleto cloud-ready.
   - El contenedor Bastion queda formalmente justificado como host de auditoría y punto de break-glass seguro.
   - La separación de ambientes en Vault se resuelve lógicamente sin sobrecosto de contenedores adicionales.
   - El SPOF del host Proxmox queda formalmente asumido, documentado y mitigado.
   - Se formaliza la demarcación canónica de responsabilidades en [Matriz de Responsabilidades](../architecture/RESPONSIBILITY_MATRIX.md).
-- **Negativas:** 
+- **Negativas:**
   - Requiere mantener la disciplina de no realizar cambios manuales desde el Bastion sin posterior reconciliación en Git.
-

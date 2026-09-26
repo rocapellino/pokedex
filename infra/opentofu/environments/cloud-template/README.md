@@ -1,6 +1,6 @@
 # ☁️ Entorno OpenTofu: Cloud-Template (Plantilla Universal Cloud-Neutral)
 
-> **ESTADO DE SOPORTE:** Plantilla Canónica Multi-Cloud Neutral.  
+> **ESTADO DE SOPORTE:** Plantilla Canónica Multi-Cloud Neutral.
 > **TARGET DE PRODUCCIÓN OFICIAL ON-PREMISES:** Proxmox VE ([`../proxmox/`](../proxmox)).
 
 ---
@@ -10,6 +10,7 @@
 Este directorio define el blueprint canónico de infraestructura cloud-neutral para la plataforma **Pokédex**, conforme a las recomendaciones de desacoplamiento de IaC por capas.
 
 A diferencia de los entornos acoplados a APIs de un proveedor específico:
+
 1. No impone dependencias de proveedores cloud propietarios (AWS, GCP, Azure) como requisito previo.
 2. Consume exclusivamente los módulos de contrato común:
    - [`modules/compute/`](../../modules/compute): Especificación estandarizada de capacidades de cómputo.

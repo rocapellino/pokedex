@@ -23,7 +23,7 @@ Administrador ──▶ SSH (Ed25519) ──▶ Bastion Host (LXC 820) ──▶
 ```
 
 | Dimensión | Flujo Normal (GitOps) | Flujo Break-Glass (Bastion) |
-|---|---|---|
+| --- | --- | --- |
 | **Actor** | Developer / Bot CI | Administrador SRE / Infraestructura |
 | **Punto de Entrada** | Pull Request en GitHub | SSH al LXC Bastion (10.10.13.120) |
 | **Herramientas** | ArgoCD, OpenTofu Cloud, CI | `kubectl`, `helm`, `vault`, `ansible` |
@@ -60,6 +60,7 @@ ssh -i ~/.ssh/pokedex_admin_ed25519 sysadmin@10.10.13.120
 ```
 
 Una vez iniciada la sesión interactiva, el entorno carga automáticamente las credenciales necesarias:
+
 - `KUBECONFIG=/etc/rancher/k3s/k3s.yaml` (con permisos de cluster-admin hacia el K3s VM 801).
 - `VAULT_ADDR=https://10.10.13.110:8200` y `VAULT_CACERT=/etc/ssl/vault/vault-ca.crt`.
 - Variables de entorno de Ansible con inventario Proxmox en `/etc/ansible/hosts`.
@@ -75,8 +76,9 @@ Para garantizar la rendición de cuentas (accountability) y prevenir abusos sin 
 > [!NOTE]
 > **Distinción Técnica de Inmutabilidad:**
 > Un archivo de texto local como `/var/log/bastion/audit.log` no es intrínsecamente inmutable: un operador con privilegios de superusuario (`root`) o el proceso de `logrotate` pueden modificarlo, rotarlo o vaciarlo.
-> 
+>
 > Por ello, el **no-repudio real** de la plataforma Pokédex no depende exclusivamente del disco local, sino de un pipeline de doble capa:
+>
 > 1. **Buffer Local (`/var/log/bastion/audit.log`):** Permite inspección inmediata de baja latencia por parte del operador y retención rotativa (12 semanas vía `logrotate`).
 > 2. **Reenvío Remoto en Tiempo Real (`logger -p authpriv.notice` ──▶ `rsyslog` ──▶ SIEM / Loki):** Cada instrucción ejecutada es enviada simultáneamente a la facility `authpriv` de syslog y exportada fuera del Bastion hacia el almacenamiento centralizado de observabilidad (Grafana Alloy / Loki / SIEM). Si un atacante comprometiera el Bastion y eliminara el archivo local, la evidencia ya se encuentra asegurada fuera de su dominio de fallo.
 
@@ -130,12 +132,15 @@ git status
 ```
 
 **Garantías del Modelo Inmutable:**
+
 - **Determinismo Absoluto:** Garantiza que los manifiestos, scripts y playbooks ejecutados reflejen el estado criptográfico deseado.
 - **Trazabilidad Forense:** El checkout del SHA queda registrado en `/var/log/bastion/audit.log` vinculando inequívocamente la acción del operador a la versión exacta del código.
 - **Aislamiento ante Drift:** Evita que pushes concurrentes a ramas remotas contaminen la operación de recuperación.
 
 ### Escenario A: Reinicio de Emergencia de Pods / Despliegue
+
 Si los pods se encuentran bloqueados o una rotación de secretos en Vault no ha sido propagada:
+
 ```bash
 # 1. Comprobar estado de pods y pods atascados
 kubectl get pods -n pokemon-app -o wide
@@ -148,7 +153,9 @@ kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=60s
 ```
 
 ### Escenario B: Unseal Manual de Vault tras Reinicio de Proxmox
+
 Si el LXC 810 (Vault) se reinicia y entra en estado sellado (HTTP 503):
+
 ```bash
 # 1. Verificar estado de sellado
 vault status
@@ -163,7 +170,9 @@ vault status
 ```
 
 ### Escenario C: Parche Directo de Manifiesto / Rollback
+
 Si ArgoCD está inoperativo y se requiere aplicar un Hotfix urgente:
+
 ```bash
 # 1. Realizar backup del manifiesto vivo
 kubectl get deployment pokedex-api -n pokemon-app -o yaml > /tmp/pokedex-api-backup.yaml

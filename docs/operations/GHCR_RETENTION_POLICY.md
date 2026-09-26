@@ -4,8 +4,8 @@
 
 Conforme a los estándares de **Supply Chain Security** y optimización del almacenamiento en la nube, el proyecto adopta una política estricta de **retención máxima de 3 versiones activas** para todos los artefactos de contenedores y paquetes OCI publicados en **GitHub Container Registry (`ghcr.io`)**:
 
-* **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex` y `ghcr.io/rocapellino/pokedex-api`
-* **Helm Charts OCI:** `oci://ghcr.io/rocapellino/charts/pokedex`
+- **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex` y `ghcr.io/rocapellino/pokedex-api`
+- **Helm Charts OCI:** `oci://ghcr.io/rocapellino/charts/pokedex`
 
 ### Objetivos Arquitecturales
 
@@ -42,8 +42,8 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
 
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yml`](../../.github/workflows/ghcr-retention.yml))
 
-* **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa de `CI/CD Pipeline`.
-* **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.
+- **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa de `CI/CD Pipeline`.
+- **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.
 
 ### Nivel 3: Herramienta CLI Local y Canónica ([`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts))
 
@@ -66,5 +66,5 @@ node --experimental-strip-types scripts/ghcr-retention.ts --simulate --keep=3
 
 La política de purgado está diseñada específicamente para registros OCI con firmas **Sigstore/Cosign** y atestaciones **in-toto/SLSA**:
 
-* Al eliminar una versión obsoleta, las referencias asociadas (archivos `.sig`, `.att` y SBOMs adjuntos) son depurados de forma coordinada, evitando la existencia de capas y tags huérfanos (*dangling layers*).
-* Las directivas `delete-untagged: true` y `keep-n-tagged: 3` aseguran que las 3 versiones activas preserven intacta su trazabilidad criptográfica y atestaciones SLSA.
+- Al eliminar una versión obsoleta, las referencias asociadas (archivos `.sig`, `.att` y SBOMs adjuntos) son depurados de forma coordinada, evitando la existencia de capas y tags huérfanos (*dangling layers*).
+- Las directivas `delete-untagged: true` y `keep-n-tagged: 3` aseguran que las 3 versiones activas preserven intacta su trazabilidad criptográfica y atestaciones SLSA.

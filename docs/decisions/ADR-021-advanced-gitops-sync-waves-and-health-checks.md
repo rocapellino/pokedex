@@ -30,6 +30,7 @@ Se implementan anotaciones `argocd.argoproj.io/sync-wave` en las plantillas del 
 ### 2. Custom Health Checks Declarativos en Lua
 
 Se formaliza el ConfigMap `gitops/health-checks/argocd-cm-healthchecks.yaml` extendiendo `argocd-cm` con scripts Lua para evaluar el ciclo de vida de los CRDs críticos:
+
 - **`external-secrets.io/ExternalSecret`**: Evalúa la condición `Ready == True` y `Synced`, reportando `Degraded` si la sincronización con Vault o AWS Secrets Manager falla.
 - **`bitnami.com/SealedSecret`**: Evalúa la condición `Synced == True`, alertando de inmediato si el controlador no logra descifrar el secreto sellado.
 - **`kyverno.io/ClusterPolicy`**: Evalúa `status.ready == true` o la condición `Ready == True` para confirmar que las reglas de admisión criptográfica y PSS están activas antes de continuar.
@@ -41,6 +42,7 @@ Se establece `gitops/apps/root-application.yaml` como el orquestador raíz de la
 ### 4. Políticas de Sincronización Endurecidas y Ventanas de Despliegue
 
 Los manifiestos `app-proxmox.yaml` y `app-cloud.yaml` incorporan:
+
 - `ServerSideApply=true`: Para reconciliación eficiente y control preciso de propiedad de campos (*field management*).
 - `RespectIgnoreDifferences=true`: Para coexistencia armoniosa con controladores dinámicos (e.g. HPA escalando réplicas).
 - `syncWindows`: Ventanas de sincronización declarativas para prevenir cambios imprevistos en horarios de alta demanda.
@@ -49,11 +51,13 @@ Los manifiestos `app-proxmox.yaml` y `app-cloud.yaml` incorporan:
 ## Consecuencias
 
 ### Positivas
+
 - **Cero Downtime y Cero Condiciones de Carrera**: Arranque 100% determinista sin errores transitorios de conexión durante promociones de versión.
 - **Observabilidad de Salud Real en CRDs**: Visibilidad precisa del estado de secretos sellados, externos y políticas de admisión en la interfaz y API de ArgoCD.
 - **Operación Simplificada**: Despliegue de clústeres completos con una sola orden mediante `task gitops:apps:root`.
 - **Auditoría GitOps Estricta**: Cada ola y hook queda registrado en los eventos inmutables del clúster de Kubernetes.
 
 ### Compensaciones y Mitigaciones
+
 - **Mayor Tiempo de Despliegue Total**: El avance secuencial por olas (0 a 4) añade una latencia controlada mientras cada recurso alcanza el estado `Healthy`. Esto es el comportamiento deseado para proteger la estabilidad del servicio en producción.
 - **Dependencia de Scripts Lua en `argocd-cm`**: Requiere aplicar el ConfigMap de health checks durante el aprovisionamiento de ArgoCD (`task gitops:health-checks`).

@@ -4,24 +4,24 @@
 
 En arquitecturas distribuidas de alta concurrencia como la Pokédex Cloud-Ready (Kubernetes + PostgreSQL + Redis + Google Gemini AI), los fallos parciales de dependencias externas son eventos inevitables. Cuando un componente crítico de infraestructura queda inaccesible o experimenta latencia extrema, el sistema debe operar bajo contratos formales y predecibles:
 
-* **Fail-Closed (Fallo Cerrado - Prioridad Seguridad e Integridad)**:
+- **Fail-Closed (Fallo Cerrado - Prioridad Seguridad e Integridad)**:
   La operación se aborta de manera determinista, rechazando la solicitud con un código de error HTTP explícito (`503 Service Unavailable`, `401 Unauthorized` o `429 Too Many Requests`). Se aplica a operaciones donde la inconsistencia de datos, el escalamiento de privilegios o el sobrecosto financiero superan el valor de la disponibilidad temporal.
 
-* **Fail-Open (Fallo Abierto / Degradación Grácil - Prioridad Disponibilidad)**:
+- **Fail-Open (Fallo Abierto / Degradación Grácil - Prioridad Disponibilidad)**:
   La operación continúa ejecutándose a través de un mecanismo alternativo (fallback en memoria local, omisión de aceleradores de caché, o desacoplamiento no bloqueante). Se adopta en flujos de lectura pública o consumo donde la indisponibilidad de un componente no compromete la seguridad ni la integridad de los datos.
 
 ```mermaid
 flowchart TD
     Req([Petición Entrante]) --> Auth{¿Operación Crítica / Segura?}
-    
+
     Auth -- Sí: Sesión Admin o Endpoint AI --> SecDep{¿Redis Disponible?}
     SecDep -- No --> FailClosed["⛔ FAIL-CLOSED<br/>Rechazo 503 / 401<br/>(Previene evasión y sobrecosto)"]
     SecDep -- Sí --> ExecSec[Ejecutar con validación centralizada]
-    
+
     Auth -- No: Lectura de Catálogo Público --> CacheDep{¿Redis Disponible?}
     CacheDep -- No --> FailOpen["🟢 FAIL-OPEN (Degradado)<br/>Bypass a PostgreSQL / Local Memory<br/>(Mantiene catálogo disponible)"]
     CacheDep -- Sí --> ExecCache[Servir desde Caché Redis]
-    
+
     ExecSec --> WriteOp{¿Operación de Escritura CRUD?}
     WriteOp -- Sí --> PGDep{¿PostgreSQL Disponible?}
     PGDep -- No --> StorageClosed["⛔ FAIL-CLOSED (Storage)<br/>Rechazo 503<br/>(Previene split-brain y pérdida)"]
@@ -75,12 +75,12 @@ sequenceDiagram
 ```
 
 1. **Gobernanza de Probes de Kubernetes**:
-   * `/healthz` únicamente valida que el hilo principal de eventos de Node.js responda.
-   * `/readyz` valida activamente `health.postgres_connected`. Si la conexión se pierde, el pod pasa a estado `Unready` en menos de 5 segundos (`periodSeconds: 5`, `failureThreshold: 2`).
+   - `/healthz` únicamente valida que el hilo principal de eventos de Node.js responda.
+   - `/readyz` valida activamente `health.postgres_connected`. Si la conexión se pierde, el pod pasa a estado `Unready` en menos de 5 segundos (`periodSeconds: 5`, `failureThreshold: 2`).
 
 2. **Protección Contra Pérdida de Datos**:
-   * La función `requireWritableStorage` actúa como guardia obligatoria antes de cualquier mutación en `/pokemons`.
-   * Se elimina de raíz el riesgo de registrar datos en estructuras volátiles que desaparecerían ante un reinicio del pod.
+   - La función `requireWritableStorage` actúa como guardia obligatoria antes de cualquier mutación en `/pokemons`.
+   - Se elimina de raíz el riesgo de registrar datos en estructuras volátiles que desaparecerían ante un reinicio del pod.
 
 ---
 
@@ -109,9 +109,9 @@ sequenceDiagram
 ```
 
 1. **Revocación de Sesión (Cero Falsos Positivos de Confianza)**:
-   * El token de sesión emitido incluye un identificador aleatorio criptográfico `jti` (16 bytes hex).
-   * La verificación de firma HMAC SHA-256 es local y rápida.
-   * La consulta de revocación remota en Redis se rige por:
+   - El token de sesión emitido incluye un identificador aleatorio criptográfico `jti` (16 bytes hex).
+   - La verificación de firma HMAC SHA-256 es local y rápida.
+   - La consulta de revocación remota en Redis se rige por:
 
      ```typescript
      if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
@@ -119,15 +119,15 @@ sequenceDiagram
      }
      ```
 
-   * Si Redis está configurado pero no responde, la solicitud administrativa es **rechazada con 503**, previniendo que un administrador desvinculado o con credencial comprometida continúe operando.
+   - Si Redis está configurado pero no responde, la solicitud administrativa es **rechazada con 503**, previniendo que un administrador desvinculado o con credencial comprometida continúe operando.
 
 2. **Doble Capa de Rate Limiting**:
-   * **Capa 1: In-Memory / express-rate-limit**:
+   - **Capa 1: In-Memory / express-rate-limit**:
      Defensa perimetral inmediata en cada pod. Si Redis no está disponible, esta capa asegura que ningún cliente pueda inundar el pod con más peticiones de las configuradas.
-   * **Capa 2: Distribuido / Redis Lua Scripts**:
+   - **Capa 2: Distribuido / Redis Lua Scripts**:
      Garantiza cuotas globales en despliegues con réplicas elásticas (HPA).
-     * Endpoints IA: `failClosedOnRedisOutage: true` -> **Fail-Closed (503)**.
-     * Endpoints de Catálogo: `failClosedOnRedisOutage: false` -> **Fail-Open** con conmutación a Map local.
+     - Endpoints IA: `failClosedOnRedisOutage: true` -> **Fail-Closed (503)**.
+     - Endpoints de Catálogo: `failClosedOnRedisOutage: false` -> **Fail-Open** con conmutación a Map local.
 
 ---
 
@@ -135,9 +135,9 @@ sequenceDiagram
 
 Para la invalidación de listados paginados y filtrados, la Pokédex no ejecuta búsquedas bloqueantes como `KEYS *` o `SCAN` iterativos que degradarían la latencia de Redis. Se utiliza un esquema de **versionado atómico**:
 
-* Clave de versión global: `pokedex:list_version`
-* Claves de listados: `pokedex:list:v{VERSION}:{HASH_PARAMETROS}` con TTL de 60 segundos.
-* Invalidador:
+- Clave de versión global: `pokedex:list_version`
+- Claves de listados: `pokedex:list:v{VERSION}:{HASH_PARAMETROS}` con TTL de 60 segundos.
+- Invalidador:
 
   ```typescript
   export async function invalidateCache(id?: number): Promise<void> {
@@ -164,7 +164,7 @@ Si la llamada `redisClient.incr` fallara por un micro-corte de red:
 
 El cumplimiento de estos contratos se valida tanto en tiempo de compilación (TypeScript estricto) como en la suite automatizada de pruebas (`tests/security/deploy_scripts_security.test.ts`):
 
-* **Fail-Closed en Escrituras**: Test unitario e integración validando retorno `503` al invocar `requireWritableStorage` con DB inactiva.
-* **Fail-Closed en Revocación**: Test validando rechazo de sesión cuando Redis retorna estado inaccesible.
-* **Fail-Closed en Cuotas IA**: Test validando que `aiRateLimiter` rechaza con `503` bajo fallo de Redis.
-* **Fail-Open en Catálogo**: Test validando que el catálogo responde desde memoria local cuando Redis se desconecta.
+- **Fail-Closed en Escrituras**: Test unitario e integración validando retorno `503` al invocar `requireWritableStorage` con DB inactiva.
+- **Fail-Closed en Revocación**: Test validando rechazo de sesión cuando Redis retorna estado inaccesible.
+- **Fail-Closed en Cuotas IA**: Test validando que `aiRateLimiter` rechaza con `503` bajo fallo de Redis.
+- **Fail-Open en Catálogo**: Test validando que el catálogo responde desde memoria local cuando Redis se desconecta.
