@@ -66,10 +66,16 @@ flowchart LR
 | **Restore Verification Semanal** | Proxmox Prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |
 | **Off-Site Cloud Backup (S3-compat)** | Object Storage Agnóstico | **ESQUELETO (INACTIVO)** | Endpoint remoto S3/R2/B2/MinIO (Documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)) |
 | **Off-Site PBS Remote Sync** | Hipervisor (Proxmox VE) | **ESQUELETO (INACTIVO)** | Sync Job hacia PBS secundario (Documentado en [setup_pbs_backup_blueprint.yml](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml)) |
-| **Off-Site Google Drive (Proxmox)** | Proxmox Prod (K8s / K3s) | **IMPLEMENTADO EN MAIN / PENDIENTE DE RECONCILIACIÓN RUNTIME (v1.76.0)** | CronJob `pokedex-gdrive-sync` montando `pokedex-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
+| **Off-Site Google Drive (Proxmox)** | Proxmox Prod (K8s / K3s) | **IMPLEMENTADO EN MAIN / PENDIENTE DE RECONCILIACIÓN RUNTIME (v1.78.3+)** | CronJob `pokedex-gdrive-sync` montando `pokedex-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
 | **Off-Site Google Drive (Dev)** | Local (Docker) | **ACTIVO (Orquestado)** | Orquestado end-to-end con `dev-backup-gdrive.ts` (`pg_dump` -> cifrado -> Rclone) |
 
 > [!NOTE]
+> **Jerarquía y Delimitación Documental de Backups:**
+>
+> 1. [DISASTER_RECOVERY_PLAN.md](DISASTER_RECOVERY_PLAN.md): Política general de DR, objetivos RPO/RTO y protocolos de restauración ante desastres.
+> 2. [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md): Especificación e instrucciones de la implementación off-site actualmente soportada en el repositorio.
+> 3. [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md): Blueprints declarativos para alternativas futuras agnósticas (S3-compatible y Proxmox Backup Server).
+>
 > **Ciclo de Vida y Estado Operacional en Proxmox:** El CronJob de sincronización hacia Google Drive (`pokedex-gdrive-sync`) se encuentra **implementado en `main`**. No debe asumirse como activo en el runtime de producción hasta que ArgoCD reconcilie el clúster con la versión correspondiente y se observe la ejecución periódica efectiva del CronJob in-situ.
 
 ---

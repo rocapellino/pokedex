@@ -82,32 +82,53 @@ Cada documento, guía, runbook o sección técnica analizada se clasifica bajo u
 
 ---
 
-## 4. Regla de Oro: Preservación Histórica (`HISTORICAL ≠ OBSOLETE`)
+## 4. Clasificación Granular de Documentos Históricos (`HISTORICAL`)
 
-> [!IMPORTANT]
-> **Prohibición Estricta de Reescribir la Historia:**
-> Los documentos históricos **NUNCA deben sobreescribirse silenciosamente** para reflejar el estado actual.
->
-> Una auditoría fechada (`docs/audits/2026-09-23/`, `docs/audits/2026-09-25/`) representa una fotografía inmutable de un momento específico en el tiempo y constituye evidencia histórica auditable.
-> Si un documento de diseño o ADR ha quedado desfasado pero posee valor histórico:
->
-> 1. Se marca formalmente con el callout canónico de `HISTORICAL`.
-> 2. Se referencia el documento SSOT vigente.
-> 3. Se preserva el cuerpo del texto histórico intacto.
-> 4. Se actualiza o crea el documento vigente en `docs/architecture/` o `docs/operations/`.
+La clasificación `HISTORICAL` no debe tratarse de forma pasiva o uniforme. Para evitar la sobreacumulación de snapshots obsoletos sin perder trazabilidad, se aplica la siguiente diferenciación:
 
-### Formato Canónico de Marcado Histórico
-
-```markdown
-> [!NOTE]
-> **Documento Histórico / Snapshot de Auditoría:**
-> Este documento describe una arquitectura previa o el estado del repositorio en una fecha pasada.
-> Para la especificación vigente y operativa, consultar [SECRETS_MANAGEMENT.md](../../architecture/SECRETS_MANAGEMENT.md).
+```text
+HISTORICAL
+    ├── ADR / Decisión de Arquitectura        ──► KEEP (Permanente en docs/decisions/)
+    ├── Evidencia Requerida por Tests o CI    ──► KEEP (Permanente hasta desacoplar el test)
+    ├── Blueprint o Alternativa Futura        ──► ARCHIVE (Marcar formalmente con callout)
+    └── Snapshot Cerrado y Consolidado        ──► DELETE (Historial completo preservado en Git)
 ```
+
+### Tabla de Retención por Tipología Documental
+
+| Tipo de Documento | Política de Retención | Acción en Árbol Activo |
+| :--- | :--- | :--- |
+| **Documento SSOT actual** (`docs/architecture/`, `docs/operations/`, `docs/runbooks/`) | Permanente | `KEEP` / `UPDATE` |
+| **ADR** (`docs/decisions/ADR-*.md`) | Permanente | `KEEP` |
+| **Runbook Operativo** | Permanente mientras esté vigente | `KEEP` / `UPDATE` |
+| **Baseline Activo Vigente** (`docs/audits/<fecha-actual>/baseline_post-release.md`) | Conservar en árbol activo | `KEEP` |
+| **Auditoría con hallazgos o tareas abiertas** | Conservar mientras no se cierren | `KEEP` |
+| **Auditoría cerrada y consolidada en baseline** | Eliminar del árbol activo | `DELETE` (Git preserva historial) |
+| **Auditorías intermedias, duplicadas o borradores** | Eliminar / Consolidar | `DELETE` |
+| **Prompts de scaffold o scripts auxiliares de auditoría** | Eliminar | `DELETE` |
+| **Reportes de lint temporal o snapshots de validación** | Eliminar | `DELETE` |
+| **Evidencia requerida por un test o pipeline de CI** | No eliminar hasta desacoplar el test | `KEEP` |
 
 ---
 
-## 5. Demarcación de Fuente Única de Verdad (SSOT) vs. Referencias Derivadas
+## 5. Condiciones Obligatorias de Protección (Guardrails de Poda Segura)
+
+> [!CAUTION]
+> **Condición de Salvaguarda:**
+> **NINGÚN DOCUMENTO HISTÓRICO PUEDE SER ELIMINADO DEL ÁRBOL ACTIVO SI:**
+>
+> 1. Un test automatizado lo requiere (ej. comprobaciones de presencia en suites de pruebas).
+> 2. Un workflow de CI/CD lo referencia de forma explícita.
+> 3. Otra documentación activa lo enlaza como fuente canónica de información.
+> 4. Una skill de IA lo utiliza activamente como referencia o instrucción.
+> 5. Contiene una decisión de diseño no consolidada formalmente en un ADR o documento canónico.
+> 6. Contiene evidencia empírica que no existe en ningún otro lugar del repositorio.
+
+Si ninguna de las 6 condiciones anteriores aplica, y el documento representa un snapshot de auditoría anterior completamente consolidado en el baseline vigente, **puede ser podado con seguridad**, garantizando que el historial permanezca íntegramente auditable mediante `git log`.
+
+---
+
+## 6. Demarcación de Fuente Única de Verdad (SSOT) vs. Referencias Derivadas
 
 Para prevenir la dispersión y la contradicción documental:
 

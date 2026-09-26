@@ -2053,20 +2053,16 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
 });
 
 test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yml', () => {
-  // 1. end_to_end_coherence_audit.md archivado como evidencia histórica en docs/audits/
-  const auditPath = path.join(ROOT_DIR, 'docs/audits/2026-09-23/end_to_end_coherence_audit.md');
-  assert.ok(fs.existsSync(auditPath), 'end_to_end_coherence_audit.md debe existir en docs/audits/2026-09-23/');
-  const auditContent = fs.readFileSync(auditPath, 'utf-8');
-  assert.ok(auditContent.includes('[IMPLEMENTADO]'), 'Debe definir estado IMPLEMENTADO');
-  assert.ok(auditContent.includes('[DECLARADO]'), 'Debe definir estado DECLARADO');
-  assert.ok(auditContent.includes('[EJECUTADO]'), 'Debe definir estado EJECUTADO');
-  assert.ok(auditContent.includes('[DOCUMENTADO]'), 'Debe definir estado DOCUMENTADO');
-  assert.ok(auditContent.includes('[INCONSISTENTE]'), 'Debe definir estado INCONSISTENTE');
-  assert.ok(auditContent.includes('10.10.13.0/24'), 'Debe documentar la subred normalizada 10.10.13.0/24');
+  // 1. Verificación en SSOT documental vigente (PROXMOX_DEPLOYMENT_GUIDE.md y ADR-025)
+  const proxmoxGuidePath = path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md');
+  assert.ok(fs.existsSync(proxmoxGuidePath), 'PROXMOX_DEPLOYMENT_GUIDE.md debe existir en docs/runbooks/');
+  const docGuideContent = fs.readFileSync(proxmoxGuidePath, 'utf-8');
+  assert.ok(docGuideContent.includes('10.10.13.0/24'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar la subred de administración 10.10.13.0/24');
 
-  // 2. docs/README.md indexa end_to_end_coherence_audit.md en sección de auditorías históricas
-  const readmeContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/README.md'), 'utf-8');
-  assert.ok(readmeContent.includes('end_to_end_coherence_audit.md'), 'docs/README.md debe indexar end_to_end_coherence_audit.md');
+  const adr25Path = path.join(ROOT_DIR, 'docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md');
+  assert.ok(fs.existsSync(adr25Path), 'ADR-025 debe existir en docs/decisions/');
+  const adr25Content = fs.readFileSync(adr25Path, 'utf-8');
+  assert.ok(adr25Content.includes('10.10.13.0/24'), 'ADR-025 debe formalizar la subred de administración 10.10.13.0/24');
 
   // 3. Normalización de subredes en Ansible (hosts.ini y hosts.yml alineados a 10.10.13.0/24)
   const hostsIni = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventory/hosts.ini'), 'utf-8');

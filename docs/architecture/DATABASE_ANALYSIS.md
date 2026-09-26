@@ -1,16 +1,17 @@
-# 📊 Análisis Arquitectónico de Base de Datos: Persistencia Híbrida, PgBouncer y Caché Distribuida
+# 📊 Análisis Arquitectónico de Base de Datos: Persistencia Híbrida y Caché Distribuida
 
-Este documento presenta el análisis técnico, diseño e implementación real de la arquitectura de persistencia de datos para la **Pokédex API**, evaluando el compromiso entre modelos relacionales (SQL), documentales (NoSQL/JSONB), connection pooling transaccional (PgBouncer) y sistemas de aceleración en memoria (Redis).
+Este documento presenta el análisis técnico y la especificación de la arquitectura de persistencia de datos para la **Pokédex API**, delimitando la arquitectura implementada por defecto frente a los componentes opcionales de alta escala.
 
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Naturaleza y Estructura de los Datos](#1-naturaleza-y-estructura-de-los-datos)
 2. [Evaluación de Paradigmas de Bases de Datos](#2-evaluación-de-paradigmas-de-bases-de-datos)
-3. [Arquitectura Implementada: Híbrida Relacional + JSONB + PgBouncer + Redis](#3-arquitectura-implementada-híbrida-relacional--jsonb--pgbouncer--redis)
-4. [Diagrama de Flujo: Flujos de Lectura y Escritura de Datos](#4-diagrama-de-flujo-flujos-de-lectura-y-escritura-de-datos)
-5. [Esquema de Base de Datos y Secuencia Atómica](#5-esquema-de-base-de-datos-y-secuencia-atómica)
-6. [Connection Pooling Transaccional con PgBouncer](#6-connection-pooling-transaccional-con-pgbouncer)
+3. [Arquitectura Implementada: PostgreSQL + pg.Pool + Redis](#3-arquitectura-implementada-postgresql--pgpool--redis)
+4. [Componente Opcional de Alta Escala: PgBouncer](#4-componente-opcional-de-alta-escala-pgbouncer)
+5. [Diagrama de Flujo: Flujos de Lectura y Escritura](#5-diagrama-de-flujo-flujos-de-lectura-y-escritura)
+6. [Esquema DDL y Secuencia Atómica](#6-esquema-ddl-y-secuencia-atómica)
 7. [Estrategia de Caché, Revocación y Rate Limiting en Redis](#7-estrategia-de-caché-revocación-y-rate-limiting-en-redis)
 8. [Manejo de Assets Multimedia y CDN](#8-manejo-de-assets-multimedia-y-cdn)
 
@@ -19,43 +20,57 @@ Este documento presenta el análisis técnico, diseño e implementación real de
 ## 1. Naturaleza y Estructura de los Datos
 
 El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Generaciones I a IX), caracterizados por:
-* **Identidad Base Estructurada:** Número nacional único (`id`), nombre, tipo principal y tipos secundarios.
-* **Atributos Dinámicos y Jerárquicos:** Estadísticas base (HP, Attack, Defense, etc.), características físicas (peso, altura, descripciones de Pokédex), habilidades y árboles evolutivos lineales o ramificados (ej: Eevee, Tyrogue).
-* **Patrón de Carga:** Altamente asimétrico: **99% lecturas** (exploración de catálogo, filtrado, consultas de detalle) frente a **1% escrituras** (mutaciones administrativas en Backoffice).
+
+- **Identidad Base Estructurada:** Número nacional único (`id`), nombre, tipo principal y tipos secundarios.
+- **Atributos Dinámicos y Jerárquicos:** Estadísticas base (HP, Attack, Defense, etc.), características físicas (peso, altura, descripciones de Pokédex), habilidades y árboles evolutivos lineales o ramificados.
+- **Patrón de Carga:** Altamente asimétrico: **99% lecturas** (exploración de catálogo, filtrado, consultas de detalle) frente a **1% escrituras** (mutaciones administrativas en Backoffice).
 
 ---
 
 ## 2. Evaluación de Paradigmas de Bases de Datos
 
-| Criterio | Relacional Puro (SQL Normalizado) | NoSQL Puro (Documental / MongoDB) | Arquitectura Híbrida Implementada (PostgreSQL + JSONB + PgBouncer + Redis) |
+| Criterio | Relacional Puro (SQL Normalizado) | NoSQL Puro (Documental / MongoDB) | Arquitectura Híbrida Implementada (PostgreSQL + JSONB + pg.Pool + Redis) |
 | :--- | :--- | :--- | :--- |
 | **Garantías ACID** | Completas con claves foráneas estrictas | Eventuales por colección | **Completas en PostgreSQL con transacciones ACID** |
-| **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas indexadas (`id`, `nombre`, `tipo`) + columna `data JSONB`** |
-| **Rendimiento de Lectura** | Requiere múltiples JOINs para armar el JSON | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
-| **Escalabilidad de Conexiones** | Saturación de memoria por proceso en Postgres | Agrupamiento por driver | **PgBouncer multiplexa miles de clientes en un pool de 20-50 sockets reales** |
-| **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` a partir de 1008+** |
+| **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL frecuentes | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas relacionales indexadas (`id`, `nombre`, `tipo`) + campo `data JSONB`** |
+| **Rendimiento de Lectura** | Requiere múltiples JOINs para construir la entidad | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
+| **Gestión de Conexiones** | Saturación si no se gestiona el pool del cliente | Conexiones internas del driver | **`pg.Pool` nativo en Node.js configurado por pod (20 sockets máx)** |
+| **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` inicializada sobre el valor máximo existente** |
 | **Coordinación Distribuida** | No aplicable para rate limiting / sesiones | No optimizado para llaves volátiles | **Redis atómico con scripts Lua y TTL exactos para tokens y cuotas** |
 
 ---
 
-## 3. Arquitectura Implementada: Híbrida Relacional + JSONB + PgBouncer + Redis
+## 3. Arquitectura Implementada: PostgreSQL + pg.Pool + Redis
 
-La solución implementada combina lo mejor de ambos mundos:
+La arquitectura en producción activa (incluyendo el perfil Proxmox VE) implementa un modelo lean y altamente eficiente:
+
 1. **PostgreSQL 16 (Fuente de la Verdad / Persistencia Duradera):**
-   * Almacena registros en la tabla `pokedex_entries`.
-   * Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
-   * Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
-2. **PgBouncer (Connection Pooling y Aislamiento de Red):**
-   * Opera en modo `pool_mode = transaction`.
-   * En producción actúa como **mediador estricto de seguridad**: la NetworkPolicy bloquea cualquier conexión directa entre los Pods de la API y PostgreSQL; la API solo puede conectarse a PgBouncer (puerto 5432).
+   - Almacena registros en la tabla `pokedex_entries`.
+   - Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
+   - Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
+2. **`pg.Pool` Nativo en la Aplicación (`src/services/db.ts`):**
+   - El servicio de base de datos inicializa un pool de conexiones `pg.Pool` ajustado a las necesidades del entorno (máximo 20 conexiones concurrentes por réplica).
+   - Gestiona reconexiones automáticas, timeouts y liberación de sockets tras cada consulta.
+   - Elimina la sobrecarga de capas intermedias en despliegues con topología de recursos acotados (diseño lean de Proxmox).
 3. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
-   * **Caché de Listados:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 300 segundos.
-   * **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
-   * **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
+   - **Caché de Listados:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 300 segundos.
+   - **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
+   - **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
 
 ---
 
-## 4. Diagrama de Flujo: Flujos de Lectura y Escritura de Datos
+## 4. Componente Opcional de Alta Escala: PgBouncer
+
+Para perfiles de despliegue Enterprise o clústeres cloud con escalado horizontal masivo (más de 15 réplicas dinámicas simultáneas):
+
+- **Rol de PgBouncer:** Actúa como mediador transaccional (`pool_mode = transaction`) intermedio entre la capa elástica de pods y el motor PostgreSQL.
+- **Beneficio en Escenarios Extremos:** Multiplexa cientos de conexiones cliente en un conjunto reducido de sockets reales contra PostgreSQL, previniendo el agotamiento de memoria del proceso de base de datos.
+- **Disponibilidad en el Repositorio:** El chart de Helm incluye el template opcional `infra/helm/pokedex/templates/pgbouncer-deployment.yaml`, parametrizable mediante `pgbouncer.enabled: true` en `values.yaml`.
+- **Perfil Proxmox:** Permanece **desactivado por defecto** (`pgbouncer.enabled: false`) en el perfil Proxmox para preservar memoria y simplificar la cadena de dependencias en nodos de capacidad fija.
+
+---
+
+## 5. Diagrama de Flujo: Flujos de Lectura y Escritura
 
 ```mermaid
 flowchart TD
@@ -63,8 +78,8 @@ flowchart TD
     subgraph READ_PATH["📖 Flujo de Lectura de Catálogo (GET /pokemons)"]
         R_REQ["Petición Cliente GET /pokemons?tipo=Fuego&limit=20"] --> R_REDIS{"¿Existe en Caché Redis?\npokedex:list:tipo=Fuego:limit=20"}
         R_REDIS -->|Cache Hit| R_HIT["⚡ Retorno Inmediato desde Redis\nLatencia sub-3ms"]
-        R_REDIS -->|Cache Miss| R_PGB["🛡️ Conexión multiplexada a PgBouncer"]
-        R_PGB --> R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
+        R_REDIS -->|Cache Miss| R_POOL["🔌 Conexión via pg.Pool (o PgBouncer opcional)"]
+        R_POOL --> R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
         R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 300s"]
         R_SET_REDIS --> R_RESP["Retornar JSON al Cliente con cabecera ETag"]
         R_HIT --> R_RESP
@@ -77,7 +92,7 @@ flowchart TD
         W_CHECK_DB -->|Conectada| W_VAL["Validación de Payload y Sanitización XSS"]
         W_VAL -->|Contiene HTML/<script>| W_ERR_422["❌ 422 Unprocessable Entity"]
         W_VAL -->|Válido| W_SEQ["Asignar ID Atómico:\nSELECT nextval('pokedex_id_seq')"]
-        W_SEQ --> W_INSERT[("💾 Transacción SQL (vía PgBouncer):\nINSERT INTO pokedex_entries (id, nombre, tipo, data)\nVALUES ($1, $2, $3, $4)")]
+        W_SEQ --> W_INSERT[("💾 Transacción SQL (via pg.Pool):\nINSERT INTO pokedex_entries (id, nombre, tipo, data)\nVALUES ($1, $2, $3, $4)")]
         W_INSERT --> W_INV_CACHE["⚡ Invalidar Caché Redis:\nDEL pokedex:list:*"]
         W_INV_CACHE --> W_RESP["✅ Retornar 201 Created con entidad"]
     end
@@ -89,17 +104,18 @@ flowchart TD
 
     class R_HIT,W_RESP success;
     class W_ERR_503,W_ERR_422 error;
-    class R_REQ,W_REQ,W_VAL,W_SEQ,R_PGB step;
+    class R_REQ,W_REQ,W_VAL,W_SEQ,R_POOL step;
     class R_PG,W_INSERT,R_SET_REDIS,W_INV_CACHE storage;
 ```
 
 ---
 
-## 5. Esquema de Base de Datos y Secuencia Atómica
+## 6. Esquema DDL y Secuencia Atómica
 
 Implementado en [`src/services/db.ts`](../../src/services/db.ts):
 
 ### Definición DDL de Tabla
+
 ```sql
 CREATE TABLE IF NOT EXISTS pokedex_entries (
     id INT PRIMARY KEY,
@@ -115,7 +131,9 @@ CREATE INDEX IF NOT EXISTS idx_pokedex_data ON pokedex_entries USING GIN (data);
 ```
 
 ### Inicialización Dinámica de Secuencia Atómica
+
 Para permitir la inserción de nuevos Pokémon sin conflictos de clave primaria y preservando la numeración oficial histórica:
+
 ```sql
 CREATE SEQUENCE IF NOT EXISTS pokedex_id_seq;
 
@@ -128,30 +146,20 @@ SELECT setval(
 
 ---
 
-## 6. Connection Pooling Transaccional con PgBouncer
-
-En entornos con múltiples réplicas de la API (HPA) atendiendo tráfico concurrente:
-1. **Problema de PostgreSQL sin Pooler:** Cada worker o réplica que abre un pool de 10-20 conexiones satura la memoria del motor PostgreSQL (cada conexión en Postgres es un proceso independiente con ~10 MB de overhead).
-2. **Solución con PgBouncer (`pool_mode: transaction`):**
-   * Los Pods de la API abren conexiones contra PgBouncer.
-   * PgBouncer mantiene un grupo reducido de sockets activos contra PostgreSQL y los asigna dinámicamente a las peticiones durante la transacción, liberándolos inmediatamente al completarse.
-3. **Hardening de Seguridad:** En producción, la NetworkPolicy bloquea cualquier intento de la API de comunicarse directamente con PostgreSQL en el puerto 5432, canalizando el 100% de las consultas a través de PgBouncer.
-
----
-
 ## 7. Estrategia de Caché, Revocación y Rate Limiting en Redis
 
 1. **Caché de Consultas Frecuentes:**
-   * Clave: `pokedex:list:<query_hash>`
-   * TTL: **300 segundos** (5 minutos).
-   * Invalidación proactiva: Cada operación `savePokemon()` o `deletePokemon()` invoca un escaneo e invalidación de claves coincidentes con `pokedex:list:*`.
+   - Clave: `pokedex:list:<query_hash>`
+   - TTL: **300 segundos** (5 minutos).
+   - Invalidación proactiva: Toda operación de mutación (`savePokemon`, `deletePokemon`) ejecuta una invalidación de claves coincidentes con `pokedex:list:*`.
 2. **Revocación Distribuida de Sesiones:**
-   * Clave: `revoked:<jti>`
-   * Valor: `"1"`
-   * TTL: Tiempo restante para la expiración del token (`payload.exp - now`).
-   * Al recibir una solicitud autenticada, el backend consulta `EXISTS revoked:<jti>`. Si la clave existe, deniega el acceso con `401 Unauthorized`.
+   - Clave: `revoked:<jti>`
+   - Valor: `"1"`
+   - TTL: Tiempo restante para la expiración del token (`payload.exp - now`).
+   - Al recibir una solicitud autenticada, el backend consulta `EXISTS revoked:<jti>`. Si la clave existe, deniega el acceso con `401 Unauthorized`.
 3. **Rate Limiting Atómico vía Script Lua:**
-   * Previene condiciones de carrera (*race conditions*) en entornos multi-Pod mediante ejecución atómica en el motor mono-hilo de Redis:
+   - Previene condiciones de carrera (*race conditions*) en entornos multi-Pod mediante ejecución atómica en el motor mono-hilo de Redis:
+
    ```lua
    local current = redis.call('INCR', KEYS[1])
    if current == 1 then
@@ -165,5 +173,6 @@ En entornos con múltiples réplicas de la API (HPA) atendiendo tráfico concurr
 ## 8. Manejo de Assets Multimedia y CDN
 
 Las imágenes, sprites y artwork oficial **nunca se almacenan como binarios (BLOB/Base64) en PostgreSQL**:
-* **Ubicación de Assets:** Se sirven como URLs canónicas hacia el repositorio de artwork oficial de GitHub / CDN global (`https://raw.githubusercontent.com/PokeAPI/sprites/...`).
-* **Optimización en Producción:** En entornos cloud, se interpone un proxy perimetral (Cloudflare / CloudFront) que convierte dinámicamente los formatos a **WebP** y almacena en caché en el Edge.
+
+- **Ubicación de Assets:** Se sirven como URLs canónicas hacia el repositorio de artwork oficial de GitHub / CDN global (`https://raw.githubusercontent.com/PokeAPI/sprites/...`).
+- **Optimización en Producción:** En entornos cloud, se interpone un proxy perimetral (Cloudflare / CloudFront) que convierte dinámicamente los formatos a **WebP** y almacena en caché en el Edge.
