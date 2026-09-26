@@ -116,6 +116,17 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 
 ---
 
+## Motor de Change Impact Analysis y DAG Dinámico de CI
+
+`repo-lifecycle` gobierna el contrato declarativo [`.github/ci-impact.yaml`](../../.github/ci-impact.yaml) y ejecuta el motor determinista [`scripts/detect-change-impact.ts`](../../scripts/detect-change-impact.ts):
+
+1. **Nivel Always:** Controles no negociables (escaneo de secretos y estructura de PR) que corren en todo Pull Request.
+2. **Nivel Global:** Alteraciones en archivos transversales (`package.json`, `turbo.json`, `tsconfig.json`, `.pre-commit-config.yaml`, `.github/workflows/**`, `scripts/**`) activan validación integral de todos los dominios.
+3. **Nivel Condicional:** Modificaciones acotadas disparan únicamente los Quality Gates y pipelines afectados (Fast Track documental, suites de backend, empaquetado Helm, etc.).
+4. **Política Fail-Closed (Unknown):** Si el análisis no puede determinar con certeza el impacto de una ruta, se inhibe la optimización y se despacha Full CI.
+
+---
+
 ## Modos de Operación
 
 - **Full:** Ciclo completo desde contexto y auditoría integral hasta release y mantenimiento.
@@ -128,6 +139,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 
 ## Referencias Compartidas
 
+- **Contrato de Impacto CI:** [ci-impact.yaml](../../.github/ci-impact.yaml)
 - **Metodología Base:** [methodology.md](../_shared/methodology.md)
 - **Política de Idioma:** [language-policy.md](../_shared/language-policy.md)
 - **Modelo de Estados:** [state-model.md](../_shared/state-model.md)

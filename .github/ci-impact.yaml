@@ -1,0 +1,150 @@
+# ==============================================================================
+# .github/ci-impact.yaml
+# ==============================================================================
+# Contrato Declarativo de Análisis de Impacto de Cambios (Change Impact Analysis)
+# Orquestado por repo-lifecycle y repo-impact.
+#
+# Define el mapeo determinista entre rutas de archivos modificados y los pipelines
+# o Quality Gates requeridos, evitando ejecuciones redundantes en CI y habilitando
+# un DAG dinámico.
+# ==============================================================================
+
+version: "1.0.0"
+governance:
+  framework: "repo-lifecycle"
+  component: "change-impact-analysis"
+
+# Controles mínimos no negociables que siempre se ejecutan en cualquier Pull Request
+always:
+  - id: "pr-governance"
+    description: "Validación de estructura del PR, templates y políticas de calidad"
+  - id: "secrets"
+    description: "Escaneo estricto de credenciales y secretos en el git diff"
+
+# Rutas transversales globales: cualquier alteración dispara validación integral
+global:
+  paths:
+    - "package.json"
+    - "package-lock.json"
+    - "turbo.json"
+    - "tsconfig.json"
+    - ".pre-commit-config.yaml"
+    - ".github/workflows/**"
+    - "scripts/**"
+  triggers:
+    backend: true
+    frontend: true
+    tests: true
+    security: true
+    docker: true
+    kubernetes: true
+    helm: true
+    opentofu: true
+    ansible: true
+    documentation: true
+
+# Reglas de impacto condicional por dominio
+rules:
+  documentation:
+    description: "Modificaciones puramente documentales y políticas de gobernanza"
+    paths:
+      - "README.md"
+      - "SECURITY.md"
+      - "docs/**"
+      - ".agents/**"
+      - ".markdownlint.json"
+      - ".markdownlintignore"
+      - "LICENSE"
+    triggers:
+      documentation: true
+      backend: false
+      frontend: false
+      tests: false
+      security: false
+      docker: false
+      kubernetes: false
+      helm: false
+      opentofu: false
+      ansible: false
+
+  backend:
+    description: "API Express, lógica de negocio, migraciones DB y esquemas"
+    paths:
+      - "apps/backend/**"
+    triggers:
+      backend: true
+      tests: true
+      security: true
+      docker: true
+
+  frontend:
+    description: "Cliente web SPA, componentes UI y assets estáticos"
+    paths:
+      - "apps/frontend/**"
+    triggers:
+      frontend: true
+      tests: true
+      security: true
+      docker: true
+
+  kubernetes:
+    description: "Manifiestos K8s, GitOps ArgoCD y políticas de clúster"
+    paths:
+      - "infra/k8s/**"
+      - "gitops/**"
+    triggers:
+      kubernetes: true
+      security: true
+
+  helm:
+    description: "Templates, values y empaquetado del Helm Chart oficial"
+    paths:
+      - "infra/helm/**"
+    triggers:
+      helm: true
+      kubernetes: true
+      security: true
+
+  opentofu:
+    description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
+    paths:
+      - "infra/opentofu/**"
+    triggers:
+      opentofu: true
+      security: true
+
+  ansible:
+    description: "Playbooks, roles e inventarios de hardening de sistemas base"
+    paths:
+      - "infra/ansible/**"
+    triggers:
+      ansible: true
+      security: true
+
+  docker:
+    description: "Definiciones de contenedores y orquestación multi-servicio"
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "docker-compose.dev.yml"
+      - "infra/docker/**"
+    triggers:
+      docker: true
+      security: true
+
+# Política Fail-Closed ante rutas desconocidas o incapacidad de determinar impacto
+unknown:
+  policy: "fail-closed"
+  description: "Si el impacto es desconocido o incierto, se ejecuta Full CI"
+  triggers:
+    backend: true
+    frontend: true
+    tests: true
+    security: true
+    docker: true
+    kubernetes: true
+    helm: true
+    opentofu: true
+    ansible: true
+    documentation: true

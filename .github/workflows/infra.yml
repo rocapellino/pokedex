@@ -20,8 +20,48 @@ permissions:
   contents: read
 
 jobs:
+  detect-impact:
+    name: "🎯 Detect Change Impact"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      kubernetes: ${{ steps.impact.outputs.kubernetes }}
+      helm: ${{ steps.impact.outputs.helm }}
+      opentofu: ${{ steps.impact.outputs.opentofu }}
+      ansible: ${{ steps.impact.outputs.ansible }}
+      docker: ${{ steps.impact.outputs.docker }}
+      is_unknown: ${{ steps.impact.outputs.is_unknown }}
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Ejecutar Change Impact Analysis
+        id: impact
+        run: npx tsx scripts/detect-change-impact.ts --base ${{ github.event.pull_request.base.sha || 'origin/main' }} --github-output --format markdown
+
   validate-iac:
     name: ☸️ K8s & OpenTofu Validation & Security
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.kubernetes == 'true' ||
+      needs.detect-impact.outputs.helm == 'true' ||
+      needs.detect-impact.outputs.opentofu == 'true' ||
+      needs.detect-impact.outputs.ansible == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -146,6 +186,13 @@ jobs:
 
   kind-integration:
     name: "☸️ Kind Canonical K8s Integration"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.kubernetes == 'true' ||
+      needs.detect-impact.outputs.helm == 'true' ||
+      needs.detect-impact.outputs.docker == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read

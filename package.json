@@ -44,6 +44,7 @@
     "k8s:verify-vault-architecture": "node --experimental-strip-types scripts/k8s-rollout-restart.ts --simulate",
     "ghcr:retention": "node --experimental-strip-types scripts/ghcr-retention.ts",
     "ghcr:retention:dry-run": "node --experimental-strip-types scripts/ghcr-retention.ts --dry-run",
+    "ci:detect-impact": "tsx scripts/detect-change-impact.ts",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"
