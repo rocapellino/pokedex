@@ -131,4 +131,4 @@ ehthumbs_vista.db
 # Residuos de Scripts Locales
 # ==============================================================================
 # Directorios temporales generados por scripts/dr-drill.ts durante simulacros
-scratch/dr_drill_*/
+scratch/
