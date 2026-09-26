@@ -25,25 +25,28 @@ resourceQuota:
 ## 2. Desglose de Recursos por Componente
 
 ### A. Capa de Aplicación API (`pokemon-api`)
-* **Autoescalado:** `minReplicas: 2`, `maxReplicas: 10`
-* **Requests por Pod:** CPU `250m`, Memoria `256Mi`
-* **Limits por Pod:** CPU `1000m` (1 CPU), Memoria `1Gi` (1024Mi)
+
+- **Autoescalado:** `minReplicas: 2`, `maxReplicas: 10`
+- **Requests por Pod:** CPU `250m`, Memoria `256Mi`
+- **Limits por Pod:** CPU `1000m` (1 CPU), Memoria `1Gi` (1024Mi)
 
 ### B. Capa Web Frontend (`pokemon-web`)
-* **Réplicas:** `2` fijas (o HPA `maxReplicas: 6`)
-* **Requests por Pod:** CPU `100m`, Memoria `64Mi`
-* **Limits por Pod:** CPU `500m`, Memoria `256Mi`
+
+- **Réplicas:** `2` fijas (o HPA `maxReplicas: 6`)
+- **Requests por Pod:** CPU `100m`, Memoria `64Mi`
+- **Limits por Pod:** CPU `500m`, Memoria `256Mi`
 
 ### C. Servicios de Estado e Infraestructura del Namespace
-* **PostgreSQL + PgBouncer:**
-  * Requests: CPU `350m`, Memoria `384Mi`
-  * Limits: CPU `1500m`, Memoria `1.5Gi`
-* **Redis Standalone (Persistente):**
-  * Requests: CPU `100m`, Memoria `128Mi`
-  * Limits: CPU `500m`, Memoria `512Mi`
-* **CronJob DR Backup (Ejecución efímera nocturna):**
-  * Requests: CPU `50m`, Memoria `128Mi`
-  * Limits: CPU `300m`, Memoria `384Mi`
+
+- **PostgreSQL + PgBouncer:**
+  - Requests: CPU `350m`, Memoria `384Mi`
+  - Limits: CPU `1500m`, Memoria `1.5Gi`
+- **Redis Standalone (Persistente):**
+  - Requests: CPU `100m`, Memoria `128Mi`
+  - Limits: CPU `500m`, Memoria `512Mi`
+- **CronJob DR Backup (Ejecución efímera nocturna):**
+  - Requests: CPU `50m`, Memoria `128Mi`
+  - Limits: CPU `300m`, Memoria `384Mi`
 
 ---
 

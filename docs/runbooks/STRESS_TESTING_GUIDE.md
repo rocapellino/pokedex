@@ -5,6 +5,7 @@ Este documento detalla el procedimiento de ejecución, análisis y validación d
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Objetivo de la Prueba](#1-objetivo-de-la-prueba)
 2. [Herramienta de Carga (`tests/performance/k6_stress_test.js`)](#2-herramienta-de-carga-testsperformancek6_stress_testjs)
 3. [Procedimiento de Ejecución Paso a Paso](#3-procedimiento-de-ejecución-paso-a-paso)
@@ -16,9 +17,9 @@ Este documento detalla el procedimiento de ejecución, análisis y validación d
 
 ## 1. Objetivo de la Prueba
 
-* **Validar la elasticidad horizontal:** Comprobar que el **Horizontal Pod Autoscaler (HPA)** detecte automáticamente el aumento de consumo de CPU/Memoria y cree nuevos pods para distribuir la carga.
-* **Garantizar la consistencia transaccional:** Asegurar que múltiples pods de backend operando concurrentemente contra **PostgreSQL** y **Redis** no generen bloqueos (*deadlocks*), saturación de conexiones (`max_connections`) ni corrupción de datos.
-* **Medir rendimiento bajo estrés:** Identificar latencia promedio, tasa de peticiones por segundo (**RPS**) y tasa de error (**0% errores** esperado).
+- **Validar la elasticidad horizontal:** Comprobar que el **Horizontal Pod Autoscaler (HPA)** detecte automáticamente el aumento de consumo de CPU/Memoria y cree nuevos pods para distribuir la carga.
+- **Garantizar la consistencia transaccional:** Asegurar que múltiples pods de backend operando concurrentemente contra **PostgreSQL** y **Redis** no generen bloqueos (*deadlocks*), saturación de conexiones (`max_connections`) ni corrupción de datos.
+- **Medir rendimiento bajo estrés:** Identificar latencia promedio, tasa de peticiones por segundo (**RPS**) y tasa de error (**0% errores** esperado).
 
 ---
 
@@ -26,12 +27,14 @@ Este documento detalla el procedimiento de ejecución, análisis y validación d
 
 El proyecto utiliza **k6** (Grafana k6) para ejecutar pruebas de estrés declarativas y reproducibles contra los endpoints del backend y frontend.
 
-### Ejecución estándar:
+### Ejecución estándar
+
 ```powershell
 task perf
 ```
 
 O invocando directamente el motor k6:
+
 ```powershell
 k6 run tests/performance/k6_stress_test.js
 ```
@@ -41,13 +44,17 @@ k6 run tests/performance/k6_stress_test.js
 ## 3. Procedimiento de Ejecución Paso a Paso
 
 ### Paso 1: Disponer de Terminales de Monitoreo
+
 Abre dos terminales adicionales para observar la reacción de Kubernetes en tiempo real:
 
-* **Terminal A (Monitoreo de HPA en vivo):**
+- **Terminal A (Monitoreo de HPA en vivo):**
+
   ```powershell
   kubectl get hpa -n pokemon-app -w
   ```
-* **Terminal B (Monitoreo de Pods escalando en vivo):**
+
+- **Terminal B (Monitoreo de Pods escalando en vivo):**
+
   ```powershell
   kubectl get pods -n pokemon-app -w
   ```
@@ -55,6 +62,7 @@ Abre dos terminales adicionales para observar la reacción de Kubernetes en tiem
 ---
 
 ### Paso 2: Lanzar la Prueba de Estrés
+
 Ejecuta la prueba desde la terminal principal:
 
 ```powershell
@@ -78,7 +86,8 @@ task perf
 
 En la validación oficial realizada sobre el clúster local, se obtuvieron los siguientes resultados:
 
-### Benchmark de Carga:
+### Benchmark de Carga
+
 ```text
 ======================================================================
 [+] RESULTADOS DE LA PRUEBA DE CARGA
@@ -90,10 +99,11 @@ En la validación oficial realizada sobre el clúster local, se obtuvieron los s
 ======================================================================
 ```
 
-### Reacción de Kubernetes (Autoescalado en Vivo):
-* **`pokemon-api`:** Creció dinámicamente de **2 pods** a **8 pods** al alcanzar 145% de CPU.
-* **`pokemon-web`:** Creció dinámicamente de **2 pods** a **6 pods** al alcanzar 80% de CPU.
-* **Persistencia:** Todos los pods canalizaron sus transacciones mediante **PgBouncer**, manteniendo la base de datos PostgreSQL estable y sin saturación.
+### Reacción de Kubernetes (Autoescalado en Vivo)
+
+- **`pokemon-api`:** Creció dinámicamente de **2 pods** a **8 pods** al alcanzar 145% de CPU.
+- **`pokemon-web`:** Creció dinámicamente de **2 pods** a **6 pods** al alcanzar 80% de CPU.
+- **Persistencia:** Todos los pods canalizaron sus transacciones mediante **PgBouncer**, manteniendo la base de datos PostgreSQL estable y sin saturación.
 
 ---
 

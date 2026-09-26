@@ -5,6 +5,7 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
 ---
 
 ## 📑 Contenidos
+
 1. [Requisitos Previos](#1-requisitos-previos)
 2. [Despliegue de la Infraestructura en Kubernetes](#2-despliegue-de-la-infraestructura-en-kubernetes)
 3. [Siembra y Verificación de la Base de Datos Centralizada](#3-siembra-y-verificación-de-la-base-de-datos-centralizada)
@@ -16,9 +17,10 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
 
 ## 1. Requisitos Previos
 
-* Clúster de Kubernetes activo (**Minikube**, **Kind**, **Docker Desktop K8s**, **EKS**, **GKE** o **AKS**).
-* `kubectl` configurado apuntando al clúster.
-* **Metrics Server** instalado en el clúster (indispensable para que el HPA obtenga métricas de CPU y Memoria):
+- Clúster de Kubernetes activo (**Minikube**, **Kind**, **Docker Desktop K8s**, **EKS**, **GKE** o **AKS**).
+- `kubectl` configurado apuntando al clúster.
+- **Metrics Server** instalado en el clúster (indispensable para que el HPA obtenga métricas de CPU y Memoria):
+
   ```bash
   # En Minikube:
   minikube addons enable metrics-server
@@ -32,12 +34,15 @@ Este runbook detalla el procedimiento paso a paso para desplegar, probar el auto
 ## 2. Despliegue de la Infraestructura en Kubernetes
 
 ### Opción A: Despliegue con Taskfile o Script Automatizado
-* **Vía Taskfile (Recomendado y Multiplataforma):**
+
+- **Vía Taskfile (Recomendado y Multiplataforma):**
+
   ```bash
   task k8s:up
   ```
 
 ### Opción B: Despliegue con Helm 3
+
 ```bash
 # 1. Aplicar Chart de Helm (o perfil producción con -f infra/helm/pokedex/values.prod.yaml)
 helm upgrade --install pokedex ./infra/helm/pokedex -n pokemon-app --create-namespace
@@ -53,6 +58,7 @@ kubectl get pods -n pokemon-app -w
 Todos los pods de la API y de la Web consultan la misma base de datos PostgreSQL respaldada por un `PersistentVolumeClaim`.
 
 Para ejecutar la verificación/siembra del catálogo:
+
 ```bash
 task k8s:seed
 
@@ -72,18 +78,23 @@ El HPA de la Web (`pokemon-web-hpa`) y de la API (`pokemon-api-hpa`) están conf
 > 💡 **Planificación de Capacidad**: Para el modelado formal de cuotas de recursos del clúster (`ResourceQuota` / `LimitRange`) frente al autoescalado HPA máximo, consulte [docs/operations/capacity-and-quotas.md](../operations/capacity-and-quotas.md).
 
 ### Paso 1: Abrir Terminales de Monitoreo
+
 **Terminal 1 (Monitoreo de HPA):**
+
 ```bash
 kubectl get hpa -n pokemon-app -w
 ```
 
 **Terminal 2 (Monitoreo de Pods escalando):**
+
 ```bash
 kubectl get pods -n pokemon-app -l app=pokemon-web -w
 ```
 
 ### Paso 2: Ejecutar la Carga Concurrente
+
 Ejecuta la prueba de estrés declarativa con k6:
+
 ```bash
 task perf
 # O directamente invocando el script de k6:
@@ -91,6 +102,7 @@ k6 run tests/performance/k6_stress_test.js
 ```
 
 ### Paso 3: Observación del Comportamiento
+
 1. **Scale-Up:** Las métricas de CPU subirán de `5%/70%` a `120%/70%`. En 15 segundos, el HPA aumentará las réplicas de 2 a 5 o más pods automáticamente.
 2. **Distribución:** El `Service` de Kubernetes balanceará las solicitudes entre todos los nuevos pods activos.
 3. **Scale-Down:** Al terminar la prueba de carga y pasar la ventana de estabilización (300 segundos / 5 minutos), el HPA reducirá gradualmente las réplicas de regreso a 2.

@@ -5,6 +5,7 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Arquitectura de Contenedores del Repositorio](#1-arquitectura-de-contenedores-del-repositorio)
 2. [Estructura del `.dockerignore`](#2-estructura-del-dockerignore)
 3. [Multi-Stage Builds y Optimización de Capas](#3-multi-stage-builds-y-optimización-de-capas)
@@ -20,6 +21,7 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 ## 1. Arquitectura de Contenedores del Repositorio
 
 El proyecto utiliza dos contenedores especializados:
+
 - **Backend API (`apps/backend/Dockerfile` / `Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
 - **Frontend Web (`apps/frontend/Dockerfile`)**: Servidor web Nginx 1.27 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, JS Vanilla).
 
@@ -56,10 +58,12 @@ Thumbs.db
 ## 3. Multi-Stage Builds y Optimización de Capas
 
 ### 3.1. Separación de Builder y Runner
+
 1. **Etapa `builder`**: Instala dependencias completas (`npm ci`), ejecuta linting (`tsc --noEmit`) y compila el bundle con `esbuild`.
 2. **Etapa `runner`**: Solo contiene el binario compilado y las dependencias de producción (`npm ci --omit=dev`), reduciendo drásticamente la superficie de ataque y el tamaño final de la imagen.
 
 ### 3.2. Orden de Copia para Máximo Aprovechamiento de Caché
+
 - Copiar primero `package.json` y `package-lock.json` antes de ejecutar `npm ci`.
 - Copiar el código fuente (`server.ts`, `src/`) en capas posteriores para que los cambios de código no invaliden la caché de instalación de módulos.
 
@@ -68,10 +72,12 @@ Thumbs.db
 ## 4. Seguridad en Runtime (Non-Root y Zero-Trust)
 
 ### 4.1. Usuario sin Privilegios
+
 - **Backend**: Utiliza el usuario predeterminado de Alpine `node` (`USER node`, UID 1000).
 - **Frontend**: Utiliza el usuario `nginx` (`USER nginx`, UID 101) asignando capacidades mínimas (`setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx`) para enlazar el puerto 80 sin requerir permisos de `root`.
 
 ### 4.2. Principio de Mínimo Privilegio en Kubernetes / Docker
+
 - `allowPrivilegeEscalation: false`
 - `readOnlyRootFilesystem: true` (con volúmenes temporales `emptyDir` para `/tmp`, `/var/cache` y `/var/run`)
 - `capabilities.drop: ["ALL"]`
@@ -81,6 +87,7 @@ Thumbs.db
 ## 5. Mitigación Activa de Vulnerabilidades (CVEs en SO)
 
 Para garantizar un resultado limpio en auditorías de SCA y escaneos de **Trivy**:
+
 - Fijar imágenes base con digest SHA-256 (`node:22-alpine@sha256:...`).
 - Ejecutar `RUN apk upgrade --no-cache` en la etapa final de producción para actualizar parches de seguridad críticos de librerías base como `musl`, `zlib`, `nghttp2-libs` y `libxml2`.
 
@@ -89,6 +96,7 @@ Para garantizar un resultado limpio en auditorías de SCA y escaneos de **Trivy*
 ## 6. Manejo de Señales y Healthchecks Nativos
 
 Ambos contenedores implementan directivas `HEALTHCHECK` que no dependen de herramientas pesadas como `curl`:
+
 - **Backend**: `CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/healthz || exit 1`
 - **Frontend**: `CMD wget --no-verbose --tries=1 --spider http://localhost/healthz || exit 1`
 

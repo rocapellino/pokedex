@@ -122,7 +122,7 @@ flowchart TD
         GITOPS_DIR --> ARGO["ArgoCD Server"]
         HELM_CHART --> ARGO
         GHCR --> ARGO
-        
+
         ARGO -->|app-proxmox.yaml\nvalues.yaml| ENV_PROX["🖥️ Clúster Proxmox (On-Premise)\n• Ingress Nginx Local\n• StatefulSet Postgres + Redis\n• Kyverno Cosign Enforcer"]
         ARGO -->|app-cloud.yaml\nvalues.prod.yaml| ENV_AWS["☁️ Clúster AWS EKS (Cloud)\n• AWS Load Balancer Controller\n• AWS RDS Postgres 16\n• AWS ElastiCache Redis 7\n• Kyverno Cosign Enforcer"]
     end
@@ -156,14 +156,14 @@ flowchart TD
 ## 5. Topología de Red y Aislamiento (Zero-Trust)
 
 1. **Subred Pública DMZ (`10.0.1.0/24`):**
-   * Aloja únicamente el balanceador de carga público (AWS ALB o Ingress-Nginx Controller en on-prem).
-   * Todo el tráfico no-HTTPS es redirigido obligatoriamente a HTTPS (TLS 1.3).
+   - Aloja únicamente el balanceador de carga público (AWS ALB o Ingress-Nginx Controller en on-prem).
+   - Todo el tráfico no-HTTPS es redirigido obligatoriamente a HTTPS (TLS 1.3).
 2. **Subred Privada de Cómputo (`10.0.10.0/24`):**
-   * Aloja los nodos trabajadores de Kubernetes donde ejecutan los Pods de la API y el Frontend.
-   * Sin direcciones IP públicas asignadas; egreso hacia internet restringido mediante NAT Gateway (o Gateway Proxmox) para pull de imágenes y parches de seguridad.
+   - Aloja los nodos trabajadores de Kubernetes donde ejecutan los Pods de la API y el Frontend.
+   - Sin direcciones IP públicas asignadas; egreso hacia internet restringido mediante NAT Gateway (o Gateway Proxmox) para pull de imágenes y parches de seguridad.
 3. **Subred Privada de Datos (`10.0.20.0/24`):**
-   * Aislada sin salida a internet ni ruta default.
-   * Aloja PostgreSQL y Redis. Solo acepta conexiones entrantes originadas desde la subred de cómputo en los puertos autorizados (`5432` y `6379`).
+   - Aislada sin salida a internet ni ruta default.
+   - Aloja PostgreSQL y Redis. Solo acepta conexiones entrantes originadas desde la subred de cómputo en los puertos autorizados (`5432` y `6379`).
 
 ---
 
@@ -246,4 +246,3 @@ Para garantizar máxima transparencia arquitectónica y evitar falsas expectativ
 | **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Entorno efímero para pruebas destructivas, validación de playbooks y simulación de fallos controlados. |
 | **AWS EKS (Nube Pública)** | **Plantilla de Referencia** | `infra/opentofu/environments/aws` | **Blueprint ilustrativo de portabilidad multi-cloud**. Parametrizado mediante variables; no forma parte de los pipelines de despliegue continuo activo ni de los compromisos de SLA/RTO de Disaster Recovery. |
 | **Kind (Local)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Clúster Kubernetes ligero utilizado para tests de integración en GitHub Actions (`infra.yml`) y pruebas de paridad para desarrolladores locales. |
-

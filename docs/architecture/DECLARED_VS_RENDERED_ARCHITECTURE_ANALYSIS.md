@@ -3,6 +3,7 @@
 Este documento presenta una auditoría técnica profunda que compara la **arquitectura declarada** (documentación, diagramas y especificaciones teóricas) frente a la **arquitectura realmente renderizada** (manifiestos generados por Helm y aplicados por ArgoCD en GitOps).
 
 Su objetivo es responder con precisión:
+
 1. ¿Qué componentes están **realmente desplegados** en ejecución?
 2. ¿Qué componentes son **código preparado para el futuro** (templates durmientes)?
 3. ¿Qué componentes son **herencia histórica** (ej. vestigios de Docker Compose)?
@@ -12,7 +13,7 @@ Su objetivo es responder con precisión:
 ## 1. Matriz Canónica: Declarado vs. Renderizado por Entorno
 
 | Componente | AWS Cloud-Ready | Proxmox Pre-prod | Proxmox Prod | Estado Real en el Repositorio | Diagnóstico y Clasificación |
-|---|:---:|:---:|:---:|---|---|
+| --- | :---: | :---: | :---: | --- | --- |
 | **K3s Runtime** | `-` (EKS) | `✓` (LXC 800) | `✓` (VM 801) | **Desplegado Real** | K3s es el motor exclusivo on-premise; AWS target utiliza EKS. |
 | **Cilium (eBPF)** | `(P)` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Renderizado en Helm / Dependiente de CNI** | Helm renderiza `CiliumNetworkPolicy` L7 en todos los entornos. En Proxmox requiere instalación de Cilium CNI vía Helm (`kube-system`). En AWS requiere Cilium CNI chaining. |
 | **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 810) | `✓` (LXC 810) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
@@ -32,18 +33,22 @@ Su objetivo es responder con precisión:
 ## 2. Hallazgos Detallados por Componente
 
 ### 2.1. PgBouncer: El caso del "Código Preparado no Activado"
+
 - **En la documentación y `values.prod.yaml`:** PgBouncer aparece como habilitado (`enabled: true`, 2 réplicas, poolSize: 50).
 - **En el GitOps real (`gitops/environments/proxmox/values.yaml`):**
+
   ```yaml
   pgbouncer:
     enabled: false
   ```
+
 - **Razón Arquitectónica:** Conforme al ADR-024 (Perfil Lean MVP), desplegar dos réplicas de PgBouncer consume ~128MB de RAM y añade un salto de red innecesario para un clúster con 2 réplicas de API. El pool interno de Node.js (`pg.Pool` con `max: 20` por pod = 40 conexiones totales) es más que suficiente para PostgreSQL mononodo.
 - **Conclusión:** El template `pgbouncer-deployment.yaml` **no es código muerto**, sino código preparado para cuando el tráfico exceda 50 conexiones simultáneas.
 
 ---
 
 ### 2.2. cAdvisor: El mito del pod de observabilidad
+
 - **En debates de arquitectura:** Se suele listar a cAdvisor como un componente a desplegar o evaluar en Kubernetes.
 - **En el render real:** **No existe ningún manifiesto ni Helm template para cAdvisor en Kubernetes**.
 - **Realidad Técnica:** Kubelet incluye cAdvisor compilado en su propio binario (`/metrics/cadvisor` en el puerto 10250). Grafana Alloy hace scraping directamente desde Kubelet.
@@ -53,19 +58,23 @@ Su objetivo es responder con precisión:
 ---
 
 ### 2.3. Cilium: La brecha entre Manifiesto Renderizado y Runtime CNI
+
 - **En el render de Helm:** Tanto en AWS como en Proxmox se renderiza:
+
   ```yaml
   apiVersion: "cilium.io/v2"
   kind: CiliumNetworkPolicy
   metadata:
     name: pokedex-proxmox-api-cilium-l7-policy
   ```
+
 - **Realidad en el Clúster:** Si K3s se instaló con Flannel por defecto (`k3s.service` estándar sin flags), el recurso CRD `CiliumNetworkPolicy` no tiene ningún agente eBPF procesándolo y las reglas FQDN no se aplican.
 - **Requisito Operativo:** Para que el render tenga efecto en tiempo de ejecución, el clúster K3s **debe** haberse instalado con `--flannel-backend=none` y el chart de Cilium desplegado en `kube-system` (tal como especifica la sección 7 de [`PROXMOX_DEPLOYMENT_GUIDE.md`](../runbooks/PROXMOX_DEPLOYMENT_GUIDE.md)).
 
 ---
 
 ### 2.4. Stakater Reloader: Dualidad intencional Cloud vs On-Premise
+
 - **En AWS:** Renderiza `reloader.stakater.com/auto: "true"`. Es necesario porque en AWS Secrets Manager las rotaciones son automáticas y los pods deben refrescarse elásticamente.
 - **En Proxmox:** Anotación removida (`reloader.stakater.com/auto: null`). Se evita correr el pod controlador de Reloader para ahorrar memoria. El refresco de secretos se realiza mediante el script canónico `k8s-rollout-restart.ts`.
 

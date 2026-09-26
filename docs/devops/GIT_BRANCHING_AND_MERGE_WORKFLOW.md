@@ -11,15 +11,15 @@ Esta guía describe el estándar oficial de trabajo con **Git, GitHub y Linear**
 3. [Diagrama GitGraph (Historial y Merge)](#3-diagrama-gitgraph-historial-y-merge)
 4. [Convención de Nombres de Ramas](#4-convención-de-nombres-de-ramas)
 5. [Guía Paso a Paso con Comandos de Terminal](#5-guía-paso-a-paso-con-comandos-de-terminal)
-   * [Paso 1: Sincronizar `main` local](#paso-1-sincronizar-main-local)
-   * [Paso 2: Crear y cambiar a la nueva rama](#paso-2-crear-y-cambiar-a-la-nueva-rama)
-   * [Paso 3: Desarrollo y validación local](#paso-3-desarrollo-y-validación-local)
-   * [Paso 4: Commits semánticos (Conventional Commits)](#paso-4-commits-semánticos-conventional-commits)
-   * [Paso 5: Publicar la rama en el repositorio remoto](#paso-5-publicar-la-rama-en-el-repositorio-remoto)
-   * [Paso 6: Abrir y configurar el Pull Request](#paso-6-abrir-y-configurar-el-pull-request)
-   * [Paso 7: Validación de CI y Code Review](#paso-7-validación-de-ci-y-code-review)
-   * [Paso 8: Integración (Merge) a `main`](#paso-8-integración-merge-a-main)
-   * [Paso 9: Limpieza y sincronización post-merge](#paso-9-limpieza-y-sincronización-post-merge)
+   - [Paso 1: Sincronizar `main` local](#paso-1-sincronizar-main-local)
+   - [Paso 2: Crear y cambiar a la nueva rama](#paso-2-crear-y-cambiar-a-la-nueva-rama)
+   - [Paso 3: Desarrollo y validación local](#paso-3-desarrollo-y-validación-local)
+   - [Paso 4: Commits semánticos (Conventional Commits)](#paso-4-commits-semánticos-conventional-commits)
+   - [Paso 5: Publicar la rama en el repositorio remoto](#paso-5-publicar-la-rama-en-el-repositorio-remoto)
+   - [Paso 6: Abrir y configurar el Pull Request](#paso-6-abrir-y-configurar-el-pull-request)
+   - [Paso 7: Validación de CI y Code Review](#paso-7-validación-de-ci-y-code-review)
+   - [Paso 8: Integración (Merge) a `main`](#paso-8-integración-merge-a-main)
+   - [Paso 9: Limpieza y sincronización post-merge](#paso-9-limpieza-y-sincronización-post-merge)
 6. [Manejo de Conflictos y Rebase](#6-manejo-de-conflictos-y-rebase)
 7. [Buenas Prácticas y Reglas de Oro](#7-buenas-prácticas-y-reglas-de-oro)
 
@@ -29,9 +29,9 @@ Esta guía describe el estándar oficial de trabajo con **Git, GitHub y Linear**
 
 El proyecto utiliza un modelo ágil basado en **GitHub Flow**:
 
-* **`main` es la rama protegida y estable:** Todo commit en `main` debe compilar, pasar pruebas y ser apto para producción inmediata.
-* **Ramas de Feature/Fix efímeras:** Cada tarea, issue o ticket de Linear se desarrolla en una rama aislada que nace de `main` y muere al completarse el merge.
-* **Integración Continua Obligatoria:** Ningún cambio entra a `main` sin pasar por un Pull Request con todos los checks de GitHub Actions en verde.
+- **`main` es la rama protegida y estable:** Todo commit en `main` debe compilar, pasar pruebas y ser apto para producción inmediata.
+- **Ramas de Feature/Fix efímeras:** Cada tarea, issue o ticket de Linear se desarrolla en una rama aislada que nace de `main` y muere al completarse el merge.
+- **Integración Continua Obligatoria:** Ningún cambio entra a `main` sin pasar por un Pull Request con todos los checks de GitHub Actions en verde.
 
 ---
 
@@ -41,7 +41,7 @@ El proyecto utiliza un modelo ágil basado en **GitHub Flow**:
 flowchart TD
     %% Definición de Nodos
     Start(["Inicio: Nueva Tarea / Requerimiento"])
-    
+
     subgraph Planificacion ["1. Planificación en Linear"]
         LinearIssue["Identificar Ticket en Linear<br/>Ej: PEX-7 / rocapellino/pex-7-..."]
     end
@@ -121,7 +121,7 @@ El siguiente gráfico ilustra cómo se ramifica el historial, se aplican los com
 gitGraph
     commit id: "v1.0.0" tag: "v1.0.0"
     commit id: "chore: init repo"
-    
+
     branch renovate/dependencies
     checkout renovate/dependencies
     commit id: "bump packages"
@@ -135,7 +135,7 @@ gitGraph
     commit id: "test(ai): mock unit tests"
     checkout main
     merge rocapellino/pex-7-upgrade id: "Squash PR #23: PEX-7" tag: "v1.2.0"
-    
+
     commit id: "docs: update guides"
 ```
 
@@ -218,13 +218,13 @@ git commit -m "feat(ai): add google ai studio flowchart generator"
 
 #### 🏷️ Prefijos Estándar
 
-* `feat:` Nueva funcionalidad para el usuario.
-* `fix:` Corrección de un bug.
-* `docs:` Cambios exclusivamente en la documentación.
-* `style:` Formato, espacios, imports (sin cambio en lógica).
-* `refactor:` Refactorización de código sin añadir features ni bugs.
-* `test:` Añadir o modificar pruebas unitarias.
-* `chore:` Tareas de mantenimiento, dependencias, configs de CI.
+- `feat:` Nueva funcionalidad para el usuario.
+- `fix:` Corrección de un bug.
+- `docs:` Cambios exclusivamente en la documentación.
+- `style:` Formato, espacios, imports (sin cambio en lógica).
+- `refactor:` Refactorización de código sin añadir features ni bugs.
+- `test:` Añadir o modificar pruebas unitarias.
+- `chore:` Tareas de mantenimiento, dependencias, configs de CI.
 
 ---
 
@@ -256,11 +256,11 @@ git push -u origin rocapellino/pex-8-nueva-funcionalidad
 
 ### Paso 7: Validación de CI y Code Review
 
-* **GitHub Actions** ejecutará automáticamente los workflows relevantes:
-  * `ci.yml` (Lint, compilación TypeScript, tests unitarios, pentesting, fuzzing y npm audit).
-  * `security-gitleaks.yml` (Escaneo de secretos).
-  * `security-trivy.yml` (Escaneo de vulnerabilidades).
-* Si algún check falla:
+- **GitHub Actions** ejecutará automáticamente los workflows relevantes:
+  - `ci.yml` (Lint, compilación TypeScript, tests unitarios, pentesting, fuzzing y npm audit).
+  - `security-gitleaks.yml` (Escaneo de secretos).
+  - `security-trivy.yml` (Escaneo de vulnerabilidades).
+- Si algún check falla:
 
   ```bash
   # 1. Haz la corrección localmente

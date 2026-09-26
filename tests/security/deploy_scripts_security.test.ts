@@ -703,7 +703,7 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
   assert.ok(smContent.includes('path: /metrics'), 'Debe apuntar a /metrics');
 
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\nAceptado'), 'ADR-007 debe estar aceptado');
+  assert.match(adrContent, /## Estado\s+Aceptado/, 'ADR-007 debe estar aceptado');
 
   const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
   assert.ok(valuesContent.includes('serviceMonitor:'), 'values.yaml debe declarar serviceMonitor');
