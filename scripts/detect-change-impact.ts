@@ -110,8 +110,8 @@ export function getChangedFilesFromGit(baseRef: string = 'origin/main'): string[
       .split('\n')
       .map((line) => line.trim().replace(/\\/g, '/'))
       .filter((line) => line.length > 0);
-  } catch (error) {
-    console.warn(`[Change Impact] No se pudo obtener git diff contra ${baseRef}. Aplicando política fail-closed.`, error);
+  } catch (_error) {
+    console.warn('[Change Impact] Advertencia: No se pudo obtener git diff contra la rama base. Aplicando política fail-closed.');
     return [];
   }
 }
