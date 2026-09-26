@@ -38,6 +38,12 @@ jobs:
       frontend: ${{ steps.impact.outputs.frontend }}
       tests: ${{ steps.impact.outputs.tests }}
       security: ${{ steps.impact.outputs.security }}
+      security_secrets: ${{ steps.impact.outputs.security_secrets }}
+      security_sast: ${{ steps.impact.outputs.security_sast }}
+      security_dependencies: ${{ steps.impact.outputs.security_dependencies }}
+      security_container: ${{ steps.impact.outputs.security_container }}
+      security_iac: ${{ steps.impact.outputs.security_iac }}
+      security_supply_chain: ${{ steps.impact.outputs.security_supply_chain }}
       docker: ${{ steps.impact.outputs.docker }}
       kubernetes: ${{ steps.impact.outputs.kubernetes }}
       helm: ${{ steps.impact.outputs.helm }}
@@ -112,7 +118,7 @@ jobs:
     name: "🔍 Semgrep (SAST)"
     needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.security == 'true' ||
+      needs.detect-impact.outputs.security_sast == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -132,7 +138,7 @@ jobs:
     needs: [detect-impact]
     if: |
       github.event_name == 'pull_request' &&
-      (needs.detect-impact.outputs.security == 'true' ||
+      (needs.detect-impact.outputs.security_dependencies == 'true' ||
        needs.detect-impact.outputs.is_unknown == 'true')
     runs-on: ubuntu-latest
     permissions:
@@ -178,6 +184,7 @@ jobs:
     needs: [detect-impact, code-quality, semgrep]
     if: |
       (needs.detect-impact.outputs.docker == 'true' ||
+       needs.detect-impact.outputs.security_container == 'true' ||
        needs.detect-impact.outputs.is_unknown == 'true' ||
        github.event_name == 'push') &&
       (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') &&

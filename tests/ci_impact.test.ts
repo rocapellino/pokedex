@@ -54,7 +54,7 @@ test('🎯 Change Impact: Cambio puramente documental activa solo Fast Track de 
   assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
 });
 
-test('🎯 Change Impact: Cambio en backend activa backend, tests, security y docker', () => {
+test('🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker', () => {
   const result = analyzeChangeImpact({
     files: ['apps/backend/src/routes/pokemon.ts'],
     configPath: CONFIG_PATH,
@@ -63,7 +63,12 @@ test('🎯 Change Impact: Cambio en backend activa backend, tests, security y do
   assert.equal(result.hasChanges, true);
   assert.equal(result.triggers.backend, true, 'backend debe estar activo');
   assert.equal(result.triggers.tests, true, 'tests deben estar activos');
-  assert.equal(result.triggers.security, true, 'security debe estar activo');
+  assert.equal(result.triggers.security, true, 'security general debe estar activo');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets debe estar activo');
+  assert.equal(result.triggers.security_sast, true, 'security_sast debe estar activo');
+  assert.equal(result.triggers.security_dependencies, true, 'security_dependencies debe estar activo');
+  assert.equal(result.triggers.security_container, true, 'security_container debe estar activo');
+  assert.equal(result.triggers.security_iac, false, 'security_iac NO debe activarse');
   assert.equal(result.triggers.docker, true, 'docker debe estar activo');
   assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
   assert.equal(result.triggers.helm, false, 'helm no debe activarse');
@@ -72,7 +77,26 @@ test('🎯 Change Impact: Cambio en backend activa backend, tests, security y do
   assert.equal(result.triggers.documentation, false, 'documentation no debe activarse');
 });
 
-test('🎯 Change Impact: Cambio en Helm activa helm, kubernetes y security', () => {
+test('🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container', () => {
+  const result = analyzeChangeImpact({
+    files: ['gitops/apps/root-application.yaml'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.triggers.kubernetes, true, 'kubernetes debe estar activo');
+  assert.equal(result.triggers.security, true, 'security general debe estar activo');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_supply_chain, true, 'security_supply_chain debe estar activo');
+  assert.equal(result.triggers.security_sast, false, 'security_sast NO debe activarse');
+  assert.equal(result.triggers.security_dependencies, false, 'security_dependencies NO debe activarse');
+  assert.equal(result.triggers.security_container, false, 'security_container NO debe activarse');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+});
+
+test('🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain', () => {
   const result = analyzeChangeImpact({
     files: ['infra/helm/pokedex/values.yaml'],
     configPath: CONFIG_PATH,
@@ -81,14 +105,16 @@ test('🎯 Change Impact: Cambio en Helm activa helm, kubernetes y security', ()
   assert.equal(result.hasChanges, true);
   assert.equal(result.triggers.helm, true, 'helm debe estar activo');
   assert.equal(result.triggers.kubernetes, true, 'kubernetes debe estar activo');
-  assert.equal(result.triggers.security, true, 'security debe estar activo');
+  assert.equal(result.triggers.security, true, 'security general debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_sast, false, 'security_sast no debe activarse');
   assert.equal(result.triggers.backend, false, 'backend no debe activarse');
   assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
   assert.equal(result.triggers.opentofu, false, 'opentofu no debe activarse');
   assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
 });
 
-test('🎯 Change Impact: Cambio en OpenTofu activa solo opentofu y security', () => {
+test('🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac', () => {
   const result = analyzeChangeImpact({
     files: ['infra/opentofu/environments/proxmox/main.tf'],
     configPath: CONFIG_PATH,
@@ -96,13 +122,16 @@ test('🎯 Change Impact: Cambio en OpenTofu activa solo opentofu y security', (
 
   assert.equal(result.hasChanges, true);
   assert.equal(result.triggers.opentofu, true, 'opentofu debe estar activo');
-  assert.equal(result.triggers.security, true, 'security debe estar activo');
+  assert.equal(result.triggers.security, true, 'security general debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_sast, false, 'security_sast no debe activarse');
+  assert.equal(result.triggers.security_supply_chain, false, 'security_supply_chain no debe activarse');
   assert.equal(result.triggers.backend, false, 'backend no debe activarse');
   assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
   assert.equal(result.triggers.docker, false, 'docker no debe activarse');
 });
 
-test('🎯 Change Impact: Cambio en Ansible activa solo ansible y security', () => {
+test('🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac', () => {
   const result = analyzeChangeImpact({
     files: ['infra/ansible/playbooks/site.yml'],
     configPath: CONFIG_PATH,
@@ -110,7 +139,9 @@ test('🎯 Change Impact: Cambio en Ansible activa solo ansible y security', () 
 
   assert.equal(result.hasChanges, true);
   assert.equal(result.triggers.ansible, true, 'ansible debe estar activo');
-  assert.equal(result.triggers.security, true, 'security debe estar activo');
+  assert.equal(result.triggers.security, true, 'security general debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_sast, false, 'security_sast no debe activarse');
   assert.equal(result.triggers.backend, false, 'backend no debe activarse');
   assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
 });

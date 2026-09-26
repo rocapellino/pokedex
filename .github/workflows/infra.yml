@@ -35,7 +35,7 @@ jobs:
       helm: ${{ steps.impact.outputs.helm }}
       opentofu: ${{ steps.impact.outputs.opentofu }}
       ansible: ${{ steps.impact.outputs.ansible }}
-      docker: ${{ steps.impact.outputs.docker }}
+      security_iac: ${{ steps.impact.outputs.security_iac }}
       is_unknown: ${{ steps.impact.outputs.is_unknown }}
     steps:
       - name: 1. Descargar Código Fuente
@@ -206,16 +206,13 @@ jobs:
           done
           echo "✅ Todos los playbooks y roles de Ansible validados sintácticamente."
 
-  # -------------------------------------------------------
   # validate-checkov: solo cuando cambia IaC (Tofu/Helm/K8s)
   # -------------------------------------------------------
   validate-checkov:
     name: "🔐 Checkov IaC Security Audit"
     needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.opentofu == 'true' ||
-      needs.detect-impact.outputs.helm == 'true' ||
-      needs.detect-impact.outputs.kubernetes == 'true' ||
+      needs.detect-impact.outputs.security_iac == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
     runs-on: ubuntu-latest

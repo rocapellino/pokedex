@@ -35,13 +35,19 @@ global:
     backend: true
     frontend: true
     tests: true
-    security: true
     docker: true
     kubernetes: true
     helm: true
     opentofu: true
     ansible: true
     documentation: true
+    security:
+      secrets: true
+      sast: true
+      dependencies: true
+      container: true
+      iac: true
+      supply_chain: true
 
 # Reglas de impacto condicional por dominio
 rules:
@@ -60,12 +66,18 @@ rules:
       backend: false
       frontend: false
       tests: false
-      security: false
       docker: false
       kubernetes: false
       helm: false
       opentofu: false
       ansible: false
+      security:
+        secrets: false
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
 
   backend:
     description: "API Express, lógica de negocio, migraciones DB y esquemas"
@@ -74,8 +86,14 @@ rules:
     triggers:
       backend: true
       tests: true
-      security: true
       docker: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: true
+        container: true
+        iac: false
+        supply_chain: true
 
   frontend:
     description: "Cliente web SPA, componentes UI y assets estáticos"
@@ -84,8 +102,14 @@ rules:
     triggers:
       frontend: true
       tests: true
-      security: true
       docker: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: true
+        container: true
+        iac: false
+        supply_chain: true
 
   kubernetes:
     description: "Manifiestos K8s, GitOps ArgoCD y políticas de clúster"
@@ -94,7 +118,13 @@ rules:
       - "gitops/**"
     triggers:
       kubernetes: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: true
 
   helm:
     description: "Templates, values y empaquetado del Helm Chart oficial"
@@ -103,7 +133,13 @@ rules:
     triggers:
       helm: true
       kubernetes: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: true
 
   opentofu:
     description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
@@ -111,7 +147,13 @@ rules:
       - "infra/opentofu/**"
     triggers:
       opentofu: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: false
 
   ansible:
     description: "Playbooks, roles e inventarios de hardening de sistemas base"
@@ -119,7 +161,13 @@ rules:
       - "infra/ansible/**"
     triggers:
       ansible: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: false
 
   docker:
     description: "Definiciones de contenedores y orquestación multi-servicio"
@@ -131,7 +179,13 @@ rules:
       - "infra/docker/**"
     triggers:
       docker: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: true
+        iac: true
+        supply_chain: true
 
   linting:
     description: "Cambios que activan linters de sintaxis y configuración (MegaLinter ci_light)"
@@ -145,7 +199,13 @@ rules:
       - 'dr_verify_restore.sh'
     triggers:
       linting: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
 
 # Política Fail-Closed ante rutas desconocidas o incapacidad de determinar impacto
 unknown:
@@ -155,10 +215,16 @@ unknown:
     backend: true
     frontend: true
     tests: true
-    security: true
     docker: true
     kubernetes: true
     helm: true
     opentofu: true
     ansible: true
     documentation: true
+    security:
+      secrets: true
+      sast: true
+      dependencies: true
+      container: true
+      iac: true
+      supply_chain: true

@@ -28,10 +28,22 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DEFAULT_CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
 
+export interface SecuritySubTriggers {
+  secrets?: boolean;
+  sast?: boolean;
+  dependencies?: boolean;
+  container?: boolean;
+  iac?: boolean;
+  supply_chain?: boolean;
+  [key: string]: boolean | undefined;
+}
+
+export type TriggerValue = boolean | SecuritySubTriggers;
+
 export interface ImpactRule {
   description?: string;
   paths: string[];
-  triggers: Record<string, boolean>;
+  triggers: Record<string, TriggerValue>;
 }
 
 export interface ImpactConfig {
@@ -43,13 +55,13 @@ export interface ImpactConfig {
   always: { id: string; description: string }[];
   global: {
     paths: string[];
-    triggers: Record<string, boolean>;
+    triggers: Record<string, TriggerValue>;
   };
   rules: Record<string, ImpactRule>;
   unknown: {
     policy: string;
     description: string;
-    triggers: Record<string, boolean>;
+    triggers: Record<string, TriggerValue>;
   };
 }
 
@@ -58,13 +70,21 @@ export interface DomainTriggers {
   backend: boolean;
   frontend: boolean;
   tests: boolean;
-  security: boolean;
   docker: boolean;
   kubernetes: boolean;
   helm: boolean;
   opentofu: boolean;
   ansible: boolean;
-  [key: string]: boolean;
+  linting: boolean;
+  // Umbrella y dimensiones de seguridad granular
+  security: boolean;
+  security_secrets: boolean;
+  security_sast: boolean;
+  security_dependencies: boolean;
+  security_container: boolean;
+  security_iac: boolean;
+  security_supply_chain: boolean;
+  [key: string]: any;
 }
 
 export interface ChangeImpactResult {
@@ -124,6 +144,34 @@ export function normalizePath(filePath: string): string {
 }
 
 /**
+ * Aplica un conjunto de triggers declarativos a la estructura acumulativa de triggers
+ */
+export function applyTriggers(target: DomainTriggers, sourceTriggers: Record<string, TriggerValue>): void {
+  for (const [key, value] of Object.entries(sourceTriggers)) {
+    if (key === 'security') {
+      if (typeof value === 'object' && value !== null) {
+        for (const [secKey, secVal] of Object.entries(value)) {
+          if (secVal) {
+            target[`security_${secKey}`] = true;
+            target.security = true;
+          }
+        }
+      } else if (value === true) {
+        target.security = true;
+        target.security_secrets = true;
+        target.security_sast = true;
+        target.security_dependencies = true;
+        target.security_container = true;
+        target.security_iac = true;
+        target.security_supply_chain = true;
+      }
+    } else if (typeof value === 'boolean' && value) {
+      target[key] = true;
+    }
+  }
+}
+
+/**
  * Analiza el impacto de una lista de archivos modificados
  */
 export function analyzeChangeImpact(options: {
@@ -141,22 +189,30 @@ export function analyzeChangeImpact(options: {
 
   files = files.map(normalizePath).filter(Boolean);
 
-  const baseTriggers: DomainTriggers = {
+  const createBaseTriggers = (): DomainTriggers => ({
     documentation: false,
     backend: false,
     frontend: false,
     tests: false,
-    security: false,
     docker: false,
     kubernetes: false,
     helm: false,
     opentofu: false,
     ansible: false,
-  };
+    linting: false,
+    security: false,
+    security_secrets: false,
+    security_sast: false,
+    security_dependencies: false,
+    security_container: false,
+    security_iac: false,
+    security_supply_chain: false,
+  });
 
   // Caso 1: Sin archivos detectados o error de diff -> Política Fail-Closed (Unknown -> Full CI)
   if (files.length === 0) {
-    const unknownTriggers = { ...baseTriggers, ...config.unknown.triggers };
+    const unknownTriggers = createBaseTriggers();
+    applyTriggers(unknownTriggers, config.unknown.triggers);
     return {
       hasChanges: false,
       isUnknown: true,
@@ -173,7 +229,8 @@ export function analyzeChangeImpact(options: {
 
   // Caso 2: Modificación de archivo global transversal
   if (hasGlobalChange) {
-    const globalTriggers = { ...baseTriggers, ...config.global.triggers };
+    const globalTriggers = createBaseTriggers();
+    applyTriggers(globalTriggers, config.global.triggers);
     return {
       hasChanges: true,
       isUnknown: false,
@@ -187,7 +244,7 @@ export function analyzeChangeImpact(options: {
 
   // Caso 3: Evaluación condicional por dominios
   const matchedRules: string[] = [];
-  const currentTriggers = { ...baseTriggers };
+  const currentTriggers = createBaseTriggers();
   const unmappedFiles: string[] = [];
 
   for (const file of files) {
@@ -200,11 +257,7 @@ export function analyzeChangeImpact(options: {
         if (!matchedRules.includes(ruleName)) {
           matchedRules.push(ruleName);
         }
-        for (const [key, value] of Object.entries(rule.triggers)) {
-          if (value) {
-            currentTriggers[key] = true;
-          }
-        }
+        applyTriggers(currentTriggers, rule.triggers);
       }
     }
 
@@ -216,11 +269,7 @@ export function analyzeChangeImpact(options: {
   // Caso 4: Existen archivos que no encajan en ninguna regla conocida -> Fail-Closed
   if (unmappedFiles.length > 0) {
     matchedRules.push('unknown');
-    for (const [key, value] of Object.entries(config.unknown.triggers)) {
-      if (value) {
-        currentTriggers[key] = true;
-      }
-    }
+    applyTriggers(currentTriggers, config.unknown.triggers);
     return {
       hasChanges: true,
       isUnknown: true,
@@ -257,19 +306,24 @@ export function formatImpactMarkdown(
     { domain: 'Backend Core', affected: triggers.backend, pipeline: 'ci.yml (code-quality)' },
     { domain: 'Frontend SPA', affected: triggers.frontend, pipeline: 'ci.yml & web.yml' },
     { domain: 'Unit & Integration Tests', affected: triggers.tests, pipeline: 'npm test & fuzzing' },
-    { domain: 'Security & SAST/SCA', affected: triggers.security, pipeline: 'Semgrep, Trivy & Review' },
     { domain: 'Docker Images', affected: triggers.docker, pipeline: 'build-docker & Cosign' },
     { domain: 'Kubernetes & GitOps', affected: triggers.kubernetes, pipeline: 'infra.yml & Kind' },
     { domain: 'Helm Packaging', affected: triggers.helm, pipeline: 'helm lint & parity' },
     { domain: 'OpenTofu IaC', affected: triggers.opentofu, pipeline: 'infra.yml (Tofu)' },
     { domain: 'Ansible Baseline', affected: triggers.ansible, pipeline: 'infra.yml (Ansible)' },
+    { domain: 'Security: Secrets Scan', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
+    { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep' },
+    { domain: 'Security: Dependencies SCA', affected: triggers.security_dependencies, pipeline: 'Dependency Review' },
+    { domain: 'Security: Container Scan', affected: triggers.security_container, pipeline: 'Trivy Image Scan' },
+    { domain: 'Security: IaC & K8s Scan', affected: triggers.security_iac, pipeline: 'Checkov IaC' },
+    { domain: 'Security: Supply Chain / SBOM', affected: triggers.security_supply_chain, pipeline: 'Cosign, SBOM & Digest' },
   ];
 
   let output = '### 🎯 Change Impact Analysis\n\n';
   output += `> **Reglas coincidentes:** \`${matchedRules.join('`, `')}\`  \n`;
   output += `> **Archivos analizados:** ${files.length}\n\n`;
 
-  output += '| Dominio | Impacto | Pipeline / Quality Gate |\n';
+  output += '| Dominio / Calidad | Impacto | Pipeline / Quality Gate |\n';
   output += '| :--- | :---: | :--- |\n';
 
   for (const row of rows) {
@@ -330,6 +384,12 @@ export function runCLI(): void {
       `frontend=${result.triggers.frontend}`,
       `tests=${result.triggers.tests}`,
       `security=${result.triggers.security}`,
+      `security_secrets=${result.triggers.security_secrets}`,
+      `security_sast=${result.triggers.security_sast}`,
+      `security_dependencies=${result.triggers.security_dependencies}`,
+      `security_container=${result.triggers.security_container}`,
+      `security_iac=${result.triggers.security_iac}`,
+      `security_supply_chain=${result.triggers.security_supply_chain}`,
       `docker=${result.triggers.docker}`,
       `kubernetes=${result.triggers.kubernetes}`,
       `helm=${result.triggers.helm}`,
