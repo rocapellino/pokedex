@@ -15,7 +15,7 @@ Ejecutar auditorías técnicas integrales, estrictamente de sólo lectura, para 
 - **Calidad de Código y Aplicación:** Buenas prácticas en API Express, Vanilla TS/Vite, migraciones Drizzle y esquemas de persistencia.
 - **Superficie de Seguridad:** Secretos en código o historial, políticas RBAC, NetworkPolicies, permisos en CI/CD y contratos de External Secrets.
 - **Supply Chain e Integridad:** Pinning de imágenes por digest SHA256 inmutable, firmas Cosign, atestaciones SLSA y escaneos de dependencias.
-- **Higiene del Repositorio:** Detección de dependencias no utilizadas, overrides dudosos en `package.json`, scripts no autorizados (ADR-020) y documentación desactualizada.
+- **Higiene del Repositorio y Configuración:** Detección de dependencias no utilizadas, overrides dudosos en `package.json`, scripts no autorizados (ADR-020), documentación desactualizada y auditoría de archivos de exclusión (`*.ignore`) mediante el dominio `configuration-hygiene` de `repo-lifecycle`.
 - **Resiliencia y Confiabilidad:** Verificación de planes de backup (local / Google Drive / NAS), SLAs, RPO/RTO y pruebas de Disaster Recovery.
 - **Taxonomía de Hallazgos:** Calificar cada discrepancia objetivamente según su impacto real (P0 a P3), nivel de confianza y esfuerzo de mitigación.
 
@@ -23,7 +23,8 @@ Ejecutar auditorías técnicas integrales, estrictamente de sólo lectura, para 
 
 `repo-audit` actúa como un agregador y orquestador de sólo lectura que delega el análisis exhaustivo en las skills especializadas de cada dominio para evitar duplicación de verificaciones:
 
-- `/repo-audit`: Auditoría integral completa coordinando todas las dimensiones técnicas.
+- `/repo-audit`: Auditoría integral completa coordinando todas las dimensiones técnicas (ejecutando el flujo de `full-audit` de `repo-lifecycle`).
+- `/repo-audit hygiene`: Enfoque en higiene de configuración y archivos de exclusión `*.ignore` (delega en `repo-lifecycle`).
 - `/repo-audit security`: Enfoque exclusivo en vulnerabilidades, secretos, supply chain y permisos (delega en `repo-security`).
 - `/repo-audit architecture`: Enfoque en límites del monorepo, acoplamiento y coherencia GitOps (delega en `repo-architecture`).
 - `/repo-audit quality`: Calidad estática de código, tipado y prevención de God Files (delega en `repo-quality`).
