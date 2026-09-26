@@ -28,14 +28,14 @@ Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gat
 - **Quality Gates y Pre-Commit:** Consume de `repo-quality` los resultados de `npm run lint`, `typecheck` y el estado de `pre-commit` evaluado dinámicamente (`EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE`).
 - **Pruebas y Cobertura:** Consume de `repo-testing` los resultados de `npm test`, `test:coverage`, `test:fuzz` y Playwright E2E.
 - **Seguridad y SAST:** Consume de `repo-security` los escaneos de Semgrep, Gitleaks, Trivy y Dependency Review.
-- **Cierre Documental:** Consume de `repo-docs` la verificación de drift y la ejecución del Markdown Quality Gate (`0 errores MDxxx`).
+- **Cierre Documental y Ciclo de Vida:** Consume de `repo-docs` la verificación de drift, la ausencia de referencias huérfanas o componentes retirados (sin hallazgos P0/P1 abiertos) y la ejecución del Markdown Quality Gate (`0 errores MDxxx`).
 
 ### 3. PR Readiness Gate Contractual
 
 Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate distinguiendo formalmente tres niveles:
 
 - **PR Preparation State (Estado de Preparación Local):**
-  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1.
+  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1 técnicos ni documentales.
   - `NOT_READY`: Faltan verificaciones locales aplicables, documentación incompleta o fallos pendientes de resolver.
   - `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR (divergencia de rama base, template ausente, drift arquitectónico crítico).
 - **CI State (Estado de Integración Continua):**

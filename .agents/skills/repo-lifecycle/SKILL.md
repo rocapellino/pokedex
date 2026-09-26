@@ -95,8 +95,9 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
    - Consume las evidencias generadas por `repo-quality`, `repo-testing`, `repo-security` y `repo-docs`.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)).
    - Ejecuta el PR Readiness Gate formal. **No realiza auditorías completas redundantes.**
-4. **`repo-docs` (Integridad Documental):**
-   - Responsable de verificar la consistencia documental, claims verification y el Markdown Quality Gate (`npm run lint:md`).
+4. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
+   - Responsable de gobernar el ciclo de vida documental completo: inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
+   - Bloquea la preparación de PR si existen discrepancias fácticas o referencias a componentes retirados sin resolver.
 5. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
    - `repo-pr` no asume que la apertura o merge de un PR equivale a la publicación o despliegue de un release.
@@ -108,7 +109,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 - **Evitar Redundancia:** No repetir análisis si el árbol de código o configuración relevante no ha cambiado.
 - **Precedencia:** Ejecutar siempre `repo-context` antes de invocar análisis especializados.
 - **Validación Fáctica:** No considerar una recomendación como resuelta sin evidencia demostrable.
-- **Cierre Documental Obligatorio:** Todo cambio debe cerrar su drift documental antes de la preparación del PR.
+- **Cierre Documental Obligatorio:** Toda mutación en código, arquitectura, herramientas, comandos de CLI, workflows o infraestructura debe disparar una evaluación de impacto documental y cerrar su drift antes de preparar el PR.
 
 ---
 
