@@ -46,8 +46,11 @@ infra/ansible/
 ├── ansible.cfg              # Configuración de ejecución, SSH pipelining y rutas de inventario
 ├── deploy_excludes.txt      # Lista canónica de exclusión de secretos (.env) y artefactos en rsync
 ├── README.md                # Este documento de arquitectura y guía operativa
-├── inventory/
-│   └── hosts.ini            # Grupos de hosts (k8s_control_plane, k8s_workers, standalone_servers)
+├── inventories/
+│   ├── proxmox/
+│   │   └── hosts.yml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, standalone_servers)
+│   └── lab/
+│       └── hosts.yml        # Inventario para entorno de laboratorio y pruebas
 └── playbooks/
     ├── host_baseline.yml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
     ├── security_hardening.yml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
@@ -60,25 +63,27 @@ infra/ansible/
 
 El playbook `security_hardening.yml` aplica una política de **denegación por defecto** (`default deny incoming`) con segmentación estricta:
 
-* **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `192.168.1.0/24`).
-* **Web Pública (`80/tcp`, `443/tcp`):** Permitido para proxies reversos Nginx / Ingress.
-* **Puerto de Desarrollo/Proxy (`8080/tcp`):** Restringido a la subred de administración (`mgmt_cidr`).
-* **Kubernetes API Server (`6443/tcp`):** Restringido exclusivamente al clúster (`k8s_cluster_cidr`).
-* **Kubelet API (`10250/tcp`):** Restringido exclusivamente al tráfico interno del clúster.
-* **etcd Peering & Client (`2379-2380/tcp`):** Restringido estrictamente a los nodos del plano de control (`k8s_cluster_cidr`), evitando exposición externa.
+- **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `192.168.1.0/24`).
+- **Web Pública (`80/tcp`, `443/tcp`):** Permitido para proxies reversos Nginx / Ingress.
+- **Puerto de Desarrollo/Proxy (`8080/tcp`):** Restringido a la subred de administración (`mgmt_cidr`).
+- **Kubernetes API Server (`6443/tcp`):** Restringido exclusivamente al clúster (`k8s_cluster_cidr`).
+- **Kubelet API (`10250/tcp`):** Restringido exclusivamente al tráfico interno del clúster.
+- **etcd Peering & Client (`2379-2380/tcp`):** Restringido estrictamente a los nodos del plano de control (`k8s_cluster_cidr`), evitando exposición externa.
 
 ---
 
 ## 🚀 Guía de Ejecución
 
 ### 1. Preparación de Nodos para Kubernetes / Docker
+
 ```bash
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_nodes.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_nodes.yml
 ```
 
 ### 2. Aplicación de Hardening y Firewall Zero-Trust
+
 ```bash
-ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml \
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml \
   -e "mgmt_cidr=192.168.1.0/24" \
   -e "k8s_cluster_cidr=192.168.1.0/24"
 ```

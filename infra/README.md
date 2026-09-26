@@ -19,7 +19,7 @@ infra/
 │       ├── proxmox/         # Provisión bi-modal en Proxmox VE (LXC Pre-Prod / VM Prod)
 │       └── aws/             # Provisión de clúster EKS gestionado en AWS
 ├── ansible/                 # Playbooks de automatización y hardening
-│   ├── inventory/hosts.ini  # Inventario de servidores y nodos de clúster
+│   ├── inventories/         # Inventarios por entorno (Proxmox VE y Lab en YAML estructurado)
 │   └── playbooks/           # Configuración de nodos (host_baseline.yml), seguridad UFW y despliegue
 ├── k8s/                     # Manifiestos canónicos de plataforma (ESO, políticas Kyverno)
 │   ├── eso/                 # External Secrets Operator y ClusterSecretStores (AWS & Vault)
@@ -39,21 +39,21 @@ infra/
 
 La orquestación en clúster está 100% estandarizada en **Helm 3**:
 
-* **Servicios:** API backend (`pokedex-api`), Frontend proxy (`pokedex-web`), PostgreSQL StatefulSet con persistencia PVC y Redis caché.
-* **Resiliencia & Escalamiento:** Horizontal Pod Autoscaler (**HPA v2**) para web y API, Pod Disruption Budgets (**PDB**) y NetworkPolicies Zero-Trust.
-* **Gestión de Entornos:** `values.yaml` como base segura (*Secure by Default*), `values.dev.yaml` para desarrollo local y `values.prod.yaml` / [`gitops/environments/`](../gitops/environments/) para producción.
-* **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
+- **Servicios:** API backend (`pokedex-api`), Frontend proxy (`pokedex-web`), PostgreSQL StatefulSet con persistencia PVC y Redis caché.
+- **Resiliencia & Escalamiento:** Horizontal Pod Autoscaler (**HPA v2**) para web y API, Pod Disruption Budgets (**PDB**) y NetworkPolicies Zero-Trust.
+- **Gestión de Entornos:** `values.yaml` como base segura (*Secure by Default*), `values.dev.yaml` para desarrollo local y `values.prod.yaml` / [`gitops/environments/`](../gitops/environments/) para producción.
+- **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)
 
-* **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/`):** Provisión bi-modal declarativa de nodos Kubernetes: contenedores **LXC** ultralivianos para Pre-Prod/Laboratorio y máquinas virtuales **KVM** con aislamiento estricto de hardware para Producción.
-* **AWS Cloud (Pública - `infra/opentofu/environments/aws/`):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS.
-* Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
+- **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/`):** Provisión bi-modal declarativa de nodos Kubernetes: contenedores **LXC** ultralivianos para Pre-Prod/Laboratorio y máquinas virtuales **KVM** con aislamiento estricto de hardware para Producción.
+- **AWS Cloud (Pública - `infra/opentofu/environments/aws/`):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS.
+- Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
 
 ### 3. Automatización con Ansible (`infra/ansible/`)
 
-* Hardening de seguridad con cortafuegos UFW y configuración SSH.
-* Preparación de nodos Kubernetes (instalación de runtime, módulos `overlay`/`br_netfilter`, sysctl y desactivación de Swap vía `host_baseline.yml`).
+- Hardening de seguridad con cortafuegos UFW y configuración SSH.
+- Preparación de nodos Kubernetes (instalación de runtime, módulos `overlay`/`br_netfilter`, sysctl y desactivación de Swap vía `host_baseline.yml`).
 
 ---
 

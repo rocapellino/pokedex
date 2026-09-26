@@ -167,7 +167,7 @@ El playbook [`infra/ansible/playbooks/setup_gdrive_backup.yml`](../../infra/ansi
 2. **Ejecutar el playbook**:
 
    ```bash
-   ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_gdrive_backup.yml
+   ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_gdrive_backup.yml
    ```
 
 3. **Componentes aprovisionados en Proxmox**:

@@ -356,25 +356,25 @@ tasks:
   ansible:syntax:
     desc: "Valida la sintaxis de todos los playbooks y roles de Ansible"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/host_baseline.yml --syntax-check
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml --syntax-check
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/prepare_hosts.yml --syntax-check
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/validate_hosts.yml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/host_baseline.yml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/prepare_hosts.yml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/validate_hosts.yml --syntax-check
 
   ansible:prepare:
     desc: "Aprovisiona la configuración base, runtime de contenedores y tuning en hosts"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/prepare_hosts.yml {{.CLI_ARGS}}
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/prepare_hosts.yml {{.CLI_ARGS}}
 
   ansible:harden:
     desc: "Aplica el hardening de seguridad y reglas de firewall UFW en hosts"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/security_hardening.yml {{.CLI_ARGS}}
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml {{.CLI_ARGS}}
 
   ansible:validate:
     desc: "Ejecuta comprobaciones de auditoría y compliance de hosts sin alterar estado"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/validate_hosts.yml {{.CLI_ARGS}}
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/validate_hosts.yml {{.CLI_ARGS}}
 
 
   # ----------------------------------------------------------------------------
@@ -488,12 +488,12 @@ tasks:
   k3s:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para aprovisionar K3s y Cilium CNI en Proxmox VE"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_k3s.yml
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_k3s.yml
 
   vault:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_vault.yml
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_vault.yml
 
   security:egress:
     desc: "Ejecuta las pruebas automatizadas de política de egress L7 Anti-SSRF (CiliumNetworkPolicy)"
@@ -528,4 +528,4 @@ tasks:
   dr:gdrive:setup:proxmox:
     desc: "Aprovisiona el cliente Rclone y el temporizador Systemd en el host Proxmox VE (Alternativa B)"
     cmds:
-      - ansible-playbook -i infra/ansible/inventory/hosts.ini infra/ansible/playbooks/setup_gdrive_backup.yml
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_gdrive_backup.yml
