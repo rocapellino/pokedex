@@ -89,7 +89,7 @@ Recursos Idénticos en Ambos Entornos (Núcleo Universal):
 ├── NetworkPolicy (default-deny, allow-web, allow-api, allow-postgres, allow-redis, allow-backup)
 ├── ResourceQuota & LimitRange
 ├── PodDisruptionBudget (api-pdb, web-pdb)
-├── ConfigMap (pokemon-config, postgres-init-sql)
+├── ConfigMap (pokemon-config)
 ├── PersistentVolumeClaim (redis-data)
 ├── Service (api, web, postgres, redis)
 ├── Deployment (pokemon-api, pokedex-web, redis)

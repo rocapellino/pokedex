@@ -51,7 +51,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-028)"]
+    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-029)"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -163,6 +163,7 @@ flowchart TD
 - 📐 [**ADR-026**](./decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md): Ciclo de Vida, Estrategia en Cuatro Fases y Deprecación de Aliases en Taskfile CLI.
 - 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
 - 📐 [**ADR-028**](./decisions/ADR-028-gdrive-offsite-backup-strategy.md): Estrategia de Respaldo Off-Site en la Nube con Google Drive y Rclone.
+- 📐 [**ADR-029**](./decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md): Unificación de la Fuente de Verdad del Esquema en Drizzle ORM y Retiro de init.sql.
 
 ---
 
@@ -188,4 +189,5 @@ flowchart TD
 
 - 🔍 [**full-repository-audit.md**](./audits/2026-09-26/full-repository-audit.md): Auditoría integral del repositorio (código, seguridad, arquitectura, CI/CD y catálogo de skills).
 - 📋 [**baseline_post-release.md**](./audits/2026-09-26/baseline_post-release.md): Snapshot canónico post-release de la versión v1.78.3 / v1.78.4.
+- 📋 [**baseline_cierre_etapas.md**](./audits/2026-09-26/baseline_cierre_etapas.md): Snapshot canónico consolidado de cierre de las 3 etapas del Roadmap de Auditoría (Zero Findings).
 - 🩺 [**documentation-governance.md**](./audits/2026-09-26/documentation-governance.md): Auditoría de cumplimiento de contratos y límites de gobernanza documental.

@@ -21,11 +21,9 @@ infra/
 ├── ansible/                 # Playbooks de automatización y hardening
 │   ├── inventories/         # Inventarios por entorno (Proxmox VE y Lab en YAML estructurado)
 │   └── playbooks/           # Configuración de nodos (host_baseline.yml), seguridad UFW y despliegue
-├── k8s/                     # Manifiestos canónicos de plataforma (ESO, políticas Kyverno)
-│   ├── eso/                 # External Secrets Operator y ClusterSecretStores (AWS & Vault)
-│   └── policies/            # Políticas de seguridad de pods y firmas de imágenes
-└── docker/                  # Scripts de inicialización de base de datos
-    └── postgres/init.sql    # Schema inicial de PostgreSQL
+└── k8s/                     # Manifiestos canónicos de plataforma (ESO, políticas Kyverno)
+    ├── eso/                 # External Secrets Operator y ClusterSecretStores (AWS & Vault)
+    └── policies/            # Políticas de seguridad de pods y firmas de imágenes
 ```
 
 > [!NOTE]

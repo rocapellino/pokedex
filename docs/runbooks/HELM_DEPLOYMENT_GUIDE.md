@@ -12,7 +12,7 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 | :--- | :--- | :--- | :--- |
 | **API Backend** | `Deployment`, `Service`, `HPA` | `3000` | Node.js 22 LTS / Express 4.21, TypeScript, Prometheus metrics y probes `/healthz`, `/readyz`. |
 | **Frontend Web** | `Deployment`, `Service` | `80`, `8080` | Nginx SPA con reverse proxy hardening, compresión gzip y probes de salud. |
-| **PostgreSQL** | `StatefulSet`, `Service` Headless | `5432` | Base de datos relacional con esquema DDL versionado (`init.sql`) y persistencia PVC. |
+| **PostgreSQL** | `StatefulSet`, `Service` Headless | `5432` | Base de datos relacional con migraciones Drizzle ORM versionadas y persistencia PVC. |
 | **PgBouncer** | `Deployment`, `Service` | `5432` | Connection pooler transaccional obligatorio en producción para mitigar saturación de sockets de base de datos. |
 | **Redis** | `Deployment`, `Service` | `6379` | Caché de alta velocidad para endpoints, revocación distribuida de sesiones y rate limiting en Lua. |
 | **Ingress** | `Ingress` | `80`, `443` | Enrutamiento perimetral L7 (`/` -> web, `/api` -> api) con terminación TLS. |
