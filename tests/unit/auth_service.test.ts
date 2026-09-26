@@ -79,8 +79,9 @@ test('🔐 AuthService [Unit]: verifyTokenSignature rechaza firmas HMAC manipula
     { valid: false, reason: 'invalid_signature' }
   );
 
-  // Firma legítima pero con clave secreta apócrifa
-  const fakeSig = crypto.createHmac('sha256', 'clave-falsa-atacante')
+  // Firma legítima pero generada con una clave secreta apócrifa distinta
+  const attackerKey = crypto.randomBytes(32);
+  const fakeSig = crypto.createHmac('sha256', attackerKey)
     .update(payloadBase64)
     .digest('base64url');
   assert.deepEqual(
