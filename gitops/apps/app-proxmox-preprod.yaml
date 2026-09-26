@@ -15,7 +15,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rocapellino/pokedex.git
-    targetRevision: v1.77.2
+    targetRevision: v1.78.2
     path: infra/helm/pokedex
     helm:
       releaseName: pokedex-preprod
