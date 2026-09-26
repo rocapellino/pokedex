@@ -27,8 +27,8 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 | Versión / Rama | Estado de Soporte | Runtime Base |
 | :--- | :--- | :--- |
 | **`main` (Latest)** | ✅ Con soporte activo | Node.js 22 LTS / Docker Alpine |
-| **`v2.x` Releases** | ✅ Con soporte activo | Node.js 22 LTS / Kubernetes 1.30+ |
-| **`< v2.0.0`** | ❌ Fin de ciclo de vida (EOL) | Versiones anteriores |
+| **`v1.x` Releases (`v1.78.x`)** | ✅ Con soporte activo | Node.js 22 LTS / Kubernetes 1.30+ |
+| **`< v1.75.0`** | ❌ Fin de ciclo de vida (EOL) | Versiones anteriores |
 
 ---
 
@@ -108,14 +108,14 @@ El repositorio cuenta con defensas en profundidad integradas en el pipeline y en
 
 3. **Zero-Trust Network Isolation & Anti-SSRF:**
    - **Egress Anti-SSRF:** Filtrado estricto `ipBlock` que bloquea peticiones salientes a endpoints de metadatos Cloud IMDS (`169.254.169.254/32`), subredes privadas RFC 1918 y loopback.
-   - **Mediación Forzosa con PgBouncer:** En producción, PostgreSQL rechaza conexiones directas de los pods de la API; toda consulta se canaliza a través de PgBouncer.
+   - **Gestión de Conexiones a PostgreSQL:** Perfil Lean On-Premise con pool nativo `pg.Pool` optimizado (20 conexiones concurrentes por pod) y opción de mediación con PgBouncer para despliegues Enterprise de alta concurrencia.
    - **Egress DNS Restringido:** Resolución DNS acotada exclusivamente a pods con selector `k8s-app: kube-dns`.
    - **Redes Internas Docker:** Aislamiento con `internal: true` en Docker Compose.
 
 4. **Gestión de Secretos Desacoplada:**
-   - Soporte para **External Secrets Operator** y modo `existingSecret: "pokedex-prod-secrets"` en Helm para prevenir contraseñas en Git o flags CLI.
-   - Manifiestos cifrados con **Bitnami Sealed Secrets** para entornos on-premise.
-   - Escaneo preventivo continuo con **Gitleaks**.
+   - Sincronización declarativa mediante **External Secrets Operator (ESO)** conectado a **HashiCorp Vault CE** (on-premise Proxmox VE) y **AWS Secrets Manager** (cloud EKS).
+   - Roles y políticas RBAC segregadas (`pokedex/prod` y `pokedex/preprod`) con modo `existingSecret: "pokemon-secrets"` en Helm para prevenir contraseñas en Git.
+   - Escaneo preventivo continuo con **Gitleaks** en hooks de pre-commit y pipelines de CI/CD.
 
 5. **Política de Escaneo de Contenedores y Vulnerabilidades Upstream (Trivy):**
    - **Compilación en CI (`ci.yml`):** Utiliza `ignore-unfixed: true` exclusivamente como compuerta bloqueante de PRs para evitar roturas causadas por vulnerabilidades base de la distribución (`alpine:3.21`) sin parche oficial disponible (*unfixed*).
@@ -130,4 +130,3 @@ El repositorio cuenta con defensas en profundidad integradas en el pipeline y en
      - `esbuild` (^0.28.2): Paridad del compilador y mitigación de vulnerabilidades de empaquetado.
      - `@puppeteer/browsers` y `proxy-agent`: Mitigaciones aplicadas a la suite de testing E2E.
    - **Condición de Retiro:** Los overrides son revaluados bimestralmente mediante `npm outdated` y retirados en cuanto los paquetes principales actualicen sus árboles de dependencias.
-

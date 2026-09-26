@@ -8,20 +8,20 @@ Este documento describe formalmente todas las tecnologías, frameworks, utilidad
 
 1. [Diagrama de Flujo del Ecosistema de Herramientas](#1-diagrama-de-flujo-del-ecosistema-de-herramientas)
 2. [Matriz Exhaustiva de Herramientas del Proyecto](#2-matriz-exhaustiva-de-herramientas-del-proyecto)
-   * [2.1. Core, Backend & Runtime](#21-core-backend--runtime)
-   * [2.2. Frontend Web](#22-frontend-web)
-   * [2.3. Persistencia, Caché & Connection Pooling](#23-persistencia-caché--connection-pooling)
-   * [2.4. Inteligencia Artificial Generativa](#24-inteligencia-artificial-generativa)
-   * [2.5. Calidad de Código, Testing & Fuzzing](#25-calidad-de-código-testing--fuzzing)
-   * [2.6. Seguridad & Supply Chain](#26-seguridad--supply-chain)
-   * [2.7. Contenedores, Orquestación & GitOps](#27-contenedores-orquestación--gitops)
-   * [2.8. Infraestructura como Código (IaC) & Virtualización](#28-infraestructura-como-código-iac--virtualización)
-   * [2.9. Observabilidad & Monitoreo](#29-observabilidad--monitoreo)
-   * [2.10. Automatización & Experiencia de Desarrollo (DX)](#210-automatización--experiencia-de-desarrollo-dx)
+   - [2.1. Core, Backend & Runtime](#21-core-backend--runtime)
+   - [2.2. Frontend Web](#22-frontend-web)
+   - [2.3. Persistencia, Caché & Connection Pooling](#23-persistencia-caché--connection-pooling)
+   - [2.4. Inteligencia Artificial Generativa](#24-inteligencia-artificial-generativa)
+   - [2.5. Calidad de Código, Testing & Fuzzing](#25-calidad-de-código-testing--fuzzing)
+   - [2.6. Seguridad & Supply Chain](#26-seguridad--supply-chain)
+   - [2.7. Contenedores, Orquestación & GitOps](#27-contenedores-orquestación--gitops)
+   - [2.8. Infraestructura como Código (IaC) & Virtualización](#28-infraestructura-como-código-iac--virtualización)
+   - [2.9. Observabilidad & Monitoreo](#29-observabilidad--monitoreo)
+   - [2.10. Automatización & Experiencia de Desarrollo (DX)](#210-automatización--experiencia-de-desarrollo-dx)
 3. [Hoja de Ruta Tecnológica y Evoluciones Recomendadas](#3-hoja-de-ruta-tecnológica-y-evoluciones-recomendadas)
-   * [3.1. Nuevas Herramientas y Librerías](#31-nuevas-herramientas-y-librerías)
-   * [3.2. Mejoras en el Lenguaje y Tipado (TypeScript & JavaScript)](#32-mejoras-en-el-lenguaje-y-tipado-typescript--javascript)
-   * [3.3. Evoluciones en la Arquitectura del Sistema](#33-evoluciones-en-la-arquitectura-del-sistema)
+   - [3.1. Nuevas Herramientas y Librerías](#31-nuevas-herramientas-y-librerías)
+   - [3.2. Mejoras en el Lenguaje y Tipado (TypeScript & JavaScript)](#32-mejoras-en-el-lenguaje-y-tipado-typescript--javascript)
+   - [3.3. Evoluciones en la Arquitectura del Sistema](#33-evoluciones-en-la-arquitectura-del-sistema)
 
 ---
 
@@ -57,7 +57,7 @@ flowchart LR
         ARGO["☸️ ArgoCD"]
         HELM["⎈ Helm 3.17"]
         KYVERNO["🛡️ Kyverno Enforcer"]
-        ESO["🔐 External Secrets Operator\n& Sealed Secrets"]
+        ESO["🔐 External Secrets Operator\n& HashiCorp Vault CE"]
     end
 
     subgraph RUNTIME["5. Runtime & Observe"]
@@ -140,7 +140,7 @@ flowchart LR
 | **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
 | **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](../../.github/workflows/security-trivy.yml) |
 | **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
-| **Bitnami Sealed Secrets** | Latest | Cifrado asimétrico de secretos en Git para clústeres on-premise | [`scripts/seal_secret.py`](../../scripts/seal_secret.py), [`scripts/seal_secret.sh`](../../scripts/seal_secret.sh) |
+| **HashiCorp Vault CE** | `1.18+` | Almacén centralizado de secretos transaccional (Raft, TLS 1.2+, Shamir 5/3) | [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) |
 
 ### 2.7. Contenedores, Orquestación & GitOps
 
@@ -161,7 +161,7 @@ flowchart LR
 | **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 
 ### 2.9. Observabilidad & Monitoreo
- 
+
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Grafana Cloud** | SaaS | Plataforma central de observabilidad SaaS (Métricas, Logs, Trazas eBPF) | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
@@ -204,23 +204,23 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Gestión de Base de Datos y Ciclo de Vida del Esquema
 
-* **Drizzle ORM / Prisma**: La inicialización actual con `init.sql` y `seed.ts` carece de versionado atómico. La adopción de un ORM o Query Builder moderno provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas reproducibles ejecutables desde el `seed-job.yaml` de Kubernetes.
-* **Atlas / Flyway**: Gestión declarativa del control de versiones del esquema relacional de PostgreSQL integrada directamente en la tubería de CI/CD previo al despliegue productivo.
+- **Drizzle ORM / Prisma**: La inicialización actual con `init.sql` y `seed.ts` carece de versionado atómico. La adopción de un ORM o Query Builder moderno provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas reproducibles ejecutables desde el `seed-job.yaml` de Kubernetes.
+- **Atlas / Flyway**: Gestión declarativa del control de versiones del esquema relacional de PostgreSQL integrada directamente en la tubería de CI/CD previo al despliegue productivo.
 
 #### Resiliencia y Manejo de Integraciones Externas
 
-* **Cockatiel / Opossum**: Librerías especializadas para la gestión avanzada de políticas de reintento con backoff exponencial, fallbacks y Circuit Breaker en [`services/ai.ts`](../../apps/backend/src/services/ai.ts), previniendo el agotamiento de sockets de Node.js ante degradaciones de red del proveedor de IA.
-* **BullMQ**: Desacoplamiento de tareas asíncronas pesadas (inferencia multimodal, generación de mockups y reportes masivos) mediante colas de trabajo respaldadas por la instancia existente de Redis (`redis-deployment.yaml`).
+- **Cockatiel / Opossum**: Librerías especializadas para la gestión avanzada de políticas de reintento con backoff exponencial, fallbacks y Circuit Breaker en [`services/ai.ts`](../../apps/backend/src/services/ai.ts), previniendo el agotamiento de sockets de Node.js ante degradaciones de red del proveedor de IA.
+- **BullMQ**: Desacoplamiento de tareas asíncronas pesadas (inferencia multimodal, generación de mockups y reportes masivos) mediante colas de trabajo respaldadas por la instancia existente de Redis (`redis-deployment.yaml`).
 
 #### Observabilidad y Telemetría
 
-* **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
-* **Pino**: Reemplazo de logs estándar de consola por registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
+- **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
+- **Pino**: Reemplazo de logs estándar de consola por registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
 
 #### Herramientas de Monorepo y Build
 
-* **Turborepo / Nx**: Orquestación eficiente de los espacios de trabajo `apps/backend` y `apps/frontend`, habilitando compilación en paralelo, verificación de tipos y caché distribuida de tareas en CI.
-* **Vite**: Empaquetador ultrarrápido para modernizar la capa de presentación web, habilitando minificación, módulos ES nativos, tree-shaking y sustitución de scripts directos en el DOM.
+- **Turborepo / Nx**: Orquestación eficiente de los espacios de trabajo `apps/backend` y `apps/frontend`, habilitando compilación en paralelo, verificación de tipos y caché distribuida de tareas en CI.
+- **Vite**: Empaquetador ultrarrápido para modernizar la capa de presentación web, habilitando minificación, módulos ES nativos, tree-shaking y sustitución de scripts directos en el DOM.
 
 ---
 
@@ -228,16 +228,16 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Frontend Type-Safe y Contratos Compartidos
 
-* **Migración a TypeScript Estricto en Frontend**: Conversión de `pokedex.js`, `backoffice.js` y `theme.js` a TypeScript bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
-* **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
+- **Migración a TypeScript Estricto en Frontend**: Conversión de `pokedex.js`, `backoffice.js` y `theme.js` a TypeScript bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
+- **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
 
 #### Validación Universal de Esquemas en Runtime
 
-* **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
+- **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
 
 #### Manejo de Errores con Tipos Algebraicos
 
-* **`neverthrow` (Patrón Result / Either)**: Sustitución de `try/catch` no estructurados en [`services/db.ts`](../../apps/backend/src/services/db.ts) y [`services/auth.ts`](../../apps/backend/src/services/auth.ts) por tipos `Result<T, AppError>`, forzando en tiempo de compilación el manejo exhaustivo de fallos (entidad no encontrada, credencial inválida, timeout).
+- **`neverthrow` (Patrón Result / Either)**: Sustitución de `try/catch` no estructurados en [`services/db.ts`](../../apps/backend/src/services/db.ts) y [`services/auth.ts`](../../apps/backend/src/services/auth.ts) por tipos `Result<T, AppError>`, forzando en tiempo de compilación el manejo exhaustivo de fallos (entidad no encontrada, credencial inválida, timeout).
 
 ---
 
@@ -245,22 +245,22 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Arquitectura Hexagonal / Clean Architecture en Backend
 
-* **Desacoplamiento Estricto en Capas**:
-  * **Capa de Infraestructura**: Adaptadores para PostgreSQL, Redis, HTTP Express y cliente Gemini AI.
-  * **Capa de Dominio**: Entidades puras de negocio y reglas de validación de Pokémon, independientes de librerías externas.
-  * **Capa de Aplicación / Casos de Uso**: Casos de uso atómicos (registro de criaturas, autenticación, cálculo de estadísticas y generación de arte).
-* **Beneficio**: Testabilidad unitaria completa mediante mocks en memoria sin dependencia forzada de bases de datos en tests locales.
+- **Desacoplamiento Estricto en Capas**:
+  - **Capa de Infraestructura**: Adaptadores para PostgreSQL, Redis, HTTP Express y cliente Gemini AI.
+  - **Capa de Dominio**: Entidades puras de negocio y reglas de validación de Pokémon, independientes de librerías externas.
+  - **Capa de Aplicación / Casos de Uso**: Casos de uso atómicos (registro de criaturas, autenticación, cálculo de estadísticas y generación de arte).
+- **Beneficio**: Testabilidad unitaria completa mediante mocks en memoria sin dependencia forzada de bases de datos en tests locales.
 
 #### Modernización de la Capa Frontend (UI Reactiva y Componentizada)
 
-* **Adopción de Componentes Reactivos (Lit / Preact / React)**: Sustitución de mutaciones imperativas del DOM (`innerHTML`) por un árbol declarativo de componentes. Erradica estructuralmente el riesgo de inyección XSS al delegar la sanitización y escape en el motor de renderizado.
+- **Adopción de Componentes Reactivos (Lit / Preact / React)**: Sustitución de mutaciones imperativas del DOM (`innerHTML`) por un árbol declarativo de componentes. Erradica estructuralmente el riesgo de inyección XSS al delegar la sanitización y escape en el motor de renderizado.
 
 #### Seguridad y Caché Semántica en la Capa de IA
 
-* **Guardrails y Delimitación Estricta**: Aislamiento total del contexto del sistema frente a datos ingresados por usuarios en [`services/ai.ts`](../../apps/backend/src/services/ai.ts) mediante delimitadores XML (`<user_prompt>`) y filtrado semántico previo.
-* **Caché Semántica con Redis**: Almacenamiento con TTL de respuestas generativas recurrentes para reducir latencia a menos de 5 ms y abatir costos operativos de API.
+- **Guardrails y Delimitación Estricta**: Aislamiento total del contexto del sistema frente a datos ingresados por usuarios en [`services/ai.ts`](../../apps/backend/src/services/ai.ts) mediante delimitadores XML (`<user_prompt>`) y filtrado semántico previo.
+- **Caché Semántica con Redis**: Almacenamiento con TTL de respuestas generativas recurrentes para reducir latencia a menos de 5 ms y abatir costos operativos de API.
 
 #### Endurecimiento de la Gestión de Estado de Infraestructura (IaC)
 
-* **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
-* **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y External Secrets Operator / Sealed Secrets en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.
+- **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
+- **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y External Secrets Operator (ESO) con HashiCorp Vault CE en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.

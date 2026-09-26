@@ -6,7 +6,7 @@ Aceptado
 
 ## Contexto
 
-En [ADR-005](./ADR-005-secret-management.md) se formalizó el uso de External Secrets Operator (ESO) y Bitnami Sealed Secrets para la gestión segura de secretos en reposo, desacoplando los valores confidenciales del control de versiones en Git. Asimismo, el runbook operacional [`docs/operations/secret-rotation.md`](../operations/secret-rotation.md) estableció el inventario y periodicidad de rotación para contraseñas de PostgreSQL, Redis, API Keys de administración y tokens de sesión.
+En [ADR-005](./ADR-005-secret-management.md) se formalizó el uso de External Secrets Operator (ESO) y HashiCorp Vault CE para la gestión segura de secretos en reposo, desacoplando los valores confidenciales del control de versiones en Git. Asimismo, el runbook operacional [`docs/operations/secret-rotation.md`](../operations/secret-rotation.md) estableció el inventario y periodicidad de rotación para contraseñas de PostgreSQL, Redis, API Keys de administración y tokens de sesión.
 
 Sin embargo, a nivel de arquitectura y automatización declarativa existían los siguientes desafíos técnicos:
 
@@ -22,21 +22,25 @@ Se formaliza una arquitectura integral de **Rotación Automatizada de Credencial
 ### 1. Contrato Inmutable de Recarga Dinámica con Stakater Reloader
 
 Todo recurso `Deployment` que consuma secretos mediante `secretRef` o `secretKeyRef` debe incorporar obligatoriamente la anotación declarativa:
+
 ```yaml
 annotations:
   reloader.stakater.com/auto: "true"
 ```
-Al detectar cambios en el recurso `v1/Secret` generado por ESO o Sealed Secrets, el controlador de **Stakater Reloader** computa un nuevo hash SHA-256 de las cargas útiles y muta una anotación interna en la plantilla de Pods (`spec.template.metadata.annotations`), provocando que el Deployment Controller de Kubernetes ejecute un *RollingUpdate* ordenado respetando las garantías de terminación grácil ([ADR-015](./ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)) y disponibilidad ([ADR-014](./ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)).
+
+Al detectar cambios en el recurso `v1/Secret` sincronizado por ESO, el controlador de **Stakater Reloader** computa un nuevo hash SHA-256 de las cargas útiles y muta una anotación interna en la plantilla de Pods (`spec.template.metadata.annotations`), provocando que el Deployment Controller de Kubernetes ejecute un *RollingUpdate* ordenado respetando las garantías de terminación grácil ([ADR-015](./ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md)) y disponibilidad ([ADR-014](./ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md)).
 
 ### 2. Sincronización Periódica Acotada en External Secrets Operator
 
 El recurso `ExternalSecret` formaliza un intervalo de refresco máximo de 1 hora en producción (`refreshInterval: "1h"`):
+
 - Permite detectar y aplicar rotaciones programadas aguas arriba (AWS Secrets Manager / Vault) de forma completamente desatendida.
 - Reduce la ventana máxima de exposición a 60 minutos ante una rotación de credenciales por compromiso de seguridad.
 
 ### 3. Protocolo de Rotación Dual-Secret y Tolerancia a Fallos
 
 Para evitar interrupciones de servicio durante la rotación de credenciales relacionales:
+
 - **PostgreSQL**: Se aprovecha la capa de multiplexación de conexiones con PgBouncer ([ADR-011](./ADR-011-persistence-drizzle-orm-and-pgbouncer.md)), permitiendo actualizar la contraseña del pooler y los clientes backend sin degradación en curso.
 - **Sesiones Administrativas**: El sistema de autenticación de doble capa ([ADR-010](./ADR-010-authentication-and-session-management.md)) soporta la invalidación distribuida mediante Redis (`jti`), forzando la re-emisión segura de credenciales de sesión.
 
@@ -51,6 +55,7 @@ Se incorpora la herramienta tipada [`scripts/verify-secret-rotation.ts`](../../s
 ### 5. Adaptabilidad Multi-Entorno: Perfil Minimal Viable Platform (Proxmox VE) vs. Cloud (AWS)
 
 Se establece la justificación técnica de la convivencia de ambos enfoques:
+
 - **Limitación Técnica de `checksum/config`:** La anotación de Helm calcula el hash SHA-256 de `templates/configmap.yaml` únicamente durante la renderización del chart (`helm upgrade`). Dado que el recurso `v1/Secret pokemon-secrets` se genera y actualiza de manera asíncrona en runtime por External Secrets Operator (ESO), **las rotaciones de secretos upstream no mutan el hash de `checksum/config`**.
 - **Necesidad de Stakater Reloader en Cloud (AWS EKS):** En producción enterprise cloud, la rotación de credenciales en AWS Secrets Manager es desatendida y continua. Reloader actúa como un observador en tiempo de ejecución de la API de Kubernetes, detectando cuando ESO actualiza el Secret y disparando el RollingUpdate automático sin redeploy de Helm.
 - **Perfil Lean On-Premise (Proxmox VE):** En Proxmox VE K3s, para priorizar la huella ultraliviana (< 1 GB RAM) y reducir la superficie RBAC en laboratorio/MVP, **Stakater Reloader está desactivado** (`reloader.enabled: false`, `reloader.stakater.com/auto: null`). Los cambios de configuración se delegan a `checksum/config`, y ante una rotación de secretos en Vault se asume el reinicio progresivo manual o por pipeline (`kubectl rollout restart deployment/pokemon-api -n pokemon-app`).

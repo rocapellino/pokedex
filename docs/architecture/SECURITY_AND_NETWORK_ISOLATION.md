@@ -5,15 +5,17 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
 ---
 
 ## 📑 Tabla de Contenidos
+
 1. [Principios Rectores de Seguridad](#1-principios-rectores-de-seguridad)
 2. [Diagrama de Flujo: Topología de Red y Aislamiento de 4 Capas](#2-diagrama-de-flujo-topología-de-red-y-aislamiento-de-4-capas)
 3. [Matriz de Control de Acceso, Redes y Puertos](#3-matriz-de-control-de-acceso-redes-y-puertos)
 4. [Segmentación en Docker Compose](#4-segmentación-en-docker-compose)
 5. [Aislamiento en Kubernetes (`NetworkPolicies`)](#5-aislamiento-en-kubernetes-networkpolicies)
-   * [5.1. Denegación por Defecto (Default Deny)](#51-denegación-por-defecto-default-deny)
-   * [5.2. Aislamiento Estricto de PostgreSQL Mediado por PgBouncer](#52-aislamiento-estricto-de-postgresql-mediado-por-pgbouncer)
-   * [5.3. Egress Anti-SSRF y Protección de Metadatos Cloud (IMDS)](#53-egress-anti-ssrf-y-protección-de-metadatos-cloud-imds)
-   * [5.4. Restricción de Tráfico DNS a CoreDNS](#54-restricción-de-tráfico-dns-a-coredns)
+   - [5.1. Denegación por Defecto (Default Deny)](#51-denegación-por-defecto-default-deny)
+   - [5.2. Aislamiento Estricto de PostgreSQL Mediado por PgBouncer](#52-aislamiento-estricto-de-postgresql-mediado-por-pgbouncer)
+   - [5.3. Egress Anti-SSRF y Protección de Metadatos Cloud (IMDS)](#53-egress-anti-ssrf-y-protección-de-metadatos-cloud-imds)
+   - [5.4. Aislamiento L7 Egress: Cilium FQDN NetworkPolicy (Consolidado)](#54-aislamiento-l7-egress-cilium-fqdn-networkpolicy-consolidado)
+   - [5.5. Restricción de Tráfico DNS a CoreDNS](#55-restricción-de-tráfico-dns-a-coredns)
 6. [Seguridad en la Cadena de Suministro y Control de Admisión (Kyverno + Cosign)](#6-seguridad-en-la-cadena-de-suministro-y-control-de-admisión-kyverno--cosign)
 7. [Inmutabilidad de Artefactos OCI y Digest Pinning](#7-inmutabilidad-de-artefactos-oci-y-digest-pinning)
 8. [Mecanismos Fail-Closed en la Aplicación](#8-mecanismos-fail-closed-en-la-aplicación)
@@ -26,10 +28,10 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
 1. **Superficie de Ataque Mínima:** Únicamente la capa de presentación Web (Nginx / Ingress Controller) y las consolas de observabilidad autorizadas exponen puertos hacia el exterior.
 2. **Cero Exposición de Bases de Datos:** Ni PostgreSQL (`5432`) ni Redis (`6379`) exponen puertos públicos en producción. Operan en redes internas aisladas sin enrutamiento a Internet.
 3. **Aislamiento Lateral (Zero-Trust):**
-   * El frontend (`pokemon-web`) no tiene conectividad de red hacia PostgreSQL ni Redis.
-   * El backend (`pokemon-api`, Express en puerto `:3000`) es el único intermediario validado.
-   * En producción con PgBouncer activo, la API **no puede comunicarse directamente con PostgreSQL**: toda conexión pasa obligatoriamente por el pooler de conexiones.
-   * La observabilidad y telemetría están centralizadas en **Grafana Cloud** mediante Grafana Alloy / Beyla eBPF, eliminando acoplamientos de red locales como `monitoring-net` en Docker Compose.
+   - El frontend (`pokemon-web`) no tiene conectividad de red hacia PostgreSQL ni Redis.
+   - El backend (`pokemon-api`, Express en puerto `:3000`) es el único intermediario validado.
+   - En producción con PgBouncer activo, la API **no puede comunicarse directamente con PostgreSQL**: toda conexión pasa obligatoriamente por el pooler de conexiones.
+   - La observabilidad y telemetría están centralizadas en **Grafana Cloud** mediante Grafana Alloy / Beyla eBPF, eliminando acoplamientos de red locales como `monitoring-net` en Docker Compose.
 4. **Protección Egress Anti-SSRF:** La salida a Internet de los pods de aplicación está restringida a HTTPS (443) y filtra explícitamente mediante `ipBlock` los rangos de metadatos de Cloud (IMDS `169.254.169.254/32`), redes privadas RFC 1918 y loopback.
 5. **Ejecución No-Root:** Todos los contenedores corren bajo usuarios sin privilegios (`appuser:1001` en el backend y `nginx` en el frontend).
 6. **Arquitectura Fail-Closed:** Ante fallos de componentes auxiliares de seguridad (Redis o PostgreSQL), las operaciones sensibles se bloquean preventivamente en lugar de continuar en estado vulnerable.
@@ -96,7 +98,7 @@ flowchart TD
 | Componente | Repositorio | Redes Asignadas | Puerto Interno | Puerto Host | Accesible Desde | Bloqueado Para |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `80` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net` |
-| **Backend API (`pokemon-api`)**| `pokedex` | `pokedex-frontend-net`<br>`pokedex-backend-net` | `3000` | `3000` *(dev)* | `pokemon-web` | Acceso directo sin proxy en producción |
+| **Backend API (`pokemon-api`)** | `pokedex` | `pokedex-frontend-net` / `pokedex-backend-net` | `3000` | `3000` *(dev)* | `pokemon-web` | Acceso directo sin proxy en producción |
 | **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `5432` | — | `pokemon-api` | `pokemon-web`, Internet |
 | **PostgreSQL 16** | `pokedex` | `pokedex-backend-net` | `5432` | `5432` *(dev)* | `pgbouncer`, `db-seeder` | `pokemon-web`, `pokemon-api` *(en prod)*, Internet |
 | **Redis 7** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet |
@@ -128,17 +130,21 @@ networks:
 Implementado en [`infra/helm/pokedex/templates/network-policies.yaml`](../../infra/helm/pokedex/templates/network-policies.yaml):
 
 ### 5.1. Denegación por Defecto (Default Deny)
+
 La política `default-deny-all-ingress` bloquea por defecto cualquier tráfico no explícitamente autorizado en el namespace de la aplicación.
 
 ### 5.2. Aislamiento Estricto de PostgreSQL Mediado por PgBouncer
+
 Cuando `pgbouncer.enabled: true` está activo (por defecto en producción):
+
 1. **API Egress:** La API pierde la regla de salida hacia `component: database` y **solo** se le concede salida a `component: pgbouncer` en el puerto 5432.
 2. **PostgreSQL Ingress:** La política de entrada de la base de datos restringe el origen exclusivamente a los pods etiquetados con:
-   * `app.kubernetes.io/component: pgbouncer`
-   * `app.kubernetes.io/component: db-seeder` (Jobs de inicialización/migración)
+   - `app.kubernetes.io/component: pgbouncer`
+   - `app.kubernetes.io/component: db-seeder` (Jobs de inicialización/migración)
    Cualquier paquete TCP directo desde un pod de la API hacia PostgreSQL es descartado por el CNI.
 
 ### 5.3. Egress Anti-SSRF y Protección de Metadatos Cloud (IMDS)
+
 Para prevenir ataques de Server-Side Request Forgery (SSRF) dirigidos a endpoints de metadatos o reconocimiento de subredes internas del clúster, la regla de egress HTTPS en el puerto 443 implementa filtrado CIDR estricto:
 
 ```yaml
@@ -156,9 +162,8 @@ Para prevenir ataques de Server-Side Request Forgery (SSRF) dirigidos a endpoint
           - 127.0.0.0/8         # Loopback
 ```
 
-```
-
 ### 5.4. Aislamiento L7 Egress: Cilium FQDN NetworkPolicy (Consolidado)
+
 Para neutralizar por completo el riesgo de exfiltración externa de datos y ataques Command and Control (C2), se ha consolidado el control perimetral de salida bajo el principio de menor complejidad operativa (ADR-020 / Plan de Consolidación):
 
 1. **Cilium eBPF con FQDN Allowlist (`CiliumNetworkPolicy` - Estándar L7):**
@@ -171,6 +176,7 @@ Para neutralizar por completo el riesgo de exfiltración externa de datos y ataq
    Como salvaguarda complementaria o en entornos sin inspección FQDN activa, se bloquea por defecto todo tráfico hacia metadatos de nube (`169.254.169.254/32`) y subredes privadas RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). El proxy Envoy satélite previo fue podado para eliminar saltos innecesarios y consumo redundante de recursos.
 
 ### 5.5. Restricción de Tráfico DNS a CoreDNS
+
 La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cualquier IP externa; está restringida exclusivamente a los pods del clúster etiquetados con `k8s-app: kube-dns`.
 
 ---
@@ -183,7 +189,7 @@ flowchart LR
     GH_ACTIONS -->|2. Firma OIDC Keyless| COSIGN["✍️ Cosign"]
     COSIGN -->|3. Registra transparencia| REKOR["📜 Rekor Public Ledger"]
     COSIGN -->|4. Push Imagen + Firma + SBOM| GHCR["📦 GitHub Container Registry"]
-    
+
     GHCR -->|5. Intento de despliegue Pod| K8S_API["☸️ Kubernetes API Server"]
     K8S_API -->|6. Validación de Admisión| KYVERNO["🛡️ Kyverno Admission Controller\n(ClusterPolicy: Enforce)"]
     KYVERNO -->|7. Consulta firma y ledger| REKOR
@@ -191,22 +197,23 @@ flowchart LR
     KYVERNO -->|Imagen sin firma o workflow ajeno| REJECT["🚫 Pod Rechazado"]
 ```
 
-* **Política Kyverno:** Definida en [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml).
-* **Modo `Enforce`:** Bloquea en tiempo de admisión cualquier intento de ejecutar una imagen que no haya sido firmada por el workflow oficial de GitHub Actions:
-  * Emisor OIDC: `https://token.actions.githubusercontent.com`
-  * Sujeto: `https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main`
-  * Ledger Rekor: `https://rekor.sigstore.dev`
+- **Política Kyverno:** Definida en [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml).
+- **Modo `Enforce`:** Bloquea en tiempo de admisión cualquier intento de ejecutar una imagen que no haya sido firmada por el workflow oficial de GitHub Actions:
+  - Emisor OIDC: `https://token.actions.githubusercontent.com`
+  - Sujeto: `https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main`
+  - Ledger Rekor: `https://rekor.sigstore.dev`
 
 ---
 
 ## 7. Inmutabilidad de Artefactos OCI y Digest Pinning
 
 Para evitar descargas no deterministas, colisiones de tags y ataques de sustitución de imágenes:
+
 1. **Eliminación del tag `latest`:** Los valores por defecto de Helm fijan tags semánticos explícitos (`1.9.5`).
 2. **Soporte de Digest Criptográfico:** Los despliegues de Helm permiten parametrizar `digest: "sha256:..."` garantizando que Kubernetes verifique el hash inmutable antes de la ejecución.
 3. **Imágenes de Infraestructura Fijadas por Digest:**
-   * PgBouncer está anclado a `1.22.0@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516`.
-   * Frontend Nginx está anclado a `1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10`.
+   - PgBouncer está anclado a `1.22.0@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516`.
+   - Frontend Nginx está anclado a `1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10`.
 
 ---
 
@@ -215,25 +222,25 @@ Para evitar descargas no deterministas, colisiones de tags y ataques de sustituc
 El backend `server.ts` implementa principios de seguridad estricta para evitar estados intermedios vulnerables:
 
 1. **Logout Fail-Closed:**
-   * Al revocar una sesión, primero se comprueba la firma criptográfica HMAC con `ADMIN_SESSION_SECRET`.
-   * Si la firma es inválida, se responde **`400 Bad Request`** impidiendo la inyección de identificadores arbitrarios.
-   * Si Redis está caído y no se puede registrar la revocación distribuida, se responde inmediatamente con **`503 Service Unavailable`** impidiendo aceptar una sesión como "cerrada" cuando otros nodos del clúster aún la considerarían válida.
+   - Al revocar una sesión, primero se comprueba la firma criptográfica HMAC con `ADMIN_SESSION_SECRET`.
+   - Si la firma es inválida, se responde **`400 Bad Request`** impidiendo la inyección de identificadores arbitrarios.
+   - Si Redis está caído y no se puede registrar la revocación distribuida, se responde inmediatamente con **`503 Service Unavailable`** impidiendo aceptar una sesión como "cerrada" cuando otros nodos del clúster aún la considerarían válida.
 2. **Mutaciones Protegidas (`requireWritableStorage`):**
-   * Si la base de datos PostgreSQL se encuentra en fallo, se bloquean preventivamente todas las solicitudes `POST /pokemons`, `PUT` y `DELETE` con **`503 Service Unavailable`**, evitando escrituras en memoria desincronizadas.
+   - Si la base de datos PostgreSQL se encuentra en fallo, se bloquean preventivamente todas las solicitudes `POST /pokemons`, `PUT` y `DELETE` con **`503 Service Unavailable`**, evitando escrituras en memoria desincronizadas.
 3. **Cuota Diaria de IA Fail-Closed:**
-   * La cuota de 200 peticiones/día por IP para llamadas a Gemini se gestiona en Redis. Si Redis no está disponible, el middleware deniega el acceso con **`503 Service Unavailable`** para evitar el agotamiento de presupuesto o saturación de la API de IA.
+   - La cuota de 200 peticiones/día por IP para llamadas a Gemini se gestiona en Redis. Si Redis no está disponible, el middleware deniega el acceso con **`503 Service Unavailable`** para evitar el agotamiento de presupuesto o saturación de la API de IA.
 4. **Validación Timing-Safe:**
-   * Comparaciones criptográficas seguras contra ataques de canal lateral basados en tiempo (`crypto.timingSafeEqual`).
+   - Comparaciones criptográficas seguras contra ataques de canal lateral basados en tiempo (`crypto.timingSafeEqual`).
 5. **Sanitización contra Inyección XSS:**
-   * Todo campo de entrada se analiza contra patrones de scripts HTML o esquemas `javascript:`, retornando **`422 Unprocessable Entity`**.
+   - Todo campo de entrada se analiza contra patrones de scripts HTML o esquemas `javascript:`, retornando **`422 Unprocessable Entity`**.
 
 ---
 
 ## 9. Manejo Seguro de Secretos y Credenciales
 
-* **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](../../.env.example).
-* **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
-* **Desacoplamiento en Producción (`existingSecret` / External Secrets Operator):**
-  * En entornos cloud o GitOps de producción, el Chart de Helm no renderiza objetos `Secret` con valores predeterminados.
-  * Se enlaza a un Secret existente (`secrets.existingSecret: "pokedex-prod-secrets"`) o se sincroniza dinámicamente mediante el **External Secrets Operator** desde Vault, AWS Secrets Manager o GCP Secret Manager.
-* **Cifrado Asimétrico con Bitnami Sealed Secrets:** Para clústeres on-premise (Proxmox VE), las credenciales se cifran asimétricamente con `kubeseal` permitiendo versionar el manifiesto seguro en Git.
+- **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](../../.env.example).
+- **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
+- **Desacoplamiento Canónico con External Secrets Operator (ESO) y HashiCorp Vault CE:**
+  - En entornos on-premise (Proxmox VE), ESO sincroniza credenciales desde **HashiCorp Vault CE** (LXC 810 con almacenamiento Raft, TLS 1.2+ y roles RBAC segregados `pokedex-prod-role` y `pokedex-preprod-role`).
+  - En entornos cloud (AWS EKS), ESO sincroniza desde **AWS Secrets Manager** vía IRSA.
+  - El Chart de Helm desacopla el nombre mediante `pokedex.secretName` (`secrets.existingSecret: "pokemon-secrets"`), erradicando el almacenamiento de secretos en Git. Bitnami Sealed Secrets fue formalmente retirado bajo `CLN-002`.

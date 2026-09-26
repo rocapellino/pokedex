@@ -32,16 +32,16 @@ Este documento consolida el **Plan Integral de Mejoras Técnicas** derivado de l
 
 ---
 
-## 3. Matriz de Hallazgos Vigentes y Oportunidades de Mejora
+## 3. Matriz de Hallazgos Vigentes y Ciclo de Vida de Tareas
 
-| ID | Área | Descripción Sintética | Prioridad | Confianza | Esfuerzo | Impacto |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`[SCH-001]`** | Supply Chain / Release | Desacoplamiento granular en `repo-release`: verificar de forma independiente Git tag, OCI image, OCI digest, Cosign signature, SBOM y SLSA provenance (`PASS`/`FAIL`/`UNKNOWN`/`NOT_APPLICABLE`). | **P1** | `HIGH` | `S` | Previene asumir que la existencia de un tag implica automáticamente la integridad criptográfica de la cadena. |
-| **`[SEC-001]`** | Seguridad / DevSecOps | Asimetría defensiva Local vs. Clúster: Cilium L7 eBPF y NetworkPolicies L4 operan exclusivamente en K8s; localmente el desarrollador no experimenta el bloqueo en red. | **P1** | `HIGH` | `S` | Fortalece la detección temprana en local mediante simulación determinista pre-commit. |
-| **`[SEC-002]`** | Resiliencia / Redis | Riesgo residual de desincronización inter-pod en revocación de sesiones tras reinicio o pérdida de Redis (Pods sin JTI en caché local aceptan el token hasta su TTL). | **P2** | `HIGH` | `M` | Elimina la ventana de replay attack mediante almacenamiento persistente (PVC) en Redis de producción. |
-| **`[DOC-001]`** | Documentación / ADR | Discrepancia entre `ADR-006` (estrategia off-site limitada a S3 y PBS inactivos) y la implementación K8s-native funcional de Google Drive con Rclone. | **P2** | `HIGH` | `S` | Sincroniza la arquitectura formal con el sistema de backup off-site activo. |
-| **`[ASA-001]`** | Arquitectura / Backend | Concentración de responsabilidades en `apps/backend/src/services/db.ts` (531 LOC, acopla pool PG, Redis, fallback en memoria, migraciones Drizzle y repositorio). | **P2** | `HIGH` | `M` | Reduce acoplamiento y mejora la modularidad del backend sin cambiar contratos. |
-| **`[ASA-002]`** | Arquitectura / Frontend | Concentración de lógica de renderizado y modales en `apps/frontend/src/pokedex.ts` (683 LOC) y `apps/frontend/src/backoffice.ts` (560 LOC). | **P3** | `MEDIUM` | `M` | Facilita el mantenimiento de componentes de interfaz y pruebas unitarias de UI. |
+| ID | Área | Descripción Sintética | Prioridad | Estado | Resolución / PR |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`[SCH-001]`** | Supply Chain / Release | Desacoplamiento granular en `repo-release`: verificar de forma independiente Git tag, OCI image, OCI digest, Cosign signature, SBOM y SLSA provenance (`PASS`/`FAIL`/`UNKNOWN`/`NOT_APPLICABLE`). | **P1** | `CLOSED` | Resuelto en [PR #270](https://github.com/rocapellino/pokedex/pull/270) y [PR #283](https://github.com/rocapellino/pokedex/pull/283). |
+| **`[SEC-001]`** | Seguridad / DevSecOps | Asimetría defensiva Local vs. Clúster: Cilium L7 eBPF y NetworkPolicies L4 validados mediante `probe-egress-security.ts` local en tests. | **P1** | `CLOSED` | Resuelto en [PR #278](https://github.com/rocapellino/pokedex/pull/278). |
+| **`[SEC-002]`** | Resiliencia / Redis | Persistencia con PVC (2Gi) para Redis en entorno Proxmox para eliminar riesgo de desincronización de tokens revocados. | **P2** | `CLOSED` | Resuelto en [PR #278](https://github.com/rocapellino/pokedex/pull/278). |
+| **`[DOC-001]`** | Documentación / ADR | Sincronización de `ADR-006` con la implementación K8s-native funcional de Google Drive con Rclone. | **P2** | `CLOSED` | Resuelto en [PR #278](https://github.com/rocapellino/pokedex/pull/278). |
+| **`[ASA-001]`** | Arquitectura / Backend | Concentración de responsabilidades en `apps/backend/src/services/db.ts` (modularización de `PokemonRepository`). | **P2** | `PLANNED` | Planificado para próxima iteración técnica. |
+| **`[ASA-002]`** | Arquitectura / Frontend | Concentración de lógica de renderizado y modales en `apps/frontend/src/pokedex.ts` y `backoffice.ts`. | **P3** | `PLANNED` | Planificado para próxima iteración técnica. |
 
 ---
 
