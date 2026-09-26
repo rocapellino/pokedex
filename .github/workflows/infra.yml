@@ -1,20 +1,37 @@
 # ==============================================================================
 # Workflow de CI para Infraestructura (Kubernetes, OpenTofu y Helm)
+# Invocado como Reusable Workflow por change-impact.yml
 # ==============================================================================
 name: ⚙️ Infrastructure & IaC CI
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'infra/**'
-      - '.github/workflows/infra.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'infra/**'
-      - 'gitops/**'
-      - '.github/workflows/infra.yml'
+  workflow_call:
+    inputs:
+      helm:
+        description: "Ejecutar validaciones de Helm Charts"
+        type: boolean
+        default: false
+      kubernetes:
+        description: "Ejecutar validaciones de manifiestos K8s"
+        type: boolean
+        default: false
+      opentofu:
+        description: "Ejecutar validaciones de OpenTofu"
+        type: boolean
+        default: false
+      ansible:
+        description: "Ejecutar validaciones de Ansible"
+        type: boolean
+        default: false
+      security_iac:
+        description: "Ejecutar auditoría de seguridad Checkov"
+        type: boolean
+        default: false
+      is_unknown:
+        description: "Modo Fail-Closed: ejecutar Full Infra CI"
+        type: boolean
+        default: false
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,48 +41,15 @@ permissions:
   contents: read
 
 jobs:
-  detect-impact:
-    name: "🎯 Detect Change Impact"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    outputs:
-      kubernetes: ${{ steps.impact.outputs.kubernetes }}
-      helm: ${{ steps.impact.outputs.helm }}
-      opentofu: ${{ steps.impact.outputs.opentofu }}
-      ansible: ${{ steps.impact.outputs.ansible }}
-      security_iac: ${{ steps.impact.outputs.security_iac }}
-      is_unknown: ${{ steps.impact.outputs.is_unknown }}
-    steps:
-      - name: 1. Descargar Código Fuente
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: 2. Configurar Node.js 22 LTS
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci --ignore-scripts
-
-      - name: 4. Ejecutar Change Impact Analysis
-        id: impact
-        run: npx tsx scripts/detect-change-impact.ts --base ${{ github.event.pull_request.base.sha || 'origin/main' }} --github-output --format markdown
-
   # -------------------------------------------------------
   # validate-helm: solo cuando cambian Helm charts o GitOps
   # -------------------------------------------------------
   validate-helm:
     name: "⎈ Helm Lint, Render & K8s Contracts"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.helm == 'true' ||
-      needs.detect-impact.outputs.kubernetes == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.helm ||
+      inputs.kubernetes ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -155,10 +139,9 @@ jobs:
   # -------------------------------------------------------
   validate-opentofu:
     name: "🏗️ OpenTofu Format & Validate"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.opentofu == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.opentofu ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -186,10 +169,9 @@ jobs:
   # -------------------------------------------------------
   validate-ansible:
     name: "📋 Ansible Syntax Check"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.ansible == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.ansible ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -210,10 +192,9 @@ jobs:
   # -------------------------------------------------------
   validate-checkov:
     name: "🔐 Checkov IaC Security Audit"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.security_iac == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.security_iac ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -235,11 +216,10 @@ jobs:
   # -------------------------------------------------------
   kind-integration:
     name: "☸️ Kind Canonical K8s Integration"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.helm == 'true' ||
-      needs.detect-impact.outputs.kubernetes == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.helm ||
+      inputs.kubernetes ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:

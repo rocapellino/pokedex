@@ -1,0 +1,141 @@
+# ==============================================================================
+# Workflow Orquestador Centralizado de CI/CD (Single Point of Decision)
+# Orquesta el flujo completo de validación en base al Change Impact Analysis
+# ==============================================================================
+name: 🎯 Change Impact & Pipeline Orchestrator
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
+  packages: write
+  id-token: write
+  attestations: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =======================================================
+  # 1. CHANGE IMPACT ANALYSIS (Motor Único Centralizado)
+  # =======================================================
+  detect-impact:
+    name: "🎯 Detect Change Impact"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      has_changes: ${{ steps.impact.outputs.has_changes }}
+      is_unknown: ${{ steps.impact.outputs.is_unknown }}
+      is_global: ${{ steps.impact.outputs.is_global }}
+      docs: ${{ steps.impact.outputs.docs }}
+      backend: ${{ steps.impact.outputs.backend }}
+      frontend: ${{ steps.impact.outputs.frontend }}
+      tests: ${{ steps.impact.outputs.tests }}
+      docker: ${{ steps.impact.outputs.docker }}
+      kubernetes: ${{ steps.impact.outputs.kubernetes }}
+      helm: ${{ steps.impact.outputs.helm }}
+      opentofu: ${{ steps.impact.outputs.opentofu }}
+      ansible: ${{ steps.impact.outputs.ansible }}
+      security: ${{ steps.impact.outputs.security }}
+      security_secrets: ${{ steps.impact.outputs.security_secrets }}
+      security_sast: ${{ steps.impact.outputs.security_sast }}
+      security_dependencies: ${{ steps.impact.outputs.security_dependencies }}
+      security_container: ${{ steps.impact.outputs.security_container }}
+      security_iac: ${{ steps.impact.outputs.security_iac }}
+      security_supply_chain: ${{ steps.impact.outputs.security_supply_chain }}
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Ejecutar Change Impact Analysis y Generar impact.json
+        id: impact
+        run: |
+          npx tsx scripts/detect-change-impact.ts \
+            --base "${{ github.event.pull_request.base.sha || 'origin/main' }}" \
+            --github-output \
+            --format json > impact.json
+          echo "=== RESUMEN DE IMPACTO (impact.json) ==="
+          cat impact.json
+
+      - name: 5. Persistir Artefacto Inmutable impact.json
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: change-impact-metadata
+          path: impact.json
+          retention-days: 7
+
+  # =======================================================
+  # 2. CI CORE (Aplicación, Quality Gates, SAST & Release)
+  # =======================================================
+  ci-core:
+    name: "🚀 Core CI"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.backend == 'true' ||
+      needs.detect-impact.outputs.frontend == 'true' ||
+      needs.detect-impact.outputs.tests == 'true' ||
+      needs.detect-impact.outputs.docker == 'true' ||
+      needs.detect-impact.outputs.security_sast == 'true' ||
+      needs.detect-impact.outputs.security_dependencies == 'true' ||
+      needs.detect-impact.outputs.security_container == 'true' ||
+      needs.detect-impact.outputs.docs == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/ci.yml
+    with:
+      backend: ${{ needs.detect-impact.outputs.backend == 'true' }}
+      frontend: ${{ needs.detect-impact.outputs.frontend == 'true' }}
+      tests: ${{ needs.detect-impact.outputs.tests == 'true' }}
+      docker: ${{ needs.detect-impact.outputs.docker == 'true' }}
+      security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' }}
+      security_dependencies: ${{ needs.detect-impact.outputs.security_dependencies == 'true' }}
+      security_container: ${{ needs.detect-impact.outputs.security_container }}
+      docs: ${{ needs.detect-impact.outputs.docs == 'true' }}
+      is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
+    secrets: inherit
+
+  # =======================================================
+  # 3. INFRASTRUCTURE & IAC (Helm, Tofu, Ansible, Kind)
+  # =======================================================
+  infra:
+    name: "⚙️ Infra CI"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.helm == 'true' ||
+      needs.detect-impact.outputs.kubernetes == 'true' ||
+      needs.detect-impact.outputs.opentofu == 'true' ||
+      needs.detect-impact.outputs.ansible == 'true' ||
+      needs.detect-impact.outputs.security_iac == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/infra.yml
+    with:
+      helm: ${{ needs.detect-impact.outputs.helm == 'true' }}
+      kubernetes: ${{ needs.detect-impact.outputs.kubernetes == 'true' }}
+      opentofu: ${{ needs.detect-impact.outputs.opentofu == 'true' }}
+      ansible: ${{ needs.detect-impact.outputs.ansible == 'true' }}
+      security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' }}
+      is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
+    secrets: inherit
