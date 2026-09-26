@@ -2,6 +2,11 @@
 
 Este documento define el radio de impacto esperado y la cascada de dependencias cuando se introducen modificaciones en `rocapellino/pokedex`.
 
+> [!IMPORTANT]
+> **Regla Permanente de Evaluación de Impacto Documental:**
+> **Toda modificación de arquitectura, herramienta, workflow, comando, infraestructura o proceso debe disparar obligatoriamente una evaluación de impacto documental.**
+> Ningún cambio se considerará listo para Pull Request si introduce referencias huérfanas, describe herramientas retiradas o genera discrepancias fácticas entre la documentación y el estado real del repositorio.
+
 ---
 
 ## 1. Cascada de Impacto por Componente

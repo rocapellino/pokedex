@@ -16,12 +16,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'Dockerfile'
-      - 'apps/**/Dockerfile'
-      - 'apps/frontend/**'
-      - 'package*.json'
-      - '.github/workflows/security-trivy.yml'
   workflow_dispatch:
   schedule:
     - cron: '0 4 * * 1' # Escaneo semanal los lunes a las 04:00 UTC
