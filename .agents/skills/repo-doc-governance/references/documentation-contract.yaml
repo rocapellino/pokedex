@@ -1,0 +1,136 @@
+# Contrato Declarativo de Gobernanza Documental
+# Define propósitos, límites, presupuestos y reglas formales para la documentación del repositorio.
+
+version: "1.0.0"
+governance:
+  framework: "repo-doc-governance"
+  enforcement_modes:
+    - audit
+    - propose
+    - update
+
+budget:
+  root:
+    README.md:
+      max_sections: 12
+      max_lines: 260
+    SECURITY.md:
+      max_sections: 8
+      max_lines: 180
+  audits:
+    retention: "current-baseline-only"
+    max_active_snapshots: 1
+  adr:
+    retention: "permanent"
+  runbooks:
+    retention: "permanent"
+  historical:
+    policy: "archive-or-delete-after-consolidation"
+
+documents:
+  README.md:
+    purpose: "project_entrypoint"
+    description: "Punto de entrada general y resumen operativo para desarrolladores y usuarios."
+    allowed:
+      - project_overview
+      - core_features
+      - architecture_summary
+      - tech_stack_summary
+      - prerequisites
+      - local_development
+      - test_execution
+      - deployment_overview
+      - security_overview
+      - documentation_index
+    forbidden:
+      - internal_implementation_details
+      - historical_changelogs
+      - audit_findings_and_results
+      - complete_adrs
+      - detailed_troubleshooting
+      - extensive_operational_runbooks
+      - temporary_or_volatile_info
+      - frequently_changing_versions
+      - historical_decisions
+      - uncommitted_roadmaps
+      - continuous_integration_raw_outputs
+      - cloud_provider_exclusive_lock_in
+    evidence:
+      - source_code
+      - package_manifests
+      - infrastructure_manifests
+      - continuous_integration
+      - automated_tests
+
+  SECURITY.md:
+    purpose: "security_policy"
+    description: "Política pública de seguridad, reporte de vulnerabilidades y alcance."
+    allowed:
+      - vulnerability_reporting_procedure
+      - supported_versions_matrix
+      - security_scope_and_threat_boundaries
+      - out_of_scope_clarifications
+      - vulnerability_response_process
+      - coordinated_disclosure_policy
+      - links_to_technical_security_docs
+    forbidden:
+      - detailed_internal_architecture
+      - historical_audit_results
+      - full_security_tooling_internals
+      - temporary_security_controls
+      - full_dependency_tree_inventories
+      - secret_path_hardcodings
+    evidence:
+      - security_workflows
+      - repository_release_tags
+      - dependency_manifests
+      - external_secrets_and_vault_configs
+
+rules:
+  - id: "README-ARCH-001"
+    document: "README.md"
+    name: "Alineación Arquitectónica con el Repositorio"
+    description: "Toda afirmación arquitectónica en README.md debe coincidir estrictamente con el código, charts Helm y manifiestos vigentes."
+    severity: "HIGH"
+
+  - id: "README-SEC-001"
+    document: "README.md"
+    name: "Detalles de Seguridad como Referencia"
+    description: "README.md debe resumir los controles de seguridad y enlazar a docs/security/ o SECURITY.md, sin duplicar especificaciones internas."
+    severity: "MEDIUM"
+
+  - id: "README-CLOUD-001"
+    document: "README.md"
+    name: "Agnosticismo de Infraestructura"
+    description: "Ningún proveedor cloud (ej. AWS, GCP) debe presentarse como mandatorio o exclusivo en README.md; la arquitectura es Kubernetes portable."
+    severity: "HIGH"
+
+  - id: "SECURITY-VERSION-001"
+    document: "SECURITY.md"
+    name: "Versiones Soportadas Mantenibles"
+    description: "La matriz de versiones soportadas debe coincidir con las líneas de lanzamiento activas en gitops/ y package.json."
+    severity: "HIGH"
+
+  - id: "SECURITY-SLA-001"
+    document: "SECURITY.md"
+    name: "SLAs Respaldados por Evidencia"
+    description: "Cualquier SLA o tiempo de respuesta declarado en SECURITY.md debe contar con respaldo formal en la documentación operativa o runbooks."
+    severity: "MEDIUM"
+
+  - id: "DOC-LINK-001"
+    document: "*.md"
+    name: "Integridad de Enlaces"
+    description: "Todo archivo local referenciado mediante enlaces Markdown relativos debe existir físicamente en el árbol del repositorio."
+    severity: "HIGH"
+
+  - id: "DOC-DRIFT-001"
+    document: "*.md"
+    name: "Deriva Frente a la Evidencia Real"
+    description: "Toda afirmación técnica relevante en la documentación debe derivar de la jerarquía de evidencia canónica del repositorio."
+    severity: "HIGH"
+
+  - id: "DOC-NO-FILE-SCHEME-001"
+    document: "*.md"
+    name: "Prohibición de URI Scheme Absoluto de Archivo"
+    description: "Queda estrictamente prohibido utilizar esquemas de enlace que utilicen el prefijo de archivo absoluto triple barra para preservar portabilidad multiplataforma."
+    severity: "CRITICAL"

@@ -34,7 +34,7 @@ El ciclo de vida del repositorio sigue una secuencia estricta y desacoplada dond
                6. Quality Gates & Pre-Commit (repo-quality & suites técnicas)
                                │
                                ▼
-               7. Cierre Documental & Markdown Quality (repo-docs & lint:md)
+               7. Cierre Documental & Gobernanza (repo-doc-governance, repo-docs & lint:md)
                                │
                                ▼
                8. Preparación y Gate de Pull Request (repo-pr)
@@ -95,10 +95,13 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
    - Consume las evidencias generadas por `repo-quality`, `repo-testing`, `repo-security` y `repo-docs`.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)).
    - Ejecuta el PR Readiness Gate formal. **No realiza auditorías completas redundantes.**
-4. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
-   - Responsable de gobernar el ciclo de vida documental completo: inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
-   - Bloquea la preparación de PR si existen discrepancias fácticas o referencias a componentes retirados sin resolver.
-5. **`repo-release` (Gobernanza de Release y Promoción):**
+4. **`repo-doc-governance` (Fuente Normativa de Gobernanza Documental):**
+   - Establece los límites (*boundaries*), presupuestos (*budgets*), contrato declarativo (`documentation-contract.yaml`) y políticas de contenido para `README.md`, `SECURITY.md` y `docs/`.
+   - Clasifica afirmaciones en taxonomía de volatilidad y evalúa la deriva (*drift*) frente a la evidencia real del repositorio.
+5. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
+   - Responsable de ejecutar el ciclo de vida documental completo: inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
+   - Aplica operativamente las políticas definidas por `repo-doc-governance`.
+6. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
    - `repo-pr` no asume que la apertura o merge de un PR equivale a la publicación o despliegue de un release.
 
