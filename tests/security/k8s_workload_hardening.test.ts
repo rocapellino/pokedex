@@ -409,7 +409,11 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const rootAppContent = fs.readFileSync(rootAppPath, 'utf-8');
   assert.ok(rootAppContent.includes('pokedex-root'), 'root-application.yaml debe nombrar la app pokedex-root');
   assert.ok(rootAppContent.includes('gitops/apps'), 'root-application.yaml debe apuntar a gitops/apps');
-  assert.ok(rootAppContent.includes('resources-finalizer.argocd.argoproj.io'), 'root-application.yaml debe incluir finalizer');
+  assert.match(
+    rootAppContent,
+    /-\s+resources-finalizer\.argocd\.argoproj\.io/,
+    'root-application.yaml debe incluir finalizer'
+  );
 
   // 3. Health checks existen y cubren CRDs críticos (ExternalSecret y ClusterPolicy; SealedSecret purgado)
   assert.ok(fs.existsSync(healthChecksPath), 'argocd-cm-healthchecks.yaml debe existir en gitops/health-checks/');
