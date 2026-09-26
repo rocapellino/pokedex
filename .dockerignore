@@ -48,7 +48,6 @@ tests/
 scripts/
 Taskfile.yml
 .task/
-Jenkinsfile
 .pre-commit-config.yaml
 .gitleaks.toml
 

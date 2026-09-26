@@ -12,11 +12,7 @@ ehthumbs.db
 .git/
 .gitignore
 .gitattributes
-.bzr/
-.bzrignore
-.hg/
-.hgignore
-.svn/
+
 
 # Editores e IDEs
 .project
