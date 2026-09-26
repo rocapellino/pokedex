@@ -95,5 +95,5 @@ La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes 
 | **Workflows de CI/CD** | `.github/workflows/` | `repo-ci`, `repo-security` (CI) | Validación sintáctica YAML, auditoría de permisos de tokens (`permissions:`) | Pruebas E2E de navegador, migraciones DB |
 | **Dependencias Monorepo** | `package.json`, `package-lock.json` | `repo-dependencies`, `repo-security` (SCA), `repo-testing` | `npm audit`, `npm test`, paridad de lockfile | Helm render, Playwright E2E (salvo si toca deps de browser) |
 | **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**) | Builds de código, tests unitarios, Docker builds, scans |
-| **Enmienda de ADR** | `docs/decisions/` | `repo-architecture`, `repo-docs` | `npm run lint:md`, validación cruzada con `source-of-truth.md` | Validación de clúster, builds de frontend |
+| **Archivos de Exclusión (`*.ignore`)** | `.*ignore`, `**/*ignore*` | `repo-lifecycle`, `repo-security`, `repo-quality` | `npm run validate`, verificación de consistencia cruzada | Ninguno (Nivel Global) |
 | **Corte de Release** | `package.json` (bump), `Chart.yaml`, GitOps pins | `repo-release`, `repo-security` (Supply Chain), `repo-docs` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |

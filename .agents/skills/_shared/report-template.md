@@ -1,8 +1,8 @@
 # {{SKILL_NAME}} — Reporte
 
-**Repositorio:** `rocapellino/pokedex`  
-**Fecha:** YYYY-MM-DD  
-**Commit:** `<sha>`  
+**Repositorio:** `rocapellino/pokedex`
+**Fecha:** YYYY-MM-DD
+**Commit:** `<sha>`
 **Contexto Operativo:** Monorepo (`apps/backend`, `apps/frontend`) | Entornos: Kind / Proxmox Pre-prod / Proxmox Prod / AWS EKS
 
 ---
@@ -52,7 +52,32 @@
 
 ---
 
-## 5. Checklist de Verificación y Criterios de Aceptación
+## 5. Configuration Hygiene (Requerido en modo full-audit)
+
+### 1. `.ignore inventory`
+<!-- Catálogo de archivos *.ignore detectados dinámicamente -->
+
+### 2. Obsolete rules
+<!-- Reglas que referencian rutas o tecnologías inexistentes -->
+
+### 3. Missing rules
+<!-- Reglas omitidas necesarias para control de versiones o build context -->
+
+### 4. Overbroad rules
+<!-- Patrones excesivamente amplios -->
+
+### 5. Security-sensitive exclusions
+<!-- Exclusiones críticas en .gitignore, .gitleaksignore, etc. -->
+
+### 6. Cross-configuration consistency
+<!-- Coherencia con Dockerfiles, CI, package.json, pre-commit, Taskfile -->
+
+### 7. Recommended changes
+<!-- Tabla consolidada de recomendaciones con clasificación KEEP, KEEP_IMPROVE, REMOVE, REVIEW, SECURITY_REVIEW -->
+
+---
+
+## 6. Checklist de Verificación y Criterios de Aceptación
 
 - [ ] **Tests Unitarios & Integración:** `npm test` exitoso (0 fallos).
 - [ ] **Compilación & Tipado:** `npm run build` y `npm run typecheck` limpios.
