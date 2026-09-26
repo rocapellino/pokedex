@@ -146,7 +146,7 @@ test('🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secret
   assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
 });
 
-test('🎯 Change Impact: Archivo global transversal (package.json) activa Full CI', () => {
+test('🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI', () => {
   const result = analyzeChangeImpact({
     files: ['package.json'],
     configPath: CONFIG_PATH,
@@ -163,6 +163,47 @@ test('🎯 Change Impact: Archivo global transversal (package.json) activa Full 
   assert.equal(result.triggers.helm, true);
   assert.equal(result.triggers.opentofu, true);
   assert.equal(result.triggers.ansible, true);
+
+  const resultScript = analyzeChangeImpact({
+    files: ['scripts/detect-change-impact.ts'],
+    configPath: CONFIG_PATH,
+  });
+  assert.equal(resultScript.isGlobal, true, 'detect-change-impact.ts debe ser global');
+  assert.equal(resultScript.triggers.backend, true);
+});
+
+test('🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track', () => {
+  const result = analyzeChangeImpact({
+    files: ['scripts/lint-markdown.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isGlobal, false, 'No debe ser global');
+  assert.equal(result.triggers.documentation, true, 'documentation debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
+  assert.equal(result.triggers.tests, false, 'tests no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+  assert.equal(result.triggers.helm, false, 'helm no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+});
+
+test('🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend', () => {
+  const result = analyzeChangeImpact({
+    files: ['scripts/k8s-rollout-restart.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isGlobal, false, 'No debe ser global');
+  assert.equal(result.triggers.kubernetes, true, 'kubernetes debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
+  assert.equal(result.triggers.helm, false, 'helm no debe activarse');
+  assert.equal(result.triggers.opentofu, false, 'opentofu no debe activarse');
+  assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
 });
 
 test('🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)', () => {

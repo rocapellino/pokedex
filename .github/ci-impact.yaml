@@ -30,7 +30,8 @@ global:
     - "tsconfig.json"
     - ".pre-commit-config.yaml"
     - ".github/workflows/**"
-    - "scripts/**"
+    - "scripts/detect-change-impact.ts"
+    - "scripts/declarations.d.ts"
   triggers:
     backend: true
     frontend: true
@@ -61,6 +62,7 @@ rules:
       - ".markdownlint.json"
       - ".markdownlintignore"
       - "LICENSE"
+      - "scripts/lint-markdown.ts"
     triggers:
       documentation: true
       backend: false
@@ -112,12 +114,21 @@ rules:
         supply_chain: true
 
   kubernetes:
-    description: "Manifiestos K8s, GitOps ArgoCD y políticas de clúster"
+    description: "Manifiestos K8s, GitOps ArgoCD y scripts de plataforma/clúster"
     paths:
       - "infra/k8s/**"
       - "gitops/**"
+      - "scripts/k8s-rollout-restart.ts"
+      - "scripts/verify-secret-rotation.ts"
+      - "scripts/update-gitops-pin.ts"
+      - "scripts/verify-image-digest-parity.ts"
+      - "scripts/probe-egress-security.ts"
+      - "scripts/dr-drill.ts"
+      - "scripts/dev-backup-gdrive.ts"
+      - "scripts/dr_verify_restore.sh"
     triggers:
       kubernetes: true
+      tests: true
       security:
         secrets: true
         sast: false
@@ -170,15 +181,17 @@ rules:
         supply_chain: false
 
   docker:
-    description: "Definiciones de contenedores y orquestación multi-servicio"
+    description: "Definiciones de contenedores, retención OCI y orquestación multi-servicio"
     paths:
       - "Dockerfile"
       - ".dockerignore"
       - "docker-compose.yml"
       - "docker-compose.dev.yml"
       - "infra/docker/**"
+      - "scripts/ghcr-retention.ts"
     triggers:
       docker: true
+      tests: true
       security:
         secrets: true
         sast: false
@@ -188,7 +201,7 @@ rules:
         supply_chain: true
 
   linting:
-    description: "Cambios que activan linters de sintaxis y configuración (MegaLinter ci_light)"
+    description: "Cambios que activan linters de sintaxis, higiene y configuración"
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
@@ -197,8 +210,26 @@ rules:
       - 'infra/**/*.yml'
       - 'scripts/**/*.sh'
       - 'dr_verify_restore.sh'
+      - 'scripts/check-ignore-hygiene.ts'
+      - 'scripts/governance-audit-scripts.ts'
     triggers:
       linting: true
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  sync_tooling:
+    description: "Scripts de sincronización y telemetría externa (Linear, SonarQube)"
+    paths:
+      - "scripts/github-security-linear-sync.ts"
+      - "scripts/sonar-linear-sync.ts"
+    triggers:
+      tests: true
       security:
         secrets: true
         sast: false
