@@ -53,7 +53,7 @@ flowchart LR
 
 4. **Fase 4 - Eliminación Definitiva (Completada en v1.76.0)**:
    - Eliminación formal y purga definitiva de los 18 aliases legados de `Taskfile.yml`.
-   - Certificación de ausencia mediante pruebas automatizadas en `tests/security/deploy_scripts_security.test.ts`.
+   - Certificación de ausencia mediante pruebas automatizadas en `tests/security/iac_baseline_security.test.ts`.
    - Reducción de la superficie de comandos y consolidación de la interfaz canónica `task --list`.
 
 ### 3. Matriz de Correspondencia Canónica
