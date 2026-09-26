@@ -1,6 +1,13 @@
-# Blueprints de Respaldo Off-Site: Cloud-Ready (S3-Compatible) y On-Premise (PBS)
+# Blueprints de Respaldo Off-Site (Alternativas Futuras): Cloud-Ready (S3-Compatible) y On-Premise (PBS)
 
-Este documento formaliza la arquitectura de referencia, los esqueletos de configuración declarativos y las guías paso a paso para la implementación de copias de seguridad fuera de sitio (**Off-Site Backups**), resolviendo el aislamiento del dominio de falla (*Failure Domain / SPOF*) del host físico Proxmox VE.
+Este documento formaliza la arquitectura de referencia, los esqueletos de configuración declarativos y las guías paso a paso para la implementación de copias de seguridad fuera de sitio (**Off-Site Backups**) como **alternativas futuras agnósticas**, complementando la política general y la solución actualmente soportada en el repositorio.
+
+> [!NOTE]
+> **Jerarquía y Delimitación Documental:**
+>
+> - **Política General de DR:** [DISASTER_RECOVERY_PLAN.md](../runbooks/DISASTER_RECOVERY_PLAN.md) define los objetivos RPO/RTO y procedimientos de contingencia.
+> - **Implementación Activa Soportada:** [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md) documenta la sincronización off-site actualmente implementada en el repositorio (Google Drive vía Rclone K8s-Native y Docker).
+> - **Blueprints y Alternativas Futuras (Este Documento):** Especificación técnica para contingencias y futura expansión hacia Object Storage S3-compatible o Proxmox Backup Server (PBS).
 
 ---
 
@@ -17,9 +24,6 @@ Este documento formaliza la arquitectura de referencia, los esqueletos de config
 | **Restore Drill Semanal** | K8s (`dr-restore-verify`) | **ACTIVO** | Verificación en base efímera (Semanal domingos 04:00 UTC) |
 | **Esqueleto Cloud Off-Site** | Object Storage (S3-compatible) | **PREPARADO (INACTIVO)** | Endpoint remoto agnóstico (AWS S3, Cloudflare R2, B2, MinIO) |
 | **Esqueleto PBS Remote Sync** | Hipervisor (Proxmox VE) | **PREPARADO (INACTIVO)** | Servidor PBS secundario fuera de las instalaciones |
-
-> [!NOTE]
-> **Vía Off-Site Implementada:** Para la solución off-site implementada y soportada en el repositorio (Google Drive mediante Rclone K8s-Native y Docker), consultar la guía [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md). Los esquemas S3 y PBS detallados en este documento constituyen blueprints agnósticos preparados para contingencia o futura expansión.
 
 ---
 

@@ -71,4 +71,4 @@ El presente baseline certifica el estado técnico, arquitectónico y documental 
 | `PR-001` | Mención de SealedSecrets en PR Template | `CLOSED` | Actualizado `.github/pull_request_template.md` con Vault CE & ESO. |
 | `REL-001` | Desacople de versión `1.76.0` vs GitOps `v1.78.3` | `CLOSED` | `package.json` y `Chart.yaml` actualizados a `1.78.3`. |
 | `AUD-001` | Baseline desactualizado tras promoción de release | `CLOSED` | Emitido este documento `baseline_post-release.md` en corte `2026-09-26`. |
-| `AUD-002` | Plan de mejora con tareas cerradas pendientes de actualizar | `CLOSED` | `docs/audits/2026-09-25/improvement-plan.md` actualizado con estados de ciclo de vida. |
+| `AUD-002` | Plan de mejora con tareas cerradas pendientes de actualizar | `CLOSED` | Plan de mejora cerrado y consolidado en el historial de auditorías. |
