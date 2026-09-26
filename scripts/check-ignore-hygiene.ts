@@ -26,13 +26,28 @@ const isStrict = args.includes('--strict');
 const isFix = args.includes('--fix');
 const isJson = args.includes('--json');
 
+const CODE_EXTENSIONS = new Set([
+  '.ts', '.js', '.mjs', '.cjs', '.py', '.sh', '.json', '.yaml', '.yml', '.md', '.txt', '.log', '.map'
+]);
+
+/**
+ * Determina si una ruta corresponde a un archivo de configuración/exclusión de tipo .ignore.
+ */
+function isIgnoreFile(filePath: string): boolean {
+  const ext = path.extname(filePath).toLowerCase();
+  if (CODE_EXTENSIONS.has(ext)) return false;
+
+  const base = path.basename(filePath).toLowerCase();
+  return base.endsWith('ignore') || base.startsWith('.ignore') || base.endsWith('.ignore');
+}
+
 /**
  * Descubre dinámicamente todos los archivos de exclusión e ignore versionados en el repositorio.
  */
 function discoverIgnoreFiles(): string[] {
   try {
-    const raw = execSync('git ls-files "*ignore*" ".*ignore*"', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const files = raw.trim().split(/\r?\n/).filter(Boolean);
+    const raw = execSync('git ls-files', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const files = raw.trim().split(/\r?\n/).filter(f => f && isIgnoreFile(f));
     if (files.length > 0) return files;
   } catch {
     // Fallback si git no está disponible
@@ -47,8 +62,11 @@ function discoverIgnoreFiles(): string[] {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         scanDir(full);
-      } else if (entry.name.includes('ignore') || entry.name.startsWith('.ignore')) {
-        discovered.push(path.relative(process.cwd(), full).replace(/\\/g, '/'));
+      } else {
+        const rel = path.relative(process.cwd(), full).replace(/\\/g, '/');
+        if (isIgnoreFile(rel)) {
+          discovered.push(rel);
+        }
       }
     }
   }
