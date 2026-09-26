@@ -11,6 +11,10 @@ on:
       - '.github/workflows/infra.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'infra/**'
+      - 'gitops/**'
+      - '.github/workflows/infra.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -52,18 +56,18 @@ jobs:
         id: impact
         run: npx tsx scripts/detect-change-impact.ts --base ${{ github.event.pull_request.base.sha || 'origin/main' }} --github-output --format markdown
 
-  validate-iac:
-    name: ☸️ K8s & OpenTofu Validation & Security
+  # -------------------------------------------------------
+  # validate-helm: solo cuando cambian Helm charts o GitOps
+  # -------------------------------------------------------
+  validate-helm:
+    name: "⎈ Helm Lint, Render & K8s Contracts"
     needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.kubernetes == 'true' ||
       needs.detect-impact.outputs.helm == 'true' ||
-      needs.detect-impact.outputs.opentofu == 'true' ||
-      needs.detect-impact.outputs.ansible == 'true' ||
+      needs.detect-impact.outputs.kubernetes == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,7 +77,7 @@ jobs:
         with:
           version: v3.17.0
 
-      - name: 2b. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, AWS y Cilium L7 eBPF)
+      - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, AWS y Cilium L7 eBPF)
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.dev.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
@@ -82,34 +86,32 @@ jobs:
           helm template pokedex infra/helm/pokedex -f gitops/environments/proxmox/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-proxmox.yaml
           helm template pokedex infra/helm/pokedex -f gitops/environments/aws/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-aws.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
-          echo "✅ Helm Chart validado y renderizado con éxito para dev, base secure, prod, proxmox, aws y Cilium L7 eBPF."
+          echo "✅ Helm Chart validado y renderizado para dev, base secure, prod, proxmox, aws y Cilium L7 eBPF."
 
-      - name: 2c. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
+      - name: 4. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
         run: |
-          test -s /tmp/rendered-dev.yaml || { echo "❌ Error: rendered-dev.yaml está vacío"; exit 1; }
-          test -s /tmp/rendered-base.yaml || { echo "❌ Error: rendered-base.yaml está vacío"; exit 1; }
-          test -s /tmp/rendered-prod.yaml || { echo "❌ Error: rendered-prod.yaml está vacío"; exit 1; }
-          test -s /tmp/rendered-proxmox.yaml || { echo "❌ Error: rendered-proxmox.yaml está vacío"; exit 1; }
-          test -s /tmp/rendered-aws.yaml || { echo "❌ Error: rendered-aws.yaml está vacío"; exit 1; }
-          test -s /tmp/rendered-cilium.yaml || { echo "❌ Error: rendered-cilium.yaml está vacío"; exit 1; }
-          grep -q "allow-postgres-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de PostgreSQL en prod"; exit 1; }
-          grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta NetworkPolicy de Redis en prod"; exit 1; }
-          grep -q "kind: CiliumNetworkPolicy" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta recurso CiliumNetworkPolicy"; exit 1; }
-          grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Error: Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
-          grep -q "169.254.169.254/32" /tmp/rendered-dev.yaml || { echo "❌ Error: Falta bloqueo Anti-SSRF hacia Cloud IMDS en NetworkPolicies"; exit 1; }
-          grep -q "kind: ServiceMonitor" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ServiceMonitor en prod"; exit 1; }
-          grep -q "kind: PodDisruptionBudget" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso PodDisruptionBudget en prod"; exit 1; }
-          grep -q "kind: ResourceQuota" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso ResourceQuota en prod"; exit 1; }
-          grep -q "kind: LimitRange" /tmp/rendered-prod.yaml || { echo "❌ Error: Falta recurso LimitRange en prod"; exit 1; }
-
-          # Prohibir estrictamente el tag :latest en producción
+          test -s /tmp/rendered-dev.yaml    || { echo "❌ rendered-dev.yaml vacío";    exit 1; }
+          test -s /tmp/rendered-base.yaml   || { echo "❌ rendered-base.yaml vacío";   exit 1; }
+          test -s /tmp/rendered-prod.yaml   || { echo "❌ rendered-prod.yaml vacío";   exit 1; }
+          test -s /tmp/rendered-proxmox.yaml|| { echo "❌ rendered-proxmox.yaml vacío";exit 1; }
+          test -s /tmp/rendered-aws.yaml    || { echo "❌ rendered-aws.yaml vacío";    exit 1; }
+          test -s /tmp/rendered-cilium.yaml || { echo "❌ rendered-cilium.yaml vacío"; exit 1; }
+          grep -q "allow-postgres-ingress" /tmp/rendered-prod.yaml      || { echo "❌ Falta NetworkPolicy PostgreSQL en prod"; exit 1; }
+          grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml         || { echo "❌ Falta NetworkPolicy Redis en prod"; exit 1; }
+          grep -q "kind: CiliumNetworkPolicy" /tmp/rendered-cilium.yaml  || { echo "❌ Falta CiliumNetworkPolicy"; exit 1; }
+          grep -q "generativelanguage.googleapis.com" /tmp/rendered-cilium.yaml || { echo "❌ Falta FQDN Gemini en CiliumNetworkPolicy"; exit 1; }
+          grep -q "169.254.169.254/32" /tmp/rendered-dev.yaml            || { echo "❌ Falta bloqueo Anti-SSRF Cloud IMDS"; exit 1; }
+          grep -q "kind: ServiceMonitor" /tmp/rendered-prod.yaml         || { echo "❌ Falta ServiceMonitor en prod"; exit 1; }
+          grep -q "kind: PodDisruptionBudget" /tmp/rendered-prod.yaml    || { echo "❌ Falta PodDisruptionBudget en prod"; exit 1; }
+          grep -q "kind: ResourceQuota" /tmp/rendered-prod.yaml          || { echo "❌ Falta ResourceQuota en prod"; exit 1; }
+          grep -q "kind: LimitRange" /tmp/rendered-prod.yaml             || { echo "❌ Falta LimitRange en prod"; exit 1; }
           if grep -E 'image:.*:latest' /tmp/rendered-prod.yaml; then
-            echo "❌ Error de seguridad: Se detectó el tag prohibido ':latest' en manifiestos de producción."
+            echo "❌ Tag prohibido ':latest' detectado en producción."
             exit 1
           fi
-          echo "✅ Integridad, contratos Zero-Trust, Cilium L7 eBPF y política anti-latest validados con éxito."
+          echo "✅ Integridad, contratos Zero-Trust, Cilium L7 eBPF y política anti-latest validados."
 
-      - name: 2d. Instalar y Ejecutar Kubeconform (Validación estricta de esquemas OpenAPI K8s)
+      - name: 5. Instalar y Ejecutar Kubeconform (Validación de esquemas OpenAPI K8s)
         run: |
           KUBECONFORM_VERSION="v0.6.7"
           KUBECONFORM_SHA256="95f14e87aa28c09d5941f11bd024c1d02fdc0303ccaa23f61cef67bc92619d73"
@@ -120,9 +122,9 @@ jobs:
           tar -xz -C /tmp -f /tmp/kubeconform.tar.gz kubeconform
           /tmp/kubeconform -v
           /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-aws.yaml
-          echo "✅ Validación de esquemas OpenAPI de Kubernetes con Kubeconform completada con éxito."
+          echo "✅ Validación de esquemas OpenAPI K8s con Kubeconform completada."
 
-      - name: 2e. Instalar y Ejecutar Kube-Linter (Auditoría de Buenas Prácticas K8s)
+      - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)
         run: |
           KUBELINTER_VERSION="v0.7.2"
           KUBELINTER_SHA256="8a0f8ba6c28910acd4886cc4d501ed32f3d404a53ac5e72c45a0dd893fcadb03"
@@ -133,9 +135,9 @@ jobs:
           tar -xz -C /tmp -f /tmp/kube-linter.tar.gz kube-linter
           /tmp/kube-linter version
           /tmp/kube-linter lint /tmp/rendered-dev.yaml /tmp/rendered-prod.yaml --config .kube-linter.yaml
-          echo "✅ Kube-Linter validó todas las directivas de seguridad y buenas prácticas en K8s."
+          echo "✅ Kube-Linter validó directivas de seguridad y buenas prácticas K8s."
 
-      - name: 2f. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
+      - name: 7. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
           KYVERNO_VERSION="v1.12.5"
           KYVERNO_SHA256="962c396cdb149eadc7d6cc0cb345d3c01b6980d5265c8bb585c55ecd4b8a76b9"
@@ -146,14 +148,29 @@ jobs:
           tar -xz -C /tmp -f /tmp/kyverno.tar.gz kyverno
           /tmp/kyverno version
           /tmp/kyverno test infra/k8s/kyverno-test/
-          echo "✅ Pruebas de políticas de admisión Kyverno ejecutadas y aprobadas exitosamente."
+          echo "✅ Políticas de admisión Kyverno ejecutadas y aprobadas."
 
-      - name: 3. Configurar OpenTofu CLI
+  # -------------------------------------------------------
+  # validate-opentofu: solo cuando cambia IaC OpenTofu
+  # -------------------------------------------------------
+  validate-opentofu:
+    name: "🏗️ OpenTofu Format & Validate"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.opentofu == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
           tofu_version: 1.8.8
 
-      - name: 4. Ejecutar OpenTofu Format Check y Validate en Entornos (Proxmox, Lab, Cloud-Template y AWS)
+      - name: 3. Format Check y Validate (Proxmox, Lab, Cloud-Template y AWS)
         run: |
           echo "Verificando formato recursivo de OpenTofu (fmt -check)..."
           tofu fmt -check -recursive infra/opentofu
@@ -162,9 +179,24 @@ jobs:
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate
           done
-          echo "✅ Todos los entornos y módulos de OpenTofu verificados y validados correctamente."
+          echo "✅ Todos los entornos OpenTofu verificados y validados."
 
-      - name: 4b. Validar Sintaxis de Playbooks y Roles de Ansible
+  # -------------------------------------------------------
+  # validate-ansible: solo cuando cambian playbooks/roles
+  # -------------------------------------------------------
+  validate-ansible:
+    name: "📋 Ansible Syntax Check"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.ansible == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Validar Sintaxis de Playbooks y Roles de Ansible
         run: |
           pip install --no-cache-dir --only-binary :all: ansible-core==2.17.7
           ansible-galaxy collection install -r infra/ansible/requirements.yml
@@ -174,7 +206,24 @@ jobs:
           done
           echo "✅ Todos los playbooks y roles de Ansible validados sintácticamente."
 
-      - name: 5. Auditoría de Seguridad IaC con Checkov
+  # -------------------------------------------------------
+  # validate-checkov: solo cuando cambia IaC (Tofu/Helm/K8s)
+  # -------------------------------------------------------
+  validate-checkov:
+    name: "🔐 Checkov IaC Security Audit"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.opentofu == 'true' ||
+      needs.detect-impact.outputs.helm == 'true' ||
+      needs.detect-impact.outputs.kubernetes == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
         with:
           framework: terraform,kubernetes,helm
@@ -184,12 +233,13 @@ jobs:
           soft_fail: false
           output_format: cli
 
+  # -------------------------------------------------------
+  # kind-integration: solo cuando cambia código de imagen
+  # -------------------------------------------------------
   kind-integration:
     name: "☸️ Kind Canonical K8s Integration"
     needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.kubernetes == 'true' ||
-      needs.detect-impact.outputs.helm == 'true' ||
       needs.detect-impact.outputs.docker == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
@@ -243,7 +293,6 @@ jobs:
           echo "=== ESPERANDO DISPONIBILIDAD DE PODS ==="
           kubectl get pods,svc,netpol -n pokemon-app -o wide
 
-          # Esperar a que los pods de la API y Web estén listos con diagnóstico
           if ! kubectl wait --namespace pokemon-app --for=condition=ready pod -l app=pokemon-api --timeout=120s; then
             echo "❌ Timeout esperando pod pokemon-api. Diagnóstico:"
             kubectl get pods,events -n pokemon-app -o wide
@@ -273,9 +322,9 @@ jobs:
             echo "Aguardando endpoint... reintento $i"
             sleep 2
           done
-          curl -f http://127.0.0.1:3000/healthz || { echo "❌ Endpoint /healthz falló"; exit 1; }
-          curl -f http://127.0.0.1:3000/version || { echo "❌ Endpoint /version falló"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds" || { echo "❌ Endpoint /metrics falló"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status" || { echo "❌ Endpoint /metrics sin storage_status"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ Endpoint /metrics sin ai_circuit_breaker_open"; exit 1; }
-          echo "✅ Integración canónica de Kubernetes verificada exitosamente en Kind."
+          curl -f http://127.0.0.1:3000/healthz  || { echo "❌ Endpoint /healthz falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/version  || { echo "❌ Endpoint /version falló"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds"       || { echo "❌ /metrics sin uptime_seconds"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status"       || { echo "❌ /metrics sin storage_status"; exit 1; }
+          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ /metrics sin ai_circuit_breaker_open"; exit 1; }
+          echo "✅ Integración canónica de Kubernetes verificada en Kind."
