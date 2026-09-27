@@ -123,16 +123,32 @@ export async function lintMarkdown(options: LintOptions = {}): Promise<LintRepor
 
   let targetFiles: string[] = [];
   if (options.files && options.files.length > 0) {
+    // Fail-Closed (CI-006): una ruta solicitada explícitamente que no existe es un error.
+    // Antes se filtraba silenciosamente con `if (fs.existsSync(...))`, de modo que podar
+    // un documento (p. ej. docs/audits/2026-09-26/) dejaba el gate validando 0 archivos
+    // sin reportar nada. Ahora se falla loudly para que el Quality Gate no degrade.
+    const missingFiles: string[] = [];
+
     for (const f of options.files) {
       const resolved = path.resolve(ROOT_DIR, f);
-      if (fs.existsSync(resolved)) {
-        const stat = fs.statSync(resolved);
-        if (stat.isDirectory()) {
-          targetFiles = targetFiles.concat(findMarkdownFiles(resolved, ROOT_DIR, ignorePatterns));
-        } else if (resolved.endsWith('.md')) {
-          targetFiles.push(resolved);
-        }
+      if (!fs.existsSync(resolved)) {
+        missingFiles.push(f);
+        continue;
       }
+      const stat = fs.statSync(resolved);
+      if (stat.isDirectory()) {
+        targetFiles = targetFiles.concat(findMarkdownFiles(resolved, ROOT_DIR, ignorePatterns));
+      } else if (resolved.endsWith('.md')) {
+        targetFiles.push(resolved);
+      }
+    }
+
+    if (missingFiles.length > 0) {
+      throw new Error(
+        `Markdown Quality Gate: no se encontraron los archivos solicitados: ` +
+        `${missingFiles.join(', ')}. ` +
+        `Un Quality Gate que apunta a rutas inexistentes no debe pasar en verde.`
+      );
     }
   } else {
     targetFiles = findMarkdownFiles(ROOT_DIR, ROOT_DIR, ignorePatterns);
