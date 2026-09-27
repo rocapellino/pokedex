@@ -37,20 +37,40 @@
 
 ## 🎯 CI Impact Analysis
 
-*(Generado por `scripts/detect-change-impact.ts` conforme a `.github/ci-impact.yaml`)*
+<!-- Generar con: npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
+     y pegar la tabla generada aquí. No editar a mano. -->
 
-| Dominio | Estado | Justificación / Pipeline |
+```bash
+npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
+```
+
+<!-- INICIO TABLA GENERADA: sustituir el bloque de abajo por la tabla que emite el comando. -->
+
+| Dominio | Estado | Pipeline / Quality Gate |
 | :--- | :---: | :--- |
-| **Documentation** | [ ] Afectado / [ ] Omitido | `docs-ci (Fast Track)` |
-| **Backend Core** | [ ] Afectado / [ ] Omitido | `ci.yml (code-quality)` |
-| **Frontend SPA** | [ ] Afectado / [ ] Omitido | `ci.yml & web.yml` |
-| **Unit & Integration Tests** | [ ] Afectado / [ ] Omitido | `npm test & fuzzing` |
-| **Security & SAST/SCA** | [ ] Afectado / [ ] Omitido | `Semgrep, Trivy & Review` |
-| **Docker Images** | [ ] Afectado / [ ] Omitido | `build-docker & Cosign` |
-| **Kubernetes & GitOps** | [ ] Afectado / [ ] Omitido | `infra.yml & Kind` |
-| **Helm Packaging** | [ ] Afectado / [ ] Omitido | `helm lint & parity` |
-| **OpenTofu IaC** | [ ] Afectado / [ ] Omitido | `infra.yml (Tofu)` |
-| **Ansible Baseline** | [ ] Afectado / [ ] Omitido | `infra.yml (Ansible)` |
+| **Nivel Always: PR Governance** | — | `PR template & políticas de calidad` |
+| **Nivel Always: Secrets Scan** | — | `Gitleaks Detector` |
+| **Documentation** | — | `docs-ci (Fast Track)` |
+| **Backend Core** | — | `ci.yml (code-quality)` |
+| **Frontend SPA** | — | `ci.yml & web.yml` |
+| **Unit & Integration Tests** | — | `npm test & fuzzing` |
+| **Docker Images** | — | `build-docker & Cosign` |
+| **Kubernetes & GitOps** | — | `infra.yml & Kind` |
+| **Helm Packaging** | — | `helm lint & parity` |
+| **OpenTofu IaC** | — | `infra.yml (Tofu)` |
+| **Ansible Baseline** | — | `infra.yml (Ansible)` |
+| **Linting & Config Hygiene** | — | `MegaLinter & lint:ignore` |
+| **Security: SAST** | — | `Semgrep` |
+| **Security: SCA** | — | `Dependency Review` |
+| **Security: Container** | — | `Trivy Image Scan` |
+| **Security: IaC** | — | `Checkov IaC` |
+| **Security: Supply Chain** | — | `Cosign, SBOM & Digest` |
+
+<!-- FIN TABLA GENERADA. -->
+
+> Cada estado debe ser `✅ Afectado` u `⏭️ Omitido`. No dejar celdas con `—` ni casillas
+> sin marcar: el nivel **Always** está activo en **todos** los Pull Requests, incluidos los
+> documentales, por lo que siempre debe reportarse como `✅ Afectado`.
 
 ---
 
