@@ -124,7 +124,7 @@ HISTORICAL
 > 5. Contiene una decisión de diseño no consolidada formalmente en un ADR o documento canónico.
 > 6. Contiene evidencia empírica que no existe en ningún otro lugar del repositorio.
 
-Si ninguna de las 6 condiciones anteriores aplica, y el documento representa un snapshot de auditoría anterior completamente consolidado en el baseline vigente, **puede ser podado con seguridad**, garantizando que el historial permanezca íntegramente auditable mediante `git log`.
+Si ninguna de las 6 condiciones anteriores aplica, y el documento representa un snapshot de auditoría anterior completamente consolidado en el baseline histórico más reciente, **puede ser podado con seguridad**, garantizando que el historial permanezca íntegramente auditable mediante `git log`.
 
 ---
 

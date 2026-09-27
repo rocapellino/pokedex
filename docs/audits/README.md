@@ -8,10 +8,10 @@ Este directorio aloja los informes técnicos y snapshots de auditoría generados
 
 De acuerdo con la especificación de ciclo de vida documental gobernada por la skill `repo-docs` y la política de retención del proyecto:
 
-1. **Snapshot de Baseline Vigente (Árbol Activo):**
-   - En el árbol de trabajo activo se mantiene exclusivamente el **último baseline consolidado**.
-   - El baseline vigente se identifica por el **directorio de fecha más reciente** bajo `docs/audits/`, y su versión se declara en la portada de ese documento.
-   - Los directorios de fecha anteriores se consideran **evidencia histórica** y no son evidencia del estado actual (ver la Regla de Oro más abajo).
+1. **Snapshot de Baseline más reciente (Árbol Activo):**
+   - En el árbol de trabajo activo se mantiene exclusivamente el **último baseline consolidado** como evidencia histórica.
+   - El directorio de fecha más reciente no implica vigencia: `repo-lifecycle` lo clasifica como `CURRENT` o `AUDIT_STALE` comparando sus metadatos con las fuentes actuales.
+   - `AUDIT_STALE` es informativo y no bloqueante; ningún baseline fechado constituye evidencia del estado actual (ver la Regla de Oro más abajo).
    - Cualquier referencia a versiones concretas (por ejemplo `v1.78.3`) en este README se considera obsoleta: la versión vigente se lee en `package.json` y en `infra/helm/pokedex/Chart.yaml`.
 2. **Ciclo de Consolidación y Poda:**
    - Una vez que los hallazgos de un ciclo de auditoría han sido remediados, consolidados en la documentación canónica activa (`docs/architecture/`, `docs/runbooks/`, etc.) y reflejados en el nuevo baseline, los snapshots intermedios y reportes auxiliares cerrados se podan del árbol de trabajo activo.

@@ -318,6 +318,18 @@ impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trus
 - **Release:** Preparación formal de corte de versión y actualización GitOps (`repo-release`).
 - **Maintenance:** Evaluación periódica de salud, higiene y backlog (`repo-maintenance`).
 
+## Evaluación de Frescura de Auditorías
+
+Al procesar el baseline fechado más reciente, `repo-lifecycle` debe ejecutar
+[`scripts/audit-freshness.ts`](scripts/audit-freshness.ts) y comparar sus metadatos con
+el `HEAD`, `package.json`, `infra/helm/pokedex/Chart.yaml` y las revisiones GitOps vigentes:
+
+- **`CURRENT`**: todos los valores coinciden exactamente.
+- **`AUDIT_STALE`**: el commit diverge, falta metadata o difiere una versión declarada.
+- Las diferencias de aplicación, Chart y GitOps se reportan como evidencia adicional.
+- `AUDIT_STALE` es informativo y **no bloqueante**: un snapshot fechado nunca se
+  reescribe para aparentar vigencia ni se utiliza como SSOT del repositorio.
+
 ---
 
 ## Referencias Compartidas

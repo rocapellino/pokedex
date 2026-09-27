@@ -1,9 +1,14 @@
 # Baseline de Consolidación — Sprint de Topología CI/CD
 
-> **Estado:** Vigente (baseline activo)
+> **Estado:** Histórico (`AUDIT_STALE`; snapshot no bloqueante)
 > **Fecha de captura:** 2026-09-27
 > **Commit:** `0ca719a8c9ccf097c06f5b5a6557417d43c33ee2`
 > **Rama:** `fix/ci-gates-dependency-review-y-release-bump`
+>
+> [!IMPORTANT]
+> Este documento conserva la evidencia del commit auditado. No representa el estado
+> actual ni debe utilizarse como SSOT; esa función corresponde al código, la
+> configuración vigente, GitOps y `docs/architecture/`.
 
 ---
 
@@ -75,7 +80,7 @@ Workflows de ejecución **independiente y legítima** (no compiten con el orques
 | CI-004 | CI/CD | 🟠 Media | `change-impact.yml` aún no es *Single Point of Decision* real: `web.yml`, `mega-linter.yml`, `security-trivy.yml`, `security-code-scanning.yml` y `security-gitleaks.yml` conservan triggers `pull_request` propios. Planificado para un PR independiente. |
 | CI-005 | CI/CD | 🟠 Media | Trivy se ejecuta en `ci.yml` (`trivy-scan`) y en `security-trivy.yml` (rebuild de backend + frontend), con solapamiento en PRs que tocan `Dockerfile` o `apps/frontend/**`. Planificado para un PR independiente. |
 | CI-008 | CI/CD | 🟡 Baja | En `push` a `main` coexisten tres rutas de escaneo (`ci.yml` vía orquestador, `security-trivy.yml` y `security-code-scanning.yml`). |
-| DOC-002 | Documentación | 🟠 Media | Este documento es el baseline vigente; los snapshots previos se conservan como evidencia histórica. |
+| DOC-002 | Documentación | ✅ Cerrado | Este documento se conserva como snapshot histórico y ya no se presenta como baseline vigente. |
 | DOC-004 | Documentación | 🟡 Baja | Los directorios de auditorías previos siguen en el árbol. Su poda es segura: `git log --stat -- docs/audits/` preserva la trazabilidad. |
 
 ---
