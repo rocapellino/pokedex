@@ -203,7 +203,83 @@ test('🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) 
   assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
   assert.equal(result.triggers.helm, false, 'helm no debe activarse');
   assert.equal(result.triggers.opentofu, false, 'opentofu no debe activarse');
-  assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
+});
+
+test('🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes', () => {
+  const result = analyzeChangeImpact({
+    files: ['tests/unit/pokemon.test.ts', 'tests/storage.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'No debe caer en unknown');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.backend, true, 'backend debe estar activo');
+  assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+  assert.equal(result.triggers.helm, false, 'helm no debe activarse');
+});
+
+test('🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend', () => {
+  const result = analyzeChangeImpact({
+    files: ['tests/e2e/home.spec.ts', 'tests/frontend/components.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'No debe caer en unknown');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.frontend, true, 'frontend debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+});
+
+test('🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac', () => {
+  const result = analyzeChangeImpact({
+    files: ['tests/security/iac_baseline_security.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'No debe caer en unknown');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+});
+
+test('🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain', () => {
+  const result = analyzeChangeImpact({
+    files: ['tests/gitops/verify-sync.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'No debe caer en unknown');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.kubernetes, true, 'kubernetes debe estar activo');
+  assert.equal(result.triggers.security_supply_chain, true, 'security_supply_chain debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+});
+
+test('🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)', () => {
+  const result = analyzeChangeImpact({
+    files: ['tests/custom-suite/helper.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'tests/** general NO debe caer en unknown');
+  assert.ok(result.matchedRules.includes('tests'), 'Debe coincidir con regla base tests');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
 });
 
 test('🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)', () => {

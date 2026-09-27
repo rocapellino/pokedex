@@ -238,6 +238,67 @@ rules:
         iac: false
         supply_chain: false
 
+  tests:
+    description: "Suites de pruebas automatizadas del monorepo"
+    paths:
+      - "tests/**"
+    triggers:
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  tests_unit:
+    description: "Pruebas unitarias, contratos y fuzzing de backend"
+    paths:
+      - "tests/unit/**"
+      - "tests/api-limits.test.ts"
+      - "tests/concurrency.test.ts"
+      - "tests/contracts.test.ts"
+      - "tests/fuzzing.test.ts"
+      - "tests/storage.test.ts"
+      - "tests/version.test.ts"
+    triggers:
+      backend: true
+
+  tests_frontend:
+    description: "Pruebas de componentes frontend y suites E2E de navegador"
+    paths:
+      - "tests/frontend/**"
+      - "tests/e2e/**"
+    triggers:
+      frontend: true
+
+  tests_security:
+    description: "Pruebas de políticas de seguridad, pentest y hardening"
+    paths:
+      - "tests/security/**"
+      - "tests/security.test.ts"
+      - "tests/pentest.test.ts"
+    triggers:
+      security:
+        iac: true
+
+  tests_gitops:
+    description: "Pruebas de paridad e integración GitOps"
+    paths:
+      - "tests/gitops/**"
+    triggers:
+      kubernetes: true
+      security:
+        supply_chain: true
+
+  tests_performance:
+    description: "Pruebas de carga, estrés y umbrales de rendimiento k6"
+    paths:
+      - "tests/performance/**"
+    triggers:
+      backend: true
+
 # Política Fail-Closed ante rutas desconocidas o incapacidad de determinar impacto
 unknown:
   policy: "fail-closed"
