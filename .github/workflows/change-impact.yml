@@ -143,3 +143,39 @@ jobs:
       ansible: ${{ needs.detect-impact.outputs.ansible == 'true' }}
       security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' }}
       is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
+
+  # =======================================================
+  # 4. SPECIALIZED CONDITIONAL CI (decisión centralizada)
+  # =======================================================
+  frontend-web:
+    name: "🌐 Frontend Web CI"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.frontend == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/web.yml
+
+  megalinter:
+    name: "⚡ MegaLinter"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.linting == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/mega-linter.yml
+
+  security-code-scanning:
+    name: "🛡️ Security Code Scanning"
+    needs: [detect-impact]
+    if: |
+      needs.detect-impact.outputs.security_sast == 'true' ||
+      needs.detect-impact.outputs.security_iac == 'true' ||
+      needs.detect-impact.outputs.linting == 'true' ||
+      needs.detect-impact.outputs.is_unknown == 'true' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/security-code-scanning.yml
+    with:
+      security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
+      security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
+      linting: ${{ needs.detect-impact.outputs.linting == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}

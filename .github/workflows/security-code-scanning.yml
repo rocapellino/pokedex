@@ -5,20 +5,20 @@
 name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'apps/**'
-      - 'Dockerfile'
-      - 'infra/opentofu/**'
-      - '.github/workflows/security-code-scanning.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'apps/**'
-      - 'Dockerfile'
-      - 'infra/opentofu/**'
-      - '.github/workflows/security-code-scanning.yml'
+  workflow_call:
+    inputs:
+      security_sast:
+        description: "Ejecutar SAST de aplicación"
+        type: boolean
+        default: false
+      security_iac:
+        description: "Ejecutar análisis de seguridad IaC"
+        type: boolean
+        default: false
+      linting:
+        description: "Ejecutar Hadolint sobre Dockerfiles"
+        type: boolean
+        default: false
   schedule:
     - cron: '0 4 * * 1' # Escaneo preventivo semanal los lunes a las 04:00 UTC
   workflow_dispatch:
@@ -33,6 +33,7 @@ permissions:
 jobs:
   njsscan:
     name: 🛡️ njsscan (Node.js & Express SAST)
+    if: inputs.security_sast || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -56,6 +57,7 @@ jobs:
 
   hadolint:
     name: 🐳 Hadolint (Dockerfile Security Linter)
+    if: inputs.linting || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -82,6 +84,7 @@ jobs:
 
   iac-scan:
     name: ☁️ Trivy IaC (OpenTofu & Terraform Security)
+    if: inputs.security_iac || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -106,4 +109,3 @@ jobs:
         with:
           sarif_file: trivy-iac.sarif
           category: trivy-iac
-

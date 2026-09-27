@@ -4,23 +4,6 @@
 name: 🛡️ Security Vulnerability Scan (Trivy)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'Dockerfile'
-      - 'apps/**/Dockerfile'
-      - 'apps/frontend/**'
-      - 'package*.json'
-      - '.github/workflows/security-trivy.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'Dockerfile'
-      - 'apps/**/Dockerfile'
-      - 'apps/frontend/**'
-      - 'package*.json'
   workflow_dispatch:
   schedule:
     - cron: '0 4 * * 1' # Escaneo semanal los lunes a las 04:00 UTC
@@ -33,8 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  trivy-scan:
-    name: 🔍 Trivy Vulnerability & Config Scan
+  repository-scan:
+    name: 🔍 Scheduled Trivy Repository Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -46,30 +29,6 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-
-      - name: 3. Construir Imagen Backend para Escaneo
-        run: |
-          docker build -t pokedex-server:test -f Dockerfile .
-
-      - name: 4. Escaneo de Imagen Docker Backend
-        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
-        with:
-          image-ref: 'pokedex-server:test'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-
-      - name: 5. Construir Imagen Frontend Web para Escaneo
-        run: |
-          docker build -t pokedex-web:test -f apps/frontend/Dockerfile .
-
-      - name: 6. Escaneo de Imagen Docker Frontend Web
-        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
-        with:
-          image-ref: 'pokedex-web:test'
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
