@@ -187,7 +187,8 @@ flowchart TD
 > [!NOTE]
 > **Aviso de Gobernanza:** Los documentos ubicados bajo `docs/audits/<fecha>/` constituyen **evidencia y diagnósticos históricos fechados** correspondientes a hitos específicos de auditoría. **NO constituyen la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura activa se especifica exclusivamente en [`docs/architecture/`](./architecture/).
 
-- 🔍 [**full-repository-audit.md**](./audits/2026-09-26/full-repository-audit.md): Auditoría integral del repositorio (código, seguridad, arquitectura, CI/CD y catálogo de skills).
+- 🔍 [**full-repository-audit.md**](./audits/2026-09-26/full-repository-audit.md): Auditoría integral del repositorio (código, seguridad, arquitectura, CI/CD y catálogo de skills). **Evidencia histórica en commit `578a191`** — no refleja el estado actual.
 - 📋 [**baseline_post-release.md**](./audits/2026-09-26/baseline_post-release.md): Snapshot canónico post-release de la versión v1.78.3 / v1.78.4.
 - 📋 [**baseline_cierre_etapas.md**](./audits/2026-09-26/baseline_cierre_etapas.md): Snapshot canónico consolidado de cierre de las 3 etapas del Roadmap de Auditoría (Zero Findings).
 - 🩺 [**documentation-governance.md**](./audits/2026-09-26/documentation-governance.md): Auditoría de cumplimiento de contratos y límites de gobernanza documental.
+- ✅ [**baseline_post-sprint-ci.md**](./audits/2026-09-26/baseline_post-sprint-ci.md): **Baseline vigente** post-sprint de mejoras CI/CD (commit `fb7ce36`). 264+7 tests, ArgoCD `v1.84.5`, 13 hallazgos cerrados.
