@@ -114,7 +114,6 @@ jobs:
       security_container: ${{ needs.detect-impact.outputs.security_container == 'true' }}
       docs: ${{ needs.detect-impact.outputs.docs == 'true' }}
       is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
-    secrets: inherit
 
   # =======================================================
   # 3. INFRASTRUCTURE & IAC (Helm, Tofu, Ansible, Kind)
@@ -138,4 +137,3 @@ jobs:
       ansible: ${{ needs.detect-impact.outputs.ansible == 'true' }}
       security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' }}
       is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
-    secrets: inherit
