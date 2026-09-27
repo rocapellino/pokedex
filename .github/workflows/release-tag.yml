@@ -60,20 +60,58 @@ jobs:
             "${NEW_TAG}"
           git push origin "${NEW_TAG}"
 
-      - name: 5. Sincronizar versión en package.json y Chart.yaml
+      - name: 5. Sincronizar versión en package.json y Chart.yaml (vía Pull Request)
+        # main está protegida por el ruleset `main-protection` (pull_request rule sin
+        # bypass para el GITHUB_TOKEN), por lo que un `git push origin main` es
+        # rechazado. El bump de versión se promueve con un PR gobernado, igual que
+        # el pinning de GitOps del paso 8.
         if: steps.tag_version.outputs.new_tag
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
         run: |
           VERSION="${NEW_TAG#v}"
+          BRANCH="release/bump-${NEW_TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
           npm pkg set version="$VERSION"
           sed -i "s/^version: .*/version: ${VERSION}/" infra/helm/pokedex/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: \"${VERSION}\"/" infra/helm/pokedex/Chart.yaml
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json infra/helm/pokedex/Chart.yaml
-          git diff --cached --quiet || git commit -m "chore(release): bump package.json y Chart.yaml a ${NEW_TAG} [skip-release]"
-          git push origin main
+          if git diff --cached --quiet; then
+            echo "✅ Versión ya sincronizada con ${NEW_TAG}: no hay nada que promover."
+            exit 0
+          fi
+          git commit -m "chore(release): bump package.json y Chart.yaml a ${NEW_TAG} [skip-release]"
+          git push -u --force-with-lease origin "$BRANCH"
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')
+          if [ -n "$EXISTING" ]; then
+            echo "ℹ️ Pull Request de bump de versión ya abierto: #${EXISTING}"
+            exit 0
+          fi
+          BODY=$(cat <<EOF
+          ### 🚀 Automated Release Version Sync
+
+          Este Pull Request alinea la versión declarada con el tag de release **${NEW_TAG}**.
+
+          #### Archivos sincronizados:
+          - \`package.json\` (\`version\`)
+          - \`infra/helm/pokedex/Chart.yaml\` (\`version\` y \`appVersion\`)
+
+          #### Flujo de Gobernanza:
+          1. Release tag **${NEW_TAG}** generado y firmado criptográficamente con Sigstore Gitsign en CI.
+          2. \`main\` está protegida por el ruleset \`main-protection\`, por lo que el bump se promueve mediante Pull Request.
+          3. Requiere revisión y merge antes de que CI empaquete el Helm Chart con la nueva versión.
+
+          > Nota: Este commit incluye \`[skip-release]\` para evitar bucles recursivos de release.
+          EOF
+          )
+          gh pr create \
+            --title "chore(release): bump package.json y Chart.yaml a ${NEW_TAG}" \
+            --body "$BODY" \
+            --base main \
+            --head "$BRANCH"
 
       - name: 6. Crear Release en GitHub con Changelog Automático
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3

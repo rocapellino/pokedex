@@ -121,9 +121,17 @@ jobs:
 
   dependency-review:
     name: "🛡️ Dependency Review (SCA Gate en PR)"
+    # actions/dependency-review-action requiere un contexto de Pull Request
+    # (base_ref/head_ref). Fuera de pull_request/pull_request_target/merge_group
+    # aborta con exit 1: "Both a base ref and head ref must be provided".
+    # En push/workflow_dispatch la cobertura SCA la aporta `npm audit --omit=dev`
+    # dentro del job "🔍 Auditoría de Calidad y Complejidad".
     if: |
-      inputs.security_dependencies ||
-      inputs.is_unknown
+      (inputs.security_dependencies ||
+       inputs.is_unknown) &&
+      (github.event_name == 'pull_request' ||
+       github.event_name == 'pull_request_target' ||
+       github.event_name == 'merge_group')
     runs-on: ubuntu-latest
     permissions:
       contents: read

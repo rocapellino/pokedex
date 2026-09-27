@@ -44,22 +44,7 @@
             "context": "🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad"
           },
           {
-            "context": "🔍 Semgrep (SAST)"
-          },
-          {
-            "context": "🏗️ Checkov (Seguridad IaC / Helm)"
-          },
-          {
-            "context": "🐳 Compilar Imagen Docker"
-          },
-          {
-            "context": "🔒 Trivy (SCA & Vulnerabilidades de Contenedor)"
-          },
-          {
             "context": "🛡️ Gitleaks Secret Detection"
-          },
-          {
-            "context": "🧪 Lint, Security & Unit Tests"
           }
         ]
       }

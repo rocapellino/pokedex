@@ -31,7 +31,7 @@ Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`),
 
 - **Cambios en Frontend (`apps/frontend/**`):** Activan [`web.yml`](../../.github/workflows/web.yml) para linting, build Vite y pruebas E2E con Playwright y Lighthouse.
 - **Cambios en Infraestructura (`infra/**`):** Activan [`infra.yml`](../../.github/workflows/infra.yml) para validación exhaustiva de Helm, OpenTofu, Ansible, esquemas Kubeconform, Kube-linter, Kyverno, escaneo CIS con Checkov e integración KinD.
-- **Pull Requests y Pushes a `main`:** Disparan el pipeline central unificado [`ci.yml`](../../.github/workflows/ci.yml) ejecutando análisis estático, tipado, compilación esbuild, tests de unidad/seguridad/fuzzing, `npm audit`, Semgrep SAST, Dependency Review, empaquetado Docker y firma criptográfica Cosign.
+- **Pull Requests y Pushes a `main`:** Disparan el pipeline central unificado [`ci.yml`](../../.github/workflows/ci.yml) ejecutando análisis estático, tipado, compilación esbuild, tests de unidad/seguridad/fuzzing, `npm audit`, Semgrep SAST, empaquetado Docker y firma criptográfica Cosign. El gate de **Dependency Review** se ejecuta exclusivamente en contexto de Pull Request (requiere `base_ref`/`head_ref`); en pushes a `main` la cobertura SCA la aporta `npm audit --audit-level=high --omit=dev`.
 - **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) para detección temprana de credenciales.
 
 ---
@@ -54,7 +54,7 @@ flowchart TD
         GATES_PARALLEL --> QG1["🔍 TypeScript Lint, esbuild & Tests\n(Unit, Pentest, Fuzz & npm audit)"]
         GATES_PARALLEL --> QG2["🛡️ Semgrep SAST\n(OWASP Top 10 Bloqueante)"]
         GATES_PARALLEL --> QG3["🔐 Gitleaks\n(Secret Detection)"]
-        GATES_PARALLEL --> QG4["📦 Dependency Review\n(Bloqueo HIGH+)"]
+        GATES_PARALLEL --> QG4["📦 Dependency Review\n(Bloqueo HIGH+ · Solo PR)"]
         GATES_PARALLEL --> QG5["🐳 Build Docker & Trivy\n(Vulnerabilidades SCA y OCI)"]
 
         QG1 & QG2 & QG3 & QG4 & QG5 --> GATE_DECISION{"¿Todos los Gates Aprobados?"}
@@ -119,7 +119,7 @@ flowchart TD
 - **Etapas:**
   1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm test` (unit, pentest, contratos), `npm run test:fuzz` (fuzzing DAST) y `npm audit --audit-level=high --omit=dev`.
   2. **Análisis Estático SAST (Bloqueante):** **Semgrep** analiza el código contra reglas de OWASP Top 10 y detiene el pipeline ante fallos de seguridad.
-  3. **Dependency Review Gate (Bloqueante):** Bloquea automáticamente PRs que introduzcan vulnerabilidades `HIGH` o `CRITICAL` en dependencias nuevas o modificadas.
+  3. **Dependency Review Gate (Bloqueante, solo PR):** Bloquea automáticamente PRs que introduzcan vulnerabilidades `HIGH` o `CRITICAL` en dependencias nuevas o modificadas. La acción requiere contexto de Pull Request (`base_ref`/`head_ref`), por lo que el job se omite en `push` y `workflow_dispatch`; en esos eventos la cobertura SCA la garantiza `npm audit`.
   4. **Construcción y Escaneo de Contenedores:** Construcción multi-stage de la imagen Docker y escaneo con **Trivy** (SCA y OS CVEs).
   5. **Firmado Criptográfico y Publicación OCI (Solo en `main`):**
      - Generación del **SBOM CycloneDX** con **Trivy**.
@@ -136,7 +136,9 @@ flowchart TD
 
 - **Archivo:** [`release-tag.yml`](../../.github/workflows/release-tag.yml)
 - **Triggers:** Push directo / merge a `main`.
-- **Pasos:** Analiza commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer y publica el **GitHub Release** con Git Tag asociado.
+- **Pasos:** Analiza commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer, firma y publica el **Git Tag** con Gitsign (Sigstore keyless) y crea el **GitHub Release** con el changelog automático.
+- **Sincronización de versión:** el bump de `package.json` y `infra/helm/pokedex/Chart.yaml` se promueve mediante un **Pull Request** a `main` (`release/bump-<tag>`), porque `main` está protegida por el ruleset `main-protection` y el `GITHUB_TOKEN` no puede escribir directamente en ella.
+- **Promoción GitOps:** el `targetRevision` de los manifiestos ArgoCD también se promueve mediante Pull Request (`gitops/pin-<tag>`).
 
 ### 3.7. ⚡ `performance-k6.yml` (Pruebas de Carga y Rendimiento)
 
@@ -156,6 +158,7 @@ Todas las dependencias de GitHub Actions en los workflows están ancladas por su
 El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revisión de dependencias:
 
 - Falla de forma bloqueante si un PR introduce paquetes con CVEs calificados como `moderate`, `high` o `critical`.
+- Solo se ejecuta en eventos `pull_request`, `pull_request_target` y `merge_group` (es la única forma en que la acción obtiene `base_ref`/`head_ref`); en `push` a `main` el job se omite para evitar falsos negativos de configuración.
 - Previene la introducción de paquetes comprometidos antes de que el código llegue a `main`.
 
 ### 4.3. Renovate Bot con Cooldown y Gobernanza Automatizada
