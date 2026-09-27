@@ -119,7 +119,7 @@ flowchart TD
 - Mediante el orquestador multiplataforma **Taskfile** (`task`) ejecuta verificaciones tempranas:
   - `task lint`: Chequeo estricto de tipos con TypeScript y linter unificado.
   - `task build`: Compilación y empaquetado de producción con esbuild.
-  - `npm test`: Suite completa de 54 pruebas unitarias, de persistencia y pentesting lógico.
+  - `npm test`: Suite de **264 pruebas** unitarias, integración, security contracts, CI Impact y gobernanza (sin fuzzing). `npm run test:fuzz` ejecuta adicionalmente 7 pruebas DAST de fuzzing de forma independiente.
   - `task audit`: Detección de duplicación de código y auditoría de archivos.
   - `task helm:lint` y `task helm:template`: Validación de sintaxis y renderizado de plantillas Kubernetes.
 - Los **Hooks de Pre-commit** impiden commits si se detectan secretos o código mal formateado.

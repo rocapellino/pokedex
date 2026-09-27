@@ -30,18 +30,25 @@ global:
     - "tsconfig.json"
     - ".pre-commit-config.yaml"
     - ".github/workflows/**"
-    - "scripts/**"
+    - "scripts/detect-change-impact.ts"
+    - "scripts/declarations.d.ts"
   triggers:
     backend: true
     frontend: true
     tests: true
-    security: true
     docker: true
     kubernetes: true
     helm: true
     opentofu: true
     ansible: true
     documentation: true
+    security:
+      secrets: true
+      sast: true
+      dependencies: true
+      container: true
+      iac: true
+      supply_chain: true
 
 # Reglas de impacto condicional por dominio
 rules:
@@ -55,17 +62,24 @@ rules:
       - ".markdownlint.json"
       - ".markdownlintignore"
       - "LICENSE"
+      - "scripts/lint-markdown.ts"
     triggers:
       documentation: true
       backend: false
       frontend: false
       tests: false
-      security: false
       docker: false
       kubernetes: false
       helm: false
       opentofu: false
       ansible: false
+      security:
+        secrets: false
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
 
   backend:
     description: "API Express, lógica de negocio, migraciones DB y esquemas"
@@ -74,8 +88,14 @@ rules:
     triggers:
       backend: true
       tests: true
-      security: true
       docker: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: true
+        container: true
+        iac: false
+        supply_chain: true
 
   frontend:
     description: "Cliente web SPA, componentes UI y assets estáticos"
@@ -84,17 +104,38 @@ rules:
     triggers:
       frontend: true
       tests: true
-      security: true
       docker: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: true
+        container: true
+        iac: false
+        supply_chain: true
 
   kubernetes:
-    description: "Manifiestos K8s, GitOps ArgoCD y políticas de clúster"
+    description: "Manifiestos K8s, GitOps ArgoCD y scripts de plataforma/clúster"
     paths:
       - "infra/k8s/**"
       - "gitops/**"
+      - "scripts/k8s-rollout-restart.ts"
+      - "scripts/verify-secret-rotation.ts"
+      - "scripts/update-gitops-pin.ts"
+      - "scripts/verify-image-digest-parity.ts"
+      - "scripts/probe-egress-security.ts"
+      - "scripts/dr-drill.ts"
+      - "scripts/dev-backup-gdrive.ts"
+      - "scripts/dr_verify_restore.sh"
     triggers:
       kubernetes: true
-      security: true
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: true
 
   helm:
     description: "Templates, values y empaquetado del Helm Chart oficial"
@@ -103,7 +144,13 @@ rules:
     triggers:
       helm: true
       kubernetes: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: true
 
   opentofu:
     description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
@@ -111,7 +158,13 @@ rules:
       - "infra/opentofu/**"
     triggers:
       opentofu: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: false
 
   ansible:
     description: "Playbooks, roles e inventarios de hardening de sistemas base"
@@ -119,19 +172,132 @@ rules:
       - "infra/ansible/**"
     triggers:
       ansible: true
-      security: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: true
+        supply_chain: false
 
   docker:
-    description: "Definiciones de contenedores y orquestación multi-servicio"
+    description: "Definiciones de contenedores, retención OCI y orquestación multi-servicio"
     paths:
       - "Dockerfile"
       - ".dockerignore"
       - "docker-compose.yml"
       - "docker-compose.dev.yml"
       - "infra/docker/**"
+      - "scripts/ghcr-retention.ts"
     triggers:
       docker: true
-      security: true
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: true
+        iac: true
+        supply_chain: true
+
+  linting:
+    description: "Cambios que activan linters de sintaxis, higiene y configuración"
+    paths:
+      - 'Dockerfile'
+      - 'apps/**/Dockerfile'
+      - '.github/workflows/**'
+      - 'infra/**/*.yaml'
+      - 'infra/**/*.yml'
+      - 'scripts/**/*.sh'
+      - 'dr_verify_restore.sh'
+      - 'scripts/check-ignore-hygiene.ts'
+      - 'scripts/governance-audit-scripts.ts'
+    triggers:
+      linting: true
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  sync_tooling:
+    description: "Scripts de sincronización y telemetría externa (Linear, SonarQube)"
+    paths:
+      - "scripts/github-security-linear-sync.ts"
+      - "scripts/sonar-linear-sync.ts"
+    triggers:
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  tests:
+    description: "Suites de pruebas automatizadas del monorepo"
+    paths:
+      - "tests/**"
+    triggers:
+      tests: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  tests_unit:
+    description: "Pruebas unitarias, contratos y fuzzing de backend"
+    paths:
+      - "tests/unit/**"
+      - "tests/api-limits.test.ts"
+      - "tests/concurrency.test.ts"
+      - "tests/contracts.test.ts"
+      - "tests/fuzzing.test.ts"
+      - "tests/storage.test.ts"
+      - "tests/version.test.ts"
+    triggers:
+      backend: true
+
+  tests_frontend:
+    description: "Pruebas de componentes frontend y suites E2E de navegador"
+    paths:
+      - "tests/frontend/**"
+      - "tests/e2e/**"
+    triggers:
+      frontend: true
+
+  tests_security:
+    description: "Pruebas de políticas de seguridad, pentest y hardening"
+    paths:
+      - "tests/security/**"
+      - "tests/security.test.ts"
+      - "tests/pentest.test.ts"
+    triggers:
+      security:
+        iac: true
+
+  tests_gitops:
+    description: "Pruebas de paridad e integración GitOps"
+    paths:
+      - "tests/gitops/**"
+    triggers:
+      kubernetes: true
+      security:
+        supply_chain: true
+
+  tests_performance:
+    description: "Pruebas de carga, estrés y umbrales de rendimiento k6"
+    paths:
+      - "tests/performance/**"
+    triggers:
+      backend: true
 
 # Política Fail-Closed ante rutas desconocidas o incapacidad de determinar impacto
 unknown:
@@ -141,10 +307,16 @@ unknown:
     backend: true
     frontend: true
     tests: true
-    security: true
     docker: true
     kubernetes: true
     helm: true
     opentofu: true
     ansible: true
     documentation: true
+    security:
+      secrets: true
+      sast: true
+      dependencies: true
+      container: true
+      iac: true
+      supply_chain: true

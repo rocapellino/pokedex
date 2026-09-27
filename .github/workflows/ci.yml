@@ -1,14 +1,50 @@
 # ==============================================================================
 # Pipeline de CI/CD - Quality Gates, Build, Security Scan y Publicación OCI
 # Hardened con SHA pinning y principio de mínimo privilegio en GITHUB_TOKEN
+# Invocado como Reusable Workflow por change-impact.yml
 # ==============================================================================
 name: 🚀 CI/CD Pipeline - Quality Gates & Release
 
 on:
-  pull_request:
-    branches: [ main ]
-  push:
-    branches: [ main ]
+  workflow_call:
+    inputs:
+      backend:
+        description: "Ejecutar Quality Gates de backend"
+        type: boolean
+        default: false
+      frontend:
+        description: "Ejecutar Quality Gates de frontend"
+        type: boolean
+        default: false
+      tests:
+        description: "Ejecutar suite de tests y fuzzing"
+        type: boolean
+        default: false
+      docker:
+        description: "Compilar y preparar imagen Docker"
+        type: boolean
+        default: false
+      security_sast:
+        description: "Ejecutar análisis estático Semgrep"
+        type: boolean
+        default: false
+      security_dependencies:
+        description: "Ejecutar Dependency Review y SCA"
+        type: boolean
+        default: false
+      security_container:
+        description: "Ejecutar escaneo Trivy de contenedor"
+        type: boolean
+        default: false
+      docs:
+        description: "Ejecutar Documentation Quality Gate"
+        type: boolean
+        default: false
+      is_unknown:
+        description: "Modo Fail-Closed: ejecutar Full CI"
+        type: boolean
+        default: false
+  workflow_dispatch:
 
 # Permiso mínimo global por defecto (solo lectura)
 permissions:
@@ -21,58 +57,15 @@ env:
 
 jobs:
   # =======================================================
-  # 0. CHANGE IMPACT ANALYSIS (DAG Dinámico)
-  # =======================================================
-  detect-impact:
-    name: "🎯 Detect Change Impact"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    outputs:
-      has_changes: ${{ steps.impact.outputs.has_changes }}
-      is_unknown: ${{ steps.impact.outputs.is_unknown }}
-      is_global: ${{ steps.impact.outputs.is_global }}
-      docs: ${{ steps.impact.outputs.docs }}
-      backend: ${{ steps.impact.outputs.backend }}
-      frontend: ${{ steps.impact.outputs.frontend }}
-      tests: ${{ steps.impact.outputs.tests }}
-      security: ${{ steps.impact.outputs.security }}
-      docker: ${{ steps.impact.outputs.docker }}
-      kubernetes: ${{ steps.impact.outputs.kubernetes }}
-      helm: ${{ steps.impact.outputs.helm }}
-      opentofu: ${{ steps.impact.outputs.opentofu }}
-      ansible: ${{ steps.impact.outputs.ansible }}
-    steps:
-      - name: 1. Descargar Código Fuente
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: 2. Configurar Node.js 22 LTS
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: 3. Instalar Dependencias del Monorepo
-        run: npm ci --ignore-scripts
-
-      - name: 4. Ejecutar Change Impact Analysis
-        id: impact
-        run: npx tsx scripts/detect-change-impact.ts --base ${{ github.event.pull_request.base.sha || 'origin/main' }} --github-output --format markdown
-
-  # =======================================================
   # 1. QUALITY GATES (Ejecución en paralelo condicional)
   # =======================================================
   code-quality:
     name: "🔍 Auditoría de Calidad y Complejidad"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.backend == 'true' ||
-      needs.detect-impact.outputs.frontend == 'true' ||
-      needs.detect-impact.outputs.tests == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.backend ||
+      inputs.frontend ||
+      inputs.tests ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -110,10 +103,9 @@ jobs:
 
   semgrep:
     name: "🔍 Semgrep (SAST)"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.security == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.security_sast ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -129,11 +121,9 @@ jobs:
 
   dependency-review:
     name: "🛡️ Dependency Review (SCA Gate en PR)"
-    needs: [detect-impact]
     if: |
-      github.event_name == 'pull_request' &&
-      (needs.detect-impact.outputs.security == 'true' ||
-       needs.detect-impact.outputs.is_unknown == 'true')
+      inputs.security_dependencies ||
+      inputs.is_unknown
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -148,10 +138,9 @@ jobs:
 
   docs-gate:
     name: "📚 Documentation Quality Gate (0 errores MDxxx)"
-    needs: [detect-impact]
     if: |
-      needs.detect-impact.outputs.docs == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
+      inputs.docs ||
+      inputs.is_unknown ||
       github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -175,10 +164,11 @@ jobs:
   # =======================================================
   build-docker:
     name: "🐳 Compilar Imagen Docker"
-    needs: [detect-impact, code-quality, semgrep]
+    needs: [code-quality, semgrep]
     if: |
-      (needs.detect-impact.outputs.docker == 'true' ||
-       needs.detect-impact.outputs.is_unknown == 'true' ||
+      (inputs.docker ||
+       inputs.security_container ||
+       inputs.is_unknown ||
        github.event_name == 'push') &&
       (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') &&
       (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')

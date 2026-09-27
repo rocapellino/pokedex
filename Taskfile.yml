@@ -79,6 +79,16 @@ tasks:
       - npm run lint
       - npm test
 
+  test:fuzz:
+    desc: "Ejecuta la suite dinámica de API Fuzzing y resiliencia DAST"
+    cmds:
+      - npm run test:fuzz
+
+  test:security:
+    desc: "Ejecuta las pruebas de políticas de seguridad, pentest y contratos de hardening"
+    cmds:
+      - npm run test:security
+
   test:e2e:
     desc: "Ejecuta las pruebas E2E multi-dispositivo con Playwright"
     cmds:
