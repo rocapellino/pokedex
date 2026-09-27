@@ -300,8 +300,10 @@ impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trus
 
 `repo-lifecycle` gobierna el contrato declarativo [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml) y ejecuta el motor determinista [`scripts/detect-change-impact.ts`](../../../scripts/detect-change-impact.ts):
 
-1. **Nivel Always:** Controles no negociables (escaneo de secretos y estructura de PR) que corren en todo Pull Request.
-2. **Nivel Global:** Alteraciones en archivos transversales (`package.json`, `turbo.json`, `tsconfig.json`, `.pre-commit-config.yaml`, `.github/workflows/**`, `scripts/**`, archivos `.*ignore`) activan validación integral de todos los dominios.
+1. **Nivel Always:** Controles no negociables (escaneo de secretos y gobernanza de PR) que corren en todo Pull Request, incluidos los puramente documentales. Se implementan en `applyAlwaysTriggers()` y se aplican en los cuatro caminos de retorno del motor.
+2. **Nivel Global:** Alteraciones en archivos transversales activan validación integral de todos los dominios. El conjunto canónico de rutas globales es el bloque `global.paths` de [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml), que a fecha de hoy incluye `package.json`, `package-lock.json`, `turbo.json`, `tsconfig.json`, `.pre-commit-config.yaml`, `.github/workflows/**`, `scripts/detect-change-impact.ts` y `scripts/declarations.d.ts`.
+   > [!IMPORTANT]
+   > `scripts/**` **no** es global en bloque: los scripts se clasifican de forma **individual** por dominio. La entrada de los `*.ignore` como "Nivel Global" en [change-impact-matrix.md](../_shared/change-impact-matrix.md) describe los *gates y skills a ejecutar*, no el disparador del motor. Esta clasificación granular es deliberada y más eficiente; ante un script no clasificado aplica la política fail-closed.
 3. **Nivel Condicional:** Modificaciones acotadas disparan únicamente los Quality Gates y pipelines afectados (Fast Track documental, suites de backend, empaquetado Helm, etc.).
 4. **Política Fail-Closed (Unknown):** Si el análisis no puede determinar con certeza el impacto de una ruta, se inhibe la optimización y se despacha Full CI.
 
