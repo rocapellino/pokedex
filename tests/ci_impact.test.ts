@@ -6,6 +6,7 @@ import {
   loadImpactConfig,
   analyzeChangeImpact,
   formatImpactMarkdown,
+  applyAlwaysTriggers,
 } from '../scripts/detect-change-impact.js';
 
 import { fileURLToPath } from 'node:url';
@@ -313,4 +314,113 @@ test('🎯 Change Impact: Markdown format genera tabla limpia con iconos de esta
   assert.ok(summary.includes('Documentation'));
   assert.ok(summary.includes('✅ Afectado'));
   assert.ok(summary.includes('⏭️ Omitido'));
+});
+
+// ==============================================================================
+// NIVEL ALWAYS (CI-002): `always:` del contrato debe ser REALMENTE aplicado.
+// El Required Status Check "🛡️ Gitleaks Secret Detection" del ruleset
+// `main-protection.json` se corresponde con el control `always: secrets`.
+// ==============================================================================
+
+test('🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance', () => {
+  const result = analyzeChangeImpact({
+    files: ['docs/architecture/SYSTEM_ARCHITECTURE.md', 'README.md', '.agents/skills/repo-ci/SKILL.md'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.isUnknown, false);
+  assert.equal(result.isGlobal, false);
+
+  // El control "always" que antes no se procesaba (CI-002):
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets debe estar activo en un PR documental');
+  assert.equal(result.triggers.pr_governance, true, 'pr_governance debe estar activo en un PR documental');
+  assert.equal(result.triggers.security, true, 'el umbrella security debe quedar activo');
+
+  // Y aun así el resto de dominios permanece omitido (Fast Track documental):
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+
+  assert.deepEqual(
+    result.appliedAlwaysControls.sort(),
+    ['pr-governance', 'secrets'],
+    'appliedAlwaysControls debe reflejar los controles declarados en always:'
+  );
+});
+
+test('🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno', () => {
+  const docsOnly = analyzeChangeImpact({ files: ['README.md'], configPath: CONFIG_PATH });
+  const globalChange = analyzeChangeImpact({ files: ['package.json'], configPath: CONFIG_PATH });
+  const ruleChange = analyzeChangeImpact({ files: ['infra/helm/pokedex/values.yaml'], configPath: CONFIG_PATH });
+  const unknownChange = analyzeChangeImpact({ files: ['nuevo/archivo.xyz'], configPath: CONFIG_PATH });
+
+  for (const [label, result] of [
+    ['docs-only', docsOnly],
+    ['global', globalChange],
+    ['rules', ruleChange],
+    ['unknown', unknownChange],
+  ] as const) {
+    assert.deepEqual(
+      result.appliedAlwaysControls.sort(),
+      ['pr-governance', 'secrets'],
+      `El camino "${label}" debe aplicar los controles always`
+    );
+    assert.equal(result.triggers.security_secrets, true, `security_secrets debe estar activo en "${label}"`);
+    assert.equal(result.triggers.pr_governance, true, `pr_governance debe estar activo en "${label}"`);
+  }
+});
+
+test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos', () => {
+  const base = {
+    documentation: false,
+    backend: false,
+    frontend: false,
+    tests: false,
+    docker: false,
+    kubernetes: false,
+    helm: false,
+    opentofu: false,
+    ansible: false,
+    linting: false,
+    pr_governance: false,
+    security: false,
+    security_secrets: false,
+    security_sast: false,
+    security_dependencies: false,
+    security_container: false,
+    security_iac: false,
+    security_supply_chain: false,
+  };
+
+  const target = { ...base };
+  const applied = applyAlwaysTriggers(target, [
+    { id: 'secrets', description: 'Escaneo de secretos' },
+    { id: 'pr-governance', description: 'Gobernanza de PR' },
+  ]);
+
+  assert.deepEqual(applied, ['secrets', 'pr-governance']);
+  assert.equal(target.security_secrets, true);
+  assert.equal(target.pr_governance, true);
+  assert.equal(target.security, true, 'el umbrella security se activa con cualquier dimensión security_*');
+  assert.equal(base.security_secrets, false, 'applyAlwaysTriggers no debe mutar el original');
+
+  // Un control declarado sin mapeo debe fallar, nunca ignorarse en silencio.
+  assert.throws(
+    () => applyAlwaysTriggers({ ...base }, [{ id: 'control-inventado', description: 'x' }]),
+    /sin mapeo de triggers/,
+    'Un id de always sin mapeo debe lanzar error (fail-closed)'
+  );
+});
+
+test('🎯 Change Impact: el contrato declara always con ids mapeados en el motor', () => {
+  const config = loadImpactConfig(CONFIG_PATH);
+  const ids = config.always.map((control) => control.id);
+
+  assert.ok(ids.includes('secrets'), 'always debe declarar el control secrets');
+  assert.ok(ids.includes('pr-governance'), 'always debe declarar el control pr-governance');
+
+  for (const control of config.always) {
+    assert.ok(control.description, `El control always '${control.id}' debe documentar su descripción`);
+  }
 });

@@ -202,10 +202,13 @@ rules:
 
   linting:
     description: "Cambios que activan linters de sintaxis, higiene y configuración"
+    # NOTA (CI-007): `.github/workflows/**` NO se lista aquí. Ya figura en
+    # `global.paths`, y el motor retorna temprano en el Caso 2 antes de evaluar
+    # `rules`, por lo que declararlo aquí lo convertía en código muerto.
+    # Los workflows se validan vía el nivel Global (que ya dispara Full CI).
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
-      - '.github/workflows/**'
       - 'infra/**/*.yaml'
       - 'infra/**/*.yml'
       - 'scripts/**/*.sh'
