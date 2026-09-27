@@ -111,7 +111,7 @@ jobs:
       docker: ${{ needs.detect-impact.outputs.docker == 'true' }}
       security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' }}
       security_dependencies: ${{ needs.detect-impact.outputs.security_dependencies == 'true' }}
-      security_container: ${{ needs.detect-impact.outputs.security_container }}
+      security_container: ${{ needs.detect-impact.outputs.security_container == 'true' }}
       docs: ${{ needs.detect-impact.outputs.docs == 'true' }}
       is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
     secrets: inherit
