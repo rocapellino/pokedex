@@ -3,16 +3,22 @@
 # ==============================================================================
 name: 🔐 Security Scan (Gitleaks)
 
+# NOTA DE GOBERNANZA (CI-001):
+# Este check es un Required Status Check en `.github/rulesets/main-protection.json`
+# (context: "🛡️ Gitleaks Secret Detection"). GitHub NO reporta el check cuando un
+# workflow se omite por `paths`/`paths-ignore`, dejando el PR en estado "Expected"
+# y bloqueando el merge de forma indefinida.
+#
+# Por diseño NO se declara `paths` ni `paths-ignore`: el escaneo de secretos es un
+# control "always" (ver `.github/ci-impact.yaml` -> `always: [{ id: secrets }]`) y
+# debe ejecutarse en la totalidad de los Pull Requests, incluidos los documentales.
+# La optimización del tiempo de ejecución se resuelve en el job, nunca en el trigger.
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - 'docs/**'
-      - '.agents/**'
-      - '**.md'
-      - 'LICENSE'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

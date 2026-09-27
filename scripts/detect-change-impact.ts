@@ -46,13 +46,18 @@ export interface ImpactRule {
   triggers: Record<string, TriggerValue>;
 }
 
+export interface AlwaysControl {
+  id: string;
+  description: string;
+}
+
 export interface ImpactConfig {
   version: string;
   governance: {
     framework: string;
     component: string;
   };
-  always: { id: string; description: string }[];
+  always: AlwaysControl[];
   global: {
     paths: string[];
     triggers: Record<string, TriggerValue>;
@@ -65,6 +70,16 @@ export interface ImpactConfig {
   };
 }
 
+/**
+ * Mapea cada control declarado en `always:` a los triggers de dominio que debe activar.
+ * Un `id` sin entrada aquí es un error de contrato: se falla en vez de ignorarse en
+ * silencio, para que un control "always" no pueda quedar declarado pero sin efecto.
+ */
+const ALWAYS_CONTROL_TRIGGERS: Record<string, string[]> = {
+  'pr-governance': ['pr_governance'],
+  secrets: ['security_secrets'],
+};
+
 export interface DomainTriggers {
   documentation: boolean;
   backend: boolean;
@@ -76,6 +91,7 @@ export interface DomainTriggers {
   opentofu: boolean;
   ansible: boolean;
   linting: boolean;
+  pr_governance: boolean;
   // Umbrella y dimensiones de seguridad granular
   security: boolean;
   security_secrets: boolean;
@@ -93,6 +109,8 @@ export interface ChangeImpactResult {
   isGlobal: boolean;
   changedFiles: string[];
   matchedRules: string[];
+  /** Controles de `always:` efectivamente aplicados en este análisis. */
+  appliedAlwaysControls: string[];
   triggers: DomainTriggers;
   markdownSummary: string;
 }
@@ -172,6 +190,46 @@ export function applyTriggers(target: DomainTriggers, sourceTriggers: Record<str
 }
 
 /**
+ * Aplica los controles no negociables declarados en `always:` del contrato.
+ *
+ * Estos controles se ejecutan en TODOS los análisis, con independencia de las rutas
+ * tocadas, y por tanto se aplican ANTES de evaluar `global`, `rules` y `unknown`.
+ * Esto garantiza que un Pull Request puramente documental siga cubierto por el
+ * escaneo de secretos y la gobernanza de PR, tal como exige el Required Status
+ * Check "🛡️ Gitleaks Secret Detection".
+ *
+ * @throws Error si un `id` declarado en `always:` no tiene mapeo de triggers, para
+ *         evitar que un control quede declarado en el YAML pero sin efecto real.
+ */
+export function applyAlwaysTriggers(target: DomainTriggers, alwaysControls: AlwaysControl[] = []): string[] {
+  const applied: string[] = [];
+
+  for (const control of alwaysControls) {
+    const triggerKeys = ALWAYS_CONTROL_TRIGGERS[control.id];
+
+    if (!triggerKeys) {
+      const known = Object.keys(ALWAYS_CONTROL_TRIGGERS).join(', ');
+      throw new Error(
+        `Control 'always' sin mapeo de triggers: '${control.id}'. ` +
+        `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`
+      );
+    }
+
+    for (const key of triggerKeys) {
+      target[key] = true;
+      // `security_secrets` es una dimensión del umbrella `security`.
+      if (key.startsWith('security_')) {
+        target.security = true;
+      }
+    }
+
+    applied.push(control.id);
+  }
+
+  return applied;
+}
+
+/**
  * Analiza el impacto de una lista de archivos modificados
  */
 export function analyzeChangeImpact(options: {
@@ -200,6 +258,7 @@ export function analyzeChangeImpact(options: {
     opentofu: false,
     ansible: false,
     linting: false,
+    pr_governance: false,
     security: false,
     security_secrets: false,
     security_sast: false,
@@ -209,9 +268,23 @@ export function analyzeChangeImpact(options: {
     security_supply_chain: false,
   });
 
+  // Nivel Always: se aplica explícitamente en los 4 caminos de retorno que siguen.
+  // Se validan aquí los ids declarados para fallar rápido ante un contrato incoherente.
+  const appliedAlwaysControls = config.always.map((control) => {
+    if (!ALWAYS_CONTROL_TRIGGERS[control.id]) {
+      const known = Object.keys(ALWAYS_CONTROL_TRIGGERS).join(', ');
+      throw new Error(
+        `Control 'always' sin mapeo de triggers: '${control.id}'. ` +
+        `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`
+      );
+    }
+    return control.id;
+  });
+
   // Caso 1: Sin archivos detectados o error de diff -> Política Fail-Closed (Unknown -> Full CI)
   if (files.length === 0) {
     const unknownTriggers = createBaseTriggers();
+    applyAlwaysTriggers(unknownTriggers, config.always);
     applyTriggers(unknownTriggers, config.unknown.triggers);
     return {
       hasChanges: false,
@@ -219,6 +292,7 @@ export function analyzeChangeImpact(options: {
       isGlobal: false,
       changedFiles: [],
       matchedRules: ['unknown'],
+      appliedAlwaysControls,
       triggers: unknownTriggers,
       markdownSummary: formatImpactMarkdown(unknownTriggers, ['unknown (sin archivos o diff no concluyente)'], []),
     };
@@ -230,6 +304,7 @@ export function analyzeChangeImpact(options: {
   // Caso 2: Modificación de archivo global transversal
   if (hasGlobalChange) {
     const globalTriggers = createBaseTriggers();
+    applyAlwaysTriggers(globalTriggers, config.always);
     applyTriggers(globalTriggers, config.global.triggers);
     return {
       hasChanges: true,
@@ -237,6 +312,7 @@ export function analyzeChangeImpact(options: {
       isGlobal: true,
       changedFiles: files,
       matchedRules: ['global'],
+      appliedAlwaysControls,
       triggers: globalTriggers,
       markdownSummary: formatImpactMarkdown(globalTriggers, ['global (configuración transversal modificada)'], files),
     };
@@ -246,6 +322,9 @@ export function analyzeChangeImpact(options: {
   const matchedRules: string[] = [];
   const currentTriggers = createBaseTriggers();
   const unmappedFiles: string[] = [];
+
+  // El nivel Always se aplica sobre el acumulador real (no sobre una copia descartada).
+  applyAlwaysTriggers(currentTriggers, config.always);
 
   for (const file of files) {
     let fileMatched = false;
@@ -276,6 +355,7 @@ export function analyzeChangeImpact(options: {
       isGlobal: false,
       changedFiles: files,
       matchedRules,
+      appliedAlwaysControls,
       triggers: currentTriggers,
       markdownSummary: formatImpactMarkdown(currentTriggers, matchedRules, files, unmappedFiles),
     };
@@ -287,6 +367,7 @@ export function analyzeChangeImpact(options: {
     isGlobal: false,
     changedFiles: files,
     matchedRules,
+    appliedAlwaysControls,
     triggers: currentTriggers,
     markdownSummary: formatImpactMarkdown(currentTriggers, matchedRules, files),
   };
@@ -311,7 +392,9 @@ export function formatImpactMarkdown(
     { domain: 'Helm Packaging', affected: triggers.helm, pipeline: 'helm lint & parity' },
     { domain: 'OpenTofu IaC', affected: triggers.opentofu, pipeline: 'infra.yml (Tofu)' },
     { domain: 'Ansible Baseline', affected: triggers.ansible, pipeline: 'infra.yml (Ansible)' },
-    { domain: 'Security: Secrets Scan', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
+    { domain: 'Linting & Configuration Hygiene', affected: triggers.linting, pipeline: 'MegaLinter & npm run lint:ignore' },
+    { domain: 'PR Governance (always)', affected: triggers.pr_governance, pipeline: 'PR template & políticas de calidad' },
+    { domain: 'Security: Secrets Scan (always)', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
     { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep' },
     { domain: 'Security: Dependencies SCA', affected: triggers.security_dependencies, pipeline: 'Dependency Review' },
     { domain: 'Security: Container Scan', affected: triggers.security_container, pipeline: 'Trivy Image Scan' },
@@ -395,6 +478,8 @@ export function runCLI(): void {
       `helm=${result.triggers.helm}`,
       `opentofu=${result.triggers.opentofu}`,
       `ansible=${result.triggers.ansible}`,
+      `linting=${result.triggers.linting}`,
+      `pr_governance=${result.triggers.pr_governance}`,
     ];
     fs.appendFileSync(githubOutputFile, outputs.join('\n') + '\n', 'utf-8');
   }

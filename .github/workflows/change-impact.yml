@@ -47,6 +47,8 @@ jobs:
       helm: ${{ steps.impact.outputs.helm }}
       opentofu: ${{ steps.impact.outputs.opentofu }}
       ansible: ${{ steps.impact.outputs.ansible }}
+      linting: ${{ steps.impact.outputs.linting }}
+      pr_governance: ${{ steps.impact.outputs.pr_governance }}
       security: ${{ steps.impact.outputs.security }}
       security_secrets: ${{ steps.impact.outputs.security_secrets }}
       security_sast: ${{ steps.impact.outputs.security_sast }}
@@ -78,6 +80,10 @@ jobs:
             --format json > impact.json
           echo "=== RESUMEN DE IMPACTO (impact.json) ==="
           cat impact.json
+          echo ""
+          echo "=== NIVEL ALWAYS (controles no negociables, se aplican en todo PR) ==="
+          echo "pr_governance=${{ steps.impact.outputs.pr_governance }}"
+          echo "security_secrets=${{ steps.impact.outputs.security_secrets }}"
 
       - name: 5. Persistir Artefacto Inmutable impact.json
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

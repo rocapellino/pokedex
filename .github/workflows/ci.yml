@@ -165,7 +165,11 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: 4. Validar Markdown Quality Gate
-        run: npm run lint:md -- README.md SECURITY.md docs/audits/2026-09-26/documentation-governance.md
+        # CI-006: se valida el árbol documental completo en lugar de una lista fija de
+        # rutas. La lista anterior incluía `docs/audits/2026-09-26/documentation-governance.md`,
+        # que al ser podado dejaba el gate validando silenciosamente menos archivos.
+        # `scripts/lint-markdown.ts` ahora falla si se le pasa una ruta inexistente.
+        run: npm run lint:md -- README.md SECURITY.md docs/
 
   # =======================================================
   # 2. BUILD DOCKER (Solo si se requiere y Quality Gates pasan)

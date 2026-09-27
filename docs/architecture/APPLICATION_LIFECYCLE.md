@@ -40,17 +40,15 @@ flowchart TD
     subgraph F3["🤖 FASE 3: Integración Continua (CI/CD)"]
         PRECOMMIT --> PUSH["git push & Abrir Pull Request"]
         PUSH --> LIN_BOT["Linear Bot vincula PR y pasa a In Progress"]
-        PUSH --> CI_PARALLEL["Quality Gates Paralelos:"]
-        CI_PARALLEL --> CI_AUDIT["🔍 ci.yml: Auditoría & Tests"]
-        CI_PARALLEL --> CI_SEMGREP["🛡️ Semgrep: SAST OWASP Top 10"]
-        CI_PARALLEL --> CI_GITLEAKS["🔐 Gitleaks: Secret Scanning"]
-        CI_PARALLEL --> CI_CHECKOV["⚙️ Checkov: IaC & Helm Security"]
-        CI_PARALLEL --> CI_TRIVY["📦 Trivy: Escaneo de Vulnerabilidades"]
+        PUSH --> CI_PARALLEL["🎯 change-impact.yml:<br/>Change Impact &amp; Pipeline Orchestrator"]
+        CI_PARALLEL --> CI_AUDIT["🔍 ci-core → ci.yml:<br/>Auditoría, Tests, Build, Trivy"]
+        CI_PARALLEL --> CI_INFRA["⚙️ infra → infra.yml:<br/>Helm, Tofu, Ansible, IaC"]
+        PUSH --> CI_GITLEAKS["🔐 security-gitleaks.yml:<br/>Secret Scanning (control always)"]
     end
 
     %% FASE 4: CODE REVIEW & GATE
     subgraph F4["🛡️ FASE 4: Quality Gate & Code Review"]
-        CI_AUDIT & CI_SEMGREP & CI_GITLEAKS & CI_CHECKOV & CI_TRIVY --> GATE{¿Todos los Checks\nen Verde?}
+        CI_AUDIT & CI_INFRA & CI_GITLEAKS --> GATE{¿Todos los Checks\nen Verde?}
         GATE -->|❌ Falló| FIX["Corregir errores en local y re-pushear"]
         FIX --> PUSH
         GATE -->|✅ Verde| REVIEW["Revisión de Código & Aprobación PR"]
@@ -119,7 +117,9 @@ flowchart TD
 - Mediante el orquestador multiplataforma **Taskfile** (`task`) ejecuta verificaciones tempranas:
   - `task lint`: Chequeo estricto de tipos con TypeScript y linter unificado.
   - `task build`: Compilación y empaquetado de producción con esbuild.
-  - `npm test`: Suite de **264 pruebas** unitarias, integración, security contracts, CI Impact y gobernanza (sin fuzzing). `npm run test:fuzz` ejecuta adicionalmente 7 pruebas DAST de fuzzing de forma independiente.
+  - `npm test`: Suite de pruebas unitarias, integración, *security contracts*, CI Impact y gobernanza (sin fuzzing). `npm run test:fuzz` ejecuta adicionalmente las pruebas DAST de fuzzing de forma independiente.
+    > [!NOTE]
+    > El número total de pruebas **no se documenta aquí de forma rígida**: cambia con cada sprint y envejece el documento. Para el recuento vigente, ejecutar `npm test` y leer el reporte de `node:test`, o consultar `tests/**/*.test.ts`.
   - `task audit`: Detección de duplicación de código y auditoría de archivos.
   - `task helm:lint` y `task helm:template`: Validación de sintaxis y renderizado de plantillas Kubernetes.
 - Los **Hooks de Pre-commit** impiden commits si se detectan secretos o código mal formateado.
@@ -128,11 +128,18 @@ flowchart TD
 
 - Al realizar `git push` y abrir un Pull Request:
   - El bot de Linear vincula el PR al ticket y actualiza el estado a **In Progress** / **In Review**.
-  - Se ejecutan pipelines optimizados y sin solapamiento:
-    - **`ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest/fuzzing, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request) y empaquetado seguro.
+  - `change-impact.yml` actúa como **orquestador central**: evalúa los archivos modificados contra el contrato `.github/ci-impact.yaml` y decide qué pipelines se ejecutan, mediante un DAG dinámico con gates condicionales.
+  - El análisis opera en cuatro niveles, evaluados en orden:
+    1. **`always`** — controles no negociables en todo PR: gobernanza de PR y escaneo de secretos.
+    2. **`global`** — archivos transversales (`package.json`, `tsconfig.json`, `.github/workflows/**`, etc.) disparan validación integral.
+    3. **`rules`** — dominios concretos (backend, frontend, Helm, OpenTofu, Ansible, Docker, tests, documentación) disparan únicamente los Quality Gates afectados.
+    4. **`unknown`** — ante una ruta no clasificada se aplica política **fail-closed** y se ejecuta Full CI.
+  - Pipelines despachados por el orquestador:
+    - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
+    - **`infra` → `infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
+  - Workflows de seguridad y calidad con ejecución independiente:
     - **`web.yml`**: Compilación Vite, linter Nginx y suite E2E Playwright con Axe-core.
-    - **`infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
-    - **`security-gitleaks.yml`**: Detección estricta de credenciales en commits.
+    - **`security-gitleaks.yml`**: Detección estricta de credenciales. Se ejecuta en **todos** los Pull Requests (incluidos los documentales) porque es un *Required Status Check*; no debe declarar `paths` ni `paths-ignore`, ya que GitHub no reportaría el check y bloquearía el merge.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)
 
