@@ -4,19 +4,8 @@
 name: 🌐 Frontend Web CI
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'apps/frontend/**'
-      - '.github/workflows/web.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'apps/frontend/**'
-      - 'tests/e2e/**'
-      - 'playwright.config.ts'
-      - 'lighthouserc.json'
-      - '.github/workflows/web.yml'
+  workflow_call:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,4 +57,3 @@ jobs:
 
       - name: 9. Auditoría de Core Web Vitals con Lighthouse CI
         run: npm run perf:lighthouse
-
