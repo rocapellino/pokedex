@@ -129,7 +129,7 @@ flowchart TD
 - Al realizar `git push` y abrir un Pull Request:
   - El bot de Linear vincula el PR al ticket y actualiza el estado a **In Progress** / **In Review**.
   - Se ejecutan pipelines optimizados y sin solapamiento:
-    - **`ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest/fuzzing, npm audit, Semgrep SAST, Dependency Review y empaquetado seguro.
+    - **`ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest/fuzzing, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request) y empaquetado seguro.
     - **`web.yml`**: Compilación Vite, linter Nginx y suite E2E Playwright con Axe-core.
     - **`infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
     - **`security-gitleaks.yml`**: Detección estricta de credenciales en commits.
@@ -138,14 +138,17 @@ flowchart TD
 
 - Las reglas de protección de rama (`main-protection`) bloquean el merge directo:
   - Exigen que todos los checks obligatorios de CI estén en verde (✅).
+  - Los contexts obligatorios deben coincidir **exactamente** con el nombre que reporta GitHub Actions. Como `ci.yml` es un *reusable workflow* invocado por `change-impact.yml`, sus checks se reportan con el prefijo del job invocador: `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` (y análogamente `⚙️ Infra CI / …` para los jobs de `infra.yml`).
   - Exigen que todas las conversaciones de revisión de código estén resueltas.
   - Bloquean `git push --force` y eliminaciones accidentales de `main`.
+  - No hay bypass para el `GITHUB_TOKEN`: ningún workflow puede escribir directamente en `main`, por lo que toda promoción (bump de versión, pinning GitOps) se hace mediante Pull Request.
 
 ### Fase 5: Merge, Versionado Semántico y Firmado OCI (Cosign)
 
 - Al fusionar el PR en `main`:
   - El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
-  - El workflow **`release-tag.yml`** analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`) y calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`), creando el **Git Tag** y el **GitHub Release** oficial.
+  - El workflow **`release-tag.yml`** analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`) y calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`), creando el **Git Tag** firmado con Gitsign y el **GitHub Release** oficial.
+  - La sincronización de `package.json` y `infra/helm/pokedex/Chart.yaml` con el nuevo tag se abre como **Pull Request** (`release/bump-<tag>`) contra `main`, en línea con las reglas de protección de rama.
   - El workflow **`ci.yml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
     2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.
