@@ -6,18 +6,8 @@
 name: ⚡ MegaLinter - Quality & Syntax Linters
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'Dockerfile'
-      - 'apps/**/Dockerfile'
-      - '.github/workflows/**'
-      - 'infra/**/*.yaml'
-      - 'infra/**/*.yml'
-      - 'scripts/**/*.sh'
-      - 'dr_verify_restore.sh'
-  push:
-    branches: [ main ]
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read

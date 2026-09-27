@@ -413,6 +413,33 @@ test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed 
   );
 });
 
+test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yml', () => {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
+  for (const workflow of ['web.yml', 'mega-linter.yml', 'security-code-scanning.yml']) {
+    const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
+    assert.match(content, /workflow_call:/, `${workflow} debe ser reutilizable`);
+    assert.doesNotMatch(content, /pull_request:/, `${workflow} no debe decidir por paths en PR`);
+    assert.match(orchestrator, new RegExp(`uses: \\.\\/.github/workflows/${workflow.replace('.', '\\.')}\\b`));
+  }
+});
+
+test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes de aplicación', () => {
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf8');
+  const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yml'), 'utf8');
+  assert.match(ci, /^  trivy-scan:/m);
+  assert.doesNotMatch(scheduledTrivy, /pull_request:|\n  push:/);
+  assert.doesNotMatch(scheduledTrivy, /docker build|pokedex-server:test|pokedex-web:test/);
+  assert.match(scheduledTrivy, /schedule:/);
+  assert.match(scheduledTrivy, /infra-images-scan:/);
+});
+
+test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros', () => {
+  const gitleaks = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yml'), 'utf8');
+  assert.match(gitleaks, /pull_request:/);
+  assert.doesNotMatch(gitleaks, /paths(?:-ignore)?:/);
+  assert.doesNotMatch(gitleaks, /workflow_call:/);
+});
+
 test('🎯 Change Impact: el contrato declara always con ids mapeados en el motor', () => {
   const config = loadImpactConfig(CONFIG_PATH);
   const ids = config.always.map((control) => control.id);

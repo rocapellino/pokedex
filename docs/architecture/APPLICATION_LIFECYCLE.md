@@ -137,9 +137,9 @@ flowchart TD
   - Pipelines despachados por el orquestador:
     - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
     - **`infra` → `infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
-  - Workflows de seguridad y calidad con ejecución independiente:
-    - **`web.yml`**: Compilación Vite, linter Nginx y suite E2E Playwright con Axe-core.
-    - **`security-gitleaks.yml`**: Detección estricta de credenciales. Se ejecuta en **todos** los Pull Requests (incluidos los documentales) porque es un *Required Status Check*; no debe declarar `paths` ni `paths-ignore`, ya que GitHub no reportaría el check y bloquearía el merge.
+    - **`web.yml`**, **`mega-linter.yml`** y **`security-code-scanning.yml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yml`.
+  - **Required independent controls:** `security-gitleaks.yml` detecta credenciales en **todos** los Pull Requests, incluidos los documentales. Como *Required Status Check*, no declara `paths` ni `paths-ignore` y permanece deliberadamente fuera del orquestador.
+  - **Scheduled/manual controls:** `security-trivy.yml` ejecuta análisis periódico o manual del filesystem y de imágenes base de infraestructura. El escaneo Trivy de imágenes de aplicación pertenece únicamente a `ci.yml`, reutilizando la imagen construida por el pipeline.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)
 
