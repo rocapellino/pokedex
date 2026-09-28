@@ -109,6 +109,11 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
 
 4. **Tag y GitHub Release (fase `tag`, tras el merge del PR):**
    - El merge del PR de promoción dispara nuevamente `release-tag.yml`, que detecta la fase `tag` por el mensaje `chore(release): promote`.
+   - **Verificación previa del binario de Gitsign (SEC-001):** antes de instalar o ejecutar nada, el binario descargado de Sigstore se somete a dos controles independientes:
+     1. **Autenticidad:** `cosign verify-blob` contra el bundle de firma keyless publicado por Sigstore (certificado Fulcio + prueba de transparencia en Rekor), validando la identidad exacta `https://github.com/sigstore/gitsign/.github/workflows/release.yml@refs/tags/vX.Y.Z` y el emisor OIDC de GitHub Actions.
+     2. **Integridad:** digest SHA-256 fijado en el propio repositorio, contrastado además con el manifiesto `checksums.txt` publicado por Sigstore.
+
+     El binario solo se instala (`sudo install`) y ejecuta si ambos controles pasan; cualquier divergencia aborta el release. El verificador (`sigstore/cosign-installer`) está pinneado por SHA con el mismo control que `ci.yml` usa para firmar la imagen OCI.
    - Verifica la coherencia 1:1: `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps (gate automático también en `tests/version_consistency.test.ts`).
    - Crea el tag SemVer firmado con Gitsign **sobre el commit de promoción** (`GITHUB_SHA`) y publica el GitHub Release con el changelog.
    - Si el tag ya existe apuntando a otro commit, el workflow falla explícitamente (detección de trazabilidad rota, REL-001).

@@ -47,6 +47,69 @@ test('🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build
   );
 });
 
+test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse', () => {
+  const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yml'), 'utf-8');
+
+  // 1. Cosign debe estar disponible como verificador de confianza (pin por SHA).
+  assert.match(
+    releaseWf,
+    /sigstore\/cosign-installer@[0-9a-f]{40}/,
+    'El workflow debe instalar Cosign con pin por SHA para verificar el binario de Gitsign'
+  );
+
+  // 2. Se descarga el bundle de firma junto al binario.
+  assert.match(releaseWf, /\$\{BIN_NAME\}\.bundle/, 'Debe descargarse el bundle de firma de Sigstore');
+  assert.match(releaseWf, /checksums\.txt/, 'Debe descargarse el manifiesto checksums.txt de Sigstore');
+
+  // 3. Verificación de autenticidad (firma keyless Fulcio + Rekor) con identidad estricta.
+  assert.match(releaseWf, /cosign verify-blob/, 'Debe verificar la firma del binario con cosign verify-blob');
+  assert.match(
+    releaseWf,
+    /--certificate-identity "https:\/\/github\.com\/sigstore\/gitsign\/\.github\/workflows\/release\.yml@refs\/tags\/v\$\{GITSIGN_VERSION\}"/,
+    'La identidad del certificado debe ser exactamente la del workflow de release de sigstore/gitsign'
+  );
+  assert.match(
+    releaseWf,
+    /--certificate-oidc-issuer "https:\/\/token\.actions\.githubusercontent\.com"/,
+    'El emisor OIDC esperado debe ser el de GitHub Actions'
+  );
+
+  // 4. Verificación de integridad con digests fijados en el repositorio.
+  assert.match(
+    releaseWf,
+    /GITSIGN_SHA256:\s*"[0-9a-f]{64}"/,
+    'El digest del binario debe estar fijado en el repositorio'
+  );
+  assert.match(
+    releaseWf,
+    /GITSIGN_BUNDLE_SHA256:\s*"[0-9a-f]{64}"/,
+    'El digest del bundle debe estar fijado en el repositorio'
+  );
+  assert.match(releaseWf, /sha256sum/, 'Debe calcular y comparar el SHA-256 del binario descargado');
+
+  // 5. ORDEN CRÍTICA: verificar antes de instalar. Sin esto la verificación es
+  // decorativa, porque el binario ya se habría instalado y ejecutado.
+  const verifyIdx = releaseWf.indexOf('cosign verify-blob');
+  const installIdx = releaseWf.indexOf('sudo install');
+  assert.ok(verifyIdx !== -1, 'Debe existir la verificación de firma');
+  assert.ok(installIdx !== -1, 'Debe existir la instalación del binario');
+  assert.ok(
+    verifyIdx < installIdx,
+    'La verificación de firma debe ejecutarse ANTES de instalar el binario en el PATH'
+  );
+
+  // 6. La verificación no puede ser best-effort.
+  assert.doesNotMatch(
+    releaseWf,
+    /cosign verify-blob[^\n]*\n?[^\n]*\|\|\s*true/,
+    'La verificación de Gitsign no debe ser best-effort (|| true)'
+  );
+
+  // 7. Se conserva el pin de versión (no se degrada a "latest").
+  assert.match(releaseWf, /GITSIGN_VERSION:\s*"\d+\.\d+\.\d+"/, 'Gitsign debe seguir pinneado a una versión exacta');
+  assert.doesNotMatch(releaseWf, /gitsign\/releases\/latest/, 'No debe permitirse la descarga de Gitsign desde "latest"');
+});
+
 test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker', () => {
   const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
 
