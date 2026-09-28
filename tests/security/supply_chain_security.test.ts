@@ -8,6 +8,64 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../..');
 
+const WORKFLOWS_DIR = path.join(ROOT_DIR, '.github', 'workflows');
+
+function listWorkflows(): string[] {
+  return fs
+    .readdirSync(WORKFLOWS_DIR)
+    .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
+    .map((f) => path.join(WORKFLOWS_DIR, f));
+}
+
+test('🏷️ Release Tag: el header de la API de GitHub tiene el quoting balanceado', () => {
+  const wf = fs.readFileSync(path.join(WORKFLOWS_DIR, 'release-tag.yaml'), 'utf8');
+  assert.match(
+    wf,
+    /-H 'X-GitHub-Api-Version: 2022-11-28'/,
+    "El header debe ser -H 'X-GitHub-Api-Version: 2022-11-28' (comillas simples balanceadas)"
+  );
+  assert.doesNotMatch(
+    wf,
+    /'X-GitHub-Api-Version: '2022-11-28'/,
+    "No debe existir el quoting desbalanceado 'X-GitHub-Api-Version: '2022-11-28' (REL-002)"
+  );
+});
+
+test('🔤 Workflows: los archivos usan fin de línea LF (relacionado con REL-002)', () => {
+  // Los bloques `run:` embeben shell script. Con CRLF el caracter \r se incorpora
+  // al quoting de bash y rompe el parseo en los runners Ubuntu con
+  // `syntax error near unexpected token '('`. Detectado en release-tag.yaml, pero
+  // la condicion es latente en los demas workflows del directorio.
+  const offenders: string[] = [];
+  for (const file of listWorkflows()) {
+    const content = fs.readFileSync(file, 'utf8');
+    if (content.includes('\r\n')) offenders.push(path.relative(ROOT_DIR, file));
+  }
+  assert.deepEqual(offenders, [], `Workflows con CRLF (deben usar LF): ${offenders.join(', ')}`);
+});
+
+test('🔤 Workflows: .gitattributes fuerza LF en los workflows', () => {
+  const gitattributes = path.join(ROOT_DIR, '.gitattributes');
+  assert.ok(fs.existsSync(gitattributes), '.gitattributes debe existir');
+  const content = fs.readFileSync(gitattributes, 'utf8');
+  assert.match(
+    content,
+    /\.github\/workflows\/\*\.yaml\s+text\s+eol=lf/,
+    'debe forzar LF en los workflows .yaml'
+  );
+  assert.match(content, /\.sh\s+text\s+eol=lf/, 'debe preservar la regla existente para .sh');
+});
+
+test('🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta', () => {
+  const offenders: string[] = [];
+  for (const file of listWorkflows()) {
+    const content = fs.readFileSync(file, 'utf8');
+    const match = content.match(/uses:\s*(\.\/\.github\/workflows\/[a-z0-9-]+)\.yml\b/);
+    if (match) offenders.push(`${path.relative(ROOT_DIR, file)} -> ${match[1]}.yml`);
+  }
+  assert.deepEqual(offenders, [], `Workflows con rutas obsoletas: ${offenders.join(', ')}`);
+});
+
 test('🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build', () => {
   const rootDockerfile = fs.readFileSync(path.join(ROOT_DIR, 'Dockerfile'), 'utf-8');
   const backendDockerfile = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/Dockerfile'), 'utf-8');

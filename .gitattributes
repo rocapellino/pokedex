@@ -1,2 +1,8 @@
 # Asegurar fin de línea LF para scripts de shell (evita errores de sintaxis \r en Linux/Bash)
 *.sh text eol=lf
+
+# Los bloques `run:` de los workflows embeben shell script. Con CRLF, el caracter
+# \r se incluye en el quoting y rompe el parseo de bash en los runners Ubuntu,
+# produciendo `syntax error near unexpected token '('` (REL-002).
+.github/workflows/*.yaml text eol=lf
+.github/workflows/*.yml text eol=lf
