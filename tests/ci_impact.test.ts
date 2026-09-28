@@ -469,6 +469,10 @@ test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes 
 
 test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real', () => {
   const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const sonarProperties = fs.readFileSync(
+    path.join(ROOT_DIR, 'sonar-project.properties'),
+    'utf-8'
+  );
   const orchestrator = fs.readFileSync(
     path.join(ROOT_DIR, '.github/workflows/change-impact.yml'),
     'utf-8'
@@ -501,6 +505,16 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
     sync.match(/SonarSource\/sonarqube-scan-action@/g)?.length ?? 0,
     0,
     'sonar-linear-sync.yml solo debe consumir resultados, no ejecutar otro scanner'
+  );
+  assert.match(
+    sonarProperties,
+    /^sonar\.region=us$/m,
+    'SonarQube Cloud debe usar la región us admitida por el scanner actual'
+  );
+  assert.doesNotMatch(
+    sonarProperties,
+    /^sonar\.region=eu$/m,
+    'La región eu obsoleta no debe reintroducirse'
   );
 });
 
