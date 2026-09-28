@@ -93,7 +93,14 @@ jobs:
           echo "🔎 Fase=${PHASE} | Tag canónico=${CURRENT_TAG} (existe=${TAG_EXISTS}) | Merge de promoción=${IS_PROMOTE_MERGE}"
 
       - name: 3. Calcular Próxima Versión y Changelog (dry-run)
+        # REL-003: el dry-run SOLO tiene sentido en la fase "promote", donde aún no
+        # existe una versión determinada y hay que calcular cuál será la siguiente.
+        # En la fase "tag" la versión ya está fijada en main (`current_tag`) y el
+        # dry-run calcularía la SIGUIENTE versión sobre el rango de commits del
+        # último tag, lo que produce metadata de release inconsistente: el tag
+        # publicado y el changelog describirían versiones distintas.
         id: tag_version
+        if: steps.state.outputs.phase == 'promote'
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -320,12 +327,16 @@ jobs:
           git push origin "${NEW_TAG}"
 
       - name: 7. Crear Release en GitHub con Changelog Automático
+        # REL-003: el changelog lo genera GitHub con `generate_release_notes` a
+        # partir de `tag_name` (current_tag), por lo que siempre corresponde
+        # exactamente a la versión publicada. Se eliminó el uso de
+        # `steps.tag_version.outputs.changelog` porque ese output se calcula sobre
+        # el rango del ÚLTIMO tag, no sobre el tag que se está publicando.
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
         with:
           tag_name: ${{ steps.state.outputs.current_tag }}
           name: Release ${{ steps.state.outputs.current_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

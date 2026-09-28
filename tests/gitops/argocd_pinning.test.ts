@@ -193,3 +193,45 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
   assert.ok(taskfile.includes('gitops:pin:'), 'Taskfile.yaml debe exponer tarea gitops:pin');
   assert.ok(taskfile.includes('gitops:pin:check:'), 'Taskfile.yaml debe exponer tarea gitops:pin:check');
 });
+
+test('🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run', () => {
+  // El dry-run de github-tag-action calcula la SIGUIENTE versión sobre el rango
+  // de commits del ÚLTIMO tag. En la fase `tag` la versión ya está fijada en main
+  // (`current_tag`), por lo que usar ese changelog publicaría metadata
+  // inconsistente: el tag real y el changelog describirían versiones distintas.
+  // GitHub ya genera las release notes correctas a partir de `tag_name`.
+  const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf8');
+
+  // 1. El paso 3 (dry-run) solo debe ejecutarse en la fase promote.
+  const dryRunStep = releaseWf.slice(
+    releaseWf.indexOf('Calcular Próxima Versión y Changelog'),
+    releaseWf.indexOf('4. Instalar Cosign')
+  );
+  assert.ok(
+    dryRunStep.includes("if: steps.state.outputs.phase == 'promote'"),
+    'El dry-run de github-tag-action debe condicionarse a la fase promote (REL-003)'
+  );
+
+  // 2. El release no debe usar el changelog del dry-run.
+  assert.ok(
+    !/body:\s*\$\{\{\s*steps\.tag_version\.outputs\.changelog\s*\}\}/.test(releaseWf),
+    'El GitHub Release no debe usar steps.tag_version.outputs.changelog (REL-003)'
+  );
+
+  // 3. El release sigue anclado a current_tag y con notas automáticas.
+  assert.ok(
+    releaseWf.includes('tag_name: ${{ steps.state.outputs.current_tag }}'),
+    'El release debe anclarse a la versión vigente en main (current_tag)'
+  );
+  assert.ok(
+    releaseWf.includes('generate_release_notes: true'),
+    'El changelog debe generarse con generate_release_notes desde el tag publicado'
+  );
+
+  // 4. La fase promote debe conservar el contrato de new_tag para el paso 8.
+  assert.ok(
+    releaseWf.includes('NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}'),
+    'El PR de promoción debe seguir usando new_tag del dry-run'
+  );
+});
+
