@@ -108,6 +108,37 @@ test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y e
   // 7. Se conserva el pin de versión (no se degrada a "latest").
   assert.match(releaseWf, /GITSIGN_VERSION:\s*"\d+\.\d+\.\d+"/, 'Gitsign debe seguir pinneado a una versión exacta');
   assert.doesNotMatch(releaseWf, /gitsign\/releases\/latest/, 'No debe permitirse la descarga de Gitsign desde "latest"');
+
+  // 8. Coherencia versión <-> digests verificada en runtime, sin scripts externos.
+  assert.match(
+    releaseWf,
+    /api\.github\.com\/repos\/sigstore\/gitsign\/releases\/tags\/v\$\{GITSIGN_VERSION\}/,
+    'Debe consultar la API de GitHub para validar los digests de la versión declarada'
+  );
+  assert.match(releaseWf, /\.assets\[\]\?/, 'Debe extraer los digests de los assets del release');
+  assert.match(
+    releaseWf,
+    /GITSIGN_REFRESH:.*inputs\.gitsign_refresh/,
+    'El refresco de digests debe ser explícito y opt-in vía workflow_dispatch'
+  );
+  // El self-check debe ejecutarse antes de descargar o instalar nada.
+  const selfCheckIdx = releaseWf.indexOf('GITSIGN_REFRESH');
+  const downloadIdx = releaseWf.indexOf('curl --proto');
+  assert.ok(
+    selfCheckIdx !== -1 && selfCheckIdx < downloadIdx,
+    'El self-check de digests debe ejecutarse antes de descargar el binario'
+  );
+
+  // 9. No debe reintroducirse un script externo para esta verificación.
+  assert.doesNotMatch(
+    releaseWf,
+    /scripts\/refresh-gitsign-digests\.ts/,
+    'La verificación de digests debe ser inline en el workflow, sin depender de un script externo'
+  );
+  assert.ok(
+    !fs.existsSync(path.join(ROOT_DIR, 'scripts/refresh-gitsign-digests.ts')),
+    'No debe existir el script externo de refresco de digests (SEC-001 se resuelve inline)'
+  );
 });
 
 test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker', () => {
