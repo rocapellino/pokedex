@@ -447,6 +447,38 @@ test('🎯 CI topology: workflows condicionales delegan la decisión a change-im
   }
 });
 
+test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency', () => {
+  // En un reusable workflow, `github.workflow` conserva el nombre del workflow
+  // INVOCADOR. Todos los reusables calculaban por tanto el mismo grupo de
+  // concurrencia y, con `cancel-in-progress: true`, cada uno cancelaba al
+  // siguiente. Los jobs `infra`, `frontend-web` y `security-code-scanning`
+  // nunca se ejecutaban pese a que sus triggers fueran `true`, dejando la
+  // validación de IaC, Ansible, OpenTofu, Kyverno y K8s completamente muda.
+  // La serialización por PR ya la aplica `change-impact.yml` a nivel superior.
+  const reusables = [
+    'ci.yml',
+    'infra.yml',
+    'web.yml',
+    'mega-linter.yml',
+    'security-code-scanning.yml',
+  ];
+
+  for (const workflow of reusables) {
+    const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
+    assert.doesNotMatch(
+      content,
+      /^concurrency:/m,
+      `${workflow} no debe declarar concurrency: colisiona con los demás reusables y cancela jobs`
+    );
+  }
+});
+
+test('⚙️ CI topology: el orquestador conserva la serialización por PR', () => {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
+  assert.match(orchestrator, /^concurrency:/m, 'change-impact.yml debe mantener su concurrency');
+  assert.match(orchestrator, /cancel-in-progress:\s*true/, 'debe cancelar corridas previas del mismo PR');
+});
+
 test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
   const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf8');

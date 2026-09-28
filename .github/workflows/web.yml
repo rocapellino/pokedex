@@ -1,15 +1,15 @@
 # ==============================================================================
 # Workflow de CI para el Frontend (Nginx + JS Vanilla + HTML5 + CSS3)
 # ==============================================================================
+# NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
+# `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
+# los reusables calculaban el mismo grupo y se cancelaban entre si. La
+# serializacion por PR ya la aplica `change-impact.yml` a nivel de workflow.
 name: 🌐 Frontend Web CI
 
 on:
   workflow_call:
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read

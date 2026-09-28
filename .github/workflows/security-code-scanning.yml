@@ -2,6 +2,10 @@
 # Workflow Oficial de SAST e IaC Security para GitHub Code Scanning
 # Herramientas: njsscan (Node.js/Express), Hadolint (Dockerfiles), tfsec (OpenTofu)
 # ==============================================================================
+# NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
+# `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
+# los reusables calculaban el mismo grupo y se cancelaban entre si. La
+# serializacion por PR ya la aplica `change-impact.yml` a nivel de workflow.
 name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)
 
 on:
@@ -22,10 +26,6 @@ on:
   schedule:
     - cron: '0 4 * * 1' # Escaneo preventivo semanal los lunes a las 04:00 UTC
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
