@@ -38,7 +38,7 @@ test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta
 });
 
 test('🧹 Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore', () => {
-  const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
+  const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const ciContent = fs.readFileSync(ciWorkflowPath, 'utf-8');
 
   assert.match(ciContent, /Configuration Hygiene/, 'ci.yml debe declarar un paso para Configuration Hygiene');

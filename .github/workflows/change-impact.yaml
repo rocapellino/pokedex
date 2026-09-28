@@ -111,7 +111,7 @@ jobs:
       needs.detect-impact.outputs.agent_governance == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
-    uses: ./.github/workflows/ci.yml
+    uses: ./.github/workflows/ci.yaml
     with:
       backend: ${{ needs.detect-impact.outputs.backend == 'true' }}
       frontend: ${{ needs.detect-impact.outputs.frontend == 'true' }}
@@ -142,7 +142,7 @@ jobs:
       github.event_name == 'push'
     permissions:
       contents: read
-    uses: ./.github/workflows/infra.yml
+    uses: ./.github/workflows/infra.yaml
     with:
       helm: ${{ needs.detect-impact.outputs.helm == 'true' }}
       kubernetes: ${{ needs.detect-impact.outputs.kubernetes == 'true' }}
@@ -161,7 +161,7 @@ jobs:
       needs.detect-impact.outputs.frontend == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
-    uses: ./.github/workflows/web.yml
+    uses: ./.github/workflows/web.yaml
 
   megalinter:
     name: "⚡ MegaLinter"
@@ -170,7 +170,7 @@ jobs:
       needs.detect-impact.outputs.linting == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
-    uses: ./.github/workflows/mega-linter.yml
+    uses: ./.github/workflows/mega-linter.yaml
 
   security-code-scanning:
     name: "🛡️ Security Code Scanning"
@@ -181,7 +181,7 @@ jobs:
       needs.detect-impact.outputs.linting == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
-    uses: ./.github/workflows/security-code-scanning.yml
+    uses: ./.github/workflows/security-code-scanning.yaml
     with:
       security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
       security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}

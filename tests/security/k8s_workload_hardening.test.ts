@@ -90,7 +90,7 @@ test('🛡️ K8s Quality & High Availability: api y web deployments implementan
 });
 
 test('🛡️ K8s Quality Gates: infra.yml integra kubeconform, kube-linter y kyverno test', () => {
-  const workflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+  const workflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
   assert.ok(fs.existsSync(workflowPath), 'infra.yml debe existir');
   const content = fs.readFileSync(workflowPath, 'utf-8');
 
@@ -171,7 +171,7 @@ test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates config
   const pdbPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/pdb.yaml');
   const quotaPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/resourcequota.yaml');
   const limitRangePath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/limitrange.yaml');
-  const infraCiPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
+  const infraCiPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
 
   assert.ok(fs.existsSync(valuesProdPath), 'values.prod.yaml debe existir');
   assert.ok(fs.existsSync(pdbPath), 'pdb.yaml debe existir');

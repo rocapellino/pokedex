@@ -256,7 +256,7 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   assert.ok(content.includes('kubectl'), '.tool-versions debe fijar kubectl');
   assert.ok(content.includes('ansible-core'), '.tool-versions debe fijar ansible-core');
 
-  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yml'), 'utf-8');
+  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
   assert.ok(
     infraWorkflow.includes('--only-binary :all:'),
     'infra.yml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables'

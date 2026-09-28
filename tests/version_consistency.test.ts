@@ -74,7 +74,7 @@ test('VER-002 🔒 /version expone versión y commit como metadatos independient
 });
 
 test('VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json', () => {
-  const wf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yml'), 'utf-8');
+  const wf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf-8');
 
   assert.ok(
     wf.includes('npm version "$VERSION" --no-git-tag-version'),

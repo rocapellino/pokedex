@@ -164,7 +164,7 @@ La convención no es una recomendación documental: es un **Quality Gate fail-cl
 | Comando local (estándar) | `npm run lint:yaml` |
 | Modo estricto (CI) | `npm run lint:yaml:strict` |
 | Integración en `validate` | `npm run validate` |
-| Paso de CI | `.github/workflows/ci.yml`, job *Auditoría de Calidad y Complejidad* |
+| Paso de CI | `.github/workflows/ci.yaml`, job *Auditoría de Calidad y Complejidad* |
 | Contrato de impacto | `.github/ci-impact.yaml`, regla `linting` |
 | Suite de pruebas | `tests/security/yaml_extension_governance.test.ts` |
 
@@ -180,17 +180,28 @@ El gate opera con dos listas:
 
 ### 4.4. Deuda Técnica Vigente y Plan de Drenaje
 
-El repositorio mantiene **17 archivos `.yml` heredados** frente a 86 archivos `.yaml` tras la Wave 2. La migración se ejecuta por **waves** para no romper los contratos de CI. Cada wave debe actualizar las referencias, los asserts de `tests/` y drenar la allowlist en el mismo commit.
+El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.yaml` tras la Wave 3. La migración por waves queda **completa**: `.yaml` es la única extensión en uso, salvo la excepción permanente documentada.
 
 | Wave | Alcance | Estado | Riesgo principal |
 | --- | --- | --- | --- |
 | 0 | Gobernanza (gate, tests, contrato de impacto) | Completada (PR #352) | Nulo |
 | 1 | `infra/ansible/**`, `infra/monitoring/alerts.yaml`, `docker-compose*.yaml` | Completada (PR #354) | Globs y flags `-f` explícitos en `Taskfile` y `.vscode/tasks.json` |
-| 2 | `Taskfile.yaml` | Completada | Numerosas referencias documentales |
-| 3 | `.github/workflows/**` | Pendiente | Rutas `uses:` de reusable workflows, required status checks y badges |
+| 2 | `Taskfile.yaml` | Completada (PR #355) | Numerosas referencias documentales |
+| 3 | `.github/workflows/**` (16 workflows) | Completada | Rutas `uses:`, `subject` de Kyverno, required status checks y badge |
+
+### Excepción permanente restante
+
+- **`.mega-linter.yml`**: es el nombre de configuración documentado por MegaLinter, que además se pasa explícitamente vía la variable `MEGALINTER_CONFIG` en el workflow y en `Taskfile.yaml`.
+
+### Identidades de firma actualizadas en la Wave 3
 
 > [!WARNING]
-> **Riesgo fail-open latente (resuelto en la Wave 1):** el job *Ansible Syntax Check* de `.github/workflows/infra.yml` valida los playbooks mediante el glob `infra/ansible/playbooks/*.yml`. Si los playbooks se renombraran sin actualizar ese glob, el gate iteraría cero veces y **pasaría por vacuidad**, degradando un control fail-closed. El glob se actualizó a `*.yaml` en el mismo commit que el renombrado.
+> Renombrar `ci.yml` a `ci.yaml` cambia la **identidad del workflow firmante** que GitHub publica en los claims OIDC. Las políticas de admisión Kyverno que verifican las firmas Cosign declaraban el `subject` exacto `.../.github/workflows/ci.yml@refs/heads/main`; si no se actualizan en el mismo commit, la verificación de supply chain fallaría en runtime aunque el pipeline fuera verde.
+>
+> Archivos actualizados: `infra/k8s/kyverno-cosign-policy.yaml` (Enforce) e `infra/k8s/policies/verify-image-signature.yaml` (Audit).
+>
+> Los required status checks del ruleset `main-protection` no se ven afectados: referencian el **nombre del job** (`Core CI / Auditoría de Calidad y Complejidad`), no el nombre del archivo.
+> **Riesgo fail-open latente (resuelto en la Wave 1):** el job *Ansible Syntax Check* de `.github/workflows/infra.yaml` valida los playbooks mediante el glob `infra/ansible/playbooks/*.yml`. Si los playbooks se renombraran sin actualizar ese glob, el gate iteraría cero veces y **pasaría por vacuidad**, degradando un control fail-closed. El glob se actualizó a `*.yaml` en el mismo commit que el renombrado.
 >
 > `infra/ansible/playbooks/host_baseline.yaml` importa otro playbook mediante `import_playbook: security_hardening.yaml` (ruta relativa sin prefijo), lo que obliga a renombrar **de forma consistente** el playbook importado.
 > **Resolución de nombre en la Wave 2:** `go-task` busca `Taskfile.yml`, `taskfile.yml`, `Taskfile.yaml` y `taskfile.yaml`, en ese orden de prioridad. El renombrado a `Taskfile.yaml` es soportado nativamente y no requiere flags adicionales. La variante `.dist` no se usa en este repositorio, por lo que no hay ambigüedad de resolución.

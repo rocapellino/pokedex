@@ -2,7 +2,7 @@
 
 Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa una Pokédex reactiva para la consulta y gestión del catálogo oficial de Pokémon. Diseñada bajo principios de separación de responsabilidades, seguridad por defecto (*fail-closed*) y entrega continua mediante GitOps sobre Kubernetes portable.
 
-[![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yaml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yaml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=rocapellino_pokedex&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rocapellino_pokedex)
 [![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)

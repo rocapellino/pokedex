@@ -45,7 +45,7 @@ Para garantizar que ningún desarrollador comitee accidentalmente tokens, API ke
    - Allowlist estricta para ejemplos (`.env.example`), documentación y mocks de pruebas unitarias.
 2. **Hooks de Pre-Commit ([`.pre-commit-config.yaml`](../../.pre-commit-config.yaml)):**
    - Escaneo automático antes de registrar cualquier commit en la máquina del desarrollador.
-3. **Pipeline de CI/CD ([`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml)):**
+3. **Pipeline de CI/CD ([`.github/workflows/security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)):**
    - Se ejecuta en cada `push` y `pull_request` analizando el historial completo de commits (`fetch-depth: 0`).
    - Bloquea de manera intransigente el merge del PR si detecta cualquier credencial expuesta.
 

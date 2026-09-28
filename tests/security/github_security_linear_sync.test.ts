@@ -190,7 +190,7 @@ test('🛡️ GitHub Security Linear Sync: syncAlertLifecycle maneja ciclo de vi
 });
 
 test('🛡️ GitHub Security Linear Sync: workflow YAML existe y define permisos de menor privilegio', () => {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/github-security-linear-sync.yml');
+  const workflowPath = path.join(process.cwd(), '.github/workflows/github-security-linear-sync.yaml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de sincronización de seguridad debe existir');
 
   const content = fs.readFileSync(workflowPath, 'utf8');
@@ -218,7 +218,7 @@ test('🛡️ GitHub Security Linear Sync: syncGitHubSecurityToLinear se degrada
 });
 
 test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Trivy IaC existe y está configurado', () => {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/security-code-scanning.yml');
+  const workflowPath = path.join(process.cwd(), '.github/workflows/security-code-scanning.yaml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de SAST debe existir');
 
   const content = fs.readFileSync(workflowPath, 'utf8');

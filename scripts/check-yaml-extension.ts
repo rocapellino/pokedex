@@ -37,28 +37,11 @@ const isJson = args.includes('--json');
  * Cada wave del refactor debe ACORTAR esta lista. Cualquier entrada que ya no
  * exista en disco invalida el allowlist en modo `--strict`.
  *
- * `.mega-linter.yml` es una excepción PERMANENTE: es el nombre de configuración
+ * Tras la Wave 3 la migración está completa: solo queda la excepción
+ * PERMANENTE de `.mega-linter.yml`, que es el nombre de configuración
  * documentado por MegaLinter y se pasa explícitamente vía `MEGALINTER_CONFIG`.
  */
-export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze([
-  '.github/workflows/change-impact.yml',
-  '.github/workflows/ci.yml',
-  '.github/workflows/dr-simulation.yml',
-  '.github/workflows/ghcr-retention.yml',
-  '.github/workflows/github-security-linear-sync.yml',
-  '.github/workflows/infra.yml',
-  '.github/workflows/mega-linter.yml',
-  '.github/workflows/performance-k6.yml',
-  '.github/workflows/release-tag.yml',
-  '.github/workflows/renovate-linear-sync.yml',
-  '.github/workflows/security-code-scanning.yml',
-  '.github/workflows/security-dast-zap.yml',
-  '.github/workflows/security-gitleaks.yml',
-  '.github/workflows/security-trivy.yml',
-  '.github/workflows/sonar-linear-sync.yml',
-  '.github/workflows/web.yml',
-  '.mega-linter.yml'
-]);
+export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze(['.mega-linter.yml']);
 
 // Directorios excluidos del escaneo recursivo de filesystem
 const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents']);

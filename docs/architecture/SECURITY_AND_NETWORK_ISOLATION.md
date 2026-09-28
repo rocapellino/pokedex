@@ -200,7 +200,7 @@ flowchart LR
 - **Política Kyverno:** Definida en [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml).
 - **Modo `Enforce`:** Bloquea en tiempo de admisión cualquier intento de ejecutar una imagen que no haya sido firmada por el workflow oficial de GitHub Actions:
   - Emisor OIDC: `https://token.actions.githubusercontent.com`
-  - Sujeto: `https://github.com/rocapellino/pokedex/.github/workflows/ci.yml@refs/heads/main`
+  - Sujeto: `https://github.com/rocapellino/pokedex/.github/workflows/ci.yaml@refs/heads/main`
   - Ledger Rekor: `https://rekor.sigstore.dev`
 
 ---
@@ -239,7 +239,7 @@ El backend `server.ts` implementa principios de seguridad estricta para evitar e
 ## 9. Manejo Seguro de Secretos y Credenciales
 
 - **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](../../.env.example).
-- **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
+- **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
 - **Desacoplamiento Canónico con External Secrets Operator (ESO) y HashiCorp Vault CE:**
   - En entornos on-premise (Proxmox VE), ESO sincroniza credenciales desde **HashiCorp Vault CE** (LXC 810 con almacenamiento Raft, TLS 1.2+ y roles RBAC segregados `pokedex-prod-role` y `pokedex-preprod-role`).
   - En entornos cloud (AWS EKS), ESO sincroniza desde **AWS Secrets Manager** vía IRSA.

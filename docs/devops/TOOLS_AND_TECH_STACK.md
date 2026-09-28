@@ -132,13 +132,13 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Cosign (Sigstore)** | `2.x+` | Firmado criptográfico Keyless de imágenes OCI mediante OIDC de GitHub Actions | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Cosign (Sigstore)** | `2.x+` | Firmado criptográfico Keyless de imágenes OCI mediante OIDC de GitHub Actions | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Kyverno** | `1.12+` | Control de admisión en Kubernetes para exigir imágenes firmadas válidas | [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) |
-| **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
-| **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](../../.gitleaks.toml), [`.github/workflows/security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) |
-| **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
-| **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
-| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](../../.github/workflows/security-trivy.yml) |
+| **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
+| **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](../../.gitleaks.toml), [`.github/workflows/security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml) |
+| **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
+| **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
+| **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yaml`](../../.github/workflows/security-trivy.yaml) |
 | **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
 | **HashiCorp Vault CE** | `1.18+` | Almacén centralizado de secretos transaccional (Raft, TLS 1.2+, Shamir 5/3) | [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/playbooks/setup_vault.yaml) |
 
@@ -156,7 +156,7 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](../../infra/opentofu) |
-| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yml`](../../.github/workflows/infra.yml), [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yaml`](../../.github/workflows/infra.yaml), [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Proxmox VE** | `8.x` | Virtualización on-premise bi-modal (LXC Pre-Prod / VM Prod) gestionada por OpenTofu | [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) |
 | **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 

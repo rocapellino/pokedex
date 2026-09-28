@@ -84,7 +84,7 @@ GitOps:  ghcr.io/rocapellino/pokedex-api@sha256:<DIGEST_ESTABLE> (ej. v1.75.10)
 
 Para garantizar que la promoción no dependa exclusivamente de disciplina manual no controlada, el flujo se formaliza en las siguientes etapas:
 
-1. **Cálculo de Versión y Pull Request de Promoción (`.github/workflows/release-tag.yml`, fase `promote`):**
+1. **Cálculo de Versión y Pull Request de Promoción (`.github/workflows/release-tag.yaml`, fase `promote`):**
    - Determina el siguiente tag SemVer (`vX.Y.Z`) mediante un `dry-run` del bump convencional.
    - Sincroniza `package.json` y `package-lock.json` (versión raíz) de forma atómica con `npm version --no-git-tag-version`, y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
    - Ejecuta `scripts/update-gitops-pin.ts --tag=<new_tag>` para fijar el `targetRevision` de las aplicaciones de ArgoCD.

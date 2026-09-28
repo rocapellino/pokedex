@@ -438,8 +438,8 @@ test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed 
 });
 
 test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yml', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
-  for (const workflow of ['web.yml', 'mega-linter.yml', 'security-code-scanning.yml']) {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+  for (const workflow of ['web.yaml', 'mega-linter.yaml', 'security-code-scanning.yaml']) {
     const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
     assert.match(content, /workflow_call:/, `${workflow} debe ser reutilizable`);
     assert.doesNotMatch(content, /pull_request:/, `${workflow} no debe decidir por paths en PR`);
@@ -456,11 +456,11 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
   // validación de IaC, Ansible, OpenTofu, Kyverno y K8s completamente muda.
   // La serialización por PR ya la aplica `change-impact.yml` a nivel superior.
   const reusables = [
-    'ci.yml',
-    'infra.yml',
-    'web.yml',
-    'mega-linter.yml',
-    'security-code-scanning.yml',
+    'ci.yaml',
+    'infra.yaml',
+    'web.yaml',
+    'mega-linter.yaml',
+    'security-code-scanning.yaml',
   ];
 
   for (const workflow of reusables) {
@@ -474,14 +474,14 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
 });
 
 test('⚙️ CI topology: el orquestador conserva la serialización por PR', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
   assert.match(orchestrator, /^concurrency:/m, 'change-impact.yml debe mantener su concurrency');
   assert.match(orchestrator, /cancel-in-progress:\s*true/, 'debe cancelar corridas previas del mismo PR');
 });
 
 test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf8');
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
 
   assert.match(orchestrator, /agent_governance:\s*\$\{\{ steps\.impact\.outputs\.agent_governance \}\}/);
   assert.match(orchestrator, /agent_governance:\s*\$\{\{ needs\.detect-impact\.outputs\.agent_governance == 'true' \}\}/);
@@ -490,8 +490,8 @@ test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', 
 });
 
 test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes de aplicación', () => {
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf8');
-  const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yml'), 'utf8');
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
+  const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'), 'utf8');
   assert.match(ci, /^  trivy-scan:/m);
   assert.doesNotMatch(scheduledTrivy, /pull_request:|\n  push:/);
   assert.doesNotMatch(scheduledTrivy, /docker build|pokedex-server:test|pokedex-web:test/);
@@ -500,17 +500,17 @@ test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes 
 });
 
 test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real', () => {
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
   const sonarProperties = fs.readFileSync(
     path.join(ROOT_DIR, 'sonar-project.properties'),
     'utf-8'
   );
   const orchestrator = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/change-impact.yml'),
+    path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'),
     'utf-8'
   );
   const sync = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/sonar-linear-sync.yml'),
+    path.join(ROOT_DIR, '.github/workflows/sonar-linear-sync.yaml'),
     'utf-8'
   );
 
@@ -581,7 +581,7 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
 });
 
 test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros', () => {
-  const gitleaks = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yml'), 'utf8');
+  const gitleaks = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yaml'), 'utf8');
   assert.match(gitleaks, /pull_request:/);
   assert.doesNotMatch(gitleaks, /paths(?:-ignore)?:/);
   assert.doesNotMatch(gitleaks, /workflow_call:/);

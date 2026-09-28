@@ -32,7 +32,7 @@ test('🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argument
 });
 
 test('🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // Ambos build-args deben viajar al docker/build-push-action.
   assert.match(ciWorkflow, /APP_VERSION=\$\{\{\s*steps\.version-metadata\.outputs\.APP_VERSION\s*\}\}/, 'build-args debe inyectar APP_VERSION');
@@ -48,7 +48,7 @@ test('🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build
 });
 
 test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse', () => {
-  const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yml'), 'utf-8');
+  const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf-8');
 
   // 1. Cosign debe estar disponible como verificador de confianza (pin por SHA).
   assert.match(
@@ -205,7 +205,7 @@ test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y e
 });
 
 test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // docker/metadata-action
   assert.match(ciWorkflow, /org\.opencontainers\.image\.title=pokedex-api/, 'Metadata action debe definir org.opencontainers.image.title');
@@ -221,7 +221,7 @@ test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y bu
 });
 
 test('🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // Generación y artefacto
   assert.match(ciWorkflow, /format:\s*'cyclonedx'/, 'Trivy debe generar SBOM en formato CycloneDX');
@@ -234,7 +234,7 @@ test('🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en
 });
 
 test('🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // Permisos requeridos
   assert.match(ciWorkflow, /id-token:\s*write/, 'Publish debe tener permiso id-token: write para Sigstore OIDC');
@@ -269,7 +269,7 @@ test('🛡️ Supply Chain Security: Política Kyverno verify-image-signature ex
   assert.match(policyContent, /ghcr\.io\/rocapellino\/\*/, 'Debe aplicar a imágenes de ghcr.io/rocapellino/*');
   assert.match(policyContent, /keyless:/, 'Debe requerir verificación keyless');
   assert.match(policyContent, /issuer:\s*"https:\/\/token\.actions\.githubusercontent\.com"/, 'Debe exigir emisor OIDC de GitHub Actions');
-  assert.match(policyContent, /subject:\s*"https:\/\/github\.com\/rocapellino\/pokedex\/\.github\/workflows\/ci\.yml@refs\/heads\/main"/, 'Debe validar el subject exacto del workflow en main');
+  assert.match(policyContent, /subject:\s*"https:\/\/github\.com\/rocapellino\/pokedex\/\.github\/workflows\/ci\.yaml@refs\/heads\/main"/, 'Debe validar el subject exacto del workflow en main');
 });
 
 test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican OCI digest pinning inmutable (sha256)', () => {
@@ -384,7 +384,7 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
 });
 
 test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   assert.match(ciWorkflow, /Validar consistencia .* de Digest/, 'Publish debe tener un paso explícito de validación de consistencia de digests');
   assert.match(ciWorkflow, /verify-image-digest-parity\.ts/, 'Debe invocar el script canónico de verificación de paridad Helm AST');

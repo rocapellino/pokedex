@@ -73,8 +73,8 @@ test('🔒 GitOps Parity: verifyImageDigestParity detecta discrepancias con dige
   );
 });
 
-test('🔒 Supply Chain: .github/workflows/ci.yml utiliza validación determinista por Helm AST en lugar de grep/awk', () => {
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+test('🔒 Supply Chain: .github/workflows/ci.yaml utiliza validación determinista por Helm AST en lugar de grep/awk', () => {
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // Asegurar que no use grep -A 4 ni awk para extraer digests en CI
   assert.ok(

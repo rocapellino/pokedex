@@ -46,7 +46,7 @@ Para evitar traducciones forzadas, ambiguas o que rompan la compatibilidad técn
 - **Comandos de Terminal y Sintaxis:**
   - Invocaciones CLI exactas (ej. `npm test`, `git checkout -b`, `helm lint`, `pre-commit run`).
 - **Nombres de Archivos y Rutas:**
-  - Rutas del sistema de archivos (ej. `apps/backend/src/server.ts`, `.github/workflows/ci.yml`).
+  - Rutas del sistema de archivos (ej. `apps/backend/src/server.ts`, `.github/workflows/ci.yaml`).
 - **Identificadores Técnicos y Código:**
   - Nombres de clases, tipos, interfaces, variables, funciones, métodos, decoradores, constantes y tags de lenguajes (ej. `Express`, `ZodSchema`, `ClusterSecretStore`, `targetRevision`).
 - **Nombres de APIs y Endpoints:**
