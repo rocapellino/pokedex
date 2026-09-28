@@ -112,7 +112,7 @@ test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y e
   // 8. Coherencia versión <-> digests verificada en runtime, sin scripts externos.
   assert.match(
     releaseWf,
-    /api\.github\.com\/repos\/sigstore\/gitsign\/releases\/tags\/v\$\{GITSIGN_VERSION\}/,
+    /api\.github\.com\/repos\/sigstore\/gitsign\/releases\/tags\/v\$\{TARGET_VERSION\}/,
     'Debe consultar la API de GitHub para validar los digests de la versión declarada'
   );
   assert.match(releaseWf, /\.assets\[\]\?/, 'Debe extraer los digests de los assets del release');
@@ -138,6 +138,69 @@ test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y e
   assert.ok(
     !fs.existsSync(path.join(ROOT_DIR, 'scripts/refresh-gitsign-digests.ts')),
     'No debe existir el script externo de refresco de digests (SEC-001 se resuelve inline)'
+  );
+
+  // 10. El modo refresco debe ser alcanzable con independencia de la fase.
+  //     Si dependiera solo de `phase == 'tag'`, sería inalcanzable cuando el tag
+  //     de la versión actual ya existe (la fase pasa a ser 'promote').
+  const stepBlocks = releaseWf.split(/\n\s{6}- name:/).slice(1);
+  const gitsignStep = stepBlocks.find((b) => b.includes('GITSIGN_SHA256:'));
+  assert.ok(gitsignStep, 'Debe existir el paso de verificación de Gitsign');
+  assert.match(
+    gitsignStep!,
+    /if:[^\n]*inputs\.gitsign_refresh/,
+    'El paso de Gitsign debe ejecutarse también en modo refresco, no solo en la fase tag'
+  );
+
+  // 11. Ningún paso con efectos secundarios puede correr en modo refresco.
+  //      Sin estos guards, pedir "solo refrescar digests" firmaría un tag real
+  //      y abriría un PR de promoción.
+  const sideEffectSteps = [
+    { name: 'firma del tag', marker: 'git tag -s' },
+    { name: 'publicación del release', marker: 'action-gh-release' },
+    { name: 'apertura del PR de promoción', marker: 'gh pr create' },
+  ];
+  // Extrae la condición `if:` de un paso, contemplando escalares plegados
+  // (`if: >-`), donde la expresión continúa en las líneas siguientes.
+  const extractIfCondition = (block: string): string => {
+    const lines = block.split('\n');
+    const start = lines.findIndex((l) => /^\s+if:/.test(l));
+    if (start === -1) return '';
+    const first = lines[start];
+    if (!/if:\s*[>|]/.test(first)) return first;
+    const indent = first.match(/^\s*/)?.[0].length ?? 0;
+    const parts = [first];
+    for (let i = start + 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.trim() === '') continue;
+      const lineIndent = line.match(/^\s*/)?.[0].length ?? 0;
+      if (lineIndent <= indent) break;
+      parts.push(line);
+    }
+    return parts.join(' ');
+  };
+
+  for (const { name: stepName, marker } of sideEffectSteps) {
+    const block = stepBlocks.find((b) => b.includes(marker));
+    assert.ok(block, `Debe existir el paso de ${stepName}`);
+    assert.match(
+      extractIfCondition(block!),
+      /!inputs\.gitsign_refresh/,
+      `El paso de ${stepName} debe estar protegido con !inputs.gitsign_refresh`
+    );
+  }
+
+  // 12. La consulta a la API debe ir autenticada: sin token quedaría sujeta al
+  //     rate limit de las IPs compartidas de los runners y bloquearía el release.
+  assert.match(
+    gitsignStep!,
+    /GITHUB_TOKEN:\s*\$\{\{\s*secrets\.GITHUB_TOKEN\s*\}\}/,
+    'El paso debe pasar GITHUB_TOKEN para autenticar la consulta a la API de GitHub'
+  );
+  assert.match(
+    gitsignStep!,
+    /Authorization: Bearer/,
+    'La cabecera de autorización debe construirse con el token del workflow'
   );
 });
 
