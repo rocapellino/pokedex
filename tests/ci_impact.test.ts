@@ -489,6 +489,61 @@ test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', 
   assert.match(ci, /aas-governance:[\s\S]*?npm run aas:verify[\s\S]*?tests\/aas_governance\.test\.ts/);
 });
 
+test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada', () => {
+  const dockerfile = fs.readFileSync(path.join(ROOT_DIR, 'apps/frontend/Dockerfile'), 'utf-8');
+  const webWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/web.yaml'), 'utf-8');
+
+  // La imagen productiva declarada en el Dockerfile.
+  const imageMatch = dockerfile.match(/^FROM (nginx:[^\s@]+@sha256:[a-f0-9]{64})/m);
+  assert.ok(imageMatch, 'El Dockerfile del frontend debe declarar FROM nginx:<version>@sha256:<digest>');
+  const nginxImage = imageMatch[1];
+
+  // La version de produccion (tag, sin el prefijo `nginx:`).
+  const version = nginxImage.split('@')[0].replace(/^nginx:/, '');
+  const digest = nginxImage.split('@')[1];
+
+  // 1. Ningun workflow debe hardcodear una version de Nginx: debe derivarse del
+  //    Dockerfile, que es la unica SSOT.
+  assert.doesNotMatch(
+    webWf,
+    /nginx:\d+\.\d+/,
+    'web.yaml no debe hardcodear una version de Nginx: debe extraerse del Dockerfile (SSOT)'
+  );
+
+  // 2. El workflow debe resolver la imagen desde el Dockerfile.
+  assert.match(
+    webWf,
+    /DOCKERFILE=apps\/frontend\/Dockerfile/,
+    'web.yaml debe apuntar al Dockerfile del frontend como SSOT'
+  );
+  assert.match(
+    webWf,
+    /grep -oE '\^FROM nginx:/,
+    'web.yaml debe extraer la imagen de Nginx del Dockerfile'
+  );
+
+  // 3. La validacion debe usar la plantilla que realmente despliega produccion.
+  assert.match(
+    webWf,
+    /nginx\.conf\.template/,
+    'web.yaml debe validar nginx.conf.template, que es lo que renderiza el Dockerfile en produccion'
+  );
+
+  // 4. La documentacion de seguridad debe reflejar la imagen real, no una anterior.
+  const securityDoc = fs.readFileSync(
+    path.join(ROOT_DIR, 'docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md'),
+    'utf-8'
+  );
+  assert.ok(
+    securityDoc.includes(version),
+    `SECURITY_AND_NETWORK_ISOLATION.md debe documentar la version productiva ${version}`
+  );
+  assert.ok(
+    securityDoc.includes(digest),
+    'SECURITY_AND_NETWORK_ISOLATION.md debe documentar el digest productivo real'
+  );
+});
+
 test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
 
