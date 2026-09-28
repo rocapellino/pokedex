@@ -82,6 +82,7 @@ const ALWAYS_CONTROL_TRIGGERS: Record<string, string[]> = {
 
 export interface DomainTriggers {
   documentation: boolean;
+  agent_governance: boolean;
   backend: boolean;
   frontend: boolean;
   tests: boolean;
@@ -249,6 +250,7 @@ export function analyzeChangeImpact(options: {
 
   const createBaseTriggers = (): DomainTriggers => ({
     documentation: false,
+    agent_governance: false,
     backend: false,
     frontend: false,
     tests: false,
@@ -384,6 +386,7 @@ export function formatImpactMarkdown(
 ): string {
   const rows: { domain: string; affected: boolean; pipeline: string }[] = [
     { domain: 'Documentation', affected: triggers.documentation, pipeline: 'docs-ci (Fast Track)' },
+    { domain: 'Agent Governance', affected: triggers.agent_governance, pipeline: 'ci.yml (aas-governance)' },
     { domain: 'Backend Core', affected: triggers.backend, pipeline: 'ci.yml (code-quality)' },
     { domain: 'Frontend SPA', affected: triggers.frontend, pipeline: 'ci.yml & web.yml' },
     { domain: 'Unit & Integration Tests', affected: triggers.tests, pipeline: 'npm test & fuzzing' },
@@ -463,6 +466,7 @@ export function runCLI(): void {
       `is_unknown=${result.isUnknown}`,
       `is_global=${result.isGlobal}`,
       `docs=${result.triggers.documentation}`,
+      `agent_governance=${result.triggers.agent_governance}`,
       `backend=${result.triggers.backend}`,
       `frontend=${result.triggers.frontend}`,
       `tests=${result.triggers.tests}`,

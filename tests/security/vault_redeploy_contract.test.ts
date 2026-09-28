@@ -11,6 +11,26 @@ test('🔒 Proxmox Secret Architecture: Validación contractual de Vault CE, ESO
   assert.ok(result.valid, `La arquitectura de secretos en Proxmox debe ser 100% coherente: ${result.reasons.join('; ')}`);
 });
 
+test('🔒 ESO Security: manifiestos activos prohíben SecretStore fake y credenciales placeholder', () => {
+  const esoDirectory = path.join(ROOT_DIR, 'infra/k8s/eso');
+  const manifests = fs.readdirSync(esoDirectory)
+    .filter((file) => /\.ya?ml$/i.test(file))
+    .map((file) => ({ file, content: fs.readFileSync(path.join(esoDirectory, file), 'utf-8') }));
+  const forbiddenPlaceholders = [
+    /local-(?:insecure|mock)-[a-z0-9-]+/i,
+    /(?:change-me|mock-ai-api-key|mock-gemini-api-key)/i,
+  ];
+
+  assert.ok(manifests.length > 0, 'Debe existir al menos un manifiesto ESO activo');
+  assert.ok(!fs.existsSync(path.join(esoDirectory, 'fake-local-store.yaml')), 'fake-local-store no debe reintroducirse');
+  for (const { file, content } of manifests) {
+    assert.doesNotMatch(content, /provider:\s*\r?\n\s*fake:/, `${file} no debe usar el proveedor fake de ESO`);
+    for (const placeholder of forbiddenPlaceholders) {
+      assert.doesNotMatch(content, placeholder, `${file} no debe contener credenciales placeholder`);
+    }
+  }
+});
+
 test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore vault-backend y clave pokedex/prod', () => {
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
   const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');

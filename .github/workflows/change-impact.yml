@@ -39,6 +39,7 @@ jobs:
       is_unknown: ${{ steps.impact.outputs.is_unknown }}
       is_global: ${{ steps.impact.outputs.is_global }}
       docs: ${{ steps.impact.outputs.docs }}
+      agent_governance: ${{ steps.impact.outputs.agent_governance }}
       backend: ${{ steps.impact.outputs.backend }}
       frontend: ${{ steps.impact.outputs.frontend }}
       tests: ${{ steps.impact.outputs.tests }}
@@ -107,6 +108,7 @@ jobs:
       needs.detect-impact.outputs.security_dependencies == 'true' ||
       needs.detect-impact.outputs.security_container == 'true' ||
       needs.detect-impact.outputs.docs == 'true' ||
+      needs.detect-impact.outputs.agent_governance == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
     uses: ./.github/workflows/ci.yml
@@ -119,6 +121,7 @@ jobs:
       security_dependencies: ${{ needs.detect-impact.outputs.security_dependencies == 'true' }}
       security_container: ${{ needs.detect-impact.outputs.security_container == 'true' }}
       docs: ${{ needs.detect-impact.outputs.docs == 'true' }}
+      agent_governance: ${{ needs.detect-impact.outputs.agent_governance == 'true' }}
       is_unknown: ${{ needs.detect-impact.outputs.is_unknown == 'true' }}
 
   # =======================================================

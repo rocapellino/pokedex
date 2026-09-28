@@ -55,6 +55,29 @@ test('🎯 Change Impact: Cambio puramente documental activa solo Fast Track de 
   assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
 });
 
+test('🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a aplicación o infraestructura', () => {
+  const result = analyzeChangeImpact({ files: ['.agents/aas/aas-stack.json'], configPath: CONFIG_PATH });
+
+  assert.equal(result.triggers.agent_governance, true);
+  assert.equal(result.triggers.documentation, true);
+  assert.equal(result.triggers.linting, true);
+  assert.equal(result.triggers.backend, false);
+  assert.equal(result.triggers.frontend, false);
+  assert.equal(result.triggers.docker, false);
+  assert.equal(result.triggers.helm, false);
+  assert.equal(result.triggers.kubernetes, false);
+});
+
+test('🤖 Change Impact: validador y tests AAS activan el dominio canónico', () => {
+  const validator = analyzeChangeImpact({ files: ['scripts/aas-governance.ts'], configPath: CONFIG_PATH });
+  const contract = analyzeChangeImpact({ files: ['tests/aas_governance.test.ts'], configPath: CONFIG_PATH });
+
+  assert.equal(validator.triggers.agent_governance, true);
+  assert.equal(validator.triggers.linting, true);
+  assert.equal(contract.triggers.agent_governance, true);
+  assert.equal(contract.triggers.tests, true, 'el test AAS conserva además la regla general de tests');
+});
+
 test('🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker', () => {
   const result = analyzeChangeImpact({
     files: ['apps/backend/src/routes/pokemon.ts'],
@@ -374,6 +397,7 @@ test('🔒 Change Impact Always: los controles se aplican en los 4 caminos de re
 test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos', () => {
   const base = {
     documentation: false,
+    agent_governance: false,
     backend: false,
     frontend: false,
     tests: false,
@@ -421,6 +445,16 @@ test('🎯 CI topology: workflows condicionales delegan la decisión a change-im
     assert.doesNotMatch(content, /pull_request:/, `${workflow} no debe decidir por paths en PR`);
     assert.match(orchestrator, new RegExp(`uses: \\.\\/.github/workflows/${workflow.replace('.', '\\.')}\\b`));
   }
+});
+
+test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', () => {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yml'), 'utf8');
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf8');
+
+  assert.match(orchestrator, /agent_governance:\s*\$\{\{ steps\.impact\.outputs\.agent_governance \}\}/);
+  assert.match(orchestrator, /agent_governance:\s*\$\{\{ needs\.detect-impact\.outputs\.agent_governance == 'true' \}\}/);
+  assert.match(ci, /agent_governance:[\s\S]*?type:\s*boolean/);
+  assert.match(ci, /aas-governance:[\s\S]*?npm run aas:verify[\s\S]*?tests\/aas_governance\.test\.ts/);
 });
 
 test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes de aplicación', () => {

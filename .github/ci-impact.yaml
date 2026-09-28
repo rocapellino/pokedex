@@ -42,6 +42,7 @@ global:
     opentofu: true
     ansible: true
     documentation: true
+    agent_governance: true
     security:
       secrets: true
       sast: true
@@ -52,6 +53,24 @@ global:
 
 # Reglas de impacto condicional por dominio
 rules:
+  agent_governance:
+    description: "Gobernanza del catálogo externo AAS y sus contratos locales"
+    paths:
+      - ".agents/aas/**"
+      - "scripts/aas-governance.ts"
+      - "tests/aas_governance.test.ts"
+    triggers:
+      agent_governance: true
+      linting: true
+      documentation: true
+      security:
+        secrets: true
+        sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
   documentation:
     description: "Modificaciones puramente documentales y políticas de gobernanza"
     paths:
@@ -316,6 +335,7 @@ unknown:
     opentofu: true
     ansible: true
     documentation: true
+    agent_governance: true
     security:
       secrets: true
       sast: true

@@ -42,6 +42,7 @@ flowchart TD
         PUSH --> LIN_BOT["Linear Bot vincula PR y pasa a In Progress"]
         PUSH --> CI_PARALLEL["🎯 change-impact.yml:<br/>Change Impact &amp; Pipeline Orchestrator"]
         CI_PARALLEL --> CI_AUDIT["🔍 ci-core → ci.yml:<br/>Auditoría, Tests, Build, Trivy"]
+        CI_PARALLEL --> CI_AAS["🤖 agent_governance → ci.yml:<br/>Allowlist, manifest y contratos AAS"]
         CI_PARALLEL --> CI_INFRA["⚙️ infra → infra.yml:<br/>Helm, Tofu, Ansible, IaC"]
         PUSH --> CI_GITLEAKS["🔐 security-gitleaks.yml:<br/>Secret Scanning (control always)"]
     end
@@ -136,6 +137,7 @@ flowchart TD
     4. **`unknown`** — ante una ruta no clasificada se aplica política **fail-closed** y se ejecuta Full CI.
   - Pipelines despachados por el orquestador:
     - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
+    - **`agent_governance` → `ci.yml`**: valida la allowlist local, el manifest fijado de AAS y sus contratos sin materializar skills upstream ni activar builds de aplicación o infraestructura.
     - **`infra` → `infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
     - **`web.yml`**, **`mega-linter.yml`** y **`security-code-scanning.yml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yml`.
   - **Required independent controls:** `security-gitleaks.yml` detecta credenciales en **todos** los Pull Requests, incluidos los documentales. Como *Required Status Check*, no declara `paths` ni `paths-ignore` y permanece deliberadamente fuera del orquestador.
