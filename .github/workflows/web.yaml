@@ -70,7 +70,11 @@ jobs:
           node scripts/render-nginx-config.mjs "${RENDERED}"
 
           # El contenedor solo valida la sintaxis de la configuracion ya renderizada.
+          # `--add-host=api:127.0.0.1` es necesario: el template declara
+          # `proxy_pass http://api:...`, y `nginx -t` resuelve los hosts de upstream
+          # en tiempo de validacion. Sin el, falla con "host not found in upstream".
           docker run --rm \
+            --add-host=api:127.0.0.1 \
             -v "${RENDERED}:/etc/nginx/conf.d/default.conf:ro" \
             -v "${{ github.workspace }}/apps/frontend/dist:/usr/share/nginx/html:ro" \
             "${NGINX_IMAGE}" \

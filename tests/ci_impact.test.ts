@@ -542,6 +542,14 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
     /node -e/,
     'web.yaml no debe usar `node -e` inline: bash expande los backticks y ${...}'
   );
+  // El template declara `proxy_pass http://api:3000`, y `nginx -t` resuelve los
+  // hosts de upstream en tiempo de validacion: sin --add-host falla.
+  assert.match(webWf, /proxy_pass/, 'sanity: el template debe usar proxy_pass');
+  assert.match(
+    webWf,
+    /--add-host=api:127\.0\.0\.1/,
+    'web.yaml debe resolver el host `api`, usado por proxy_pass en nginx.conf.template'
+  );
 
   // 4. La documentacion de seguridad debe reflejar la imagen real, no una anterior.
   const securityDoc = fs.readFileSync(
