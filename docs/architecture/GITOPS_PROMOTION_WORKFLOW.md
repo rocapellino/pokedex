@@ -84,11 +84,11 @@ GitOps:  ghcr.io/rocapellino/pokedex-api@sha256:<DIGEST_ESTABLE> (ej. v1.75.10)
 
 Para garantizar que la promoción no dependa exclusivamente de disciplina manual no controlada, el flujo se formaliza en las siguientes etapas:
 
-1. **Generación de Release (`.github/workflows/release-tag.yml`):**
-   - Determina el siguiente tag SemVer (`vX.Y.Z`).
-   - Publica el tag firmado y el GitHub Release antes de iniciar la promoción.
+1. **Cálculo de Versión y Pull Request de Promoción (`.github/workflows/release-tag.yml`, fase `promote`):**
+   - Determina el siguiente tag SemVer (`vX.Y.Z`) mediante un `dry-run` del bump convencional.
    - Sincroniza `package.json` y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
    - Ejecuta `scripts/update-gitops-pin.ts --tag=<new_tag>` para fijar el `targetRevision` de las aplicaciones de ArgoCD.
+   - Abre (o actualiza) la rama `release/promote-vX.Y.Z` con un único PR atómico. **No crea el tag ni el GitHub Release en esta etapa.**
 
 2. **Actualización Declarativa del Digest:**
    - Para actualizar la imagen que ArgoCD despliega, el workflow o el operador actualiza de forma atómica los archivos de values:
@@ -107,5 +107,11 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
    - Las reejecuciones actualizan esa rama con `--force-with-lease` y reutilizan el PR abierto, sin generar duplicados.
    - CI ejecuta los gates de seguridad, validando que el nuevo digest satisfaga la paridad 1:1 entre todos los entornos.
 
-4. **Sincronización en ArgoCD:**
-   - Tras la aprobación y merge del PR, ArgoCD detecta la actualización del `targetRevision` y de los values, desplegando la imagen firmada en el runtime de Kubernetes.
+4. **Tag y GitHub Release (fase `tag`, tras el merge del PR):**
+   - El merge del PR de promoción dispara nuevamente `release-tag.yml`, que detecta la fase `tag` por el mensaje `chore(release): promote`.
+   - Verifica la coherencia 1:1: `package.json` == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps.
+   - Crea el tag SemVer firmado con Gitsign **sobre el commit de promoción** (`GITHUB_SHA`) y publica el GitHub Release con el changelog.
+   - Si el tag ya existe apuntando a otro commit, el workflow falla explícitamente (detección de trazabilidad rota, REL-001).
+
+5. **Sincronización en ArgoCD:**
+   - Tras la aprobación y merge del PR, y una vez creado el tag sobre ese commit, ArgoCD detecta la actualización del `targetRevision` y de los values, desplegando la imagen firmada en el runtime de Kubernetes.

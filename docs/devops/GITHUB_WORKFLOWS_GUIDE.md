@@ -63,7 +63,7 @@ flowchart TD
     end
 
     subgraph SUPPLY_CHAIN ["📦 Supply Chain Security & Release (Solo en main)"]
-        MERGE_MAIN --> BUMP["🏷️ release-tag.yml (SemVer Auto-Bump)"]
+        MERGE_MAIN --> BUMP["🏷️ release-tag.yml<br/>(fase promote: PR de versión)"]
         MERGE_MAIN --> DOCKER_BUILD["🐳 Build Imagen Docker Multi-Stage"]
         DOCKER_BUILD --> SYFT_SBOM["📋 Generar SBOM CycloneDX (Trivy)"]
         DOCKER_BUILD --> COSIGN_SIGN["✍️ Cosign Keyless Signing (Sigstore OIDC)"]
@@ -136,9 +136,11 @@ flowchart TD
 
 - **Archivo:** [`release-tag.yml`](../../.github/workflows/release-tag.yml)
 - **Triggers:** Push directo / merge a `main`.
-- **Pasos:** Analiza commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer, firma y publica el **Git Tag** con Gitsign (Sigstore keyless) y crea el **GitHub Release** con el changelog automático.
-- **Sincronización de versión:** el bump de `package.json` y `infra/helm/pokedex/Chart.yaml` se promueve mediante un **Pull Request** a `main` (`release/bump-<tag>`), porque `main` está protegida por el ruleset `main-protection` y el `GITHUB_TOKEN` no puede escribir directamente en ella.
-- **Promoción GitOps:** el `targetRevision` de los manifiestos ArgoCD también se promueve mediante Pull Request (`gitops/pin-<tag>`).
+- **Pasos (dos fases mutuamente excluyentes):**
+  1. **Fase `promote`:** analiza los commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer en `dry-run` y abre/actualiza el PR atómico `release/promote-<tag>` (sin crear tag).
+  2. **Fase `tag`:** al mergear el PR de promoción, verifica la coherencia 1:1 de la metadata, firma y publica el **Git Tag** con Gitsign (Sigstore keyless) **sobre ese commit** y crea el **GitHub Release** con el changelog automático.
+- **Sincronización de versión:** el bump de `package.json` y `infra/helm/pokedex/Chart.yaml` se promueve mediante un **Pull Request** a `main` (`release/promote-<tag>`), porque `main` está protegida por el ruleset `main-protection` y el `GITHUB_TOKEN` no puede escribir directamente en ella.
+- **Promoción GitOps:** el `targetRevision` de los manifiestos ArgoCD viaja en el **mismo PR atómico** `release/promote-<tag>` (no existe una rama separada `gitops/pin-<tag>`).
 
 ### 3.7. ⚡ `performance-k6.yml` (Pruebas de Carga y Rendimiento)
 

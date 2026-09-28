@@ -1,6 +1,14 @@
-# ==============================================================================
+# =============================================================================
 # Workflow de Versionado Semántico y Creación Automática de Releases / Tags
-# ==============================================================================
+# =============================================================================
+# Orden canónico (REL-001): el tag se crea SOBRE el commit que introduce la
+# versión en main, nunca antes:
+#   main -> próxima versión -> PR de promoción -> merge -> tag vX.Y.Z -> Release
+# El workflow opera en dos fases mutuamente excluyentes:
+#   - "promote": calcula la versión siguiente y abre el PR atómico (sin tag).
+#   - "tag": al mergear el PR de promoción, verifica la coherencia 1:1 y crea
+#     el Git Tag firmado + GitHub Release sobre ese mismo commit.
+# =============================================================================
 name: 🏷️ Automated Semantic Release & Tag
 
 on:
@@ -14,15 +22,26 @@ permissions:
   pull-requests: write
   id-token: write
 
+# Serializa las corridas sobre main para evitar carreras entre la fase de
+# promoción y la creación del tag (REL-001).
+concurrency:
+  group: release-tag-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   auto-tag-and-release:
     name: 🚀 Bump Version & Create GitHub Release
     runs-on: ubuntu-latest
+    # El merge del PR de promoción (mensaje "chore(release): promote ...")
+    # SIEMPRE debe correr: es la fase "tag" que fija el anclaje version -> commit.
+    # Los demás pushes a main corren la fase "promote", salvo marcas de
+    # exclusión ([skip-release], chore(gitops)).
     if: >-
+      github.ref == 'refs/heads/main' && (
       github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'chore(release): promote') ||
       (!contains(github.event.head_commit.message, 'skip-release') &&
-      !contains(github.event.head_commit.message, 'chore(gitops)') &&
-      !contains(github.event.head_commit.message, 'chore(release): promote'))
+      !contains(github.event.head_commit.message, 'chore(gitops)')))
 
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
@@ -30,7 +49,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 2. Determinar Versión Semántica y Generar Changelog
+      - name: 2. Determinar Fase del Release (promote | tag)
+        id: state
+        env:
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          set -euo pipefail
+          CURRENT_VERSION="$(npm pkg get version | tr -d '"\n')"
+          CURRENT_TAG="v${CURRENT_VERSION}"
+
+          TAG_EXISTS=false
+          if git rev-parse -q --verify "refs/tags/${CURRENT_TAG}" >/dev/null 2>&1; then
+            TAG_EXISTS=true
+          fi
+
+          IS_PROMOTE_MERGE=false
+          if [[ "${HEAD_MESSAGE}" == *"chore(release): promote"* ]]; then
+            IS_PROMOTE_MERGE=true
+          fi
+
+          # REL-001: la fase "tag" se activa cuando main ya contiene la versión
+          # (merge del PR de promoción) o cuando el tag aún no se creó (self-heal).
+          PHASE="promote"
+          if [ "${IS_PROMOTE_MERGE}" = "true" ] || [ "${TAG_EXISTS}" = "false" ]; then
+            PHASE="tag"
+          fi
+
+          {
+            echo "phase=${PHASE}"
+            echo "current_tag=${CURRENT_TAG}"
+            echo "tag_exists=${TAG_EXISTS}"
+            echo "is_promote_merge=${IS_PROMOTE_MERGE}"
+          } >> "${GITHUB_OUTPUT}"
+          echo "🔎 Fase=${PHASE} | Tag canónico=${CURRENT_TAG} (existe=${TAG_EXISTS}) | Merge de promoción=${IS_PROMOTE_MERGE}"
+
+      - name: 3. Calcular Próxima Versión y Changelog (dry-run)
         id: tag_version
         uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
@@ -40,45 +93,80 @@ jobs:
           release_branches: "main"
           dry_run: true
 
-      - name: 3. Instalar Gitsign (Keyless Sigstore)
-        if: steps.tag_version.outputs.new_tag
+      - name: 4. Instalar Gitsign (Keyless Sigstore)
+        if: steps.state.outputs.phase == 'tag'
         run: |
           GITSIGN_VERSION="0.17.1"
           curl --proto '=https' -sSfL "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64" -o "$RUNNER_TEMP/gitsign"
           sudo mv "$RUNNER_TEMP/gitsign" /usr/local/bin/gitsign
           sudo chmod +x /usr/local/bin/gitsign
 
-      - name: 4. Firmar y Publicar Git Tag con Gitsign (Keyless Sigstore OIDC)
-        if: steps.tag_version.outputs.new_tag
+      - name: 5. Verificar Coherencia 1:1 y Firmar Git Tag sobre el Commit de Promoción
+        # REL-001: el tag se ancla al commit de main que YA contiene la versión
+        # (package.json == Chart.yaml == targetRevision GitOps), nunca antes.
+        if: steps.state.outputs.phase == 'tag'
         env:
-          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
+          NEW_TAG: ${{ steps.state.outputs.current_tag }}
         run: |
+          set -euo pipefail
+          VERSION="${NEW_TAG#v}"
+
+          PKG_VERSION="$(npm pkg get version | tr -d '"\n')"
+          CHART_VERSION="$(grep -E '^version:' infra/helm/pokedex/Chart.yaml | head -n1 | awk '{print $2}' | tr -d '"')"
+          CHART_APP_VERSION="$(grep -E '^appVersion:' infra/helm/pokedex/Chart.yaml | head -n1 | awk -F'"' '{print $2}')"
+          GITOPS_TAG="$(grep -E 'targetRevision:' gitops/apps/root-application.yaml | head -n1 | awk '{print $2}')"
+
+          if [ "$PKG_VERSION" != "$VERSION" ] || [ "$CHART_VERSION" != "$VERSION" ] || \
+             [ "$CHART_APP_VERSION" != "$VERSION" ] || [ "$GITOPS_TAG" != "$NEW_TAG" ]; then
+            echo "❌ REL-001: la metadata de versión no es coherente 1:1 con ${NEW_TAG}."
+            echo "   package.json=${PKG_VERSION} Chart.version=${CHART_VERSION} Chart.appVersion=${CHART_APP_VERSION} GitOps=${GITOPS_TAG}"
+            exit 1
+          fi
+          node --experimental-strip-types scripts/update-gitops-pin.ts --check
+          echo "✅ Coherencia 1:1 verificada para ${NEW_TAG}; anclando tag a ${GITHUB_SHA}."
+
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local gpg.format x509
           git config --local gpg.x509.program gitsign
-          git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}"
+
+          if git rev-parse -q --verify "refs/tags/${NEW_TAG}" >/dev/null 2>&1; then
+            EXISTING_SHA="$(git rev-list -n1 "${NEW_TAG}")"
+            if [ "${EXISTING_SHA}" != "${GITHUB_SHA}" ]; then
+              echo "❌ REL-001: el tag ${NEW_TAG} ya existe apuntando a ${EXISTING_SHA},"
+              echo "   pero el commit de promoción es ${GITHUB_SHA}. Trazabilidad rota."
+              exit 1
+            fi
+            echo "ℹ️ El tag ${NEW_TAG} ya ancla el commit de promoción; se omite la creación."
+            exit 0
+          fi
+
+          git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}" "${GITHUB_SHA}"
           gitsign verify-tag \
             --certificate-identity-regexp="^https://github\.com/${{ github.repository }}/" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
             "${NEW_TAG}"
           git push origin "${NEW_TAG}"
 
-      - name: 5. Crear Release en GitHub con Changelog Automático
+      - name: 6. Crear Release en GitHub con Changelog Automático
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        if: steps.tag_version.outputs.new_tag
+        if: steps.state.outputs.phase == 'tag'
         with:
-          tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          tag_name: ${{ steps.state.outputs.current_tag }}
+          name: Release ${{ steps.state.outputs.current_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 6. Crear Pull Request Atómico de Release y GitOps
+      - name: 7. Crear Pull Request Atómico de Release y GitOps
         # main está protegida por el ruleset `main-protection`, por lo que la
         # metadata de versión y el pinning GitOps se promueven como una sola unidad.
-        if: steps.tag_version.outputs.new_tag
+        # El tag y el GitHub Release se crean EN LA SIGUIENTE corrida (fase "tag"),
+        # cuando este PR ya fue mergado a main (REL-001).
+        if: >-
+          steps.state.outputs.phase == 'promote' &&
+          steps.tag_version.outputs.new_tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
@@ -107,7 +195,7 @@ jobs:
           BODY=$(cat <<EOF
           ### 🚀 Automated Atomic Release Promotion
 
-          El tag firmado y el GitHub Release **${NEW_TAG}** ya existen. Este Pull Request promueve como una sola unidad la metadata de versión y el \`targetRevision\` de ArgoCD.
+          El tag firmado y el GitHub Release de **${NEW_TAG}** se crearán SOBRE el commit de merge de este Pull Request (tras verificar la coherencia 1:1 de la metadata). Este PR promueve como una sola unidad la metadata de versión y el \`targetRevision\` de ArgoCD.
 
           #### Archivos sincronizados:
           - \`package.json\` (\`version\`)
@@ -118,11 +206,11 @@ jobs:
           - \`gitops/apps/app-cloud.yaml\`
 
           #### Flujo de Gobernanza:
-          1. Release tag **${NEW_TAG}** generado y firmado criptográficamente con Sigstore Gitsign en CI.
-          2. Metadata de release y manifiestos GitOps actualizados atómicamente.
-          3. Requiere revisión y merge manual antes de que ArgoCD sincronice el clúster.
+          1. Metadata de release y manifiestos GitOps actualizados atómicamente en este PR.
+          2. Tras el merge, la fase \`tag\` de \`release-tag.yml\` verifica la coherencia 1:1 y crea el Git Tag **${NEW_TAG}** firmado con Sigstore Gitsign sobre ESTE commit, junto con el GitHub Release.
+          3. ArgoCD solo verá \`targetRevision: ${NEW_TAG}\` resuelto al commit que contiene la versión.
 
-          > Nota: Este commit incluye \`[skip-release]\` para evitar bucles recursivos de release.
+          > Nota: \`[skip-release]\` evita calcular una nueva versión al mergear este PR; el tag de **${NEW_TAG}** lo dispara la fase \`tag\` del propio workflow.
           EOF
           )
           gh pr create \

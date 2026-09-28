@@ -148,6 +148,41 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
     'El workflow no debe usar force push sin lease'
   );
 
+  // REL-001: el tag se crea solo en la fase "tag", sobre el commit de promoción.
+  assert.ok(releaseWf.includes('id: state'), 'Debe existir el paso que determina la fase (promote | tag)');
+  assert.ok(
+    releaseWf.includes("contains(github.event.head_commit.message, 'chore(release): promote')"),
+    'El job debe ejecutarse también en el merge del PR de promoción'
+  );
+  assert.ok(
+    releaseWf.includes("steps.state.outputs.phase == 'tag'"),
+    'La creación de tag y release debe condicionarse a la fase tag'
+  );
+  assert.ok(
+    releaseWf.includes("steps.state.outputs.phase == 'promote'"),
+    'El PR de promoción debe condicionarse a la fase promote'
+  );
+  assert.ok(
+    releaseWf.includes('NEW_TAG: ${{ steps.state.outputs.current_tag }}'),
+    'El tag debe derivarse de package.json (versión ya presente en main), no del dry-run'
+  );
+  assert.ok(
+    !releaseWf.includes('tag_name: ${{ steps.tag_version.outputs.new_tag }}'),
+    'El GitHub Release no debe anclarse al dry-run sino a la versión vigente en main'
+  );
+  assert.ok(
+    releaseWf.includes('git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}" "${GITHUB_SHA}"'),
+    'El tag debe anclarse explícitamente al commit de promoción (GITHUB_SHA)'
+  );
+  assert.ok(
+    releaseWf.includes('concurrency:'),
+    'El workflow debe declarar concurrency para serializar promote y tag'
+  );
+  assert.ok(
+    !releaseWf.includes('if: steps.tag_version.outputs.new_tag\n        env:\n          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}\n        run: |\n          git config --local user.name'),
+    'La creación del tag no debe basarse en steps.tag_version.outputs.new_tag'
+  );
+
   // 2. package.json expone gitops:pin y gitops:pin:check
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   assert.ok(pkgJson.scripts['gitops:pin'], 'package.json debe exponer script gitops:pin');
