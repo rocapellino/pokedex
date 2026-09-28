@@ -233,6 +233,7 @@ rules:
       - 'dr_verify_restore.sh'
       - 'scripts/check-ignore-hygiene.ts'
       - 'scripts/check-yaml-extension.ts'
+      - 'scripts/scan-yml-refs.ts'
       - 'scripts/governance-audit-scripts.ts'
     triggers:
       linting: true

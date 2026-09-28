@@ -185,7 +185,7 @@ La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cual
 
 ```mermaid
 flowchart LR
-    GH_ACTIONS["🤖 GitHub Actions (ci.yml)\nRama main"] -->|1. Genera SBOM CycloneDX| SYFT["📋 Syft"]
+    GH_ACTIONS["🤖 GitHub Actions (ci.yaml)\nRama main"] -->|1. Genera SBOM CycloneDX| SYFT["📋 Syft"]
     GH_ACTIONS -->|2. Firma OIDC Keyless| COSIGN["✍️ Cosign"]
     COSIGN -->|3. Registra transparencia| REKOR["📜 Rekor Public Ledger"]
     COSIGN -->|4. Push Imagen + Firma + SBOM| GHCR["📦 GitHub Container Registry"]
@@ -193,7 +193,7 @@ flowchart LR
     GHCR -->|5. Intento de despliegue Pod| K8S_API["☸️ Kubernetes API Server"]
     K8S_API -->|6. Validación de Admisión| KYVERNO["🛡️ Kyverno Admission Controller\n(ClusterPolicy: Enforce)"]
     KYVERNO -->|7. Consulta firma y ledger| REKOR
-    KYVERNO -->|Firma OIDC legítima de ci.yml@refs/heads/main| ADMIT["✅ Pod Aceptado"]
+    KYVERNO -->|Firma OIDC legítima de ci.yaml@refs/heads/main| ADMIT["✅ Pod Aceptado"]
     KYVERNO -->|Imagen sin firma o workflow ajeno| REJECT["🚫 Pod Rechazado"]
 ```
 

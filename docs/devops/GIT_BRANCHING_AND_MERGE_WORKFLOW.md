@@ -57,7 +57,7 @@ flowchart TD
 
     subgraph RevisionGitHub ["3. GitHub Pull Request & CI/CD"]
         OpenPR["Abrir Pull Request en GitHub"]
-        CIWorkflow["Disparo automático de GitHub Actions<br/>ci.yml / security-gitleaks.yml"]
+        CIWorkflow["Disparo automático de GitHub Actions<br/>ci.yaml / security-gitleaks.yaml"]
         CheckCI{"¿Pasan todos<br/>los checks de CI?"}
         FixLocally["Corregir localmente y hacer git push"]
         ReviewCopilot{"Code Review &<br/>Aprobación"}
@@ -65,7 +65,7 @@ flowchart TD
     end
 
     subgraph PostMerge ["4. Automatización Post-Merge"]
-        AutoTag["release-tag.yml (fase promote)<br/>abre PR release/promote-vX.Y.Z"]
+        AutoTag["release-tag.yaml (fase promote)<br/>abre PR release/promote-vX.Y.Z"]
         LinearClose["Linear cierra ticket automáticamente<br/>(Done / Completed)"]
         SlackDone["Notificación en Slack<br/>(Resolución en tiempo real)"]
         CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d rama"]
@@ -257,9 +257,9 @@ git push -u origin rocapellino/pex-8-nueva-funcionalidad
 ### Paso 7: Validación de CI y Code Review
 
 - **GitHub Actions** ejecutará automáticamente los workflows relevantes:
-  - `ci.yml` (Lint, compilación TypeScript, tests unitarios, pentesting, fuzzing y npm audit).
-  - `security-gitleaks.yml` (Escaneo de secretos).
-  - `security-trivy.yml` (Escaneo de vulnerabilidades).
+  - `ci.yaml` (Lint, compilación TypeScript, tests unitarios, pentesting, fuzzing y npm audit).
+  - `security-gitleaks.yaml` (Escaneo de secretos).
+  - `security-trivy.yaml` (Escaneo de vulnerabilidades).
 - Si algún check falla:
 
   ```bash

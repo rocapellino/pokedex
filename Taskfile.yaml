@@ -513,7 +513,7 @@ tasks:
   k3s:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para aprovisionar K3s y Cilium CNI en Proxmox VE"
     cmds:
-      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yml
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yaml
 
   vault:setup:proxmox:
     desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"

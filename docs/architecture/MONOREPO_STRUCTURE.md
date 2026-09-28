@@ -176,7 +176,7 @@ El gate opera con dos listas:
 ### 4.3. Excepciones Permanentes
 
 - **`.mega-linter.yml`**: nombre de configuración documentado por MegaLinter, pasado explícitamente vía la variable `MEGALINTER_CONFIG` en CI y en `Taskfile`. No se renombra.
-- **Literales de terceros**: referencias a archivos YAML de proyectos externos (por ejemplo, el workflow `release.yml` de `sigstore/gitsign` fijado en el `--certificate-identity` de Gitsign) **no** se renombran. Son claims criptográficos de supply chain y deben permanecer literales.
+- **Literales de terceros**: referencias a archivos YAML de proyectos externos (por ejemplo, el workflow `release.yaml` de `sigstore/gitsign` fijado en el `--certificate-identity` de Gitsign) **no** se renombran. Son claims criptográficos de supply chain y deben permanecer literales.
 
 ### 4.4. Deuda Técnica Vigente y Plan de Drenaje
 
@@ -196,7 +196,7 @@ El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.ya
 ### Identidades de firma actualizadas en la Wave 3
 
 > [!WARNING]
-> Renombrar `ci.yml` a `ci.yaml` cambia la **identidad del workflow firmante** que GitHub publica en los claims OIDC. Las políticas de admisión Kyverno que verifican las firmas Cosign declaraban el `subject` exacto `.../.github/workflows/ci.yml@refs/heads/main`; si no se actualizan en el mismo commit, la verificación de supply chain fallaría en runtime aunque el pipeline fuera verde.
+> Renombrar `ci.yaml` a `ci.yaml` cambia la **identidad del workflow firmante** que GitHub publica en los claims OIDC. Las políticas de admisión Kyverno que verifican las firmas Cosign declaraban el `subject` exacto `.../.github/workflows/ci.yaml@refs/heads/main`; si no se actualizan en el mismo commit, la verificación de supply chain fallaría en runtime aunque el pipeline fuera verde.
 >
 > Archivos actualizados: `infra/k8s/kyverno-cosign-policy.yaml` (Enforce) e `infra/k8s/policies/verify-image-signature.yaml` (Audit).
 >

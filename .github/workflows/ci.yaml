@@ -128,6 +128,9 @@ jobs:
       - name: 4c. YAML Extension Gate (.yaml canónico / .yml heredado)
         run: npm run lint:yaml:strict
 
+      - name: 4d. YAML Reference Integrity Gate (referencias .yml obsoletas)
+        run: npm run lint:docs:refs
+
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 

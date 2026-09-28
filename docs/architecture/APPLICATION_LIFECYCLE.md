@@ -40,11 +40,11 @@ flowchart TD
     subgraph F3["🤖 FASE 3: Integración Continua (CI/CD)"]
         PRECOMMIT --> PUSH["git push & Abrir Pull Request"]
         PUSH --> LIN_BOT["Linear Bot vincula PR y pasa a In Progress"]
-        PUSH --> CI_PARALLEL["🎯 change-impact.yml:<br/>Change Impact &amp; Pipeline Orchestrator"]
-        CI_PARALLEL --> CI_AUDIT["🔍 ci-core → ci.yml:<br/>Auditoría, Tests, Build, Trivy"]
-        CI_PARALLEL --> CI_AAS["🤖 agent_governance → ci.yml:<br/>Allowlist, manifest y contratos AAS"]
-        CI_PARALLEL --> CI_INFRA["⚙️ infra → infra.yml:<br/>Helm, Tofu, Ansible, IaC"]
-        PUSH --> CI_GITLEAKS["🔐 security-gitleaks.yml:<br/>Secret Scanning (control always)"]
+        PUSH --> CI_PARALLEL["🎯 change-impact.yaml:<br/>Change Impact &amp; Pipeline Orchestrator"]
+        CI_PARALLEL --> CI_AUDIT["🔍 ci-core → ci.yaml:<br/>Auditoría, Tests, Build, Trivy"]
+        CI_PARALLEL --> CI_AAS["🤖 agent_governance → ci.yaml:<br/>Allowlist, manifest y contratos AAS"]
+        CI_PARALLEL --> CI_INFRA["⚙️ infra → infra.yaml:<br/>Helm, Tofu, Ansible, IaC"]
+        PUSH --> CI_GITLEAKS["🔐 security-gitleaks.yaml:<br/>Secret Scanning (control always)"]
     end
 
     %% FASE 4: CODE REVIEW & GATE
@@ -60,7 +60,7 @@ flowchart TD
         REVIEW --> MERGE["Merge Pull Request a 'main'"]
         MERGE --> LIN_DONE["Linear Bot pasa Ticket a 'Done'"]
         LIN_DONE -. "Broadcast resolución" .-> SLACK_DONE["💬 Actualización en Slack"]
-        MERGE --> AUTO_TAG["🏷️ release-tag.yml (fase promote: PR de promoción)"]
+        MERGE --> AUTO_TAG["🏷️ release-tag.yaml (fase promote: PR de promoción)"]
         AUTO_TAG --> PROMOTE_MERGE["🔀 Merge del PR release/promote-vX.Y.Z"]
         PROMOTE_MERGE --> TAG["🏷️ Fase tag: Git Tag (v1.x.x) + GitHub Release<br/>sobre el commit de promoción"]
         MERGE --> DOCKER_BUILD["🐳 Compilación Imagen OCI Multi-Stage"]
@@ -84,7 +84,7 @@ flowchart TD
     subgraph F7["🔄 FASE 7: Renovate Bot & Dependencias"]
         PROXMOX_K8S & CLOUD_EKS --> RENOVATE_SCAN["Renovate Bot: Escaneo Multi-Manager"]
         RENOVATE_SCAN -->|Detecta Updates| RENO_PR["Abre PR Agrupado con Auto-Merge"]
-        RENO_PR --> RENO_SYNC["📌 renovate-linear-sync.yml"]
+        RENO_PR --> RENO_SYNC["📌 renovate-linear-sync.yaml"]
         RENO_SYNC --> LIN_NEW["Linear crea ticket correlativo (PEX-X)"]
         LIN_NEW --> F1
     end
@@ -130,25 +130,25 @@ flowchart TD
 
 - Al realizar `git push` y abrir un Pull Request:
   - El bot de Linear vincula el PR al ticket y actualiza el estado a **In Progress** / **In Review**.
-  - `change-impact.yml` actúa como **orquestador central**: evalúa los archivos modificados contra el contrato `.github/ci-impact.yaml` y decide qué pipelines se ejecutan, mediante un DAG dinámico con gates condicionales.
+  - `change-impact.yaml` actúa como **orquestador central**: evalúa los archivos modificados contra el contrato `.github/ci-impact.yaml` y decide qué pipelines se ejecutan, mediante un DAG dinámico con gates condicionales.
   - El análisis opera en cuatro niveles, evaluados en orden:
     1. **`always`** — controles no negociables en todo PR: gobernanza de PR y escaneo de secretos.
     2. **`global`** — archivos transversales (`package.json`, `tsconfig.json`, `.github/workflows/**`, etc.) disparan validación integral.
     3. **`rules`** — dominios concretos (backend, frontend, Helm, OpenTofu, Ansible, Docker, tests, documentación) disparan únicamente los Quality Gates afectados.
     4. **`unknown`** — ante una ruta no clasificada se aplica política **fail-closed** y se ejecuta Full CI.
   - Pipelines despachados por el orquestador:
-    - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, SonarQube Cloud con cobertura LCOV, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
-    - **`agent_governance` → `ci.yml`**: valida la allowlist local, el manifest fijado de AAS y sus contratos sin materializar skills upstream ni activar builds de aplicación o infraestructura.
-    - **`infra` → `infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
-    - **`web.yml`**, **`mega-linter.yml`** y **`security-code-scanning.yml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yml`.
-  - **Required independent controls:** `security-gitleaks.yml` detecta credenciales en **todos** los Pull Requests, incluidos los documentales. Como *Required Status Check*, no declara `paths` ni `paths-ignore` y permanece deliberadamente fuera del orquestador.
-  - **Scheduled/manual controls:** `security-trivy.yml` ejecuta análisis periódico o manual del filesystem y de imágenes base de infraestructura. El escaneo Trivy de imágenes de aplicación pertenece únicamente a `ci.yml`, reutilizando la imagen construida por el pipeline.
+    - **`ci-core` → `ci.yaml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, SonarQube Cloud con cobertura LCOV, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
+    - **`agent_governance` → `ci.yaml`**: valida la allowlist local, el manifest fijado de AAS y sus contratos sin materializar skills upstream ni activar builds de aplicación o infraestructura.
+    - **`infra` → `infra.yaml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
+    - **`web.yaml`**, **`mega-linter.yaml`** y **`security-code-scanning.yaml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yaml`.
+  - **Required independent controls:** `security-gitleaks.yaml` detecta credenciales en **todos** los Pull Requests, incluidos los documentales. Como *Required Status Check*, no declara `paths` ni `paths-ignore` y permanece deliberadamente fuera del orquestador.
+  - **Scheduled/manual controls:** `security-trivy.yaml` ejecuta análisis periódico o manual del filesystem y de imágenes base de infraestructura. El escaneo Trivy de imágenes de aplicación pertenece únicamente a `ci.yaml`, reutilizando la imagen construida por el pipeline.
 
 ### Fase 4: Revisión de Código y Quality Gate (GitHub Rulesets)
 
 - Las reglas de protección de rama (`main-protection`) bloquean el merge directo:
   - Exigen que todos los checks obligatorios de CI estén en verde (✅).
-  - Los contexts obligatorios deben coincidir **exactamente** con el nombre que reporta GitHub Actions. Como `ci.yml` es un *reusable workflow* invocado por `change-impact.yml`, sus checks se reportan con el prefijo del job invocador: `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` (y análogamente `⚙️ Infra CI / …` para los jobs de `infra.yml`).
+  - Los contexts obligatorios deben coincidir **exactamente** con el nombre que reporta GitHub Actions. Como `ci.yaml` es un *reusable workflow* invocado por `change-impact.yaml`, sus checks se reportan con el prefijo del job invocador: `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` (y análogamente `⚙️ Infra CI / …` para los jobs de `infra.yaml`).
   - Exigen que todas las conversaciones de revisión de código estén resueltas.
   - Bloquean `git push --force` y eliminaciones accidentales de `main`.
   - No hay bypass para el `GITHUB_TOKEN`: ningún workflow puede escribir directamente en `main`, por lo que toda promoción (bump de versión, pinning GitOps) se hace mediante Pull Request.
@@ -157,9 +157,9 @@ flowchart TD
 
 - Al fusionar el PR en `main`:
   - El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
-  - El workflow **`release-tag.yml`** (fase **promote**) analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`), calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`) y promueve, mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`, la metadata de `package.json` y `infra/helm/pokedex/Chart.yaml` junto con el `targetRevision` de las aplicaciones ArgoCD.
+  - El workflow **`release-tag.yaml`** (fase **promote**) analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`), calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`) y promueve, mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`, la metadata de `package.json` y `infra/helm/pokedex/Chart.yaml` junto con el `targetRevision` de las aplicaciones ArgoCD.
   - Al mergear ese PR de promoción, el mismo workflow ejecuta la fase **tag**: verifica la coherencia 1:1 (`package.json` == `package-lock.json` == `Chart.yaml` == GitOps; gate contractual en `tests/version_consistency.test.ts`), crea el **Git Tag** firmado con Gitsign **sobre ese commit de promoción** y publica el **GitHub Release** oficial. El tag nunca se crea antes de que `main` contenga la versión (garantía de trazabilidad versión → commit → Chart → GitOps).
-  - El workflow **`ci.yml`** ejecuta el proceso de **Supply Chain Security**:
+  - El workflow **`ci.yaml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
     2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.
     3. Emplea **Cosign** en modo **Keyless** a través del proveedor OIDC de GitHub Actions para firmar criptográficamente la imagen del contenedor.
@@ -180,6 +180,6 @@ flowchart TD
 
 - **Renovate Bot** (`renovate.json`) audita continuamente dependencias multi-gestor (`npm`, `dockerfile`, `helm-values`, `github-actions`, `opentofu`).
 - Agrupa parches de seguridad en PRs y aplica **automerge** automático una vez superados los Quality Gates.
-- Los workflows de automatización ([`renovate-linear-sync.yml`](../../.github/workflows/renovate-linear-sync.yaml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yaml)) gestionan el ciclo completo del ticket en Linear:
+- Los workflows de automatización ([`renovate-linear-sync.yaml`](../../.github/workflows/renovate-linear-sync.yaml) y [`sonar-linear-sync.yaml`](../../.github/workflows/sonar-linear-sync.yaml)) gestionan el ciclo completo del ticket en Linear:
   - Al detectarse una alerta o PR de dependencias, se genera un ticket incremental (`PEX-X`) que notifica instantáneamente al canal de **Slack**.
   - Al mergearse o cerrarse el PR en GitHub, el ticket se transiciona a **Done** o **Canceled**, actualizando automáticamente el hilo en Slack y manteniendo el backlog y el canal limpios sin intervención manual.

@@ -99,6 +99,46 @@ test('📐 Extension Governance: las skills no citan workflows con la extensión
   assert.deepEqual(offenders, [], `Las skills no deben citar workflows renombrados: ${offenders.join('; ')}`);
 });
 
+test('📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .yml obsoletas', () => {
+  // Contrato fail-closed: la documentacion no debe citar archivos .yml propios
+  // que ya no existen en disco. Sin este gate, una wave de migracion puede
+  // renombrar archivos y dejar la documentacion apuntando a rutas muertas.
+  const stdout = execSync('npx tsx scripts/scan-yml-refs.ts', {
+    cwd: ROOT_DIR,
+    encoding: 'utf-8'
+  });
+
+  const match = stdout.match(/RESUMEN: obsoletas=(\d+)/);
+  assert.ok(match, 'El scanner debe emitir el resumen de referencias obsoletas');
+  assert.equal(
+    match[1],
+    '0',
+    `La documentacion no debe citar archivos .yml obsoletas:\n${stdout.slice(0, 2000)}`
+  );
+});
+
+test('📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones', () => {
+  const scriptPath = path.join(ROOT_DIR, 'scripts/scan-yml-refs.ts');
+  assert.ok(fs.existsSync(scriptPath), 'scripts/scan-yml-refs.ts debe existir');
+
+  const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
+  assert.ok(pkgJson.scripts['lint:docs:refs'], 'package.json debe registrar lint:docs:refs');
+  assert.ok(pkgJson.scripts['lint:docs:refs:fix'], 'package.json debe registrar lint:docs:refs:fix');
+
+  const ciContent = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
+  assert.match(
+    ciContent,
+    /npm run lint:docs:refs/,
+    'ci.yaml debe invocar el gate de integridad de referencias YAML'
+  );
+
+  // Las excepciones deben seguir declaradas explicitamente, no borradas en silencio.
+  const scanner = fs.readFileSync(scriptPath, 'utf-8');
+  assert.match(scanner, /\.mega-linter\\\.yml/, 'El scanner debe declarar la excepcion .mega-linter.yml');
+  assert.match(scanner, /\.travis\\\.yml/, 'El scanner debe declarar la excepcion .travis.yml');
+  assert.match(scanner, /sigstore/, 'El scanner debe declarar la excepcion del literal upstream de Gitsign');
+});
+
 test('🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore', () => {
   const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const ciContent = fs.readFileSync(ciWorkflowPath, 'utf-8');

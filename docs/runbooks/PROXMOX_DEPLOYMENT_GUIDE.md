@@ -253,11 +253,11 @@ Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquea
 
 ### Opción A (Recomendada): Provisión Declarativa con Ansible Playbook
 
-El proceso está totalmente automatizado y es idempotente mediante el playbook [`infra/ansible/playbooks/setup_k3s.yml`](../../infra/ansible/playbooks/setup_k3s.yml):
+El proceso está totalmente automatizado y es idempotente mediante el playbook [`infra/ansible/playbooks/setup_k3s.yaml`](../../infra/ansible/playbooks/setup_k3s.yaml):
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento desatendido de K3s + Cilium CNI:
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yaml
 
 # O canónicamente vía Taskfile:
 task k3s:setup:proxmox

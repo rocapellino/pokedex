@@ -20,7 +20,7 @@ Se adopta una estrategia de seguridad de cadena de suministro estructurada en ci
    - Se prohíbe de forma taxativa el uso de etiquetas mutables (`:latest`) en manifiestos de producción y charts de Helm, validado automáticamente por políticas de admisión Kyverno (`disallow-latest-tag`) y gates de CI.
 
 2. **Inventario de Dependencias Mandatorio (CycloneDX SBOM)**:
-   - Generación automatizada de un Software Bill of Materials (SBOM) en formato estándar CycloneDX mediante escaneo con Trivy en el pipeline de CI (`ci.yml`).
+   - Generación automatizada de un Software Bill of Materials (SBOM) en formato estándar CycloneDX mediante escaneo con Trivy en el pipeline de CI (`ci.yaml`).
    - El SBOM es auditado como un artefacto obligatorio (*fail-closed*): la ausencia o corrupción del archivo detiene inmediatamente el pipeline antes de la fase de publicación.
 
 3. **Firma Criptográfica Keyless (Sigstore Cosign & GitHub OIDC)**:

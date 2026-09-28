@@ -20,7 +20,7 @@ infra/
 │       └── aws/             # Provisión de clúster EKS gestionado en AWS
 ├── ansible/                 # Playbooks de automatización y hardening
 │   ├── inventories/         # Inventarios por entorno (Proxmox VE y Lab en YAML estructurado)
-│   └── playbooks/           # Configuración de nodos (host_baseline.yml), seguridad UFW y despliegue
+│   └── playbooks/           # Configuración de nodos (host_baseline.yaml), seguridad UFW y despliegue
 └── k8s/                     # Manifiestos canónicos de plataforma (ESO, políticas Kyverno)
     ├── eso/                 # External Secrets Operator y ClusterSecretStores (AWS & Vault)
     └── policies/            # Políticas de seguridad de pods y firmas de imágenes
@@ -51,7 +51,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 ### 3. Automatización con Ansible (`infra/ansible/`)
 
 - Hardening de seguridad con cortafuegos UFW y configuración SSH.
-- Preparación de nodos Kubernetes (instalación de runtime, módulos `overlay`/`br_netfilter`, sysctl y desactivación de Swap vía `host_baseline.yml`).
+- Preparación de nodos Kubernetes (instalación de runtime, módulos `overlay`/`br_netfilter`, sysctl y desactivación de Swap vía `host_baseline.yaml`).
 
 ---
 

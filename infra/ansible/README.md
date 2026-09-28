@@ -52,9 +52,9 @@ infra/ansible/
 │   └── lab/
 │       └── hosts.yaml        # Inventario para entorno de laboratorio y pruebas
 └── playbooks/
-    ├── host_baseline.yml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
+    ├── host_baseline.yaml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
     ├── security_hardening.yaml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
-    └── setup_nodes.yml        # Preparación de nodos para clúster Kubernetes
+    └── setup_nodes.yaml        # Preparación de nodos para clúster Kubernetes
 ```
 
 ---

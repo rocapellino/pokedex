@@ -23,6 +23,8 @@
     "lint:ignore:fix": "tsx scripts/check-ignore-hygiene.ts --fix",
     "lint:yaml": "tsx scripts/check-yaml-extension.ts",
     "lint:yaml:strict": "tsx scripts/check-yaml-extension.ts --strict",
+    "lint:docs:refs": "tsx scripts/scan-yml-refs.ts",
+    "lint:docs:refs:fix": "tsx scripts/scan-yml-refs.ts --fix",
     "lint": "npm run lint --workspace=@pokedex/backend && npm run lint --workspace=@pokedex/frontend && npm run typecheck",
     "validate": "npm run lint && npm run lint:ignore && npm run lint:yaml && npm run build && npm test && npm run test:fuzz",
     "test": "tsx --test \"tests/**/!(*fuzzing*).test.ts\"",
