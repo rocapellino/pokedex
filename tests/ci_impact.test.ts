@@ -506,15 +506,10 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
     0,
     'sonar-linear-sync.yml solo debe consumir resultados, no ejecutar otro scanner'
   );
-  assert.match(
-    sonarProperties,
-    /^sonar\.region=us$/m,
-    'SonarQube Cloud debe usar la región us admitida por el scanner actual'
-  );
   assert.doesNotMatch(
     sonarProperties,
-    /^sonar\.region=eu$/m,
-    'La región eu obsoleta no debe reintroducirse'
+    /^sonar\.region=/m,
+    'La instancia europea de SonarQube Cloud debe usar la región predeterminada sin sonar.region'
   );
 });
 
