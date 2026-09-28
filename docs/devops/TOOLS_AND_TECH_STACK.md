@@ -39,7 +39,7 @@ flowchart LR
         TS["🟦 TypeScript 7.x\nNode.js 22 LTS"]
         ESBUILD["⚡ esbuild"]
         TASK["⚙️ Taskfile\n(go-task)"]
-        TESTS["🧪 Node Test Runner\n(63 Tests + 7 Fuzz Tests)"]
+        TESTS["🧪 Node Test Runner\n(300 Tests + 7 Fuzz Tests)"]
     end
 
     subgraph SECURE_BUILD["3. Build & Supply Chain"]
@@ -102,8 +102,8 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **TypeScript + Vite / HTML5 / CSS3** | `Vite 6 / TS 7` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
-| **Nginx** | `1.27 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
+| **TypeScript + Vite / HTML5 / CSS3** | `Vite 8 / TS 7` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
+| **Nginx** | `1.31 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
 
 ### 2.3. Persistencia, Caché & Connection Pooling
 
@@ -123,7 +123,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 63 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
+| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 300 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
 | **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
 | **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
