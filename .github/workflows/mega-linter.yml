@@ -3,6 +3,10 @@
 # Hardened con imagen liviana Cupcake y análisis diferencial en PRs
 # https://megalinter.io/latest/
 # ==============================================================================
+# NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
+# `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
+# los reusables calculaban el mismo grupo y se cancelaban entre si. La
+# serializacion por PR ya la aplica `change-impact.yml` a nivel de workflow.
 name: ⚡ MegaLinter - Quality & Syntax Linters
 
 on:
@@ -11,10 +15,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
-  cancel-in-progress: true
 
 jobs:
   megalinter:

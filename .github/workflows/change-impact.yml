@@ -140,6 +140,8 @@ jobs:
       needs.detect-impact.outputs.security_iac == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
+    permissions:
+      contents: read
     uses: ./.github/workflows/infra.yml
     with:
       helm: ${{ needs.detect-impact.outputs.helm == 'true' }}
