@@ -1,8 +1,8 @@
-# Referencia Oficial del CLI Canónico con Taskfile (`Taskfile.yml`)
+# Referencia Oficial del CLI Canónico con Taskfile (`Taskfile.yaml`)
 
 ## 1. Principio Rector: `task --list` como Interfaz Oficialmente Soportada
 
-Conforme a las decisiones arquitectónicas [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md), el proyecto consolida **`Taskfile.yml`** como el único orquestador canónico de operaciones, compilación, pruebas, infraestructura y entrega continua.
+Conforme a las decisiones arquitectónicas [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md), el proyecto consolida **`Taskfile.yaml`** como el único orquestador canónico de operaciones, compilación, pruebas, infraestructura y entrega continua.
 
 La interfaz oficialmente soportada para el descubrimiento dinámico, documentación contextual e inspección de tareas disponibles es:
 
@@ -92,7 +92,7 @@ flowchart LR
 
 ### Fase 2: Medir Uso y Telemetría Informativa
 
-- Cada alias en `Taskfile.yml` incorpora una directiva informativa visible en consola:
+- Cada alias en `Taskfile.yaml` incorpora una directiva informativa visible en consola:
 
   ```bash
   ⚠️  [DEPRECADO] 'task <alias>' es un alias de compatibilidad. Use 'task <canónico>'.
@@ -102,12 +102,12 @@ flowchart LR
 
 ### Fase 3: Deprecación Formal
 
-- Las descripciones de las tareas en `Taskfile.yml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
+- Las descripciones de las tareas en `Taskfile.yaml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
 - Se mantiene 100% la funcionalidad subyacente para no bloquear pipelines existentes durante todo el ciclo de versiones `v1.x`.
 
 ### Fase 4: Eliminación Definitiva (v2.0)
 
-- En el hito de lanzamiento mayor `v2.0`, tras verificar la ausencia de llamadas en pipelines de integración continua y scripts de automatización, los bloques de alias serán retirados permanentemente de `Taskfile.yml`.
+- En el hito de lanzamiento mayor `v2.0`, tras verificar la ausencia de llamadas en pipelines de integración continua y scripts de automatización, los bloques de alias serán retirados permanentemente de `Taskfile.yaml`.
 
 ---
 

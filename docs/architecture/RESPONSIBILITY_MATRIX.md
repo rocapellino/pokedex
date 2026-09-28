@@ -104,7 +104,7 @@ En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-g
 
 ---
 
-## 5. Racionalización de Taskfile (`Taskfile.yml`)
+## 5. Racionalización de Taskfile (`Taskfile.yaml`)
 
 El Taskfile centraliza la experiencia de desarrollo (DX). Para evitar comandos muertos, las tareas se clasifican en dos niveles:
 

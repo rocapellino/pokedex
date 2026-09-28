@@ -16,7 +16,7 @@ Este documento define la autoridad formal de información en `rocapellino/pokede
 | **Decisiones de Arquitectura** | Architectural Decision Records | `docs/decisions/ADR-*.md` (estrictamente ADRs con estado *Aceptado*) | `docs/architecture/` |
 | **Procedimientos Operativos** | Runbooks Oficiales | `docs/runbooks/*.md`, `docs/operations/*.md` | Scripts en `scripts/` |
 | **Estrategia y SLAs de DR** | Contratos de DR & Manifests | `docs/decisions/ADR-006-*.md`, `docs/runbooks/DISASTER_RECOVERY_PLAN.md`, `infra/helm/pokedex/templates/backup-*.yaml` | Dashboards de monitoreo |
-| **Integración Continua (CI/CD)** | Workflows de GitHub Actions | `.github/workflows/*.yml`, `Taskfile.yml` | Guías de desarrollo |
+| **Integración Continua (CI/CD)** | Workflows de GitHub Actions | `.github/workflows/*.yml`, `Taskfile.yaml` | Guías de desarrollo |
 | **Estado en Tiempo Real** | Evidencia de Runtime Observada | Telemetría en vivo, `kubectl get`, API de ArgoCD (si no hay acceso: `UNKNOWN`) | Métricas históricas |
 | **Convención de Extensión YAML** | Política de Nomenclatura de Config | `.yaml` es la extensión canónica; `.yml` prohibida para archivos nuevos. Gate: `scripts/check-yaml-extension.ts` | `docs/architecture/MONOREPO_STRUCTURE.md` (§4) |
 

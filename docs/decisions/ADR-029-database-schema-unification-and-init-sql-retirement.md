@@ -53,4 +53,4 @@ En consecuencia, se adoptan las siguientes acciones:
 ### Negativas / Mitigaciones
 
 - **Arranque en Frío de PostgreSQL Aislado:** Si un desarrollador levanta exclusivamente el contenedor de base de datos (`docker compose up postgres`) sin ejecutar el backend, la base de datos estará vacía hasta que inicie el backend o ejecute explícitamente `npm run db:migrate`.
-  - *Mitigación:* Se documenta en los runbooks y en `Taskfile.yml` que el comando de desarrollo estándar es `task dev` (o `npm run dev`), el cual orquesta los servicios de forma armónica.
+  - *Mitigación:* Se documenta en los runbooks y en `Taskfile.yaml` que el comando de desarrollo estándar es `task dev` (o `npm run dev`), el cual orquesta los servicios de forma armónica.

@@ -30,7 +30,7 @@ La evaluación documental no puede limitarse a analizar la sintaxis de archivos 
 | **IaC y Plataforma** | `infra/opentofu/`, `infra/ansible/` | Recursos de OpenTofu, playbooks de Ansible y roles declarados deben corresponder a archivos reales en disco. |
 | **Helm Packaging** | `infra/helm/pokedex/` | Las plantillas, parámetros de `values.yaml` y la metadata de `Chart.yaml` deben alinearse con las guías de despliegue. |
 | **GitOps Delivery** | `gitops/apps/`, `gitops/environments/` | El estado de promoción (`targetRevision`), rutas de valores y Clusters deben reflejarse fidedignamente. |
-| **Superficie CLI** | `Taskfile.yml`, `package.json` | Los comandos y tareas documentadas para operadores y desarrolladores deben ser ejecutables en el sistema. |
+| **Superficie CLI** | `Taskfile.yaml`, `package.json` | Los comandos y tareas documentadas para operadores y desarrolladores deben ser ejecutables en el sistema. |
 | **Skills de Agentes** | `.agents/skills/` | Las reglas de gobernanza, nombres de skills y matrices de impacto deben mantener coherencia terminológica. |
 
 ---

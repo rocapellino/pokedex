@@ -91,7 +91,7 @@ pokedex/
 ├── package.json                  # Manifiesto, dependencias y scripts de ejecución
 ├── package-lock.json             # Lockfile determinista de npm
 ├── tsconfig.json                 # Configuración del compilador TypeScript en modo estricto
-├── Taskfile.yml                  # Automatización de tareas de desarrollo y operaciones (go-task)
+├── Taskfile.yaml                  # Automatización de tareas de desarrollo y operaciones (go-task)
 ├── renovate.json                 # Renovate Bot: multi-gestor con cooldown de 7 días y auto-merge de parches npm
 ├── SECURITY.md                   # Política de seguridad y divulgación responsable de vulnerabilidades
 ├── SECURITY_RUNBOOK.md           # Guías de respuesta ante incidentes y rotación criptográfica de claves
@@ -180,19 +180,20 @@ El gate opera con dos listas:
 
 ### 4.4. Deuda Técnica Vigente y Plan de Drenaje
 
-El repositorio mantiene **18 archivos `.yml` heredados** frente a 85 archivos `.yaml` tras la Wave 1. La migración se ejecuta por **waves** para no romper los contratos de CI. Cada wave debe actualizar las referencias, los asserts de `tests/` y drenar la allowlist en el mismo commit.
+El repositorio mantiene **17 archivos `.yml` heredados** frente a 86 archivos `.yaml` tras la Wave 2. La migración se ejecuta por **waves** para no romper los contratos de CI. Cada wave debe actualizar las referencias, los asserts de `tests/` y drenar la allowlist en el mismo commit.
 
 | Wave | Alcance | Estado | Riesgo principal |
 | --- | --- | --- | --- |
 | 0 | Gobernanza (gate, tests, contrato de impacto) | Completada (PR #352) | Nulo |
-| 1 | `infra/ansible/**`, `infra/monitoring/alerts.yaml`, `docker-compose*.yaml` | Completada | Globs y flags `-f` explícitos en `Taskfile` y `.vscode/tasks.json` |
-| 2 | `Taskfile.yml` | Pendiente | Numerosas referencias documentales |
+| 1 | `infra/ansible/**`, `infra/monitoring/alerts.yaml`, `docker-compose*.yaml` | Completada (PR #354) | Globs y flags `-f` explícitos en `Taskfile` y `.vscode/tasks.json` |
+| 2 | `Taskfile.yaml` | Completada | Numerosas referencias documentales |
 | 3 | `.github/workflows/**` | Pendiente | Rutas `uses:` de reusable workflows, required status checks y badges |
 
 > [!WARNING]
 > **Riesgo fail-open latente (resuelto en la Wave 1):** el job *Ansible Syntax Check* de `.github/workflows/infra.yml` valida los playbooks mediante el glob `infra/ansible/playbooks/*.yml`. Si los playbooks se renombraran sin actualizar ese glob, el gate iteraría cero veces y **pasaría por vacuidad**, degradando un control fail-closed. El glob se actualizó a `*.yaml` en el mismo commit que el renombrado.
 >
 > `infra/ansible/playbooks/host_baseline.yaml` importa otro playbook mediante `import_playbook: security_hardening.yaml` (ruta relativa sin prefijo), lo que obliga a renombrar **de forma consistente** el playbook importado.
+> **Resolución de nombre en la Wave 2:** `go-task` busca `Taskfile.yml`, `taskfile.yml`, `Taskfile.yaml` y `taskfile.yaml`, en ese orden de prioridad. El renombrado a `Taskfile.yaml` es soportado nativamente y no requiere flags adicionales. La variante `.dist` no se usa en este repositorio, por lo que no hay ambigüedad de resolución.
 
 ### 4.5. Beneficio para la Seguridad
 
