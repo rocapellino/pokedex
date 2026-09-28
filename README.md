@@ -5,7 +5,7 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 [![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=rocapellino_pokedex&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rocapellino_pokedex)
 [![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-24+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/)
@@ -81,7 +81,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 
 | Capa | Tecnología | Rol Técnico |
 | :--- | :--- | :--- |
-| **Runtime & Lenguaje** | Node.js 22 LTS / TypeScript 5.x | Servidor de API, lógica de negocio y tipado estático |
+| **Runtime & Lenguaje** | Node.js 22 LTS / TypeScript 7.x | Servidor de API, lógica de negocio y tipado estático |
 | **Frontend** | HTML5, CSS Moderno, TypeScript, Vite | Interfaz reactiva, Bento Grid y Backoffice administrativo |
 | **Base de Datos** | PostgreSQL 16 + Redis 7 | Persistencia ACID relacional + JSONB y caché distribuida |
 | **Tooling & Build** | esbuild, Taskfile, npm workspaces | Compilación ultrarrápida y orquestación de tareas |
@@ -91,7 +91,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 
 ## 5. Requisitos Previos
 
-- [Node.js](https://nodejs.org/) 22 LTS y npm 10+
+- [Node.js](https://nodejs.org/) 22 LTS y npm 11.17.x
 - [Docker](https://www.docker.com/) 24+ y Docker Compose v2
 - [Task](https://taskfile.dev/) (opcional, para ejecución simplificada de comandos)
 
