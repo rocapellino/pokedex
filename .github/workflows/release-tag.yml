@@ -18,9 +18,13 @@ on:
   workflow_dispatch:
     inputs:
       gitsign_refresh:
-        description: "Imprime el bloque env: con los digests correctos de Gitsign y sale sin firmar (SEC-001)"
+        description: "Modo mantenimiento: imprime el bloque env: con los digests correctos de Gitsign. NO firma tags ni abre PRs (SEC-001)"
         type: boolean
         default: false
+      gitsign_version:
+        description: "Versión a resolver en modo refresco. Opcional; si se omite usa la fijada en el workflow"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -103,7 +107,7 @@ jobs:
         # verificarse antes de ejecutarse. Cosign es el verificador de referencia
         # de Sigstore y ya es parte de la cadena de confianza de este repositorio
         # (mismo pin por SHA que usa `ci.yml` para firmar la imagen OCI).
-        if: steps.state.outputs.phase == 'tag'
+        if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: 5. Verificar e Instalar Gitsign (Keyless Sigstore)
@@ -115,7 +119,11 @@ jobs:
         #   2. Integridad: digest SHA-256 fijado en este repositorio y contrastado
         #      contra el manifiesto `checksums.txt` publicado por Sigstore.
         # El binario nunca se instala ni se ejecuta si cualquiera de los dos falla.
-        if: steps.state.outputs.phase == 'tag'
+        # El paso corre en la fase "tag" (verificación + instalación) y también
+        # en modo mantenimiento (gitsign_refresh), que es independiente de la
+        # fase: de otro modo el refresco sería inalcanzable cuando el tag de la
+        # versión actual ya existe (PHASE=promote).
+        if: steps.state.outputs.phase == 'tag' || inputs.gitsign_refresh == true
         env:
           GITSIGN_VERSION: "0.17.1"
           # Anclas de confianza fijadas en el repositorio. Deben refrescarse
@@ -126,9 +134,22 @@ jobs:
           GITSIGN_BUNDLE_SHA256: "6daa8356035524a1da8cca425f2b4e29bb8ca8d74d9a304bcd73a631ab165657"
           GITSIGN_CHECKSUMS_SHA256: "90678e6266a0ccf64da33dea621ac7678be5bc384ee989aa8a29d58ece7a27ce"
           GITSIGN_REFRESH: ${{ inputs.gitsign_refresh && 'true' || 'false' }}
+          # Permite previsualizar los digests de otra versión sin tocar el repo.
+          GITSIGN_TARGET_VERSION: ${{ inputs.gitsign_version }}
+          # Sin este token la consulta a la API iría sin autenticar y quedaría
+          # sujeta al rate limit de IPs compartidas de los runners, lo que
+          # bloquearía el release por un motivo ajeno a la seguridad.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
+          # En modo refresco se puede apuntar a otra versión sin tocar el repo.
+          TARGET_VERSION="${GITSIGN_TARGET_VERSION:-${GITSIGN_VERSION}}"
+          if ! [[ "${TARGET_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ SEC-001: versión inválida '${TARGET_VERSION}' (se espera X.Y.Z)" >&2
+            exit 1
+          fi
+          BIN_NAME="gitsign_${TARGET_VERSION}_linux_amd64"
           # 0. Self-check de coherencia versión <-> digests (SEC-001).
           #    Consulta la API de GitHub y compara los digests publicados para
           #    GITSIGN_VERSION con los fijados en este workflow. Detecta el error
@@ -144,43 +165,45 @@ jobs:
             fi
             curl --proto '=https' --tlsv1.2 -sSfL \
               -H 'Accept: application/vnd.github+json' \
-              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              -H 'X-GitHub-Api-Version: '2022-11-28' \
               -H 'User-Agent: pokedex-release-tag' \
               "${auth_header[@]}" \
-              "https://api.github.com/repos/sigstore/gitsign/releases/tags/v${GITSIGN_VERSION}"
+              "https://api.github.com/repos/sigstore/gitsign/releases/tags/v${TARGET_VERSION}"
           }
-          BIN_NAME="gitsign_${GITSIGN_VERSION}_linux_amd64"
-          ASSETS_JSON="$(release_assets_json)" || {
-            echo "❌ SEC-001: no se pudo consultar el release v${GITSIGN_VERSION} de Sigstore" >&2
+          if ! ASSETS_JSON="$(release_assets_json)"; then
+            echo "❌ SEC-001: no se pudo consultar el release v${TARGET_VERSION} en la API de GitHub." >&2
+            echo "   Causa probable: rate limit o release inexistente." >&2
+            echo "   Es un fallo de disponibilidad, NO una discrepancia de digests." >&2
             exit 1
-          }
+          fi
 
           remote_digest() {
             echo "${ASSETS_JSON}" \
               | jq -r --arg n "$1" '.assets[]? | select(.name == $n) | (.digest // "") | sub("^sha256:"; "")' \
               | head -n1
           }
-          PINNED_BIN="$(remote_digest "${BIN_NAME}")"
-          PINNED_BUNDLE="$(remote_digest "${BIN_NAME}.bundle")"
-          PINNED_CHECKSUMS="$(remote_digest "checksums.txt")"
+          REMOTE_BIN="$(remote_digest "${BIN_NAME}")"
+          REMOTE_BUNDLE="$(remote_digest "${BIN_NAME}.bundle")"
+          REMOTE_CHECKSUMS="$(remote_digest "checksums.txt")"
 
           if [ "${GITSIGN_REFRESH:-false}" = "true" ]; then
-            echo "# Digests publicados por GitHub para Gitsign v${GITSIGN_VERSION}"
-            echo "          GITSIGN_VERSION: \"${GITSIGN_VERSION}\""
-            echo "          GITSIGN_SHA256: \"${PINNED_BIN}\""
-            echo "          GITSIGN_BUNDLE_SHA256: \"${PINNED_BUNDLE}\""
-            echo "          GITSIGN_CHECKSUMS_SHA256: \"${PINNED_CHECKSUMS}\""
+            echo "# Digests publicados por GitHub para Gitsign v${TARGET_VERSION}"
+            echo "          GITSIGN_VERSION: \"${TARGET_VERSION}\""
+            echo "          GITSIGN_SHA256: \"${REMOTE_BIN}\""
+            echo "          GITSIGN_BUNDLE_SHA256: \"${REMOTE_BUNDLE}\""
+            echo "          GITSIGN_CHECKSUMS_SHA256: \"${REMOTE_CHECKSUMS}\""
+            echo "# Modo mantenimiento: no se firmó ningún tag ni se abrió ningún PR."
             exit 0
           fi
 
           MISMATCH=0
           for pair in \
-            "GITSIGN_SHA256:${GITSIGN_SHA256}:${PINNED_BIN}" \
-            "GITSIGN_BUNDLE_SHA256:${GITSIGN_BUNDLE_SHA256}:${PINNED_BUNDLE}" \
-            "GITSIGN_CHECKSUMS_SHA256:${GITSIGN_CHECKSUMS_SHA256}:${PINNED_CHECKSUMS}"; do
+            "GITSIGN_SHA256:${GITSIGN_SHA256}:${REMOTE_BIN}" \
+            "GITSIGN_BUNDLE_SHA256:${GITSIGN_BUNDLE_SHA256}:${REMOTE_BUNDLE}" \
+            "GITSIGN_CHECKSUMS_SHA256:${GITSIGN_CHECKSUMS_SHA256}:${REMOTE_CHECKSUMS}"; do
             VAR="${pair%%:*}"; REST="${pair#*:}"; FIXED="${REST%%:*}"; REMOTE="${REST#*:}"
             if [ -z "${REMOTE}" ]; then
-              echo "❌ SEC-001: el release v${GITSIGN_VERSION} no publica el asset de ${VAR}" >&2
+              echo "❌ SEC-001: el release v${TARGET_VERSION} no publica el asset de ${VAR}" >&2
               MISMATCH=1
             elif [ "${FIXED}" != "${REMOTE}" ]; then
               echo "❌ SEC-001: ${VAR} fijado (${FIXED}) != publicado por Sigstore (${REMOTE})" >&2
@@ -188,15 +211,14 @@ jobs:
             fi
           done
           if [ "${MISMATCH}" != "0" ]; then
-            echo "   Los digests fijados deben corresponder a Gitsign v${GITSIGN_VERSION}." >&2
-            echo "   Para regenerarlos, reejecutá este workflow con GITSIGN_REFRESH=true" >&2
+            echo "   Los digests fijados deben corresponder a Gitsign v${TARGET_VERSION}." >&2
+            echo "   Para regenerarlos, reejecutá este workflow con gitsign_refresh=true" >&2
             echo "   y pegá el bloque impreso en el env: de este paso." >&2
             exit 1
           fi
-          echo "✅ Coherencia versión ↔ digests verificada para Gitsign v${GITSIGN_VERSION}"
+          echo "✅ Coherencia versión ↔ digests verificada para Gitsign v${TARGET_VERSION}"
 
           BASE_URL="https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}"
-          BIN_NAME="gitsign_${GITSIGN_VERSION}_linux_amd64"
           STAGE="${RUNNER_TEMP}/gitsign-verify"
           mkdir -p "${STAGE}"
 
@@ -248,7 +270,10 @@ jobs:
       - name: 6. Verificar Coherencia 1:1 y Firmar Git Tag sobre el Commit de Promoción
         # REL-001: el tag se ancla al commit de main que YA contiene la versión
         # (package.json == Chart.yaml == targetRevision GitOps), nunca antes.
-        if: steps.state.outputs.phase == 'tag'
+        # `!inputs.gitsign_refresh` es obligatorio: en modo mantenimiento el paso
+        # anterior imprime los digests y termina, pero sin este guard los pasos
+        # siguientes firmarían un tag real y abrirían un PR de promoción.
+        if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
         env:
           NEW_TAG: ${{ steps.state.outputs.current_tag }}
         run: |
@@ -296,7 +321,7 @@ jobs:
 
       - name: 7. Crear Release en GitHub con Changelog Automático
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        if: steps.state.outputs.phase == 'tag'
+        if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
         with:
           tag_name: ${{ steps.state.outputs.current_tag }}
           name: Release ${{ steps.state.outputs.current_tag }}
@@ -312,6 +337,7 @@ jobs:
         # cuando este PR ya fue mergado a main (REL-001).
         if: >-
           steps.state.outputs.phase == 'promote' &&
+          !inputs.gitsign_refresh &&
           steps.tag_version.outputs.new_tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
