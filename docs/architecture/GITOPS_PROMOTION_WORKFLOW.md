@@ -27,9 +27,9 @@ Atestación SBOM CycloneDX + SLSA L3
      ▼
 Flujo de Promoción GitOps (Automático o por PR)
      ↓
-Actualización atómica de:
-  • targetRevision en gitops/apps/*.yaml
-  • api.image.digest en gitops/environments/*/values.yaml
+Actualización declarativa:
+  • PR atómico de release: package.json + Chart.yaml + targetRevision
+  • Promoción de imagen: api.image.digest en gitops/environments/*/values.yaml
      ↓
 Pull Request de Promoción GitOps
      ↓
@@ -86,7 +86,8 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
 
 1. **Generación de Release (`.github/workflows/release-tag.yml`):**
    - Determina el siguiente tag SemVer (`vX.Y.Z`).
-   - Crea el release formal en GitHub con su changelog correspondiente.
+   - Publica el tag firmado y el GitHub Release antes de iniciar la promoción.
+   - Sincroniza `package.json` y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
    - Ejecuta `scripts/update-gitops-pin.ts --tag=<new_tag>` para fijar el `targetRevision` de las aplicaciones de ArgoCD.
 
 2. **Actualización Declarativa del Digest:**
@@ -102,7 +103,8 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
      ```
 
 3. **Pull Request de Promoción:**
-   - La rama `gitops/pin-vX.Y.Z` abre un PR contra `main`.
+   - La rama bot `release/promote-vX.Y.Z` abre un único PR contra `main` con metadata de release y manifiestos GitOps.
+   - Las reejecuciones actualizan esa rama con `--force-with-lease` y reutilizan el PR abierto, sin generar duplicados.
    - CI ejecuta los gates de seguridad, validando que el nuevo digest satisfaga la paridad 1:1 entre todos los entornos.
 
 4. **Sincronización en ArgoCD:**
