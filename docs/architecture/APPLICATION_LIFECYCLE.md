@@ -136,7 +136,7 @@ flowchart TD
     3. **`rules`** — dominios concretos (backend, frontend, Helm, OpenTofu, Ansible, Docker, tests, documentación) disparan únicamente los Quality Gates afectados.
     4. **`unknown`** — ante una ruta no clasificada se aplica política **fail-closed** y se ejecuta Full CI.
   - Pipelines despachados por el orquestador:
-    - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
+    - **`ci-core` → `ci.yml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, SonarQube Cloud con cobertura LCOV, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
     - **`agent_governance` → `ci.yml`**: valida la allowlist local, el manifest fijado de AAS y sus contratos sin materializar skills upstream ni activar builds de aplicación o infraestructura.
     - **`infra` → `infra.yml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
     - **`web.yml`**, **`mega-linter.yml`** y **`security-code-scanning.yml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yml`.
