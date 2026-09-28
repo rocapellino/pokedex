@@ -9,6 +9,7 @@ Este documento detalla la estructura de directorios, convención de organizació
 1. [Filosofía de Diseño del Monorepo](#1-filosofía-de-diseño-del-monorepo)
 2. [Árbol de Directorios Detallado](#2-árbol-de-directorios-detallado)
 3. [Descripción por Módulos y Dominios](#3-descripción-por-módulos-y-dominios)
+4. [Convención de Extensión YAML](#4-convención-de-extensión-yaml)
 
 ---
 
@@ -141,3 +142,56 @@ pokedex/
 
 - **Helm 3 Chart (`infra/helm/pokedex`)**: Despliegue altamente parametrizado con políticas NetworkPolicy Zero-Trust (Anti-SSRF, PgBouncer enforced isolation), soporte para External Secrets Operator, HPA v2 y PodDisruptionBudgets.
 - **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise y AWS EKS en la nube).
+
+---
+
+## 4. Convención de Extensión YAML
+
+### 4.1. Regla Normativa
+
+> **La extensión canónica y obligatoria para todo archivo YAML del monorepo es `.yaml`.**
+> La extensión `.yml` está **prohibida para archivos nuevos**.
+
+Esta regla aplica a todo el repositorio sin excepción: manifests de Kubernetes, values de Helm, definiciones de ArgoCD, workflows de GitHub Actions, configuraciones de herramientas, playbooks de Ansible e inventories.
+
+### 4.2. Enforcement Automático
+
+La convención no es una recomendación documental: es un **Quality Gate fail-closed** ejecutado por `scripts/check-yaml-extension.ts`.
+
+| Elemento | Valor |
+| --- | --- |
+| Script del gate | `scripts/check-yaml-extension.ts` |
+| Comando local (estándar) | `npm run lint:yaml` |
+| Modo estricto (CI) | `npm run lint:yaml:strict` |
+| Integración en `validate` | `npm run validate` |
+| Paso de CI | `.github/workflows/ci.yml`, job *Auditoría de Calidad y Complejidad* |
+| Contrato de impacto | `.github/ci-impact.yaml`, regla `linting` |
+| Suite de pruebas | `tests/security/yaml_extension_governance.test.ts` |
+
+El gate opera con dos listas:
+
+- **Deuda tolerada** (`LEGACY_YML_ALLOWLIST`): inventario de archivos `.yml` pre-existentes que aún no se migraron. Cualquier archivo `.yml` **fuera** de esta lista es una violación y bloquea el pipeline.
+- **Detección de obsolescencia**: en modo estricto, una entrada del allowlist cuyo archivo ya fue renombrado a `.yaml` también falla. Esto obliga a **drenar la allowlist en el mismo commit** que migra los archivos, garantizando que el inventario nunca quede desincronizado.
+
+### 4.3. Excepciones Permanentes
+
+- **`.mega-linter.yml`**: nombre de configuración documentado por MegaLinter, pasado explícitamente vía la variable `MEGALINTER_CONFIG` en CI y en `Taskfile`. No se renombra.
+- **Literales de terceros**: referencias a archivos YAML de proyectos externos (por ejemplo, el workflow `release.yml` de `sigstore/gitsign` fijado en el `--certificate-identity` de Gitsign) **no** se renombran. Son claims criptográficos de supply chain y deben permanecer literales.
+
+### 4.4. Deuda Técnica Vigente y Plan de Drenaje
+
+El repositorio mantiene 41 archivos `.yml` heredados frente a 62 archivos `.yaml`. La migración se ejecuta por **waves** para no romper los contratos de CI. Cada wave debe actualizar las referencias, los asserts de `tests/` y drenar la allowlist en el mismo commit.
+
+| Wave | Alcance | Riesgo principal |
+| --- | --- | --- |
+| 0 | Gobernanza (este documento, gate, tests) | Nulo |
+| 1 | `infra/ansible/**`, `infra/monitoring/alerts.yml`, `docker-compose*.yml` | Globs y flags `-f` explícitos en `Taskfile` y `.vscode/tasks.json` |
+| 2 | `Taskfile.yml` | Numerosas referencias documentales |
+| 3 | `.github/workflows/**` | Rutas `uses:` de reusable workflows, required status checks y badges |
+
+> [!WARNING]
+> **Riesgo fail-open en la Wave 1:** `.github/workflows/infra.yml` valida los playbooks mediante el glob `infra/ansible/playbooks/*.yml`. Si los playbooks se renombran sin actualizar ese glob, el gate de `--syntax-check` itera cero veces y **pasa por vacuidad**, degradando un control fail-closed.
+
+### 4.5. Beneficio para la Seguridad
+
+La unificación no es cosmética. Mientras coexistan ambas extensiones, los globs de CI y las allowlists de Gitleaks deben recurrir a regex ambiguas del tipo `\.ya?ml`, que admiten rutas no previstas. Con una extensión única es posible usar **coincidencia exacta de ruta**, reduciendo la superficie ambigua de los controles de secrets scanning.

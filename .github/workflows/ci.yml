@@ -125,6 +125,9 @@ jobs:
       - name: 4b. Auditoría de Configuration Hygiene (*.ignore)
         run: npm run lint:ignore:strict
 
+      - name: 4c. YAML Extension Gate (.yaml canónico / .yml heredado)
+        run: npm run lint:yaml:strict
+
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 
