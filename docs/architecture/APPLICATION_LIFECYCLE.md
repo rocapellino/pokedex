@@ -60,8 +60,9 @@ flowchart TD
         REVIEW --> MERGE["Merge Pull Request a 'main'"]
         MERGE --> LIN_DONE["Linear Bot pasa Ticket a 'Done'"]
         LIN_DONE -. "Broadcast resolución" .-> SLACK_DONE["💬 Actualización en Slack"]
-        MERGE --> AUTO_TAG["🏷️ release-tag.yml (SemVer Auto-Bump)"]
-        AUTO_TAG --> TAG["Crea Git Tag (v1.x.x) + GitHub Release"]
+        MERGE --> AUTO_TAG["🏷️ release-tag.yml (fase promote: PR de promoción)"]
+        AUTO_TAG --> PROMOTE_MERGE["🔀 Merge del PR release/promote-vX.Y.Z"]
+        PROMOTE_MERGE --> TAG["🏷️ Fase tag: Git Tag (v1.x.x) + GitHub Release<br/>sobre el commit de promoción"]
         MERGE --> DOCKER_BUILD["🐳 Compilación Imagen OCI Multi-Stage"]
         DOCKER_BUILD --> SBOM_GEN["📋 Generación SBOM CycloneDX (Syft)"]
         SBOM_GEN --> COSIGN_SIGN["✍️ Cosign Keyless Signing (Sigstore OIDC)\nRegistrado en Rekor"]
@@ -156,8 +157,8 @@ flowchart TD
 
 - Al fusionar el PR en `main`:
   - El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
-  - El workflow **`release-tag.yml`** analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`) y calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`), creando el **Git Tag** firmado con Gitsign y el **GitHub Release** oficial.
-  - La metadata de `package.json` y `infra/helm/pokedex/Chart.yaml`, junto con el `targetRevision` de las aplicaciones ArgoCD, se promueve mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`. El tag y el GitHub Release ya existen antes de abrir esta unidad atómica de promoción.
+  - El workflow **`release-tag.yml`** (fase **promote**) analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`), calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`) y promueve, mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`, la metadata de `package.json` y `infra/helm/pokedex/Chart.yaml` junto con el `targetRevision` de las aplicaciones ArgoCD.
+  - Al mergear ese PR de promoción, el mismo workflow ejecuta la fase **tag**: verifica la coherencia 1:1 (`package.json` == `Chart.yaml` == GitOps), crea el **Git Tag** firmado con Gitsign **sobre ese commit de promoción** y publica el **GitHub Release** oficial. El tag nunca se crea antes de que `main` contenga la versión (garantía de trazabilidad versión → commit → Chart → GitOps).
   - El workflow **`ci.yml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
     2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.

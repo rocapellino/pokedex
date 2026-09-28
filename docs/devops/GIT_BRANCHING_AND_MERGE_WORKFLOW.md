@@ -65,7 +65,7 @@ flowchart TD
     end
 
     subgraph PostMerge ["4. Automatización Post-Merge"]
-        AutoTag["release-tag.yml genera Tag SemVer<br/>v1.2.0 y GitHub Release"]
+        AutoTag["release-tag.yml (fase promote)<br/>abre PR release/promote-vX.Y.Z"]
         LinearClose["Linear cierra ticket automáticamente<br/>(Done / Completed)"]
         SlackDone["Notificación en Slack<br/>(Resolución en tiempo real)"]
         CleanLocal["Limpieza local:<br/>git checkout main && git pull<br/>git branch -d rama"]
