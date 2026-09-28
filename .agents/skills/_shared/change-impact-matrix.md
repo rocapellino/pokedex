@@ -20,7 +20,7 @@ Este documento define el radio de impacto esperado y la cascada de dependencias 
 | **Secretos / Credenciales** | HashiCorp Vault (`setup_vault.yml`); ExternalSecrets (`ClusterSecretStore`); Secret paths (`pokedex/prod`, `pokedex/preprod`); Values de entorno; Runbook de rotación | No almacenar secretos en Git. Verificar mapeo en Vault, sincronización de ESO y necesidad de `rollout restart` ante ausencia de Reloader. |
 | **Backup & Disaster Recovery** | Manifiestos de backup (`backup-cronjob.yaml`, `backup-gdrive-cronjob.yaml`); Persistencia (PVC / HostPath); Runbooks de DR (`DISASTER_RECOVERY_PLAN.md`); E2E DR Drill (`dr:drill:e2e`) | Validar cifrado AES-256, checksum SHA-256, exclusiones de red (Cilium FQDN) y scripts de verificación de restore. |
 | **Políticas de Red (NetworkPolicies / Cilium)** | Conectividad Egress L7 FQDN; Bloqueo Anti-SSRF (IMDS / RFC1918); Test de seguridad (`tests/security/egress_anti_ssrf.test.ts`); Sonda activa (`probe:security:egress`) | Toda modificación en destinos externos (ej. APIs de Google) requiere actualizar tanto la lista FQDN de Cilium como la regla de salida en standard NetworkPolicy. |
-| **Workflows de CI/CD (`.github/workflows/`)** | Permisos OIDC de menor privilegio; Tareas en `Taskfile.yml`; Scripts de validación en `scripts/`; Quality Gates | Evitar redundancia entre jobs; garantizar que todo script invocado en CI cuente con validación equivalente local en Taskfile. |
+| **Workflows de CI/CD (`.github/workflows/`)** | Permisos OIDC de menor privilegio; Tareas en `Taskfile.yaml`; Scripts de validación en `scripts/`; Quality Gates | Evitar redundancia entre jobs; garantizar que todo script invocado en CI cuente con validación equivalente local en Taskfile. |
 
 ---
 

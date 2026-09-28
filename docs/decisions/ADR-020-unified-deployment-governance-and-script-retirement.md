@@ -20,9 +20,9 @@ Aunque los scripts legados de Compose y Proxmox fueron retirados en fases anteri
 
 Se adopta una **Gobernanza Unificada de Despliegue y Operaciones** sustentada en tres pilares arquitectónicos:
 
-### 1. Interfaz Canónica de Operaciones (`Taskfile.yml`)
+### 1. Interfaz Canónica de Operaciones (`Taskfile.yaml`)
 
-`Taskfile.yml` se consolida como la única interfaz de línea de comandos (CLI) oficial para desarrolladores y operadores:
+`Taskfile.yaml` se consolida como la única interfaz de línea de comandos (CLI) oficial para desarrolladores y operadores:
 
 - Tareas de aplicación: `task build`, `task lint`, `task typecheck`, `task test`, `task validate` (integradas con Turborepo según ADR-019).
 - Tareas de infraestructura: `task k8s:up`, `task k8s:down`, `task k8s:status` (mediadas por Helm 3).

@@ -16,7 +16,7 @@ Ejecutar controles periódicos de salud técnica (*health checks*), evaluar regr
 - **Higiene y Limpieza del Repositorio:**
   - **Archivos y Código Huérfano:** Localizar archivos, componentes y utilidades no referenciadas en el monorepo.
   - **Gobernanza Sistemática de Scripts y Tooling (ADR-020):**
-    - **Demarcación de Runtime:** El monorepo prohíbe scripts `.sh` no autorizados (restringidos estrictamente a `scripts/dr_verify_restore.sh`). Toda automatización auxiliar debe escribirse en TypeScript fuertemente tipado (`scripts/*.ts`) o exponerse en la CLI canónica (`Taskfile.yml`).
+    - **Demarcación de Runtime:** El monorepo prohíbe scripts `.sh` no autorizados (restringidos estrictamente a `scripts/dr_verify_restore.sh`). Toda automatización auxiliar debe escribirse en TypeScript fuertemente tipado (`scripts/*.ts`) o exponerse en la CLI canónica (`Taskfile.yaml`).
     - **Protocolo de Gobernanza en 7 Fases:** Ningún script se elimina o modifica sin atravesar el ciclo:
       `1. DISCOVER` (inventario) → `2. CLASSIFY` (taxonomía) → `3. EVIDENCE` (matriz de consumidores cruzados) → `4. PROPOSE` (plan / ADR) → `5. APPROVE` (revisión humana) → `6. EXECUTE` (refactor / eliminación) → `7. VALIDATE` (Quality Gates 100% PASS).
     - **Taxonomía de Estados:**
@@ -28,7 +28,7 @@ Ejecutar controles periódicos de salud técnica (*health checks*), evaluar regr
       - `DELETE`: Sin consumidores directos ni indirectos, o asociado a tecnología retirada.
       - `MOVE`: Ubicación errónea fuera de su contexto de paquete o dominio.
       - `REVIEW`: Requiere arbitraje de arquitectura o validación operativa.
-    - **Matriz de Consumidores Cruzados:** Todo análisis debe evaluar dependencias en `package.json`, `Taskfile.yml`, `.github/workflows/**`, `Dockerfile*`, `docker-compose*`, `infra/**`, `gitops/**`, `tests/**`, `docs/**` y `.agents/skills/**`.
+    - **Matriz de Consumidores Cruzados:** Todo análisis debe evaluar dependencias en `package.json`, `Taskfile.yaml`, `.github/workflows/**`, `Dockerfile*`, `docker-compose*`, `infra/**`, `gitops/**`, `tests/**`, `docs/**` y `.agents/skills/**`.
   - **Higiene de Archivos de Ignorado (`.*ignore`):** Contrastar `.gitignore`, `.dockerignore`, `.helmignore`, etc., contra la estructura real para evitar fuga de artefactos o secretos.
   - **Configuraciones Heredadas / Sustituidas:** Archivos residuales de migraciones pasadas o configs duplicadas entre Compose y K8s/Helm.
   - *(Nota: Para dependencias npm huérfanas, delegar formalmente en `repo-dependencies unused`)*.

@@ -109,7 +109,7 @@ Para cada archivo detectado, se ejecutan sistemáticamente diez comprobaciones:
    - Workflows de GitHub Actions (`.github/workflows/*.yml`)
    - [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml)
    - [`.gitleaks.toml`](../../../.gitleaks.toml)
-   - `Taskfile.yml`
+   - `Taskfile.yaml`
    - Manifiestos de Kubernetes y Helm (`infra/helm/`)
    - Suites de pruebas (`tests/`)
    - Scripts operativos (`scripts/`)

@@ -8,7 +8,7 @@
 
 - **Código de Aplicación (`apps/`):**
 - **Infraestructura & Orquestación (`infra/`, `gitops/`):**
-- **Automatización & CI/CD (`.github/`, `scripts/`, `Taskfile.yml`):**
+- **Automatización & CI/CD (`.github/`, `scripts/`, `Taskfile.yaml`):**
 - **Suites de Pruebas (`tests/`):**
 - **Documentación & ADRs (`docs/`):**
 

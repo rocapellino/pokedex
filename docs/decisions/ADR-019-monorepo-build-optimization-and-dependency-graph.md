@@ -37,7 +37,7 @@ Se alinean los scripts de ciclo de vida en `apps/backend/package.json` y `apps/f
 
 ### 3. Sinergia con Taskfile y Aislamiento de Caché
 
-- Se amplía `Taskfile.yml` con tareas especializadas: `task turbo:build`, `task turbo:lint`, `task turbo:typecheck` y `task turbo:clean`.
+- Se amplía `Taskfile.yaml` con tareas especializadas: `task turbo:build`, `task turbo:lint`, `task turbo:typecheck` y `task turbo:clean`.
 - Se incorpora `.turbo/` en `.gitignore` para impedir que la caché local de hashes y logs sea versionada accidentalmente.
 
 ## Consecuencias

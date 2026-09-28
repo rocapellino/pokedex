@@ -541,7 +541,7 @@ test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de buil
   const turboJsonPath = path.join(ROOT_DIR, 'turbo.json');
   const gitignorePath = path.join(ROOT_DIR, '.gitignore');
   const packageJsonPath = path.join(ROOT_DIR, 'package.json');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
 
@@ -573,11 +573,11 @@ test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de buil
   assert.ok(packageJson.packageManager?.startsWith('npm@'), 'package.json debe declarar packageManager para Turborepo');
   assert.ok(packageJson.scripts?.['build:turbo'], 'package.json debe incluir script build:turbo');
 
-  // 5. Taskfile.yml define tareas turbo
+  // 5. Taskfile.yaml define tareas turbo
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
-  assert.ok(taskfileContent.includes('turbo:build:'), 'Taskfile.yml debe exponer tarea turbo:build');
-  assert.ok(taskfileContent.includes('turbo:lint:'), 'Taskfile.yml debe exponer tarea turbo:lint');
-  assert.ok(taskfileContent.includes('turbo:typecheck:'), 'Taskfile.yml debe exponer tarea turbo:typecheck');
+  assert.ok(taskfileContent.includes('turbo:build:'), 'Taskfile.yaml debe exponer tarea turbo:build');
+  assert.ok(taskfileContent.includes('turbo:lint:'), 'Taskfile.yaml debe exponer tarea turbo:lint');
+  assert.ok(taskfileContent.includes('turbo:typecheck:'), 'Taskfile.yaml debe exponer tarea turbo:typecheck');
 
   // 6. README.md y docs/README.md enlazan ADR-019
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
@@ -597,7 +597,7 @@ test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de buil
 
 test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const packageJsonPath = path.join(ROOT_DIR, 'package.json');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
@@ -607,7 +607,7 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   assert.ok(fs.existsSync(adrPath), 'ADR-020 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-020 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('Taskfile.yml'), 'ADR-020 debe documentar Taskfile.yml como interfaz canónica');
+  assert.ok(adrContent.includes('Taskfile.yaml'), 'ADR-020 debe documentar Taskfile.yaml como interfaz canónica');
   assert.ok(adrContent.includes('dr_verify_restore.sh'), 'ADR-020 debe inventariar dr_verify_restore.sh');
   assert.ok(adrContent.includes('governance:audit-scripts'), 'ADR-020 debe documentar governance:audit-scripts');
 
@@ -649,12 +649,12 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
     );
   }
 
-  // 4. Taskfile.yml expone tareas canónicas de ciclo de vida y gobernanza
+  // 4. Taskfile.yaml expone tareas canónicas de ciclo de vida y gobernanza
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
-  assert.ok(taskfileContent.includes('governance:audit-scripts:'), 'Taskfile.yml debe definir governance:audit-scripts');
-  assert.ok(taskfileContent.includes('k8s:up:'), 'Taskfile.yml debe definir k8s:up');
-  assert.ok(taskfileContent.includes('gitops:sync:cloud:'), 'Taskfile.yml debe definir gitops:sync:cloud');
-  assert.ok(taskfileContent.includes('gitops:sync:proxmox:'), 'Taskfile.yml debe definir gitops:sync:proxmox');
+  assert.ok(taskfileContent.includes('governance:audit-scripts:'), 'Taskfile.yaml debe definir governance:audit-scripts');
+  assert.ok(taskfileContent.includes('k8s:up:'), 'Taskfile.yaml debe definir k8s:up');
+  assert.ok(taskfileContent.includes('gitops:sync:cloud:'), 'Taskfile.yaml debe definir gitops:sync:cloud');
+  assert.ok(taskfileContent.includes('gitops:sync:proxmox:'), 'Taskfile.yaml debe definir gitops:sync:proxmox');
 
   // 5. package.json incluye script de auditoría
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));

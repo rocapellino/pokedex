@@ -66,7 +66,7 @@ infra/helm/
 
 ## 4. Comandos con Taskfile (Recomendado)
 
-El proyecto incluye tareas automatizadas en `Taskfile.yml` que encapsulan la ejecución de Helm a través de contenedores Docker aislados:
+El proyecto incluye tareas automatizadas en `Taskfile.yaml` que encapsulan la ejecución de Helm a través de contenedores Docker aislados:
 
 ```bash
 # Validar sintaxis y reglas del Chart
