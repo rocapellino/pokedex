@@ -48,6 +48,10 @@ on:
         description: "Modo Fail-Closed: ejecutar Full CI"
         type: boolean
         default: false
+    secrets:
+      SONAR_TOKEN:
+        description: "Token de análisis del proyecto en SonarQube Cloud"
+        required: true
   workflow_dispatch:
 
 # Permiso mínimo global por defecto (solo lectura)
@@ -132,6 +136,46 @@ jobs:
 
       - name: 8. Auditoría de Vulnerabilidades de Dependencias (SCA)
         run: npm audit --audit-level=high --omit=dev
+
+  sonarcloud:
+    name: "📊 SonarQube Cloud (Coverage & Quality Gate)"
+    if: |
+      inputs.backend ||
+      inputs.frontend ||
+      inputs.tests ||
+      inputs.security_sast ||
+      inputs.is_unknown ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: 1. Descargar Código Fuente con Historial Completo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Generar Cobertura LCOV
+        run: npm run test:coverage
+
+      - name: 5. Validar Credencial de SonarQube Cloud
+        run: test -n "$SONAR_TOKEN" || { echo "❌ SONAR_TOKEN no está configurado"; exit 1; }
+
+      - name: 6. Analizar Calidad, Cobertura y Deuda Técnica
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   semgrep:
     name: "🔍 Semgrep (SAST)"

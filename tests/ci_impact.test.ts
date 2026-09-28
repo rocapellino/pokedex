@@ -467,6 +467,43 @@ test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes 
   assert.match(scheduledTrivy, /infra-images-scan:/);
 });
 
+test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real', () => {
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const orchestrator = fs.readFileSync(
+    path.join(ROOT_DIR, '.github/workflows/change-impact.yml'),
+    'utf-8'
+  );
+  const sync = fs.readFileSync(
+    path.join(ROOT_DIR, '.github/workflows/sonar-linear-sync.yml'),
+    'utf-8'
+  );
+
+  assert.equal(
+    ci.match(/SonarSource\/sonarqube-scan-action@/g)?.length,
+    1,
+    'ci.yml debe contener exactamente un scanner SonarQube Cloud'
+  );
+  assert.match(
+    ci,
+    /SonarSource\/sonarqube-scan-action@[a-f0-9]{40} # v\d+\.\d+\.\d+/,
+    'La acción Sonar debe estar fijada por SHA completo con versión documentada'
+  );
+  assert.ok(ci.includes('run: npm run test:coverage'), 'Sonar debe recibir cobertura LCOV actualizada');
+  assert.ok(
+    ci.includes('test -n "$SONAR_TOKEN"'),
+    'El análisis debe fallar cerrado cuando SONAR_TOKEN no está disponible'
+  );
+  assert.ok(
+    orchestrator.includes('SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}'),
+    'change-impact.yml debe propagar SONAR_TOKEN al reusable workflow'
+  );
+  assert.equal(
+    sync.match(/SonarSource\/sonarqube-scan-action@/g)?.length ?? 0,
+    0,
+    'sonar-linear-sync.yml solo debe consumir resultados, no ejecutar otro scanner'
+  );
+});
+
 test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros', () => {
   const gitleaks = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yml'), 'utf8');
   assert.match(gitleaks, /pull_request:/);
