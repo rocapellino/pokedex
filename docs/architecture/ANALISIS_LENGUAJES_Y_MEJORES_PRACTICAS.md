@@ -26,9 +26,9 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 | Capa / Dominio | Tecnología Seleccionada | Versión / Especificación | Propósito Principal |
 | :--- | :--- | :--- | :--- |
 | **Runtime & Servidor** | Node.js (con soporte Bun) | 22 LTS | Servidor HTTP unificado, API REST y servicios auxiliares |
-| **Lenguaje Core** | TypeScript | 5.x (NodeNext / ES2022) | Seguridad de tipos estática extremo a extremo |
+| **Lenguaje Core** | TypeScript | 7.x (NodeNext / ES2022) | Seguridad de tipos estática extremo a extremo |
 | **Framework HTTP** | Express | 4.x | Ruteo declarativo, middlewares de seguridad y telemetría |
-| **Frontend Web** | HTML5 Semántico + Vanilla JS / CSS | Modern Web APIs | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
+| **Frontend Web** | HTML5 Semántico + Vanilla TypeScript / CSS | Modern Web APIs | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
 | **Bundler / Tooling** | esbuild / tsx / Vite | Modern ESM | Compilación ultrarrápida y recarga instantánea en desarrollo |
 | **Persistencia Principal** | PostgreSQL | 16 | Almacenamiento relacional duradero con soporte JSONB |
 | **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de JWT |
