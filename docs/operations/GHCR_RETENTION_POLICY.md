@@ -21,8 +21,8 @@ La política se aplica de forma automatizada mediante tres niveles complementari
 
 ```mermaid
 flowchart TD
-    A["Push a main (CI/CD)"] -->|Post-Publish| B["ci.yml: dataaxiom/ghcr-cleanup-action<br/>keep-n-tagged: 3"]
-    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D["ghcr-retention.yml<br/>Auditoría y Purgado Periódico"]
+    A["Push a main (CI/CD)"] -->|Post-Publish| B["ci.yaml: dataaxiom/ghcr-cleanup-action<br/>keep-n-tagged: 3"]
+    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D["ghcr-retention.yaml<br/>Auditoría y Purgado Periódico"]
     E["Operador / Terminal Local"] -->|task ghcr:retention| F["scripts/ghcr-retention.ts<br/>Inspección y Limpieza Manual"]
 ```
 

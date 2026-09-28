@@ -196,7 +196,7 @@ infra/
 ├── ansible/                          # Hardening y configuración de nodos base
 │   ├── roles/                        # Roles modulares (base_os, container_runtime, etc.)
 │   └── playbooks/
-│       └── host_baseline.yml         # Orquestación de roles sobre nodos Proxmox
+│       └── host_baseline.yaml         # Orquestación de roles sobre nodos Proxmox
 └── k8s/                              # Definiciones Kubernetes locales y perfiles
     └── kind-cluster.yaml             # Perfil de desarrollo local con paridad K8s
 ```
@@ -225,7 +225,7 @@ Para evitar duplicidad operativa, inconsistencias entre entornos y scripts de de
 | :--- | :--- | :--- |
 | **Producción Universal** | **Kubernetes (Helm + ArgoCD)** | **Único runtime oficial de producción**. Gestiona ciclo de vida de Pods, balanceo L7, autoscaling HPA, NetworkPolicies, y validación criptográfica de firmas mediante Kyverno. |
 | **Aprovisionamiento Infra** | **OpenTofu (`infra/opentofu`)** | Declaración inmutable de recursos de cómputo, redes, VPCs, bases de datos gestionadas y almacenamiento en la nube o en Proxmox. |
-| **Baseline y Hardening** | **Ansible (`host_baseline.yml`)** | Configuración base a nivel de sistema operativo en nodos Proxmox / bare-metal: containerd, parámetros de kernel `sysctl` y firewall `ufw`. **No gestiona el despliegue de contenedores de la aplicación**. |
+| **Baseline y Hardening** | **Ansible (`host_baseline.yaml`)** | Configuración base a nivel de sistema operativo en nodos Proxmox / bare-metal: containerd, parámetros de kernel `sysctl` y firewall `ufw`. **No gestiona el despliegue de contenedores de la aplicación**. |
 | **Desarrollo: Perfil Rápido** | **Docker Compose (`task dev:compose`)** | Iteración rápida en máquina local. Levanta la API, Frontend, Postgres y Redis con recarga en caliente sin sobrecarga de orquestación. |
 | **Desarrollo: Paridad K8s** | **Kind (`task dev:k8s:up`)** | Validación local con paridad total frente a producción. Levanta un clúster Kind con mapeo de Ingress y despliega el Helm chart idéntico al de producción. |
 
@@ -245,4 +245,4 @@ Para garantizar máxima transparencia arquitectónica y evitar falsas expectativ
 | **Proxmox VE (On-Premises)** | **GA (Oficial)** | `infra/opentofu/environments/proxmox` | **Único target de producción on-premise soportado**. Cuenta con automatización completa de host baseline vía Ansible, almacenamiento persistente, Ingress perimetral y cobertura en planes de Disaster Recovery. |
 | **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Entorno efímero para pruebas destructivas, validación de playbooks y simulación de fallos controlados. |
 | **AWS EKS (Nube Pública)** | **Plantilla de Referencia** | `infra/opentofu/environments/aws` | **Blueprint ilustrativo de portabilidad multi-cloud**. Parametrizado mediante variables; no forma parte de los pipelines de despliegue continuo activo ni de los compromisos de SLA/RTO de Disaster Recovery. |
-| **Kind (Local)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Clúster Kubernetes ligero utilizado para tests de integración en GitHub Actions (`infra.yml`) y pruebas de paridad para desarrolladores locales. |
+| **Kind (Local)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Clúster Kubernetes ligero utilizado para tests de integración en GitHub Actions (`infra.yaml`) y pruebas de paridad para desarrolladores locales. |

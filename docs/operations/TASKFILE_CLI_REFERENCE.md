@@ -53,8 +53,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Automatización (Ansible)** | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
 | | `task ansible:harden` | Aplica blindaje perimetral y reglas de firewall UFW en hosts. |
 | | `task ansible:validate` | Auditoría y compliance de hosts sin alterar estado. |
-| | `task k3s:setup:proxmox` | Aprovisiona K3s y Cilium CNI en Proxmox mediante Ansible (`setup_k3s.yml`). |
-| | `task vault:setup:proxmox` | Aprovisiona e inicializa HashiCorp Vault CE en Proxmox (`setup_vault.yml`). |
+| | `task k3s:setup:proxmox` | Aprovisiona K3s y Cilium CNI en Proxmox mediante Ansible (`setup_k3s.yaml`). |
+| | `task vault:setup:proxmox` | Aprovisiona e inicializa HashiCorp Vault CE en Proxmox (`setup_vault.yaml`). |
 | **Empaquetado (Helm)** | `task helm:lint` | Valida sintaxis y buenas prácticas del Chart de Helm. |
 | | `task helm:template` | Renderiza manifiestos Kubernetes generados por el Chart. |
 | **Kubernetes Runtime** | `task k8s:up` | Despliega o actualiza el release de Helm en el clúster activo. |

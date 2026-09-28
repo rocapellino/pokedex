@@ -62,7 +62,7 @@ Se adopta una arquitectura de control de admisión en tres capas complementarias
      para la app de negocio, Audit para el registro general).
 
 3. **Capa 3 — Verificación Automatizada en CI con `kyverno test`**:
-   - El workflow `infra.yml` ejecuta `kyverno test` contra las suites de prueba declarativas
+   - El workflow `infra.yaml` ejecuta `kyverno test` contra las suites de prueba declarativas
      (`infra/k8s/kyverno-test/`) antes de autorizar el merge a `main`.
    - Cada política dispone de su propia suite de prueba con recursos Pod válidos e inválidos que
      validan el comportamiento `pass`/`fail` esperado.

@@ -11,7 +11,7 @@ Bajo el modelo GitOps canónico (ADR-003, ADR-008 y ADR-021), la **fase de compi
 ```text
 Commit en main
      ↓
-CI Pipeline (ci.yml)
+CI Pipeline (ci.yaml)
      ↓
 Compilación Docker + Escaneo SAST/SCA
      ↓
@@ -108,12 +108,12 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
    - CI ejecuta los gates de seguridad, validando que el nuevo digest satisfaga la paridad 1:1 entre todos los entornos.
 
 4. **Tag y GitHub Release (fase `tag`, tras el merge del PR):**
-   - El merge del PR de promoción dispara nuevamente `release-tag.yml`, que detecta la fase `tag` por el mensaje `chore(release): promote`.
+   - El merge del PR de promoción dispara nuevamente `release-tag.yaml`, que detecta la fase `tag` por el mensaje `chore(release): promote`.
    - **Verificación previa del binario de Gitsign (SEC-001):** antes de instalar o ejecutar nada, el binario descargado de Sigstore se somete a dos controles independientes:
      1. **Autenticidad:** `cosign verify-blob` contra el bundle de firma keyless publicado por Sigstore (certificado Fulcio + prueba de transparencia en Rekor), validando la identidad exacta `https://github.com/sigstore/gitsign/.github/workflows/release.yml@refs/tags/vX.Y.Z` y el emisor OIDC de GitHub Actions.
      2. **Integridad:** digest SHA-256 fijado en el propio repositorio, contrastado además con el manifiesto `checksums.txt` publicado por Sigstore.
 
-     El binario solo se instala (`sudo install`) y ejecuta si ambos controles pasan; cualquier divergencia aborta el release. El verificador (`sigstore/cosign-installer`) está pinneado por SHA con el mismo control que `ci.yml` usa para firmar la imagen OCI.
+     El binario solo se instala (`sudo install`) y ejecuta si ambos controles pasan; cualquier divergencia aborta el release. El verificador (`sigstore/cosign-installer`) está pinneado por SHA con el mismo control que `ci.yaml` usa para firmar la imagen OCI.
    - **Coherencia versión ↔ digests en runtime:** antes de descargar nada, el propio paso consulta la API de GitHub y contrasta los tres digests fijados contra los que Sigstore publica para `GITSIGN_VERSION`. Esto convierte el error de mantenimiento más probable (subir la versión sin refrescar los digests) en un diagnóstico accionable en lugar de un fallo opaco. Para regenerar los digests se ejecuta el workflow con el input `gitsign_refresh` de `workflow_dispatch`, que imprime el bloque `env:` correcto listo para pegar, sin transcripción manual.
    - Verifica la coherencia 1:1: `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps (gate automático también en `tests/version_consistency.test.ts`).
    - Crea el tag SemVer firmado con Gitsign **sobre el commit de promoción** (`GITHUB_SHA`) y publica el GitHub Release.
