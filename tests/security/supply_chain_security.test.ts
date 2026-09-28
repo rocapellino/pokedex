@@ -17,6 +17,40 @@ function listWorkflows(): string[] {
     .map((f) => path.join(WORKFLOWS_DIR, f));
 }
 
+test('🔒 Supply Chain: las actions del release no usan runtimes de Node retirados', () => {
+  // GitHub retiró el runtime Node 20 de los runners el 2026-09-23 y eliminó el
+  // opt-out ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION. Una action fijada a un commit
+  // que declare `using: node20` sigue ejecutándose porque el runner la fuerza a
+  // Node 24, pero solo con un warning, y deja de hacerlo cuando se retire el
+  // forzado. El release se bloquearía en silencio (la fase `promote` no calcularía
+  // `new_tag` y el paso 8 se saltaría por su guard fail-closed).
+  const wf = fs.readFileSync(path.join(WORKFLOWS_DIR, 'release-tag.yaml'), 'utf8');
+
+  const pins = [...wf.matchAll(/uses:\s*([a-z0-9_-]+\/[a-z0-9_.-]+)@([a-f0-9]{40})/g)].map(
+    (m) => ({ action: m[1], sha: m[2] })
+  );
+
+  assert.ok(pins.length >= 4, 'El workflow debe fijar sus actions por SHA');
+  for (const pin of pins) {
+    assert.match(
+      pin.sha,
+      /^[a-f0-9]{40}$/,
+      `${pin.action} debe estar fijada por SHA completo (supply chain policy)`
+    );
+  }
+
+  // github-tag-action es la única action del repositorio que quedó en un runtime
+  // retirado. Se fija el SHA de v7 (node24) de forma explícita.
+  assert.ok(
+    wf.includes('mathieudutour/github-tag-action@af99e60ce8132224b8e6ebab5023449fe256ed46'),
+    'github-tag-action debe estar fijada al commit de v7 (runtime node24)'
+  );
+  assert.ok(
+    !wf.includes('a22cf08638b34d5badda920f9daf6e72c477b07b'),
+    'No debe mantenerse el pin de v6.2, que declara using: node20 (retirado)'
+  );
+});
+
 test('🏷️ Release Tag: el header de la API de GitHub tiene el quoting balanceado', () => {
   const wf = fs.readFileSync(path.join(WORKFLOWS_DIR, 'release-tag.yaml'), 'utf8');
   assert.match(

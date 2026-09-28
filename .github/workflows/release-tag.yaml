@@ -101,7 +101,13 @@ jobs:
         # publicado y el changelog describirían versiones distintas.
         id: tag_version
         if: steps.state.outputs.phase == 'promote'
-        uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
+        # v7 es la primera versión sobre el runtime `node24`. GitHub retiró Node 20
+        # de los runners el 2026-09-23 y eliminó el opt-out
+        # ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION; la v6.2 (node20) solo funciona
+        # porque el runner la fuerza a Node 24 con un warning. El pin se mantiene por
+        # SHA y el contrato consumido por el paso 8 (`new_tag`) es estable entre
+        # v6 y v7, por lo que la actualización no altera la lógica de promoción.
+        uses: mathieudutour/github-tag-action@af99e60ce8132224b8e6ebab5023449fe256ed46 # v7
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: patch
