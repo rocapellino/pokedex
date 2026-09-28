@@ -489,7 +489,63 @@ test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', 
   assert.match(ci, /aas-governance:[\s\S]*?npm run aas:verify[\s\S]*?tests\/aas_governance\.test\.ts/);
 });
 
-test('🎯 CI topology: ci.yml es el único propietario de Trivy para imágenes de aplicación', () => {
+test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+
+  // El gate existe para que el ruleset pueda declarar UN solo required check.
+  assert.match(orchestrator, /quality-gate:/, 'change-impact.yaml debe definir el job quality-gate');
+
+  // `needs` debe cubrir TODOS los pipelines del orquestador: si falta alguno,
+  // un fallo en ese pipeline no bloquearia el merge.
+  const needsMatch = orchestrator.match(/quality-gate:[\s\S]*?needs:\s*\[([^\]]*)\]/);
+  assert.ok(needsMatch, 'quality-gate debe declarar needs');
+  const needs = needsMatch[1]
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const pipeline of [
+    'detect-impact',
+    'ci-core',
+    'infra',
+    'frontend-web',
+    'megalinter',
+    'security-code-scanning',
+  ]) {
+    assert.ok(needs.includes(pipeline), `quality-gate debe depender de ${pipeline}`);
+  }
+
+  // Sin `if: always()` el gate no se ejecuta cuando un job previo falla u se omite,
+  // que es justamente el escenario que debe bloquear.
+  const gateBlock = orchestrator.slice(orchestrator.indexOf('quality-gate:'));
+  assert.match(
+    gateBlock.slice(0, 400),
+    /if:\s*always\(\)/,
+    'quality-gate debe usar if: always() para ejecutarse aunque sus dependencias no corran'
+  );
+
+  // La semántica: `skipped` no bloquea (el radio de impacto no lo requería),
+  // cualquier otro resultado distinto de success sí bloquea.
+  assert.match(
+    gateBlock,
+    /success\|skipped\)/,
+    'El gate debe tratar `skipped` como no bloqueante (evita deadlocks por jobs condicionales)'
+  );
+  assert.match(gateBlock, /exit 1/, 'El gate debe salir con error cuando un pipeline no cumple');
+});
+
+test('🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset', () => {
+  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+  // El ruleset referencia los checks por su nombre mostrado. Este job no es
+  // reusable, por lo que el context es exactamente el `name:` del job.
+  assert.match(
+    orchestrator,
+    /name:\s*"🚦 Quality Gate"/,
+    'El nombre visible del gate debe ser "🚦 Quality Gate" para referenciarlo en branch protection'
+  );
+});
+
+test('⚙️ CI topology: change-impact.yml es el único propietario de Trivy para imágenes de aplicación', () => {
   const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
   const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'), 'utf8');
   assert.match(ci, /^  trivy-scan:/m);
