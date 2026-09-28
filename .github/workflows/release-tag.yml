@@ -16,6 +16,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      gitsign_refresh:
+        description: "Imprime el bloque env: con los digests correctos de Gitsign y sale sin firmar (SEC-001)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -115,11 +120,80 @@ jobs:
           GITSIGN_VERSION: "0.17.1"
           # Anclas de confianza fijadas en el repositorio. Deben refrescarse
           # manualmente junto con GITSIGN_VERSION en cada actualización.
+          # El self-check (paso 0) valida esta coherencia en runtime y puede
+          # regenerar el bloque con el input `gitsign_refresh` de workflow_dispatch.
           GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952ff833a845d57309dff76f7ba6600abae"
           GITSIGN_BUNDLE_SHA256: "6daa8356035524a1da8cca425f2b4e29bb8ca8d74d9a304bcd73a631ab165657"
           GITSIGN_CHECKSUMS_SHA256: "90678e6266a0ccf64da33dea621ac7678be5bc384ee989aa8a29d58ece7a27ce"
+          GITSIGN_REFRESH: ${{ inputs.gitsign_refresh && 'true' || 'false' }}
         run: |
           set -euo pipefail
+
+          # 0. Self-check de coherencia versión <-> digests (SEC-001).
+          #    Consulta la API de GitHub y compara los digests publicados para
+          #    GITSIGN_VERSION con los fijados en este workflow. Detecta el error
+          #    de mantenimiento más probable (subir la versión sin refrescar los
+          #    digests) con un mensaje accionable, ANTES de descargar nada.
+          #
+          #    Con GITSIGN_REFRESH=true imprime el bloque `env:` correcto y sale,
+          #    permitiendo regenerar los digests sin transcripción manual.
+          release_assets_json() {
+            local -a auth_header=()
+            if [ -n "${GITHUB_TOKEN:-}" ]; then
+              auth_header=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+            fi
+            curl --proto '=https' --tlsv1.2 -sSfL \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              -H 'User-Agent: pokedex-release-tag' \
+              "${auth_header[@]}" \
+              "https://api.github.com/repos/sigstore/gitsign/releases/tags/v${GITSIGN_VERSION}"
+          }
+          BIN_NAME="gitsign_${GITSIGN_VERSION}_linux_amd64"
+          ASSETS_JSON="$(release_assets_json)" || {
+            echo "❌ SEC-001: no se pudo consultar el release v${GITSIGN_VERSION} de Sigstore" >&2
+            exit 1
+          }
+
+          remote_digest() {
+            echo "${ASSETS_JSON}" \
+              | jq -r --arg n "$1" '.assets[]? | select(.name == $n) | (.digest // "") | sub("^sha256:"; "")' \
+              | head -n1
+          }
+          PINNED_BIN="$(remote_digest "${BIN_NAME}")"
+          PINNED_BUNDLE="$(remote_digest "${BIN_NAME}.bundle")"
+          PINNED_CHECKSUMS="$(remote_digest "checksums.txt")"
+
+          if [ "${GITSIGN_REFRESH:-false}" = "true" ]; then
+            echo "# Digests publicados por GitHub para Gitsign v${GITSIGN_VERSION}"
+            echo "          GITSIGN_VERSION: \"${GITSIGN_VERSION}\""
+            echo "          GITSIGN_SHA256: \"${PINNED_BIN}\""
+            echo "          GITSIGN_BUNDLE_SHA256: \"${PINNED_BUNDLE}\""
+            echo "          GITSIGN_CHECKSUMS_SHA256: \"${PINNED_CHECKSUMS}\""
+            exit 0
+          fi
+
+          MISMATCH=0
+          for pair in \
+            "GITSIGN_SHA256:${GITSIGN_SHA256}:${PINNED_BIN}" \
+            "GITSIGN_BUNDLE_SHA256:${GITSIGN_BUNDLE_SHA256}:${PINNED_BUNDLE}" \
+            "GITSIGN_CHECKSUMS_SHA256:${GITSIGN_CHECKSUMS_SHA256}:${PINNED_CHECKSUMS}"; do
+            VAR="${pair%%:*}"; REST="${pair#*:}"; FIXED="${REST%%:*}"; REMOTE="${REST#*:}"
+            if [ -z "${REMOTE}" ]; then
+              echo "❌ SEC-001: el release v${GITSIGN_VERSION} no publica el asset de ${VAR}" >&2
+              MISMATCH=1
+            elif [ "${FIXED}" != "${REMOTE}" ]; then
+              echo "❌ SEC-001: ${VAR} fijado (${FIXED}) != publicado por Sigstore (${REMOTE})" >&2
+              MISMATCH=1
+            fi
+          done
+          if [ "${MISMATCH}" != "0" ]; then
+            echo "   Los digests fijados deben corresponder a Gitsign v${GITSIGN_VERSION}." >&2
+            echo "   Para regenerarlos, reejecutá este workflow con GITSIGN_REFRESH=true" >&2
+            echo "   y pegá el bloque impreso en el env: de este paso." >&2
+            exit 1
+          fi
+          echo "✅ Coherencia versión ↔ digests verificada para Gitsign v${GITSIGN_VERSION}"
 
           BASE_URL="https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}"
           BIN_NAME="gitsign_${GITSIGN_VERSION}_linux_amd64"

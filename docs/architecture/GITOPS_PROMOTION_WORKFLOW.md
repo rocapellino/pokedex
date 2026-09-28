@@ -114,6 +114,7 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
      2. **Integridad:** digest SHA-256 fijado en el propio repositorio, contrastado además con el manifiesto `checksums.txt` publicado por Sigstore.
 
      El binario solo se instala (`sudo install`) y ejecuta si ambos controles pasan; cualquier divergencia aborta el release. El verificador (`sigstore/cosign-installer`) está pinneado por SHA con el mismo control que `ci.yml` usa para firmar la imagen OCI.
+   - **Coherencia versión ↔ digests en runtime:** antes de descargar nada, el propio paso consulta la API de GitHub y contrasta los tres digests fijados contra los que Sigstore publica para `GITSIGN_VERSION`. Esto convierte el error de mantenimiento más probable (subir la versión sin refrescar los digests) en un diagnóstico accionable en lugar de un fallo opaco. Para regenerar los digests se ejecuta el workflow con el input `gitsign_refresh` de `workflow_dispatch`, que imprime el bloque `env:` correcto listo para pegar, sin transcripción manual.
    - Verifica la coherencia 1:1: `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps (gate automático también en `tests/version_consistency.test.ts`).
    - Crea el tag SemVer firmado con Gitsign **sobre el commit de promoción** (`GITHUB_SHA`) y publica el GitHub Release con el changelog.
    - Si el tag ya existe apuntando a otro commit, el workflow falla explícitamente (detección de trazabilidad rota, REL-001).
