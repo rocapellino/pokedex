@@ -86,7 +86,7 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
 
 1. **Cálculo de Versión y Pull Request de Promoción (`.github/workflows/release-tag.yml`, fase `promote`):**
    - Determina el siguiente tag SemVer (`vX.Y.Z`) mediante un `dry-run` del bump convencional.
-   - Sincroniza `package.json` y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
+   - Sincroniza `package.json` y `package-lock.json` (versión raíz) de forma atómica con `npm version --no-git-tag-version`, y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
    - Ejecuta `scripts/update-gitops-pin.ts --tag=<new_tag>` para fijar el `targetRevision` de las aplicaciones de ArgoCD.
    - Abre (o actualiza) la rama `release/promote-vX.Y.Z` con un único PR atómico. **No crea el tag ni el GitHub Release en esta etapa.**
 
@@ -109,7 +109,7 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
 
 4. **Tag y GitHub Release (fase `tag`, tras el merge del PR):**
    - El merge del PR de promoción dispara nuevamente `release-tag.yml`, que detecta la fase `tag` por el mensaje `chore(release): promote`.
-   - Verifica la coherencia 1:1: `package.json` == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps.
+   - Verifica la coherencia 1:1: `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == `targetRevision` GitOps (gate automático también en `tests/version_consistency.test.ts`).
    - Crea el tag SemVer firmado con Gitsign **sobre el commit de promoción** (`GITHUB_SHA`) y publica el GitHub Release con el changelog.
    - Si el tag ya existe apuntando a otro commit, el workflow falla explícitamente (detección de trazabilidad rota, REL-001).
 

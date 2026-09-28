@@ -158,7 +158,7 @@ flowchart TD
 - Al fusionar el PR en `main`:
   - El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
   - El workflow **`release-tag.yml`** (fase **promote**) analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`), calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`) y promueve, mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`, la metadata de `package.json` y `infra/helm/pokedex/Chart.yaml` junto con el `targetRevision` de las aplicaciones ArgoCD.
-  - Al mergear ese PR de promoción, el mismo workflow ejecuta la fase **tag**: verifica la coherencia 1:1 (`package.json` == `Chart.yaml` == GitOps), crea el **Git Tag** firmado con Gitsign **sobre ese commit de promoción** y publica el **GitHub Release** oficial. El tag nunca se crea antes de que `main` contenga la versión (garantía de trazabilidad versión → commit → Chart → GitOps).
+  - Al mergear ese PR de promoción, el mismo workflow ejecuta la fase **tag**: verifica la coherencia 1:1 (`package.json` == `package-lock.json` == `Chart.yaml` == GitOps; gate contractual en `tests/version_consistency.test.ts`), crea el **Git Tag** firmado con Gitsign **sobre ese commit de promoción** y publica el **GitHub Release** oficial. El tag nunca se crea antes de que `main` contenga la versión (garantía de trazabilidad versión → commit → Chart → GitOps).
   - El workflow **`ci.yml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
     2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.

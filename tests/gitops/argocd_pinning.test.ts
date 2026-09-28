@@ -123,8 +123,8 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
   assert.ok(!releaseWf.includes('release/bump-${NEW_TAG}'), 'No debe conservar la rama de bump separada');
   assert.ok(!releaseWf.includes('gitops/pin-${NEW_TAG}'), 'No debe conservar la rama GitOps separada');
   assert.ok(
-    releaseWf.includes('git add package.json infra/helm/pokedex/Chart.yaml gitops/apps/'),
-    'El commit debe preparar conjuntamente metadata y manifiestos GitOps'
+    releaseWf.includes('git add package.json package-lock.json infra/helm/pokedex/Chart.yaml gitops/apps/'),
+    'El commit debe preparar conjuntamente metadata (incluido package-lock.json) y manifiestos GitOps'
   );
   assert.ok(
     releaseWf.includes('git commit -m "chore(release): promote ${NEW_TAG} [skip-release]"'),
