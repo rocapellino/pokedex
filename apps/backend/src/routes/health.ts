@@ -50,9 +50,13 @@ healthRouter.get(['/version', '/api/v1/version'], asyncHandler(async (_req: Requ
   const postgresVersion = await getPostgresVersion();
   const uptimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
 
+  // VER-002: `version` y `git_sha` son metadatos conceptualmente distintos
+  // (versión semántica de la release vs. commit exacto). El runtime no incluye
+  // package.json en la imagen final, por lo que ante ausencia de APP_VERSION se
+  // degrada a "unknown" en lugar de anunciar una versión ficticia.
   return res.status(200).json({
     app: 'pokedex',
-    version: process.env.APP_VERSION || '1.0.0',
+    version: process.env.APP_VERSION || 'unknown',
     git_sha: process.env.GIT_SHA || process.env.COMMIT_SHA || 'unknown',
     node_version: process.version,
     uptime_seconds: Number.parseFloat(uptimeSeconds),

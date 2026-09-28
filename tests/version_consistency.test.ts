@@ -53,6 +53,26 @@ test('VER-001 🔒 Contrato de versión: package.json == package-lock.json == Ch
   assert.equal(gitopsTag, `v${pkgVersion}`, `GitOps targetRevision (${gitopsTag}) debe ser v${pkgVersion}`);
 });
 
+test('VER-002 🔒 /version expone versión y commit como metadatos independientes', () => {
+  const healthRoute = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/routes/health.ts'), 'utf-8');
+
+  // La versión se resuelve desde APP_VERSION (no desde GIT_SHA) y viceversa.
+  assert.match(healthRoute, /version:\s*process\.env\.APP_VERSION\s*\|\|\s*'unknown'/, '/version debe leer APP_VERSION');
+  assert.match(healthRoute, /git_sha:\s*process\.env\.GIT_SHA/, '/version debe leer GIT_SHA');
+  assert.doesNotMatch(
+    healthRoute,
+    /version:\s*process\.env\.GIT_SHA/,
+    '/version.version no debe derivarse de GIT_SHA (conflaría versión y commit)'
+  );
+
+  // Sin metadatos de build no se debe anunciar una versión semántica ficticia.
+  assert.doesNotMatch(
+    healthRoute,
+    /process\.env\.APP_VERSION\s*\|\|\s*'1\.0\.0'/,
+    '/version no debe hardcodear una versión de fallback ficticia'
+  );
+});
+
 test('VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json', () => {
   const wf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yml'), 'utf-8');
 

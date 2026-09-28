@@ -14,11 +14,37 @@ test('🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argument
 
   for (const [name, content] of [['root Dockerfile', rootDockerfile], ['backend Dockerfile', backendDockerfile]]) {
     assert.match(content, /ARG GIT_SHA=/, `${name} debe declarar ARG GIT_SHA`);
-    assert.match(content, /ENV GIT_SHA=\$GIT_SHA/, `${name} debe inyectar GIT_SHA en variables de entorno`);
+    assert.match(content, /ARG APP_VERSION=/, `${name} debe declarar ARG APP_VERSION (VER-002)`);
+    // El bloque ENV declara ambos metadatos en líneas separadas (VER-002).
+    assert.match(content, /ENV APP_VERSION=\$APP_VERSION/, `${name} debe inyectar APP_VERSION desde su propio ARG (VER-002)`);
+    assert.match(content, /^\s+GIT_SHA=\$GIT_SHA$/m, `${name} debe inyectar GIT_SHA en variables de entorno`);
     assert.match(content, /org\.opencontainers\.image\.title=/, `${name} debe contener etiqueta OCI title`);
     assert.match(content, /org\.opencontainers\.image\.source=/, `${name} debe contener etiqueta OCI source`);
     assert.match(content, /org\.opencontainers\.image\.licenses=/, `${name} debe contener etiqueta OCI licenses`);
+
+    // Regresión VER-002: APP_VERSION no debe tomar su valor de GIT_SHA.
+    assert.doesNotMatch(
+      content,
+      /APP_VERSION=\$GIT_SHA/,
+      `${name} no debe derivar APP_VERSION de GIT_SHA (conflaría versión y commit en /version)`
+    );
   }
+});
+
+test('🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)', () => {
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+
+  // Ambos build-args deben viajar al docker/build-push-action.
+  assert.match(ciWorkflow, /APP_VERSION=\$\{\{\s*steps\.version-metadata\.outputs\.APP_VERSION\s*\}\}/, 'build-args debe inyectar APP_VERSION');
+  assert.match(ciWorkflow, /GIT_SHA=\$\{\{\s*steps\.version-metadata\.outputs\.GIT_SHA\s*\}\}/, 'build-args debe inyectar GIT_SHA');
+
+  // APP_VERSION se resuelve desde la SSOT (package.json), nunca desde el SHA.
+  assert.match(ciWorkflow, /require\('\.\/package\.json'\)\.version/, 'APP_VERSION debe resolverse desde la SSOT package.json');
+  assert.doesNotMatch(
+    ciWorkflow,
+    /APP_VERSION=\$\{\{\s*github\.sha\s*\}\}/,
+    'APP_VERSION no debe derivarse de github.sha (debe ser la versión semántica de la release)'
+  );
 });
 
 test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker', () => {
@@ -31,7 +57,10 @@ test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y bu
 
   // docker/build-push-action
   assert.match(ciWorkflow, /labels:\s*\${{\s*steps\.meta\.outputs\.labels\s*}}/, 'Build action debe inyectar etiquetas generadas');
-  assert.match(ciWorkflow, /GIT_SHA=\${{\s*github\.sha\s*}}/, 'Build action debe pasar GIT_SHA como build-arg');
+  // VER-002: GIT_SHA se resuelve desde github.sha en el paso de metadatos y
+  // viaja como build-arg; el build action ya no lo interpola directamente.
+  assert.match(ciWorkflow, /GIT_SHA="\$\{\{\s*github\.sha\s*\}\}"/, 'CI debe resolver GIT_SHA desde github.sha');
+  assert.match(ciWorkflow, /GIT_SHA=\$\{\{\s*steps\.version-metadata\.outputs\.GIT_SHA\s*\}\}/, 'Build action debe pasar GIT_SHA como build-arg');
 });
 
 test('🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI', () => {
@@ -204,5 +233,3 @@ test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests 
   assert.match(ciWorkflow, /verify-image-digest-parity\.ts/, 'Debe invocar el script canónico de verificación de paridad Helm AST');
   assert.match(ciWorkflow, /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Cosign debe firmar exactamente el digest validado');
 });
-
-

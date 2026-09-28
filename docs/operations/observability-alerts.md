@@ -48,9 +48,13 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 2. **Inspección de Endpoint de Diagnóstico**:
 
    ```bash
-   curl -s http://<API_URL>/version | jq .database
+   curl -s http://<API_URL>/version | jq .
+   curl -s http://<API_URL>/version | jq -r '.version, .git_sha'
    curl -s http://<API_URL>/metrics | grep pokedex_storage_status
    ```
+
+   > [!NOTE]
+   > Los campos `version` y `git_sha` del endpoint `/version` son metadatos **conceptualmente distintos**: `version` es la versión semántica de la release y `git_sha` el commit exacto que la compiló. Ambos se inyectan como build-args independientes (`APP_VERSION` y `GIT_SHA`). Si `/version` devuelve `unknown` en cualquiera de los dos, la imagen se compiló sin metadatos de versión (build local sin `--build-arg`) y **no debe usarse para trazabilidad de releases**.
 
 3. **Acciones de Remediación**:
    - Si el Pod está en `Pending`: verificar capacidad de almacenamiento en el PersistentVolumeClaim (`kubectl get pvc -n pokemon-app`).
