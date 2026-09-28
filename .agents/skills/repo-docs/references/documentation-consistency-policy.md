@@ -66,12 +66,16 @@ La documentación debe sincronizarse con el versionado operacional del repositor
 
 ```text
 package.json ("version": "X.Y.Z")
+package-lock.json (versión raíz: "X.Y.Z")
 Chart.yaml ("version": "X.Y.Z", "appVersion": "X.Y.Z")
 GitOps Apps ("targetRevision": "vX.Y.Z")
 Git Tags ("vX.Y.Z")
                 ↕
 Documentación y Guías Operativas
 ```
+
+> [!IMPORTANT]
+> La igualdad `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == GitOps `targetRevision` está institucionalizada como **gate automático** en `tests/version_consistency.test.ts` (VER-001), no como inspección manual. El flujo de release sincroniza el lockfile con `npm version --no-git-tag-version`.
 
 ### Reglas de Evaluación
 
