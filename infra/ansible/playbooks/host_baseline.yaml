@@ -16,4 +16,4 @@
       when: install_docker | default(true)
     - role: ../roles/hardening
 
-- import_playbook: security_hardening.yml
+- import_playbook: security_hardening.yaml

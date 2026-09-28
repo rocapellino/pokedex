@@ -6,7 +6,7 @@ Aceptado
 
 ## Contexto
 
-Para garantizar la fiabilidad, diagnóstico proactivo y cumplimiento de SLAs (RPO/RTO y latencia P95/P99 < 2s) en entornos híbridos (Kubernetes local, Proxmox VE y AWS EKS), la plataforma Pokédex requiere una arquitectura de observabilidad estandarizada. Anteriormente existían discrepancias entre las expresiones de alertas Prometheus (`infra/monitoring/alerts.yml`) y las métricas expuestas por el backend Express, careciendo además de integración nativa con Prometheus Operator mediante `ServiceMonitor`.
+Para garantizar la fiabilidad, diagnóstico proactivo y cumplimiento de SLAs (RPO/RTO y latencia P95/P99 < 2s) en entornos híbridos (Kubernetes local, Proxmox VE y AWS EKS), la plataforma Pokédex requiere una arquitectura de observabilidad estandarizada. Anteriormente existían discrepancias entre las expresiones de alertas Prometheus (`infra/monitoring/alerts.yaml`) y las métricas expuestas por el backend Express, careciendo además de integración nativa con Prometheus Operator mediante `ServiceMonitor`.
 
 ## Decisión
 
@@ -26,7 +26,7 @@ Se establece una estrategia de observabilidad de cuatro capas:
    - Propagación bidireccional de `X-Request-Id` / `traceId` mediante middleware `requestTracer` y `AsyncLocalStorage`.
    - Compatibilidad con OpenTelemetry Collector / Grafana Tempo (`otelEndpoint: "http://tempo:4317"`).
 
-4. **Reglas de Alerta Coherentes (`infra/monitoring/alerts.yml`)**:
+4. **Reglas de Alerta Coherentes (`infra/monitoring/alerts.yaml`)**:
    - Alertas críticas para desconexión de base de datos (`PokedexPostgresDisconnected`), falla de Redis (`PokedexRedisDisconnected`), tasa de error 5xx > 1% (`PokedexHighErrorRate5xx`) y latencia P99 > 2.0s (`PokedexHighLatencyP99`).
 
 ## Consecuencias

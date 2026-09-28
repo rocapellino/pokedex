@@ -143,7 +143,7 @@ Diseñado para respaldar no solo la base de datos, sino las **imágenes completa
 
 ### 3.1. Automatización mediante Ansible Blueprint
 
-El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yml`](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yml) define la configuración completa del cliente y las tareas programadas:
+El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml`](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml) define la configuración completa del cliente y las tareas programadas:
 
 - **Almacenamiento Seguro:** `pvesm add pbs` utilizando clave criptográfica client-side (`/etc/pve/priv/storage/pbs-pokedex.enc`).
 - **Respaldo Automático:** Tarea en `/etc/pve/vzdump.cron` para VM 801 y LXC 810 diariamente a las `02:30 UTC`.

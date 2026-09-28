@@ -28,11 +28,11 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor
 });
 
 test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host sin errores ignorados', () => {
-  const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yml');
+  const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yaml');
   assert.ok(fs.existsSync(baselinePath), 'host_baseline.yml debe existir');
   const baseContent = fs.readFileSync(baselinePath, 'utf-8');
-  const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yml');
-  const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yml');
+  const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yaml');
+  const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yaml');
   const combinedContent = baseContent +
     (fs.existsSync(roleBaseOs) ? fs.readFileSync(roleBaseOs, 'utf-8') : '') +
     (fs.existsSync(roleRuntime) ? fs.readFileSync(roleRuntime, 'utf-8') : '');
@@ -42,7 +42,7 @@ test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hard
   assert.ok(combinedContent.includes('docker info'), 'host_baseline y sus roles deben verificar el funcionamiento de Docker');
   assert.ok(combinedContent.includes('install_docker'), 'host_baseline y sus roles deben permitir condicionar el runtime de contenedores');
 
-  const setupNodesPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_nodes.yml');
+  const setupNodesPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_nodes.yaml');
   if (fs.existsSync(setupNodesPath)) {
     const setupContent = fs.readFileSync(setupNodesPath, 'utf-8');
     assert.ok(!setupContent.includes('ignore_errors: true'), 'setup_nodes.yml no debe ocultar fallos con ignore_errors: true');
@@ -53,8 +53,8 @@ test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hard
 test('🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción', () => {
   const legacyFiles = [
     'docker-compose.prod.yml',
-    'infra/ansible/playbooks/deploy_proxmox.yml',
-    'infra/ansible/playbooks/deploy_app.yml'
+    'infra/ansible/playbooks/deploy_proxmox.yaml',
+    'infra/ansible/playbooks/deploy_app.yaml'
   ];
 
   for (const relPath of legacyFiles) {
@@ -102,7 +102,7 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   const guidePath = path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md');
   assert.ok(fs.existsSync(guidePath), 'PROXMOX_DEPLOYMENT_GUIDE.md debe existir');
   const content = fs.readFileSync(guidePath, 'utf-8');
-  assert.ok(content.includes('host_baseline.yml'), 'Debe referenciar host_baseline.yml');
+  assert.ok(content.includes('host_baseline.yaml'), 'Debe referenciar host_baseline.yaml');
   assert.ok(content.includes('app-proxmox.yaml'), 'Debe referenciar app-proxmox.yaml para GitOps');
   assert.ok(content.includes('ArgoCD'), 'Debe referenciar ArgoCD');
   assert.ok(!content.includes('docker-compose.prod.yml'), 'No debe referenciar docker-compose.prod.yml');
@@ -119,9 +119,9 @@ test('🛡️ Disaster Recovery Tooling: Taskfile.yml define tareas dr:drill (si
 });
 
 test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
-  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yml');
+  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yaml');
   assert.ok(fs.existsSync(playbookPath), 'security_hardening.yml debe existir');
-  const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yml');
+  const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yaml');
   const content = fs.readFileSync(playbookPath, 'utf-8') +
     (fs.existsSync(roleFirewall) ? fs.readFileSync(roleFirewall, 'utf-8') : '');
 
@@ -134,12 +134,12 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(content.includes('10250'), 'Debe incluir puerto 10250 (Kubelet)');
   assert.ok(content.includes('2379:2380'), 'Debe incluir puerto 2379:2380 (etcd)');
 
-  // hosts.yml debe proveer los defaults de red
-  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml');
-  assert.ok(fs.existsSync(hostsPath), 'hosts.yml de proxmox debe existir en inventories/');
+  // hosts.yaml debe proveer los defaults de red
+  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
+  assert.ok(fs.existsSync(hostsPath), 'hosts.yaml de proxmox debe existir en inventories/');
   const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
-  assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yml debe definir mgmt_cidr');
-  assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yml debe definir k8s_cluster_cidr');
+  assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yaml debe definir mgmt_cidr');
+  assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yaml debe definir k8s_cluster_cidr');
 });
 
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
@@ -223,13 +223,13 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   // Roles Ansible
   const ansibleRoles = ['base_os', 'container_runtime', 'firewall', 'hardening', 'kubernetes_prerequisites'];
   for (const role of ansibleRoles) {
-    const roleTask = path.join(ROOT_DIR, `infra/ansible/roles/${role}/tasks/main.yml`);
-    assert.ok(fs.existsSync(roleTask), `Role task ${role}/tasks/main.yml debe existir`);
+    const roleTask = path.join(ROOT_DIR, `infra/ansible/roles/${role}/tasks/main.yaml`);
+    assert.ok(fs.existsSync(roleTask), `Role task ${role}/tasks/main.yaml debe existir`);
   }
 
   // Hardening de permisos en kubernetes_prerequisites
   const k8sPrereqsContent = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/ansible/roles/kubernetes_prerequisites/tasks/main.yml'),
+    path.join(ROOT_DIR, 'infra/ansible/roles/kubernetes_prerequisites/tasks/main.yaml'),
     'utf-8'
   );
   assert.ok(
@@ -238,11 +238,11 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   );
 
   // Inventarios y playbooks Ansible
-  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml')), 'Inventario Proxmox YAML debe existir');
-  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yml')), 'Inventario Lab YAML debe existir');
-  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/prepare_hosts.yml')), 'prepare_hosts.yml debe existir');
-  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/validate_hosts.yml')), 'validate_hosts.yml debe existir');
-  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/requirements.yml')), 'requirements.yml debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml')), 'Inventario Proxmox YAML debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yaml')), 'Inventario Lab YAML debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/prepare_hosts.yaml')), 'prepare_hosts.yaml debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/validate_hosts.yaml')), 'validate_hosts.yaml debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/requirements.yaml')), 'requirements.yaml debe existir');
 });
 
 test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC', () => {
@@ -281,8 +281,8 @@ test('🛡️ Dev DX & Resiliencia: Taskfile.yml define observabilidad unificada
 });
 
 test('🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos', () => {
-  const runtimeTaskPath = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yml');
-  assert.ok(fs.existsSync(runtimeTaskPath), 'container_runtime/tasks/main.yml debe existir');
+  const runtimeTaskPath = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yaml');
+  assert.ok(fs.existsSync(runtimeTaskPath), 'container_runtime/tasks/main.yaml debe existir');
   const content = fs.readFileSync(runtimeTaskPath, 'utf-8');
 
   assert.ok(content.includes('service_facts:'), 'Debe recolectar hechos de servicios del sistema');
@@ -446,18 +446,18 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   const adr25Content = fs.readFileSync(adr25Path, 'utf-8');
   assert.ok(adr25Content.includes('10.10.13.0/24'), 'ADR-025 debe formalizar la subred de administración 10.10.13.0/24');
 
-  // 3. Normalización y unificación de inventarios en Ansible (inventories/proxmox/hosts.yml alineado a 10.10.13.0/24)
+  // 3. Normalización y unificación de inventarios en Ansible (inventories/proxmox/hosts.yaml alineado a 10.10.13.0/24)
   assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventory')), 'No debe existir carpeta duplicada infra/ansible/inventory');
-  const hostsYml = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yml'), 'utf-8');
-  assert.ok(hostsYml.includes('10.10.13.100'), 'hosts.yml debe asignar k8s-master-01 en 10.10.13.100');
-  assert.ok(hostsYml.includes('10.10.13.0/24'), 'hosts.yml debe definir CIDR en 10.10.13.0/24');
-  assert.ok(!hostsYml.includes('docker_compose_version'), 'hosts.yml no debe contener vestigios de docker-compose');
+  const hostsYml = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml'), 'utf-8');
+  assert.ok(hostsYml.includes('10.10.13.100'), 'hosts.yaml debe asignar k8s-master-01 en 10.10.13.100');
+  assert.ok(hostsYml.includes('10.10.13.0/24'), 'hosts.yaml debe definir CIDR en 10.10.13.0/24');
+  assert.ok(!hostsYml.includes('docker_compose_version'), 'hosts.yaml no debe contener vestigios de docker-compose');
 
-  // 4. Playbook declarativo setup_k3s.yml existe y configura K3s con Cilium eBPF
-  const setupK3sPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_k3s.yml');
-  assert.ok(fs.existsSync(setupK3sPath), 'setup_k3s.yml debe existir para automatizar la provisión de K3s');
+  // 4. Playbook declarativo setup_k3s.yaml existe y configura K3s con Cilium eBPF
+  const setupK3sPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_k3s.yaml');
+  assert.ok(fs.existsSync(setupK3sPath), 'setup_k3s.yaml debe existir para automatizar la provisión de K3s');
   const setupK3sContent = fs.readFileSync(setupK3sPath, 'utf-8');
-  assert.ok(setupK3sContent.includes('--flannel-backend=none'), 'setup_k3s.yml debe desacoplar Flannel con --flannel-backend=none');
+  assert.ok(setupK3sContent.includes('--flannel-backend=none'), 'setup_k3s.yaml debe desacoplar Flannel con --flannel-backend=none');
   assert.ok(setupK3sContent.includes('cilium'), 'setup_k3s.yml debe desplegar Cilium CNI');
 
   // 5. Ingress en Proxmox GitOps no debe contener snippets nulos de Nginx

@@ -109,7 +109,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`docker-compose.yml`](../../docker-compose.yml) |
+| **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`docker-compose.yaml`](../../docker-compose.yaml) |
 | **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](../../infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
 | **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`apps/backend/src/services/auth.ts`](../../apps/backend/src/services/auth.ts) |
 
@@ -140,14 +140,14 @@ flowchart LR
 | **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
 | **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yml`](../../.github/workflows/security-trivy.yml) |
 | **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
-| **HashiCorp Vault CE** | `1.18+` | Almacén centralizado de secretos transaccional (Raft, TLS 1.2+, Shamir 5/3) | [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) |
+| **HashiCorp Vault CE** | `1.18+` | Almacén centralizado de secretos transaccional (Raft, TLS 1.2+, Shamir 5/3) | [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/playbooks/setup_vault.yaml) |
 
 ### 2.7. Contenedores, Orquestación & GitOps
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`Dockerfile`](../../Dockerfile) |
-| **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yml`](../../docker-compose.yml) |
+| **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yaml`](../../docker-compose.yaml) |
 | **Helm** | `3.17` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](../../infra/helm/pokedex) |
 | **Argo CD** | Latest | Motor GitOps para sincronización declarativa continua en clúster | [`gitops/apps/`](../../gitops/apps) |
 
@@ -168,7 +168,7 @@ flowchart LR
 | **Grafana Alloy** | `v1.x` | Agente unificado DaemonSet para recolección de métricas, OTLP y logs | [`infra/monitoring/deploy-grafana-cloud.ps1`](../../infra/monitoring/deploy-grafana-cloud.ps1) |
 | **Grafana Beyla** | `v1.x` | Auto-instrumentación de trazas y métricas L7 mediante eBPF | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
 | **Tableros Grafana** | `v10/11` | Dashboards canónicos para Pokédex API y salud del clúster | [`infra/monitoring/dashboards/`](../../infra/monitoring/dashboards) |
-| **Reglas de Alertas** | `Prometheus/Alloy` | Definición unificada de alertas (infraestructura, base de datos y API) | [`infra/monitoring/alerts.yml`](../../infra/monitoring/alerts.yml) |
+| **Reglas de Alertas** | `Prometheus/Alloy` | Definición unificada de alertas (infraestructura, base de datos y API) | [`infra/monitoring/alerts.yaml`](../../infra/monitoring/alerts.yaml) |
 | **docker_monitoreo** | Local | Stack legado opcional para emulación local con Docker Compose | Repositorio hermano (opcional) |
 
 #### Matriz de Responsabilidad de Señales de Telemetría (Prevención de Solapamiento)
@@ -214,7 +214,7 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Observabilidad y Telemetría
 
-- **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
+- **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yaml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
 - **Pino**: Reemplazo de logs estándar de consola por registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
 
 #### Herramientas de Monorepo y Build

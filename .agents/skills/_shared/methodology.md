@@ -62,7 +62,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
 - **Runtime & Lenguajes:** Node.js 22 (LTS), npm 11+, TypeScript estricto.
 - **Backend:** Express, Drizzle ORM, PostgreSQL (con pool nativo y soporte PgBouncer), Redis distribuido (rate limiting / caché).
 - **Frontend:** Vanilla TypeScript puro empaquetado con Vite, saneamiento estricto con DOMPurify, servido mediante contenedor Nginx Alpine. *(No utiliza React ni JSX)*.
-- **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yml`) con persistencia local y soporte de backup.
+- **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yaml`) con persistencia local y soporte de backup.
 - **Orquestación & Cómputo:**
   - **Kind:** Clúster local para validación rápida y pruebas en CI.
   - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800) y Producción (VM 801 K3s dedicada). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.

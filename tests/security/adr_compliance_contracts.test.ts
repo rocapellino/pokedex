@@ -66,14 +66,14 @@ test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupue
   );
 });
 
-test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yml', () => {
+test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml', () => {
   const metricsPath = path.join(ROOT_DIR, 'apps/backend/src/middleware/metrics.ts');
   const serverPath = path.join(ROOT_DIR, 'apps/backend/server.ts');
-  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yml');
+  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yaml');
 
   assert.ok(fs.existsSync(serverPath), 'server.ts debe existir');
   assert.ok(fs.existsSync(metricsPath), 'metrics.ts debe existir');
-  assert.ok(fs.existsSync(alertsPath), 'alerts.yml debe existir');
+  assert.ok(fs.existsSync(alertsPath), 'alerts.yaml debe existir');
 
   const serverContent = fs.readFileSync(metricsPath, 'utf-8');
   const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
@@ -85,7 +85,7 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   );
   assert.ok(
     alertsContent.includes('pokedex_storage_status == 0'),
-    'alerts.yml debe monitorear desconexión de base de datos'
+    'alerts.yaml debe monitorear desconexión de base de datos'
   );
 
   assert.ok(
@@ -94,7 +94,7 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   );
   assert.ok(
     alertsContent.includes('pokedex_redis_status == 0'),
-    'alerts.yml debe monitorear desconexión de Redis'
+    'alerts.yaml debe monitorear desconexión de Redis'
   );
 
   // Coherencia con métricas estándar HTTP y latencia
@@ -104,7 +104,7 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   );
   assert.ok(
     alertsContent.includes('http_requests_total'),
-    'alerts.yml debe evaluar tasa de errores sobre http_requests_total'
+    'alerts.yaml debe evaluar tasa de errores sobre http_requests_total'
   );
 
   assert.ok(
@@ -113,7 +113,7 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   );
   assert.ok(
     alertsContent.includes('http_request_duration_seconds_bucket'),
-    'alerts.yml debe calcular percentil P99 con http_request_duration_seconds_bucket'
+    'alerts.yaml debe calcular percentil P99 con http_request_duration_seconds_bucket'
   );
 
   // Coherencia con disyuntor de IA (Gemini)
@@ -123,11 +123,11 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   );
   assert.ok(
     alertsContent.includes('PokedexAICircuitBreakerOpen'),
-    'alerts.yml debe definir alerta PokedexAICircuitBreakerOpen'
+    'alerts.yaml debe definir alerta PokedexAICircuitBreakerOpen'
   );
   assert.ok(
     alertsContent.includes('pokedex_ai_circuit_breaker_open == 1'),
-    'alerts.yml debe evaluar condición de circuito de IA abierto'
+    'alerts.yaml debe evaluar condición de circuito de IA abierto'
   );
 });
 
@@ -190,19 +190,19 @@ test('🛡️ CI Tooling Parity: infra.yml y ci.yml mantienen paridad estricta d
   }
 });
 
-test('🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yml', () => {
-  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yml');
+test('🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml', () => {
+  const alertsPath = path.join(ROOT_DIR, 'infra/monitoring/alerts.yaml');
   const runbookPath = path.join(ROOT_DIR, 'docs/operations/observability-alerts.md');
 
-  assert.ok(fs.existsSync(alertsPath), 'alerts.yml debe existir');
+  assert.ok(fs.existsSync(alertsPath), 'alerts.yaml debe existir');
   assert.ok(fs.existsSync(runbookPath), 'observability-alerts.md debe existir');
 
   const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
   const runbookContent = fs.readFileSync(runbookPath, 'utf-8');
 
-  // Extraer nombres de alertas de alerts.yml
+  // Extraer nombres de alertas de alerts.yaml
   const alertMatches = Array.from(alertsContent.matchAll(/alert:\s*([A-Za-z0-9_-]+)/g)).map(m => m[1]);
-  assert.ok(alertMatches.length > 0, 'alerts.yml debe contener al menos una alerta');
+  assert.ok(alertMatches.length > 0, 'alerts.yaml debe contener al menos una alerta');
 
   for (const alertName of alertMatches) {
     assert.ok(

@@ -26,7 +26,7 @@ gitops/ @rocapellino
 Dockerfile @rocapellino
 apps/backend/Dockerfile @rocapellino
 apps/frontend/Dockerfile @rocapellino
-docker-compose*.yml @rocapellino
+docker-compose*.yaml @rocapellino
 
 # 3. Aplicación Backend, Lógica de Dominio y Contratos
 apps/backend/ @rocapellino

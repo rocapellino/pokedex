@@ -204,8 +204,8 @@ rules:
     paths:
       - "Dockerfile"
       - ".dockerignore"
-      - "docker-compose.yml"
-      - "docker-compose.dev.yml"
+      - "docker-compose.yaml"
+      - "docker-compose.dev.yaml"
       - "infra/docker/**"
       - "scripts/ghcr-retention.ts"
     triggers:

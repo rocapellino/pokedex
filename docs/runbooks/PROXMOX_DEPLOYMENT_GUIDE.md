@@ -181,7 +181,7 @@ cd /opt/devops/pokedex
 git checkout <KNOWN_GOOD_COMMIT_SHA_OR_TAG>
 
 # 4. Orquestar el setup de Vault en 10.10.13.110 directamente desde la LAN
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_vault.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_vault.yaml
 ```
 
 ---
@@ -197,7 +197,7 @@ Una vez que el nodo Proxmox está accesible por SSH, se ejecutan los playbooks d
 task ansible:prepare -- -e "ansible_host=10.10.13.100"
 
 # O mediante Ansible CLI directo:
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/host_baseline.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/host_baseline.yaml
 ```
 
 ### Hardening Perimetral y Reglas de Firewall (UFW)
@@ -205,14 +205,14 @@ ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/pl
 Para restringir los puertos de control de Kubernetes (`6443`, `10250`, `2379`) exclusivamente a las subredes autorizadas:
 
 ```bash
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml
 ```
 
 ---
 
 ## 6. Aprovisionamiento y Configuración Endurecida de Vault CE con Ansible
 
-El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/playbooks/setup_vault.yml) automatiza el ciclo de vida y blindaje de HashiCorp Vault CE dentro del contenedor LXC (ID 810, IP `10.10.13.110`) bajo un estándar de seguridad de producción y Zero-Trust:
+El playbook [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/playbooks/setup_vault.yaml) automatiza el ciclo de vida y blindaje de HashiCorp Vault CE dentro del contenedor LXC (ID 810, IP `10.10.13.110`) bajo un estándar de seguridad de producción y Zero-Trust:
 
 1. **Cifrado en Tránsito (HTTPS / TLS 1.2+):**
    - Se genera una PKI interna con una CA raíz (`vault-ca.crt`) y un certificado emitido para `vault.proxmox.internal.lan` con SANs para `10.10.13.110`, `127.0.0.1` y `localhost`.
@@ -236,7 +236,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yml`](../../infra/ansible/play
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento endurecido de Vault:
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_vault.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_vault.yaml
 
 # O mediante Taskfile:
 task vault:setup:proxmox
@@ -257,7 +257,7 @@ El proceso está totalmente automatizado y es idempotente mediante el playbook [
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento desatendido de K3s + Cilium CNI:
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_k3s.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yml
 
 # O canónicamente vía Taskfile:
 task k3s:setup:proxmox

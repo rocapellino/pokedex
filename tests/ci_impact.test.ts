@@ -157,7 +157,7 @@ test('🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secr
 
 test('🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac', () => {
   const result = analyzeChangeImpact({
-    files: ['infra/ansible/playbooks/site.yml'],
+    files: ['infra/ansible/playbooks/site.yaml'],
     configPath: CONFIG_PATH,
   });
 

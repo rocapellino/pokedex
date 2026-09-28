@@ -61,7 +61,7 @@ try {
   const runningContainers = execSync('docker ps --format "{{.Names}}"', { encoding: 'utf-8' });
   if (!runningContainers.split(/\r?\n/).includes(POSTGRES_CONTAINER)) {
     console.error(`❌ Error: El contenedor '${POSTGRES_CONTAINER}' no está corriendo.`);
-    console.info(`ℹ️ Inicie el entorno con: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres`);
+    console.info(`ℹ️ Inicie el entorno con: docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d postgres`);
     process.exit(1);
   }
 } catch (error: any) {
@@ -147,7 +147,7 @@ if (isDryRun) {
 console.log('☁️ [DR Dev] Iniciando sincronización hacia Google Drive con Rclone en Docker...');
 try {
   execSync(
-    'docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup run --rm backup-gdrive',
+    'docker compose -f docker-compose.yaml -f docker-compose.dev.yaml --profile backup run --rm backup-gdrive',
     { stdio: 'inherit', cwd: ROOT_DIR }
   );
   console.log('\n🎉 [DR Dev] Respaldo y réplica off-site a Google Drive finalizados con éxito.');

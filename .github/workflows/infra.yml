@@ -181,10 +181,10 @@ jobs:
       - name: 2. Validar Sintaxis de Playbooks y Roles de Ansible
         run: |
           pip install --no-cache-dir --only-binary :all: ansible-core==2.17.7
-          ansible-galaxy collection install -r infra/ansible/requirements.yml
-          for playbook in infra/ansible/playbooks/*.yml; do
+          ansible-galaxy collection install -r infra/ansible/requirements.yaml
+          for playbook in infra/ansible/playbooks/*.yaml; do
             echo "Verificando sintaxis de $playbook..."
-            ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml "$playbook" --syntax-check
+            ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml "$playbook" --syntax-check
           done
           echo "✅ Todos los playbooks y roles de Ansible validados sintácticamente."
 

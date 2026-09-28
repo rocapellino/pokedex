@@ -2,7 +2,7 @@
 
 ## 1. Propósito
 
-Proveer los procedimientos operativos estándar (SOP) para investigar, contener y resolver las alertas emitidas por Prometheus y Alertmanager definidas en `infra/monitoring/alerts.yml`.
+Proveer los procedimientos operativos estándar (SOP) para investigar, contener y resolver las alertas emitidas por Prometheus y Alertmanager definidas en `infra/monitoring/alerts.yaml`.
 
 ---
 

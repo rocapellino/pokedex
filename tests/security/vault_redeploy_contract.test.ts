@@ -91,7 +91,7 @@ test('🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout r
 });
 
 test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-prod y Prod (Zero-Trust Least Privilege)', () => {
-  const setupVaultPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yml');
+  const setupVaultPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml');
   const content = fs.readFileSync(setupVaultPath, 'utf-8');
 
   assert.match(content, /pokedex-preprod-policy\.hcl/, 'Debe generar la política pokedex-preprod-policy');
@@ -105,7 +105,7 @@ test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-pr
 });
 
 test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y políticas operativas', () => {
-  const setupBastionPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_bastion.yml');
+  const setupBastionPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_bastion.yaml');
   const content = fs.readFileSync(setupBastionPath, 'utf-8');
 
   assert.match(content, /\/var\/log\/bastion\/audit\.log/, 'Bastion debe configurar log dedicado para auditoría');
