@@ -37,7 +37,69 @@ test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta
   }
 });
 
-test('🧹 Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore', () => {
+test('📐 Extension Governance: la regla de extensión YAML está incorporada en la suite de skills', () => {
+  const skillsDir = path.join(ROOT_DIR, '.agents', 'skills');
+  const read = (rel: string) => fs.readFileSync(path.join(skillsDir, rel), 'utf-8');
+
+  // repo-quality: estándar de ingeniería para archivos nuevos
+  const quality = read('repo-quality/SKILL.md');
+  assert.match(quality, /\.yaml/, 'repo-quality debe declarar la extensión canónica .yaml');
+  assert.match(quality, /\.mega-linter\.yml/, 'repo-quality debe documentar la excepción vigente');
+  assert.match(quality, /lint:yaml/, 'repo-quality debe referenciar el gate de enforcement');
+
+  // repo-ci: todo workflow nuevo se crea en .yaml
+  const ci = read('repo-ci/SKILL.md');
+  assert.match(ci, /Extensión Canónica de Workflows/, 'repo-ci debe declarar la extensión canónica de workflows');
+
+  // repo-maintenance: higiene y detección de regresión
+  const maintenance = read('repo-maintenance/SKILL.md');
+  assert.match(maintenance, /Extensión YAML/, 'repo-maintenance debe verificar la extensión YAML');
+
+  // _shared/methodology.md: contexto común a toda skill
+  const methodology = read('_shared/methodology.md');
+  assert.match(methodology, /Extensión YAML/, 'methodology.md debe declarar la convención de extensión');
+
+  // Contrato declarativo normativo
+  const contract = read('repo-doc-governance/references/documentation-contract.yaml');
+  assert.match(contract, /id:\s*"YAML-EXT-001"/, 'El contrato debe declarar la regla YAML-EXT-001');
+});
+
+test('📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta', () => {
+  // `mega-linter` se excluye a propósito: `.mega-linter.yml` no es un workflow
+  // sino el archivo de configuración de la herramienta, y constituye la
+  // excepción permanente documentada (se pasa vía MEGALINTER_CONFIG).
+  const workflows = [
+    'ci', 'infra', 'security-gitleaks', 'security-trivy',
+    'security-dast-zap', 'performance-k6', 'dr-simulation',
+    'change-impact', 'release-tag', 'web', 'sonar-linear-sync',
+    'renovate-linear-sync', 'security-code-scanning', 'ghcr-retention',
+    'github-security-linear-sync',
+  ];
+
+  const walk = (dir: string): string[] => {
+    const out: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(full));
+      else if (entry.name.endsWith('.md')) out.push(full);
+    }
+    return out;
+  };
+
+  const offenders: string[] = [];
+  for (const file of walk(path.join(ROOT_DIR, '.agents'))) {
+    const content = fs.readFileSync(file, 'utf-8');
+    for (const wf of workflows) {
+      if (content.includes(`${wf}.yml`)) {
+        offenders.push(`${path.relative(ROOT_DIR, file)} cita ${wf}.yml`);
+      }
+    }
+  }
+
+  assert.deepEqual(offenders, [], `Las skills no deben citar workflows renombrados: ${offenders.join('; ')}`);
+});
+
+test('🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore', () => {
   const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const ciContent = fs.readFileSync(ciWorkflowPath, 'utf-8');
 

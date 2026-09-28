@@ -71,6 +71,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
 - **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/prod` y `pokedex/preprod`).
 - **Seguridad y Supply Chain:** OCI digest pinning inmutable (sha256), SBOM CycloneDX, firma Cosign, atestación SLSA y validación Kyverno admission controller.
 - **IaC & Config Management:** OpenTofu para aprovisionamiento y Ansible para configuración de host/servicios base.
+- **Convención de Extensión YAML:** la extensión canónica para todo archivo YAML es **`.yaml`** (manifiestos, values, workflows, configuraciones, playbooks e inventories). La extensión `.yml` está **prohibida para archivos nuevos** y solo se admite si una herramienta externa la impone, en cuyo caso debe documentarse como excepción. Enforcement: `npm run lint:yaml` (`npm run lint:yaml:strict` en CI) mediante `scripts/check-yaml-extension.ts`.
 - **Observabilidad:** OpenTelemetry, Prometheus metrics y correlación distribuida vía `X-Request-Id`.
 
 ---

@@ -46,7 +46,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 - **Protocolo de Gobernanza en 7 Fases:**
   `1. DISCOVER` (inventario) → `2. CLASSIFY` (taxonomía) → `3. EVIDENCE` (matriz de consumidores y código cubierto) → `4. PROPOSE` (plan / finding) → `5. APPROVE` (revisión humana) → `6. EXECUTE` (refactor / consolidación) → `7. VALIDATE` (Quality Gates 100% PASS).
   *Regla estricta:* Ningún test se elimina automáticamente en primera pasada ni únicamente porque no se ejecute (primero se investiga si obedece a un pipeline desconfigurado o test abandonado).
-- **Validación Canónica en Kind:** Uso de clústeres Kind en CI (`infra.yml`) para verificar despliegues reales de Helm antes de promover a GitOps.
+- **Validación Canónica en Kind:** Uso de clústeres Kind en CI (`infra.yaml`) para verificar despliegues reales de Helm antes de promover a GitOps.
 
 ## Comandos
 
