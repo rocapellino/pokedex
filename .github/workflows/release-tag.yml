@@ -93,15 +93,85 @@ jobs:
           release_branches: "main"
           dry_run: true
 
-      - name: 4. Instalar Gitsign (Keyless Sigstore)
+      - name: 4. Instalar Cosign (verificador de confianza para el binario Gitsign)
+        # SEC-001: el binario de Gitsign se descarga de un tercero, por lo que debe
+        # verificarse antes de ejecutarse. Cosign es el verificador de referencia
+        # de Sigstore y ya es parte de la cadena de confianza de este repositorio
+        # (mismo pin por SHA que usa `ci.yml` para firmar la imagen OCI).
         if: steps.state.outputs.phase == 'tag'
-        run: |
-          GITSIGN_VERSION="0.17.1"
-          curl --proto '=https' -sSfL "https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}/gitsign_${GITSIGN_VERSION}_linux_amd64" -o "$RUNNER_TEMP/gitsign"
-          sudo mv "$RUNNER_TEMP/gitsign" /usr/local/bin/gitsign
-          sudo chmod +x /usr/local/bin/gitsign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
-      - name: 5. Verificar Coherencia 1:1 y Firmar Git Tag sobre el Commit de Promoción
+      - name: 5. Verificar e Instalar Gitsign (Keyless Sigstore)
+        # SEC-001: la descarga directa del ejecutable se verifica en dos niveles
+        # independientes ANTES de instalar y ejecutar nada:
+        #   1. Autenticidad: firma keyless de Sigstore (certificado Fulcio + Rekor)
+        #      contra el bundle publicado, validando la identidad exacta del
+        #      workflow de release de sigstore/gitsign.
+        #   2. Integridad: digest SHA-256 fijado en este repositorio y contrastado
+        #      contra el manifiesto `checksums.txt` publicado por Sigstore.
+        # El binario nunca se instala ni se ejecuta si cualquiera de los dos falla.
+        if: steps.state.outputs.phase == 'tag'
+        env:
+          GITSIGN_VERSION: "0.17.1"
+          # Anclas de confianza fijadas en el repositorio. Deben refrescarse
+          # manualmente junto con GITSIGN_VERSION en cada actualización.
+          GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952ff833a845d57309dff76f7ba6600abae"
+          GITSIGN_BUNDLE_SHA256: "6daa8356035524a1da8cca425f2b4e29bb8ca8d74d9a304bcd73a631ab165657"
+          GITSIGN_CHECKSUMS_SHA256: "90678e6266a0ccf64da33dea621ac7678be5bc384ee989aa8a29d58ece7a27ce"
+        run: |
+          set -euo pipefail
+
+          BASE_URL="https://github.com/sigstore/gitsign/releases/download/v${GITSIGN_VERSION}"
+          BIN_NAME="gitsign_${GITSIGN_VERSION}_linux_amd64"
+          STAGE="${RUNNER_TEMP}/gitsign-verify"
+          mkdir -p "${STAGE}"
+
+          # 1. Descarga por HTTPS con TLS >= 1.2 y redirecciones estrictas.
+          curl --proto '=https' --tlsv1.2 -sSfL "${BASE_URL}/${BIN_NAME}"       -o "${STAGE}/gitsign"
+          curl --proto '=https' --tlsv1.2 -sSfL "${BASE_URL}/${BIN_NAME}.bundle" -o "${STAGE}/gitsign.bundle"
+          curl --proto '=https' --tlsv1.2 -sSfL "${BASE_URL}/checksums.txt"      -o "${STAGE}/checksums.txt"
+
+          # 2. Integridad contra los digests fijados en el repositorio.
+          assert_sha256() {
+            local file="$1" expected="$2" actual
+            actual="$(sha256sum "${file}" | awk '{print $1}')"
+            if [ "${actual}" != "${expected}" ]; then
+              echo "❌ SEC-001: digest inesperado en $(basename "${file}")" >&2
+              echo "   esperado=${expected}" >&2
+              echo "   obtenido=${actual}" >&2
+              return 1
+            fi
+            echo "✅ Integridad verificada: $(basename "${file}") sha256=${actual}"
+          }
+          assert_sha256 "${STAGE}/gitsign"       "${GITSIGN_SHA256}"
+          assert_sha256 "${STAGE}/gitsign.bundle" "${GITSIGN_BUNDLE_SHA256}"
+          assert_sha256 "${STAGE}/checksums.txt"  "${GITSIGN_CHECKSUMS_SHA256}"
+
+          # 3. Autenticidad: firma keyless de Sigstore. Sin `|| true`: si la
+          #    verificación falla, el paso aborta y Gitsign no llega a instalarse.
+          cosign verify-blob \
+            --bundle "${STAGE}/gitsign.bundle" \
+            --certificate-identity "https://github.com/sigstore/gitsign/.github/workflows/release.yml@refs/tags/v${GITSIGN_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${STAGE}/gitsign"
+          echo "✅ Autenticidad verificada: firma keyless de Sigstore (Fulcio + Rekor)"
+
+          # 4. Contraste independiente con el manifiesto de checksums de Sigstore.
+          #    $2 == BIN_NAME evita colisiones con .deb/.rpm/.apk/.bundle del mismo release.
+          MANIFEST_DIGEST="$(awk -v f="${BIN_NAME}" '$2 == f {print $1}' "${STAGE}/checksums.txt")"
+          if [ "${MANIFEST_DIGEST}" != "${GITSIGN_SHA256}" ]; then
+            echo "❌ SEC-001: el manifiesto checksums.txt no coincide con el digest fijado" >&2
+            echo "   manifiesto=${MANIFEST_DIGEST}" >&2
+            echo "   fijado=${GITSIGN_SHA256}" >&2
+            exit 1
+          fi
+          echo "✅ Contraste con checksums.txt de Sigstore correcto"
+
+          # 5. Solo tras verificar, se instala y se ejecuta.
+          sudo install -m 0755 "${STAGE}/gitsign" /usr/local/bin/gitsign
+          gitsign version
+
+      - name: 6. Verificar Coherencia 1:1 y Firmar Git Tag sobre el Commit de Promoción
         # REL-001: el tag se ancla al commit de main que YA contiene la versión
         # (package.json == Chart.yaml == targetRevision GitOps), nunca antes.
         if: steps.state.outputs.phase == 'tag'
@@ -150,7 +220,7 @@ jobs:
             "${NEW_TAG}"
           git push origin "${NEW_TAG}"
 
-      - name: 6. Crear Release en GitHub con Changelog Automático
+      - name: 7. Crear Release en GitHub con Changelog Automático
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: steps.state.outputs.phase == 'tag'
         with:
@@ -161,7 +231,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 7. Crear Pull Request Atómico de Release y GitOps
+      - name: 8. Crear Pull Request Atómico de Release y GitOps
         # main está protegida por el ruleset `main-protection`, por lo que la
         # metadata de versión y el pinning GitOps se promueven como una sola unidad.
         # El tag y el GitHub Release se crean EN LA SIGUIENTE corrida (fase "tag"),
