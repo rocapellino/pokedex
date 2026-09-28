@@ -186,3 +186,103 @@ jobs:
       security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
       security_iac: ${{ needs.detect-impact.outputs.security_iac == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
       linting: ${{ needs.detect-impact.outputs.linting == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
+
+  # =======================================================
+  # 6. QUALITY GATE (agregador fail-closed para branch protection)
+  # =======================================================
+  # Este job existe para que el ruleset de branch protection pueda declarar
+  # UN solo required check en lugar de uno por job. Motivo:
+  #
+  # El orquestador decide que ejecutar segun el radio de impacto, por lo que la
+  # mayoria de los jobs son condicionales. Si un job condicional se declara
+  # required y no se ejecuta, el PR queda bloqueado esperando un check que
+  # nunca se emitio. Agregar el gate como unico required evita ese deadlock y,
+  # a la vez, hace que CUALQUIER job fallido bloquee el merge.
+  #
+  # `needs` cubre todos los pipelines y `if: always()` garantiza que el gate se
+  # ejecute incluso si alguno de ellos fue omitido o fallo.
+  quality-gate:
+    name: "🚦 Quality Gate"
+    needs: [detect-impact, ci-core, infra, frontend-web, megalinter, security-code-scanning]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 1. Evaluar el resultado agregado de los pipelines
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
+          # Conclusions reportadas por GitHub para cada job del run actual.
+          DETECT_IMPACT: ${{ needs.detect-impact.result }}
+          CI_CORE: ${{ needs.ci-core.result }}
+          INFRA: ${{ needs.infra.result }}
+          FRONTEND_WEB: ${{ needs.frontend-web.result }}
+          MEGALINTER: ${{ needs.megalinter.result }}
+          SECURITY_CODE_SCANNING: ${{ needs.security-code-scanning.result }}
+        run: |
+          set -euo pipefail
+
+          # Un job OMITIDO no es un fallo: significa que el radio de impacto del
+          # cambio no lo requeria. Un job CANCELLED o FALLURE si bloquea el merge.
+          FAILED=""
+          for pair in \
+            "detect-impact=${DETECT_IMPACT}" \
+            "ci-core=${CI_CORE}" \
+            "infra=${INFRA}" \
+            "frontend-web=${FRONTEND_WEB}" \
+            "megalinter=${MEGALINTER}" \
+            "security-code-scanning=${SECURITY_CODE_SCANNING}"; do
+            JOB="${pair%%=*}"
+            RESULT="${pair#*=}"
+            case "${RESULT}" in
+              success|skipped) printf '  ok      %-24s %s\n' "${JOB}" "${RESULT}" ;;
+              *) FAILED="${FAILED}${JOB}=${RESULT}"$'\n' ;;
+            esac
+          done
+
+
+          # El reporte se escribe siempre para poder auditar la decision del gate.
+          REPORT="${RUNNER_TEMP}/quality-gate.md"
+          {
+            echo "# Quality Gate Report"
+            echo
+            echo "- Run: \`${RUN_ID}\`"
+            echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo
+            echo "## Resultado por pipeline"
+            echo
+            echo "| Pipeline | Resultado |"
+            echo "| :--- | :--- |"
+            for pair in \
+              "detect-impact=${DETECT_IMPACT}" \
+              "ci-core=${CI_CORE}" \
+              "infra=${INFRA}" \
+              "frontend-web=${FRONTEND_WEB}" \
+              "megalinter=${MEGALINTER}" \
+              "security-code-scanning=${SECURITY_CODE_SCANNING}"; do
+              JOB="${pair%%=*}"
+              RESULT="${pair#*=}"
+              echo "| \`${JOB}\` | \`${RESULT}\` |"
+            done
+          } > "${REPORT}"
+
+          cat "${REPORT}"
+
+          if [ -n "${FAILED}" ]; then
+            echo "❌ Quality Gate: uno o mas pipelines no cumplieron el contrato esperado:"
+            printf "${FAILED}"
+            exit 1
+          fi
+
+          echo "✅ Quality Gate: todos los pipelines ejecutados fueron exitosos o no aplican."
+
+      - name: 2. Publicar el reporte del gate como artefacto
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-gate-report
+          path: ${{ runner.temp }}/quality-gate.md
+          retention-days: 7
+          if-no-files-found: ignore

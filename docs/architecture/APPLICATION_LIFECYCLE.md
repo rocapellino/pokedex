@@ -153,6 +153,24 @@ flowchart TD
   - Bloquean `git push --force` y eliminaciones accidentales de `main`.
   - No hay bypass para el `GITHUB_TOKEN`: ningún workflow puede escribir directamente en `main`, por lo que toda promoción (bump de versión, pinning GitOps) se hace mediante Pull Request.
 
+#### Quality Gate agregador (`🚦 Quality Gate`)
+
+El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `megalinter`, `security-code-scanning`) en un **único check**, pensado para ser el required check del ruleset.
+
+Existe por una razón concreta: el orquestador decide qué ejecutar según el radio de impacto, por lo que la mayoría de los jobs son **condicionales**. Si un job condicional se declara required y no se ejecuta, el Pull Request queda bloqueado esperando un check que nunca se emitió. El agregador resuelve ambos problemas:
+
+| Resultado de un pipeline | Efecto en el gate |
+| :--- | :---: |
+| `success` | No bloquea |
+| `skipped` (no aplicaba al radio de impacto) | **No bloquea** |
+| `failure` | **Bloquea** |
+| `cancelled` | **Bloquea** |
+
+Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido omitida, y publica un artefacto `quality-gate-report` con la decisión tomada para poder auditarla.
+
+> [!WARNING]
+> **Pendiente de aplicacion en el ruleset.** Este PR agrega el job, pero el ruleset `main-protection` sigue declarando unicamente los checks `🛡️ Gitleaks Secret Detection` y `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad`. Mientras `🚦 Quality Gate` no se agregue a `required_status_checks`, los jobs de `Infra CI`, `Frontend Web CI`, `MegaLinter` y `Security Code Scanning` son informativos: un fallo en ellos se ve en rojo pero no impide el merge.
+
 ### Fase 5: Merge, Versionado Semántico y Firmado OCI (Cosign)
 
 - Al fusionar el PR en `main`:
