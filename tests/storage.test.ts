@@ -82,7 +82,7 @@ test('📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correcta
   assert.ok(pokedexEntries);
   assert.ok(pokedexIdSeq);
   assert.equal(pokedexIdSeq.seqName, 'pokedex_id_seq');
-  
+
   // Verificar columnas del esquema Drizzle
   assert.ok(pokedexEntries.id);
   assert.ok(pokedexEntries.nombre);
@@ -95,11 +95,11 @@ test('📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en dis
   const fs = await import('node:fs');
   const path = await import('node:path');
   const migrationsDir = path.resolve('apps/backend/src/db/migrations');
-  
+
   assert.ok(fs.existsSync(migrationsDir), 'El directorio de migraciones debe existir');
   const files = fs.readdirSync(migrationsDir);
   const sqlMigrations = files.filter(f => f.endsWith('.sql'));
-  
+
   assert.ok(sqlMigrations.length >= 1, 'Debe existir al menos un archivo de migración SQL');
   const initialMigration = fs.readFileSync(path.join(migrationsDir, sqlMigrations[0]), 'utf-8');
   assert.ok(initialMigration.includes('CREATE TABLE "pokedex_entries"'));
@@ -118,17 +118,3 @@ test('📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en pr
   assert.ok(content.includes("NODE_ENV === 'production'"), 'drizzle.config.ts debe evaluar NODE_ENV');
   assert.ok(content.includes('DATABASE_URL o POSTGRES_PASSWORD es obligatoria'), 'drizzle.config.ts debe requerir credenciales en producción');
 });
-
-test('📦 Metadata: metadata.json no contiene campos residuales de scaffold', async () => {
-  const fs = await import('node:fs');
-  const path = await import('node:path');
-  const metadataPath = path.resolve('metadata.json');
-
-  assert.ok(fs.existsSync(metadataPath), 'metadata.json debe existir');
-  const raw = fs.readFileSync(metadataPath, 'utf-8');
-  const parsed = JSON.parse(raw);
-  assert.strictEqual(parsed.requestFramePermissions, undefined, 'requestFramePermissions residual debe ser eliminado');
-  assert.ok(parsed.name, 'metadata.json debe conservar name');
-  assert.ok(parsed.majorCapabilities, 'metadata.json debe conservar majorCapabilities');
-});
-

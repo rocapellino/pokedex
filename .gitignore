@@ -132,3 +132,10 @@ ehthumbs_vista.db
 # ==============================================================================
 # Directorios temporales generados por scripts/dr-drill.ts durante simulacros
 scratch/
+
+# Artefactos efímeros de AAS Core (manifests y revisión sí se versionan)
+.agents/aas/plans/*
+!.agents/aas/plans/.gitkeep
+.agents/aas/cache/
+.agents/aas/runtime/
+.agents/aas/materialized/

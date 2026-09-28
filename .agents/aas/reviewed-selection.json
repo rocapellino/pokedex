@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "pokedex-reviewed-aas-selection",
+  "reviewedAt": "2026-09-27",
+  "catalog": {
+    "package": "agentic-awesome-skills",
+    "version": "18.6.0",
+    "integrity": "sha256-03db2fa823981728151843f4f278982b518c8e1e27d980e173218cb1f82025c0"
+  },
+  "policy": {
+    "mode": "reference-only",
+    "authority": ".agents/skills and repository policy",
+    "maxSkills": 8,
+    "allowMaterialization": false,
+    "allowUpstreamCommandExecution": false
+  },
+  "approved": [
+    { "id": "systematic-debugging", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-quality", "repo-refactor"], "reason": "Método de diagnóstico; no se importan scripts ni comandos." },
+    { "id": "project-skill-audit", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-lifecycle"], "reason": "Referencia para revisar el catálogo local sin reemplazar su gobernanza." },
+    { "id": "code-review-excellence", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-pr", "repo-quality"], "reason": "Heurísticas de revisión subordinadas a la política del repositorio." },
+    { "id": "dependency-scanning", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-dependencies", "repo-security"], "reason": "Checklist conceptual; no autoriza herramientas o servicios adicionales." },
+    { "id": "documentation-and-adrs", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-docs", "repo-doc-governance"], "reason": "Patrones documentales; no se importan automatizaciones externas." },
+    { "id": "senior-architect", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-architecture"], "reason": "Prompts de análisis arquitectónico en modo consulta únicamente." },
+    { "id": "gitops-workflow", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-architecture", "repo-release"], "reason": "Referencia GitOps; gitops/ e infra/ continúan siendo SSOT." },
+    { "id": "kubernetes-hardening", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-security", "repo-architecture"], "reason": "Checklist de hardening sin ejecución ni cambios automáticos." }
+  ],
+  "rejected": [
+    { "id": "dependency-analysis", "reason": "Requiere Ontoly CLI/MCP y agrega una dependencia fuera del alcance." },
+    { "id": "architecture-review", "reason": "Requiere Ontoly CLI/MCP y agrega una dependencia fuera del alcance." }
+  ]
+}

@@ -40,6 +40,10 @@ on:
         description: "Ejecutar Documentation Quality Gate"
         type: boolean
         default: false
+      agent_governance:
+        description: "Ejecutar contratos de gobernanza AAS"
+        type: boolean
+        default: false
       is_unknown:
         description: "Modo Fail-Closed: ejecutar Full CI"
         type: boolean
@@ -56,6 +60,34 @@ env:
   CHART_PATH: infra/helm/pokedex
 
 jobs:
+  aas-governance:
+    name: "🤖 Gobernanza AAS"
+    if: |
+      inputs.agent_governance ||
+      inputs.is_unknown ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias del Monorepo
+        run: npm ci --ignore-scripts
+
+      - name: 4. Validar Gobierno y Manifest AAS
+        run: npm run aas:verify
+
+      - name: 5. Ejecutar Contratos AAS
+        run: npx tsx --test tests/aas_governance.test.ts
+
   # =======================================================
   # 1. QUALITY GATES (Ejecución en paralelo condicional)
   # =======================================================
