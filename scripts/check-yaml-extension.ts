@@ -57,8 +57,7 @@ export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze([
   '.github/workflows/security-trivy.yml',
   '.github/workflows/sonar-linear-sync.yml',
   '.github/workflows/web.yml',
-  '.mega-linter.yml',
-  'Taskfile.yml'
+  '.mega-linter.yml'
 ]);
 
 // Directorios excluidos del escaneo recursivo de filesystem

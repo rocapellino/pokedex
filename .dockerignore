@@ -46,7 +46,7 @@ infra/
 gitops/
 tests/
 scripts/
-Taskfile.yml
+Taskfile.yaml
 .task/
 .pre-commit-config.yaml
 .gitleaks.toml

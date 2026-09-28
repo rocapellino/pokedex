@@ -136,14 +136,14 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
     'ci.yml debe fijar keep-n-tagged: 3 para retener solo los últimos 3'
   );
 
-  // 3. package.json y Taskfile.yml exponen las tareas oficiales
+  // 3. package.json y Taskfile.yaml exponen las tareas oficiales
   const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   assert.ok(packageJson.scripts['ghcr:retention'], 'package.json debe incluir script ghcr:retention');
   assert.ok(packageJson.scripts['ghcr:retention:dry-run'], 'package.json debe incluir script ghcr:retention:dry-run');
 
-  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yml'), 'utf-8');
-  assert.ok(taskfile.includes('ghcr:retention:'), 'Taskfile.yml debe exponer ghcr:retention');
-  assert.ok(taskfile.includes('ghcr:retention:dry-run:'), 'Taskfile.yml debe exponer ghcr:retention:dry-run');
+  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  assert.ok(taskfile.includes('ghcr:retention:'), 'Taskfile.yaml debe exponer ghcr:retention');
+  assert.ok(taskfile.includes('ghcr:retention:dry-run:'), 'Taskfile.yaml debe exponer ghcr:retention:dry-run');
 
   // 4. Documentación formal existe e indexada
   const docPath = path.join(ROOT_DIR, 'docs/operations/GHCR_RETENTION_POLICY.md');

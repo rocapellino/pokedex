@@ -61,7 +61,7 @@ Queda terminantemente prohibido auditar la documentación analizando únicamente
 - Menciones de endpoints o lógica ↔ Código backend en `apps/backend/src/`.
 - Menciones de UI o proxies ↔ Código frontend en `apps/frontend/src/`.
 - Menciones de scripts de automatización ↔ Archivos ejecutables reales en `scripts/`.
-- Menciones de comandos operacionales ↔ Tareas válidas en `Taskfile.yml` y `package.json`.
+- Menciones de comandos operacionales ↔ Tareas válidas en `Taskfile.yaml` y `package.json`.
 - Menciones de variables y configuración ↔ Esquemas de validación y `.env.example`.
 - Menciones de infraestructura y despliegue ↔ `infra/opentofu/`, `infra/ansible/` y `infra/helm/`.
 - Menciones de versiones y pines ↔ `package.json`, `Chart.yaml` y `gitops/apps/*.yaml`.
@@ -72,7 +72,7 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 
 - Archivos o carpetas inexistentes en disco.
 - Scripts que hayan sido eliminados en hitos anteriores (ej. utilidades legadas de sellado de secretos).
-- Targets o comandos retirados de `Taskfile.yml` (ej. aliases de la Fase 4 de ADR-026).
+- Targets o comandos retirados de `Taskfile.yaml` (ej. aliases de la Fase 4 de ADR-026).
 - Componentes arquitectónicos retirados presentados como arquitectura vigente (ej. Bitnami Sealed Secrets frente a HashiCorp Vault CE + ESO).
 
 ### 3. Preservación Histórica (`HISTORICAL ≠ OBSOLETE`)

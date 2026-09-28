@@ -92,7 +92,7 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
   assert.notEqual(parity.canonicalVersion, 'v1.99.0', 'Los archivos en disco no deben haber cambiado');
 });
 
-test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y Taskfile.yml configuran el pipeline de promoción', () => {
+test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y Taskfile.yaml configuran el pipeline de promoción', () => {
   // 1. Workflow release-tag.yml
   const releaseWfPath = path.join(ROOT_DIR, '.github/workflows/release-tag.yml');
   assert.ok(fs.existsSync(releaseWfPath), 'release-tag.yml debe existir');
@@ -188,8 +188,8 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
   assert.ok(pkgJson.scripts['gitops:pin'], 'package.json debe exponer script gitops:pin');
   assert.ok(pkgJson.scripts['gitops:pin:check'], 'package.json debe exponer script gitops:pin:check');
 
-  // 3. Taskfile.yml expone gitops:pin y gitops:pin:check
-  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yml'), 'utf-8');
-  assert.ok(taskfile.includes('gitops:pin:'), 'Taskfile.yml debe exponer tarea gitops:pin');
-  assert.ok(taskfile.includes('gitops:pin:check:'), 'Taskfile.yml debe exponer tarea gitops:pin:check');
+  // 3. Taskfile.yaml expone gitops:pin y gitops:pin:check
+  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  assert.ok(taskfile.includes('gitops:pin:'), 'Taskfile.yaml debe exponer tarea gitops:pin');
+  assert.ok(taskfile.includes('gitops:pin:check:'), 'Taskfile.yaml debe exponer tarea gitops:pin:check');
 });

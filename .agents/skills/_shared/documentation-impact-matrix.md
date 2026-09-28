@@ -13,7 +13,7 @@ Este documento define la relación obligatoria entre los cambios introducidos en
 | **Backup & Disaster Recovery** | `infra/helm/pokedex/templates/backup*`, `scripts/dr*` | `docs/runbooks/DISASTER_RECOVERY_PLAN.md`; `docs/operations/GDRIVE_BACKUP_GUIDE.md`; `docs/decisions/ADR-006-*.md` | Actualizar topología de respaldo, comandos de restore, cronogramas de retención y estado por entorno. |
 | **Secretos, Vault & ESO** | `setup_vault.yml`, `externalSecrets` en values | `docs/operations/secret-rotation.md`; `docs/security/`; `docs/architecture/VAULT_PROXMOX_ARCHITECTURE.md` | Actualizar rutas en Vault (`pokedex/prod`), políticas de acceso y procedimientos de rotación. |
 | **Despliegue & GitOps** | `gitops/apps/*.yaml`, `gitops/environments/*/values.yaml` | `docs/architecture/GITOPS_PROMOTION_WORKFLOW.md`; `docs/operations/deployment.md` | Documentar nuevo `targetRevision`, cambios en SyncWindows o parámetros de entornos activos. |
-| **Pipelines CI/CD** | `.github/workflows/*.yml`, `Taskfile.yml` | `docs/devops/`; `docs/operations/TASKFILE_CLI_REFERENCE.md`; `README.md` | Mantener sincronizados los comandos locales soportados y los jobs obligatorios de integración continua. |
+| **Pipelines CI/CD** | `.github/workflows/*.yml`, `Taskfile.yaml` | `docs/devops/`; `docs/operations/TASKFILE_CLI_REFERENCE.md`; `README.md` | Mantener sincronizados los comandos locales soportados y los jobs obligatorios de integración continua. |
 | **Herramientas de Plataforma** | Incorporación o cambio de herramienta (ej. Rclone, Syft) | `docs/decisions/` (ADR formal); `docs/operations/`; `README.md` | Explicar el racional de selección, seguridad de supply chain (digest pinning) y runbook de uso. |
 
 ---

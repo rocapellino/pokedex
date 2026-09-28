@@ -390,7 +390,7 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const apiDeploymentPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/api-deployment.yaml');
   const webDeploymentPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/web-deployment.yaml');
   const ingressPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/ingress.yaml');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
@@ -465,10 +465,10 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(!preprodContent.includes('* * * * *'), 'app-proxmox-preprod.yaml no debe tener el antipatrón * * * * *');
   assert.ok(!preprodContent.includes('kind: deny'), 'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción');
 
-  // 6. Taskfile.yml define tareas gitops:apps:root y gitops:health-checks
+  // 6. Taskfile.yaml define tareas gitops:apps:root y gitops:health-checks
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
-  assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yml debe definir gitops:apps:root');
-  assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yml debe definir gitops:health-checks');
+  assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
+  assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
 
   // 7. deployment.md documenta sección 5 y ADR-021
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
@@ -497,7 +497,7 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
   const webDeployPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/web-deployment.yaml');
   const auditScriptPath = path.join(ROOT_DIR, 'scripts/verify-secret-rotation.ts');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const pkgPath = path.join(ROOT_DIR, 'package.json');
   const secretRunbookPath = path.join(ROOT_DIR, 'docs/operations/secret-rotation.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
@@ -529,10 +529,10 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   assert.ok(auditScriptContent.includes('rollout restart = REQUIRED'), 'verify-secret-rotation.ts debe verificar rollout restart REQUIRED en Proxmox');
   assert.ok(auditScriptContent.includes('refreshInterval <= 24h'), 'verify-secret-rotation.ts debe auditar refreshInterval <= 24h');
 
-  // 5. Taskfile.yml y package.json exponen secrets:audit-rotation
+  // 5. Taskfile.yaml y package.json exponen secrets:audit-rotation
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
   const pkgContent = fs.readFileSync(pkgPath, 'utf-8');
-  assert.ok(taskfileContent.includes('secrets:audit-rotation:'), 'Taskfile.yml debe definir tarea secrets:audit-rotation');
+  assert.ok(taskfileContent.includes('secrets:audit-rotation:'), 'Taskfile.yaml debe definir tarea secrets:audit-rotation');
   assert.ok(pkgContent.includes('"secrets:audit-rotation"'), 'package.json debe definir script secrets:audit-rotation');
 
   // 6. Runbook secret-rotation.md documenta ADR-022 y comando canónico

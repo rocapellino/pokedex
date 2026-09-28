@@ -109,11 +109,11 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   assert.ok(!content.includes('deploy_proxmox.yml'), 'No debe referenciar deploy_proxmox.yml');
 });
 
-test('🛡️ Disaster Recovery Tooling: Taskfile.yml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)', () => {
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const content = fs.readFileSync(taskfilePath, 'utf-8');
-  assert.ok(content.includes('dr:drill:'), 'Taskfile.yml debe definir tarea dr:drill');
-  assert.ok(content.includes('dr:verify:'), 'Taskfile.yml debe definir tarea dr:verify');
+  assert.ok(content.includes('dr:drill:'), 'Taskfile.yaml debe definir tarea dr:drill');
+  assert.ok(content.includes('dr:verify:'), 'Taskfile.yaml debe definir tarea dr:verify');
   assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
   assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
 });
@@ -154,9 +154,9 @@ test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ing
   assert.ok(content.includes('containerPort: 443'), 'Debe mapear el puerto Ingress HTTPS 443');
 });
 
-test('🛡️ Dev DX: Taskfile.yml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
-  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yml debe existir');
+test('🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)', () => {
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
+  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
   const content = fs.readFileSync(taskfilePath, 'utf-8');
 
   assert.ok(content.includes('dev:compose:'), 'Taskfile debe definir tarea dev:compose');
@@ -268,16 +268,16 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   );
 });
 
-test('🛡️ Dev DX & Resiliencia: Taskfile.yml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
-  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yml debe existir');
+test('🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
+  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
   const content = fs.readFileSync(taskfilePath, 'utf-8');
 
-  assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yml no debe incluir la variable obsoleta MONITORING_DIR');
-  assert.ok(!content.includes('docker_monitoreo'), 'Taskfile.yml no debe incluir referencias al stack legacy docker_monitoreo');
-  assert.ok(content.includes('monitoring:grafana-cloud:install:'), 'Taskfile.yml debe incluir la tarea de instalación de Grafana Cloud');
-  assert.ok(content.includes('monitoring:dev:status:'), 'Taskfile.yml debe incluir la tarea de diagnóstico dev:status');
-  assert.ok(content.includes('monitoring:dev:logs:'), 'Taskfile.yml debe incluir la tarea de logs de dev');
+  assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yaml no debe incluir la variable obsoleta MONITORING_DIR');
+  assert.ok(!content.includes('docker_monitoreo'), 'Taskfile.yaml no debe incluir referencias al stack legacy docker_monitoreo');
+  assert.ok(content.includes('monitoring:grafana-cloud:install:'), 'Taskfile.yaml debe incluir la tarea de instalación de Grafana Cloud');
+  assert.ok(content.includes('monitoring:dev:status:'), 'Taskfile.yaml debe incluir la tarea de diagnóstico dev:status');
+  assert.ok(content.includes('monitoring:dev:logs:'), 'Taskfile.yaml debe incluir la tarea de logs de dev');
 });
 
 test('🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos', () => {
@@ -329,7 +329,7 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
 
 test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada', () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yml');
+  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const cliRefPath = path.join(ROOT_DIR, 'docs/operations/TASKFILE_CLI_REFERENCE.md');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
   const infraReadmePath = path.join(ROOT_DIR, 'infra/README.md');
@@ -357,12 +357,12 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   assert.ok(cliRefContent.includes('Fase 3: Deprecate'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 3');
   assert.ok(cliRefContent.includes('Fase 4: Eliminar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 4');
 
-  // 3. Taskfile.yml define default con task --list y start como tarea canónica
+  // 3. Taskfile.yaml define default con task --list y start como tarea canónica
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
-  assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yml debe ejecutar task --list en tarea default');
-  assert.ok(taskfileContent.includes('start:'), 'Taskfile.yml debe incluir la tarea start canónica');
+  assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yaml debe ejecutar task --list en tarea default');
+  assert.ok(taskfileContent.includes('start:'), 'Taskfile.yaml debe incluir la tarea start canónica');
 
-  // 4. Fase 4 de ADR-026: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yml
+  // 4. Fase 4 de ADR-026: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yaml
   const retiredAliases = [
     'tofu:init:proxmox',
     'tofu:plan:proxmox',
@@ -386,11 +386,11 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
 
   for (const alias of retiredAliases) {
     const hasAlias = taskfileContent.split('\n').some((line: string) => line.startsWith(`  ${alias}:`));
-    assert.strictEqual(hasAlias, false, `Taskfile.yml no debe contener el alias retirado ${alias}`);
+    assert.strictEqual(hasAlias, false, `Taskfile.yaml no debe contener el alias retirado ${alias}`);
     assert.strictEqual(
       taskfileContent.includes(`task ${alias}`),
       false,
-      `Taskfile.yml no debe referenciar el alias retirado ${alias}`
+      `Taskfile.yaml no debe referenciar el alias retirado ${alias}`
     );
   }
 
@@ -465,9 +465,9 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(!proxmoxValues.includes('nginx.ingress.kubernetes.io/configuration-snippet: null'), 'proxmox/values.yaml no debe contener anotaciones huérfanas de Nginx');
   assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
 
-  // 6. Taskfile.yml expone k3s:setup:proxmox enlazado a setup_k3s.yml
-  const taskfileContent = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yml'), 'utf-8');
-  assert.ok(taskfileContent.includes('k3s:setup:proxmox:'), 'Taskfile.yml debe exponer k3s:setup:proxmox');
+  // 6. Taskfile.yaml expone k3s:setup:proxmox enlazado a setup_k3s.yml
+  const taskfileContent = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  assert.ok(taskfileContent.includes('k3s:setup:proxmox:'), 'Taskfile.yaml debe exponer k3s:setup:proxmox');
   assert.ok(
     taskfileContent.includes('infra/ansible/playbooks/setup_k3s.yml'),
     'k3s:setup:proxmox debe invocar setup_k3s.yml'

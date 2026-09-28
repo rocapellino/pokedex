@@ -6,7 +6,7 @@ Aceptado
 
 ## Contexto
 
-Con la consolidación de `Taskfile.yml` como la interfaz unificada de línea de comandos (ADR-020), se incorporaron múltiples comandos canónicos para gobernar el ciclo de vida del monorepo, IaC con OpenTofu, automatización con Ansible, empaquetado Helm y GitOps con ArgoCD.
+Con la consolidación de `Taskfile.yaml` como la interfaz unificada de línea de comandos (ADR-020), se incorporaron múltiples comandos canónicos para gobernar el ciclo de vida del monorepo, IaC con OpenTofu, automatización con Ansible, empaquetado Helm y GitOps con ArgoCD.
 
 Para no romper los hábitos de desarrollo ni la compatibilidad con scripts históricos preexistentes, se introdujeron diversos aliases etiquetados como `[Alias compatibilidad]`, tales como:
 
@@ -44,7 +44,7 @@ flowchart LR
    - Estandarizar toda la documentación existente (`infra/README.md`, `PROXMOX_DEPLOYMENT_GUIDE.md`, plantillas de PR) para que utilice únicamente comandos canónicos.
 
 2. **Fase 2 - Medir Uso y Telemetría Informativa**:
-   - Instrumentar cada alias en `Taskfile.yml` con un aviso visible en consola (`⚠️  [DEPRECADO] 'task <alias>' es un alias legado. Use 'task <canónico>'.`).
+   - Instrumentar cada alias en `Taskfile.yaml` con un aviso visible en consola (`⚠️  [DEPRECADO] 'task <alias>' es un alias legado. Use 'task <canónico>'.`).
    - Esto advierte inmediatamente al operador o script sobre la forma canónica sin interrumpir la ejecución ni alterar el código de retorno.
 
 3. **Fase 3 - Deprecación Formal**:
@@ -52,7 +52,7 @@ flowchart LR
    - Garantizar la compatibilidad hacia atrás durante todo el ciclo mayor `v1.x`.
 
 4. **Fase 4 - Eliminación Definitiva (Completada en v1.76.0)**:
-   - Eliminación formal y purga definitiva de los 18 aliases legados de `Taskfile.yml`.
+   - Eliminación formal y purga definitiva de los 18 aliases legados de `Taskfile.yaml`.
    - Certificación de ausencia mediante pruebas automatizadas en `tests/security/iac_baseline_security.test.ts`.
    - Reducción de la superficie de comandos y consolidación de la interfaz canónica `task --list`.
 

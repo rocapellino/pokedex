@@ -188,7 +188,7 @@ Para evitar duplicidad y clarificar el origen de cada señal hacia Grafana Cloud
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yml`](../../Taskfile.yml) |
+| **Taskfile (go-task)** | `3.x` | Automatizador de comandos multiplataforma (`task dev`, `task audit`) | [`Taskfile.yaml`](../../Taskfile.yaml) |
 | **Linear** | — | Gestión ágil de proyectos con convención estricta de ramas y linkbacks | [`.github/pull_request_template.md`](../../.github/pull_request_template.md) |
 | **Renovate Bot** | Latest | Gestión unificada de dependencias multi-gestor, cooldown de 7 días, ventanas semanales y auto-merge restringido a npm patch | [`renovate.json`](../../renovate.json) |
 | **Grafana Cloud** | SaaS | Telemetría Kubernetes cloud-native vía Grafana Alloy, Beyla eBPF, Node Exporter y Kube-State-Metrics | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
