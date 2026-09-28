@@ -58,30 +58,7 @@ export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze([
   '.github/workflows/sonar-linear-sync.yml',
   '.github/workflows/web.yml',
   '.mega-linter.yml',
-  'Taskfile.yml',
-  'docker-compose.dev.yml',
-  'docker-compose.yml',
-  'infra/ansible/inventories/lab/hosts.yml',
-  'infra/ansible/inventories/proxmox/hosts.yml',
-  'infra/ansible/playbooks/host_baseline.yml',
-  'infra/ansible/playbooks/prepare_hosts.yml',
-  'infra/ansible/playbooks/security_hardening.yml',
-  'infra/ansible/playbooks/setup_bastion.yml',
-  'infra/ansible/playbooks/setup_gdrive_backup.yml',
-  'infra/ansible/playbooks/setup_k3s.yml',
-  'infra/ansible/playbooks/setup_nodes.yml',
-  'infra/ansible/playbooks/setup_pbs_backup_blueprint.yml',
-  'infra/ansible/playbooks/setup_vault.yml',
-  'infra/ansible/playbooks/validate_hosts.yml',
-  'infra/ansible/requirements.yml',
-  'infra/ansible/roles/base_os/tasks/main.yml',
-  'infra/ansible/roles/container_runtime/tasks/main.yml',
-  'infra/ansible/roles/firewall/tasks/main.yml',
-  'infra/ansible/roles/firewall/vars/main.yml',
-  'infra/ansible/roles/hardening/handlers/main.yml',
-  'infra/ansible/roles/hardening/tasks/main.yml',
-  'infra/ansible/roles/kubernetes_prerequisites/tasks/main.yml',
-  'infra/monitoring/alerts.yml'
+  'Taskfile.yml'
 ]);
 
 // Directorios excluidos del escaneo recursivo de filesystem

@@ -110,7 +110,7 @@ test('🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible a
   assert.ok(blueprintContent.includes('PREPARADO (INACTIVO)'), 'Debe formalizar que los esqueletos off-site están inactivos');
   assert.ok(blueprintContent.includes('Riesgo Residual Asumido'), 'Debe advertir sobre el riesgo residual de SPOF del host');
 
-  const pbsPlaybookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_pbs_backup_blueprint.yml');
+  const pbsPlaybookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml');
   assert.ok(fs.existsSync(pbsPlaybookPath), 'setup_pbs_backup_blueprint.yml debe existir');
   const pbsContent = fs.readFileSync(pbsPlaybookPath, 'utf-8');
   assert.ok(pbsContent.includes('pbs_remote_offsite_enabled: false'), 'PBS playbook debe tener offsite inactivo por defecto');
@@ -164,12 +164,12 @@ test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan Persis
 
 test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)', () => {
   // 1. Alternativa A: Docker Compose Dev con servicio rclone y script dev
-  const dockerComposeDevPath = path.join(ROOT_DIR, 'docker-compose.dev.yml');
-  assert.ok(fs.existsSync(dockerComposeDevPath), 'docker-compose.dev.yml debe existir');
+  const dockerComposeDevPath = path.join(ROOT_DIR, 'docker-compose.dev.yaml');
+  assert.ok(fs.existsSync(dockerComposeDevPath), 'docker-compose.dev.yaml debe existir');
   const composeContent = fs.readFileSync(dockerComposeDevPath, 'utf-8');
   assert.ok(composeContent.includes('backup-gdrive:'), 'Debe definir servicio backup-gdrive');
   assert.ok(composeContent.includes('rclone/rclone'), 'Debe usar imagen oficial rclone');
-  assert.match(composeContent, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'docker-compose.dev.yml debe fijar rclone por digest SHA-256 inmutable');
+  assert.match(composeContent, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'docker-compose.dev.yaml debe fijar rclone por digest SHA-256 inmutable');
   assert.ok(composeContent.includes('profiles:'), 'Debe aislarse mediante perfiles de compose');
   assert.ok(composeContent.includes('backup'), 'Debe pertenecer al perfil backup');
 
@@ -181,7 +181,7 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   assert.ok(devScriptContent.includes('sha256'), 'Script dev debe calcular checksum SHA-256');
 
   // 2. Alternativa B: Playbook Ansible para Proxmox VE
-  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_gdrive_backup.yml');
+  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_gdrive_backup.yaml');
   assert.ok(fs.existsSync(playbookPath), 'setup_gdrive_backup.yml debe existir');
   const playbookContent = fs.readFileSync(playbookPath, 'utf-8');
   assert.ok(playbookContent.includes('rclone'), 'Playbook debe instalar o configurar rclone');

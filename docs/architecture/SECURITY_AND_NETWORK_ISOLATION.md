@@ -108,7 +108,7 @@ flowchart TD
 
 ## 4. Segmentación en Docker Compose
 
-En [`docker-compose.yml`](../../docker-compose.yml) se definen dos redes aisladas bajo el patrón DMZ (la observabilidad fue migrada a Grafana Cloud y ya no requiere una red local compartida):
+En [`docker-compose.yaml`](../../docker-compose.yaml) se definen dos redes aisladas bajo el patrón DMZ (la observabilidad fue migrada a Grafana Cloud y ya no requiere una red local compartida):
 
 ```yaml
 networks:

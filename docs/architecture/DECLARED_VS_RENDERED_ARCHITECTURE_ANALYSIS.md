@@ -21,7 +21,7 @@ Su objetivo es responder con precisión:
 | **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En AWS renderiza anotación `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-024 (Lean MVP). |
 | **PgBouncer** | `-` (Inactivo) | `-` (Inactivo) | `-` (Inactivo) | **Código Preparado (No Renderizado)** | Existe template `pgbouncer-deployment.yaml` y está habilitado en `values.prod.yaml`, pero **ninguna aplicación de ArgoCD** (`app-proxmox.yaml`, `app-cloud.yaml`) lo activa. Se usa pool nativo `pg.Pool` (40 conns). |
 | **Grafana Alloy** | `✓` (Cloud values) | `✓` (Proxmox values) | `✓` (Proxmox values) | **Desplegado Real** | Agente único desplegado en K8s para métricas, logs y trazas hacia Grafana Cloud. |
-| **cAdvisor** | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | **Herencia de Docker Compose** | **NO corre como pod en Kubernetes**. Kubelet expone cAdvisor nativamente en `:10250/metrics/cadvisor`. Solo corre como contenedor auxiliar en `docker-compose.dev.yml`. |
+| **cAdvisor** | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | **Herencia de Docker Compose** | **NO corre como pod en Kubernetes**. Kubelet expone cAdvisor nativamente en `:10250/metrics/cadvisor`. Solo corre como contenedor auxiliar en `docker-compose.dev.yaml`. |
 | **ArgoCD** | `(P)` (Plantilla) | `✓` (Sincronizado) | `✓` (Sincronizado) | **Desplegado Real (On-prem)** | `app-proxmox.yaml` sincroniza activamente K3s. `app-cloud.yaml` existe como plantilla de referencia no conectada a un cluster vivo. |
 | **HPA (HorizontalPodAutoscaler)** | `✓` (Renderizado) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | Renderizado en AWS (`minReplicas: 3, maxReplicas: 10`). En Proxmox `autoscaling.enabled: false` para capacidad garantizada fija. |
 | **PostgreSQL 16 StatefulSet** | `✓` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Desplegado Real** | Base de datos persistente única con volumen PVC `10Gi` (AWS gp3 / Proxmox local-path). |
@@ -52,7 +52,7 @@ Su objetivo es responder con precisión:
 - **En debates de arquitectura:** Se suele listar a cAdvisor como un componente a desplegar o evaluar en Kubernetes.
 - **En el render real:** **No existe ningún manifiesto ni Helm template para cAdvisor en Kubernetes**.
 - **Realidad Técnica:** Kubelet incluye cAdvisor compilado en su propio binario (`/metrics/cadvisor` en el puerto 10250). Grafana Alloy hace scraping directamente desde Kubelet.
-- **Origen de la Confusión:** En desarrollo local (`docker-compose.dev.yml`), Docker Engine no expone métricas de cgroups nativamente en formato Prometheus, por lo que se requiere el contenedor satélite `gcr.io/cadvisor/cadvisor:v0.49.1`.
+- **Origen de la Confusión:** En desarrollo local (`docker-compose.dev.yaml`), Docker Engine no expone métricas de cgroups nativamente en formato Prometheus, por lo que se requiere el contenedor satélite `gcr.io/cadvisor/cadvisor:v0.49.1`.
 - **Conclusión:** cAdvisor es **herencia de desarrollo local**; en Kubernetes su presencia es nativa e invisible.
 
 ---

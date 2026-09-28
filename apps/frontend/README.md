@@ -47,7 +47,7 @@ El frontend se levanta automáticamente como parte del stack de Docker Compose o
 
 ```bash
 # Desarrollo local con Docker Compose
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --build
 
 # Acceso local
 http://localhost:8080/

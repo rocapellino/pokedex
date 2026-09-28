@@ -658,7 +658,7 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   assert.match(appCloud, /namespace:\s*pokemon-app/, 'app-cloud.yaml debe definir namespace: pokemon-app');
 
   // 6. setup_vault.yml vincula los roles K8s al namespace pokemon-app
-  const setupVault = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yml'), 'utf-8');
+  const setupVault = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml'), 'utf-8');
   assert.match(
     setupVault,
     /pokedex-preprod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,

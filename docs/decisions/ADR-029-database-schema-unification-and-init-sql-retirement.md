@@ -32,7 +32,7 @@ En consecuencia, se adoptan las siguientes acciones:
 
 1. **Retiro de `init.sql` en Docker Compose:**
    - Se elimina el archivo físico `infra/docker/postgres/init.sql`.
-   - Se retira el montaje de volumen `./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro` de `docker-compose.yml`.
+   - Se retira el montaje de volumen `./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro` de `docker-compose.yaml`.
    - El contenedor de PostgreSQL arranca como motor relacional limpio; al iniciar el servicio de backend (`pokemon-api`), la aplicación ejecuta las migraciones Drizzle y construye el esquema canónico automáticamente.
 2. **Retiro de ConfigMap y Montaje en Helm:**
    - Se elimina el template `infra/helm/pokedex/templates/postgres-init-configmap.yaml`.

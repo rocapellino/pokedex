@@ -42,7 +42,7 @@ Se adopta una arquitectura de resiliencia y contratos estructurados de siete cap
 
 7. **Telemetría y Observabilidad en Tiempo Real**:
    - Exposición de métricas nativas en `/metrics`: `pokedex_ai_circuit_breaker_open` (1/0) y `pokedex_ai_circuit_breaker_failures`.
-   - Regla de alerta Prometheus `PokedexAICircuitBreakerOpen` en `infra/monitoring/alerts.yml` y procedimiento operativo estándar SOP 3.7 en `docs/operations/observability-alerts.md`.
+   - Regla de alerta Prometheus `PokedexAICircuitBreakerOpen` en `infra/monitoring/alerts.yaml` y procedimiento operativo estándar SOP 3.7 en `docs/operations/observability-alerts.md`.
 
 ## Consecuencias
 

@@ -44,7 +44,7 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
   const reasons: string[] = [];
   const proxmoxValuesPath = path.join(rootDir, 'gitops/environments/proxmox/values.yaml');
   const vaultBackendPath = path.join(rootDir, 'infra/k8s/eso/vault-backend.yaml');
-  const setupVaultPlaybook = path.join(rootDir, 'infra/ansible/playbooks/setup_vault.yml');
+  const setupVaultPlaybook = path.join(rootDir, 'infra/ansible/playbooks/setup_vault.yaml');
 
   // 1. Validar que Reloader está desactivado en Proxmox
   if (fs.existsSync(proxmoxValuesPath)) {

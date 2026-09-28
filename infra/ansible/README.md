@@ -48,12 +48,12 @@ infra/ansible/
 ├── README.md                # Este documento de arquitectura y guía operativa
 ├── inventories/
 │   ├── proxmox/
-│   │   └── hosts.yml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, standalone_servers)
+│   │   └── hosts.yaml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, standalone_servers)
 │   └── lab/
-│       └── hosts.yml        # Inventario para entorno de laboratorio y pruebas
+│       └── hosts.yaml        # Inventario para entorno de laboratorio y pruebas
 └── playbooks/
     ├── host_baseline.yml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
-    ├── security_hardening.yml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
+    ├── security_hardening.yaml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
     └── setup_nodes.yml        # Preparación de nodos para clúster Kubernetes
 ```
 
@@ -61,7 +61,7 @@ infra/ansible/
 
 ## 🔒 Política de Firewall UFW (Zero-Trust)
 
-El playbook `security_hardening.yml` aplica una política de **denegación por defecto** (`default deny incoming`) con segmentación estricta:
+El playbook `security_hardening.yaml` aplica una política de **denegación por defecto** (`default deny incoming`) con segmentación estricta:
 
 - **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `192.168.1.0/24`).
 - **Web Pública (`80/tcp`, `443/tcp`):** Permitido para proxies reversos Nginx / Ingress.
@@ -77,13 +77,13 @@ El playbook `security_hardening.yml` aplica una política de **denegación por d
 ### 1. Preparación de Nodos para Kubernetes / Docker
 
 ```bash
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_nodes.yml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_nodes.yaml
 ```
 
 ### 2. Aplicación de Hardening y Firewall Zero-Trust
 
 ```bash
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/security_hardening.yml \
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml \
   -e "mgmt_cidr=192.168.1.0/24" \
   -e "k8s_cluster_cidr=192.168.1.0/24"
 ```

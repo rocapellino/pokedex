@@ -93,7 +93,7 @@ npx tsx scripts/dev-backup-gdrive.ts
 Si ya cuentas con respaldos en el directorio `./backups/` y solo deseas sincronizarlos con Google Drive:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile backup run --rm backup-gdrive
+docker compose -f docker-compose.yaml -f docker-compose.dev.yaml --profile backup run --rm backup-gdrive
 ```
 
 ---
@@ -151,7 +151,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
 
 ### Manifiesto de Automatización Ansible
 
-El playbook [`infra/ansible/playbooks/setup_gdrive_backup.yml`](../../infra/ansible/playbooks/setup_gdrive_backup.yml) aprovisiona la configuración completa en el hipervisor:
+El playbook [`infra/ansible/playbooks/setup_gdrive_backup.yaml`](../../infra/ansible/playbooks/setup_gdrive_backup.yaml) aprovisiona la configuración completa en el hipervisor:
 
 1. **Editar los parámetros en el playbook o inventario**:
 
@@ -167,7 +167,7 @@ El playbook [`infra/ansible/playbooks/setup_gdrive_backup.yml`](../../infra/ansi
 2. **Ejecutar el playbook**:
 
    ```bash
-   ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yml infra/ansible/playbooks/setup_gdrive_backup.yml
+   ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_gdrive_backup.yaml
    ```
 
 3. **Componentes aprovisionados en Proxmox**:

@@ -27,6 +27,6 @@ Para evitar actualizaciones innecesarias o ruido en Pull Requests, un documento 
 2. **Corrección de Linter o Formato:**
    Ajustes estéticos, ordenamiento de imports o resolución de reglas de tipado que no alteran la semántica operativa **no impactan la documentación**.
 3. **Modificación Específica de Entorno Local:**
-   Cambios aislados en `docker-compose.dev.yml` o scripts de simulación de pruebas que no alteran la arquitectura de producción on-premise ni cloud **no demandan actualizar los runbooks de producción**.
+   Cambios aislados en `docker-compose.dev.yaml` o scripts de simulación de pruebas que no alteran la arquitectura de producción on-premise ni cloud **no demandan actualizar los runbooks de producción**.
 4. **Documento Histórico Delimitado:**
    Auditorías fechadas bajo `docs/audits/<fecha>/` son registros inmutables de estados pasados; **nunca deben modificarse retroactivamente** para reflejar cambios presentes.
