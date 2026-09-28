@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { execSync } from 'node:child_process';
 import {
   loadImpactConfig,
   analyzeChangeImpact,
@@ -528,6 +529,19 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
     /nginx\.conf\.template/,
     'web.yaml debe validar nginx.conf.template, que es lo que renderiza el Dockerfile en produccion'
   );
+  // El renderizado no puede ejecutarse inline con `node -e`: los backticks y
+  // los `${...}` se interpretan como command substitution en bash y la
+  // validacion falla con literales sin sustituir. Debe delegar en el script.
+  assert.match(
+    webWf,
+    /node scripts\/render-nginx-config\.mjs/,
+    'web.yaml debe delegar el renderizado en scripts/render-nginx-config.mjs'
+  );
+  assert.doesNotMatch(
+    webWf,
+    /node -e/,
+    'web.yaml no debe usar `node -e` inline: bash expande los backticks y ${...}'
+  );
 
   // 4. La documentacion de seguridad debe reflejar la imagen real, no una anterior.
   const securityDoc = fs.readFileSync(
@@ -546,6 +560,67 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
 
 test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+
+test('🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan', () => {
+  const scriptPath = path.join(ROOT_DIR, 'scripts/render-nginx-config.mjs');
+  assert.ok(fs.existsSync(scriptPath), 'scripts/render-nginx-config.mjs debe existir');
+
+  const script = fs.readFileSync(scriptPath, 'utf-8');
+  const template = fs.readFileSync(
+    path.join(ROOT_DIR, 'apps/frontend/nginx.conf.template'),
+    'utf-8'
+  );
+
+  // Toda variable usada por la plantilla debe estar contemplada por el renderizador.
+  const used = [...new Set([...template.matchAll(/\$\{(\w+)\}/g)].map((m) => m[1]))];
+  for (const key of used) {
+    assert.ok(script.includes(key), `El renderizador debe conocer la variable ${key}`);
+  }
+
+  const outOk = path.join(ROOT_DIR, 'render-probe-ok.conf');
+  try {
+    execSync(`node "${scriptPath}" "${outOk}"`, {
+      cwd: ROOT_DIR,
+      encoding: 'utf-8',
+      env: {
+        ...process.env,
+        BACKOFFICE_ALLOWED_IP_1: '10.42.0.1/32',
+        BACKOFFICE_ALLOWED_IP_2: '192.168.1.50/32',
+        METRICS_ALLOWED_CIDR: '10.42.0.0/24',
+      },
+    });
+    const rendered = fs.readFileSync(outOk, 'utf-8');
+    assert.doesNotMatch(
+      rendered,
+      /\$\{\w+\}/,
+      'La configuracion renderizada no debe conservar placeholders'
+    );
+    assert.ok(
+      rendered.includes('allow 10.42.0.1/32;'),
+      'La IP del backoffice debe quedar sustituida en la configuracion'
+    );
+  } finally {
+    if (fs.existsSync(outOk)) fs.rmSync(outOk, { force: true });
+  }
+
+  // Fail-closed: una variable ausente debe abortar con exit 1.
+  const outBad = path.join(ROOT_DIR, 'render-probe-bad.conf');
+  let failed = false;
+  try {
+    execSync(`node "${scriptPath}" "${outBad}"`, {
+      cwd: ROOT_DIR,
+      encoding: 'utf-8',
+      env: { ...process.env, METRICS_ALLOWED_CIDR: '' },
+      stdio: 'pipe',
+    });
+  } catch {
+    failed = true;
+  } finally {
+    if (fs.existsSync(outBad)) fs.rmSync(outBad, { force: true });
+  }
+  assert.equal(failed, true, 'El renderizador debe fallar si falta una variable de entorno');
+});
+
 
   // El gate existe para que el ruleset pueda declarar UN solo required check.
   assert.match(orchestrator, /quality-gate:/, 'change-impact.yaml debe definir el job quality-gate');

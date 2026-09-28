@@ -67,18 +67,7 @@ jobs:
           export METRICS_ALLOWED_CIDR="10.42.0.0/24"
 
           RENDERED="${RUNNER_TEMP}/default.conf"
-          node -e "
-            const fs = require('fs');
-            const src = fs.readFileSync('apps/frontend/nginx.conf.template', 'utf8');
-            const out = src.replace(/\$\{(BACKOFFICE_ALLOWED_IP_1|BACKOFFICE_ALLOWED_IP_2|METRICS_ALLOWED_CIDR)\}/g,
-              (_, k) => process.env[k] ?? '');
-            if (/\$\{/.test(out)) {
-              console.error('ERROR: quedaron variables sin renderizar:');
-              out.split('\n').forEach((l, i) => { if (/\$\{/.test(l)) console.error(`  ${i + 1}: ${l}`); });
-              process.exit(1);
-            }
-            fs.writeFileSync(process.argv[1], out);
-          " "${RENDERED}"
+          node scripts/render-nginx-config.mjs "${RENDERED}"
 
           # El contenedor solo valida la sintaxis de la configuracion ya renderizada.
           docker run --rm \
