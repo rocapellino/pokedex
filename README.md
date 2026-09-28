@@ -3,6 +3,7 @@
 Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa una Pokédex reactiva para la consulta y gestión del catálogo oficial de Pokémon. Diseñada bajo principios de separación de responsabilidades, seguridad por defecto (*fail-closed*) y entrega continua mediante GitOps sobre Kubernetes portable.
 
 [![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yml)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=rocapellino_pokedex&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rocapellino_pokedex)
 [![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-24+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
@@ -15,18 +16,25 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 ## 📑 Tabla de Contenidos
 
-- [1. Propósito y Visión General](#1-propósito-y-visión-general)
-- [2. Características Principales](#2-características-principales)
-- [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
-- [4. Stack Tecnológico](#4-stack-tecnológico)
-- [5. Requisitos Previos](#5-requisitos-previos)
-- [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
-- [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
-- [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
-- [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
-- [10. Observabilidad y SRE](#10-observabilidad-y-sre)
-- [11. Índice de Documentación](#11-índice-de-documentación)
-- [12. Licencia y Contribución](#12-licencia-y-contribución)
+- [Pokémon DevOps Platform](#-pokémon-devops-platform)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [1. Propósito y Visión General](#1-propósito-y-visión-general)
+  - [2. Características Principales](#2-características-principales)
+  - [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
+  - [4. Stack Tecnológico](#4-stack-tecnológico)
+  - [5. Requisitos Previos](#5-requisitos-previos)
+  - [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
+    - [1. Clonar el repositorio y configurar entorno](#1-clonar-el-repositorio-y-configurar-entorno)
+    - [2. Instalar dependencias](#2-instalar-dependencias)
+    - [3. Iniciar servicios con Docker Compose](#3-iniciar-servicios-con-docker-compose)
+  - [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
+  - [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
+    - [Matriz de Estado y Nivel de Soporte de Componentes](#matriz-de-estado-y-nivel-de-soporte-de-componentes)
+  - [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
+  - [10. Observabilidad y SRE](#10-observabilidad-y-sre)
+  - [11. Índice de Documentación](#11-índice-de-documentación)
+    - [Decisiones de Arquitectura Relevantes (ADR) y CLI](#decisiones-de-arquitectura-relevantes-adr-y-cli)
+  - [12. Licencia y Contribución](#12-licencia-y-contribución)
 
 ---
 

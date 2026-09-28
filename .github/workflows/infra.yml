@@ -236,7 +236,11 @@ jobs:
 
       - name: 3. Compilar imágenes locales y cargar a Kind
         run: |
-          docker build -t pokedex-api:local -f Dockerfile .
+          # VER-002: se inyectan APP_VERSION y GIT_SHA por separado para que el
+          # smoke test de /version valide metadatos reales y no valores "unknown".
+          APP_VERSION="$(node -p "require('./package.json').version")"
+          GIT_SHA="$(git rev-parse HEAD)"
+          docker build --build-arg APP_VERSION="${APP_VERSION}" --build-arg GIT_SHA="${GIT_SHA}" -t pokedex-api:local -f Dockerfile .
           docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
           kind load docker-image pokedex-api:local --name pokedex-local
           kind load docker-image pokedex-web:local --name pokedex-local
@@ -301,7 +305,16 @@ jobs:
             sleep 2
           done
           curl -f http://127.0.0.1:3000/healthz  || { echo "❌ Endpoint /healthz falló"; exit 1; }
-          curl -f http://127.0.0.1:3000/version  || { echo "❌ Endpoint /version falló"; exit 1; }
+          # VER-002: /version debe exponer la versión semántica y el commit como
+          # campos conceptualmente distintos (no el mismo valor duplicado).
+          VERSION_JSON="$(curl -fsS http://127.0.0.1:3000/version)" || { echo "❌ Endpoint /version falló"; exit 1; }
+          API_VERSION="$(echo "$VERSION_JSON" | jq -r '.version')"
+          API_GIT_SHA="$(echo "$VERSION_JSON" | jq -r '.git_sha')"
+          EXPECTED_VERSION="$(node -p "require('./package.json').version")"
+          echo "/version -> version=${API_VERSION} git_sha=${API_GIT_SHA}"
+          [ "$API_VERSION" = "$EXPECTED_VERSION" ] || { echo "❌ /version.version (${API_VERSION}) != package.json (${EXPECTED_VERSION})"; exit 1; }
+          [ "$API_VERSION" != "$API_GIT_SHA" ]       || { echo "❌ /version.version y /version.git_sha son el mismo valor (${API_VERSION})"; exit 1; }
+          [ ${#API_GIT_SHA} -eq 40 ]                  || { echo "❌ /version.git_sha no es un commit SHA completo: ${API_GIT_SHA}"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds"       || { echo "❌ /metrics sin uptime_seconds"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status"       || { echo "❌ /metrics sin storage_status"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ /metrics sin ai_circuit_breaker_open"; exit 1; }

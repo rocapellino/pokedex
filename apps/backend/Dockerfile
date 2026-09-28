@@ -46,9 +46,15 @@ WORKDIR /app
 ENV NODE_ENV=production \
     PORT=3000
 
+# VER-002: APP_VERSION y GIT_SHA son metadatos conceptualmente distintos
+# (versión semántica de la release vs. commit exacto que la compila).
+# CI los inyecta como build-args independientes; en builds locales sin
+# argumentos ambos degradan explícitamente a "unknown".
+ARG APP_VERSION=unknown
 ARG GIT_SHA=unknown
-ENV GIT_SHA=$GIT_SHA \
-    APP_VERSION=$GIT_SHA
+
+ENV APP_VERSION=$APP_VERSION \
+    GIT_SHA=$GIT_SHA
 
 # Actualizar librerías del sistema para mitigar CVEs en OpenSSL y paquetes base
 RUN apk upgrade --no-cache
