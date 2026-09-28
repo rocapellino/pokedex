@@ -43,12 +43,13 @@ Auditar y gobernar la **topología integral de CI/CD** en GitHub Actions, asegur
 ### 2. Gobernanza de Workflows y Triggers
 
 - **Mapeo de Flujos Activos:** Supervisar los workflows del repositorio:
-  - `ci.yml`: Quality Gates de código, SAST, SCA, build de contenedor y release OCI.
-  - `infra.yml`: Validación granular de Helm, OpenTofu, Ansible, Checkov y prueba de integración canónica en Kind.
-  - `security-gitleaks.yml`: Detección obligatoria de secretos en git diff con paths-ignore documental.
-  - `security-trivy.yml`: Escaneo periódico y condicional de vulnerabilidades de contenedor y dependencias.
-  - `mega-linter.yml`: Linter estático condicional (`ci_light`) para Dockerfiles, shell scripts y YAML.
-  - `security-dast-zap.yml`, `performance-k6.yml`, `dr-simulation.yml`: Flujos programados y de eventos específicos.
+  - `ci.yaml`: Quality Gates de código, SAST, SCA, build de contenedor y release OCI.
+  - `infra.yaml`: Validación granular de Helm, OpenTofu, Ansible, Checkov y prueba de integración canónica en Kind.
+  - `security-gitleaks.yaml`: Detección obligatoria de secretos en git diff con paths-ignore documental.
+  - `security-trivy.yaml`: Escaneo periódico y condicional de vulnerabilidades de contenedor y dependencias.
+  - `mega-linter.yaml`: Linter estático condicional (`ci_light`) para Dockerfiles, shell scripts y YAML.
+  - `security-dast-zap.yaml`, `performance-k6.yaml`, `dr-simulation.yaml`: Flujos programados y de eventos específicos.
+- **Extensión Canónica de Workflows:** todo workflow nuevo debe crearse en `.github/workflows/` con extensión **`.yaml`**. Está prohibido crear workflows con extensión `.yml`. La única excepción vigente es `.mega-linter.yml`, que es un archivo de configuración de la herramienta, no un workflow, y cuyo nombre impone MegaLinter vía `MEGALINTER_CONFIG`.
 - **Filtrado Eficiente de Triggers:** Mantener filtros de `paths:` y `paths-ignore:` sincronizados con el contrato declarativo de impacto para evitar arranque innecesario de máquinas virtuales.
 
 ### 3. Seguridad y Hardening de CI
