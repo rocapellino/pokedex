@@ -111,6 +111,42 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
     releaseWf.includes('[skip-release]'),
     'El commit de actualización debe incluir [skip-release] para evitar recursión'
   );
+  assert.equal(
+    releaseWf.match(/gh pr create/g)?.length,
+    1,
+    'release-tag.yml debe crear exactamente un PR atómico por release'
+  );
+  assert.ok(
+    releaseWf.includes('BRANCH="release/promote-${NEW_TAG}"'),
+    'La promoción debe usar la rama bot release/promote-vX.Y.Z'
+  );
+  assert.ok(!releaseWf.includes('release/bump-${NEW_TAG}'), 'No debe conservar la rama de bump separada');
+  assert.ok(!releaseWf.includes('gitops/pin-${NEW_TAG}'), 'No debe conservar la rama GitOps separada');
+  assert.ok(
+    releaseWf.includes('git add package.json infra/helm/pokedex/Chart.yaml gitops/apps/'),
+    'El commit debe preparar conjuntamente metadata y manifiestos GitOps'
+  );
+  assert.ok(
+    releaseWf.includes('git commit -m "chore(release): promote ${NEW_TAG} [skip-release]"'),
+    'El commit atómico debe impedir recursión'
+  );
+  assert.ok(
+    releaseWf.includes('--title "chore(release): promote ${NEW_TAG} [skip-release]"'),
+    'El título del PR debe impedir recursión con cualquier estrategia de merge'
+  );
+  assert.ok(
+    releaseWf.includes('gh pr list --head "$BRANCH" --state open'),
+    'La automatización debe reutilizar un PR de promoción abierto'
+  );
+  assert.ok(
+    releaseWf.includes('git push -u --force-with-lease origin "$BRANCH"'),
+    'Solo la rama bot de promoción puede actualizarse mediante force-with-lease'
+  );
+  assert.doesNotMatch(
+    releaseWf,
+    /git push[^\n]*--force(?!-with-lease)/,
+    'El workflow no debe usar force push sin lease'
+  );
 
   // 2. package.json expone gitops:pin y gitops:pin:check
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));

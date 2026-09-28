@@ -157,7 +157,7 @@ flowchart TD
 - Al fusionar el PR en `main`:
   - El ticket en Linear transiciona automáticamente a **Done** y envía la notificación de resolución correspondiente al canal de Slack.
   - El workflow **`release-tag.yml`** analiza los commits convencionales mergeados (`feat:`, `fix:`, `chore(deps):`) y calcula el incremento SemVer (`vMAJOR.MINOR.PATCH`), creando el **Git Tag** firmado con Gitsign y el **GitHub Release** oficial.
-  - La sincronización de `package.json` y `infra/helm/pokedex/Chart.yaml` con el nuevo tag se abre como **Pull Request** (`release/bump-<tag>`) contra `main`, en línea con las reglas de protección de rama.
+  - La metadata de `package.json` y `infra/helm/pokedex/Chart.yaml`, junto con el `targetRevision` de las aplicaciones ArgoCD, se promueve mediante un único **Pull Request** (`release/promote-<tag>`) contra `main`. El tag y el GitHub Release ya existen antes de abrir esta unidad atómica de promoción.
   - El workflow **`ci.yml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
     2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.
