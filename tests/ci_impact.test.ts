@@ -501,6 +501,26 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
     orchestrator.includes('SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}'),
     'change-impact.yml debe propagar SONAR_TOKEN al reusable workflow'
   );
+  assert.ok(
+    ci.includes("readFileSync('package.json', 'utf8')).version"),
+    'La versión de Sonar debe derivarse del package.json canónico'
+  );
+  assert.ok(
+    ci.includes('id: project-version') &&
+      ci.includes('-Dsonar.projectVersion=${{ steps.project-version.outputs.version }}'),
+    'Sonar debe recibir la versión SemVer validada mediante un output del job'
+  );
+  assert.ok(
+    ci.includes("node -e \"if (!/^(0|[1-9]\\\\d*)") &&
+      ci.includes('.test(process.argv[1])) process.exit(1)\" \"$VERSION\"') &&
+      ci.indexOf('.test(process.argv[1])) process.exit(1)') <
+        ci.indexOf('echo \"version=$VERSION\" >> \"$GITHUB_OUTPUT\"'),
+    'El workflow debe rechazar versiones que no cumplan SemVer antes de publicar el output'
+  );
+  assert.ok(
+    ci.includes('-Dsonar.qualitygate.wait=true'),
+    'El scanner debe esperar y propagar el resultado del Quality Gate'
+  );
   assert.equal(
     sync.match(/SonarSource\/sonarqube-scan-action@/g)?.length ?? 0,
     0,
@@ -510,6 +530,21 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
     sonarProperties,
     /^sonar\.region=/m,
     'La instancia europea de SonarQube Cloud debe usar la región predeterminada sin sonar.region'
+  );
+  assert.match(
+    sonarProperties,
+    /^sonar\.exclusions=.*apps\/backend\/src\/db\/migrations\/\*\*/m,
+    'Las migraciones PostgreSQL generadas no deben activar el analizador PLSQL'
+  );
+  assert.doesNotMatch(
+    sonarProperties,
+    /^sonar\.projectVersion=/m,
+    'La versión de Sonar no debe fijarse estáticamente en sonar-project.properties'
+  );
+  assert.doesNotMatch(
+    `${ci}\n${sonarProperties}`,
+    /data[ ._-]?dictionary|sonar\.plsql/i,
+    'El repositorio no debe configurar un Data Dictionary de Oracle para migraciones PostgreSQL'
   );
 });
 
