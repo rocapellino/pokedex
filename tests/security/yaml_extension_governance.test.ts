@@ -116,7 +116,7 @@ test('📐 Extension Governance: el gate es fail-closed ante un .yml trackeado n
 });
 
 test('📐 Extension Governance: CI y el contrato de impacto integran el gate de extensión', () => {
-  const ciContent = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yml'), 'utf-8');
+  const ciContent = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
   assert.match(ciContent, /YAML Extension Gate/, 'ci.yml debe declarar un paso para el YAML Extension Gate');
   assert.match(ciContent, /npm run lint:yaml:strict/, 'ci.yml debe invocar npm run lint:yaml:strict');
 

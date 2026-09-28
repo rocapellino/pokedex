@@ -26,7 +26,7 @@ flowchart TD
     E["Operador / Terminal Local"] -->|task ghcr:retention| F["scripts/ghcr-retention.ts<br/>Inspección y Limpieza Manual"]
 ```
 
-### Nivel 1: En Línea en el Pipeline de Publicación ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml))
+### Nivel 1: En Línea en el Pipeline de Publicación ([`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml))
 
 En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atestación de SBOM y publicación en GHCR, el job `publish` ejecuta automáticamente el paso:
 
@@ -40,7 +40,7 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
     token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yml`](../../.github/workflows/ghcr-retention.yml))
+### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 
 - **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa de `CI/CD Pipeline`.
 - **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.

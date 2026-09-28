@@ -21,7 +21,7 @@ test('🛡️ Operación: Kind clúster declarativo existe y define puertos e in
 });
 
 test('🛡️ Operación: infra.yml integra Kind como prueba canónica de integración', () => {
-  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yml'), 'utf-8');
+  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
 
   assert.match(infraWorkflow, /kind-integration:/, 'infra.yml debe incluir job kind-integration');
   assert.match(infraWorkflow, /helm\/kind-action/, 'kind-integration debe usar helm/kind-action');
@@ -31,7 +31,7 @@ test('🛡️ Operación: infra.yml integra Kind como prueba canónica de integr
 });
 
 test('🛡️ Operación: security-dast-zap.yml configura escaneo dinámico con OWASP ZAP', () => {
-  const zapWorkflowPath = path.join(ROOT_DIR, '.github/workflows/security-dast-zap.yml');
+  const zapWorkflowPath = path.join(ROOT_DIR, '.github/workflows/security-dast-zap.yaml');
   assert.ok(fs.existsSync(zapWorkflowPath), 'security-dast-zap.yml debe existir');
 
   const content = fs.readFileSync(zapWorkflowPath, 'utf-8');
@@ -49,7 +49,7 @@ test('🛡️ Operación: k6_stress_test.js y performance-k6.yml definen y valid
   assert.match(k6Script, /p\(99\)<500/, 'k6 debe exigir p99 < 500ms');
   assert.match(k6Script, /rate<0\.01/, 'k6 debe exigir tasa de error < 1%');
 
-  const k6Workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/performance-k6.yml'), 'utf-8');
+  const k6Workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/performance-k6.yaml'), 'utf-8');
   assert.match(k6Workflow, /--summary-export=\/tmp\/k6-summary\.json/, 'Debe exportar el resumen de k6');
   assert.match(k6Workflow, /GITHUB_STEP_SUMMARY/, 'Debe registrar métricas en GITHUB_STEP_SUMMARY');
 });
@@ -64,7 +64,7 @@ test('🛡️ Operación: DISASTER_RECOVERY_PLAN.md documenta RPO y RTO medidos 
 });
 
 test('🛡️ Operación: dr-simulation.yml automatiza simulacros periódicos de recuperación ante desastres', () => {
-  const drSimPath = path.join(ROOT_DIR, '.github/workflows/dr-simulation.yml');
+  const drSimPath = path.join(ROOT_DIR, '.github/workflows/dr-simulation.yaml');
   assert.ok(fs.existsSync(drSimPath), 'dr-simulation.yml debe existir');
 
   const content = fs.readFileSync(drSimPath, 'utf-8');

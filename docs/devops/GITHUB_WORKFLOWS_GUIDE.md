@@ -29,10 +29,10 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 
 Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo estructurado con npm workspaces, se implementa una estrategia optimizada de pipelines sin ejecuciones redundantes (remediación `CI-001`):
 
-- **Cambios en Frontend (`apps/frontend/**`):** Activan [`web.yml`](../../.github/workflows/web.yml) para linting, build Vite y pruebas E2E con Playwright y Lighthouse.
-- **Cambios en Infraestructura (`infra/**`):** Activan [`infra.yml`](../../.github/workflows/infra.yml) para validación exhaustiva de Helm, OpenTofu, Ansible, esquemas Kubeconform, Kube-linter, Kyverno, escaneo CIS con Checkov e integración KinD.
-- **Pull Requests y Pushes a `main`:** Disparan el pipeline central unificado [`ci.yml`](../../.github/workflows/ci.yml) ejecutando análisis estático, tipado, compilación esbuild, tests de unidad/seguridad/fuzzing, `npm audit`, Semgrep SAST, empaquetado Docker y firma criptográfica Cosign. El gate de **Dependency Review** se ejecuta exclusivamente en contexto de Pull Request (requiere `base_ref`/`head_ref`); en pushes a `main` la cobertura SCA la aporta `npm audit --audit-level=high --omit=dev`.
-- **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml) para detección temprana de credenciales.
+- **Cambios en Frontend (`apps/frontend/**`):** Activan [`web.yml`](../../.github/workflows/web.yaml) para linting, build Vite y pruebas E2E con Playwright y Lighthouse.
+- **Cambios en Infraestructura (`infra/**`):** Activan [`infra.yml`](../../.github/workflows/infra.yaml) para validación exhaustiva de Helm, OpenTofu, Ansible, esquemas Kubeconform, Kube-linter, Kyverno, escaneo CIS con Checkov e integración KinD.
+- **Pull Requests y Pushes a `main`:** Disparan el pipeline central unificado [`ci.yml`](../../.github/workflows/ci.yaml) ejecutando análisis estático, tipado, compilación esbuild, tests de unidad/seguridad/fuzzing, `npm audit`, Semgrep SAST, empaquetado Docker y firma criptográfica Cosign. El gate de **Dependency Review** se ejecuta exclusivamente en contexto de Pull Request (requiere `base_ref`/`head_ref`); en pushes a `main` la cobertura SCA la aporta `npm audit --audit-level=high --omit=dev`.
+- **Cualquier Commit:** Ejecuta [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yaml) para detección temprana de credenciales.
 
 ---
 
@@ -96,25 +96,25 @@ flowchart TD
 
 ### 3.1. 🌐 `web.yml` (Frontend Web CI)
 
-- **Archivo:** [`web.yml`](../../.github/workflows/web.yml)
+- **Archivo:** [`web.yml`](../../.github/workflows/web.yaml)
 - **Triggers:** Cambios en `apps/frontend/**`, `tests/e2e/**`, `playwright.config.ts`, `lighthouserc.json`.
 - **Pasos:** Compilación de assets con Vite, linter de configuración Nginx y ejecución de tests E2E y auditoría de accesibilidad Axe-core con Playwright.
 
 ### 3.2. ⚙️ `infra.yml` (Infrastructure & IaC CI)
 
-- **Archivo:** [`infra.yml`](../../.github/workflows/infra.yml)
+- **Archivo:** [`infra.yml`](../../.github/workflows/infra.yaml)
 - **Triggers:** Cambios en `infra/**`.
 - **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**.
 
 ### 3.3. 🔐 `security-gitleaks.yml` (Secret Scanning)
 
-- **Archivo:** [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yml)
+- **Archivo:** [`security-gitleaks.yml`](../../.github/workflows/security-gitleaks.yaml)
 - **Triggers:** Todos los commits y PRs.
 - **Pasos:** Gitleaks con reglas de [`.gitleaks.toml`](../../.gitleaks.toml) analizando el historial completo para evitar fuga de credenciales o API keys.
 
 ### 3.4. 🚀 `ci.yml` (Monorepo CI, Gates Bloqueantes, SBOM, Cosign & Supply Chain)
 
-- **Archivo:** [`ci.yml`](../../.github/workflows/ci.yml)
+- **Archivo:** [`ci.yml`](../../.github/workflows/ci.yaml)
 - **Triggers:** Pull Requests y pushes a `main`.
 - **Etapas:**
   1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm test` (unit, pentest, contratos), `npm run test:fuzz` (fuzzing DAST) y `npm audit --audit-level=high --omit=dev`.
@@ -129,12 +129,12 @@ flowchart TD
 
 ### 3.5. 🛡️ `security-trivy.yml` (Escaneo Programado de Vulnerabilidades)
 
-- **Archivo:** [`security-trivy.yml`](../../.github/workflows/security-trivy.yml)
+- **Archivo:** [`security-trivy.yml`](../../.github/workflows/security-trivy.yaml)
 - **Triggers:** Escaneo programado periódico de CVEs sobre filesystem y dependencias.
 
 ### 3.6. 🏷️ `release-tag.yml` (Versionado Semántico Automático)
 
-- **Archivo:** [`release-tag.yml`](../../.github/workflows/release-tag.yml)
+- **Archivo:** [`release-tag.yml`](../../.github/workflows/release-tag.yaml)
 - **Triggers:** Push directo / merge a `main`.
 - **Pasos (dos fases mutuamente excluyentes):**
   1. **Fase `promote`:** analiza los commits convencionales (`feat:`, `fix:`, `perf:`), calcula el incremento SemVer en `dry-run` y abre/actualiza el PR atómico `release/promote-<tag>` (sin crear tag).
@@ -144,7 +144,7 @@ flowchart TD
 
 ### 3.7. ⚡ `performance-k6.yml` (Pruebas de Carga y Rendimiento)
 
-- **Archivo:** [`performance-k6.yml`](../../.github/workflows/performance-k6.yml)
+- **Archivo:** [`performance-k6.yml`](../../.github/workflows/performance-k6.yaml)
 - **Triggers:** Ejecución manual o programada para validar métricas de latencia p95 y resistencia bajo carga con scripts k6.
 
 ---
@@ -157,7 +157,7 @@ Todas las dependencias de GitHub Actions en los workflows están ancladas por su
 
 ### 4.2. Dependency Review Gate
 
-El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revisión de dependencias:
+El workflow [`ci.yml`](../../.github/workflows/ci.yaml) incorpora el gate de revisión de dependencias:
 
 - Falla de forma bloqueante si un PR introduce paquetes con CVEs calificados como `moderate`, `high` o `critical`.
 - Solo se ejecuta en eventos `pull_request`, `pull_request_target` y `merge_group` (es la única forma en que la acción obtiene `base_ref`/`head_ref`); en `push` a `main` el job se omite para evitar falsos negativos de configuración.
@@ -178,7 +178,7 @@ El workflow [`ci.yml`](../../.github/workflows/ci.yml) incorpora el gate de revi
 - **Vinculación Automática:** Al abrir el PR, el bot de Linear actualiza el estado a *In Review*. Al mergear a `main`, pasa a *Done*.
 - **Notificaciones ChatOps en Slack:**
   - La aplicación de Linear para Slack retransmite eventos de los tickets (`PEX-X`) directamente al canal de ingeniería del equipo.
-  - Los pipelines automatizados ([`renovate-linear-sync.yml`](../../.github/workflows/renovate-linear-sync.yml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
+  - Los pipelines automatizados ([`renovate-linear-sync.yml`](../../.github/workflows/renovate-linear-sync.yaml) y [`sonar-linear-sync.yml`](../../.github/workflows/sonar-linear-sync.yaml)) reportan hallazgos creando tickets automáticos en Linear, que a su vez generan alertas inmediatas en Slack.
   - Cuando los PRs son mergeados o cerrados, la sincronización bidireccional actualiza el ticket a `Done` o `Canceled` y publica el resultado en Slack sin requerir gestión manual.
 
 ---

@@ -229,7 +229,6 @@ rules:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'infra/**/*.yaml'
-      - 'infra/**/*.yml'
       - 'scripts/**/*.sh'
       - 'dr_verify_restore.sh'
       - 'scripts/check-ignore-hygiene.ts'

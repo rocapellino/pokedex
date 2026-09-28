@@ -10,7 +10,7 @@ Establecer el procedimiento estándar para la entrega continua y promoción de v
 Push/Merge a main
        │
        ▼
-CI Pipeline (.github/workflows/ci.yml)
+CI Pipeline (.github/workflows/ci.yaml)
   ├── Tests unitarios, integración y fuzzing
   ├── Análisis SAST (Semgrep, CodeQL) y Secretos (Gitleaks)
   ├── Auditoría de dependencias y Checkov IaC

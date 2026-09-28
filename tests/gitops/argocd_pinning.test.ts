@@ -94,7 +94,7 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
 
 test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y Taskfile.yaml configuran el pipeline de promoción', () => {
   // 1. Workflow release-tag.yml
-  const releaseWfPath = path.join(ROOT_DIR, '.github/workflows/release-tag.yml');
+  const releaseWfPath = path.join(ROOT_DIR, '.github/workflows/release-tag.yaml');
   assert.ok(fs.existsSync(releaseWfPath), 'release-tag.yml debe existir');
   const releaseWf = fs.readFileSync(releaseWfPath, 'utf-8');
 

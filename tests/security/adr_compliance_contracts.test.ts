@@ -15,13 +15,13 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
 test('🛡️ CI SAST Security: ci.yml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)', () => {
-  const ciPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
+  const ciPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   assert.ok(fs.existsSync(ciPath), 'ci.yml debe existir');
   const content = fs.readFileSync(ciPath, 'utf-8');
   assert.equal(
     content.includes('--exclude scripts'),
     false,
-    '.github/workflows/ci.yml no debe excluir scripts del análisis SAST de Semgrep'
+    '.github/workflows/ci.yaml no debe excluir scripts del análisis SAST de Semgrep'
   );
 });
 
@@ -156,8 +156,8 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
 });
 
 test('🛡️ CI Tooling Parity: infra.yml y ci.yml mantienen paridad estricta de versión de Helm en todos sus jobs', () => {
-  const infraWorkflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yml');
-  const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
+  const infraWorkflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
+  const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
 
   assert.ok(fs.existsSync(infraWorkflowPath), 'infra.yml debe existir');

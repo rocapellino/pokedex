@@ -113,8 +113,8 @@ test('📦 GHCR Retention: applyGhcrRetention ejecuta correctamente en modo simu
 
 test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y parámetros de retención', () => {
   // 1. Workflow autónomo de retención ghcr-retention.yml
-  const retentionWfPath = path.join(ROOT_DIR, '.github/workflows/ghcr-retention.yml');
-  assert.ok(fs.existsSync(retentionWfPath), '.github/workflows/ghcr-retention.yml debe existir');
+  const retentionWfPath = path.join(ROOT_DIR, '.github/workflows/ghcr-retention.yaml');
+  assert.ok(fs.existsSync(retentionWfPath), '.github/workflows/ghcr-retention.yaml debe existir');
 
   const retentionWf = fs.readFileSync(retentionWfPath, 'utf-8');
   assert.ok(retentionWf.includes('packages: write'), 'Debe requerir permiso packages: write');
@@ -125,7 +125,7 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
   assert.ok(retentionWf.includes('workflow_run:'), 'Debe activarse tras publicación en CI/CD');
 
   // 2. ci.yml incorpora paso de retención en job publish
-  const ciWfPath = path.join(ROOT_DIR, '.github/workflows/ci.yml');
+  const ciWfPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const ciWf = fs.readFileSync(ciWfPath, 'utf-8');
   assert.ok(
     ciWf.includes('dataaxiom/ghcr-cleanup-action'),
