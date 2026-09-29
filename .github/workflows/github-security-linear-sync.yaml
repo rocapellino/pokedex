@@ -4,14 +4,33 @@
 name: 📌 Sync GitHub Security & Quality to Linear
 
 on:
+  # WF-002: esta lista referenciaba workflow_run contra NOMBRES de workflow.
+  # GitHub resuelve el trigger por `name:` exacto, no por ruta de archivo, así que
+  # una referencia desactualizada no da error: simplemente nunca dispara.
+  #
+  # Estado previo: dos de las cuatro entradas NO existían
+  # ("🛡️ Security & Quality Gates (Trivy)" y "⚙️ Backend API CI") y por tanto el
+  # trigger NUNCA se activó (0 ejecuciones workflow_run en el historial).
+  #
+  # Criterio de inclusión: workflows cuya finalización conviene resincronizar
+  # alertas de seguridad. Se incluyen (a) los productores de SARIF hacia Code
+  # Scanning, (b) CodeQL, y (c) el pipeline principal como latido post-merge.
+  #
+  # Verificado con `tests/security/github_security_linear_sync.test.ts`, que valida
+  # cada nombre contra el `name:` real de los workflows del repositorio.
   workflow_run:
     workflows:
-      - "🛡️ Security & Quality Gates (Trivy)"
-      - "⚙️ Backend API CI"
-      - "🚀 CI/CD Pipeline - Quality Gates & Release"
+      # Productores de SARIF (publican alertas en GitHub Code Scanning).
       - "🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)"
+      - "🔐 Security Scan (Gitleaks)"
+      # CodeQL: workflow gestionado por GitHub, no reside en el repositorio.
+      - "CodeQL"
+      # Latido post-merge del pipeline principal.
+      - "🚀 CI/CD Pipeline - Quality Gates & Release"
     types: [completed]
     branches: [main]
+  # Cubre el resto de fuentes (Dependabot, Secret Scanning) y actúa como red de
+  # seguridad si un workflow_run falla o no se dispara.
   schedule:
     - cron: "0 4 * * *" # Sincronización preventiva diaria a las 04:00 UTC
   workflow_dispatch:
@@ -24,6 +43,9 @@ on:
         description: "Clave del equipo en Linear (por defecto PEX)"
         type: string
         default: "PEX"
+  # Punto de extensión para emisores EXTERNOS. Ningún workflow del repositorio
+  # emite hoy estos eventos (verificado), por lo que este trigger no ha disparado;
+  # se conserva deliberadamente como superficie de integración para webhooks.
   repository_dispatch:
     types:
       - code_scanning_alert

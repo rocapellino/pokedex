@@ -38,8 +38,24 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
+      # NOTA (WF-001): estas referencias DEBEN coincidir con las imágenes que el
+      # Chart despliega realmente, incluidas en infra/helm/pokedex/values.yaml.
+      #
+      # Antes de esta corrección el matrix escaneaba `edoburu/pgbouncer:1.22.0`,
+      # que (a) no es la imagen desplegada — el repo usa la oficial
+      # `pgbouncer/pgbouncer` — y (b) además retiraba ese tag del registro, por
+      # lo que el job fallaba con MANIFEST_UNKNOWN sin escanear nada útil.
+      # Se escaneaba, por tanto, una imagen distinta a la de producción.
+      #
+      # El digest es inmutable y por eso se fija: una etiqueta móvil podría
+      # dejar de corresponden con lo desplegado entre el scan y el deploy.
+      # `tests/security/iac_baseline_security.test.ts` verifica que estas
+      # referencias sigan sincronizadas con values.yaml.
       matrix:
-        image: ['postgres:16-alpine', 'redis:7-alpine', 'edoburu/pgbouncer:1.22.0']
+        image:
+          - 'postgres@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685'
+          - 'redis@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf'
+          - 'pgbouncer/pgbouncer@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516'
     steps:
       - name: Escanear imagen base de infraestructura
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
