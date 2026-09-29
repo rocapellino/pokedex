@@ -51,14 +51,14 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 | **Nivel Always: PR Governance** | — | `PR template & políticas de calidad` |
 | **Nivel Always: Secrets Scan** | — | `Gitleaks Detector` |
 | **Documentation** | — | `docs-ci (Fast Track)` |
-| **Backend Core** | — | `ci.yml (code-quality)` |
-| **Frontend SPA** | — | `ci.yml & web.yml` |
+| **Backend Core** | — | `ci.yaml (code-quality)` |
+| **Frontend SPA** | — | `ci.yaml & web.yaml` |
 | **Unit & Integration Tests** | — | `npm test & fuzzing` |
 | **Docker Images** | — | `build-docker & Cosign` |
-| **Kubernetes & GitOps** | — | `infra.yml & Kind` |
+| **Kubernetes & GitOps** | — | `infra.yaml & Kind` |
 | **Helm Packaging** | — | `helm lint & parity` |
-| **OpenTofu IaC** | — | `infra.yml (Tofu)` |
-| **Ansible Baseline** | — | `infra.yml (Ansible)` |
+| **OpenTofu IaC** | — | `infra.yaml (Tofu)` |
+| **Ansible Baseline** | — | `infra.yaml (Ansible)` |
 | **Linting & Config Hygiene** | — | `MegaLinter & lint:ignore` |
 | **Security: SAST** | — | `Semgrep` |
 | **Security: SCA** | — | `Dependency Review` |
