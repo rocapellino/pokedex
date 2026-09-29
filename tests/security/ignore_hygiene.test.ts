@@ -143,6 +143,6 @@ test('🛡️ Configuration Hygiene: workflow de CI integra el paso de auditorí
   const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const ciContent = fs.readFileSync(ciWorkflowPath, 'utf-8');
 
-  assert.match(ciContent, /Configuration Hygiene/, 'ci.yml debe declarar un paso para Configuration Hygiene');
-  assert.match(ciContent, /npm run lint:ignore:strict/, 'ci.yml debe invocar npm run lint:ignore:strict');
+  assert.match(ciContent, /Configuration Hygiene/, 'ci.yaml debe declarar un paso para Configuration Hygiene');
+  assert.match(ciContent, /npm run lint:ignore:strict/, 'ci.yaml debe invocar npm run lint:ignore:strict');
 });

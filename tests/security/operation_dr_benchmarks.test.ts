@@ -20,19 +20,19 @@ test('🛡️ Operación: Kind clúster declarativo existe y define puertos e in
   assert.match(content, /kindnet/, 'Debe documentar explícitamente el uso de kindnet y su relación con NetworkPolicies');
 });
 
-test('🛡️ Operación: infra.yml integra Kind como prueba canónica de integración', () => {
+test('🛡️ Operación: infra.yaml integra Kind como prueba canónica de integración', () => {
   const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
 
-  assert.match(infraWorkflow, /kind-integration:/, 'infra.yml debe incluir job kind-integration');
+  assert.match(infraWorkflow, /kind-integration:/, 'infra.yaml debe incluir job kind-integration');
   assert.match(infraWorkflow, /helm\/kind-action/, 'kind-integration debe usar helm/kind-action');
   assert.match(infraWorkflow, /infra\/k8s\/kind-cluster\.yaml/, 'kind-integration debe usar kind-cluster.yaml');
   assert.match(infraWorkflow, /helm upgrade --install pokedex/, 'kind-integration debe desplegar el chart');
   assert.match(infraWorkflow, /curl -f http:\/\/127\.0\.0\.1:3000\/healthz/, 'kind-integration debe probar /healthz');
 });
 
-test('🛡️ Operación: security-dast-zap.yml configura escaneo dinámico con OWASP ZAP', () => {
+test('🛡️ Operación: security-dast-zap.yaml configura escaneo dinámico con OWASP ZAP', () => {
   const zapWorkflowPath = path.join(ROOT_DIR, '.github/workflows/security-dast-zap.yaml');
-  assert.ok(fs.existsSync(zapWorkflowPath), 'security-dast-zap.yml debe existir');
+  assert.ok(fs.existsSync(zapWorkflowPath), 'security-dast-zap.yaml debe existir');
 
   const content = fs.readFileSync(zapWorkflowPath, 'utf-8');
   assert.match(content, /zaproxy\/action-baseline/, 'Debe utilizar zaproxy/action-baseline');
@@ -43,7 +43,7 @@ test('🛡️ Operación: security-dast-zap.yml configura escaneo dinámico con 
   assert.match(content, /cron:/, 'Debe tener ejecución programada por cron');
 });
 
-test('🛡️ Operación: k6_stress_test.js y performance-k6.yml definen y validan umbrales de SLA', () => {
+test('🛡️ Operación: k6_stress_test.js y performance-k6.yaml definen y validan umbrales de SLA', () => {
   const k6Script = fs.readFileSync(path.join(ROOT_DIR, 'tests/performance/k6_stress_test.js'), 'utf-8');
   assert.match(k6Script, /p\(95\)<200/, 'k6 debe exigir p95 < 200ms');
   assert.match(k6Script, /p\(99\)<500/, 'k6 debe exigir p99 < 500ms');
@@ -63,9 +63,9 @@ test('🛡️ Operación: DISASTER_RECOVERY_PLAN.md documenta RPO y RTO medidos 
   assert.match(drpPlan, /≤ 24 horas/, 'Debe documentar RPO medido (≤ 24 horas)');
 });
 
-test('🛡️ Operación: dr-simulation.yml automatiza simulacros periódicos de recuperación ante desastres', () => {
+test('🛡️ Operación: dr-simulation.yaml automatiza simulacros periódicos de recuperación ante desastres', () => {
   const drSimPath = path.join(ROOT_DIR, '.github/workflows/dr-simulation.yaml');
-  assert.ok(fs.existsSync(drSimPath), 'dr-simulation.yml debe existir');
+  assert.ok(fs.existsSync(drSimPath), 'dr-simulation.yaml debe existir');
 
   const content = fs.readFileSync(drSimPath, 'utf-8');
   assert.match(content, /cron:\s*"0 4 \* \* 0"/, 'Debe programarse semanalmente los domingos a las 04:00 UTC');
@@ -122,4 +122,3 @@ test('🛡️ Excelencia Operacional: Runbooks formales estructurados en docs/op
     assert.match(content, /## 1\. Propósito/, `${runbook} debe declarar su propósito`);
   }
 });
-

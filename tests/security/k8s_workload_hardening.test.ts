@@ -89,15 +89,15 @@ test('🛡️ K8s Quality & High Availability: api y web deployments implementan
   );
 });
 
-test('🛡️ K8s Quality Gates: infra.yml integra kubeconform, kube-linter y kyverno test', () => {
+test('🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test', () => {
   const workflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
-  assert.ok(fs.existsSync(workflowPath), 'infra.yml debe existir');
+  assert.ok(fs.existsSync(workflowPath), 'infra.yaml debe existir');
   const content = fs.readFileSync(workflowPath, 'utf-8');
 
-  assert.ok(content.includes('kubeconform'), 'infra.yml debe ejecutar kubeconform para esquemas K8s');
-  assert.ok(content.includes('kube-linter'), 'infra.yml debe ejecutar kube-linter para mejores prácticas');
-  assert.ok(content.includes('kyverno test'), 'infra.yml debe ejecutar kyverno test para políticas de admisión');
-  assert.ok(content.includes('image:.*:latest'), 'infra.yml debe validar y prohibir :latest en producción');
+  assert.ok(content.includes('kubeconform'), 'infra.yaml debe ejecutar kubeconform para esquemas K8s');
+  assert.ok(content.includes('kube-linter'), 'infra.yaml debe ejecutar kube-linter para mejores prácticas');
+  assert.ok(content.includes('kyverno test'), 'infra.yaml debe ejecutar kyverno test para políticas de admisión');
+  assert.ok(content.includes('image:.*:latest'), 'infra.yaml debe validar y prohibir :latest en producción');
 
   const kubeLinterConfig = path.join(ROOT_DIR, '.kube-linter.yaml');
   assert.ok(fs.existsSync(kubeLinterConfig), '.kube-linter.yaml debe existir');
@@ -177,7 +177,7 @@ test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates config
   assert.ok(fs.existsSync(pdbPath), 'pdb.yaml debe existir');
   assert.ok(fs.existsSync(quotaPath), 'resourcequota.yaml debe existir');
   assert.ok(fs.existsSync(limitRangePath), 'limitrange.yaml debe existir');
-  assert.ok(fs.existsSync(infraCiPath), 'infra.yml debe existir');
+  assert.ok(fs.existsSync(infraCiPath), 'infra.yaml debe existir');
 
   const valuesProdContent = fs.readFileSync(valuesProdPath, 'utf-8');
   assert.ok(valuesProdContent.includes('podDisruptionBudget:'), 'values.prod.yaml debe configurar podDisruptionBudget');
@@ -185,9 +185,9 @@ test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates config
   assert.ok(valuesProdContent.includes('limitRange:'), 'values.prod.yaml debe configurar limitRange');
 
   const infraCiContent = fs.readFileSync(infraCiPath, 'utf-8');
-  assert.ok(infraCiContent.includes('kind: PodDisruptionBudget'), 'infra.yml debe validar PodDisruptionBudget en prod');
-  assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yml debe validar ResourceQuota en prod');
-  assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yml debe validar LimitRange en prod');
+  assert.ok(infraCiContent.includes('kind: PodDisruptionBudget'), 'infra.yaml debe validar PodDisruptionBudget en prod');
+  assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yaml debe validar ResourceQuota en prod');
+  assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yaml debe validar LimitRange en prod');
 });
 
 test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints', () => {

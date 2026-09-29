@@ -92,20 +92,20 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
   assert.notEqual(parity.canonicalVersion, 'v1.99.0', 'Los archivos en disco no deben haber cambiado');
 });
 
-test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y Taskfile.yaml configuran el pipeline de promoción', () => {
-  // 1. Workflow release-tag.yml
+test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción', () => {
+  // 1. Workflow release-tag.yaml
   const releaseWfPath = path.join(ROOT_DIR, '.github/workflows/release-tag.yaml');
-  assert.ok(fs.existsSync(releaseWfPath), 'release-tag.yml debe existir');
+  assert.ok(fs.existsSync(releaseWfPath), 'release-tag.yaml debe existir');
   const releaseWf = fs.readFileSync(releaseWfPath, 'utf-8');
 
-  assert.ok(releaseWf.includes('pull-requests: write'), 'release-tag.yml debe declarar pull-requests: write');
+  assert.ok(releaseWf.includes('pull-requests: write'), 'release-tag.yaml debe declarar pull-requests: write');
   assert.ok(
     releaseWf.includes('update-gitops-pin.ts'),
-    'release-tag.yml debe ejecutar scripts/update-gitops-pin.ts'
+    'release-tag.yaml debe ejecutar scripts/update-gitops-pin.ts'
   );
   assert.ok(
     releaseWf.includes('gh pr create'),
-    'release-tag.yml debe invocar gh pr create para abrir PR de promoción'
+    'release-tag.yaml debe invocar gh pr create para abrir PR de promoción'
   );
   assert.ok(
     releaseWf.includes('[skip-release]'),
@@ -114,7 +114,7 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yml, package.json y T
   assert.equal(
     releaseWf.match(/gh pr create/g)?.length,
     1,
-    'release-tag.yml debe crear exactamente un PR atómico por release'
+    'release-tag.yaml debe crear exactamente un PR atómico por release'
   );
   assert.ok(
     releaseWf.includes('BRANCH="release/promote-${NEW_TAG}"'),
@@ -234,4 +234,3 @@ test('🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado,
     'El PR de promoción debe seguir usando new_tag del dry-run'
   );
 });
-

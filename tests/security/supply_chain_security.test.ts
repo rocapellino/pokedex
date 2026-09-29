@@ -333,8 +333,8 @@ test('🛡️ Supply Chain Security: Publish job implementa firma Cosign, atesta
   assert.match(ciWorkflow, /attestations:\s*write/, 'Publish debe tener permiso attestations: write para GitHub Attestations');
 
   // Inmutabilidad de Artefactos OCI
-  assert.ok(!ciWorkflow.includes('type=raw,value=latest'), 'ci.yml no debe publicar la etiqueta mutable latest para main');
-  assert.ok(!ciWorkflow.includes('--all-tags'), 'ci.yml no debe usar docker push --all-tags para evitar publicar tags no validados');
+  assert.ok(!ciWorkflow.includes('type=raw,value=latest'), 'ci.yaml no debe publicar la etiqueta mutable latest para main');
+  assert.ok(!ciWorkflow.includes('--all-tags'), 'ci.yaml no debe usar docker push --all-tags para evitar publicar tags no validados');
   assert.match(ciWorkflow, /docker buildx imagetools inspect/, 'Publish debe extraer el digest remoto directo del registry OCI');
 
   // Firma y Atestación por Digest Inmutable
