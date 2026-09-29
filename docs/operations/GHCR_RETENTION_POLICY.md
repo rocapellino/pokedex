@@ -44,6 +44,12 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
 
 - **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa de `CI/CD Pipeline`.
 - **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.
+- **Mecanismo de purgado:** Delega exclusivamente en el script canónico tipado [`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts) con `--keep=<N>`, que audita el registro, reporta el plan de purgado y elimina las versiones por encima del umbral.
+
+> [!IMPORTANT]
+> **Reparto de responsabilidades tras WF-003.** La limpieza de versiones **untagged** es responsabilidad exclusiva del Nivel 1 (`ci.yaml`, `delete-untagged: true` en cada publicación a `main`). El Nivel 2 aplica la poda **por fecha**: `calculateVersionsToPrune` ordena las versiones por `updated_at`/`created_at` descendente y conserva las `N` más recientes, **sin inspeccionar los tags**.
+>
+> Esto significa que los dos mecanismos no son equivalentes: el script no distingue una versión etiquetada antigua de una sin etiqueta reciente. La política sigue cumpliéndose porque `ci.yaml` purga untagged en cada publicación, pero si en el futuro `ci.yaml` dejara de hacerlo, el Nivel 2 **no lo compensaría** y habría que restituir el paso de terceros.
 
 ### Nivel 3: Herramienta CLI Local y Canónica ([`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts))
 
