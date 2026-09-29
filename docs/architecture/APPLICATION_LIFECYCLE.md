@@ -153,6 +153,36 @@ flowchart TD
   - Bloquean `git push --force` y eliminaciones accidentales de `main`.
   - No hay bypass para el `GITHUB_TOKEN`: ningún workflow puede escribir directamente en `main`, por lo que toda promoción (bump de versión, pinning GitOps) se hace mediante Pull Request.
 
+#### Contrato declarativo y paridad con GitHub (RULESET-001)
+
+`.github/rulesets/main-protection.json` es el **contrato normativo** de la protección de `main`. El repositorio mantiene **un único colaborador con acceso de escritura**, por lo que la política de aprobaciones es `required_approving_review_count: 0` con lista de `bypass_actors` vacía.
+
+> [!WARNING]
+> **Por qué `0` aprobaciones y no `1`.** GitHub nunca cuenta la auto-aprobación del autor. Con un solo colaborador, exigir una aprobación es *matemáticamente insatisfacible*: el único camino posible sería el bypass de administrador. Un control que siempre se salta no aporta garantía alguna —es peor que no tenerlo, porque simula una assurance inexistente— y además entrena al operador a saltarlo de forma rutinaria.
+>
+> Elegir `0` de forma explícita es superior al estado anterior: el problema nunca fue el valor en sí, sino que nadie lo había decidido. Ahora es una política deliberada, documentada y congelada por el gate de paridad.
+
+Lo que **sí** permanece intacto y es el control efectivo de `main` en un repositorio de maintainer único:
+
+| Control | Valor | Aporta |
+| :--- | :---: | :--- |
+| `required_status_checks` (Quality Gate) | 3 contexts | Bloquea el merge si CI falla |
+| `required_review_thread_resolution` | `true` | Obliga a cerrar conversaciones |
+| `dismiss_stale_reviews_on_push` | `true` | Invalida aprobaciones tras un push |
+| `non_fast_forward` / `deletion` | activas | Impide perder o reescribir `main` |
+| `allowed_merge_methods` | 3 métodos | Higiene de historia de merge |
+
+**Condición de reevaluación:** en cuanto se añada un segundo colaborador con permiso de escritura, corresponde reconsiderar `required_approving_review_count: 1`. Ese es el momento en que la revisión humana empieza a tener valor real.
+
+`main` no tiene *branch protection* clásica (la API devuelve `404`), por lo que el ruleset es la **única** capa de control del repositorio.
+
+> [!IMPORTANT]
+> El contrato no es documentación pasiva: `scripts/check-ruleset-parity.ts` lo contrasta contra el ruleset **realmente aplicado** en GitHub y falla ante cualquier divergencia en `enforcement`, `conditions`, tipos de regla, `required_status_checks`, parámetros de `pull_request` o `bypass_actors`.
+>
+> La normalización proyecta ambos lados a una forma canónica para ignorar los metadatos de solo lectura que la API agrega (`id`, `integration_id`, `current_user_can_bypass`), evitando así falsos positivos permanentes. Los tests cubren además los dos modos de fallo que importan en este estado: la **escalada de privilegios** (un `bypass_actors` añadido en la API sin tocar el contrato) y la **relajación silenciosa** (degradar `required_review_thread_resolution` o reactivar aprobaciones).
+
+La verificación es **opt-in** en la suite local (requiere `RULESET_LIVE_CHECK=1` y acceso a la API) para no volver flaky a `npm test` en máquinas sin credenciales, y **fail-closed** en `.github/workflows/governance-ruleset-parity.yaml`, que corre de forma programada y manual con `npm run lint:ruleset -- --required`. Ese workflow consume el secret `RULESET_ADMIN_TOKEN`: `GITHUB_TOKEN` no puede leer rulesets porque el scope `administration` no está disponible para el token de los runners, y GitHub reserva el prefijo `GITHUB_` para sus propios secrets.
+
 #### Quality Gate agregador (`🚦 Quality Gate`)
 
 El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `megalinter`, `security-code-scanning`) en un **único check**, registrado como required check del ruleset `main-protection`.

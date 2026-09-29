@@ -1,0 +1,54 @@
+name: 🔒 Governance Ruleset Parity (main-protection)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Diario a las 05:10 UTC (fuera del horario de los scans de seguridad).
+    - cron: '10 5 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ruleset-parity:
+    name: 🔍 Verificar paridad Declarativo ↔ GitHub Live
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Instalar dependencias
+        run: npm ci --ignore-scripts
+
+      # `GITHUB_TOKEN` NO alcanza para leer rulesets: la API exige un token con
+      # permiso de administracion del repositorio, que el GITHUB_TOKEN de los
+      # runners no puede otorgar (el scope `administration` no existe para el).
+      # Por eso el secret se llama `RULESET_ADMIN_TOKEN`: GitHub reserva el
+      # prefijo `GITHUB_` y rechaza (HTTP 422) cualquier secret propio con ese
+      # nombre.
+      - name: 3. Verificar paridad del ruleset
+        env:
+          GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RULESET_LIVE_CHECK: '1'
+        run: npm run lint:ruleset -- --required
+
+      - name: 4. Publicar reporte de drift
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: npm run lint:ruleset -- --json > ruleset-parity-report.json || true
+
+      - name: 5. Adjuntar reporte
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ruleset-parity-report
+          path: ruleset-parity-report.json
+          if-no-files-found: warn
