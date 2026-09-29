@@ -109,6 +109,23 @@ Toda auditoría, evaluación o análisis especializado debe seguir rigurosamente
   - **P3 (Bajo):** Mejora cosmética, optimización menor o refactor de legibilidad.
 - **Niveles de Confianza:** `HIGH` (evidencia directa e irrefutable), `MEDIUM` (fuerte inferencia técnica), `LOW` (sospecha que requiere validación en runtime).
 - **Esfuerzo Estimado:** `XS` (< 1h), `S` (1-4h), `M` (1-2 días), `L` (3-5 días), `XL` (> 1 sprint).
+- **Identificadores de Hallazgo con Namespace (AUD-):** Cada auditoría emite hallazgos bajo un namespace propio y **jamás reutiliza el de otra**. El formato es `AUD-<ÁMBITO>-<CLAVE>-<NNN>`:
+
+  ```text
+  AUD-GOV-DOC-001        hallazgo de gobernanza documental
+  AUD-WF-TRIG-002        hallazgo de triggers en workflows
+  AUD-TST-PERF-001       hallazgo de testing de performance
+  AUD-SCR-LIFECYCLE-001  hallazgo de ciclo de vida de scripts
+  ```
+
+  - **Ámbito** (`GOV`, `WF`, `TST`, `SCR`, `SEC`, `INF`): la dimensión auditada.
+  - **Clave**: sigla estable del subtipo (`DOC`, `TRIG`, `PERF`, `LIFECYCLE`, `SEC`, `INF`). Debe ser distinta del ámbito cuando la repetición resultara redundante (`AUD-WF-WF-002`).
+  - **NNN**: correlativo **dentro del namespace**, sin reiniciar en auditorías nuevas.
+
+  > [!IMPORTANT]
+  > **Por qué el namespace es obligatorio.** Los identificadores planos (`DOC-001`, `WF-002`) colisionan entre auditorías sucesivas: en este repositorio `DOC-001` designó en una pasada "referencias históricas `.yml`" y en otra "ambigüedad Active vs Cloud-Ready". Un identificador reutilizado hace que una referencia posterior sea ambigua, y en un repositorio gobernado por evidencia eso es un defecto: la trazabilidad deja de ser verificable.
+  >
+  > Cuando un hallazgo se reemita bajo un namespace nuevo, **no se renumera ni se reutiliza** el identificador previo: se cita el ID original y se añade el nuevo con su propio ID.
 - **Pipeline de Cambios:** Todo cambio de código debe seguir la secuencia `repo-impact` → `repo-refactor` → `repo-testing` → `repo-pr`/`repo-release`.
 - **Integridad de Gates de Validación:** Queda terminantemente prohibido falsear o promover artificialmente el estado de un control técnico. En particular, **ninguna skill o agente puede convertir `CI_REQUIRED` o `NOT_EXECUTED` en `PASS`**. `CI_REQUIRED` documenta formalmente la ausencia de la herramienta en el entorno local y transfiere la certificación obligatoria a los workflows remotos de CI. Un PR puede alcanzar `READY_FOR_PR` con controles en `CI_REQUIRED`, pero el control individual preserva su estado estricto hasta que CI lo certifique.
 - **Política Transversal de Idioma:** Toda interacción humana, reportes, planes, Pull Requests y documentación deben redactarse estrictamente en español, preservando identificadores técnicos, nombres de herramientas y comandos en inglés, conforme a [`_shared/language-policy.md`](language-policy.md).
