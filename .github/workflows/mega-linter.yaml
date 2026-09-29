@@ -19,23 +19,30 @@ permissions:
 jobs:
   megalinter:
     name: "⚡ MegaLinter (Hadolint, Shellcheck, Actionlint, Yamllint)"
-    # CI-002: MegaLinter es un control ADVISORY, no un Quality Gate.
+    # CI-002: MegaLinter no es un Quality Gate por si mismo; el unico Quality Gate
+    # del repositorio es el job `🚦 Quality Gate` del orquestador.
     #
-    # Decision deliberada: cada linter que MegaLinter ejecuta aqui tiene ya un
-    # gate bloqueante equivalente y mas estricto en otra parte del pipeline:
+    # Motivo de `continue-on-error: true` en ESTE job: cada linter que MegaLinter
+    # ejecuta tiene ya un control equivalente y mas especifico en otro pipeline:
     #
-    #   Hadolint  -> Core CI / 🔍 Auditoría de Calidad y Complejidad (npm run lint)
-    #   Shellcheck-> mismo gate + el paso de MegaLinter
-    #   Actionlint-> Workflows validados por el orquestador y MegaLinter
-    #   Yamllint  -> lint:yaml:strict (gate de extension YAML) + Kubernetes
-    #                schemas via Kubeconform, Kyverno CLI y Checkov en Infra CI
+    #   Hadolint   -> Core CI / 🔍 Auditoría de Calidad y Complejidad (npm run lint)
+    #   Shellcheck -> idem
+    #   Actionlint -> validacion de workflows por el orquestador
+    #   Yamllint   -> lint:yaml:strict (gate de extension YAML) y, para Kubernetes,
+    #                Kubeconform, Kyverno CLI y Checkov en Infra CI
     #
-    # Por eso `continue-on-error` se mantiene: evita que un linter duplicado
-    # bloquee el merge cuando el control equivalente ya fallo antes. MegaLinter
-    # aporta cobertura transversal y reporte, no capacidad de bloqueo.
+    # El flag evita que este job se reporte en rojo por un linter duplicado
+    # cuando el control equivalente ya habia fallado antes: la senal de error
+    # useful llega por el control real, no por aqui.
     #
-    # El Quality Gate unico y bloqueante es el job `🚦 Quality Gate` del
-    # orquestador, que agrego el resultado de todos los pipelines.
+    # ATENCION (aplicado al ruleset `main-protection`): el job `🚦 Quality Gate`
+    # incluye `megalinter` en su `needs`, de modo que un fallo de MegaLinter SI
+    # bloquea el merge a traves del gate, pese al `continue-on-error` de aqui.
+    # Esto es intencional: se eligio un unico Quality Gate que agrega todos los
+    # pipelines, en lugar de varios checks required en paralelo que compitan entre si.
+    # Megalinter aporta cobertura transversal unica (Hadolint, Shellcheck,
+    # Actionlint y Yamllint sobre todo el arbol) que los gates equivalentes no
+    # cubren con la misma amplitud.
     runs-on: ubuntu-latest
     permissions:
       contents: read

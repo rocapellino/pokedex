@@ -609,10 +609,10 @@ test('📦 OCI-001: los labels de imagen usan la version y revision reales', () 
   }
 });
 
-test('⚡ CI-002: MegaLinter es explicitamente advisory, no un Quality Gate', () => {
+test('⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador', () => {
   const mega = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/mega-linter.yaml'), 'utf-8');
 
-  // La decision debe estar documentada en el propio workflow, no solo implícita.
+  // La decision debe estar documentada en el propio workflow, no solo implicita.
   assert.match(
     mega,
     /CI-002/,
@@ -620,15 +620,28 @@ test('⚡ CI-002: MegaLinter es explicitamente advisory, no un Quality Gate', ()
   );
   assert.match(
     mega,
-    /ADVISORY/,
-    'mega-linter.yaml debe declarar explícitamente que el control es advisory'
+    /no es un Quality Gate por si mismo/,
+    'mega-linter.yaml debe declarar que no es un Quality Gate por si mismo'
   );
 
-  // Se mantiene no bloqueante mientras exista un Quality Gate único.
+  // El flag local se mantiene: evita la senal duplicada de un linter que ya
+  // tiene un control equivalente mas especifico en otro pipeline.
   assert.match(
     mega,
     /continue-on-error:\s*true/,
-    'MegaLinter debe seguir siendo no bloqueante (advisory)'
+    'El job de MegaLinter debe conservar continue-on-error (evita senal duplicada)'
+  );
+
+  // Y debe advertirse que el gate agregador lo hace bloqueante de todos modos.
+  assert.match(
+    mega,
+    /Quality Gate[\s\S]*?ATENCION/,
+    'mega-linter.yaml debe advertir que el Quality Gate lo incluye en su needs'
+  );
+  assert.match(
+    mega,
+    /bloquea el merge a traves del gate/,
+    'mega-linter.yaml debe documentar que un fallo bloquea via el gate agregador'
   );
   assert.match(
     mega,
