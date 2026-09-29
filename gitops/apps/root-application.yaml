@@ -20,7 +20,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rocapellino/pokedex.git
-    targetRevision: v1.87.5
+    targetRevision: v1.87.6
     path: gitops/apps
     directory:
       recurse: false
