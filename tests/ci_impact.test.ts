@@ -566,6 +566,133 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
   );
 });
 
+test('📦 OCI-001: los labels de imagen usan la version y revision reales', () => {
+  const dockerfiles = [
+    ['Dockerfile', 'pokedex-api'],
+    ['apps/backend/Dockerfile', 'pokedex-api'],
+    ['apps/frontend/Dockerfile', 'pokedex-web'],
+  ];
+
+  for (const [relPath, title] of dockerfiles) {
+    const content = fs.readFileSync(path.join(ROOT_DIR, relPath), 'utf-8');
+
+    // El `version="X.Y.Z"` generico debe desaparecer: no coincide con la release.
+    assert.doesNotMatch(
+      content,
+      /^\s*version="/m,
+      `${relPath} no debe declarar un label \`version\` generico (OCI-001)`
+    );
+
+    // Version y revision OCI deben venir de los build-args inyectados por CI.
+    assert.match(
+      content,
+      /org\.opencontainers\.image\.version="\$\{APP_VERSION\}"/,
+      `${relPath} debe declarar org.opencontainers.image.version desde APP_VERSION`
+    );
+    assert.match(
+      content,
+      /org\.opencontainers\.image\.revision="\$\{GIT_SHA\}"/,
+      `${relPath} debe declarar org.opencontainers.image.revision desde GIT_SHA`
+    );
+
+    // Los ARG deben declararse ANTES del LABEL para que puedan expandirse.
+    const argIdx = content.indexOf('ARG APP_VERSION');
+    const labelIdx = content.indexOf('org.opencontainers.image.version');
+    assert.ok(argIdx > -1, `${relPath} debe declarar ARG APP_VERSION`);
+    assert.ok(argIdx < labelIdx, `${relPath} debe declarar ARG APP_VERSION antes del LABEL`);
+
+    assert.ok(
+      content.includes(`org.opencontainers.image.title="${title}"`),
+      `${relPath} debe declarar el titulo OCI ${title}`
+    );
+  }
+});
+
+test('⚡ CI-002: MegaLinter es explicitamente advisory, no un Quality Gate', () => {
+  const mega = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/mega-linter.yaml'), 'utf-8');
+
+  // La decision debe estar documentada en el propio workflow, no solo implícita.
+  assert.match(
+    mega,
+    /CI-002/,
+    'mega-linter.yaml debe referenciar la decisión CI-002'
+  );
+  assert.match(
+    mega,
+    /ADVISORY/,
+    'mega-linter.yaml debe declarar explícitamente que el control es advisory'
+  );
+
+  // Se mantiene no bloqueante mientras exista un Quality Gate único.
+  assert.match(
+    mega,
+    /continue-on-error:\s*true/,
+    'MegaLinter debe seguir siendo no bloqueante (advisory)'
+  );
+  assert.match(
+    mega,
+    /Quality Gate/,
+    'mega-linter.yaml debe remitir al Quality Gate único y bloqueante'
+  );
+});
+
+test('🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera', () => {
+  const skill = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents/skills/repo-lifecycle/SKILL.md'),
+    'utf-8'
+  );
+
+  // Hay dos diagramas en la skill: uno de 10 etapas (ciclo resumido) y otro de 16
+  // (flujo canonico de full-audit). Este ultimo es el que debe coincidir con las
+  // menciones textuales, y se localiza por su ultima etapa.
+  const marker = skill.indexOf('consolidated report');
+  assert.ok(marker > -1, 'repo-lifecycle debe contener la etapa `consolidated report`');
+  const start = skill.lastIndexOf('```', marker);
+  const end = skill.indexOf('```', marker);
+  assert.ok(start > -1 && end > start, 'La etapa final debe estar dentro de un bloque cercado');
+  const flow = skill.slice(start, end);
+
+  const numbered = [...flow.matchAll(/(?:^|\s)(\d+)\.\s+\S/gm)].map((m) => Number(m[1]));
+  const max = Math.max(...numbered);
+  assert.equal(
+    max,
+    numbered.length,
+    `La enumeración debe ser contigua: declara ${max} pero enumera ${numbered.length}`
+  );
+
+  // Todas las menciones textuales deben coincidir con la enumeración real.
+  const declared = [...skill.matchAll(/(\d+)\s*etapas/g)].map((m) => Number(m[1]));
+  for (const count of declared) {
+    assert.equal(
+      count,
+      numbered.length,
+      `repo-lifecycle declara "${count} etapas" pero el flujo enumera ${numbered.length}`
+    );
+  }
+  assert.ok(declared.length > 0, 'repo-lifecycle debe declarar el número de etapas');
+});
+
+test('📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta', () => {
+  const offenders: string[] = [];
+  const walk = (dir: string): string[] => {
+    const out: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(full));
+      else if (entry.name.endsWith('.md')) out.push(full);
+    }
+    return out;
+  };
+
+  for (const file of walk(path.join(ROOT_DIR, '.agents'))) {
+    const content = fs.readFileSync(file, 'utf-8');
+    const match = content.match(/workflows\/\*\.yml|workflows\/[a-z0-9-]+\.yml/);
+    if (match) offenders.push(`${path.relative(ROOT_DIR, file)} -> ${match[0]}`);
+  }
+
+  assert.deepEqual(offenders, [], `Skills con referencias .yml obsoletas: ${offenders.join('; ')}`);
+});
+
 test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
 
