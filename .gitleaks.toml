@@ -12,10 +12,16 @@ description = "Permitir archivos de plantilla y placeholders de prueba conocidos
 paths = [
   # Variables de entorno de ejemplo documentadas
   '''(?i)(^|/)\.env\.example$''',
-  # Terraform y OpenTofu — declaración de variables e infraestructura de ejemplo
-  '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
+  # OpenTofu: declaración de variables e infraestructura de ejemplo
+  # (la migración de Terraform a OpenTofu se completó en abd86b7).
   '''(?i)^infra/opentofu/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/opentofu/.*\.tfvars\.example$''',
+  # CLEAN-001: reglas históricas de Terraform. La ruta `infra/terraform/` se
+  # eliminó al migrar a OpenTofu, por lo que hoy no coinciden con nada en el
+  # working tree. Se conservan de forma deliberada y comentada: si alguien
+  # ejecuta un escaneo del historial completo (--log-opts), las siguen
+  # protegiendo. No afectan al escaneo normal, que opera sobre --source=.
+  '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/terraform/.*\.tfvars\.example$''',
   # K8s / Helm — SealedSecrets cifrados con clave pública del controlador (actual e histórico)
   '''(?i)^infra/helm/pokedex/templates/sealed-secrets\.ya?ml$''',
