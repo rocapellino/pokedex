@@ -189,6 +189,94 @@ test('🛡️ GitHub Security Linear Sync: syncAlertLifecycle maneja ciclo de vi
   });
 });
 
+/**
+ * WF-002 — Los triggers `workflow_run` referencian workflows por su `name:`,
+ * NO por ruta de archivo. Una referencia desactualizada no produce error de
+ * sintaxis ni aviso: GitHub simplemente nunca dispara el trigger.
+ *
+ * Ese fue el defecto: dos de las cuatro entradas apuntaban a workflows que ya
+ * no existen, de modo que el trigger NO SE DISPARÓ NUNCA (0 ejecuciones en el
+ * historial). El workflow quedó dependiendo en exclusiva del `schedule` diario,
+ * y las alertas de Gitleaks/CodeQL no se sincronizaban hasta 24 h después.
+ *
+ * Este test valida cada nombre contra el `name:` real de los workflows del
+ * repositorio, cerrando el circuito que permitió el incidente.
+ */
+
+/** Workflows gestionados por GitHub que no residen en el repositorio. */
+const EXTERNAL_WORKFLOW_NAMES: readonly string[] = Object.freeze(['CodeQL']);
+
+const WORKFLOWS_DIR = path.join(process.cwd(), '.github/workflows');
+
+/** Nombres declarados (`name:` de nivel superior) de los workflows del repo. */
+function repoWorkflowNames(): Set<string> {
+  const names = new Set<string>();
+  for (const file of fs.readdirSync(WORKFLOWS_DIR)) {
+    if (!/\.(yaml|yml)$/.test(file)) continue;
+    const content = fs.readFileSync(path.join(WORKFLOWS_DIR, file), 'utf-8');
+    const match = content.match(/^name:\s*(.+)$/m);
+    if (match) names.add(match[1].trim());
+  }
+  return names;
+}
+
+/** Entradas de la lista `workflow_run.workflows` del workflow de sincronización. */
+function declaredWorkflowRunTriggers(): string[] {
+  const content = fs.readFileSync(
+    path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'),
+    'utf-8'
+  );
+  // Se acota al bloque `workflows:` del trigger workflow_run para no capturar
+  // otras listas del archivo.
+  const runBlock = content.slice(content.indexOf('workflow_run:'));
+  const listBlock = runBlock.slice(runBlock.indexOf('workflows:'), runBlock.indexOf('types:'));
+  return [...listBlock.matchAll(/^\s*-\s*"?([^"\n]+)"?/gm)].map((m) => m[1].trim());
+}
+
+test('🚨 WF-002: los triggers workflow_run referencian workflows que existen', () => {
+  const repoNames = repoWorkflowNames();
+  const declared = declaredWorkflowRunTriggers();
+
+  assert.ok(declared.length > 0, 'El workflow debe declarar triggers workflow_run');
+
+  const valid = new Set([...repoNames, ...EXTERNAL_WORKFLOW_NAMES]);
+  const dead = declared.filter((name) => !valid.has(name));
+
+  assert.deepEqual(
+    dead,
+    [],
+    `Triggers workflow_run que no corresponden a ningún workflow existente: ${dead.join(' | ')}. ` +
+      'Un nombre inválido no da error: el trigger simplemente nunca dispara.'
+  );
+});
+
+test('🚨 WF-002: se cubren los productores de alertas de seguridad', () => {
+  const declared = declaredWorkflowRunTriggers();
+
+  // Sin esto, Gitleaks y CodeQL solo se sincronizarían por el schedule diario.
+  assert.ok(
+    declared.includes('🔐 Security Scan (Gitleaks)'),
+    'Gitleaks sube SARIF a Code Scanning y debe disparar la sincronización'
+  );
+  assert.ok(
+    declared.includes('🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)'),
+    'El pipeline SAST (njsscan/Hadolint/Trivy IaC) debe disparar la sincronización'
+  );
+  assert.ok(
+    declared.includes('CodeQL'),
+    'CodeQL genera alertas de Code Scanning y debe disparar la sincronización'
+  );
+
+  // El schedule diario es la red de seguridad: sin él, un workflow_run fallido
+  // dejaría las alertas sin sincronizar indefinidamente.
+  const content = fs.readFileSync(
+    path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'),
+    'utf-8'
+  );
+  assert.match(content, /schedule:/, 'Debe mantenerse el schedule diario como red de seguridad');
+  assert.match(content, /cron:\s*["']?0 4 \* \* \*["']?/, 'El schedule diario debe mantenerse');
+});
+
 test('🛡️ GitHub Security Linear Sync: workflow YAML existe y define permisos de menor privilegio', () => {
   const workflowPath = path.join(process.cwd(), '.github/workflows/github-security-linear-sync.yaml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de sincronización de seguridad debe existir');
@@ -230,4 +318,3 @@ test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Tr
   assert.match(content, /trivy-action/);
   assert.match(content, /upload-sarif/);
 });
-

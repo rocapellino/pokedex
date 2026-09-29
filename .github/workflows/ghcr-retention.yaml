@@ -57,10 +57,20 @@ jobs:
           echo "Ejecutando retención en GHCR (keep=$KEEP_COUNT, dry-run=$DRY_RUN_FLAG)..."
           node --experimental-strip-types scripts/ghcr-retention.ts --keep="$KEEP_COUNT" $DRY_RUN_FLAG
 
-      - name: Purgar capas y firmas huérfanas mediante dataaxiom/ghcr-cleanup-action
-        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
-        with:
-          keep-n-tagged: ${{ inputs.keep_versions || 3 }}
-          delete-untagged: true
-          dry-run: ${{ inputs.dry_run || false }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # WF-003: se retira el paso `dataaxiom/ghcr-cleanup-action` de este workflow.
+      #
+      # Motivo: el script tipado de arriba ya aplica la retención (keep=3), de modo
+      # que la acción de terceros repetía la misma poda con los mismos parámetros
+      # dentro del mismo job.
+      #
+      # NO es una redundancia exacta, y conviene dejarlo explícito: la acción de
+      # terceros es tag-aware (`keep-n-tagged` + `delete-untagged`), mientras que
+      # `calculateVersionsToPrune` ordena por fecha sin inspeccionar los tags. La
+      # limpieza de versiones untagged NO se pierde porque `ci.yaml` la ejecuta en
+      # CADA publicación a main (`delete-untagged: true`, Nivel 1 de la política).
+      #
+      # Si en el futuro `ci.yaml` dejara de purgar untagged, este workflow ya no
+      # sería un sustituto: habría que restituir el paso, no confiar en el script.
+      #
+      # La arquitectura de tres niveles y los triggers (schedule, workflow_run,
+      # workflow_dispatch) NO cambian. Ver docs/operations/GHCR_RETENTION_POLICY.md
