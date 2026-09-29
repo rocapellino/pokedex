@@ -14,9 +14,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
-test('🛡️ CI SAST Security: ci.yml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)', () => {
+test('🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)', () => {
   const ciPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
-  assert.ok(fs.existsSync(ciPath), 'ci.yml debe existir');
+  assert.ok(fs.existsSync(ciPath), 'ci.yaml debe existir');
   const content = fs.readFileSync(ciPath, 'utf-8');
   assert.equal(
     content.includes('--exclude scripts'),
@@ -155,13 +155,13 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
   assert.ok(valuesProdContent.includes('enabled: true'), 'values.prod.yaml debe tener serviceMonitor habilitado');
 });
 
-test('🛡️ CI Tooling Parity: infra.yml y ci.yml mantienen paridad estricta de versión de Helm en todos sus jobs', () => {
+test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta de versión de Helm en todos sus jobs', () => {
   const infraWorkflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
   const ciWorkflowPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
   const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
 
-  assert.ok(fs.existsSync(infraWorkflowPath), 'infra.yml debe existir');
-  assert.ok(fs.existsSync(ciWorkflowPath), 'ci.yml debe existir');
+  assert.ok(fs.existsSync(infraWorkflowPath), 'infra.yaml debe existir');
+  assert.ok(fs.existsSync(ciWorkflowPath), 'ci.yaml debe existir');
   assert.ok(fs.existsSync(toolVersionsPath), '.tool-versions debe existir');
 
   const infraContent = fs.readFileSync(infraWorkflowPath, 'utf-8');
@@ -173,19 +173,19 @@ test('🛡️ CI Tooling Parity: infra.yml y ci.yml mantienen paridad estricta d
   assert.ok(helmVersionMatch, 'Debe encontrarse versión de Helm en .tool-versions');
   const expectedHelmVersion = `v${helmVersionMatch[1]}`;
 
-  // Extraer todas las versiones configuradas para setup-helm en infra.yml y ci.yml
+  // Extraer todas las versiones configuradas para setup-helm en infra.yaml y ci.yaml
   const infraVersions = Array.from(infraContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
-  assert.ok(infraVersions.length >= 2, 'infra.yml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
+  assert.ok(infraVersions.length >= 2, 'infra.yaml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
 
   const ciVersions = Array.from(ciContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
-  assert.ok(ciVersions.length >= 1, 'ci.yml debe configurar Helm en el job publish');
+  assert.ok(ciVersions.length >= 1, 'ci.yaml debe configurar Helm en el job publish');
 
   const allVersions = [...infraVersions, ...ciVersions];
   for (const ver of allVersions) {
     assert.equal(
       ver,
       expectedHelmVersion,
-      `Cada workflow de CI (infra.yml, ci.yml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
+      `Cada workflow de CI (infra.yaml, ci.yaml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
     );
   }
 });

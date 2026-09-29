@@ -259,12 +259,12 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
   assert.ok(
     infraWorkflow.includes('--only-binary :all:'),
-    'infra.yml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables'
+    'infra.yaml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables'
   );
   assert.match(
     infraWorkflow,
     /ansible-core==\d+\.\d+\.\d+/,
-    'infra.yml debe fijar la versión exacta de ansible-core'
+    'infra.yaml debe fijar la versión exacta de ansible-core'
   );
 });
 

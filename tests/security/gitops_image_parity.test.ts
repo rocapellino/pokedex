@@ -79,14 +79,14 @@ test('🔒 Supply Chain: .github/workflows/ci.yaml utiliza validación determini
   // Asegurar que no use grep -A 4 ni awk para extraer digests en CI
   assert.ok(
     !ciWorkflow.includes("grep -A 4 'pokedex-api'"),
-    'ci.yml no debe utilizar grep -A 4 para extraer digests de GitOps'
+    'ci.yaml no debe utilizar grep -A 4 para extraer digests de GitOps'
   );
 
   // Asegurar que invoque el script determinista verify-image-digest-parity.ts con flag --strict
   assert.match(
     ciWorkflow,
     /verify-image-digest-parity\.ts.*--strict/,
-    'ci.yml debe invocar scripts/verify-image-digest-parity.ts en modo estricto (--strict)'
+    'ci.yaml debe invocar scripts/verify-image-digest-parity.ts en modo estricto (--strict)'
   );
 });
 
