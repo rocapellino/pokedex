@@ -19,6 +19,23 @@ permissions:
 jobs:
   megalinter:
     name: "⚡ MegaLinter (Hadolint, Shellcheck, Actionlint, Yamllint)"
+    # CI-002: MegaLinter es un control ADVISORY, no un Quality Gate.
+    #
+    # Decision deliberada: cada linter que MegaLinter ejecuta aqui tiene ya un
+    # gate bloqueante equivalente y mas estricto en otra parte del pipeline:
+    #
+    #   Hadolint  -> Core CI / 🔍 Auditoría de Calidad y Complejidad (npm run lint)
+    #   Shellcheck-> mismo gate + el paso de MegaLinter
+    #   Actionlint-> Workflows validados por el orquestador y MegaLinter
+    #   Yamllint  -> lint:yaml:strict (gate de extension YAML) + Kubernetes
+    #                schemas via Kubeconform, Kyverno CLI y Checkov en Infra CI
+    #
+    # Por eso `continue-on-error` se mantiene: evita que un linter duplicado
+    # bloquee el merge cuando el control equivalente ya fallo antes. MegaLinter
+    # aporta cobertura transversal y reporte, no capacidad de bloqueo.
+    #
+    # El Quality Gate unico y bloqueante es el job `🚦 Quality Gate` del
+    # orquestador, que agrego el resultado de todos los pipelines.
     runs-on: ubuntu-latest
     permissions:
       contents: read

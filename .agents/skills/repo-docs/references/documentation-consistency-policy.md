@@ -26,7 +26,7 @@ La evaluación documental no puede limitarse a analizar la sintaxis de archivos 
 | **Código Backend** | `apps/backend/src/` | Todo endpoint, middleware, modelo Drizzle o servicio documentado debe coincidir con el código fuente. |
 | **Código Frontend** | `apps/frontend/src/` | Rutas, vistas, componentes de interfaz y lógica de proxy Nginx deben coincidir con la implementación SPA. |
 | **Configuración** | `config/`, `.env.example`, variables | Las variables de entorno documentadas deben existir en esquemas de validación (ej. Zod) y en `.env.example`. |
-| **CI/CD** | `.github/workflows/*.yml` | Los jobs, nombres de workflows, triggers y pasos documentados deben reflejar exactamente la configuración de GitHub Actions. |
+| **CI/CD** | `.github/workflows/*.yaml` | Los jobs, nombres de workflows, triggers y pasos documentados deben reflejar exactamente la configuración de GitHub Actions. |
 | **IaC y Plataforma** | `infra/opentofu/`, `infra/ansible/` | Recursos de OpenTofu, playbooks de Ansible y roles declarados deben corresponder a archivos reales en disco. |
 | **Helm Packaging** | `infra/helm/pokedex/` | Las plantillas, parámetros de `values.yaml` y la metadata de `Chart.yaml` deben alinearse con las guías de despliegue. |
 | **GitOps Delivery** | `gitops/apps/`, `gitops/environments/` | El estado de promoción (`targetRevision`), rutas de valores y Clusters deben reflejarse fidedignamente. |

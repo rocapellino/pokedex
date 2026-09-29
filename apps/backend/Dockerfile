@@ -32,10 +32,17 @@ RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@poke
 # ------------------------------------------------------------------------------
 FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runner
 
+# VER-002/OCI-001: los metadatos OCI de version y revision se inyectan desde CI
+# como build-args. El `version="2.0.0"` generico anterior era ficticio y no
+# coincidia con la release real, lo que rompia la trazabilidad de los artefactos.
+ARG APP_VERSION=unknown
+ARG GIT_SHA=unknown
+
 LABEL maintainer="Rodrigo Capellino" \
-      version="2.0.0" \
-      description="Pokédex Backend Native Node.js & TypeScript Service con Google AI Studio" \
       org.opencontainers.image.title="pokedex-api" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${GIT_SHA}" \
+      description="Pokédex Backend Native Node.js & TypeScript Service con Google AI Studio" \
       org.opencontainers.image.description="Pokédex Backend Native Node.js & TypeScript Service" \
       org.opencontainers.image.source="https://github.com/rocapellino/pokedex" \
       org.opencontainers.image.vendor="Rodrigo Capellino" \
@@ -50,9 +57,8 @@ ENV NODE_ENV=production \
 # (versión semántica de la release vs. commit exacto que la compila).
 # CI los inyecta como build-args independientes; en builds locales sin
 # argumentos ambos degradan explícitamente a "unknown".
-ARG APP_VERSION=unknown
-ARG GIT_SHA=unknown
-
+# Los ARG se declaran arriba, antes del bloque LABEL, para que las etiquetas OCI
+# puedan expandirlos.
 ENV APP_VERSION=$APP_VERSION \
     GIT_SHA=$GIT_SHA
 

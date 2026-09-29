@@ -16,9 +16,21 @@ RUN npm run build --workspace=@pokedex/frontend
 # ==============================================================================
 FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
 
+# OCI-001: los metadatos de version y revision se inyectan desde CI como
+# build-args. El `version="1.0.0"` generico anterior era ficticio y no
+# coincidia con la release real, rompiendo la trazabilidad del artefacto.
+ARG APP_VERSION=unknown
+ARG GIT_SHA=unknown
+
 LABEL maintainer="Grupo 3 - UTEC DevOps" \
-      version="1.0.0" \
-      description="Frontend Web Pokédex servido con Nginx y Proxy Inverso a la API"
+      org.opencontainers.image.title="pokedex-web" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${GIT_SHA}" \
+      description="Frontend Web Pokédex servido con Nginx y Proxy Inverso a la API" \
+      org.opencontainers.image.description="Frontend Web Pokédex servido con Nginx y Proxy Inverso a la API" \
+      org.opencontainers.image.source="https://github.com/rocapellino/pokedex" \
+      org.opencontainers.image.vendor="Rodrigo Capellino" \
+      org.opencontainers.image.licenses="MIT"
 
 # Actualizar paquetes base de Alpine e instalar utilidades requeridas en una sola capa
 # hadolint ignore=DL3018

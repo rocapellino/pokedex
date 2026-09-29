@@ -50,7 +50,7 @@ El ciclo de vida del repositorio sigue una secuencia estricta y desacoplada dond
 
 ## Flujo Canónico de `full-audit` en `/repo-lifecycle`
 
-Cuando se invoca una auditoría integral completa (`full-audit`), `repo-lifecycle` ejecuta de forma secuencial y estructurada el flujo canónico de 17 etapas sin duplicar análisis especializados:
+Cuando se invoca una auditoría integral completa (`full-audit`), `repo-lifecycle` ejecuta de forma secuencial y estructurada el flujo canónico de 16 etapas sin duplicar análisis especializados:
 
 ```text
 PR/repository
@@ -106,7 +106,7 @@ Para cada archivo detectado, se ejecutan sistemáticamente diez comprobaciones:
 8. **Consistencia Cruzada:** Verificar coherencia con:
    - `package.json` y `package-lock.json`
    - `Dockerfile` (multi-stage en backend y frontend)
-   - Workflows de GitHub Actions (`.github/workflows/*.yml`)
+   - Workflows de GitHub Actions (`.github/workflows/*.yaml`)
    - [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml)
    - [`.gitleaks.toml`](../../../.gitleaks.toml)
    - `Taskfile.yaml`
@@ -311,7 +311,7 @@ impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trus
 
 ## Modos de Operación
 
-- **Full-Audit:** Ciclo completo de 17 etapas desde inventario inicial hasta reporte consolidado, incluyendo `configuration-hygiene`.
+- **Full-Audit:** Ciclo completo de 16 etapas desde inventario inicial hasta reporte consolidado, incluyendo `configuration-hygiene`.
 - **Full:** Ciclo completo desde contexto y auditoría integral hasta release y mantenimiento.
 - **Fast:** Validación rápida de cambios acotados (`repo-context` + `repo-impact` + gates de dominio).
 - **Change:** Modo estándar para desarrollo de features o correcciones de bugs (`repo-impact` + skills de dominio + `repo-pr`).
