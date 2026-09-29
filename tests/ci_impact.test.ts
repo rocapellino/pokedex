@@ -518,7 +518,7 @@ test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed 
   );
 });
 
-test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yml', () => {
+test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
   for (const workflow of ['web.yaml', 'mega-linter.yaml', 'security-code-scanning.yaml']) {
     const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
@@ -535,7 +535,7 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
   // siguiente. Los jobs `infra`, `frontend-web` y `security-code-scanning`
   // nunca se ejecutaban pese a que sus triggers fueran `true`, dejando la
   // validación de IaC, Ansible, OpenTofu, Kyverno y K8s completamente muda.
-  // La serialización por PR ya la aplica `change-impact.yml` a nivel superior.
+  // La serialización por PR ya la aplica `change-impact.yaml` a nivel superior.
   const reusables = [
     'ci.yaml',
     'infra.yaml',
@@ -556,7 +556,7 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
 
 test('⚙️ CI topology: el orquestador conserva la serialización por PR', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
-  assert.match(orchestrator, /^concurrency:/m, 'change-impact.yml debe mantener su concurrency');
+  assert.match(orchestrator, /^concurrency:/m, 'change-impact.yaml debe mantener su concurrency');
   assert.match(orchestrator, /cancel-in-progress:\s*true/, 'debe cancelar corridas previas del mismo PR');
 });
 
@@ -1007,7 +1007,7 @@ test('🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset
   );
 });
 
-test('⚙️ CI topology: change-impact.yml es el único propietario de Trivy para imágenes de aplicación', () => {
+test('⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación', () => {
   const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
   const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'), 'utf8');
   assert.match(ci, /^  trivy-scan:/m);
@@ -1035,7 +1035,7 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
   assert.equal(
     ci.match(/SonarSource\/sonarqube-scan-action@/g)?.length,
     1,
-    'ci.yml debe contener exactamente un scanner SonarQube Cloud'
+    'ci.yaml debe contener exactamente un scanner SonarQube Cloud'
   );
   assert.match(
     ci,
@@ -1049,7 +1049,7 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
   );
   assert.ok(
     orchestrator.includes('SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}'),
-    'change-impact.yml debe propagar SONAR_TOKEN al reusable workflow'
+    'change-impact.yaml debe propagar SONAR_TOKEN al reusable workflow'
   );
   assert.ok(
     ci.includes("readFileSync('package.json', 'utf8')).version"),
@@ -1074,7 +1074,7 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
   assert.equal(
     sync.match(/SonarSource\/sonarqube-scan-action@/g)?.length ?? 0,
     0,
-    'sonar-linear-sync.yml solo debe consumir resultados, no ejecutar otro scanner'
+    'sonar-linear-sync.yaml solo debe consumir resultados, no ejecutar otro scanner'
   );
   assert.doesNotMatch(
     sonarProperties,
