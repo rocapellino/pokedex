@@ -650,6 +650,50 @@ test('⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agrega
   );
 });
 
+test('🛡️ El ruleset declarativo debe registrar los tres required checks', () => {
+  const rulesetPath = path.join(ROOT_DIR, '.github/rulesets/main-protection.json');
+  const ruleset = JSON.parse(fs.readFileSync(rulesetPath, 'utf-8'));
+
+  const rsc = ruleset.rules.find((r: { type: string }) => r.type === 'required_status_checks');
+  assert.ok(rsc, 'El ruleset debe declarar la regla required_status_checks');
+
+  const contexts: string[] = rsc.parameters.required_status_checks.map((c: { context: string }) => c.context);
+
+  // El gate agregador debe estar registrado: es lo que convierte a bloqueantes
+  // los pipelines que el orquestador decide no ejecutar por radio de impacto.
+  assert.ok(
+    contexts.includes('🚦 Quality Gate'),
+    'main-protection.json debe registrar `🚦 Quality Gate` como required check'
+  );
+
+  // Gitleaks corre standalone: el gate NO lo espera en su `needs`, asi que
+  // eliminarlo del ruleset dejaria la deteccion de secretos sin bloquear merge.
+  assert.ok(
+    contexts.includes('🛡️ Gitleaks Secret Detection'),
+    'main-protection.json debe conservar `🛡️ Gitleaks Secret Detection` (workflow standalone)'
+  );
+  assert.ok(
+    contexts.includes('🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad'),
+    'main-protection.json debe conservar el check nativo de Core CI'
+  );
+
+  // La documentacion de arquitectura no debe seguir marcando el gate como pendiente.
+  const lifecycle = fs.readFileSync(
+    path.join(ROOT_DIR, 'docs/architecture/APPLICATION_LIFECYCLE.md'),
+    'utf-8'
+  );
+  assert.doesNotMatch(
+    lifecycle,
+    /Pendiente de aplicacion en el ruleset/,
+    'APPLICATION_LIFECYCLE.md no debe afirmar que el gate sigue pendiente de aplicar'
+  );
+  assert.match(
+    lifecycle,
+    /Registrado en el ruleset/,
+    'APPLICATION_LIFECYCLE.md debe declarar el gate como registrado en el ruleset'
+  );
+});
+
 test('🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera', () => {
   const skill = fs.readFileSync(
     path.join(ROOT_DIR, '.agents/skills/repo-lifecycle/SKILL.md'),

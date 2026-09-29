@@ -155,7 +155,7 @@ flowchart TD
 
 #### Quality Gate agregador (`🚦 Quality Gate`)
 
-El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `megalinter`, `security-code-scanning`) en un **único check**, pensado para ser el required check del ruleset.
+El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `megalinter`, `security-code-scanning`) en un **único check**, registrado como required check del ruleset `main-protection`.
 
 Existe por una razón concreta: el orquestador decide qué ejecutar según el radio de impacto, por lo que la mayoría de los jobs son **condicionales**. Si un job condicional se declara required y no se ejecuta, el Pull Request queda bloqueado esperando un check que nunca se emitió. El agregador resuelve ambos problemas:
 
@@ -168,8 +168,10 @@ Existe por una razón concreta: el orquestador decide qué ejecutar según el ra
 
 Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido omitida, y publica un artefacto `quality-gate-report` con la decisión tomada para poder auditarla.
 
-> [!WARNING]
-> **Pendiente de aplicacion en el ruleset.** Este PR agrega el job, pero el ruleset `main-protection` sigue declarando unicamente los checks `🛡️ Gitleaks Secret Detection` y `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad`. Mientras `🚦 Quality Gate` no se agregue a `required_status_checks`, los jobs de `Infra CI`, `Frontend Web CI`, `MegaLinter` y `Security Code Scanning` son informativos: un fallo en ellos se ve en rojo pero no impide el merge.
+> [!IMPORTANT]
+> **Registrado en el ruleset.** `🚦 Quality Gate` forma parte de `required_status_checks` en `.github/rulesets/main-protection.json`, junto a `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` y `🛡️ Gitleaks Secret Detection`. Por lo tanto, un fallo en `Infra CI`, `Frontend Web CI`, `MegaLinter` o `Security Code Scanning` **sí impide el merge**: se ve en rojo a través del gate agregador.
+>
+> Los dos checks anteriores se conservan de forma deliberada. `🛡️ Gitleaks Secret Detection` se ejecuta como workflow **standalone**, no lo invoca `change-impact.yaml` y por tanto el gate no lo espera en su `needs`: si se eliminara del ruleset, la detección de secretos quedaría sin protección de merge. La duplicidad con `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` es inocua y permite auditar el job nativo de forma independiente.
 
 ### Fase 5: Merge, Versionado Semántico y Firmado OCI (Cosign)
 

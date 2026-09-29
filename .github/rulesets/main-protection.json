@@ -45,6 +45,9 @@
           },
           {
             "context": "🛡️ Gitleaks Secret Detection"
+          },
+          {
+            "context": "🚦 Quality Gate"
           }
         ]
       }
