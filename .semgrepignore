@@ -11,6 +11,31 @@ playwright-report/
 lighthouse-results/
 .scannerwork/
 .mega-linter-reports/
+# SEC-002: analisis de la exclusion de `infra/`.
+#
+# Conclusion: la exclusion se MANTIENE. No es una perdida de cobertura.
+#
+# Motivo: `infra/` no contiene codigo de aplicacion. Sus 113 archivos se
+# distribuyen en 70 YAML (playbooks e inventario de Ansible, manifiestos
+# Kubernetes y Chart de Helm) y 26 TF (OpenTofu), mas documentacion. No hay
+# ningun archivo .ts, .js, .py, .go ni similar, que es el lenguaje sobre el que
+# Semgrep aplica analisis SAST con `--config auto`.
+#
+# Ademas, la IaC de esa ruta tiene controles propios y mas especificos:
+#   OpenTofu    -> `tofu fmt -check` + `tofu validate` en Infra CI
+#   Kubernetes  -> Kubeconform (schemas OpenAPI), Kube-Linter, Kyverno CLI
+#   Helm        -> `helm lint` + `helm template` + verificacion de render
+#   Ansible     -> `ansible-playbook --syntax-check` sobre los 10 playbooks
+#   Seguridad   -> Checkov (SAST de IaC) y Trivy IaC (tfsec/terraform)
+#
+# Retirar la exclusion no aportaria deteccion: solo anadiria ruido de reglas que
+# ya cubren herramientas mas precisas. Si en el futuro se incorpora codigo
+# ejecutable bajo `infra/`, debe evaluarse de forma puntual la inclusion de esa
+# ruta concreta.
+#
+# Nota de mantenimiento: `infra/k8s/kyverno-test/` e `infra/k8s/policies/` se
+# mantienen listados de forma explicita por legibilidad, aunque la regla
+# `infra/` ya los absorbe. No son daninas ni cambian el resultado del escaneo.
 infra/
 infra/k8s/kyverno-test/
 infra/k8s/policies/

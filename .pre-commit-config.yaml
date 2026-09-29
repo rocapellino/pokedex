@@ -1,9 +1,19 @@
 # ==============================================================================
 # Configuración de Hooks de Pre-Commit (Garantía de Calidad y Seguridad)
 # ==============================================================================
+# SEC-001: los hooks se fijan por SHA de commit, no por tag mutable. Cada `rev`
+# lleva el tag en comentario para conservar la trazabilidad de la version legible.
+# Esto alinea pre-commit con la politica de supply chain que ya aplican GitHub
+# Actions (SHA completo) y las imagenes de contenedor (digest).
+#
+# Procedimiento de actualizacion (manual y deliberado):
+#   1. Editar el tag en el comentario de la linea del `rev`.
+#   2. Resolver el SHA: gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
+#   3. Sustituir el SHA y ejecutar `pre-commit autoupdate` para verificar.
+# ==============================================================================
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -16,12 +26,12 @@ repos:
       - id: check-merge-conflict
 
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.24.0
+    rev: c2afd56bbe7ab11564107d34efac4bfde3e3c78d # v8.24.0
     hooks:
       - id: gitleaks
 
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.0.0
+    rev: 5f9c312d9978fbcee1da97154ba385834eeda799 # v4.0.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
