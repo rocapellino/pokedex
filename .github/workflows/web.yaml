@@ -41,13 +41,45 @@ jobs:
           echo "✅ Verificación de tipos TypeScript completada sin errores."
 
       - name: 6. Validar Configuración de Nginx
+        # DOC-003/CI-004: la versión se extrae del Dockerfile del frontend, que es
+        # la única SSOT de la imagen productiva. Repetir el número aquí تسمح que
+        # CI validara la configuración contra una versión distinta de la que se
+        # despliega. Se mantiene además el digest pinning del Dockerfile.
         run: |
-          docker run --rm -t \
+          set -euo pipefail
+          DOCKERFILE=apps/frontend/Dockerfile
+
+          NGINX_IMAGE="$(grep -oE '^FROM nginx:[^@[:space:]]+@sha256:[a-f0-9]{64}' "${DOCKERFILE}" | head -n1 | sed 's/^FROM //')"
+          if [ -z "${NGINX_IMAGE}" ]; then
+            echo "❌ No se pudo resolver la imagen de Nginx desde ${DOCKERFILE}"
+            echo "   Se espera una linea 'FROM nginx:<version>@sha256:<digest> AS runner'."
+            exit 1
+          fi
+          echo "🔎 Validando la configuracion de Nginx contra la imagen productiva: ${NGINX_IMAGE}"
+
+          # Produccion renderiza nginx.conf.template sustituyendo estas variables
+          # (ver apps/frontend/Dockerfile). El renderizado se hace aqui, en el
+          # runner, en lugar de dentro del contenedor: envsubst viene de gettext,
+          # que el Dockerfile instala durante el build y por tanto NO forma parte
+          # de la imagen oficial. Instalarlo en runtime exigiria red en el runner.
+          export BACKOFFICE_ALLOWED_IP_1="10.42.0.1/32"
+          export BACKOFFICE_ALLOWED_IP_2="192.168.1.50/32"
+          export METRICS_ALLOWED_CIDR="10.42.0.0/24"
+
+          RENDERED="${RUNNER_TEMP}/default.conf"
+          node scripts/render-nginx-config.mjs "${RENDERED}"
+
+          # El contenedor solo valida la sintaxis de la configuracion ya renderizada.
+          # `--add-host=api:127.0.0.1` es necesario: el template declara
+          # `proxy_pass http://api:...`, y `nginx -t` resuelve los hosts de upstream
+          # en tiempo de validacion. Sin el, falla con "host not found in upstream".
+          docker run --rm \
             --add-host=api:127.0.0.1 \
-            -v ${{ github.workspace }}/apps/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
-            -v ${{ github.workspace }}/apps/frontend/dist:/usr/share/nginx/html:ro \
-            nginx:1.27-alpine nginx -t
-          echo "✅ Configuración de Nginx válida."
+            -v "${RENDERED}:/etc/nginx/conf.d/default.conf:ro" \
+            -v "${{ github.workspace }}/apps/frontend/dist:/usr/share/nginx/html:ro" \
+            "${NGINX_IMAGE}" \
+            nginx -t
+          echo "✅ Configuración de Nginx válida contra la imagen productiva."
 
       - name: 7. Instalar Navegadores de Playwright
         run: npm run playwright:install
