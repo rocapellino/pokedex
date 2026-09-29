@@ -57,3 +57,32 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 El idioma operativo para toda comunicación humana (Pull Requests, descripciones, títulos, comentarios de revisión, issues, reportes, planes y respuestas) es estrictamente el **español** ([`_shared/language-policy.md`](.agents/skills/_shared/language-policy.md)).
 
 Los identificadores técnicos, nombres de herramientas (GitHub Actions, Helm, pre-commit, ArgoCD), comandos de terminal, código y nombres de archivos se preservan en inglés.
+
+---
+
+## 5. Codificación UTF-8 en Contenido para GitHub
+
+Todo texto destinado a Pull Requests, issues o comentarios de GitHub debe conservarse
+en UTF-8 durante su generación y publicación.
+
+- En Windows, antes de invocar `gh`, se debe comprobar que
+  `[Console]::InputEncoding`, `[Console]::OutputEncoding` y `$OutputEncoding` usen
+  UTF-8. No se permite una entrada OEM (`ibm850`, `cp850` u otra code page) combinada
+  con salida UTF-8. Si alguna difiere, se debe normalizar la sesión antes de continuar:
+
+  ```powershell
+  $utf8 = [System.Text.UTF8Encoding]::new($false)
+  [Console]::InputEncoding = $utf8
+  [Console]::OutputEncoding = $utf8
+  $OutputEncoding = $utf8
+  ```
+
+- Los cuerpos multilínea se deben guardar en un archivo temporal UTF-8 sin BOM y
+  publicar exclusivamente con `gh pr create --body-file <archivo>` o
+  `gh pr edit --body-file <archivo>`. No deben enviarse como argumento inline ni por
+  una tubería dependiente de la code page de la consola.
+- Después de crear o editar el PR, se debe consultar el cuerpo remoto con
+  `gh pr view <número> --json body --jq .body` y comprobar acentos, emojis y ausencia
+  de indicadores de mojibake como `├`, `Ô`, `ƒ`, `Ã` o `Â`.
+- Si falla la verificación, el PR no alcanza `READY_FOR_PR`: se debe regenerar el
+  archivo desde la fuente UTF-8 correcta y volver a publicarlo.

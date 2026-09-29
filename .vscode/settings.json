@@ -1,4 +1,6 @@
 {
+    "files.autoGuessEncoding": false,
+    "files.encoding": "utf8",
     "sonarlint.connectedMode.project": {
         "connectionId": "rocapellino",
         "projectKey": "rocapellino_pokedex"

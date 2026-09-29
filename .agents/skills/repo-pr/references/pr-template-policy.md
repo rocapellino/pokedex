@@ -98,3 +98,37 @@ El agente correlaciona dinámicamente las secciones descubiertas con los artefac
 1. **No Eliminar Secciones:** Ninguna sección de la plantilla debe ser borrada, aun cuando no aplique.
 2. **Declaración Explícita de N/A:** Cuando un bloque no aplique al cambio, se debe colocar `N/A: <justificación concisa>`.
 3. **Fidelidad Fáctica:** Toda afirmación debe corresponder al estado real del repositorio. No reportar "desplegado en clúster" si solo está en rama local.
+
+---
+
+## 6. Protocolo de Codificación y Publicación
+
+El cuerpo final del Pull Request debe preservarse como UTF-8 de extremo a extremo.
+Esta verificación forma parte del `PR Preparation State` y es obligatoria aunque el
+Markdown local se renderice correctamente.
+
+1. Generar el cuerpo en un archivo temporal codificado como UTF-8 sin BOM.
+2. En Windows, comprobar antes de usar GitHub CLI que
+   `[Console]::InputEncoding`, `[Console]::OutputEncoding` y `$OutputEncoding` sean
+   UTF-8. Una entrada OEM como `ibm850` o `cp850` invalida la publicación. Si alguna
+   difiere, normalizar la sesión antes de continuar:
+
+   ```powershell
+   $utf8 = [System.Text.UTF8Encoding]::new($false)
+   [Console]::InputEncoding = $utf8
+   [Console]::OutputEncoding = $utf8
+   $OutputEncoding = $utf8
+   ```
+
+3. Crear o actualizar el PR mediante `gh pr create --body-file <archivo>` o
+   `gh pr edit --body-file <archivo>`. No pasar cuerpos multilínea como argumentos
+   inline ni mediante tuberías cuya codificación dependa de la consola.
+4. Leer nuevamente el cuerpo almacenado con
+   `gh pr view <número> --json body --jq .body`.
+5. Comparar los fragmentos sensibles del resultado remoto con el archivo local:
+   acentos, eñes, rayas y emojis deben coincidir. También se deben rechazar patrones
+   frecuentes de mojibake (`├`, `Ô`, `ƒ`, `Ã`, `Â`) cuando no pertenezcan
+   intencionalmente al contenido.
+
+Si la comparación falla, el control individual queda en `FAIL` y el estado general
+es `NOT_READY` hasta regenerar y volver a publicar el cuerpo desde la fuente UTF-8.
