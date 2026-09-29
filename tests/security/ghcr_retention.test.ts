@@ -14,6 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
+/**
+ * Elimina las líneas de comentario de un YAML.
+ *
+ * Los workflows documentan en comentarios qué se retiró y por qué. Evaluar esas
+ * afirmaciones como si fueran configuración produce falsos positivos: nombrar el
+ * paso eliminado en el comentario que explica su eliminación haría fallar el
+ * test que justamente comprueba que fue eliminado.
+ */
+function withoutComments(yaml: string): string {
+  return yaml
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*#/.test(line))
+    .join('\n');
+}
+
 test('📦 GHCR Retention: calculateVersionsToPrune conserva estrictamente los últimos N y marca el resto para purga', () => {
   const versions: PackageVersion[] = [
     {
@@ -118,11 +133,29 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
 
   const retentionWf = fs.readFileSync(retentionWfPath, 'utf-8');
   assert.ok(retentionWf.includes('packages: write'), 'Debe requerir permiso packages: write');
-  assert.ok(retentionWf.includes('keep-n-tagged:'), 'Debe configurar keep-n-tagged');
-  assert.ok(retentionWf.includes('delete-untagged: true'), 'Debe eliminar imágenes untagged');
   assert.ok(retentionWf.includes('workflow_dispatch:'), 'Debe admitir ejecución manual');
   assert.ok(retentionWf.includes('cron:'), 'Debe incluir schedule periódica');
   assert.ok(retentionWf.includes('workflow_run:'), 'Debe activarse tras publicación en CI/CD');
+  // WF-003: la retención de este workflow la aplica el script canónico tipado.
+  // Se quitó la acción de terceros que repetía la poda dentro del mismo job.
+  assert.ok(
+    retentionWf.includes('scripts/ghcr-retention.ts'),
+    'ghcr-retention.yaml debe delegar la retención en el script canónico tipado'
+  );
+  assert.ok(
+    !withoutComments(retentionWf).includes('dataaxiom/ghcr-cleanup-action'),
+    'ghcr-retention.yaml no debe volver a duplicar la poda dentro del mismo job (WF-003)'
+  );
+  // La política "eliminar untagged" debe seguir garantizada en el pipeline; tras
+  // WF-003 su único proveedor es el paso post-publish de ci.yaml.
+  const ciRetention = fs.readFileSync(
+    path.join(ROOT_DIR, '.github/workflows/ci.yaml'),
+    'utf-8'
+  );
+  assert.ok(
+    ciRetention.includes('delete-untagged: true'),
+    'ci.yaml debe conservar delete-untagged: true: es quien garantiza la limpieza de untagged'
+  );
 
   // 2. ci.yml incorpora paso de retención en job publish
   const ciWfPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
