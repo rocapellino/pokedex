@@ -21,9 +21,10 @@ const RULESET_PATH = path.join(ROOT_DIR, '.github', 'rulesets', 'main-protection
 /**
  * RULESET-001 — segunda parte: paridad Declarativo <-> GitHub Live.
  *
- * `ci_impact.test.ts` ya cubre la integridad del JSON (parseo, UTF-8, contexts no
- * corruptos). Eso NO alcanza: un archivo puede estar perfecto y aun asi no
- * describir lo que GitHub aplica. Estos tests cierran ese hueco en tres capas:
+ * `ruleset_contract.test.ts` ya cubre la integridad TEXTUAL del JSON (parseo,
+ * UTF-8, contexts no corruptos). Eso NO alcanza: un archivo puede estar perfecto
+ * y aun asi no describir lo que GitHub aplica. Estos tests cierran ese hueco en
+ * tres capas:
  *
  *   1. Invariantes del contrato (offline, siempre corren). Blindan los dos bugs
  *      que hacia inaplicable el archivo declarativo.
