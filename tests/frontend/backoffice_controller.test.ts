@@ -7,18 +7,22 @@
  * `test:coverage` (`tests/**\/!(*fuzzing*).test.ts`), de modo que cualquier cambio en
  * el archivo bloqueaba el merge con 0 % de cobertura.
  *
- * `backoffice.ts` es un controlador de navegador. Se monta un DOM real con jsdom y se
- * inyectan en `globalThis` antes de importar el modulo, de modo que la cadena de
- * imports (incluido DOMPurify en `sanitizer.ts`) se inicializa igual que en el
- * navegador. Una version previa de este test usaba `mock.module` para interceptar el
- * sanitizador, pero esa API resulto inestable: se cancelaba con `cancelledByParent` en
- * CI con Node 22 pese a pasar en local con Node 24. jsdom no depende de ninguna
- * capacidad experimental del runner.
+ * `backoffice.ts` es un controlador de navegador. Se monta un DOM real con jsdom en un
+ * modulo auxiliar (`backoffice_env.ts`), de modo que la cadena de imports (incluido
+ * DOMPurify en `sanitizer.ts`) se inicializa igual que en el navegador. jsdom no depende de
+ * ninguna capacidad experimental del runner, a diferencia de `mock.module`, que se
+ * cancelaba con `cancelledByParent` en CI con Node 22 pese a pasar en local con Node 24.
+ *
+ * El montaje vive en un modulo aparte por el orden de evaluacion de ESM: los `import` se
+ * evaluan antes que cualquier sentencia, de modo que un import estatico de
+ * `backoffice.ts` en el tope de este archivo exigiria que el DOM ya estuviera montado.
  */
 
-import { test, before, after, beforeEach } from 'node:test';
+import { test, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { JSDOM } from 'jsdom';
+// El orden de los imports es significativo: `backoffice_env` monta el DOM y debe
+// evaluarse ANTES que `backoffice`, cuyo import aparece mas abajo en este archivo.
+import { dom, scrollCalls } from './backoffice_env.js';
 
 type Pokemon = {
   id: number;
@@ -36,55 +40,24 @@ const CATALOG: Pokemon[] = [
   { id: 7, nombre: 'Squirtle', tipo: 'Agua', tipos: ['Agua'], fuerza: 44 },
 ];
 
-const HTML = `<!doctype html><html><body>
-  <span id="backendStatus"></span><span id="statusDot"></span>
-  <input id="adminSearch" value="pikachu">
-  <select id="adminTypeFilter"><option value="all">all</option><option value="Fuego">Fuego</option></select>
-  <select id="adminPageSize"><option value="2">2</option><option value="25">25</option></select>
-  <tbody id="adminTableBody"></tbody>
-  <div id="adminPagination"></div>
-  <span id="kpiTotal"></span><span id="kpiAvgForce"></span><span id="kpiUniqueTypes"></span>
-  <span id="pageInfo"></span><div id="toastContainer"></div>
-  <button id="btnSubmitForm">Guardar Registro</button>
-  <button id="btnConfirmDelete">Sí, Eliminar</button>
-  <input id="pokemonName" value=""><input id="pokemonTypes" value=""><input id="pokemonForce" value="">
-  <div id="crudModal"></div><div id="authModal"></div><div id="deleteModal"></div>
-  <table><tbody id="tableBody"></tbody></table>
-</body></html>`;
-
-let dom: JSDOM;
-const scrollCalls: unknown[] = [];
 const realSetInterval = globalThis.setInterval;
 const realClearInterval = globalThis.clearInterval;
 const realFetch = globalThis.fetch;
 
-/** Import perezoso: el modulo solo puede cargarse tras montar el DOM. */
-const load = () => import('../../apps/frontend/src/backoffice.js');
+/**
+ * Acceso al modulo bajo prueba.
+ *
+ * El import es ESTATICO a proposito: el instrumentado de V8 de Node no registra para
+ * cobertura los modulos cargados con `import()` dinamico, por lo que un import dinamico
+ * dejaba `backoffice.ts` fuera de `coverage/lcov.info` y Sonar reportaba 0 % de New Code
+ * pese a que los tests se ejecutaban y pasaban.
+ */
+import * as backoffice from '../../apps/frontend/src/backoffice.js';
+
+const load = async (): Promise<typeof backoffice> => backoffice;
 
 /** Espera a que las promesas en vuelo de los manejadores se resuelvan. */
 const settle = () => new Promise((resolve) => setImmediate(resolve));
-
-before(() => {
-  dom = new JSDOM(HTML, { url: 'http://localhost:8080/backoffice.html', pretendToBeVisual: true });
-
-  const g = globalThis as Record<string, unknown>;
-  g.window = dom.window;
-  g.document = dom.window.document;
-  g.navigator = dom.window.navigator;
-  g.HTMLElement = dom.window.HTMLElement;
-  g.Event = dom.window.Event;
-  g.localStorage = dom.window.localStorage;
-  g.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
-  // `bootstrap()` sondea el health check cada 15 s; sin neutralizarlo el runner
-  // de Node mantiene el proceso vivo y la suite nunca termina.
-  g.setInterval = () => 0;
-  g.clearInterval = () => {};
-  // `scrollTo` no esta implementado en jsdom sin `pretendToBeVisual`; se sustituye
-  // por un espia para observar las navegaciones de pagina.
-  dom.window.scrollTo = ((opts: unknown) => {
-    scrollCalls.push(opts);
-  }) as unknown as typeof dom.window.scrollTo;
-});
 
 after(() => {
   const g = globalThis as Record<string, unknown>;
@@ -109,6 +82,8 @@ beforeEach(() => {
       headers: { get: (n: string) => (n === 'X-Total-Count' ? String(CATALOG.length) : null) },
       json: async () => CATALOG,
     };
+  };
+});
 
 test('Backoffice: checkHealthStatus reporta backend saludable', async () => {
   const { checkHealthStatus } = await load();
@@ -165,6 +140,8 @@ test('Backoffice: loadAdminData muestra el estado de error sin lanzar', async ()
   };
   await loadAdminData();
   const tbody = document.getElementById('adminTableBody')!;
+  assert.match(tbody.innerHTML, /Error de conexi/i, 'debe renderizar el error');
+});
 
 test('Backoffice: handlePageSizeChange aplica el valor seleccionado', async () => {
   const { handlePageSizeChange } = await load();
@@ -196,9 +173,11 @@ test('Backoffice: changeAdminPage navega dentro del rango y rechaza el exterior'
   const before = scrollCalls.length;
   changeAdminPage(1);
   assert.equal(scrollCalls.length, before + 1, 'avanzar de pagina debe desplazar la ventana');
-  // Retroceder dos veces lleva a la pagina 0, fuera de rango: no debe desplazar.
-  const after = scrollCalls.length;
+  // Retroceder una vez regresa a la página 1 (válido y desplaza).
   changeAdminPage(-1);
+  assert.equal(scrollCalls.length, before + 2, 'retroceder a pagina valida debe desplazar');
+  // Retroceder otra vez intenta ir a la pagina 0, fuera de rango: no debe desplazar.
+  const after = scrollCalls.length;
   changeAdminPage(-1);
   assert.equal(scrollCalls.length, after, 'retroceder fuera de rango no debe desplazar');
 });
@@ -284,9 +263,6 @@ test('Backoffice: handleFormSubmit con sesion activa rehabilita el boton', async
   setAdminSessionActive(false);
 });
 
-  assert.match(tbody.innerHTML, /Error de conexi/i, 'debe renderizar el error');
-});
-
 test('Backoffice: applyAdminFilters recarga los datos', async () => {
   const { applyAdminFilters } = await load();
   applyAdminFilters();
@@ -302,7 +278,4 @@ test('Backoffice: handleAdminTypeFilter lee el valor del selector', async () => 
   handleAdminTypeFilter();
   assert.equal(select.value, 'Fuego');
   await settle();
-});
-
-  };
 });
