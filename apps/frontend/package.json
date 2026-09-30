@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dompurify": "^3.4.15"
+    "dompurify": "^3.4.16"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
