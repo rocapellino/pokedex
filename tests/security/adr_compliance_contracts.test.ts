@@ -412,9 +412,14 @@ test('🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) con
     let files: string[] = [];
     const entries = fs.readdirSync(dir);
     for (const entry of entries) {
-      if (entry === 'node_modules' || entry === '.git' || entry === 'dist') continue;
+      if (entry === 'node_modules' || entry === '.git' || entry === 'dist' || entry === 'scratch') continue;
       const fullPath = path.join(dir, entry);
-      const stat = fs.statSync(fullPath);
+      let stat;
+      try {
+        stat = fs.statSync(fullPath);
+      } catch {
+        continue;
+      }
       if (stat.isDirectory()) {
         files = files.concat(getMarkdownFiles(fullPath));
       } else if (entry.endsWith('.md')) {

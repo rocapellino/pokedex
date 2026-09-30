@@ -25,9 +25,21 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 
 ## Comandos
 
-- `/repo-context`: Construcción completa del contexto operativo del repositorio.
-- `/repo-context refresh`: Actualización incremental del contexto tras modificaciones recientes de código o dependencias.
-- `/repo-context agents`: Auditoría y actualización del documento de instrucciones operativas `AGENTS.md`.
+| Comando | Modo | Descripción |
+| :--- | :---: | :--- |
+| `/repo-context` | `READ` | Construcción completa del contexto operativo del repositorio. |
+| `/repo-context refresh` | `READ` | Actualización incremental del contexto tras modificaciones recientes de código o dependencias. |
+| `/repo-context agents` | **`UPDATE`** | Auditoría y actualización del documento de instrucciones operativas `AGENTS.md`. |
+
+> [!CAUTION]
+> **Único comando mutante.** `/repo-context` y `/repo-context refresh` son estrictamente
+> de sólo lectura: no escriben ningún archivo del repositorio. `/repo-context agents`
+> es la **excepción declarada** y modifica `AGENTS.md`.
+>
+> Su ejecución exige orden explícita del usuario y debe quedar registrada como
+> cambio documental sujeto al Markdown Quality Gate (`npm run lint:md`). El contenido
+> de `AGENTS.md` solo puede derivarse de evidencia fáctica comprobada en el código,
+> nunca de auditorías históricas.
 
 ## Formato de Salida y Gobernanza
 
