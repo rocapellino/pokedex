@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  security-events: write
-  packages: write
-  id-token: write
-  attestations: write
   actions: read
 
 concurrency:
@@ -69,7 +65,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Instalar Dependencias del Monorepo
+      - name: 3. Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: 4. Ejecutar Change Impact Analysis y Generar impact.json
@@ -83,8 +79,9 @@ jobs:
           cat impact.json
           echo ""
           echo "=== NIVEL ALWAYS (controles no negociables, se aplican en todo PR) ==="
-          echo "pr_governance=${{ steps.impact.outputs.pr_governance }}"
-          echo "security_secrets=${{ steps.impact.outputs.security_secrets }}"
+          if [ -n "${GITHUB_OUTPUT:-}" ] && [ -f "${GITHUB_OUTPUT:-}" ]; then
+            grep -E '^(pr_governance|security_secrets)=' "$GITHUB_OUTPUT" || true
+          fi
 
       - name: 5. Persistir Artefacto Inmutable impact.json
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -111,6 +108,11 @@ jobs:
       needs.detect-impact.outputs.agent_governance == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/ci.yaml
     with:
       backend: ${{ needs.detect-impact.outputs.backend == 'true' }}
@@ -161,6 +163,8 @@ jobs:
       needs.detect-impact.outputs.frontend == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
+    permissions:
+      contents: read
     uses: ./.github/workflows/web.yaml
 
   megalinter:
@@ -170,6 +174,8 @@ jobs:
       needs.detect-impact.outputs.linting == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
+    permissions:
+      contents: read
     uses: ./.github/workflows/mega-linter.yaml
 
   security-code-scanning:
@@ -181,6 +187,10 @@ jobs:
       needs.detect-impact.outputs.linting == 'true' ||
       needs.detect-impact.outputs.is_unknown == 'true' ||
       github.event_name == 'push'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     uses: ./.github/workflows/security-code-scanning.yaml
     with:
       security_sast: ${{ needs.detect-impact.outputs.security_sast == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
@@ -278,7 +288,7 @@ jobs:
 
           echo "✅ Quality Gate: todos los pipelines ejecutados fueron exitosos o no aplican."
 
-      - name: 2. Publicar el reporte del gate como artefacto
+      - name: 2. Publicar Reporte
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
