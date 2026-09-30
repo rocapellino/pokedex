@@ -6,16 +6,17 @@ Este documento define la metodología técnica para identificar y prevenir incon
 
 ## 1. Categorías Fundamentales de Drift Documental
 
-La auditoría clasifica las anomalías documentales en cuatro categorías operativas:
+La auditoría clasifica las anomalías documentales en cuatro categorías operativas, que
+se mapean uno a uno sobre los estados canónicos de la sección 3:
 
-1. **`STALE DOCUMENTATION` (Documentación Desactualizada):**
+1. **`STALE DOCUMENTATION` (Documentación Desactualizada) → `OUTDATED`:**
    El código o la configuración ha evolucionado, pero el documento técnico continúa describiendo el comportamiento o las rutas de una versión previa.
-2. **`MISSING DOCUMENTATION` (Documentación Faltante):**
-   Existe una capacidad o componente relevante en el sistema (ej. un nuevo CronJob, script o variable de entorno crítica) sin una guía operativa o especificación técnica asociada.
-3. **`CONTRADICTORY DOCUMENTATION` (Documentación Contradictoria):**
+2. **`MISSING DOCUMENTATION` (Documentación Faltante) → `ORPHANED`:**
+   Existe una capacidad o componente relevante en el sistema (ej. un nuevo CronJob, script o variable de entorno crítica) sin una guía operativa o especificación técnica asociada. Cuando la ausencia se produce porque el documento **enlaza a algo que ya no existe**, el estado preciso es `ORPHANED` (referencia rota) y no `OUTDATED`.
+3. **`CONTRADICTORY DOCUMENTATION` (Documentación Contradictoria) → `INVALID`:**
    Dos o más documentos vigentes afirman estados o estrategias mutuamente excluyentes (ej. un ADR declara una vía como inactiva mientras el Runbook la declara como activa).
-4. **`STATE MISREPRESENTATION` (Tergiversación de Estado del Sistema):**
-   La documentación afirma que una capacidad está *"activa"*, *"desplegada"* o *"en producción"* cuando en realidad solamente está implementada en la rama `main` o pendiente de release en GitOps.
+4. **`STATE MISREPRESENTATION` (Tergiversación de Estado del Sistema) → `INVALID` (`PENDING_PROMOTION`):**
+   La documentación afirma que una capacidad está *"activa"*, *"desplegada"* o *"en producción"* cuando en realidad solamente está implementada en la rama `main` o pendiente de release en GitOps. Este caso requiere además el calificador `PENDING_PROMOTION` (sección 3.1).
 
 ---
 
@@ -52,16 +53,57 @@ La auditoría no se limita a contrastar títulos o nombres de archivos, sino que
 
 ## 3. Estados Documentales Estandarizados
 
-Cada sección o documento analizado se clasifica bajo uno de los siguientes estados canónicos:
+Cada sección o documento analizado se clasifica bajo uno de los siguientes **siete estados
+canónicos**, que constituyen el vocabulario único de drift documental del repositorio:
 
 - **`CURRENT`:** El contenido refleja con total fidelidad el estado implementado y declarado.
-- **`STALE`:** Describe una configuración o arquitectura previa ya superada en el código.
-- **`CONTRADICTED`:** Presenta discrepancias directas con otro documento vigente o decisión activa.
-- **`MISSING`:** La capacidad existe en el código pero carece de documentación formal.
-- **`HISTORICAL`:** Documento inmutable de diagnóstico o auditoría pasada (no genera alerta de obsolescencia).
-- **`UNKNOWN`:** Afirmación sobre el runtime que no puede verificarse sin telemetría en vivo.
-- **`NOT_APPLICABLE`:** No aplica a la dimensión o entorno evaluado.
-- **`PENDING_PROMOTION`:** Describe una capacidad implementada en `main` que aguarda corte de release o promoción en ArgoCD.
+- **`OUTDATED`:** Describe una configuración o arquitectura previa ya superada en el código.
+  *(Absorbe el estado `STALE` de versiones anteriores de este documento.)*
+- **`DUPLICATE`:** El contenido queda redundante frente a otro documento vigente que ya
+  cubre la misma información. Requiere consolidación, no actualización.
+- **`ORPHANED`:** El documento enlaza, invoca o describe rutas, comandos, scripts,
+  archivos o componentes que **ya no existen** en el repositorio.
+  *(Se diferencia de `OUTDATED`: aquí el problema es la referencia rota, no la
+  descripción desfasada de algo que sigue vigente.)*
+- **`INVALID`:** El documento afirma algo falso, con mayor gravedad que `OUTDATED`:
+  estados de sistema, rutas de secretos, versiones o resultados de pruebas que no se
+  corresponden con la realidad comprobable.
+  *(Absorbe el estado `CONTRADICTED` de versiones anteriores: toda contradicción con un
+  documento vigente o decisión activa se clasifica aquí.)*
+- **`NEEDS_REVIEW`:** El estado no puede determinarse con certeza y requiere arbitraje
+  humano o validación operativa. Admite los calificadores descritos a continuación.
+- **`HISTORICAL`:** Documento inmutable de diagnóstico o auditoría pasada. No genera
+  alerta de obsolescencia ni requiere remediación.
+
+### 3.1. Calificadores de `NEEDS_REVIEW`
+
+GitOps introduce estados intermedios que no encajan en los siete estados de primer nivel,
+pero cuya pérdida semántica sería un defecto. Se conservan como **calificadores**:
+
+| Calificador | Significado | Cuando se aplica |
+| :--- | :--- | :--- |
+| `PENDING_PROMOTION` | La capacidad está implementada en `main` pero aún no fue promovida a GitOps ni desplegada. | El `targetRevision` de ArgoCD no apunta aún al commit que la contiene. |
+| `NOT_APPLICABLE` | La afirmación no aplica a la dimensión o entorno evaluado. | Un hallazgo sobre runtime en un entorno sin acceso o no afectado por el cambio. |
+| `UNKNOWN` | No verificable sin telemetría en vivo. | Afirmaciones sobre el estado de `RUNTIME`. |
+
+> [!IMPORTANT]
+> `PENDING_PROMOTION` y `NOT_APPLICABLE` **no deben perderse** al reportar: en un
+> repositorio gobernado por GitOps, describir una capacidad como "implementada en `main`"
+> sin señalar que aún no está promovida es exactamente el tipo de tergiversación de
+> estado que esta auditoría existe para evitar. Todo hallazgo `NEEDS_REVIEW` debe
+> declarar su calificador.
+
+### 3.2. Regla de Clasificación
+
+```text
+¿El documento describe algo que ya no existe?     ──► ORPHANED
+¿Afirma algo falso o contradice otro documento?  ──► INVALID
+¿Está desfasado pero su referente sigue vigente? ──► OUTDATED
+¿Redunda con otro documento vigente?             ──► DUPLICATE
+¿No es determinable con certeza?                  ──► NEEDS_REVIEW (+ calificador)
+¿Es un snapshot fechado e inmutable?               ──► HISTORICAL
+En otro caso                                       ──► CURRENT
+```
 
 ---
 

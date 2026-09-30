@@ -11,7 +11,7 @@ Esta regla aplica a todos los agentes de IA, procesos automatizados y herramient
 | `gitops/` | **SSOT Actual** | Definiciones declarativas vigentes por entorno (ArgoCD, values por cluster). |
 | `infra/` | **SSOT Actual** | Helm charts, templates, Ansible playbooks, OpenTofu y K8s manifests vigentes. |
 | `docs/architecture/` | **SSOT Actual** | Especificaciones canónicas vigentes de arquitectura y seguridad. |
-| `src/`, `apps/`, `scripts/` | **SSOT Actual** | Código fuente ejecutable y tests automatizados en producción. |
+| `apps/`, `scripts/`, `tests/` | **SSOT Actual** | Código fuente ejecutable y tests automatizados en producción. |
 | `docs/audits/` | **Evidencia Histórica** | Informes fechados, auditorías pasadas, snapshots y diagnósticos previos. |
 
 ---
@@ -27,7 +27,7 @@ Esta regla aplica a todos los agentes de IA, procesos automatizados y herramient
      - `gitops/`
      - `infra/`
      - `docs/architecture/`
-     - Código fuente y tests en `tests/`
+     - Código fuente y tests en `apps/`, `scripts/` y `tests/`
    - **Convención canónica de secretos en Vault:**
      - Producción: `pokedex/prod`
      - Pre-producción: `pokedex/preprod`
