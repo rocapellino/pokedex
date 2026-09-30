@@ -77,7 +77,52 @@ Para evitar ambigüedades operativas, toda capacidad o feature técnica debe cla
 
 ---
 
-## 3. Reglas Cardinales de Consistencia
+## 4. Registro Canónico de Taxonomías de Estado
+
+El repositorio mantiene varios vocabularios de estado porque los dominios son
+legítimamente distintos. Lo que **no** es legítimo es la proliferación sin registro: una
+auditoría que no sepa cuál aplicar se ve obligada a inventar uno.
+
+Este registro declara, para cada vocabulario, su dominio de aplicación y su autoridad.
+Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
+
+| Vocabulario | Dominio de aplicación | Autoridad | Volumen |
+| :--- | :--- | :--- | :---: |
+| Niveles de despliegue | Estado del sistema entre `main` y producción | Este documento, §1 | 4 |
+| Ciclo de vida de capacidad | Madurez de una feature o componente | Este documento, §2 | 7 |
+| Estados documentales | Clasificación de drift documental | `repo-docs/SKILL.md` | 7 |
+| Calificadores documentales | Matices de `NEEDS_REVIEW` en entornos GitOps | `repo-docs/references/documentation-drift.md` §3.1 | 3 |
+| Volatilidad de afirmaciones | Riesgo de desactualización por tipo de afirmación | `repo-doc-governance/references/documentation-drift-policy.md` §2 | 8 |
+| Severidad de drift | Bloqueo en Pull Request | `idem` §3 | 4 |
+| Higiene de archivos ignorados | Reglas de exclusión `.*ignore` | `repo-lifecycle/references/configuration-hygiene.md` | 5 |
+| Estrategia de pruebas | Salud de una suite de pruebas | `repo-testing` | 12 |
+| Scripts y mantenimiento | Estado de scripts, utilidades y artefactos | `repo-maintenance` | 8 |
+
+### Reglas de Aplicación
+
+1. **Un dominio, un vocabulario.** No aplicar el vocabulario de otro dominio por
+   analogía. Clasificar un archivo de `.agents/` con los estados de higiene de
+   exclusiones es un error de dominio, no una abreviatura.
+2. **Los calificadores no son estados de primer nivel.** `PENDING_PROMOTION`,
+   `NOT_APPLICABLE` y `UNKNOWN` califican a `NEEDS_REVIEW`; no compiten con los siete
+   estados canónicos.
+3. **La prioridad de hallazgo es un eje independiente.** `P0` a `P3` (sección 4 de
+   `_shared/methodology.md`) mide impacto; el vocabulario de dominio mide *qué pasó*.
+   Todo hallazgo declara ambos.
+4. **Los reportes históricos conservan su taxonomía.** Los snapshots bajo
+   `docs/audits/<fecha>/` son inmutables y no se reescriben al unificar un vocabulario.
+5. **Toda clasificación se registra con su vocabulario.** Un hallazgo sin vocabulario
+   declarado se considera no conforme.
+
+> [!NOTE]
+> Los nueve vocabularios eran en su origen correctos: cada uno describe un dominio
+> distinto. El defecto era exclusivamente la ausencia de este registro, no la
+> coexistencia. La unificación de la taxonomía documental (7 estados) es el único caso
+> en que dos vocabularios describían realmente el mismo fenómeno.
+
+---
+
+## 5. Reglas Cardinales de Consistencia
 
 > [!IMPORTANT]
 >
