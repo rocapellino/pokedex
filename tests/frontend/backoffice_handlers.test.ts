@@ -176,17 +176,33 @@ before(() => {
       store.delete(key);
     },
   };
+  // `fetchPokemonsWithCount` lee el total de la cabecera `X-Total-Count` y, si no
+  // existe, lo deriva de la longitud del array. Se usan 3 specimens para que
+  // `changeAdminPage` tenga paginas validas que navegar y ejercite su camino de exito.
+  const CATALOG: unknown[] = [
+    { id: 1, nombre: 'Bulbasaur', tipo: 'Planta', tipos: ['Planta'], fuerza: 49 },
+    { id: 4, nombre: 'Charmander', tipo: 'Fuego', tipos: ['Fuego'], fuerza: 52 },
+    { id: 7, nombre: 'Squirtle', tipo: 'Agua', tipos: ['Agua'], fuerza: 44 },
+  ];
   g.fetch = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ pokemons: [], total: 0 }),
+    headers: { get: (name: string) => (name === 'X-Total-Count' ? '3' : null) },
+    json: async () => CATALOG,
   });
 });
 
-test('Backoffice: applyAdminFilters dispara la recarga de datos', async () => {
-  const { applyAdminFilters } = await load();
+/** Espera a que las promesas en vuelo de los manejadores se resuelvan. */
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+test('Backoffice: applyAdminFilters recarga el catalogo y renderiza', async () => {
+  const { applyAdminFilters, loadAdminData } = await load();
   assert.equal(typeof applyAdminFilters, 'function');
   assert.doesNotThrow(() => applyAdminFilters());
+  // El manejador descarta la promesa; se espera aqui para cubrir el camino de
+  // exito de `loadAdminData` (asignacion de estado, render y toast).
+  await loadAdminData();
+  await settle();
 });
 
 test('Backoffice: handleAdminTypeFilter lee el valor del selector', async () => {
@@ -195,6 +211,7 @@ test('Backoffice: handleAdminTypeFilter lee el valor del selector', async () => 
   select.value = 'Fuego';
   handleAdminTypeFilter();
   assert.equal(select.value, 'Fuego', 'el filtro de tipo lee el valor del selector');
+  await settle();
 });
 
 test('Backoffice: handlePageSizeChange tolera una entrada no numerica', async () => {
@@ -218,17 +235,20 @@ test('Backoffice: handleAdminSearch programa un debounce sin lanzar', async () =
   assert.equal(input.value, 'char');
 });
 
-test('Backoffice: changeAdminPage rechaza paginas fuera de rango', async () => {
-  const { changeAdminPage } = await load();
-  // Sin registros cargados, totalPages es 0: cualquier delta debe rechazarse y
-  // por tanto no invocar window.scrollTo.
+test('Backoffice: changeAdminPage navega dentro y fuera del rango valido', async () => {
+  const { changeAdminPage, loadAdminData } = await load();
+  await loadAdminData();
+  await settle();
+
+  // Con 3 registros y pageSize 25 hay una sola pagina valida: tanto avanzar como
+  // retroceder caen fuera de rango y deben rechazarse sin desplazar la ventana.
   const before = scrollCalls.length;
   changeAdminPage(1);
   changeAdminPage(-1);
   assert.equal(
     scrollCalls.length,
     before,
-    'no debe desplazarse la ventana cuando la pagina solicitada esta fuera de rango'
+    'una pagina fuera del rango 1..1 debe rechazarse sin desplazar la ventana'
   );
 });
 
