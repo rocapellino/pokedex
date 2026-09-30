@@ -1,12 +1,12 @@
 # ==============================================================================
 # Workflow Oficial de SAST e IaC Security para GitHub Code Scanning
-# Herramientas: njsscan (Node.js/Express), Hadolint (Dockerfiles), tfsec (OpenTofu)
+# Herramientas: njsscan (Node.js/Express), Hadolint (Dockerfiles), Trivy IaC (OpenTofu)
 # ==============================================================================
 # NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
 # `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
 # los reusables calculaban el mismo grupo y se cancelaban entre si. La
-# serializacion por PR ya la aplica `change-impact.yml` a nivel de workflow.
-name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)
+# serializacion por PR ya la aplica `change-impact.yaml` a nivel de workflow.
+name: 🛡️ Security & Code Scanning SAST (njsscan, Hadolint & Trivy IaC)
 
 on:
   workflow_call:

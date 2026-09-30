@@ -18,8 +18,17 @@ on:
   workflow_run:
     # WF-002: el trigger resuelve por `name:` exacto del workflow, no por ruta de
     # archivo. Una referencia desactualizada no produce error: nunca dispara.
-    # El `name:` vigente de `.github/workflows/ci.yaml` es `🚀 CI/CD Pipeline`.
-    workflows: ["🚀 CI/CD Pipeline"]
+    #
+    # WF-004 (correccion de causa raiz): el productor anterior era
+    # `🚀 CI/CD Pipeline` (`.github/workflows/ci.yaml`), que es un REUSABLE
+    # (`workflow_call`) y por definicion NO genera una ejecucion propia: su run
+    # se atribuye al workflow invocador. Evidencia medida en la API de GitHub:
+    # `ci.yaml` acumula 0 ejecuciones frente a 132 de `change-impact.yaml`. Con
+    # ese productor, la purga post-CI NUNCA se disparo y la retencion solo
+    # ocurria por el cron semanal, con el retraso que eso implica.
+    #
+    # El productor real del pipeline principal es el orquestador de impacto.
+    workflows: ["🎯 Change Impact & Pipeline Orchestrator"]
     types: [completed]
     branches: [main]
 

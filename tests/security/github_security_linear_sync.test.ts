@@ -259,7 +259,7 @@ test('🚨 WF-002: se cubren los productores de alertas de seguridad', () => {
     'Gitleaks sube SARIF a Code Scanning y debe disparar la sincronización'
   );
   assert.ok(
-    declared.includes('🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)'),
+    declared.includes('🛡️ Security & Code Scanning SAST (njsscan, Hadolint & Trivy IaC)'),
     'El pipeline SAST (njsscan/Hadolint/Trivy IaC) debe disparar la sincronización'
   );
   assert.ok(

@@ -42,7 +42,7 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
 
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 
-- **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa de `CI/CD Pipeline`.
+- **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa del *Change Impact & Pipeline Orchestrator* (`change-impact.yaml`), que es el workflow de nivel superior real del pipeline. Antes de WF-004 este segundo trigger apuntaba a `ci.yaml` (`🚀 CI/CD Pipeline`), que es un *reusable workflow* y nunca genera una ejecución propia: el trigger no llegaba a dispararse.
 - **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.
 - **Mecanismo de purgado:** Delega exclusivamente en el script canónico tipado [`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts) con `--keep=<N>`, que audita el registro, reporta el plan de purgado y elimina las versiones por encima del umbral.
 

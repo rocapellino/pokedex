@@ -1,6 +1,6 @@
 # ==============================================================================
 # Workflow de CI para Infraestructura (Kubernetes, OpenTofu y Helm)
-# Invocado como Reusable Workflow por change-impact.yml
+# Invocado como Reusable Workflow por change-impact.yaml
 #
 # NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
 # `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
@@ -8,7 +8,7 @@
 # `cancel-in-progress: true`, cada reusable cancelaba al encolado siguiente y
 # los jobs `infra`, `frontend-web` y `security-code-scanning` nunca se ejecutaban
 # pese a que sus triggers fueran `true` (validación IaC/Ansible/K8s muda).
-# La serialización por PR ya la aplica `change-impact.yml` a nivel de workflow.
+# La serialización por PR ya la aplica `change-impact.yaml` a nivel de workflow.
 # ==============================================================================
 name: ⚙️ Infrastructure & IaC CI
 

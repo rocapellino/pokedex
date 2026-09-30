@@ -1,7 +1,7 @@
 # ==============================================================================
 # Pipeline de CI/CD - Quality Gates, Build, Security Scan y Publicación OCI
 # Hardened con SHA pinning y principio de mínimo privilegio en GITHUB_TOKEN
-# Invocado como Reusable Workflow por change-impact.yml
+# Invocado como Reusable Workflow por change-impact.yaml
 # ==============================================================================
 name: 🚀 CI/CD Pipeline
 
