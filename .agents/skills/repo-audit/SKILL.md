@@ -21,7 +21,7 @@ Ejecutar auditorías técnicas integrales, estrictamente de sólo lectura, para 
 
 ## Comandos y Delegación por Dominio
 
-`repo-audit` actúa como un agregador y orquestador de sólo lectura que delega el análisis exhaustivo en las skills especializadas de cada dominio para evitar duplicación de verificaciones:
+`repo-audit` es una **superficie de invocación de sólo lectura**, no un orquestador. Delega el análisis exhaustivo en las skills especializadas de cada dominio y en el flujo `full-audit` de `repo-lifecycle` (único orquestador del ciclo de vida), evitando duplicación de verificaciones:
 
 - `/repo-audit`: Auditoría integral completa coordinando todas las dimensiones técnicas (ejecutando el flujo de `full-audit` de `repo-lifecycle`).
 - `/repo-audit hygiene`: Enfoque en higiene de configuración y archivos de exclusión `*.ignore` (delega en `repo-lifecycle`).
