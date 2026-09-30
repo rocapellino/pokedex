@@ -31,7 +31,7 @@ export function sanitizeAIHtml(rawHtml: string): string {
   }
 
   // 3. Rechazo explícito de pseudo-protocolos en atributos
-  if (/(?:href|src|action)\s*=\s*["']?\s*(?:javascript|vbscript|data\s*:\s*text\/html)/i.test(trimmed)) {
+  if (/(?:href|src|action)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*text\/html)/i.test(trimmed)) {
     console.warn('[AI Security] Salida de IA rechazada: contiene pseudo-protocolos peligrosos.');
     return '';
   }
