@@ -36,7 +36,7 @@ pokedex/
 │   ├── CODEOWNERS                # Asignación obligatoria de revisores por dominio
 │   └── pull_request_template.md  # Plantilla estándar para Pull Requests
 ├── .vscode/                      # Configuración del editor y tareas automatizadas
-│   └── tasks.json                # Tareas de build, test y ejecución de Kubernetes local
+│   └── tasks.json                # Capa de presentación: wrappers `task ...` sobre Taskfile.yaml
 ├── apps/                         # Workspaces de Aplicaciones
 │   ├── backend/                  # API RESTful TypeScript (@pokedex/backend)
 │   │   ├── package.json          # Manifiesto y scripts del paquete backend
@@ -192,6 +192,28 @@ El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.ya
 ### Excepción permanente restante
 
 - **`.mega-linter.yml`**: es el nombre de configuración documentado por MegaLinter, que además se pasa explícitamente vía la variable `MEGALINTER_CONFIG` en el workflow y en `Taskfile.yaml`.
+
+### 4.5. SSOT de Comandos Operativos: `Taskfile.yaml`
+
+`Taskfile.yaml` es la **única fuente de verdad operativa** de comandos del
+repositorio. La CLI, VS Code y la documentación consumen esa misma definición.
+
+`.vscode/tasks.json` es una **capa de presentación**: expone tareas frecuentes
+como wrappers `task <nombre>` y no debe implementar lógica de orquestación
+propia. Antes de esta decisión, el archivo reproducía comandos `helm`/`kubectl`
+directos que ya existían en el Taskfile, lo que producía dos fuentes de verdad
+con divergencia silenciosa (por ejemplo, la tarea "Test Endpoints" consultaba un
+único deployment mientras `task k8s:test` valida API y frontend).
+
+El contrato se blinda en `tests/security/iac_baseline_security.test.ts` (Dev DX),
+que falla si se reintroduce un comando de orquestación o si un wrapper apunta a
+una tarea inexistente del Taskfile.
+
+> [!NOTE]
+> Excepción deliberada: las tareas de `docker compose` de VS Code conservan sus
+> flags `-f` (perfil dev con hot-reload) porque `task dev:compose` no los
+> replica. Unificar ese perfil es una decisión de producto pendiente, no un
+> refactor mecánico.
 
 ### Identidades de firma actualizadas en la Wave 3
 
