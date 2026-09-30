@@ -10,7 +10,7 @@
  * desacoplados en el pipeline:
  *
  * 1. Paridad Interna Inter-Entornos (Inter-Environment Parity / Intra-GitOps):
- *    - Ecuación: AWS GitOps == Proxmox GitOps == Helm Production
+ *    - Ecuación: AWS GitOps == Proxmox GitOps == Proxmox Pre-prod GitOps == Helm Production
  *    - Rol en CI: GATE OBLIGATORIO Y BLOQUEANTE (`--strict`).
  *    - Propósito: Garantiza que no exista deriva (drift) accidental entre los
  *      manifiestos de producción y GitOps. Todos los clústeres deben recibir
@@ -48,9 +48,18 @@ export interface VerificationOptions {
 }
 
 const DEFAULT_CHART_PATH = 'infra/helm/pokedex';
+// El contrato de paridad inter-entornos declarado en
+// docs/architecture/GITOPS_PROMOTION_WORKFLOW.md es:
+//
+//   Digest(AWS) = Digest(Proxmox) = Digest(Proxmox Pre-prod) = Digest(Helm Prod)
+//
+// `proxmox-preprod` DEBE formar parte de este conjunto. Excluirlo haría que el
+// gate `--strict` validara un subconjunto de la ecuación documentada, permitiendo
+// que un entorno se desvise de forma silenciosa sin romper la integración.
 const DEFAULT_ENVIRONMENTS = [
   { name: 'AWS GitOps', file: 'gitops/environments/aws/values.yaml' },
   { name: 'Proxmox GitOps', file: 'gitops/environments/proxmox/values.yaml' },
+  { name: 'Proxmox Preprod', file: 'gitops/environments/proxmox-preprod/values.yaml' },
   { name: 'Helm Production', file: 'infra/helm/pokedex/values.prod.yaml' },
 ];
 

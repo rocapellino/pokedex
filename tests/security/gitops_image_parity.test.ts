@@ -52,15 +52,30 @@ test('🔒 GitOps Parity: parseImmutableDigest valida formato SHA256 y rechaza e
   );
 });
 
-test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre AWS, Proxmox y Helm Prod', () => {
+test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre AWS, Proxmox, Preprod y Helm Prod', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const results = verifyImageDigestParity({ chartPath });
 
-  assert.strictEqual(results.length, 3, 'Debe evaluar exactamente 3 entornos');
-  const [aws, proxmox, prod] = results;
+  assert.strictEqual(results.length, 4, 'Debe evaluar exactamente 4 entornos (incluido Proxmox Pre-prod)');
+  const [aws, proxmox, preprod, prod] = results;
 
   assert.strictEqual(aws.digest, proxmox.digest, 'AWS y Proxmox deben tener digests idénticos');
+  assert.strictEqual(aws.digest, preprod.digest, 'AWS y Proxmox Pre-prod deben tener digests idénticos');
   assert.strictEqual(aws.digest, prod.digest, 'AWS y Helm Prod deben tener digests idénticos');
+});
+
+test('🔒 GitOps Parity: el gate estricto incluye Proxmox Pre-prod en el conjunto de paridad', () => {
+  // Regresión: `proxmox-preprod` es parte de la ecuación documentada en
+  // docs/architecture/GITOPS_PROMOTION_WORKFLOW.md. Si se excluyera de
+  // DEFAULT_ENVIRONMENTS, un digest divergente en preprod pasaría el gate --strict
+  // sin romper la integración (verificado empíricamente antes de este fix).
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const files = verifyImageDigestParity({ chartPath }).map((r) => r.valuesPath);
+
+  assert.ok(
+    files.includes('gitops/environments/proxmox-preprod/values.yaml'),
+    'El gate de paridad DEBE validar también el entorno Proxmox Pre-prod'
+  );
 });
 
 test('🔒 GitOps Parity: verifyImageDigestParity detecta discrepancias con digest publicado esperado', () => {

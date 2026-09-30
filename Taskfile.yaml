@@ -366,7 +366,7 @@ tasks:
       - npm run secrets:audit-rotation
 
   gitops:verify-parity:
-    desc: "Valida la paridad de digest criptográfico entre entornos GitOps (AWS, Proxmox, Prod)"
+    desc: "Valida la paridad de digest criptográfico entre entornos GitOps (AWS, Proxmox, Pre-prod, Prod)"
     cmds:
       - node --experimental-strip-types scripts/verify-image-digest-parity.ts
 
