@@ -7,10 +7,24 @@ on:
   workflow_run:
     # WF-002: el trigger resuelve por `name:` exacto del workflow, no por ruta de
     # archivo. Una referencia desactualizada no produce error: nunca dispara.
-    # El `name:` vigente de `.github/workflows/ci.yaml` es `🚀 CI/CD Pipeline`.
-    workflows: ["🚀 CI/CD Pipeline"]
+    #
+    # WF-004 (correccion de causa raiz): el productor anterior era
+    # `🚀 CI/CD Pipeline` (`.github/workflows/ci.yaml`), pero ese archivo es un
+    # REUSABLE (`workflow_call`) y por definicion NO genera una ejecucion propia:
+    # su run se atribuye al workflow invocador. Evidencia medida en la API de
+    # GitHub: `ci.yaml` acumula 0 ejecuciones frente a 132 de
+    # `change-impact.yaml`. Con ese productor, este workflow NUNCA se disparo y
+    # la sincronizacion SonarCloud -> Linear quedo permanentemente muerta.
+    #
+    # El productor real del pipeline principal es el orquestador de impacto.
+    workflows: ["🎯 Change Impact & Pipeline Orchestrator"]
     types: [completed]
     branches: [main]
+  # Red de seguridad (WF-004): la sincronizacion no puede depender de un unico
+  # trigger. Este era el unico workflow con `workflow_run` y SIN `schedule`, por
+  # lo que era el mas expuesto a quedar inerte sin que nada lo delatara.
+  schedule:
+    - cron: '30 5 * * *' # Diario a las 05:30 UTC, desfasado del heartbeat de GitHub Security
   workflow_dispatch:
     inputs:
       dry_run:

@@ -45,15 +45,39 @@ const EXCEPTIONS: { pattern: RegExp; reason: string }[] = [
 /** Directorios cuyo contenido es evidencia historica inmutable. */
 const IMMUTABLE = ['docs/audits/'];
 
-/** Rutas donde una referencia .yml a un archivo propio esta obsoleta. */
-const SCANNED = ['docs/', 'README.md', 'SECURITY.md', 'AGENTS.md', '.agents/', 'apps/', 'infra/'];
+/**
+ * Rutas donde una referencia .yml a un archivo propio esta obsoleta.
+ *
+ * `.github/` se incluyo por WF-004: los workflows son la mayor concentracion
+ * de referencias a nombres de archivo propio (el orquestador se cita en cada
+ * reusable). Antes de anadirlo, ese directorio quedaba fuera del contrato y
+ * el drift `.yml` en comentarios de CI era indetectable por el gate.
+ *
+ * No se incluyen `scripts/` ni `tests/`: alli las referencias `.yml` son
+ * cadenas de mensaje de aserciones cuyos paths reales ya usan `.yaml`, y
+ * reportarlas generaria ruido que diluiria el senal del gate.
+ */
+const SCANNED = [
+  'docs/',
+  'README.md',
+  'SECURITY.md',
+  'AGENTS.md',
+  '.agents/',
+  'apps/',
+  'infra/',
+  '.github/',
+];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, out);
-    else if (/\.(md|ts)$/.test(entry.name)) out.push(full);
+    // `.yaml` se incluye porque los workflows son precisamente donde se
+    // concentran las referencias a nombres de archivo propio. Sin esta
+    // extension, `.github/workflows/**` quedaba fuera del contrato y el drift
+    // `.yml` en comentarios de CI no podia detectarse.
+    else if (/\.(md|ts|ya?ml)$/.test(entry.name)) out.push(full);
   }
   return out;
 }

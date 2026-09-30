@@ -6,7 +6,7 @@
 # NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
 # `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
 # los reusables calculaban el mismo grupo y se cancelaban entre si. La
-# serializacion por PR ya la aplica `change-impact.yml` a nivel de workflow.
+# serializacion por PR ya la aplica `change-impact.yaml` a nivel de workflow.
 name: ⚡ MegaLinter - Quality & Syntax Linters
 
 on:

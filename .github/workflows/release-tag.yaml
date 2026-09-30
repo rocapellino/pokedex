@@ -119,7 +119,7 @@ jobs:
         # SEC-001: el binario de Gitsign se descarga de un tercero, por lo que debe
         # verificarse antes de ejecutarse. Cosign es el verificador de referencia
         # de Sigstore y ya es parte de la cadena de confianza de este repositorio
-        # (mismo pin por SHA que usa `ci.yml` para firmar la imagen OCI).
+        # (mismo pin por SHA que usa `ci.yaml` para firmar la imagen OCI).
         if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
@@ -399,7 +399,7 @@ jobs:
 
           #### Flujo de Gobernanza:
           1. Metadata de release y manifiestos GitOps actualizados atómicamente en este PR.
-          2. Tras el merge, la fase \`tag\` de \`release-tag.yml\` verifica la coherencia 1:1 y crea el Git Tag **${NEW_TAG}** firmado con Sigstore Gitsign sobre ESTE commit, junto con el GitHub Release.
+          2. Tras el merge, la fase \`tag\` de \`release-tag.yaml\` verifica la coherencia 1:1 y crea el Git Tag **${NEW_TAG}** firmado con Sigstore Gitsign sobre ESTE commit, junto con el GitHub Release.
           3. ArgoCD solo verá \`targetRevision: ${NEW_TAG}\` resuelto al commit que contiene la versión.
 
           > Nota: \`[skip-release]\` evita calcular una nueva versión al mergear este PR; el tag de **${NEW_TAG}** lo dispara la fase \`tag\` del propio workflow.

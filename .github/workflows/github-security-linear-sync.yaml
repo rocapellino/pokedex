@@ -21,12 +21,16 @@ on:
   workflow_run:
     workflows:
       # Productores de SARIF (publican alertas en GitHub Code Scanning).
-      - "🛡️ Security & Code Scanning SAST (njsscan, Hadolint & tfsec)"
+      - "🛡️ Security & Code Scanning SAST (njsscan, Hadolint & Trivy IaC)"
       - "🔐 Security Scan (Gitleaks)"
       # CodeQL: workflow gestionado por GitHub, no reside en el repositorio.
       - "CodeQL"
-      # Latido post-merge del pipeline principal.
-      - "🚀 CI/CD Pipeline"
+      # Latido post-merge del pipeline principal (WF-004).
+      # Este productor antes era `🚀 CI/CD Pipeline`, que es un reusable
+      # (`workflow_call`): nunca genera una ejecucion propia, por lo que la
+      # entrada era inerte y el latido post-merge no ocurria. El productor real
+      # del pipeline principal es el orquestador de impacto.
+      - "🎯 Change Impact & Pipeline Orchestrator"
     types: [completed]
     branches: [main]
   # Cubre el resto de fuentes (Dependabot, Secret Scanning) y actúa como red de
