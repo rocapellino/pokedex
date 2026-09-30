@@ -16,7 +16,10 @@ on:
         required: false
         default: 3
   workflow_run:
-    workflows: ["🚀 CI/CD Pipeline - Quality Gates & Release"]
+    # WF-002: el trigger resuelve por `name:` exacto del workflow, no por ruta de
+    # archivo. Una referencia desactualizada no produce error: nunca dispara.
+    # El `name:` vigente de `.github/workflows/ci.yaml` es `🚀 CI/CD Pipeline`.
+    workflows: ["🚀 CI/CD Pipeline"]
     types: [completed]
     branches: [main]
 

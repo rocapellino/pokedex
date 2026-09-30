@@ -3,17 +3,17 @@
 # Hardened con SHA pinning y principio de mínimo privilegio en GITHUB_TOKEN
 # Invocado como Reusable Workflow por change-impact.yml
 # ==============================================================================
-name: 🚀 CI/CD Pipeline - Quality Gates & Release
+name: 🚀 CI/CD Pipeline
 
 on:
   workflow_call:
     inputs:
       backend:
-        description: "Ejecutar Quality Gates de backend"
+        description: "Ejecutar Quality Gates de Backend"
         type: boolean
         default: false
       frontend:
-        description: "Ejecutar Quality Gates de frontend"
+        description: "Ejecutar Quality Gates de Frontend"
         type: boolean
         default: false
       tests:
@@ -83,14 +83,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Instalar Dependencias del Monorepo
+      - name: 3. Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: 4. Validar Gobierno y Manifest AAS
         run: npm run aas:verify
 
       - name: 5. Ejecutar Contratos AAS
-        run: npx tsx --test tests/aas_governance.test.ts
+        run: npm exec --no -- tsx --test tests/aas_governance.test.ts
 
   # =======================================================
   # 1. QUALITY GATES (Ejecución en paralelo condicional)
@@ -116,19 +116,19 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Instalar Dependencias del Monorepo
+      - name: 3. Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: 4. Análisis de Tipos y Calidad con TypeScript
         run: npm run lint
 
-      - name: 4b. Auditoría de Configuration Hygiene (*.ignore)
+      - name: 4b. Auditoría de Configuration Hygiene
         run: npm run lint:ignore:strict
 
-      - name: 4c. YAML Extension Gate (.yaml canónico / .yml heredado)
+      - name: 4c. YAML Extension Gate
         run: npm run lint:yaml:strict
 
-      - name: 4d. YAML Reference Integrity Gate (referencias .yml obsoletas)
+      - name: 4d. YAML Reference Integrity Gate
         run: npm run lint:docs:refs
 
       - name: 5. Compilación y Build con esbuild
@@ -144,7 +144,7 @@ jobs:
         run: npm audit --audit-level=high --omit=dev
 
   sonarcloud:
-    name: "📊 SonarQube Cloud (Coverage & Quality Gate)"
+    name: "📊 SonarQube Cloud"
     if: |
       inputs.backend ||
       inputs.frontend ||
@@ -169,7 +169,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Instalar Dependencias del Monorepo
+      - name: 3. Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: 4. Generar Cobertura LCOV
@@ -239,7 +239,7 @@ jobs:
           fail-on-severity: high
 
   docs-gate:
-    name: "📚 Documentation Quality Gate (0 errores MDxxx)"
+    name: "📚 Documentation Quality Gate"
     if: |
       inputs.docs ||
       inputs.is_unknown ||
@@ -255,7 +255,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: 3. Instalar Dependencias del Monorepo
+      - name: 3. Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: 4. Validar Markdown Quality Gate
@@ -308,7 +308,7 @@ jobs:
             org.opencontainers.image.vendor=Rodrigo Capellino
             org.opencontainers.image.licenses=MIT
 
-      - name: Resolver metadatos de versión de la imagen (VER-002)
+      - name: Resolver metadatos de versión de la imagen
         id: version-metadata
         run: |
           # APP_VERSION proviene de la SSOT (package.json) y GIT_SHA del commit
@@ -448,7 +448,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Instalar dependencias del monorepo
+      - name: Instalar Dependencias
         run: npm ci --ignore-scripts
 
       - name: Configurar Helm
@@ -543,7 +543,7 @@ jobs:
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
           echo "✅ Firma de imagen, Atestación de SBOM y Firma de Helm Chart verificadas criptográficamente con éxito."
 
-      - name: 🧹 Aplicar política de retención en GHCR (Mantener últimos 3 activos)
+      - name: 🧹 Aplicar política de retención en GHCR
         uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
         with:
           keep-n-tagged: 3
