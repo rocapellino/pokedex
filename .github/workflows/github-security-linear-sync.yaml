@@ -26,7 +26,7 @@ on:
       # CodeQL: workflow gestionado por GitHub, no reside en el repositorio.
       - "CodeQL"
       # Latido post-merge del pipeline principal.
-      - "🚀 CI/CD Pipeline - Quality Gates & Release"
+      - "🚀 CI/CD Pipeline"
     types: [completed]
     branches: [main]
   # Cubre el resto de fuentes (Dependabot, Secret Scanning) y actúa como red de
