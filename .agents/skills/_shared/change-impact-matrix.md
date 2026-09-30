@@ -95,5 +95,22 @@ La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes 
 | **Workflows de CI/CD** | `.github/workflows/` | `repo-ci`, `repo-security` (CI) | Validación sintáctica YAML, auditoría de permisos de tokens (`permissions:`) | Pruebas E2E de navegador, migraciones DB |
 | **Dependencias Monorepo** | `package.json`, `package-lock.json` | `repo-dependencies`, `repo-security` (SCA), `repo-testing` | `npm audit`, `npm test`, paridad de lockfile | Helm render, Playwright E2E (salvo si toca deps de browser) |
 | **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**) | Builds de código, tests unitarios, Docker builds, scans |
-| **Archivos de Exclusión (`*.ignore`)** | `.*ignore`, `**/*ignore*` | `repo-lifecycle`, `repo-security`, `repo-quality` | `npm run validate`, verificación de consistencia cruzada | Ninguno (Nivel Global) |
+| **Archivos de Exclusión (`*.ignore`)** | `.*ignore`, `**/*ignore*` | `repo-lifecycle`, `repo-security`, `repo-quality` | `npm run validate`, verificación de consistencia cruzada | Ninguno |
 | **Corte de Release** | `package.json` (bump), `Chart.yaml`, GitOps pins | `repo-release`, `repo-security` (Supply Chain), `repo-docs` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |
+
+> [!IMPORTANT]
+> La tabla anterior enumera los **gates y skills a ejecutar**, no el disparador del
+> motor determinista. Son dos cosas distintas y confundirlas produce radios de impacto
+> sobreestimados:
+>
+> - **Gates ejecutados:** un cambio en `.*ignore` dispara `npm run validate` y la
+>   verificación de consistencia cruzada, con `repo-lifecycle`, `repo-security` y
+>   `repo-quality` como skills responsables.
+> - **Disparador del motor:** ningún archivo `.*ignore` figura en `global.paths` de
+>   [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml). Cada uno se clasifica
+>   **por dominio**: `.dockerignore` corresponde a la regla `docker` y
+>   `.markdownlintignore` a la regla `documentation`. `scripts/**` tampoco es global en
+>   bloque; los scripts se clasifican de forma individual.
+>
+> Ante un patrón de exclusión no clasificado aplica la **política fail-closed**: se
+> inhibe la optimización y se despacha Full CI.

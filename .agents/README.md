@@ -41,6 +41,18 @@ un dominio específico del ciclo de vida del repositorio.
 `repo-lifecycle` es el **único orquestador** del ciclo de vida. Las demás skills
 son invocadas condicionalmente según el tipo de cambio y el impacto detectado.
 
+> [!IMPORTANT]
+> **Frontera de invocación con `repo-audit`.** `repo-audit` es una *superficie de
+> invocación* read-only, no un segundo orquestador. `/repo-audit` delega íntegramente en
+> el flujo `full-audit` de `repo-lifecycle`, y a su vez `repo-lifecycle` sitúa a
+> `repo-audit` como paso ② de su flujo resumido. La entrada es por tanto **mutua** y
+> deliberada: existe un único ciclo canónico de ejecución y la etapa ② de ese ciclo se
+> implementa como diagnóstico read-only. **No hay recursión**: las 16 etapas del
+> `full-audit` no reentran en `repo-audit`.
+>
+> Para auditar el repositorio, invocar cualquiera de las dos superficies; no ambas de
+> forma encadenada.
+
 ```mermaid
 flowchart TD
     START([Solicitud del usuario]) --> CTX
