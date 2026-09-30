@@ -3,6 +3,83 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
+/**
+ * AUD-GOV-ID-001 — Los identificadores de hallazgo deben llevar namespace.
+ *
+ * Los IDs planos (`DOC-001`, `WF-002`) colisionan entre auditorías sucesivas:
+ * en este repositorio `DOC-001` designó "referencias históricas .yml" en una
+ * pasada y "ambigüedad Active vs Cloud-Ready" en otra. Una referencia posterior
+ * deja de ser unívoca, lo que contradice el principio *Evidence-First*.
+ *
+ * Este test blinda que la convención siga declarada y que ambas fuentes
+ * (methodology.md y finding.md) no se desincronicen entre sí.
+ */
+test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está declarada y es coherente', () => {
+  const sharedDir = path.join(process.cwd(), '.agents', 'skills', '_shared');
+  const methodology = fs.readFileSync(path.join(sharedDir, 'methodology.md'), 'utf-8');
+  const finding = fs.readFileSync(path.join(sharedDir, 'finding.md'), 'utf-8');
+
+  // 1. La convención vive en la metodología, que es la fuente de verdad.
+  assert.match(
+    methodology,
+    /AUD-<ÁMBITO>-<CLAVE>-<NNN>/,
+    'methodology.md debe declarar el formato AUD-<ÁMBITO>-<CLAVE>-<NNN>'
+  );
+  assert.match(
+    methodology,
+    /Identificadores de Hallazgo con Namespace/,
+    'methodology.md debe tener una regla explícita sobre identificadores de hallazgo'
+  );
+
+  // 2. La plantilla de hallazgo la referencia y da ejemplos válidos e inválidos.
+  assert.match(
+    finding,
+    /AUD-<ÁMBITO>-<CLAVE>-<NNN>/,
+    'finding.md debe declarar el formato de ID con namespace'
+  );
+  assert.match(finding, /Inválidos/, 'finding.md debe advertir contra los IDs planos');
+
+  // 3. Ambas fuentes concuerdan en el prefijo: si methodology cambia el prefijo y
+  //    finding no, la convención queda contradictoria sin que nada lo detecte.
+  const prefixIn = (text: string) => /\bAUD-/.test(text);
+  assert.equal(
+    prefixIn(methodology),
+    prefixIn(finding),
+    'methodology.md y finding.md deben usar el mismo prefijo de namespace'
+  );
+
+  // 4. El campo de trazabilidad de reemisión existe en la plantilla atómica.
+  assert.match(
+    finding,
+    /Supersedes \/ Reemitido como/,
+    'finding.md debe permitir citar el ID de la auditoría previa que se reemite'
+  );
+
+  // 5. Ninguna skill puede reintroducir el formato plano como si fuera válido.
+  //    El patrón exige que el ID NO esté precedido por letra, dígito ni guion:
+  //    así `README-SEC-001` (identificador de CONTRATO documental, namespace
+  //    propio y legítimo) no se confunde con un ID de hallazgo plano.
+  const skillDir = path.join(process.cwd(), '.agents', 'skills');
+  const offenders: string[] = [];
+  for (const name of fs.readdirSync(skillDir)) {
+    const skillFile = path.join(skillDir, name, 'SKILL.md');
+    if (!fs.existsSync(skillFile)) continue;
+    const content = fs.readFileSync(skillFile, 'utf-8');
+    for (const line of content.split(/\r?\n/)) {
+      if (/Inválid/i.test(line)) continue;
+      // ID de hallazgo plano: DOC-001, WF-002, TST-003...
+      if (/(?<![A-Za-z0-9_-])\b(?:DOC|WF|TST|SEC|INF)-\d{3}\b/.test(line)) {
+        offenders.push(`${name}: ${line.trim().slice(0, 90)}`);
+      }
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `Las skills no deben emitir IDs de hallazgo planos sin namespace:\n${offenders.join('\n')}`
+  );
+});
+
 test('📚 Gobernanza Documental: validación contractual de la skill repo-doc-governance y políticas normativas', () => {
   const rootDir = process.cwd();
   const governanceDir = path.join(rootDir, '.agents', 'skills', 'repo-doc-governance');
