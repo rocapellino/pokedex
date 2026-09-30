@@ -21,7 +21,7 @@ por el proceso MCP completo de AAS.
 | --- | --- |
 | `aas-stack.json` | Manifest AAS v2 fijado a versión y digest del catálogo. |
 | `reviewed-selection.json` | Decisión local, riesgo y skill responsable por referencia. |
-| `plans/` | Destino reservado para previews; solo `.gitkeep` se versiona. |
+| `plans/` | Destino reservado para previews del runtime AAS. Solo `.gitkeep` se versiona; permanece vacío mientras el MCP no se habilite (ver *Estado del MCP*). |
 
 La selección está limitada a ocho referencias: diagnóstico sistemático, auditoría de
 skills, code review, dependencias, documentación y ADR, arquitectura, GitOps y hardening
@@ -54,6 +54,12 @@ La activación futura requiere resolver primero el contrato de permisos del cach
 validarlo mediante `catalog update/status` y repetir la previsualización con la misma
 versión fijada. Solo entonces podrá aprobarse una configuración MCP con scope `project`.
 La configuración global del usuario queda fuera del alcance de esta integración.
+
+> [!NOTE]
+> `plans/` es el destino donde se materializarían esas previsualizaciones. Al permanecer
+> el MCP en `BLOCKED`/`NOT_CONFIGURED`, el directorio contiene únicamente `.gitkeep` y su
+> vaciado es el estado esperado, no una omisión. `scripts/aas-governance.ts` no valida
+> `plans/` porque no forma parte de la allowlist de referencias.
 
 ## Actualización y reversión
 

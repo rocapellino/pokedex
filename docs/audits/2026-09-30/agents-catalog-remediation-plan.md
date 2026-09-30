@@ -164,16 +164,21 @@ en verde.
 Validación **Fast Track documental** (`ci-impact.yaml` clasifica `.agents/**` bajo la
 regla `documentation`): no requiere build, tests de aplicaciones ni contenedores.
 
-- [ ] `npm run lint:md -- <archivos modificados>` → 0 errores `MDxxx`
-- [ ] `npm test` → 0 fallos, en particular los tests **SKILL-001** (`:747` y `:783`)
-- [ ] `npm run aas:verify` → gobierno local AAS válido
-- [ ] `Test-Path src` → `False` y sin referencias a `src/` en `.agents/rules/`
-- [ ] La fila `.*ignore` de `change-impact-matrix.md` ya no afirma "Nivel Global"
-- [ ] `repo-lifecycle/SKILL.md` conserva la enumeración de 16 etapas
-- [ ] Paridad exacta entre la tabla de `ssot-governance.md` y `AGENTS.md` sección 1
-- [ ] `grep -r "repo-skills-audit" .agents/` → sin resultados
-- [ ] `grep -r "orquestador" .agents/skills/repo-audit/` → sin resultados
-- [ ] Ningún archivo bajo `.agents/` cita workflows con extensión `.yml`
+- [x] `npm run lint:md -- <archivos modificados>` → 0 errores `MDxxx`
+- [x] `npm test` → 0 fallos, en particular los tests **SKILL-001** (`:747` y `:783`)
+- [x] `npm run aas:verify` → gobierno local AAS válido
+- [x] `Test-Path src` → `False` y sin referencias a `src/` en `.agents/rules/`
+- [x] La fila `.*ignore` de `change-impact-matrix.md` ya no afirma "Nivel Global"
+- [x] `repo-lifecycle/SKILL.md` conserva la enumeración de 16 etapas
+- [x] Paridad exacta entre la tabla de `ssot-governance.md` y `AGENTS.md` sección 1
+- [x] `grep -r "repo-skills-audit" .agents/` → sin resultados
+- [x] `grep -r "orquestador" .agents/skills/repo-audit/` → sin resultados
+- [x] Ningún archivo bajo `.agents/` cita workflows con extensión `.yml`
+
+> [!NOTE]
+> Las dos búsquedas de referencia huérfana solo devuelven coincidencias dentro de
+> `docs/audits/2026-09-30/`, que es **evidencia histórica inmutable** y conserva
+> deliberadamente los nombres originales del reporte. Es el comportamiento esperado.
 
 ---
 
