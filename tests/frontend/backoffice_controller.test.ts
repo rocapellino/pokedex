@@ -213,7 +213,7 @@ after(() => {
 
     remove: () => {},
 
-test('Backoffice: checkHealthStatus reporta backend saludable', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: checkHealthStatus reporta backend saludable', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { checkHealthStatus } = await load();
   const statusEl = registry.get('backendStatus')!;
   const dotEl = registry.get('statusDot')!;
@@ -222,7 +222,7 @@ test('Backoffice: checkHealthStatus reporta backend saludable', { timeout: TEST_
   assert.equal(dotEl.style.backgroundColor, '#10b981', 'el punto debe pintarse en verde');
 });
 
-test('Backoffice: checkHealthStatus no falla sin elementos de estado', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: checkHealthStatus no falla sin elementos de estado', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { checkHealthStatus } = await load();
   const saved = registry.get('statusDot');
   registry.delete('statusDot');
@@ -230,7 +230,7 @@ test('Backoffice: checkHealthStatus no falla sin elementos de estado', { timeout
   if (saved) registry.set('statusDot', saved);
 });
 
-test('Backoffice: loadAdminData completa el camino de exito y renderiza', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: loadAdminData completa el camino de exito y renderiza', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { loadAdminData, renderTable, updateKPIs } = await load();
   const tbody = registry.get('adminTableBody')!;
   await loadAdminData();
@@ -239,7 +239,7 @@ test('Backoffice: loadAdminData completa el camino de exito y renderiza', { time
   assert.ok(typeof tbody.innerHTML === 'string', 'el cuerpo de la tabla debe renderizarse');
 });
 
-test('Backoffice: applyAdminFilters y handleAdminTypeFilter leen el DOM', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: applyAdminFilters y handleAdminTypeFilter leen el DOM', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { applyAdminFilters, handleAdminTypeFilter, handlePageSizeChange } = await load();
   const select = registry.get('adminTypeFilter')!;
   const sizeEl = registry.get('adminPageSize')!;
@@ -257,7 +257,7 @@ test('Backoffice: applyAdminFilters y handleAdminTypeFilter leen el DOM', { time
   await settle();
 });
 
-test('Backoffice: handleAdminSearch programa el debounce de 300 ms', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: handleAdminSearch programa el debounce de 300 ms', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { handleAdminSearch } = await load();
   const input = registry.get('adminSearch')!;
   input.value = 'char';
@@ -265,7 +265,7 @@ test('Backoffice: handleAdminSearch programa el debounce de 300 ms', { timeout: 
   assert.equal(input.value, 'char');
 });
 
-test('Backoffice: changeAdminPage rechaza paginas fuera de rango', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: changeAdminPage rechaza paginas fuera de rango', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { changeAdminPage, loadAdminData } = await load();
   await loadAdminData();
   await settle();
@@ -277,7 +277,7 @@ test('Backoffice: changeAdminPage rechaza paginas fuera de rango', { timeout: TE
   assert.equal(scrollCalls.length, before, 'una pagina fuera de rango no debe desplazar');
 });
 
-test('Backoffice: handleFormSubmit exige sesion activa', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: handleFormSubmit exige sesion activa', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { handleFormSubmit } = await load();
   let prevented = false;
   const event = { preventDefault: () => { prevented = true; } } as unknown as Event;
@@ -286,7 +286,7 @@ test('Backoffice: handleFormSubmit exige sesion activa', { timeout: TEST_TIMEOUT
   assert.ok(prevented, 'debe invocar preventDefault');
 });
 
-test('Backoffice: la superficie publica permanece exportada', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: la superficie publica permanece exportada', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const modals = await load();
   for (const name of [
     'openAuthModal',
@@ -308,17 +308,17 @@ test('Backoffice: la superficie publica permanece exportada', { timeout: TEST_TI
   }
 });
 
-test('Backoffice: initEventListeners enlaza sin lanzar con stubs de DOM', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: initEventListeners enlaza sin lanzar con stubs de DOM', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { initEventListeners } = await load();
   assert.doesNotThrow(() => initEventListeners());
 });
 
-test('Backoffice: invalidateCache sincroniza tras recargar', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: invalidateCache sincroniza tras recargar', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { invalidateCache } = await load();
   await invalidateCache();
   await settle();
 
-test('Backoffice: checkHealthStatus marca rojo cuando el backend falla', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: checkHealthStatus marca rojo cuando el backend falla', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { checkHealthStatus } = await load();
   const statusEl = registry.get('backendStatus')!;
   const dotEl = registry.get('statusDot')!;
@@ -332,7 +332,7 @@ test('Backoffice: checkHealthStatus marca rojo cuando el backend falla', { timeo
   g.fetch = original;
 });
 
-test('Backoffice: checkHealthStatus captura un rechazo de red', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: checkHealthStatus captura un rechazo de red', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { checkHealthStatus } = await load();
   const statusEl = registry.get('backendStatus')!;
   const g = globalThis as Record<string, unknown>;
@@ -345,7 +345,7 @@ test('Backoffice: checkHealthStatus captura un rechazo de red', { timeout: TEST_
   g.fetch = original;
 });
 
-test('Backoffice: loadAdminData muestra el estado de error sin lanzar', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: loadAdminData muestra el estado de error sin lanzar', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { loadAdminData } = await load();
   const g = globalThis as Record<string, unknown>;
   const original = g.fetch;
@@ -358,7 +358,7 @@ test('Backoffice: loadAdminData muestra el estado de error sin lanzar', { timeou
   g.fetch = original;
 });
 
-test('Backoffice: loadAdminData retorna pronto si no hay tabla', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: loadAdminData retorna pronto si no hay tabla', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { loadAdminData } = await load();
   const tbody = registry.get('adminTableBody')!;
   registry.delete('adminTableBody');
@@ -368,7 +368,7 @@ test('Backoffice: loadAdminData retorna pronto si no hay tabla', { timeout: TEST
   registry.set('adminTableBody', tbody);
 });
 
-test('Backoffice: los modales de creacion y cierre delegan sin lanzar', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: los modales de creacion y cierre delegan sin lanzar', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { openCreateModal, closeCrudModal, openDeleteModal, closeDeleteModal } = await load();
   assert.doesNotThrow(() => openCreateModal());
   assert.doesNotThrow(() => closeCrudModal());
@@ -376,7 +376,7 @@ test('Backoffice: los modales de creacion y cierre delegan sin lanzar', { timeou
   assert.doesNotThrow(() => closeDeleteModal());
 });
 
-test('Backoffice: handleFormSubmit crea un registro con sesion activa', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: handleFormSubmit crea un registro con sesion activa', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { handleFormSubmit, setAdminSessionActive, openEditModal } = await load();
   const submitBtn = registry.get('btnSubmitForm')!;
   // Con sesion activa el manejador llega hasta la API: se verifica que restaura
@@ -390,14 +390,14 @@ test('Backoffice: handleFormSubmit crea un registro con sesion activa', { timeou
   setAdminSessionActive(false);
 });
 
-test('Backoffice: openEditModal acepta un id del catalogo', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: openEditModal acepta un id del catalogo', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { openEditModal, loadAdminData } = await load();
   await loadAdminData();
   await settle();
   assert.doesNotThrow(() => openEditModal(1));
 });
 
-test('Backoffice: executeDelete exige sesion activa', { timeout: TEST_TIMEOUT_MS }, async () => {
+test('Backoffice: executeDelete exige sesion activa', { timeout: TEST_TIMEOUT_MS, concurrency: false }, async () => {
   const { executeDelete } = await load();
   await executeDelete();
   await settle();
