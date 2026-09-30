@@ -2,8 +2,8 @@ apiVersion: v2
 name: pokedex
 description: Helm Chart oficial para la plataforma Pokédex (Node.js/Express, TypeScript, Nginx, PostgreSQL, Redis, PgBouncer)
 type: application
-version: 1.87.6
-appVersion: "1.87.6"
+version: 1.87.7
+appVersion: "1.87.7"
 icon: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png
 keywords:
   - pokemon
