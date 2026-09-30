@@ -441,6 +441,7 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
 
   const awsPath = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
   const proxmoxPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const preprodPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const prodPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
 
   // Verificar ausencia de campo tag redundante
@@ -448,23 +449,29 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
   assertNoConfusingTag(awsPath, 'web');
   assertNoConfusingTag(proxmoxPath, 'api');
   assertNoConfusingTag(proxmoxPath, 'web');
+  assertNoConfusingTag(preprodPath, 'api');
+  assertNoConfusingTag(preprodPath, 'web');
   assertNoConfusingTag(prodPath, 'api');
   assertNoConfusingTag(prodPath, 'web');
 
   const awsApiDigest = parseImageDigest(awsPath, 'api');
   const proxmoxApiDigest = parseImageDigest(proxmoxPath, 'api');
+  const preprodApiDigest = parseImageDigest(preprodPath, 'api');
   const prodApiDigest = parseImageDigest(prodPath, 'api');
 
   const awsWebDigest = parseImageDigest(awsPath, 'web');
   const proxmoxWebDigest = parseImageDigest(proxmoxPath, 'web');
+  const preprodWebDigest = parseImageDigest(preprodPath, 'web');
   const prodWebDigest = parseImageDigest(prodPath, 'web');
 
   // 1. Paridad estricta inter-entornos para API por digest
   assert.strictEqual(awsApiDigest, proxmoxApiDigest, 'Digest de api debe ser idéntico entre AWS y Proxmox');
+  assert.strictEqual(awsApiDigest, preprodApiDigest, 'Digest de api debe ser idéntico entre AWS y Proxmox Pre-prod');
   assert.strictEqual(awsApiDigest, prodApiDigest, 'Digest de api debe ser idéntico entre AWS y Prod');
 
   // 2. Paridad estricta inter-entornos para Web por digest
   assert.strictEqual(awsWebDigest, proxmoxWebDigest, 'Digest de web debe ser idéntico entre AWS y Proxmox');
+  assert.strictEqual(awsWebDigest, preprodWebDigest, 'Digest de web debe ser idéntico entre AWS y Proxmox Pre-prod');
   assert.strictEqual(awsWebDigest, prodWebDigest, 'Digest de web debe ser idéntico entre AWS y Prod');
 
   // 3. Diferenciación de digests entre servicios (previene copy-paste cruzado)
