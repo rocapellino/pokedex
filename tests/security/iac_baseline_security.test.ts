@@ -321,16 +321,25 @@ test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa
   // 2. Toda delegacion `task X` debe apuntar a una tarea que EXISTA en el
   //    Taskfile. Un wrapper a un nombre inexistente falla en tiempo de ejecucion
   //    sin que ningun gate lo detecte.
+  //
+  //    Se comparan lineas completas en vez de construir un RegExp dinamico:
+  //    `javascript.lang.security.audit.detect-non-literal-regexp` bloquea este
+  //    ultimo approach (ReDoS). Elijamos la via literal, que ademas es mas
+  //    exacta: exige que la tarea este declarada al inicio de linea, sin
+  //    depender de escapes de metacaracteres.
   const delegations = parsed.tasks
     .map((t) => t.command)
     .filter((c): c is string => c.startsWith('task '))
     .map((c) => c.slice('task '.length).trim());
   assert.ok(delegations.length > 0, 'El archivo debe delegar al menos una tarea en Taskfile');
 
-  const missing = delegations.filter((name) => {
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return !new RegExp(`^  ${escaped}:`, 'm').test(taskfile);
-  });
+  const declaredTasks = new Set(
+    taskfile
+      .split('\n')
+      .map((line) => /^ {2}([A-Za-z0-9_:.-]+):\s*$/.exec(line)?.[1])
+      .filter((name): name is string => name !== undefined)
+  );
+  const missing = delegations.filter((name) => !declaredTasks.has(name));
   assert.deepEqual(
     missing,
     [],
