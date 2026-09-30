@@ -277,6 +277,78 @@ test('🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil
   assert.ok(content.includes('dev:k8s:status:'), 'Taskfile debe definir tarea dev:k8s:status');
 });
 
+/**
+ * VSCODE-001 — `.vscode/tasks.json` es una CAPA DE PRESENTACION, no una fuente
+ * de verdad operativa. `Taskfile.yaml` es el SSOT unico de comandos.
+ *
+ * Antes de este contrato, tasks.json reproducia comandos `helm`/`kubectl` que
+ * ya existian en el Taskfile. Eso generaba dos fuentes de verdad con
+ * divergencia silenciosa: la tarea "Test Endpoints" consultaba
+ * `deploy/pokemon-api`, mientras `task k8s:test` consulta `deploy/pokemon-api`
+ * Y `deploy/pokedex-web`. GitHub Actions no valida VS Code, asi que la
+ * divergencia no la detectaba ningun gate.
+ *
+ * El contrato falla closed ante cualquier logica operativa reintroducida.
+ */
+test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa logica operativa', () => {
+  const tasksPath = path.join(ROOT_DIR, '.vscode/tasks.json');
+  assert.ok(fs.existsSync(tasksPath), '.vscode/tasks.json debe existir');
+
+  // VS Code admite JSONC: los comentarios del encabezado deben ignorarse.
+  const raw = fs.readFileSync(tasksPath, 'utf-8');
+  const content = raw.replace(/^\s*\/\/.*$/gm, '');
+  const parsed = JSON.parse(content) as { tasks: { label: string; command: string }[] };
+  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+
+  // 1. Ninguna tarea reimplementa un comando de orquestacion o cluster.
+  //
+  //    EXCEPCION DOCUMENTADA: `docker compose` NO se cubre aqui a proposito.
+  //    `task dev:compose` ejecuta `docker compose up -d --build` (sin flags
+  //    `-f`), mientras que la tarea de VS Code usa el override de desarrollo
+  //    `-f docker-compose.yaml -f docker-compose.dev.yaml`. Delegar eliminaria
+  //    el perfil dev (hot-reload, puertos SQL/Redis, volumenes). Unify esa
+  //    diferencia en el Taskfile es una decision de producto separada, no un
+  //    refactor mecanico, asi que este gate no la fuerza.
+  const OPERATIONAL = /\b(helm|kubectl|kind|Get-Command)\b/;
+  const offenders = parsed.tasks.filter((t) => OPERATIONAL.test(t.command));
+  assert.deepEqual(
+    offenders.map((t) => `${t.label} => ${t.command}`),
+    [],
+    'Las tareas de VS Code no deben implementar logica de orquestacion o cluster. ' +
+      'Delegar en `task <nombre>` para que Taskfile.yaml siga siendo el SSOT unico.'
+  );
+
+  // 2. Toda delegacion `task X` debe apuntar a una tarea que EXISTA en el
+  //    Taskfile. Un wrapper a un nombre inexistente falla en tiempo de ejecucion
+  //    sin que ningun gate lo detecte.
+  const delegations = parsed.tasks
+    .map((t) => t.command)
+    .filter((c): c is string => c.startsWith('task '))
+    .map((c) => c.slice('task '.length).trim());
+  assert.ok(delegations.length > 0, 'El archivo debe delegar al menos una tarea en Taskfile');
+
+  const missing = delegations.filter((name) => {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return !new RegExp(`^  ${escaped}:`, 'm').test(taskfile);
+  });
+  assert.deepEqual(
+    missing,
+    [],
+    `Wrappers que apuntan a tareas inexistentes en Taskfile.yaml: ${missing.join(' | ')}. ` +
+      'Un nombre inexistente no produce error de validacion: la tarea falla al ejecutarse.'
+  );
+
+  // 3. Las tareas de Kubernetes deben delegar (no invocar kubectl/helm directo).
+  for (const label of ['Up', 'Down', 'Status', 'Port Forward', 'Test Endpoints']) {
+    const k8s = parsed.tasks.find((t) => t.label.includes('Kubernetes:') && t.label.includes(label));
+    assert.ok(k8s, `Debe existir la tarea de Kubernetes: ${label}`);
+    assert.ok(
+      k8s!.command.startsWith('task '),
+      `La tarea "${k8s!.label}" debe delegar en Taskfile.yaml, no invocar helm/kubectl directamente`
+    );
+  }
+});
+
 test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente', () => {
   // Módulos OpenTofu (incluyendo interfaz compute agnóstica)
   const modules = ['compute', 'naming', 'tagging', 'security_baseline'];

@@ -1,4 +1,18 @@
 {
+  // ==========================================================================
+  // CAPA DE PRESENTACION DE VS CODE (no es una fuente de verdad operativa)
+  // ==========================================================================
+  // SSOT UNICO de comandos: `Taskfile.yaml`. Este archivo NO implementa logica
+  // operativa: solo expone tareas frecuentes como wrappers `task <nombre>`.
+  //
+  // Motivo (VSCODE-001/004): este archivo contenia comandos `helm`/`kubectl`
+  // directos que ya existian en el Taskfile, lo que generaba dos fuentes de
+  // verdad con divergencia silenciosa. Ejemplo real: la tarea "Test Endpoints"
+  // consultaba `deploy/pokemon-api` mientras `task k8s:test` consulta
+  // `deploy/pokemon-api` Y `deploy/pokedex-web`.
+  //
+  // Regla de mantenimiento: si anades logica aqui, va al Taskfile.
+  // ==========================================================================
   "version": "2.0.0",
   "tasks": [
     {
@@ -55,9 +69,9 @@
       "detail": "Ejecuta la suite completa de pruebas unitarias, de integración, resiliencia, seguridad y pentest con Node.js."
     },
     {
-      "label": "🔍 Lint: Verificación de Tipos (TypeScript)",
+      "label": "🔍 Lint: Backend + Frontend + Verificación de Tipos",
       "type": "shell",
-      "command": "npm run lint",
+      "command": "task lint",
       "problemMatcher": ["$tsc"],
       "presentation": {
         "echo": true,
@@ -67,12 +81,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Verifica tipos de TypeScript en modo estricto sin emitir código (tsc --noEmit)."
+      "detail": "Ejecuta `npm run lint`: linting de @pokedex/backend, linting de @pokedex/frontend y `tsc --noEmit`. No es solo una verificación de tipos."
     },
     {
-      "label": "⚡ Build: Compilar Servidor TypeScript (esbuild)",
+      "label": "⚡ Build: Backend + Frontend (esbuild + Vite)",
       "type": "shell",
-      "command": "npm run build",
+      "command": "task build",
       "group": {
         "kind": "build"
       },
@@ -85,7 +99,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Compila el bundle de producción del servidor Express y script de seed con esbuild."
+      "detail": "Ejecuta `npm run build`: compila el bundle del servidor Express con esbuild y el frontend con Vite. No compila solo el servidor."
     },
     {
       "label": "🛡️ Validación Canónica Completa (npm run validate)",
@@ -121,7 +135,7 @@
     {
       "label": "☸️ Kubernetes: Up (Helm)",
       "type": "shell",
-      "command": "if (Get-Command helm -ErrorAction SilentlyContinue) { helm upgrade --install pokedex infra/helm/pokedex --namespace pokemon-app --create-namespace } else { kubectl create namespace pokemon-app --dry-run=client -o yaml | kubectl apply -f - ; docker run --rm -v \"${PWD}:/apps\" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex --namespace pokemon-app | kubectl apply -n pokemon-app -f - }",
+      "command": "task k8s:up",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -131,12 +145,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Despliega o actualiza la plataforma en Kubernetes con Helm local o vía contenedor si Helm no está en el PATH."
+      "detail": "Delega en `task k8s:up` (Taskfile.yaml, SSOT único). Despliega o actualiza el release pokedex con `helm upgrade --install` en el namespace pokemon-app."
     },
     {
       "label": "☸️ Kubernetes: Down",
       "type": "shell",
-      "command": "if (Get-Command helm -ErrorAction SilentlyContinue) { helm uninstall pokedex -n pokemon-app --ignore-not-found } else { kubectl delete namespace pokemon-app --ignore-not-found }",
+      "command": "task k8s:down",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -146,12 +160,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Detiene y elimina todos los recursos de la plataforma en el namespace pokemon-app (Helm / kubectl)."
+      "detail": "Delega en `task k8s:down` (Taskfile.yaml, SSOT único). Elimina el release de Helm pokedex del namespace pokemon-app."
     },
     {
       "label": "☸️ Kubernetes: Status",
       "type": "shell",
-      "command": "kubectl get pods,svc,pvc,hpa -n pokemon-app",
+      "command": "task k8s:status",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -161,12 +175,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Muestra el estado de pods, servicios, almacenamiento y autoescalado en Kubernetes."
+      "detail": "Delega en `task k8s:status` (Taskfile.yaml, SSOT único). Muestra el estado de pods, servicios, HPA e Ingress en pokemon-app."
     },
     {
       "label": "☸️ Kubernetes: Port Forward Web (8080)",
       "type": "shell",
-      "command": "kubectl port-forward -n pokemon-app svc/pokemon-web-svc 8080:8080",
+      "command": "task k8s:port-forward:web",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -176,12 +190,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Reenvía el puerto 8080 del frontend Nginx hacia localhost:8080."
+      "detail": "Delega en `task k8s:port-forward:web` (Taskfile.yaml, SSOT único). Reenvía el puerto 8080 del frontend Nginx hacia localhost:8080."
     },
     {
       "label": "☸️ Kubernetes: Port Forward API (3000)",
       "type": "shell",
-      "command": "kubectl port-forward -n pokemon-app svc/pokemon-api-svc 3000:3000",
+      "command": "task k8s:port-forward:api",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -191,12 +205,12 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Reenvía el puerto 3000 del backend API hacia localhost:3000."
+      "detail": "Delega en `task k8s:port-forward:api` (Taskfile.yaml, SSOT único). Reenvía el puerto 3000 del backend API hacia localhost:3000."
     },
     {
       "label": "☸️ Kubernetes: Test Endpoints",
       "type": "shell",
-      "command": "kubectl exec -n pokemon-app deploy/pokemon-api -- wget -qO- http://127.0.0.1:3000/readyz",
+      "command": "task k8s:test",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -206,7 +220,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Valida el endpoint de preparación /readyz de la API dentro del clúster."
+      "detail": "Delega en `task k8s:test` (Taskfile.yaml, SSOT único). Valida /readyz de la API y /api/readyz del frontend dentro del clúster."
     },
     {
       "label": "📊 Grafana Cloud: Install / Upgrade k8s-monitoring",
@@ -226,7 +240,7 @@
     {
       "label": "📊 Grafana Cloud: Status",
       "type": "shell",
-      "command": "kubectl get pods,daemonset,deployment -n monitoring -o wide",
+      "command": "task monitoring:grafana-cloud:status",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -236,7 +250,7 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "detail": "Muestra el estado de los componentes de telemetría de Grafana Cloud en el namespace monitoring."
+      "detail": "Delega en `task monitoring:grafana-cloud:status` (Taskfile.yaml, SSOT único). Muestra el estado de los componentes de telemetría de Grafana Cloud en el namespace monitoring."
     }
   ]
 }
