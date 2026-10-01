@@ -157,6 +157,7 @@ test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener
       `${relPath} debe configurar Cross-Origin-Resource-Policy`
     );
   }
+});
 
 /**
  * INFRA-011 — `values.prod.yaml` no debe convertirse en un target desplegado
@@ -238,8 +239,6 @@ test('🗂️ INFRA-011: el perfil de referencia declara en su cabecera que no d
     /gitops\/environments\//,
     'INFRA-011: la cabecera debe apuntar al directorio donde si viven los perfiles desplegados'
   );
-});
-
 });
 
 test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
