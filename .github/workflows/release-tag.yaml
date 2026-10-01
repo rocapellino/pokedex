@@ -359,6 +359,7 @@ jobs:
           steps.tag_version.outputs.new_tag
         env:
           GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN || secrets.GITHUB_TOKEN }}
+          ACTIONS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
         run: |
           VERSION="${NEW_TAG#v}"
@@ -379,14 +380,22 @@ jobs:
           fi
           git commit -m "chore(release): promote ${NEW_TAG} [skip-release]"
           git push -u --force-with-lease origin "$BRANCH"
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')
+
+          # Determinar token con permisos efectivos sobre PRs (fallback si RULESET_ADMIN_TOKEN no tiene scope public_repo)
+          PR_TOKEN="${GH_TOKEN}"
+          if [ -n "$ACTIONS_TOKEN" ] && ! GH_TOKEN="$PR_TOKEN" gh pr list --limit 1 >/dev/null 2>&1; then
+            echo "⚠️ Credencial primaria sin permisos suficientes sobre PRs; usando GITHUB_TOKEN de Actions..."
+            PR_TOKEN="$ACTIONS_TOKEN"
+          fi
+
+          EXISTING=$(GH_TOKEN="$PR_TOKEN" gh pr list --head "$BRANCH" --state open --json number --jq '.[].number' 2>/dev/null || true)
           if [ -n "$EXISTING" ]; then
             echo "ℹ️ Pull Request de promoción ya abierto y actualizado: #${EXISTING}"
             sleep 5
-            RUNS=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&head_branch=${BRANCH}&status=action_required" --jq '.workflow_runs[].id' 2>/dev/null || true)
+            RUNS=$(GH_TOKEN="$PR_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&head_branch=${BRANCH}&status=action_required" --jq '.workflow_runs[].id' 2>/dev/null || true)
             for RUN_ID in $RUNS; do
               echo "⚡ Auto-aprobando workflow run ${RUN_ID} para iniciar checks automáticamente..."
-              gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/approve" || true
+              GH_TOKEN="$PR_TOKEN" gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/approve" || true
             done
             exit 0
           fi
@@ -412,7 +421,7 @@ jobs:
           > Nota: \`[skip-release]\` evita calcular una nueva versión al mergear este PR; el tag de **${NEW_TAG}** lo dispara la fase \`tag\` del propio workflow.
           EOF
           )
-          gh pr create \
+          GH_TOKEN="$PR_TOKEN" gh pr create \
             --title "chore(release): promote ${NEW_TAG} [skip-release]" \
             --body "$BODY" \
             --base main \
@@ -422,8 +431,8 @@ jobs:
           # para que se ejecuten sin requerir aprobación manual previa.
           echo "🔍 Verificando si los workflows de CI requieren aprobación..."
           sleep 5
-          RUNS=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&head_branch=${BRANCH}&status=action_required" --jq '.workflow_runs[].id' 2>/dev/null || true)
+          RUNS=$(GH_TOKEN="$PR_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&head_branch=${BRANCH}&status=action_required" --jq '.workflow_runs[].id' 2>/dev/null || true)
           for RUN_ID in $RUNS; do
             echo "⚡ Auto-aprobando workflow run ${RUN_ID} para iniciar checks..."
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/approve" || true
+            GH_TOKEN="$PR_TOKEN" gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/approve" || true
           done
