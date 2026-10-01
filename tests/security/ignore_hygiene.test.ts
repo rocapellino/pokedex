@@ -60,7 +60,7 @@ test('📐 Extension Governance: la regla de extensión YAML está incorporada e
   assert.match(methodology, /Extensión YAML/, 'methodology.md debe declarar la convención de extensión');
 
   // Contrato declarativo normativo
-  const contract = read('repo-doc-governance/references/documentation-contract.yaml');
+  const contract = read('repo-docs/references/documentation-contract.yaml');
   assert.match(contract, /id:\s*"YAML-EXT-001"/, 'El contrato debe declarar la regla YAML-EXT-001');
 });
 
