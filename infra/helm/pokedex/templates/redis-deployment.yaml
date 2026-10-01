@@ -43,7 +43,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: redis
-          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          image: "{{ .Values.redis.image.repository }}{{ if .Values.redis.image.digest }}{{ if .Values.redis.image.tag }}:{{ .Values.redis.image.tag }}{{ end }}@{{ .Values.redis.image.digest }}{{ else }}:{{ .Values.redis.image.tag }}{{ end }}"
           imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false

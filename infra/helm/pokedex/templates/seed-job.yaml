@@ -37,7 +37,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: db-seeder
-          image: "{{ .Values.seedJob.image.repository }}:{{ .Values.seedJob.image.tag | default "1.0.0" }}"
+          image: "{{ .Values.seedJob.image.repository }}{{ if .Values.seedJob.image.digest }}{{ if .Values.seedJob.image.tag }}:{{ .Values.seedJob.image.tag }}{{ end }}@{{ .Values.seedJob.image.digest }}{{ else }}:{{ .Values.seedJob.image.tag | default "1.0.0" }}{{ end }}"
           imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false

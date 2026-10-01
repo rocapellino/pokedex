@@ -88,6 +88,58 @@ test('🔤 Workflows: .gitattributes fuerza LF en los workflows', () => {
     'debe forzar LF en los workflows .yaml'
   );
   assert.match(content, /\.sh\s+text\s+eol=lf/, 'debe preservar la regla existente para .sh');
+
+test('🔒 INFRA-005: toda imagen del Chart debe soportar fijacion por digest', () => {
+  // Antes de este cambio, solo api/web/gdrive tenían el override condicional de
+  // digest; postgres, pgbouncer, redis y seed concatenaban `repository:tag` de
+  // forma directa. Con el digest incrustado dentro del campo `tag` era imposible
+  // migrar a un campo `digest` dedicado sin reescribir la etiqueta completa.
+  const chartDir = path.join(ROOT_DIR, 'infra/helm/pokedex/templates');
+  const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
+
+  const offenders: string[] = [];
+  for (const file of fs.readdirSync(chartDir)) {
+    if (!file.endsWith('.yaml') && !file.endsWith('.yml')) continue;
+    const content = fs.readFileSync(path.join(chartDir, file), 'utf8');
+    for (const line of content.split('\n')) {
+      const m = line.match(/image:\s*"\{\{.*\}\}"/);
+      if (!m) continue;
+      // Toda plantilla de imagen debe ofrecer la rama del digest.
+      if (!m[0].includes('if .Values') || !m[0].includes('image.digest')) {
+        offenders.push(file);
+      }
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `INFRA-005: estas plantillas no soportan fijacion por digest: ${offenders.join(', ')}`
+  );
+
+  // El valor por defecto de un despliegue productivo debe llevar SIEMPRE digest.
+  // El patron es `repository:tag@digest` (no `repository@digest`), que preserva la
+  // etiqueta legible y por tanto mantiene la referencia EXACTA que se renderizaba
+  // antes de migrar el valor al campo `digest`.
+  const values = fs.readFileSync(valuesPath, 'utf8');
+  const required: Array<[string, RegExp]> = [
+    ['postgresql', /postgresql:[\s\S]*?digest:\s*"sha256:[a-f0-9]{64}"/],
+    ['pgbouncer', /pgbouncer:[\s\S]*?digest:\s*"sha256:[a-f0-9]{64}"/],
+    ['redis', /redis:[\s\S]*?digest:\s*"sha256:[a-f0-9]{64}"/],
+  ];
+  for (const [name, pattern] of required) {
+    assert.match(values, pattern, `INFRA-005: values.yaml debe fijar digest para ${name}`);
+  }
+
+  // Prohibido el antipatron: un digest incrustado dentro de `tag` impide migrar al
+  // campo `digest` dedicado y oculta que la imagen esta fijada.
+  const inlineDigest = [...values.matchAll(/tag:\s*"[^"]*@sha256:[a-f0-9]{64}"/g)];
+  assert.deepEqual(
+    inlineDigest.map((m) => m[0]),
+    [],
+    'INFRA-005: el digest no debe incrustarse en `tag`; declararlo en el campo `digest`'
+  );
+});
+
 });
 
 test('🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta', () => {
