@@ -41,8 +41,8 @@ export const MONITORED_ENV_VARS: EnvVarSpec[] = [
   },
   {
     name: 'DATABASE_URL',
-    hint: 'String de conexión a PostgreSQL (o variables POSTGRES_*). Si falta, el sistema operará con memoria volátil como fallback.',
-    requiredInProduction: false,
+    hint: 'String de conexión a PostgreSQL (o variables POSTGRES_*). OBLIGATORIA en producción: sin ella el arranque falla en vez de degradar a memoria volátil (APPS-008). En desarrollo y tests es opcional y activa el fallback en memoria.',
+    requiredInProduction: true,
   },
   {
     name: 'REDIS_URL',
@@ -56,29 +56,45 @@ export const MONITORED_ENV_VARS: EnvVarSpec[] = [
   },
 ];
 
+/**
+ * Resuelve si una variable tiene un valor valido, considerando las alternativas
+ * compuestas (p. ej. `DATABASE_URL` o el juego `POSTGRES_*`).
+ *
+ * [APPS-008] Esto se evalua ANTES del requisito de produccion. Antes de que
+ * `DATABASE_URL` pasara a ser obligatoria, la comprobacion de alternativas vivia
+ * en la rama `else if`, que en produccion nunca se ejecuta: un despliegue valido
+ * configurado con `POSTGRES_HOST`/`POSTGRES_USER` (sin `DATABASE_URL`) se habria
+ * reportado como variable faltante y el arranque habria abortado.
+ */
+function isConfigured(spec: EnvVarSpec): boolean {
+  const value = process.env[spec.name];
+  if (value && value.trim().length > 0) return true;
+
+  if (spec.name === 'DATABASE_URL') {
+    return Boolean(process.env.POSTGRES_HOST && process.env.POSTGRES_USER);
+  }
+  if (spec.name === 'REDIS_URL') {
+    return Boolean(process.env.REDIS_HOST);
+  }
+  return false;
+}
+
 export function inspectEnvironment(): EnvCheckResult {
   const isProduction = process.env.NODE_ENV === 'production';
   const missingRequired: string[] = [];
   const warnings: string[] = [];
 
   for (const spec of MONITORED_ENV_VARS) {
-    const value = process.env[spec.name];
-    const isPresent = Boolean(value && value.trim().length > 0);
+    const isPresent = isConfigured(spec);
 
     if (isProduction && spec.requiredInProduction && !isPresent) {
       missingRequired.push(spec.name);
     } else if (!isPresent) {
       // Chequear si hay alternativas compuestas (ej. POSTGRES_* o REDIS_*)
       if (spec.name === 'DATABASE_URL') {
-        const hasPgHost = Boolean(process.env.POSTGRES_HOST && process.env.POSTGRES_USER);
-        if (!hasPgHost) {
-          warnings.push(`DATABASE_URL / POSTGRES_* no configurado: almacenamiento PostgreSQL inactivo (fallback en memoria activo)`);
-        }
+        warnings.push(`DATABASE_URL / POSTGRES_* no configurado: almacenamiento PostgreSQL inactivo (fallback en memoria activo)`);
       } else if (spec.name === 'REDIS_URL') {
-        const hasRedisHost = Boolean(process.env.REDIS_HOST);
-        if (!hasRedisHost) {
-          warnings.push(`REDIS_URL / REDIS_* no configurado: rate limiter distribuido inactivo (fallback en memoria local activo)`);
-        }
+        warnings.push(`REDIS_URL / REDIS_* no configurado: rate limiter distribuido inactivo (fallback en memoria local activo)`);
       } else if (spec.name === 'GEMINI_API_KEY') {
         warnings.push(`GEMINI_API_KEY no configurado: servicios de IA en modo fallback generativo local`);
       }
