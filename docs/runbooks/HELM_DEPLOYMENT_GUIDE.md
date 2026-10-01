@@ -37,7 +37,7 @@ infra/helm/
         ├── configmap.yaml               # Variables de entorno y host dinámico (PostgreSQL vs PgBouncer)
         ├── secret.yaml                  # Secret condicional (solo activo si no hay existingSecret ni ESO)
         ├── externalsecret.yaml          # Sincronización automática con Vault / AWS / GCP Secrets
-        ├── postgres-init-configmap.yaml # Script DDL inicial (tablas, índices JSONB y secuencias)
+        ├── secretstore.yaml             # SecretStore del CSI Driver para integración con Vault
         ├── postgres-service.yaml        # Servicio Headless para StatefulSet
         ├── postgres-statefulset.yaml    # StatefulSet con PVC y probes
         ├── pgbouncer-deployment.yaml    # Deployment y Servicio de PgBouncer (digest pinned)
@@ -46,12 +46,29 @@ infra/helm/
         ├── api-hpa.yaml                 # Autoscaling horizontal basado en CPU y Memoria
         ├── web-deployment.yaml          # Deployment Nginx frontend con soporte para digest
         ├── web-service.yaml             # Servicios para frontend web (ClusterIP/LoadBalancer)
+        ├── web-hpa.yaml                 # Autoscaling horizontal del frontend
         ├── ingress.yaml                 # Ingress Controller rules y TLS
         ├── network-policies.yaml        # Reglas Zero-Trust ingress/egress con Anti-SSRF
+        ├── cilium-network-policies.yaml # Reglas L7 de Cilium (CiliumNetworkPolicy)
         ├── pdb.yaml                     # PodDisruptionBudgets para API y Web
-        ├── seed-job.yaml                # Helm post-install/post-upgrade Hook para seed de datos
+        ├── limitrange.yaml              # Límites de recursos por namespace
+        ├── resourcequota.yaml           # Cuotas de recursos del clúster
+        ├── servicemonitor.yaml          # ServiceMonitor de Prometheus para métricas
+        ├── backup-cronjob.yaml          # CronJob de backup local cifrado (AES-256) + verificación de restore
+        ├── backup-restore-verify-cronjob.yaml # Verificación periódica de restauración
+        ├── backup-gdrive-cronjob.yaml   # CronJob de réplica off-site a Google Drive
+        ├── seed-job.yaml                # Job PreSync de migración de esquema y seed de datos
         └── NOTES.txt                    # Guía post-instalación mostrada en terminal
 ```
+
+> [!NOTE]
+> **El esquema de base de datos NO se despliega como ConfigMap.** Hasta
+> [ADR-029](../decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md)
+> existían `postgres-init-configmap.yaml` (en Helm) e `infra/docker/postgres/init.sql`
+> (en Docker Compose), ambos retirados. El esquema canónico lo aplican las
+> migraciones versionadas de Drizzle (`apps/backend/src/db/migrations/`) al
+> arrancar el backend, y el `seed-job.yaml` ejecuta la siembra idempotente de
+> 1.025 Pokémon. No reintroducir un ConfigMap de DDL: contradiría el SSOT.
 
 ---
 

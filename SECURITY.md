@@ -11,6 +11,7 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 - [3. Acuerdo de Nivel de Servicio (SLA de Respuesta)](#3-acuerdo-de-nivel-de-servicio-sla-de-respuesta)
 - [4. Alcance y Exclusiones](#4-alcance-y-exclusiones)
 - [5. Resumen de Controles y Referencias Técnicas](#5-resumen-de-controles-y-referencias-técnicas)
+- [6. Postura de Exposición de la Información (Repositorio Público)](#6-postura-de-exposición-de-la-información-repositorio-público)
 
 ---
 
@@ -95,3 +96,39 @@ Para especificaciones técnicas detalladas, guías de configuración y arquitect
 - [docs/security/](docs/security/): Manuales de hardening, auditorías y políticas operativas de seguridad.
 - [docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md](docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md): Especificación de aislamiento de red y defensas anti-SSRF.
 - [docs/decisions/](docs/decisions/): Architectural Decision Records sobre seguridad, autenticación y secretos.
+
+---
+
+## 6. Postura de Exposición de la Información (Repositorio Público)
+
+Este repositorio es **público** por diseño: su propósito es demostrar la arquitectura de una plataforma DevSecOps completa, no operar infraestructura productiva real. Esta sección declara de forma explícita **qué información es pública y por qué**, para que la postura no dependa de que un lector la infiera.
+
+### 6.1. Información deliberadamente pública (topología de referencia)
+
+El repositorio documenta una **topología de red de referencia** con fines didácticos. Es funcional y está fijada por pruebas de contrato, pero **no corresponde a la red de ningún despliegue real**:
+
+| Elemento | Valor de referencia | Dónde aparece |
+| :--- | :--- | :--- |
+| Secret Manager (Vault CE) | `10.10.13.110` | `docs/`, `infra/k8s/eso/`, `scripts/`, `tests/` |
+| Bastion (Management Plane) | `10.10.13.120` | `docs/architecture/RESPONSIBILITY_MATRIX.md` |
+| Nodo de control K8s | `10.10.13.100` | `infra/ansible/`, `tests/` |
+| Segmento de gestión | `10.10.13.0/24` | `infra/ansible/inventories/`, `tests/` |
+
+> [!IMPORTANT]
+> **Estos valores no son parametrizables por diseño y están sujetos a contrato.**
+> `scripts/k8s-rollout-restart.ts` y `tests/security/iac_baseline_security.test.ts` verifican literalmente estas direcciones: cambiarlas rompe los gates. Sanear la documentación **sin** parametrizar la infraestructura no reduciría la exposición, solo ocultaría parte de ella.
+
+### 6.2. Lo que nunca se publica
+
+La postura es estricta en la distinción entre **topología** (pública por diseño) y **credenciales** (nunca versionadas):
+
+- Claves privadas, tokens, contraseñas o certificados.
+- Material criptográfico del TPM/KMS o claves de firma de contenedores.
+- Datos de negocio, catálogos de producción o volumetría real.
+- Claves de API de terceros (`SONAR_TOKEN`, `LINEAR_API_KEY`, `GEMINI_API_KEY`).
+
+Esto se sostiene mediante controles automatizados, no por convención: **Gitleaks** es *required status check* en `main` (`🛡️ Gitleaks Secret Detection`), y los secretos de producción se inyectan en tiempo de ejecución desde HashiCorp Vault mediante External Secrets Operator, nunca desde el repositorio.
+
+### 6.3. Reportar exposición no intencionada
+
+Si detectas que se ha publicado información que **no** corresponde a esta postura (por ejemplo, una credencial real), trátalo como una vulnerabilidad y repórtala por el [canal seguro de la sección 2](#2-reporte-de-vulnerabilidades-responsible-disclosure), **no** mediante un issue público.

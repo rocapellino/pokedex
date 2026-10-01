@@ -8,3 +8,4 @@ apps/frontend/dist/
 .terraform/
 **/.terraform/**
 .tools/
+scratch/
