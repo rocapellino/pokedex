@@ -128,6 +128,7 @@ test('🤖 Change Impact: validador y tests AAS activan el dominio canónico', (
   assert.equal(validator.triggers.linting, true);
   assert.equal(contract.triggers.agent_governance, true);
   assert.equal(contract.triggers.tests, true, 'el test AAS conserva además la regla general de tests');
+});
 
 /**
  * CI-001 — `Taskfile.yaml` debe estar CLASIFICADO en el motor de impacto.
@@ -230,8 +231,6 @@ test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AW
     'CI-001: la matriz no debe afirmar que values.prod.yaml es el perfil de AWS; ' +
     'ninguna Application de ArgoCD lo consume (INFRA-011)'
   );
-});
-
 });
 
 test('🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker', () => {
