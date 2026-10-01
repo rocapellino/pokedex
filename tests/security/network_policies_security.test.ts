@@ -8,11 +8,42 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
+
+/**
+ * APPS-001 — `apps/frontend/nginx.conf` es un ARTEFACTO GENERADO.
+ *
+ * El SSOT unico de la configuracion de Nginx es `nginx.conf.template`, que es
+ * lo que consume el Dockerfile de produccion (`envsubst`) y lo que valida CI
+ * contra la imagen real (`scripts/render-nginx-config.mjs`, DOC-003).
+ *
+ * Antes de este contrato, `nginx.conf` era una copia paralela mantenida a mano.
+ * El riesgo no era cosmetico: una directiva de seguridad (CSP, COOP, COEP,
+ * allowlists) podia endurecerse en el template y quedar laxa en el fallback, y
+ * ningun gate lo detectaba porque cada archivo se validaba por separado.
+ *
+ * Este test delega la comparacion en el generador, que es el unico que conoce
+ * los valores por defecto del fallback local.
+ */
+test('🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)', () => {
+  const result = spawnSync(process.execPath, ['scripts/generate-nginx-conf.mjs', '--check'], {
+    cwd: ROOT_DIR,
+    encoding: 'utf-8',
+  });
+
+  assert.equal(
+    result.status,
+    0,
+    `APPS-001: apps/frontend/nginx.conf esta desactualizado respecto a nginx.conf.template.\n` +
+      'Edita SIEMPRE la plantilla y regenera el artefacto con `npm run nginx:conf`.\n' +
+      `${result.stdout || ''}${result.stderr || ''}`
+  );
+});
 
 test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
   const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');

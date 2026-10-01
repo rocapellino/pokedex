@@ -9,24 +9,71 @@ import { pokedexEntries, createDrizzleClient, AppDatabase, runMigrations } from 
 
 const { Pool } = pg;
 
-const DATABASE_URL = process.env.DATABASE_URL || (
-  process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
-    ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
-    : undefined
-);
+export function getDatabaseUrl(): string | undefined {
+  return process.env.DATABASE_URL || (
+    process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
+      ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
+      : undefined
+  );
+}
 
 let pgPool: pg.Pool | null = null;
 let drizzleDb: AppDatabase | null = null;
 let isPgConnected = false;
 let lastKnownPgCount: number | null = null;
+let migrationRunner: (url: string) => Promise<void> = runMigrations;
+
+export function setMigrationRunnerForTest(runner?: (url: string) => Promise<void>): void {
+  migrationRunner = runner || runMigrations;
+}
+
+export function setPgPoolForTest(pool: pg.Pool | null): void {
+  pgPool = pool;
+}
+
+export function setDrizzleDbForTest(db: AppDatabase | null): void {
+  drizzleDb = db;
+}
+
+/**
+ * Error sentinel de fallo de migraciones [APPS-002].
+ *
+ * Existe para distinguir "la base de datos no responde" (que sí admite fallback
+ * a memoria) de "las migraciones no se pudieron aplicar" (que NO lo admite en
+ * produccion). Sin esta distincion, el `catch` externo degradaba a memoria en
+ * ambos casos: el servicio arrancaba en verde con un esquema distinto al
+ * declarado y perdiendo cualquier escritura previa.
+ *
+ * En produccion este error debe propagarse hasta `initStorage()` y de ahi al
+ * arranque de `server.ts`, que termina el proceso con codigo distinto de cero
+ * para que el orquestador no marque el pod como listo. Fail-closed explicito.
+ *
+ * En desarrollo se mantiene el comportamiento tolerante (warn + fallback) para
+ * no bloquear el ciclo de iteracion local.
+ */
+export class MigrationFailedError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    this.name = 'MigrationFailedError';
+    if (options?.cause !== undefined) {
+      (this as { cause?: unknown }).cause = options.cause;
+    }
+  }
+}
+
+/** True solo en produccion. Mismo criterio que `startup-env-check.ts`. */
+export function isProductionEnv(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
 
 export async function connectPg(): Promise<boolean> {
-  if (!DATABASE_URL) return false;
+  const dbUrl = getDatabaseUrl();
+  if (!dbUrl) return false;
   try {
     if (!pgPool) {
       const isProduction = process.env.NODE_ENV === 'production';
-      const isLoopback = DATABASE_URL.includes('localhost') || DATABASE_URL.includes('127.0.0.1');
-      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || DATABASE_URL.includes('sslmode=require');
+      const isLoopback = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
       const shouldUseSsl = isSslExplicitlyRequired || (isProduction && process.env.DB_SSL !== 'false' && !isLoopback);
 
       const sslConfig = shouldUseSsl
@@ -34,7 +81,7 @@ export async function connectPg(): Promise<boolean> {
         : undefined;
 
       pgPool = new Pool({
-        connectionString: DATABASE_URL,
+        connectionString: dbUrl,
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 2000,
@@ -57,8 +104,20 @@ export async function connectPg(): Promise<boolean> {
 
       // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
       try {
-        await runMigrations(DATABASE_URL);
+        await migrationRunner(dbUrl);
       } catch (migErr: any) {
+        // [APPS-002] Contrato por ambiente:
+        //   - produccion: fail-closed. Un esquema no migrado NO es un almacén
+        //     degradado, es un almacén con otra forma de datos. Continuar en
+        //     memoria enmascararia el fallo y perderia las escrituras previas.
+        //   - desarrollo/test: tolerante, para no bloquear la iteracion local.
+        if (isProductionEnv()) {
+          throw new MigrationFailedError(
+            '[Storage: PostgreSQL] Las migraciones Drizzle fallaron. ' +
+              'Arranque abortado (fail-closed) para no operar con un esquema distinto al declarado.',
+            { cause: migErr }
+          );
+        }
         logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: migErr?.message });
       }
 
@@ -93,6 +152,14 @@ export async function connectPg(): Promise<boolean> {
       client.release();
     }
   } catch (err: any) {
+    // [APPS-002] El sentinel de migraciones NUNCA se degrada a memoria: seria
+    // exactamente el fallo que este cambio evita (arrancar "sano" con un
+    // esquema distinto al declarado). Se re-lanza para que `initStorage()`
+    // rechace y el arranque de `server.ts` termine el proceso.
+    if (err instanceof MigrationFailedError) {
+      isPgConnected = false;
+      throw err;
+    }
     logger.warn(`[Storage: PostgreSQL] No disponible (${err.message}). Operando con almacén en memoria`);
     isPgConnected = false;
     return false;
