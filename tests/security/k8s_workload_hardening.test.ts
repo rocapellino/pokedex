@@ -477,6 +477,31 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(!healthContent.includes('bitnami.com_SealedSecret'), 'No debe contener health check residual de SealedSecret');
   assert.ok(healthContent.includes('kyverno.io_ClusterPolicy'), 'Debe definir health check para ClusterPolicy');
 
+  // 3.1 GITOPS-001: el manifiesto debe extender `argocd-cm`, NO un ConfigMap homónimo.
+  // ArgoCD carga los scripts `resource.customizations.health.*` únicamente desde el
+  // ConfigMap `argocd-cm`. Declarar otro nombre (p. ej. `argocd-cm-healthchecks`) hace
+  // que el manifiesto se aplique sin error pero sea IGNORADO en silencio, con lo que los
+  // CRDs no sincronizados se reportan Healthy por ausencia de condición. Estas
+  // aserciones fallan si se revierte el fix.
+  assert.match(
+    healthContent,
+    /^\s*name:\s*argocd-cm\s*$/m,
+    'GITOPS-001: el manifiesto debe parchear el ConfigMap `argocd-cm`, el único que ArgoCD lee'
+  );
+  assert.ok(
+    !/^\s*name:\s*argocd-cm-healthchecks\s*$/m.test(healthContent),
+    'GITOPS-001: no debe declararse un ConfigMap homónimo `argocd-cm-healthchecks` (ArgoCD lo ignoraría)'
+  );
+  assert.ok(
+    !/^\s*app\.kubernetes\.io\/name:\s*argocd-cm-healthchecks\s*$/m.test(healthContent),
+    'GITOPS-001: no debe quedar la etiqueta del ConfigMap homónimo purgado'
+  );
+
+  // 3.2 GITOPS-001: la tarea debe inyectar con `kubectl patch --type merge`.
+  // Un `kubectl apply` sobrescribiría el ConfigMap completo y borraría el resto de
+  // la configuración de ArgoCD (URLs de repositorio, RBAC, etc.). Se verifica más
+  // abajo, junto al resto de aserciones del Taskfile (bloque 6).
+
   // 4. Helm templates declaran Sync Waves deterministas (0 a 4)
   const stsContent = fs.readFileSync(postgresStsPath, 'utf-8');
   assert.ok(stsContent.includes('argocd.argoproj.io/sync-wave: "0"'), 'PostgreSQL StatefulSet debe estar en sync-wave 0');
@@ -534,6 +559,20 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
   assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
   assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
+
+  // 6.1 GITOPS-001: la tarea debe INYECTAR las claves de salud en `argocd-cm` mediante
+  // `kubectl patch --type merge`. Un `kubectl apply` sobrescribiría el ConfigMap completo
+  // y borraría el resto de la configuración de ArgoCD (repositorios, RBAC, etc.), lo que
+  // constituiría una regresión más grave que el defecto que corrige.
+  assert.match(
+    taskfileContent,
+    /kubectl patch configmap argocd-cm[^\n]*--type merge/,
+    'GITOPS-001: `task gitops:health-checks` debe parchear argocd-cm con `--type merge`'
+  );
+  assert.ok(
+    !/kubectl apply -f gitops\/health-checks\/argocd-cm-healthchecks\.yaml/.test(taskfileContent),
+    'GITOPS-001: no debe usarse `kubectl apply` sobre el manifiesto de health checks (sobrescribiría argocd-cm)'
+  );
 
   // 8. startupProbe presente en las apps que ejecutan codigo de aplicacion.
   //    Sin el, la livenessProbe puede matar el pod mientras el backend aun

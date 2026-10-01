@@ -10,7 +10,7 @@ En [ADR-003](./ADR-003-gitops-with-argocd.md) se formalizó la adopción de Argo
 
 1. **Condiciones de Carrera en Despliegue Paralelo**: ArgoCD aplica los manifiestos de Kubernetes concurrentemente sin orden determinista salvo que se definan ondas de sincronización (*Sync Waves*). Esto provocaba que los Pods de `pokemon-api` iniciaran antes de que PostgreSQL alcanzara el estado `Ready` y se completara la migración y siembra de esquemas relacionales, generando reinicios espurios (`CrashLoopBackOff`) y alertas ruidosas en Prometheus.
 2. **Incompatibilidad entre Hooks de Helm y GitOps**: Los jobs de inicialización utilizaban anotaciones `helm.sh/hook`, ignoradas por los ciclos nativos de reconciliación de ArgoCD cuando no se opera a través del CLI imperativo de Helm.
-3. **Opacidad de Recursos Personalizados (CRDs)**: ArgoCD carecía de evaluadores de salud nativos para `ExternalSecret` (ESO), `SealedSecret` (Bitnami) y `ClusterPolicy` (Kyverno), reportando estados ambiguos (*Progressing* indefinido o *Missing* transitorio) en la consola de operaciones.
+3. **Opacidad de Recursos Personalizados (CRDs)**: ArgoCD carecía de evaluadores de salud nativos para `ExternalSecret` (ESO) y `ClusterPolicy` (Kyverno), reportando estados ambiguos (*Progressing* indefinido o *Missing* transitorio) en la consola de operaciones.
 4. **Desconexión de Gobernanza Multi-Entorno**: La administración de aplicaciones por entorno (`pokedex-proxmox` y `pokedex-cloud`) requería invocaciones independientes sin una raíz declarativa unificada (*App-of-Apps*).
 
 ## Decisión
@@ -29,11 +29,16 @@ Se implementan anotaciones `argocd.argoproj.io/sync-wave` en las plantillas del 
 
 ### 2. Custom Health Checks Declarativos en Lua
 
-Se formaliza el ConfigMap `gitops/health-checks/argocd-cm-healthchecks.yaml` extendiendo `argocd-cm` con scripts Lua para evaluar el ciclo de vida de los CRDs críticos:
+Se formaliza el manifiesto `gitops/health-checks/argocd-cm-healthchecks.yaml`, que se inyecta como parche de tipo `merge` sobre el ConfigMap `argocd-cm` con scripts Lua para evaluar el ciclo de vida de los CRDs críticos:
+
+> [!IMPORTANT]
+> **GITOPS-001:** ArgoCD carga los scripts `resource.customizations.health.*` **únicamente** desde el ConfigMap `argocd-cm` del namespace `argocd`. Declarar un ConfigMap homónimo separado (`argocd-cm-healthchecks`) se aplicaba sin error pero era **ignorado en silencio**, con lo que los CRDs no sincronizados se reportaban `Healthy` por ausencia de condición. El manifiesto actual parchea `argocd-cm` y la tarea `task gitops:health-checks` lo inyecta con `kubectl patch --type merge` para no sobrescribir el resto de la configuración de ArgoCD.
 
 - **`external-secrets.io/ExternalSecret`**: Evalúa la condición `Ready == True` y `Synced`, reportando `Degraded` si la sincronización con Vault o AWS Secrets Manager falla.
-- **`bitnami.com/SealedSecret`**: Evalúa la condición `Synced == True`, alertando de inmediato si el controlador no logra descifrar el secreto sellado.
 - **`kyverno.io/ClusterPolicy`**: Evalúa `status.ready == true` o la condición `Ready == True` para confirmar que las reglas de admisión criptográfica y PSS están activas antes de continuar.
+
+> [!NOTE]
+> El health check de `bitnami.com/SealedSecret` se **retiró** junto con la adopción de Vault CE + ESO (ver [ADR-005](./ADR-005-secret-management.md) y la sección 3.3 de [SECRETS_MANAGEMENT.md](../architecture/SECRETS_MANAGEMENT.md)). El script residual fue purgado del manifiesto y su ausencia está verificada por `tests/security/k8s_workload_hardening.test.ts`.
 
 ### 3. Patrón Canónico App-of-Apps
 
@@ -60,4 +65,4 @@ Los manifiestos `app-proxmox.yaml` y `app-cloud.yaml` incorporan:
 ### Compensaciones y Mitigaciones
 
 - **Mayor Tiempo de Despliegue Total**: El avance secuencial por olas (0 a 4) añade una latencia controlada mientras cada recurso alcanza el estado `Healthy`. Esto es el comportamiento deseado para proteger la estabilidad del servicio en producción.
-- **Dependencia de Scripts Lua en `argocd-cm`**: Requiere aplicar el ConfigMap de health checks durante el aprovisionamiento de ArgoCD (`task gitops:health-checks`).
+- **Dependencia de Scripts Lua en `argocd-cm`**: Requiere inyectar el manifiesto de health checks durante el aprovisionamiento de ArgoCD (`task gitops:health-checks`). La inyección se realiza con `kubectl patch --type merge` para preservar el resto de la configuración de `argocd-cm`.
