@@ -80,26 +80,27 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
   );
 });
 
-test('📚 Gobernanza Documental: validación contractual de la skill repo-doc-governance y políticas normativas', () => {
+test('📚 Gobernanza Documental: validación contractual de la regla transversal y políticas normativas en repo-docs', () => {
   const rootDir = process.cwd();
-  const governanceDir = path.join(rootDir, '.agents', 'skills', 'repo-doc-governance');
-  const skillFile = path.join(governanceDir, 'SKILL.md');
-  const contractFile = path.join(governanceDir, 'references', 'documentation-contract.yaml');
+  const ruleFile = path.join(rootDir, '.agents', 'rules', 'documentation-governance.md');
+  const docsDir = path.join(rootDir, '.agents', 'skills', 'repo-docs');
+  const contractFile = path.join(docsDir, 'references', 'documentation-contract.yaml');
 
-  // 1. Verificación de existencia de SKILL.md y frontmatter
-  assert.ok(fs.existsSync(skillFile), 'repo-doc-governance/SKILL.md debe existir');
-  const skillContent = fs.readFileSync(skillFile, 'utf-8');
-  assert.ok(skillContent.includes('name: repo-doc-governance'), 'SKILL.md debe declarar name: repo-doc-governance');
+  // 1. Verificación de existencia de la regla transversal
+  assert.ok(fs.existsSync(ruleFile), '.agents/rules/documentation-governance.md debe existir');
+  const ruleContent = fs.readFileSync(ruleFile, 'utf-8');
+  assert.ok(ruleContent.includes('Gobernanza Documental Transversal'), 'Debe declarar título de Gobernanza Documental');
+  assert.ok(ruleContent.includes('npm run lint:md'), 'Debe declarar el Markdown Quality Gate obligatorio');
 
-  // 2. Verificación de existencia de documentation-contract.yaml
-  assert.ok(fs.existsSync(contractFile), 'documentation-contract.yaml debe existir');
+  // 2. Verificación de existencia de documentation-contract.yaml en repo-docs
+  assert.ok(fs.existsSync(contractFile), 'documentation-contract.yaml debe existir en repo-docs/references/');
   const contractContent = fs.readFileSync(contractFile, 'utf-8');
-  assert.ok(contractContent.includes('framework: "repo-doc-governance"'), 'Debe declarar framework repo-doc-governance');
+  assert.ok(contractContent.includes('framework: "documentation-governance"'), 'Debe declarar framework documentation-governance');
   assert.ok(contractContent.includes('README.md:'), 'Debe definir contrato para README.md');
   assert.ok(contractContent.includes('SECURITY.md:'), 'Debe definir contrato para SECURITY.md');
   assert.ok(contractContent.includes('README-ARCH-001'), 'Debe contener regla README-ARCH-001');
 
-  // 3. Verificación de referencias normativas requeridas
+  // 3. Verificación de referencias normativas requeridas en repo-docs
   const requiredPolicies = [
     'documentation-boundaries.md',
     'readme-policy.md',
@@ -111,12 +112,14 @@ test('📚 Gobernanza Documental: validación contractual de la skill repo-doc-g
   ];
 
   for (const policy of requiredPolicies) {
-    const policyPath = path.join(governanceDir, 'references', policy);
-    assert.ok(fs.existsSync(policyPath), `Referencia normativa ${policy} debe existir en references/`);
+    const policyPath = path.join(docsDir, 'references', policy);
+    assert.ok(fs.existsSync(policyPath), `Referencia normativa ${policy} debe existir en repo-docs/references/`);
   }
 
   // 4. Verificación de registro en AGENTS.md
   const agentsFile = path.join(rootDir, 'AGENTS.md');
   const agentsContent = fs.readFileSync(agentsFile, 'utf-8');
-  assert.ok(agentsContent.includes('`repo-doc-governance`'), 'AGENTS.md debe registrar repo-doc-governance en el catalogo de skills');
+  assert.ok(agentsContent.includes('`repo-docs`'), 'AGENTS.md debe registrar repo-docs en el catalogo de skills');
+  assert.ok(agentsContent.includes('documentation-governance.md'), 'AGENTS.md debe referenciar la regla documentation-governance.md');
+  assert.ok(!agentsContent.includes('`repo-doc-governance`'), 'AGENTS.md no debe contener la skill retirada repo-doc-governance');
 });

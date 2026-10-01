@@ -421,11 +421,19 @@ jobs:
           > Nota: \`[skip-release]\` evita calcular una nueva versión al mergear este PR; el tag de **${NEW_TAG}** lo dispara la fase \`tag\` del propio workflow.
           EOF
           )
-          GH_TOKEN="$PR_TOKEN" gh pr create \
-            --title "chore(release): promote ${NEW_TAG} [skip-release]" \
-            --body "$BODY" \
-            --base main \
-            --head "$BRANCH"
+          create_promotion_pr() {
+            local token="$1"
+            GH_TOKEN="$token" gh pr create \
+              --title "chore(release): promote ${NEW_TAG} [skip-release]" \
+              --body "$BODY" \
+              --base main \
+              --head "$BRANCH"
+          }
+
+          if ! create_promotion_pr "$GH_TOKEN"; then
+            echo "⚠️ Falló la apertura del PR con la credencial primaria; reintentando con GITHUB_TOKEN..."
+            create_promotion_pr "$ACTIONS_TOKEN"
+          fi
 
           # [REL-AUTO-APPROVE] Iniciar automáticamente los checks del PR de promoción
           # para que se ejecuten sin requerir aprobación manual previa.

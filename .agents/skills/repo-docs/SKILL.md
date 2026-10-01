@@ -115,7 +115,15 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 
 ## Referencias Especializadas de la Skill
 
-- **Gobernanza y Contratos Documentales:** [repo-doc-governance](../repo-doc-governance/SKILL.md)
+- **Gobernanza Documental Transversal:** [documentation-governance.md](../../rules/documentation-governance.md)
+- **Contrato Declarativo de Gobernanza:** [documentation-contract.yaml](references/documentation-contract.yaml)
+- **Límites Documentales Canónicos:** [documentation-boundaries.md](references/documentation-boundaries.md)
+- **Política de README:** [readme-policy.md](references/readme-policy.md)
+- **Política de SECURITY:** [security-policy.md](references/security-policy.md)
+- **Política de Drift y Taxonomía:** [documentation-drift-policy.md](references/documentation-drift-policy.md)
+- **Política de Actualización y Triggers:** [documentation-update-policy.md](references/documentation-update-policy.md)
+- **Política de Retiro y Poda:** [documentation-retirement-policy.md](references/documentation-retirement-policy.md)
+- **Política de Evidencia y Jerarquía SSOT:** [documentation-evidence-policy.md](references/documentation-evidence-policy.md)
 - **Ciclo de Vida Documental:** [documentation-lifecycle-policy.md](references/documentation-lifecycle-policy.md)
 - **Consistencia y Validación Cruzada:** [documentation-consistency-policy.md](references/documentation-consistency-policy.md)
 - **Validación, Calidad y Reportes:** [documentation-validation-policy.md](references/documentation-validation-policy.md)

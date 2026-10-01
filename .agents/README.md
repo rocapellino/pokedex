@@ -27,8 +27,7 @@ un dominio específico del ciclo de vida del repositorio.
 | | [`repo-ci`](skills/repo-ci/SKILL.md) | Topología integral de CI/CD (PR ➔ Job ➔ Tool) |
 | | [`repo-pr`](skills/repo-pr/SKILL.md) | Preparación, validación y revisión de Pull Requests |
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
-| **Governance & Maintenance** | [`repo-doc-governance`](skills/repo-doc-governance/SKILL.md) | Políticas, límites y contratos documentales |
-| | [`repo-docs`](skills/repo-docs/SKILL.md) | Integridad documental y claims verification |
+| **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Ciclo de vida documental, contratos y verificación de claims |
 | | [`repo-maintenance`](skills/repo-maintenance/SKILL.md) | Salud periódica, higiene y limpieza segura |
 | | [`repo-refactor`](skills/repo-refactor/SKILL.md) | Diseño de cambios incrementales |
 | | [`repo-modernize`](skills/repo-modernize/SKILL.md) | Evaluación de modernización tecnológica |
@@ -94,7 +93,7 @@ flowchart TD
     QGATE["⑥  Quality Gates & Pre-Commit\nrepo-quality · suites técnicas"]
     QGATE --> DOCGOV
 
-    DOCGOV["⑦  Cierre Documental & Gobernanza\nrepo-doc-governance · repo-docs · lint:md"]
+    DOCGOV["⑦  Cierre Documental & Gobernanza\nrepo-docs · lint:md"]
     DOCGOV --> PR
 
     PR["⑧  repo-pr\nPreparación y Gate de Pull Request"]
