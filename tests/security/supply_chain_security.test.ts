@@ -416,7 +416,10 @@ test('🛡️ Supply Chain Security: Política Kyverno verify-image-signature ex
   assert.match(policyContent, /subject:\s*"https:\/\/github\.com\/rocapellino\/pokedex\/\.github\/workflows\/ci\.yaml@refs\/heads\/main"/, 'Debe validar el subject exacto del workflow en main');
 });
 
-test('🛡️ Supply Chain Security: Manifiestos de GitOps y producción aplican OCI digest pinning inmutable (sha256)', () => {
+test('🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)', () => {
+  // INFRA-011: los tres primeros sí son targets activos gobernados por el
+  // App-of-Apps. `values.prod.yaml` es el perfil de referencia: se incluye para
+  // que no quede sin fijar si algun dia se conecta a un entorno real.
   const envFiles = [
     'gitops/environments/aws/values.yaml',
     'gitops/environments/proxmox/values.yaml',

@@ -166,7 +166,11 @@ test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativ
   assert.ok(secretContent.includes('GEMINI_API_KEY'), 'Debe mapear GEMINI_API_KEY');
 });
 
-test('🛡️ Helm Resiliencia & Gobernanza: values.prod.yaml y templates configuran PDB, ResourceQuota y LimitRange', () => {
+test('🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange', () => {
+  // INFRA-011: `values.prod.yaml` es un PERFIL DE REFERENCIA. Ninguna Application
+  // de ArgoCD lo consume (las tres usan `values.yaml` + su override de
+  // `gitops/environments/`), por lo que este test verifica la CONFIGURACION del
+  // perfil, no una garantia operativa de un entorno desplegado.
   const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
   const pdbPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/pdb.yaml');
   const quotaPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/resourcequota.yaml');
