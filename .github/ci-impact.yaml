@@ -30,6 +30,12 @@ global:
     - "tsconfig.json"
     - ".pre-commit-config.yaml"
     - ".github/workflows/**"
+    # CI-001: la CONFIGURACION del motor debe ser global igual que el motor. Cambiar
+    # que rutas activan que gates altera el comportamiento de todos los Pull
+    # Requests del repositorio, por lo que exige validacion integral. Sin esta
+    # entrada, un PR que modificara la matriz de impacto pasaria con un alcance
+    # menor del que realmente provoca.
+    - ".github/ci-impact.yaml"
     - "scripts/detect-change-impact.ts"
     - "scripts/declarations.d.ts"
   triggers:
@@ -82,6 +88,9 @@ rules:
       - ".markdownlintignore"
       - "LICENSE"
       - "scripts/lint-markdown.ts"
+      # CI-001: el Taskfile expone la superficie de comandos que la documentación
+      # debe reflejar (`task --list`, aliases, contratos de entrega).
+      - "Taskfile.yaml"
     triggers:
       documentation: true
       backend: false
@@ -145,6 +154,11 @@ rules:
       - "scripts/dr-drill.ts"
       - "scripts/dev-backup-gdrive.ts"
       - "scripts/dr_verify_restore.sh"
+      # CI-001: `Taskfile.yaml` es el CLI canónico del repositorio (ADR-020) y
+      # orquesta las tareas de Kind, ArgoCD, Helm, Ansible y validación. Antes
+      # no figuraba en ninguna regla, por lo que el motor aplicaba su política
+      # fail-closed y despachaba Full CI en cada PR que lo modificara.
+      - "Taskfile.yaml"
     triggers:
       kubernetes: true
       tests: true
@@ -160,6 +174,8 @@ rules:
     description: "Templates, values y empaquetado del Helm Chart oficial"
     paths:
       - "infra/helm/**"
+      # CI-001: el Taskfile orquesta `helm lint`, renders y despliegues del Chart.
+      - "Taskfile.yaml"
     triggers:
       helm: true
       kubernetes: true
@@ -175,6 +191,8 @@ rules:
     description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
     paths:
       - "infra/opentofu/**"
+      # CI-001: el Taskfile orquesta `tofu validate` y `tofu fmt` de los entornos.
+      - "Taskfile.yaml"
     triggers:
       opentofu: true
       security:
@@ -189,6 +207,9 @@ rules:
     description: "Playbooks, roles e inventarios de hardening de sistemas base"
     paths:
       - "infra/ansible/**"
+      # CI-001: el Taskfile orquesta los playbooks de Ansible (baseline, hardening,
+      # k3s, vault, bastion).
+      - "Taskfile.yaml"
     triggers:
       ansible: true
       security:
