@@ -73,9 +73,11 @@ const BANNER = [
   '',
 ].join('\n');
 
+const normalizeEol = (str) => str.replace(/\r\n/g, '\n');
+
 const placeholders = Object.keys(DEFAULTS);
 const pattern = new RegExp(`\\$\\{(${placeholders.join('|')})\\}`, 'g');
-const template = readFileSync(resolve(TEMPLATE_PATH), 'utf8');
+const template = normalizeEol(readFileSync(resolve(TEMPLATE_PATH), 'utf8'));
 const rendered = template.replace(pattern, (match, key) => DEFAULTS[key] ?? match);
 
 // Invariante fail-closed: ningun placeholder puede sobrevivir al renderizado.
@@ -87,12 +89,12 @@ if (leftovers.length > 0) {
   process.exit(1);
 }
 
-const expected = BANNER + rendered;
+const expected = normalizeEol(BANNER + rendered);
 
 if (process.argv.includes('--check')) {
   let current;
   try {
-    current = readFileSync(resolve(OUTPUT_PATH), 'utf8');
+    current = normalizeEol(readFileSync(resolve(OUTPUT_PATH), 'utf8'));
   } catch {
     console.error(`${OUTPUT_PATH} no existe. Ejecuta \`npm run nginx:conf\`.`);
     process.exit(1);

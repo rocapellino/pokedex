@@ -9,16 +9,31 @@ import { pokedexEntries, createDrizzleClient, AppDatabase, runMigrations } from 
 
 const { Pool } = pg;
 
-const DATABASE_URL = process.env.DATABASE_URL || (
-  process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
-    ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
-    : undefined
-);
+export function getDatabaseUrl(): string | undefined {
+  return process.env.DATABASE_URL || (
+    process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
+      ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
+      : undefined
+  );
+}
 
 let pgPool: pg.Pool | null = null;
 let drizzleDb: AppDatabase | null = null;
 let isPgConnected = false;
 let lastKnownPgCount: number | null = null;
+let migrationRunner: (url: string) => Promise<void> = runMigrations;
+
+export function setMigrationRunnerForTest(runner?: (url: string) => Promise<void>): void {
+  migrationRunner = runner || runMigrations;
+}
+
+export function setPgPoolForTest(pool: pg.Pool | null): void {
+  pgPool = pool;
+}
+
+export function setDrizzleDbForTest(db: AppDatabase | null): void {
+  drizzleDb = db;
+}
 
 /**
  * Error sentinel de fallo de migraciones [APPS-002].
@@ -47,17 +62,18 @@ export class MigrationFailedError extends Error {
 }
 
 /** True solo en produccion. Mismo criterio que `startup-env-check.ts`. */
-function isProductionEnv(): boolean {
+export function isProductionEnv(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
 export async function connectPg(): Promise<boolean> {
-  if (!DATABASE_URL) return false;
+  const dbUrl = getDatabaseUrl();
+  if (!dbUrl) return false;
   try {
     if (!pgPool) {
       const isProduction = process.env.NODE_ENV === 'production';
-      const isLoopback = DATABASE_URL.includes('localhost') || DATABASE_URL.includes('127.0.0.1');
-      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || DATABASE_URL.includes('sslmode=require');
+      const isLoopback = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
       const shouldUseSsl = isSslExplicitlyRequired || (isProduction && process.env.DB_SSL !== 'false' && !isLoopback);
 
       const sslConfig = shouldUseSsl
@@ -65,7 +81,7 @@ export async function connectPg(): Promise<boolean> {
         : undefined;
 
       pgPool = new Pool({
-        connectionString: DATABASE_URL,
+        connectionString: dbUrl,
         max: 10,
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 2000,
@@ -88,7 +104,7 @@ export async function connectPg(): Promise<boolean> {
 
       // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
       try {
-        await runMigrations(DATABASE_URL);
+        await migrationRunner(dbUrl);
       } catch (migErr: any) {
         // [APPS-002] Contrato por ambiente:
         //   - produccion: fail-closed. Un esquema no migrado NO es un almacén

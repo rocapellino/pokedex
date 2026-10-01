@@ -256,6 +256,20 @@ export function setupGracefulShutdown(
   };
 }
 
+function handleStartupError(
+  err: unknown,
+  exitFn: (code: number) => void = (code) => process.exit(code)
+): void {
+  // [APPS-002] Fallo de arranque: en produccion se aborta el proceso con
+  // codigo distinto de cero para que el orquestador NO marque el pod como
+  // listo. No se escucha ningún puerto: es preferible no servir tráfico que
+  // servirlo contra un esquema de datos inconsistente.
+  logger.error('[Startup] La inicialización del almacenamiento falló. Abortando arranque.', {
+    error: err instanceof Error ? err.message : String(err),
+  });
+  exitFn(1);
+}
+
 // Start Server tras inicializar la capa de persistencia y caché (solo si no es test runner)
 const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
 if (!isRunningTests) {
@@ -272,13 +286,7 @@ if (!isRunningTests) {
     });
     setupGracefulShutdown(server);
   }).catch((err: unknown) => {
-    // [APPS-002] Fallo de arranque: en produccion se aborta el proceso con
-    // codigo distinto de cero para que el orquestador NO marque el pod como
-    // listo. No se escucha ningún puerto: es preferible no servir tráfico que
-    // servirlo contra un esquema de datos inconsistente.
-    logger.error('[Startup] La inicialización del almacenamiento falló. Abortando arranque.', {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    handleStartupError(err);
     process.exit(1);
   });
 }
@@ -293,4 +301,5 @@ export {
   requireWritableStorage,
   getLifecycleStatus,
   setShuttingDownForTest,
+  handleStartupError,
 };
