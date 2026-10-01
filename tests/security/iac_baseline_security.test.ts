@@ -15,6 +15,50 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 
 /**
+ * Extrae los nombres de variable declarados en un archivo `.tf` de OpenTofu.
+ *
+ * Se usa una expresion literal (no dinamica) por dos motivos: el conjunto de
+ * archivos es finito y conocido, y Semgrep SAST marca `new RegExp()` con
+ * argumento no literal como potencial ReDoS.
+ */
+function declaredVariables(source: string): string[] {
+  return [...source.matchAll(/^variable\s+"([a-z0-9_]+)"/gim)].map((m) => m[1]);
+}
+
+/**
+ * Cuenta las referencias a una variable fuera de su propia declaracion.
+ *
+ * La busqueda es por comparacion de cadenas, no por RegExp construida en
+ * runtime: Semgrep SAST marca `new RegExp()` con argumento no literal como
+ * potencial ReDoS, y los nombres de variable de OpenTofu son identificadores
+ * `[a-z0-9_]` que no contienen metacaracteres, de modo que un conteo por
+ * comparacion de subcadena es exacto.
+ */
+function referenceCount(sources: string[], name: string): number {
+  let count = 0;
+  for (const src of sources) {
+    for (const line of src.split('\n')) {
+      // Se excluye la linea `variable "<name>"` y las claves `default`, para que
+      // la propia declaracion no cuente como consumo de si misma.
+      if (line.includes(`variable "${name}"`)) continue;
+      if (line.trimStart().startsWith('default')) continue;
+
+      const from = 0;
+      let at = line.indexOf(name, from);
+      while (at !== -1) {
+        const before = at === 0 ? '' : line[at - 1];
+        const after = line[at + name.length] ?? '';
+        const isWord = !/[A-Za-z0-9_]/.test(before) && !/[A-Za-z0-9_]/.test(after);
+        if (isWord) count++;
+        at = line.indexOf(name, at + name.length);
+      }
+    }
+  }
+  return count;
+}
+
+
+/**
  * WF-001 — El matrix de escaneo de imágenes base del workflow de Trivy debe
  * reflejar EXACTAMENTE lo que el Chart despliega.
  *
@@ -611,6 +655,40 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
       `${checksumVar} debe ser un digest hexadecimal en minúsculas`
     );
   }
+});
+
+test('🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor', () => {
+  // Una variable declarada y nunca consumida es configuracion falsa: sugiere un
+  // punto de control que no existe. `image_file_id` es el caso conocido: los
+  // tres recursos LXC consumen `proxmox_download_file.debian_lxc_template[0].id`,
+  // nunca la variable.
+  const envDir = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox');
+
+  const tfFiles = fs
+    .readdirSync(envDir)
+    .filter((f) => f.endsWith('.tf'))
+    .map((f) => fs.readFileSync(path.join(envDir, f), 'utf-8'));
+
+  const varsTf = fs.readFileSync(path.join(envDir, 'variables.tf'), 'utf-8');
+  const declared = declaredVariables(varsTf);
+
+  assert.ok(declared.length > 0, 'variables.tf debe declarar variables');
+
+  const dead = declared.filter((name) => referenceCount(tfFiles, name) === 0);
+
+  assert.deepEqual(
+    dead,
+    [],
+    `INFRA-008: variables declaradas y nunca consumidas: ${dead.join(', ')}. ` +
+    'Eliminalas o conectalas a un recurso: una variable muerta sugiere un control inexistente.'
+  );
+
+  // El caso concreto que motivó el hallazgo debe seguir sin existir.
+  assert.ok(
+    !varsTf.includes('image_file_id'),
+    'INFRA-008: `image_file_id` no debe volver a declararse; los recursos LXC consumen ' +
+    'proxmox_download_file.debian_lxc_template[0].id'
+  );
 });
 
 test('🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta', () => {
