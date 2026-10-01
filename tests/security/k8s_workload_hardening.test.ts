@@ -535,6 +535,36 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
   assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
 
+  // 8. startupProbe presente en las apps que ejecutan codigo de aplicacion.
+  //    Sin el, la livenessProbe puede matar el pod mientras el backend aun
+  //    aplica las migraciones Drizzle del arranque (APPS-002).
+  const helmValues2 = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'),
+    'utf-8'
+  );
+
+  const apiContent2 = fs.readFileSync(apiDeploymentPath, 'utf-8');
+  assert.match(
+    apiContent2,
+    /startupProbe:/,
+    'api-deployment.yaml debe declarar startupProbe (margen para migraciones de arranque)'
+  );
+  assert.ok(
+    /api\.startupProbe/.test(apiContent2),
+    'api-deployment.yaml debe parametrizar el startupProbe desde values'
+  );
+  const webContent2 = fs.readFileSync(webDeploymentPath, 'utf-8');
+  assert.match(
+    webContent2,
+    /startupProbe:/,
+    'web-deployment.yaml debe declarar startupProbe'
+  );
+  assert.match(
+    helmValues2,
+    /startupProbe:\s*\n\s*failureThreshold:/,
+    'values.yaml debe definir los parametros del startupProbe por defecto'
+  );
+
   // 7. deployment.md documenta sección 5 y ADR-021
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
   assert.ok(deploymentContent.includes('ADR-021'), 'deployment.md debe referenciar ADR-021');
