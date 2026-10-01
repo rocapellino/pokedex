@@ -17,9 +17,9 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
 | **Total de Casos de Prueba Identificados** | **438** |
 | **Líneas de Código de Pruebas** | 12.288 |
-| **Tamaño Total de la Suite** | 572.3 KB |
+| **Tamaño Total de la Suite** | 565.2 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-01T23:04:06.875Z |
+| **Última Sincronización** | 2026-10-01T23:11:35.154Z |
 
 ---
 
@@ -103,7 +103,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts)
 
 - **Dominio:** Servicio de Autenticación y Sesiones
-- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 262 (10.5 KB)
+- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 262 (10.3 KB)
 - **Descripción:** Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos.
 - **Artefactos Bajo Prueba:** `apps/backend/src/services/auth.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
@@ -124,7 +124,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts)
 
 - **Dominio:** Servicio de Caché y Fallback
-- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 81 (2.7 KB)
+- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 81 (2.6 KB)
 - **Descripción:** Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red.
 - **Artefactos Bajo Prueba:** `apps/backend/src/data/redis.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
@@ -141,7 +141,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts)
 
 - **Dominio:** Repositorio de Datos Pokémon
-- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 196 (6.8 KB)
+- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 196 (6.6 KB)
 - **Descripción:** Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos.
 - **Artefactos Bajo Prueba:** `apps/backend/src/data/pokemonStorage.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
@@ -161,7 +161,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts)
 
 - **Dominio:** Resiliencia de Conexión a Base de Datos
-- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 164 (5.6 KB)
+- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 164 (5.4 KB)
 - **Descripción:** Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores.
 - **Artefactos Bajo Prueba:** `apps/backend/src/data/drizzle.ts`, `apps/backend/src/server.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
@@ -182,7 +182,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts)
 
 - **Dominio:** Conformidad con ADRs de Arquitectura
-- **Tipo:** Contract / Architecture | **Runner:** `node:test (tsx)` | **Casos:** 19 | **Líneas:** 759 (45.0 KB)
+- **Tipo:** Contract / Architecture | **Runner:** `node:test (tsx)` | **Casos:** 19 | **Líneas:** 759 (44.3 KB)
 - **Descripción:** Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).
 - **Artefactos Bajo Prueba:** `docs/architecture/decisions/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -228,7 +228,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts)
 
 - **Dominio:** Seguridad y Cifrado de Backups
-- **Tipo:** Security / Backup | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 318 (21.2 KB)
+- **Tipo:** Security / Backup | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 318 (20.9 KB)
 - **Descripción:** Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves.
 - **Artefactos Bajo Prueba:** `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -249,7 +249,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts)
 
 - **Dominio:** Simulacro de Recuperación ante Desastres (DR)
-- **Tipo:** Security / DR | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 155 (6.7 KB)
+- **Tipo:** Security / DR | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 155 (6.6 KB)
 - **Descripción:** Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO.
 - **Artefactos Bajo Prueba:** `scripts/dr-drill.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -266,7 +266,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts)
 
 - **Dominio:** Control de Egress y Prevención SSRF
-- **Tipo:** Security / Network | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 226 (8.3 KB)
+- **Tipo:** Security / Network | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 226 (8.0 KB)
 - **Descripción:** Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta.
 - **Artefactos Bajo Prueba:** `infra/k8s/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`, `npm run test:security:egress`
@@ -282,7 +282,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts)
 
 - **Dominio:** Retención y Ciclo de Vida en GHCR
-- **Tipo:** Contract / OCI | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 187 (7.4 KB)
+- **Tipo:** Contract / OCI | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 187 (7.2 KB)
 - **Descripción:** Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas.
 - **Artefactos Bajo Prueba:** `scripts/ghcr-retention.ts`, `.github/workflows/ghcr-retention.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -297,7 +297,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts)
 
 - **Dominio:** Sincronización de Seguridad GitHub-Linear
-- **Tipo:** Contract / SecOps | **Runner:** `node:test (tsx)` | **Casos:** 12 | **Líneas:** 321 (11.9 KB)
+- **Tipo:** Contract / SecOps | **Runner:** `node:test (tsx)` | **Casos:** 12 | **Líneas:** 321 (11.6 KB)
 - **Descripción:** Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear.
 - **Artefactos Bajo Prueba:** `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -321,7 +321,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts)
 
 - **Dominio:** Paridad de Imágenes en GitOps
-- **Tipo:** Contract / GitOps | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 141 (6.6 KB)
+- **Tipo:** Contract / GitOps | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 141 (6.5 KB)
 - **Descripción:** Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod.
 - **Artefactos Bajo Prueba:** `scripts/verify-image-digest-parity.ts`, `gitops/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -481,7 +481,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts)
 
 - **Dominio:** Benchmarks de Recuperación ante Desastres
-- **Tipo:** Security / DR Benchmarks | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 125 (7.3 KB)
+- **Tipo:** Security / DR Benchmarks | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 125 (7.2 KB)
 - **Descripción:** Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales.
 - **Artefactos Bajo Prueba:** `scripts/dr-drill.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -543,7 +543,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts)
 
 - **Dominio:** Gestión y Rotación de Secretos (Vault)
-- **Tipo:** Security / Secrets | **Runner:** `node:test (tsx)` | **Casos:** 10 | **Líneas:** 179 (12.6 KB)
+- **Tipo:** Security / Secrets | **Runner:** `node:test (tsx)` | **Casos:** 10 | **Líneas:** 179 (12.5 KB)
 - **Descripción:** Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault.
 - **Artefactos Bajo Prueba:** `scripts/k8s-rollout-restart.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -565,7 +565,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts)
 
 - **Dominio:** Gobernanza de Extensiones YAML
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 130 (5.2 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 130 (5.1 KB)
 - **Descripción:** Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio.
 - **Artefactos Bajo Prueba:** `scripts/check-yaml-extension.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -584,7 +584,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts)
 
 - **Dominio:** GitOps / Inmutabilidad de Despliegues
-- **Tipo:** Contract / GitOps | **Runner:** `node:test (tsx)` | **Casos:** 6 | **Líneas:** 237 (10.4 KB)
+- **Tipo:** Contract / GitOps | **Runner:** `node:test (tsx)` | **Casos:** 6 | **Líneas:** 237 (10.2 KB)
 - **Descripción:** Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod.
 - **Artefactos Bajo Prueba:** `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops`
@@ -604,7 +604,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts)
 
 - **Dominio:** Controlador DOM de Backoffice
-- **Tipo:** Component / Unit | **Runner:** `node:test (tsx)` | **Casos:** 18 | **Líneas:** 282 (10.9 KB)
+- **Tipo:** Component / Unit | **Runner:** `node:test (tsx)` | **Casos:** 18 | **Líneas:** 282 (10.6 KB)
 - **Descripción:** Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM.
 - **Artefactos Bajo Prueba:** `apps/frontend/src/backoffice.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -634,7 +634,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts)
 
 - **Dominio:** Entorno de Pruebas Frontend JSDOM
-- **Tipo:** Helper / Environment | **Runner:** `none` | **Casos:** 0 | **Líneas:** 94 (3.9 KB)
+- **Tipo:** Helper / Environment | **Runner:** `none` | **Casos:** 0 | **Líneas:** 94 (3.8 KB)
 - **Descripción:** Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend.
 - **Artefactos Bajo Prueba:** `apps/frontend/src/backoffice.ts`
 - **Comandos de Ejecución:** Ninguno (módulo auxiliar o fixture)
@@ -644,7 +644,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts)
 
 - **Dominio:** Componentes Modales y Accesibilidad
-- **Tipo:** Component / Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 142 (4.9 KB)
+- **Tipo:** Component / Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 142 (4.8 KB)
 - **Descripción:** Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop.
 - **Artefactos Bajo Prueba:** `apps/frontend/src/components/modal.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -666,7 +666,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts)
 
 - **Dominio:** E2E Backoffice Administrativo
-- **Tipo:** E2E | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 108 (4.6 KB)
+- **Tipo:** E2E | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 108 (4.5 KB)
 - **Descripción:** Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación.
 - **Artefactos Bajo Prueba:** `apps/frontend/src/backoffice.ts`, `apps/frontend/public/backoffice.html`
 - **Comandos de Ejecución:** `npm run test:e2e`, `npm run test:a11y`
@@ -683,7 +683,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts)
 
 - **Dominio:** E2E Aplicación Pública y Accesibilidad WCAG
-- **Tipo:** E2E / a11y | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 90 (3.9 KB)
+- **Tipo:** E2E / a11y | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 90 (3.8 KB)
 - **Descripción:** Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA.
 - **Artefactos Bajo Prueba:** `apps/frontend/src/index.ts`, `apps/frontend/public/index.html`
 - **Comandos de Ejecución:** `npm run test:e2e`, `npm run test:a11y`
@@ -702,7 +702,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js)
 
 - **Dominio:** Rendimiento y Capacidad bajo Carga
-- **Tipo:** Load / Stress | **Runner:** `k6` | **Casos:** 4 | **Líneas:** 167 (7.0 KB)
+- **Tipo:** Load / Stress | **Runner:** `k6` | **Casos:** 4 | **Líneas:** 167 (6.8 KB)
 - **Descripción:** Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios.
 - **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/middleware/rate-limiter.ts`
 - **Comandos de Ejecución:** `k6 run tests/performance/k6_stress_test.js`
@@ -720,7 +720,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts)
 
 - **Dominio:** Paridad Estructural de Workflows de CI
-- **Tipo:** Contract / CI | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 186 (7.7 KB)
+- **Tipo:** Contract / CI | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 186 (7.5 KB)
 - **Descripción:** Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI.
 - **Artefactos Bajo Prueba:** `.github/workflows/*.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -738,7 +738,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts)
 
 - **Dominio:** Fuzz Testing / Seguridad de Payloads
-- **Tipo:** Fuzz | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 220 (7.6 KB)
+- **Tipo:** Fuzz | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 220 (7.4 KB)
 - **Descripción:** Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST.
 - **Artefactos Bajo Prueba:** `apps/backend/src/routes/pokemons.ts`, `apps/backend/src/validation/schemas.ts`
 - **Comandos de Ejecución:** `npm run test:fuzz`, `npm run test:all`
@@ -759,7 +759,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts)
 
 - **Dominio:** Gobernanza AAS (Agentic Awesome Skills)
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 92 (4.0 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 92 (3.9 KB)
 - **Descripción:** Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas.
 - **Artefactos Bajo Prueba:** `.agents/aas/aas-stack.json`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -779,7 +779,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts)
 
 - **Dominio:** Backend HTTP API / Rate Limiting
-- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 43 (1.8 KB)
+- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 43 (1.7 KB)
 - **Descripción:** Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.
 - **Artefactos Bajo Prueba:** `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/src/server.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -794,7 +794,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts)
 
 - **Dominio:** Gobernanza Documental / Auditorías Históricas
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 60 (2.4 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 60 (2.3 KB)
 - **Descripción:** Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente.
 - **Artefactos Bajo Prueba:** `docs/audits/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -896,7 +896,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts)
 
 - **Dominio:** Gobernanza Documental / ADRs
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 2 | **Líneas:** 126 (6.1 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 2 | **Líneas:** 126 (5.9 KB)
 - **Descripción:** Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios.
 - **Artefactos Bajo Prueba:** `docs/architecture/decisions/`, `.agents/rules/documentation-governance.md`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -910,7 +910,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts)
 
 - **Dominio:** Markdown Quality Gate
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 78 (3.7 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 78 (3.6 KB)
 - **Descripción:** Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix.
 - **Artefactos Bajo Prueba:** `scripts/lint-markdown.ts`, `.markdownlint.json`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -929,7 +929,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/pentest.test.ts`](../../tests/pentest.test.ts)
 
 - **Dominio:** Pruebas de Penetración de API
-- **Tipo:** Security / Pentest | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 627 (25.9 KB)
+- **Tipo:** Security / Pentest | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 627 (25.3 KB)
 - **Descripción:** Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.
 - **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/routes/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -969,7 +969,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/ruleset_contract.test.ts`](../../tests/ruleset_contract.test.ts)
 
 - **Dominio:** Gobernanza de GitHub Rulesets
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 108 (4.4 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 108 (4.3 KB)
 - **Descripción:** Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub.
 - **Artefactos Bajo Prueba:** `.github/rulesets/main-protection.json`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -984,7 +984,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts)
 
 - **Dominio:** Paridad Declarativa de Rulesets
-- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 10 | **Líneas:** 254 (10.9 KB)
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 10 | **Líneas:** 254 (10.6 KB)
 - **Descripción:** Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub.
 - **Artefactos Bajo Prueba:** `.github/rulesets/main-protection.json`, `scripts/check-ruleset-parity.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -1006,7 +1006,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security.test.ts`](../../tests/security.test.ts)
 
 - **Dominio:** Seguridad Integral de Aplicación y Headers
-- **Tipo:** Security / Application | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 448 (17.6 KB)
+- **Tipo:** Security / Application | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 448 (17.2 KB)
 - **Descripción:** Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.
 - **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/middleware/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -1046,7 +1046,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/storage.test.ts`](../../tests/storage.test.ts)
 
 - **Dominio:** Capa de Persistencia y Caché
-- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 121 (4.6 KB)
+- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 121 (4.5 KB)
 - **Descripción:** Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.
 - **Artefactos Bajo Prueba:** `apps/backend/src/data/pokemonStorage.ts`, `apps/backend/src/data/redis.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -1066,7 +1066,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/version.test.ts`](../../tests/version.test.ts)
 
 - **Dominio:** Endpoint de Telemetría /version
-- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 14 | **Líneas:** 414 (16.7 KB)
+- **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 14 | **Líneas:** 414 (16.3 KB)
 - **Descripción:** Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.
 - **Artefactos Bajo Prueba:** `apps/backend/src/routes/version.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -1092,7 +1092,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts)
 
 - **Dominio:** Consistencia de Versiones SemVer
-- **Tipo:** Contract / Release | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 100 (4.6 KB)
+- **Tipo:** Contract / Release | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 100 (4.5 KB)
 - **Descripción:** Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm).
 - **Artefactos Bajo Prueba:** `package.json`, `apps/backend/package.json`, `apps/frontend/package.json`, `infra/helm/pokedex/Chart.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`

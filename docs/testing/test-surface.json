@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-01T23:04:06.875Z",
+  "generatedAt": "2026-10-01T23:11:35.154Z",
   "summary": {
     "totalFiles": 46,
     "testFiles": 44,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 438,
     "totalLines": 12288,
-    "totalSizeBytes": 586078,
+    "totalSizeBytes": 578786,
     "suitesCount": 9
   },
   "suites": [
@@ -113,9 +113,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 15,
-      "sizeBytes": 4116,
+      "sizeBytes": 4025,
       "lineCount": 92,
-      "sha256": "d261d154436b9baf5ef76c2e9b7b5b1ae6b5e5d93e5620799a88909acc9ab25d",
+      "sha256": "3e11f856c2fbd6ed7090776703d70d4d543cb5a3bbb794b2d3a63677e0fee7f7",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -175,9 +175,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 1817,
+      "sizeBytes": 1775,
       "lineCount": 43,
-      "sha256": "de0dc686ba5bd491de3451e35bd60e8b5499a0d756082f6e6c62b0f4922766d0",
+      "sha256": "15392698ca0406b993b7619578c62d159905502c56dd89ac8b7fbc20f02a0539",
       "targetDomain": "Backend HTTP API / Rate Limiting",
       "targetArtifacts": [
         "apps/backend/src/middleware/rate-limiter.ts",
@@ -217,9 +217,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 8,
-      "sizeBytes": 2465,
+      "sizeBytes": 2406,
       "lineCount": 60,
-      "sha256": "5d9d94a9d29a984d8f62faccc5f10ce057707312727fc3c467fd96ce942978a9",
+      "sha256": "01851c7ef14a4097b95cc9fe88b5a885eb65fdb67ccbdac13c6d53c2a93f21c8",
       "targetDomain": "Gobernanza Documental / Auditorías Históricas",
       "targetArtifacts": [
         "docs/audits/"
@@ -262,9 +262,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 5,
-      "sizeBytes": 7877,
+      "sizeBytes": 7692,
       "lineCount": 186,
-      "sha256": "1306d613be03602cd98059efc657cfeff97ef28e25856f9d17831d1ca9d7dd08",
+      "sha256": "043e003031b80f7ac63ae72de4ce42b1a79585a84842ff69a964f45d75516d18",
       "targetDomain": "Paridad Estructural de Workflows de CI",
       "targetArtifacts": [
         ".github/workflows/*.yaml"
@@ -525,9 +525,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 3,
-      "sizeBytes": 844,
+      "sizeBytes": 821,
       "lineCount": 24,
-      "sha256": "c8b15a18faf00cdeb63d71e05b234e77e3f8be8b7efea29b20dd95f73dfeb556",
+      "sha256": "300b11d78b31095b729978b6d5fd3fa2a5b56fd1ffff3e44f77413b2ca84daaf",
       "targetDomain": "Concurrencia y Consistencia de Almacenamiento",
       "targetArtifacts": [
         "apps/backend/src/data/pokemonStorage.ts"
@@ -596,9 +596,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 19,
-      "sizeBytes": 6210,
+      "sizeBytes": 6085,
       "lineCount": 126,
-      "sha256": "d76be954c6cb4e53ce42bd6a7ebe15b2766b6f0c828e55779839c0a1e3373b47",
+      "sha256": "9dd2525ed54fd7d966c650b1f0b40d40e5a024ee8a83e9529f75957b6c971a9c",
       "targetDomain": "Gobernanza Documental / ADRs",
       "targetArtifacts": [
         "docs/architecture/decisions/",
@@ -634,9 +634,9 @@
       "testCount": 5,
       "describeCount": 1,
       "assertionCountEst": 28,
-      "sizeBytes": 4738,
+      "sizeBytes": 4631,
       "lineCount": 108,
-      "sha256": "eac232e80fdac25cf8d8d94b344004905a9a4fc36b19e63de53579e8ff74eea2",
+      "sha256": "a16783e8d52b53fe9d44c4c444543ff1bc00b79517eeaa55ed519d36e3dc5de1",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -683,9 +683,9 @@
       "testCount": 5,
       "describeCount": 1,
       "assertionCountEst": 12,
-      "sizeBytes": 3980,
+      "sizeBytes": 3891,
       "lineCount": 90,
-      "sha256": "f4dfe7d1624c1944167151bad17be7d4270147964913b22fe4ae6132d3efb8b3",
+      "sha256": "af21546eb7e2f8ee0fdf94041df8f88e7662d98f17cb263b38c70da009706a7e",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/index.ts",
@@ -732,9 +732,9 @@
       "testCount": 18,
       "describeCount": 0,
       "assertionCountEst": 26,
-      "sizeBytes": 11181,
+      "sizeBytes": 10900,
       "lineCount": 282,
-      "sha256": "ecb026914a9ae6a1932d97a318af9c711be7eb1741c7b1c6c3acc322a5e039d0",
+      "sha256": "769cdb2bd8e23e1d397c4a4cb5ada2ecd9fc03196fc9a2a4981fb10c039b7076",
       "targetDomain": "Controlador DOM de Backoffice",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -833,9 +833,9 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 4030,
+      "sizeBytes": 3937,
       "lineCount": 94,
-      "sha256": "5bb68f7385a56e6ddeb0b8b50f627a0d0849232c886c34d04f49e7e543e6b741",
+      "sha256": "1b37d1f30b04e5cb0c2e0ad00ea00777eb3a7a7d82c50ada86c872f44319a3ef",
       "targetDomain": "Entorno de Pruebas Frontend JSDOM",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -855,9 +855,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 40,
-      "sizeBytes": 5045,
+      "sizeBytes": 4904,
       "lineCount": 142,
-      "sha256": "132b317d4541fc4aa9e9fad92cf344cfe8906456b00fca5ccc38d93a78646634",
+      "sha256": "97165081fcd3f95234e68b300ebf6702b1bd2ed20e9b3aec2b8e6cc121213199",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal.ts"
@@ -916,9 +916,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 20,
-      "sizeBytes": 7771,
+      "sizeBytes": 7552,
       "lineCount": 220,
-      "sha256": "45b113a5ac1eebd4d9d65ec0b7483da5796a0cb3a23f80f697f4a776d61d3e0c",
+      "sha256": "f5c0148d6ceccae0b00bb6f5d7052d6ee1bd55f2e6247e6069b7f2395cc415de",
       "targetDomain": "Fuzz Testing / Seguridad de Payloads",
       "targetArtifacts": [
         "apps/backend/src/routes/pokemons.ts",
@@ -974,9 +974,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 54,
-      "sizeBytes": 10688,
+      "sizeBytes": 10452,
       "lineCount": 237,
-      "sha256": "a5e6c1b8490d8d1ed3f5df6b52fec23581c59488320598b8f49707ea21773d72",
+      "sha256": "a08a22775edde7cae7fe2ffbfd857136b97279c9994a536950ae14fb69ed46c7",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -1029,9 +1029,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 3760,
+      "sizeBytes": 3683,
       "lineCount": 78,
-      "sha256": "6b64f2610c6d5759eab3cc8cc48e5539c268e324a9230313b7e33fa2e8e86d9d",
+      "sha256": "d8e605701ea28b3443833c0a5063b7e8b8d5de695347f9b463d54fa8a3e95a01",
       "targetDomain": "Markdown Quality Gate",
       "targetArtifacts": [
         "scripts/lint-markdown.ts",
@@ -1087,9 +1087,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 101,
-      "sizeBytes": 26515,
+      "sizeBytes": 25889,
       "lineCount": 627,
-      "sha256": "c32581eadcd4c8ee4d2fed05839e6088f8007e735e76c5546377cdd01c3231c6",
+      "sha256": "fba74c6f6d7039a246056cf9496ae47dc4dd0a43144e9b97c9d50fdb38e60aa9",
       "targetDomain": "Pruebas de Penetración de API",
       "targetArtifacts": [
         "apps/backend/src/server.ts",
@@ -1230,9 +1230,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 9,
-      "sizeBytes": 7179,
+      "sizeBytes": 7013,
       "lineCount": 167,
-      "sha256": "0e05a8294777f12a3a5e7ec5d26557e47021851135d2177d448809d9cac99e55",
+      "sha256": "b2dc2970cea7b3273fe90071b2cb7561bfd54328a585f53abf774fdeb9849a65",
       "targetDomain": "Rendimiento y Capacidad bajo Carga",
       "targetArtifacts": [
         "apps/backend/src/server.ts",
@@ -1274,9 +1274,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 4481,
+      "sizeBytes": 4374,
       "lineCount": 108,
-      "sha256": "c63c6ca7de17f8188d59b76518cdfb2a0be5f8a71c19d3536a581571bcdccd90",
+      "sha256": "e6b1787c88ecdffacba8d325bf5a3a3ee3c738dd72a995770c14e5db48105329",
       "targetDomain": "Gobernanza de GitHub Rulesets",
       "targetArtifacts": [
         ".github/rulesets/main-protection.json"
@@ -1315,9 +1315,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 31,
-      "sizeBytes": 11114,
+      "sizeBytes": 10861,
       "lineCount": 254,
-      "sha256": "46877a134e6c91e937ddeaefd3569436a9ad27a924b6cfd80c445eb52a0ab5f3",
+      "sha256": "fd571182b5590559aceb7cc902188798831c82c10f9c0783cefe2ef4c1cb214e",
       "targetDomain": "Paridad Declarativa de Rulesets",
       "targetArtifacts": [
         ".github/rulesets/main-protection.json",
@@ -1386,9 +1386,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 98,
-      "sizeBytes": 18058,
+      "sizeBytes": 17611,
       "lineCount": 448,
-      "sha256": "d9af87ae980426259cd4fe475a772ee04f26731bc8cf9f071be7e605f115af6a",
+      "sha256": "e596028804258dd9ef0818db9f0bd7419a4a13ac477c34a131037183338f73f7",
       "targetDomain": "Seguridad Integral de Aplicación y Headers",
       "targetArtifacts": [
         "apps/backend/src/server.ts",
@@ -1529,9 +1529,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 211,
-      "sizeBytes": 46125,
+      "sizeBytes": 45367,
       "lineCount": 759,
-      "sha256": "48715d48106f8c1b49b9d1830dacbb9e5319395a1c06b9b9a83dc7d5dfe93330",
+      "sha256": "e09a02a25025047dc24deeba1dd4595b75be28a63a942cf61b539259c91d7eb3",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/architecture/decisions/"
@@ -1677,9 +1677,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 123,
-      "sizeBytes": 21668,
+      "sizeBytes": 21351,
       "lineCount": 318,
-      "sha256": "e20852ca1cbb5d8dafb5cd3242e7c2f5e21092d3fafd1efb973f5e9f2fa2d562",
+      "sha256": "7fe326a5bfd9de2e45ecf388bc77a0cf45f542236f529a72f432c2da26f69cb7",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -1744,9 +1744,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 6891,
+      "sizeBytes": 6737,
       "lineCount": 155,
-      "sha256": "4ab8376a073a2b218b7a8d835416e24ad6815445325b90e3581cb25a39600ffc",
+      "sha256": "81e7631b0494442f2e4d8bbd389d062f8898bd360ba30a112c1db4d37b0f1212",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -1794,9 +1794,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 17,
-      "sizeBytes": 8460,
+      "sizeBytes": 8235,
       "lineCount": 226,
-      "sha256": "e9c7693de819542061554099f0d9e7919bed1cf38951a38ff618c0e7b547de65",
+      "sha256": "47981be687e9f442526d205e4140ab804ec091fb982d87e3d9c7200fc2c3e2a5",
       "targetDomain": "Control de Egress y Prevención SSRF",
       "targetArtifacts": [
         "infra/k8s/cilium-network-policies.yaml",
@@ -1842,9 +1842,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 35,
-      "sizeBytes": 7602,
+      "sizeBytes": 7416,
       "lineCount": 187,
-      "sha256": "ee702a5d40535ccc9934d13373800b4ea6b23e28b1ec705157b839dccbda2cfe",
+      "sha256": "cbb2a028fe79e6b1f5e672897caa5344ac22dcff20006e5c0c16543289dbac52",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -1885,9 +1885,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 51,
-      "sizeBytes": 12223,
+      "sizeBytes": 11903,
       "lineCount": 321,
-      "sha256": "e83adf5b7769a344a39adb52ad4067cce5e70c855d604214b6c6a9bfd907adf0",
+      "sha256": "7bbd8f4f7beb0efc61424ff095ea255e426cca72f341fd6a80ec2d11f849575e",
       "targetDomain": "Sincronización de Seguridad GitHub-Linear",
       "targetArtifacts": [
         "scripts/github-security-linear-sync.ts",
@@ -1964,9 +1964,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 6779,
+      "sizeBytes": 6639,
       "lineCount": 141,
-      "sha256": "deb26b0c1009436489794678624df38a7e73a2e00b49038414925d14dc0d2189",
+      "sha256": "59f17a77abdca24554b5b66efbdc4cf770e15812ced935097c3ac69022ae7346",
       "targetDomain": "Paridad de Imágenes en GitOps",
       "targetArtifacts": [
         "scripts/verify-image-digest-parity.ts",
@@ -2502,9 +2502,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 7451,
+      "sizeBytes": 7327,
       "lineCount": 125,
-      "sha256": "581746403978fb4a84f510d54200b8f1b5ee6278954a8b2171c7240f5296bbc7",
+      "sha256": "6e94fc6ddf756efd7c1945af6dbacd174480e7f8cdb0bd9437b7c22706a3dd62",
       "targetDomain": "Benchmarks de Recuperación ante Desastres",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -2568,9 +2568,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 9,
-      "sizeBytes": 2589,
+      "sizeBytes": 2526,
       "lineCount": 64,
-      "sha256": "c66813b621a775f0c863a7b84b97b3250504cf193d7621445ea3a5a9094799cb",
+      "sha256": "80105794e63d673b4697827292083137ae5467e67740d9a908064aac521074c2",
       "targetDomain": "Promoción Automatizada Segura",
       "targetArtifacts": [
         ".github/workflows/promote-auto-approve.yaml"
@@ -2698,9 +2698,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 78,
-      "sizeBytes": 12930,
+      "sizeBytes": 12752,
       "lineCount": 179,
-      "sha256": "592ad4d36808eae24b4400de6f66cfba54c33e53589ff185c29638998a492861",
+      "sha256": "1d47175dade2aceda12907aea50cf6e43099394686cc2a042fda8f55dc2902a9",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
@@ -2768,9 +2768,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 5349,
+      "sizeBytes": 5220,
       "lineCount": 130,
-      "sha256": "4acb270783046813ce8dca778c56b89c6ff4a126da0799df89a790ee16c437ba",
+      "sha256": "a8d454c50cb953d46b88482ea50d4fbb6c3336b0ed334c27c28b0c0271bb0301",
       "targetDomain": "Gobernanza de Extensiones YAML",
       "targetArtifacts": [
         "scripts/check-yaml-extension.ts"
@@ -2818,9 +2818,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 4697,
+      "sizeBytes": 4577,
       "lineCount": 121,
-      "sha256": "56a0f3d6b50562cd630a75af1d79f43c07dd408d5449d88270c3397380ff30d6",
+      "sha256": "7a646e5c89173dbbfc035245e1bd0dedaf66bedbaee0ed1c058bec9e788341f3",
       "targetDomain": "Capa de Persistencia y Caché",
       "targetArtifacts": [
         "apps/backend/src/data/pokemonStorage.ts",
@@ -2880,9 +2880,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 49,
-      "sizeBytes": 10799,
+      "sizeBytes": 10538,
       "lineCount": 262,
-      "sha256": "b41d8940a3c8683d39032b62cc121271ca4dd6ba5c909d5cb4844a4c3d7d95cc",
+      "sha256": "865d44b349b04a4d5d0033c76e1d1764163cb89114c1ddf4ea7ab852b671a60d",
       "targetDomain": "Servicio de Autenticación y Sesiones",
       "targetArtifacts": [
         "apps/backend/src/services/auth.ts"
@@ -2946,9 +2946,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 13,
-      "sizeBytes": 2730,
+      "sizeBytes": 2650,
       "lineCount": 81,
-      "sha256": "bfd78bb2dc6f203a80a8900128eaca4f5bf9c2cf9dcd6cb24a594ace547b335a",
+      "sha256": "c0f69a3c7b31c69371cbc4692c1e88fd2337ddc82cfdc298f4988b44412069e0",
       "targetDomain": "Servicio de Caché y Fallback",
       "targetArtifacts": [
         "apps/backend/src/data/redis.ts"
@@ -2996,9 +2996,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 30,
-      "sizeBytes": 6927,
+      "sizeBytes": 6732,
       "lineCount": 196,
-      "sha256": "8590c3ca47e363ac309280f372f4b6e62e67eff363dce3c0adb13f515e5612f8",
+      "sha256": "a51671486d8d35bb7fd11e08ac6c3ae26ca088b1ef9fbff8f8e1a7c7adc72b74",
       "targetDomain": "Repositorio de Datos Pokémon",
       "targetArtifacts": [
         "apps/backend/src/data/pokemonStorage.ts"
@@ -3058,9 +3058,9 @@
       "testCount": 7,
       "describeCount": 1,
       "assertionCountEst": 23,
-      "sizeBytes": 5713,
+      "sizeBytes": 5550,
       "lineCount": 164,
-      "sha256": "7ef2cf976d15279700c7f21bd41d97b077458cf748c114c0f325597ac602f243",
+      "sha256": "40e989c6bab09f55b72b248f31d4fbe3ff055ea4949df6c2baf2cf0d9c43e6b0",
       "targetDomain": "Resiliencia de Conexión a Base de Datos",
       "targetArtifacts": [
         "apps/backend/src/data/drizzle.ts",
@@ -3117,9 +3117,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 64,
-      "sizeBytes": 17077,
+      "sizeBytes": 16664,
       "lineCount": 414,
-      "sha256": "50cd8fae1e0ae53725e845d688c3aa7ce6ffbbd2e35f20094f6bd46883a4d986",
+      "sha256": "2d2672124becbaca5bf73694645dcb529918e8d145c0ecff3a017e517d755fc9",
       "targetDomain": "Endpoint de Telemetría /version",
       "targetArtifacts": [
         "apps/backend/src/routes/version.ts"
@@ -3202,9 +3202,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 15,
-      "sizeBytes": 4715,
+      "sizeBytes": 4616,
       "lineCount": 100,
-      "sha256": "244db994d17db47a8367bf35d6e2349716205001dde23df2c3dc5f49ff8f4167",
+      "sha256": "1d44c1d2636283351c2aaf5038eb6dfa41286a0ecc3d944270bbce942f53466b",
       "targetDomain": "Consistencia de Versiones SemVer",
       "targetArtifacts": [
         "package.json",

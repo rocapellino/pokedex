@@ -470,10 +470,12 @@ function getFilesRecursively(dir: string): string[] {
 export function parseTestFile(fullPath: string): TestFileRecord {
   const relativePath = path.relative(ROOT_DIR, fullPath).replace(/\\/g, '/');
   const content = fs.readFileSync(fullPath, 'utf8');
-  const lines = content.split('\n');
-  const sizeBytes = fs.statSync(fullPath).size;
+  // Normalizar CRLF -> LF para cálculo determinista e idéntico de SHA-256 en Windows y Linux (CI)
+  const normalizedContent = content.replace(/\r\n/g, '\n');
+  const lines = normalizedContent.split('\n');
+  const sizeBytes = Buffer.byteLength(normalizedContent, 'utf8');
   const lineCount = lines.length;
-  const sha256 = crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+  const sha256 = crypto.createHash('sha256').update(normalizedContent, 'utf8').digest('hex');
 
   let suite = 'governance';
   const parts = relativePath.split('/');
