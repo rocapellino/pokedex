@@ -1,18 +1,23 @@
 # ==============================================================================
-# ArgoCD Custom Health Checks - Extensión de Evaluación de CRDs (ADR-021)
+# ArgoCD Custom Health Checks - Extensión de `argocd-cm` (ADR-021)
 # ==============================================================================
-# Este ConfigMap complementa argocd-cm para proveer scripts Lua de evaluación de
-# salud para recursos personalizados (CRDs) críticos de la plataforma Pokédex:
-# - external-secrets.io/ExternalSecret
-# - kyverno.io/ClusterPolicy
+# GITOPS-001: ArgoCD carga los scripts `resource.customizations.health.*`
+# ÚNICAMENTE desde el ConfigMap `argocd-cm` del namespace `argocd`. Un ConfigMap
+# con otro nombre se aplica sin error pero ArgoCD lo IGNORA en silencio, lo que
+# reportaba CRDs no sincronizados como Healthy por ausencia de condición.
+#
+# Por eso este manifiesto declara el MISMO objeto que extiende (`argocd-cm`) y
+# no uno homónimo. Debe aplicarse como patch de tipo `merge` para preservar el
+# resto de claves que ArgoCD ya administra (ver `task gitops:health-checks`).
+# Un `kubectl apply` sobrescribiría el ConfigMap completo y borraría la
+# configuración de ArgoCD administrada por su operator/Helm release.
 # ==============================================================================
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-cm-healthchecks
+  name: argocd-cm
   namespace: argocd
   labels:
-    app.kubernetes.io/name: argocd-cm-healthchecks
     app.kubernetes.io/part-of: argocd
     architecture.pokedex.io/tier: "health-monitoring"
 data:

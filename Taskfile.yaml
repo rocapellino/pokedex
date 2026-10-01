@@ -262,7 +262,10 @@ tasks:
   gitops:health-checks:
     desc: "Aplica los Custom Health Checks de ArgoCD para evaluación de CRDs (ADR-021)"
     cmds:
-      - kubectl apply -f gitops/health-checks/argocd-cm-healthchecks.yaml
+      # GITOPS-001: ArgoCD solo lee `resource.customizations.health.*` del ConfigMap
+      # `argocd-cm`. Se parchea con `--type merge` (no `apply`) para inyectar las
+      # claves de salud sin sobrescribir la configuración de ArgoCD ya existente.
+      - kubectl patch configmap argocd-cm -n argocd --type merge --patch-file gitops/health-checks/argocd-cm-healthchecks.yaml
 
   gitops:pin:
     desc: "Actualiza el targetRevision en manifiestos de ArgoCD (Uso: task gitops:pin TAG=vX.Y.Z)"
