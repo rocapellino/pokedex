@@ -19,6 +19,16 @@ vm_count               = 1
 vm_cores               = 4
 vm_memory              = 5120
 vm_disk_size           = 32
+# Imagen Cloud-Init de la VM de Producción (INFRA-007).
+# La URL queda anclada a un release CONCRETO de Debian y NO al alias `latest`:
+# un `apply` futuro no debe materializar una imagen distinta a la verificada.
+# Debian publica los digests oficiales en SHA512SUMS (no SHA256) junto al release.
+# Fuente de verificación: https://cloud.debian.org/images/cloud/bookworm/20260923-2610/SHA512SUMS
+vm_image_url                 = "https://cloud.debian.org/images/cloud/bookworm/20260923-2610/debian-12-genericcloud-amd64-20260923-2610.raw"
+vm_image_file_name           = "debian-12-genericcloud-amd64-20260923-2610.raw"
+vm_image_checksum            = "cc8462609271f3a2f43b8203170ee08e223e9060239ec15605b65e98f3a651b3c478d49a356f9224e1a4c340b0251b001e7e16f075d9af181e864e72d42d51e0"
+vm_image_checksum_algorithm  = "sha512"
+
 # Plantilla LXC descargada mediante HTTPS con verificación criptográfica SHA256 (Supply Chain Security):
 lxc_template_url                = "https://mirrors.ustc.edu.cn/proxmox/images/system/debian-12-standard_12.12-1_amd64.tar.zst"
 lxc_template_file_name          = "debian-12-standard_12.12-1_amd64.tar.zst"

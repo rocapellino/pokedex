@@ -1,6 +1,6 @@
 # Plan de Cambio — Fase 1: Corrección Funcional y Seguridad (`infra/` + `gitops/`)
 
-> **Estado:** Pasos 1 (`GITOPS-001`) y 2 (`INFRA-003`, `INFRA-012`) **EJECUTADOS Y VALIDADOS** el 2026-10-01. Pasos 3-4 pendientes de ejecución.
+> **Estado:** Pasos 1 (`GITOPS-001`), 2 (`INFRA-003`, `INFRA-012`) y 3 (`INFRA-007`) **EJECUTADOS Y VALIDADOS** el 2026-10-01. Paso 4 pendiente de ejecución.
 > **Fecha:** 2026-10-01
 > **Alcance:** 4 hallazgos P2. Dos en `gitops/`, dos en `infra/`.
 > **Ids de origen:** `GITOPS-001`, `INFRA-003`, `INFRA-007`, `GITOPS-002` (ver *Anexo A*).

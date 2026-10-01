@@ -97,6 +97,14 @@ resource "proxmox_download_file" "debian_vm_image" {
   node_name    = var.node_name
   url          = var.vm_image_url
   file_name    = var.vm_image_file_name
+  # INFRA-007: verificación de integridad en la imagen de PRODUCCIÓN, en paridad
+  # con la plantilla LXC. Sin esto, un `apply` materializaría el artefacto que
+  # publicase el servidor en ese momento, sin ninguna garantía de que sea el
+  # artefacto auditado. `overwrite = false` evita además que el provider
+  # re-descargue la imagen cuando detecta un cambio de tamaño upstream.
+  checksum           = var.vm_image_checksum
+  checksum_algorithm = var.vm_image_checksum_algorithm
+  overwrite          = false
 }
 
 resource "proxmox_virtual_environment_vm" "k8s_nodes" {
