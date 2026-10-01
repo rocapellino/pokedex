@@ -186,9 +186,9 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor
   assert.equal(fs.existsSync(legacyScript), false, 'scripts/proxmox_deploy.sh debe estar eliminado; el aprovisionamiento se gestiona vía OpenTofu + Ansible + Helm');
 });
 
-test('🛡️ Deploy Security: Ansible host_baseline.yml existe y configura hardening de host sin errores ignorados', () => {
+test('🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados', () => {
   const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yaml');
-  assert.ok(fs.existsSync(baselinePath), 'host_baseline.yml debe existir');
+  assert.ok(fs.existsSync(baselinePath), 'host_baseline.yaml debe existir');
   const baseContent = fs.readFileSync(baselinePath, 'utf-8');
   const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yaml');
   const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yaml');
@@ -277,9 +277,9 @@ test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (s
   assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
 });
 
-test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
+test('🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
   const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yaml');
-  assert.ok(fs.existsSync(playbookPath), 'security_hardening.yml debe existir');
+  assert.ok(fs.existsSync(playbookPath), 'security_hardening.yaml debe existir');
   const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yaml');
   const content = fs.readFileSync(playbookPath, 'utf-8') +
     (fs.existsSync(roleFirewall) ? fs.readFileSync(roleFirewall, 'utf-8') : '');
@@ -1123,7 +1123,7 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   }
 });
 
-test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yml', () => {
+test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml', () => {
   // 1. Verificación en SSOT documental vigente (PROXMOX_DEPLOYMENT_GUIDE.md y ADR-025)
   const proxmoxGuidePath = path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md');
   assert.ok(fs.existsSync(proxmoxGuidePath), 'PROXMOX_DEPLOYMENT_GUIDE.md debe existir en docs/runbooks/');
