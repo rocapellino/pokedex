@@ -159,7 +159,93 @@ test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener
   }
 });
 
-test('🛡️ Helm Security: values.prod.yaml exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
+/**
+ * INFRA-011 — `values.prod.yaml` no debe convertirse en un target desplegado
+ * sin una decisión explícita.
+ *
+ * Hoy ninguna Application de ArgoCD lo consume: las tres usan exclusivamente
+ * `valueFiles: [values.yaml, <override de gitops/environments/>]`. El perfil de
+ * producción real es `gitops/environments/proxmox/values.yaml`.
+ *
+ * El archivo se conserva como perfil de referencia, pero si alguna vez se
+ * conecta a un entorno real debe ser una decisión consciente. Este gate
+ * detecta esa transición para que alguien la valide en lugar de que ocurra por
+ * descuido.
+ */
+test('🗂️ INFRA-011: ninguna Application de ArgoCD consume el perfil de referencia', () => {
+  const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
+  const appFiles = fs
+    .readdirSync(gitopsAppsDir)
+    .filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
+
+  assert.ok(appFiles.length >= 3, 'Deben existir Applications de ArgoCD en gitops/apps');
+
+  const consumers = appFiles.filter((f) => {
+    const content = fs.readFileSync(path.join(gitopsAppsDir, f), 'utf-8');
+    return /infra\/helm\/pokedex\/values\.prod\.yaml/.test(content);
+  });
+
+  assert.deepEqual(
+    consumers,
+    [],
+    'INFRA-011: una Application de ArgoCD consume values.prod.yaml. Ese archivo es un ' +
+    'perfil de REFERENCIA; el perfil de producción real es gitops/environments/proxmox/values.yaml. ' +
+    'Si la conexión es intencional, actualiza este gate y la cabecera del archivo.'
+  );
+
+  // Y el perfil real de producción debe seguir siendo el override de GitOps.
+  const proxmoxApp = fs.readFileSync(
+    path.join(gitopsAppsDir, 'app-proxmox.yaml'),
+    'utf-8'
+  );
+  assert.match(
+    proxmoxApp,
+    /gitops\/environments\/proxmox\/values\.yaml/,
+    'INFRA-011: la Application de producción debe usar el override de gitops/environments/proxmox'
+  );
+});
+
+/**
+ * INFRA-011 — la cabecera de `values.prod.yaml` debe declarar su rol.
+ *
+ * Si alguien reintroduce el encabezado "Overrides para Entorno de Producción" sin
+ * más contexto, vuelve a parecer que ese archivo gobierna producción, y las
+ * aserciones de los tests vuelven a leerse como garantías operativas.
+ */
+test('🗂️ INFRA-011: el perfil de referencia declara en su cabecera que no despliega', () => {
+  // La asercion es INMUNE al final de linea y al locale. `values.prod.yaml` esta
+  // versionado con CRLF y los runners Linux no convierten al hacer checkout, de
+  // modo que el `\r` final y las vocales acentuadas impiden el match de una
+  // expresion literal. Windows convierte al leer, por eso el fallo era exclusivo
+  // de CI. Se normaliza el texto y se eliminan los caracteres no ASCII.
+  const raw = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml'),
+    'utf-8'
+  );
+  const prodValues = raw.replace(/\r\n/g, '\n').replace(/[^\x00-\x7F]/g, '');
+
+  assert.match(
+    prodValues,
+    /NO\s+despliega\s+ning/,
+    'INFRA-011: values.prod.yaml debe declarar explicitamente que no despliega ningun entorno'
+  );
+  assert.match(
+    prodValues,
+    /PERFIL DE REFERENCIA/,
+    'INFRA-011: values.prod.yaml debe rotularse como perfil de referencia'
+  );
+  assert.match(
+    prodValues,
+    /gitops\/environments\//,
+    'INFRA-011: la cabecera debe apuntar al directorio donde si viven los perfiles desplegados'
+  );
+});
+
+test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
+  // INFRA-011: `values.prod.yaml` NO despliega ningun entorno (ninguna Application
+  // de ArgoCD lo consume). El test verifica que el perfil de referencia mantiene la
+  // postura Zero-Trust L7, para que si algun dia se conecta a un entorno real ya
+  // venga endurecido por defecto.
   const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
   assert.ok(fs.existsSync(prodValuesPath), 'values.prod.yaml debe existir');
   const content = fs.readFileSync(prodValuesPath, 'utf-8');

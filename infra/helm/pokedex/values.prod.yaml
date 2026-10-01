@@ -1,5 +1,25 @@
 # ==============================================================================
-# Overrides para Entorno de Producción (Alta Disponibilidad & Endurecimiento)
+# PERFIL DE REFERENCIA — Endurecimiento de producción (Alta Disponibilidad)
+# ==============================================================================
+# INFRA-011: este archivo **NO despliega ningún entorno**.
+#
+# Ninguna Application de ArgoCD lo consume. Las tres Applications activas usan
+# exclusivamente `valueFiles: [values.yaml, <override de gitops/environments/>]`:
+#   - pokedex-proxmox       -> gitops/environments/proxmox/values.yaml
+#   - pokedex-preprod       -> gitops/environments/proxmox-preprod/values.yaml
+#   - pokedex-cloud         -> gitops/environments/aws/values.yaml (referencia inactiva)
+#
+# Es decir: el perfil de PRODUCCIÓN real es `gitops/environments/proxmox/values.yaml`.
+# Este archivo se renderiza en CI y hay tests que verifican su configuración,
+# pero ninguna de esas aserciones describe el estado de un entorno desplegado.
+#
+# SE CONSERVA porque cumple dos funciones:
+#   1. Documenta la postura objetivo de endurecimiento (HA, Zero-Trust L7,
+#      digest pinning, ResourceQuota) como referencia para endurar el perfil real.
+#   2. Si en el futuro se decide conectar producción a este perfil, ya viene
+#      endurecido por defecto en lugar de arrancar desde el perfil base.
+#
+# Si buscas qué se despliega realmente, consulta `gitops/environments/`.
 # ==============================================================================
 
 api:
