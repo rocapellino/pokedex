@@ -7,7 +7,11 @@ all:
     ansible_python_interpreter: /usr/bin/python3
     app_name: pokedex
     mgmt_cidr: "10.10.13.0/24"
-    k8s_cluster_cidr: "10.10.13.0/24"
+    # INFRA-009: subred de los NODOS del cluster. Sustituye a `k8s_cluster_cidr`,
+    # nombre ambiguo que llego a contener el CIDR de pods de k3s. Aqui el valor ya
+    # era correcto (la red de nodos coincide con la de gestion), por lo que no
+    # cambia el comportamiento efectivo de las reglas del firewall.
+    k8s_nodes_cidr: "10.10.13.0/24"
   children:
     k8s_control_plane:
       hosts:
