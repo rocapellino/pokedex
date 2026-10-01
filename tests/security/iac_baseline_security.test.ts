@@ -373,6 +373,113 @@ test('🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasm
   );
 });
 
+test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable', () => {
+  const mainTf = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf'),
+    'utf-8'
+  );
+  const varsTf = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'),
+    'utf-8'
+  );
+  const tfvars = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/terraform.tfvars.example'),
+    'utf-8'
+  );
+
+  // 1. Ambos recursos `proxmox_download_file` (plantilla LXC e imagen VM) deben
+  //    declarar checksum + checksum_algorithm. La asimetria original era que solo
+  //    el LXC verificaba integridad, dejando la imagen de PRODUCCION sin verificar.
+  const downloadBlocks = [...mainTf.matchAll(/resource\s+"proxmox_download_file"\s+"([\w.]+)"\s*\{([^}]*)\}/g)];
+  assert.ok(downloadBlocks.length >= 2, 'Deben existir los recursos de descarga LXC y VM');
+
+  for (const [, name, body] of downloadBlocks) {
+    assert.ok(
+      /checksum\s*=\s*var\.\w+/.test(body),
+      `INFRA-007: el recurso proxmox_download_file.${name} no verifica checksum; una imagen sustituta pasaria desapercibida`
+    );
+    assert.ok(
+      /checksum_algorithm\s*=\s*var\.\w+/.test(body),
+      `INFRA-007: el recurso proxmox_download_file.${name} no declara checksum_algorithm`
+    );
+  }
+
+  // 2. La URL por defecto de la VM NO debe seguir el alias mutable `latest`:
+  //    un checksum sobre una URL cambiante invalida la garantia de integridad.
+  const defaultUrl = varsTf.match(/variable\s+"vm_image_url"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
+  assert.ok(defaultUrl, 'vm_image_url debe declarar un valor por defecto');
+  assert.ok(
+    !/\/latest\//.test(defaultUrl),
+    `INFRA-007: vm_image_url sigue el alias mutable 'latest' (${defaultUrl}); ` +
+    'un apply futuro materializaria una imagen distinta a la verificada'
+  );
+  assert.match(
+    defaultUrl,
+    /\/images\/cloud\/bookworm\/\d{8}-\d+\//,
+    'INFRA-007: vm_image_url debe apuntar a un directorio versionado de Debian (p. ej. 20260923-2610)'
+  );
+
+  // 3. El nombre de archivo por defecto debe ser el del artefacto versionado.
+  const defaultName = varsTf.match(/variable\s+"vm_image_file_name"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
+  assert.ok(defaultName, 'vm_image_file_name debe declarar un valor por defecto');
+  assert.ok(
+    !/debian-12-genericcloud-amd64\.raw$/.test(defaultName),
+    `INFRA-007: vm_image_file_name debe versionar el artefacto (${defaultName}) para no colisionar entre versiones`
+  );
+
+  // 4. El ejemplo de variables debe documentar el checksum, en paridad con el
+  //    bloque LXC ya existente (si no, el operador no puede fijar el valor).
+  assert.ok(
+    /vm_image_checksum\s*=/.test(tfvars),
+    'INFRA-007: terraform.tfvars.example debe documentar vm_image_checksum'
+  );
+  assert.ok(
+    /vm_image_checksum_algorithm\s*=/.test(tfvars),
+    'INFRA-007: terraform.tfvars.example debe documentar vm_image_checksum_algorithm'
+  );
+});
+
+test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado', () => {
+  const varsTf = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'),
+    'utf-8'
+  );
+
+  const read = (name: string) =>
+    varsTf.match(new RegExp(`variable\\s+"${name}"[\\s\\S]*?default\\s*=\\s*"([^"]+)"`))?.[1];
+
+  const cases: Array<[string, string, number]> = [
+    ['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64],
+    ['vm_image_checksum', 'vm_image_checksum_algorithm', 128],
+  ];
+
+  for (const [checksumVar, algVar, expectedLen] of cases) {
+    const checksum = read(checksumVar);
+    const algorithm = read(algVar);
+    assert.ok(checksum, `${checksumVar} debe declarar un checksum por defecto`);
+    assert.ok(algorithm, `${algVar} debe declarar el algoritmo por defecto`);
+
+    // El algoritmo determina la longitud esperada del digest. El repo usa SHA256
+    // para el LXC y SHA512 para la VM, que es lo que publica Debian (SHA512SUMS).
+    const expectedAlgorithm = expectedLen === 64 ? 'sha256' : 'sha512';
+    assert.equal(
+      algorithm,
+      expectedAlgorithm,
+      `${algVar} debe ser '${expectedAlgorithm}' para que ${checksumVar} tenga ${expectedLen} caracteres`
+    );
+    assert.equal(
+      checksum.length,
+      expectedLen,
+      `${checksumVar} debe tener exactamente ${expectedLen} caracteres hexadecimales (${algorithm})`
+    );
+    assert.match(
+      checksum,
+      new RegExp(`^[a-f0-9]{${expectedLen}}$`),
+      `${checksumVar} debe ser un digest hexadecimal en minúsculas`
+    );
+  }
+});
+
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
   const kindPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');
   assert.ok(fs.existsSync(kindPath), 'kind-cluster.yaml debe existir');

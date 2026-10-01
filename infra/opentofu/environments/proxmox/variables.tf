@@ -45,16 +45,37 @@ variable "environment_tier" {
   }
 }
 
+# INFRA-007: URL anclada a un release CONCRETO de Debian, no al alias `latest`.
+# El alias mutable permitiria que un `apply` futuro materializase una imagen
+# distinta a la verificada, invalidando el checksum. El build se fija al release
+# 20260923-2610, que es al que apunta `latest/` en la fecha de este cambio.
 variable "vm_image_url" {
   type        = string
-  default     = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.raw"
-  description = "URL oficial de descarga de la imagen Cloud-Init Debian 12 para VMs de Producción"
+  default     = "https://cloud.debian.org/images/cloud/bookworm/20260923-2610/debian-12-genericcloud-amd64-20260923-2610.raw"
+  description = "URL de descarga de la imagen Cloud-Init Debian 12 para VMs de Producción (release versionado e inmutable)"
 }
 
 variable "vm_image_file_name" {
   type        = string
-  default     = "debian-12-genericcloud-amd64.raw"
-  description = "Nombre de archivo de imagen Cloud-Init para VMs"
+  default     = "debian-12-genericcloud-amd64-20260923-2610.raw"
+  description = "Nombre de archivo de imagen Cloud-Init para VMs. Se versiona junto con la URL para evitar colisiones entre releases en el datastore"
+}
+
+# INFRA-007: checksum oficial publicado por Debian en SHA512SUMS para el
+# artefacto exacto declarado en vm_image_url. Debian no publica SHA256 para las
+# imagenes cloud, por lo que se usa SHA512 (aceptado por el provider, que admite
+# md5|sha1|sha224|sha256|sha384|sha512).
+# Fuente: https://cloud.debian.org/images/cloud/bookworm/20260923-2610/SHA512SUMS
+variable "vm_image_checksum" {
+  type        = string
+  default     = "cc8462609271f3a2f43b8203170ee08e223e9060239ec15605b65e98f3a651b3c478d49a356f9224e1a4c340b0251b001e7e16f075d9af181e864e72d42d51e0"
+  description = "Hash criptográfico SHA512 oficial de Debian para la imagen de VM de producción (verificar contra SHA512SUMS del release)"
+}
+
+variable "vm_image_checksum_algorithm" {
+  type        = string
+  default     = "sha512"
+  description = "Algoritmo de hash para verificar la imagen de VM ('sha256' o 'sha512'). Debian publica SHA512SUMS, no SHA256, para las imágenes cloud"
 }
 
 variable "vm_count" {
