@@ -126,13 +126,6 @@ variable "lxc_template_checksum_algorithm" {
   description = "Algoritmo de hash criptográfico para verificar la plantilla LXC ('sha256' o 'sha512')"
 }
 
-variable "image_file_id" {
-  type        = string
-  default     = "local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst"
-  description = "ID del archivo de plantilla LXC en el storage local de Proxmox"
-}
-
-
 variable "ssh_public_key" {
   type        = string
   description = "Clave pública SSH obligatoria para inyectar en las instancias creadas en Proxmox"
