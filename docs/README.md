@@ -203,4 +203,4 @@ flowchart TD
 > **Aviso de Gobernanza:** Los documentos ubicados bajo `docs/audits/<fecha>/` constituyen **evidencia y diagnósticos históricos fechados** correspondientes a hitos específicos de auditoría. **NO constituyen la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura activa se especifica exclusivamente en [`docs/architecture/`](./architecture/).
 
 - 📋 [**Registro y política de auditorías**](./audits/README.md): índice canónico y reglas de retención de snapshots históricos.
-- 📸 [**baseline.md**](./audits/2026-09-27/baseline.md): snapshot histórico más reciente. Su metadata puede clasificarse como `AUDIT_STALE`; el estado actual siempre se obtiene de las fuentes de verdad vigentes.
+- 📸 [**baseline.md**](./audits/2026-10-01/baseline.md): snapshot histórico más reciente. Su metadata puede clasificarse como `AUDIT_STALE`; el estado actual siempre se obtiene de las fuentes de verdad vigentes.
