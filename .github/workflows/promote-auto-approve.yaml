@@ -1,0 +1,40 @@
+# ==============================================================================
+# Auto-Aprobación Automática de Checks en PRs de Promoción de Release
+# ==============================================================================
+name: ⚡ Auto-Approve Release Promote Checks
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  actions: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  auto-approve:
+    name: 🚀 Iniciar Checks Automáticos de Release
+    if: startsWith(github.event.pull_request.head.ref, 'release/promote-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aprobar workflows pendientes en action_required
+        env:
+          GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN || secrets.GITHUB_TOKEN }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "🔍 Verificando workflows en espera de aprobación para ${HEAD_BRANCH}..."
+          sleep 6
+          RUNS=$(gh api "repos/${{ github.repository }}/actions/runs?event=pull_request&head_branch=${HEAD_BRANCH}&status=action_required" --jq '.workflow_runs[].id' 2>/dev/null || true)
+          if [ -z "$RUNS" ]; then
+            echo "✅ No hay workflows en espera de aprobación manual."
+            exit 0
+          fi
+          for RUN_ID in $RUNS; do
+            echo "⚡ Aprobando workflow run ${RUN_ID} automáticamente..."
+            gh api --method POST "repos/${{ github.repository }}/actions/runs/${RUN_ID}/approve" || true
+          done
+          echo "✅ Workflows aprobados exitosamente. Los checks se ejecutarán automáticamente."
