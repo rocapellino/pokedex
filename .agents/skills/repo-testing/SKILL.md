@@ -46,11 +46,32 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 - **Protocolo de Gobernanza en 7 Fases:**
   `1. DISCOVER` (inventario) → `2. CLASSIFY` (taxonomía) → `3. EVIDENCE` (matriz de consumidores y código cubierto) → `4. PROPOSE` (plan / finding) → `5. APPROVE` (revisión humana) → `6. EXECUTE` (refactor / consolidación) → `7. VALIDATE` (Quality Gates 100% PASS).
   *Regla estricta:* Ningún test se elimina automáticamente en primera pasada ni únicamente porque no se ejecute (primero se investiga si obedece a un pipeline desconfigurado o test abandonado).
+- **Gobernanza de Superficie de Testing (Test Surface Inventory):**
+  - **Arquitectura Derivada y Reconciliable:** El código en `tests/` y `package.json` es la Fuente Única de Verdad (SSOT). La superficie se documenta y audita mediante dos artefactos gobernados:
+    - `docs/testing/test-surface.json`: SSOT machine-readable con metadatos, SHA-256, conteo de casos y trazabilidad CI.
+    - `docs/testing/test-surface.md`: Catálogo legible para humanos con tablas agrupadas por suite, dominio y desglose granular de casos.
+  - **Granularidad Dual (Suites y Casos Internos):** El inventario no se limita al archivo; desglosa cada bloque `test('...')` o `it('...')` para diagnosticar God Test Files monolíticos (ej. `iac_baseline_security.test.ts`), suites infladas o pruebas sin aserciones.
+  - **Ciclo de Reconciliación Automatizado:**
+    `DISCOVER` (escaneo de `tests/`) → `NORMALIZE` (clasificación y extracción) → `COMPARE` (cálculo de drift contra `test-surface.json`) → `RECONCILE` (detección de altas/bajas/cambios) → `DOCUMENT` (actualización de catálogos) → `VALIDATE` (paridad estricta y Markdown Quality Gate).
+  - **Taxonomía de Estados de Reconciliación:**
+    - `NEW`: Archivo o suite nueva detectada en disco.
+    - `REMOVED`: Archivo o suite eliminada del repositorio pendiente de purga en catálogo.
+    - `RENAMED`: Archivo reubicado o renombrado entre suites.
+    - `MODIFIED`: Modificación en el hash SHA-256 del archivo.
+    - `COUNT_CHANGED`: Variación en la cantidad de casos de prueba o asertos detectados.
+    - `DESCRIPTION_DRIFT`: Desalineación entre el propósito semántico documentado y las aserciones reales del código.
+    - `ORPHAN`: Archivo de test presente en disco pero no incluido en `npm test`, `npm run test:all` ni scripts especializados.
+    - `UNEXECUTED`: Test no integrado en ningún workflow de GitHub Actions.
+    - `STALE_REFERENCE`: Referencia en documentación a un archivo o caso de prueba inexistente.
+  - **Prevención de Drift en CI:** Ejecución obligatoria de `npm run test:surface:check` como Policy-as-Test contractual en `tests/contracts.test.ts` y script `validate`.
 - **Validación Canónica en Kind:** Uso de clústeres Kind en CI (`infra.yaml`) para verificar despliegues reales de Helm antes de promover a GitOps.
 
 ## Comandos
 
 - `/repo-testing`: Auditoría integral de la suite, taxonomía de 12 estados y pirámide de pruebas.
+- `/repo-testing surface`: Diagnóstico y visualización del inventario de superficie y drift actual.
+- `/repo-testing surface check`: Verificación estricta de paridad (`npm run test:surface:check`); falla con exit 1 ante drift.
+- `/repo-testing surface update`: Regeneración y reconciliación automática de `test-surface.json` y `test-surface.md`.
 - `/repo-testing audit`: Inventario exhaustivo y diagnóstico de duplicación, lentitud y antipatrones.
 - `/repo-testing coverage`: Análisis de cobertura de líneas, branches y funciones (`coverage/lcov.info`).
 - `/repo-testing gaps`: Detección de brechas de cobertura (`TEST_COVERAGE_GAP`) frente a `apps/backend/src`.

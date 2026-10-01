@@ -16,6 +16,7 @@ flowchart TD
     PORTAL --> SEC["🛡️ 6. Seguridad & Incidentes\n(docs/security/)"]
     PORTAL --> ADR["📐 7. Decisiones de Arquitectura\n(docs/decisions/)"]
     PORTAL --> OPS["🚨 8. Operaciones de Plataforma\n(docs/operations/)"]
+    PORTAL --> TEST["🧪 9. Estrategia & Superficie de Testing\n(docs/testing/)"]
 
     ARCH --> A1["🎨 MOCKUPS_Y_DISENO_UI.md"]
     ARCH --> A2["🔬 ANALISIS_LENGUAJES_Y_MEJORES_PRACTICAS.md"]
@@ -65,14 +66,15 @@ flowchart TD
     OPS --> OP10["📥 GDRIVE_BACKUP_GUIDE.md"]
     OPS --> OP11["🗄️ OFFSITE_BACKUP_BLUEPRINTS.md"]
     OPS --> OP12["📐 capacity-and-quotas.md"]
+    TEST --> T1["🧪 test-surface.md"]
 
     classDef main fill:#2563eb,stroke:#1d4ed8,color:#fff;
     classDef section fill:#0891b2,stroke:#0e7490,color:#fff;
     classDef doc fill:#64748b,stroke:#475569,color:#fff;
 
     class PORTAL main;
-    class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12 doc;
+    class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS,TEST section;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,T1 doc;
 ```
 
 ---
@@ -189,7 +191,13 @@ flowchart TD
 
 ---
 
-### 9. 🔍 Auditorías Técnicas y Evidencia Histórica ([`docs/audits/`](./audits/))
+### 9. 🧪 Estrategia y Superficie de Testing ([`docs/testing/`](./testing/))
+
+- 🧪 [**test-surface.md**](./testing/test-surface.md): **Inventario canónico y gobernanza de la superficie de pruebas**. Catálogo de suites, tipologías (unitarias, integración, seguridad, IaC, E2E, performance y fuzzing), comandos de ejecución npm y trazabilidad integral en CI/CD.
+
+---
+
+### 10. 🔍 Auditorías Técnicas y Evidencia Histórica ([`docs/audits/`](./audits/))
 
 > [!NOTE]
 > **Aviso de Gobernanza:** Los documentos ubicados bajo `docs/audits/<fecha>/` constituyen **evidencia y diagnósticos históricos fechados** correspondientes a hitos específicos de auditoría. **NO constituyen la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura activa se especifica exclusivamente en [`docs/architecture/`](./architecture/).

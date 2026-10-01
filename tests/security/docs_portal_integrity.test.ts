@@ -58,6 +58,7 @@ const INDEXED_DIRS = [
   'operations',
   'runbooks',
   'security',
+  'testing',
 ];
 
 /** Directorios excluidos del contrato de indexacion, con su motivo. */
