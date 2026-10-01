@@ -165,7 +165,7 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Grafana Cloud** | SaaS | Plataforma central de observabilidad SaaS (Métricas, Logs, Trazas eBPF) | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
-| **Grafana Alloy** | `v1.x` | Agente unificado DaemonSet para recolección de métricas, OTLP y logs | [`infra/monitoring/deploy-grafana-cloud.ps1`](../../infra/monitoring/deploy-grafana-cloud.ps1) |
+| **Grafana Alloy** | `v1.x` | Agente unificado DaemonSet para recolección de métricas, OTLP y logs | [`scripts/deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) (despliegue multiplataforma) |
 | **Grafana Beyla** | `v1.x` | Auto-instrumentación de trazas y métricas L7 mediante eBPF | [`infra/monitoring/grafana-cloud-values.yaml`](../../infra/monitoring/grafana-cloud-values.yaml) |
 | **Tableros Grafana** | `v10/11` | Dashboards canónicos para Pokédex API y salud del clúster | [`infra/monitoring/dashboards/`](../../infra/monitoring/dashboards) |
 | **Reglas de Alertas** | `Prometheus/Alloy` | Definición unificada de alertas (infraestructura, base de datos y API) | [`infra/monitoring/alerts.yaml`](../../infra/monitoring/alerts.yaml) |
