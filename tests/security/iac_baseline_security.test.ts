@@ -559,8 +559,27 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
     'utf-8'
   );
 
-  const read = (name: string) =>
-    varsTf.match(new RegExp(`variable\\s+"${name}"[\\s\\S]*?default\\s*=\\s*"([^"]+)"`))?.[1];
+  // Lectura por corte de bloque en lugar de RegExp dinamico: Semgrep SAST marca
+  // `new RegExp()` con argumento no literal como potencial ReDoS. El nombre de la
+  // variable proviene de una tabla literal de este test, pero la construccion
+  // dinamica no es necesaria: basta con localizar el bloque por texto y tomar su
+  // clave `default`.
+  //
+  // Se normalizan los finales de linea porque el archivo puede estar en CRLF: un
+  // corte por `\n}` no separaria los bloques en ese caso.
+  //
+  // El limite `\nvariable` es esencial: `lxc_template_checksum` es PREFIJO de
+  // `lxc_template_checksum_algorithm`, de modo que buscar solo la llave de cierre
+  // leeria el `default` de la variable SIGUIENTE en lugar del propio.
+  const tfSource = varsTf.replace(/\r\n/g, '\n');
+  const readDefault = (name: string): string | undefined => {
+    const start = tfSource.indexOf(`variable "${name}" {`);
+    if (start === -1) return undefined;
+    const rest = tfSource.slice(start);
+    const end = rest.slice(1).search(/\n(?=variable |#)/);
+    const block = end === -1 ? rest : rest.slice(0, end + 1);
+    return block.match(/default\s*=\s*"([^"]+)"/)?.[1];
+  };
 
   const cases: Array<[string, string, number]> = [
     ['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64],
@@ -568,8 +587,8 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
   ];
 
   for (const [checksumVar, algVar, expectedLen] of cases) {
-    const checksum = read(checksumVar);
-    const algorithm = read(algVar);
+    const checksum = readDefault(checksumVar);
+    const algorithm = readDefault(algVar);
     assert.ok(checksum, `${checksumVar} debe declarar un checksum por defecto`);
     assert.ok(algorithm, `${algVar} debe declarar el algoritmo por defecto`);
 
