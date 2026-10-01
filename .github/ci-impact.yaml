@@ -250,6 +250,10 @@ rules:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'infra/**/*.yaml'
+      # INFRA-006: los README de ruta son SSOT de su directorio y deben
+      # validarse. `infra/**/*.yaml` solo cubre los manifiestos, no la
+      # documentacion que describe la operacion de esa ruta.
+      - 'infra/**/README.md'
       - 'scripts/**/*.sh'
       - 'dr_verify_restore.sh'
       - 'scripts/check-ignore-hygiene.ts'

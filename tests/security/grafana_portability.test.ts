@@ -69,6 +69,94 @@ function extractHelmFlags(source) {
   return [...flags].sort();
 }
 
+/**
+ * INFRA-006 — `alloy-proxmox-values.yaml` no debe reaparecer.
+ *
+ * Ese archivo era un values de Grafana Alloy para el clúster de Proxmox que
+ * **no tenía ningún consumidor**: ni `Taskfile`, ni `.vscode/tasks.json`, ni
+ * workflows, ni tests, ni documentación. La configuración equivalente y vigente
+ * vive en `infra/monitoring/grafana-cloud-values.yaml`, que sí consume
+ * `scripts/deploy-grafana-cloud.mjs` (invocado por `task monitoring:grafana-cloud:install`
+ * y por el task de VS Code).
+ *
+ * Un values huérfano es peor que un values ausente: sugiere que el despliegue de
+ * telemetría está parametrizado por ese archivo cuando no lo está, e invita a
+ * editar configuración que nada aplica.
+ *
+ * Este gate comprueba el EFECTO (que el archivo no exista y que su sustituto
+ * tenga consumidores), no la presencia de una referencia textual.
+ */
+test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monitoring', () => {
+  const monitoringDir = path.join(ROOT_DIR, 'infra/monitoring');
+
+  // 1. El values huérfano no debe existir.
+  const orphanPath = path.join(monitoringDir, 'alloy-proxmox-values.yaml');
+  assert.ok(
+    !fs.existsSync(orphanPath),
+    'INFRA-006: alloy-proxmox-values.yaml no debe existir; no tiene consumidores y su ' +
+    'configuración vive en grafana-cloud-values.yaml (consumido por scripts/deploy-grafana-cloud.mjs)'
+  );
+
+  // 2. El sustituto vigente debe existir y tener consumidores REALES. Si en el
+  //    futuro se renombrara o moviera, este gate obliga a actualizar la referencia
+  //    en lugar de dejar otro archivo sin conectar.
+  const canonicalPath = path.join(monitoringDir, 'grafana-cloud-values.yaml');
+  assert.ok(
+    fs.existsSync(canonicalPath),
+    'INFRA-006: grafana-cloud-values.yaml debe existir como configuracion canonica de telemetria'
+  );
+
+  const deployScript = fs.readFileSync(MJS_PATH, 'utf-8');
+  assert.match(
+    deployScript,
+    /grafana-cloud-values\.yaml/,
+    'INFRA-006: scripts/deploy-grafana-cloud.mjs debe referenciar grafana-cloud-values.yaml'
+  );
+
+  // 3. La cadena operativa completa debe seguir cableada: Taskfile y VS Code.
+  const taskfile = fs.readFileSync(TASKFILE_PATH, 'utf-8');
+  const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
+  for (const [label, source] of [
+    ['Taskfile.yaml', taskfile],
+    ['.vscode/tasks.json', vscodeTasks],
+  ] as const) {
+    assert.match(
+      source,
+      /scripts\/deploy-grafana-cloud\.mjs/,
+      `INFRA-006: ${label} debe seguir invocando el desplegador de Grafana Cloud`
+    );
+  }
+
+  // 4. Ningun otro values de Grafana Alloy puede quedar sin consumidor. Se
+  //    listan los *.yaml de nivel superior y se exige que cada uno este en la
+  //    lista blanca de consumidores conocidos.
+  const topLevelYaml = fs
+    .readdirSync(monitoringDir)
+    .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+
+  const knownConsumers = new Set(['alerts.yaml', 'grafana-cloud-values.yaml']);
+  const unconsumed = topLevelYaml.filter((f) => !knownConsumers.has(f));
+
+  assert.deepEqual(
+    unconsumed,
+    [],
+    `INFRA-006: hay values YAML en infra/monitoring sin consumidor declarado: ${unconsumed.join(', ')}. ` +
+    'Todo values de esa ruta debe ser consumible por el script de despliegue o estar en la lista blanca.'
+  );
+
+  // 5. El README de la ruta debe estar clasificado en el motor de impacto. Si no,
+  //    el fail-closed lo enmascara y este archivo puede publicarse sin validar.
+  const config = fs.readFileSync(
+    path.join(ROOT_DIR, '.github', 'ci-impact.yaml'),
+    'utf-8'
+  );
+  assert.match(
+    config,
+    /infra\/\*\*\/README\.md/,
+    'INFRA-006: los README de ruta bajo infra/ deben estar clasificados en ci-impact.yaml'
+  );
+});
+
 test('🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin PowerShell)', () => {
   assert.ok(fs.existsSync(MJS_PATH), 'scripts/deploy-grafana-cloud.mjs debe existir');
 
