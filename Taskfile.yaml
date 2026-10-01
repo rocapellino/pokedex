@@ -249,10 +249,10 @@ tasks:
   # GitOps & CD (ArgoCD & Kubernetes)
   # ----------------------------------------------------------------------------
   gitops:apps:
-    desc: "Aplica las aplicaciones declarativas de ArgoCD (Proxmox y Cloud)"
+    desc: "[LEGACY] Aplica Application por Application. El camino soportado es gitops:apps:root (App-of-Apps, ADR-021). Se mantiene por compatibilidad; no incluye Cloud porque es referencia inactiva (GITOPS-001)"
     cmds:
       - kubectl apply -f gitops/apps/app-proxmox.yaml
-      - kubectl apply -f gitops/apps/app-cloud.yaml
+      - kubectl apply -f gitops/apps/app-proxmox-preprod.yaml
 
   gitops:apps:root:
     desc: "Aplica la aplicación raíz de ArgoCD según el patrón canónico App-of-Apps (ADR-021)"
@@ -290,7 +290,7 @@ tasks:
       - argocd app sync pokedex-cloud
 
   gitops:bootstrap:cloud:
-    desc: "[Bootstrap/Emergencia] Aplica directamente el manifiesto de Application de ArgoCD en Cloud"
+    desc: "[Activacion AWS] Aplica app-cloud.yaml. AWS es una REFERENCIA INACTIVA (GITOPS-001) y queda fuera del App-of-Apps; esta tarea es la via intencional para activarlo como target real"
     cmds:
       - kubectl apply -f gitops/apps/app-cloud.yaml
 
