@@ -253,6 +253,83 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
   assert.ok(helmValuesContent.includes('terminationGracePeriodSeconds: 30'), 'values.yaml debe fijar terminationGracePeriodSeconds: 30');
 
   // Validar que los 15 ADRs existen físicamente en disco
+test('🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI', () => {
+  // `proxmox-preprod` es un target ACTIVO: `root-application.yaml` lo gobierna via
+  // App-of-Apps y sus values existen completos. Antes de este cambio, `infra.yaml`
+  // renderizaba solo `proxmox` y `aws`, de modo que un error de template, de valores
+  // o de paridad en preprod solo se detectaba al sincronizar contra el cluster real.
+  const infraWorkflow = fs.readFileSync(
+    path.join(ROOT_DIR, '.github/workflows/infra.yaml'),
+    'utf-8'
+  );
+
+  // 1. Determinar los targets ACTIVOS a partir del App-of-Apps, que es la
+  //    declaracion de verdad. `app-cloud.yaml` esta excluido (GITOPS-001).
+  const rootApp = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
+    'utf-8'
+  );
+  const excludeBlock = rootApp.match(/exclude:\s*\|([\s\S]*?)\n\s{2}\w/s)?.[1] ?? '';
+  const excluded = excludeBlock
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.endsWith('.yaml'));
+
+  const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
+  const appFiles = fs
+    .readdirSync(gitopsAppsDir)
+    .filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
+
+  const activeEnvs = appFiles
+    .filter((f) => !excluded.includes(f))
+    .map((f) => f.replace(/^app-/, '').replace(/\.yaml$/, ''));
+
+  assert.ok(
+    activeEnvs.includes('proxmox-preprod'),
+    'INFRA-005: se espera que proxmox-preprod sea un target activo segun el App-of-Apps'
+  );
+
+  // 2. Cada entorno activo debe renderizarse en el workflow de infraestructura.
+  for (const env of activeEnvs) {
+    const valuesFile = `gitops/environments/${env}/values.yaml`;
+    assert.ok(
+      fs.existsSync(path.join(ROOT_DIR, valuesFile)),
+      `INFRA-005: el entorno activo ${env} debe tener ${valuesFile}`
+    );
+    assert.ok(
+      infraWorkflow.includes(valuesFile),
+      `GITOPS-005: infra.yaml debe renderizar el entorno activo ${env} (${valuesFile}); ` +
+      'un error en el solo se detectaria al sincronizar contra el cluster real.'
+    );
+  }
+
+  // 3. El render debe pasar las validaciones de esquema y de buenas practicas.
+  assert.ok(
+    infraWorkflow.includes('/tmp/rendered-proxmox-preprod.yaml'),
+    'GITOPS-005: debe verificarse que el render de preprod no esta vacio'
+  );
+  const kubeconformLine = infraWorkflow.match(/kubeconform[^\n]*rendered-dev\.yaml[^\n]*/)?.[0] ?? '';
+  assert.ok(
+    kubeconformLine.includes('rendered-proxmox-preprod.yaml'),
+    'GITOPS-005: kubeconform debe validar tambien el render de preprod'
+  );
+  const lintLine = infraWorkflow.match(/kube-linter lint[^\n]*/)?.[0] ?? '';
+  assert.ok(
+    lintLine.includes('rendered-proxmox-preprod.yaml'),
+    'GITOPS-005: kube-linter debe validar tambien el render de preprod'
+  );
+
+  // 4. Anti-regresion: ningun entorno activo puede quedar fuera del render por
+  //    descuido. El numero de entornos declarados debe coincidir con los renderizados.
+  const renderedCount = (infraWorkflow.match(/gitops\/environments\/[a-z-]+\/values\.yaml/g) ?? [])
+    .length;
+  assert.ok(
+    renderedCount >= activeEnvs.length,
+    `GITOPS-005: se renderizan ${renderedCount} entornos pero hay ${activeEnvs.length} activos (${activeEnvs.join(', ')})`
+  );
+});
+
+
   for (let i = 1; i <= 15; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
