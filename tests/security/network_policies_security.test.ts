@@ -169,6 +169,64 @@ test('🛡️ Helm Security: values.prod.yaml exige Zero-Trust L7 (Cilium FQDN o
   assert.ok(content.includes('enabled: true'), 'values.prod.yaml debe habilitar ciliumNetworkPolicy');
 });
 
+test('🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host', () => {
+  // Variante CONSERVADORA aplicada: en lugar de eliminar la segunda regla, se
+  // restringe a un host explicito de acceso directo. Asi se cierra la exposicion
+  // por `Host` arbitrario sin romper el acceso por IP que hacian las pruebas.
+  const deployableEnvs: Array<[string, string]> = [
+    ['proxmox', 'gitops/environments/proxmox/values.yaml'],
+    ['proxmox-preprod', 'gitops/environments/proxmox-preprod/values.yaml'],
+  ];
+
+  for (const [env, relPath] of deployableEnvs) {
+    const valuesPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(valuesPath), `${relPath} debe existir`);
+
+    const content = fs.readFileSync(valuesPath, 'utf-8');
+
+    // 1. Prohibido el wildcard: `- host: ""` renderiza en ingress.yaml:29-34
+    //    una regla SIN `host:`, que actua como catch-all para cualquier Host.
+    assert.ok(
+      !/^\s*-\s*host:\s*""\s*$/m.test(content),
+      `GITOPS-002: ${relPath} declara una regla de Ingress sin host (catch-all). ` +
+      'Cualquier peticion con Host arbitrario se enruta a la aplicacion.'
+    );
+
+    // 2. Toda regla declarada debe tener un host NO VACIO. Se recorren todas las
+    //    entradas de `ingress.hosts` y se exige un valor real.
+    const ingressBlock = content.split(/^ingress:/m)[1] ?? '';
+    const hostEntries = [...ingressBlock.matchAll(/^\s*-\s*host:\s*(.*)$/gm)].map((m) => m[1].trim());
+    assert.ok(hostEntries.length > 0, `${relPath} debe declarar al menos un host de Ingress`);
+
+    const emptyHosts = hostEntries.filter((h) => h === '""' || h === "''" || h === '');
+    assert.deepEqual(
+      emptyHosts,
+      [],
+      `GITOPS-002: ${relPath} declara ${emptyHosts.length} host(s) vacio(s) en ingress.hosts`
+    );
+
+    // 3. Postura Zero-Trust: ningun entorno desplegable puede abrir el trafico
+    //    sin restricting a un dominio declarado. La coherencia con la postura
+    //    Zero-Trust L7 de Egress (Cilium FQDN) exige simetria en el perimetro.
+    assert.ok(
+      hostEntries.every((h) => h.includes('.')),
+      `GITOPS-002: ${relPath} debe declarar hosts con dominio explicito (FQDN), no wildcard`
+    );
+  }
+
+  // 4. La plantilla del Chart debe seguir soportando la sintaxis condicional
+  //    (`if .host`) por retrocompatibilidad con `values.dev.yaml`, pero ningun
+  //    entorno desplegable debe depender de ella.
+  const ingressTemplate = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/helm/pokedex/templates/ingress.yaml'),
+    'utf-8'
+  );
+  assert.ok(
+    ingressTemplate.includes('{{- if .host }}'),
+    'ingress.yaml debe mantener el render condicional de host (retrocompatible con values.dev.yaml)'
+  );
+});
+
 test('🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF', () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-013-zero-trust-network-architecture.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');

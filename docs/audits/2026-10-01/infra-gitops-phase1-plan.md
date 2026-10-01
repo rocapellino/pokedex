@@ -1,6 +1,6 @@
 # Plan de Cambio — Fase 1: Corrección Funcional y Seguridad (`infra/` + `gitops/`)
 
-> **Estado:** Pasos 1 (`GITOPS-001`), 2 (`INFRA-003`, `INFRA-012`) y 3 (`INFRA-007`) **EJECUTADOS Y VALIDADOS** el 2026-10-01. Paso 4 pendiente de ejecución.
+> **Estado:** Fase 1 **COMPLETA** (pasos 1-4 ejecutados y validados el 2026-10-01). El paso 4 se ejecutó con la **variante conservadora** acordada: el Ingress catch-all se restringió a un host explícito en lugar de eliminarse, para no interrumpir las pruebas en curso.
 > **Fecha:** 2026-10-01
 > **Alcance:** 4 hallazgos P2. Dos en `gitops/`, dos en `infra/`.
 > **Ids de origen:** `GITOPS-001`, `INFRA-003`, `INFRA-007`, `GITOPS-002` (ver *Anexo A*).
