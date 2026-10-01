@@ -157,6 +157,82 @@ test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativ
   assert.ok(fs.existsSync(secretPath), 'external-secret-pokedex.yaml debe existir');
   assert.ok(fs.existsSync(readmePath), 'README.md de ESO debe existir');
 
+
+/**
+ * GITOPS-003 — `gitops/` es SSOT y debe estar documentado.
+ *
+ * `docs/audits/README.md` declara `gitops/` como fuente única de verdad del
+ * despliegue, pero era el único directorio de primer nivel sin README: ni
+ * `infra/`, ni `infra/ansible/`, ni `infra/k8s/eso/`, ni `infra/opentofu/` lo
+ * tenían. Sin punto de entrada, el modelo App-of-Apps y el estado
+ * activo/inactivo por entorno sólo se deducen leyendo cuatro manifiestos.
+ *
+ * El gate valida el CONTENIDO, no la existencia: un README con afirmaciones
+ * falsas es peor que ninguno, porque orienta al operador en la dirección
+ * equivocada.
+ */
+test('🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas', () => {
+  const readmePath = path.join(ROOT_DIR, 'gitops/README.md');
+  assert.ok(fs.existsSync(readmePath), 'GITOPS-003: gitops/ debe tener README.md');
+
+  const readme = fs.readFileSync(readmePath, 'utf-8');
+
+  // 1. Declara el modelo App-of-Apps y el estado de cada entorno.
+  assert.match(readme, /App-of-Apps/, 'El README debe explicar el modelo App-of-Apps');
+  assert.match(
+    readme,
+    /pokedex-cloud[\s\S]*INACTIV/,
+    'El README debe declarar que el blueprint de AWS es una referencia inactiva'
+  );
+
+  // 2. Los endpoints citados deben existir REALES en los manifiestos. Un README
+  //    que documenta un cluster inexistente desvia la depuracion.
+  const appProxmox = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml'),
+    'utf-8'
+  );
+  const appPreprod = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'),
+    'utf-8'
+  );
+  for (const endpoint of ['k8s-proxmox.internal.lan', 'k8s-preprod.internal.lan']) {
+    assert.ok(
+      appProxmox.includes(endpoint) || appPreprod.includes(endpoint),
+      `GITOPS-003: el README cita ${endpoint} pero no existe en ninguna Application activa`
+    );
+  }
+
+  // 3. La afirmacion "AWS esta excluido del App-of-Apps" debe ser CIERTA: se lee
+  //    del bloque `exclude` del manifiesto raiz, no del README.
+  const rootApp = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
+    'utf-8'
+  );
+  const excludeBlock = rootApp.match(/exclude:\s*\|([\s\S]*?)\n\s{2}\w/s)?.[1] ?? '';
+  assert.match(
+    excludeBlock,
+    /app-cloud\.yaml/,
+    'GITOPS-003: el README afirma que app-cloud.yaml esta excluido, pero el manifiesto raiz no lo excluye'
+  );
+  assert.match(
+    excludeBlock,
+    /root-application\.yaml/,
+    'GITOPS-003: el root-application.yaml debe excluirse a si mismo'
+  );
+
+  // 4. Todo enlace relativo del README debe resolver. Un enlace roto en la
+  //    documentacion de SSOT es peor que no enlazar.
+  const links = [...readme.matchAll(/\]\(([^)#:]+\.(?:md|yaml|yml))\)/g)].map((m) => m[1]);
+  assert.ok(links.length > 0, 'El README debe enlazar documentacion relacionada');
+  for (const link of links) {
+    const target = path.resolve(path.dirname(readmePath), link);
+    assert.ok(
+      fs.existsSync(target),
+      `GITOPS-003: enlace roto en gitops/README.md -> ${link}`
+    );
+  }
+});
+
   const storeContent = fs.readFileSync(storePath, 'utf-8');
   assert.ok(storeContent.includes('kind: ClusterSecretStore'), 'Debe definir ClusterSecretStore');
 
