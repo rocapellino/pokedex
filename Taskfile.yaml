@@ -205,7 +205,7 @@ tasks:
   monitoring:grafana-cloud:install:
     desc: "Despliega el stack de telemetría de Grafana Cloud (Grafana Alloy unificado) en Kubernetes"
     cmds:
-      - powershell -ExecutionPolicy Bypass -File infra/monitoring/deploy-grafana-cloud.ps1
+      - node scripts/deploy-grafana-cloud.mjs
 
   monitoring:grafana-cloud:status:
     desc: "Muestra el estado de los pods y DaemonSets de Grafana Cloud en el namespace monitoring"
