@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-01T23:16:40.508Z",
+  "generatedAt": "2026-10-01T23:40:41.049Z",
   "summary": {
     "totalFiles": 46,
     "testFiles": 44,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 438,
-    "totalLines": 12288,
-    "totalSizeBytes": 578786,
+    "totalTestCases": 439,
+    "totalLines": 12324,
+    "totalSizeBytes": 580558,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 15,
-      "testCases": 168,
+      "testCases": 169,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -555,12 +555,12 @@
       "type": "Contract / Types",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 2,
+      "testCount": 3,
       "describeCount": 0,
-      "assertionCountEst": 8,
-      "sizeBytes": 2515,
-      "lineCount": 65,
-      "sha256": "7ba62b41f7f703d26b6bbe16d940647588815ff10824d088fbf27ccfe2db5919",
+      "assertionCountEst": 14,
+      "sizeBytes": 4287,
+      "lineCount": 101,
+      "sha256": "be1d03e8a76b2d7ce1041b1b5edb0c6507f0ee24cca2876d1cbe147e42adda2d",
       "targetDomain": "Interoperabilidad Backend-Frontend",
       "targetArtifacts": [
         "apps/backend/src/types.ts",
@@ -584,6 +584,10 @@
         {
           "name": "🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json y test-surface.md están sincronizados sin drift",
           "line": 42
+        },
+        {
+          "name": "🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos",
+          "line": 65
         }
       ]
     },
