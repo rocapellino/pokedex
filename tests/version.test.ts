@@ -321,6 +321,7 @@ test('🛡️ Startup Env Check: pasa exitosamente en producción si variables c
     process.env.ADMIN_API_KEY = 'pokedex-super-admin-entropy-key-change-me'; // gitleaks:allow
     process.env.ADMIN_SESSION_SECRET = 'pokedex-internal-hmac-session-secret-entropy'; // gitleaks:allow
     process.env.CORS_ORIGINS = 'https://pokedex.local';
+    process.env.DATABASE_URL = 'postgresql://pokedex:pokedex@127.0.0.1:5432/pokedex';
 
     const result = inspectEnvironment();
     assert.equal(result.valid, true);
