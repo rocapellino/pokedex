@@ -34,7 +34,7 @@ El ciclo de vida del repositorio sigue una secuencia estricta y desacoplada dond
                6. Quality Gates & Pre-Commit (repo-quality & suites técnicas)
                                │
                                ▼
-               7. Cierre Documental & Gobernanza (repo-doc-governance, repo-docs & lint:md)
+               7. Cierre Documental & Gobernanza (repo-docs & lint:md)
                                │
                                ▼
                8. Preparación y Gate de Pull Request (repo-pr)
@@ -124,22 +124,19 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
    - Evalúa cobertura, duplicación, valor, velocidad, estabilidad y relación fáctica con el código fuente.
    - Aplica la taxonomía de 12 estados (`KEEP`, `KEEP_IMPROVE`, `DUPLICATE`, `REDUNDANT`, `OBSOLETE`, `BROKEN`, `FLAKY`, `SLOW`, `MOVE`, `MERGE`, `DELETE`, `REVIEW`).
    - Diferencia Application Tests de Policy-as-Test y detecta antipatrones (God Test Files, asertos vacíos, dependencias temporales/externas).
-5. **`repo-doc-governance` (Fuente Normativa de Gobernanza Documental):**
-   - Establece los límites (*boundaries*), presupuestos (*budgets*), contrato declarativo (`documentation-contract.yaml`) y políticas de contenido para `README.md`, `SECURITY.md` y `docs/`.
-   - Clasifica afirmaciones en taxonomía de volatilidad y evalúa la deriva (*drift*) frente a la evidencia real del repositorio.
-6. **`repo-docs` (Ciclo de Vida e Integridad Documental):**
-   - Responsable de ejecutar el ciclo de vida documental completo: inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
+5. **`repo-docs` (Ciclo de Vida, Gobernanza e Integridad Documental):**
+   - Responsable de ejecutar el ciclo de vida documental completo conforme a [documentation-governance.md](../../rules/documentation-governance.md) y su contrato declarativo (`documentation-contract.yaml`): límites (*boundaries*), presupuestos (*budgets*), inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
    - Evalúa si cambios en archivos `.ignore` generan drift con la documentación funcional.
-7. **`repo-pr` (Preparación y Gate de Pull Request):**
+6. **`repo-pr` (Preparación y Gate de Pull Request):**
    - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../../.github/pull_request_template.md)).
    - Consume las evidencias consolidadas por `repo-lifecycle` y las skills de dominio para el PR Readiness Gate.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)). No realiza auditorías completas redundantes.
-8. **`repo-release` (Gobernanza de Release y Promoción):**
+7. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
-9. **`repo-maintenance` (Higiene de Tooling, Scripts y Cleanup):**
+8. **`repo-maintenance` (Higiene de Tooling, Scripts y Cleanup):**
    - Aplica el protocolo de 7 fases (`DISCOVER → CLASSIFY → EVIDENCE → PROPOSE → APPROVE → EXECUTE → VALIDATE`) para scripts, utilidades y artefactos obsoletos.
    - Aplica la taxonomía de 8 estados con análisis de consumidores cruzados.
-10. **Auditoría del Catálogo de Skills (capacidad interna de `repo-lifecycle`):**
+9. **Auditoría del Catálogo de Skills (capacidad interna de `repo-lifecycle`):**
     - Verifica que las skills reflejen fielmente las capacidades activas del repositorio sin desfases ni solapamiento de atribuciones.
     - Contrasta los nombres de skills contra los directorios reales de `.agents/skills/` y contra los comandos documentados, para detectar referencias huérfanas.
     - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §4.

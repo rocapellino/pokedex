@@ -16,7 +16,7 @@ export const AAS_APPROVED_SKILLS = {
   "project-skill-audit": { risk: "safe", governedBy: ["repo-lifecycle"] },
   "code-review-excellence": { risk: "safe", governedBy: ["repo-pr", "repo-quality"] },
   "dependency-scanning": { risk: "safe", governedBy: ["repo-dependencies", "repo-security"] },
-  "documentation-and-adrs": { risk: "critical", governedBy: ["repo-docs", "repo-doc-governance"] },
+  "documentation-and-adrs": { risk: "critical", governedBy: ["repo-docs"] },
   "senior-architect": { risk: "critical", governedBy: ["repo-architecture"] },
   "gitops-workflow": { risk: "critical", governedBy: ["repo-architecture", "repo-release"] },
   "kubernetes-hardening": { risk: "critical", governedBy: ["repo-security", "repo-architecture"] },

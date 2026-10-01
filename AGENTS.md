@@ -26,7 +26,9 @@ Al analizar el repositorio, buscar dependencias, validar configuraciones de infr
 
 ---
 
-## 2. Markdown Quality Gate Obligatorio
+## 2. Markdown Quality Gate y Gobernanza Documental Obligatoria
+
+Las políticas normativas, límites por nivel y presupuesto residen en la regla transversal [`.agents/rules/documentation-governance.md`](.agents/rules/documentation-governance.md).
 
 Cada vez que un agente o skill cree, modifique o actualice cualquier archivo Markdown (`.md`), debe ejecutar:
 
@@ -45,7 +47,7 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 - **Core & Lifecycle:** `repo-context`, `repo-lifecycle`, `repo-impact`, `repo-audit` (coordinador).
 - **Engineering:** `repo-quality` (calidad de código, modularidad y prevención de God Files), `repo-architecture` (sistema, plataforma y GitOps), `repo-testing` (pirámide de pruebas), `repo-dependencies` (árbol de paquetes npm y librerías huérfanas).
 - **Delivery & Security:** `repo-security` (DevSecOps, secretos, Cilium L7 y supply chain), `repo-ci` (pipelines de GitHub Actions), `repo-pr` (preparación, validación y revisión de PRs), `repo-release` (corte y readiness de versión).
-- **Governance & Maintenance:** `repo-doc-governance` (políticas, límites y contratos documentales), `repo-docs` (integridad documental y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
+- **Governance & Maintenance:** `repo-docs` (ciclo de vida documental integral, contratos, límites y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
 
 > [!NOTE]
 > Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` + `npm run lint:md`).

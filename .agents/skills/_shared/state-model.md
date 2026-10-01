@@ -92,7 +92,7 @@ Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
 | Ciclo de vida de capacidad | Madurez de una feature o componente | Este documento, §2 | 7 |
 | Estados documentales | Clasificación de drift documental | `repo-docs/SKILL.md` | 7 |
 | Calificadores documentales | Matices de `NEEDS_REVIEW` en entornos GitOps | `repo-docs/references/documentation-drift.md` §3.1 | 3 |
-| Volatilidad de afirmaciones | Riesgo de desactualización por tipo de afirmación | `repo-doc-governance/references/documentation-drift-policy.md` §2 | 8 |
+| Volatilidad de afirmaciones | Riesgo de desactualización por tipo de afirmación | `repo-docs/references/documentation-drift-policy.md` §2 | 8 |
 | Severidad de drift | Bloqueo en Pull Request | `idem` §3 | 4 |
 | Higiene de archivos ignorados | Reglas de exclusión `.*ignore` | `repo-lifecycle/references/configuration-hygiene.md` | 5 |
 | Estrategia de pruebas | Salud de una suite de pruebas | `repo-testing` | 12 |

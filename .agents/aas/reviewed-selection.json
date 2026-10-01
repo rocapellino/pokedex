@@ -19,7 +19,7 @@
     { "id": "project-skill-audit", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-lifecycle"], "reason": "Referencia para revisar el catálogo local sin reemplazar su gobernanza." },
     { "id": "code-review-excellence", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-pr", "repo-quality"], "reason": "Heurísticas de revisión subordinadas a la política del repositorio." },
     { "id": "dependency-scanning", "risk": "safe", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-dependencies", "repo-security"], "reason": "Checklist conceptual; no autoriza herramientas o servicios adicionales." },
-    { "id": "documentation-and-adrs", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-docs", "repo-doc-governance"], "reason": "Patrones documentales; no se importan automatizaciones externas." },
+    { "id": "documentation-and-adrs", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-docs"], "reason": "Patrones documentales; no se importan automatizaciones externas." },
     { "id": "senior-architect", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-architecture"], "reason": "Prompts de análisis arquitectónico en modo consulta únicamente." },
     { "id": "gitops-workflow", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-architecture", "repo-release"], "reason": "Referencia GitOps; gitops/ e infra/ continúan siendo SSOT." },
     { "id": "kubernetes-hardening", "risk": "critical", "disposition": "APPROVED_REFERENCE", "governedBy": ["repo-security", "repo-architecture"], "reason": "Checklist de hardening sin ejecución ni cambios automáticos." }
