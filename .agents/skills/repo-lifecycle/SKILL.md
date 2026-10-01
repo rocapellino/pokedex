@@ -72,6 +72,11 @@ PR/repository
                                                                             └── 16. consolidated report (Reporte consolidado)
 ```
 
+> [!NOTE]
+> **Higiene de Archivos Temporales (Etapa 14 y Cierre):**
+> La gestión de artefactos temporales y working tree limpio se rige por la regla transversal [repository-hygiene.md](../../rules/repository-hygiene.md):
+> `Operación ➔ Artefactos efímeros en tmp/ ➔ Limpieza oportuna ➔ git status --short sin sorpresas fuera de tmp/`.
+
 ---
 
 ## Dominio: Higiene de Configuración y Archivos de Exclusión (`configuration-hygiene`)

@@ -9,6 +9,14 @@ un dominio específico del ciclo de vida del repositorio.
 > Los identificadores técnicos, comandos y nombres de archivos permanecen en inglés.
 > Referencia: [`_shared/language-policy.md`](skills/_shared/language-policy.md)
 
+## Reglas Transversales de Gobernanza (`.agents/rules/`)
+
+El repositorio establece políticas normativas obligatorias para todos los agentes y flujos en `.agents/rules/`:
+
+- **[`ssot-governance.md`](rules/ssot-governance.md):** Demarcación estricta entre SSOT Actual (`gitops/`, `infra/`, `docs/architecture/`, código) y Evidencia Histórica (`docs/audits/`).
+- **[`documentation-governance.md`](rules/documentation-governance.md):** Presupuestos, límites de líneas y contratos declarativos (`README.md` <= 260, `SECURITY.md` <= 180, Markdown Quality Gate).
+- **[`repository-hygiene.md`](rules/repository-hygiene.md):** Gobernanza de archivos temporales e higiene del working tree: todos los artefactos efímeros deben residir bajo `<repository-root>/tmp/`, ignorados por Git y sin versionar `.gitkeep`.
+
 ---
 
 ## Mapa de Skills
@@ -27,7 +35,7 @@ un dominio específico del ciclo de vida del repositorio.
 | | [`repo-ci`](skills/repo-ci/SKILL.md) | Topología integral de CI/CD (PR ➔ Job ➔ Tool) |
 | | [`repo-pr`](skills/repo-pr/SKILL.md) | Preparación, validación y revisión de Pull Requests |
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
-| **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Ciclo de vida documental, contratos y verificación de claims |
+| **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Integridad documental, contratos y claims verification |
 | | [`repo-maintenance`](skills/repo-maintenance/SKILL.md) | Salud periódica, higiene y limpieza segura |
 | | [`repo-refactor`](skills/repo-refactor/SKILL.md) | Diseño de cambios incrementales |
 | | [`repo-modernize`](skills/repo-modernize/SKILL.md) | Evaluación de modernización tecnológica |
@@ -110,81 +118,57 @@ flowchart TD
 
 ## Flujo 2 — Full-Audit (16 etapas secuenciales)
 
-Cuando se invoca `/repo-lifecycle full-audit`, el ciclo recorre 16 dominios
-en cascada estricta, sin saltar ni duplicar etapas:
+Cuando se invoca una auditoría integral, `repo-lifecycle` ejecuta de forma
+secuencial las 16 etapas canónicas:
 
-```mermaid
-flowchart LR
-    A["1. inventory\nCatálogo de archivos,\nmódulos y artefactos"]
-    B["2. code\nCalidad estática\nrepo-quality"]
-    C["3. dependencies\nÁrbol npm · lockfile\nrepo-dependencies"]
-    D["4. testing\nPirámide de pruebas\nrepo-testing"]
-    E["5. security\nSAST · secretos\nrepo-security"]
-    F["6. infrastructure\nHelm · GitOps · Tofu\nrepo-architecture"]
-    G["7. CI/CD\nWorkflows · permisos\nrepo-ci"]
-    H["8. change impact\nMatriz de impacto\nrepo-impact"]
-    I["9. documentation\nIntegridad · drift\nrepo-docs"]
-    J["10. scripts\nUtilidades · ADR-020\nrepo-maintenance"]
-    K["11. config hygiene\nAuditoría *.ignore\nrepo-lifecycle"]
-    L["12. issues/debt\nDeuda técnica\ny backlog"]
-    M["13. skills audit\nConsistencia del\ncatálogo de skills"]
-    N["14. cleanup\nArtefactos huérfanos\ny temporales"]
-    O["15. architecture\nCoherencia sistémica\ny simplificación"]
-    P["16. consolidated\nReporte final\nconsolidado"]
-
-    A --> B --> C --> D --> E --> F --> G --> H
-    H --> I --> J --> K --> L --> M --> N --> O --> P
+```text
+PR/repository
+ └── 1. inventory (Catálogo de archivos, módulos y artefactos)
+      └── 2. code (Calidad estática, modularidad y antipatrones -> repo-quality)
+           └── 3. dependencies (Árbol npm, lockfile y licencias -> repo-dependencies)
+                └── 4. testing (Pirámide de pruebas, cobertura y valor -> repo-testing)
+                     └── 5. security (SAST, secretos, supply chain y K8s -> repo-security)
+                          └── 6. infrastructure (Helm, GitOps, Tofu y Ansible -> repo-architecture)
+                               └── 7. CI/CD (Workflows, permisos y optimización -> repo-ci)
+                                    └── 8. change impact (Matriz de impacto y propagación -> repo-impact)
+                                         └── 9. documentation (Integridad, drift y Markdown Gate -> repo-docs)
+                                              └── 10. scripts (Utilidades, consumidores y ADR-020 -> repo-maintenance)
+                                                   └── 11. configuration hygiene (Auditoría integral de archivos *.ignore)
+                                                        └── 12. issues/debt (Deuda técnica consolidada y backlog)
+                                                             └── 13. skills (Auditoría de consistencia de skills del agente)
+                                                                  └── 14. cleanup (Higiene de artefactos huérfanos o temporales)
+                                                                       └── 15. architecture/simplification (Coherencia sistémica)
+                                                                            └── 16. consolidated report (Reporte consolidado)
 ```
 
 ---
 
-## Flujo 3 — Despacho Condicional por Tipología de Cambio
+## Modos de Operación
 
-No todas las skills corren en todos los cambios. El motor
-[`scripts/detect-change-impact.ts`](../scripts/detect-change-impact.ts)
-clasifica el impacto y activa únicamente los gates necesarios:
-
-```mermaid
-flowchart TD
-    CHG([Archivos modificados]) --> MATRIX
-
-    MATRIX{{"Change Impact Matrix\n.github/ci-impact.yaml"}}
-
-    MATRIX -->|"apps/backend/**\napps/frontend/**"| BACK
-    MATRIX -->|"docs/**\n*.md"| DOC_TRACK
-    MATRIX -->|".github/workflows/**"| CI_TRACK
-    MATRIX -->|"infra/helm/**\ngitops/**"| GITOPS_TRACK
-    MATRIX -->|".*ignore"| IGN_TRACK
-    MATRIX -->|"Impacto desconocido"| FULL_CI
-
-    BACK["Backend / Frontend\n──────────\nrepo-impact → repo-testing\n→ repo-quality → repo-security\n→ repo-architecture\n→ repo-docs → repo-pr"]
-
-    DOC_TRACK["Documentación pura\nFast Track\n──────────\nrepo-impact\n→ repo-docs\n→ lint:md\n→ repo-pr"]
-
-    CI_TRACK["CI/CD Workflows\n──────────\nrepo-impact\n→ repo-quality\n→ repo-security\n→ repo-ci\n→ repo-docs → repo-pr"]
-
-    GITOPS_TRACK["Helm / GitOps\n──────────\nrepo-impact\n→ repo-quality\n→ repo-security\n→ repo-architecture\n→ repo-release → repo-pr"]
-
-    IGN_TRACK["Archivos *.ignore\n──────────\nrepo-impact\n→ lifecycle\n  (config-hygiene)\n→ repo-security\n→ repo-quality\n→ repo-docs → repo-pr"]
-
-    FULL_CI["Full CI\nFail-Closed\n──────────\nTodos los gates\nsin optimización"]
-```
+| Modo | Comando / Contexto | Cuándo Usarlo |
+| :--- | :--- | :--- |
+| **`full-audit`** | `/repo-lifecycle` o `/repo-audit` | Diagnóstico integral de las 16 etapas. Solo lectura. |
+| **`full`** | `/repo-lifecycle full` | Ciclo completo: auditoría ➔ propuesta ➔ implementación ➔ gates ➔ PR. |
+| **`fast`** | `/repo-lifecycle fast` | Validación rápida para cambios de bajo impacto (Fast Track). |
+| **`change`** | `/repo-lifecycle change` | Modo estándar: análisis de impacto ➔ implementación guiada. |
+| **`release`** | `/repo-release` | Corte de versión, validación de paridad de imagen y GitOps. |
+| **`maintenance`** | `/repo-maintenance` | Health check periódico, backlog y gobernanza de scripts. |
 
 ---
 
-## Flujo 4 — Ciclo de Release y Promoción
+## Matriz de Invocación Rápida
 
-```mermaid
-flowchart LR
-    CODE["MAIN\nCódigo fuente\naprobado en PR"]
-    REL["RELEASE\nTag vX.Y.Z\n+ imagen OCI firmada"]
-    GITOPS["GITOPS\nDigest pinneado\nen infra/helm/ y gitops/"]
-    RUNTIME["RUNTIME\nReconciliación ArgoCD\nen clúster K8s"]
-
-    CODE -->|"repo-release\nReadiness gate"| REL
-    REL  -->|"update-gitops-pin.ts\nCosign verify"| GITOPS
-    GITOPS -->|"ArgoCD sync\nProxmox + AWS EKS"| RUNTIME
-```
+| Si el cambio toca... | Skills principales a invocar |
+| :--- | :--- |
+| **Backend** (`apps/backend/`) | `repo-context` ➔ `repo-impact` ➔ `repo-quality` ➔ `repo-testing` ➔ `repo-security` |
+| **Frontend** (`apps/frontend/`) | `repo-context` ➔ `repo-impact` ➔ `repo-quality` ➔ `repo-testing` |
+| **Helm / K8s** (`infra/helm/`, `gitops/`) | `repo-context` ➔ `repo-impact` ➔ `repo-architecture` ➔ `repo-security` |
+| **OpenTofu / Ansible** (`infra/`) | `repo-context` ➔ `repo-impact` ➔ `repo-architecture` |
+| **CI/CD** (`.github/workflows/`) | `repo-context` ➔ `repo-impact` ➔ `repo-ci` ➔ `repo-security` |
+| **Documentación pura** (`docs/`, `*.md`) | `repo-docs` *(Fast Track — no requiere suites técnicas)* |
+| **Archivos .ignore** (`.*ignore`) | `repo-lifecycle` *(configuration-hygiene)* ➔ `repo-quality` ➔ `repo-security` |
+| **Dependencias** (`package.json`) | `repo-context` ➔ `repo-impact` ➔ `repo-dependencies` ➔ `repo-security` |
+| **Nuevo Release** | `repo-release` ➔ `repo-ci` |
 
 ---
 

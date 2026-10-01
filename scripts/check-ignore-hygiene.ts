@@ -78,7 +78,7 @@ function discoverIgnoreFiles(): string[] {
  * Requisitos de seguridad obligatorios por tipo de archivo
  */
 const REQUIRED_SECURITY_PATTERNS: Record<string, string[]> = {
-  '.gitignore': ['.env', '.pem', '.key', 'node_modules'],
+  '.gitignore': ['.env', '.pem', '.key', 'node_modules', '/tmp/'],
   '.dockerignore': ['.env', 'node_modules', '.git'],
   'apps/backend/.dockerignore': ['.env', 'node_modules', '.git'],
   'apps/frontend/.dockerignore': ['.env', 'node_modules', '.git'],
