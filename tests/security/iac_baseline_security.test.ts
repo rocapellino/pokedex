@@ -254,8 +254,77 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(fs.existsSync(hostsPath), 'hosts.yaml de proxmox debe existir en inventories/');
   const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
   assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yaml debe definir mgmt_cidr');
-  assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yaml debe definir k8s_cluster_cidr');
+  // INFRA-009: la red del cluster paso a `k8s_nodes_cidr`, nombre explicito que
+  // evita volver a colar el CIDR de pods en una variable que restringe puertos de nodo.
+  assert.ok(hostsContent.includes('k8s_nodes_cidr:'), 'hosts.yaml debe definir k8s_nodes_cidr');
 });
+
+test('🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion', () => {
+  const firewallVars = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/ansible/roles/firewall/vars/main.yaml'),
+    'utf-8'
+  );
+
+  // 1. La variable canonica es `k8s_nodes_cidr`: la subred de los NODOS, que es lo
+  //    que consumen de verdad los puertos 6443/10250/2379-2380. El nombre anterior
+  //    `k8s_cluster_cidr` era ambiguo y llego a contener el CIDR de PODS de k3s
+  //    (10.244.0.0/16), que nunca consume esos puertos.
+  assert.match(
+    firewallVars,
+    /k8s_nodes_cidr/,
+    'INFRA-009: el rol firewall debe usar la variable canonica `k8s_nodes_cidr`'
+  );
+
+  // 2. Se conserva compatibilidad: si un inventario externo declara solo el nombre
+  //    antiguo, el rol no debe romperse. La lectura debe priorizar la nueva.
+  assert.match(
+    firewallVars,
+    /k8s_nodes_cidr\s*\|\s*default\(k8s_cluster_cidr/,
+    'INFRA-009: debe leerse `k8s_nodes_cidr` con fallback a `k8s_cluster_cidr`'
+  );
+
+  for (const [label, relPath] of [
+    ['proxmox', 'infra/ansible/inventories/proxmox/hosts.yaml'],
+    ['lab', 'infra/ansible/inventories/lab/hosts.yaml'],
+  ] as const) {
+    const inv = fs.readFileSync(path.join(ROOT_DIR, relPath), 'utf-8');
+
+    // 3. Ambos inventarios deben declarar la variable canonica.
+    assert.ok(
+      inv.includes('k8s_nodes_cidr:'),
+      `INFRA-009: el inventario ${label} debe declarar k8s_nodes_cidr`
+    );
+
+    // 4. Prohibido el antipatron: un digest incrustado en la red de pods.
+    assert.ok(
+      !/k8s_nodes_cidr:\s*"10\.244\./.test(inv),
+      `INFRA-009: el inventario ${label} no debe usar el CIDR de pods de k3s (10.244.0.0/16) ` +
+      'como red de nodos; el API de Kubernetes se consume desde IPs de nodo.'
+    );
+
+    // 5. Coherencia critica: la red de nodos debe estar CONTENIDA en la red de
+    //    gestion. Si no, la regla SSH (`src: mgmt_network` sobre el puerto 22) deja
+    //    fuera a los propios nodos que se intenta proteger.
+    const mgmt = inv.match(/mgmt_cidr:\s*"([\d.]+\/\d+)"/)?.[1];
+    const nodes = inv.match(/k8s_nodes_cidr:\s*"([\d.]+\/\d+)"/)?.[1];
+    assert.ok(mgmt, `INFRA-009: el inventario ${label} debe declarar mgmt_cidr`);
+    assert.ok(nodes, `INFRA-009: el inventario ${label} debe declarar k8s_nodes_cidr`);
+
+    const toPrefix = (cidr: string) => cidr.split('/')[0].split('.').map(Number);
+    const mgmtPrefix = toPrefix(mgmt);
+    const nodesPrefix = toPrefix(nodes);
+
+    const contained = nodesPrefix.every((octet, i) => octet === mgmtPrefix[i]);
+    assert.ok(
+      contained,
+      `INFRA-009: k8s_nodes_cidr (${nodes}) debe estar contenida en mgmt_cidr (${mgmt}) ` +
+      `en el inventario ${label}; de lo contrario la regla SSH sobre el puerto 22 ` +
+      'bloquearia el acceso a los propios nodos.'
+    );
+  }
+});
+
+
 test('🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias', () => {
   const cfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
   assert.ok(fs.existsSync(cfgPath), 'ansible.cfg debe existir');
