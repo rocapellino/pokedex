@@ -6,13 +6,22 @@ all:
   vars:
     ansible_python_interpreter: /usr/bin/python3
     app_name: pokedex
-    mgmt_cidr: "10.0.0.0/16"
-    k8s_cluster_cidr: "10.244.0.0/16"
+    # INFRA-009: la red de administracion se amplia a 10.10.14.0/24 para cubrir los
+    # nodos del laboratorio, que migraron desde 10.0.10.0/24. Sin esta inclusion, la
+    # regla del firewall que permite el puerto 22 (`src: mgmt_network`) dejaria fuera
+    # a los propios nodos que debe proteger.
+    mgmt_cidr: "10.10.14.0/24"
+    # INFRA-009: subred de los NODOS del cluster. Antes `k8s_cluster_cidr` valia
+    # 10.244.0.0/16, que es el CIDR de PODS de k3s: esos puertos (6443, 10250,
+    # 2379-2380) se consumen desde IPs de nodo, nunca desde un pod, con lo que la
+    # regla no cubria a los propios nodos. Ademas el laboratorio migra sus nodos a
+    # 10.10.14.0/24, que es la red real de nodos.
+    k8s_nodes_cidr: "10.10.14.0/24"
   children:
     k8s_control_plane:
       hosts:
         lab-k8s-master-01:
-          ansible_host: 10.0.10.10
+          ansible_host: 10.10.14.10
           # INFRA-003: el usuario se declara por host para no depender del
           # `remote_user` global. En el laboratorio se asume `root` por
           # coherencia con los LXC de Proxmox, unico backend que los crea.
@@ -21,7 +30,7 @@ all:
     k8s_workers:
       hosts:
         lab-k8s-worker-01:
-          ansible_host: 10.0.10.11
+          ansible_host: 10.10.14.11
           ansible_user: root
           node_role: worker
     k8s_cluster:
@@ -31,6 +40,6 @@ all:
     standalone_servers:
       hosts:
         lab-node-01:
-          ansible_host: 10.0.10.20
+          ansible_host: 10.10.14.20
           ansible_user: root
           env: lab

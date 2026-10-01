@@ -1,4 +1,13 @@
 ---
 # Variables por defecto para el rol firewall
+#
+# INFRA-009: `k8s_network` se alimenta de `k8s_nodes_cidr`, la subred de los NODOS.
+# El nombre anterior (`k8s_cluster_cidr`) era ambiguo y llego a contener el CIDR de
+# PODS de k3s (10.244.0.0/16), que nunca consume los puertos 6443/10250/2379-2380:
+# el API de Kubernetes se consume desde IPs de nodo, no de pod. Con ese valor, la
+# regla de esos puertos no cubria a los propios nodos del clúster.
+#
+# Se mantiene fallback a `k8s_cluster_cidr` para no romper inventarios externos que
+# todavia declaren el nombre antiguo; la variable canonica tiene prioridad.
 mgmt_network: "{{ mgmt_cidr | default('192.168.1.0/24') }}"
-k8s_network: "{{ k8s_cluster_cidr | default('192.168.1.0/24') }}"
+k8s_network: "{{ k8s_nodes_cidr | default(k8s_cluster_cidr | default('192.168.1.0/24')) }}"
