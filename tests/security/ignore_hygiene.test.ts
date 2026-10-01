@@ -146,3 +146,49 @@ test('🛡️ Configuration Hygiene: workflow de CI integra el paso de auditorí
   assert.match(ciContent, /Configuration Hygiene/, 'ci.yaml debe declarar un paso para Configuration Hygiene');
   assert.match(ciContent, /npm run lint:ignore:strict/, 'ci.yaml debe invocar npm run lint:ignore:strict');
 });
+
+test('🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no sobre-extensivo', () => {
+  const gitignoreContent = fs.readFileSync(path.join(ROOT_DIR, '.gitignore'), 'utf-8');
+  assert.match(gitignoreContent, /^\/tmp\/$/m, '.gitignore debe declarar exactamente la regla /tmp/ anclada a la raíz');
+
+  // Validar que no se usó una regla genérica "tmp/" desanclada
+  const lines = gitignoreContent.split(/\r?\n/).map(l => l.trim());
+  assert.ok(!lines.includes('tmp/'), '.gitignore no debe incluir la regla relativa desanclada tmp/');
+});
+
+test('🧹 Repository Hygiene: la regla /tmp/ ignora efectivamente archivos en tmp/ y no fuera de tmp/', () => {
+  const checkIgnored = (probePath: string): { ignored: boolean; rule: string } => {
+    try {
+      const out = execSync(`git check-ignore -v "${probePath}"`, { cwd: ROOT_DIR, encoding: 'utf-8' }).trim();
+      const parts = out.split(/\t/);
+      return { ignored: true, rule: parts[0] || '' };
+    } catch {
+      return { ignored: false, rule: '' };
+    }
+  };
+
+  const inside = checkIgnored('tmp/test-file.tmp');
+  assert.equal(inside.ignored, true, 'tmp/test-file.tmp debe quedar ignorado');
+  assert.match(inside.rule, /\/tmp\/$/, 'tmp/test-file.tmp debe ser ignorado por la regla /tmp/');
+
+  const outside = checkIgnored('apps/backend/tmp/test-file.txt');
+  assert.equal(outside.ignored, false, 'apps/backend/tmp/test-file.txt no debe ser ignorado por /tmp/');
+});
+
+test('🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe y rige AGENTS.md y skills', () => {
+  const rulePath = path.join(ROOT_DIR, '.agents/rules/repository-hygiene.md');
+  assert.ok(fs.existsSync(rulePath), '.agents/rules/repository-hygiene.md debe existir');
+
+  const ruleContent = fs.readFileSync(rulePath, 'utf-8');
+  assert.match(ruleContent, /<repository-root>\/tmp\//, 'repository-hygiene.md debe definir la ubicación canónica <repository-root>/tmp/');
+
+  const agentsMd = fs.readFileSync(path.join(ROOT_DIR, 'AGENTS.md'), 'utf-8');
+  assert.match(agentsMd, /repository-hygiene\.md/, 'AGENTS.md debe referenciar repository-hygiene.md');
+  assert.match(agentsMd, /`tmp\/`/, 'AGENTS.md debe referenciar el directorio temporal tmp/');
+
+  const maintenanceSkill = fs.readFileSync(path.join(ROOT_DIR, '.agents/skills/repo-maintenance/SKILL.md'), 'utf-8');
+  assert.match(maintenanceSkill, /repository-hygiene\.md/, 'repo-maintenance debe referenciar repository-hygiene.md');
+
+  const lifecycleSkill = fs.readFileSync(path.join(ROOT_DIR, '.agents/skills/repo-lifecycle/SKILL.md'), 'utf-8');
+  assert.match(lifecycleSkill, /repository-hygiene\.md/, 'repo-lifecycle debe referenciar repository-hygiene.md');
+});

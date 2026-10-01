@@ -9,6 +9,13 @@ un dominio específico del ciclo de vida del repositorio.
 > Los identificadores técnicos, comandos y nombres de archivos permanecen en inglés.
 > Referencia: [`_shared/language-policy.md`](skills/_shared/language-policy.md)
 
+## Reglas Transversales de Gobernanza (`.agents/rules/`)
+
+El repositorio establece políticas normativas obligatorias para todos los agentes y flujos en `.agents/rules/`:
+
+- **[`ssot-governance.md`](rules/ssot-governance.md):** Demarcación estricta entre SSOT Actual (`gitops/`, `infra/`, `docs/architecture/`, código) y Evidencia Histórica (`docs/audits/`).
+- **[`repository-hygiene.md`](rules/repository-hygiene.md):** Gobernanza de archivos temporales e higiene del working tree: todos los artefactos efímeros deben residir bajo `<repository-root>/tmp/`, ignorados por Git y sin versionar `.gitkeep`.
+
 ---
 
 ## Mapa de Skills

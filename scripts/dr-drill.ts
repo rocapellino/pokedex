@@ -133,8 +133,8 @@ export async function runDrDrill(options: DrDrillOptions = {}): Promise<DrDrillM
   log('🛡️ [DR Drill: End-to-End] Simulacro Operacional de Recuperación Total');
   log('================================================================\n');
 
-  // 1. Preparar directorios de trabajo aislados
-  const tempBase = path.join(ROOT_DIR, 'scratch', `dr_drill_${Date.now()}`);
+  // 1. Preparar directorios de trabajo aislados bajo tmp/ (repository-hygiene)
+  const tempBase = path.join(ROOT_DIR, 'tmp', `dr_drill_${Date.now()}`);
   const remoteStorageDir = options.remoteDir || path.join(tempBase, 'remote_gdrive_store');
   const localRestoreDir = options.restoreDir || path.join(tempBase, 'local_restore_workspace');
 

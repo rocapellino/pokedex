@@ -77,8 +77,8 @@ en UTF-8 durante su generación y publicación.
   $OutputEncoding = $utf8
   ```
 
-- Los cuerpos multilínea se deben guardar en un archivo temporal UTF-8 sin BOM y
-  publicar exclusivamente con `gh pr create --body-file <archivo>` o
+- Los cuerpos multilínea se deben guardar en un archivo temporal UTF-8 sin BOM dentro de `tmp/`
+  (e.g. `tmp/pr-body.md`) y publicar exclusivamente con `gh pr create --body-file <archivo>` o
   `gh pr edit --body-file <archivo>`. No deben enviarse como argumento inline ni por
   una tubería dependiente de la code page de la consola.
 - Después de crear o editar el PR, se debe consultar el cuerpo remoto con
@@ -86,3 +86,11 @@ en UTF-8 durante su generación y publicación.
   de indicadores de mojibake como `├`, `Ô`, `ƒ`, `Ã` o `Â`.
 - Si falla la verificación, el PR no alcanza `READY_FOR_PR`: se debe regenerar el
   archivo desde la fuente UTF-8 correcta y volver a publicarlo.
+
+---
+
+## 6. Higiene del Repositorio y Gestión de Archivos Temporales
+
+Todo archivo temporal, log de depuración, reporte intermedio o artefacto transitorio generado durante operaciones sobre el repositorio debe almacenarse exclusivamente bajo `tmp/` en la raíz del repositorio (`<repository-root>/tmp/`), conforme a la regla transversal [`.agents/rules/repository-hygiene.md`](.agents/rules/repository-hygiene.md).
+
+Queda prohibido dispersar archivos efímeros en otras rutas del repositorio o commitear cualquier contenido de `tmp/`.
