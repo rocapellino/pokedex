@@ -28,7 +28,7 @@ spec:
             fsGroup: 70
           containers:
             - name: dr-restore-verify
-              image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+              image: "{{ .Values.postgresql.image.repository }}{{ if .Values.postgresql.image.digest }}{{ if .Values.postgresql.image.tag }}:{{ .Values.postgresql.image.tag }}{{ end }}@{{ .Values.postgresql.image.digest }}{{ else }}:{{ .Values.postgresql.image.tag }}{{ end }}"
               imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
               securityContext:
                 allowPrivilegeEscalation: false

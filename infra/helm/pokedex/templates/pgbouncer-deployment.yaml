@@ -42,7 +42,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: pgbouncer
-          image: "{{ .Values.pgbouncer.image.repository }}:{{ .Values.pgbouncer.image.tag }}"
+          image: "{{ .Values.pgbouncer.image.repository }}{{ if .Values.pgbouncer.image.digest }}{{ if .Values.pgbouncer.image.tag }}:{{ .Values.pgbouncer.image.tag }}{{ end }}@{{ .Values.pgbouncer.image.digest }}{{ else }}:{{ .Values.pgbouncer.image.tag }}{{ end }}"
           imagePullPolicy: {{ .Values.pgbouncer.image.pullPolicy }}
           securityContext:
             readOnlyRootFilesystem: true
