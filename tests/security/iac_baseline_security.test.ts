@@ -33,14 +33,16 @@ const ROOT_DIR = path.resolve(__dirname, '../../');
 /**
  * Normaliza una referencia de imagen a su forma canónica `repository@sha256:...`.
  *
- * `values.yaml` declara `tag: "16-alpine@sha256:..."` (etiqueta legible + digest)
- * mientras el matrix del workflow usa directamente el digest. Ambas designan la
- * misma imagen; comparar la etiqueta nominal haría fallar el gate por una
- * diferencia de notación y no de contenido.
+ * El Chart puede declarar el digest de dos formas equivalentes: en el campo
+ * dedicado `digest` (preferido, INFRA-005) o incrustado al final de `tag`
+ * (forma heredada). Ambas designan la misma imagen; comparar la etiqueta nominal
+ * haría fallar el gate por una diferencia de notación y no de contenido.
  */
-function canonicalImageRef(repository: string, tag: string): string {
-  const digest = tag.match(/@?(sha256:[a-f0-9]{64})$/)?.[1];
-  return digest ? `${repository}@${digest}` : `${repository}:${tag}`;
+function canonicalImageRef(repository: string, tag: string, digest?: string): string {
+  const found =
+    digest?.match(/(sha256:[a-f0-9]{64})$/)?.[1] ??
+    tag.match(/@?(sha256:[a-f0-9]{64})$/)?.[1];
+  return found ? `${repository}@${found}` : `${repository}:${tag}`;
 }
 
 /** Extrae `repository` + `tag` del bloque de una clave en values.yaml. */
@@ -54,8 +56,9 @@ function readDeployedImage(yaml: string, key: string): string | null {
 
   const repository = block.match(/repository:\s*(\S+)/)?.[1];
   const rawTag = block.match(/tag:\s*"?([^"\n]+)"?/)?.[1];
+  const digest = block.match(/digest:\s*"([^"\n]*)"/)?.[1];
   if (!repository || !rawTag) return null;
-  return canonicalImageRef(repository, rawTag);
+  return canonicalImageRef(repository, rawTag, digest);
 }
 
 /** Extrae las referencias del matrix `image:` del workflow de Trivy. */
