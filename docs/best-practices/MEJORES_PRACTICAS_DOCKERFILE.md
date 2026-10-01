@@ -22,7 +22,7 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 
 El proyecto utiliza dos contenedores especializados:
 
-- **Backend API (`apps/backend/Dockerfile` / `Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
+- **Backend API (`apps/backend/Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
 - **Frontend Web (`apps/frontend/Dockerfile`)**: Servidor web Nginx 1.31 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, TypeScriptVanilla).
 
 ---

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-01T23:40:41.049Z",
+  "generatedAt": "2026-10-02T00:01:54.090Z",
   "summary": {
     "totalFiles": 46,
     "testFiles": 44,
     "helperFiles": 1,
     "performanceScripts": 1,
     "totalTestCases": 439,
-    "totalLines": 12324,
-    "totalSizeBytes": 580558,
+    "totalLines": 12319,
+    "totalSizeBytes": 580740,
     "suitesCount": 9
   },
   "suites": [
@@ -307,9 +307,9 @@
       "testCount": 47,
       "describeCount": 0,
       "assertionCountEst": 295,
-      "sizeBytes": 52499,
-      "lineCount": 1193,
-      "sha256": "68ef45b49542cd7d2eb84577b3c466ecd8f7a973fc608fceab49f4819a8fbb02",
+      "sizeBytes": 52464,
+      "lineCount": 1192,
+      "sha256": "05a83d982db58c8441d75f9619c3a15ef8a15b5ad1a3fcc6a0da34347d1f5ac5",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -460,59 +460,59 @@
         },
         {
           "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
-          "line": 765
+          "line": 764
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 806
+          "line": 805
         },
         {
           "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 850
+          "line": 849
         },
         {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 886
+          "line": 885
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 907
+          "line": 906
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 928
+          "line": 927
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 950
+          "line": 949
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 967
+          "line": 966
         },
         {
           "name": "🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan",
-          "line": 970
+          "line": 969
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 1073
+          "line": 1072
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 1084
+          "line": 1083
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 1094
+          "line": 1093
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 1175
+          "line": 1174
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 1182
+          "line": 1181
         }
       ]
     },
@@ -2307,10 +2307,10 @@
       "runner": "node:test (tsx)",
       "testCount": 20,
       "describeCount": 0,
-      "assertionCountEst": 236,
-      "sizeBytes": 56670,
-      "lineCount": 964,
-      "sha256": "8e80d1a430a9d23cf1e5a034f8f7a54d3d67a31d962c572dc08f5b0855be27ea",
+      "assertionCountEst": 239,
+      "sizeBytes": 56953,
+      "lineCount": 963,
+      "sha256": "045c4cf03d7abe2dca4b74c3cbbfbc18fce403b8cea56809e45cc51dfe25c07d",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2353,60 +2353,60 @@
           "line": 112
         },
         {
-          "name": "🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile mantienen paridad estructural",
+          "name": "🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe",
           "line": 129
         },
         {
           "name": "🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator",
-          "line": 148
+          "line": 147
         },
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 174
+          "line": 173
         },
         {
           "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange",
-          "line": 245
+          "line": 244
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 273
+          "line": 272
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 304
+          "line": 303
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 336
+          "line": 335
         },
         {
           "name": "🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil",
-          "line": 421
+          "line": 420
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 452
+          "line": 451
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 539
+          "line": 538
         },
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps",
-          "line": 594
+          "line": 593
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría",
-          "line": 785
+          "line": 784
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 850
+          "line": 849
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 886
+          "line": 885
         }
       ]
     },
@@ -2606,9 +2606,9 @@
       "testCount": 16,
       "describeCount": 0,
       "assertionCountEst": 98,
-      "sizeBytes": 27532,
-      "lineCount": 547,
-      "sha256": "25f3101aa6f827be0d5bf4cdee4d5ff9238364807178d43429ee2724d679aaba",
+      "sizeBytes": 27466,
+      "lineCount": 544,
+      "sha256": "9b82309d72a767a1b50861add8144c0563ca33ad88ab9824d432490c09be2054",
       "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
       "targetArtifacts": [
         "package.json",
@@ -2657,39 +2657,39 @@
         },
         {
           "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
-          "line": 178
+          "line": 175
         },
         {
           "name": "🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse",
-          "line": 194
+          "line": 191
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
-          "line": 351
+          "line": 348
         },
         {
           "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 367
+          "line": 364
         },
         {
           "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
-          "line": 380
+          "line": 377
         },
         {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 406
+          "line": 403
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 419
+          "line": 416
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 444
+          "line": 441
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 540
+          "line": 537
         }
       ]
     },

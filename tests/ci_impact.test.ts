@@ -722,7 +722,6 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
 
 test('📦 OCI-001: los labels de imagen usan la version y revision reales', () => {
   const dockerfiles = [
-    ['Dockerfile', 'pokedex-api'],
     ['apps/backend/Dockerfile', 'pokedex-api'],
     ['apps/frontend/Dockerfile', 'pokedex-web'],
   ];

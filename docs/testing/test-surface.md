@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
 | **Total de Casos de Prueba Identificados** | **439** |
-| **Líneas de Código de Pruebas** | 12.324 |
-| **Tamaño Total de la Suite** | 567.0 KB |
+| **Líneas de Código de Pruebas** | 12.319 |
+| **Tamaño Total de la Suite** | 567.1 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-01T23:40:41.049Z |
+| **Última Sincronización** | 2026-10-02T00:01:54.090Z |
 
 ---
 
@@ -49,7 +49,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts) | `governance` | Integration | `node:test (tsx)` | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **4** | 60 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 186 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **47** | 1193 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **47** | 1192 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | `governance` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 126 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -77,11 +77,11 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **5** | 241 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **31** | 1190 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **20** | 964 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **20** | 963 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | `security` | Security / DR Benchmarks | `node:test (tsx)` | **9** | 125 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **1** | 64 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **16** | 547 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **16** | 544 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **10** | 179 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -423,7 +423,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts)
 
 - **Dominio:** Hardening de Workloads Kubernetes
-- **Tipo:** Security / Kubernetes | **Runner:** `node:test (tsx)` | **Casos:** 20 | **Líneas:** 964 (55.3 KB)
+- **Tipo:** Security / Kubernetes | **Runner:** `node:test (tsx)` | **Casos:** 20 | **Líneas:** 963 (55.6 KB)
 - **Descripción:** Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud.
 - **Artefactos Bajo Prueba:** `infra/k8s/`, `infra/helm/pokedex/templates/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -437,20 +437,20 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 4 | [L64](../../tests/security/k8s_workload_hardening.test.ts#L64) | 🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints |
 | 5 | [L92](../../tests/security/k8s_workload_hardening.test.ts#L92) | 🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test |
 | 6 | [L112](../../tests/security/k8s_workload_hardening.test.ts#L112) | 🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión |
-| 7 | [L129](../../tests/security/k8s_workload_hardening.test.ts#L129) | 🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile mantienen paridad estructural |
-| 8 | [L148](../../tests/security/k8s_workload_hardening.test.ts#L148) | 🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator |
-| 9 | [L174](../../tests/security/k8s_workload_hardening.test.ts#L174) | 🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas |
-| 10 | [L245](../../tests/security/k8s_workload_hardening.test.ts#L245) | 🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange |
-| 11 | [L273](../../tests/security/k8s_workload_hardening.test.ts#L273) | 🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints |
-| 12 | [L304](../../tests/security/k8s_workload_hardening.test.ts#L304) | 🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz |
-| 13 | [L336](../../tests/security/k8s_workload_hardening.test.ts#L336) | 🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI |
-| 14 | [L421](../../tests/security/k8s_workload_hardening.test.ts#L421) | 🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil |
-| 15 | [L452](../../tests/security/k8s_workload_hardening.test.ts#L452) | 🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault |
-| 16 | [L539](../../tests/security/k8s_workload_hardening.test.ts#L539) | 🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps |
-| 17 | [L594](../../tests/security/k8s_workload_hardening.test.ts#L594) | 🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps |
-| 18 | [L785](../../tests/security/k8s_workload_hardening.test.ts#L785) | 🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría |
-| 19 | [L850](../../tests/security/k8s_workload_hardening.test.ts#L850) | 🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo |
-| 20 | [L886](../../tests/security/k8s_workload_hardening.test.ts#L886) | 🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault |
+| 7 | [L129](../../tests/security/k8s_workload_hardening.test.ts#L129) | 🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe |
+| 8 | [L147](../../tests/security/k8s_workload_hardening.test.ts#L147) | 🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator |
+| 9 | [L173](../../tests/security/k8s_workload_hardening.test.ts#L173) | 🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas |
+| 10 | [L244](../../tests/security/k8s_workload_hardening.test.ts#L244) | 🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange |
+| 11 | [L272](../../tests/security/k8s_workload_hardening.test.ts#L272) | 🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints |
+| 12 | [L303](../../tests/security/k8s_workload_hardening.test.ts#L303) | 🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz |
+| 13 | [L335](../../tests/security/k8s_workload_hardening.test.ts#L335) | 🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI |
+| 14 | [L420](../../tests/security/k8s_workload_hardening.test.ts#L420) | 🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil |
+| 15 | [L451](../../tests/security/k8s_workload_hardening.test.ts#L451) | 🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault |
+| 16 | [L538](../../tests/security/k8s_workload_hardening.test.ts#L538) | 🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps |
+| 17 | [L593](../../tests/security/k8s_workload_hardening.test.ts#L593) | 🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps |
+| 18 | [L784](../../tests/security/k8s_workload_hardening.test.ts#L784) | 🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría |
+| 19 | [L849](../../tests/security/k8s_workload_hardening.test.ts#L849) | 🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo |
+| 20 | [L885](../../tests/security/k8s_workload_hardening.test.ts#L885) | 🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault |
 
 #### [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts)
 
@@ -515,7 +515,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts)
 
 - **Dominio:** Seguridad de Cadena de Suministro y SBOM
-- **Tipo:** Security / Supply Chain | **Runner:** `node:test (tsx)` | **Casos:** 16 | **Líneas:** 547 (26.9 KB)
+- **Tipo:** Security / Supply Chain | **Runner:** `node:test (tsx)` | **Casos:** 16 | **Líneas:** 544 (26.8 KB)
 - **Descripción:** Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes.
 - **Artefactos Bajo Prueba:** `package.json`, `package-lock.json`, `.github/workflows/ci.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
@@ -530,15 +530,15 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 5 | [L92](../../tests/security/supply_chain_security.test.ts#L92) | 🔒 INFRA-005: toda imagen del Chart debe soportar fijacion por digest |
 | 6 | [L145](../../tests/security/supply_chain_security.test.ts#L145) | 🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta |
 | 7 | [L155](../../tests/security/supply_chain_security.test.ts#L155) | 🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build |
-| 8 | [L178](../../tests/security/supply_chain_security.test.ts#L178) | 🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002) |
-| 9 | [L194](../../tests/security/supply_chain_security.test.ts#L194) | 🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse |
-| 10 | [L351](../../tests/security/supply_chain_security.test.ts#L351) | 🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker |
-| 11 | [L367](../../tests/security/supply_chain_security.test.ts#L367) | 🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI |
-| 12 | [L380](../../tests/security/supply_chain_security.test.ts#L380) | 🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance |
-| 13 | [L406](../../tests/security/supply_chain_security.test.ts#L406) | 🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas |
-| 14 | [L419](../../tests/security/supply_chain_security.test.ts#L419) | 🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256) |
-| 15 | [L444](../../tests/security/supply_chain_security.test.ts#L444) | 🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT) |
-| 16 | [L540](../../tests/security/supply_chain_security.test.ts#L540) | 🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed) |
+| 8 | [L175](../../tests/security/supply_chain_security.test.ts#L175) | 🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002) |
+| 9 | [L191](../../tests/security/supply_chain_security.test.ts#L191) | 🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse |
+| 10 | [L348](../../tests/security/supply_chain_security.test.ts#L348) | 🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker |
+| 11 | [L364](../../tests/security/supply_chain_security.test.ts#L364) | 🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI |
+| 12 | [L377](../../tests/security/supply_chain_security.test.ts#L377) | 🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance |
+| 13 | [L403](../../tests/security/supply_chain_security.test.ts#L403) | 🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas |
+| 14 | [L416](../../tests/security/supply_chain_security.test.ts#L416) | 🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256) |
+| 15 | [L441](../../tests/security/supply_chain_security.test.ts#L441) | 🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT) |
+| 16 | [L537](../../tests/security/supply_chain_security.test.ts#L537) | 🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed) |
 
 #### [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts)
 
@@ -810,7 +810,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts)
 
 - **Dominio:** Pipeline CI / Detección de Impacto
-- **Tipo:** Contract / CI Matrix | **Runner:** `node:test (tsx)` | **Casos:** 47 | **Líneas:** 1193 (51.3 KB)
+- **Tipo:** Contract / CI Matrix | **Runner:** `node:test (tsx)` | **Casos:** 47 | **Líneas:** 1192 (51.2 KB)
 - **Descripción:** Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed.
 - **Artefactos Bajo Prueba:** `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -851,20 +851,20 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 31 | [L637](../../tests/ci_impact.test.ts#L637) | 🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado |
 | 32 | [L647](../../tests/ci_impact.test.ts#L647) | 🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada |
 | 33 | [L723](../../tests/ci_impact.test.ts#L723) | 📦 OCI-001: los labels de imagen usan la version y revision reales |
-| 34 | [L765](../../tests/ci_impact.test.ts#L765) | ⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador |
-| 35 | [L806](../../tests/ci_impact.test.ts#L806) | 🛡️ El ruleset declarativo debe registrar los tres required checks |
-| 36 | [L850](../../tests/ci_impact.test.ts#L850) | 🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera |
-| 37 | [L886](../../tests/ci_impact.test.ts#L886) | 📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta |
-| 38 | [L907](../../tests/ci_impact.test.ts#L907) | 🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable |
-| 39 | [L928](../../tests/ci_impact.test.ts#L928) | 🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas |
-| 40 | [L950](../../tests/ci_impact.test.ts#L950) | 🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada |
-| 41 | [L967](../../tests/ci_impact.test.ts#L967) | 🚦 Quality Gate: el agregador existe y es fail-closed con if: always() |
-| 42 | [L970](../../tests/ci_impact.test.ts#L970) | 🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan |
-| 43 | [L1073](../../tests/ci_impact.test.ts#L1073) | 🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset |
-| 44 | [L1084](../../tests/ci_impact.test.ts#L1084) | ⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación |
-| 45 | [L1094](../../tests/ci_impact.test.ts#L1094) | 📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real |
-| 46 | [L1175](../../tests/ci_impact.test.ts#L1175) | 🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros |
-| 47 | [L1182](../../tests/ci_impact.test.ts#L1182) | 🎯 Change Impact: el contrato declara always con ids mapeados en el motor |
+| 34 | [L764](../../tests/ci_impact.test.ts#L764) | ⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador |
+| 35 | [L805](../../tests/ci_impact.test.ts#L805) | 🛡️ El ruleset declarativo debe registrar los tres required checks |
+| 36 | [L849](../../tests/ci_impact.test.ts#L849) | 🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera |
+| 37 | [L885](../../tests/ci_impact.test.ts#L885) | 📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta |
+| 38 | [L906](../../tests/ci_impact.test.ts#L906) | 🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable |
+| 39 | [L927](../../tests/ci_impact.test.ts#L927) | 🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas |
+| 40 | [L949](../../tests/ci_impact.test.ts#L949) | 🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada |
+| 41 | [L966](../../tests/ci_impact.test.ts#L966) | 🚦 Quality Gate: el agregador existe y es fail-closed con if: always() |
+| 42 | [L969](../../tests/ci_impact.test.ts#L969) | 🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan |
+| 43 | [L1072](../../tests/ci_impact.test.ts#L1072) | 🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset |
+| 44 | [L1083](../../tests/ci_impact.test.ts#L1083) | ⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación |
+| 45 | [L1093](../../tests/ci_impact.test.ts#L1093) | 📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real |
+| 46 | [L1174](../../tests/ci_impact.test.ts#L1174) | 🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros |
+| 47 | [L1181](../../tests/ci_impact.test.ts#L1181) | 🎯 Change Impact: el contrato declara always con ids mapeados en el motor |
 
 #### [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts)
 
