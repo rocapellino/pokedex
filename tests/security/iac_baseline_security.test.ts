@@ -522,6 +522,65 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
   }
 });
 
+test('🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta', () => {
+  const reqPath = path.join(ROOT_DIR, 'infra/ansible/requirements.yaml');
+  assert.ok(fs.existsSync(reqPath), 'requirements.yaml debe existir');
+
+  const content = fs.readFileSync(reqPath, 'utf-8');
+
+  // 1. Prohibidos los rangos abiertos. Con `>=`, cada ejecucion de
+  //    `ansible-galaxy collection install` resuelve a la ultima version publicada,
+  //    por lo que dos `apply` en fechas distintas aplican modulos distintos.
+  //    El CI instala desde este archivo, asi que el pipeline era no determinista.
+  const openRanges = [...content.matchAll(/version:\s*["']?\s*(>=|>|~=|\*)["']?/g)];
+  assert.deepEqual(
+    openRanges.map((m) => m[0].trim()),
+    [],
+    'INFRA-001: requirements.yaml no debe declarar rangos abiertos; use `==` para fijar la version exacta'
+  );
+
+  // 2. Toda coleccion declarada debe llevar version fijada explicitamente.
+  const collectionBlocks = content.split(/\n\s*-\s*name:/).slice(1);
+  assert.ok(collectionBlocks.length >= 2, 'Deben declararse al menos las 2 colecciones requeridas');
+
+  for (const block of collectionBlocks) {
+    const name = block.match(/^\s*([\w.]+)/)?.[1];
+    const version = block.match(/version:\s*["']?([\w.>=~*]+)["']?/)?.[1];
+    assert.ok(name, 'Cada bloque de coleccion debe declarar su nombre');
+    assert.ok(version, `INFRA-001: la coleccion ${name} debe declarar version`);
+    assert.ok(
+      /^\d+\.\d+\.\d+$/.test(version),
+      `INFRA-001: la version de ${name} debe ser una version exacta (x.y.z), no '${version}'`
+    );
+  }
+
+  // 3. Las dos colecciones que consumen los roles deben permanecer declaradas.
+  assert.ok(content.includes('ansible.posix'), 'Debe declararse la coleccion ansible.posix');
+  assert.ok(content.includes('community.general'), 'Debe declararse la coleccion community.general');
+
+  // 4. Coherencia con el ansible-core que fija el CI. `community.general` 13.x
+  //    exige >=2.18.0 y NO es instalable con ansible-core 2.17.x, que es el que
+  //    usa .github/workflows/infra.yaml. Este gate evita fijar una combinacion
+  //    que el CI no pueda resolver.
+  const ciWorkflow = fs.readFileSync(
+    path.join(ROOT_DIR, '.github/workflows/infra.yaml'),
+    'utf-8'
+  );
+  const coreVersion = ciWorkflow.match(/ansible-core==([\d.]+)/)?.[1];
+  assert.ok(coreVersion, 'El CI debe fijar ansible-core explicitamente');
+
+  const coreMajorMinor = `${coreVersion.split('.')[0]}.${coreVersion.split('.')[1]}`;
+  const generalBlock = collectionBlocks.find((b) => b.includes('community.general'));
+  const generalMajor = generalBlock?.match(/version:\s*["']?(\d+)\./)?.[1];
+
+  if (coreMajorMinor === '2.17' && generalMajor && Number(generalMajor) >= 13) {
+    assert.fail(
+      `INFRA-001: community.general ${generalMajor}.x requiere ansible-core >=2.18.0, ` +
+      `pero el CI fija ansible-core==${coreVersion}. La fijacion no es instalable.`
+    );
+  }
+});
+
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
   const kindPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');
   assert.ok(fs.existsSync(kindPath), 'kind-cluster.yaml debe existir');
