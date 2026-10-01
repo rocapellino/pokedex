@@ -70,6 +70,13 @@ spec:
               name: run-volume
             - mountPath: /etc/nginx/conf.d
               name: conf-volume
+          {{- with .Values.web.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: {{ $.Values.web.port }}
+            {{- toYaml . | nindent 12 }}
+{{- end }}
           livenessProbe:
             httpGet:
               path: /healthz

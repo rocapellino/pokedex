@@ -110,6 +110,23 @@ spec:
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
+          # `startupProbe` da margen al arranque antes de que la livenessProbe pueda
+# matar el proceso. Necesario porque el backend aplica las migraciones Drizzle
+# al arrancar (ADR-011/ADR-029) y, si la migracion falla, el proceso termina con
+# codigo distinto de cero por el contrato fail-closed (APPS-002). Sin este margen,
+# una migracion lenta haria que la livenessProbe reiniciara el pod a mitad del
+# arranque, enmascarando la causa real.
+#
+# No oculta un fallo de migracion: si esta falla, el arranque se aborta, el
+# startupProbe nunca queda OK y Kubernetes reinicia el pod. El objetivo es evitar
+# el falso positivo, no prolongar la ventana de fallo.
+{{- with .Values.api.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: {{ $.Values.api.port }}
+            {{- toYaml . | nindent 12 }}
+{{- end }}
           livenessProbe:
             httpGet:
               path: /healthz
