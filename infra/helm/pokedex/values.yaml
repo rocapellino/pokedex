@@ -54,6 +54,14 @@ api:
     otelEndpoint: "http://grafana-cloud-alloy.monitoring.svc.cluster.local:4317"
     otelServiceName: "pokedex-api"
   terminationGracePeriodSeconds: 30
+  # Margen de arranque antes de que la livenessProbe pueda reiniciar el pod.
+  # Necesario porque el backend aplica las migraciones Drizzle al iniciar
+  # (ADR-011/ADR-029): una migracion lenta debe ser tolerable, no reiniciar el pod.
+  # Poner en {} o null para desactivarlo.
+  startupProbe:
+    failureThreshold: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
   podAnnotations: {}
@@ -100,6 +108,13 @@ web:
     seccompProfile:
       type: RuntimeDefault
   terminationGracePeriodSeconds: 30
+  # Margen de arranque antes de que la livenessProbe pueda reiniciar el pod
+  # mientras Nginx termina de cargar su configuracion renderizada.
+  # Poner en {} o null para desactivarlo.
+  startupProbe:
+    failureThreshold: 12
+    periodSeconds: 5
+    timeoutSeconds: 3
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
   podAnnotations: {}
