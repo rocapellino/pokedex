@@ -128,6 +128,110 @@ test('🤖 Change Impact: validador y tests AAS activan el dominio canónico', (
   assert.equal(validator.triggers.linting, true);
   assert.equal(contract.triggers.agent_governance, true);
   assert.equal(contract.triggers.tests, true, 'el test AAS conserva además la regla general de tests');
+
+/**
+ * CI-001 — `Taskfile.yaml` debe estar CLASIFICADO en el motor de impacto.
+ *
+ * `Taskfile.yaml` es el CLI canónico del repositorio (ADR-020) y orquesta las
+ * tareas de Kind, ArgoCD, Helm, Ansible, OpenTofu y validación. Antes de este
+ * cambio no figuraba ni en `global.paths` ni en ninguna regla, por lo que el
+ * motor aplicaba su política **fail-closed**: cualquier PR que lo modificara
+ * activaba los 16 dominios. Se observó empíricamente en el PR #413, donde un
+ * cambio de tres líneas en la tarea `gitops:health-checks` activó la validación
+ * integral completa.
+ *
+ * Este test verifica el **efecto** (los triggers que realmente se disparan), no
+ * la presencia textual de la ruta: una clasificación en la regla equivocada
+ * seguiría "clasificando" el archivo pero omitiría gates reales.
+ */
+test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', () => {
+  const result = analyzeChangeImpact({ files: ['Taskfile.yaml'], configPath: CONFIG_PATH });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(
+    result.isUnknown,
+    false,
+    'CI-001: Taskfile.yaml debe estar clasificado; si no, el motor aplica fail-closed y despacha Full CI'
+  );
+  assert.equal(
+    result.isGlobal,
+    false,
+    'CI-001: Taskfile.yaml no debe clasificarse como global; es mas especifico que eso'
+  );
+
+  // El Taskfile orquesta la operativa de plataforma: estos dominios deben activarse.
+  const required: Array<[keyof typeof result.triggers, string]> = [
+    ['documentation', 'documentacion (superficie de comandos)'],
+    ['kubernetes', 'Kubernetes/GitOps (tareas de Kind y ArgoCD)'],
+    ['helm', 'Helm (lint, render y despliegue del Chart)'],
+    ['opentofu', 'OpenTofu (validate y fmt de entornos)'],
+    ['ansible', 'Ansible (playbooks de baseline, hardening, k3s, vault)'],
+  ];
+  for (const [trigger, reason] of required) {
+    assert.equal(
+      result.triggers[trigger],
+      true,
+      `CI-001: Taskfile.yaml debe activar '${String(trigger)}' porque gobierna ${reason}. ` +
+      'Clasificarlo en una regla mas laxa omitiria un gate real.'
+    );
+  }
+
+  // Y NO debe arrastrar dominios que el Taskfile no gobierna: la clasificacion
+  // debe reducir el alcance, no desplazarlo.
+  const mustStayOff: Array<[keyof typeof result.triggers, string]> = [
+    ['backend', 'backend'],
+    ['frontend', 'frontend'],
+    ['docker', 'docker'],
+  ];
+  for (const [trigger, label] of mustStayOff) {
+    assert.equal(
+      result.triggers[trigger],
+      false,
+      `CI-001: Taskfile.yaml no debe activar '${label}'; no modifica codigo de aplicacion`
+    );
+  }
+});
+
+/**
+ * CI-001 (documentacion) — la matriz de impacto no debe afirmar que
+ * `values.prod.yaml` es el perfil de AWS. Ninguna Application de ArgoCD lo
+ * consume: el perfil AWS real es `gitops/environments/aws/values.yaml`
+ * (`INFRA-011`).
+ */
+test('🎯 CI-001: la configuración del motor es global, igual que el motor', () => {
+  // `scripts/detect-change-impact.ts` ya es global. Su CONFIGURACION no lo era:
+  // un PR que cambiara que rutas activan que gates pasaba con un alcance menor
+  // del que realmente provoca, porque el motor no encontraba su propio contrato.
+  const result = analyzeChangeImpact({
+    files: ['.github/ci-impact.yaml'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(
+    result.isGlobal,
+    true,
+    'CI-001: .github/ci-impact.yaml debe ser una ruta global; cambiar la matriz de ' +
+    'impacto altera el comportamiento de todos los Pull Requests'
+  );
+});
+
+test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AWS', () => {
+  const matrix = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents', 'skills', '_shared', 'change-impact-matrix.md'),
+    'utf-8'
+  );
+
+  assert.ok(
+    matrix.includes('gitops/environments/aws/values.yaml'),
+    'CI-001: la matriz debe identificar a gitops/environments/aws/values.yaml como el perfil de AWS'
+  );
+  assert.ok(
+    !/perfil de AWS \(`?values\.prod\.yaml`?\)/.test(matrix),
+    'CI-001: la matriz no debe afirmar que values.prod.yaml es el perfil de AWS; ' +
+    'ninguna Application de ArgoCD lo consume (INFRA-011)'
+  );
+});
+
 });
 
 test('🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker', () => {
