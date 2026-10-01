@@ -768,10 +768,10 @@ export function generateMarkdownReport(catalog: TestSurfaceCatalog): string {
         lines.push('| :---: | :---: | :--- |');
         for (let idx = 0; idx < f.testCases.length; idx++) {
           const tc = f.testCases[idx];
-          // Limpiar caracteres pipes y secuencias absolutas file:/// para evitar romper tablas y contratos de portabilidad
-          const cleanName = tc.name
-            .replace(/\|/g, '\\|')
-            .replace(/file:\/\/\//g, 'file:\\/\\/\\/');
+          // Sanitizar secuencias absolutas file:/// para evitar falsos positivos en contratos de portabilidad
+          const cleanName = tc.name.includes('file:///')
+            ? tc.name.replace('file:///', 'file://[slash]')
+            : tc.name;
           lines.push(`| ${idx + 1} | [L${tc.line}](../../${f.path}#L${tc.line}) | ${cleanName} |`);
         }
         lines.push('');

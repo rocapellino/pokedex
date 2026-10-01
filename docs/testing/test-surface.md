@@ -19,7 +19,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Líneas de Código de Pruebas** | 12.288 |
 | **Tamaño Total de la Suite** | 565.2 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-01T23:11:35.154Z |
+| **Última Sincronización** | 2026-10-01T23:16:40.508Z |
 
 ---
 
@@ -204,7 +204,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 12 | [L300](../../tests/security/adr_compliance_contracts.test.ts#L300) | 🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed |
 | 13 | [L332](../../tests/security/adr_compliance_contracts.test.ts#L332) | 🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas |
 | 14 | [L364](../../tests/security/adr_compliance_contracts.test.ts#L364) | 🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md |
-| 15 | [L410](../../tests/security/adr_compliance_contracts.test.ts#L410) | 🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:\/\/\/ |
+| 15 | [L410](../../tests/security/adr_compliance_contracts.test.ts#L410) | 🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file://[slash] |
 | 16 | [L450](../../tests/security/adr_compliance_contracts.test.ts#L450) | 🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki |
 | 17 | [L544](../../tests/security/adr_compliance_contracts.test.ts#L544) | 🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo |
 | 18 | [L603](../../tests/security/adr_compliance_contracts.test.ts#L603) | 🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca |
