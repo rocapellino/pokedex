@@ -85,8 +85,22 @@ task gitops:apps:root
 
 ### Health Checks Declarativos para CRDs
 
-Para aplicar la evaluación de salud personalizada de `ExternalSecret` y `ClusterPolicy` en el controlador de ArgoCD:
+Los Custom Health Checks **no forman parte del App-of-Apps**: son un
+**prerrequisito de bootstrap** del propio ArgoCD. Extienden el ConfigMap
+`argocd-cm` con evaluadores Lua, de modo que ArgoCD debe conocerlos *antes* de
+gestionar las Applications que dependen de esos CRDs.
 
 ```bash
-task gitops:health-checks
+task gitops:health-checks   # 1. Configurar ArgoCD (prerrequisito)
+task gitops:apps:root       # 2. Aplicar el App-of-Apps
 ```
+
+> [!IMPORTANT]
+> El orden importa. Si el App-of-Apps se aplica primero, ArgoCD evalúa los
+> `ExternalSecret` y `ClusterPolicy` sin los health checks y puede reportarlos
+> como `Healthy` por ausencia de condición, enmascarando un CRD que nunca se
+> sincronizó. Aplícalos como paso previo al root.
+>
+> **Estado (GITOPS-001):** `root-application.yaml` gobierna únicamente entornos
+> activos (Proxmox y Proxmox-preprod). `app-cloud.yaml` es una referencia
+> inactiva de AWS/EKS y queda excluida del descubrimiento del App-of-Apps.
