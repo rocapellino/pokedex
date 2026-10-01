@@ -1,7 +1,24 @@
 ---
 # Colecciones oficiales de Ansible requeridas para los roles de Pokédex
+#
+# INFRA-001: las versiones están FIJADAS (operador `==`) para que el
+# aprovisionamiento sea reproducible. Con un rango abierto (`>=`), cada ejecución
+# de `ansible-galaxy collection install` resuelve a la última versión publicada,
+# de modo que dos `apply` en fechas distintas aplican módulos distintos sobre los
+# hosts. El CI (.github/workflows/infra.yaml) instala desde este archivo, por lo
+# que el pipeline en sí era no determinista.
+#
+# Compatibilidad verificada contra `ansible-core==2.17.7` (el que fija el CI) vía
+# el campo `requires_ansible` de Galaxy:
+# - ansible.posix 2.2.2   -> >=2.16.0  ✅ compatible
+# - community.general 12.6.5 -> >=2.17.0 ✅ compatible
+#
+# NOTA: `community.general` 13.x declara `requires_ansible >=2.18.0` y por tanto
+# NO es instalable con ansible-core 2.17.x. Si se actualiza `ansible-core` en el
+# CI, esta restricción debe revisarse.
 collections:
   - name: ansible.posix
-    version: ">=1.5.4"
+    version: "2.2.2"
   - name: community.general
-    version: ">=8.5.0"
+    version: "12.6.5"
+
