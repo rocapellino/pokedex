@@ -3,7 +3,12 @@
  * scripts/update-gitops-pin.ts
  * ==============================================================================
  * Script canónico para auditar y actualizar el anclaje inmutable (pinning) de
- * versión en las aplicaciones de ArgoCD (root-application, app-proxmox, app-cloud).
+ * versión en las aplicaciones de ArgoCD (root-application, app-proxmox,
+ * app-proxmox-preprod y app-cloud).
+ *
+ * GITOPS-001: `app-cloud.yaml` se incluye aunque sea una referencia inactiva
+ * (excluida del App-of-Apps). Mantenerla fijada evita que, al activarse AWS,
+ * despliegue contra un targetRevision obsoleto.
  *
  * Uso CLI:
  *   node --experimental-strip-types scripts/update-gitops-pin.ts --tag=vX.Y.Z

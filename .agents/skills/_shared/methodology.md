@@ -67,7 +67,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
   - **Kind:** Clúster local para validación rápida y pruebas en CI.
   - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800) y Producción (VM 801 K3s dedicada). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.
   - **AWS (Cloud-Ready):** EKS con AWS Secrets Manager y Reloader Stakater.
-- **GitOps:** ArgoCD bajo patrón App-of-Apps (`root-application.yaml` reconciliando `pokedex-preprod`, `pokedex-proxmox` y `pokedex-cloud`).
+- **GitOps:** ArgoCD bajo patrón App-of-Apps (`root-application.yaml` reconciliando `pokedex-proxmox` y `pokedex-preprod`). `pokedex-cloud` (AWS/EKS) es una **referencia inactiva**, excluida del App-of-Apps (GITOPS-001) y activable solo de forma explícita.
 - **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/prod` y `pokedex/preprod`).
 - **Seguridad y Supply Chain:** OCI digest pinning inmutable (sha256), SBOM CycloneDX, firma Cosign, atestación SLSA y validación Kyverno admission controller.
 - **IaC & Config Management:** OpenTofu para aprovisionamiento y Ansible para configuración de host/servicios base.

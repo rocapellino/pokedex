@@ -1,10 +1,22 @@
 # ==============================================================================
-# ArgoCD Application - Plantilla de Referencia para Nube Pública (AWS EKS)
+# ArgoCD Application - REFERENCIA INACTIVA para Nube Pública (AWS EKS)
 # ==============================================================================
-# NOTA DE ARQUITECTURA:
-# Este manifiesto es una plantilla de referencia para despliegue en nube pública.
-# Proxmox VE es el único target productivo GA del proyecto. Activar y sincronizar
-# esta aplicación únicamente si la organización decide adoptar AWS/EKS como target.
+# ESTADO DECLARADO: INACTIVA / BLUEPRINT (GITOPS-001)
+#
+# AWS/EKS NO es un target desplegado. Proxmox (produccion) y Proxmox-preprod son
+# los unicos targets activos de la plataforma.
+#
+# Este manifiesto NO forma parte del App-of-Apps: `root-application.yaml` lo
+# excluye de su descubrimiento de forma explicita (ver `directory.exclude`).
+# Por tanto, aunque conserve `syncPolicy.automated`, ArgoCD NUNCA lo sincroniza
+# mientras siga excluido: esas directivas solo tomarian efecto si alguien lo
+# aplicara manualmente con `task gitops:bootstrap:cloud`.
+#
+# Para ACTIVAR AWS como target real (fuera de alcance actual):
+#   1. Registrar el endpoint EKS en ArgoCD como cluster secret.
+#   2. Eliminar `app-cloud.yaml` del `exclude` de `root-application.yaml`.
+#   3. Actualizar el estado declarado en CLOUD_INFRASTRUCTURE_DESIGN.md y
+#      APPLICATION_LIFECYCLE.md, que hoy lo describen como referencia.
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -49,15 +61,9 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-  syncWindows:
-    # Ventana de protección (freeze) en fines de semana para producción:
-    # Bloquea sincronizaciones automáticas desde el viernes 18:00 UTC hasta el lunes 08:00 UTC (62h).
-    # manualSync: true permite sincronización manual de emergencia en caso de hotfix.
-    - kind: deny
-      schedule: "0 18 * * 5"
-      duration: 62h
-      manualSync: true
-      applications:
-        - pokedex-cloud
+  # GITOPS-001: sin `syncWindows` de produccion. Declarar una ventana de freeze
+  # de 62h en un manifiesto que no se despliega es contradictorio: si el freeze
+  # se aplicara, el estado de la Application quedaria bloqueado sin despliegue
+  # que proteger. Las Applications ACTIVAS (app-proxmox) si declaran syncWindows.
 
 

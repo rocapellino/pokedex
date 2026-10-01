@@ -379,6 +379,61 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
   }
 });
 
+test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps', () => {
+  // El defecto original: `app-cloud.yaml` se describia como plantilla de
+  // referencia, pero `root-application.yaml` lo descubria (el `exclude` solo
+  // filtraba el propio root). Con `syncPolicy.automated`, ArgoCD intentaba
+  // desplegar en AWS contra un endpoint EKS que no esta registrado.
+  //
+  // Este gate blinda la exclusion. Si alguien reintroduce la referencia en el
+  // conjunto gobernado por el root, la suite falla antes de que llegue al
+  // despliegue.
+  const rootApp = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
+    'utf-8'
+  );
+  const appCloud = fs.readFileSync(
+    path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'),
+    'utf-8'
+  );
+
+  // 1. El root DEBE excluir explicitamente el manifiesto de referencia.
+  assert.match(
+    rootApp,
+    /exclude:[\s\S]*?app-cloud\.yaml/,
+    'GITOPS-001: root-application.yaml debe excluir app-cloud.yaml del descubrimiento'
+  );
+
+  // 2. El root NO debe descubrir de forma implicita ningun otro manifiesto.
+  //    Solo se gobiernan prod y preprod; cualquier cuarto archivo seria un
+  //    despliegue no declarado.
+  const excludeBlock = /exclude:\s*([\s\S]*?)(?=\n  [a-z]|\n\n|$)/.exec(rootApp)?.[1] ?? '';
+  const excluded = excludeBlock
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.endsWith('.yaml'));
+  assert.deepEqual(
+    excluded.sort(),
+    ['app-cloud.yaml', 'root-application.yaml'],
+    'GITOPS-001: el conjunto excluido debe ser exactamente {root, cloud}. ' +
+      'Proxmox y preprod son los unicos targets activos.'
+  );
+
+  // 3. La referencia no debe declarar semantica de produccion: una ventana de
+  //    freeze de 62h sobre un manifiesto que no se despliega es contradictoria.
+  assert.ok(
+    !appCloud.includes('syncWindows:'),
+    'GITOPS-001: la referencia inactiva no debe declarar syncWindows de produccion'
+  );
+
+  // 4. El estado debe quedar escrito, no solo inferido del comportamiento.
+  assert.match(
+    appCloud,
+    /INACTIVA/,
+    'GITOPS-001: app-cloud.yaml debe declarar su estado inactivo de forma explicita'
+  );
+});
+
 test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md');
   const rootAppPath = path.join(ROOT_DIR, 'gitops/apps/root-application.yaml');
@@ -440,14 +495,22 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const ingressContent = fs.readFileSync(ingressPath, 'utf-8');
   assert.ok(ingressContent.includes('argocd.argoproj.io/sync-wave: "4"'), 'Ingress debe estar en sync-wave 4');
 
-  // 5. app-proxmox.yaml, app-proxmox-preprod.yaml y app-cloud.yaml configuran syncWindows semánticos y opciones avanzadas
+  // 5. Las Applications ACTIVAS configuran opciones avanzadas de sync.
+  //    GITOPS-001: `app-cloud.yaml` es una REFERENCIA INACTIVA y queda excluida
+  //    del App-of-Apps. Exigirle semantica de produccion (syncWindows de 62h)
+  //    validaba una contradiccion: un blueprint no se despliega. Si AWS se
+  //    declara activo en el futuro, este bloque debe reactivarse junto con la
+  //    eliminacion de su entrada en el `exclude` del root.
   const appProxmoxPreprodPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml');
   const proxmoxContent = fs.readFileSync(appProxmoxPath, 'utf-8');
   const preprodContent = fs.readFileSync(appProxmoxPreprodPath, 'utf-8');
   const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
   assert.ok(proxmoxContent.includes('ServerSideApply=true'), 'app-proxmox.yaml debe configurar ServerSideApply');
   assert.ok(preprodContent.includes('ServerSideApply=true'), 'app-proxmox-preprod.yaml debe configurar ServerSideApply');
-  assert.ok(cloudContent.includes('ServerSideApply=true'), 'app-cloud.yaml debe configurar ServerSideApply');
+  // GITOPS-001: app-cloud.yaml se exonera de esta aserción. `ServerSideApply` es
+  // un mecanismo de sincronización, no semantica de produccion, y conviene
+  // mantenerlo para que la referencia este lista si se activa AWS. Lo que si
+  // se prohibe es el `syncWindows` de freeze, verificado mas abajo.
 
   // Validar semántica real de syncWindows en Producción (Protección de fin de semana con kind: deny)
   assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
@@ -457,8 +520,10 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.match(proxmoxContent, /manualSync:\s*true/, 'app-proxmox.yaml debe permitir sync manual de emergencia');
   assert.ok(!proxmoxContent.includes('* * * * *'), 'app-proxmox.yaml no debe tener el antipatrón * * * * *');
 
-  assert.ok(cloudContent.includes('syncWindows:'), 'app-cloud.yaml debe configurar syncWindows');
-  assert.match(cloudContent, /kind:\s*deny/, 'app-cloud.yaml debe configurar una ventana de protección (kind: deny)');
+  assert.ok(
+    !cloudContent.includes('syncWindows:'),
+    'GITOPS-001: una referencia inactiva no debe declarar ventanas de proteccion de produccion'
+  );
   assert.ok(!cloudContent.includes('* * * * *'), 'app-cloud.yaml no debe tener el antipatrón * * * * *');
 
   // Pre-producción: Continuous Delivery sin bloqueos artificiales
