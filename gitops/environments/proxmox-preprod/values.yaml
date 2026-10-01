@@ -84,7 +84,13 @@ ingress:
               name: pokemon-web-svc
               port:
                 number: 8080
-    - host: ""
+    # GITOPS-002: acceso directo por IP para pruebas operativas. Antes esta
+    # entrada era `host: ""`, que ingress.yaml renderiza como regla SIN `host:`
+    # (catch-all): cualquier peticion con un Host arbitrario alcanzaba la
+    # aplicacion, sin restringir el perimetro. Se restringe al host explicito
+    # del cluster, de modo que el acceso por IP sigue funcionando pero deja de
+    # existir el wildcard. Ver tests/security/network_policies_security.test.ts.
+    - host: k8s-preprod.internal.lan
       paths:
         - path: /api/
           pathType: Prefix
