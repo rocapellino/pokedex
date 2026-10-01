@@ -77,7 +77,7 @@ export function findMarkdownFiles(dir: string, baseDir: string = dir, ignorePatt
   let results: string[] = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-  const defaultIgnored = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini']);
+  const defaultIgnored = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini', 'tmp']);
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
