@@ -48,7 +48,7 @@ infra/ansible/
 ├── README.md                # Este documento de arquitectura y guía operativa
 ├── inventories/
 │   ├── proxmox/
-│   │   └── hosts.yaml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, standalone_servers)
+│   │   └── hosts.yaml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, vault_servers, bastion_servers)
 │   └── lab/
 │       └── hosts.yaml        # Inventario para entorno de laboratorio y pruebas
 └── playbooks/

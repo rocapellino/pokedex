@@ -254,6 +254,125 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yaml debe definir k8s_cluster_cidr');
 });
 
+test('🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host', () => {
+  const ansibleCfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
+  const proxmoxMainPath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf');
+  const proxmoxInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
+  const labInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yaml');
+
+  assert.ok(fs.existsSync(ansibleCfgPath), 'ansible.cfg debe existir');
+  assert.ok(fs.existsSync(proxmoxMainPath), 'main.tf de proxmox debe existir');
+
+  const cfg = fs.readFileSync(ansibleCfgPath, 'utf-8');
+  const mainTf = fs.readFileSync(proxmoxMainPath, 'utf-8');
+
+  // 1. Usuario global declarado por Ansible.
+  const remoteUser = cfg.match(/^\s*remote_user\s*=\s*(\S+)\s*$/m)?.[1];
+  assert.ok(remoteUser, 'ansible.cfg debe declarar remote_user de forma explícita');
+
+  // 2. OpenTofu: la VM declara `username`; los LXC no pueden (el provider solo
+  //    admite claves para la cuenta `root`). Extraemos el usuario efectivo de
+  //    cada recurso y lo comparamos contra el que Ansible asume para conectar.
+  const vmUser = mainTf.match(/resource\s+"proxmox_virtual_environment_vm"[\s\S]*?username\s*=\s*"([^"]+)"/)?.[1];
+  assert.ok(vmUser, 'La VM de producción debe declarar `username` en initialization.user_account');
+
+  // 3. La VM queda inventariada como standalone; su usuario Ansible debe ser el
+  //    mismo que crea cloud-init. Es el único punto donde ambas capas deben
+  //    coincidir hoy, y por tanto el que detecta la deriva.
+  const proxmoxInv = fs.readFileSync(proxmoxInvPath, 'utf-8');
+  const labInv = fs.readFileSync(labInvPath, 'utf-8');
+
+  // 3.1 Cada host que declare `ansible_host` DEBE declarar tambien `ansible_user`.
+  //     Un `includes()` global no basta: si un unico host lo omite, Ansible
+  //     cae de vuelta al `remote_user` global y el contrato vuelve a romperse
+  //     en silencio para ese host.
+  for (const [label, inv] of [
+    ['proxmox', proxmoxInv],
+    ['lab', labInv],
+  ] as const) {
+    const blocks = inv.split(/\n(?=\s{6,8}\S)/);
+    const hostsWithoutUser = blocks
+      .filter((b) => /ansible_host:\s*\S+/.test(b) && !/ansible_user:\s*\S+/.test(b))
+      .map((b) => b.match(/^\s*([A-Za-z0-9_-]+):\s*$/m)?.[1]?.trim() ?? '?');
+    assert.deepEqual(
+      hostsWithoutUser,
+      [],
+      `INFRA-003: el inventario ${label} declara host(es) sin 'ansible_user': ${hostsWithoutUser.join(', ')}. ` +
+      'Ansible usaria el remote_user global, que puede no existir en el host.'
+    );
+  }
+
+  // 4. Prohibido el antipatrón: depender de un `remote_user` global mientras
+  //    OpenTofu crea usuarios distintos por tipo de cómputo. Si la VM declara
+  //    `devops` y existe un host que lo use, `remote_user` debe coincidir.
+  assert.ok(
+    !/name:\s*pokedex-prod-01[\s\S]*?ansible_user:\s*devops/.test(proxmoxInv)
+      || remoteUser === 'devops',
+    `INFRA-003: el host de la VM declara 'devops' pero ansible.cfg fija remote_user='${remoteUser}'; ` +
+    'Ansible no podrá conectar. Declarar ansible_user por host o alinear remote_user.'
+  );
+});
+
+test('🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas', () => {
+  const proxmoxInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
+  const mainTf = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf');
+
+  const inv = fs.readFileSync(proxmoxInvPath, 'utf-8');
+  const varsTf = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'),
+    'utf-8'
+  );
+  const tf = `${fs.readFileSync(mainTf, 'utf-8')}\n${varsTf}`;
+
+  // 1. Ninguna IP puede declararse dos veces: los playbooks usan `hosts: all`,
+  //    por lo que un duplicado ejecuta el hardening dos veces sobre el mismo host.
+  const ips = [...inv.matchAll(/ansible_host:\s*(\S+)/g)].map((m) => m[1]);
+  const duplicates = ips.filter((ip, i) => ips.indexOf(ip) !== i);
+  assert.deepEqual(
+    duplicates,
+    [],
+    `INFRA-012: el inventario declara IPs repetidas (${duplicates.join(', ')}); ` +
+    'los playbooks con `hosts: all` las ejecutarían dos veces sobre el mismo host'
+  );
+
+  // 2. Todo host del inventario debe existir en OpenTofu. OpenTofu crea
+  //    `var.vm_count` nodos (IPs .100 en adelante), vault (.110) y bastion (.120).
+  //    Cualquier otra IP es un host fantasma.
+  const declaredNodes = Number(tf.match(/variable\s+"vm_count"[\s\S]*?default\s*=\s*(\d+)/)?.[1] ?? 1);
+  const baseIp = tf.match(/variable\s+"network_base_ip"[\s\S]*?default\s*=\s*"([\d.]+)"/)?.[1] ?? '10.10.13.';
+  const allowed = new Set<string>();
+
+  // Nodos k3s: el inventario puede prospectivamente declarar mas nodos de los
+  // que crea el `vm_count` por defecto (escalado multi-nodo documentado en el
+  // runbook), pero nunca IPs fuera del rango que OpenTofu puede asignar.
+  const maxNodes = Math.max(declaredNodes, 3);
+  for (let i = 0; i < maxNodes; i++) allowed.add(`${baseIp}${100 + i}`);
+
+  // Las variables de red de OpenTofu se declaran en notacion CIDR
+  // (p. ej. "10.10.13.110/24"), mientras el inventario usa IP simple. Se
+  // normaliza el sufijo para comparar ambos mundos.
+  const stripCidr = (value?: string) => value?.split('/')[0];
+
+  const vaultIp = stripCidr(
+    tf.match(/variable\s+"vault_network_ip"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1]
+  );
+  const bastionIp = stripCidr(
+    tf.match(/variable\s+"bastion_network_ip"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1]
+  );
+  if (vaultIp) allowed.add(vaultIp);
+  if (bastionIp) allowed.add(bastionIp);
+
+  const ghosts = ips
+    .map((ip) => ip.split('/')[0])
+    .filter((ip) => !allowed.has(ip));
+  assert.deepEqual(
+    ghosts,
+    [],
+    `INFRA-012: el inventario declara hosts que OpenTofu no crea (${ghosts.join(', ')}); ` +
+    'los playbooks fallarían con "Could not match supplied host pattern"'
+  );
+});
+
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
   const kindPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');
   assert.ok(fs.existsSync(kindPath), 'kind-cluster.yaml debe existir');

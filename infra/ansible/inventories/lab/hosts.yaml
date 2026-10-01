@@ -13,11 +13,16 @@ all:
       hosts:
         lab-k8s-master-01:
           ansible_host: 10.0.10.10
+          # INFRA-003: el usuario se declara por host para no depender del
+          # `remote_user` global. En el laboratorio se asume `root` por
+          # coherencia con los LXC de Proxmox, unico backend que los crea.
+          ansible_user: root
           node_role: control-plane
     k8s_workers:
       hosts:
         lab-k8s-worker-01:
           ansible_host: 10.0.10.11
+          ansible_user: root
           node_role: worker
     k8s_cluster:
       children:
@@ -27,4 +32,5 @@ all:
       hosts:
         lab-node-01:
           ansible_host: 10.0.10.20
+          ansible_user: root
           env: lab
