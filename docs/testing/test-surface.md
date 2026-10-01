@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 44 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
-| **Total de Casos de Prueba Identificados** | **438** |
-| **Líneas de Código de Pruebas** | 12.288 |
-| **Tamaño Total de la Suite** | 565.2 KB |
+| **Total de Casos de Prueba Identificados** | **439** |
+| **Líneas de Código de Pruebas** | 12.324 |
+| **Tamaño Total de la Suite** | 567.0 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-01T23:16:40.508Z |
+| **Última Sincronización** | 2026-10-01T23:40:41.049Z |
 
 ---
 
@@ -35,7 +35,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 15 | 168 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 15 | 169 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -51,7 +51,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 186 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **47** | 1193 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | `governance` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **2** | 65 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 126 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **5** | 108 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **5** | 90 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
@@ -882,7 +882,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/contracts.test.ts`](../../tests/contracts.test.ts)
 
 - **Dominio:** Interoperabilidad Backend-Frontend
-- **Tipo:** Contract / Types | **Runner:** `node:test (tsx)` | **Casos:** 2 | **Líneas:** 65 (2.5 KB)
+- **Tipo:** Contract / Types | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 101 (4.2 KB)
 - **Descripción:** Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend.
 - **Artefactos Bajo Prueba:** `apps/backend/src/types.ts`, `apps/frontend/src/types.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
@@ -892,6 +892,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | :---: | :---: | :--- |
 | 1 | [L9](../../tests/contracts.test.ts#L9) | 🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad entre Backend y Frontend |
 | 2 | [L42](../../tests/contracts.test.ts#L42) | 🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json y test-surface.md están sincronizados sin drift |
+| 3 | [L65](../../tests/contracts.test.ts#L65) | 🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos |
 
 #### [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts)
 

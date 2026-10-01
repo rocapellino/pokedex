@@ -47,3 +47,4 @@ ehthumbs.db
 *.bak
 *~
 *.log
+/tmp/

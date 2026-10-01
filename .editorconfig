@@ -1,4 +1,50 @@
+# EditorConfig configuration for Pokédex DevOps Platform
+# https://editorconfig.org
+
 root = true
 
+# ==============================================================================
+# Reglas Generales para todos los archivos
+# ==============================================================================
 [*]
 charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# ==============================================================================
+# Lenguajes de Programación y Tipado (TypeScript, JavaScript, JSON)
+# ==============================================================================
+[*.{ts,js,mjs,cjs,json}]
+indent_style = space
+indent_size = 2
+
+# ==============================================================================
+# Manifiestos Declarativos (YAML)
+# ==============================================================================
+[*.{yaml,yml}]
+indent_style = space
+indent_size = 2
+
+# ==============================================================================
+# Infraestructura como Código (OpenTofu, Terraform, HCL)
+# ==============================================================================
+[*.{tf,tfvars,tofu}]
+indent_style = space
+indent_size = 2
+
+# ==============================================================================
+# Automatización y Scripts Shell
+# ==============================================================================
+[*.sh]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+# ==============================================================================
+# Documentación Markdown (permite saltos de línea sin conflicto MD009)
+# ==============================================================================
+[*.md]
+trim_trailing_whitespace = false

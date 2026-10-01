@@ -107,3 +107,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 [Dd]esktop.ini
+
+# ==============================================================================
+# Directorio efímero y temporales de agentes/ejecución (AGENTS.md / repository-hygiene)
+# ==============================================================================
+/tmp/

@@ -11,6 +11,10 @@ playwright-report/
 lighthouse-results/
 .scannerwork/
 .mega-linter-reports/
+# Directorio efímero y archivos temporales de agentes/ejecución (AGENTS.md)
+tmp/
+/tmp/
+
 # SEC-002: analisis de la exclusion de `infra/`.
 #
 # Conclusion: la exclusion se MANTIENE. No es una perdida de cobertura.
@@ -32,10 +36,4 @@ lighthouse-results/
 # ya cubren herramientas mas precisas. Si en el futuro se incorpora codigo
 # ejecutable bajo `infra/`, debe evaluarse de forma puntual la inclusion de esa
 # ruta concreta.
-#
-# Nota de mantenimiento: `infra/k8s/kyverno-test/` e `infra/k8s/policies/` se
-# mantienen listados de forma explicita por legibilidad, aunque la regla
-# `infra/` ya los absorbe. No son daninas ni cambian el resultado del escaneo.
 infra/
-infra/k8s/kyverno-test/
-infra/k8s/policies/
