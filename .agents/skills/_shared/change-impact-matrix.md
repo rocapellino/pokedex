@@ -77,7 +77,12 @@ No todos los archivos de un subsistema deben alterarse ante un cambio. La skill 
 1. **Desacoplamiento Contractual:** Si un cambio en el backend no altera esquemas Zod ni contratos de API, **no debe modificarse `apps/frontend/`**.
 2. **Promoción Desacoplada de CI:** Si se publica una nueva imagen en CI pero el release actual de producción permanece deliberadamente fijado en un tag anterior, **no debe modificarse `targetRevision` en GitOps** de forma inmediata.
 3. **Persistencia Agnóstica:** Si se modifica la programación de un CronJob (`schedule`), pero el volumen PVC y el script de restore permanecen intactos, **no deben modificarse las políticas de almacenamiento ni OpenTofu**.
-4. **Entorno Aislado:** Si un cambio aplica únicamente al perfil on-premise Proxmox (ej. `values.yaml`), **no debe modificarse el perfil de AWS (`values.prod.yaml`)**.
+4. **Entorno Aislado:** Si un cambio aplica únicamente al perfil on-premise Proxmox (ej. `values.yaml`), **no debe modificarse el perfil de AWS** (`gitops/environments/aws/values.yaml`).
+   > [!NOTE]
+   > `infra/helm/pokedex/values.prod.yaml` **no es** el perfil de AWS: ninguna
+   > Application de ArgoCD lo consume. Es un perfil de referencia que CI renderiza y
+   > sobre el que se escriben aserciones, pero que no despliega ningún entorno
+   > (`INFRA-011`).
 
 ---
 
