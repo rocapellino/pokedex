@@ -253,6 +253,48 @@ test('🛡️ Ansible Security: security_hardening.yml restringe SSH (22) y puer
   assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yaml debe definir mgmt_cidr');
   assert.ok(hostsContent.includes('k8s_cluster_cidr:'), 'hosts.yaml debe definir k8s_cluster_cidr');
 });
+test('🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias', () => {
+  const cfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
+  assert.ok(fs.existsSync(cfgPath), 'ansible.cfg debe existir');
+
+  const cfg = fs.readFileSync(cfgPath, 'utf-8');
+
+  // 1. Politica adoptada: `accept-new`. Se acepta la clave de un host NUEVO y se
+  //    anade a known_hosts; una clave MODIFICADA (host recreado, MITM) sigue
+  //    rechazandose. Es la politica correcta para un cluster efimero donde los
+  //    nodos se recrean con frecuencia y known_hosts se perderia.
+  assert.match(
+    cfg,
+    /StrictHostKeyChecking=accept-new/,
+    'INFRA-002: ssh_args debe declarar StrictHostKeyChecking=accept-new (politica adoptada)'
+  );
+
+  // 2. `host_key_checking` NO debe coexistir. En Ansible, `host_key_checking = True`
+  //    habilita la gestion de known_hosts, pero la opcion `-o StrictHostKeyChecking`
+  //    en `ssh_args` tiene PRECEDENCIA sobre ella en la invocacion real de ssh.
+  //    Mantener ambas directivas hace que la configuracion aparente una politica
+  //    mas estricta de la que realmente se aplica.
+  assert.ok(
+    !/^\s*host_key_checking\s*=/m.test(cfg),
+    'INFRA-002: no debe declararse `host_key_checking`; su semantica queda anulada por ' +
+    'StrictHostKeyChecking=accept-new en ssh_args. Una sola fuente de verdad.'
+  );
+
+  // 3. La excepcion debe estar documentada en el propio archivo. Una politica
+  //    deliberadamente mas laxa que la verificacion estricta solo es aceptable si
+  //    el motivo esta escrito; de lo contrario vuelve a ser un descuido silencioso.
+  assert.ok(
+    /#.*(efimer|recrea|efímer|decisi|politica|política)/i.test(cfg),
+    'INFRA-002: la politica accept-new debe justificarse en un comentario ' +
+    '(clúster efímero con recreación frecuente de nodos)'
+  );
+
+  // 4. ControlMaster debe conservar ControlPersist: sin el, cada tarea SSH
+  //    renegociaria la conexion y perderia el multiplexing.
+  assert.match(cfg, /ControlPersist=\d+s/, 'ssh_args debe conservar ControlPersist para el multiplexing');
+});
+
+
 
 test('🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host', () => {
   const ansibleCfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
