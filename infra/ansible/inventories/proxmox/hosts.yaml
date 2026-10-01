@@ -13,35 +13,45 @@ all:
       hosts:
         k8s-master-01:
           ansible_host: 10.10.13.100
+          # INFRA-003: los contenedores LXC de Proxmox solo admiten claves SSH
+          # para la cuenta `root` (el provider no expone `username` en
+          # initialization.user_account). OpenTofu no crea ningun usuario
+          # privilegiado en LXC, por lo que Ansible debe conectar como root y
+          # elevar con `become`. Declarar `ansible_user` explicito evita
+          # depender del `remote_user` global de ansible.cfg, que no coincide
+          # con este contrato.
+          ansible_user: root
           node_role: control-plane
     k8s_workers:
       hosts:
         k8s-worker-01:
           ansible_host: 10.10.13.101
+          ansible_user: root
           node_role: worker
         k8s-worker-02:
           ansible_host: 10.10.13.102
+          ansible_user: root
           node_role: worker
     k8s_cluster:
       children:
         k8s_control_plane:
         k8s_workers:
-    standalone_servers:
-      hosts:
-        pokedex-prod-01:
-          ansible_host: 10.10.13.100
-          env: production
-        pokedex-staging-01:
-          ansible_host: 10.10.13.105
-          env: staging
     vault_servers:
       hosts:
         vault-01:
           ansible_host: 10.10.13.110
+          ansible_user: root
           env: proxmox
     bastion_servers:
       hosts:
         bastion:
           ansible_host: 10.10.13.120
+          ansible_user: root
           env: proxmox
+# INFRA-012: se elimina el grupo `standalone_servers`. Declaraba dos hosts que
+# OpenTofu no crea: `pokedex-prod-01` colisionaba en 10.10.13.100 con
+# `k8s-master-01` y `pokedex-staging-01` (10.10.13.105) no existe en ningun
+# recurso. Con `hosts: all` en los playbooks, el duplicado ejecutaba el
+# hardening dos veces sobre el mismo host. Los recursos reales de OpenTofu son
+# los nodos k3s (800+), vault (810) y bastion (820), todos declarados arriba.
 

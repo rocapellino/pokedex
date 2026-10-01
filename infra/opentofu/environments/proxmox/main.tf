@@ -64,6 +64,12 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
       }
     }
     user_account {
+      # INFRA-003: los contenedores LXC de Proxmox SOLO admiten claves SSH para
+      # la cuenta `root`; el provider no expone `username` en este bloque (la
+      # documentacion de `proxmox_virtual_environment_container` lo especifica
+      # como "the SSH keys for the root account"). Por eso OpenTofu no declara
+      # aqui ningun usuario privilegiado y Ansible conecta como `root`,
+      # declarando `ansible_user: root` en el inventario.
       keys     = [var.ssh_public_key]
       password = var.vm_user_password
     }
@@ -151,6 +157,9 @@ resource "proxmox_virtual_environment_vm" "k8s_nodes" {
       }
     }
     user_account {
+      # INFRA-003: a diferencia del LXC, la VM SI admite `username` via
+      # cloud-init. Este usuario DEBE coincidir con el `ansible_user` declarado
+      # para este host en el inventario, o Ansible no podra conectar.
       username = "devops"
       password = var.vm_user_password
       keys     = [var.ssh_public_key]
