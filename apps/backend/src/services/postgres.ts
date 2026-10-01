@@ -20,6 +20,37 @@ let drizzleDb: AppDatabase | null = null;
 let isPgConnected = false;
 let lastKnownPgCount: number | null = null;
 
+/**
+ * Error sentinel de fallo de migraciones [APPS-002].
+ *
+ * Existe para distinguir "la base de datos no responde" (que sí admite fallback
+ * a memoria) de "las migraciones no se pudieron aplicar" (que NO lo admite en
+ * produccion). Sin esta distincion, el `catch` externo degradaba a memoria en
+ * ambos casos: el servicio arrancaba en verde con un esquema distinto al
+ * declarado y perdiendo cualquier escritura previa.
+ *
+ * En produccion este error debe propagarse hasta `initStorage()` y de ahi al
+ * arranque de `server.ts`, que termina el proceso con codigo distinto de cero
+ * para que el orquestador no marque el pod como listo. Fail-closed explicito.
+ *
+ * En desarrollo se mantiene el comportamiento tolerante (warn + fallback) para
+ * no bloquear el ciclo de iteracion local.
+ */
+export class MigrationFailedError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    this.name = 'MigrationFailedError';
+    if (options?.cause !== undefined) {
+      (this as { cause?: unknown }).cause = options.cause;
+    }
+  }
+}
+
+/** True solo en produccion. Mismo criterio que `startup-env-check.ts`. */
+function isProductionEnv(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
 export async function connectPg(): Promise<boolean> {
   if (!DATABASE_URL) return false;
   try {
@@ -59,6 +90,18 @@ export async function connectPg(): Promise<boolean> {
       try {
         await runMigrations(DATABASE_URL);
       } catch (migErr: any) {
+        // [APPS-002] Contrato por ambiente:
+        //   - produccion: fail-closed. Un esquema no migrado NO es un almacén
+        //     degradado, es un almacén con otra forma de datos. Continuar en
+        //     memoria enmascararia el fallo y perderia las escrituras previas.
+        //   - desarrollo/test: tolerante, para no bloquear la iteracion local.
+        if (isProductionEnv()) {
+          throw new MigrationFailedError(
+            '[Storage: PostgreSQL] Las migraciones Drizzle fallaron. ' +
+              'Arranque abortado (fail-closed) para no operar con un esquema distinto al declarado.',
+            { cause: migErr }
+          );
+        }
         logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: migErr?.message });
       }
 
@@ -93,6 +136,14 @@ export async function connectPg(): Promise<boolean> {
       client.release();
     }
   } catch (err: any) {
+    // [APPS-002] El sentinel de migraciones NUNCA se degrada a memoria: seria
+    // exactamente el fallo que este cambio evita (arrancar "sano" con un
+    // esquema distinto al declarado). Se re-lanza para que `initStorage()`
+    // rechace y el arranque de `server.ts` termine el proceso.
+    if (err instanceof MigrationFailedError) {
+      isPgConnected = false;
+      throw err;
+    }
     logger.warn(`[Storage: PostgreSQL] No disponible (${err.message}). Operando con almacén en memoria`);
     isPgConnected = false;
     return false;

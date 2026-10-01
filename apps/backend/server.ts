@@ -271,6 +271,15 @@ if (!isRunningTests) {
       });
     });
     setupGracefulShutdown(server);
+  }).catch((err: unknown) => {
+    // [APPS-002] Fallo de arranque: en produccion se aborta el proceso con
+    // codigo distinto de cero para que el orquestador NO marque el pod como
+    // listo. No se escucha ningún puerto: es preferible no servir tráfico que
+    // servirlo contra un esquema de datos inconsistente.
+    logger.error('[Startup] La inicialización del almacenamiento falló. Abortando arranque.', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    process.exit(1);
   });
 }
 

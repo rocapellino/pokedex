@@ -9,24 +9,48 @@ Este directorio aloja la aplicación web cliente de la **Pokédex**, empaquetada
 ```text
 apps/frontend/
 ├── Dockerfile          # Imagen de producción Nginx Alpine multi-stage no-root
-├── nginx.conf          # Configuración de Nginx (Reverse Proxy a la API, gzip y CSP)
-├── nginx.conf.template # Plantilla Nginx con inyección de variables por envsubst
+├── nginx.conf.template # SSOT de la configuración de Nginx (inyección de variables por envsubst)
+├── nginx.conf          # Artefacto GENERADO desde la plantilla (fallback dev local sin Docker)
 ├── vite.config.ts      # Configuración de Vite para empaquetado multi-página (MPA)
 ├── tsconfig.json       # Configuración del compilador TypeScript
-├── index.html          # SPA del Catálogo Pokédex (Punto de entrada Vite)
-├── backoffice.html     # Panel administrativo CRUD (Punto de entrada Vite)
+├── index.html          # Catálogo público interactivo (Entrypoint Vite)
+├── backoffice.html     # Consola de administración CRUD (Entrypoint Vite)
 ├── src/                # Código fuente TypeScript con tipado estricto
 │   ├── pokedex.ts      # Catálogo interactivo con sanitización DOMPurify
 │   ├── backoffice.ts   # Operaciones CRUD, auth y métricas
 │   ├── theme.ts        # Selector de tema (Claro / Oscuro / Sistema) Zero-FOUC
 │   ├── sanitizer.ts    # Envoltorio de seguridad DOMPurify anti-XSS
-│   └── types.ts        # Tipos e interfaces de Pokémon y estado
+│   ├── types.ts        # Tipos e interfaces de Pokémon y estado
+│   ├── components/     # Componentes de UI reutilizables entre ambas páginas
+│   │   ├── pokemon-card.ts     # Tarjeta de resumen del catálogo
+│   │   ├── modal-detail.ts     # Detalle: stats, debilidades y evolución
+│   │   ├── modal-auth.ts       # Autenticación y emisión de token
+│   │   ├── modal-crud.ts       # Formularios de alta/edición/borrado
+│   │   ├── admin-table.ts      # Tabla de administración con paginación
+│   │   ├── admin-events.ts     # Suscripción a eventos del panel
+│   │   └── index.ts            # Barrel de exportación
+│   └── shared/         # Lógica compartida (client API, constantes, formato, UI)
+│       ├── api.ts            # Cliente HTTP tipado contra el backend
+│       ├── constants.ts      # Colores por tipo, catálogos y umbrales
+│       ├── formatters.ts     # Normalización y formateo de datos de Pokémon
+│       ├── ui.ts             # Helpers de render: badges, toasts, plantillas
+│       └── index.ts          # Barrel de exportación
 └── public/             # Assets estáticos servidos al navegador
     ├── css/            # Estilos modernos con variables CSS y glassmorphism
     │   ├── style.css
     │   └── backoffice.css
     └── favicon.*       # Iconografía y branding
 ```
+
+> [!IMPORTANT]
+> **`nginx.conf.template` es el SSOT; `nginx.conf` es un artefacto generado.**
+> No edites `nginx.conf` a mano: cualquier cambio se perdería al regenerar.
+> Edita la plantilla y ejecuta `npm run nginx:conf`. El gate
+> `npm run nginx:conf:check` falla si el artefacto queda desactualizado.
+>
+> `src/components/` y `src/shared/` existen para evitar duplicación entre el
+> catálogo público y el backoffice: ambos consumen los mismos helpers de API,
+> tipos y formateo. No recrear lógica compartida en la raíz de `src/`.
 
 ---
 
