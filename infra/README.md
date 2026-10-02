@@ -23,24 +23,34 @@ Para garantizar que ningún blueprint o referencia de laboratorio sea confundido
 infra/
 ├── helm/                    # Helm 3 Chart oficial y orquestación unificada en Kubernetes
 │   └── pokedex/             # Chart parametrizable (Deployments, HPA, Services, PDB, Ingress)
+│       ├── README.md        # Documentación de arquitectura y values del Chart
 │       ├── templates/       # Plantillas Kubernetes estandarizadas
 │       ├── values.yaml      # [ACTIVE] Configuración base segura (Secure by Default)
 │       ├── values.dev.yaml  # [SUPPORTED] Overrides para desarrollo local / Kind
 │       └── values.prod.yaml # [REFERENCE] Perfil estático de referencia endurecido (INFRA-011)
 ├── opentofu/                # Aprovisionamiento declarativo híbrido con OpenTofu
-│   └── environments/
-│       ├── proxmox/         # [ACTIVE] Provisión bi-modal en Proxmox VE (LXC Pre-Prod / VM Prod)
-│       ├── lab/             # [SUPPORTED] Provisión de VMs efímeras de laboratorio (900+)
-│       ├── aws/             # [REFERENCE] Blueprint de portabilidad clúster EKS gestionado en AWS
-│       └── cloud-template/  # [REFERENCE] Plantilla multi-cloud desacoplada
-├── ansible/                 # Playbooks de automatización y hardening
+│   ├── README.md            # Guía de arquitectura IaC, comandos canónicos y backends
+│   ├── environments/        # Entornos por plataforma (proxmox, lab, aws, cloud-template)
+│   └── modules/             # Módulos reutilizables (compute, naming, security_baseline, tagging)
+├── ansible/                 # Playbooks de automatización y hardening del sistema operativo
+│   ├── README.md            # Guía operativa y catálogo de playbooks y roles
 │   ├── inventories/         # Inventarios por entorno (Proxmox VE y Lab en YAML estructurado)
 │   └── playbooks/           # Preparación integral (prepare_hosts.yaml), baseline, Vault y K3s
-├── k8s/                     # Manifiestos canónicos de plataforma
-│   ├── eso/                 # External Secrets Operator y ClusterSecretStores (Vault & AWS)
+├── k8s/                     # Manifiestos canónicos de plataforma y controles de seguridad
+│   ├── README.md            # Controles de seguridad de plataforma, PSS y políticas Kyverno
 │   ├── kind-cluster.yaml    # [SUPPORTED] Configuración de clúster local y CI con Kind
-│   └── policies/            # Políticas Kyverno de seguridad de pods y firmas Cosign
+│   ├── namespace-pod-security.yaml # [ACTIVE] Admisión de Pod Security Standards (PSS)
+│   ├── kyverno-cosign-policy.yaml  # [ACTIVE] Verificación criptográfica de firmas Cosign
+│   ├── eso/                 # [ACTIVE] External Secrets Operator y ClusterSecretStore consolidado
+│   ├── jobs/                # [SUPPORTED] Sondas activas de verificación de red y seguridad (anti-SSRF)
+│   ├── policies/            # [ACTIVE] Políticas de admisión Kyverno en clúster
+│   └── kyverno-test/        # [SUPPORTED] Suite declarativa de pruebas para Kyverno CLI
 └── monitoring/              # Configuración de observabilidad (Grafana Cloud, Alloy, Dashboards)
+    ├── README.md            # Inventario, despliegue multiplataforma y reglas de alerta
+    ├── alerts.yaml          # Reglas unificadas de alerta de infraestructura, DB y API
+    ├── grafana-cloud-values.yaml # Values canónicos del stack de telemetría Alloy
+    ├── alloy/               # Configuración de Grafana Alloy para desarrollo local
+    └── dashboards/          # Tableros de control canónicos de la plataforma
 ```
 
 > [!NOTE]

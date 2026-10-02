@@ -31,21 +31,33 @@ La aplicación Pokédex está empaquetada como un **Helm Chart agnóstico y port
 
 ---
 
-## 📁 Estructura de Directorios
+## 📁 Estructura de Directorios y Taxonomía
 
 ```text
 infra/opentofu/
-├── README.md                      # Esta documentación de arquitectura
-└── environments/
-    ├── backend.tf.example         # Plantilla para estado remoto seguro (S3/GCS con SSE y bloqueo)
-    ├── aws/                       # Backend Cloud: Clúster AWS EKS, VPC, subredes y NodeGroups
-    │   ├── main.tf
-    │   ├── providers.tf
-    │   └── variables.tf
-    └── proxmox/                   # Backend On-Premise: Máquinas virtuales Proxmox VE con Cloud-Init
-        ├── main.tf
-        ├── providers.tf
-        └── variables.tf
+├── README.md                      # Esta documentación de arquitectura y guía de uso
+├── environments/
+│   ├── backend.tf.example         # Plantilla para estado remoto seguro (S3/GCS con SSE y bloqueo)
+│   ├── proxmox/                   # [ACTIVE] Backend On-Premise: Nodos Proxmox VE bi-modales (LXC / KVM)
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   └── variables.tf
+│   ├── lab/                       # [SUPPORTED] Entorno de laboratorio para VMs efímeras de prueba
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   └── variables.tf
+│   ├── aws/                       # [REFERENCE] Backend Cloud: Clúster AWS EKS, VPC, subredes y NodeGroups
+│   │   ├── main.tf
+│   │   ├── providers.tf
+│   │   └── variables.tf
+│   └── cloud-template/            # [BLUEPRINT] Plantilla universal desacoplada de proveedor cloud
+│       ├── main.tf
+│       └── variables.tf
+└── modules/                       # Módulos reutilizables compartidos
+    ├── compute/                   # Contrato de especificación de recursos de cómputo
+    ├── naming/                    # Convención estandarizada de nomenclatura de recursos
+    ├── security_baseline/         # Parámetros y contratos de seguridad base
+    └── tagging/                   # Gobernanza de etiquetas y trazabilidad
 ```
 
 ---
