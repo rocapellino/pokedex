@@ -93,7 +93,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`Dockerfile`](../../Dockerfile), [`package.json`](../../package.json) |
+| **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile), [`package.json`](../../package.json) |
 | **Express** | `4.22+` | Framework HTTP para rutas REST, middlewares y validaciones | [`apps/backend/server.ts`](../../apps/backend/server.ts) |
 | **TypeScript** | `7.x` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) |
 | **esbuild** | `0.28+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
@@ -146,7 +146,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`Dockerfile`](../../Dockerfile) |
+| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile) |
 | **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yaml`](../../docker-compose.yaml) |
 | **Helm** | `3.17` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](../../infra/helm/pokedex) |
 | **Argo CD** | Latest | Motor GitOps para sincronización declarativa continua en clúster | [`gitops/apps/`](../../gitops/apps) |

@@ -253,7 +253,7 @@ jobs:
           # smoke test de /version valide metadatos reales y no valores "unknown".
           APP_VERSION="$(node -p "require('./package.json').version")"
           GIT_SHA="$(git rev-parse HEAD)"
-          docker build --build-arg APP_VERSION="${APP_VERSION}" --build-arg GIT_SHA="${GIT_SHA}" -t pokedex-api:local -f Dockerfile .
+          docker build --build-arg APP_VERSION="${APP_VERSION}" --build-arg GIT_SHA="${GIT_SHA}" -t pokedex-api:local -f apps/backend/Dockerfile .
           docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
           kind load docker-image pokedex-api:local --name pokedex-local
           kind load docker-image pokedex-web:local --name pokedex-local

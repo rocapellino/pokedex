@@ -126,23 +126,22 @@ test('🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perf
   assert.ok(testContent.includes('pod-security-standards'), 'Debe testear la política pod-security-standards');
 });
 
-test('🛡️ Docker Build Parity: Dockerfile raíz y apps/backend/Dockerfile mantienen paridad estructural', () => {
+test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe', () => {
   const rootDockerPath = path.join(ROOT_DIR, 'Dockerfile');
   const backendDockerPath = path.join(ROOT_DIR, 'apps/backend/Dockerfile');
 
-  assert.ok(fs.existsSync(rootDockerPath), 'Dockerfile raíz debe existir');
-  assert.ok(fs.existsSync(backendDockerPath), 'apps/backend/Dockerfile debe existir');
+  assert.ok(!fs.existsSync(rootDockerPath), 'El Dockerfile espejo en la raíz no debe existir (la SSOT canónica es apps/backend/Dockerfile)');
+  assert.ok(fs.existsSync(backendDockerPath), 'apps/backend/Dockerfile debe existir como SSOT');
 
-  // Filtrar líneas de comentarios de encabezado (líneas que empiezan con # antes del primer FROM)
-  const extractBody = (content: string) => {
-    const fromIndex = content.indexOf('FROM ');
-    return fromIndex !== -1 ? content.slice(fromIndex).trim() : content.trim();
-  };
+  const backendContent = fs.readFileSync(backendDockerPath, 'utf-8');
+  assert.match(backendContent, /FROM node:22-alpine/, 'apps/backend/Dockerfile debe usar la imagen base node:22-alpine');
+  assert.match(backendContent, /USER (?:1000:1000|node)/, 'apps/backend/Dockerfile debe ejecutar como usuario no privilegiado (UID 1000 o node)');
 
-  const rootBody = extractBody(fs.readFileSync(rootDockerPath, 'utf-8'));
-  const backendBody = extractBody(fs.readFileSync(backendDockerPath, 'utf-8'));
+  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
+  assert.match(ciWorkflow, /file:\s*\.\/apps\/backend\/Dockerfile/, 'ci.yaml debe compilar con ./apps/backend/Dockerfile');
 
-  assert.equal(rootBody, backendBody, 'El cuerpo de instrucciones de compilación y runtime entre Dockerfile y apps/backend/Dockerfile debe ser idéntico');
+  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
+  assert.match(infraWorkflow, /-f apps\/backend\/Dockerfile \./, 'infra.yaml debe compilar con apps/backend/Dockerfile');
 });
 
 test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator', () => {

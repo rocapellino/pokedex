@@ -72,7 +72,7 @@
       "matchManagers": ["dockerfile"],
       "commitMessagePrefix": "chore(docker):",
       "labels": ["dependencies", "docker"],
-      "matchFileNames": ["Dockerfile", "apps/**/Dockerfile"]
+      "matchFileNames": ["apps/**/Dockerfile"]
     },
     {
       "description": "Dockerfile Frontend Web Nginx: etiquetas adicionales para web",

@@ -153,26 +153,23 @@ test('🐚 Workflows: ningun reusable workflow se invoca con la extension .yml o
 });
 
 test('🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build', () => {
-  const rootDockerfile = fs.readFileSync(path.join(ROOT_DIR, 'Dockerfile'), 'utf-8');
   const backendDockerfile = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/Dockerfile'), 'utf-8');
 
-  for (const [name, content] of [['root Dockerfile', rootDockerfile], ['backend Dockerfile', backendDockerfile]]) {
-    assert.match(content, /ARG GIT_SHA=/, `${name} debe declarar ARG GIT_SHA`);
-    assert.match(content, /ARG APP_VERSION=/, `${name} debe declarar ARG APP_VERSION (VER-002)`);
-    // El bloque ENV declara ambos metadatos en líneas separadas (VER-002).
-    assert.match(content, /ENV APP_VERSION=\$APP_VERSION/, `${name} debe inyectar APP_VERSION desde su propio ARG (VER-002)`);
-    assert.match(content, /^\s+GIT_SHA=\$GIT_SHA$/m, `${name} debe inyectar GIT_SHA en variables de entorno`);
-    assert.match(content, /org\.opencontainers\.image\.title=/, `${name} debe contener etiqueta OCI title`);
-    assert.match(content, /org\.opencontainers\.image\.source=/, `${name} debe contener etiqueta OCI source`);
-    assert.match(content, /org\.opencontainers\.image\.licenses=/, `${name} debe contener etiqueta OCI licenses`);
+  assert.match(backendDockerfile, /ARG GIT_SHA=/, 'backend Dockerfile debe declarar ARG GIT_SHA');
+  assert.match(backendDockerfile, /ARG APP_VERSION=/, 'backend Dockerfile debe declarar ARG APP_VERSION (VER-002)');
+  // El bloque ENV declara ambos metadatos en líneas separadas (VER-002).
+  assert.match(backendDockerfile, /ENV APP_VERSION=\$APP_VERSION/, 'backend Dockerfile debe inyectar APP_VERSION desde su propio ARG (VER-002)');
+  assert.match(backendDockerfile, /^\s+GIT_SHA=\$GIT_SHA$/m, 'backend Dockerfile debe inyectar GIT_SHA en variables de entorno');
+  assert.match(backendDockerfile, /org\.opencontainers\.image\.title=/, 'backend Dockerfile debe contener etiqueta OCI title');
+  assert.match(backendDockerfile, /org\.opencontainers\.image\.source=/, 'backend Dockerfile debe contener etiqueta OCI source');
+  assert.match(backendDockerfile, /org\.opencontainers\.image\.licenses=/, 'backend Dockerfile debe contener etiqueta OCI licenses');
 
-    // Regresión VER-002: APP_VERSION no debe tomar su valor de GIT_SHA.
-    assert.doesNotMatch(
-      content,
-      /APP_VERSION=\$GIT_SHA/,
-      `${name} no debe derivar APP_VERSION de GIT_SHA (conflaría versión y commit en /version)`
-    );
-  }
+  // Regresión VER-002: APP_VERSION no debe tomar su valor de GIT_SHA.
+  assert.doesNotMatch(
+    backendDockerfile,
+    /APP_VERSION=\$GIT_SHA/,
+    'backend Dockerfile no debe derivar APP_VERSION de GIT_SHA (conflaría versión y commit en /version)'
+  );
 });
 
 test('🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)', () => {
