@@ -60,7 +60,7 @@ infra/ansible/
 │   ├── setup_k3s.yaml        # [ACTIVE] Despliegue declarativo de K3s y CNI Cilium eBPF
 │   ├── setup_vault.yaml      # [ACTIVE] Aprovisionamiento de HashiCorp Vault en LXC
 │   ├── setup_bastion.yaml    # [SUPPORTED] Gestión y configuración del host bastion de administración
-│   ├── setup_gdrive_backup.yaml # [SUPPORTED] Respaldo off-site a nivel host (alternativa a K8s CronJob)
+│   ├── setup_gdrive_backup.yaml # [SUPPORTED/FALLBACK] Respaldo off-site a nivel host (fallback de K8s CronJob)
 │   └── setup_pbs_backup_blueprint.yaml # [BLUEPRINT] Esqueleto referencial Proxmox Backup Server (inactivo)
 └── roles/
     ├── base_os/             # Repositorios base, paquetes esenciales y tuning de kernel

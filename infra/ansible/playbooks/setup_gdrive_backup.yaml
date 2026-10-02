@@ -1,11 +1,15 @@
 ---
 # ==============================================================================
 # Playbook: Sincronización Off-Site a Google Drive con Rclone en Proxmox VE
-# Alternativa B: Ejecución a Nivel de Hipervisor / Host (Costo Cero $0 USD)
+# Taxonomía: HOST-LEVEL FALLBACK / REFERENCE ALTERNATIVE
 # ==============================================================================
 # Propósito:
 #   Configura la sincronización desatendida de respaldos cifrados de PostgreSQL
 #   hacia Google Drive mediante Rclone y un Systemd Timer en el host Proxmox VE.
+#
+# Rol Arquitectónico:
+#   Alternativa B a nivel de host hipervisor / fallback de contingencia frente
+#   a la solución Kubernetes-native canónica (infra/k8s/jobs/backup-gdrive-cronjob.yaml).
 #
 # Nota Arquitectónica / Factual:
 #   Este playbook configura el mecanismo técnico en el host hipervisor Proxmox VE.
