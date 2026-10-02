@@ -37,7 +37,7 @@
         name: k3s
       register: k3s_service_status
       when: k3s_binary.stat.exists
-      ignore_errors: true
+      failed_when: false
 
     # --------------------------------------------------------------------------
     # 2. Descarga e Instalación Declarativa de K3s

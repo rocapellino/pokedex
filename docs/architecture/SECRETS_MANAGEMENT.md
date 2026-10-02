@@ -83,14 +83,13 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
   - **Pre-producción:** `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role` (política `pokedex-preprod-policy`).
   - **Producción:** `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role` (política `pokedex-prod-policy`).
   - *Principio de Blast Radius Reducido:* Se eliminó el rol global genérico `pokedex-role` y su política comodín `secret/data/pokedex/*`. Las credenciales comprometidas en pre-producción no tienen alcance ni visibilidad sobre los secretos de producción.
-- **Manifiestos:**
-  - Producción: [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
-  - Pre-producción: [`infra/k8s/eso/vault-backend-preprod.yaml`](../../infra/k8s/eso/vault-backend-preprod.yaml) (`ClusterSecretStore/vault-backend-preprod`).
+- **Manifiesto:**
+  - Proxmox (Prod y Pre-prod): [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend` y `ClusterSecretStore/vault-backend-preprod`).
 
 ### 3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager
 
 - **Instancia:** Almacén gestionado nativo de AWS con autenticación IAM mediante IRSA (`eks.amazonaws.com/role-arn`).
-- **Manifiesto:** [`infra/k8s/eso/aws-secrets-manager.yaml`](../../infra/k8s/eso/aws-secrets-manager.yaml).
+- **Manifiesto:** [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/aws-secrets-manager`).
 
 ### 3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets
 

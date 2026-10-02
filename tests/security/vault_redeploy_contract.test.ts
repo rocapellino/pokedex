@@ -53,8 +53,9 @@ test('🔒 Proxmox Pre-prod GitOps Values: ExternalSecrets apunta a vault-backen
 });
 
 test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-prod-role', () => {
-  const vaultBackendPath = path.join(ROOT_DIR, 'infra/k8s/eso/vault-backend.yaml');
-  const content = fs.readFileSync(vaultBackendPath, 'utf-8');
+  const clusterStorePath = path.join(ROOT_DIR, 'infra/k8s/eso/cluster-secret-store.yaml');
+  assert.ok(fs.existsSync(clusterStorePath), 'cluster-secret-store.yaml debe existir como manifiesto canónico consolidado');
+  const content = fs.readFileSync(clusterStorePath, 'utf-8');
 
   assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
   assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
@@ -64,15 +65,25 @@ test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y r
 });
 
 test('🔒 Vault Pre-prod ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-preprod-role', () => {
-  const vaultBackendPreprodPath = path.join(ROOT_DIR, 'infra/k8s/eso/vault-backend-preprod.yaml');
-  assert.ok(fs.existsSync(vaultBackendPreprodPath), 'vault-backend-preprod.yaml debe existir');
-  const content = fs.readFileSync(vaultBackendPreprodPath, 'utf-8');
+  const clusterStorePath = path.join(ROOT_DIR, 'infra/k8s/eso/cluster-secret-store.yaml');
+  assert.ok(fs.existsSync(clusterStorePath), 'cluster-secret-store.yaml debe existir');
+  const content = fs.readFileSync(clusterStorePath, 'utf-8');
 
-  assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
-  assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
-  assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
   assert.match(content, /role:\s*"pokedex-preprod-role"/, 'Debe autenticar con el rol pokedex-preprod-role');
-  assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
+  assert.match(content, /name:\s*vault-backend-preprod/, 'Debe definir el ClusterSecretStore vault-backend-preprod');
+
+  // No-regresión: Prohibición estricta de archivos redundantes fragmentados
+  const redundantFiles = [
+    'infra/k8s/eso/vault-backend.yaml',
+    'infra/k8s/eso/vault-backend-preprod.yaml',
+    'infra/k8s/eso/aws-secrets-manager.yaml',
+  ];
+  for (const relPath of redundantFiles) {
+    assert.ok(
+      !fs.existsSync(path.join(ROOT_DIR, relPath)),
+      `El archivo redundante ${relPath} debe permanecer eliminado tras la consolidación canónica`
+    );
+  }
 });
 
 test('🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout restart en ausencia de Reloader', () => {

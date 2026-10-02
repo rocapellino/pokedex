@@ -43,7 +43,7 @@ function parseArgs(): RolloutOptions {
 export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boolean; reasons: string[] } {
   const reasons: string[] = [];
   const proxmoxValuesPath = path.join(rootDir, 'gitops/environments/proxmox/values.yaml');
-  const vaultBackendPath = path.join(rootDir, 'infra/k8s/eso/vault-backend.yaml');
+  const clusterStorePath = path.join(rootDir, 'infra/k8s/eso/cluster-secret-store.yaml');
   const setupVaultPlaybook = path.join(rootDir, 'infra/ansible/playbooks/setup_vault.yaml');
 
   // 1. Validar que Reloader está desactivado en Proxmox
@@ -63,19 +63,19 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
   }
 
   // 2. Validar configuración de ClusterSecretStore
-  if (fs.existsSync(vaultBackendPath)) {
-    const content = fs.readFileSync(vaultBackendPath, 'utf-8');
+  if (fs.existsSync(clusterStorePath)) {
+    const content = fs.readFileSync(clusterStorePath, 'utf-8');
     if (!content.includes('server: "https://10.10.13.110:8200"')) {
-      reasons.push('vault-backend.yaml debe apuntar a la IP del contenedor LXC de Vault vía HTTPS (https://10.10.13.110:8200)');
+      reasons.push('cluster-secret-store.yaml debe apuntar a la IP del contenedor LXC de Vault vía HTTPS (https://10.10.13.110:8200)');
     }
     if (!content.includes('caProvider:')) {
-      reasons.push('vault-backend.yaml debe configurar caProvider para validación criptográfica de TLS');
+      reasons.push('cluster-secret-store.yaml debe configurar caProvider para validación criptográfica de TLS');
     }
     if (!content.includes('role: "pokedex-prod-role"')) {
-      reasons.push('vault-backend.yaml debe utilizar el rol pokedex-prod-role para autenticación Kubernetes');
+      reasons.push('cluster-secret-store.yaml debe utilizar el rol pokedex-prod-role para autenticación Kubernetes');
     }
   } else {
-    reasons.push(`Archivo no encontrado: ${vaultBackendPath}`);
+    reasons.push(`Archivo no encontrado: ${clusterStorePath}`);
   }
 
   // 3. Validar Playbook de Ansible para Vault con Hardening

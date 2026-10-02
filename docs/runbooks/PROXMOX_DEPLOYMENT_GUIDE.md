@@ -79,7 +79,7 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
     ```
 
   - **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, IP `10.10.13.110`, hostname `vault`) gestionado por OpenTofu y configurado por Ansible.
-  - **Definición Canónica ESO:** [`infra/k8s/eso/vault-backend.yaml`](../../infra/k8s/eso/vault-backend.yaml) (`ClusterSecretStore/vault-backend`).
+  - **Definición Canónica ESO:** [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend`).
   - **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
 
 ### ¿Es necesario un redeploy de la app para que utilice el Vault?

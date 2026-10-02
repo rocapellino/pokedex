@@ -16,11 +16,9 @@ Este directorio contiene la arquitectura declarativa de referencia para la gesti
 
 ## 📐 Manifiestos y Taxonomía Operativa
 
-1. **`cluster-secret-store.yaml` [CANONICAL AGGREGATOR]:** Manifiesto canónico consolidado para despliegue unificado de plataforma que define los tres conectores de clúster (`vault-backend` para Proxmox Prod, `vault-backend-preprod` para Proxmox Pre-prod y `aws-secrets-manager` para AWS).
-2. **`vault-backend.yaml` [ENVIRONMENT ATOMIC / CONTRACT]:** Definición individual del `ClusterSecretStore` para Producción en Proxmox VE (`pokedex-prod-role`). Actúa como SSOT contractual consumida por `tests/security/vault_redeploy_contract.test.ts` y `scripts/k8s-rollout-restart.ts`.
-3. **`vault-backend-preprod.yaml` [ENVIRONMENT ATOMIC / CONTRACT]:** Definición individual del `ClusterSecretStore` para Pre-producción en Proxmox VE (`pokedex-preprod-role`). SSOT contractual para la suite de pruebas de pre-producción.
-4. **`aws-secrets-manager.yaml` [REFERENCE]:** Definición individual del `ClusterSecretStore` para AWS Secrets Manager en la arquitectura de portabilidad AWS EKS.
-5. **`external-secret-pokedex.yaml` [REFERENCE STATIC]:** Recurso `ExternalSecret` estático de referencia técnica. La SSOT operativa viva, templarizada y GitOps-aware reside en el Chart Helm (`infra/helm/pokedex/templates/externalsecret.yaml`).
+1. **`cluster-secret-store.yaml` [ACTIVE / CANONICAL]:** Manifiesto canónico consolidado para despliegue unificado de plataforma que define los tres conectores de clúster (`vault-backend` para Proxmox Prod, `vault-backend-preprod` para Proxmox Pre-prod y `aws-secrets-manager` para AWS). Actúa como la única SSOT contractual de `ClusterSecretStore` consumida por `tests/security/vault_redeploy_contract.test.ts` y `scripts/k8s-rollout-restart.ts`. Los antiguos manifiestos fragmentados (`vault-backend.yaml`, `vault-backend-preprod.yaml`, `aws-secrets-manager.yaml`) fueron deprecados y consolidados de forma definitiva para prevenir drift de configuración.
+2. **`external-secret-pokedex.yaml` [REFERENCE STATIC]:** Recurso `ExternalSecret` estático de referencia técnica. La SSOT operativa viva, templarizada y GitOps-aware reside en el Chart Helm (`infra/helm/pokedex/templates/externalsecret.yaml`).
+3. **`backup-offsite-externalsecret.yaml.template` [TEMPLATE]:** Plantilla declarativa para la sincronización de credenciales de respaldo off-site (rclone / S3 / Google Drive) gestionada por ESO.
 
 ---
 
