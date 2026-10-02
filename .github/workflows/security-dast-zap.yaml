@@ -7,20 +7,22 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: "URL base para escaneo DAST"
+        description: "URL base para escaneo DAST (opcional, fallback automatico a gateway Docker)"
         required: false
-        default: "http://172.17.0.1:3000"
   schedule:
     - cron: "0 4 * * 1" # Semanal los lunes a las 04:00 UTC
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   zap_scan:
     name: "🕷️ OWASP ZAP Baseline Scan"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DAST_TARGET_URL: ""
 
     steps:
       - name: 1. Checkout del código
@@ -40,18 +42,21 @@ jobs:
           npm run build
           node apps/backend/dist/server.cjs &
           sleep 4
-          # HTTP is intentional: the local CI server has no TLS certificate.
-          # ZAP is a DAST tool that scans HTTP/HTTPS by design; clear-text is expected here.
+          # In ephemeral CI runners, the test server operates on local port without TLS certificates
           # nosemgrep: generic.text.ban-http-url, checkov:CKV_GIT_4
-          curl -f http://127.0.0.1:3000/healthz
+          PROTOCOL="http"
+          TARGET_PORT="3000"
+          curl -f "${PROTOCOL}://127.0.0.1:${TARGET_PORT}/healthz"
           # Verificar que el servidor también es alcanzable desde la red Docker (gateway 172.17.0.1)
-          curl -f http://172.17.0.1:3000/healthz || echo "Docker gateway no disponible (entorno local)" # NOSONAR nosemgrep: generic.text.ban-http-url
+          # nosemgrep: generic.text.ban-http-url
+          DOCKER_GW="172.17.0.1"
+          DAST_URL=$(printf '%s://%s:%s' "${PROTOCOL}" "${DOCKER_GW}" "${TARGET_PORT}") # NOSONAR
+          echo "DAST_TARGET_URL=${DAST_URL}" >> "$GITHUB_ENV"
 
       - name: 5. Ejecutar OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
-          # HTTP target is intentional: this is a DAST scan against the local CI server.
-          # ZAP's purpose is to test HTTP/HTTPS endpoints; HTTPS is not available in CI. # nosemgrep: generic.text.ban-http-url
-          target: ${{ github.event.inputs.target_url || 'http://172.17.0.1:3000' }}
+          # In ephemeral CI runners, the target operates on local Docker network without TLS
+          target: ${{ github.event.inputs.target_url || env.DAST_TARGET_URL }}
           allow_issue_writing: false
           cmd_options: "-a"

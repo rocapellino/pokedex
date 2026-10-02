@@ -19,6 +19,8 @@ jobs:
   repository-scan:
     name: 🔍 Scheduled Trivy Repository Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Descargar Código Fuente
@@ -37,6 +39,8 @@ jobs:
     name: ☸️ Weekly Infrastructure Base Images Scan
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       # NOTA (WF-001): estas referencias DEBEN coincidir con las imágenes que el
       # Chart despliega realmente, incluidas en infra/helm/pokedex/values.yaml.

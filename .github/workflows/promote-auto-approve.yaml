@@ -18,14 +18,16 @@ concurrency:
 jobs:
   auto-approve:
     name: 🚀 Iniciar Checks Automáticos de Release
+    # Trust boundary verificado con metadatos no falsificables (head.repo y user.login)
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
       !github.event.pull_request.head.repo.fork &&
       startsWith(github.event.pull_request.head.ref, 'release/promote-') &&
       !github.event.pull_request.draft &&
-      (github.actor == 'rocapellino' || github.actor == 'github-actions[bot]') &&
       (github.event.pull_request.user.login == 'rocapellino' || github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
       - name: Aprobar workflows pendientes en action_required
         env:

@@ -18,6 +18,8 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.pull_request.user.id == 49699333 || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'renovate[bot]')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Sincronizar Ciclo de Vida del PR en Linear vía GraphQL API

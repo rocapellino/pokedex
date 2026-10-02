@@ -18,6 +18,8 @@ jobs:
   validate-web:
     name: 🎨 Lint, E2E, A11y & Lighthouse
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Descargar Código Fuente

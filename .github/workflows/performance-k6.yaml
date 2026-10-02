@@ -20,6 +20,8 @@ jobs:
   k6-load-test:
     name: 🎯 k6 Performance Gate & SLO Validation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Descargar Código Fuente

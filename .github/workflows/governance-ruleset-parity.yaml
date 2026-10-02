@@ -17,6 +17,8 @@ jobs:
   ruleset-parity:
     name: 🔍 Verificar paridad Declarativo ↔ GitHub Live
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Descargar Código Fuente

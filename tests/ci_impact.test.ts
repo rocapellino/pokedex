@@ -32,7 +32,7 @@ test('🎯 Change Impact: la tabla generada cita workflows con la extensión .ya
   const all = {
     documentation: true, agent_governance: true, backend: true, frontend: true,
     tests: true, docker: true, kubernetes: true, helm: true, opentofu: true,
-    ansible: true, linting: true, pr_governance: true, security_secrets: true,
+    ansible: true, linting: true, pr_governance: true, security: true, security_secrets: true,
     security_sast: true, security_dependencies: true, security_container: true,
     security_iac: true, security_supply_chain: true,
   };
@@ -1303,6 +1303,75 @@ test('🛡️ Workflow Governance: los 18 workflows declaran permisos explícito
       /permissions:/,
       `El workflow ${file} debe declarar un bloque de 'permissions:' explícito`
     );
+  }
+});
+
+test('🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)', () => {
+  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
+  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+
+  for (const file of files) {
+    const filePath = path.join(workflowsDir, file);
+    const parsed = yamlSafeLoad(fs.readFileSync(filePath, 'utf-8')) as any;
+
+    // 1. Debe declarar permisos a nivel de workflow (top-level)
+    assert.ok(
+      parsed.permissions && typeof parsed.permissions === 'object',
+      `El workflow ${file} debe declarar permissions a nivel de workflow`
+    );
+
+    // 2. Cada job que no delegue en otro workflow (uses:) debe declarar su propio bloque permissions
+    if (parsed.jobs && typeof parsed.jobs === 'object') {
+      for (const [jobId, jobDef] of Object.entries(parsed.jobs)) {
+        const job = jobDef as any;
+        if (job.uses) continue; // reusable invocations manejan sus permisos en el caller/callee
+        assert.ok(
+          job.permissions && typeof job.permissions === 'object',
+          `El job '${jobId}' en ${file} debe declarar su propio bloque permissions: explícito (Least Privilege)`
+        );
+      }
+    }
+  }
+});
+
+test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)', () => {
+  const zapPath = path.join(ROOT_DIR, '.github', 'workflows', 'security-dast-zap.yaml');
+  const parsed = yamlSafeLoad(fs.readFileSync(zapPath, 'utf-8')) as any;
+
+  assert.equal(
+    parsed.permissions?.['issues'],
+    undefined,
+    'security-dast-zap.yaml no debe solicitar permiso issues: write cuando allow_issue_writing es false'
+  );
+  assert.equal(
+    parsed.jobs?.zap_scan?.permissions?.['issues'],
+    undefined,
+    'El job zap_scan no debe solicitar permiso issues: write'
+  );
+});
+
+test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows', () => {
+  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
+  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+
+  const ALLOWED_SECRETS = new Set([
+    'GITHUB_TOKEN',
+    'SONAR_TOKEN',
+    'LINEAR_API_KEY',
+    'RULESET_ADMIN_TOKEN',
+  ]);
+
+  for (const file of files) {
+    const filePath = path.join(workflowsDir, file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const secretMatches = [...content.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((m) => m[1]);
+
+    for (const secret of secretMatches) {
+      assert.ok(
+        ALLOWED_SECRETS.has(secret),
+        `El workflow ${file} referencia el secreto '${secret}', que no pertenece a la SSOT de secretos gobernados [${Array.from(ALLOWED_SECRETS).join(', ')}]`
+      );
+    }
   }
 });
 
