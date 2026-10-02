@@ -30,11 +30,7 @@ global:
     - "tsconfig.json"
     - ".pre-commit-config.yaml"
     - ".github/workflows/**"
-    # CI-001: la CONFIGURACION del motor debe ser global igual que el motor. Cambiar
-    # que rutas activan que gates altera el comportamiento de todos los Pull
-    # Requests del repositorio, por lo que exige validacion integral. Sin esta
-    # entrada, un PR que modificara la matriz de impacto pasaria con un alcance
-    # menor del que realmente provoca.
+    # Matriz y motor de análisis de impacto requieren validación global integral
     - ".github/ci-impact.yaml"
     - "scripts/detect-change-impact.ts"
     - "scripts/validate-pr-body.ts"
@@ -90,8 +86,7 @@ rules:
       - ".markdownlintignore"
       - "LICENSE"
       - "scripts/lint-markdown.ts"
-      # CI-001: el Taskfile expone la superficie de comandos que la documentación
-      # debe reflejar (`task --list`, aliases, contratos de entrega).
+      # CLI canónico del monorepo referenciado en contratos documentales
       - "Taskfile.yaml"
     triggers:
       documentation: true
@@ -156,10 +151,7 @@ rules:
       - "scripts/dr-drill.ts"
       - "scripts/dev-backup-gdrive.ts"
       - "scripts/dr_verify_restore.sh"
-      # CI-001: `Taskfile.yaml` es el CLI canónico del repositorio (ADR-020) y
-      # orquesta las tareas de Kind, ArgoCD, Helm, Ansible y validación. Antes
-      # no figuraba en ninguna regla, por lo que el motor aplicaba su política
-      # fail-closed y despachaba Full CI en cada PR que lo modificara.
+      # Tareas de clúster, ArgoCD y validación de plataforma
       - "Taskfile.yaml"
     triggers:
       kubernetes: true
@@ -176,7 +168,7 @@ rules:
     description: "Templates, values y empaquetado del Helm Chart oficial"
     paths:
       - "infra/helm/**"
-      # CI-001: el Taskfile orquesta `helm lint`, renders y despliegues del Chart.
+      # Tareas de empaquetado, render y validación de Helm
       - "Taskfile.yaml"
     triggers:
       helm: true
@@ -193,7 +185,7 @@ rules:
     description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
     paths:
       - "infra/opentofu/**"
-      # CI-001: el Taskfile orquesta `tofu validate` y `tofu fmt` de los entornos.
+      # Tareas de formateo y validación OpenTofu
       - "Taskfile.yaml"
     triggers:
       opentofu: true
@@ -209,8 +201,7 @@ rules:
     description: "Playbooks, roles e inventarios de hardening de sistemas base"
     paths:
       - "infra/ansible/**"
-      # CI-001: el Taskfile orquesta los playbooks de Ansible (baseline, hardening,
-      # k3s, vault, bastion).
+      # Tareas de ejecución y sintaxis de playbooks Ansible
       - "Taskfile.yaml"
     triggers:
       ansible: true
@@ -244,17 +235,12 @@ rules:
 
   linting:
     description: "Cambios que activan linters de sintaxis, higiene y configuración"
-    # NOTA (CI-007): `.github/workflows/**` NO se lista aquí. Ya figura en
-    # `global.paths`, y el motor retorna temprano en el Caso 2 antes de evaluar
-    # `rules`, por lo que declararlo aquí lo convertía en código muerto.
-    # Los workflows se validan vía el nivel Global (que ya dispara Full CI).
+    # Workflows transversales se evalúan en global.paths con Full CI
     paths:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'infra/**/*.yaml'
-      # INFRA-006: los README de ruta son SSOT de su directorio y deben
-      # validarse. `infra/**/*.yaml` solo cubre los manifiestos, no la
-      # documentacion que describe la operacion de esa ruta.
+      # Documentación operacional de soporte a infraestructura
       - 'infra/**/README.md'
       - 'scripts/**/*.sh'
       - 'dr_verify_restore.sh'
