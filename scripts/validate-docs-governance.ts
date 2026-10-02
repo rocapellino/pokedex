@@ -64,6 +64,46 @@ function getMarkdownFiles(dir: string): string[] {
   return files;
 }
 
+/**
+ * Extrae los destinos de enlaces markdown [texto](url) en tiempo lineal O(n)
+ * sin retroceso (backtracking) ni expresiones regulares propensas a ReDoS.
+ */
+function extractMarkdownLinkTargets(text: string): string[] {
+  const targets: string[] = [];
+  let pos = 0;
+  while (pos < text.length) {
+    const startBracket = text.indexOf('[', pos);
+    if (startBracket === -1) break;
+
+    const closeBracket = text.indexOf(']', startBracket + 1);
+    if (closeBracket === -1) break;
+
+    if (text[closeBracket + 1] === '(') {
+      const closeParen = text.indexOf(')', closeBracket + 2);
+      if (closeParen !== -1) {
+        let rawTarget = text.slice(closeBracket + 2, closeParen).trim();
+        if (rawTarget.length > 0 && !rawTarget.includes('\n')) {
+          // Extraer la ruta base ignorando títulos opcionales o delimitadores <>
+          const spaceIdx = rawTarget.indexOf(' ');
+          if (spaceIdx !== -1) {
+            rawTarget = rawTarget.slice(0, spaceIdx).trim();
+          }
+          if (rawTarget.startsWith('<') && rawTarget.endsWith('>')) {
+            rawTarget = rawTarget.slice(1, -1);
+          }
+          if (rawTarget.length > 0) {
+            targets.push(rawTarget);
+          }
+        }
+        pos = closeParen + 1;
+        continue;
+      }
+    }
+    pos = startBracket + 1;
+  }
+  return targets;
+}
+
 export function validateDocsGovernance(): GovernanceViolation[] {
   const violations: GovernanceViolation[] = [];
 
@@ -93,22 +133,14 @@ export function validateDocsGovernance(): GovernanceViolation[] {
         message: 'Contiene enlaces absolutos con esquema local "file:///" prohibidos por portabilidad.',
       });
     }
-
-    // Regla: Enlaces relativos rotos
-    // Regex para enlaces markdown [texto](url) ignorando bloques de código simples
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    let match: RegExpExecArray | null;
-
-    while ((match = linkRegex.exec(content)) !== null) {
-      const rawTarget = match[2].trim();
-
-      // Ignorar enlaces externos, esquemas de correo o anclas puras
+    // Regla: Detección de enlaces relativos rotos
+    const linkTargets = extractMarkdownLinkTargets(content);
+    for (const rawTarget of linkTargets) {
       if (
         rawTarget.startsWith('http://') ||
         rawTarget.startsWith('https://') ||
         rawTarget.startsWith('mailto:') ||
-        rawTarget.startsWith('#') ||
-        rawTarget.startsWith('tel:')
+        rawTarget.startsWith('#')
       ) {
         continue;
       }
