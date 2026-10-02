@@ -236,7 +236,7 @@ export function initInteractiveListeners(): void {
       const target = e.target as HTMLElement | null;
       const retryBtn = target?.closest('#btnRetryConnection');
       if (retryBtn) {
-        void loadPokemons();
+        loadPokemons();
         return;
       }
       const card = target?.closest('.pokemon-card');
@@ -283,9 +283,9 @@ export function initInteractiveListeners(): void {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initInteractiveListeners();
-    void loadPokemons();
+    loadPokemons();
   });
 } else {
   initInteractiveListeners();
-  void loadPokemons();
+  loadPokemons();
 }

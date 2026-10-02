@@ -34,6 +34,11 @@ const HTML = `<!doctype html><html><body>
   <input id="pokemonName" value=""><input id="pokemonTypes" value=""><input id="pokemonForce" value="">
   <div id="crudModal"></div><div id="authModal"></div><div id="deleteModal"></div>
   <table><tbody id="tableBody"></tbody></table>
+  <form id="crudForm"></form><form id="authForm"></form>
+  <button id="btnAdminAuth"></button><button id="btnSyncCache"></button>
+  <button id="btnOpenCreate"></button><button id="btnClearKeyBtn"></button>
+  <button id="adminBtnPrev"></button><button id="adminBtnNext"></button>
+  <button data-close-crud></button><button data-close-delete></button><button data-close-auth></button>
 </body></html>`;
 
 /** Espia de `window.scrollTo`, usado para observar la navegación entre páginas. */

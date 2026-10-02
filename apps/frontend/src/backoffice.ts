@@ -329,17 +329,7 @@ export function initEventListeners(): void {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initEventListeners();
-    void checkAdminSession();
-    void loadAdminData();
-    void checkHealthStatus();
-    setInterval(() => {
-      void checkHealthStatus();
-    }, 15000);
-  });
-} else {
+export function bootstrap(): void {
   initEventListeners();
   void checkAdminSession();
   void loadAdminData();
@@ -347,4 +337,10 @@ if (document.readyState === 'loading') {
   setInterval(() => {
     void checkHealthStatus();
   }, 15000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrap);
+} else {
+  bootstrap();
 }

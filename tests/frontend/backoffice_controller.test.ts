@@ -279,3 +279,100 @@ test('Backoffice: handleAdminTypeFilter lee el valor del selector', async () => 
   assert.equal(select.value, 'Fuego');
   await settle();
 });
+
+test('Backoffice: bootstrap inicializa listeners y sondeos sin lanzar', async () => {
+  const { bootstrap } = await load();
+  assert.doesNotThrow(() => bootstrap());
+  await settle();
+});
+
+test('Backoffice: eventos interactivos disparan manejadores delegados en admin-events', async () => {
+  const { initEventListeners } = await load();
+  initEventListeners();
+
+  const crudForm = document.getElementById('crudForm');
+  crudForm?.dispatchEvent(new dom.window.Event('submit'));
+
+  const authForm = document.getElementById('authForm');
+  authForm?.dispatchEvent(new dom.window.Event('submit'));
+
+  const btnSyncCache = document.getElementById('btnSyncCache');
+  btnSyncCache?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnClearKeyBtn = document.getElementById('btnClearKeyBtn');
+  btnClearKeyBtn?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  btnConfirmDelete?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnAdminAuth = document.getElementById('btnAdminAuth');
+  btnAdminAuth?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnOpenCreate = document.getElementById('btnOpenCreate');
+  btnOpenCreate?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminBtnPrev = document.getElementById('adminBtnPrev');
+  adminBtnPrev?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminBtnNext = document.getElementById('adminBtnNext');
+  adminBtnNext?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminSearchInput = document.getElementById('adminSearch');
+  adminSearchInput?.dispatchEvent(new dom.window.Event('input'));
+
+  const adminTypeFilter = document.getElementById('adminTypeFilter');
+  adminTypeFilter?.dispatchEvent(new dom.window.Event('change'));
+
+  const adminPageSize = document.getElementById('adminPageSize');
+  adminPageSize?.dispatchEvent(new dom.window.Event('change'));
+
+  document.querySelectorAll('[data-close-crud]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+  document.querySelectorAll('[data-close-delete]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+  document.querySelectorAll('[data-close-auth]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+
+  const escEvent = new dom.window.KeyboardEvent('keydown', { key: 'Escape' });
+  document.dispatchEvent(escEvent);
+
+  await settle();
+});
+
+test('Backoffice: handleFormSubmit gestiona 401 y limpia sesion', async () => {
+  const { handleFormSubmit, setAdminSessionActive } = await load();
+  setAdminSessionActive(true);
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    const error: any = new Error('Unauthorized');
+    error.status = 401;
+    throw error;
+  };
+
+  const event = new dom.window.Event('submit');
+  event.preventDefault = () => {};
+  await handleFormSubmit(event as unknown as Event);
+  await settle();
+  g.fetch = prevFetch;
+});
+
+test('Backoffice: executeDelete gestiona 401 y limpia sesion', async () => {
+  const { executeDelete, setAdminSessionActive, openDeleteModal } = await load();
+  setAdminSessionActive(true);
+  openDeleteModal(1);
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    const error: any = new Error('Unauthorized');
+    error.status = 401;
+    throw error;
+  };
+
+  await executeDelete();
+  await settle();
+  g.fetch = prevFetch;
+});
