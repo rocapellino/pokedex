@@ -1,5 +1,8 @@
 # ⎈ Guía de Despliegue y Operación con Helm (Pokédex Platform)
 
+> [!NOTE]
+> **Frontera de Uso:** Este runbook documenta la parametrización de Helm para **desarrollo local, renderizado de plantillas y pruebas manuales** (`helm template`, `helm upgrade --dry-run`). En entornos de pre-producción y producción, el despliegue es 100% automatizado y gestionado mediante GitOps con ArgoCD conforme al procedimiento estándar en [docs/operations/deployment.md](../operations/deployment.md) y [ADR-003](../decisions/ADR-003-gitops-with-argocd.md).
+
 Esta guía documenta la arquitectura, parametrización, instalación y ciclo de vida de la plataforma **Pokédex** mediante su Chart oficial de **Helm 3** (`infra/helm/pokedex`).
 
 ---
