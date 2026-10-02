@@ -1189,3 +1189,142 @@ test('🎯 Change Impact: el contrato declara always con ids mapeados en el moto
     assert.ok(control.description, `El control always '${control.id}' debe documentar su descripción`);
   }
 });
+
+// ==============================================================================
+// GH-006: Matriz Exhaustiva de Change Impact y Gobernanza Integral de Workflows
+// ==============================================================================
+
+test('🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo', () => {
+  const result = analyzeChangeImpact({
+    files: [
+      'apps/backend/src/services/auth.ts',
+      'apps/frontend/src/app.ts',
+      'docs/README.md',
+      'infra/helm/pokedex/Chart.yaml',
+    ],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'Todas las rutas son conocidas; no debe caer en unknown');
+  assert.equal(result.isGlobal, false, 'No hay rutas transversales globales');
+
+  // Dominios activados acumulativamente
+  assert.equal(result.triggers.backend, true, 'backend debe estar activo');
+  assert.equal(result.triggers.frontend, true, 'frontend debe estar activo');
+  assert.equal(result.triggers.documentation, true, 'documentation debe estar activo');
+  assert.equal(result.triggers.helm, true, 'helm debe estar activo');
+  assert.equal(result.triggers.kubernetes, true, 'kubernetes debe estar activo por Helm');
+  assert.equal(result.triggers.docker, true, 'docker debe estar activo por backend/frontend');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo por backend/frontend');
+
+  // Dominios no involucrados deben permanecer inactivos
+  assert.equal(result.triggers.opentofu, false, 'opentofu no debe activarse');
+  assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
+
+  // Seguridad granular combinada
+  assert.equal(result.triggers.security, true);
+  assert.equal(result.triggers.security_secrets, true);
+  assert.equal(result.triggers.security_sast, true);
+  assert.equal(result.triggers.security_dependencies, true);
+  assert.equal(result.triggers.security_container, true);
+  assert.equal(result.triggers.security_iac, true);
+  assert.equal(result.triggers.security_supply_chain, true);
+});
+
+test('🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed', () => {
+  const arbitraryPaths = [
+    'arbitrary_dir/nested/deeply/unknown_service.go',
+    'tools/custom_bin/script.py',
+    'misc/untracked_config.ini',
+  ];
+
+  for (const filePath of arbitraryPaths) {
+    const result = analyzeChangeImpact({
+      files: [filePath],
+      configPath: CONFIG_PATH,
+    });
+
+    assert.equal(result.hasChanges, true);
+    assert.equal(result.isUnknown, true, `La ruta '${filePath}' debe activar isUnknown`);
+    assert.ok(result.matchedRules.includes('unknown'), `matchedRules debe incluir 'unknown' para '${filePath}'`);
+    assert.equal(result.triggers.backend, true);
+    assert.equal(result.triggers.frontend, true);
+    assert.equal(result.triggers.kubernetes, true);
+    assert.equal(result.triggers.helm, true);
+    assert.equal(result.triggers.opentofu, true);
+    assert.equal(result.triggers.ansible, true);
+    assert.equal(result.triggers.documentation, true);
+    assert.equal(result.triggers.docker, true);
+  }
+});
+
+test('🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios', () => {
+  // Simulando conjunto de archivos resultantes de un diff que incluye borrado, renombrado y creación
+  const diffFiles = [
+    'apps/backend/src/legacy_controller.ts', // Simula archivo eliminado o renombrado en backend
+    'infra/opentofu/environments/aws/main.tf', // Modificación IaC
+  ];
+
+  const result = analyzeChangeImpact({
+    files: diffFiles,
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false);
+  assert.equal(result.triggers.backend, true, 'backend debe activarse por la ruta previa');
+  assert.equal(result.triggers.opentofu, true, 'opentofu debe activarse por la ruta de IaC');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe activarse por opentofu');
+  assert.equal(result.triggers.frontend, false, 'frontend no debe activarse');
+  assert.equal(result.triggers.ansible, false, 'ansible no debe activarse');
+});
+
+test('🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all', () => {
+  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
+  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+
+  assert.equal(files.length, 18, `Se esperan exactamente 18 workflows en .github/workflows/, encontrados ${files.length}`);
+
+  for (const file of files) {
+    const filePath = path.join(workflowsDir, file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    // Ningún workflow debe usar permisos globales inseguros como write-all
+    assert.doesNotMatch(
+      content,
+      /permissions:\s*write-all/i,
+      `El workflow ${file} no debe definir 'permissions: write-all'`
+    );
+
+    // Debe existir declaración de permisos a nivel workflow o de jobs
+    assert.match(
+      content,
+      /permissions:/,
+      `El workflow ${file} debe declarar un bloque de 'permissions:' explícito`
+    );
+  }
+});
+
+test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente', () => {
+  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
+  const reusableWorkflows = [
+    'ci.yaml',
+    'infra.yaml',
+    'web.yaml',
+    'mega-linter.yaml',
+    'security-code-scanning.yaml',
+  ];
+
+  for (const file of reusableWorkflows) {
+    const filePath = path.join(workflowsDir, file);
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    assert.match(content, /workflow_call:/, `${file} debe declarar trigger workflow_call`);
+    assert.doesNotMatch(
+      content,
+      /^\s*pull_request:\s*$/m,
+      `El workflow reusable ${file} no debe declarar trigger 'pull_request:' propio; debe ser orquestado por change-impact.yaml`
+    );
+  }
+});

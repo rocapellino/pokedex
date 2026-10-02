@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T19:30:48.735Z",
+  "generatedAt": "2026-10-02T22:34:52.636Z",
   "summary": {
     "totalFiles": 48,
     "testFiles": 46,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 452,
-    "totalLines": 12834,
-    "totalSizeBytes": 598779,
+    "totalTestCases": 457,
+    "totalLines": 12973,
+    "totalSizeBytes": 604816,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 16,
-      "testCases": 175,
+      "testCases": 180,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -259,12 +259,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 47,
+      "testCount": 52,
       "describeCount": 0,
-      "assertionCountEst": 295,
-      "sizeBytes": 52464,
-      "lineCount": 1192,
-      "sha256": "05a83d982db58c8441d75f9619c3a15ef8a15b5ad1a3fcc6a0da34347d1f5ac5",
+      "assertionCountEst": 337,
+      "sizeBytes": 58501,
+      "lineCount": 1331,
+      "sha256": "74b8a4614d719b27011fc1fc2146c9011d7793ffc514fb83391ad295bac6c7bb",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -468,6 +468,26 @@
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
           "line": 1181
+        },
+        {
+          "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
+          "line": 1197
+        },
+        {
+          "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
+          "line": 1235
+        },
+        {
+          "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
+          "line": 1262
+        },
+        {
+          "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
+          "line": 1283
+        },
+        {
+          "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
+          "line": 1309
         }
       ]
     },
