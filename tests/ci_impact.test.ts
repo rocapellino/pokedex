@@ -32,7 +32,7 @@ test('🎯 Change Impact: la tabla generada cita workflows con la extensión .ya
   const all = {
     documentation: true, agent_governance: true, backend: true, frontend: true,
     tests: true, docker: true, kubernetes: true, helm: true, opentofu: true,
-    ansible: true, linting: true, pr_governance: true, security_secrets: true,
+    ansible: true, linting: true, pr_governance: true, security: true, security_secrets: true,
     security_sast: true, security_dependencies: true, security_container: true,
     security_iac: true, security_supply_chain: true,
   };
