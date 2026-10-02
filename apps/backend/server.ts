@@ -131,7 +131,12 @@ app.use(pokemonsRouter);
 app.use(aiRouter);
 
 // ---------------------------------------------------------------------------
-// Static Assets & Single Page Application Routing (con Caché en Memoria)
+// Static Assets & Web Serving (Fallback de Desarrollo Local y Standalone)
+// NOTA ARQUITECTÓNICA (APPS-003 / APPS-004):
+// En producción Kubernetes (GitOps), el frontend MPA es empaquetado en su propio
+// contenedor ligero Nginx Alpine (apps/frontend/Dockerfile) y servido directamente
+// detrás del Ingress/proxy reverso. Las siguientes rutas Express constituyen una
+// contingencia para desarrollo local y entornos standalone sin Nginx activo.
 // ---------------------------------------------------------------------------
 const INDEX_HTML_PATH = path.join(PUBLIC_DIR, 'index.html');
 const BACKOFFICE_HTML_PATH = path.join(PUBLIC_DIR, 'backoffice.html');

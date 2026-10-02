@@ -87,6 +87,7 @@ export interface DriftReport {
   modifiedFiles: string[];
   countChangedFiles: { path: string; old: number; current: number }[];
   orphanFiles: string[];
+  brokenTargetArtifacts: { testFile: string; artifact: string }[];
 }
 
 const ROOT_DIR = process.cwd();
@@ -111,7 +112,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/api-limits.test.ts': {
     type: 'Integration',
     targetDomain: 'Backend HTTP API / Rate Limiting',
-    targetArtifacts: ['apps/backend/src/middleware/rate-limiter.ts', 'apps/backend/src/server.ts'],
+    targetArtifacts: ['apps/backend/src/middleware/rate-limiter.ts', 'apps/backend/server.ts'],
     description: 'Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.',
   },
   'tests/audit_freshness.test.ts': {
@@ -129,7 +130,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/concurrency.test.ts': {
     type: 'Integration',
     targetDomain: 'Concurrencia y Consistencia de Almacenamiento',
-    targetArtifacts: ['apps/backend/src/data/pokemonStorage.ts'],
+    targetArtifacts: ['apps/backend/src/services/db.ts'],
     description: 'Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.',
   },
   'tests/contracts.test.ts': {
@@ -141,7 +142,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/doc_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / ADRs',
-    targetArtifacts: ['docs/architecture/decisions/', '.agents/rules/documentation-governance.md'],
+    targetArtifacts: ['docs/decisions/', '.agents/rules/documentation-governance.md'],
     description: 'Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios.',
   },
   'tests/fuzzing.test.ts': {
@@ -159,8 +160,14 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/pentest.test.ts': {
     type: 'Security / Pentest',
     targetDomain: 'Pruebas de Penetración de API',
-    targetArtifacts: ['apps/backend/src/server.ts', 'apps/backend/src/routes/'],
+    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/routes/'],
     description: 'Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.',
+  },
+  'tests/pr_template_governance.test.ts': {
+    type: 'Contract / Governance',
+    targetDomain: 'Gobernanza de Pull Request Template',
+    targetArtifacts: ['.github/pull_request_template.md', 'scripts/validate-pr-body.ts'],
+    description: 'Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake.',
   },
   'tests/ruleset_contract.test.ts': {
     type: 'Contract / Governance',
@@ -177,13 +184,13 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/security.test.ts': {
     type: 'Security / Application',
     targetDomain: 'Seguridad Integral de Aplicación y Headers',
-    targetArtifacts: ['apps/backend/src/server.ts', 'apps/backend/src/middleware/'],
+    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/'],
     description: 'Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.',
   },
   'tests/storage.test.ts': {
     type: 'Integration',
     targetDomain: 'Capa de Persistencia y Caché',
-    targetArtifacts: ['apps/backend/src/data/pokemonStorage.ts', 'apps/backend/src/data/redis.ts'],
+    targetArtifacts: ['apps/backend/src/services/db.ts', 'apps/backend/src/services/cache.ts'],
     description: 'Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.',
   },
   'tests/version_consistency.test.ts': {
@@ -195,7 +202,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/version.test.ts': {
     type: 'Integration',
     targetDomain: 'Endpoint de Telemetría /version',
-    targetArtifacts: ['apps/backend/src/routes/version.ts'],
+    targetArtifacts: ['apps/backend/server.ts'],
     description: 'Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.',
   },
   'tests/ci/workflow_run_parity.test.ts': {
@@ -207,13 +214,13 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/e2e/backoffice.spec.ts': {
     type: 'E2E',
     targetDomain: 'E2E Backoffice Administrativo',
-    targetArtifacts: ['apps/frontend/src/backoffice.ts', 'apps/frontend/public/backoffice.html'],
+    targetArtifacts: ['apps/frontend/src/backoffice.ts', 'apps/frontend/backoffice.html'],
     description: 'Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación.',
   },
   'tests/e2e/pokedex.spec.ts': {
     type: 'E2E / a11y',
     targetDomain: 'E2E Aplicación Pública y Accesibilidad WCAG',
-    targetArtifacts: ['apps/frontend/src/index.ts', 'apps/frontend/public/index.html'],
+    targetArtifacts: ['apps/frontend/src/pokedex.ts', 'apps/frontend/index.html'],
     description: 'Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA.',
   },
   'tests/frontend/backoffice_controller.test.ts': {
@@ -231,7 +238,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/frontend/modal_components.test.ts': {
     type: 'Component / Unit',
     targetDomain: 'Componentes Modales y Accesibilidad',
-    targetArtifacts: ['apps/frontend/src/components/modal.ts'],
+    targetArtifacts: ['apps/frontend/src/components/modal-detail.ts', 'apps/frontend/src/components/modal-crud.ts'],
     description: 'Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop.',
   },
   'tests/gitops/argocd_pinning.test.ts': {
@@ -243,13 +250,13 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/performance/k6_stress_test.js': {
     type: 'Load / Stress',
     targetDomain: 'Rendimiento y Capacidad bajo Carga',
-    targetArtifacts: ['apps/backend/src/server.ts', 'apps/backend/src/middleware/rate-limiter.ts'],
+    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/rate-limiter.ts'],
     description: 'Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios.',
   },
   'tests/security/adr_compliance_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad con ADRs de Arquitectura',
-    targetArtifacts: ['docs/architecture/decisions/'],
+    targetArtifacts: ['docs/decisions/'],
     description: 'Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).',
   },
   'tests/security/docs_portal_integrity.test.ts': {
@@ -273,7 +280,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/security/egress_anti_ssrf.test.ts': {
     type: 'Security / Network',
     targetDomain: 'Control de Egress y Prevención SSRF',
-    targetArtifacts: ['infra/k8s/cilium-network-policies.yaml', 'scripts/probe-egress-security.ts'],
+    targetArtifacts: ['infra/helm/pokedex/templates/cilium-network-policies.yaml', 'scripts/probe-egress-security.ts'],
     description: 'Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta.',
   },
   'tests/security/ghcr_retention.test.ts': {
@@ -297,7 +304,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/security/grafana_portability.test.ts': {
     type: 'Contract / Observability',
     targetDomain: 'Portabilidad de Dashboards Grafana',
-    targetArtifacts: ['infra/observability/dashboards/'],
+    targetArtifacts: ['infra/monitoring/dashboards/'],
     description: 'Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos.',
   },
   'tests/security/iac_baseline_security.test.ts': {
@@ -321,7 +328,7 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/security/network_policies_security.test.ts': {
     type: 'Security / Network',
     targetDomain: 'Aislamiento de Red Zero-Trust',
-    targetArtifacts: ['infra/k8s/network-policies.yaml', 'infra/k8s/cilium-network-policies.yaml'],
+    targetArtifacts: ['infra/helm/pokedex/templates/network-policies.yaml', 'infra/helm/pokedex/templates/cilium-network-policies.yaml'],
     description: 'Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados.',
   },
   'tests/security/operation_dr_benchmarks.test.ts': {
@@ -363,19 +370,19 @@ const FILE_METADATA_CATALOG: Record<string, {
   'tests/unit/cache_service.test.ts': {
     type: 'Unit',
     targetDomain: 'Servicio de Caché y Fallback',
-    targetArtifacts: ['apps/backend/src/data/redis.ts'],
+    targetArtifacts: ['apps/backend/src/services/cache.ts'],
     description: 'Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red.',
   },
   'tests/unit/pokemon_repository.test.ts': {
     type: 'Unit',
     targetDomain: 'Repositorio de Datos Pokémon',
-    targetArtifacts: ['apps/backend/src/data/pokemonStorage.ts'],
+    targetArtifacts: ['apps/backend/src/services/pokemon.repository.ts'],
     description: 'Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos.',
   },
   'tests/unit/postgres_fail_closed.test.ts': {
     type: 'Unit',
     targetDomain: 'Resiliencia de Conexión a Base de Datos',
-    targetArtifacts: ['apps/backend/src/data/drizzle.ts', 'apps/backend/src/server.ts'],
+    targetArtifacts: ['apps/backend/src/services/postgres.ts', 'apps/backend/server.ts'],
     description: 'Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores.',
   },
 };
@@ -817,6 +824,7 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
       modifiedFiles: [],
       countChangedFiles: [],
       orphanFiles: [],
+      brokenTargetArtifacts: [],
     };
   }
 
@@ -832,6 +840,7 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
       modifiedFiles: [],
       countChangedFiles: [],
       orphanFiles: [],
+      brokenTargetArtifacts: [],
     };
   }
 
@@ -850,6 +859,7 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
   const modifiedFiles: string[] = [];
   const countChangedFiles: { path: string; old: number; current: number }[] = [];
   const orphanFiles: string[] = [];
+  const brokenTargetArtifacts: { testFile: string; artifact: string }[] = [];
 
   for (const [p, cur] of currentMap.entries()) {
     const old = existingMap.get(p);
@@ -866,6 +876,15 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
     if (cur.role === 'TEST_FILE' && cur.npmCommands.length === 0) {
       orphanFiles.push(p);
     }
+
+    // Validación preventiva de artefactos destino rotos
+    for (const art of cur.targetArtifacts) {
+      if (art.includes('*')) continue;
+      const fullPath = path.resolve(ROOT_DIR, art);
+      if (!fs.existsSync(fullPath)) {
+        brokenTargetArtifacts.push({ testFile: p, artifact: art });
+      }
+    }
   }
 
   for (const p of existingMap.keys()) {
@@ -874,7 +893,13 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
     }
   }
 
-  const hasDrift = newFiles.length > 0 || removedFiles.length > 0 || countChangedFiles.length > 0 || modifiedFiles.length > 0 || !fs.existsSync(MD_FILE);
+  const hasDrift =
+    newFiles.length > 0 ||
+    removedFiles.length > 0 ||
+    countChangedFiles.length > 0 ||
+    modifiedFiles.length > 0 ||
+    brokenTargetArtifacts.length > 0 ||
+    !fs.existsSync(MD_FILE);
 
   return {
     hasDrift,
@@ -883,6 +908,7 @@ export function checkDrift(currentCatalog: TestSurfaceCatalog): DriftReport {
     modifiedFiles,
     countChangedFiles,
     orphanFiles,
+    brokenTargetArtifacts,
   };
 }
 
@@ -952,6 +978,10 @@ function main() {
     if (drift.modifiedFiles.length > 0) {
       console.log(`  📝 Archivos con contenido modificado (${drift.modifiedFiles.length}):`);
       for (const f of drift.modifiedFiles) console.log(`     - ${f}`);
+    }
+    if (drift.brokenTargetArtifacts.length > 0) {
+      console.log(`  🔗 Referencias a artefactos inexistentes/rotos (${drift.brokenTargetArtifacts.length}):`);
+      for (const b of drift.brokenTargetArtifacts) console.log(`     - [${b.testFile}] -> ${b.artifact}`);
     }
     if (!fs.existsSync(JSON_FILE) || !fs.existsSync(MD_FILE)) {
       console.log('  📄 Catálogos en docs/testing/ ausentes o incompletos.');

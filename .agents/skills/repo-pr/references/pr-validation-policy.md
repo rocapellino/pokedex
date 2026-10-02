@@ -78,17 +78,20 @@ Para cada verificación individual, se aplica la siguiente escala:
 Antes de declarar un cambio como `READY_FOR_PR`, `repo-pr` debe validar el siguiente checklist:
 
 - [ ] 1. PR Template localizado dinámicamente según precedencia SSOT.
-- [ ] 2. Todas las secciones del template contempladas sin omisiones silenciosas.
-- [ ] 3. Secciones no aplicables debidamente documentadas con `N/A: <motivo>`.
-- [ ] 4. Título del PR redactado en español siguiendo Conventional Commits.
-- [ ] 5. Descripción, resumen e impacto redactados en español ([language-policy.md](../../_shared/language-policy.md)).
-- [ ] 6. Nombres de herramientas, APIs, comandos y código preservados en inglés.
-- [ ] 7. Estado de pre-commit evaluado dinámicamente y clasificado con rigor factual.
-- [ ] 8. Quality Gates técnicos locales (`npm run lint`, `typecheck`) ejecutados según impacto.
-- [ ] 9. Pruebas unitarias o de integración (`npm test`) ejecutadas según impacto.
-- [ ] 10. Verificaciones de seguridad (secretos, SAST, dependencias) ejecutadas según impacto.
-- [ ] 11. Cierre documental validado por `repo-docs` y Markdown Quality Gate con 0 errores `MDxxx`.
-- [ ] 12. Clasificación de impacto coherente con [change-impact-matrix.md](../../_shared/change-impact-matrix.md).
-- [ ] 13. Prohibición estricta de afirmaciones sin evidencia (no afirmar despliegue en runtime).
-- [ ] 14. Diff higiénico: ningún archivo no relacionado incluido accidentalmente.
-- [ ] 15. Estado del repositorio limpio y coherente con el modelo de estados (`MAIN != Producción`).
+- [ ] 2. Validación pre-publicación ejecutada con éxito (`npm run pr:validate -- --body tmp/pr-body.md`) con 0 infracciones y sin estructuras sustitutas.
+- [ ] 3. Todas las secciones del template contempladas sin omisiones silenciosas (`template headings ⊆ PR headings`).
+- [ ] 4. Secciones no aplicables debidamente documentadas con `N/A: <motivo>`.
+- [ ] 5. CI Impact Analysis contiene la tabla markdown resuelta sin placeholders `—`.
+- [ ] 6. Título del PR redactado en español siguiendo Conventional Commits.
+- [ ] 7. Descripción, resumen e impacto redactados en español ([language-policy.md](../../_shared/language-policy.md)).
+- [ ] 8. Nombres de herramientas, APIs, comandos y código preservados en inglés.
+- [ ] 9. Estado de pre-commit evaluado dinámicamente y clasificado con rigor factual.
+- [ ] 10. Quality Gates técnicos locales (`npm run lint`, `typecheck`) ejecutados según impacto.
+- [ ] 11. Pruebas unitarias o de integración (`npm test`) ejecutadas según impacto.
+- [ ] 12. Verificaciones de seguridad (secretos, SAST, dependencias) ejecutadas según impacto.
+- [ ] 13. Cierre documental validado por `repo-docs` y Markdown Quality Gate con 0 errores `MDxxx`.
+- [ ] 14. Clasificación de impacto coherente con [change-impact-matrix.md](../../_shared/change-impact-matrix.md).
+- [ ] 15. Prohibición estricta de afirmaciones sin evidencia (no afirmar despliegue en runtime).
+- [ ] 16. Diff higiénico: ningún archivo no relacionado incluido accidentalmente.
+- [ ] 17. Validación post-publicación ejecutada con éxito (`npm run pr:validate -- --remote <número>`) certificando coincidencia en GitHub y ausencia de mojibake.
+- [ ] 18. Estado del repositorio limpio y coherente con el modelo de estados (`MAIN != Producción`).

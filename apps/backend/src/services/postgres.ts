@@ -125,19 +125,34 @@ export async function connectPg(): Promise<boolean> {
       const countTotal = Number(countRow?.total ?? 0);
 
       if (countTotal === 0) {
-        logger.info('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon...');
-        for (const p of initialPokemons) {
-          await drizzleDb
-            .insert(pokedexEntries)
-            .values({
-              id: p.id,
-              nombre: p.nombre,
-              tipo: p.tipo,
-              data: p,
-            })
-            .onConflictDoNothing({ target: pokedexEntries.id });
+        // [APPS-002] En producción orquestada, la población del catálogo es responsabilidad
+        // exclusiva del Seed Job (infra/helm/pokedex/templates/seed-job.yaml) o de la tarea
+        // `npm run seed`. Auto-sembrar en el arranque de la API productiva genera condiciones de
+        // carrera cuando múltiples réplicas escalan (HPA).
+        // En desarrollo local o suites de test, se mantiene el auto-seed para agilidad.
+        const shouldAutoSeed = !isProductionEnv() || process.env.AUTO_SEED === 'true';
+
+        if (shouldAutoSeed) {
+          logger.info('[Storage: PostgreSQL] Sembrando catálogo inicial de Pokémon (auto-seed)...');
+          for (const p of initialPokemons) {
+            await drizzleDb
+              .insert(pokedexEntries)
+              .values({
+                id: p.id,
+                nombre: p.nombre,
+                tipo: p.tipo,
+                data: p,
+              })
+              .onConflictDoNothing({ target: pokedexEntries.id });
+          }
+          lastKnownPgCount = initialPokemons.length;
+        } else {
+          logger.info(
+            '[Storage: PostgreSQL] Base de datos vacía detectada en producción. ' +
+              'Población de catálogo delegada al K8s Seed Job o `npm run seed`.'
+          );
+          lastKnownPgCount = 0;
         }
-        lastKnownPgCount = initialPokemons.length;
       } else {
         lastKnownPgCount = countTotal;
       }

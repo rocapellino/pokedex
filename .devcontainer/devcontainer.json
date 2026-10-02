@@ -2,17 +2,32 @@
   "name": "Pokédex Platform DevContainer",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/${localWorkspaceFolderBasename},type=bind",
   "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
+
+  // Imagen base oficial alineada con Node.js 22 LTS.
+  // Política de actualización: se mantiene el tag LTS activo y se monitorean actualizaciones mediante tooling de dependencias.
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+
+  // Features del entorno de desarrollo.
+  // Las versiones exactas y digests SHA-256 están gobernados contractualmente por .devcontainer/devcontainer-lock.json.
+  // Proveedores: 'devcontainers' (oficial) y 'devcontainers-extra' (comunidad de supply chain para kind y go-task).
   "features": {
+    // Docker outside-of-Docker: Comparte el Docker daemon del host para permitir docker build y orquestación con Kind.
+    // Frontera de seguridad: decisión deliberada para desarrollo local con paridad de infraestructura.
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
-      "enableNonRootDocker": "true"
+      "enableNonRootDocker": true
     },
+    // Herramientas CLI de Kubernetes alineadas con .tool-versions (kubectl 1.30.0, helm 3.17.0).
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-      "version": "latest",
-      "helm": "latest",
+      "version": "1.30.0",
+      "helm": "3.17.0",
       "minikube": "none"
     },
+    // Kind (Kubernetes in Docker): Requerido para task dev:k8s:up y validación de paridad K8s local (infra/k8s/kind-cluster.yaml).
+    "ghcr.io/devcontainers-extra/features/kind:1": {
+      "version": "latest"
+    },
+    // Task (Go-Task): Motor de ejecución de tareas del monorepo definido en Taskfile.yaml.
     "ghcr.io/devcontainers-extra/features/go-task:1": {
       "version": "latest"
     }
@@ -37,8 +52,10 @@
   },
   "forwardPorts": [3000, 8080, 5432, 6379],
   "portsAttributes": {
+    // Contrato de puertos: 3000 es el puerto nativo interno del contenedor (API Backend).
+    // En el host, docker-compose.dev.yaml publica ${API_DEV_PORT:-3001}:3000 para evitar colisiones con Grafana (3000).
     "3000": {
-      "label": "Pokédex API Backend",
+      "label": "Pokédex API Backend (Container: 3000 | Compose Host: 3001)",
       "onAutoForward": "notify"
     },
     "8080": {

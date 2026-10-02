@@ -105,3 +105,15 @@ Un riesgo frecuente en refactorizaciones apresuradas es trasladar el código sin
   2. Comparar el grafo de imports y dependencias de la nueva pieza.
   3. Si la nueva pieza no dividió las responsabilidades entre dominios cohesivos, reportar el hallazgo como:
      > **"Monolith Relocated: La complejidad fue desplazada pero no modularizada."**
+
+---
+
+## 6. Lista de Vigilancia Activa de Archivos Clave (*Monolith Watchlist*)
+
+Conforme a la auditoría técnica de `apps/`, se definen umbrales preventivos multidimensionales sobre los tres archivos con mayor propensión a concentrar lógica:
+
+| Archivo | Rol Arquitectónico | Umbral LOC | Límite Imports | Criterio de Alerta / Refactor |
+| :--- | :--- | :---: | :---: | :--- |
+| `apps/backend/server.ts` | Composition Root | 350 | 20 | Si incorpora controladores de ruta inline, queries SQL o algoritmos de negocio. Debe permanecer como ensamblador de infraestructura. |
+| `apps/backend/src/routes/pokemons.ts` | Enrutador HTTP Pokémons | 350 | 12 | Si supera 5 endpoints con transformaciones pesadas. Debe dividirse en controladores o subrutas (ej. búsqueda, mutaciones). |
+| `apps/backend/src/validation/schemas.ts` | Validación de Esquemas Zod | 300 | 10 | Si incorpora validaciones de entidades ajenas a Pokémon (ej. auth, IA, telemetría). Debe modularizarse por dominio. |

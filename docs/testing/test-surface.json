@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T00:01:54.090Z",
+  "generatedAt": "2026-10-02T14:26:59.780Z",
   "summary": {
-    "totalFiles": 46,
-    "testFiles": 44,
+    "totalFiles": 47,
+    "testFiles": 45,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 439,
-    "totalLines": 12319,
-    "totalSizeBytes": 580740,
+    "totalTestCases": 447,
+    "totalLines": 12664,
+    "totalSizeBytes": 591861,
     "suitesCount": 9
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 4,
-      "testCases": 29,
+      "testCases": 31,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -98,8 +98,8 @@
       "path": "tests/",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 15,
-      "testCases": 169,
+      "files": 16,
+      "testCases": 175,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -181,7 +181,7 @@
       "targetDomain": "Backend HTTP API / Rate Limiting",
       "targetArtifacts": [
         "apps/backend/src/middleware/rate-limiter.ts",
-        "apps/backend/src/server.ts"
+        "apps/backend/server.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -530,7 +530,7 @@
       "sha256": "300b11d78b31095b729978b6d5fd3fa2a5b56fd1ffff3e44f77413b2ca84daaf",
       "targetDomain": "Concurrencia y Consistencia de Almacenamiento",
       "targetArtifacts": [
-        "apps/backend/src/data/pokemonStorage.ts"
+        "apps/backend/src/services/db.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -605,7 +605,7 @@
       "sha256": "9dd2525ed54fd7d966c650b1f0b40d40e5a024ee8a83e9529f75957b6c971a9c",
       "targetDomain": "Gobernanza Documental / ADRs",
       "targetArtifacts": [
-        "docs/architecture/decisions/",
+        "docs/decisions/",
         ".agents/rules/documentation-governance.md"
       ],
       "npmCommands": [
@@ -644,7 +644,7 @@
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
-        "apps/frontend/public/backoffice.html"
+        "apps/frontend/backoffice.html"
       ],
       "npmCommands": [
         "npm run test:e2e",
@@ -692,8 +692,8 @@
       "sha256": "af21546eb7e2f8ee0fdf94041df8f88e7662d98f17cb263b38c70da009706a7e",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
-        "apps/frontend/src/index.ts",
-        "apps/frontend/public/index.html"
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/index.html"
       ],
       "npmCommands": [
         "npm run test:e2e",
@@ -864,7 +864,8 @@
       "sha256": "97165081fcd3f95234e68b300ebf6702b1bd2ed20e9b3aec2b8e6cc121213199",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
-        "apps/frontend/src/components/modal.ts"
+        "apps/frontend/src/components/modal-detail.ts",
+        "apps/frontend/src/components/modal-crud.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -1096,7 +1097,7 @@
       "sha256": "fba74c6f6d7039a246056cf9496ae47dc4dd0a43144e9b97c9d50fdb38e60aa9",
       "targetDomain": "Pruebas de Penetración de API",
       "targetArtifacts": [
-        "apps/backend/src/server.ts",
+        "apps/backend/server.ts",
         "apps/backend/src/routes/"
       ],
       "npmCommands": [
@@ -1239,7 +1240,7 @@
       "sha256": "b2dc2970cea7b3273fe90071b2cb7561bfd54328a585f53abf774fdeb9849a65",
       "targetDomain": "Rendimiento y Capacidad bajo Carga",
       "targetArtifacts": [
-        "apps/backend/src/server.ts",
+        "apps/backend/server.ts",
         "apps/backend/src/middleware/rate-limiter.ts"
       ],
       "npmCommands": [
@@ -1266,6 +1267,60 @@
         {
           "name": "group: 04_Get_Pokemon_Detail",
           "line": 153
+        }
+      ]
+    },
+    {
+      "path": "tests/pr_template_governance.test.ts",
+      "suite": "governance",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 16,
+      "sizeBytes": 8776,
+      "lineCount": 267,
+      "sha256": "b9e8a2122a4ff5e96ad01d3090275843f909ef0d38fea799dfe3e456de249178",
+      "targetDomain": "Gobernanza de Pull Request Template",
+      "targetArtifacts": [
+        ".github/pull_request_template.md",
+        "scripts/validate-pr-body.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y contiene secciones obligatorias",
+          "line": 25
+        },
+        {
+          "name": "🛡️ Contrato de PR Template: validate-pr-body aprueba un PR body completo y fiel al template",
+          "line": 52
+        },
+        {
+          "name": "🛡️ Contrato de PR Template: validate-pr-body RECHAZA la estructura no conforme observada en PR #438",
+          "line": 124
+        },
+        {
+          "name": "🛡️ Contrato de PR Template: validate-pr-body detecta tablas de CI Impact no resueltas o incompletas",
+          "line": 156
+        },
+        {
+          "name": "🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake",
+          "line": 199
+        },
+        {
+          "name": "🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador",
+          "line": 236
         }
       ]
     },
@@ -1395,7 +1450,7 @@
       "sha256": "e596028804258dd9ef0818db9f0bd7419a4a13ac477c34a131037183338f73f7",
       "targetDomain": "Seguridad Integral de Aplicación y Headers",
       "targetArtifacts": [
-        "apps/backend/src/server.ts",
+        "apps/backend/server.ts",
         "apps/backend/src/middleware/"
       ],
       "npmCommands": [
@@ -1538,7 +1593,7 @@
       "sha256": "e09a02a25025047dc24deeba1dd4595b75be28a63a942cf61b539259c91d7eb3",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
-        "docs/architecture/decisions/"
+        "docs/decisions/"
       ],
       "npmCommands": [
         "npm test",
@@ -1803,7 +1858,7 @@
       "sha256": "47981be687e9f442526d205e4140ab804ec091fb982d87e3d9c7200fc2c3e2a5",
       "targetDomain": "Control de Egress y Prevención SSRF",
       "targetArtifacts": [
-        "infra/k8s/cilium-network-policies.yaml",
+        "infra/helm/pokedex/templates/cilium-network-policies.yaml",
         "scripts/probe-egress-security.ts"
       ],
       "npmCommands": [
@@ -2036,7 +2091,7 @@
       "sha256": "7d05255df4e395e89c62ac95faeeba63fb3d4ea75be930273416ac1eb47543d1",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
-        "infra/observability/dashboards/"
+        "infra/monitoring/dashboards/"
       ],
       "npmCommands": [
         "npm test",
@@ -2424,8 +2479,8 @@
       "sha256": "39ddee8679d99c60fbeab287065414c02dadd42c948365bace0e6c6c196a9aed",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
-        "infra/k8s/network-policies.yaml",
-        "infra/k8s/cilium-network-policies.yaml"
+        "infra/helm/pokedex/templates/network-policies.yaml",
+        "infra/helm/pokedex/templates/cilium-network-policies.yaml"
       ],
       "npmCommands": [
         "npm test",
@@ -2827,8 +2882,8 @@
       "sha256": "7a646e5c89173dbbfc035245e1bd0dedaf66bedbaee0ed1c058bec9e788341f3",
       "targetDomain": "Capa de Persistencia y Caché",
       "targetArtifacts": [
-        "apps/backend/src/data/pokemonStorage.ts",
-        "apps/backend/src/data/redis.ts"
+        "apps/backend/src/services/db.ts",
+        "apps/backend/src/services/cache.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -2955,7 +3010,7 @@
       "sha256": "c0f69a3c7b31c69371cbc4692c1e88fd2337ddc82cfdc298f4988b44412069e0",
       "targetDomain": "Servicio de Caché y Fallback",
       "targetArtifacts": [
-        "apps/backend/src/data/redis.ts"
+        "apps/backend/src/services/cache.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -3005,7 +3060,7 @@
       "sha256": "a51671486d8d35bb7fd11e08ac6c3ae26ca088b1ef9fbff8f8e1a7c7adc72b74",
       "targetDomain": "Repositorio de Datos Pokémon",
       "targetArtifacts": [
-        "apps/backend/src/data/pokemonStorage.ts"
+        "apps/backend/src/services/pokemon.repository.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -3059,16 +3114,16 @@
       "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 7,
+      "testCount": 9,
       "describeCount": 1,
-      "assertionCountEst": 23,
-      "sizeBytes": 5550,
-      "lineCount": 164,
-      "sha256": "40e989c6bab09f55b72b248f31d4fbe3ff055ea4949df6c2baf2cf0d9c43e6b0",
+      "assertionCountEst": 29,
+      "sizeBytes": 7895,
+      "lineCount": 242,
+      "sha256": "445b87e0b48f3f1846f38798496a9dcea25d456ad5945a1ca648d197223d18a2",
       "targetDomain": "Resiliencia de Conexión a Base de Datos",
       "targetArtifacts": [
-        "apps/backend/src/data/drizzle.ts",
-        "apps/backend/src/server.ts"
+        "apps/backend/src/services/postgres.ts",
+        "apps/backend/server.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -3109,6 +3164,14 @@
         {
           "name": "handleStartupError registra el error y llama a exitFn(1)",
           "line": 148
+        },
+        {
+          "name": "APPS-002: connectPg en producción con tabla vacía NO ejecuta auto-seed si AUTO_SEED está inactivo",
+          "line": 164
+        },
+        {
+          "name": "APPS-002: connectPg en producción ejecuta auto-seed si AUTO_SEED=true",
+          "line": 203
         }
       ]
     },
@@ -3126,7 +3189,7 @@
       "sha256": "2d2672124becbaca5bf73694645dcb529918e8d145c0ecff3a017e517d755fc9",
       "targetDomain": "Endpoint de Telemetría /version",
       "targetArtifacts": [
-        "apps/backend/src/routes/version.ts"
+        "apps/backend/server.ts"
       ],
       "npmCommands": [
         "npm test",

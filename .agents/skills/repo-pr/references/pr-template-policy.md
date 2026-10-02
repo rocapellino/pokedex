@@ -95,23 +95,87 @@ El agente correlaciona dinámicamente las secciones descubiertas con los artefac
 
 ## 5. Reglas de Integridad del Documento
 
-1. **No Eliminar Secciones:** Ninguna sección de la plantilla debe ser borrada, aun cuando no aplique.
-2. **Declaración Explícita de N/A:** Cuando un bloque no aplique al cambio, se debe colocar `N/A: <justificación concisa>`.
-3. **Fidelidad Fáctica:** Toda afirmación debe corresponder al estado real del repositorio. No reportar "desplegado en clúster" si solo está en rama local.
+1. **Inclusión Estricta de Encabezados (`template headings ⊆ PR headings`):** Todos los encabezados H2 definidos en el template físico deben figurar en el PR Body. Ninguna sección de la plantilla puede ser omitida ni rebautizada arbitrariamente.
+2. **Prohibición de Estructuras Alternativas:** Queda terminantemente prohibido sustituir los encabezados canónicos por estructuras ad-hoc (por ejemplo, reemplazar las secciones del template por `## Descripción del Cambio` o `## Suite de Verificación Local`).
+3. **Declaración Explícita de N/A:** Cuando un bloque no aplique al cambio, la sección debe mantenerse y completarse con `N/A: <justificación concisa>`.
+4. **Fidelidad Fáctica:** Toda afirmación debe corresponder al estado real del repositorio. No reportar "desplegado en clúster" si solo está en rama local.
+5. **CI Impact Analysis Obligatorio:** La sección de impacto de CI debe contener la tabla markdown generada por `scripts/detect-change-impact.ts` sin placeholders `—` sin resolver.
 
 ---
 
-## 6. Protocolo de Codificación y Publicación
+## 6. Contrato de Validación Ejecutable (`validate-pr-body`)
 
-El cuerpo final del Pull Request debe preservarse como UTF-8 de extremo a extremo.
-Esta verificación forma parte del `PR Preparation State` y es obligatoria aunque el
-Markdown local se renderice correctamente.
+Para transformar la gobernanza de una instrucción pasiva en un contrato determinista, el repositorio provee el motor canónico de validación [`scripts/validate-pr-body.ts`](../../../../scripts/validate-pr-body.ts), ejecutable mediante:
 
-1. Generar el cuerpo en un archivo temporal codificado como UTF-8 sin BOM.
-2. En Windows, comprobar antes de usar GitHub CLI que
-   `[Console]::InputEncoding`, `[Console]::OutputEncoding` y `$OutputEncoding` sean
-   UTF-8. Una entrada OEM como `ibm850` o `cp850` invalida la publicación. Si alguna
-   difiere, normalizar la sesión antes de continuar:
+```bash
+npm run pr:validate -- --body tmp/pr-body.md
+```
+
+Este motor valida programáticamente:
+
+- Existencia y orden de todos los encabezados H2 del template físico activo.
+- Inexistencia de estructuras sustitutas no autorizadas.
+- Presencia de tabla completa y resuelta en CI Impact Analysis.
+- Checklists y campos no vacíos (o formalmente justificados con `N/A`).
+- Ausencia de caracteres corruptos de mojibake.
+
+---
+
+## 7. Protocolo de Ejecución: Puertas de Enlace Pre y Post Publicación
+
+El ciclo de publicación en `repo-pr` se articula en dos compuertas de enlace (*gates*) estrictamente bloqueantes:
+
+```text
+               .github/pull_request_template.md
+                              │
+                              ▼
+                       Parse Template
+                              │
+                              ▼
+             Generar PR Body (tmp/pr-body.md)
+                              │
+                              ▼
+            npm run pr:validate -- --body tmp/pr-body.md
+                              │
+                     ┌────────┴────────┐
+                     │                 │
+                   FAIL               PASS
+                     │                 │
+                     ▼                 ▼
+             BLOCKED / NOT_READY   gh pr create --body-file tmp/pr-body.md
+                                       │
+                                       ▼
+                       gh pr view --json body --jq .body
+                                       │
+                                       ▼
+                 npm run pr:validate -- --remote <número>
+                                       │
+                              ┌────────┴────────┐
+                              │                 │
+                            FAIL               PASS
+                              │                 │
+                              ▼                 ▼
+                      BLOCKED / NOT_READY  READY_FOR_PR
+```
+
+### A. Compuerta Pre-Publicación (Local Gate)
+
+Antes de invocar `gh pr create` o `gh pr edit`:
+
+1. Generar el cuerpo completo en un archivo temporal en `tmp/` (ej. `tmp/pr-body.md`) codificado en UTF-8 sin BOM.
+2. Ejecutar la validación determinista:
+
+   ```powershell
+   npx tsx scripts/validate-pr-body.ts --body tmp/pr-body.md
+   ```
+
+3. **Veredicto Bloqueante:** Si la herramienta reporta infracciones (`FAIL`), la operación queda en estado **`BLOCKED`** o **`NOT_READY`**. Queda estrictamente prohibido crear o actualizar el PR en GitHub mientras persistan errores.
+
+### B. Compuerta Post-Publicación (Remote Gate)
+
+Incluso tras publicar exitosamente el PR en GitHub:
+
+1. En Windows, asegurar codificación UTF-8 en la consola:
 
    ```powershell
    $utf8 = [System.Text.UTF8Encoding]::new($false)
@@ -120,15 +184,18 @@ Markdown local se renderice correctamente.
    $OutputEncoding = $utf8
    ```
 
-3. Crear o actualizar el PR mediante `gh pr create --body-file <archivo>` o
-   `gh pr edit --body-file <archivo>`. No pasar cuerpos multilínea como argumentos
-   inline ni mediante tuberías cuya codificación dependa de la consola.
-4. Leer nuevamente el cuerpo almacenado con
-   `gh pr view <número> --json body --jq .body`.
-5. Comparar los fragmentos sensibles del resultado remoto con el archivo local:
-   acentos, eñes, rayas y emojis deben coincidir. También se deben rechazar patrones
-   frecuentes de mojibake (`├`, `Ô`, `ƒ`, `Ã`, `Â`) cuando no pertenezcan
-   intencionalmente al contenido.
+2. Publicar utilizando exclusivamente archivo:
 
-Si la comparación falla, el control individual queda en `FAIL` y el estado general
-es `NOT_READY` hasta regenerar y volver a publicar el cuerpo desde la fuente UTF-8.
+   ```powershell
+   gh pr create --body-file tmp/pr-body.md
+   ```
+
+3. Leer inmediatamente el cuerpo remoto persistido en GitHub:
+
+   ```powershell
+   npx tsx scripts/validate-pr-body.ts --remote <número_del_pr>
+   ```
+
+4. **Veredicto Remoto:**
+   - Si la validación contra el PR remoto aprueba con 0 infracciones y sin mojibake: el control pasa a **`PASS`** y el PR alcanza **`READY_FOR_PR`**.
+   - Si la validación falla o se detecta mojibake: el PR permanece en **`NOT_READY`** o **`BLOCKED`**, requiriendo regenerar el archivo local corregido y actualizar con `gh pr edit <número> --body-file tmp/pr-body.md`.
