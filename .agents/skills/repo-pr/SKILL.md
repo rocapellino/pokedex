@@ -13,12 +13,15 @@ Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gat
 
 ## Alcance y Verificaciones de Dominio
 
-### 1. Consumo Dinámico del PR Template (SSOT)
+### 1. Consumo Dinámico y Validación Contractual del PR Template (SSOT)
 
 - Localización en tiempo de ejecución del template oficial del repositorio (prioridad: `.github/pull_request_template.md`).
 - Extracción de secciones obligatorias, checklists y campos de texto sin memorizar ni hardcodear la estructura dentro de la skill.
 - Mapeo fáctico de cada sección contra la evidencia provista por las skills de dominio.
-- Ninguna sección se elimina silenciosamente: las secciones no aplicables se declaran explícitamente como `N/A: <justificación>`.
+- **Inclusión Estricta (`template headings ⊆ PR headings`):** Ninguna sección se elimina ni se rebautiza silenciosamente. Queda terminantemente prohibido utilizar estructuras sustitutas no autorizadas (ej. `## Descripción del Cambio`). Secciones no aplicables se declaran explícitamente como `N/A: <justificación>`.
+- **Compuertas de Validación Deterministas:**
+  - *Pre-publicación:* Ejecución obligatoria de `npm run pr:validate -- --body tmp/pr-body.md` antes de crear el PR. Si falla -> `BLOCKED / NOT_READY`.
+  - *Post-publicación:* Lectura del body remoto en GitHub y validación determinista mediante `npm run pr:validate -- --remote <número>` para certificar la integridad remota y ausencia de mojibake.
 - Consulta la especificación detallada en [pr-template-policy.md](references/pr-template-policy.md).
 
 ### 2. Consumo de Evidencias Técnicas (No Duplicación)
@@ -36,9 +39,9 @@ Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gat
 Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate distinguiendo formalmente tres niveles:
 
 - **PR Preparation State (Estado de Preparación Local):**
-  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1 técnicos ni documentales.
-  - `NOT_READY`: Faltan verificaciones locales aplicables, documentación incompleta o fallos pendientes de resolver.
-  - `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR (divergencia de rama base, template ausente, drift arquitectónico crítico).
+  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, compuertas pre y post de validación determinista superadas (`npm run pr:validate` con 0 infracciones), gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1 técnicos ni documentales.
+  - `NOT_READY`: Faltan verificaciones locales aplicables, documentación incompleta, fallos locales o divergencia respecto al template físico.
+  - `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR (divergencia de rama base, template ausente, fallo en validación contractual de plantilla, drift arquitectónico crítico).
 - **CI State (Estado de Integración Continua):**
   - `PENDING_CI`: PR abierto en `READY_FOR_PR`; workflows remotos en GitHub Actions pendientes o en ejecución.
   - `ALL_GATES_PASSED`: 100% de los checks requeridos en CI concluidos con éxito.
@@ -81,8 +84,8 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 ## Comandos
 
 - `/repo-pr`: Consolida evidencias de las skills de dominio, evalúa el PR Readiness Gate y genera la propuesta canónica de PR.
-- `/repo-pr prepare`: Descubre el template real, recopila evidencias preexistentes y genera el título y descripción canónicos en español.
-- `/repo-pr gate`: Evalúa exhaustivamente los controles del PR Readiness Gate a partir de las evidencias recolectadas, emitiendo el veredicto formal de preparación (`READY_FOR_PR`, `NOT_READY` o `BLOCKED`).
+- `/repo-pr prepare`: Descubre el template físico, recopila evidencias, genera el título y descripción canónicos en español y valida el cuerpo generado con `npm run pr:validate -- --body tmp/pr-body.md` antes de crear el PR.
+- `/repo-pr gate`: Evalúa exhaustivamente los controles del PR Readiness Gate y la conformidad estricta del template (pre y post publicación con `npm run pr:validate`), emitiendo el veredicto formal de preparación (`READY_FOR_PR`, `NOT_READY` o `BLOCKED`).
 - `/repo-pr review`: Ejecuta una revisión técnica estructurada sobre un diff o PR existente, segregando observaciones P0-P3.
 
 ---

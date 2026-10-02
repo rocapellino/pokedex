@@ -128,7 +128,8 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
    - Responsable de ejecutar el ciclo de vida documental completo conforme a [documentation-governance.md](../../rules/documentation-governance.md) y su contrato declarativo (`documentation-contract.yaml`): límites (*boundaries*), presupuestos (*budgets*), inventario, clasificación en 7 estados, validación cruzada fáctica contra código/configuración/IaC/GitOps, remediación activa, depuración de referencias huérfanas y Markdown Quality Gate (`npm run lint:md`).
    - Evalúa si cambios en archivos `.ignore` generan drift con la documentación funcional.
 6. **`repo-pr` (Preparación y Gate de Pull Request):**
-   - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../../.github/pull_request_template.md)).
+   - Descubre dinámicamente el PR Template real del repositorio ([`.github/pull_request_template.md`](../../../.github/pull_request_template.md)) como única Fuente de Verdad.
+   - Aplica el contrato determinista `scripts/validate-pr-body.ts` (`npm run pr:validate`) con compuertas bloqueantes pre-publicación (`tmp/pr-body.md`) y post-publicación (`--remote`), asegurando que todos los encabezados del template se preserven (`template headings ⊆ PR headings`) sin estructuras sustitutas.
    - Consume las evidencias consolidadas por `repo-lifecycle` y las skills de dominio para el PR Readiness Gate.
    - Redacta el título, descripción y checklists en español ([language-policy.md](../_shared/language-policy.md)). No realiza auditorías completas redundantes.
 7. **`repo-release` (Gobernanza de Release y Promoción):**

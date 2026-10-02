@@ -7,7 +7,7 @@
 
 ---
 
-## 🏷️ Tipo de Cambio (Conventional Commits)
+## 🏷️ Tipo de Cambio
 
 - [ ] `feat`: Nueva funcionalidad (genera release minor)
 - [ ] `fix`: Corrección de bug (genera release patch)

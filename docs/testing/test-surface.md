@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **46** |
-| **Archivos de Test Automatizados** | 44 |
+| **Total de Archivos en `tests/`** | **47** |
+| **Archivos de Test Automatizados** | 45 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
-| **Total de Casos de Prueba Identificados** | **439** |
-| **Líneas de Código de Pruebas** | 12.319 |
-| **Tamaño Total de la Suite** | 567.1 KB |
+| **Total de Casos de Prueba Identificados** | **447** |
+| **Líneas de Código de Pruebas** | 12.664 |
+| **Tamaño Total de la Suite** | 578.0 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-02T00:01:54.090Z |
+| **Última Sincronización** | 2026-10-02T13:53:42.282Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 4 | 29 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 4 | 31 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 18 | 184 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 1 | 6 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 3 | 26 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
@@ -35,7 +35,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 15 | 169 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 16 | 175 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -63,6 +63,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **7** | 78 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/pentest.test.ts`](../../tests/pentest.test.ts) | `governance` | Security / Pentest | `node:test (tsx)` | **28** | 627 | Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) | `performance` | Load / Stress | `k6` | **4** | 167 | Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios. | `k6 run tests/performance/k6_stress_test.js` |
+| [`tests/pr_template_governance.test.ts`](../../tests/pr_template_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 267 | Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ruleset_contract.test.ts`](../../tests/ruleset_contract.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **3** | 108 | Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 254 | Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/security.test.ts`](../../tests/security.test.ts) | `governance` | Security / Application | `node:test (tsx)` | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -88,7 +89,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | `unit` | Unit | `node:test (tsx)` | **8** | 196 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
-| [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **7** | 164 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/version.test.ts`](../../tests/version.test.ts) | `governance` | Integration | `node:test (tsx)` | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 100 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
 
@@ -126,7 +127,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Servicio de Caché y Fallback
 - **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 81 (2.6 KB)
 - **Descripción:** Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red.
-- **Artefactos Bajo Prueba:** `apps/backend/src/data/redis.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/services/cache.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -143,7 +144,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Repositorio de Datos Pokémon
 - **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 196 (6.6 KB)
 - **Descripción:** Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos.
-- **Artefactos Bajo Prueba:** `apps/backend/src/data/pokemonStorage.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/services/pokemon.repository.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -161,9 +162,9 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 #### [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts)
 
 - **Dominio:** Resiliencia de Conexión a Base de Datos
-- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 7 | **Líneas:** 164 (5.4 KB)
+- **Tipo:** Unit | **Runner:** `node:test (tsx)` | **Casos:** 9 | **Líneas:** 242 (7.7 KB)
 - **Descripción:** Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores.
-- **Artefactos Bajo Prueba:** `apps/backend/src/data/drizzle.ts`, `apps/backend/src/server.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -176,6 +177,8 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 5 | [L76](../../tests/unit/postgres_fail_closed.test.ts#L76) | connectPg en producción lanza MigrationFailedError si runMigrations falla (fail-closed) |
 | 6 | [L113](../../tests/unit/postgres_fail_closed.test.ts#L113) | connectPg en desarrollo tolera fallo de migraciones y no lanza MigrationFailedError |
 | 7 | [L148](../../tests/unit/postgres_fail_closed.test.ts#L148) | handleStartupError registra el error y llama a exitFn(1) |
+| 8 | [L164](../../tests/unit/postgres_fail_closed.test.ts#L164) | APPS-002: connectPg en producción con tabla vacía NO ejecuta auto-seed si AUTO_SEED está inactivo |
+| 9 | [L203](../../tests/unit/postgres_fail_closed.test.ts#L203) | APPS-002: connectPg en producción ejecuta auto-seed si AUTO_SEED=true |
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
@@ -184,7 +187,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Conformidad con ADRs de Arquitectura
 - **Tipo:** Contract / Architecture | **Runner:** `node:test (tsx)` | **Casos:** 19 | **Líneas:** 759 (44.3 KB)
 - **Descripción:** Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).
-- **Artefactos Bajo Prueba:** `docs/architecture/decisions/`
+- **Artefactos Bajo Prueba:** `docs/decisions/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -268,7 +271,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Control de Egress y Prevención SSRF
 - **Tipo:** Security / Network | **Runner:** `node:test (tsx)` | **Casos:** 4 | **Líneas:** 226 (8.0 KB)
 - **Descripción:** Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta.
-- **Artefactos Bajo Prueba:** `infra/k8s/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts`
+- **Artefactos Bajo Prueba:** `infra/helm/pokedex/templates/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`, `npm run test:security:egress`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -343,7 +346,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Portabilidad de Dashboards Grafana
 - **Tipo:** Contract / Observability | **Runner:** `node:test (tsx)` | **Casos:** 5 | **Líneas:** 241 (9.8 KB)
 - **Descripción:** Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos.
-- **Artefactos Bajo Prueba:** `infra/observability/dashboards/`
+- **Artefactos Bajo Prueba:** `infra/monitoring/dashboards/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -457,7 +460,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Aislamiento de Red Zero-Trust
 - **Tipo:** Security / Network | **Runner:** `node:test (tsx)` | **Casos:** 14 | **Líneas:** 412 (21.6 KB)
 - **Descripción:** Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados.
-- **Artefactos Bajo Prueba:** `infra/k8s/network-policies.yaml`, `infra/k8s/cilium-network-policies.yaml`
+- **Artefactos Bajo Prueba:** `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -646,7 +649,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Componentes Modales y Accesibilidad
 - **Tipo:** Component / Unit | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 142 (4.8 KB)
 - **Descripción:** Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop.
-- **Artefactos Bajo Prueba:** `apps/frontend/src/components/modal.ts`
+- **Artefactos Bajo Prueba:** `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -668,7 +671,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** E2E Backoffice Administrativo
 - **Tipo:** E2E | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 108 (4.5 KB)
 - **Descripción:** Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación.
-- **Artefactos Bajo Prueba:** `apps/frontend/src/backoffice.ts`, `apps/frontend/public/backoffice.html`
+- **Artefactos Bajo Prueba:** `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html`
 - **Comandos de Ejecución:** `npm run test:e2e`, `npm run test:a11y`
 - **Workflows en CI:** `.github/workflows/web.yaml (e2e)`
 
@@ -685,7 +688,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** E2E Aplicación Pública y Accesibilidad WCAG
 - **Tipo:** E2E / a11y | **Runner:** `playwright` | **Casos:** 5 | **Líneas:** 90 (3.8 KB)
 - **Descripción:** Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA.
-- **Artefactos Bajo Prueba:** `apps/frontend/src/index.ts`, `apps/frontend/public/index.html`
+- **Artefactos Bajo Prueba:** `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html`
 - **Comandos de Ejecución:** `npm run test:e2e`, `npm run test:a11y`
 - **Workflows en CI:** `.github/workflows/web.yaml (e2e)`
 
@@ -704,7 +707,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Rendimiento y Capacidad bajo Carga
 - **Tipo:** Load / Stress | **Runner:** `k6` | **Casos:** 4 | **Líneas:** 167 (6.8 KB)
 - **Descripción:** Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios.
-- **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/middleware/rate-limiter.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/server.ts`, `apps/backend/src/middleware/rate-limiter.ts`
 - **Comandos de Ejecución:** `k6 run tests/performance/k6_stress_test.js`
 - **Workflows en CI:** `.github/workflows/performance-k6.yaml (k6-load-test)`
 
@@ -781,7 +784,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Backend HTTP API / Rate Limiting
 - **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 3 | **Líneas:** 43 (1.7 KB)
 - **Descripción:** Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.
-- **Artefactos Bajo Prueba:** `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/src/server.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/server.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -871,7 +874,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Concurrencia y Consistencia de Almacenamiento
 - **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 1 | **Líneas:** 24 (0.8 KB)
 - **Descripción:** Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.
-- **Artefactos Bajo Prueba:** `apps/backend/src/data/pokemonStorage.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/services/db.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -899,7 +902,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Gobernanza Documental / ADRs
 - **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 2 | **Líneas:** 126 (5.9 KB)
 - **Descripción:** Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios.
-- **Artefactos Bajo Prueba:** `docs/architecture/decisions/`, `.agents/rules/documentation-governance.md`
+- **Artefactos Bajo Prueba:** `docs/decisions/`, `.agents/rules/documentation-governance.md`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -932,7 +935,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Pruebas de Penetración de API
 - **Tipo:** Security / Pentest | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 627 (25.3 KB)
 - **Descripción:** Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.
-- **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/routes/`
+- **Artefactos Bajo Prueba:** `apps/backend/server.ts`, `apps/backend/src/routes/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -966,6 +969,24 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 | 26 | [L561](../../tests/pentest.test.ts#L561) | 🔥 Pentest [Observability]: Métricas desglosan PostgreSQL y Memoria sin ambigüedad |
 | 27 | [L570](../../tests/pentest.test.ts#L570) | 🔥 Pentest [Attack Surface]: Endpoint de descarga de repositorio retirado permanentemente (SEC-002) |
 | 28 | [L583](../../tests/pentest.test.ts#L583) | 🔥 Pentest [Redis Resilience]: Revocación en memoria persiste en proceso actual tras FLUSHALL simulado |
+
+#### [`tests/pr_template_governance.test.ts`](../../tests/pr_template_governance.test.ts)
+
+- **Dominio:** Gobernanza de Pull Request Template
+- **Tipo:** Contract / Governance | **Runner:** `node:test (tsx)` | **Casos:** 6 | **Líneas:** 267 (8.6 KB)
+- **Descripción:** Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake.
+- **Artefactos Bajo Prueba:** `.github/pull_request_template.md`, `scripts/validate-pr-body.ts`
+- **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
+- **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
+
+| # | Línea | Nombre del Caso de Prueba |
+| :---: | :---: | :--- |
+| 1 | [L25](../../tests/pr_template_governance.test.ts#L25) | 🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y contiene secciones obligatorias |
+| 2 | [L52](../../tests/pr_template_governance.test.ts#L52) | 🛡️ Contrato de PR Template: validate-pr-body aprueba un PR body completo y fiel al template |
+| 3 | [L124](../../tests/pr_template_governance.test.ts#L124) | 🛡️ Contrato de PR Template: validate-pr-body RECHAZA la estructura no conforme observada en PR #438 |
+| 4 | [L156](../../tests/pr_template_governance.test.ts#L156) | 🛡️ Contrato de PR Template: validate-pr-body detecta tablas de CI Impact no resueltas o incompletas |
+| 5 | [L199](../../tests/pr_template_governance.test.ts#L199) | 🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake |
+| 6 | [L236](../../tests/pr_template_governance.test.ts#L236) | 🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador |
 
 #### [`tests/ruleset_contract.test.ts`](../../tests/ruleset_contract.test.ts)
 
@@ -1009,7 +1030,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Seguridad Integral de Aplicación y Headers
 - **Tipo:** Security / Application | **Runner:** `node:test (tsx)` | **Casos:** 28 | **Líneas:** 448 (17.2 KB)
 - **Descripción:** Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.
-- **Artefactos Bajo Prueba:** `apps/backend/src/server.ts`, `apps/backend/src/middleware/`
+- **Artefactos Bajo Prueba:** `apps/backend/server.ts`, `apps/backend/src/middleware/`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -1049,7 +1070,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Capa de Persistencia y Caché
 - **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 8 | **Líneas:** 121 (4.5 KB)
 - **Descripción:** Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.
-- **Artefactos Bajo Prueba:** `apps/backend/src/data/pokemonStorage.ts`, `apps/backend/src/data/redis.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 
@@ -1069,7 +1090,7 @@ Para asegurar trazabilidad completa frente a suites monolíticas y cambios inter
 - **Dominio:** Endpoint de Telemetría /version
 - **Tipo:** Integration | **Runner:** `node:test (tsx)` | **Casos:** 14 | **Líneas:** 414 (16.3 KB)
 - **Descripción:** Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.
-- **Artefactos Bajo Prueba:** `apps/backend/src/routes/version.ts`
+- **Artefactos Bajo Prueba:** `apps/backend/server.ts`
 - **Comandos de Ejecución:** `npm test`, `npm run test:all`, `npm run test:coverage`
 - **Workflows en CI:** `.github/workflows/ci.yaml (code-quality, sonarcloud)`
 

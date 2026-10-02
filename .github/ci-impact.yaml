@@ -37,6 +37,8 @@ global:
     # menor del que realmente provoca.
     - ".github/ci-impact.yaml"
     - "scripts/detect-change-impact.ts"
+    - "scripts/validate-pr-body.ts"
+    - "tests/pr_template_governance.test.ts"
     - "scripts/declarations.d.ts"
   triggers:
     backend: true
@@ -126,7 +128,7 @@ rules:
         supply_chain: true
 
   frontend:
-    description: "Cliente web SPA, componentes UI y assets estáticos"
+    description: "Cliente web MPA (catálogo público y consola backoffice), componentes UI y assets estáticos"
     paths:
       - "apps/frontend/**"
     triggers:
@@ -310,6 +312,7 @@ rules:
       - "tests/fuzzing.test.ts"
       - "tests/storage.test.ts"
       - "tests/version.test.ts"
+      - "tests/version_consistency.test.ts"
     triggers:
       backend: true
 

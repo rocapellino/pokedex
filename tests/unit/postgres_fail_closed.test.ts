@@ -160,4 +160,82 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
     handleStartupError('Unknown crash string', mockExit);
     assert.equal(capturedCode, 1);
   });
+
+  test('APPS-002: connectPg en producción con tabla vacía NO ejecuta auto-seed si AUTO_SEED está inactivo', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://fake-user:fake-pass@127.0.0.1:5432/fake_db';
+    delete process.env.AUTO_SEED;
+
+    const mockClient = {
+      query: async () => ({ rows: [] }),
+      release: () => {},
+    };
+    const mockPool: any = {
+      connect: async () => mockClient,
+      on: () => {},
+      end: async () => {},
+    };
+    setPgPoolForTest(mockPool);
+    setMigrationRunnerForTest(async () => {});
+
+    let insertCallCount = 0;
+    const mockDb: any = {
+      select: () => ({
+        from: () => Promise.resolve([{ total: 0 }]),
+      }),
+      insert: () => {
+        insertCallCount++;
+        return {
+          values: () => ({
+            onConflictDoNothing: () => Promise.resolve(),
+          }),
+        };
+      },
+    };
+    setDrizzleDbForTest(mockDb);
+
+    const connected = await connectPg();
+    assert.equal(connected, true);
+    assert.equal(isPgConnectedStatus(), true);
+    assert.equal(insertCallCount, 0, 'En producción no debe ejecutar auto-seed; se delega al Seed Job');
+  });
+
+  test('APPS-002: connectPg en producción ejecuta auto-seed si AUTO_SEED=true', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://fake-user:fake-pass@127.0.0.1:5432/fake_db';
+    process.env.AUTO_SEED = 'true';
+
+    const mockClient = {
+      query: async () => ({ rows: [] }),
+      release: () => {},
+    };
+    const mockPool: any = {
+      connect: async () => mockClient,
+      on: () => {},
+      end: async () => {},
+    };
+    setPgPoolForTest(mockPool);
+    setMigrationRunnerForTest(async () => {});
+
+    let insertCallCount = 0;
+    const mockDb: any = {
+      select: () => ({
+        from: () => Promise.resolve([{ total: 0 }]),
+      }),
+      insert: () => {
+        insertCallCount++;
+        return {
+          values: () => ({
+            onConflictDoNothing: () => Promise.resolve(),
+          }),
+        };
+      },
+    };
+    setDrizzleDbForTest(mockDb);
+
+    const connected = await connectPg();
+    assert.equal(connected, true);
+    assert.equal(isPgConnectedStatus(), true);
+    assert.ok(insertCallCount > 0, 'Con AUTO_SEED=true debe ejecutar auto-seed explícito');
+  });
 });

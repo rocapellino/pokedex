@@ -10,6 +10,7 @@ Este documento detalla la estructura de directorios, convención de organizació
 2. [Árbol de Directorios Detallado](#2-árbol-de-directorios-detallado)
 3. [Descripción por Módulos y Dominios](#3-descripción-por-módulos-y-dominios)
 4. [Convención de Extensión YAML](#4-convención-de-extensión-yaml)
+5. [Gobernanza de Workspaces, Orquestación y Versionado](#5-gobernanza-de-workspaces-orquestación-y-versionado)
 
 ---
 
@@ -18,7 +19,7 @@ Este documento detalla la estructura de directorios, convención de organizació
 El monorepo está organizado siguiendo una separación estricta de responsabilidades mediante **npm workspaces**:
 
 - **`apps/backend/`**: Servidor API RESTful Node.js + Express en TypeScript (`@pokedex/backend`), lógica de dominio, persistencia ACID PostgreSQL + Redis con scripts Lua, autenticación timing-safe HMAC SHA-256, middlewares de seguridad, métricas Prometheus e integración con Gemini 2.5 Flash.
-- **`apps/frontend/`**: Aplicación web cliente SPA (`@pokedex/frontend`) servida mediante un contenedor Nginx Alpine no-root hardened con CSP, compresión gzip y reverse proxy inverso.
+- **`apps/frontend/`**: Aplicación web cliente MPA (`@pokedex/frontend`) compuesta por catálogo público (`index.html`) y consola de administración backoffice (`backoffice.html`), servida mediante un contenedor Nginx Alpine no-root hardened con CSP, compresión gzip y reverse proxy inverso.
 - **`infra/`**: Infraestructura como Código (IaC), Chart oficial de **`helm/pokedex`**, políticas de control de admisión Kyverno (`k8s/`), aprovisionamiento con OpenTofu (`opentofu/`) y playbooks de Ansible (`ansible/`).
 - **`gitops/`**: Manifiestos declarativos de sincronización continua con ArgoCD (`apps/`) y sobrescrituras de configuración por entorno (`environments/`).
 - **`docs/`**: Centraliza toda la documentación técnica, diseños de arquitectura, seguridad, contratos de API y runbooks.
@@ -231,3 +232,38 @@ una tarea inexistente del Taskfile.
 ### 4.5. Beneficio para la Seguridad
 
 La unificación no es cosmética. Mientras coexistan ambas extensiones, los globs de CI y las allowlists de Gitleaks deben recurrir a regex ambiguas del tipo `\.ya?ml`, que admiten rutas no previstas. Con una extensión única es posible usar **coincidencia exacta de ruta**, reduciendo la superficie ambigua de los controles de secrets scanning.
+
+---
+
+## 5. Gobernanza de Workspaces, Orquestación y Versionado
+
+### 5.1. Naturaleza MPA de `@pokedex/frontend`
+
+La aplicación cliente no es una SPA monolítica singular. La configuración de Vite (`vite.config.ts`) compila dos entrypoints independientes estructurados como una **Multi-Page Application (MPA)**:
+
+1. **Catálogo Público (`index.html` $\rightarrow$ `src/pokedex.ts`):** Navegación interactiva, filtrado por tipos/generaciones, búsqueda por voz/texto, gráficos de stats y tema visual zero-FOUC.
+2. **Consola Administrativa (`backoffice.html` $\rightarrow$ `src/backoffice.ts`):** Operaciones CRUD sobre el catálogo, gestión de autenticación, panel de eventos y telemetría de storage.
+
+Ambas páginas comparten componentes modulares (`src/components/`) y servicios transversales (`src/shared/`), evitando cualquier duplicación de contratos de red, formateo o tipado.
+
+### 5.2. Demarcación de Serving Estático: Producción vs. Desarrollo Local
+
+En despliegues de producción y orquestación Kubernetes (GitOps ArgoCD):
+
+- El tráfico web y estático es resuelto exclusivamente por los pods de **Nginx Alpine** (`apps/frontend/Dockerfile`, `infra/helm/pokedex/templates/web-deployment.yaml`).
+- El Ingress enruta la raíz `/` hacia el Service de Nginx (`pokemon-web`) y las llamadas de API `/api/` directamente hacia el backend (`pokemon-api`).
+- El serving de archivos estáticos implementado en `apps/backend/server.ts` opera como un **mecanismo de contingencia para desarrollo local y ejecución standalone**, permitiendo a los desarrolladores levantar el backend sin requerir un proxy reverso Nginx intermedio.
+
+### 5.3. Política de Versionado Unificado (Single Source of Versioning)
+
+El monorepo adopta un modelo de versión unificada centralizada:
+
+- **Versión Semver Oficial:** Reside exclusivamente en el `package.json` raíz del repositorio (`version`), gobernada y promovida por la skill `repo-release` mediante tags `vX.Y.Z`.
+- **Workspaces Internos:** Tanto `apps/backend/package.json` como `apps/frontend/package.json` declaran `"private": true` y mantienen un valor fijo (`1.0.0`). Los componentes del monorepo no se publican a registros npm públicos de forma atomizada, sino que se distribuyen como imágenes de contenedor OCI versionadas con el digest y tag semver global del release.
+
+### 5.4. Orquestación Canónica: npm Workspaces vs. Turborepo
+
+Para garantizar determinismo absoluto en la integración continua:
+
+- **`npm workspaces` (SSOT de CI/CD):** Es el orquestador canónico, reproducible y obligatorio para pipelines de GitHub Actions, pre-commit hooks y Quality Gates. Los scripts raíz (`npm run build`, `npm run lint`, `npm test`) coordinan los workspaces sin dependencias externas de ejecución.
+- **`Turborepo` (`turbo.json`):** Opera como una capa de aceleración opt-in para entornos locales (`npm run build:turbo`, etc.), habilitando cacheo incremental de compilación entre workspaces pero sin constituir una compuerta bloqueante requerida en la infraestructura de CI.
