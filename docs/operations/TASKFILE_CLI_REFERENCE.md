@@ -105,13 +105,16 @@ flowchart LR
 - Las descripciones de las tareas en `Taskfile.yaml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
 - Se mantiene 100% la funcionalidad subyacente para no bloquear pipelines existentes durante todo el ciclo de versiones `v1.x`.
 
-### Fase 4: Eliminación Definitiva (v2.0)
+### Fase 4: Eliminación Definitiva (Ejecutada en v1.76.0)
 
-- En el hito de lanzamiento mayor `v2.0`, tras verificar la ausencia de llamadas en pipelines de integración continua y scripts de automatización, los bloques de alias serán retirados permanentemente de `Taskfile.yaml`.
+- Conforme al ciclo de vida formalizado en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md), los 18 aliases legados fueron retirados definitivamente de `Taskfile.yaml` en la versión `v1.76.0`. La interfaz soportada es exclusivamente la canónica.
 
 ---
 
 ## 4. Matriz de Aliases en Deprecación y Sustitutos Canónicos
+
+> [!NOTE]
+> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4 (v1.76.0)**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md).
 
 | Alias Histórico Deprecado | Tarea Canónica Sustituta | Fase Actual | Fecha / Versión de Retiro |
 | :--- | :--- | :---: | :---: |

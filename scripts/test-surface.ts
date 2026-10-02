@@ -629,7 +629,7 @@ export function parseTestFile(fullPath: string): TestFileRecord {
 }
 
 export function buildCatalog(): TestSurfaceCatalog {
-  const allFiles = getFilesRecursively(TESTS_DIR).sort();
+  const allFiles = getFilesRecursively(TESTS_DIR).sort((a, b) => a.localeCompare(b));
   const fileRecords = allFiles.map(parseTestFile);
 
   const suiteMap = new Map<string, { files: number; testCases: number }>();
@@ -734,9 +734,9 @@ export function generateMarkdownReport(catalog: TestSurfaceCatalog): string {
   lines.push('');
   lines.push('---');
   lines.push('');
-  lines.push('## 4. Desglose Granular de Casos de Prueba por Archivo');
+  lines.push('## 4. Desglose Estructurado por Suite de Pruebas');
   lines.push('');
-  lines.push('Para asegurar trazabilidad completa frente a suites monolíticas y cambios internos, este desglose lista cada caso de prueba individualmente.');
+  lines.push('Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por suite especializada. El catálogo completo y granular con el detalle de cada aserción individual se preserva en [`test-surface.json`](test-surface.json).');
   lines.push('');
 
   // Agrupar archivos por suite
@@ -753,40 +753,17 @@ export function generateMarkdownReport(catalog: TestSurfaceCatalog): string {
 
     lines.push(`### Suite: ${s.name} (\`${s.id}\`)`);
     lines.push('');
+    lines.push(`- **Runner:** \`${s.runner}\` | **Comando:** \`${s.command}\` | **Total Casos:** ${s.testCases}`);
+    lines.push(`- **Propósito:** ${s.description}`);
+    lines.push('');
+    lines.push('| Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |');
+    lines.push('| :--- | :---: | :---: | :--- | :--- |');
 
     for (const f of files) {
-      lines.push(`#### [\`${f.path}\`](../../${f.path})`);
-      lines.push('');
-      lines.push(`- **Dominio:** ${f.targetDomain}`);
-      lines.push(`- **Tipo:** ${f.type} | **Runner:** \`${f.runner}\` | **Casos:** ${f.testCount} | **Líneas:** ${f.lineCount} (${(f.sizeBytes / 1024).toFixed(1)} KB)`);
-      lines.push(`- **Descripción:** ${f.description}`);
-      if (f.targetArtifacts.length > 0) {
-        lines.push(`- **Artefactos Bajo Prueba:** ${f.targetArtifacts.map((a) => `\`${a}\``).join(', ')}`);
-      }
-      const cmdExec = f.npmCommands.length > 0 ? f.npmCommands.map((c) => `\`${c}\``).join(', ') : 'Ninguno (módulo auxiliar o fixture)';
-      lines.push(`- **Comandos de Ejecución:** ${cmdExec}`);
-      if (f.ciWorkflows.length > 0) {
-        lines.push(`- **Workflows en CI:** ${f.ciWorkflows.map((w) => `\`${w}\``).join(', ')}`);
-      }
-      lines.push('');
-
-      if (f.testCases.length > 0) {
-        lines.push('| # | Línea | Nombre del Caso de Prueba |');
-        lines.push('| :---: | :---: | :--- |');
-        for (let idx = 0; idx < f.testCases.length; idx++) {
-          const tc = f.testCases[idx];
-          // Sanitizar secuencias absolutas file:/// para evitar falsos positivos en contratos de portabilidad
-          const cleanName = tc.name.includes('file:///')
-            ? tc.name.replace('file:///', 'file://[slash]')
-            : tc.name;
-          lines.push(`| ${idx + 1} | [L${tc.line}](../../${f.path}#L${tc.line}) | ${cleanName} |`);
-        }
-        lines.push('');
-      } else {
-        lines.push('*Módulo auxiliar o fixture sin bloques de prueba independientes.*');
-        lines.push('');
-      }
+      const artifacts = f.targetArtifacts.length > 0 ? f.targetArtifacts.map((a) => `\`${a}\``).join(', ') : '*(General)*';
+      lines.push(`| [\`${f.path}\`](../../${f.path}) | **${f.testCount}** | ${f.lineCount} | ${f.description} | ${artifacts} |`);
     }
+    lines.push('');
   }
 
   lines.push('---');

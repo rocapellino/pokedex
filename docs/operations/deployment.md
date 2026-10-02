@@ -1,4 +1,7 @@
-# Runbook: Despliegue y Promoción de Versiones
+# Procedimiento Operativo: Despliegue y Promoción de Versiones (GitOps)
+
+> [!NOTE]
+> **Frontera de Uso:** Este procedimiento gobierna la **entrega continua canónica y automatizada mediante GitOps (ArgoCD)** para todos los entornos de la plataforma. Para pruebas manuales, empaquetado y diagnósticos aislados con Helm fuera del flujo de GitOps, consultar el runbook especializado [HELM_DEPLOYMENT_GUIDE.md](../runbooks/HELM_DEPLOYMENT_GUIDE.md).
 
 ## 1. Propósito
 

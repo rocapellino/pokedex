@@ -109,7 +109,7 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 - **Reporte de Ciclo de Vida Documental:** Estructurado en `docs/audits/<fecha>/documentation-lifecycle.md` siguiendo [documentation-validation-policy.md](references/documentation-validation-policy.md).
 - **Reporte de Consistencia:** Guardado en `docs/audits/<fecha>/documentation/documentation-consistency.md` conforme a [report-template.md](../_shared/report-template.md).
 - **Estructura Atómica de Hallazgos:** Usar el formato canónico de [finding.md](../_shared/finding.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown modificado o generado debe superar `npm run lint:md -- <archivos>` con 0 errores `MDxxx`.
+- **Quality Gate y Validación Determinista:** Todo archivo Markdown modificado o generado debe superar `npm run lint:md -- <archivos>` (0 errores `MDxxx`) y la compuerta integral de gobernanza `npm run docs:validate` (0 enlaces rotos, 0 esquemas locales absolutos y conformidad estricta con el portal `docs/README.md`).
 
 ---
 

@@ -1,5 +1,9 @@
 # 🛡️ Auditoría DevSecOps y Evaluación de Madurez Operativa
 
+> [!NOTE]
+> **Naturaleza del Documento:** Evaluación de seguridad fechada y snapshot de madurez DevSecOps.
+> Las políticas operativas activas de respuesta a incidentes residen en [SECURITY_RUNBOOK.md](SECURITY_RUNBOOK.md) y la divulgación responsable en [SECURITY.md](../../SECURITY.md). Conforme a la regla transversal [`.agents/rules/documentation-governance.md`](../../.agents/rules/documentation-governance.md), las matrices de evaluación y horizontes temporales reflejan el estado del sistema al momento de la auditoría.
+
 Este documento condensa los resultados de la auditoría de seguridad integral, análisis estático y dinámico, evaluación de la cadena de suministro y análisis de superficie de ataque para la plataforma **Pokédex**.
 
 ---

@@ -247,14 +247,23 @@ export function validatePrBody(
 
   // 6. Validaciones específicas de contenido
 
+  /** Extrae el texto de un heading H2 ('## ...') sin usar regex complejas */
+  const extractH2Raw = (line: string): string | null => {
+    if (line.startsWith('## ') && !line.startsWith('### ')) {
+      const raw = line.slice(3).trim();
+      return raw.length > 0 ? raw : null;
+    }
+    return null;
+  };
+
   // 6.A: CI Impact Analysis
   const ciImpactHeading = templateH2s.find(h => h.normalized.includes('ci impact analysis'));
   if (ciImpactHeading && !missingHeadings.includes(ciImpactHeading)) {
     // Buscar la sección en el body
     const bodyLines = bodyContent.split(/\r?\n/);
     const ciHeadingIdx = bodyLines.findIndex(l => {
-      const match = l.match(/^##\s+(.+)$/);
-      return match && normalizeHeading(match[1]).includes('ci impact analysis');
+      const raw = extractH2Raw(l);
+      return raw !== null && normalizeHeading(raw).includes('ci impact analysis');
     });
 
     if (ciHeadingIdx !== -1) {
@@ -262,7 +271,7 @@ export function validatePrBody(
       const sectionLines: string[] = [];
       for (let i = ciHeadingIdx + 1; i < bodyLines.length; i++) {
         const l = bodyLines[i];
-        if (/^##\s+/.test(l)) break;
+        if (l.startsWith('## ') && !l.startsWith('### ')) break;
         sectionLines.push(l);
       }
       const sectionText = sectionLines.join('\n');
@@ -302,15 +311,15 @@ export function validatePrBody(
   if (testsHeading && !missingHeadings.includes(testsHeading)) {
     const bodyLines = bodyContent.split(/\r?\n/);
     const testsHeadingIdx = bodyLines.findIndex(l => {
-      const match = l.match(/^##\s+(.+)$/);
-      return match && normalizeHeading(match[1]).includes('pruebas y verificaciones');
+      const raw = extractH2Raw(l);
+      return raw !== null && normalizeHeading(raw).includes('pruebas y verificaciones');
     });
 
     if (testsHeadingIdx !== -1) {
       const sectionLines: string[] = [];
       for (let i = testsHeadingIdx + 1; i < bodyLines.length; i++) {
         const l = bodyLines[i];
-        if (/^##\s+/.test(l)) break;
+        if (l.startsWith('## ') && !l.startsWith('### ')) break;
         sectionLines.push(l);
       }
       const sectionText = sectionLines.join('\n');
@@ -335,18 +344,19 @@ export function validatePrBody(
 
     const bodyLines = bodyContent.split(/\r?\n/);
     const hIdx = bodyLines.findIndex(l => {
-      const match = l.match(/^##\s+(.+)$/);
-      return match && normalizeHeading(match[1]) === tH2.normalized;
+      const raw = extractH2Raw(l);
+      return raw !== null && normalizeHeading(raw) === tH2.normalized;
     });
 
     if (hIdx !== -1) {
       const sectionLines: string[] = [];
       for (let i = hIdx + 1; i < bodyLines.length; i++) {
         const l = bodyLines[i];
-        if (/^##\s+/.test(l)) break;
+        if (l.startsWith('## ') && !l.startsWith('### ')) break;
         if (/^---\s*$/.test(l)) continue; // omitir separadores horizontales
-        if (l.trim().length > 0 && !/^<!--[\s\S]*?-->$/.test(l.trim())) {
-          sectionLines.push(l.trim());
+        const trimmed = l.trim();
+        if (trimmed.length > 0 && !(trimmed.startsWith('<!--') && trimmed.endsWith('-->'))) {
+          sectionLines.push(trimmed);
         }
       }
 
@@ -372,9 +382,11 @@ export function validatePrBody(
 /** Obtiene el body remoto de un PR utilizando la CLI gh */
 export function fetchRemotePrBody(prNumber: number | string): string {
   try {
-    const stdout = execFileSync('gh', ['pr', 'view', String(prNumber), '--json', 'body', '--jq', '.body'], {
+    const ghBin = process.platform === 'win32' ? 'gh.exe' : 'gh';
+    const stdout = execFileSync(ghBin, ['pr', 'view', String(prNumber), '--json', 'body', '--jq', '.body'], {
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: false,
     });
     return stdout;
   } catch (error) {

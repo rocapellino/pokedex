@@ -1,15 +1,22 @@
-# Runbook: Copias de Seguridad y Restauración de Base de Datos
+# Procedimiento Operativo: Copias de Seguridad y Restauración Local de Base de Datos
+
+> [!NOTE]
+> **Jerarquía y Fronteras de Documentación de Backups:**
+>
+> - **Este documento (`backup-restore.md`):** Procedimiento estándar y rutinario de copias de seguridad locales de PostgreSQL en Kubernetes / Docker, verificación de checksums y restauración manual con `psql`.
+> - [**GDRIVE_BACKUP_GUIDE.md**](GDRIVE_BACKUP_GUIDE.md): Especificación e instrucciones del mecanismo off-site activo mediante sincronización con Google Drive (Rclone K8s-Native).
+> - [**DISASTER_RECOVERY_PLAN.md**](../runbooks/DISASTER_RECOVERY_PLAN.md): Política general de contingencia ante desastres catastróficos, objetivos RPO/RTO y protocolos de reconstrucción del clúster.
 
 ## 1. Propósito
 
-Describir el ciclo de vida operativo de las copias de seguridad de PostgreSQL, los procedimientos de restauración manual y la ejecución del simulacro automatizado de Disaster Recovery.
+Describir el ciclo de vida operativo de las copias de seguridad locales de PostgreSQL, los procedimientos de restauración manual y la ejecución del simulacro automatizado de Disaster Recovery.
 
 ## 2. Parámetros Criptográficos y de Retención
 
 - **Algoritmo de cifrado**: AES-256-CBC con derivación PBKDF2 y salt criptográfico.
 - **Integridad**: Suma de comprobación SHA-256 generada simultáneamente (`.sha256`).
-- **Retención local**: 30 días en volúmenes dedicados.
-- **Retención remota/offsite**: Replicación en almacenamiento compatible S3 con bloqueo de versiones (Object Lock).
+- **Retención local**: 30 días en volúmenes dedicados (`pokedex-backup-pvc`).
+- **Retención remota/offsite**: Replicación automatizada hacia Google Drive (formalizada en [ADR-028](../decisions/ADR-028-gdrive-offsite-backup-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
 
 ## 3. Procedimientos Operativos
 

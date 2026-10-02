@@ -25,6 +25,7 @@
     "lint:yaml:strict": "tsx scripts/check-yaml-extension.ts --strict",
     "lint:docs:refs": "tsx scripts/scan-yml-refs.ts",
     "lint:docs:refs:fix": "tsx scripts/scan-yml-refs.ts --fix",
+    "docs:validate": "tsx scripts/validate-docs-governance.ts",
     "lint:ruleset": "tsx scripts/check-ruleset-parity.ts",
     "nginx:conf": "node scripts/generate-nginx-conf.mjs",
     "nginx:conf:check": "node scripts/generate-nginx-conf.mjs --check",
