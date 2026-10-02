@@ -1,0 +1,4 @@
+# Trivy ignore rules for OpenTofu IaC
+# AVD-AWS-0104 / AWS-0104: Node security groups require outbound internet access to container registries (ECR/DockerHub) and AWS STS/API endpoints
+AVD-AWS-0104
+AWS-0104
