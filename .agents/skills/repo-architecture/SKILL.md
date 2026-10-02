@@ -17,8 +17,9 @@ Analizar integralmente la arquitectura de la aplicación, plataforma e infraestr
   - Paridad y delimitación: Docker Compose (`dev`) vs. K3s On-Prem (Pre-prod LXC 800 / Prod VM 801) vs. AWS EKS (`cloud-ready`).
   - OpenTofu e infraestructura base vs. Ansible vs. manifiestos Kubernetes nativos.
 - **GitOps & Inmutabilidad:**
-  - Árbol de aplicaciones ArgoCD (`root-application.yaml`, `app-proxmox.yaml`, `app-proxmox-preprod.yaml`, `app-cloud.yaml`).
-  - Promoción de artefactos mediante OCI digest pinning inmutable (`sha256`).
+  - Árbol de aplicaciones ArgoCD: targets operativos `ACTIVE` (`root-application.yaml`, `app-proxmox.yaml`, `app-proxmox-preprod.yaml`) vs. blueprint inactivo `REFERENCE` (`app-cloud.yaml`, `gitops/environments/aws/`).
+  - Promoción de artefactos mediante OCI digest pinning inmutable (`sha256`) y paridad estricta 1:1 en `targetRevision` por tag.
+  - Modelo de release desacoplado: `root-application.yaml` anclado a tag de release inmutable.
 - **Aislamiento de Red:** Políticas Ingress (Traefik), Cilium L7 NetworkPolicies, bloqueo Egress anti-SSRF y service boundaries.
 - **Auditoría de ADRs:** Identificar divergencias o contradicciones entre decisiones formales en `docs/decisions/` y la implementación activa en código.
 - **Evolución Arquitectónica:** Proponer target architecture únicamente cuando resuelva un cuello de botella o riesgo concreto documentado.

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T15:59:17.305Z",
+  "generatedAt": "2026-10-02T17:58:13.250Z",
   "summary": {
     "totalFiles": 48,
     "testFiles": 46,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 448,
-    "totalLines": 12692,
-    "totalSizeBytes": 593118,
+    "totalTestCases": 452,
+    "totalLines": 12817,
+    "totalSizeBytes": 598377,
     "suitesCount": 9
   },
   "suites": [
@@ -49,7 +49,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 3,
-      "testCases": 26,
+      "testCases": 30,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -733,12 +733,12 @@
       "type": "Component / Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 18,
+      "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 26,
-      "sizeBytes": 10900,
-      "lineCount": 282,
-      "sha256": "769cdb2bd8e23e1d397c4a4cb5ada2ecd9fc03196fc9a2a4981fb10c039b7076",
+      "assertionCountEst": 36,
+      "sizeBytes": 15189,
+      "lineCount": 391,
+      "sha256": "99002fb8056325f0afc827d5f4fd2353bb77c8f7e5f101e36fc0f331f4483793",
       "targetDomain": "Controlador DOM de Backoffice",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -772,59 +772,75 @@
         },
         {
           "name": "Backoffice: loadAdminData completa el camino de exito",
-          "line": 128
+          "line": 131
         },
         {
           "name": "Backoffice: loadAdminData muestra el estado de error sin lanzar",
-          "line": 135
+          "line": 138
         },
         {
           "name": "Backoffice: handlePageSizeChange aplica el valor seleccionado",
-          "line": 146
+          "line": 149
         },
         {
           "name": "Backoffice: handleAdminSearch programa el debounce",
-          "line": 155
+          "line": 158
         },
         {
           "name": "Backoffice: changeAdminPage navega dentro del rango y rechaza el exterior",
-          "line": 164
+          "line": 167
         },
         {
           "name": "Backoffice: handleFormSubmit exige sesion activa",
-          "line": 185
+          "line": 188
         },
         {
           "name": "Backoffice: los modales delegan sin lanzar",
-          "line": 196
+          "line": 199
         },
         {
           "name": "Backoffice: executeDelete exige sesion activa",
-          "line": 207
+          "line": 210
         },
         {
           "name": "Backoffice: invalidateCache sincroniza tras recargar",
-          "line": 213
-        },
-        {
-          "name": "Backoffice: initEventListeners enlaza sin lanzar",
           "line": 219
         },
         {
+          "name": "Backoffice: initEventListeners enlaza sin lanzar",
+          "line": 227
+        },
+        {
           "name": "Backoffice: la superficie publica permanece exportada",
-          "line": 224
+          "line": 232
         },
         {
           "name": "Backoffice: handleFormSubmit con sesion activa rehabilita el boton",
-          "line": 253
+          "line": 261
         },
         {
           "name": "Backoffice: applyAdminFilters recarga los datos",
-          "line": 266
+          "line": 274
         },
         {
           "name": "Backoffice: handleAdminTypeFilter lee el valor del selector",
-          "line": 274
+          "line": 282
+        },
+        {
+          "name": "Backoffice: bootstrap inicializa listeners y sondeos sin lanzar",
+          "line": 291
+        },
+        {
+          "name": "Backoffice: eventos interactivos disparan manejadores delegados en admin-events",
+          "line": 297
+        },
+        {
+          "name": "Backoffice: handleFormSubmit gestiona 401 y limpia sesion",
+          "line": 355
+        },
+        {
+          "name": "Backoffice: executeDelete gestiona 401 y limpia sesion",
+          "line": 374
         }
       ]
     },
@@ -837,9 +853,9 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 3937,
-      "lineCount": 94,
-      "sha256": "1b37d1f30b04e5cb0c2e0ad00ea00777eb3a7a7d82c50ada86c872f44319a3ef",
+      "sizeBytes": 4320,
+      "lineCount": 99,
+      "sha256": "216ef7258a674e1e36abaa6f7aebd338697dd7c987823fe8bfda07fb8916d0bc",
       "targetDomain": "Entorno de Pruebas Frontend JSDOM",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -2394,10 +2410,10 @@
       "runner": "node:test (tsx)",
       "testCount": 20,
       "describeCount": 0,
-      "assertionCountEst": 239,
-      "sizeBytes": 56953,
-      "lineCount": 963,
-      "sha256": "045c4cf03d7abe2dca4b74c3cbbfbc18fce403b8cea56809e45cc51dfe25c07d",
+      "assertionCountEst": 242,
+      "sizeBytes": 57540,
+      "lineCount": 974,
+      "sha256": "a92633dab595c004497090fb19885b38708cbfdefee8a0f54287724a41dd2878",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2481,19 +2497,19 @@
         },
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps",
-          "line": 593
+          "line": 603
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría",
-          "line": 784
+          "line": 795
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 849
+          "line": 860
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 885
+          "line": 896
         }
       ]
     },

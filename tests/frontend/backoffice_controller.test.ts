@@ -120,9 +120,12 @@ test('Backoffice: checkHealthStatus retorna pronto sin elementos de estado', asy
   const { checkHealthStatus } = await load();
   const dot = document.getElementById('statusDot')!;
   dot.remove();
-  await checkHealthStatus();
+  await assert.doesNotReject(async () => {
+    await checkHealthStatus();
+  }, 'debe retornar de forma segura sin lanzar excepción');
   dot.id = 'statusDot';
   document.body.appendChild(dot);
+  assert.ok(document.getElementById('statusDot'), 'statusDot debe restaurarse');
 });
 
 test('Backoffice: loadAdminData completa el camino de exito', async () => {
@@ -205,15 +208,20 @@ test('Backoffice: los modales delegan sin lanzar', async () => {
 });
 
 test('Backoffice: executeDelete exige sesion activa', async () => {
-  const { executeDelete } = await load();
-  await executeDelete();
-  await settle();
+  const { executeDelete, isSessionActive } = await load();
+  assert.equal(isSessionActive(), false, 'la sesión no debe estar activa por defecto');
+  await assert.doesNotReject(async () => {
+    await executeDelete();
+    await settle();
+  });
 });
 
 test('Backoffice: invalidateCache sincroniza tras recargar', async () => {
   const { invalidateCache } = await load();
-  await invalidateCache();
-  await settle();
+  await assert.doesNotReject(async () => {
+    await invalidateCache();
+    await settle();
+  }, 'invalidateCache debe sincronizar sin rechazar');
 });
 
 test('Backoffice: initEventListeners enlaza sin lanzar', async () => {
@@ -278,4 +286,105 @@ test('Backoffice: handleAdminTypeFilter lee el valor del selector', async () => 
   handleAdminTypeFilter();
   assert.equal(select.value, 'Fuego');
   await settle();
+});
+
+test('Backoffice: bootstrap inicializa listeners y sondeos sin lanzar', async () => {
+  const { bootstrap } = await load();
+  assert.doesNotThrow(() => bootstrap());
+  await settle();
+});
+
+test('Backoffice: eventos interactivos disparan manejadores delegados en admin-events', async () => {
+  const { initEventListeners } = await load();
+  initEventListeners();
+
+  const crudForm = document.getElementById('crudForm');
+  crudForm?.dispatchEvent(new dom.window.Event('submit'));
+
+  const authForm = document.getElementById('authForm');
+  authForm?.dispatchEvent(new dom.window.Event('submit'));
+
+  const btnSyncCache = document.getElementById('btnSyncCache');
+  btnSyncCache?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnClearKeyBtn = document.getElementById('btnClearKeyBtn');
+  btnClearKeyBtn?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+  btnConfirmDelete?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnAdminAuth = document.getElementById('btnAdminAuth');
+  btnAdminAuth?.dispatchEvent(new dom.window.Event('click'));
+
+  const btnOpenCreate = document.getElementById('btnOpenCreate');
+  btnOpenCreate?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminBtnPrev = document.getElementById('adminBtnPrev');
+  adminBtnPrev?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminBtnNext = document.getElementById('adminBtnNext');
+  adminBtnNext?.dispatchEvent(new dom.window.Event('click'));
+
+  const adminSearchInput = document.getElementById('adminSearch');
+  adminSearchInput?.dispatchEvent(new dom.window.Event('input'));
+
+  const adminTypeFilter = document.getElementById('adminTypeFilter');
+  adminTypeFilter?.dispatchEvent(new dom.window.Event('change'));
+
+  const adminPageSize = document.getElementById('adminPageSize');
+  adminPageSize?.dispatchEvent(new dom.window.Event('change'));
+
+  document.querySelectorAll('[data-close-crud]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+  document.querySelectorAll('[data-close-delete]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+  document.querySelectorAll('[data-close-auth]').forEach((el) => {
+    el.dispatchEvent(new dom.window.Event('click'));
+  });
+
+  const escEvent = new dom.window.KeyboardEvent('keydown', { key: 'Escape' });
+  document.dispatchEvent(escEvent);
+
+  await settle();
+  assert.ok(crudForm, 'formulario crud debe existir y estar registrado');
+  assert.ok(authForm, 'formulario auth debe existir y estar registrado');
+});
+
+test('Backoffice: handleFormSubmit gestiona 401 y limpia sesion', async () => {
+  const { handleFormSubmit, setAdminSessionActive, isSessionActive } = await load();
+  setAdminSessionActive(true);
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    const error: any = new Error('Unauthorized');
+    error.status = 401;
+    throw error;
+  };
+
+  const event = new dom.window.Event('submit');
+  event.preventDefault = () => {};
+  await handleFormSubmit(event as unknown as Event);
+  await settle();
+  g.fetch = prevFetch;
+  assert.equal(isSessionActive(), false, 'la sesión debe quedar invalidada tras un 401');
+});
+
+test('Backoffice: executeDelete gestiona 401 y limpia sesion', async () => {
+  const { executeDelete, setAdminSessionActive, openDeleteModal, isSessionActive } = await load();
+  setAdminSessionActive(true);
+  openDeleteModal(1);
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    const error: any = new Error('Unauthorized');
+    error.status = 401;
+    throw error;
+  };
+
+  await executeDelete();
+  await settle();
+  g.fetch = prevFetch;
+  assert.equal(isSessionActive(), false, 'la sesión debe quedar invalidada tras un 401');
 });

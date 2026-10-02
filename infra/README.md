@@ -13,7 +13,7 @@ infra/
 │       ├── templates/       # Plantillas Kubernetes estandarizadas
 │       ├── values.yaml      # Configuración base segura (Secure by Default / Safe defaults)
 │       ├── values.dev.yaml  # Overrides para desarrollo local / Kind / Minikube
-│       └── values.prod.yaml # Perfil endurecido de producción
+│       └── values.prod.yaml # Perfil de referencia endurecido (Helm lint/template, INFRA-011)
 ├── opentofu/                # Aprovisionamiento declarativo híbrido con OpenTofu
 │   └── environments/
 │       ├── proxmox/         # Provisión bi-modal en Proxmox VE (LXC Pre-Prod / VM Prod)
@@ -27,7 +27,7 @@ infra/
 ```
 
 > [!NOTE]
-> Los manifiestos declarativos de **ArgoCD** para la arquitectura híbrida (Proxmox y Cloud) y los `values.yaml` específicos de cada ambiente se encuentran centralizados en el directorio raíz [`gitops/`](../gitops/).
+> Los manifiestos declarativos de **ArgoCD** para la arquitectura de despliegue y los `values.yaml` específicos de cada ambiente se encuentran centralizados en el directorio raíz [`gitops/`](../gitops/). La SSOT de runtime para producción es exclusivamente [`gitops/environments/proxmox/values.yaml`](../gitops/environments/proxmox/values.yaml).
 
 ---
 
@@ -39,7 +39,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 
 - **Servicios:** API backend (`pokedex-api`), Frontend proxy (`pokedex-web`), PostgreSQL StatefulSet con persistencia PVC y Redis caché.
 - **Resiliencia & Escalamiento:** Horizontal Pod Autoscaler (**HPA v2**) para web y API, Pod Disruption Budgets (**PDB**) y NetworkPolicies Zero-Trust.
-- **Gestión de Entornos:** `values.yaml` como base segura (*Secure by Default*), `values.dev.yaml` para desarrollo local y `values.prod.yaml` / [`gitops/environments/`](../gitops/environments/) para producción.
+- **Gestión de Entornos:** `values.yaml` como base segura (*Secure by Default*), `values.dev.yaml` para desarrollo local, `values.prod.yaml` como perfil de referencia estático (INFRA-011) y [`gitops/environments/`](../gitops/environments/) como la SSOT de runtime de producción y pre-producción.
 - **GitOps:** Integración nativa con ArgoCD vía [`gitops/apps/`](../gitops/apps/).
 
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)

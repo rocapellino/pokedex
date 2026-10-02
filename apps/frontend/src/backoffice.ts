@@ -135,7 +135,7 @@ export async function loadAdminData(): Promise<void> {
 
 export function applyAdminFilters(): void {
   currentPage = 1;
-  loadAdminData();
+  void loadAdminData();
 }
 
 export function handleAdminSearch(): void {
@@ -144,7 +144,7 @@ export function handleAdminSearch(): void {
   clearTimeout(searchDebounceTimeout);
   searchDebounceTimeout = setTimeout(() => {
     currentPage = 1;
-    loadAdminData();
+    void loadAdminData();
   }, 300);
 }
 
@@ -152,14 +152,14 @@ export function handleAdminTypeFilter(): void {
   const select = document.getElementById('adminTypeFilter') as HTMLSelectElement | null;
   currentType = select ? select.value : 'all';
   currentPage = 1;
-  loadAdminData();
+  void loadAdminData();
 }
 
 export function handlePageSizeChange(): void {
   const sizeEl = document.getElementById('adminPageSize') as HTMLSelectElement | null;
   pageSize = sizeEl ? Number.parseInt(sizeEl.value, 10) || 50 : 50;
   currentPage = 1;
-  loadAdminData();
+  void loadAdminData();
 }
 
 export function renderTable(): void {
@@ -175,7 +175,7 @@ export function changeAdminPage(delta: number): void {
   const newPage = currentPage + delta;
   if (newPage >= 1 && newPage <= totalPages) {
     currentPage = newPage;
-    loadAdminData();
+    void loadAdminData();
     window.scrollTo({ top: 200, behavior: 'smooth' });
   }
 }
@@ -228,7 +228,7 @@ export async function handleFormSubmit(e: Event): Promise<void> {
   } catch (err: any) {
     if (err?.status === 401) {
       showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
-      clearAdminSession();
+      await clearAdminSession();
       openAuthModal();
       return;
     }
@@ -270,7 +270,7 @@ export async function executeDelete(): Promise<void> {
   } catch (err: any) {
     if (err?.status === 401) {
       showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
-      clearAdminSession();
+      await clearAdminSession();
       closeDeleteModal();
       openAuthModal();
       return;
@@ -329,18 +329,18 @@ export function initEventListeners(): void {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initEventListeners();
-    checkAdminSession();
-    loadAdminData();
-    checkHealthStatus();
-    setInterval(checkHealthStatus, 15000);
-  });
-} else {
+export function bootstrap(): void {
   initEventListeners();
-  checkAdminSession();
-  loadAdminData();
-  checkHealthStatus();
-  setInterval(checkHealthStatus, 15000);
+  void checkAdminSession();
+  void loadAdminData();
+  void checkHealthStatus();
+  setInterval(() => {
+    void checkHealthStatus();
+  }, 15000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrap);
+} else {
+  bootstrap();
 }
