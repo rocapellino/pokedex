@@ -3,13 +3,13 @@
 // ==============================================================================
 // Respaldado por esquemas declarativos Zod (apps/backend/src/validation/schemas.ts)
 
+import { PokemonPayloadSchema } from './schemas.js';
+import type { PokemonPayload } from './schemas.js';
 import {
-  PokemonPayloadSchema,
   validateImageUrl,
   isPrivateOrRestrictedIp,
   SCRIPT_PATTERN,
-} from './schemas.js';
-import type { PokemonPayload } from './schemas.js';
+} from './network-security.js';
 
 export { validateImageUrl, isPrivateOrRestrictedIp, SCRIPT_PATTERN };
 export type { PokemonPayload };
