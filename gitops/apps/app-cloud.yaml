@@ -29,6 +29,7 @@ metadata:
   annotations:
     argocd.argoproj.io/manifest-generate-paths: "infra/helm/pokedex;gitops/environments/aws"
     architecture.pokedex.io/tier: "reference-template"
+    architecture.pokedex.io/status: "inactive"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -46,10 +47,10 @@ spec:
     # Endpoint o nombre del clúster de Kubernetes en Nube registrado en ArgoCD
     server: https://k8s-cloud-cluster.privatelink.us-east-1.eks.amazonaws.com
     namespace: pokemon-app
+  # GITOPS-001: syncPolicy configurada sin bloque `automated` activo para
+  # evitar sincronización ni podas accidentales durante pruebas de blueprint.
+  # Si el clúster AWS se activa formalmente, habilitar `automated: { prune: true, selfHeal: true }`.
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true

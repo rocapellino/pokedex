@@ -43,15 +43,17 @@ pokedex-root  (root-application.yaml)
 > **referencia inactiva**: existe para preparar una futura migración, no para
 > desplegarse.
 
-| Entorno | Application | Estado | Cluster destino |
-| :--- | :--- | :--- | :--- |
-| Producción (on-prem) | `pokedex-proxmox` | 🟢 **ACTIVO** | `k8s-proxmox.internal.lan` |
-| Pre-producción | `pokedex-preprod` | 🟢 **ACTIVO** | `k8s-preprod.internal.lan` |
-| Nube pública | `pokedex-cloud` | ⚪ **INACTIVA** | endpoint EKS no registrado |
+| Entorno | Application | Clasificación | Estado | Cluster destino |
+| :--- | :--- | :--- | :--- | :--- |
+| Producción (on-prem) | `pokedex-proxmox` | 🟢 **ACTIVE** | Activo | `k8s-proxmox.internal.lan` |
+| Pre-producción | `pokedex-preprod` | 🟢 **ACTIVE** | Activo | `k8s-preprod.internal.lan` |
+| Nube pública (AWS) | `pokedex-cloud` | ⚪ **REFERENCE** | Inactivo (Blueprint) | endpoint EKS no registrado |
 
 La exclusión de `app-cloud.yaml` está declarada en `root-application.yaml:38-40` con el motivo
 escrito dentro del propio manifiesto: sin ella, ArgoCD descubriría el blueprint y lo
-sincronizaría contra un endpoint inexistente.
+sincronizaría contra un endpoint inexistente. Además, `app-cloud.yaml` porta las anotaciones
+normativas `architecture.pokedex.io/tier: "reference-template"` y `architecture.pokedex.io/status: "inactive"`,
+y no define sincronización automatizada (`syncPolicy.automated`) para prevenir reconciliaciones accidentales.
 
 ### Activar AWS (decisión de arquitectura, no trivial)
 
@@ -72,6 +74,12 @@ Para declararlo **activo de forma permanente** hay que hacer tres cosas, no una:
 El `targetRevision` de las cuatro Applications es idéntico y **debe apuntar a un tag
 inmutable** (`vX.Y.Z`), nunca a una rama.
 
+> [!NOTE]
+> **Modelo de Promoción Inmutable:** La propia Application raíz (`root-application.yaml`)
+> está fijada a un tag inmutable. Esto significa que los cambios en `gitops/` introducidos en `main`
+> no son leídos por ArgoCD hasta que se promociona un nuevo tag de release (`task gitops:pin TAG=vX.Y.Z`).
+> Este desacoplamiento protege el clúster contra drifts no versionados.
+
 La paridad 1:1 es un **gate automático**, no una convención:
 
 ```bash
@@ -91,11 +99,10 @@ task gitops:pin TAG=vX.Y.Z   # actualiza el targetRevision tras una promoción
 ## Operación
 
 ```bash
-task gitops:apps:root        # aplica la Application raíz (App-of-Apps)
-task gitops:health-checks    # 1. Configurar ArgoCD (PRERREQUISITO)
-task gitops:apps:root        # 2. Aplicar el App-of-Apps
-task gitops:sync:proxmox     # forzar sincronización de producción
-task gitops:status           # estado de salud de todas las Applications
+task gitops:apps:root        # 1. Aplicar la Application raíz (App-of-Apps canónico, ADR-021)
+task gitops:health-checks    # 2. Configurar Custom Health Checks en ArgoCD (PRERREQUISITO)
+task gitops:sync:proxmox     # Forzar sincronización declarativa en producción
+task gitops:status           # Consultar estado de salud de las aplicaciones en el clúster
 ```
 
 > [!IMPORTANT]
@@ -105,11 +112,6 @@ task gitops:status           # estado de salud de todas las Applications
 > evaluador y puede reportarlos `Healthy` por ausencia de condición.
 >
 > Ver [`docs/operations/deployment.md`](../docs/operations/deployment.md) §5.
-
-### Atajos heredados
-
-`task gitops:apps` aplica Application por Application. Está marcado como **legacy**: el camino
-soportado es `gitops:apps:root` (App-of-Apps, ADR-021). Se conserva por compatibilidad.
 
 ---
 

@@ -588,6 +588,16 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
     /INACTIVA/,
     'GITOPS-001: app-cloud.yaml debe declarar su estado inactivo de forma explicita'
   );
+
+  // 5. La referencia inactiva debe portar anotación de status y no definir auto-sync activo
+  assert.ok(
+    appCloud.includes('architecture.pokedex.io/status: "inactive"'),
+    'GITOPS-001: app-cloud.yaml debe declarar la anotación architecture.pokedex.io/status: "inactive"'
+  );
+  assert.ok(
+    !/^\s*automated:\s*$/m.test(appCloud),
+    'GITOPS-001: la referencia inactiva no debe tener syncPolicy.automated activo'
+  );
 });
 
 test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps', async () => {
@@ -711,9 +721,10 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(!preprodContent.includes('* * * * *'), 'app-proxmox-preprod.yaml no debe tener el antipatrón * * * * *');
   assert.ok(!preprodContent.includes('kind: deny'), 'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción');
 
-  // 6. Taskfile.yaml define tareas gitops:apps:root y gitops:health-checks
+  // 6. Taskfile.yaml define tareas gitops:apps:root y gitops:health-checks (retirando el legacy gitops:apps)
   const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
   assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
+  assert.ok(!/^\s*gitops:apps:\s*$/m.test(taskfileContent), 'Taskfile.yaml no debe contener la tarea legada gitops:apps');
   assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
 
   // 6.1 GITOPS-001: la tarea debe INYECTAR las claves de salud en `argocd-cm` mediante
