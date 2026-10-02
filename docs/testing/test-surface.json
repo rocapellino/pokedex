@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T15:29:12.610Z",
+  "generatedAt": "2026-10-02T15:59:17.305Z",
   "summary": {
     "totalFiles": 48,
     "testFiles": 46,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 448,
     "totalLines": 12692,
-    "totalSizeBytes": 593099,
+    "totalSizeBytes": 593118,
     "suitesCount": 9
   },
   "suites": [
@@ -254,51 +254,6 @@
       ]
     },
     {
-      "path": "tests/ci/workflow_run_parity.test.ts",
-      "suite": "ci",
-      "type": "Contract / CI",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 4,
-      "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 7692,
-      "lineCount": 186,
-      "sha256": "043e003031b80f7ac63ae72de4ce42b1a79585a84842ff69a964f45d75516d18",
-      "targetDomain": "Paridad Estructural de Workflows de CI",
-      "targetArtifacts": [
-        ".github/workflows/*.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🚨 WF-004: ningun producer de workflow_run es un reusable sin ejecucion propia",
-          "line": 101
-        },
-        {
-          "name": "🚨 WF-002: ningun trigger workflow_run referencia un workflow inexistente",
-          "line": 133
-        },
-        {
-          "name": "🚨 WF-002: la paridad cubre mas de un workflow (evita regresion de alcance)",
-          "line": 155
-        },
-        {
-          "name": "🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad",
-          "line": 166
-        }
-      ]
-    },
-    {
       "path": "tests/ci_impact.test.ts",
       "suite": "governance",
       "type": "Contract / CI Matrix",
@@ -513,6 +468,51 @@
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
           "line": 1181
+        }
+      ]
+    },
+    {
+      "path": "tests/ci/workflow_run_parity.test.ts",
+      "suite": "ci",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 5,
+      "sizeBytes": 7692,
+      "lineCount": 186,
+      "sha256": "043e003031b80f7ac63ae72de4ce42b1a79585a84842ff69a964f45d75516d18",
+      "targetDomain": "Paridad Estructural de Workflows de CI",
+      "targetArtifacts": [
+        ".github/workflows/*.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🚨 WF-004: ningun producer de workflow_run es un reusable sin ejecucion propia",
+          "line": 101
+        },
+        {
+          "name": "🚨 WF-002: ningun trigger workflow_run referencia un workflow inexistente",
+          "line": 133
+        },
+        {
+          "name": "🚨 WF-002: la paridad cubre mas de un workflow (evita regresion de alcance)",
+          "line": 155
+        },
+        {
+          "name": "🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad",
+          "line": 166
         }
       ]
     },
@@ -1588,9 +1588,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 211,
-      "sizeBytes": 45367,
+      "sizeBytes": 45386,
       "lineCount": 759,
-      "sha256": "e09a02a25025047dc24deeba1dd4595b75be28a63a942cf61b539259c91d7eb3",
+      "sha256": "196507810707ba696f10a4adcf4a931a995a0a686cd62d8d663a5d9314722721",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -3208,6 +3208,50 @@
       ]
     },
     {
+      "path": "tests/version_consistency.test.ts",
+      "suite": "governance",
+      "type": "Contract / Release",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 4616,
+      "lineCount": 100,
+      "sha256": "1d44c1d2636283351c2aaf5038eb6dfa41286a0ecc3d944270bbce942f53466b",
+      "targetDomain": "Consistencia de Versiones SemVer",
+      "targetArtifacts": [
+        "package.json",
+        "apps/backend/package.json",
+        "apps/frontend/package.json",
+        "infra/helm/pokedex/Chart.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm).",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "VER-001 🔒 Contrato de versión: package.json == package-lock.json == Chart.yaml == GitOps",
+          "line": 23
+        },
+        {
+          "name": "VER-002 🔒 /version expone versión y commit como metadatos independientes",
+          "line": 56
+        },
+        {
+          "name": "VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json",
+          "line": 76
+        }
+      ]
+    },
+    {
       "path": "tests/version.test.ts",
       "suite": "governance",
       "type": "Integration",
@@ -3289,50 +3333,6 @@
         {
           "name": "🔍 Observabilidad: requestTracer genera y propaga X-Request-Id para correlación de trazas",
           "line": 391
-        }
-      ]
-    },
-    {
-      "path": "tests/version_consistency.test.ts",
-      "suite": "governance",
-      "type": "Contract / Release",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 3,
-      "describeCount": 0,
-      "assertionCountEst": 15,
-      "sizeBytes": 4616,
-      "lineCount": 100,
-      "sha256": "1d44c1d2636283351c2aaf5038eb6dfa41286a0ecc3d944270bbce942f53466b",
-      "targetDomain": "Consistencia de Versiones SemVer",
-      "targetArtifacts": [
-        "package.json",
-        "apps/backend/package.json",
-        "apps/frontend/package.json",
-        "infra/helm/pokedex/Chart.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm).",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "VER-001 🔒 Contrato de versión: package.json == package-lock.json == Chart.yaml == GitOps",
-          "line": 23
-        },
-        {
-          "name": "VER-002 🔒 /version expone versión y commit como metadatos independientes",
-          "line": 56
-        },
-        {
-          "name": "VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json",
-          "line": 76
         }
       ]
     }
