@@ -99,6 +99,7 @@ jobs:
         with:
           scan-type: 'config'
           scan-ref: 'infra/opentofu'
+          trivyignores: 'infra/opentofu/.trivyignore'
           format: 'sarif'
           output: 'trivy-iac.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
