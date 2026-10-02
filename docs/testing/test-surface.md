@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **47** |
-| **Archivos de Test Automatizados** | 45 |
+| **Total de Archivos en `tests/`** | **48** |
+| **Archivos de Test Automatizados** | 46 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
-| **Total de Casos de Prueba Identificados** | **447** |
-| **Líneas de Código de Pruebas** | 12.664 |
-| **Tamaño Total de la Suite** | 578.0 KB |
+| **Total de Casos de Prueba Identificados** | **448** |
+| **Líneas de Código de Pruebas** | 12.692 |
+| **Tamaño Total de la Suite** | 579.2 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-02T15:13:24.495Z |
+| **Última Sincronización** | 2026-10-02T15:29:12.610Z |
 
 ---
 
@@ -28,7 +28,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 4 | 31 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 18 | 184 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 185 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 1 | 6 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 3 | 26 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -68,6 +68,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 254 | Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/security.test.ts`](../../tests/security.test.ts) | `governance` | Security / Application | `node:test (tsx)` | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | `security` | Contract / Architecture | `node:test (tsx)` | **19** | 759 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | `security` | Automated Test | `node:test (tsx)` | **1** | 28 | Suite de pruebas security: docs_governance_gate.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | `security` | Contract / Docs | `node:test (tsx)` | **3** | 152 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | `security` | Security / Backup | `node:test (tsx)` | **9** | 318 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | `security` | Security / DR | `node:test (tsx)` | **5** | 155 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -113,12 +114,13 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 184
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 185
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | **19** | 759 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `docs/decisions/` |
+| [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | **1** | 28 | Suite de pruebas security: docs_governance_gate.test.ts. | *(General)* |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | **3** | 152 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `docs/` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | **9** | 318 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts` |
 | [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | **5** | 155 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `scripts/dr-drill.ts` |

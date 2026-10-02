@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T15:13:24.495Z",
+  "generatedAt": "2026-10-02T15:29:12.610Z",
   "summary": {
-    "totalFiles": 47,
-    "testFiles": 45,
+    "totalFiles": 48,
+    "testFiles": 46,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 447,
-    "totalLines": 12664,
-    "totalSizeBytes": 591861,
+    "totalTestCases": 448,
+    "totalLines": 12692,
+    "totalSizeBytes": 593099,
     "suitesCount": 9
   },
   "suites": [
@@ -28,8 +28,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 18,
-      "testCases": 184,
+      "files": 19,
+      "testCases": 185,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -1682,6 +1682,38 @@
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
           "line": 689
+        }
+      ]
+    },
+    {
+      "path": "tests/security/docs_governance_gate.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 1,
+      "sizeBytes": 1238,
+      "lineCount": 28,
+      "sha256": "df8e74f6299acd398e834dbb44e1decf43d41b04f397d28d5f675f300fd36d0d",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: docs_governance_gate.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📚 Gobernanza Documental: validateDocsGovernance() no reporta enlaces rotos, esquemas locales ni drift",
+          "line": 18
         }
       ]
     },
