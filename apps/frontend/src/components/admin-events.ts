@@ -3,13 +3,13 @@
  */
 
 export interface BackofficeHandlers {
-  onFormSubmit: (e: Event) => Promise<void>;
-  onAuthSubmit: (e: Event) => Promise<void>;
+  onFormSubmit: (e: Event) => void | Promise<void>;
+  onAuthSubmit: (e: Event) => void | Promise<void>;
   onOpenAuth: () => void;
-  onSyncCache: () => Promise<void>;
+  onSyncCache: () => void | Promise<void>;
   onOpenCreate: () => void;
-  onClearKey: () => Promise<void>;
-  onConfirmDelete: () => Promise<void>;
+  onClearKey: () => void | Promise<void>;
+  onConfirmDelete: () => void | Promise<void>;
   onPrevPage: () => void;
   onNextPage: () => void;
   onSearch: () => void;
@@ -24,25 +24,45 @@ export interface BackofficeHandlers {
 
 export function bindBackofficeEvents(handlers: BackofficeHandlers): void {
   const crudForm = document.getElementById('crudForm');
-  if (crudForm) crudForm.addEventListener('submit', handlers.onFormSubmit);
+  if (crudForm) {
+    crudForm.addEventListener('submit', (e) => {
+      void handlers.onFormSubmit(e);
+    });
+  }
 
   const authForm = document.getElementById('authForm');
-  if (authForm) authForm.addEventListener('submit', handlers.onAuthSubmit);
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      void handlers.onAuthSubmit(e);
+    });
+  }
 
   const btnAdminAuth = document.getElementById('btnAdminAuth');
   if (btnAdminAuth) btnAdminAuth.addEventListener('click', handlers.onOpenAuth);
 
   const btnSyncCache = document.getElementById('btnSyncCache');
-  if (btnSyncCache) btnSyncCache.addEventListener('click', handlers.onSyncCache);
+  if (btnSyncCache) {
+    btnSyncCache.addEventListener('click', () => {
+      void handlers.onSyncCache();
+    });
+  }
 
   const btnOpenCreate = document.getElementById('btnOpenCreate');
   if (btnOpenCreate) btnOpenCreate.addEventListener('click', handlers.onOpenCreate);
 
   const btnClearKeyBtn = document.getElementById('btnClearKeyBtn');
-  if (btnClearKeyBtn) btnClearKeyBtn.addEventListener('click', handlers.onClearKey);
+  if (btnClearKeyBtn) {
+    btnClearKeyBtn.addEventListener('click', () => {
+      void handlers.onClearKey();
+    });
+  }
 
   const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-  if (btnConfirmDelete) btnConfirmDelete.addEventListener('click', handlers.onConfirmDelete);
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener('click', () => {
+      void handlers.onConfirmDelete();
+    });
+  }
 
   const adminBtnPrev = document.getElementById('adminBtnPrev');
   if (adminBtnPrev) adminBtnPrev.addEventListener('click', handlers.onPrevPage);
