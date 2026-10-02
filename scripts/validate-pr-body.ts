@@ -76,13 +76,24 @@ export const MOJIBAKE_PATTERNS = [
 
 /** Normaliza un heading eliminando emojis, enlaces markdown, puntuación superflua y espacios extras */
 export function normalizeHeading(text: string): string {
-  return text
-    .replace(/^#+\s*/, '') // eliminar prefijo '#'
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // quitar markdown links conservando texto
-    .replace(/<!--[\s\S]*?-->/g, '') // quitar comentarios html
+  // Quitar prefijo de nivel Markdown '#'
+  let str = text.replace(/^#+\s*/, '');
+  // Quitar enlaces markdown conservando únicamente el texto visible
+  str = str.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  // Eliminar cualquier directiva o comentario delimitado por '<' y '>' sin regex de sanitización
+  while (str.indexOf('<') !== -1 && str.indexOf('>') !== -1) {
+    const start = str.indexOf('<');
+    const end = str.indexOf('>', start);
+    if (end === -1) break;
+    str = str.slice(0, start) + str.slice(end + 1);
+  }
+
+  return str
     // Quitar emojis comunes y símbolos de presentación
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '')
-    .replace(/[^\p{L}\p{N}\s/&_-]/gu, '') // conservar letras, números, barras, ampersand, guiones y espacios
+    // Conservar caracteres alfanuméricos Unicode, barras, ampersand, guiones y espacios
+    .replace(/[^\p{L}\p{N}\s/&_-]/gu, '')
     .trim()
     .toLowerCase()
     .replace(/\s+/g, ' ');
