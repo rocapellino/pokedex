@@ -120,9 +120,12 @@ test('Backoffice: checkHealthStatus retorna pronto sin elementos de estado', asy
   const { checkHealthStatus } = await load();
   const dot = document.getElementById('statusDot')!;
   dot.remove();
-  await checkHealthStatus();
+  await assert.doesNotReject(async () => {
+    await checkHealthStatus();
+  }, 'debe retornar de forma segura sin lanzar excepción');
   dot.id = 'statusDot';
   document.body.appendChild(dot);
+  assert.ok(document.getElementById('statusDot'), 'statusDot debe restaurarse');
 });
 
 test('Backoffice: loadAdminData completa el camino de exito', async () => {
@@ -205,15 +208,20 @@ test('Backoffice: los modales delegan sin lanzar', async () => {
 });
 
 test('Backoffice: executeDelete exige sesion activa', async () => {
-  const { executeDelete } = await load();
-  await executeDelete();
-  await settle();
+  const { executeDelete, isSessionActive } = await load();
+  assert.equal(isSessionActive(), false, 'la sesión no debe estar activa por defecto');
+  await assert.doesNotReject(async () => {
+    await executeDelete();
+    await settle();
+  });
 });
 
 test('Backoffice: invalidateCache sincroniza tras recargar', async () => {
   const { invalidateCache } = await load();
-  await invalidateCache();
-  await settle();
+  await assert.doesNotReject(async () => {
+    await invalidateCache();
+    await settle();
+  }, 'invalidateCache debe sincronizar sin rechazar');
 });
 
 test('Backoffice: initEventListeners enlaza sin lanzar', async () => {
@@ -340,10 +348,12 @@ test('Backoffice: eventos interactivos disparan manejadores delegados en admin-e
   document.dispatchEvent(escEvent);
 
   await settle();
+  assert.ok(crudForm, 'formulario crud debe existir y estar registrado');
+  assert.ok(authForm, 'formulario auth debe existir y estar registrado');
 });
 
 test('Backoffice: handleFormSubmit gestiona 401 y limpia sesion', async () => {
-  const { handleFormSubmit, setAdminSessionActive } = await load();
+  const { handleFormSubmit, setAdminSessionActive, isSessionActive } = await load();
   setAdminSessionActive(true);
   const g = globalThis as Record<string, unknown>;
   const prevFetch = g.fetch;
@@ -358,10 +368,11 @@ test('Backoffice: handleFormSubmit gestiona 401 y limpia sesion', async () => {
   await handleFormSubmit(event as unknown as Event);
   await settle();
   g.fetch = prevFetch;
+  assert.equal(isSessionActive(), false, 'la sesión debe quedar invalidada tras un 401');
 });
 
 test('Backoffice: executeDelete gestiona 401 y limpia sesion', async () => {
-  const { executeDelete, setAdminSessionActive, openDeleteModal } = await load();
+  const { executeDelete, setAdminSessionActive, openDeleteModal, isSessionActive } = await load();
   setAdminSessionActive(true);
   openDeleteModal(1);
   const g = globalThis as Record<string, unknown>;
@@ -375,4 +386,5 @@ test('Backoffice: executeDelete gestiona 401 y limpia sesion', async () => {
   await executeDelete();
   await settle();
   g.fetch = prevFetch;
+  assert.equal(isSessionActive(), false, 'la sesión debe quedar invalidada tras un 401');
 });

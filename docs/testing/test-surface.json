@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T17:47:59.842Z",
+  "generatedAt": "2026-10-02T17:58:13.250Z",
   "summary": {
     "totalFiles": 48,
     "testFiles": 46,
     "helperFiles": 1,
     "performanceScripts": 1,
     "totalTestCases": 452,
-    "totalLines": 12805,
-    "totalSizeBytes": 597565,
+    "totalLines": 12817,
+    "totalSizeBytes": 598377,
     "suitesCount": 9
   },
   "suites": [
@@ -735,10 +735,10 @@
       "runner": "node:test (tsx)",
       "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 27,
-      "sizeBytes": 14377,
-      "lineCount": 379,
-      "sha256": "58504fd2e4df238a8acf2226e78be7ba2f3b5df8aaacb4dab6faa4df162a0e08",
+      "assertionCountEst": 36,
+      "sizeBytes": 15189,
+      "lineCount": 391,
+      "sha256": "99002fb8056325f0afc827d5f4fd2353bb77c8f7e5f101e36fc0f331f4483793",
       "targetDomain": "Controlador DOM de Backoffice",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -772,75 +772,75 @@
         },
         {
           "name": "Backoffice: loadAdminData completa el camino de exito",
-          "line": 128
+          "line": 131
         },
         {
           "name": "Backoffice: loadAdminData muestra el estado de error sin lanzar",
-          "line": 135
+          "line": 138
         },
         {
           "name": "Backoffice: handlePageSizeChange aplica el valor seleccionado",
-          "line": 146
+          "line": 149
         },
         {
           "name": "Backoffice: handleAdminSearch programa el debounce",
-          "line": 155
+          "line": 158
         },
         {
           "name": "Backoffice: changeAdminPage navega dentro del rango y rechaza el exterior",
-          "line": 164
+          "line": 167
         },
         {
           "name": "Backoffice: handleFormSubmit exige sesion activa",
-          "line": 185
+          "line": 188
         },
         {
           "name": "Backoffice: los modales delegan sin lanzar",
-          "line": 196
+          "line": 199
         },
         {
           "name": "Backoffice: executeDelete exige sesion activa",
-          "line": 207
+          "line": 210
         },
         {
           "name": "Backoffice: invalidateCache sincroniza tras recargar",
-          "line": 213
-        },
-        {
-          "name": "Backoffice: initEventListeners enlaza sin lanzar",
           "line": 219
         },
         {
+          "name": "Backoffice: initEventListeners enlaza sin lanzar",
+          "line": 227
+        },
+        {
           "name": "Backoffice: la superficie publica permanece exportada",
-          "line": 224
+          "line": 232
         },
         {
           "name": "Backoffice: handleFormSubmit con sesion activa rehabilita el boton",
-          "line": 253
+          "line": 261
         },
         {
           "name": "Backoffice: applyAdminFilters recarga los datos",
-          "line": 266
-        },
-        {
-          "name": "Backoffice: handleAdminTypeFilter lee el valor del selector",
           "line": 274
         },
         {
+          "name": "Backoffice: handleAdminTypeFilter lee el valor del selector",
+          "line": 282
+        },
+        {
           "name": "Backoffice: bootstrap inicializa listeners y sondeos sin lanzar",
-          "line": 283
+          "line": 291
         },
         {
           "name": "Backoffice: eventos interactivos disparan manejadores delegados en admin-events",
-          "line": 289
+          "line": 297
         },
         {
           "name": "Backoffice: handleFormSubmit gestiona 401 y limpia sesion",
-          "line": 345
+          "line": 355
         },
         {
           "name": "Backoffice: executeDelete gestiona 401 y limpia sesion",
-          "line": 363
+          "line": 374
         }
       ]
     },
