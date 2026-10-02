@@ -6,16 +6,20 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 
 ## 📑 Tabla de Contenidos
 
-1. [Estrategia de Monorepo y Filtrado por Rutas (`paths`)](#1-estrategia-de-monorepo-y-filtrado-por-rutas-paths)
+1. [Estrategia de Monorepo y Orquestación por Impacto (`ci-impact`)](#1-estrategia-de-monorepo-y-orquestación-por-impacto-ci-impact)
 2. [Diagrama de Ejecución y Flujo DevSecOps de Punta a Punta](#2-diagrama-de-ejecución-y-flujo-devsecops-de-punta-a-punta)
 3. [Catálogo de Workflows del Proyecto](#3-catálogo-de-workflows-del-proyecto)
-   - [3.1. 🌐 `web.yaml` (Frontend Web CI)](#31--webyaml-frontend-web-ci)
-   - [3.2. ⚙️ `infra.yaml` (Infrastructure & IaC CI)](#32-️-infrayaml-infrastructure--iac-ci)
-   - [3.3. 🔐 `security-gitleaks.yaml` (Secret Scanning)](#33--security-gitleaksyaml-secret-scanning)
-   - [3.4. 🚀 `ci.yaml` (Monorepo CI, Gates Bloqueantes, SBOM, Cosign & Supply Chain)](#34--ciyaml-monorepo-ci-gates-bloqueantes-sbom-cosign--supply-chain)
-   - [3.5. 🛡️ `security-trivy.yaml` (Escaneo Programado de Vulnerabilidades)](#35-️-security-trivyyaml-escaneo-programado-de-vulnerabilidades)
-   - [3.6. 🏷️ `release-tag.yaml` (Versionado Semántico Automático)](#36-️-release-tagyaml-versionado-semántico-automático)
-   - [3.7. ⚡ `performance-k6.yaml` (Pruebas de Carga y Rendimiento)](#37--performance-k6yaml-pruebas-de-carga-y-rendimiento)
+   - [3.1. 🎯 `change-impact.yaml` (Orquestador Central y Quality Gate Agregador)](#31--change-impactyaml-orquestador-central-y-quality-gate-agregador)
+   - [3.2. 🚀 `ci.yaml` (Reusable Core CI: Calidad, SAST, Docker & Supply Chain)](#32--ciyaml-reusable-core-ci-calidad-sast-docker--supply-chain)
+   - [3.3. 🌐 `web.yaml` (Reusable Frontend CI)](#33--webyaml-reusable-frontend-ci)
+   - [3.4. ⚙️ `infra.yaml` (Reusable Infrastructure & IaC CI)](#34-️-infrayaml-reusable-infrastructure--iac-ci)
+   - [3.5. 🧹 `mega-linter.yaml` (Reusable Mega-Linter CI)](#35--mega-linteryaml-reusable-mega-linter-ci)
+   - [3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)](#36--security-code-scanningyaml-reusable-sast--codeql-ci)
+   - [3.7. 🔐 `security-gitleaks.yaml` (Required Secret Scanning Independiente)](#37--security-gitleaksyaml-required-secret-scanning-independiente)
+   - [3.8. 🛡️ `security-trivy.yaml` (Escaneo Programado de Vulnerabilidades)](#38-️-security-trivyyaml-escaneo-programado-de-vulnerabilidades)
+   - [3.9. 🏷️ `release-tag.yaml` (Versionado Semántico Automático y Promoción GitOps)](#39-️-release-tagyaml-versionado-semántico-automático-y-promoción-gitops)
+   - [3.10. ⚡ `performance-k6.yaml` (Pruebas de Carga y Rendimiento)](#310--performance-k6yaml-pruebas-de-carga-y-rendimiento)
+   - [3.11. ⚡ `promote-auto-approve.yaml` (Auto-Aprobación Segura de Checks de Release)](#311--promote-auto-approveyaml-auto-aprobación-segura-de-checks-de-release)
 4. [Hardening de la Cadena de Suministro (Supply Chain Hardening)](#4-hardening-de-la-cadena-de-suministro-supply-chain-hardening)
    - [4.1. SHA Pinning en GitHub Actions](#41-sha-pinning-en-github-actions)
    - [4.2. Dependency Review Gate](#42-dependency-review-gate)
@@ -25,14 +29,18 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
 
 ---
 
-## 1. Estrategia de Monorepo y Filtrado por Rutas (`paths`)
+## 1. Estrategia de Monorepo y Orquestación por Impacto (`ci-impact`)
 
-Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo estructurado con npm workspaces, se implementa una estrategia optimizada de pipelines sin ejecuciones redundantes (remediación `CI-001`):
+Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`), infraestructura (`infra/`, `gitops/`) y scripts en un solo monorepo estructurado con npm workspaces, se implementa una arquitectura basada en **Orquestador Central + Reusable Workflows** gobernada por el contrato declarativo [`.github/ci-impact.yaml`](../../.github/ci-impact.yaml) y el CLI [`scripts/detect-change-impact.ts`](../../scripts/detect-change-impact.ts):
 
-- **Cambios en Frontend (`apps/frontend/**`):** Activan [`web.yaml`](../../.github/workflows/web.yaml) para linting, build Vite y pruebas E2E con Playwright y Lighthouse.
-- **Cambios en Infraestructura (`infra/**`):** Activan [`infra.yaml`](../../.github/workflows/infra.yaml) para validación exhaustiva de Helm, OpenTofu, Ansible, esquemas Kubeconform, Kube-linter, Kyverno, escaneo CIS con Checkov e integración KinD.
-- **Pull Requests y Pushes a `main`:** Disparan el pipeline central unificado [`ci.yaml`](../../.github/workflows/ci.yaml) ejecutando análisis estático, tipado, compilación esbuild, tests de unidad/seguridad/fuzzing, `npm audit`, Semgrep SAST, empaquetado Docker y firma criptográfica Cosign. El gate de **Dependency Review** se ejecuta exclusivamente en contexto de Pull Request (requiere `base_ref`/`head_ref`); en pushes a `main` la cobertura SCA la aporta `npm audit --audit-level=high --omit=dev`.
-- **Cualquier Commit:** Ejecuta [`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml) para detección temprana de credenciales.
+- **Orquestador Central ([`change-impact.yaml`](../../.github/workflows/change-impact.yaml)):** Es el punto de entrada unificado para todos los Pull Requests y pushes a `main`. Evalúa el diff del cambio contra las rutas del contrato y despacha dinámicamente solo los pipelines afectados.
+- **Reusable Core CI ([`ci.yaml`](../../.github/workflows/ci.yaml)):** Invocado condicionalmente por el orquestador cuando se modifican backend, dependencias raíz, contratos de testing o rutas globales. Ejecuta tipado, tests, Semgrep SAST, escaneo Trivy y firmado Cosign en `main`.
+- **Reusable Frontend CI ([`web.yaml`](../../.github/workflows/web.yaml)):** Invocado condicionalmente cuando cambian `apps/frontend/**` o pruebas E2E.
+- **Reusable Infraestructura CI ([`infra.yaml`](../../.github/workflows/infra.yaml)):** Invocado condicionalmente cuando cambian `infra/**`, `gitops/**` o el `Taskfile.yaml`.
+- **Reusable Mega-Linter ([`mega-linter.yaml`](../../.github/workflows/mega-linter.yaml)):** Ejecuta validación de formato y sintaxis transversal en cambios globales o de linting.
+- **Reusable Security Scanning ([`security-code-scanning.yaml`](../../.github/workflows/security-code-scanning.yaml)):** Ejecuta análisis avanzado CodeQL y Semgrep en cambios relevantes o programados.
+- **Secret Scanning Incondicional ([`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)):** Se ejecuta de forma independiente y paralela en **cada commit y PR** como Required Check no negociable del ruleset de GitHub, sin depender de la clasificación de impacto.
+- **Quality Gate Unificado:** El job final `quality-gate` en `change-impact.yaml` agrega el estado de todos los workflows invocados (`success` o `skipped` justificado), operando como único required status check orquestado y evitando bloqueos artificiales por jobs condicionales.
 
 ---
 
@@ -42,28 +50,31 @@ Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`),
 flowchart TD
     DEV(["👨‍💻 Desarrollador"]) -->|git push / PR| GH["🚀 GitHub Repository"]
 
-    subgraph TRIGGER_ROUTER ["🔀 Enrutador por Rutas (Path Filtering)"]
-        GH --> CHK_PATH{"¿Qué archivos cambiaron?"}
-        CHK_PATH -->|apps/frontend/**| WF_WEB["🌐 web.yaml\n• Vite Build & Lint\n• Playwright E2E\n• Lighthouse CI"]
-        CHK_PATH -->|infra/**| WF_INFRA["⚙️ infra.yaml\n• Helm Lint & Template\n• Kubeconform & Kube-linter\n• OpenTofu Validate\n• Checkov IaC & KinD"]
-        CHK_PATH -->|Cualquier archivo| WF_LEAKS["🔐 security-gitleaks.yaml\n• Escaneo estricto de secretos"]
+    subgraph SEC_INDEPENDENT ["🔐 Required Check Independiente"]
+        GH --> WF_LEAKS["🛡️ security-gitleaks.yaml\n• Escaneo estricto de secretos"]
+        WF_LEAKS --> CHK_LEAKS["🛡️ Gitleaks Secret Detection"]
     end
 
-    subgraph CI_PIPELINE ["🛡️ ci.yaml: Pipeline Central Integrador (PR y main)"]
-        GH --> GATES_PARALLEL["Ejecución de Quality Gates en Paralelo"]
-        GATES_PARALLEL --> QG1["🔍 TypeScript Lint, esbuild & Tests\n(Unit, Pentest, Fuzz & npm audit)"]
-        GATES_PARALLEL --> QG2["🛡️ Semgrep SAST\n(OWASP Top 10 Bloqueante)"]
-        GATES_PARALLEL --> QG3["🔐 Gitleaks\n(Secret Detection)"]
-        GATES_PARALLEL --> QG4["📦 Dependency Review\n(Bloqueo HIGH+ · Solo PR)"]
-        GATES_PARALLEL --> QG5["🐳 Build Docker & Trivy\n(Vulnerabilidades SCA y OCI)"]
+    subgraph ORCHESTRATOR ["🎯 change-impact.yaml: Orquestador Central"]
+        GH --> DETECT["detect-change-impact.ts\n(.github/ci-impact.yaml)"]
+        DETECT --> ROUTER{"Matriz de Impacto"}
 
-        QG1 & QG2 & QG3 & QG4 & QG5 --> GATE_DECISION{"¿Todos los Gates Aprobados?"}
-        GATE_DECISION -->|❌ Fallo| BLOCK_PR["🚫 Bloquear Merge en GitHub"]
-        GATE_DECISION -->|✅ Aprobado| MERGE_MAIN["Merge a rama 'main'"]
+        ROUTER -->|backend / global / tests| WF_CI["🚀 ci.yaml (Reusable Core)\n• TypeScript & Tests\n• Semgrep SAST\n• Docker & Trivy"]
+        ROUTER -->|infra / gitops / taskfile| WF_INFRA["⚙️ infra.yaml (Reusable Infra)\n• Helm, Kubeconform & Kyverno\n• OpenTofu, Ansible & Checkov\n• Test KinD"]
+        ROUTER -->|apps/frontend/**| WF_WEB["🌐 web.yaml (Reusable Web)\n• Vite Build & Lint\n• Playwright E2E & Axe-core\n• Lighthouse CI"]
+        ROUTER -->|global / linting| WF_MEGA["🧹 mega-linter.yaml (Reusable)\n• Linting transversal"]
+        ROUTER -->|security / global| WF_SCAN["🔬 security-code-scanning.yaml\n• CodeQL SAST"]
+
+        WF_CI & WF_INFRA & WF_WEB & WF_MEGA & WF_SCAN --> QG["🚦 Quality Gate (Agregador)"]
     end
+
+    QG --> QG_DECISION{"¿Quality Gate y Gitleaks OK?"}
+    CHK_LEAKS --> QG_DECISION
+    QG_DECISION -->|❌ Fallo| BLOCK_PR["🚫 Bloquear Merge en GitHub"]
+    QG_DECISION -->|✅ Aprobado| MERGE_MAIN["Merge a rama 'main'"]
 
     subgraph SUPPLY_CHAIN ["📦 Supply Chain Security & Release (Solo en main)"]
-        MERGE_MAIN --> BUMP["🏷️ release-tag.yaml<br/>(fase promote: PR de versión)"]
+        MERGE_MAIN --> BUMP["🏷️ release-tag.yaml\n(fase promote: PR de versión)"]
         MERGE_MAIN --> DOCKER_BUILD["🐳 Build Imagen Docker Multi-Stage"]
         DOCKER_BUILD --> SYFT_SBOM["📋 Generar SBOM CycloneDX (Trivy)"]
         DOCKER_BUILD --> COSIGN_SIGN["✍️ Cosign Keyless Signing (Sigstore OIDC)"]
@@ -84,9 +95,9 @@ flowchart TD
     classDef success fill:#10b981,stroke:#047857,color:#fff;
     classDef error fill:#ef4444,stroke:#b91c1c,color:#fff;
 
-    class WF_WEB,WF_INFRA,WF_LEAKS normal;
-    class GATES_PARALLEL,GATE_DECISION,KYVERNO gate;
-    class MERGE_MAIN,PUSH_GHCR,DEPLOY_OK success;
+    class WF_WEB,WF_INFRA,WF_LEAKS,WF_CI,WF_MEGA,WF_SCAN normal;
+    class DETECT,ROUTER,QG,QG_DECISION,KYVERNO gate;
+    class MERGE_MAIN,PUSH_GHCR,DEPLOY_OK,CHK_LEAKS success;
     class BLOCK_PR,DEPLOY_FAIL error;
 ```
 
@@ -94,32 +105,20 @@ flowchart TD
 
 ## 3. Catálogo de Workflows del Proyecto
 
-### 3.1. 🌐 `web.yaml` (Frontend Web CI)
+### 3.1. 🎯 `change-impact.yaml` (Orquestador Central y Quality Gate Agregador)
 
-- **Archivo:** [`web.yaml`](../../.github/workflows/web.yaml)
-- **Triggers:** Cambios en `apps/frontend/**`, `tests/e2e/**`, `playwright.config.ts`, `lighthouserc.json`.
-- **Pasos:** Compilación de assets con Vite, linter de configuración Nginx y ejecución de tests E2E y auditoría de accesibilidad Axe-core con Playwright.
+- **Archivo:** [`change-impact.yaml`](../../.github/workflows/change-impact.yaml)
+- **Triggers:** Pull Requests y pushes a `main`.
+- **Función:** Ejecuta `scripts/detect-change-impact.ts` con el contrato de `.github/ci-impact.yaml`. Con base en el análisis de diff, despacha los workflows reusables necesarios y expone el job agregador `quality-gate` que actúa como check requerido en el ruleset de protección de ramas.
 
-### 3.2. ⚙️ `infra.yaml` (Infrastructure & IaC CI)
-
-- **Archivo:** [`infra.yaml`](../../.github/workflows/infra.yaml)
-- **Triggers:** Cambios en `infra/**`.
-- **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**.
-
-### 3.3. 🔐 `security-gitleaks.yaml` (Secret Scanning)
-
-- **Archivo:** [`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)
-- **Triggers:** Todos los commits y PRs.
-- **Pasos:** Gitleaks con reglas de [`.gitleaks.toml`](../../.gitleaks.toml) analizando el historial completo para evitar fuga de credenciales o API keys.
-
-### 3.4. 🚀 `ci.yaml` (Monorepo CI, Gates Bloqueantes, SBOM, Cosign & Supply Chain)
+### 3.2. 🚀 `ci.yaml` (Reusable Core CI: Calidad, SAST, Docker & Supply Chain)
 
 - **Archivo:** [`ci.yaml`](../../.github/workflows/ci.yaml)
-- **Triggers:** Pull Requests y pushes a `main`.
+- **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y ejecutable manualmente (`workflow_dispatch`).
 - **Etapas:**
   1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm test` (unit, pentest, contratos), `npm run test:fuzz` (fuzzing DAST) y `npm audit --audit-level=high --omit=dev`.
   2. **Análisis Estático SAST (Bloqueante):** **Semgrep** analiza el código contra reglas de OWASP Top 10 y detiene el pipeline ante fallos de seguridad.
-  3. **Dependency Review Gate (Bloqueante, solo PR):** Bloquea automáticamente PRs que introduzcan vulnerabilidades `HIGH` o `CRITICAL` en dependencias nuevas o modificadas. La acción requiere contexto de Pull Request (`base_ref`/`head_ref`), por lo que el job se omite en `push` y `workflow_dispatch`; en esos eventos la cobertura SCA la garantiza `npm audit`.
+  3. **Dependency Review Gate (Bloqueante, solo PR):** Bloquea automáticamente PRs que introduzcan vulnerabilidades `HIGH` o `CRITICAL` en dependencias nuevas o modificadas. La acción requiere contexto de Pull Request (`base_ref`/`head_ref`); en `push` y `workflow_dispatch` la cobertura SCA la aporta `npm audit`.
   4. **Construcción y Escaneo de Contenedores:** Construcción multi-stage de la imagen Docker y escaneo con **Trivy** (SCA y OS CVEs).
   5. **Firmado Criptográfico y Publicación OCI (Solo en `main`):**
      - Generación del **SBOM CycloneDX** con **Trivy**.
@@ -127,12 +126,42 @@ flowchart TD
      - Atestación criptográfica de SBOM en el registro OCI.
      - Publicación en **GHCR** y registro de transparencia en **Rekor**.
 
-### 3.5. 🛡️ `security-trivy.yaml` (Escaneo Programado de Vulnerabilidades)
+### 3.3. 🌐 `web.yaml` (Reusable Frontend CI)
+
+- **Archivo:** [`web.yaml`](../../.github/workflows/web.yaml)
+- **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
+- **Pasos:** Compilación de assets con Vite, linter de configuración Nginx y ejecución de tests E2E y auditoría de accesibilidad Axe-core con Playwright y Lighthouse CI.
+
+### 3.4. ⚙️ `infra.yaml` (Reusable Infrastructure & IaC CI)
+
+- **Archivo:** [`infra.yaml`](../../.github/workflows/infra.yaml)
+- **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
+- **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**.
+
+### 3.5. 🧹 `mega-linter.yaml` (Reusable Mega-Linter CI)
+
+- **Archivo:** [`mega-linter.yaml`](../../.github/workflows/mega-linter.yaml)
+- **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
+- **Pasos:** Ejecución del linter integral de repositorio con configuración de [`.mega-linter.yml`](../../.mega-linter.yml).
+
+### 3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)
+
+- **Archivo:** [`security-code-scanning.yaml`](../../.github/workflows/security-code-scanning.yaml)
+- **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`), `schedule` semanal y `workflow_dispatch`.
+- **Pasos:** Análisis estático con GitHub CodeQL y Semgrep para detección avanzada de fallas en código fuente e IaC.
+
+### 3.7. 🔐 `security-gitleaks.yaml` (Required Secret Scanning Independiente)
+
+- **Archivo:** [`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)
+- **Triggers:** Todos los commits y PRs (incondicional).
+- **Pasos:** Gitleaks con reglas de [`.gitleaks.toml`](../../.gitleaks.toml) analizando el commit range completo para evitar fuga de credenciales o API keys. Actúa como check directo requerido en el ruleset.
+
+### 3.8. 🛡️ `security-trivy.yaml` (Escaneo Programado de Vulnerabilidades)
 
 - **Archivo:** [`security-trivy.yaml`](../../.github/workflows/security-trivy.yaml)
 - **Triggers:** Escaneo programado periódico de CVEs sobre filesystem y dependencias.
 
-### 3.6. 🏷️ `release-tag.yaml` (Versionado Semántico Automático)
+### 3.9. 🏷️ `release-tag.yaml` (Versionado Semántico Automático y Promoción GitOps)
 
 - **Archivo:** [`release-tag.yaml`](../../.github/workflows/release-tag.yaml)
 - **Triggers:** Push directo / merge a `main`.
@@ -142,10 +171,16 @@ flowchart TD
 - **Sincronización de versión:** el bump de `package.json` y `package-lock.json` (vía `npm version --no-git-tag-version`, atómico) más `infra/helm/pokedex/Chart.yaml` se promueve mediante un **Pull Request** a `main` (`release/promote-<tag>`), porque `main` está protegida por el ruleset `main-protection` y el `GITHUB_TOKEN` no puede escribir directamente en ella.
 - **Promoción GitOps:** el `targetRevision` de los manifiestos ArgoCD viaja en el **mismo PR atómico** `release/promote-<tag>` (no existe una rama separada `gitops/pin-<tag>`).
 
-### 3.7. ⚡ `performance-k6.yaml` (Pruebas de Carga y Rendimiento)
+### 3.10. ⚡ `performance-k6.yaml` (Pruebas de Carga y Rendimiento)
 
 - **Archivo:** [`performance-k6.yaml`](../../.github/workflows/performance-k6.yaml)
 - **Triggers:** Ejecución manual o programada para validar métricas de latencia p95 y resistencia bajo carga con scripts k6.
+
+### 3.11. ⚡ `promote-auto-approve.yaml` (Auto-Aprobación Segura de Checks de Release)
+
+- **Archivo:** [`promote-auto-approve.yaml`](../../.github/workflows/promote-auto-approve.yaml)
+- **Triggers:** `pull_request_target` en ramas `main` para PRs de promoción de release (`release/promote-*`).
+- **Trust Boundary & Seguridad:** Ejecuta con validación estricta de no-fork (`head.repo.full_name == github.repository`), rama con prefijo legítimo, PR no en borrador (`!draft`) y emisor verificado (`rocapellino` o `github-actions[bot]`). Desbloquea las ejecuciones en `action_required` para permitir que los checks CI corran automáticamente antes del merge.
 
 ---
 
