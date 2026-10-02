@@ -46,15 +46,28 @@ infra/ansible/
 ├── ansible.cfg              # Configuración de ejecución, SSH pipelining y rutas de inventario
 ├── deploy_excludes.txt      # Lista canónica de exclusión de secretos (.env) y artefactos en rsync
 ├── README.md                # Este documento de arquitectura y guía operativa
+├── requirements.yaml        # Dependencias de colecciones y roles externos
 ├── inventories/
 │   ├── proxmox/
-│   │   └── hosts.yaml        # Inventario de Proxmox VE (k8s_control_plane, k8s_workers, vault_servers, bastion_servers)
+│   │   └── hosts.yaml        # Inventario de Proxmox VE (control plane, workers, vault, bastion)
 │   └── lab/
 │       └── hosts.yaml        # Inventario para entorno de laboratorio y pruebas
-└── playbooks/
-    ├── host_baseline.yaml      # Aprovisionamiento de SO, Docker/containerd, sysctl y hardening
-    ├── security_hardening.yaml # Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
-    └── setup_nodes.yaml        # Preparación de nodos para clúster Kubernetes
+├── playbooks/
+│   ├── prepare_hosts.yaml    # [ACTIVE] Preparación integral (base OS + CRI + firewall + hardening)
+│   ├── host_baseline.yaml    # [ACTIVE] Aprovisionamiento de SO, Docker/containerd y sysctl
+│   ├── security_hardening.yaml # [ACTIVE] Hardening de SSH y reglas de cortafuegos UFW Zero-Trust
+│   ├── validate_hosts.yaml   # [ACTIVE] Verificación de estado de CRI, firewall UFW y swap
+│   ├── setup_k3s.yaml        # [ACTIVE] Despliegue declarativo de K3s y CNI Cilium eBPF
+│   ├── setup_vault.yaml      # [ACTIVE] Aprovisionamiento de HashiCorp Vault en LXC
+│   ├── setup_bastion.yaml    # [SUPPORTED] Gestión y configuración del host bastion de administración
+│   ├── setup_gdrive_backup.yaml # [SUPPORTED] Respaldo off-site a nivel host (alternativa a K8s CronJob)
+│   └── setup_pbs_backup_blueprint.yaml # [BLUEPRINT] Esqueleto referencial Proxmox Backup Server (inactivo)
+└── roles/
+    ├── base_os/             # Repositorios base, paquetes esenciales y tuning de kernel
+    ├── container_runtime/   # Instalación y validación de Docker Engine / containerd
+    ├── firewall/            # Configuración perimetral UFW
+    ├── hardening/           # Restricciones SSH, límites de sistema y mitigaciones OS
+    └── kubernetes_prerequisites/ # sysctl (br_netfilter, ip_forward) y swap off
 ```
 
 ---
@@ -66,24 +79,30 @@ El playbook `security_hardening.yaml` aplica una política de **denegación por 
 - **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `192.168.1.0/24`).
 - **Web Pública (`80/tcp`, `443/tcp`):** Permitido para proxies reversos Nginx / Ingress.
 - **Puerto de Desarrollo/Proxy (`8080/tcp`):** Restringido a la subred de administración (`mgmt_cidr`).
-- **Kubernetes API Server (`6443/tcp`):** Restringido exclusivamente al clúster (`k8s_cluster_cidr`).
+- **Kubernetes API Server (`6443/tcp`):** Restringido exclusivamente al clúster (`k8s_nodes_cidr`).
 - **Kubelet API (`10250/tcp`):** Restringido exclusivamente al tráfico interno del clúster.
-- **etcd Peering & Client (`2379-2380/tcp`):** Restringido estrictamente a los nodos del plano de control (`k8s_cluster_cidr`), evitando exposición externa.
+- **etcd Peering & Client (`2379-2380/tcp`):** Restringido estrictamente a los nodos del plano de control (`k8s_nodes_cidr`), evitando exposición externa.
 
 ---
 
 ## 🚀 Guía de Ejecución
 
-### 1. Preparación de Nodos para Kubernetes / Docker
+### 1. Preparación Completa de Hosts
 
 ```bash
-ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_nodes.yaml
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/prepare_hosts.yaml
 ```
 
-### 2. Aplicación de Hardening y Firewall Zero-Trust
+### 2. Validación de Cumplimiento y Estado (Dry-Run / Verification)
+
+```bash
+ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/validate_hosts.yaml
+```
+
+### 3. Aplicación de Hardening y Firewall Zero-Trust
 
 ```bash
 ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml \
-  -e "mgmt_cidr=192.168.1.0/24" \
-  -e "k8s_cluster_cidr=192.168.1.0/24"
+  -e "mgmt_cidr=10.10.13.0/24" \
+  -e "k8s_nodes_cidr=10.10.13.0/24"
 ```

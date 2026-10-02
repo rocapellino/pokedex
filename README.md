@@ -138,7 +138,7 @@ npm test
 npm run lint
 npm run typecheck
 
-# Validar calidad de documentación Markdown (0 errores MDxxx)
+# Validar Markdown
 npm run lint:md
 ```
 

@@ -37,9 +37,6 @@ all:
       children:
         k8s_control_plane:
         k8s_workers:
-    standalone_servers:
-      hosts:
-        lab-node-01:
-          ansible_host: 10.10.14.20
-          ansible_user: root
-          env: lab
+# INFRA-013: se elimina el grupo residual `standalone_servers` (lab-node-01).
+# OpenTofu Lab solo aprovisiona nodos Kubernetes (`lab-k8s-*`, VMs 900+).
+# Eliminarlo evita ejecuciones huérfanas y garantiza paridad 1:1 con la IaC.

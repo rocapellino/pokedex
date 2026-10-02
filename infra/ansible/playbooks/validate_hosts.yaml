@@ -6,11 +6,12 @@
   hosts: all
   become: true
   tasks:
-    - name: 1. Comprobar que el servicio Docker está activo
-      ansible.builtin.command: systemctl is-active docker
-      register: docker_status
+    - name: 1. Comprobar que el runtime de contenedores o servicio de Kubernetes está activo
+      ansible.builtin.shell: |
+        systemctl is-active k3s || systemctl is-active containerd || systemctl is-active docker
+      register: runtime_status
       changed_when: false
-      failed_when: docker_status.stdout != "active"
+      failed_when: runtime_status.rc != 0
 
     - name: 2. Comprobar que UFW está activo
       ansible.builtin.command: ufw status
