@@ -629,7 +629,7 @@ export function parseTestFile(fullPath: string): TestFileRecord {
 }
 
 export function buildCatalog(): TestSurfaceCatalog {
-  const allFiles = getFilesRecursively(TESTS_DIR).sort();
+  const allFiles = getFilesRecursively(TESTS_DIR).sort((a, b) => a.localeCompare(b));
   const fileRecords = allFiles.map(parseTestFile);
 
   const suiteMap = new Map<string, { files: number; testCases: number }>();
