@@ -205,6 +205,15 @@ El workflow [`ci.yaml`](../../.github/workflows/ci.yaml) incorpora el gate de re
 - **Ventana Programada:** Ejecución semanal los lunes antes de las 06:00 AM (ART).
 - **Auto-Merge Controlado:** Restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker, OpenTofu y GitHub Actions requieren aprobación humana explícita (`manual-review-required`, `infra-supply-chain-review`).
 
+### 4.4. Principio de Menor Privilegio (Least Privilege) y Permisos Zero-Trust por Job
+
+Conforme a las recomendaciones de OpenSSF y CIS Benchmarks para GitHub Actions:
+
+- **Top-Level Permissions:** Los 18 workflows declaran un bloque restrictivo inicial (`permissions: { contents: read }` o el mínimo estricto requerido).
+- **Job-Level Permissions:** Cada job individual dentro de los 18 workflows declara explícitamente sus propios permisos granulares, evitando que jobs de ejecución o compilación hereden permisos de escritura innecesarios.
+- **Auditoría de Sobre-Privilegios:** Se auditaron y eliminaron permisos no operativos (por ejemplo `issues: write` en escaneos DAST donde la emisión de issues está desactivada).
+- **Guardrail Automatizado de CI:** La suite de pruebas de gobernanza [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) valida automáticamente en cada PR que ningún workflow use `write-all` y que el 100% de los jobs declare sus permisos de forma explícita.
+
 ---
 
 ## 5. Integración con Linear & Slack (Issue Tracking & ChatOps)

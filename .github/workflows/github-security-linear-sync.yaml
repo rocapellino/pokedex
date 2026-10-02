@@ -64,6 +64,9 @@ jobs:
   sync-security-to-linear:
     name: 🎫 Sync Security Alerts to Linear Tickets
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
     if: >
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'

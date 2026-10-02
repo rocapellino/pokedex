@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T22:53:50.756Z",
+  "generatedAt": "2026-10-02T23:10:46.750Z",
   "summary": {
     "totalFiles": 49,
     "testFiles": 47,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 461,
-    "totalLines": 13112,
-    "totalSizeBytes": 610323,
+    "totalTestCases": 464,
+    "totalLines": 13181,
+    "totalSizeBytes": 613134,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 16,
-      "testCases": 180,
+      "testCases": 183,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -259,12 +259,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 52,
+      "testCount": 55,
       "describeCount": 0,
-      "assertionCountEst": 337,
-      "sizeBytes": 58501,
-      "lineCount": 1331,
-      "sha256": "74b8a4614d719b27011fc1fc2146c9011d7793ffc514fb83391ad295bac6c7bb",
+      "assertionCountEst": 342,
+      "sizeBytes": 61312,
+      "lineCount": 1400,
+      "sha256": "d22220537f58096c4ebca99b4dd8611d2adadb4cb1bd48e662d27e03515ea81d",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -486,8 +486,20 @@
           "line": 1283
         },
         {
-          "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
+          "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
           "line": 1309
+        },
+        {
+          "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
+          "line": 1337
+        },
+        {
+          "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
+          "line": 1353
+        },
+        {
+          "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
+          "line": 1378
         }
       ]
     },

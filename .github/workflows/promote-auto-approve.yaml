@@ -26,6 +26,8 @@ jobs:
       (github.actor == 'rocapellino' || github.actor == 'github-actions[bot]') &&
       (github.event.pull_request.user.login == 'rocapellino' || github.event.pull_request.user.login == 'github-actions[bot]')
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
       - name: Aprobar workflows pendientes en action_required
         env:

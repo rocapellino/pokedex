@@ -42,6 +42,11 @@ jobs:
   auto-tag-and-release:
     name: 🚀 Bump Version & Create GitHub Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+      actions: write
     # El merge del PR de promoción (mensaje "chore(release): promote ...")
     # SIEMPRE debe correr: es la fase "tag" que fija el anclaje version -> commit.
     # Los demás pushes a main corren la fase "promote", salvo marcas de

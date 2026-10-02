@@ -15,12 +15,13 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   zap_scan:
     name: "🕷️ OWASP ZAP Baseline Scan"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 1. Checkout del código
