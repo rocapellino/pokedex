@@ -2,7 +2,7 @@
 
 Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa una Pokédex reactiva para la consulta y gestión del catálogo oficial de Pokémon. Diseñada bajo principios de separación de responsabilidades, seguridad por defecto (*fail-closed*) y entrega continua mediante GitOps sobre Kubernetes portable.
 
-[![CI Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/ci.yaml/badge.svg)](https://github.com/rocapellino/pokedex/actions/workflows/ci.yaml)
+[![CI/CD Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/change-impact.yaml/badge.svg?branch=main)](https://github.com/rocapellino/pokedex/actions/workflows/change-impact.yaml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=rocapellino_pokedex&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rocapellino_pokedex)
 [![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -16,9 +16,7 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 ## 📑 Tabla de Contenidos
 
-- [Pokémon DevOps Platform](#-pokémon-devops-platform)
-  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
-  - [1. Propósito y Visión General](#1-propósito-y-visión-general)
+- [1. Propósito y Visión General](#1-propósito-y-visión-general)
   - [2. Características Principales](#2-características-principales)
   - [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
   - [4. Stack Tecnológico](#4-stack-tecnológico)
@@ -48,7 +46,7 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 - **Catálogo Completo y Reactivo:** Exploración, filtrado multigenacional (Gen I a IX) y búsqueda en tiempo real de los 1.025 Pokémon oficiales.
 - **Backend Unificado y Tipado:** Servidor en Node.js 22 LTS y Express con validación de esquemas y tipado de extremo a extremo en TypeScript.
-- **Persistencia Híbrida y Caché:** Almacenamiento relacional duradero en PostgreSQL 16 (modelo relacional + `JSONB` indexado con GIN), pooling nativo con `pg.Pool` (con soporte opcional de PgBouncer) y aceleración en memoria con Redis 7.
+- **Persistencia Híbrida y Caché:** Almacenamiento relacional duradero en PostgreSQL 16 con Drizzle ORM (modelo relacional + `JSONB` indexado con GIN), pooling nativo con `pg.Pool` (con soporte opcional de PgBouncer) y aceleración en memoria con Redis 7.
 - **Inteligencia Artificial Contextual:** Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación de diagramas y asistencia técnica con circuit breaker y fallback local.
 - **Backoffice Administrativo:** Consola web para la gestión de especímenes, monitoreo de métricas en vivo y operaciones seguras.
 
@@ -83,7 +81,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 | :--- | :--- | :--- |
 | **Runtime & Lenguaje** | Node.js 22 LTS / TypeScript 7.x | Servidor de API, lógica de negocio y tipado estático |
 | **Frontend** | HTML5, CSS Moderno, TypeScript, Vite | Interfaz reactiva, Bento Grid y Backoffice administrativo |
-| **Base de Datos** | PostgreSQL 16 + Redis 7 | Persistencia ACID relacional + JSONB y caché distribuida |
+| **Base de Datos** | PostgreSQL 16 (Drizzle ORM) + Redis 7 | Persistencia ACID relacional + JSONB, pooling y caché distribuida |
 | **Tooling & Build** | esbuild, Taskfile, npm workspaces | Compilación ultrarrápida y orquestación de tareas |
 | **Orquestación & CI/CD** | Kubernetes, Helm 3, ArgoCD, GitHub Actions | Empaquetado declarativo y sincronización GitOps |
 
@@ -151,7 +149,8 @@ npm run lint:md
 La infraestructura está modelada de forma declarativa e interoperable:
 
 - **Desarrollo y Pruebas:** Localmente con Docker Compose o en clústeres efímeros con Kind (`infra/kind/`).
-- **Producción:** Despliegue mediante Helm Chart oficial ([infra/helm/pokedex/](infra/helm/pokedex/)) y sincronización GitOps gestionada por ArgoCD ([gitops/](gitops/)), compatible con clústeres on-premise (Proxmox VE / K3s) y entornos Cloud gestionados (EKS, GKE, AKS).
+- **Producción y Preproducción:** Despliegue mediante Helm Chart oficial ([infra/helm/pokedex/](infra/helm/pokedex/)) y sincronización GitOps gestionada por ArgoCD ([gitops/](gitops/)), operando sobre clústeres on-premise en Proxmox VE (K3s).
+- **Blueprint Cloud-Ready:** Plantilla de referencia para Amazon EKS ([gitops/apps/app-cloud.yaml](gitops/apps/app-cloud.yaml)), conservada como arquitectura de referencia inactiva.
 
 ### Matriz de Estado y Nivel de Soporte de Componentes
 
@@ -214,7 +213,13 @@ La documentación técnica detallada se organiza en:
 - [ADR-020: Gobernanza de Despliegue y Scripts](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
 - [ADR-021: GitOps Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
 - [ADR-022: Rotación Automatizada de Secretos](docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)
+- [ADR-023: Adopción del Compilador Nativo TypeScript](docs/decisions/ADR-023-typescript-native-compiler-adoption.md)
+- [ADR-024: Cómputo Bimodal en Proxmox (LXC Preprod y VM Prod)](docs/decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md)
+- [ADR-025: Separación de Planos de Gestión, Runtime y Preparación Cloud](docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)
 - [ADR-026: Ciclo de Vida Aliases Taskfile CLI](docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md)
+- [ADR-027: Resiliencia Fail-Open vs Fail-Closed](docs/decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)
+- [ADR-028: Estrategia de Respaldo Offsite en Google Drive](docs/decisions/ADR-028-gdrive-offsite-backup-strategy.md)
+- [ADR-029: Unificación de Esquema de Base de Datos y Retiro de init.sql](docs/decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md)
 - [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI con Taskfile.
 
 ---
