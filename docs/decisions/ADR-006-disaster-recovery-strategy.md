@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado
+Aceptado (Enmendado parcialmente por [ADR-028](./ADR-028-gdrive-offsite-backup-strategy.md))
 
 ## Contexto
 
@@ -22,7 +22,7 @@ Se formaliza una **estrategia de Disaster Recovery 3-2-1** con verificación aut
 5. **Estado de Implementación de la Topología 3-2-1**:
    - **DR Local (Activo):** Generación diaria, cifrado simétrico AES-256-CBC, sumas SHA-256 y verificación periódica automatizada con `dr-restore-verify`.
    - **Esqueletos Off-Site (Cloud-Ready / Inactivos):** Se definen los esqueletos técnicos agnósticos para replicación en Cloud S3-compatible y Proxmox Backup Server (PBS) con Sync Job remoto, documentados en `docs/operations/OFFSITE_BACKUP_BLUEPRINTS.md` y mantenidos inactivos (`enabled: false`) hasta la designación de almacenamiento externo.
-   - **Evolución Off-Site Activa (Google Drive):** La formalización y activación de la vía off-site para Proxmox mediante Rclone y Google Drive K8s-Native está especificada en el [ADR-028](./ADR-028-gdrive-offsite-backup-strategy.md), manteniendo los esqueletos S3 y PBS como blueprints agnósticos de contingencia.
+   - **Evolución Off-Site Activa (Google Drive - ADR-028):** La formalización y activación de la vía off-site para Proxmox mediante Rclone y Google Drive K8s-Native fue ratificada en el [ADR-028](./ADR-028-gdrive-offsite-backup-strategy.md), pasando a ser la implementación off-site oficial en el runtime de producción Proxmox, mientras que S3 y PBS se conservan como blueprints agnósticos de contingencia.
 
 ## Consecuencias
 
