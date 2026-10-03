@@ -13,7 +13,7 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 
 - **Topología del Monorepo:** Estructura de workspaces npm (`apps/backend`, `apps/frontend`), paquetes compartidos y límites entre capas.
 - **Stack Tecnológico Real:** Contrastar el código contra las aserciones de documentación:
-  - Node.js 22 LTS, npm 11+, TypeScript estricto.
+  - Runtime y gestor de paquetes según `.tool-versions` y `packageManager` en `package.json`; TypeScript estricto.
   - Express + Drizzle ORM + PostgreSQL + Redis.
   - Frontend en Vanilla TypeScript + Vite + Nginx Alpine (certificar ausencia de React/JSX).
   - Docker Compose para dev, K3s (Pre-prod LXC 800 / Prod VM 801) y AWS EKS.

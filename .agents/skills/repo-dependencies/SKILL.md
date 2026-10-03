@@ -12,7 +12,7 @@ Gobernar el ciclo de vida de dependencias en el monorepo `rocapellino/pokedex`, 
 ## Alcance y Verificaciones de Dominio
 
 - **Fuentes de Verdad:** `package.json` raíz, `apps/backend/package.json`, `apps/frontend/package.json` y `package-lock.json`.
-- **Compatibilidad de Stack:** Garantizar compatibilidad estricta con Node.js 22 LTS, npm 11+ y TypeScript estricto.
+- **Compatibilidad de Stack:** Garantizar compatibilidad estricta con el runtime declarado en `.tool-versions`, el gestor de `packageManager` (`package.json`) y TypeScript estricto.
 - **Auditoría de Overrides:** Revisar la sección `"overrides"` en `package.json` para verificar si las resoluciones forzadas siguen siendo necesarias o introducen inestabilidad.
 - **Detección de Vulnerabilidades (SCA):** Integración con npm audit, Dependabot y herramientas SCA para clasificar CVEs reales frente a falsos positivos.
 - **Dependencias Huérfanas y Duplicadas:**

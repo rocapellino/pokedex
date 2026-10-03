@@ -52,6 +52,8 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 > [!NOTE]
 > Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` + `npm run lint:md`).
 
+El ciclo de vida se organiza en seis fases (auditar, matriz de cambios, ejecutar, actualizar, documentar y depurar), cada una con una skill responsable y un criterio de salida definidos en [`repo-lifecycle`](.agents/skills/repo-lifecycle/SKILL.md). Todas las skills cumplen el contrato común [`_shared/skill-contract.md`](.agents/skills/_shared/skill-contract.md): enlazan las fuentes de verdad en lugar de copiar versiones, UIDs o rutas volátiles.
+
 ---
 
 ## 4. Política Transversal de Idioma
