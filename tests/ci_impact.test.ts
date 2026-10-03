@@ -1398,3 +1398,68 @@ test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_
     );
   }
 });
+
+test('🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados', () => {
+  const rawYaml = fs.readFileSync(CONFIG_PATH, 'utf-8');
+  const prunedScripts = [
+    'scripts/scan-yml-refs.ts',
+    'scripts/governance-audit-scripts.ts',
+    'scripts/render-nginx-config.mjs',
+  ];
+
+  for (const script of prunedScripts) {
+    assert.ok(
+      !rawYaml.includes(script),
+      `ci-impact.yaml contiene referencia al script podado: ${script}`
+    );
+  }
+});
+
+test('🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown', () => {
+  const cases = [
+    {
+      file: 'scripts/generate-nginx-conf.mjs',
+      expectedTrigger: 'frontend',
+      notExpectedTrigger: 'backend',
+    },
+    {
+      file: 'scripts/validate-docs-governance.ts',
+      expectedTrigger: 'documentation',
+      notExpectedTrigger: 'backend',
+    },
+    {
+      file: 'scripts/deploy-grafana-cloud.mjs',
+      expectedTrigger: 'kubernetes',
+      notExpectedTrigger: 'frontend',
+    },
+    {
+      file: 'scripts/test-surface.ts',
+      expectedTrigger: 'tests',
+      notExpectedTrigger: 'kubernetes',
+    },
+    {
+      file: 'scripts/check-ruleset-parity.ts',
+      expectedTrigger: 'linting',
+      notExpectedTrigger: 'backend',
+    },
+  ];
+
+  for (const c of cases) {
+    const res = analyzeChangeImpact({
+      files: [c.file],
+      configPath: CONFIG_PATH,
+    });
+    assert.equal(res.isUnknown, false, `${c.file} no debe ser clasificado como unknown`);
+    assert.equal(
+      res.triggers[c.expectedTrigger as keyof typeof res.triggers],
+      true,
+      `${c.file} debe activar ${c.expectedTrigger}`
+    );
+    assert.equal(
+      res.triggers[c.notExpectedTrigger as keyof typeof res.triggers],
+      false,
+      `${c.file} no debe activar ${c.notExpectedTrigger}`
+    );
+  }
+});
+
