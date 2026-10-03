@@ -2,8 +2,8 @@
 
 > **Estado:** Histórico (`AUDIT_STALE`; snapshot consolidado no bloqueante)  
 > **Fecha de captura:** 2026-10-02  
-> **Commit:** `ab89fcfd10e5eed32f63acf92ee99574f257f68d`  
-> **Versión Base:** `v1.89.4`  
+> **Commit:** `31ad8d7f267fa6ca14ee204128f6459ea79dfa99`  
+> **Versión Base:** `v1.89.6`  
 >
 > [!IMPORTANT]
 > Este documento conserva la evidencia del commit auditado y consolida los ciclos cerrados de auditoría.
@@ -16,16 +16,16 @@
 
 | Componente | Valor Vigente | Fuente de Verdad Canónica (SSOT) |
 | :--- | :--- | :--- |
-| `package.json` | `1.89.4` | SSOT de versión de aplicación y monorepo |
-| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.89.4` | SSOT de empaquetado Helm y distribución |
-| GitOps Root Application (`gitops/apps/root-application.yaml`) | `v1.89.4` | SSOT de orquestación App-of-Apps |
-| GitOps Proxmox Prod (`gitops/apps/app-proxmox.yaml`) | `v1.89.4` | SSOT de promoción en producción |
-| GitOps Proxmox Pre-Prod (`gitops/apps/app-proxmox-preprod.yaml`) | `v1.89.4` | SSOT de promoción en pre-producción |
-| GitOps Cloud Reference (`gitops/apps/app-cloud.yaml`) | `v1.89.4` | Manifiesto de referencia desacoplado |
-| Último tag alcanzado | `v1.89.4` | `git tag --sort=-v:refname` |
+| `package.json` | `1.89.6` | SSOT de versión de aplicación y monorepo |
+| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.89.6` | SSOT de empaquetado Helm y distribución |
+| GitOps Root Application (`gitops/apps/root-application.yaml`) | `v1.89.6` | SSOT de orquestación App-of-Apps |
+| GitOps Proxmox Prod (`gitops/apps/app-proxmox.yaml`) | `v1.89.6` | SSOT de promoción en producción |
+| GitOps Proxmox Pre-Prod (`gitops/apps/app-proxmox-preprod.yaml`) | `v1.89.6` | SSOT de promoción en pre-producción |
+| GitOps Cloud Reference (`gitops/apps/app-cloud.yaml`) | `v1.89.6` | Manifiesto de referencia desacoplado |
+| Último tag alcanzado | `v1.89.6` | `git tag --sort=-v:refname` |
 
 > [!NOTE]
-> La paridad entre `package.json`, `Chart.yaml` y la totalidad de los manifiestos de ArgoCD en `gitops/apps/` es estricta **1:1** (`v1.89.4`).
+> La paridad entre `package.json`, `Chart.yaml` y la totalidad de los manifiestos de ArgoCD en `gitops/apps/` es estricta **1:1** (`v1.89.6`).
 
 ---
 
@@ -36,10 +36,10 @@
 | Workflows en `.github/workflows/` | 18 | Orquestador central, gates especializados y jobs programados |
 | Scripts en `scripts/` | 25 | Automatización, reconciliación CLI, linters y gates de plataforma |
 | Skills canónicas en `.agents/skills/` | 17 | Catálogo consolidado bajo despacho condicional |
-| Archivos totales en `tests/` | 48 | 46 suites activas, 1 fixture/entorno, 1 script k6 de carga |
-| Casos individuales de prueba | 452 | Unitarios, contratos, seguridad, IaC, GitOps, E2E y a11y |
-| Líneas de código de pruebas | 12.834 | Inventariadas determinísticamente en `test-surface.json` |
-| Tamaño de suite de pruebas | 584.7 KB | Cobertura integral en runtime y CI/CD |
+| Archivos totales en `tests/` | 49 | 47 suites activas, 1 fixture/entorno, 1 script k6 de carga |
+| Casos individuales de prueba | 464 | Unitarios, contratos, seguridad, IaC, GitOps, E2E y a11y |
+| Líneas de código de pruebas | 13.181 | Inventariadas determinísticamente en `test-surface.json` |
+| Tamaño de suite de pruebas | 598.8 KB | Cobertura integral en runtime y CI/CD |
 
 ---
 
@@ -48,7 +48,7 @@
 La arquitectura de integración continua opera bajo un modelo de orquestación desacoplado y predecible:
 
 1. **Orquestador Central de Impacto:**
-   `.github/workflows/change-impact.yml` evalúa la matriz `.github/ci-impact.yaml` mediante `scripts/detect-change-impact.ts`, despachando selectivamente los flujos `ci-core`, `infra` y `frontend`.
+   `.github/workflows/change-impact.yaml` evalúa la matriz `.github/ci-impact.yaml` mediante `scripts/detect-change-impact.ts`, despachando selectivamente los flujos `ci-core`, `infra` y `frontend`.
 2. **Gobernanza de Higiene y Temporales (`tmp/`):**
    Regla transversal formalizada en `.agents/rules/repository-hygiene.md` que prohíbe la dispersión de artefactos transitorios fuera de `tmp/`, respaldada por `.gitignore`, `repo-lifecycle` y validaciones automatizadas.
 3. **Gobernanza de Superficie de Pruebas:**
@@ -62,18 +62,21 @@ La arquitectura de integración continua opera bajo un modelo de orquestación d
 
 Todos los hallazgos correspondientes a los ciclos previos de auditoría han sido remediados, validados en CI/CD y consolidados en el árbol canónico:
 
-### A. Ciclo de Consolidación de Infraestructura (Fases 1, 2 y 3 — PRs #448 al #451)
+### A. Ciclo de Consolidación de Apps, Workflows, Docs y Releases (PRs #455 al #458)
 
 | Hito / ID | Área | Descripción y Solución Aplicada | PR / Commit |
 | :--- | :--- | :--- | :--- |
-| **Fase 1** | Ansible / CRI | Eliminación de `setup_nodes.yaml` redundante, detección agnóstica de CRI (`k3s\|\|containerd\|\|docker`) en `validate_hosts.yaml`, depuración de inventario lab `lab-node-01` e inventario en `infra/ansible/README.md`. | #448 (`5755bc2`) |
-| **Fase 2** | Kubernetes / ESO | Consolidación de `ClusterSecretStore`s en `cluster-secret-store.yaml`, retiro de archivos fragmentados redundantes (`vault-backend.yaml`, `vault-backend-preprod.yaml`, `aws-secrets-manager.yaml`), migración de contratos en `k8s-rollout-restart.ts` y `vault_redeploy_contract.test.ts` con aserción de no-regresión, y reemplazo de `ignore_errors: true` por `failed_when: false` en `setup_k3s.yaml`. | #450 (`f73ea74`) |
-| **Fase 3** | K8s / Helm / Tofu | Creación de `infra/k8s/README.md` (controles PSS, Kyverno, Cosign y sonda SSRF), creación de `infra/helm/pokedex/README.md` (taxonomía de values y plantillas) y actualización integral de `infra/opentofu/README.md` (entornos proxmox/lab/aws/cloud-template y módulos compute/naming/security_baseline/tagging). | #451 (`ab89fcf`) |
+| **APPS-008** | Apps / Calidad | Modularización de seguridad de red en `network-security.ts`, extracción de validaciones SSRF e IP privada, desacoplamiento de Express/Postgres y creación de tests unitarios de guardrails anti-monolito. | #455 (`3890f77`) |
+| **APPS-002** | Apps / Seed | Desacoplamiento del auto-seed en `postgres.ts` (condicionado estrictamente a `AUTO_SEED=true` o `NODE_ENV=test`), delegando la población en producción al K8s Seed Job (`seed-job.yaml`). | #455 (`3890f77`) |
+| **CI-007** | CI / Least Privilege | Consolidación de permisos Zero-Trust en los 18 workflows de GitHub Actions; aplicación de permisos explícitos por job y tipado de variables no falsificables (`user.login` no-fork). | #456 (`68282e1`) |
+| **DOC-012** | Docs / Gobernanza | Emisión de reporte formal de ciclo de vida (`documentation-lifecycle.md`), ratificación de enmienda ADR-006 por ADR-028, y agregado de reporter `spec` a `stdout` en `npm run test:coverage`. | #457 (`c683a95`) |
+| **REL-004** | Release / GitOps | Promoción atómica e inmutable de la versión `v1.89.6` en todo el monorepo y sincronización 1:1 en ArgoCD. | #458 (`31ad8d7`) |
 
-### B. Ciclos Previos Consolidados (Fases 1 a 3 Históricas — PRs #413 al #435)
+### B. Ciclos Previos Consolidados (Infraestructura y Base Histórica — PRs #413 al #451)
 
 | Dominio | Hallazgos Principales Resueltos | Referencia |
 | :--- | :--- | :--- |
+| **Infraestructura (Fases 1-3)** | CRI agnóstico (`validate_hosts.yaml`), consolidación ESO (`cluster-secret-store.yaml`), READMEs normativos en `infra/k8s`, `infra/helm` y `infra/opentofu`. | PRs #448, #450, #451 |
 | **GitOps & Red** | Parcheo de `argocd-cm` (`GITOPS-001`), restricción Ingress host (`GITOPS-002`), renderizado pre-prod (`GITOPS-005`), SSOT `gitops/README.md` (`GITOPS-003`). | PRs #413, #416, #423, #428 |
 | **IaC & Seguridad** | Unificación de contratos SSH (`INFRA-003`), checksums inmutables en OpenTofu (`INFRA-007`), colecciones fijas en Ansible (`INFRA-001`), red de clúster explícita (`INFRA-009`), purga de variable huérfana (`INFRA-008`). | PRs #414, #415, #418, #421, #426 |
 | **Helm & Monitoreo** | Digest condicional (`INFRA-005`), retiro de values de Alloy huérfano (`INFRA-006`), delimitación de `values.prod.yaml` (`INFRA-011`). | PRs #420, #425, #427 |
@@ -84,6 +87,6 @@ Todos los hallazgos correspondientes a los ciclos previos de auditoría han sido
 ## 5. Regla de Oro Operativa (AGENTS.md)
 
 > [!IMPORTANT]
-> Este documento representa un **snapshot histórico consolidado** al commit `ab89fcf`.
+> Este documento representa un **snapshot histórico consolidado** al commit `31ad8d7`.
 > **NUNCA debe utilizarse para inferir el estado actual, rutas de secretos o configuraciones vigentes.**
 > La verdad operativa reside estrictamente en las Fuentes Únicas de Verdad (SSOT): `gitops/`, `infra/`, `docs/architecture/`, `apps/`, `scripts/` y `tests/`.
