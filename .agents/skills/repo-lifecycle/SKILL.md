@@ -1,6 +1,6 @@
 ---
 name: repo-lifecycle
-description: Orquestador del ciclo de vida completo del repositorio Pokedex.
+description: Orquestador del ciclo de vida en 6 fases (auditar, matriz, ejecutar, actualizar, documentar, depurar), full-audit y configuration-hygiene. Usar para trabajo que abarca varias fases o para la fase Actualizar (/repo-lifecycle update).
 ---
 
 # repo-lifecycle
@@ -130,8 +130,6 @@ orquesta este análisis y convoca a las skills especializadas (`repo-quality`,
 
 ---
 
----
-
 ## Demarcación Estricta de Responsabilidades entre Skills
 
 Para evitar duplicaciones y mantener límites arquitectónicos claros:
@@ -174,32 +172,10 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 
 ## Estructura del Reporte Consolidado (`## Configuration Hygiene`)
 
-En todo reporte de `full-audit`, debe incluirse obligatoriamente la sección `## Configuration Hygiene` estructurada en las siguientes siete subsecciones:
-
-```markdown
-## Configuration Hygiene
-
-### 1. `.ignore inventory`
-Catálogo exhaustivo de archivos de exclusión detectados dinámicamente en el monorepo (ruta, tamaño, número de reglas, estado general).
-
-### 2. Obsolete rules
-Reglas que referencian rutas, herramientas, lenguajes o tecnologías inexistentes en el estado actual del repositorio.
-
-### 3. Missing rules
-Reglas necesarias omitidas que deberían incorporarse para proteger el control de versiones o el build context.
-
-### 4. Overbroad rules
-Patrones excesivamente amplios que pueden excluir accidentalmente artefactos legítimos.
-
-### 5. Security-sensitive exclusions
-Exclusiones en .gitignore, .gitleaksignore o .trivyignore con potencial impacto en la postura de seguridad.
-
-### 6. Cross-configuration consistency
-Validación cruzada de consistencia entre los archivos .ignore y Dockerfiles, CI workflows, package.json, pre-commit, Taskfile y Helm.
-
-### 7. Recommended changes
-Tabla consolidada de recomendaciones con clasificación (KEEP, KEEP_IMPROVE, REMOVE, REVIEW, SECURITY_REVIEW), evidencia e impacto.
-```
+Todo reporte de `full-audit` incluye obligatoriamente la sección `## Configuration Hygiene`
+con las siete subsecciones definidas en [report-template.md](../_shared/report-template.md) §5.
+La normativa de cada subsección reside en
+[`references/configuration-hygiene.md`](references/configuration-hygiene.md).
 
 ---
 

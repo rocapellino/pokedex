@@ -1,6 +1,6 @@
 ---
 name: repo-maintenance
-description: Ejecutar un health check periódico y convertir hallazgos en backlog accionable.
+description: Fase 6 (Depurar) y health checks periódicos: limpieza segura, scripts (ADR-020) y auditorías delta contra hallazgos abiertos. Usar para limpieza de huérfanos, revisiones semanales o mensuales, o antes de cerrar una rama.
 ---
 
 # repo-maintenance
@@ -51,8 +51,8 @@ Ejecutar controles periódicos de salud técnica (*health checks*), evaluar regr
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Coordinar acciones correctivas con `repo-impact` utilizando [change-plan.md](../_shared/change-plan.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de mantenimiento, backlog) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

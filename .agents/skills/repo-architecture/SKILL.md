@@ -1,6 +1,6 @@
 ---
 name: repo-architecture
-description: Analizar arquitectura de aplicación, plataforma e infraestructura y mantenerla coherente.
+description: Analizar la coherencia entre código, manifiestos y ADRs por entorno, incluido el trazado de rutas cliente → ingress → proxy → handler. Usar al cambiar Helm, GitOps, ingress, nginx o NetworkPolicies, o cuando se sospeche ADR Drift.
 ---
 
 # repo-architecture
@@ -42,8 +42,8 @@ Analizar integralmente la arquitectura de la aplicación, plataforma e infraestr
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Si se solicitan modificaciones arquitectónicas, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (ADRs, reportes de arquitectura) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

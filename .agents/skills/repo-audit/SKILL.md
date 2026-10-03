@@ -1,6 +1,6 @@
 ---
 name: repo-audit
-description: Auditoría integral, read-only, del estado técnico del repositorio.
+description: Fase 1 (Auditar) del ciclo de vida, read-only: modos quick, full y delta. Usar cuando se pida analizar, auditar o diagnosticar el repositorio, o antes de planificar trabajo sin hallazgos previos.
 ---
 
 # repo-audit
@@ -47,9 +47,9 @@ Los hallazgos de los pasos 2 a 5 se reportan aunque todos los gates del paso 1 e
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Regla Cardinal de Auditoría:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio. Todo diagnóstico emitido por `repo-audit` representa un snapshot fechado y debe apoyarse estrictamente en el estado de las Fuentes Únicas de Verdad vigentes.
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
-- **Planes de Cambio:** Si el usuario solicita remediar un hallazgo, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y transferir la ejecución a `repo-impact` y `repo-refactor`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes, baselines, deltas) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.
+- **Planes de Cambio:** Si el usuario solicita remediar un hallazgo, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y transferir la ejecución a `repo-impact` y luego a `repo-fix` (si altera comportamiento) o `repo-refactor` (si lo preserva).

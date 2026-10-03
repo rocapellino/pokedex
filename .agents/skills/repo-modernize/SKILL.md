@@ -1,6 +1,6 @@
 ---
 name: repo-modernize
-description: Evaluar modernización tecnológica con criterio de costo, riesgo y beneficio.
+description: Evaluar modernización tecnológica con criterio de costo, riesgo y beneficio. Usar ante propuestas de migrar runtime, frameworks, ingress o tooling, o cuando un componente quede sin soporte upstream.
 ---
 
 # repo-modernize
@@ -34,8 +34,8 @@ Evaluar objetivamente oportunidades de modernización del stack tecnológico, fr
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Formalizar toda propuesta de migración tecnológica mediante [change-plan.md](../_shared/change-plan.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (planes de modernización) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.
