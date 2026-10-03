@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const ROOT_DIR = path.resolve();
 
@@ -196,8 +197,7 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   assert.ok(guideContent.includes('Google Drive'), 'Guía debe documentar Google Drive');
   assert.ok(guideContent.includes('rclone authorize'), 'Guía debe documentar rclone authorize drive');
 
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('dr:gdrive:backup:dev:'), 'Taskfile debe definir dr:gdrive:backup:dev');
   assert.ok(taskfileContent.includes('dr:gdrive:sync:dev:'), 'Taskfile debe definir dr:gdrive:sync:dev');
   assert.ok(taskfileContent.includes('dr:gdrive:setup:proxmox:'), 'Taskfile debe definir dr:gdrive:setup:proxmox');

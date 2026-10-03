@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import {
   validateSemVerTag,
   extractTargetRevision,
@@ -189,7 +190,7 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y 
   assert.ok(pkgJson.scripts['gitops:pin:check'], 'package.json debe exponer script gitops:pin:check');
 
   // 3. Taskfile.yaml expone gitops:pin y gitops:pin:check
-  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfile.includes('gitops:pin:'), 'Taskfile.yaml debe exponer tarea gitops:pin');
   assert.ok(taskfile.includes('gitops:pin:check:'), 'Taskfile.yaml debe exponer tarea gitops:pin:check');
 });

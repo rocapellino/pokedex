@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -269,8 +270,7 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
 });
 
 test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
-  const content = fs.readFileSync(taskfilePath, 'utf-8');
+  const content = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(content.includes('dr:drill:'), 'Taskfile.yaml debe definir tarea dr:drill');
   assert.ok(content.includes('dr:verify:'), 'Taskfile.yaml debe definir tarea dr:verify');
   assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
@@ -765,7 +765,7 @@ test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ing
 test('🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)', () => {
   const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
-  const content = fs.readFileSync(taskfilePath, 'utf-8');
+  const content = getCompleteTaskfileContent(ROOT_DIR);
 
   assert.ok(content.includes('dev:compose:'), 'Taskfile debe definir tarea dev:compose');
   assert.ok(content.includes('dev:k8s:up:'), 'Taskfile debe definir tarea dev:k8s:up');
@@ -794,7 +794,7 @@ test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa
   const raw = fs.readFileSync(tasksPath, 'utf-8');
   const content = raw.replace(/^\s*\/\/.*$/gm, '');
   const parsed = JSON.parse(content) as { tasks: { label: string; command: string }[] };
-  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
 
   // 1. Ninguna tarea reimplementa un comando de orquestacion o cluster.
   //
@@ -960,7 +960,7 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
 test('🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
   const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
-  const content = fs.readFileSync(taskfilePath, 'utf-8');
+  const content = getCompleteTaskfileContent(ROOT_DIR);
 
   assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yaml no debe incluir la variable obsoleta MONITORING_DIR');
   assert.ok(!content.includes('docker_monitoreo'), 'Taskfile.yaml no debe incluir referencias al stack legacy docker_monitoreo');
@@ -1155,7 +1155,7 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
 
   // 6. Taskfile.yaml expone k3s:setup:proxmox enlazado a setup_k3s.yml
-  const taskfileContent = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('k3s:setup:proxmox:'), 'Taskfile.yaml debe exponer k3s:setup:proxmox');
   assert.ok(
     taskfileContent.includes('infra/ansible/playbooks/setup_k3s.yaml'),

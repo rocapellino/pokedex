@@ -28,6 +28,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,7 +115,7 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
   );
 
   // 3. La cadena operativa completa debe seguir cableada: Taskfile y VS Code.
-  const taskfile = fs.readFileSync(TASKFILE_PATH, 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
   for (const [label, source] of [
     ['Taskfile.yaml', taskfile],
@@ -161,7 +162,7 @@ test('🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin Powe
   assert.ok(fs.existsSync(MJS_PATH), 'scripts/deploy-grafana-cloud.mjs debe existir');
 
   // 1. Ningun consumidor operativo debe invocar el .ps1 ni a powershell/pwsh.
-  const taskfile = fs.readFileSync(TASKFILE_PATH, 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(
     !/deploy-grafana-cloud\.ps1/.test(taskfile),
     'Taskfile.yaml no debe invocar el script PowerShell de Grafana Cloud'
@@ -229,7 +230,7 @@ test('🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerSh
 });
 
 test('🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud', () => {
-  const taskfile = fs.readFileSync(TASKFILE_PATH, 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
 
   assert.match(taskfile, /node scripts\/deploy-grafana-cloud\.mjs/);

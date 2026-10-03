@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -722,7 +723,7 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   assert.ok(!preprodContent.includes('kind: deny'), 'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción');
 
   // 6. Taskfile.yaml define tareas gitops:apps:root y gitops:health-checks (retirando el legacy gitops:apps)
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
   assert.ok(!/^\s*gitops:apps:\s*$/m.test(taskfileContent), 'Taskfile.yaml no debe contener la tarea legada gitops:apps');
   assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
@@ -831,7 +832,7 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   assert.ok(auditScriptContent.includes('refreshInterval <= 24h'), 'verify-secret-rotation.ts debe auditar refreshInterval <= 24h');
 
   // 5. Taskfile.yaml y package.json exponen secrets:audit-rotation
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   const pkgContent = fs.readFileSync(pkgPath, 'utf-8');
   assert.ok(taskfileContent.includes('secrets:audit-rotation:'), 'Taskfile.yaml debe definir tarea secrets:audit-rotation');
   assert.ok(pkgContent.includes('"secrets:audit-rotation"'), 'package.json debe definir script secrets:audit-rotation');

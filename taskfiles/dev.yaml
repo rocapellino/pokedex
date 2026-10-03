@@ -1,0 +1,56 @@
+# ==============================================================================
+# Pokédex Platform CLI - Perfiles de Desarrollo Local (Dual-Profile DX)
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+tasks:
+  network:
+    desc: "Asegura la existencia de la red compartida monitoring-net"
+    internal: true
+    cmds:
+      - docker network create monitoring-net 2>nul || docker network create monitoring-net 2>/dev/null || true
+
+  dev:compose:
+    desc: "Perfil Rápido: Levanta stack de desarrollo interactivo con Docker Compose"
+    deps: [network]
+    cmds:
+      - docker compose up -d --build
+
+  dev:compose:down:
+    desc: "Perfil Rápido: Detiene stack interactivo de Docker Compose"
+    cmds:
+      - docker compose down
+
+  dev:verify:
+    desc: "Valida la disponibilidad de los servicios locales (healthz, readyz y frontend Web)"
+    cmds:
+      - curl --fail -s http://localhost:3000/healthz || echo "Backend liveness no responde"
+      - curl --fail -s http://localhost:3000/readyz || echo "Backend readiness no responde"
+      - curl --fail -s http://localhost:8080 || echo "Frontend Web Nginx no responde"
+
+  dev:k8s:up:
+    desc: "Perfil Kubernetes: Crea clúster Kind local y despliega Helm chart idéntico a producción"
+    cmds:
+      - kind create cluster --config infra/k8s/kind-cluster.yaml || echo "El cluster kind ya existe."
+      - docker build -t pokedex-api:local -f apps/backend/Dockerfile .
+      - docker build -t pokedex-web:local -f apps/frontend/Dockerfile .
+      - kind load docker-image pokedex-api:local --name pokedex-local
+      - kind load docker-image pokedex-web:local --name pokedex-local
+      - helm upgrade --install pokedex infra/helm/pokedex -n pokemon-app --create-namespace -f infra/helm/pokedex/values.yaml --set api.image.repository=pokedex-api --set api.image.tag=local --set web.image.repository=pokedex-web --set web.image.tag=local
+
+  dev:k8s:down:
+    desc: "Perfil Kubernetes: Destruye el clúster Kind local"
+    cmds:
+      - kind delete cluster --name pokedex-local
+
+  dev:k8s:status:
+    desc: "Perfil Kubernetes: Consulta estado de pods, servicios e ingress en pokemon-app"
+    cmds:
+      - kubectl get pods,svc,ingress -n pokemon-app -o wide
+
+  dev:k8s:calico:
+    desc: "Perfil Kubernetes: Instala Calico CNI en Kind para validación local de plano de datos de NetworkPolicies"
+    cmds:
+      - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+      - kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true

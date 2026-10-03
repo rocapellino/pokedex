@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import {
   calculateVersionsToPrune,
   generateMockPackageVersions,
@@ -174,7 +175,7 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
   assert.ok(packageJson.scripts['ghcr:retention'], 'package.json debe incluir script ghcr:retention');
   assert.ok(packageJson.scripts['ghcr:retention:dry-run'], 'package.json debe incluir script ghcr:retention:dry-run');
 
-  const taskfile = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfile.includes('ghcr:retention:'), 'Taskfile.yaml debe exponer ghcr:retention');
   assert.ok(taskfile.includes('ghcr:retention:dry-run:'), 'Taskfile.yaml debe exponer ghcr:retention:dry-run');
 

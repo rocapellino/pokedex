@@ -1,0 +1,137 @@
+# ==============================================================================
+# Pokédex Platform CLI - Infraestructura como Código (Capa 1) & Empaquetado
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+vars:
+  HELM_TEST_SECRETS: '--set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret'
+
+tasks:
+  # ----------------------------------------------------------------------------
+  # Infraestructura como Código (IaC) Híbrida con OpenTofu (Capa 1)
+  # ----------------------------------------------------------------------------
+  infra:fmt:
+    desc: "Verifica el formato canónico en todos los entornos y módulos de OpenTofu"
+    cmds:
+      - tofu fmt -check -recursive infra/opentofu
+
+  infra:validate:
+    desc: "Valida la sintaxis de todos los entornos de OpenTofu (Proxmox + AWS + Lab)"
+    cmds:
+      - tofu -chdir=infra/opentofu/environments/proxmox init -backend=false
+      - tofu -chdir=infra/opentofu/environments/proxmox validate
+      - tofu -chdir=infra/opentofu/environments/aws init -backend=false
+      - tofu -chdir=infra/opentofu/environments/aws validate
+      - tofu -chdir=infra/opentofu/environments/lab init -backend=false
+      - tofu -chdir=infra/opentofu/environments/lab validate
+
+  infra:plan:proxmox:
+    desc: "Ejecuta tofu plan para el entorno on-premise Proxmox VE"
+    dir: infra/opentofu/environments/proxmox
+    cmds:
+      - tofu plan
+
+  infra:apply:proxmox:
+    desc: "Aplica la infraestructura en Proxmox VE con OpenTofu"
+    dir: infra/opentofu/environments/proxmox
+    cmds:
+      - tofu apply
+
+  infra:plan:aws:
+    desc: "Ejecuta tofu plan para el clúster AWS EKS en la nube"
+    dir: infra/opentofu/environments/aws
+    cmds:
+      - tofu plan
+
+  infra:apply:aws:
+    desc: "Aplica la infraestructura AWS EKS con OpenTofu"
+    dir: infra/opentofu/environments/aws
+    cmds:
+      - tofu apply
+
+  infra:plan:lab:
+    desc: "Ejecuta tofu plan para el entorno de pruebas y laboratorio (Lab)"
+    dir: infra/opentofu/environments/lab
+    cmds:
+      - tofu plan
+
+  infra:apply:lab:
+    desc: "Aplica la infraestructura en el entorno de laboratorio (Lab)"
+    dir: infra/opentofu/environments/lab
+    cmds:
+      - tofu apply
+
+  # ----------------------------------------------------------------------------
+  # Gestión y Configuración de Hosts con Ansible (Capa 2)
+  # ----------------------------------------------------------------------------
+  ansible:syntax:
+    desc: "Valida la sintaxis de todos los playbooks y roles de Ansible"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/host_baseline.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/prepare_hosts.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/validate_hosts.yaml --syntax-check
+
+  ansible:prepare:
+    desc: "Aprovisiona la configuración base, runtime de contenedores y tuning en hosts"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/prepare_hosts.yaml {{.CLI_ARGS}}
+
+  ansible:harden:
+    desc: "Aplica el hardening de seguridad y reglas de firewall UFW en hosts"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml {{.CLI_ARGS}}
+
+  ansible:validate:
+    desc: "Ejecuta comprobaciones de auditoría y compliance de hosts sin alterar estado"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/validate_hosts.yaml {{.CLI_ARGS}}
+
+  k3s:setup:proxmox:
+    desc: "Ejecuta el playbook de Ansible para aprovisionar K3s y Cilium CNI en Proxmox VE"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yaml
+
+  vault:setup:proxmox:
+    desc: "Ejecuta el playbook de Ansible para provisionar e inicializar Vault CE en Proxmox"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_vault.yaml
+
+  # ----------------------------------------------------------------------------
+  # Gestión de Empaquetado y Despliegue con Helm
+  # ----------------------------------------------------------------------------
+  helm:lint:
+    desc: "Valida la sintaxis y buenas prácticas del Chart de Helm con linter"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 lint /apps/infra/helm/pokedex
+
+  helm:template:
+    desc: "Renderiza los manifiestos de Kubernetes generados por el Chart de Helm"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex {{.CLI_ARGS}}
+
+  helm:template:prod:
+    desc: "Renderiza los manifiestos de Kubernetes con el perfil de producción (values.prod.yaml)"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.prod.yaml {{.HELM_TEST_SECRETS}}
+
+  helm:template:dev:
+    desc: "Renderiza los manifiestos de Kubernetes con el perfil de desarrollo local (values.dev.yaml)"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.dev.yaml {{.HELM_TEST_SECRETS}}
+
+  helm:template:proxmox:
+    desc: "Renderiza los manifiestos de Kubernetes para el entorno GitOps On-Premise Proxmox"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/proxmox/values.yaml {{.HELM_TEST_SECRETS}}
+
+  helm:template:aws:
+    desc: "Renderiza los manifiestos de Kubernetes para el entorno GitOps Cloud AWS"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/aws/values.yaml {{.HELM_TEST_SECRETS}}
+
+  helm:package:
+    desc: "Empaqueta el Chart de Helm en un archivo .tgz listo para distribución"
+    cmds:
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 package /apps/infra/helm/pokedex -d /apps/dist
