@@ -29,9 +29,21 @@ const MONOLITH_WATCHLIST: readonly MonolithGuardrail[] = Object.freeze([
   },
   {
     file: 'apps/backend/src/routes/pokemons.ts',
-    maxLoc: 350,
+    maxLoc: 200,
     maxImports: 15,
     description: 'Enrutador HTTP principal del catálogo Pokémon',
+  },
+  {
+    file: 'apps/backend/src/controllers/pokemon-mapper.ts',
+    maxLoc: 150,
+    maxImports: 5,
+    description: 'Mapeador DTO-Dominio y saneamiento de logs de Pokémon',
+  },
+  {
+    file: 'apps/backend/src/utils/etag.ts',
+    maxLoc: 50,
+    maxImports: 5,
+    description: 'Utilidad de cálculo determinista de ETag HTTP',
   },
   {
     file: 'apps/backend/src/validation/network-security.ts',
