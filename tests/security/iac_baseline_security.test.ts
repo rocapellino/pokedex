@@ -59,120 +59,7 @@ function referenceCount(sources: string[], name: string): number {
 }
 
 
-/**
- * WF-001 — El matrix de escaneo de imágenes base del workflow de Trivy debe
- * reflejar EXACTAMENTE lo que el Chart despliega.
- *
- * El defecto original era doble y ambos limbs pasaban inadvertidos:
- *   1. `edoburu/pgbouncer:1.22.0` NO es la imagen desplegada. El repo usa la
- *      oficial `pgbouncer/pgbouncer`. Se escaneaba un artefacto ajeno al runtime.
- *   2. Ese tag ya no existe en el registro, así que el job moría con
- *      MANIFEST_UNKNOWN: un fallo ruidoso que, irónicamente, era la ÚNICA señal
- *      visible del problema.
- *
- * Este test ata el contrato en las dos direcciones: ninguna imagen desplegada
- * puede faltar en el scan, y ninguna imagen escaneada puede estar desplegada.
- * Sin él, el próximo bump de versión reintroduce el drift en silencio.
- */
 
-/**
- * Normaliza una referencia de imagen a su forma canónica `repository@sha256:...`.
- *
- * El Chart puede declarar el digest de dos formas equivalentes: en el campo
- * dedicado `digest` (preferido, INFRA-005) o incrustado al final de `tag`
- * (forma heredada). Ambas designan la misma imagen; comparar la etiqueta nominal
- * haría fallar el gate por una diferencia de notación y no de contenido.
- */
-function canonicalImageRef(repository: string, tag: string, digest?: string): string {
-  const found =
-    digest?.match(/(sha256:[a-f0-9]{64})$/)?.[1] ??
-    tag.match(/@?(sha256:[a-f0-9]{64})$/)?.[1];
-  return found ? `${repository}@${found}` : `${repository}:${tag}`;
-}
-
-/** Extrae `repository` + `tag` del bloque de una clave en values.yaml. */
-function readDeployedImage(yaml: string, key: string): string | null {
-  const start = yaml.indexOf(`\n${key}:`);
-  if (start === -1) return null;
-  // Se acota el bloque al siguiente sibling de nivel superior.
-  const rest = yaml.slice(start + 1);
-  const nextKey = rest.slice(1).search(/\n[a-z_]+:\s*$/m);
-  const block = nextKey === -1 ? rest : rest.slice(0, nextKey + 1);
-
-  const repository = block.match(/repository:\s*(\S+)/)?.[1];
-  const rawTag = block.match(/tag:\s*"?([^"\n]+)"?/)?.[1];
-  const digest = block.match(/digest:\s*"([^"\n]*)"/)?.[1];
-  if (!repository || !rawTag) return null;
-  return canonicalImageRef(repository, rawTag, digest);
-}
-
-/** Extrae las referencias del matrix `image:` del workflow de Trivy. */
-function readScannedImages(workflow: string): string[] {
-  const matrixBlock = workflow.slice(workflow.indexOf('matrix:'));
-  const imageBlock = matrixBlock.slice(matrixBlock.indexOf('image:'));
-  const end = imageBlock.indexOf('\n    steps:');
-  const scoped = end === -1 ? imageBlock : imageBlock.slice(0, end);
-  return [...scoped.matchAll(/-\s*'([^']+)'/g)].map((m) => m[1]);
-}
-
-test('🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega', () => {
-  const values = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'),
-    'utf-8'
-  );
-  const workflow = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'),
-    'utf-8'
-  );
-
-  const deployed = ['postgresql', 'redis', 'pgbouncer']
-    .map((k) => readDeployedImage(values, k))
-    .filter((v): v is string => v !== null);
-
-  assert.equal(deployed.length, 3, 'values.yaml debe declarar las 3 imágenes de infraestructura');
-
-  const scanned = readScannedImages(workflow);
-  assert.equal(scanned.length, 3, 'El matrix de Trivy debe escanear las 3 imágenes');
-
-  for (const image of deployed) {
-    assert.ok(
-      scanned.includes(image),
-      `El scan de Trivy debe incluir la imagen desplegada ${image}. Revisar el matrix de security-trivy.yaml.`
-    );
-  }
-  for (const image of scanned) {
-    assert.ok(
-      deployed.includes(image),
-      `El scan de Trivy escanea ${image}, que NO es la imagen desplegada (falso positivo de seguridad).`
-    );
-  }
-});
-
-test('🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable', () => {
-  const workflow = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'),
-    'utf-8'
-  );
-  const scanned = readScannedImages(workflow);
-
-  assert.equal(scanned.length, 3);
-  for (const image of scanned) {
-    assert.match(
-      image,
-      /@sha256:[a-f0-9]{64}$/,
-      `${image} debe fijarse por digest: una etiqueta móvil puede dejar de corresponder con lo desplegado`
-    );
-  }
-  // Regresión explícita del defecto original: la imagen equivocada por origen.
-  // Se evalúa SOLO el matrix: el archivo contiene un comentario que menciona el
-  // origen histórico a propósito, y un grep sobre todo el YAML daría un falso
-  // positivo que obligaría a borrar la documentación del hallazgo.
-  assert.doesNotMatch(
-    scanned.join('\n'),
-    /edoburu/,
-    'El repositorio despliega la imagen oficial pgbouncer/pgbouncer, no edoburu/pgbouncer'
-  );
-});
 
 test('🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*', () => {
   const filePath = path.join(ROOT_DIR, 'infra/ansible/deploy_excludes.txt');
@@ -269,13 +156,6 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   assert.ok(!content.includes('deploy_proxmox.yml'), 'No debe referenciar deploy_proxmox.yml');
 });
 
-test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)', () => {
-  const content = getCompleteTaskfileContent(ROOT_DIR);
-  assert.ok(content.includes('dr:drill:'), 'Taskfile.yaml debe definir tarea dr:drill');
-  assert.ok(content.includes('dr:verify:'), 'Taskfile.yaml debe definir tarea dr:verify');
-  assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
-  assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
-});
 
 test('🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
   const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yaml');

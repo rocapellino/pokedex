@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **54** |
-| **Archivos de Test Automatizados** | 51 |
+| **Total de Archivos en `tests/`** | **56** |
+| **Archivos de Test Automatizados** | 53 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 2 |
 | **Total de Casos de Prueba Identificados** | **495** |
-| **Líneas de Código de Pruebas** | 14.104 |
-| **Tamaño Total de la Suite** | 630.8 KB |
+| **Líneas de Código de Pruebas** | 14.081 |
+| **Tamaño Total de la Suite** | 628.3 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T15:49:10.371Z |
+| **Última Sincronización** | 2026-10-03T16:16:13.949Z |
 
 ---
 
@@ -27,9 +27,9 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 7 | 52 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 188 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
-| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 1 | 6 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 8 | 53 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 182 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 2 | 11 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 45 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
@@ -62,6 +62,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 188 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 220 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
+| [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **5** | 463 | Suite de pruebas gitops: gitops_architecture.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 27 | Suite de pruebas helpers: taskfile.ts. | *(Helper)* |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **7** | 78 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/pentest.test.ts`](../../tests/pentest.test.ts) | `governance` | Security / Pentest | `node:test (tsx)` | **28** | 627 | Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -73,25 +74,26 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | `security` | Contract / Architecture | `node:test (tsx)` | **19** | 766 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | `security` | Automated Test | `node:test (tsx)` | **1** | 28 | Suite de pruebas security: docs_governance_gate.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | `security` | Contract / Docs | `node:test (tsx)` | **3** | 152 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | `security` | Security / Backup | `node:test (tsx)` | **9** | 318 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | `security` | Security / Backup | `node:test (tsx)` | **10** | 327 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | `security` | Security / DR | `node:test (tsx)` | **5** | 155 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | `security` | Security / Network | `node:test (tsx)` | **4** | 226 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`, `npm run test:security:egress` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | `security` | Contract / OCI | `node:test (tsx)` | **3** | 188 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | `security` | Contract / SecOps | `node:test (tsx)` | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **5** | 242 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **31** | 1202 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **28** | 1082 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **20** | 975 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **14** | 469 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | `security` | Security / DR Benchmarks | `node:test (tsx)` | **9** | 125 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **1** | 64 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **19** | 607 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **21** | 697 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 211 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **6** | 271 | Suite de pruebas unit: pokemon_mapper.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -108,13 +110,14 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 52
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 53
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | *(General)* |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `apps/backend/src/services/auth.ts` |
+| [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | *(General)* |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 211 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | **6** | 271 | Suite de pruebas unit: pokemon_mapper.test.ts. | *(General)* |
@@ -123,7 +126,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 188
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 182
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -131,31 +134,32 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | **19** | 766 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `docs/decisions/` |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | **1** | 28 | Suite de pruebas security: docs_governance_gate.test.ts. | *(General)* |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | **3** | 152 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `docs/` |
-| [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | **9** | 318 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts` |
+| [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | **10** | 327 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts` |
 | [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | **5** | 155 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `scripts/dr-drill.ts` |
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | **4** | 226 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `infra/helm/pokedex/templates/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | **3** | 188 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `scripts/ghcr-retention.ts`, `.github/workflows/ghcr-retention.yaml` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **5** | 242 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **31** | 1202 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `infra/k8s/`, `infra/helm/pokedex/` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **28** | 1082 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `infra/k8s/`, `infra/helm/pokedex/` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
-| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | **20** | 975 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `infra/k8s/`, `infra/helm/pokedex/templates/` |
+| [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | **14** | 469 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `infra/k8s/`, `infra/helm/pokedex/templates/` |
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | **9** | 125 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `scripts/dr-drill.ts` |
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **1** | 64 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
-| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **19** | 607 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
+| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **21** | 697 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `scripts/k8s-rollout-restart.ts` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `scripts/check-yaml-extension.ts` |
 
 ### Suite: Contratos de GitOps y Despliegue (`gitops`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 6
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 11
 - **Propósito:** Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts` |
+| [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | **5** | 463 | Suite de pruebas gitops: gitops_architecture.test.ts. | *(General)* |
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
