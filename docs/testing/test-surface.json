@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T19:37:07.782Z",
+  "generatedAt": "2026-10-03T19:38:45.699Z",
   "summary": {
     "totalFiles": 57,
     "testFiles": 54,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 498,
-    "totalLines": 14160,
-    "totalSizeBytes": 648308,
+    "totalTestCases": 500,
+    "totalLines": 14186,
+    "totalSizeBytes": 649580,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 18,
-      "testCases": 181,
+      "testCases": 183,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -222,12 +222,12 @@
       "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 8,
-      "sizeBytes": 2406,
-      "lineCount": 60,
-      "sha256": "01851c7ef14a4097b95cc9fe88b5a885eb65fdb67ccbdac13c6d53c2a93f21c8",
+      "assertionCountEst": 13,
+      "sizeBytes": 3678,
+      "lineCount": 86,
+      "sha256": "e37bb3dbac129316789c17470ad42096518b48496943258fdae9714c79ef18a8",
       "targetDomain": "Gobernanza Documental / Auditorías Históricas",
       "targetArtifacts": [
         "docs/audits/"
@@ -245,19 +245,27 @@
       "testCases": [
         {
           "name": "Audit lifecycle: baseline idéntico al repositorio queda CURRENT",
-          "line": 20
+          "line": 29
         },
         {
           "name": "Audit lifecycle: commit divergente produce AUDIT_STALE no bloqueante",
-          "line": 34
+          "line": 43
         },
         {
           "name": "Audit lifecycle: metadatos ausentes se reportan explícitamente",
-          "line": 41
+          "line": 50
         },
         {
           "name": "Audit lifecycle: eleva evidencia por versión, Chart y GitOps divergentes",
-          "line": 52
+          "line": 61
+        },
+        {
+          "name": "Audit lifecycle: el baseline vigente expone commit, versión, Chart y revisión GitOps",
+          "line": 72
+        },
+        {
+          "name": "Audit lifecycle: el script se ejecuta como CLI y emite JSON no bloqueante",
+          "line": 79
         }
       ]
     },
