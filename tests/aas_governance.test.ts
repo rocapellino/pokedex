@@ -93,7 +93,7 @@ test("la configuración MCP del editor permanece fuera del alcance", () => {
 test("🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera", () => {
   const skill = readFileSync(".agents/skills/repo-lifecycle/SKILL.md", "utf-8");
 
-  // Hay dos diagramas en la skill: uno de 10 etapas (ciclo resumido) y otro de 16
+  // Hay dos diagramas en la skill: uno de 6 fases (ciclo de vida) y otro de 16
   // (flujo canónico de full-audit). Este último es el que debe coincidir con las
   // menciones textuales, y se localiza por su última etapa.
   const marker = skill.indexOf("consolidated report");

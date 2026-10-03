@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T18:48:40.856Z",
+  "generatedAt": "2026-10-03T18:59:53.168Z",
   "summary": {
     "totalFiles": 56,
     "testFiles": 53,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 496,
     "totalLines": 14121,
-    "totalSizeBytes": 646586,
+    "totalSizeBytes": 646583,
     "suitesCount": 9
   },
   "suites": [
@@ -113,9 +113,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 6337,
+      "sizeBytes": 6334,
       "lineCount": 147,
-      "sha256": "4e0ace0722bb556d20efb3a9ec028435a61d905b684246a6902d957801a944e2",
+      "sha256": "3c5fc601418b4015fecac3d8536267f6ffb4d869ec97c1f3fd74a10493145727",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
