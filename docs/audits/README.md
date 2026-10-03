@@ -17,7 +17,7 @@ De acuerdo con la especificación de ciclo de vida documental gobernada por la s
    - Una vez que los hallazgos de un ciclo de auditoría han sido remediados, consolidados en la documentación canónica activa (`docs/architecture/`, `docs/runbooks/`, etc.) y reflejados en el nuevo baseline, los snapshots intermedios y reportes auxiliares cerrados se podan del árbol de trabajo activo.
    - Esto previene la sobrecarga cognitiva y el desperdicio de tokens de contexto en los agentes de IA, garantizando que el análisis automatizado se enfoque en la arquitectura vigente.
 3. **Preservación Histórica en Git:**
-   - La eliminación del árbol de trabajo **no destruye la historia ni la trazabilidad**. Todos los diagnósticos, planes de remediación y auditorías previas (incluyendo los ciclos 2026-09-23 a 2026-09-25) permanecen inmutables y consultables en el historial de commits de Git:
+   - La eliminación del árbol de trabajo **no destruye la historia ni la trazabilidad**. Todos los diagnósticos, planes de remediación y auditorías previas (incluyendo los ciclos 2026-09-23 a 2026-09-25 y el baseline 2026-10-02) permanecen inmutables y consultables en el historial de commits de Git:
 
      ```bash
      git log --stat -- docs/audits/
