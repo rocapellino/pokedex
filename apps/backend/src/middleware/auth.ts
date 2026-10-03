@@ -131,17 +131,30 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
   if (sessionToken) {
     const sessionCheck = await verifySessionTokenDetailed(sessionToken);
     if (sessionCheck.valid) {
-      // Mitigación CSRF para mutaciones respaldadas por cookie de sesión
+      // Mitigación CSRF para mutaciones respaldadas por cookie de sesión (AUD-SEC-CSRF-001).
+      // El token proviene de la cookie solo si no hay Bearer (extractSessionTokenFromRequest
+      // prioriza la cabecera Authorization, que un sitio ajeno no puede fijar).
       const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
-      const isCookieAuth = Boolean(req.headers.cookie && req.headers.cookie.includes('pokedex_admin_session='));
+      const hasBearer = String(req.headers['authorization'] || '').startsWith('Bearer ');
+      const isCookieAuth = !hasBearer && Boolean(req.headers.cookie && req.headers.cookie.includes('pokedex_admin_session='));
       const originHeader = (req.headers['origin'] || req.headers['referer']) as string | undefined;
+
+      if (isMutative && isCookieAuth && !originHeader) {
+        logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', { path: req.path });
+        return res.status(403).json({
+          detail: 'Cabecera Origin/Referer requerida para mutaciones administrativas mediante cookie (CSRF protection).',
+        });
+      }
 
       if (isMutative && isCookieAuth && originHeader) {
         try {
           const originUrl = new URL(originHeader);
           const originHost = originUrl.origin;
           const allowed = getConfiguredCorsOrigins() || DEFAULT_DEV_CORS_ORIGINS;
-          const isAllowed = allowed.includes(originHost) || Boolean(req.headers.host && originHost.includes(req.headers.host));
+          // Igualdad exacta de host[:puerto]: una comparación por subcadena aceptaba
+          // orígenes como `https://<host>.evil.test`.
+          const isSameHost = Boolean(req.headers.host) && originUrl.host === req.headers.host;
+          const isAllowed = allowed.includes(originHost) || isSameHost;
           if (!isAllowed) {
             logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', { origin: originHost, path: req.path });
             return res.status(403).json({
