@@ -86,6 +86,7 @@ rules:
       - ".markdownlintignore"
       - "LICENSE"
       - "scripts/lint-markdown.ts"
+      - "scripts/validate-docs-governance.ts"
       # CLI canónico del monorepo referenciado en contratos documentales
       - "Taskfile.yaml"
     triggers:
@@ -126,6 +127,7 @@ rules:
     description: "Cliente web MPA (catálogo público y consola backoffice), componentes UI y assets estáticos"
     paths:
       - "apps/frontend/**"
+      - "scripts/generate-nginx-conf.mjs"
     triggers:
       frontend: true
       tests: true
@@ -150,6 +152,7 @@ rules:
       - "scripts/probe-egress-security.ts"
       - "scripts/dr-drill.ts"
       - "scripts/dev-backup-gdrive.ts"
+      - "scripts/deploy-grafana-cloud.mjs"
       - "scripts/dr_verify_restore.sh"
       # Tareas de clúster, ArgoCD y validación de plataforma
       - "Taskfile.yaml"
@@ -246,8 +249,9 @@ rules:
       - 'dr_verify_restore.sh'
       - 'scripts/check-ignore-hygiene.ts'
       - 'scripts/check-yaml-extension.ts'
-      - 'scripts/scan-yml-refs.ts'
-      - 'scripts/governance-audit-scripts.ts'
+      - 'scripts/check-ruleset-parity.ts'
+      - 'scripts/generate-nginx-conf.mjs'
+      - '.github/rulesets/**'
     triggers:
       linting: true
       tests: true
@@ -278,6 +282,7 @@ rules:
     description: "Suites de pruebas automatizadas del monorepo"
     paths:
       - "tests/**"
+      - "scripts/test-surface.ts"
     triggers:
       tests: true
       security:

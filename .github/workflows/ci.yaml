@@ -131,6 +131,9 @@ jobs:
       - name: 4d. YAML Reference Integrity Gate
         run: npm run lint:docs:refs
 
+      - name: 4e. Test Surface Governance Gate
+        run: npm run test:surface:check
+
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 

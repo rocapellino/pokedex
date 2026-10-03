@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T13:09:45.048Z",
+  "generatedAt": "2026-10-03T14:40:08.887Z",
   "summary": {
     "totalFiles": 51,
     "testFiles": 49,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 493,
-    "totalLines": 13979,
-    "totalSizeBytes": 641630,
+    "totalTestCases": 495,
+    "totalLines": 14044,
+    "totalSizeBytes": 643465,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 16,
-      "testCases": 183,
+      "testCases": 185,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -259,12 +259,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 55,
+      "testCount": 57,
       "describeCount": 0,
-      "assertionCountEst": 342,
-      "sizeBytes": 61456,
-      "lineCount": 1401,
-      "sha256": "95ee0b204331f7f9c2dea5ab9fe47ffef2385769a530cc7de075dc1db8244945",
+      "assertionCountEst": 346,
+      "sizeBytes": 63291,
+      "lineCount": 1466,
+      "sha256": "af8534885a1717b9e37acf944fdb851c0b78171d9d5bed04f09efc7b017531b8",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -500,6 +500,14 @@
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
           "line": 1379
+        },
+        {
+          "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
+          "line": 1402
+        },
+        {
+          "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
+          "line": 1418
         }
       ]
     },
