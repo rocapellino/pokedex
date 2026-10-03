@@ -31,6 +31,7 @@ permissions:
   pull-requests: write
   id-token: write
   actions: write
+  packages: read
 
 # Serializa las corridas sobre main para evitar carreras entre la fase de
 # promoción y la creación del tag (REL-001).
@@ -47,6 +48,8 @@ jobs:
       pull-requests: write
       id-token: write
       actions: write
+      # Resolver en GHCR los digests de las imágenes a promover (paso 8b).
+      packages: read
     # El merge del PR de promoción (mensaje "chore(release): promote ...")
     # SIEMPRE debe correr: es la fase "tag" que fija el anclaje version -> commit.
     # Los demás pushes a main corren la fase "promote", salvo marcas de
@@ -353,6 +356,54 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 8a. Instalar Cosign (verificación de las imágenes a promover)
+        if: >-
+          steps.state.outputs.phase == 'promote' &&
+          !inputs.gitsign_refresh &&
+          steps.tag_version.outputs.new_tag
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: 8b. Resolver y Verificar los Digests de pokedex-api y pokedex-web
+        # ci.yaml publica y firma ambas imágenes para este mismo commit con el tag
+        # del SHA completo. El PR de promoción debe fijarlas junto a la versión y el
+        # targetRevision: antes solo se movían estos últimos y cada release desplegaba
+        # el chart nuevo con imágenes antiguas. Se espera a que CI publique (corre en
+        # paralelo a este workflow) y se exige la misma identidad de firma que
+        # verifica Kyverno en el clúster. Sin imagen firmada no hay promoción.
+        id: image-digests
+        if: >-
+          steps.state.outputs.phase == 'promote' &&
+          !inputs.gitsign_refresh &&
+          steps.tag_version.outputs.new_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WAIT_SECONDS: "2700"
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          echo "$GH_TOKEN" | cosign login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          IDENTITY="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/ci.yaml@refs/heads/main"
+          for component in api web; do
+            REPO="ghcr.io/${GITHUB_REPOSITORY_OWNER}/pokedex-${component}"
+            REF="${REPO}:${GITHUB_SHA}"
+            DEADLINE=$(( $(date +%s) + WAIT_SECONDS ))
+            DIGEST=""
+            until DIGEST="$(docker buildx imagetools inspect "${REF}" --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"')" &&
+                  [ -n "${DIGEST}" ] && [ "${DIGEST}" != "null" ] &&
+                  cosign verify "${REPO}@${DIGEST}" \
+                    --certificate-identity "${IDENTITY}" \
+                    --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null 2>&1; do
+              if [ "$(date +%s)" -ge "${DEADLINE}" ]; then
+                echo "❌ ${REF} no está publicada y firmada por ci.yaml tras ${WAIT_SECONDS}s. Promoción abortada." >&2
+                exit 1
+              fi
+              echo "⏳ Esperando ${REF} publicada y firmada por ci.yaml..."
+              sleep 30
+            done
+            echo "✅ ${component}: ${REPO}@${DIGEST} (firma verificada)"
+            echo "${component}_digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          done
+
       - name: 8. Crear Pull Request Atómico de Release y GitOps
         # main está protegida por el ruleset `main-protection`, por lo que la
         # metadata de versión y el pinning GitOps se promueven como una sola unidad.
@@ -366,6 +417,8 @@ jobs:
           GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN || secrets.GITHUB_TOKEN }}
           ACTIONS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}
+          API_DIGEST: ${{ steps.image-digests.outputs.api_digest }}
+          WEB_DIGEST: ${{ steps.image-digests.outputs.web_digest }}
         run: |
           VERSION="${NEW_TAG#v}"
           BRANCH="release/promote-${NEW_TAG}"
@@ -378,7 +431,9 @@ jobs:
           sed -i "s/^version: .*/version: ${VERSION}/" infra/helm/pokedex/Chart.yaml
           sed -i "s/^appVersion: .*/appVersion: \"${VERSION}\"/" infra/helm/pokedex/Chart.yaml
           node --experimental-strip-types scripts/update-gitops-pin.ts --tag="${NEW_TAG}"
-          git add package.json package-lock.json infra/helm/pokedex/Chart.yaml gitops/apps/
+          # Imágenes publicadas y firmadas por ci.yaml para este commit (paso 8b).
+          node --experimental-strip-types scripts/update-image-digests.ts --api "${API_DIGEST}" --web "${WEB_DIGEST}"
+          git add package.json package-lock.json infra/helm/pokedex/Chart.yaml gitops/apps/ gitops/environments/ infra/helm/pokedex/values.prod.yaml
           if git diff --cached --quiet; then
             echo "✅ Release y GitOps ya están sincronizados con ${NEW_TAG}."
             exit 0
@@ -407,7 +462,7 @@ jobs:
           BODY=$(cat <<EOF
           ### 🚀 Automated Atomic Release Promotion
 
-          El tag firmado y el GitHub Release de **${NEW_TAG}** se crearán SOBRE el commit de merge de este Pull Request (tras verificar la coherencia 1:1 de la metadata). Este PR promueve como una sola unidad la metadata de versión y el \`targetRevision\` de ArgoCD.
+          El tag firmado y el GitHub Release de **${NEW_TAG}** se crearán SOBRE el commit de merge de este Pull Request (tras verificar la coherencia 1:1 de la metadata). Este PR promueve como una sola unidad la metadata de versión, el \`targetRevision\` de ArgoCD y los digests de las imágenes construidas para \`${GITHUB_SHA}\`.
 
           #### Archivos sincronizados:
           - \`package.json\` (\`version\`)
@@ -417,6 +472,9 @@ jobs:
           - \`gitops/apps/app-proxmox-preprod.yaml\`
           - \`gitops/apps/app-proxmox.yaml\`
           - \`gitops/apps/app-cloud.yaml\`
+          - \`gitops/environments/*/values.yaml\` e \`infra/helm/pokedex/values.prod.yaml\` (digests verificados con Cosign)
+            - \`pokedex-api@${API_DIGEST}\`
+            - \`pokedex-web@${WEB_DIGEST}\`
 
           #### Flujo de Gobernanza:
           1. Metadata de release y manifiestos GitOps actualizados atómicamente en este PR.

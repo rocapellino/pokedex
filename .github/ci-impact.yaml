@@ -150,6 +150,7 @@ rules:
       - "scripts/k8s-rollout-restart.ts"
       - "scripts/verify-secret-rotation.ts"
       - "scripts/update-gitops-pin.ts"
+      - "scripts/update-image-digests.ts"
       - "scripts/verify-image-digest-parity.ts"
       - "scripts/probe-egress-security.ts"
       - "scripts/dr-drill.ts"
