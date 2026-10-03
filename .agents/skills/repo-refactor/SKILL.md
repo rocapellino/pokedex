@@ -9,6 +9,9 @@ description: Convertir hallazgos de calidad/arquitectura en refactors incrementa
 
 Ejecutar refactorizaciones controladas e incrementales en el código fuente de `rocapellino/pokedex`, remediando hallazgos técnicos sin alterar el comportamiento funcional observable salvo que se especifique contractualmente.
 
+> [!NOTE]
+> Si el cambio altera comportamiento observable (fix de bug o remediación de un hallazgo), usar [`repo-fix`](../repo-fix/SKILL.md). `repo-refactor` exige preservar el comportamiento.
+
 ## Alcance y Verificaciones de Dominio
 
 - **Preservación Estricta de Contratos:** Mantener invariantes los contratos de API externa, esquemas de base de datos y eventos salvo acuerdo explícito.

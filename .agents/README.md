@@ -37,6 +37,7 @@ El repositorio establece políticas normativas obligatorias para todos los agent
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
 | **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Integridad documental, contratos y claims verification |
 | | [`repo-maintenance`](skills/repo-maintenance/SKILL.md) | Salud periódica, higiene y limpieza segura |
+| | [`repo-fix`](skills/repo-fix/SKILL.md) | Ejecución de correcciones con test de regresión previo |
 | | [`repo-refactor`](skills/repo-refactor/SKILL.md) | Diseño de cambios incrementales |
 | | [`repo-modernize`](skills/repo-modernize/SKILL.md) | Evaluación de modernización tecnológica |
 | | [`repo-metrics`](skills/repo-metrics/SKILL.md) | Telemetría auxiliar de evolución técnica |
