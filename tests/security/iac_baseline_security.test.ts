@@ -1173,17 +1173,29 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(proxmoxGuideContent.includes('k8s-proxmox.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-proxmox.internal.lan');
 });
 
-test('🛡️ Tooling Governance: scripts/governance-audit-scripts.ts valida lista blanca de scripts shell y rechaza imperativos', async () => {
-  const scriptPath = path.join(ROOT_DIR, 'scripts/governance-audit-scripts.ts');
-  assert.ok(fs.existsSync(scriptPath), 'scripts/governance-audit-scripts.ts debe existir');
+test('🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)', () => {
+  const allowedShScripts = ['scripts/dr_verify_restore.sh'];
+  const forbiddenDeployPatterns = ['deploy.sh', 'proxmox_deploy.sh', 'deploy_aws.sh', 'deploy_proxmox.sh', 'deploy_app.sh'];
+  const excludedDirs = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini', '.agents']);
 
-  const { auditScriptGovernance, ALLOWED_SH_SCRIPTS, findShellScripts } = await import('../../scripts/governance-audit-scripts.ts');
-  assert.deepEqual(ALLOWED_SH_SCRIPTS, ['scripts/dr_verify_restore.sh']);
+  function findShellScripts(dir: string, baseDir: string = dir): string[] {
+    let results: string[] = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory() && !excludedDirs.has(entry.name)) {
+        results = results.concat(findShellScripts(fullPath, baseDir));
+      } else if (entry.isFile() && entry.name.endsWith('.sh')) {
+        results.push(path.relative(baseDir, fullPath).replace(/\\/g, '/'));
+      }
+    }
+    return results;
+  }
 
-  const result = auditScriptGovernance();
-  assert.equal(result.success, true, `La auditoría de gobernanza de scripts debe pasar: ${result.errors.join('; ')}`);
-  assert.equal(result.errors.length, 0);
+  const foundSh = findShellScripts(ROOT_DIR);
+  assert.deepEqual(foundSh, allowedShScripts, 'La única secuencia shell autorizada en el repositorio debe ser scripts/dr_verify_restore.sh');
 
-  const found = findShellScripts(ROOT_DIR);
-  assert.ok(found.includes('scripts/dr_verify_restore.sh'), 'findShellScripts debe encontrar scripts/dr_verify_restore.sh');
+  for (const pattern of forbiddenDeployPatterns) {
+    assert.ok(!fs.existsSync(path.join(ROOT_DIR, pattern)), `No debe existir script imperativo en raíz: ${pattern}`);
+    assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'scripts', pattern)), `No debe existir script imperativo en scripts/: ${pattern}`);
+  }
 });

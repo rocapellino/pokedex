@@ -689,8 +689,8 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
   // validacion falla con literales sin sustituir. Debe delegar en el script.
   assert.match(
     webWf,
-    /node scripts\/render-nginx-config\.mjs/,
-    'web.yaml debe delegar el renderizado en scripts/render-nginx-config.mjs'
+    /node scripts\/generate-nginx-conf\.mjs --render/,
+    'web.yaml debe delegar el renderizado en scripts/generate-nginx-conf.mjs --render'
   );
   assert.doesNotMatch(
     webWf,
@@ -967,9 +967,9 @@ test('🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada', () =
 test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
 
-test('🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan', () => {
-  const scriptPath = path.join(ROOT_DIR, 'scripts/render-nginx-config.mjs');
-  assert.ok(fs.existsSync(scriptPath), 'scripts/render-nginx-config.mjs debe existir');
+test('🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si faltan en modo --render', () => {
+  const scriptPath = path.join(ROOT_DIR, 'scripts/generate-nginx-conf.mjs');
+  assert.ok(fs.existsSync(scriptPath), 'scripts/generate-nginx-conf.mjs debe existir');
 
   const script = fs.readFileSync(scriptPath, 'utf-8');
   const template = fs.readFileSync(
@@ -985,7 +985,7 @@ test('🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan
 
   const outOk = path.join(ROOT_DIR, 'render-probe-ok.conf');
   try {
-    execSync(`node "${scriptPath}" "${outOk}"`, {
+    execSync(`node "${scriptPath}" --render "${outOk}"`, {
       cwd: ROOT_DIR,
       encoding: 'utf-8',
       env: {
@@ -1013,7 +1013,7 @@ test('🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan
   const outBad = path.join(ROOT_DIR, 'render-probe-bad.conf');
   let failed = false;
   try {
-    execSync(`node "${scriptPath}" "${outBad}"`, {
+    execSync(`node "${scriptPath}" --render "${outBad}"`, {
       cwd: ROOT_DIR,
       encoding: 'utf-8',
       env: { ...process.env, METRICS_ALLOWED_CIDR: '' },
