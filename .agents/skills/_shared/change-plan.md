@@ -30,10 +30,27 @@
 
 ## 6. Criterios de Aceptación y Checklist de Validación
 
-- [ ] Compilación limpia en monorepo (`npm run build`)
-- [ ] Validación estricta de tipos y linters (`npm run typecheck` / `npm run lint`)
-- [ ] Suite de pruebas completa (`npm test`)
-- [ ] Verificación de seguridad y secretos (`npm run secrets:audit-rotation`)
-- [ ] Paridad de imágenes GitOps (`npm run gitops:verify-parity`)
-- [ ] CI / Workflows validados
-- [ ] Documentación sincronizada
+Los gates **no son fijos**: se derivan del dominio del cambio. No incluir gates de otros
+dominios (por ejemplo, `secrets:audit-rotation` en un cambio de frontend) ni omitir los
+exigidos.
+
+1. Clasificar los archivos tocados con el motor determinista:
+
+   ```bash
+   npm run ci:detect-impact -- --files <archivo1>,<archivo2> --format markdown
+   ```
+
+2. Copiar aquí los gates de cada dominio afectado según la tabla §4 de
+   [change-impact-matrix.md](change-impact-matrix.md).
+3. Registrar cada gate con su estado real (`PASS`, `FAIL`, `CI_REQUIRED`, `NOT_EXECUTED`).
+
+Siempre obligatorios, cualquiera sea el dominio:
+
+- [ ] Test de regresión del hallazgo, si el cambio remedia uno (falla antes, pasa después)
+- [ ] Regla de referencias inversas aplicada si se renombró, movió o eliminó algo ([change-impact-matrix.md](change-impact-matrix.md) §1.1)
+- [ ] Artefactos derivados actualizados (fase *Actualizar* de `repo-lifecycle`)
+- [ ] `npm run lint:md -- <archivos>` y `npm run docs:validate` si se tocó Markdown
+
+Gates del dominio (derivados de la matriz):
+
+- [ ] `<gate>`

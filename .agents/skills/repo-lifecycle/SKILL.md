@@ -178,39 +178,13 @@ Tabla consolidada de recomendaciones con clasificación (KEEP, KEEP_IMPROVE, REM
 
 ## Despacho Condicional por Tipología de Cambio
 
-No todas las skills son obligatorias para todos los cambios. Las validaciones a ejecutar dependen estrictamente del impacto clasificado en [change-impact-matrix.md](../_shared/change-impact-matrix.md):
+No todas las skills son obligatorias para todos los cambios. Las skills y gates a ejecutar
+por dominio residen **exclusivamente** en la tabla §4 de
+[change-impact-matrix.md](../_shared/change-impact-matrix.md), única fuente de verdad del
+despacho. Esta skill no mantiene una copia para evitar que ambas diverjan.
 
-### 1. Cambio Backend (`apps/backend/`)
-
-```text
-impact ──► testing ──► quality (lint/pre-commit) ──► security (App SAST) ──► architecture ──► docs ──► pr
-```
-
-### 2. Cambio Documentación Pura (`docs/`, `*.md`) — Fast Track
-
-```text
-impact ──► docs ──► markdown quality gate (0 errores MDxxx) ──► pr
-```
-
-*Exento de compilar código, correr tests unitarios de apps o levantar contenedores Docker.*
-
-### 3. Cambio en Workflows de CI/CD (`.github/workflows/`)
-
-```text
-impact ──► quality (sintaxis YAML/pre-commit) ──► security (permisos OIDC) ──► ci ──► docs ──► pr
-```
-
-### 4. Cambio en Helm / GitOps (`infra/helm/`, `gitops/`)
-
-```text
-impact ──► quality ──► security ──► architecture (AST/paridad) ──► release (pinning) ──► docs ──► pr
-```
-
-### 5. Cambio en Archivos de Exclusión y Configuración (`.*ignore`)
-
-```text
-impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trust) ──► quality (sintaxis) ──► docs ──► pr
-```
+El cambio puramente documental conserva su *Fast Track*: `impact → docs → lint:md → pr`,
+exento de builds, tests de aplicación y contenedores.
 
 ---
 
