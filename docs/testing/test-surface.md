@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **56** |
-| **Archivos de Test Automatizados** | 53 |
+| **Total de Archivos en `tests/`** | **57** |
+| **Archivos de Test Automatizados** | 54 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 2 |
-| **Total de Casos de Prueba Identificados** | **496** |
-| **Líneas de Código de Pruebas** | 14.121 |
-| **Tamaño Total de la Suite** | 631.4 KB |
+| **Total de Casos de Prueba Identificados** | **498** |
+| **Líneas de Código de Pruebas** | 14.160 |
+| **Tamaño Total de la Suite** | 633.1 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T18:59:53.168Z |
+| **Última Sincronización** | 2026-10-03T19:37:07.782Z |
 
 ---
 
@@ -35,7 +35,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 17 | 179 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 18 | 181 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -90,6 +90,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **21** | 697 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -212,7 +213,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Gobernanza y Contratos de Plataforma (Root) (`governance`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 179
+- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 181
 - **Propósito:** Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -231,6 +232,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/ruleset_contract.test.ts`](../../tests/ruleset_contract.test.ts) | **3** | 108 | Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub. | `.github/rulesets/main-protection.json` |
 | [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts) | **10** | 254 | Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub. | `.github/rulesets/main-protection.json`, `scripts/check-ruleset-parity.ts` |
 | [`tests/security.test.ts`](../../tests/security.test.ts) | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `apps/backend/server.ts`, `apps/backend/src/middleware/` |
+| [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | *(General)* |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | **3** | 100 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `package.json`, `apps/backend/package.json`, `apps/frontend/package.json`, `infra/helm/pokedex/Chart.yaml` |
 | [`tests/version.test.ts`](../../tests/version.test.ts) | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `apps/backend/server.ts` |

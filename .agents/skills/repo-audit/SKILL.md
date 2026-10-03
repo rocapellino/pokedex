@@ -1,6 +1,6 @@
 ---
 name: repo-audit
-description: Fase 1 (Auditar) del ciclo de vida, read-only: modos quick, full y delta. Usar cuando se pida analizar, auditar o diagnosticar el repositorio, o antes de planificar trabajo sin hallazgos previos.
+description: "Fase 1 (Auditar) del ciclo de vida, read-only: modos quick, full y delta. Usar cuando se pida analizar, auditar o diagnosticar el repositorio, o antes de planificar trabajo sin hallazgos previos."
 ---
 
 # repo-audit

@@ -1,6 +1,6 @@
 ---
 name: repo-maintenance
-description: Fase 6 (Depurar) y health checks periódicos: limpieza segura, scripts (ADR-020) y auditorías delta contra hallazgos abiertos. Usar para limpieza de huérfanos, revisiones semanales o mensuales, o antes de cerrar una rama.
+description: "Fase 6 (Depurar) y health checks periódicos: limpieza segura, scripts (ADR-020) y auditorías delta contra hallazgos abiertos. Usar para limpieza de huérfanos, revisiones semanales o mensuales, o antes de cerrar una rama."
 ---
 
 # repo-maintenance

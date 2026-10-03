@@ -1,6 +1,6 @@
 ---
 name: repo-dependencies
-description: Gobernar el ciclo de vida de dependencias npm: overrides, CVEs, huérfanas y planes de actualización. Usar al tocar package.json o package-lock.json, ante alertas SCA o PRs de Renovate.
+description: "Gobernar el ciclo de vida de dependencias npm: overrides, CVEs, huérfanas y planes de actualización. Usar al tocar package.json o package-lock.json, ante alertas SCA o PRs de Renovate."
 ---
 
 # repo-dependencies

@@ -1,6 +1,6 @@
 ---
 name: repo-docs
-description: Fase 5 (Documentar): mantener la documentación verificable contra código, drift de ADRs y Markdown Quality Gate. Usar al crear o modificar cualquier .md, ADR o skill, o cuando un cambio de código altere algo documentado.
+description: "Fase 5 (Documentar): mantener la documentación verificable contra código, drift de ADRs y Markdown Quality Gate. Usar al crear o modificar cualquier .md, ADR o skill, o cuando un cambio de código altere algo documentado."
 ---
 
 # repo-docs
