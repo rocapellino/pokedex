@@ -211,13 +211,11 @@ La documentación técnica detallada se organiza en:
 - [ADR-018: OpenTelemetry y W3C Trace Context](docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md)
 - [ADR-019: Optimización Monorepo y Turborepo](docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md)
 - [ADR-020: Gobernanza de Despliegue y Scripts](docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md)
-- [ADR-021: GitOps Sync Waves y Health Checks](docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md)
-- [ADR-022: Rotación Automatizada de Secretos](docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)
 - [ADR-023: Adopción del Compilador Nativo TypeScript](docs/decisions/ADR-023-typescript-native-compiler-adoption.md)
 - [ADR-024: Cómputo Bimodal en Proxmox (LXC Preprod y VM Prod)](docs/decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md)
 - [ADR-025: Separación de Planos de Gestión, Runtime y Preparación Cloud](docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)
 - [ADR-027: Resiliencia Fail-Open vs Fail-Closed](docs/decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)
-- [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md): Catálogo de las 26 decisiones activas y registro de decisiones consolidadas (ADR-026, ADR-028, ADR-029).
+- [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md): Catálogo de las 24 decisiones activas y registro de decisiones consolidadas (ADR-021, ADR-022, ADR-026, ADR-028, ADR-029).
 - [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI con Taskfile.
 
 ---

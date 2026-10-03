@@ -178,7 +178,7 @@ externalSecrets:
 # ------------------------------------------------------------------------------
 # Recarga Dinámica de Cargas de Trabajo (Stakater Reloader vs checksum/config)
 # ------------------------------------------------------------------------------
-# Justificación de la Dualidad Arquitectónica Multi-Entorno (ADR-022):
+# Justificación de la Dualidad Arquitectónica Multi-Entorno (ADR-005):
 # - ENTORNO CLOUD (AWS EKS / values.prod.yaml base):
 #   reloader.enabled: true | reloader.auto: true.
 #   Imprescindible porque los Secrets son gestionados de forma asíncrona por ESO

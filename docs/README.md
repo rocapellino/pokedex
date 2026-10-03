@@ -144,9 +144,9 @@ flowchart TD
 
 - 📐 [**ADR-001**](./decisions/ADR-001-kubernetes-as-runtime.md): Adopción de Kubernetes como Runtime Canónico de Producción.
 - 📐 [**ADR-002**](./decisions/ADR-002-compose-for-local-development.md): Uso de Docker Compose Restringido a Desarrollo Local.
-- 📐 [**ADR-003**](./decisions/ADR-003-gitops-with-argocd.md): GitOps Declarativo mediante ArgoCD y Digests Inmutables OCI.
+- 📐 [**ADR-003**](./decisions/ADR-003-gitops-with-argocd.md): Modelo de Despliegue Declarativo y Orquestación GitOps Avanzada con ArgoCD (Consolida ADR-021).
 - 📐 [**ADR-004**](./decisions/ADR-004-opentofu-and-ansible-boundaries.md): Delimitación de Responsabilidades entre OpenTofu e IaC Ansible.
-- 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión Canónica de Secretos con External Secrets Operator (ESO) y HashiCorp Vault CE.
+- 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión Canónica de Secretos con External Secrets Operator, Vault y Rotación Automatizada (Consolida ADR-022).
 - 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres (DR), Cifrado 3-2-1 y Respaldo Off-Site en Google Drive (Consolida ADR-028).
 - 📐 [**ADR-007**](./decisions/ADR-007-observability-and-metrics.md): Observabilidad Unificada, Métricas RED y Prometheus ServiceMonitor.
 - 📐 [**ADR-008**](./decisions/ADR-008-supply-chain-security.md): Seguridad de Cadena de Suministro (Supply Chain), Inmutabilidad de Artefactos y Atestaciones Criptográficas.
@@ -162,13 +162,11 @@ flowchart TD
 - 📐 [**ADR-018**](./decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md): Observabilidad de Extremo a Extremo con OpenTelemetry y Trazabilidad Distribuida W3C.
 - 📐 [**ADR-019**](./decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md): Optimización de Build en Monorepo, Grafo de Dependencias y Caché Declarativo con Turborepo.
 - 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados (Consolida ADR-026).
-- 📐 [**ADR-021**](./decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md): Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks de Ciclo de Vida, Health Checks Declarativos y Patrón App-of-Apps.
-- 📐 [**ADR-022**](./decisions/ADR-022-automated-credential-rotation-and-reloader.md): Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader.
 - 📐 [**ADR-023**](./decisions/ADR-023-typescript-native-compiler-adoption.md): Adopción del Compilador Nativo de TypeScript (`node --experimental-strip-types`) y Desacoplamiento de Bundlers.
 - 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
 - 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
 - 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
-- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 26 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-026, ADR-028, ADR-029).
+- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 24 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-021, ADR-022, ADR-026, ADR-028, ADR-029).
 
 ---
 

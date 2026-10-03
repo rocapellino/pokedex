@@ -6,7 +6,7 @@ Este documento define la especificación formal del ciclo de vida de promoción 
 
 ## 1. Desacoplamiento Arquitectónico: Compilación vs. Despliegue
 
-Bajo el modelo GitOps canónico (ADR-003, ADR-008 y ADR-021), la **fase de compilación y publicación de artefactos** está deliberadamente separada de la **fase de despliegue y promoción**:
+Bajo el modelo GitOps canónico (ADR-003 y ADR-008), la **fase de compilación y publicación de artefactos** está deliberadamente separada de la **fase de despliegue y promoción**:
 
 ```text
 Commit en main

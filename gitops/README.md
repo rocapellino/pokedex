@@ -32,7 +32,7 @@ pokedex-root  (root-application.yaml)
 | [`apps/app-proxmox-preprod.yaml`](apps/app-proxmox-preprod.yaml) | Pre-producción. Continuous Delivery, sin ventanas de bloqueo |
 | [`apps/app-cloud.yaml`](apps/app-cloud.yaml) | **Referencia inactiva** para AWS/EKS (GITOPS-001) |
 | [`environments/`](environments/) | Overrides de valores por entorno |
-| [`health-checks/argocd-cm-healthchecks.yaml`](health-checks/argocd-cm-healthchecks.yaml) | Evaluadores Lua de salud para CRDs (ADR-021) |
+| [`health-checks/argocd-cm-healthchecks.yaml`](health-checks/argocd-cm-healthchecks.yaml) | Evaluadores Lua de salud para CRDs (ADR-003) |
 
 ---
 
@@ -99,7 +99,7 @@ task gitops:pin TAG=vX.Y.Z   # actualiza el targetRevision tras una promoción
 ## Operación
 
 ```bash
-task gitops:apps:root        # 1. Aplicar la Application raíz (App-of-Apps canónico, ADR-021)
+task gitops:apps:root        # 1. Aplicar la Application raíz (App-of-Apps canónico, ADR-003)
 task gitops:health-checks    # 2. Configurar Custom Health Checks en ArgoCD (PRERREQUISITO)
 task gitops:sync:proxmox     # Forzar sincronización declarativa en producción
 task gitops:status           # Consultar estado de salud de las aplicaciones en el clúster
@@ -132,7 +132,7 @@ task gitops:status           # Consultar estado de salud de las aplicaciones en 
 
 | Documento | Cubre |
 | :--- | :--- |
-| [ADR-021](../docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md) | Sync waves, health checks, App-of-Apps |
-| [ADR-022](../docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md) | Rotación automatizada de credenciales y Reloader |
+| [ADR-003](../docs/decisions/ADR-003-gitops-with-argocd.md) | GitOps declarativo, sync waves, health checks, App-of-Apps |
+| [ADR-005](../docs/decisions/ADR-005-secret-management.md) | Gestión de secretos, rotación automatizada y Reloader |
 | [`docs/operations/deployment.md`](../docs/operations/deployment.md) | Procedimiento de promoción y rollback |
 | [`docs/architecture/APPLICATION_LIFECYCLE.md`](../docs/architecture/APPLICATION_LIFECYCLE.md) | Ciclo de vida de releases |

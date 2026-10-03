@@ -1,5 +1,5 @@
 # ==============================================================================
-# ArgoCD Custom Health Checks - Extensión de `argocd-cm` (ADR-021)
+# ArgoCD Custom Health Checks - Extensión de `argocd-cm` (ADR-003)
 # ==============================================================================
 # GITOPS-001: ArgoCD carga los scripts `resource.customizations.health.*`
 # ÚNICAMENTE desde el ConfigMap `argocd-cm` del namespace `argocd`. Un ConfigMap

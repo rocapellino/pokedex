@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T17:21:12.238Z",
+  "generatedAt": "2026-10-03T18:13:53.820Z",
   "summary": {
     "totalFiles": 56,
     "testFiles": 53,
     "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 495,
-    "totalLines": 14089,
-    "totalSizeBytes": 644505,
+    "totalLines": 14093,
+    "totalSizeBytes": 645352,
     "suitesCount": 9
   },
   "suites": [
@@ -1179,10 +1179,10 @@
       "runner": "node:test (tsx)",
       "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 93,
-      "sizeBytes": 24564,
-      "lineCount": 463,
-      "sha256": "981db5d4affc3460f848dc285e1c0c2b547819bb83d44c6440d95bf8227287ae",
+      "assertionCountEst": 97,
+      "sizeBytes": 25411,
+      "lineCount": 467,
+      "sha256": "16dd7b7ee995b4fb7ec775a10909227f166976c5bdb40f0d61e9b436d22960d8",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1210,12 +1210,12 @@
           "line": 169
         },
         {
-          "name": "🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps",
+          "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)",
           "line": 234
         },
         {
-          "name": "🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría",
-          "line": 400
+          "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
+          "line": 402
         }
       ]
     },

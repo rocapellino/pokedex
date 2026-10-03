@@ -66,9 +66,9 @@ Conforme a lo establecido en [ADR-020](../decisions/ADR-020-unified-deployment-g
 task governance:audit-scripts
 ```
 
-## 5. Orquestación GitOps Avanzada, Sync Waves y App-of-Apps (ADR-021)
+## 5. Orquestación GitOps Avanzada, Sync Waves y App-of-Apps (ADR-003)
 
-Conforme a [ADR-021](../decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md), los despliegues con ArgoCD eliminan condiciones de carrera y ordenan el ciclo de vida mediante ondas de sincronización deterministas:
+Conforme a [ADR-003](../decisions/ADR-003-gitops-with-argocd.md), los despliegues con ArgoCD eliminan condiciones de carrera y ordenan el ciclo de vida mediante ondas de sincronización deterministas:
 
 | Ola de Sincronización | Componentes / Recursos | Rol en el Despliegue |
 | :---: | :--- | :--- |

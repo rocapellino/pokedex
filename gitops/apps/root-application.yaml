@@ -3,7 +3,7 @@
 # ==============================================================================
 # Este manifiesto gobierna la totalidad de las aplicaciones del monorepo Pokédex
 # en Kubernetes, coordinando los entornos on-premise (Proxmox) y cloud (AWS EKS).
-# Formalizado bajo ADR-021 (Advanced GitOps Orchestration & Sync Waves).
+# Formalizado bajo ADR-003 (Advanced GitOps Orchestration & Sync Waves).
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application

@@ -79,8 +79,8 @@ Antes de eliminar cualquier archivo Markdown del árbol de trabajo, se debe veri
 
 Para prevenir la inflación artificial de decisiones y mantener un corpus de decisiones enfocado exclusivamente en restricciones vigentes:
 
-1. **Inmutabilidad Estricta de Identificadores**: El ID numérico de un ADR retirado o consolidado (ej. `ADR-026`, `ADR-028`, `ADR-029`) **nunca se reutiliza**, preservando enlaces en commits, PRs y auditorías.
-2. **Consolidación en ADR Receptor**: Las decisiones que actúan como adendas o migraciones puntuales se absorben en el ADR de mayor alcance (`ADR-006`, `ADR-011`, `ADR-020`).
+1. **Inmutabilidad Estricta de Identificadores**: El ID numérico de un ADR retirado o consolidado (ej. `ADR-021`, `ADR-022`, `ADR-026`, `ADR-028`, `ADR-029`) **nunca se reutiliza**, preservando enlaces en commits, PRs y auditorías.
+2. **Consolidación en ADR Receptor**: Las decisiones que actúan como adendas o migraciones puntuales se absorben en el ADR de mayor alcance (`ADR-003`, `ADR-005`, `ADR-006`, `ADR-011`, `ADR-020`).
 3. **Sección de Trazabilidad Obligatoria**: El ADR receptor debe incorporar la sección `## Trazabilidad y Decisiones Consolidadas` resumiendo la decisión absorbida.
 4. **Catálogo Canónico en `docs/decisions/README.md`**: Toda decisión consolidada o retirada debe estar registrada en la tabla histórica con su justificación técnica y documento receptor.
 5. **Actualización de Consumidores y Tests**: Toda suite de pruebas debe validar el inventario canónico dinámico de ADRs activos y no rangos numéricos rígidos.
