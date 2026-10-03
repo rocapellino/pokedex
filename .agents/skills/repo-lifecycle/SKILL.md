@@ -140,7 +140,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 9. **Auditoría del Catálogo de Skills (capacidad interna de `repo-lifecycle`):**
     - Verifica que las skills reflejen fielmente las capacidades activas del repositorio sin desfases ni solapamiento de atribuciones.
     - Contrasta los nombres de skills contra los directorios reales de `.agents/skills/` y contra los comandos documentados, para detectar referencias huérfanas.
-    - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §4.
+    - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §3.
     - Como referencia metodológica externa se admite `project-skill-audit` del catálogo AAS, aprobado solo como `APPROVED_REFERENCE` y gobernado por `repo-lifecycle` (`scripts/aas-governance.ts`). No se materializa ni se ejecuta código upstream.
 
 ---

@@ -14,14 +14,14 @@ Ejecutar auditorías y evaluaciones de seguridad DevSecOps profundas, repetibles
 - **Gestión de Secretos y Rotación:**
   - Búsqueda de secretos, tokens o credenciales expuestas en código, historial git o artefactos de build.
   - Verificación del contrato de External Secrets Operator (ESO) con HashiCorp Vault CE (`pokedex/prod` y `pokedex/preprod`).
-  - Cumplimiento de la auditoría de rotación dual ([ADR-022](../../../docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)).
+  - Cumplimiento de la rotación automatizada y del contrato Reloader ([ADR-005](../../../docs/decisions/ADR-005-secret-management.md), que consolida al retirado ADR-022).
 - **Seguridad de Aplicación y API:**
   - Validación de esquemas Zod en todas las entradas de datos externos.
   - Aislamiento Egress y protección anti-SSRF mediante Cilium L7 NetworkPolicies.
   - Cabeceras de seguridad HTTP (CSP, Permissions-Policy, X-Content-Type-Options, Referrer-Policy).
   - Rate limiting distribuido respaldado en Redis.
 - **Seguridad en Contenedores y Kubernetes:**
-  - Dockerfiles multi-stage basados en imágenes mínimas (Alpine/distroless), sin usuarios root (`USER 10001:10001`).
+  - Dockerfiles multi-stage basados en imágenes mínimas (Alpine/distroless), sin usuarios root: `USER` numérico no privilegiado verificado contra los Dockerfiles vigentes (`apps/*/Dockerfile`), nunca contra un UID fijo copiado en esta skill.
   - Pod Security Standards (`baseline` / `restricted`), `readOnlyRootFilesystem: true`, y supresión de `ALL` capabilities.
   - Restricciones de admisión mediante políticas Kyverno.
 - **Supply Chain Security:**

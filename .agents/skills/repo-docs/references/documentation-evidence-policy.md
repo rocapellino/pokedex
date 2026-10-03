@@ -23,7 +23,7 @@ Ante cualquier contradicción entre artefactos del repositorio, la verdad técni
     │
  3. Pipelines de Integración y Entrega Continua      (.github/workflows/)
     │
- 4. Infraestructura Declarativa (IaC)                (infra/helm/, infra/tofu/, infra/ansible/)
+ 4. Infraestructura Declarativa (IaC)                (infra/helm/, infra/opentofu/, infra/ansible/)
     │
  5. Manifiestos de Paquetes y Lockfiles              (package.json, bun.lock)
     │

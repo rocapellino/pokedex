@@ -3,7 +3,7 @@
 > **Dominio de:** `repo-lifecycle` (orquestación), con colaboración de `repo-quality`,
 > `repo-security` y `repo-docs` según el aspecto evaluado.
 > **Estado de cada regla:** taxonomía de 5 estados registrada en
-> [`_shared/state-model.md`](../../_shared/state-model.md) §4.
+> [`_shared/state-model.md`](../../_shared/state-model.md) §3.
 
 ## 1. Detección Dinámica de Archivos de Exclusión
 
@@ -126,4 +126,4 @@ por dominio (`.dockerignore` → regla `docker`, `.markdownlintignore` → regla
 despacha Full CI. La matriz completa está en
 [`_shared/change-impact-matrix.md`](../../_shared/change-impact-matrix.md) §4.
 
-> [`_shared/state-model.md`](../../_shared/state-model.md) §4.
+> [`_shared/state-model.md`](../../_shared/state-model.md) §3.

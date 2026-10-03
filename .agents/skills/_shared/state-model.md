@@ -77,7 +77,7 @@ Para evitar ambigüedades operativas, toda capacidad o feature técnica debe cla
 
 ---
 
-## 4. Registro Canónico de Taxonomías de Estado
+## 3. Registro Canónico de Taxonomías de Estado
 
 El repositorio mantiene varios vocabularios de estado porque los dominios son
 legítimamente distintos. Lo que **no** es legítimo es la proliferación sin registro: una
@@ -122,7 +122,7 @@ Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
 
 ---
 
-## 5. Reglas Cardinales de Consistencia
+## 4. Reglas Cardinales de Consistencia
 
 > [!IMPORTANT]
 >

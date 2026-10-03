@@ -36,7 +36,7 @@ Toda modificación en el repositorio activa la auditoría condicional de los doc
 | :--- | :--- | :--- |
 | `package.json`, `bun.lock` | ¿Se modificó el runtime, dependencias base o scripts? | `README.md`, `docs/architecture/` |
 | `infra/helm/`, `gitops/` | ¿Cambió la arquitectura, puertos o recursos K8s? | `README.md`, `docs/architecture/`, `docs/operations/` |
-| `infra/tofu/`, `infra/ansible/` | ¿Se alteró el aprovisionamiento de nodos o red? | `docs/operations/`, `docs/runbooks/` |
+| `infra/opentofu/`, `infra/ansible/` | ¿Se alteró el aprovisionamiento de nodos o red? | `docs/operations/`, `docs/runbooks/` |
 | `.github/workflows/` | ¿Se modificaron linters, scanners o pipelines de build? | `README.md`, `docs/devops/`, `SECURITY.md` |
 | Configuración de Vault / ESO | ¿Cambiaron los roles o rutas de secretos? | `SECURITY.md`, `docs/security/` |
 | Modificación directa de `README.md` | ¿Las nuevas afirmaciones derivan de la evidencia del repo? | `README.md` |
