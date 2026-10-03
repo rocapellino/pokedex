@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T19:40:41.488Z",
+  "generatedAt": "2026-10-03T19:49:45.616Z",
   "summary": {
     "totalFiles": 58,
     "testFiles": 55,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 503,
-    "totalLines": 14292,
-    "totalSizeBytes": 653857,
+    "totalTestCases": 506,
+    "totalLines": 14339,
+    "totalSizeBytes": 656789,
     "suitesCount": 9
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 3,
-      "testCases": 14,
+      "testCases": 17,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -1185,12 +1185,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 4277,
-      "lineCount": 106,
-      "sha256": "11f9cf2174bb1f10bdfa16fc9f157dc63dd61a484dcc9b6670271e4fbd8dd1a0",
+      "assertionCountEst": 11,
+      "sizeBytes": 7209,
+      "lineCount": 153,
+      "sha256": "1de1c1fa041a53b8474bf331e8f5a67c5d4348bfb51ab10723e4073bded331a5",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1207,15 +1207,27 @@
       "testCases": [
         {
           "name": "🌐 AUD-SEC-CORS-001: existen entornos activos en el App-of-Apps",
-          "line": 81
+          "line": 90
         },
         {
           "name": "🌐 AUD-SEC-CORS-001: ${app} no hereda orígenes CORS de ejemplo",
-          "line": 86
+          "line": 95
+        },
+        {
+          "name": "🔐 AUD-SEC-TLS-001: ${app} sirve por TLS todo host cuando la cookie de sesión es Secure",
+          "line": 106
+        },
+        {
+          "name": "🔐 AUD-SEC-TLS-001: ${app} no renderiza anotaciones de un controlador distinto",
+          "line": 124
+        },
+        {
+          "name": "🔐 AUD-SEC-TLS-001: ${app} obtiene el certificado TLS de una fuente declarada",
+          "line": 132
         },
         {
           "name": "🌐 AUD-SEC-CORS-001: ${app} autoriza el origen de cada host del ingress con su esquema real",
-          "line": 95
+          "line": 142
         }
       ]
     },

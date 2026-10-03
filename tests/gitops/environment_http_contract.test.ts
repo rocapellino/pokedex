@@ -14,6 +14,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
@@ -41,7 +42,7 @@ function mergeValues(base: Values, override: Values): Values {
 }
 
 /** Applications activas: las de gitops/apps/ que root-application.yaml no excluye. */
-function activeEnvironments(): Array<{ app: string; values: Values }> {
+function activeEnvironments(): Array<{ app: string; values: Values; valueFiles: string[] }> {
   const appsDir = path.join(ROOT_DIR, 'gitops/apps');
   const root = readYaml(path.join(appsDir, 'root-application.yaml'));
   const excluded = String(root.spec.source.directory.exclude).split(/\s+/).filter(Boolean);
@@ -51,13 +52,21 @@ function activeEnvironments(): Array<{ app: string; values: Values }> {
     .filter((file) => file.endsWith('.yaml') && !excluded.includes(file))
     .map((file) => {
       const app = readYaml(path.join(appsDir, file));
-      const valueFiles: string[] = app.spec.source.helm.valueFiles;
-      const values = valueFiles.reduce(
-        (acc, valueFile) => mergeValues(acc, readYaml(path.resolve(CHART_DIR, valueFile))),
-        {} as Values
-      );
-      return { app: app.metadata.name as string, values };
+      const valueFiles = (app.spec.source.helm.valueFiles as string[]).map((file) => path.resolve(CHART_DIR, file));
+      const values = valueFiles.reduce((acc, valueFile) => mergeValues(acc, readYaml(valueFile)), {} as Values);
+      return { app: app.metadata.name as string, values, valueFiles };
     });
+}
+
+/** Anotaciones del Ingress tal como las renderiza Helm para el entorno. */
+function renderedIngressAnnotations(valueFiles: string[]): Record<string, string> {
+  const rendered = execFileSync(
+    'helm',
+    ['template', 'pokedex', CHART_DIR, ...valueFiles.flatMap((file) => ['-f', file]), '-s', 'templates/ingress.yaml'],
+    { encoding: 'utf8' }
+  );
+  const ingress = yaml.loadAll(rendered).find((doc: any) => doc?.kind === 'Ingress') as Values | undefined;
+  return ingress?.metadata?.annotations ?? {};
 }
 
 /** Esquema que el navegador usará para cada host según el bloque `tls` del ingress. */
@@ -82,13 +91,51 @@ test('🌐 AUD-SEC-CORS-001: existen entornos activos en el App-of-Apps', () => 
   assert.ok(environments.length > 0, 'root-application.yaml no deja ninguna Application activa');
 });
 
-for (const { app, values } of environments) {
+for (const { app, values, valueFiles } of environments) {
   test(`🌐 AUD-SEC-CORS-001: ${app} no hereda orígenes CORS de ejemplo`, () => {
     const origins = corsOrigins(values);
     assert.ok(origins.length > 0, `${app}: api.env.corsOrigins está vacío`);
     for (const origin of origins) {
       assert.doesNotMatch(origin, /example\.(com|org|net)/, `${app}: origen de ejemplo ${origin}`);
       assert.notEqual(origin, '*', `${app}: wildcard no permitido con credentials`);
+    }
+  });
+
+  // AUD-SEC-TLS-001: con nodeEnv=production el configmap fija SECURE_COOKIES=true y la
+  // cookie de sesión lleva `Secure`; servida por HTTP el navegador la descarta.
+  test(`🔐 AUD-SEC-TLS-001: ${app} sirve por TLS todo host cuando la cookie de sesión es Secure`, () => {
+    if (!values.ingress?.enabled || values.api?.env?.nodeEnv !== 'production') return;
+
+    const tlsHosts = new Set<string>((values.ingress.tls ?? []).flatMap((entry: any) => entry.hosts ?? []));
+    for (const { host } of values.ingress.hosts ?? []) {
+      assert.ok(tlsHosts.has(host), `${app}: el host ${host} no figura en ingress.tls`);
+    }
+
+    if (values.ingress.className === 'traefik') {
+      const annotations = values.ingress.annotations ?? {};
+      const entrypoints = String(annotations['traefik.ingress.kubernetes.io/router.entrypoints'] ?? '');
+      assert.equal(entrypoints, 'websecure', `${app}: el router debe publicarse solo en websecure`);
+      assert.equal(annotations['traefik.ingress.kubernetes.io/router.tls'], 'true', `${app}: falta router.tls`);
+    }
+  });
+
+  // El chart base declara anotaciones de ingress-nginx y cert-manager; con Traefik y
+  // certificado vía ESO son configuración inerte que no debe llegar al render.
+  test(`🔐 AUD-SEC-TLS-001: ${app} no renderiza anotaciones de un controlador distinto`, () => {
+    if (!values.ingress?.enabled || values.ingress.className !== 'traefik') return;
+    const foreign = Object.keys(renderedIngressAnnotations(valueFiles)).filter((key) =>
+      /^(nginx\.ingress\.kubernetes\.io|cert-manager\.io)\//.test(key)
+    );
+    assert.deepEqual(foreign, [], `${app}: anotaciones ignoradas por Traefik: ${foreign.join(', ')}`);
+  });
+
+  test(`🔐 AUD-SEC-TLS-001: ${app} obtiene el certificado TLS de una fuente declarada`, () => {
+    if (!values.ingress?.enabled || !(values.ingress.tls ?? []).length) return;
+    const viaEso = values.ingress.tlsExternalSecret?.enabled === true;
+    const viaCertManager = Boolean(renderedIngressAnnotations(valueFiles)['cert-manager.io/cluster-issuer']);
+    assert.ok(viaEso || viaCertManager, `${app}: ingress.tls sin ExternalSecret ni cert-manager que emita el Secret`);
+    if (viaEso) {
+      assert.ok(values.ingress.tlsExternalSecret.remoteRef?.key, `${app}: tlsExternalSecret.remoteRef.key vacío`);
     }
   });
 

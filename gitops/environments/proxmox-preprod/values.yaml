@@ -39,7 +39,7 @@ api:
     # AUD-SEC-CORS-001: un origen por host del ingress, con el esquema que usa el
     # navegador. Sin override se heredaba el ejemplo del chart y el backend
     # rechazaba toda mutación del backoffice. Ver tests/gitops/environment_http_contract.test.ts.
-    corsOrigins: "http://pokedex.preprod.proxmox.internal.lan,http://k8s-preprod.internal.lan"
+    corsOrigins: "https://pokedex.preprod.proxmox.internal.lan,https://k8s-preprod.internal.lan"
 
 web:
   replicaCount: 1
@@ -64,7 +64,10 @@ ingress:
   enabled: true
   className: "traefik"
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: "web"
+    # AUD-SEC-TLS-001 (ADR-016): router solo en websecure. La redirección 308 de
+    # web → websecure es global de Traefik (HelmChartConfig de setup_k3s.yaml).
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
     - host: pokedex.preprod.proxmox.internal.lan
       paths:
@@ -118,7 +121,17 @@ ingress:
               name: pokemon-web-svc
               port:
                 number: 8080
-  tls: []
+  # Certificado de la CA interna (la misma que firma vault.proxmox.internal.lan),
+  # cargado en Vault como TLS_CRT / TLS_KEY de pokedex/preprod y sincronizado por ESO.
+  tls:
+    - hosts:
+        - pokedex.preprod.proxmox.internal.lan
+        - k8s-preprod.internal.lan
+      secretName: pokedex-tls-cert
+  tlsExternalSecret:
+    enabled: true
+    remoteRef:
+      key: "pokedex/preprod"
 
 secrets:
   existingSecret: "pokemon-secrets"

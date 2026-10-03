@@ -34,7 +34,8 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
    - La observabilidad y telemetría están centralizadas en **Grafana Cloud** mediante Grafana Alloy / Beyla eBPF, eliminando acoplamientos de red locales como `monitoring-net` en Docker Compose.
 4. **Protección Egress Anti-SSRF:** La salida a Internet de los pods de aplicación está restringida a HTTPS (443) y filtra explícitamente mediante `ipBlock` los rangos de metadatos de Cloud (IMDS `169.254.169.254/32`), redes privadas RFC 1918 y loopback.
 5. **Ejecución No-Root:** Todos los contenedores corren bajo usuarios sin privilegios (`appuser:1001` en el backend y `nginx` en el frontend).
-6. **Arquitectura Fail-Closed:** Ante fallos de componentes auxiliares de seguridad (Redis o PostgreSQL), las operaciones sensibles se bloquean preventivamente en lugar de continuar en estado vulnerable.
+6. **Cifrado en Tránsito en el Ingress:** En los entornos Proxmox, Traefik termina TLS en el entrypoint `websecure` con un certificado de la CA interna entregado por ESO desde Vault, y redirige `web` con 308 ([ADR-016](../decisions/ADR-016-ingress-tls-and-http-hardening.md), enmienda 2026-10-03). La cookie de sesión `Secure` y los orígenes CORS `https://` dependen de esa terminación; [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) exige la coherencia.
+7. **Arquitectura Fail-Closed:** Ante fallos de componentes auxiliares de seguridad (Redis o PostgreSQL), las operaciones sensibles se bloquean preventivamente en lugar de continuar en estado vulnerable.
 
 ---
 
