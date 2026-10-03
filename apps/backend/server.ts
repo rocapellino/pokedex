@@ -82,6 +82,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 const isProduction = process.env.NODE_ENV === 'production';
 const configuredCorsOrigins = getConfiguredCorsOrigins();
 
+/**
+ * Rechazo de un origen por la política CORS (AUD-SEC-CORS-002). El handler global
+ * lo responde con 403 sin stack; los errores de configuración siguen siendo 500.
+ */
+class CorsOriginRejectedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CorsOriginRejectedError';
+  }
+}
+
 app.use(cors({
   origin: (origin, callback) => {
     // Permitir solicitudes sin origin (como herramientas internas, curl, llamadas entre servicios locales)
@@ -97,7 +108,7 @@ app.use(cors({
       if (DEFAULT_DEV_CORS_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Bloqueado por directiva de seguridad CORS: Origen no permitido en entorno de desarrollo'));
+      return callback(new CorsOriginRejectedError('Bloqueado por directiva de seguridad CORS: Origen no permitido en entorno de desarrollo'));
     }
     // La especificación CORS y navegadores modernos prohíben wildcard '*' con credentials: true
     if (configuredCorsOrigins.includes('*')) {
@@ -106,7 +117,7 @@ app.use(cors({
     if (configuredCorsOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error('Bloqueado por directiva de seguridad CORS'));
+    return callback(new CorsOriginRejectedError('Bloqueado por directiva de seguridad CORS'));
   },
   credentials: true,
 }));
@@ -183,6 +194,17 @@ app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   const traceId = (req as any).traceId || (req.headers['x-request-id'] as string) || undefined;
+  if (err instanceof CorsOriginRejectedError) {
+    logger.warn('Petición rechazada por la política CORS', { origin: req.headers.origin, path: req.path, traceId });
+    if (res.headersSent) {
+      return;
+    }
+    return res.status(403).json({
+      error: 'Origen no permitido por la política CORS.',
+      code: 'CORS_ORIGIN_REJECTED',
+      requestId: traceId,
+    });
+  }
   logger.error('Error no controlado en el servidor Express', {
     error: err?.message || String(err),
     stack: err?.stack,
