@@ -453,7 +453,10 @@ test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene 
     if (executor.job) {
       const job = orchestrator.jobs[executor.job];
       assert.ok(job, `change-impact.yaml debe definir el job ${executor.job}`);
-      assert.match(String(job.if), new RegExp(`outputs\.${executor.output} == 'true'`));
+      assert.ok(
+        String(job.if).includes(`outputs.${executor.output} == 'true'`),
+        `${executor.job} debe condicionarse a outputs.${executor.output}`
+      );
       assert.ok(
         orchestrator.jobs['quality-gate'].needs?.includes(executor.job),
         `quality-gate debe depender de ${executor.job}`
