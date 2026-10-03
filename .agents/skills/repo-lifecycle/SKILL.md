@@ -163,8 +163,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 7. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
 8. **`repo-maintenance` (Higiene de Tooling, Scripts y Cleanup):**
-   - Aplica el protocolo de 7 fases (`DISCOVER → CLASSIFY → EVIDENCE → PROPOSE → APPROVE → EXECUTE → VALIDATE`) para scripts, utilidades y artefactos obsoletos.
-   - Aplica la taxonomía de 8 estados con análisis de consumidores cruzados.
+   - Ejecuta la fase 6 (*Depurar*) aplicando el [protocolo único de depuración](../_shared/cleanup-protocol.md) a scripts, utilidades y artefactos obsoletos, con la taxonomía de 8 estados.
 9. **Auditoría del Catálogo de Skills (capacidad interna de `repo-lifecycle`):**
     - Verifica que las skills reflejen fielmente las capacidades activas del repositorio sin desfases ni solapamiento de atribuciones.
     - Contrasta los nombres de skills contra los directorios reales de `.agents/skills/` y contra los comandos documentados, para detectar referencias huérfanas.

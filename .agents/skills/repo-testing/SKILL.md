@@ -43,8 +43,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 - **Relación Tests vs. Código Fuente:**
   - Mapeo bidireccional entre módulos en `apps/backend/src/` y sus suites asociadas.
   - Identificación de brechas de cobertura (`TEST_COVERAGE_GAP`) en flujos críticos no testeados.
-- **Protocolo de Gobernanza en 7 Fases:**
-  `1. DISCOVER` (inventario) → `2. CLASSIFY` (taxonomía) → `3. EVIDENCE` (matriz de consumidores y código cubierto) → `4. PROPOSE` (plan / finding) → `5. APPROVE` (revisión humana) → `6. EXECUTE` (refactor / consolidación) → `7. VALIDATE` (Quality Gates 100% PASS).
+- **Protocolo de Depuración:** Toda eliminación, fusión o movimiento de tests sigue el [protocolo único de depuración](../_shared/cleanup-protocol.md) con el vocabulario de 12 estados de esta skill.
   *Regla estricta:* Ningún test se elimina automáticamente en primera pasada ni únicamente porque no se ejecute (primero se investiga si obedece a un pipeline desconfigurado o test abandonado).
 - **Gobernanza de Superficie de Testing (Test Surface Inventory):**
   - **Arquitectura Derivada y Reconciliable:** El código en `tests/` y `package.json` es la Fuente Única de Verdad (SSOT). La superficie se documenta y audita mediante dos artefactos gobernados:

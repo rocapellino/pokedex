@@ -23,6 +23,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
   - En `apps/backend`: Separación clara entre rutas, middlewares, controladores, servicios de dominio, repositorios Drizzle y validadores Zod.
   - En `apps/frontend`: Organización modular en Vanilla TypeScript, separación de UI del estado, encapsulamiento de llamadas API y saneamiento con DOMPurify.
 - **Prevención de God Files y Monolitos Relocalizados:** Detección de módulos sobrecargados (*God files*), funciones desproporcionadas y carpetas cajón de sastre sin cohesión (control de regresión histórica estilo `server.ts` 1.178 LOC → 280 LOC).
+- **Código Muerto y Exports sin Importador:** Detectar exports que ningún módulo importa, en especial los re-exports declarados "por retrocompatibilidad" y los alias de funciones (por ejemplo, un `verifySessionToken` que solo envuelve a `verifySessionTokenDetailed`). Para cada export, buscar importadores en `apps/**`, `tests/**` y `scripts/**`; sin importadores, el candidato pasa al [protocolo único de depuración](../_shared/cleanup-protocol.md) con estado `DELETE` o `REVIEW`. No introducir herramientas nuevas para esto salvo beneficio demostrado (*Economía de Herramientas*, [methodology.md](../_shared/methodology.md) §4).
 - **Métricas Estructurales y Acoplamiento:** Evaluación multidimensional de acoplamiento aferente/eferente ($C_a$, $C_e$), índice de inestabilidad ($I$), cohesión (LCOM), complejidad ciclomática y detección de dependencias circulares.
 - **Manejo Robusto de Errores y Logging:**
   - Registro estructurado con Pino incorporando correlación (`X-Request-Id`).
@@ -53,6 +54,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - `/repo-quality structure`: Evaluación multidimensional de cohesión, acoplamiento ($C_a, C_e, I$) y dependencias circulares.
 - `/repo-quality godfiles`: Detección precoz de archivos o módulos con acumulación patológica de responsabilidades.
 - `/repo-quality hotspots`: Identificación de los archivos con mayor deuda técnica, complejidad y churn.
+- `/repo-quality dead-code`: Detección de exports, re-exports y alias sin importador.
 
 ## Referencias Especializadas
 
