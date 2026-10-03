@@ -10,6 +10,9 @@
 # https://taskfile.dev
 version: '3'
 
+vars:
+  HELM_TEST_SECRETS: '--set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret'
+
 tasks:
   default:
     desc: "Interfaz oficialmente soportada: Muestra el catálogo de tareas disponibles (task --list)"
@@ -480,22 +483,22 @@ tasks:
   helm:template:prod:
     desc: "Renderiza los manifiestos de Kubernetes con el perfil de producción (values.prod.yaml)"
     cmds:
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.prod.yaml --set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.prod.yaml {{.HELM_TEST_SECRETS}}
 
   helm:template:dev:
     desc: "Renderiza los manifiestos de Kubernetes con el perfil de desarrollo local (values.dev.yaml)"
     cmds:
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.dev.yaml --set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.dev.yaml {{.HELM_TEST_SECRETS}}
 
   helm:template:proxmox:
     desc: "Renderiza los manifiestos de Kubernetes para el entorno GitOps On-Premise Proxmox"
     cmds:
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/proxmox/values.yaml --set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/proxmox/values.yaml {{.HELM_TEST_SECRETS}}
 
   helm:template:aws:
     desc: "Renderiza los manifiestos de Kubernetes para el entorno GitOps Cloud AWS"
     cmds:
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/aws/values.yaml --set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/aws/values.yaml {{.HELM_TEST_SECRETS}}
 
   helm:package:
     desc: "Empaqueta el Chart de Helm en un archivo .tgz listo para distribución"

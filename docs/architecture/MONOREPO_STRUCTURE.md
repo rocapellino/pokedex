@@ -136,7 +136,7 @@ pokedex/
 
 ### `apps/frontend/` (Capa de Presentación y Proxy DMZ)
 
-- **Frontend SPA Vanilla**: Catálogo con visualización Bento Grid, filtros dinámicos, paginación, paleta de tipos y consola de administración Backoffice con sanitización contra XSS.
+- **Frontend MPA Vanilla**: Catálogo con visualización Bento Grid, filtros dinámicos, paginación, paleta de tipos y consola de administración Backoffice con sanitización contra XSS (dos entrypoints Vite: `index.html` y `backoffice.html`).
 - **Nginx Reverse Proxy**: Contenedor Alpine no-root con digest criptográfico fijado, compresión gzip y cabeceras CSP.
 
 ### `infra/` y `gitops/` (Infraestructura, Orquestación y GitOps)

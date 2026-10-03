@@ -35,9 +35,9 @@ const PLACEHOLDERS = [
 ];
 
 const DEFAULTS = {
-  BACKOFFICE_ALLOWED_IP_1: '10.42.0.1/32',
-  BACKOFFICE_ALLOWED_IP_2: '192.168.1.50/32',
-  METRICS_ALLOWED_CIDR: '10.42.0.0/24',
+  BACKOFFICE_ALLOWED_IP_1: process.env.BACKOFFICE_ALLOWED_IP_1 || '10.42.0.1/32', // NOSONAR: IP privada RFC 1918 para fallback en desarrollo local
+  BACKOFFICE_ALLOWED_IP_2: process.env.BACKOFFICE_ALLOWED_IP_2 || '192.168.1.50/32', // NOSONAR: IP privada RFC 1918 para fallback en desarrollo local
+  METRICS_ALLOWED_CIDR: process.env.METRICS_ALLOWED_CIDR || '10.42.0.0/24', // NOSONAR: CIDR privado RFC 1918 para fallback en desarrollo local
 };
 
 const BANNER = [

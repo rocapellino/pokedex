@@ -288,6 +288,9 @@ if (!isRunningTests) {
         pgConnected: health.postgres_connected,
         redisConnected: health.redis_connected,
       });
+      if (process.env.NODE_ENV === 'production') {
+        logger.info('[APPS-003] Serving estático en Express activo como contingencia; el tráfico web productivo es canalizado por Nginx Ingress.');
+      }
     });
     setupGracefulShutdown(server);
   }).catch((err: unknown) => {
