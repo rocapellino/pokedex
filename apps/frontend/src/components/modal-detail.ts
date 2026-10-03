@@ -4,39 +4,26 @@
  */
 
 import { sanitizeHtml, escapeText } from '../sanitizer.js';
-import type { Pokemon, EvolutionNode, PokemonStats } from '../types.js';
+import type { Pokemon, PokemonStats } from '../types.js';
 import { normalizeStr } from '../shared/index.js';
 
-export const TYPE_WEAKNESSES: Record<string, string[]> = {
-  Normal: ['Lucha'],
-  Fuego: ['Agua', 'Tierra', 'Roca'],
-  Agua: ['Planta', 'Eléctrico'],
-  Planta: ['Fuego', 'Volador', 'Hielo', 'Veneno', 'Bicho'],
-  Eléctrico: ['Tierra'],
-  Hielo: ['Fuego', 'Lucha', 'Roca', 'Acero'],
-  Lucha: ['Volador', 'Psíquico', 'Hada'],
-  Veneno: ['Tierra', 'Psíquico'],
-  Tierra: ['Agua', 'Planta', 'Hielo'],
-  Volador: ['Eléctrico', 'Hielo', 'Roca'],
-  Psíquico: ['Bicho', 'Fantasma', 'Siniestro'],
-  Psíquica: ['Bicho', 'Fantasma', 'Siniestro'],
-  Bicho: ['Fuego', 'Volador', 'Roca'],
-  Roca: ['Agua', 'Planta', 'Lucha', 'Tierra', 'Acero'],
-  Fantasma: ['Fantasma', 'Siniestro'],
-  Dragón: ['Hielo', 'Dragón', 'Hada'],
-  Acero: ['Fuego', 'Lucha', 'Tierra'],
-  Siniestro: ['Lucha', 'Bicho', 'Hada'],
-  Hada: ['Veneno', 'Acero'],
-};
+import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
+import {
+  getTriggerIcon,
+  renderTransitionConnector,
+  renderSingleEvolutionNode,
+  renderEvolutionSystem,
+} from './modal-evolution.js';
 
-export function calculateWeaknesses(types: string[]): string[] {
-  const weakSet = new Set<string>();
-  types.forEach((t) => {
-    const list = TYPE_WEAKNESSES[t] || [];
-    list.forEach((w) => weakSet.add(w));
-  });
-  return Array.from(weakSet);
-}
+// Re-exportar utilidades y constantes para retrocompatibilidad total
+export {
+  TYPE_WEAKNESSES,
+  calculateWeaknesses,
+  getTriggerIcon,
+  renderTransitionConnector,
+  renderSingleEvolutionNode,
+  renderEvolutionSystem,
+};
 
 export function renderStatEqualizer(stats?: PokemonStats): string {
   const statDefs = [
@@ -71,227 +58,6 @@ export function renderStatEqualizer(stats?: PokemonStats): string {
     .join('');
 }
 
-export function getTriggerIcon(metodo?: string | null): string {
-  if (!metodo) return '⬆️';
-  const m = metodo.toLowerCase();
-  if (m.includes('nivel')) return '📈';
-  if (
-    m.includes('piedra') ||
-    m.includes('usar') ||
-    m.includes('mineral') ||
-    m.includes('bloque') ||
-    m.includes('manzana') ||
-    m.includes('tetera') ||
-    m.includes('cuenco')
-  ) {
-    return '💎';
-  }
-  if (m.includes('intercambio')) return '🔄';
-  if (m.includes('amistad') || m.includes('felicidad')) return '💖';
-  if (m.includes('movimiento') || m.includes('conociendo')) return '⚔️';
-  if (m.includes('lluvia')) return '🌧️';
-  if (m.includes('noche') || m.includes('sombras')) return '🌙';
-  if (m.includes('día') || m.includes('solar')) return '☀️';
-  return '⚡';
-}
-
-export function renderTransitionConnector(node?: EvolutionNode): string {
-  if (!node || !node.metodo) {
-    return `<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
-  }
-  const safeMetodo = escapeText(node.metodo);
-  return `
-    <div class="evolution-transition-connector">
-      <div class="evolution-trigger-badge" title="${safeMetodo}">
-        <span>${getTriggerIcon(node.metodo)}</span>
-        <span>${safeMetodo}</span>
-      </div>
-      <div class="evolution-chevron-arrow">&gt;</div>
-    </div>
-  `;
-}
-
-export function renderSingleEvolutionNode(
-  node: EvolutionNode,
-  currentId: number,
-  showMethod = false,
-  catalog: Pokemon[] = []
-): string {
-  const nodeId = Number(node.id) || 0;
-  const isCurrent = nodeId === currentId;
-  const formattedId = String(nodeId).padStart(4, '0');
-  const targetPk = catalog.find((x) => x.id === nodeId);
-  const nodeTypes = targetPk && targetPk.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
-  const safeNombre = escapeText(node.nombre || 'Pokémon');
-  const safeImagen = escapeText(
-    node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
-  );
-  const safeMetodo = node.metodo ? escapeText(node.metodo) : '';
-
-  const methodBadge =
-    showMethod && node.metodo
-      ? `<div class="evolution-method-tag" title="${safeMetodo}">${getTriggerIcon(node.metodo)} ${safeMetodo}</div>`
-      : '';
-
-  return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" title="${
-      isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre
-    }">
-      <div class="evolution-circle-frame">
-        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
-      </div>
-      <div class="evolution-name-tag">
-        ${safeNombre} <span class="evolution-number-sub">N.º ${escapeText(formattedId)}</span>
-      </div>
-      ${methodBadge}
-      <div class="evolution-types-row">
-        ${nodeTypes
-          .map((t) => `<span class="evolution-type-mini" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`)
-          .join('')}
-      </div>
-    </div>
-  `;
-}
-
-export function renderEvolutionSystem(evolData: any, currentId: number, catalog: Pokemon[] = []): string {
-  if (Array.isArray(evolData)) {
-    if (evolData.length <= 1) {
-      return `
-        <div class="pokedex-evolutions-official-panel">
-          <div class="evolutions-panel-header">Evoluciones</div>
-          <div class="evolutions-nodes-track">
-            ${evolData.map((node) => renderSingleEvolutionNode(node, currentId, true, catalog)).join('')}
-          </div>
-        </div>
-      `;
-    }
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${evolData
-            .map((node, idx) => {
-              const arrow = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${arrow}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  if (!evolData || !evolData.arbol) {
-    const fallbackNode: EvolutionNode = {
-      id: currentId,
-      nombre: 'Pokémon',
-      imagen: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentId}.png`,
-    };
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${renderSingleEvolutionNode(fallbackNode, currentId, false, catalog)}
-        </div>
-      </div>
-    `;
-  }
-
-  const root: EvolutionNode = evolData.arbol;
-  const isBranched = evolData.es_ramificada;
-
-  if (!root.evolves_to || root.evolves_to.length === 0) {
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${renderSingleEvolutionNode(root, currentId, false, catalog)}
-        </div>
-      </div>
-    `;
-  }
-
-  if (root.evolves_to.length > 1 && (!root.evolves_to[0].evolves_to || root.evolves_to[0].evolves_to.length === 0)) {
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="branched-evolution-container">
-          <div class="branched-parent-row">
-            ${renderSingleEvolutionNode(root, currentId, false, catalog)}
-          </div>
-          <div class="branched-fork-indicator">
-            <span class="fork-arrow-down">⬇️</span>
-            <span>Evoluciones según atributo, piedra o método utilizado</span>
-          </div>
-          <div class="branched-children-grid">
-            ${root.evolves_to.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog)).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (!isBranched) {
-    const linearList: EvolutionNode[] = [];
-    let cur: EvolutionNode | null = root;
-    while (cur) {
-      linearList.push(cur);
-      cur = cur.evolves_to && cur.evolves_to.length > 0 ? cur.evolves_to[0] : null;
-    }
-
-    return `
-      <div class="pokedex-evolutions-official-panel">
-        <div class="evolutions-panel-header">Evoluciones</div>
-        <div class="evolutions-nodes-track">
-          ${linearList
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  const linearPrefix: EvolutionNode[] = [];
-  let cur: EvolutionNode | null = root;
-  while (cur && cur.evolves_to && cur.evolves_to.length === 1) {
-    linearPrefix.push(cur);
-    cur = cur.evolves_to[0];
-  }
-  if (cur) linearPrefix.push(cur);
-
-  const branches = cur ? cur.evolves_to || [] : [];
-
-  return `
-    <div class="pokedex-evolutions-official-panel">
-      <div class="evolutions-panel-header">Evoluciones</div>
-      <div class="branched-evolution-container">
-        <div class="evolutions-nodes-track">
-          ${linearPrefix
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
-        </div>
-        ${
-          branches.length > 0
-            ? `
-          <div class="branched-fork-indicator">
-            <span class="fork-arrow-down">⬇️</span>
-            <span>Evoluciones alternativas</span>
-          </div>
-          <div class="branched-children-grid">
-            ${branches.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog)).join('')}
-          </div>
-        `
-            : ''
-        }
-      </div>
-    </div>
-  `;
-}
 
 export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = []): string {
   const car = pokemon.caracteristicas || {};
