@@ -1,13 +1,6 @@
 # ==============================================================================
-# Pokédex Platform CLI (Taskfile v3) - ADR-020 & ADR-026
+# Pokédex Taskfile v3
 # ==============================================================================
-# Jerarquía Canónica de Interfaces:
-#   - package.json  -> SSOT de comandos técnicos, compilación directa y CI pipelines.
-#   - Taskfile.yaml -> CLI canónico operativo para desarrolladores y operadores,
-#                      delegando en `npm run` para tareas de código y orquestando
-#                      Kubernetes, Helm, GitOps y despliegues declarativos.
-# ==============================================================================
-# https://taskfile.dev
 version: '3'
 
 vars:
