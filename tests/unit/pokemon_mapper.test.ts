@@ -136,3 +136,135 @@ test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates preserva inmutabilidad y f
   assert.equal(updated.stats.attack, 60);
   assert.equal(updated.stats.defense, 49);
 });
+
+test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates cubre mutaciones completas y todas las ramas de fallback', () => {
+  const existing: Pokemon = {
+    id: 4,
+    nombre: 'Charmander',
+    tipo: 'Fuego',
+    tipos: ['Fuego'],
+    imagen: 'https://example.com/charmander.png',
+    fuerza: 52,
+    habitat: 'Montaña',
+    caracteristicas: {
+      peso: 8.5,
+      altura: 0.6,
+      fuerza: 52,
+      edad: 4,
+      categoria: 'Lagarto',
+      descripcion: 'Fuego en su cola',
+      habitat: 'Montaña',
+    },
+    habilidades: ['Mar Llamas'],
+    stats: {
+      hp: 39,
+      attack: 52,
+      defense: 43,
+      sp_attack: 60,
+      sp_defense: 50,
+      speed: 65,
+    },
+    evoluciones: [],
+  };
+
+  // 1. Mutación con campos exhaustivos cubriendo ramas ternarias
+  const fullUpdates = {
+    imagen: 'https://example.com/charmeleon.png',
+    tipo: 'Fuego/Dragón',
+    tipos: ['Fuego', 'Dragón'],
+    habitat: 'Volcán',
+    habilidades: ['Poder Solar', 'Mar Llamas'],
+    caracteristicas: {
+      altura: 1.1,
+      edad: 6,
+      categoria: 'Llama',
+      descripcion: 'Escupe fuego intenso',
+      fuerza: 64,
+    },
+    stats: {
+      defense: 58,
+      sp_attack: 80,
+      sp_defense: 65,
+      speed: 80,
+    },
+    evoluciones: [{ id: 5, nombre: 'Charmeleon', etapa: 'Fase 1' }],
+  };
+
+  const updatedFull = applyPokemonUpdates(existing, fullUpdates);
+  assert.equal(updatedFull.imagen, 'https://example.com/charmeleon.png');
+  assert.equal(updatedFull.tipo, 'Fuego/Dragón');
+  assert.deepEqual(updatedFull.tipos, ['Fuego', 'Dragón']);
+  assert.equal(updatedFull.habitat, 'Volcán');
+  assert.deepEqual(updatedFull.habilidades, ['Poder Solar', 'Mar Llamas']);
+  assert.equal(updatedFull.caracteristicas.altura, 1.1);
+  assert.equal(updatedFull.caracteristicas.edad, 6);
+  assert.equal(updatedFull.caracteristicas.categoria, 'Llama');
+  assert.equal(updatedFull.caracteristicas.descripcion, 'Escupe fuego intenso');
+  assert.equal(updatedFull.caracteristicas.fuerza, 64);
+  assert.equal(updatedFull.stats.defense, 58);
+  assert.equal(updatedFull.stats.sp_attack, 80);
+  assert.equal(updatedFull.stats.sp_defense, 65);
+  assert.equal(updatedFull.stats.speed, 80);
+  assert.equal(updatedFull.evoluciones.length, 1);
+
+  // 2. Mutación con strings individuales en tipos/habilidades y habitat en caracteristicas
+  const stringTypeUpdates = {
+    tipos: 'Fuego' as any,
+    habilidades: 'Impulso' as any,
+    caracteristicas: {
+      habitat: 'Cueva',
+    },
+  };
+  const updatedStringTypes = applyPokemonUpdates(existing, stringTypeUpdates);
+  assert.deepEqual(updatedStringTypes.tipos, ['Fuego']);
+  assert.deepEqual(updatedStringTypes.habilidades, ['Impulso']);
+  assert.equal(updatedStringTypes.caracteristicas.habitat, 'Cueva');
+
+  // 3. Mutación vacía: preserva valores previos intactos
+  const emptyUpdate = applyPokemonUpdates(existing, {});
+  assert.equal(emptyUpdate.nombre, existing.nombre);
+  assert.equal(emptyUpdate.imagen, existing.imagen);
+  assert.equal(emptyUpdate.habitat, existing.habitat);
+  assert.equal(emptyUpdate.caracteristicas.peso, existing.caracteristicas.peso);
+  assert.equal(emptyUpdate.stats.hp, existing.stats.hp);
+});
+
+test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload cubre payloads exhaustivos y tipos no-array', () => {
+  const payloadExhaustivo = {
+    nombre: 'Charizard',
+    imagen: 'https://example.com/charizard.png',
+    tipo: 'Fuego',
+    tipos: 'Fuego' as any, // prueba de rama no-array
+    habitat: 'Volcán',
+    fuerza: 84,
+    caracteristicas: {
+      peso: 90.5,
+      altura: 1.7,
+      fuerza: 84,
+      edad: 10,
+      categoria: 'Llama',
+      descripcion: 'Alas poderosas',
+      habitat: 'Volcán',
+    },
+    habilidades: 'Mar Llamas' as any, // prueba de rama no-array
+    stats: {
+      hp: 78,
+      attack: 84,
+      defense: 78,
+      sp_attack: 109,
+      sp_defense: 85,
+      speed: 100,
+    },
+    evoluciones: [{ id: 6, nombre: 'Charizard', etapa: 'Fase 2' }],
+  };
+
+  const entity = buildPokemonFromPayload(6, payloadExhaustivo);
+  assert.equal(entity.id, 6);
+  assert.equal(entity.nombre, 'Charizard');
+  assert.deepEqual(entity.tipos, ['Fuego']);
+  assert.deepEqual(entity.habilidades, ['Mar Llamas']);
+  assert.equal(entity.stats.sp_attack, 109);
+  assert.equal(entity.caracteristicas.descripcion, 'Alas poderosas');
+  assert.equal(entity.evoluciones.length, 1);
+});
+

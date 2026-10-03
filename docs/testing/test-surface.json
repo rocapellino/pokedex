@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T02:25:50.696Z",
+  "generatedAt": "2026-10-03T02:33:10.758Z",
   "summary": {
     "totalFiles": 51,
     "testFiles": 49,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 485,
-    "totalLines": 13683,
-    "totalSizeBytes": 630937,
+    "totalTestCases": 487,
+    "totalLines": 13815,
+    "totalSizeBytes": 635302,
     "suitesCount": 9
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 7,
-      "testCases": 50,
+      "testCases": 52,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -3272,12 +3272,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 36,
-      "sizeBytes": 4400,
-      "lineCount": 139,
-      "sha256": "0a735e30f06e7bb7703d2b56fbff93adc9c67b3fa6ad3ed4d7479197cbe82e0e",
+      "assertionCountEst": 66,
+      "sizeBytes": 8765,
+      "lineCount": 271,
+      "sha256": "24c8d794c5e7de4bfb2f11275ae37cf8e0321ee56434561b987c056622760166",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3307,6 +3307,14 @@
         {
           "name": "🐾 Pokemon Mapper [Unit]: applyPokemonUpdates preserva inmutabilidad y fusiona campos anidados",
           "line": 81
+        },
+        {
+          "name": "🐾 Pokemon Mapper [Unit]: applyPokemonUpdates cubre mutaciones completas y todas las ramas de fallback",
+          "line": 140
+        },
+        {
+          "name": "🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload cubre payloads exhaustivos y tipos no-array",
+          "line": 232
         }
       ]
     },
