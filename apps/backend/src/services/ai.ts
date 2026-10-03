@@ -1,49 +1,36 @@
 import crypto from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
-import { z } from 'zod';
 import { getRedisClient } from './db.js';
+import {
+  AIMockupResponseSchema,
+  sanitizeAIHtml,
+  sanitizePrompt,
+} from '../validation/ai-security.js';
+import type {
+  CircuitState,
+  CircuitBreakerConfig,
+} from './ai-circuit-breaker.js';
+import {
+  AI_TIMEOUT_MS,
+  AICircuitBreaker,
+  aiCircuitBreaker,
+  withTimeout,
+} from './ai-circuit-breaker.js';
 
-export const AIMockupResponseSchema = z.object({
-  html_code: z.string().max(65536, 'El código HTML generado supera el límite permitido de 64KB'),
-  framework: z.string().max(50).optional(),
-  explanation: z.string().max(1000).optional(),
-});
-
-/**
- * Sanitiza y valida estructuralmente fragmentos HTML generados por modelos de IA.
- * Neutraliza vectores ejecutables (<script>, eventos inline on*, esquemas javascript/vbscript, iframes).
- */
-export function sanitizeAIHtml(rawHtml: string): string {
-  if (!rawHtml || typeof rawHtml !== 'string') return '';
-
-  // 1. Limitar longitud máxima de salida (64KB)
-  const trimmed = rawHtml.slice(0, 65536).trim();
-
-  // 2. Rechazo explícito de etiquetas ejecutables y de incrustación
-  if (/<script\b|<\/script/i.test(trimmed)) {
-    console.warn('[AI Security] Salida de IA rechazada: contiene etiquetas <script>.');
-    return '';
-  }
-
-  if (/<(?:iframe|object|embed|frame|frameset|applet|base|link|meta)\b/i.test(trimmed)) {
-    console.warn('[AI Security] Salida de IA rechazada: contiene elementos incrustados no permitidos.');
-    return '';
-  }
-
-  // 3. Rechazo explícito de pseudo-protocolos en atributos
-  if (/(?:href|src|action)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*text\/html)/i.test(trimmed)) {
-    console.warn('[AI Security] Salida de IA rechazada: contiene pseudo-protocolos peligrosos.');
-    return '';
-  }
-
-  // 4. Rechazo explícito de manejadores de eventos en línea (onload, onerror, onclick, etc.)
-  if (/\son[a-z]+\s*=/i.test(trimmed)) {
-    console.warn('[AI Security] Salida de IA rechazada: contiene manejadores de eventos inline.');
-    return '';
-  }
-
-  return trimmed;
-}
+// Re-exportar contratos y utilidades para retrocompatibilidad total
+export type {
+  CircuitState,
+  CircuitBreakerConfig,
+};
+export {
+  AIMockupResponseSchema,
+  sanitizeAIHtml,
+  sanitizePrompt,
+  AI_TIMEOUT_MS,
+  AICircuitBreaker,
+  aiCircuitBreaker,
+  withTimeout,
+};
 
 let aiClient: GoogleGenAI | null = null;
 
@@ -60,104 +47,8 @@ function getAIClient(): GoogleGenAI | null {
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
-export const AI_TIMEOUT_MS = 12000;
-
 // ==============================================================================
-// 1. Patrón Circuit Breaker para Resiliencia de Servicios de IA
-// ==============================================================================
-export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
-
-export interface CircuitBreakerConfig {
-  failureThreshold: number; // Número consecutivo de fallos para abrir el circuito
-  cooldownMs: number;       // Tiempo de espera en milisegundos antes de intentar reabrir
-}
-
-export class AICircuitBreaker {
-  private state: CircuitState = 'CLOSED';
-  private failureCount = 0;
-  private lastFailureTime = 0;
-  private readonly config: CircuitBreakerConfig;
-
-  constructor(config: Partial<CircuitBreakerConfig> = {}) {
-    this.config = {
-      failureThreshold: config.failureThreshold ?? 3,
-      cooldownMs: config.cooldownMs ?? 30000,
-    };
-  }
-
-  getState(): CircuitState {
-    if (this.state === 'OPEN') {
-      if (Date.now() - this.lastFailureTime > this.config.cooldownMs) {
-        this.state = 'HALF_OPEN';
-      }
-    }
-    return this.state;
-  }
-
-  canExecute(): boolean {
-    const currentState = this.getState();
-    return currentState === 'CLOSED' || currentState === 'HALF_OPEN';
-  }
-
-  recordSuccess(): void {
-    this.failureCount = 0;
-    this.state = 'CLOSED';
-  }
-
-  recordFailure(): void {
-    this.failureCount++;
-    this.lastFailureTime = Date.now();
-    if (this.failureCount >= this.config.failureThreshold) {
-      this.state = 'OPEN';
-    }
-  }
-
-  reset(): void {
-    this.state = 'CLOSED';
-    this.failureCount = 0;
-    this.lastFailureTime = 0;
-  }
-
-  getFailureCount(): number {
-    return this.failureCount;
-  }
-
-  isOpen(): boolean {
-    return this.getState() === 'OPEN';
-  }
-}
-
-export const aiCircuitBreaker = new AICircuitBreaker();
-
-// ==============================================================================
-// 2. Sanitización Semántica contra Prompt Injection & DoS
-// ==============================================================================
-/**
- * Sanitiza y neutraliza vectores comunes de Prompt Injection e intentos de manipulación de contexto.
- */
-export function sanitizePrompt(rawPrompt: string, maxLength = 500): string {
-  if (!rawPrompt || typeof rawPrompt !== 'string') return '';
-
-  // 1. Limitar longitud máxima para prevenir DoS y agotamiento desmedido de tokens
-  let cleaned = rawPrompt.slice(0, maxLength);
-
-  // 2. Neutralizar bloques de código markdown que intenten cerrar delimitadores
-  cleaned = cleaned.replace(/```/g, "'''");
-
-  // 3. Neutralizar prefijos comunes de suplantación de roles LLM
-  cleaned = cleaned.replace(/\b(system|assistant|human|user)\s*:/gi, '[role_removed]:');
-
-  // 4. Neutralizar frases de jailbreak / desobediencia de instrucciones
-  cleaned = cleaned.replace(
-    /\b(ignore|forget|disregard)\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)/gi,
-    '[instruccion_neutralizada]'
-  );
-
-  return cleaned.trim();
-}
-
-// ==============================================================================
-// 3. Caché Semántica con Redis para Servicios de IA
+// Caché Semántica con Redis para Servicios de IA
 // ==============================================================================
 export function getSemanticCacheKey(type: string, prompt: string, extra = ''): string {
   const normalized = prompt.toLowerCase().trim().replace(/\s+/g, ' ');
@@ -197,24 +88,6 @@ export async function setCachedAIResponse(
   }
 }
 
-/**
- * Envoltorio de resiliencia con cancelación preventiva ante demoras extremas del proveedor de IA.
- * Previene acumulación de conexiones abiertas y garantiza degradación elegante hacia fallback local.
- */
-export async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
-  let timer: NodeJS.Timeout;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error(`Timeout de servicio IA: la llamada excedió el límite de ${timeoutMs}ms`));
-    }, timeoutMs).unref();
-  });
-
-  try {
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    clearTimeout(timer!);
-  }
-}
 
 const ALLOWED_DIAGRAM_TYPES = ['flowchart', 'sequence', 'class', 'state', 'er', 'gantt'] as const;
 const ALLOWED_FRAMEWORKS = ['html/css', 'react', 'vue', 'tailwind', 'bootstrap'] as const;

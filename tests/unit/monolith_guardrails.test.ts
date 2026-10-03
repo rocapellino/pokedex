@@ -45,6 +45,42 @@ const MONOLITH_WATCHLIST: readonly MonolithGuardrail[] = Object.freeze([
     maxImports: 10,
     description: 'Fachada y adaptador de validación de payloads',
   },
+  {
+    file: 'apps/backend/src/services/ai.ts',
+    maxLoc: 350,
+    maxImports: 15,
+    description: 'Servicio de integración con IA y generación multimodal',
+  },
+  {
+    file: 'apps/backend/src/services/ai-circuit-breaker.ts',
+    maxLoc: 150,
+    maxImports: 5,
+    description: 'Patrón Circuit Breaker y resiliencia de servicios IA',
+  },
+  {
+    file: 'apps/backend/src/validation/ai-security.ts',
+    maxLoc: 100,
+    maxImports: 5,
+    description: 'Sanitización de salida HTML y prompts semánticos de IA',
+  },
+  {
+    file: 'apps/frontend/src/components/modal-detail.ts',
+    maxLoc: 250,
+    maxImports: 10,
+    description: 'Componente modal de detalle de Pokémon',
+  },
+  {
+    file: 'apps/frontend/src/components/modal-evolution.ts',
+    maxLoc: 250,
+    maxImports: 10,
+    description: 'Componente visualizador de árboles evolutivos',
+  },
+  {
+    file: 'apps/frontend/src/shared/pokemon-types.ts',
+    maxLoc: 100,
+    maxImports: 5,
+    description: 'Matriz de debilidades elementales de Pokémon',
+  },
 ]);
 
 test('🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)', () => {

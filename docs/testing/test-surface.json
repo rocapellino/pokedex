@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T00:35:02.705Z",
+  "generatedAt": "2026-10-03T01:26:58.172Z",
   "summary": {
-    "totalFiles": 49,
-    "testFiles": 47,
+    "totalFiles": 50,
+    "testFiles": 48,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 464,
-    "totalLines": 13182,
-    "totalSizeBytes": 613218,
+    "totalTestCases": 475,
+    "totalLines": 13373,
+    "totalSizeBytes": 620237,
     "suitesCount": 9
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 5,
-      "testCases": 35,
+      "files": 6,
+      "testCases": 46,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -3011,6 +3011,78 @@
       ]
     },
     {
+      "path": "tests/unit/ai_security.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 38,
+      "sizeBytes": 5989,
+      "lineCount": 155,
+      "sha256": "dbf6f31305430d3723f3bbe1d96aece220928a03218d816b068d1dc03ec07057",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: ai_security.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml preserva HTML limpio y seguro",
+          "line": 13
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml rechaza etiquetas <script>",
+          "line": 19
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml rechaza elementos incrustados (iframe, embed, object)",
+          "line": 25
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml rechaza pseudo-protocolos en href y src",
+          "line": 36
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml rechaza manejadores de eventos inline (onload, onclick, onerror)",
+          "line": 47
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizeAIHtml maneja entradas nulas o vacías",
+          "line": 55
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizePrompt trunca longitud máxima y neutraliza delimitadores",
+          "line": 63
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: sanitizePrompt neutraliza suplantación de roles e instrucciones jailbreak",
+          "line": 74
+        },
+        {
+          "name": "🛡️ AI Security [Unit]: AIMockupResponseSchema valida esquemas conformes y rechaza sobrecargas",
+          "line": 87
+        },
+        {
+          "name": "🛡️ AI Resiliencia [Unit]: AICircuitBreaker transiciona estados correctamente",
+          "line": 103
+        },
+        {
+          "name": "🛡️ AI Resiliencia [Unit]: withTimeout resuelve antes de expiración o lanza error de timeout",
+          "line": 140
+        }
+      ]
+    },
+    {
       "path": "tests/unit/auth_service.test.ts",
       "suite": "unit",
       "type": "Unit",
@@ -3135,9 +3207,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 37,
-      "sizeBytes": 5507,
-      "lineCount": 139,
-      "sha256": "edf952cb875775654166e5b5bbbf4027b62894f044cf0b1cac69082839255777",
+      "sizeBytes": 6537,
+      "lineCount": 175,
+      "sha256": "eb383d658043df1867a5c69b0e9ab26848cebb8c96889616172760f1393cb76a",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3154,19 +3226,19 @@
       "testCases": [
         {
           "name": "🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)",
-          "line": 50
+          "line": 86
         },
         {
           "name": "🛡️ Monolith Watch: network-security.ts está completamente desacoplado de Express, DB y servicios",
-          "line": 75
+          "line": 111
         },
         {
           "name": "🛡️ Network Security [Unit]: isPrivateOrRestrictedIp rechaza rangos restringidos y metadatos de nube",
-          "line": 87
+          "line": 123
         },
         {
           "name": "🛡️ Network Security [Unit]: validateImageUrl valida protocolo y previene SSRF",
-          "line": 114
+          "line": 150
         }
       ]
     },

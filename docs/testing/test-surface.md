@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **49** |
-| **Archivos de Test Automatizados** | 47 |
+| **Total de Archivos en `tests/`** | **50** |
+| **Archivos de Test Automatizados** | 48 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
-| **Total de Casos de Prueba Identificados** | **464** |
-| **Líneas de Código de Pruebas** | 13.182 |
-| **Tamaño Total de la Suite** | 598.8 KB |
+| **Total de Casos de Prueba Identificados** | **475** |
+| **Líneas de Código de Pruebas** | 13.373 |
+| **Tamaño Total de la Suite** | 605.7 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T00:35:02.705Z |
+| **Última Sincronización** | 2026-10-03T01:26:58.172Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 5 | 35 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 6 | 46 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 185 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 1 | 6 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 3 | 30 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
@@ -87,9 +87,10 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
-| [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 139 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 175 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | `unit` | Unit | `node:test (tsx)` | **8** | 196 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 100 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -103,14 +104,15 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 35
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 46
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
+| [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | *(General)* |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `apps/backend/src/services/auth.ts` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
-| [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 139 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
+| [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 175 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | **8** | 196 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `apps/backend/src/services/pokemon.repository.ts` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
 
