@@ -2,7 +2,8 @@
  * ==============================================================================
  * scripts/validate-docs-governance.ts
  * ==============================================================================
- * Motor de validación determinista y compuerta de gobernanza para docs/.
+ * Motor de validación determinista y compuerta de gobernanza para docs/,
+ * .agents/ (skills y reglas) y los documentos raíz (README, SECURITY, AGENTS).
  *
  * Verificaciones:
  *   1. Broken Relative Links: Todo enlace markdown relativo debe resolver a un
@@ -21,9 +22,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const ROOT_DIR = process.cwd();
-const DOCS_DIR = path.join(ROOT_DIR, 'docs');
-const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
+const ROOT_DOCS = ['README.md', 'SECURITY.md', 'AGENTS.md'];
 
 const INDEXED_DIRS = [
   'api',
@@ -104,20 +103,29 @@ function extractMarkdownLinkTargets(text: string): string[] {
   return targets;
 }
 
-export function validateDocsGovernance(): GovernanceViolation[] {
+export function validateDocsGovernance(rootDir: string = process.cwd()): GovernanceViolation[] {
   const violations: GovernanceViolation[] = [];
+  const ROOT_DIR = rootDir;
+  const DOCS_DIR = path.join(ROOT_DIR, 'docs');
+  const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
+  const AGENTS_DIR = path.join(ROOT_DIR, '.agents');
 
   // 1. Leer versión canónica
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   const currentVersion = pkgJson.version;
 
-  // 2. Obtener universo markdown de docs/, README.md y SECURITY.md
+  // 2. Obtener universo markdown de docs/, .agents/ y los documentos raíz.
+  //    .agents/ y AGENTS.md se incluyen porque las skills enlazan ADRs y políticas:
+  //    una consolidación de ADR (#483) dejó un enlace roto en repo-security que
+  //    este gate no detectaba al limitarse a docs/.
   const docsFiles = getMarkdownFiles(DOCS_DIR);
-  if (fs.existsSync(path.join(ROOT_DIR, 'README.md'))) {
-    docsFiles.push(path.join(ROOT_DIR, 'README.md'));
+  if (fs.existsSync(AGENTS_DIR)) {
+    docsFiles.push(...getMarkdownFiles(AGENTS_DIR));
   }
-  if (fs.existsSync(path.join(ROOT_DIR, 'SECURITY.md'))) {
-    docsFiles.push(path.join(ROOT_DIR, 'SECURITY.md'));
+  for (const rootDoc of ROOT_DOCS) {
+    if (fs.existsSync(path.join(ROOT_DIR, rootDoc))) {
+      docsFiles.push(path.join(ROOT_DIR, rootDoc));
+    }
   }
 
   // 3. Validar cada archivo

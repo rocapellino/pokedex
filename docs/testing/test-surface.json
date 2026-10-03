@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T18:13:53.820Z",
+  "generatedAt": "2026-10-03T18:48:40.856Z",
   "summary": {
     "totalFiles": 56,
     "testFiles": 53,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 495,
-    "totalLines": 14093,
-    "totalSizeBytes": 645352,
+    "totalTestCases": 496,
+    "totalLines": 14121,
+    "totalSizeBytes": 646586,
     "suitesCount": 9
   },
   "suites": [
@@ -29,7 +29,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 19,
-      "testCases": 182,
+      "testCases": 183,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -1905,12 +1905,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 1,
+      "testCount": 2,
       "describeCount": 0,
-      "assertionCountEst": 1,
-      "sizeBytes": 1238,
-      "lineCount": 28,
-      "sha256": "df8e74f6299acd398e834dbb44e1decf43d41b04f397d28d5f675f300fd36d0d",
+      "assertionCountEst": 2,
+      "sizeBytes": 2472,
+      "lineCount": 56,
+      "sha256": "b76562ee25a7202e79558aab9bdedaa488af5ed2c6008c82d8acdf45069bb9a9",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1926,8 +1926,12 @@
       "status": "ACTIVE",
       "testCases": [
         {
+          "name": "📚 Gobernanza Documental: el gate detecta enlaces rotos dentro de .agents/ y AGENTS.md",
+          "line": 21
+        },
+        {
           "name": "📚 Gobernanza Documental: validateDocsGovernance() no reporta enlaces rotos, esquemas locales ni drift",
-          "line": 18
+          "line": 46
         }
       ]
     },

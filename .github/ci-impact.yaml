@@ -80,6 +80,7 @@ rules:
     paths:
       - "README.md"
       - "SECURITY.md"
+      - "AGENTS.md"
       - "docs/**"
       - ".agents/**"
       - ".markdownlint.json"
