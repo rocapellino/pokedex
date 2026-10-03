@@ -40,7 +40,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task perf:lighthouse` | Auditoría de Core Web Vitals y rendimiento con Lighthouse CI. |
 | **Entorno Local** | `task dev:compose` | Levanta el stack interactivo con Docker Compose (Postgres, Redis, PgBouncer). |
 | | `task dev:compose:down` | Detiene y desmantela los contenedores locales de Compose. |
-| | `task dev:k8s:setup` | Despliega clúster Kind local con ingress y namespaces configurados. |
+| | `task dev:k8s:up` | Despliega clúster Kind local con ingress y namespaces configurados. |
 | | `task dev:k8s:status` | Consulta estado de pods, servicios e ingress en namespace `pokemon-app`. |
 | **Infraestructura (OpenTofu)** | `task infra:fmt` | Verifica formato canónico en todos los entornos de OpenTofu (`tofu fmt -check`). |
 | | `task infra:validate` | Valida sintaxis e inicializa backends (`Proxmox`, `AWS`, `Lab`). |
