@@ -3,6 +3,8 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import yaml from 'js-yaml';
+const yamlSafeLoad = (yaml as unknown as { load: typeof yaml.load }).load ?? yaml.load;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -541,3 +543,64 @@ test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests 
   assert.match(ciWorkflow, /verify-image-digest-parity\.ts/, 'Debe invocar el script canónico de verificación de paridad Helm AST');
   assert.match(ciWorkflow, /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/, 'Cosign debe firmar exactamente el digest validado');
 });
+
+test('🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable', () => {
+  const raw = fs.readFileSync(path.join(ROOT_DIR, '.pre-commit-config.yaml'), 'utf-8');
+  const config = (yamlSafeLoad(raw) as { repos: { repo: string; rev: string }[] }).repos;
+
+  assert.ok(config.length >= 3, 'Debe declararse al menos un repo de hooks');
+
+  for (const entry of config) {
+    assert.match(
+      entry.rev,
+      /^[a-f0-9]{40}$/,
+      `${entry.repo} debe fijarse por SHA de commit de 40 caracteres (SEC-001), no por tag`
+    );
+    // El tag legible se conserva en comentario para trazabilidad.
+    assert.match(
+      raw,
+      new RegExp(`rev:\\s*${entry.rev}\\s*#\\s*v\\S+`),
+      `${entry.repo} debe conservar el tag en comentario junto al SHA`
+    );
+  }
+});
+
+test('🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas', () => {
+  const raw = fs.readFileSync(path.join(ROOT_DIR, '.gitleaks.toml'), 'utf-8');
+
+  // Las reglas de infra/terraform/ se conservan a proposito (protegen el
+  // historial) y deben estar comentadas para que no parezca residuo.
+  assert.match(
+    raw,
+    /infra\/terraform\/\.\*\/\(variables\|outputs\)/,
+    'Debe conservarse la allowlist historica de Terraform'
+  );
+  assert.match(
+    raw,
+    /CLEAN-001/,
+    'La allowlist historica debe referenciar CLEAN-001 y su justificacion'
+  );
+  assert.match(
+    raw,
+    /infra\/opentofu/,
+    'Debe mantenerse la allowlist vigente de OpenTofu'
+  );
+});
+
+test('🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada', () => {
+  const raw = fs.readFileSync(path.join(ROOT_DIR, '.semgrepignore'), 'utf-8');
+
+  assert.match(raw, /^infra\/$/m, 'La exclusion de infra/ debe mantenerse');
+  assert.match(
+    raw,
+    /SEC-002/,
+    'La exclusion debe documentar el analisis SEC-002 y el motivo de mantenerla'
+  );
+  // La justificacion debe apoyarse en la ausencia de codigo de aplicacion.
+  assert.match(
+    raw,
+    /No hay\s*\n?#?\s*ningun archivo \.ts/,
+    'La exclusion debe explicar que infra/ no contiene codigo de aplicacion'
+  );
+});
+

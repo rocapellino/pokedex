@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T15:16:50.645Z",
+  "generatedAt": "2026-10-03T15:49:10.371Z",
   "summary": {
-    "totalFiles": 52,
-    "testFiles": 49,
+    "totalFiles": 54,
+    "testFiles": 51,
     "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 495,
-    "totalLines": 14076,
-    "totalSizeBytes": 644753,
+    "totalLines": 14104,
+    "totalSizeBytes": 645926,
     "suitesCount": 9
   },
   "suites": [
@@ -29,7 +29,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 19,
-      "testCases": 185,
+      "testCases": 188,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -48,8 +48,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 3,
-      "testCases": 42,
+      "files": 4,
+      "testCases": 45,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -98,8 +98,8 @@
       "path": "tests/",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 16,
-      "testCases": 185,
+      "files": 17,
+      "testCases": 179,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -110,12 +110,12 @@
       "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 8,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 15,
-      "sizeBytes": 4025,
-      "lineCount": 92,
-      "sha256": "3e11f856c2fbd6ed7090776703d70d4d543cb5a3bbb794b2d3a63677e0fee7f7",
+      "assertionCountEst": 21,
+      "sizeBytes": 6337,
+      "lineCount": 147,
+      "sha256": "4e0ace0722bb556d20efb3a9ec028435a61d905b684246a6902d957801a944e2",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -163,6 +163,14 @@
         {
           "name": "la configuración MCP del editor permanece fuera del alcance",
           "line": 88
+        },
+        {
+          "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
+          "line": 93
+        },
+        {
+          "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
+          "line": 126
         }
       ]
     },
@@ -259,12 +267,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 57,
+      "testCount": 33,
       "describeCount": 0,
-      "assertionCountEst": 346,
-      "sizeBytes": 63291,
-      "lineCount": 1466,
-      "sha256": "af8534885a1717b9e37acf944fdb851c0b78171d9d5bed04f09efc7b017531b8",
+      "assertionCountEst": 248,
+      "sizeBytes": 34900,
+      "lineCount": 759,
+      "sha256": "dab5cf2d009ace7751b6d3c6a7f765bb5de80170223c54466a1c5790cbb3484a",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -283,231 +291,226 @@
       "testCases": [
         {
           "name": "🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente",
-          "line": 32
+          "line": 29
         },
         {
           "name": "🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml",
-          "line": 58
+          "line": 55
         },
         {
           "name": "🎯 Change Impact: Contrato declarativo ci-impact.yaml existe y es válido",
-          "line": 72
+          "line": 69
         },
         {
           "name": "🎯 Change Impact: Cambio puramente documental activa solo Fast Track de docs",
-          "line": 91
+          "line": 88
         },
         {
           "name": "🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 111
+          "line": 108
         },
         {
           "name": "🤖 Change Impact: validador y tests AAS activan el dominio canónico",
-          "line": 124
+          "line": 121
         },
         {
           "name": "🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed",
-          "line": 149
+          "line": 146
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 203
+          "line": 200
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AWS",
-          "line": 220
+          "line": 217
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 237
+          "line": 234
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 260
+          "line": 257
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 279
+          "line": 276
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 297
+          "line": 294
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 314
+          "line": 311
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 329
+          "line": 326
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 355
+          "line": 352
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 372
+          "line": 369
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 388
+          "line": 385
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 404
+          "line": 401
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 419
+          "line": 416
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 435
+          "line": 432
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 450
+          "line": 447
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 465
+          "line": 462
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 485
+          "line": 482
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 504
+          "line": 501
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 531
+          "line": 528
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 553
-        },
-        {
-          "name": "🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml",
-          "line": 596
-        },
-        {
-          "name": "⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency",
-          "line": 606
-        },
-        {
-          "name": "⚙️ CI topology: el orquestador conserva la serialización por PR",
-          "line": 632
-        },
-        {
-          "name": "🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado",
-          "line": 638
-        },
-        {
-          "name": "🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada",
-          "line": 648
-        },
-        {
-          "name": "📦 OCI-001: los labels de imagen usan la version y revision reales",
-          "line": 724
-        },
-        {
-          "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
-          "line": 765
-        },
-        {
-          "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 806
-        },
-        {
-          "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 850
-        },
-        {
-          "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 886
-        },
-        {
-          "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 907
-        },
-        {
-          "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 928
-        },
-        {
-          "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 950
-        },
-        {
-          "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 967
-        },
-        {
-          "name": "🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si faltan en modo --render",
-          "line": 970
-        },
-        {
-          "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 1073
-        },
-        {
-          "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 1084
-        },
-        {
-          "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 1094
-        },
-        {
-          "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 1175
+          "line": 550
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 1182
+          "line": 593
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 1198
+          "line": 609
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 1236
+          "line": 647
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 1263
-        },
-        {
-          "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 1284
-        },
-        {
-          "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 1310
-        },
-        {
-          "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
-          "line": 1338
-        },
-        {
-          "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 1354
-        },
-        {
-          "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 1379
+          "line": 674
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 1402
+          "line": 695
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 1418
+          "line": 711
+        }
+      ]
+    },
+    {
+      "path": "tests/ci_workflow_governance.test.ts",
+      "suite": "governance",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 16,
+      "describeCount": 0,
+      "assertionCountEst": 61,
+      "sizeBytes": 18003,
+      "lineCount": 429,
+      "sha256": "a68a0fee89203edb987b8b3294646d959bf24fec243cc45ccb793da1aaf40f0d",
+      "targetDomain": "Suite governance",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas governance: ci_workflow_governance.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml",
+          "line": 17
+        },
+        {
+          "name": "⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency",
+          "line": 27
+        },
+        {
+          "name": "⚙️ CI topology: el orquestador conserva la serialización por PR",
+          "line": 53
+        },
+        {
+          "name": "🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado",
+          "line": 59
+        },
+        {
+          "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
+          "line": 69
+        },
+        {
+          "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
+          "line": 110
+        },
+        {
+          "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
+          "line": 154
+        },
+        {
+          "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
+          "line": 199
+        },
+        {
+          "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
+          "line": 210
+        },
+        {
+          "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
+          "line": 220
+        },
+        {
+          "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
+          "line": 301
+        },
+        {
+          "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
+          "line": 312
+        },
+        {
+          "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
+          "line": 338
+        },
+        {
+          "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
+          "line": 366
+        },
+        {
+          "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
+          "line": 382
+        },
+        {
+          "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
+          "line": 407
         }
       ]
     },
@@ -1013,6 +1016,45 @@
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
           "line": 287
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/nginx_config.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 22,
+      "sizeBytes": 7064,
+      "lineCount": 188,
+      "sha256": "cb96939e84715e270af395ab199be21b42a118d0d254729e9ecfc04d4d5d0fce",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: nginx_config.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada",
+          "line": 12
+        },
+        {
+          "name": "🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si faltan en modo --render",
+          "line": 88
+        },
+        {
+          "name": "📦 OCI-001: los labels de imagen usan la version y revision reales",
+          "line": 148
         }
       ]
     },
@@ -2814,12 +2856,12 @@
       "type": "Security / Supply Chain",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 16,
+      "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 98,
-      "sizeBytes": 27466,
-      "lineCount": 544,
-      "sha256": "9b82309d72a767a1b50861add8144c0563ca33ad88ab9824d432490c09be2054",
+      "assertionCountEst": 107,
+      "sizeBytes": 29651,
+      "lineCount": 607,
+      "sha256": "8318d3fe1eb3eaf87c387bf20cdee8ccd7e6e09cf12d17f1fde25019b5f1d077",
       "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
       "targetArtifacts": [
         "package.json",
@@ -2840,67 +2882,79 @@
       "testCases": [
         {
           "name": "🔒 Supply Chain: las actions del release no usan runtimes de Node retirados",
-          "line": 20
+          "line": 22
         },
         {
           "name": "🏷️ Release Tag: el header de la API de GitHub tiene el quoting balanceado",
-          "line": 54
+          "line": 56
         },
         {
           "name": "🔤 Workflows: los archivos usan fin de línea LF (relacionado con REL-002)",
-          "line": 68
+          "line": 70
         },
         {
           "name": "🔤 Workflows: .gitattributes fuerza LF en los workflows",
-          "line": 81
+          "line": 83
         },
         {
           "name": "🔒 INFRA-005: toda imagen del Chart debe soportar fijacion por digest",
-          "line": 92
+          "line": 94
         },
         {
           "name": "🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta",
-          "line": 145
+          "line": 147
         },
         {
           "name": "🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build",
-          "line": 155
+          "line": 157
         },
         {
           "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
-          "line": 175
+          "line": 177
         },
         {
           "name": "🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse",
-          "line": 191
+          "line": 193
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
-          "line": 348
+          "line": 350
         },
         {
           "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 364
+          "line": 366
         },
         {
           "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
-          "line": 377
+          "line": 379
         },
         {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 403
+          "line": 405
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 416
+          "line": 418
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 441
+          "line": 443
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 537
+          "line": 539
+        },
+        {
+          "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
+          "line": 547
+        },
+        {
+          "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
+          "line": 568
+        },
+        {
+          "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
+          "line": 590
         }
       ]
     },

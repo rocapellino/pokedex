@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **52** |
-| **Archivos de Test Automatizados** | 49 |
+| **Total de Archivos en `tests/`** | **54** |
+| **Archivos de Test Automatizados** | 51 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 2 |
 | **Total de Casos de Prueba Identificados** | **495** |
-| **Líneas de Código de Pruebas** | 14.076 |
-| **Tamaño Total de la Suite** | 629.6 KB |
+| **Líneas de Código de Pruebas** | 14.104 |
+| **Tamaño Total de la Suite** | 630.8 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T15:16:50.645Z |
+| **Última Sincronización** | 2026-10-03T15:49:10.371Z |
 
 ---
 
@@ -28,14 +28,14 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 7 | 52 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 185 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 19 | 188 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 1 | 6 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 3 | 42 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 45 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 16 | 185 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 17 | 179 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -45,10 +45,11 @@ A continuación se inventarían todos los archivos que componen la superficie de
 
 | Archivo | Suite | Tipo | Runner | Casos | Líneas | Dominio / Qué Verifica | Comandos |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **8** | 92 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 147 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts) | `governance` | Integration | `node:test (tsx)` | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **4** | 60 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **57** | 1466 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **33** | 759 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **16** | 429 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 186 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | `governance` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -58,6 +59,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 519 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **14** | 301 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 188 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 220 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 27 | Suite de pruebas helpers: taskfile.ts. | *(Helper)* |
@@ -84,7 +86,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | `security` | Security / DR Benchmarks | `node:test (tsx)` | **9** | 125 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **1** | 64 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **16** | 544 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **19** | 607 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -121,7 +123,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 185
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 188
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -142,7 +144,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | **9** | 125 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `scripts/dr-drill.ts` |
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **1** | 64 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
-| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **16** | 544 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
+| [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **19** | 607 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | **10** | 190 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `scripts/k8s-rollout-restart.ts` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `scripts/check-yaml-extension.ts` |
 
@@ -157,7 +159,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 42
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 45
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -165,6 +167,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 519 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **14** | 301 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
+| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **3** | 188 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
 
@@ -205,15 +208,16 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Gobernanza y Contratos de Plataforma (Root) (`governance`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 185
+- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 179
 - **Propósito:** Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **8** | 92 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
+| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **10** | 147 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
 | [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts) | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/server.ts` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | **4** | 60 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `docs/audits/` |
-| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **57** | 1466 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
+| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **33** | 759 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
+| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **16** | 429 | Suite de pruebas governance: ci_workflow_governance.test.ts. | *(General)* |
 | [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `apps/backend/src/services/db.ts` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `apps/backend/src/types.ts`, `apps/frontend/src/types.ts` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | **2** | 126 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `docs/decisions/`, `.agents/rules/documentation-governance.md` |
