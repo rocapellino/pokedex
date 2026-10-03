@@ -51,7 +51,7 @@
     "lint:turbo": "turbo run lint",
     "typecheck:turbo": "turbo run typecheck",
     "secrets:audit-rotation": "node --experimental-strip-types scripts/verify-secret-rotation.ts",
-    "governance:audit-scripts": "tsx --test tests/security/iac_baseline_security.test.ts",
+    "governance:audit-scripts": "tsx --test tests/security/iac_baseline_security.test.ts tests/security/ansible_baseline_security.test.ts tests/security/opentofu_baseline_security.test.ts",
     "gitops:verify-parity": "node --experimental-strip-types scripts/verify-image-digest-parity.ts",
     "gitops:verify-parity:strict": "node --experimental-strip-types scripts/verify-image-digest-parity.ts --strict",
     "gitops:pin": "node --experimental-strip-types scripts/update-gitops-pin.ts",

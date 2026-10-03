@@ -116,7 +116,7 @@ El repositorio documenta una **topología de red de referencia** con fines didá
 
 > [!IMPORTANT]
 > **Estos valores no son parametrizables por diseño y están sujetos a contrato.**
-> `scripts/k8s-rollout-restart.ts` y `tests/security/iac_baseline_security.test.ts` verifican literalmente estas direcciones: cambiarlas rompe los gates. Sanear la documentación **sin** parametrizar la infraestructura no reduciría la exposición, solo ocultaría parte de ella.
+> `scripts/k8s-rollout-restart.ts` y `tests/security/ansible_baseline_security.test.ts` verifican literalmente estas direcciones: cambiarlas rompe los gates. Sanear la documentación **sin** parametrizar la infraestructura no reduciría la exposición, solo ocultaría parte de ella.
 
 ### 6.2. Lo que nunca se publica
 
