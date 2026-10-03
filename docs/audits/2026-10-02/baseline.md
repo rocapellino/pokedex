@@ -2,8 +2,8 @@
 
 > **Estado:** Histórico (`AUDIT_STALE`; snapshot consolidado no bloqueante)  
 > **Fecha de captura:** 2026-10-02  
-> **Commit:** `31ad8d7f267fa6ca14ee204128f6459ea79dfa99`  
-> **Versión Base:** `v1.89.6`  
+> **Commit:** `b4fafd567823b3cc740b17d9d9986c2dea63270b`  
+> **Versión Base:** `v1.89.7`  
 >
 > [!IMPORTANT]
 > Este documento conserva la evidencia del commit auditado y consolida los ciclos cerrados de auditoría.
@@ -16,16 +16,16 @@
 
 | Componente | Valor Vigente | Fuente de Verdad Canónica (SSOT) |
 | :--- | :--- | :--- |
-| `package.json` | `1.89.6` | SSOT de versión de aplicación y monorepo |
-| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.89.6` | SSOT de empaquetado Helm y distribución |
-| GitOps Root Application (`gitops/apps/root-application.yaml`) | `v1.89.6` | SSOT de orquestación App-of-Apps |
-| GitOps Proxmox Prod (`gitops/apps/app-proxmox.yaml`) | `v1.89.6` | SSOT de promoción en producción |
-| GitOps Proxmox Pre-Prod (`gitops/apps/app-proxmox-preprod.yaml`) | `v1.89.6` | SSOT de promoción en pre-producción |
-| GitOps Cloud Reference (`gitops/apps/app-cloud.yaml`) | `v1.89.6` | Manifiesto de referencia desacoplado |
-| Último tag alcanzado | `v1.89.6` | `git tag --sort=-v:refname` |
+| `package.json` | `1.89.7` | SSOT de versión de aplicación y monorepo |
+| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.89.7` | SSOT de empaquetado Helm y distribución |
+| GitOps Root Application (`gitops/apps/root-application.yaml`) | `v1.89.7` | SSOT de orquestación App-of-Apps |
+| GitOps Proxmox Prod (`gitops/apps/app-proxmox.yaml`) | `v1.89.7` | SSOT de promoción en producción |
+| GitOps Proxmox Pre-Prod (`gitops/apps/app-proxmox-preprod.yaml`) | `v1.89.7` | SSOT de promoción en pre-producción |
+| GitOps Cloud Reference (`gitops/apps/app-cloud.yaml`) | `v1.89.7` | Manifiesto de referencia desacoplado |
+| Último tag alcanzado | `v1.89.7` | `git tag --sort=-v:refname` |
 
 > [!NOTE]
-> La paridad entre `package.json`, `Chart.yaml` y la totalidad de los manifiestos de ArgoCD en `gitops/apps/` es estricta **1:1** (`v1.89.6`).
+> La paridad entre `package.json`, `Chart.yaml` y la totalidad de los manifiestos de ArgoCD en `gitops/apps/` es estricta **1:1** (`v1.89.7`).
 
 ---
 
@@ -38,7 +38,7 @@
 | Skills canónicas en `.agents/skills/` | 17 | Catálogo consolidado bajo despacho condicional |
 | Archivos totales en `tests/` | 49 | 47 suites activas, 1 fixture/entorno, 1 script k6 de carga |
 | Casos individuales de prueba | 464 | Unitarios, contratos, seguridad, IaC, GitOps, E2E y a11y |
-| Líneas de código de pruebas | 13.181 | Inventariadas determinísticamente en `test-surface.json` |
+| Líneas de código de pruebas | 13.182 | Inventariadas determinísticamente en `test-surface.json` |
 | Tamaño de suite de pruebas | 598.8 KB | Cobertura integral en runtime y CI/CD |
 
 ---
@@ -62,10 +62,13 @@ La arquitectura de integración continua opera bajo un modelo de orquestación d
 
 Todos los hallazgos correspondientes a los ciclos previos de auditoría han sido remediados, validados en CI/CD y consolidados en el árbol canónico:
 
-### A. Ciclo de Consolidación de Apps, Workflows, Docs y Releases (PRs #455 al #458)
+### A. Ciclo de Consolidación de Dependencias, Seguridad y Releases (PRs #455 al #461)
 
 | Hito / ID | Área | Descripción y Solución Aplicada | PR / Commit |
 | :--- | :--- | :--- | :--- |
+| **DEP-001** | Dependencias | Actualización de dependencias wanted (`@commitlint/*`, `turbo`, `drizzle-orm`, `drizzle-kit`, `express`, `pg`, `pino`, `zod`, `vite`) y mitigación SCA completa (`basic-ftp ^6.2.1`, GHSA-c475-qrg2-pj4r) logrando 0 vulnerabilidades en `npm audit`. | #461 (`c93b77d`) |
+| **APPS-009** | Docker / Runtime | Configuración de `NODE_PATH` en `apps/backend/Dockerfile` asegurando resolución determinista de módulos anidados en workspaces de monorepo. Interoperabilidad ESM/CJS de `js-yaml` en testing. | #461 (`c93b77d`) |
+| **REL-005** | Release / GitOps | Promoción atómica e inmutable de la versión `v1.89.7` en todo el monorepo y sincronización 1:1 en ArgoCD. | #460 (`b4fafd5`) |
 | **APPS-008** | Apps / Calidad | Modularización de seguridad de red en `network-security.ts`, extracción de validaciones SSRF e IP privada, desacoplamiento de Express/Postgres y creación de tests unitarios de guardrails anti-monolito. | #455 (`3890f77`) |
 | **APPS-002** | Apps / Seed | Desacoplamiento del auto-seed en `postgres.ts` (condicionado estrictamente a `AUTO_SEED=true` o `NODE_ENV=test`), delegando la población en producción al K8s Seed Job (`seed-job.yaml`). | #455 (`3890f77`) |
 | **CI-007** | CI / Least Privilege | Consolidación de permisos Zero-Trust en los 18 workflows de GitHub Actions; aplicación de permisos explícitos por job y tipado de variables no falsificables (`user.login` no-fork). | #456 (`68282e1`) |
@@ -87,6 +90,6 @@ Todos los hallazgos correspondientes a los ciclos previos de auditoría han sido
 ## 5. Regla de Oro Operativa (AGENTS.md)
 
 > [!IMPORTANT]
-> Este documento representa un **snapshot histórico consolidado** al commit `31ad8d7`.
+> Este documento representa un **snapshot histórico consolidado** al commit `b4fafd5`.
 > **NUNCA debe utilizarse para inferir el estado actual, rutas de secretos o configuraciones vigentes.**
 > La verdad operativa reside estrictamente en las Fuentes Únicas de Verdad (SSOT): `gitops/`, `infra/`, `docs/architecture/`, `apps/`, `scripts/` y `tests/`.
