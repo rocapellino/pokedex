@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T21:38:48.919Z",
+  "generatedAt": "2026-10-03T22:18:47.103Z",
   "summary": {
     "totalFiles": 61,
     "testFiles": 58,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 518,
-    "totalLines": 14611,
-    "totalSizeBytes": 669132,
+    "totalTestCases": 521,
+    "totalLines": 14674,
+    "totalSizeBytes": 672606,
     "suitesCount": 9
   },
   "suites": [
@@ -29,7 +29,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 21,
-      "testCases": 192,
+      "testCases": 195,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2312,12 +2312,12 @@
       "type": "Contract / OCI",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 35,
-      "sizeBytes": 7459,
-      "lineCount": 188,
-      "sha256": "db02962007bc712b4c925fd0ef0e575d6b8bb5df776aef49e0612df3825cd18e",
+      "assertionCountEst": 42,
+      "sizeBytes": 10933,
+      "lineCount": 251,
+      "sha256": "a4c0ce98f007b322a1db0881873a9f396ab5861715345e329d8caef4e2c3140b",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -2337,15 +2337,27 @@
       "testCases": [
         {
           "name": "📦 GHCR Retention: calculateVersionsToPrune conserva estrictamente los últimos N y marca el resto para purga",
-          "line": 33
+          "line": 35
         },
         {
           "name": "📦 GHCR Retention: applyGhcrRetention ejecuta correctamente en modo simulación",
-          "line": 100
+          "line": 108
         },
         {
           "name": "🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y parámetros de retención",
-          "line": 130
+          "line": 140
+        },
+        {
+          "name": "📦 GHCR Retention: firmas, SBOM y versiones sin tag no desplazan ni purgan imágenes",
+          "line": 215
+        },
+        {
+          "name": "📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede fuera del top N",
+          "line": 231
+        },
+        {
+          "name": "📦 GHCR Retention: protege los digests api y web declarados en GitOps y gestiona ambos paquetes",
+          "line": 241
         }
       ]
     },

@@ -4,7 +4,7 @@
 
 Conforme a los estándares de **Supply Chain Security** y optimización del almacenamiento en la nube, el proyecto adopta una política estricta de **retención máxima de 3 versiones activas** para todos los artefactos de contenedores y paquetes OCI publicados en **GitHub Container Registry (`ghcr.io`)**:
 
-- **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex` y `ghcr.io/rocapellino/pokedex-api`
+- **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex-api`, `ghcr.io/rocapellino/pokedex-web` y el paquete heredado `ghcr.io/rocapellino/pokedex`
 - **Helm Charts OCI:** `oci://ghcr.io/rocapellino/charts/pokedex`
 
 ### Objetivos Arquitecturales
@@ -47,9 +47,12 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
 - **Mecanismo de purgado:** Delega exclusivamente en el script canónico tipado [`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts) con `--keep=<N>`, que audita el registro, reporta el plan de purgado y elimina las versiones por encima del umbral.
 
 > [!IMPORTANT]
-> **Reparto de responsabilidades tras WF-003.** La limpieza de versiones **untagged** es responsabilidad exclusiva del Nivel 1 (`ci.yaml`, `delete-untagged: true` en cada publicación a `main`). El Nivel 2 aplica la poda **por fecha**: `calculateVersionsToPrune` ordena las versiones por `updated_at`/`created_at` descendente y conserva las `N` más recientes, **sin inspeccionar los tags**.
+> **Qué cuenta y qué nunca se purga.** `calculateVersionsToPrune` solo hace competir por el cupo `N` a las **imágenes de release**: versiones con al menos un tag que no sea un artefacto de Cosign (`sha256-<digest>.sig`, `.sbom`, `.att`). Además:
 >
-> Esto significa que los dos mecanismos no son equivalentes: el script no distingue una versión etiquetada antigua de una sin etiqueta reciente. La política sigue cumpliéndose porque `ci.yaml` purga untagged en cada publicación, pero si en el futuro `ci.yaml` dejara de hacerlo, el Nivel 2 **no lo compensaría** y habría que restituir el paso de terceros.
+> - Los **digests fijados en GitOps** (`collectPinnedDigests`, sobre `gitops/environments/*/values.yaml` e `infra/helm/pokedex/values.prod.yaml`) se conservan siempre, aunque queden fuera del top `N`: son las imágenes que los clústeres descargan.
+> - Los artefactos de Cosign y las versiones sin tag (referrers OCI de firmas y atestaciones SLSA) no se purgan.
+>
+> Antes de esta corrección el script ordenaba **todas** las versiones por fecha. Los artefactos de Cosign, publicados después de la imagen, la desplazaban del top 3, y la versión `main` recién publicada se purgaba minutos después del CI.
 
 ### Nivel 3: Herramienta CLI Local y Canónica ([`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts))
 

@@ -4,14 +4,18 @@
  *
  * Script de gobernanza y retención para GitHub Container Registry (GHCR).
  * Conforme a las políticas de suministro seguro y control de cuotas:
- *   - Mantiene estrictamente activas las últimas N versiones (por defecto N=3).
- *   - Identifica y purga versiones históricas obsoletas y artefactos huérfanos.
+ *   - Mantiene activas las últimas N imágenes de release (por defecto N=3).
+ *   - Nunca purga digests fijados en GitOps ni artefactos de Cosign o versiones
+ *     sin tag (firmas, SBOM, atestaciones y referrers de imágenes vigentes).
  *   - Proporciona soporte para simulación (--simulate) y ejecución en seco (--dry-run).
  *
  * Uso:
  *   node --experimental-strip-types scripts/ghcr-retention.ts [--keep=3] [--dry-run] [--simulate]
  * ==============================================================================
  */
+
+import fs from 'node:fs';
+import path from 'node:path';
 
 export interface PackageVersion {
   id: number;
@@ -46,33 +50,75 @@ export interface GhcrRetentionOptions {
   dryRun?: boolean;
   simulate?: boolean;
   mockVersions?: Record<string, PackageVersion[]>;
+  /** Digests que nunca se purgan. Por defecto, los fijados en GitOps (collectPinnedDigests). */
+  protectedDigests?: Set<string>;
 }
 
-export const DEFAULT_PACKAGES = ['pokedex', 'pokedex-api'];
+export const DEFAULT_PACKAGES = ['pokedex', 'pokedex-api', 'pokedex-web'];
 export const DEFAULT_KEEP_COUNT = 3;
 export const DEFAULT_OWNER = 'rocapellino';
 
+/** Values de GitOps y Helm de producción cuyos digests fijados nunca se purgan. */
+export const PINNED_VALUES_FILES = [
+  'gitops/environments/proxmox/values.yaml',
+  'gitops/environments/proxmox-preprod/values.yaml',
+  'gitops/environments/aws/values.yaml',
+  'infra/helm/pokedex/values.prod.yaml',
+];
+
+// Tags que Cosign publica junto a la imagen: firma (.sig), SBOM (.sbom) y atestación (.att).
+const COSIGN_ARTIFACT_TAG = /^sha256-[a-f0-9]{64}(\.[a-z]+)?$/;
+
 /**
- * Calcula las versiones que deben conservarse y las que deben purgarse,
- * ordenando cronológicamente de forma descendente (las más recientes primero).
+ * Una versión es una imagen de release si tiene al menos un tag que no es un
+ * artefacto de Cosign. Las versiones sin tag (referrers OCI, manifiestos de
+ * plataforma) y los artefactos de Cosign no compiten por el cupo ni se purgan.
+ */
+export function isReleaseImage(version: PackageVersion): boolean {
+  const tags = version.metadata?.container?.tags ?? [];
+  return tags.some((tag) => !COSIGN_ARTIFACT_TAG.test(tag));
+}
+
+/** Recolecta los digests sha256 fijados en los values de GitOps y Helm de producción. */
+export function collectPinnedDigests(root: string = process.cwd()): Set<string> {
+  const pinned = new Set<string>();
+  for (const file of PINNED_VALUES_FILES) {
+    const fullPath = path.join(root, file);
+    if (!fs.existsSync(fullPath)) continue;
+    for (const digest of fs.readFileSync(fullPath, 'utf8').match(/sha256:[a-f0-9]{64}/g) ?? []) {
+      pinned.add(digest);
+    }
+  }
+  return pinned;
+}
+
+/**
+ * Calcula las versiones que deben conservarse y las que deben purgarse.
+ *
+ * Solo las imágenes de release compiten por el cupo `keepCount` (más recientes
+ * primero). Los digests protegidos se conservan siempre, y las versiones que no
+ * son imágenes de release (artefactos de Cosign, versiones sin tag) se ignoran.
  */
 export function calculateVersionsToPrune(
   versions: PackageVersion[],
-  keepCount: number = DEFAULT_KEEP_COUNT
+  keepCount: number = DEFAULT_KEEP_COUNT,
+  protectedDigests: Set<string> = new Set()
 ): { keep: PackageVersion[]; prune: PackageVersion[] } {
   if (!Array.isArray(versions) || versions.length === 0) {
     return { keep: [], prune: [] };
   }
 
   // Ordenar por fecha más reciente (updated_at o created_at) descendente
-  const sorted = [...versions].sort((a, b) => {
+  const sorted = versions.filter(isReleaseImage).sort((a, b) => {
     const timeA = new Date(a.updated_at || a.created_at).getTime();
     const timeB = new Date(b.updated_at || b.created_at).getTime();
     return timeB - timeA;
   });
 
-  const keep = sorted.slice(0, Math.max(0, keepCount));
-  const prune = sorted.slice(Math.max(0, keepCount));
+  const newest = sorted.slice(0, Math.max(0, keepCount));
+  const older = sorted.slice(Math.max(0, keepCount));
+  const keep = [...newest, ...older.filter((v) => protectedDigests.has(v.name))];
+  const prune = older.filter((v) => !protectedDigests.has(v.name));
 
   return { keep, prune };
 }
@@ -196,6 +242,8 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
   }
 
   const effectiveSimulate = simulate || !token;
+  const protectedDigests = options.protectedDigests ?? collectPinnedDigests();
+  console.log(`• Digests protegidos (GitOps): ${protectedDigests.size}`);
 
   for (const pkg of packages) {
     console.log(`\n🔍 Evaluando paquete: ${owner}/${pkg}`);
@@ -229,7 +277,7 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
       continue;
     }
 
-    const { keep, prune } = calculateVersionsToPrune(versions, keepCount);
+    const { keep, prune } = calculateVersionsToPrune(versions, keepCount, protectedDigests);
 
     console.log(`   • Total de versiones encontradas : ${versions.length}`);
     console.log(`   • Versiones que se conservan (${keep.length}/${keepCount}):`);
