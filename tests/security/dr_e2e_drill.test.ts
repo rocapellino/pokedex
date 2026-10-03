@@ -152,3 +152,20 @@ test('🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente 
   );
 });
 
+
+// AUD-TST-HYG-001: runDrDrill limpiaba tmp/dr_drill_* solo en el camino feliz; cada
+// caso de error dejaba el directorio de trabajo residual en tmp/.
+test('🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const tmpDir = path.join(process.cwd(), 'tmp');
+  const drillDirs = () =>
+    fs.existsSync(tmpDir) ? fs.readdirSync(tmpDir).filter((entry) => entry.startsWith('dr_drill_')) : [];
+
+  const before = new Set(drillDirs());
+  await assert.rejects(runDrDrill({ verbose: false, skipPostgresContainer: true, sourceSql: '' }));
+  await assert.rejects(runDrDrill({ verbose: false, skipPostgresContainer: true, encryptionKey: 'corta' }));
+
+  const leaked = drillDirs().filter((entry) => !before.has(entry));
+  assert.deepEqual(leaked, [], `Directorios residuales: ${leaked.join(', ')}`);
+});

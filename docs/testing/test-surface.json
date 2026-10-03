@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T20:02:50.097Z",
+  "generatedAt": "2026-10-03T20:09:19.615Z",
   "summary": {
     "totalFiles": 60,
     "testFiles": 57,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 515,
-    "totalLines": 14514,
-    "totalSizeBytes": 664388,
+    "totalTestCases": 516,
+    "totalLines": 14531,
+    "totalSizeBytes": 665303,
     "suitesCount": 9
   },
   "suites": [
@@ -29,7 +29,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 21,
-      "testCases": 191,
+      "testCases": 192,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2206,12 +2206,12 @@
       "type": "Security / DR",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 5,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 32,
-      "sizeBytes": 6737,
-      "lineCount": 155,
-      "sha256": "81e7631b0494442f2e4d8bbd389d062f8898bd360ba30a112c1db4d37b0f1212",
+      "assertionCountEst": 35,
+      "sizeBytes": 7652,
+      "lineCount": 172,
+      "sha256": "4ad0ccd2755465561411a19b3c4c3c96ccf951f795982fdc5b66c56a675db269",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -2247,6 +2247,10 @@
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
           "line": 141
+        },
+        {
+          "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
+          "line": 158
         }
       ]
     },
