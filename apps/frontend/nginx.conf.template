@@ -75,7 +75,6 @@ server {
 
     # 3. Proxy inverso hacia el backend API Node.js / Express (/api/)
     location /api/ {
-        rewrite ^/api/(.*) /$1 break;
         proxy_pass http://api:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

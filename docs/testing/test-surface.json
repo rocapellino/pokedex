@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T20:09:19.615Z",
+  "generatedAt": "2026-10-03T21:06:15.972Z",
   "summary": {
     "totalFiles": 60,
     "testFiles": 57,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 516,
-    "totalLines": 14531,
-    "totalSizeBytes": 665303,
+    "totalTestCases": 517,
+    "totalLines": 14567,
+    "totalSizeBytes": 667409,
     "suitesCount": 9
   },
   "suites": [
@@ -49,7 +49,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 4,
-      "testCases": 45,
+      "testCases": 46,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1037,12 +1037,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 22,
-      "sizeBytes": 7064,
-      "lineCount": 188,
-      "sha256": "cb96939e84715e270af395ab199be21b42a118d0d254729e9ecfc04d4d5d0fce",
+      "assertionCountEst": 25,
+      "sizeBytes": 9170,
+      "lineCount": 224,
+      "sha256": "b1a6573579900aab5e6ec50ee49e4ae90330f7d3698b41822809b14568252654",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1067,6 +1067,10 @@
         {
           "name": "📦 OCI-001: los labels de imagen usan la version y revision reales",
           "line": 148
+        },
+        {
+          "name": "🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada",
+          "line": 193
         }
       ]
     },

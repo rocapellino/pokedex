@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 57 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 2 |
-| **Total de Casos de Prueba Identificados** | **516** |
-| **Líneas de Código de Pruebas** | 14.531 |
-| **Tamaño Total de la Suite** | 649.7 KB |
+| **Total de Casos de Prueba Identificados** | **517** |
+| **Líneas de Código de Pruebas** | 14.567 |
+| **Tamaño Total de la Suite** | 651.8 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T20:09:19.615Z |
+| **Última Sincronización** | 2026-10-03T21:06:15.972Z |
 
 ---
 
@@ -30,7 +30,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 8 | 53 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 21 | 192 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 3 | 17 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 45 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 46 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -59,7 +59,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 519 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **14** | 301 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 188 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 224 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 220 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 153 | Suite de pruebas gitops: environment_http_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
@@ -170,7 +170,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 45
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 46
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -178,7 +178,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 519 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **14** | 301 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
-| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **3** | 188 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
+| [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 224 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
 
