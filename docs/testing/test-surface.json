@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-02T23:17:17.013Z",
+  "generatedAt": "2026-10-03T00:35:02.705Z",
   "summary": {
     "totalFiles": 49,
     "testFiles": 47,
     "helperFiles": 1,
     "performanceScripts": 1,
     "totalTestCases": 464,
-    "totalLines": 13181,
-    "totalSizeBytes": 613150,
+    "totalLines": 13182,
+    "totalSizeBytes": 613218,
     "suitesCount": 9
   },
   "suites": [
@@ -262,9 +262,9 @@
       "testCount": 55,
       "describeCount": 0,
       "assertionCountEst": 342,
-      "sizeBytes": 61328,
-      "lineCount": 1400,
-      "sha256": "4646ae013cbb22353ac580f568ba906577ef799b6692442658e29af7d402d364",
+      "sizeBytes": 61396,
+      "lineCount": 1401,
+      "sha256": "57729b5d9bc790ca450a34a34780540189c5236805cc0596b7937cd963270d7a",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -283,223 +283,223 @@
       "testCases": [
         {
           "name": "🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente",
-          "line": 31
+          "line": 32
         },
         {
           "name": "🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml",
-          "line": 57
+          "line": 58
         },
         {
           "name": "🎯 Change Impact: Contrato declarativo ci-impact.yaml existe y es válido",
-          "line": 71
+          "line": 72
         },
         {
           "name": "🎯 Change Impact: Cambio puramente documental activa solo Fast Track de docs",
-          "line": 90
+          "line": 91
         },
         {
           "name": "🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 110
+          "line": 111
         },
         {
           "name": "🤖 Change Impact: validador y tests AAS activan el dominio canónico",
-          "line": 123
+          "line": 124
         },
         {
           "name": "🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed",
-          "line": 148
+          "line": 149
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 202
+          "line": 203
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AWS",
-          "line": 219
+          "line": 220
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 236
+          "line": 237
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 259
+          "line": 260
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 278
+          "line": 279
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 296
+          "line": 297
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 313
+          "line": 314
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 328
+          "line": 329
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 354
+          "line": 355
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 371
+          "line": 372
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 387
+          "line": 388
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 403
+          "line": 404
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 418
+          "line": 419
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 434
+          "line": 435
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 449
+          "line": 450
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 464
+          "line": 465
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 484
+          "line": 485
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 503
+          "line": 504
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 530
+          "line": 531
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 552
+          "line": 553
         },
         {
           "name": "🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml",
-          "line": 595
+          "line": 596
         },
         {
           "name": "⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency",
-          "line": 605
+          "line": 606
         },
         {
           "name": "⚙️ CI topology: el orquestador conserva la serialización por PR",
-          "line": 631
+          "line": 632
         },
         {
           "name": "🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado",
-          "line": 637
+          "line": 638
         },
         {
           "name": "🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada",
-          "line": 647
+          "line": 648
         },
         {
           "name": "📦 OCI-001: los labels de imagen usan la version y revision reales",
-          "line": 723
+          "line": 724
         },
         {
           "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
-          "line": 764
+          "line": 765
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 805
+          "line": 806
         },
         {
           "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 849
+          "line": 850
         },
         {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 885
+          "line": 886
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 906
+          "line": 907
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 927
+          "line": 928
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 949
+          "line": 950
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 966
+          "line": 967
         },
         {
           "name": "🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan",
-          "line": 969
+          "line": 970
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 1072
+          "line": 1073
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 1083
+          "line": 1084
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 1093
+          "line": 1094
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 1174
+          "line": 1175
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 1181
+          "line": 1182
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 1197
+          "line": 1198
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 1235
+          "line": 1236
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 1262
+          "line": 1263
         },
         {
           "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 1283
+          "line": 1284
         },
         {
           "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 1309
+          "line": 1310
         },
         {
           "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
-          "line": 1337
+          "line": 1338
         },
         {
           "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 1353
+          "line": 1354
         },
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 1378
+          "line": 1379
         }
       ]
     },
