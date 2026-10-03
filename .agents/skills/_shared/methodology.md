@@ -15,11 +15,13 @@ Código / Configuración Fuente (TypeScript, YAML, Dockerfiles, OpenTofu, Helm)
        ↓
 Render Declarativo (helm template, kustomize, compilación AST de manifests)
        ↓
+Configuración Efectiva (lo que el componente del entorno realmente interpreta)
+       ↓
 Tests Automatizados (unitarios, integración, contratos de seguridad, CI gates)
        ↓
 Runtime Operacional (pods en clúster K8s, health probes, logs en vivo)
        ↓
-Documentación (Reflejo descriptivo verificable de los 4 niveles superiores)
+Documentación (Reflejo descriptivo verificable de los 5 niveles superiores)
 ```
 
 ### Regla de Oro: Prohibición de Deducción Documental Inversa
@@ -32,9 +34,18 @@ Documentación ──► "Parece que está implementado" ──► Aprobado sin 
 - **Si la documentación afirma que una capacidad existe o está activa:** La auditoría **NO** puede darlo por válido hasta descender por la cadena:
   1. **¿Existe el código/template?** (Ej. ¿existe `templates/backup-cronjob.yaml`?).
   2. **¿Se renderiza en el entorno evaluado?** (Ej. en `gitops/environments/proxmox-preprod/values.yaml` figura `backup.enabled: false`, por tanto en Pre-prod **NO** está renderizado).
-  3. **¿Lo certifican los tests?** (Ej. ¿hay un test en `tests/` que verifique que el Job ejecuta o que el contrato se cumple?).
-  4. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
-- **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado o los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
+  3. **¿Es efectivo en ese entorno?** Renderizar no basta: el componente que lo consume debe interpretarlo. Ej.: anotaciones `nginx.ingress.kubernetes.io/*` renderizadas en un entorno cuyo `ingress.className` es `traefik` se ignoran en silencio; una directiva `add_header` de nginx a nivel `server` no se hereda en un `location` que declara las suyas; una cookie `Secure` no se conserva sobre un entrypoint HTTP.
+  4. **¿Lo certifican los tests?** (Ej. ¿hay un test en `tests/` que verifique que el Job ejecuta o que el contrato se cumple?).
+  5. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
+- **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado, que **no es efectivo** en el entorno o que los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
+
+### Gates en Verde no Certifican Ausencia de Defectos
+
+Los quality gates del repositorio (`npm test`, `docs:validate`, `gitops:verify-parity`, `lint:*`) verifican **forma y contratos declarados**: sintaxis, pinning, enlaces, paridad. No verifican el **comportamiento entre capas** salvo que exista un test que lo ejercite.
+
+- Un reporte de auditoría nunca concluye "sin hallazgos" a partir de gates en `PASS`. La sección de checks automáticos y la de hallazgos son independientes.
+- Toda auditoría que declare cobertura de `architecture` o `security` debe incluir al menos un **trazado de rutas por entorno** (ver `repo-architecture`): seguir una petición real desde el cliente hasta el handler en cada entorno activo.
+- Cuando un hallazgo P0/P1 escapó a gates en verde, su remediación debe incluir el test que lo habría detectado (ver `repo-fix`).
 
 ### Relación entre Prevalencia Fáctica y Decisiones de Arquitectura (ADRs)
 
