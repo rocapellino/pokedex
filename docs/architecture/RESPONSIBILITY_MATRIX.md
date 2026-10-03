@@ -94,7 +94,8 @@ En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-g
 | `scripts/verify-image-digest-parity.ts` | TypeScript | Validación de inmutabilidad y paridad de digest SHA-256 de imágenes OCI entre GitOps y GHCR. | **Sí** (`npm run gitops:verify-parity`). |
 | `scripts/verify-secret-rotation.ts` | TypeScript | Verificación de rotación y frescura de credenciales en Vault y K8s. | **Sí** (`npm run secrets:audit-rotation`). |
 | `scripts/update-gitops-pin.ts` | TypeScript | Auditoría y actualización del targetRevision de ArgoCD en manifiestos de GitOps. | **Sí** (`npm run gitops:pin`, `npm run gitops:pin:check`). |
-| `scripts/ghcr-retention.ts` | TypeScript | Poda y gestión de retención de paquetes OCI en GitHub Container Registry. | **Sí** (`npm run ghcr:retention`, workflow programado). |
+| `scripts/update-image-digests.ts` | TypeScript | Fija los digests de `pokedex-api` y `pokedex-web` en los values de despliegue durante la promoción. | **Sí** (fase `promote` de `release-tag.yaml`). |
+| `scripts/ghcr-retention.ts` | TypeScript | Poda de imágenes de release en GHCR protegiendo los digests fijados en GitOps y los artefactos de Cosign. | **Sí** (`npm run ghcr:retention`, workflow programado). |
 | `scripts/dr-drill.ts` | TypeScript | Simulación E2E de Disaster Recovery con volcado PostgreSQL, cifrado AES-256 y restore drill. | **Sí** (`npm run dr:drill:e2e`, workflow DR). |
 | `scripts/dev-backup-gdrive.ts` | TypeScript | Respaldo local de PostgreSQL y sincronización a Google Drive en Docker Compose (Alternativa A). | **Sí** (`task dr:gdrive:backup:dev`). |
 | `scripts/lint-markdown.ts` | TypeScript | Quality Gate de linting y formateo para archivos Markdown del monorepo. | **Sí** (`npm run lint:md`, `npm run lint:md:fix`). |

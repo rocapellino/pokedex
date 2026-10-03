@@ -4,7 +4,7 @@
 
 Conforme a los estándares de **Supply Chain Security** y optimización del almacenamiento en la nube, el proyecto adopta una política estricta de **retención máxima de 3 versiones activas** para todos los artefactos de contenedores y paquetes OCI publicados en **GitHub Container Registry (`ghcr.io`)**:
 
-- **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex` y `ghcr.io/rocapellino/pokedex-api`
+- **Imágenes de Contenedor:** `ghcr.io/rocapellino/pokedex-api`, `ghcr.io/rocapellino/pokedex-web` y el paquete heredado `ghcr.io/rocapellino/pokedex`
 - **Helm Charts OCI:** `oci://ghcr.io/rocapellino/charts/pokedex`
 
 ### Objetivos Arquitecturales
@@ -17,28 +17,18 @@ Conforme a los estándares de **Supply Chain Security** y optimización del alma
 
 ## 2. Mecanismos de Ejecución y Automatización
 
-La política se aplica de forma automatizada mediante tres niveles complementarios:
+La política se aplica con un único mecanismo, el script canónico, invocado de dos formas:
 
 ```mermaid
 flowchart TD
-    A["Push a main (CI/CD)"] -->|Post-Publish| B["ci.yaml: dataaxiom/ghcr-cleanup-action<br/>keep-n-tagged: 3"]
-    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D["ghcr-retention.yaml<br/>Auditoría y Purgado Periódico"]
+    A["Fin del orquestador en main<br/>(workflow_run)"] --> D["ghcr-retention.yaml<br/>scripts/ghcr-retention.ts"]
+    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D
     E["Operador / Terminal Local"] -->|task ghcr:retention| F["scripts/ghcr-retention.ts<br/>Inspección y Limpieza Manual"]
 ```
 
-### Nivel 1: En Línea en el Pipeline de Publicación ([`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml))
+### Nivel 1 retirado: retención inline en `ci.yaml`
 
-En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atestación de SBOM y publicación en GHCR, el job `publish` ejecuta automáticamente el paso:
-
-```yaml
-- name: 🧹 Aplicar política de retención en GHCR (Mantener últimos 3 activos)
-  uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
-  with:
-    keep-n-tagged: 3
-    delete-untagged: true
-    dry-run: false
-    token: ${{ secrets.GITHUB_TOKEN }}
-```
+Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](../../.github/workflows/ci.yaml) ejecutaba `dataaxiom/ghcr-cleanup-action` con `keep-n-tagged: 3` y `delete-untagged: true`. Se retiró por dos motivos: purgaba digests que GitOps seguía fijando en cuanto se publicaban tres imágenes más nuevas, y `delete-untagged` eliminaba los referrers sin tag de firmas y atestaciones SLSA. `tests/security/ghcr_retention.test.ts` impide reintroducirlo.
 
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 
@@ -47,9 +37,12 @@ En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atesta
 - **Mecanismo de purgado:** Delega exclusivamente en el script canónico tipado [`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts) con `--keep=<N>`, que audita el registro, reporta el plan de purgado y elimina las versiones por encima del umbral.
 
 > [!IMPORTANT]
-> **Reparto de responsabilidades tras WF-003.** La limpieza de versiones **untagged** es responsabilidad exclusiva del Nivel 1 (`ci.yaml`, `delete-untagged: true` en cada publicación a `main`). El Nivel 2 aplica la poda **por fecha**: `calculateVersionsToPrune` ordena las versiones por `updated_at`/`created_at` descendente y conserva las `N` más recientes, **sin inspeccionar los tags**.
+> **Qué cuenta y qué nunca se purga.** `calculateVersionsToPrune` solo hace competir por el cupo `N` a las **imágenes de release**: versiones con al menos un tag que no sea un artefacto de Cosign (`sha256-<digest>.sig`, `.sbom`, `.att`). Además:
 >
-> Esto significa que los dos mecanismos no son equivalentes: el script no distingue una versión etiquetada antigua de una sin etiqueta reciente. La política sigue cumpliéndose porque `ci.yaml` purga untagged en cada publicación, pero si en el futuro `ci.yaml` dejara de hacerlo, el Nivel 2 **no lo compensaría** y habría que restituir el paso de terceros.
+> - Los **digests fijados en GitOps** (`collectPinnedDigests`, sobre `gitops/environments/*/values.yaml` e `infra/helm/pokedex/values.prod.yaml`) se conservan siempre, aunque queden fuera del top `N`: son las imágenes que los clústeres descargan.
+> - Los artefactos de Cosign y las versiones sin tag (referrers OCI de firmas y atestaciones SLSA) no se purgan.
+>
+> Antes de esta corrección el script ordenaba **todas** las versiones por fecha. Los artefactos de Cosign, publicados después de la imagen, la desplazaban del top 3, y la versión `main` recién publicada se purgaba minutos después del CI.
 
 ### Nivel 3: Herramienta CLI Local y Canónica ([`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts))
 
@@ -72,5 +65,4 @@ node --experimental-strip-types scripts/ghcr-retention.ts --simulate --keep=3
 
 La política de purgado está diseñada específicamente para registros OCI con firmas **Sigstore/Cosign** y atestaciones **in-toto/SLSA**:
 
-- Al eliminar una versión obsoleta, las referencias asociadas (archivos `.sig`, `.att` y SBOMs adjuntos) son depurados de forma coordinada, evitando la existencia de capas y tags huérfanos (*dangling layers*).
-- Las directivas `delete-untagged: true` y `keep-n-tagged: 3` aseguran que las 3 versiones activas preserven intacta su trazabilidad criptográfica y atestaciones SLSA.
+- El script no purga artefactos de Cosign (`sha256-<digest>.sig`, `.sbom`, `.att`) ni versiones sin tag, de modo que las imágenes conservadas y las fijadas en GitOps preservan su firma, SBOM y atestación SLSA. Como contrapartida, los artefactos de imágenes ya purgadas quedan huérfanos en el registro hasta una limpieza dirigida.

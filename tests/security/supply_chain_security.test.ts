@@ -351,7 +351,9 @@ test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y bu
   const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
 
   // docker/metadata-action
-  assert.match(ciWorkflow, /org\.opencontainers\.image\.title=pokedex-api/, 'Metadata action debe definir org.opencontainers.image.title');
+  // El título lo aporta la matriz (pokedex-api / pokedex-web): image_publication_contract.test.ts
+  // verifica que ambas entradas existan.
+  assert.match(ciWorkflow, /org\.opencontainers\.image\.title=\$\{\{\s*matrix\.image\s*\}\}/, 'Metadata action debe definir org.opencontainers.image.title');
   assert.match(ciWorkflow, /org\.opencontainers\.image\.revision=\${{\s*github\.sha\s*}}/, 'Metadata action debe vincular el commit SHA exacto');
   assert.match(ciWorkflow, /org\.opencontainers\.image\.source=https:\/\/github\.com\/rocapellino\/pokedex/, 'Metadata action debe vincular la URL del repositorio');
 

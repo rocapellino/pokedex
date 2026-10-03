@@ -29,7 +29,7 @@ Flujo de Promoción GitOps (Automático o por PR)
      ↓
 Actualización declarativa:
   • PR atómico de release: package.json + Chart.yaml + targetRevision
-  • Promoción de imagen: api.image.digest en gitops/environments/*/values.yaml
+  • Promoción de imagen: api.image.digest y web.image.digest en gitops/environments/*/values.yaml
      ↓
 Pull Request de Promoción GitOps
      ↓
@@ -88,19 +88,21 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
    - Determina el siguiente tag SemVer (`vX.Y.Z`) mediante un `dry-run` del bump convencional.
    - Sincroniza `package.json` y `package-lock.json` (versión raíz) de forma atómica con `npm version --no-git-tag-version`, y `infra/helm/pokedex/Chart.yaml` con la nueva versión.
    - Ejecuta `scripts/update-gitops-pin.ts --tag=<new_tag>` para fijar el `targetRevision` de las aplicaciones de ArgoCD.
+   - Fija los digests de las imágenes (etapa 2) en el mismo commit.
    - Abre (o actualiza) la rama `release/promote-vX.Y.Z` con un único PR atómico. **No crea el tag ni el GitHub Release en esta etapa.**
 
-2. **Actualización Declarativa del Digest:**
-   - Para actualizar la imagen que ArgoCD despliega, el workflow o el operador actualiza de forma atómica los archivos de values:
+2. **Promoción Automática de Digests de Imagen:**
+   - `ci.yaml` publica `ghcr.io/rocapellino/pokedex-api` y `pokedex-web` con el tag del SHA completo de cada commit de `main`, firmadas con Cosign, con SBOM y procedencia SLSA.
+   - La fase `promote` (pasos 8a y 8b de `release-tag.yaml`) espera a que ambas imágenes de **su mismo commit** estén publicadas y verifica su firma con la identidad `ci.yaml@refs/heads/main`, la misma que exige Kyverno. Sin imagen firmada no hay PR de promoción.
+   - `scripts/update-image-digests.ts --api <digest> --web <digest>` reemplaza el digest de cada componente en:
      - `gitops/environments/aws/values.yaml`
      - `gitops/environments/proxmox/values.yaml`
      - `gitops/environments/proxmox-preprod/values.yaml`
      - `infra/helm/pokedex/values.prod.yaml`
-   - Comando canónico:
+   - El CI del PR de promoción certifica la paridad entre entornos (`tests/security/gitops_image_parity.test.ts`); localmente: `npm run gitops:verify-parity:strict`.
 
-     ```bash
-     npm run gitops:verify-parity:strict
-     ```
+   > [!IMPORTANT]
+   > Hasta esta automatización la etapa dependía del operador y nunca se ejecutó: entre el 2026-09-23 y el 2026-10-03 cada release movió versión y `targetRevision` pero desplegó las mismas imágenes, y `ci.yaml` publicaba un repositorio (`ghcr.io/rocapellino/pokedex`) distinto del que GitOps desplegaba.
 
 3. **Pull Request de Promoción:**
    - La rama bot `release/promote-vX.Y.Z` abre un único PR contra `main` con metadata de release y manifiestos GitOps.
