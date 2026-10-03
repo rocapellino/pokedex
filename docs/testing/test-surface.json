@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T14:40:08.887Z",
+  "generatedAt": "2026-10-03T15:16:50.645Z",
   "summary": {
-    "totalFiles": 51,
+    "totalFiles": 52,
     "testFiles": 49,
-    "helperFiles": 1,
+    "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 495,
-    "totalLines": 14044,
-    "totalSizeBytes": 643465,
+    "totalLines": 14076,
+    "totalSizeBytes": 644753,
     "suitesCount": 9
   },
   "suites": [
@@ -1083,9 +1083,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 54,
-      "sizeBytes": 10452,
-      "lineCount": 237,
-      "sha256": "a08a22775edde7cae7fe2ffbfd857136b97279c9994a536950ae14fb69ed46c7",
+      "sizeBytes": 10495,
+      "lineCount": 238,
+      "sha256": "1d7313cbb164be2b5d14de3d5baeff89a6d8ecd5827e09f5f8fd9048e19d5a44",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -1105,29 +1105,49 @@
       "testCases": [
         {
           "name": "🔒 ArgoCD Pinning: validateSemVerTag valida estrictamente tags semánticos inmutables",
-          "line": 19
+          "line": 20
         },
         {
           "name": "🔒 ArgoCD Pinning: extractTargetRevision y replaceTargetRevision manipulan YAML limpiamente",
-          "line": 32
+          "line": 33
         },
         {
           "name": "🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 en targetRevision",
-          "line": 57
+          "line": 58
         },
         {
           "name": "🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRun",
-          "line": 78
+          "line": 79
         },
         {
           "name": "🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción",
-          "line": 95
+          "line": 96
         },
         {
           "name": "🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run",
-          "line": 197
+          "line": 198
         }
       ]
+    },
+    {
+      "path": "tests/helpers/taskfile.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1054,
+      "lineCount": 27,
+      "sha256": "80d3b28d5befbff2105c3ca8117d93dd691e06368fabb378581a0dc2b59830e2",
+      "targetDomain": "Suite helpers",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas helpers: taskfile.ts.",
+      "status": "HELPER",
+      "testCases": []
     },
     {
       "path": "tests/markdown_gate.test.ts",
@@ -1692,9 +1712,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 211,
-      "sizeBytes": 45494,
-      "lineCount": 765,
-      "sha256": "7a259de64592539c198c0866262aa720a727605192f7bb5b0a45fe3ba4071df5",
+      "sizeBytes": 45561,
+      "lineCount": 766,
+      "sha256": "ea6ee7dc8d4d189803851e6c2f6191340d92b90acf880f76f1b944b32f38a111",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -1713,79 +1733,79 @@
       "testCases": [
         {
           "name": "🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)",
-          "line": 17
+          "line": 18
         },
         {
           "name": "🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)",
-          "line": 28
+          "line": 29
         },
         {
           "name": "🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini",
-          "line": 33
+          "line": 34
         },
         {
           "name": "🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals",
-          "line": 52
+          "line": 53
         },
         {
           "name": "🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml",
-          "line": 69
+          "line": 70
         },
         {
           "name": "🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad",
-          "line": 134
+          "line": 135
         },
         {
           "name": "🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta de versión de Helm en todos sus jobs",
-          "line": 158
+          "line": 159
         },
         {
           "name": "🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml",
-          "line": 193
+          "line": 194
         },
         {
           "name": "🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs",
-          "line": 215
+          "line": 216
         },
         {
           "name": "🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Keyless, SLSA L3 y Kyverno",
-          "line": 243
+          "line": 244
         },
         {
           "name": "🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista",
-          "line": 266
+          "line": 267
         },
         {
           "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
-          "line": 300
+          "line": 301
         },
         {
           "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
-          "line": 332
+          "line": 333
         },
         {
           "name": "🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md",
-          "line": 364
+          "line": 365
         },
         {
           "name": "🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:///",
-          "line": 410
+          "line": 411
         },
         {
           "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 450
+          "line": 451
         },
         {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo",
-          "line": 544
+          "line": 545
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 603
+          "line": 604
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 695
+          "line": 696
         }
       ]
     },
@@ -1872,9 +1892,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 123,
-      "sizeBytes": 21351,
+      "sizeBytes": 21357,
       "lineCount": 318,
-      "sha256": "7fe326a5bfd9de2e45ecf388bc77a0cf45f542236f529a72f432c2da26f69cb7",
+      "sha256": "7fac9eb1c388d95de3849f3cb62d5041f9376b2f8927b9d826952afb2a0ebadd",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -1894,31 +1914,31 @@
       "testCases": [
         {
           "name": "🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256, checksum y hardening de pod",
-          "line": 9
+          "line": 10
         },
         {
           "name": "🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo automatizado, clave efímera dinámica y restauración real",
-          "line": 42
+          "line": 43
         },
         {
           "name": "🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h",
-          "line": 70
+          "line": 71
         },
         {
           "name": "🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa verificación periódica de restauración en K8s",
-          "line": 88
+          "line": 89
         },
         {
           "name": "🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible agnóstico y PBS Remote Sync) formalizados como inactivos",
-          "line": 103
+          "line": 104
         },
         {
           "name": "🛡️ Disaster Recovery: Backup y Restore Verification renderizan PersistentVolumeClaim real y evitan almacenamiento efímero (Anti-emptyDir)",
-          "line": 132
+          "line": 133
         },
         {
           "name": "🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)",
-          "line": 165
+          "line": 166
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC",
@@ -2037,9 +2057,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 35,
-      "sizeBytes": 7416,
-      "lineCount": 187,
-      "sha256": "cbb2a028fe79e6b1f5e672897caa5344ac22dcff20006e5c0c16543289dbac52",
+      "sizeBytes": 7459,
+      "lineCount": 188,
+      "sha256": "db02962007bc712b4c925fd0ef0e575d6b8bb5df776aef49e0612df3825cd18e",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -2059,15 +2079,15 @@
       "testCases": [
         {
           "name": "📦 GHCR Retention: calculateVersionsToPrune conserva estrictamente los últimos N y marca el resto para purga",
-          "line": 32
+          "line": 33
         },
         {
           "name": "📦 GHCR Retention: applyGhcrRetention ejecuta correctamente en modo simulación",
-          "line": 99
+          "line": 100
         },
         {
           "name": "🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y parámetros de retención",
-          "line": 129
+          "line": 130
         }
       ]
     },
@@ -2222,9 +2242,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 20,
-      "sizeBytes": 10028,
-      "lineCount": 241,
-      "sha256": "7d05255df4e395e89c62ac95faeeba63fb3d4ea75be930273416ac1eb47543d1",
+      "sizeBytes": 10088,
+      "lineCount": 242,
+      "sha256": "0e7f518786e0a7923dc8844207d307769c6362a84d533954f46c0ed869669cb6",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -2243,23 +2263,23 @@
       "testCases": [
         {
           "name": "🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monitoring",
-          "line": 89
+          "line": 90
         },
         {
           "name": "🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin PowerShell)",
-          "line": 160
+          "line": 161
         },
         {
           "name": "🔀 PORT-001: el script Node preserva la mitigacion de exposicion del token",
-          "line": 194
+          "line": 195
         },
         {
           "name": "🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerShell retirado",
-          "line": 215
+          "line": 216
         },
         {
           "name": "🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud",
-          "line": 231
+          "line": 232
         }
       ]
     },
@@ -2272,9 +2292,9 @@
       "testCount": 31,
       "describeCount": 0,
       "assertionCountEst": 240,
-      "sizeBytes": 66315,
+      "sizeBytes": 66265,
       "lineCount": 1202,
-      "sha256": "55661734e15875547147ce406ec8a88714a2a3ed3870428ff101f8031af808aa",
+      "sha256": "706b3a90cf10b8f3bfd552cd842bb2f8daf67ae0075e7593227d657337c70be5",
       "targetDomain": "Hardening de Infraestructura como Código (IaC)",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2294,47 +2314,47 @@
       "testCases": [
         {
           "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 117
+          "line": 118
         },
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 150
+          "line": 151
         },
         {
           "name": "🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*",
-          "line": 176
+          "line": 177
         },
         {
           "name": "🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa",
-          "line": 184
+          "line": 185
         },
         {
           "name": "🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados",
-          "line": 189
+          "line": 190
         },
         {
           "name": "🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción",
-          "line": 212
+          "line": 213
         },
         {
           "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
-          "line": 225
+          "line": 226
         },
         {
           "name": "🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente",
-          "line": 237
+          "line": 238
         },
         {
           "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 248
+          "line": 249
         },
         {
           "name": "🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernetes, GitOps y Ansible baseline",
-          "line": 260
+          "line": 261
         },
         {
           "name": "🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)",
-          "line": 271
+          "line": 272
         },
         {
           "name": "🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)",
@@ -2499,9 +2519,9 @@
       "testCount": 20,
       "describeCount": 0,
       "assertionCountEst": 242,
-      "sizeBytes": 57540,
-      "lineCount": 974,
-      "sha256": "a92633dab595c004497090fb19885b38708cbfdefee8a0f54287724a41dd2878",
+      "sizeBytes": 57605,
+      "lineCount": 975,
+      "sha256": "07e2f1e6d6a4145307b84aea1ee4f44bcb586ad18604f5ed4cadfcf86dbb164a",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2521,83 +2541,83 @@
       "testCases": [
         {
           "name": "🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFilesystem y montajes emptyDir",
-          "line": 17
+          "line": 18
         },
         {
           "name": "🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)",
-          "line": 34
+          "line": 35
         },
         {
           "name": "🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage",
-          "line": 56
+          "line": 57
         },
         {
           "name": "🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints",
-          "line": 64
+          "line": 65
         },
         {
           "name": "🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test",
-          "line": 92
+          "line": 93
         },
         {
           "name": "🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión",
-          "line": 112
+          "line": 113
         },
         {
           "name": "🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe",
-          "line": 129
+          "line": 130
         },
         {
           "name": "🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator",
-          "line": 147
+          "line": 148
         },
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 173
+          "line": 174
         },
         {
           "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange",
-          "line": 244
+          "line": 245
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 272
+          "line": 273
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 303
+          "line": 304
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 335
+          "line": 336
         },
         {
           "name": "🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil",
-          "line": 420
+          "line": 421
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 451
+          "line": 452
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 538
+          "line": 539
         },
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps",
-          "line": 603
+          "line": 604
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría",
-          "line": 795
+          "line": 796
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 860
+          "line": 861
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 896
+          "line": 897
         }
       ]
     },

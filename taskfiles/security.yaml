@@ -1,0 +1,105 @@
+# ==============================================================================
+# Pokédex Platform CLI - Seguridad, Observabilidad y Resiliencia (DR)
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+tasks:
+  # ----------------------------------------------------------------------------
+  # Observabilidad & Telemetría (Grafana Cloud & Local Dev)
+  # ----------------------------------------------------------------------------
+  monitoring:grafana-cloud:install:
+    desc: "Despliega el stack de telemetría de Grafana Cloud (Grafana Alloy unificado) en Kubernetes"
+    cmds:
+      - node scripts/deploy-grafana-cloud.mjs
+
+  monitoring:grafana-cloud:status:
+    desc: "Muestra el estado de los pods y DaemonSets de Grafana Cloud en el namespace monitoring"
+    cmds:
+      - kubectl get pods,daemonset,deployment -n monitoring -o wide
+
+  monitoring:grafana-cloud:uninstall:
+    desc: "Desinstala el release de Grafana Cloud k8s-monitoring"
+    cmds:
+      - helm uninstall grafana-cloud -n monitoring --ignore-not-found
+
+  monitoring:dev:status:
+    desc: "Muestra el estado de salud de los recolectores locales de observabilidad (Alloy, cAdvisor)"
+    cmds:
+      - docker compose -f docker-compose.yaml -f docker-compose.dev.yaml ps alloy cadvisor
+
+  monitoring:dev:logs:
+    desc: "Muestra los registros en tiempo real del agente Grafana Alloy"
+    cmds:
+      - docker logs pokemon-alloy --tail 50 -f
+
+  # ----------------------------------------------------------------------------
+  # Disaster Recovery & Resiliencia de Datos (DR)
+  # ----------------------------------------------------------------------------
+  dr:drill:
+    desc: "Ejecuta un simulacro automatizado de Disaster Recovery y restauración en seco (Dry-Run)"
+    cmds:
+      - bash scripts/dr_verify_restore.sh --dry-run
+
+  dr:verify:
+    desc: "Verifica criptográficamente el último backup real (.sql.gz.enc) y su restauración"
+    cmds:
+      - bash scripts/dr_verify_restore.sh
+
+  dr:drill:e2e:
+    desc: "Ejecuta el simulacro de Disaster Recovery end-to-end midiendo las 11 métricas contractuales"
+    cmds:
+      - npx tsx scripts/dr-drill.ts
+
+  dr:gdrive:backup:dev:
+    desc: "Ejecuta el volcado local de PostgreSQL y lo sincroniza a Google Drive con Docker Compose (Alternativa A)"
+    cmds:
+      - npx tsx scripts/dev-backup-gdrive.ts {{.CLI_ARGS}}
+
+  dr:gdrive:sync:dev:
+    desc: "Sincroniza el directorio local ./backups hacia Google Drive con Rclone en Docker Compose"
+    cmds:
+      - docker compose -f docker-compose.yaml -f docker-compose.dev.yaml --profile backup run --rm backup-gdrive
+
+  dr:gdrive:setup:proxmox:
+    desc: "Aprovisiona el cliente Rclone y el temporizador Systemd en el host Proxmox VE (Alternativa B)"
+    cmds:
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_gdrive_backup.yaml
+
+  # ----------------------------------------------------------------------------
+  # Auditoría de Secretos y Hardening L7
+  # ----------------------------------------------------------------------------
+  secrets:scan:
+    desc: "Escanea el repositorio en busca de secretos expuestos con Gitleaks"
+    cmds:
+      - gitleaks detect --verbose --no-git
+
+  secrets:audit-rotation:
+    desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
+    cmds:
+      - npm run secrets:audit-rotation
+
+  security:egress:
+    desc: "Ejecuta las pruebas automatizadas de política de egress L7 Anti-SSRF (CiliumNetworkPolicy)"
+    cmds:
+      - npm run test:security:egress
+
+  security:egress:probe:
+    desc: "Ejecuta la sonda activa de seguridad y filtrado de egress L7"
+    cmds:
+      - npm run probe:security:egress
+
+  ghcr:retention:
+    desc: "Aplica la política de retención en GHCR conservando estrictamente las últimas 3 versiones"
+    cmds:
+      - npm run ghcr:retention
+
+  ghcr:retention:dry-run:
+    desc: "Inspecciona las versiones en GHCR y simula la purga sin mutaciones (Dry-Run)"
+    cmds:
+      - npm run ghcr:retention:dry-run
+
+  linear:sonar-sync:
+    desc: "Sincroniza el estado de SonarCloud y genera tickets en Linear ante Quality Gate fallido o vulnerabilidades"
+    cmds:
+      - node --experimental-strip-types scripts/sonar-linear-sync.ts

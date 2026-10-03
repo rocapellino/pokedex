@@ -89,6 +89,7 @@ rules:
       - "scripts/validate-docs-governance.ts"
       # CLI canónico del monorepo referenciado en contratos documentales
       - "Taskfile.yaml"
+      - "taskfiles/**.yaml"
     triggers:
       documentation: true
       backend: false
@@ -156,6 +157,7 @@ rules:
       - "scripts/dr_verify_restore.sh"
       # Tareas de clúster, ArgoCD y validación de plataforma
       - "Taskfile.yaml"
+      - "taskfiles/**.yaml"
     triggers:
       kubernetes: true
       tests: true
@@ -173,6 +175,7 @@ rules:
       - "infra/helm/**"
       # Tareas de empaquetado, render y validación de Helm
       - "Taskfile.yaml"
+      - "taskfiles/**.yaml"
     triggers:
       helm: true
       kubernetes: true
@@ -190,6 +193,7 @@ rules:
       - "infra/opentofu/**"
       # Tareas de formateo y validación OpenTofu
       - "Taskfile.yaml"
+      - "taskfiles/**.yaml"
     triggers:
       opentofu: true
       security:
@@ -206,6 +210,7 @@ rules:
       - "infra/ansible/**"
       # Tareas de ejecución y sintaxis de playbooks Ansible
       - "Taskfile.yaml"
+      - "taskfiles/**.yaml"
     triggers:
       ansible: true
       security:

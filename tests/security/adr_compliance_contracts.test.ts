@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -661,7 +662,7 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   }
 
   // 4. Taskfile.yaml expone tareas canónicas de ciclo de vida y gobernanza
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('governance:audit-scripts:'), 'Taskfile.yaml debe definir governance:audit-scripts');
   assert.ok(taskfileContent.includes('k8s:up:'), 'Taskfile.yaml debe definir k8s:up');
   assert.ok(taskfileContent.includes('gitops:sync:cloud:'), 'Taskfile.yaml debe definir gitops:sync:cloud');
