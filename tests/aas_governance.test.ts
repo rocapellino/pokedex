@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { test } from "node:test";
 
 import { AAS_INTEGRITY, AAS_VERSION, validateAasGovernance } from "../scripts/aas-governance.js";
@@ -89,3 +89,58 @@ test("la configuración MCP del editor permanece fuera del alcance", () => {
   const mcp = readFileSync(".vscode/mcp.json", "utf8");
   assert.doesNotMatch(mcp, /agentic-awesome-skills|\baas\b/i);
 });
+
+test("🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera", () => {
+  const skill = readFileSync(".agents/skills/repo-lifecycle/SKILL.md", "utf-8");
+
+  // Hay dos diagramas en la skill: uno de 10 etapas (ciclo resumido) y otro de 16
+  // (flujo canónico de full-audit). Este último es el que debe coincidir con las
+  // menciones textuales, y se localiza por su última etapa.
+  const marker = skill.indexOf("consolidated report");
+  assert.ok(marker > -1, "repo-lifecycle debe contener la etapa `consolidated report`");
+  const start = skill.lastIndexOf("```", marker);
+  const end = skill.indexOf("```", marker);
+  assert.ok(start > -1 && end > start, "La etapa final debe estar dentro de un bloque cercado");
+  const flow = skill.slice(start, end);
+
+  const numbered = [...flow.matchAll(/(?:^|\s)(\d+)\.\s+\S/gm)].map((m) => Number(m[1]));
+  const max = Math.max(...numbered);
+  assert.equal(
+    max,
+    numbered.length,
+    `La enumeración debe ser contigua: declara ${max} pero enumera ${numbered.length}`
+  );
+
+  // Todas las menciones textuales deben coincidir con la enumeración real.
+  const declared = [...skill.matchAll(/(\d+)\s*etapas/g)].map((m) => Number(m[1]));
+  for (const count of declared) {
+    assert.equal(
+      count,
+      numbered.length,
+      `repo-lifecycle declara "${count} etapas" pero el flujo enumera ${numbered.length}`
+    );
+  }
+  assert.ok(declared.length > 0, "repo-lifecycle debe declarar el número de etapas");
+});
+
+test("📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta", () => {
+  const offenders: string[] = [];
+  const walk = (dir: string): string[] => {
+    const out: string[] = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...walk(full));
+      else if (entry.name.endsWith(".md")) out.push(full);
+    }
+    return out;
+  };
+
+  for (const file of walk(".agents")) {
+    const content = readFileSync(file, "utf-8");
+    const match = content.match(/workflows\/\*\.yml|workflows\/[a-z0-9-]+\.yml/);
+    if (match) offenders.push(`${relative(".", file)} -> ${match[0]}`);
+  }
+
+  assert.deepEqual(offenders, [], `Skills con referencias .yml obsoletas: ${offenders.join("; ")}`);
+});
+
