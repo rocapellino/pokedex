@@ -1,6 +1,6 @@
 ---
 name: repo-impact
-description: Fase 2 (Matriz de cambios): radio de impacto, referencias inversas y plan de cambio con gates derivados. Usar antes de modificar archivos, renombrar o eliminar artefactos, o al convertir un hallazgo en trabajo.
+description: "Fase 2 (Matriz de cambios): radio de impacto, referencias inversas y plan de cambio con gates derivados. Usar antes de modificar archivos, renombrar o eliminar artefactos, o al convertir un hallazgo en trabajo."
 ---
 
 # repo-impact

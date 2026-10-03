@@ -1,6 +1,6 @@
 ---
 name: repo-refactor
-description: Fase 3 (Ejecutar) para cambios que preservan el comportamiento: refactors incrementales en micro-pasos compilables. Usar para reorganizar código sin alterar contratos; si cambia el comportamiento, usar repo-fix.
+description: "Fase 3 (Ejecutar) para cambios que preservan el comportamiento: refactors incrementales en micro-pasos compilables. Usar para reorganizar código sin alterar contratos; si cambia el comportamiento, usar repo-fix."
 ---
 
 # repo-refactor

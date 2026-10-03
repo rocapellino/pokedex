@@ -1,3 +1,8 @@
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 export type AuditFreshnessStatus = 'CURRENT' | 'AUDIT_STALE';
 
 export interface AuditSnapshot {
@@ -54,4 +59,43 @@ export function evaluateAuditFreshness(content: string, repository: RepositorySt
     differences,
     snapshot,
   };
+}
+
+/** Lee el estado vigente desde las fuentes de verdad: HEAD, package.json, Chart.yaml y gitops/apps/. */
+export function readRepositoryState(root = process.cwd()): RepositoryState {
+  const read = (file: string) => fs.readFileSync(path.join(root, file), 'utf8');
+  const appsDir = path.join(root, 'gitops', 'apps');
+
+  return {
+    head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+    packageVersion: JSON.parse(read('package.json')).version,
+    chartVersion: read('infra/helm/pokedex/Chart.yaml').match(/^version:\s*"?([^"\s]+)"?/m)?.[1] ?? '',
+    gitOpsRevisions: fs
+      .readdirSync(appsDir)
+      .filter((file) => file.endsWith('.yaml'))
+      .flatMap((file) => [...read(`gitops/apps/${file}`).matchAll(/targetRevision:\s*"?([^"\s]+)"?/g)].map((m) => m[1])),
+  };
+}
+
+/** Devuelve la ruta relativa del baseline más reciente (`docs/audits/<fecha>/baseline.md`). */
+export function findLatestBaseline(root = process.cwd()): string | undefined {
+  const auditsDir = path.join(root, 'docs', 'audits');
+  const latest = fs
+    .readdirSync(auditsDir)
+    .filter((entry) => /^\d{4}-\d{2}-\d{2}$/.test(entry) && fs.existsSync(path.join(auditsDir, entry, 'baseline.md')))
+    .sort()
+    .pop();
+  return latest ? `docs/audits/${latest}/baseline.md` : undefined;
+}
+
+// Uso: npx tsx .agents/skills/repo-lifecycle/scripts/audit-freshness.ts [docs/audits/<fecha>/baseline.md]
+// Siempre termina con código 0: AUDIT_STALE es informativo y no bloqueante.
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const baseline = process.argv[2] ?? findLatestBaseline();
+  if (!baseline) {
+    console.error('No se encontró ningún baseline en docs/audits/<fecha>/baseline.md');
+    process.exit(1);
+  }
+  const result = evaluateAuditFreshness(fs.readFileSync(baseline, 'utf8'), readRepositoryState());
+  console.log(JSON.stringify({ baseline: baseline.replace(/\\/g, '/'), ...result }, null, 2));
 }

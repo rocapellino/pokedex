@@ -220,6 +220,14 @@ Al procesar el baseline fechado más reciente, `repo-lifecycle` debe ejecutar
 [`scripts/audit-freshness.ts`](scripts/audit-freshness.ts) y comparar sus metadatos con
 el `HEAD`, `package.json`, `infra/helm/pokedex/Chart.yaml` y las revisiones GitOps vigentes:
 
+```bash
+npx tsx .agents/skills/repo-lifecycle/scripts/audit-freshness.ts [docs/audits/<fecha>/baseline.md]
+```
+
+Sin argumento evalúa el baseline más reciente. Para que el parser lo lea, el baseline debe
+declarar los metadatos de la sección *Identificación* de
+[report-template.md](../_shared/report-template.md).
+
 - **`CURRENT`**: todos los valores coinciden exactamente.
 - **`AUDIT_STALE`**: el commit diverge, falta metadata o difiere una versión declarada.
 - Las diferencias de aplicación, Chart y GitOps se reportan como evidencia adicional.

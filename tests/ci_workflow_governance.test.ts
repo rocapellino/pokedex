@@ -426,3 +426,54 @@ test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_
     );
   }
 });
+
+// AUD-WF-GOV-001: `pr-governance` figuraba como control `always` en ci-impact.yaml y el
+// orquestador lo emitía como output, pero ningún job lo consumía: `pr:validate` nunca
+// corría en CI. Cada control `always` declara aquí su ejecutor; agregar uno nuevo sin
+// ejecutor hace fallar el test.
+test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real', () => {
+  const contract = yamlSafeLoad(fs.readFileSync(path.join(ROOT_DIR, '.github/ci-impact.yaml'), 'utf8')) as {
+    always: Array<{ id: string }>;
+  };
+  const orchestrator = yamlSafeLoad(
+    fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8')
+  ) as { jobs: Record<string, { if?: string; needs?: string[]; steps?: Array<{ run?: string }> }> };
+
+  const executors: Record<string, { job?: string; output?: string; workflow?: string }> = {
+    // Job del orquestador que consume el output y bloquea vía quality-gate.
+    'pr-governance': { job: 'pr-governance', output: 'pr_governance' },
+    // Workflow independiente con Required Check propio (ver test de Gitleaks).
+    secrets: { workflow: 'security-gitleaks.yaml' },
+  };
+
+  for (const { id } of contract.always) {
+    const executor = executors[id];
+    assert.ok(executor, `El control always "${id}" no tiene ejecutor declarado`);
+
+    if (executor.job) {
+      const job = orchestrator.jobs[executor.job];
+      assert.ok(job, `change-impact.yaml debe definir el job ${executor.job}`);
+      assert.ok(
+        String(job.if).includes(`outputs.${executor.output} == 'true'`),
+        `${executor.job} debe condicionarse a outputs.${executor.output}`
+      );
+      assert.ok(
+        orchestrator.jobs['quality-gate'].needs?.includes(executor.job),
+        `quality-gate debe depender de ${executor.job}`
+      );
+    }
+    if (executor.workflow) {
+      const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', executor.workflow), 'utf8');
+      assert.match(content, /pull_request:/, `${executor.workflow} debe ejecutarse en todo PR`);
+    }
+  }
+
+  const prGovernance = orchestrator.jobs['pr-governance'];
+  const run = (prGovernance.steps ?? []).map((step) => step.run ?? '').join('\n');
+  assert.match(run, /pr:validate -- --remote/, 'pr-governance debe validar el cuerpo remoto del PR');
+  assert.match(
+    String(prGovernance.if),
+    /user\.type != 'Bot'/,
+    'pr-governance debe excluir PRs de bots (promote y Renovate generan cuerpos propios)'
+  );
+});

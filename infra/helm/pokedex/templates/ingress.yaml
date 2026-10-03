@@ -1,4 +1,19 @@
 {{- if .Values.ingress.enabled -}}
+{{- /*
+AUD-SEC-TLS-001: las anotaciones de ingress-nginx solo aplican con className nginx
+y las de cert-manager no deben competir con el Secret que entrega ESO. Fuera de
+esos casos se omiten para que el render refleje la configuración efectiva.
+*/ -}}
+{{- $className := .Values.ingress.className | default "" }}
+{{- $tlsViaEso := and .Values.ingress.tlsExternalSecret .Values.ingress.tlsExternalSecret.enabled }}
+{{- $annotations := dict }}
+{{- range $key, $value := .Values.ingress.annotations }}
+{{- $foreignNginx := and (ne $className "nginx") (hasPrefix "nginx.ingress.kubernetes.io/" $key) }}
+{{- $foreignCertManager := and $tlsViaEso (hasPrefix "cert-manager.io/" $key) }}
+{{- if not (or $foreignNginx $foreignCertManager) }}
+{{- $_ := set $annotations $key $value }}
+{{- end }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,7 +22,7 @@ metadata:
     {{- include "pokedex.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "4"
-  {{- with .Values.ingress.annotations }}
+  {{- with $annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

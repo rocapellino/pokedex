@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado
+Aceptado (enmendado el 2026-10-03 para los entornos Proxmox con Traefik; ver la sección
+*Enmienda 2026-10-03*)
 
 ## Contexto
 
@@ -63,6 +64,37 @@ Se adopta una arquitectura de hardening del punto de entrada L7 articulada en ci
      para permitir personalización por entorno (`values.dev.yaml`, `values.prod.yaml`).
    - La sección `ingress.tls` se activa en producción y se desactiva en desarrollo local,
      manteniendo paridad de configuración en ambas modalidades.
+
+## Enmienda 2026-10-03: Traefik en Proxmox (AUD-SEC-TLS-001)
+
+Las directivas anteriores describen ingress-nginx con cert-manager. Los entornos activos
+(Proxmox prod y pre-prod) usan el Traefik integrado en K3s, que ignora las anotaciones
+`nginx.ingress.kubernetes.io/*`. Hasta esta enmienda esos entornos se servían por HTTP con
+`tls: []`, mientras el backend emitía la cookie de sesión con `Secure`: el navegador la
+descartaba y las credenciales viajaban en claro.
+
+Para `ingress.className: traefik` la directiva 1 se implementa así:
+
+- **Terminación TLS en Traefik:** el router se publica solo en el entrypoint `websecure`
+  (`traefik.ingress.kubernetes.io/router.entrypoints: websecure` y `router.tls: "true"`), y
+  `ingress.tls` cubre todos los hosts.
+- **Redirección 308:** es global de Traefik (`ports.web.redirectTo.port: websecure`). La
+  aplica un `HelmChartConfig` que escribe
+  [`setup_k3s.yaml`](../../infra/ansible/playbooks/setup_k3s.yaml).
+- **Certificado:** sin cert-manager. Lo firma la CA interna que ya valida Vault, se guarda en
+  Vault como `TLS_CRT` / `TLS_KEY` de `pokedex/prod` o `pokedex/preprod`, y ESO lo sincroniza
+  como Secret `kubernetes.io/tls` (`ingress.tlsExternalSecret` del chart).
+- **Render efectivo:** la plantilla del Ingress omite las anotaciones `nginx.*` cuando
+  `className` no es `nginx`, y las de `cert-manager.io/*` cuando el certificado llega por ESO.
+- **Contrato:**
+  [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts)
+  exige TLS en todo host de un entorno con cookie `Secure`, orígenes CORS `https://` y un
+  render sin anotaciones de otro controlador.
+
+Las directivas 2, 3 y 4 no tienen equivalente en el Ingress de Traefik, y esta enmienda no lo
+crea. Las cabeceras de seguridad las emiten Express (`apps/backend/server.ts`) y el nginx del
+frontend; el rate limiting, Express (ADR-010). El bloqueo de `/metrics` depende de la allowlist
+del nginx del frontend, que detrás de Traefik ve la IP del pod de Traefik y no la del cliente.
 
 ## Consecuencias
 

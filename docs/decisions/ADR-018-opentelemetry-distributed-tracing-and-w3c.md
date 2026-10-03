@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado
+Aceptado (enmendado el 2026-10-03: la exportación OTLP queda diferida; ver la sección
+*Enmienda 2026-10-03*)
 
 ## Contexto
 
@@ -51,6 +52,25 @@ Se adopta una arquitectura de trazabilidad distribuida extremo a extremo basada 
    - `infra/helm/pokedex/templates/configmap.yaml` y `values.yaml` incorporan las variables estándar de OpenTelemetry:
      - `OTEL_EXPORTER_OTLP_ENDPOINT`: endpoint del colector OTLP (ej. Tempo / OpenTelemetry Collector).
      - `OTEL_SERVICE_NAME`: nombre del servicio registrado (`pokedex-api`).
+
+## Enmienda 2026-10-03: Exportación OTLP Diferida (AUD-GOV-ADR-001)
+
+El contraste contra el código muestra que las directivas 1 a 4 están implementadas y la 5 solo
+en parte:
+
+- **Vigente:** propagación W3C `traceparent` / `X-Request-Id` en
+  `apps/backend/src/middleware/request-tracer.ts`, correlación en logs Pino vía
+  `AsyncLocalStorage` y reenvío de cabeceras en `apps/frontend/nginx.conf.template`.
+- **No implementado:** no hay SDK ni exportador OpenTelemetry en `apps/*/package.json`. El
+  configmap inyecta `OTEL_EXPORTER_OTLP_ENDPOINT` y `OTEL_SERVICE_NAME`, pero ningún código los
+  consume: no se emiten spans y no hay trazas en cascada en Tempo ni Jaeger.
+
+Decisión: la exportación OTLP queda **diferida** hasta que exista un colector operativo en un
+entorno activo. Mientras tanto, la trazabilidad se limita a la correlación de logs por
+`traceId`. Las consecuencias positivas que mencionan trazas distribuidas, la triangulación de los
+tres pilares y los *waterfall charts* describen el objetivo, no el estado actual. Activar la
+exportación requiere incorporar `@opentelemetry/sdk-node` con un exportador OTLP, evaluado con
+`repo-dependencies`, y un test que verifique la emisión de spans.
 
 ## Consecuencias
 

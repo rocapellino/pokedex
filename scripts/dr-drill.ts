@@ -124,6 +124,21 @@ export function decryptAes256Cbc(encryptedBuffer: Buffer, keyString: string): Bu
  * Ejecuta el simulacro operacional de Disaster Recovery de punta a punta.
  */
 export async function runDrDrill(options: DrDrillOptions = {}): Promise<DrDrillMetrics> {
+  // Directorio de trabajo aislado bajo tmp/ (repository-hygiene). Se elimina también
+  // cuando el simulacro falla, no solo en el camino feliz (AUD-TST-HYG-001).
+  const tempBase = path.join(ROOT_DIR, 'tmp', `dr_drill_${Date.now()}`);
+  try {
+    return await executeDrDrill(options, tempBase);
+  } finally {
+    try {
+      fs.rmSync(tempBase, { recursive: true, force: true });
+    } catch {
+      // Ignorar si no se puede eliminar inmediatamente
+    }
+  }
+}
+
+async function executeDrDrill(options: DrDrillOptions, tempBase: string): Promise<DrDrillMetrics> {
   const verbose = options.verbose ?? true;
   const log = (msg: string) => {
     if (verbose) console.log(msg);
@@ -133,8 +148,7 @@ export async function runDrDrill(options: DrDrillOptions = {}): Promise<DrDrillM
   log('🛡️ [DR Drill: End-to-End] Simulacro Operacional de Recuperación Total');
   log('================================================================\n');
 
-  // 1. Preparar directorios de trabajo aislados bajo tmp/ (repository-hygiene)
-  const tempBase = path.join(ROOT_DIR, 'tmp', `dr_drill_${Date.now()}`);
+  // 1. Preparar directorios de trabajo aislados bajo tempBase (lo elimina runDrDrill)
   const remoteStorageDir = options.remoteDir || path.join(tempBase, 'remote_gdrive_store');
   const localRestoreDir = options.restoreDir || path.join(tempBase, 'local_restore_workspace');
 
@@ -372,13 +386,6 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   const rpoSlaPassed = rpoEfectivoSegundos < 24 * 3600; // < 24 horas
   const rtoSlaPassed = rtoEfectivoSegundos < 2 * 3600; // < 2 horas
   const drillPassed = rpoSlaPassed && rtoSlaPassed && remoteObjectPresent && cantidadRegistrosRestaurados > 0;
-
-  // Cleanup de directorio temporal
-  try {
-    fs.rmSync(tempBase, { recursive: true, force: true });
-  } catch {
-    // Ignorar si no se puede eliminar inmediatamente
-  }
 
   const result: DrDrillMetrics = {
     backupTimestamp,

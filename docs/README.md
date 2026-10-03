@@ -136,7 +136,7 @@ flowchart TD
 
 - 🛡️ [**SECURITY.md**](../SECURITY.md): **Política oficial de seguridad** y divulgación responsable de vulnerabilidades (Responsible Disclosure) en la raíz del repositorio.
 - 🚨 [**SECURITY_RUNBOOK.md**](./security/SECURITY_RUNBOOK.md): Procedimientos operativos estándar (**SOP**) de respuesta a incidentes de seguridad clasificados por matriz de severidad (SEV-1 a SEV-4).
-- 🔍 [**DEVSECOPS_AUDIT.md**](./security/DEVSECOPS_AUDIT.md): Evaluación técnica integral de arquitectura, matriz de mitigación de vectores de vulnerabilidad y madurez operativa DevSecOps.
+- 🔍 [**DEVSECOPS_AUDIT.md**](./security/DEVSECOPS_AUDIT.md): Registro vivo, gobernado por tests, de vectores de vulnerabilidad mitigados y madurez operativa DevSecOps.
 
 ---
 
@@ -199,4 +199,4 @@ flowchart TD
 > **Aviso de Gobernanza:** Los documentos ubicados bajo `docs/audits/<fecha>/` constituyen **evidencia y diagnósticos históricos fechados** correspondientes a hitos específicos de auditoría. **NO constituyen la Fuente Única de Verdad (SSOT)** de la arquitectura vigente. La arquitectura activa se especifica exclusivamente en [`docs/architecture/`](./architecture/).
 
 - 📋 [**Registro y política de auditorías**](./audits/README.md): índice canónico y reglas de retención de snapshots históricos.
-- 📸 [**baseline.md**](./audits/2026-10-02/baseline.md): snapshot histórico más reciente. Su metadata puede clasificarse como `AUDIT_STALE`; el estado actual siempre se obtiene de las fuentes de verdad vigentes.
+- 📸 [**baseline.md**](./audits/2026-10-03/baseline.md): snapshot histórico más reciente. Su metadata puede clasificarse como `AUDIT_STALE`; el estado actual siempre se obtiene de las fuentes de verdad vigentes.

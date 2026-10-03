@@ -1,6 +1,6 @@
 ---
 name: repo-testing
-description: Gobernar la estrategia de pruebas: pirámide, taxonomía de 12 estados, test surface y brechas de cobertura. Usar al agregar, mover o eliminar tests, ante tests lentos o inestables, o para encontrar flujos sin cobertura.
+description: "Gobernar la estrategia de pruebas: pirámide, taxonomía de 12 estados, test surface y brechas de cobertura. Usar al agregar, mover o eliminar tests, ante tests lentos o inestables, o para encontrar flujos sin cobertura."
 ---
 
 # repo-testing

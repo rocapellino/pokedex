@@ -64,8 +64,9 @@ flowchart TD
         ROUTER -->|apps/frontend/**| WF_WEB["🌐 web.yaml (Reusable Web)\n• Vite Build & Lint\n• Playwright E2E & Axe-core\n• Lighthouse CI"]
         ROUTER -->|global / linting| WF_MEGA["🧹 mega-linter.yaml (Reusable)\n• Linting transversal"]
         ROUTER -->|security / global| WF_SCAN["🔬 security-code-scanning.yaml\n• CodeQL SAST"]
+        ROUTER -->|always: todo PR humano| JOB_PRGOV["📝 pr-governance (job)\n• npm run pr:validate --remote"]
 
-        WF_CI & WF_INFRA & WF_WEB & WF_MEGA & WF_SCAN --> QG["🚦 Quality Gate (Agregador)"]
+        WF_CI & WF_INFRA & WF_WEB & WF_MEGA & WF_SCAN & JOB_PRGOV --> QG["🚦 Quality Gate (Agregador)"]
     end
 
     QG --> QG_DECISION{"¿Quality Gate y Gitleaks OK?"}
@@ -95,7 +96,7 @@ flowchart TD
     classDef success fill:#10b981,stroke:#047857,color:#fff;
     classDef error fill:#ef4444,stroke:#b91c1c,color:#fff;
 
-    class WF_WEB,WF_INFRA,WF_LEAKS,WF_CI,WF_MEGA,WF_SCAN normal;
+    class WF_WEB,WF_INFRA,WF_LEAKS,WF_CI,WF_MEGA,WF_SCAN,JOB_PRGOV normal;
     class DETECT,ROUTER,QG,QG_DECISION,KYVERNO gate;
     class MERGE_MAIN,PUSH_GHCR,DEPLOY_OK,CHK_LEAKS success;
     class BLOCK_PR,DEPLOY_FAIL error;
@@ -110,6 +111,7 @@ flowchart TD
 - **Archivo:** [`change-impact.yaml`](../../.github/workflows/change-impact.yaml)
 - **Triggers:** Pull Requests y pushes a `main`.
 - **Función:** Ejecuta `scripts/detect-change-impact.ts` con el contrato de `.github/ci-impact.yaml`. Con base en el análisis de diff, despacha los workflows reusables necesarios y expone el job agregador `quality-gate` que actúa como check requerido en el ruleset de protección de ramas.
+- **Controles `always`:** el job `pr-governance` ejecuta `npm run pr:validate -- --remote <número>` en todo PR cuyo autor no sea un Bot (los PRs de promote y Renovate generan su propio cuerpo) y forma parte de `quality-gate`. El escaneo de secretos lo cubre `security-gitleaks.yaml` con su required check propio.
 
 ### 3.2. 🚀 `ci.yaml` (Reusable Core CI: Calidad, SAST, Docker & Supply Chain)
 

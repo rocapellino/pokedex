@@ -1,6 +1,6 @@
 ---
 name: repo-security
-description: Evaluación DevSecOps: secretos, autenticación, cabeceras, supply chain, CI y Kubernetes. Usar al tocar middleware de auth, cabeceras HTTP, secretos, permisos de workflows o políticas de red, o ante alertas de seguridad.
+description: "Evaluación DevSecOps: secretos, autenticación, cabeceras, supply chain, CI y Kubernetes. Usar al tocar middleware de auth, cabeceras HTTP, secretos, permisos de workflows o políticas de red, o ante alertas de seguridad."
 ---
 
 # repo-security

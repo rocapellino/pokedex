@@ -338,13 +338,56 @@ Para que la instancia de ArgoCD o la estación de control puedan alcanzar los ap
 
 ### Ingress Controller Estandarizado (Traefik)
 
-El entorno Proxmox estandariza sobre el controlador Ingress **Traefik** nativo integrado en K3s (`ingress.className: "traefik"`). El enrutamiento HTTP se gobierna mediante la anotación canónica:
+El entorno Proxmox estandariza sobre el controlador Ingress **Traefik** nativo integrado en K3s (`ingress.className: "traefik"`). La aplicación se publica solo por HTTPS ([ADR-016](../decisions/ADR-016-ingress-tls-and-http-hardening.md), enmienda 2026-10-03):
 
 ```yaml
-traefik.ingress.kubernetes.io/router.entrypoints: "web"
+traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+traefik.ingress.kubernetes.io/router.tls: "true"
 ```
 
+- **Redirección 308 `web → websecure`:** es global de Traefik. La configura `setup_k3s.yaml` (`task k3s:setup:proxmox`) con el manifiesto `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml`, que K3s aplica sin intervención.
+- **Certificado:** un único certificado por entorno con todos los hosts de `ingress.tls`, firmado por la CA interna que ya valida Vault. ESO lo sincroniza como Secret `pokedex-tls-cert` (`kubernetes.io/tls`).
+
 No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reduciendo el consumo de memoria y la complejidad operacional.
+
+### Alta y Renovación del Certificado TLS del Ingress
+
+Ejecutar en el LXC de Vault, donde reside la CA (`/etc/vault.d/tls/`). Para pre-producción,
+reemplazar los hosts y la ruta `pokedex/prod` por `pokedex/preprod`:
+
+```bash
+cd /etc/vault.d/tls
+openssl req -new -newkey rsa:2048 -nodes -keyout pokedex-prod.key -out pokedex-prod.csr \
+  -subj "/CN=pokedex.proxmox.internal.lan" \
+  -addext "subjectAltName=DNS:pokedex.proxmox.internal.lan,DNS:k8s-proxmox.internal.lan"
+openssl x509 -req -in pokedex-prod.csr -CA vault-ca.crt -CAkey vault-ca.key -CAcreateserial \
+  -out pokedex-prod.crt -days 825 -sha256 -copy_extensions copy
+
+# Agregar las propiedades sin pisar el resto del secreto
+vault kv patch secret/pokedex/prod TLS_CRT=@pokedex-prod.crt TLS_KEY=@pokedex-prod.key
+shred -u pokedex-prod.key pokedex-prod.csr
+```
+
+ESO refresca el Secret según `externalSecrets.refreshInterval` (1 h); para aplicarlo de
+inmediato: `kubectl -n pokemon-app annotate externalsecret <release>-ingress-tls force-sync=$(date +%s) --overwrite`.
+Los clientes deben confiar en `vault-ca.crt` (ver
+[sección 6](#6-aprovisionamiento-y-configuración-endurecida-de-vault-ce-con-ansible)).
+
+> [!IMPORTANT]
+> **Orden de despliegue:** cargar el certificado en Vault y ejecutar `setup_k3s.yaml` **antes**
+> de sincronizar la versión que publica el ingress en `websecure`. Sin el Secret, Traefik sirve su
+> certificado por defecto y el navegador rechaza la conexión. Validar primero en pre-producción.
+
+### Orígenes CORS por Entorno
+
+Cada `values.yaml` de entorno declara `api.env.corsOrigins` con un origen por host del
+ingress, usando el esquema que ve el navegador. Si un entorno no lo declara, hereda el
+valor de ejemplo del chart y el backend rechaza el login y las mutaciones del backoffice:
+el navegador envía `Origin` en todo `POST`, aunque sea del mismo origen.
+
+Al agregar o renombrar un host en `ingress.hosts`, agregar su origen en `corsOrigins`.
+El contrato [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts)
+falla si un entorno activo omite un host o hereda un dominio de ejemplo.
 
 ### Sincronización Manual o Automatizada
 

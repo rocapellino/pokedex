@@ -1,6 +1,6 @@
 ---
 name: repo-quality
-description: Calidad estática del código: tipado, God Files, acoplamiento, código muerto y pre-commit. Usar al modificar código en apps/ o scripts/, ante archivos grandes, o para detectar exports sin uso.
+description: "Calidad estática del código: tipado, God Files, acoplamiento, código muerto y pre-commit. Usar al modificar código en apps/ o scripts/, ante archivos grandes, o para detectar exports sin uso."
 ---
 
 # repo-quality

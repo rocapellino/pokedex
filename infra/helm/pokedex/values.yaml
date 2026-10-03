@@ -281,6 +281,15 @@ ingress:
     - hosts:
         - pokedex.example.com
       secretName: pokedex-tls-cert
+  # Certificado TLS sincronizado por ESO desde Vault para entornos sin cert-manager
+  # (Proxmox, CA interna). Crea un Secret kubernetes.io/tls con el nombre del primer
+  # bloque de `tls` a partir de dos propiedades PEM de `remoteRef.key`.
+  tlsExternalSecret:
+    enabled: false
+    remoteRef:
+      key: ""
+      certProperty: TLS_CRT
+      keyProperty: TLS_KEY
 
 # ------------------------------------------------------------------------------
 # 7. Credenciales y Secretos de Aplicación

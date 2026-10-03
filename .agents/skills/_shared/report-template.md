@@ -7,6 +7,19 @@
 
 ---
 
+## Identificación (obligatoria en `docs/audits/<fecha>/baseline.md`)
+
+`audit-freshness.ts` parsea la línea `**Commit:**` y estas tres filas; sin ellas el baseline
+queda `AUDIT_STALE` con diferencias `MISSING_*`.
+
+| Componente | Valor auditado | Fuente |
+| :--- | :--- | :--- |
+| `package.json` | `<versión>` | Versión de aplicación y monorepo |
+| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `<versión>` | Empaquetado Helm |
+| GitOps `targetRevision` (manifiestos de `gitops/apps/`) | `v<versión>` | Promoción ArgoCD |
+
+---
+
 ## 1. Resumen Ejecutivo
 
 - **Total de Hallazgos:** `[Total]`

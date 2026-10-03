@@ -185,3 +185,39 @@ test('📦 OCI-001: los labels de imagen usan la version y revision reales', () 
     );
   }
 });
+
+// Regresión: `location /api/` aplicaba `rewrite ^/api/(.*) /$1 break;`, de modo que
+// /api/v1/auth/session llegaba al backend como /v1/auth/session (404) y el login del
+// backoffice fallaba en Docker Compose. El test calcula la ruta que nginx entrega
+// upstream para cada llamada /api/ del frontend y exige que el backend la registre.
+test('🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada', () => {
+  const template = fs.readFileSync(path.join(ROOT_DIR, 'apps/frontend/nginx.conf.template'), 'utf-8');
+  const block = template.match(/location \/api\/ \{([\s\S]*?)\n\s*\}/)?.[1];
+  assert.ok(block, 'nginx.conf.template debe declarar location /api/');
+
+  const rewrites = [...block.matchAll(/^\s*rewrite\s+(\S+)\s+(\S+)/gm)].map(([, regex, replacement]) => ({
+    regex: new RegExp(regex),
+    replacement: replacement.replace(/\$(\d)/g, '$$$1'),
+  }));
+  const upstreamPath = (requestPath: string) =>
+    rewrites.reduce((current, { regex, replacement }) => current.replace(regex, replacement), requestPath);
+
+  const listFiles = (dir: string): string[] =>
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = path.join(dir, entry.name);
+      return entry.isDirectory() ? listFiles(full) : full.endsWith('.ts') ? [full] : [];
+    });
+  const read = (dir: string) => listFiles(path.join(ROOT_DIR, dir)).map((file) => fs.readFileSync(file, 'utf-8')).join('\n');
+
+  const frontendCalls = [...new Set([...read('apps/frontend/src').matchAll(/['`"](\/api\/[^'`"?$]+)/g)].map((m) => m[1]))];
+  const backendRoutes = new Set(
+    [...(read('apps/backend/src/routes') + fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8'))
+      .matchAll(/(?:Router|app)\.(?:get|post|put|patch|delete)\('([^']+)'/g)].map((m) => m[1])
+  );
+
+  assert.ok(frontendCalls.length > 0, 'El frontend debe consumir al menos una ruta /api/');
+  for (const call of frontendCalls) {
+    const upstream = upstreamPath(call);
+    assert.ok(backendRoutes.has(upstream), `${call} llega al backend como ${upstream}, que no está registrada`);
+  }
+});

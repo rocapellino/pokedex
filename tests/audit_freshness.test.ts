@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 
-import { evaluateAuditFreshness } from '../.agents/skills/repo-lifecycle/scripts/audit-freshness.ts';
+import {
+  evaluateAuditFreshness,
+  findLatestBaseline,
+  readRepositoryState,
+} from '../.agents/skills/repo-lifecycle/scripts/audit-freshness.ts';
+
+const SCRIPT = path.join('.agents', 'skills', 'repo-lifecycle', 'scripts', 'audit-freshness.ts');
 
 const CURRENT = {
   head: '67350e963fbc90ff2d5b816ed8a5e878fd028128',
@@ -56,4 +65,21 @@ test('Audit lifecycle: eleva evidencia por versión, Chart y GitOps divergentes'
   );
   assert.equal(result.status, 'AUDIT_STALE');
   assert.deepEqual(result.differences, ['PACKAGE_VERSION', 'CHART_VERSION', 'GITOPS_REVISION']);
+});
+
+// AUD-GOV-SKL-012: repo-lifecycle ordena ejecutar el script, por lo que debe tener
+// punto de entrada CLI, y el baseline vigente debe exponer los metadatos que parsea.
+test('Audit lifecycle: el baseline vigente expone commit, versión, Chart y revisión GitOps', () => {
+  const baselinePath = findLatestBaseline();
+  assert.ok(baselinePath, 'No se encontró ningún baseline en docs/audits/<fecha>/');
+  const result = evaluateAuditFreshness(fs.readFileSync(baselinePath, 'utf8'), readRepositoryState());
+  assert.deepEqual(result.differences.filter((d) => d.startsWith('MISSING_')), []);
+});
+
+test('Audit lifecycle: el script se ejecuta como CLI y emite JSON no bloqueante', () => {
+  const output = execFileSync(process.execPath, ['--import', 'tsx', SCRIPT], { encoding: 'utf8' });
+  const result = JSON.parse(output);
+  assert.ok(['CURRENT', 'AUDIT_STALE'].includes(result.status));
+  assert.equal(result.blocking, false);
+  assert.match(result.baseline, /^docs\/audits\/\d{4}-\d{2}-\d{2}\/baseline\.md$/);
 });

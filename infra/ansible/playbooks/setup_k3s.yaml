@@ -76,6 +76,32 @@
       changed_when: false
 
     # --------------------------------------------------------------------------
+    # 3b. Redirección HTTP → HTTPS de Traefik (ADR-016, AUD-SEC-TLS-001)
+    # --------------------------------------------------------------------------
+    # K3s aplica automáticamente los manifiestos de este directorio. El chart de
+    # Traefik que incluye k3s_version (v27) redirige el entrypoint web a websecure
+    # con 308 mediante ports.web.redirectTo. Los Ingress de la aplicación se
+    # publican solo en websecure con el certificado de la CA interna.
+    - name: Configurar redirección global web → websecure en Traefik
+      ansible.builtin.copy:
+        dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          apiVersion: helm.cattle.io/v1
+          kind: HelmChartConfig
+          metadata:
+            name: traefik
+            namespace: kube-system
+          spec:
+            valuesContent: |-
+              ports:
+                web:
+                  redirectTo:
+                    port: websecure
+
+    # --------------------------------------------------------------------------
     # 4. Despliegue Declarativo de Cilium CNI vía Helm
     # --------------------------------------------------------------------------
     - name: Comprobar si Helm está disponible en el nodo

@@ -66,15 +66,23 @@ export function isProductionEnv(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
+/**
+ * Decide si el pool usa TLS: obligatorio si DB_SSL=true o sslmode=require, y por
+ * defecto en producción salvo DB_SSL=false o destino loopback.
+ */
+export function shouldUsePgSsl(dbUrl: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  const isProduction = env.NODE_ENV === 'production';
+  const isLoopback = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
+  const isSslExplicitlyRequired = env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
+  return isSslExplicitlyRequired || (isProduction && env.DB_SSL !== 'false' && !isLoopback);
+}
+
 export async function connectPg(): Promise<boolean> {
   const dbUrl = getDatabaseUrl();
   if (!dbUrl) return false;
   try {
     if (!pgPool) {
-      const isProduction = process.env.NODE_ENV === 'production';
-      const isLoopback = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
-      const isSslExplicitlyRequired = process.env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
-      const shouldUseSsl = isSslExplicitlyRequired || (isProduction && process.env.DB_SSL !== 'false' && !isLoopback);
+      const shouldUseSsl = shouldUsePgSsl(dbUrl);
 
       const sslConfig = shouldUseSsl
         ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' }
