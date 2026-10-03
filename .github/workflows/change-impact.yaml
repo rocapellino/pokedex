@@ -198,6 +198,42 @@ jobs:
       linting: ${{ needs.detect-impact.outputs.linting == 'true' || needs.detect-impact.outputs.is_unknown == 'true' || github.event_name == 'push' }}
 
   # =======================================================
+  # 5. PR GOVERNANCE (control always del contrato de impacto)
+  # =======================================================
+  # AUD-WF-GOV-001: valida el cuerpo del PR contra el template físico. Se omite
+  # para autores Bot: los PRs de promote (github-actions) y Renovate generan su
+  # propio cuerpo. Un job omitido no bloquea el quality-gate.
+  pr-governance:
+    name: "📝 PR Governance"
+    needs: [detect-impact]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.type != 'Bot' &&
+      needs.detect-impact.outputs.pr_governance == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Configurar Node.js 22 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias
+        run: npm ci --ignore-scripts
+
+      - name: 4. Validar el cuerpo del PR contra el template
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: npm run pr:validate -- --remote "${PR_NUMBER}"
+
+  # =======================================================
   # 6. QUALITY GATE (agregador fail-closed para branch protection)
   # =======================================================
   # Este job existe para que el ruleset de branch protection pueda declarar
@@ -213,7 +249,7 @@ jobs:
   # ejecute incluso si alguno de ellos fue omitido o fallo.
   quality-gate:
     name: "🚦 Quality Gate"
-    needs: [detect-impact, ci-core, infra, frontend-web, megalinter, security-code-scanning]
+    needs: [detect-impact, ci-core, infra, frontend-web, megalinter, security-code-scanning, pr-governance]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -230,6 +266,7 @@ jobs:
           FRONTEND_WEB: ${{ needs.frontend-web.result }}
           MEGALINTER: ${{ needs.megalinter.result }}
           SECURITY_CODE_SCANNING: ${{ needs.security-code-scanning.result }}
+          PR_GOVERNANCE: ${{ needs.pr-governance.result }}
         run: |
           set -euo pipefail
 
@@ -242,7 +279,8 @@ jobs:
             "infra=${INFRA}" \
             "frontend-web=${FRONTEND_WEB}" \
             "megalinter=${MEGALINTER}" \
-            "security-code-scanning=${SECURITY_CODE_SCANNING}"; do
+            "security-code-scanning=${SECURITY_CODE_SCANNING}" \
+            "pr-governance=${PR_GOVERNANCE}"; do
             JOB="${pair%%=*}"
             RESULT="${pair#*=}"
             case "${RESULT}" in
@@ -271,7 +309,8 @@ jobs:
               "infra=${INFRA}" \
               "frontend-web=${FRONTEND_WEB}" \
               "megalinter=${MEGALINTER}" \
-              "security-code-scanning=${SECURITY_CODE_SCANNING}"; do
+              "security-code-scanning=${SECURITY_CODE_SCANNING}" \
+              "pr-governance=${PR_GOVERNANCE}"; do
               JOB="${pair%%=*}"
               RESULT="${pair#*=}"
               echo "| \`${JOB}\` | \`${RESULT}\` |"

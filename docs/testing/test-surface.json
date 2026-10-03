@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T19:56:19.022Z",
+  "generatedAt": "2026-10-03T20:02:50.097Z",
   "summary": {
     "totalFiles": 60,
     "testFiles": 57,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 514,
-    "totalLines": 14466,
-    "totalSizeBytes": 661995,
+    "totalTestCases": 515,
+    "totalLines": 14514,
+    "totalSizeBytes": 664388,
     "suitesCount": 9
   },
   "suites": [
@@ -99,7 +99,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 18,
-      "testCases": 183,
+      "testCases": 184,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -437,12 +437,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 16,
+      "testCount": 17,
       "describeCount": 0,
-      "assertionCountEst": 61,
-      "sizeBytes": 18003,
-      "lineCount": 429,
-      "sha256": "a68a0fee89203edb987b8b3294646d959bf24fec243cc45ccb793da1aaf40f0d",
+      "assertionCountEst": 68,
+      "sizeBytes": 20396,
+      "lineCount": 477,
+      "sha256": "a639700a93ee4d5ddc2ab0d1dca6302aee0b84bf5138ec1482972cfeb80b4329",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -519,6 +519,10 @@
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
           "line": 407
+        },
+        {
+          "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
+          "line": 434
         }
       ]
     },
