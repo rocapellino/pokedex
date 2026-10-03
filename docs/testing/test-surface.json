@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T21:08:15.517Z",
+  "generatedAt": "2026-10-03T21:38:48.919Z",
   "summary": {
     "totalFiles": 61,
     "testFiles": 58,
     "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 518,
-    "totalLines": 14608,
-    "totalSizeBytes": 669048,
+    "totalLines": 14611,
+    "totalSizeBytes": 669132,
     "suitesCount": 9
   },
   "suites": [
@@ -440,9 +440,9 @@
       "testCount": 17,
       "describeCount": 0,
       "assertionCountEst": 68,
-      "sizeBytes": 20396,
-      "lineCount": 477,
-      "sha256": "a639700a93ee4d5ddc2ab0d1dca6302aee0b84bf5138ec1482972cfeb80b4329",
+      "sizeBytes": 20480,
+      "lineCount": 480,
+      "sha256": "9fee5b50a5c52013aee4330450379087b3e6bb87b90119527ff1b574d7c61d21",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
