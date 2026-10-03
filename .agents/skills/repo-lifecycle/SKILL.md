@@ -1,6 +1,6 @@
 ---
 name: repo-lifecycle
-description: Orquestador del ciclo de vida completo del repositorio Pokedex.
+description: Orquestador del ciclo de vida en 6 fases (auditar, matriz, ejecutar, actualizar, documentar, depurar), full-audit y configuration-hygiene. Usar para trabajo que abarca varias fases o para la fase Actualizar (/repo-lifecycle update).
 ---
 
 # repo-lifecycle
@@ -11,40 +11,68 @@ Orquestar de extremo a extremo el ciclo de vida de desarrollo, análisis, refact
 
 ---
 
-## Flujo Conceptual de Orquestación
+## Ciclo de Vida en 6 Fases
 
-El ciclo de vida del repositorio sigue una secuencia estricta y desacoplada donde cada skill opera bajo su ámbito de responsabilidad:
+El ciclo de vida del repositorio es un bucle de seis fases. Cada fase tiene **una** skill responsable, un artefacto de salida y un criterio de salida verificable. `repo-context` se ejecuta antes de la fase 1 si el contexto no está disponible en la sesión.
 
 ```text
-               1. repo-context (Construir contexto técnico y operativo)
-                               │
-                               ▼
-               2. repo-audit (Diagnóstico integral o delta)
-                               │
-                               ▼
-               3. repo-impact (Identificar archivos y clasificar radio de cambio)
-                               │
-                               ▼
-               4. Skills Especializadas (Activadas según impacto)
-                               │
-                               ▼
-               5. Implementación / Refactor (repo-refactor si aplica)
-                               │
-                               ▼
-               6. Quality Gates & Pre-Commit (repo-quality & suites técnicas)
-                               │
-                               ▼
-               7. Cierre Documental & Gobernanza (repo-docs & lint:md)
-                               │
-                               ▼
-               8. Preparación y Gate de Pull Request (repo-pr)
-                               │
-                               ▼
-               9. Corte y Promoción de Release (repo-release, si amerita tag)
-                               │
-                               ▼
-              10. Registro y Mantenimiento de Backlog (repo-maintenance)
+1 AUDITAR     repo-audit [quick|full|delta]       → hallazgos AUD-* + snapshot inmutable
+     │
+2 MATRIZ      repo-impact                         → change-plan con gates derivados de la matriz
+     │
+3 EJECUTAR    repo-fix | repo-refactor            → test que falla primero, commit por hallazgo
+     │
+4 ACTUALIZAR  repo-lifecycle update               → artefactos derivados + estado del hallazgo
+     │
+5 DOCUMENTAR  repo-docs                           → drift, ADRs, lint:md, docs:validate
+     │
+6 DEPURAR     repo-maintenance cleanup            → protocolo único de limpieza, git status limpio
+     │
+     └──► repo-pr  →  repo-release (si amerita tag)  →  vuelve a 1 (delta)
 ```
+
+| Fase | Entrada | Criterio de salida |
+| :--- | :--- | :--- |
+| 1. Auditar | Pedido del usuario o calendario de `repo-maintenance` | Cada P0/P1 tiene evidencia `ruta:línea` y, si afecta despliegue, verificación de configuración efectiva por entorno ([methodology.md](../_shared/methodology.md) §1) |
+| 2. Matriz | Hallazgo o requerimiento | Plan con archivos afectados, referencias inversas resueltas y gates del dominio ([change-impact-matrix.md](../_shared/change-impact-matrix.md)) |
+| 3. Ejecutar | Plan aprobado | Test nuevo en verde, regresión confirmada (falla sin el fix) y gates del plan con estado real |
+| 4. Actualizar | Commits de la fase 3 | Artefactos derivados sincronizados y estado del hallazgo registrado (ver abajo) |
+| 5. Documentar | Diff completo | 0 errores `MDxxx`, `docs:validate` en verde y ADR enmendado si hubo `ADR Drift` |
+| 6. Depurar | Rama lista | Sin código, scripts ni referencias huérfanas introducidas; `git status --short` sin sorpresas fuera de `tmp/` |
+
+Las fases son secuenciales dentro de un cambio, pero no todas aplican siempre: el *Fast Track* documental salta la fase 3, y un cambio sin hallazgo previo entra por la fase 2.
+
+### Fase 4: Actualizar
+
+Después de ejecutar, `repo-lifecycle update` sincroniza lo que el cambio dejó desactualizado. Recorrer la lista y marcar cada ítem como `UPDATED` o `NOT_APPLICABLE`:
+
+| Artefacto derivado | Disparador | Comando o acción |
+| :--- | :--- | :--- |
+| Inventario de tests | Se agregó, movió o eliminó un test | `npm run test:surface:update` |
+| `apps/frontend/nginx.conf` | Cambió `nginx.conf.template` | `npm run nginx:conf` |
+| Pines de digest en GitOps | Se publicó una imagen que debe promoverse | `npm run gitops:pin` (solo en flujo de release) |
+| Hechos del stack en skills | Cambió algo descrito en [methodology.md](../_shared/methodology.md) §2 o en un `SKILL.md` | Editar la skill o reemplazar el dato por un enlace ([skill-contract.md](../_shared/skill-contract.md)) |
+| Estado del hallazgo | Toda remediación de un `AUD-*` | Actualizar el tracker (ver ciclo de estados) |
+
+**Ciclo de estados de un hallazgo.** Los snapshots en `docs/audits/<fecha>/` son inmutables, así que el estado vigente de cada hallazgo vive fuera de ellos: en un issue (GitHub o Linear) cuyo título comienza con el ID `AUD-*`.
+
+```text
+OPEN ──► PLANNED ──► IN_PROGRESS ──► VERIFIED ──► CLOSED
+  │                       │              │
+  └──► ACCEPTED_RISK      └──────────────┴──► REOPENED ──► IN_PROGRESS
+```
+
+| Estado | Significado | Evidencia mínima |
+| :--- | :--- | :--- |
+| `OPEN` | Emitido por una auditoría | Snapshot fechado con el hallazgo |
+| `PLANNED` | Tiene plan de cambio aprobado | `change-plan` enlazado |
+| `IN_PROGRESS` | Rama o PR abierto | Rama o PR enlazado |
+| `VERIFIED` | Fix integrado con test de regresión | Commit en `main` + test que falla sin el fix |
+| `CLOSED` | Verificado en el entorno afectado | Release promovido o evidencia de runtime; si no hay acceso, permanece `VERIFIED` |
+| `REOPENED` | El test de regresión falló o el defecto reapareció | Run de CI o auditoría delta |
+| `ACCEPTED_RISK` | Se decide no remediar | Justificación y responsable en el issue |
+
+`repo-maintenance delta` compara la auditoría nueva contra los hallazgos en estado distinto de `CLOSED` y `ACCEPTED_RISK`.
 
 ---
 
@@ -102,8 +130,6 @@ orquesta este análisis y convoca a las skills especializadas (`repo-quality`,
 
 ---
 
----
-
 ## Demarcación Estricta de Responsabilidades entre Skills
 
 Para evitar duplicaciones y mantener límites arquitectónicos claros:
@@ -135,82 +161,33 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 7. **`repo-release` (Gobernanza de Release y Promoción):**
    - Gobierna la transición de los cuatro niveles: `MAIN` → `RELEASE` → `GITOPS` → `RUNTIME`.
 8. **`repo-maintenance` (Higiene de Tooling, Scripts y Cleanup):**
-   - Aplica el protocolo de 7 fases (`DISCOVER → CLASSIFY → EVIDENCE → PROPOSE → APPROVE → EXECUTE → VALIDATE`) para scripts, utilidades y artefactos obsoletos.
-   - Aplica la taxonomía de 8 estados con análisis de consumidores cruzados.
+   - Ejecuta la fase 6 (*Depurar*) aplicando el [protocolo único de depuración](../_shared/cleanup-protocol.md) a scripts, utilidades y artefactos obsoletos, con la taxonomía de 8 estados.
 9. **Auditoría del Catálogo de Skills (capacidad interna de `repo-lifecycle`):**
     - Verifica que las skills reflejen fielmente las capacidades activas del repositorio sin desfases ni solapamiento de atribuciones.
     - Contrasta los nombres de skills contra los directorios reales de `.agents/skills/` y contra los comandos documentados, para detectar referencias huérfanas.
-    - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §4.
+    - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §3.
     - Como referencia metodológica externa se admite `project-skill-audit` del catálogo AAS, aprobado solo como `APPROVED_REFERENCE` y gobernado por `repo-lifecycle` (`scripts/aas-governance.ts`). No se materializa ni se ejecuta código upstream.
 
 ---
 
 ## Estructura del Reporte Consolidado (`## Configuration Hygiene`)
 
-En todo reporte de `full-audit`, debe incluirse obligatoriamente la sección `## Configuration Hygiene` estructurada en las siguientes siete subsecciones:
-
-```markdown
-## Configuration Hygiene
-
-### 1. `.ignore inventory`
-Catálogo exhaustivo de archivos de exclusión detectados dinámicamente en el monorepo (ruta, tamaño, número de reglas, estado general).
-
-### 2. Obsolete rules
-Reglas que referencian rutas, herramientas, lenguajes o tecnologías inexistentes en el estado actual del repositorio.
-
-### 3. Missing rules
-Reglas necesarias omitidas que deberían incorporarse para proteger el control de versiones o el build context.
-
-### 4. Overbroad rules
-Patrones excesivamente amplios que pueden excluir accidentalmente artefactos legítimos.
-
-### 5. Security-sensitive exclusions
-Exclusiones en .gitignore, .gitleaksignore o .trivyignore con potencial impacto en la postura de seguridad.
-
-### 6. Cross-configuration consistency
-Validación cruzada de consistencia entre los archivos .ignore y Dockerfiles, CI workflows, package.json, pre-commit, Taskfile y Helm.
-
-### 7. Recommended changes
-Tabla consolidada de recomendaciones con clasificación (KEEP, KEEP_IMPROVE, REMOVE, REVIEW, SECURITY_REVIEW), evidencia e impacto.
-```
+Todo reporte de `full-audit` incluye obligatoriamente la sección `## Configuration Hygiene`
+con las siete subsecciones definidas en [report-template.md](../_shared/report-template.md) §5.
+La normativa de cada subsección reside en
+[`references/configuration-hygiene.md`](references/configuration-hygiene.md).
 
 ---
 
 ## Despacho Condicional por Tipología de Cambio
 
-No todas las skills son obligatorias para todos los cambios. Las validaciones a ejecutar dependen estrictamente del impacto clasificado en [change-impact-matrix.md](../_shared/change-impact-matrix.md):
+No todas las skills son obligatorias para todos los cambios. Las skills y gates a ejecutar
+por dominio residen **exclusivamente** en la tabla §4 de
+[change-impact-matrix.md](../_shared/change-impact-matrix.md), única fuente de verdad del
+despacho. Esta skill no mantiene una copia para evitar que ambas diverjan.
 
-### 1. Cambio Backend (`apps/backend/`)
-
-```text
-impact ──► testing ──► quality (lint/pre-commit) ──► security (App SAST) ──► architecture ──► docs ──► pr
-```
-
-### 2. Cambio Documentación Pura (`docs/`, `*.md`) — Fast Track
-
-```text
-impact ──► docs ──► markdown quality gate (0 errores MDxxx) ──► pr
-```
-
-*Exento de compilar código, correr tests unitarios de apps o levantar contenedores Docker.*
-
-### 3. Cambio en Workflows de CI/CD (`.github/workflows/`)
-
-```text
-impact ──► quality (sintaxis YAML/pre-commit) ──► security (permisos OIDC) ──► ci ──► docs ──► pr
-```
-
-### 4. Cambio en Helm / GitOps (`infra/helm/`, `gitops/`)
-
-```text
-impact ──► quality ──► security ──► architecture (AST/paridad) ──► release (pinning) ──► docs ──► pr
-```
-
-### 5. Cambio en Archivos de Exclusión y Configuración (`.*ignore`)
-
-```text
-impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trust) ──► quality (sintaxis) ──► docs ──► pr
-```
+El cambio puramente documental conserva su *Fast Track*: `impact → docs → lint:md → pr`,
+exento de builds, tests de aplicación y contenedores.
 
 ---
 
@@ -232,7 +209,8 @@ impact ──► lifecycle (configuration-hygiene) ──► security (Zero-Trus
 - **Full-Audit:** Ciclo completo de 16 etapas desde inventario inicial hasta reporte consolidado, incluyendo `configuration-hygiene`.
 - **Full:** Ciclo completo desde contexto y auditoría integral hasta release y mantenimiento.
 - **Fast:** Validación rápida de cambios acotados (`repo-context` + `repo-impact` + gates de dominio).
-- **Change:** Modo estándar para desarrollo de features o correcciones de bugs (`repo-impact` + skills de dominio + `repo-pr`).
+- **Change:** Modo estándar para desarrollo de features o correcciones de bugs (fases 2 a 6: `repo-impact` → `repo-fix`/`repo-refactor` → actualizar → `repo-docs` → depurar → `repo-pr`).
+- **Update:** Fase 4 aislada: recorre la tabla de artefactos derivados y actualiza el estado de los hallazgos remediados.
 - **Release:** Preparación formal de corte de versión y actualización GitOps (`repo-release`).
 - **Maintenance:** Evaluación periódica de salud, higiene y backlog (`repo-maintenance`).
 

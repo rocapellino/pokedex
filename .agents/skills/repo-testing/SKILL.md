@@ -1,6 +1,6 @@
 ---
 name: repo-testing
-description: Gobernar la estrategia de pruebas desde unitarias hasta producción simulada.
+description: Gobernar la estrategia de pruebas: pirámide, taxonomía de 12 estados, test surface y brechas de cobertura. Usar al agregar, mover o eliminar tests, ante tests lentos o inestables, o para encontrar flujos sin cobertura.
 ---
 
 # repo-testing
@@ -43,8 +43,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 - **Relación Tests vs. Código Fuente:**
   - Mapeo bidireccional entre módulos en `apps/backend/src/` y sus suites asociadas.
   - Identificación de brechas de cobertura (`TEST_COVERAGE_GAP`) en flujos críticos no testeados.
-- **Protocolo de Gobernanza en 7 Fases:**
-  `1. DISCOVER` (inventario) → `2. CLASSIFY` (taxonomía) → `3. EVIDENCE` (matriz de consumidores y código cubierto) → `4. PROPOSE` (plan / finding) → `5. APPROVE` (revisión humana) → `6. EXECUTE` (refactor / consolidación) → `7. VALIDATE` (Quality Gates 100% PASS).
+- **Protocolo de Depuración:** Toda eliminación, fusión o movimiento de tests sigue el [protocolo único de depuración](../_shared/cleanup-protocol.md) con el vocabulario de 12 estados de esta skill.
   *Regla estricta:* Ningún test se elimina automáticamente en primera pasada ni únicamente porque no se ejecute (primero se investiga si obedece a un pipeline desconfigurado o test abandonado).
 - **Gobernanza de Superficie de Testing (Test Surface Inventory):**
   - **Arquitectura Derivada y Reconciliable:** El código en `tests/` y `package.json` es la Fuente Única de Verdad (SSOT). La superficie se documenta y audita mediante dos artefactos gobernados:
@@ -81,8 +80,8 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Si se requiere reestructurar suites o añadir nuevos frameworks, modelar la propuesta con [change-plan.md](../_shared/change-plan.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (planes de prueba, reportes de cobertura) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

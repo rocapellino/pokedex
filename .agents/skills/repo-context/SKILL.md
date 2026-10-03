@@ -1,6 +1,6 @@
 ---
 name: repo-context
-description: Construir el contexto operativo del repositorio antes de cualquier análisis o cambio.
+description: Construir el contexto operativo del repositorio desde las fuentes de verdad. Usar al inicio de una sesión sin contexto previo, antes de cualquier otra skill, o para actualizar AGENTS.md (/repo-context agents).
 ---
 
 # repo-context
@@ -13,7 +13,7 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 
 - **Topología del Monorepo:** Estructura de workspaces npm (`apps/backend`, `apps/frontend`), paquetes compartidos y límites entre capas.
 - **Stack Tecnológico Real:** Contrastar el código contra las aserciones de documentación:
-  - Node.js 22 LTS, npm 11+, TypeScript estricto.
+  - Runtime y gestor de paquetes según `.tool-versions` y `packageManager` en `package.json`; TypeScript estricto.
   - Express + Drizzle ORM + PostgreSQL + Redis.
   - Frontend en Vanilla TypeScript + Vite + Nginx Alpine (certificar ausencia de React/JSX).
   - Docker Compose para dev, K3s (Pre-prod LXC 800 / Prod VM 801) y AWS EKS.
@@ -43,9 +43,9 @@ Construir, verificar y sintetizar el contexto técnico y operativo del repositor
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Regla Cardinal de Auditoría:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio (las fuentes vigentes son `gitops/`, `infra/`, `apps/`, `scripts/`, `tests/` y `docs/architecture/`).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si se requiere alterar contratos de configuración base, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (contextos operativos, instrucciones) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

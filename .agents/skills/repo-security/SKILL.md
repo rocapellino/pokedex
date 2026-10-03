@@ -1,6 +1,6 @@
 ---
 name: repo-security
-description: Evaluación DevSecOps profunda y repetible.
+description: Evaluación DevSecOps: secretos, autenticación, cabeceras, supply chain, CI y Kubernetes. Usar al tocar middleware de auth, cabeceras HTTP, secretos, permisos de workflows o políticas de red, o ante alertas de seguridad.
 ---
 
 # repo-security
@@ -14,14 +14,14 @@ Ejecutar auditorías y evaluaciones de seguridad DevSecOps profundas, repetibles
 - **Gestión de Secretos y Rotación:**
   - Búsqueda de secretos, tokens o credenciales expuestas en código, historial git o artefactos de build.
   - Verificación del contrato de External Secrets Operator (ESO) con HashiCorp Vault CE (`pokedex/prod` y `pokedex/preprod`).
-  - Cumplimiento de la auditoría de rotación dual ([ADR-022](../../../docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md)).
+  - Cumplimiento de la rotación automatizada y del contrato Reloader ([ADR-005](../../../docs/decisions/ADR-005-secret-management.md), que consolida al retirado ADR-022).
 - **Seguridad de Aplicación y API:**
   - Validación de esquemas Zod en todas las entradas de datos externos.
   - Aislamiento Egress y protección anti-SSRF mediante Cilium L7 NetworkPolicies.
   - Cabeceras de seguridad HTTP (CSP, Permissions-Policy, X-Content-Type-Options, Referrer-Policy).
   - Rate limiting distribuido respaldado en Redis.
 - **Seguridad en Contenedores y Kubernetes:**
-  - Dockerfiles multi-stage basados en imágenes mínimas (Alpine/distroless), sin usuarios root (`USER 10001:10001`).
+  - Dockerfiles multi-stage basados en imágenes mínimas (Alpine/distroless), sin usuarios root: `USER` numérico no privilegiado verificado contra los Dockerfiles vigentes (`apps/*/Dockerfile`), nunca contra un UID fijo copiado en esta skill.
   - Pod Security Standards (`baseline` / `restricted`), `readOnlyRootFilesystem: true`, y supresión de `ALL` capabilities.
   - Restricciones de admisión mediante políticas Kyverno.
 - **Supply Chain Security:**
@@ -43,8 +43,8 @@ Ejecutar auditorías y evaluaciones de seguridad DevSecOps profundas, repetibles
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Toda remediación de vulnerabilidad debe planificarse con [change-plan.md](../_shared/change-plan.md) y evaluarse con `repo-impact`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de seguridad, planes) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

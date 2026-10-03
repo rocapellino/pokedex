@@ -1,6 +1,6 @@
 ---
 name: repo-pr
-description: Preparación, validación y revisión estructurada de Pull Requests.
+description: Preparar, validar y revisar Pull Requests contra el template real y npm run pr:validate. Usar al crear, editar o revisar un PR.
 ---
 
 # repo-pr
@@ -99,9 +99,10 @@ Cuando opera en modo de revisión sobre un PR existente o delta:
 
 ## Formato de Salida y Gobernanza
 
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Regla Cardenal:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
 - **Reporte:** Estructurar los informes de revisión siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si la preparación del PR evidencia drift no resuelto, planificarlo mediante [change-plan.md](../_shared/change-plan.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

@@ -1,6 +1,6 @@
 ---
 name: repo-quality
-description: Mejorar mantenibilidad y calidad del código sin imponer una reescritura.
+description: Calidad estática del código: tipado, God Files, acoplamiento, código muerto y pre-commit. Usar al modificar código en apps/ o scripts/, ante archivos grandes, o para detectar exports sin uso.
 ---
 
 # repo-quality
@@ -23,6 +23,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
   - En `apps/backend`: Separación clara entre rutas, middlewares, controladores, servicios de dominio, repositorios Drizzle y validadores Zod.
   - En `apps/frontend`: Organización modular en Vanilla TypeScript, separación de UI del estado, encapsulamiento de llamadas API y saneamiento con DOMPurify.
 - **Prevención de God Files y Monolitos Relocalizados:** Detección de módulos sobrecargados (*God files*), funciones desproporcionadas y carpetas cajón de sastre sin cohesión (control de regresión histórica estilo `server.ts` 1.178 LOC → 280 LOC).
+- **Código Muerto y Exports sin Importador:** Detectar exports que ningún módulo importa, en especial los re-exports declarados "por retrocompatibilidad" y los alias de funciones (por ejemplo, un `verifySessionToken` que solo envuelve a `verifySessionTokenDetailed`). Para cada export, buscar importadores en `apps/**`, `tests/**` y `scripts/**`; sin importadores, el candidato pasa al [protocolo único de depuración](../_shared/cleanup-protocol.md) con estado `DELETE` o `REVIEW`. No introducir herramientas nuevas para esto salvo beneficio demostrado (*Economía de Herramientas*, [methodology.md](../_shared/methodology.md) §4).
 - **Métricas Estructurales y Acoplamiento:** Evaluación multidimensional de acoplamiento aferente/eferente ($C_a$, $C_e$), índice de inestabilidad ($I$), cohesión (LCOM), complejidad ciclomática y detección de dependencias circulares.
 - **Manejo Robusto de Errores y Logging:**
   - Registro estructurado con Pino incorporando correlación (`X-Request-Id`).
@@ -53,6 +54,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - `/repo-quality structure`: Evaluación multidimensional de cohesión, acoplamiento ($C_a, C_e, I$) y dependencias circulares.
 - `/repo-quality godfiles`: Detección precoz de archivos o módulos con acumulación patológica de responsabilidades.
 - `/repo-quality hotspots`: Identificación de los archivos con mayor deuda técnica, complejidad y churn.
+- `/repo-quality dead-code`: Detección de exports, re-exports y alias sin importador.
 
 ## Referencias Especializadas
 
@@ -63,8 +65,8 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Planificar las mejoras incrementales mediante [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-refactor`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de calidad, planes) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

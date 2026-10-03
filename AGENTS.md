@@ -47,10 +47,12 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 - **Core & Lifecycle:** `repo-context`, `repo-lifecycle`, `repo-impact`, `repo-audit` (coordinador).
 - **Engineering:** `repo-quality` (calidad de código, modularidad y prevención de God Files), `repo-architecture` (sistema, plataforma y GitOps), `repo-testing` (pirámide de pruebas), `repo-dependencies` (árbol de paquetes npm y librerías huérfanas).
 - **Delivery & Security:** `repo-security` (DevSecOps, secretos, Cilium L7 y supply chain), `repo-ci` (pipelines de GitHub Actions), `repo-pr` (preparación, validación y revisión de PRs), `repo-release` (corte y readiness de versión).
-- **Governance & Maintenance:** `repo-docs` (ciclo de vida documental integral, contratos, límites y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
+- **Governance & Maintenance:** `repo-docs` (ciclo de vida documental integral, contratos, límites y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-fix` (ejecución de correcciones con test de regresión previo y trazabilidad `AUD-*`), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
 
 > [!NOTE]
 > Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` + `npm run lint:md`).
+
+El ciclo de vida se organiza en seis fases (auditar, matriz de cambios, ejecutar, actualizar, documentar y depurar), cada una con una skill responsable y un criterio de salida definidos en [`repo-lifecycle`](.agents/skills/repo-lifecycle/SKILL.md). Todas las skills cumplen el contrato común [`_shared/skill-contract.md`](.agents/skills/_shared/skill-contract.md): enlazan las fuentes de verdad en lugar de copiar versiones, UIDs o rutas volátiles.
 
 ---
 

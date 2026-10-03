@@ -9,6 +9,28 @@ un dominio específico del ciclo de vida del repositorio.
 > Los identificadores técnicos, comandos y nombres de archivos permanecen en inglés.
 > Referencia: [`_shared/language-policy.md`](skills/_shared/language-policy.md)
 
+## Uso desde Claude Code
+
+Claude Code descubre skills en `.claude/skills/<nombre>/SKILL.md`. Para no duplicar el
+catálogo, `.claude/skills` es un enlace local hacia `.agents/skills`, ignorado por Git
+(`.gitignore`). Las skills se editan y versionan **solo** en `.agents/skills/`.
+
+Crear el enlace una vez por clon, desde la raíz del repositorio:
+
+```powershell
+# Windows: junction, no requiere administrador ni Modo de desarrollador
+New-Item -ItemType Directory -Force .claude | Out-Null
+New-Item -ItemType Junction -Path .claude\skills -Target (Resolve-Path .agents\skills)
+```
+
+```bash
+# Linux / macOS
+mkdir -p .claude && ln -s ../.agents/skills .claude/skills
+```
+
+`_shared/` no contiene `SKILL.md`, por lo que Claude Code no lo expone como skill; los
+enlaces relativos de cada skill hacia `../_shared/` se resuelven igual a través del enlace.
+
 ## Reglas Transversales de Gobernanza (`.agents/rules/`)
 
 El repositorio establece políticas normativas obligatorias para todos los agentes y flujos en `.agents/rules/`:
@@ -37,6 +59,7 @@ El repositorio establece políticas normativas obligatorias para todos los agent
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
 | **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Integridad documental, contratos y claims verification |
 | | [`repo-maintenance`](skills/repo-maintenance/SKILL.md) | Salud periódica, higiene y limpieza segura |
+| | [`repo-fix`](skills/repo-fix/SKILL.md) | Ejecución de correcciones con test de regresión previo |
 | | [`repo-refactor`](skills/repo-refactor/SKILL.md) | Diseño de cambios incrementales |
 | | [`repo-modernize`](skills/repo-modernize/SKILL.md) | Evaluación de modernización tecnológica |
 | | [`repo-metrics`](skills/repo-metrics/SKILL.md) | Telemetría auxiliar de evolución técnica |
@@ -45,73 +68,47 @@ El repositorio establece políticas normativas obligatorias para todos los agent
 
 ## Flujo 1 — Orquestación Principal (`repo-lifecycle`)
 
-`repo-lifecycle` es el **único orquestador** del ciclo de vida. Las demás skills
-son invocadas condicionalmente según el tipo de cambio y el impacto detectado.
+`repo-lifecycle` es el **único orquestador** del ciclo de vida, organizado en seis fases
+con una skill responsable por fase. El detalle de criterios de salida, la fase
+*Actualizar* y el ciclo de estados de hallazgo residen en
+[`repo-lifecycle`](skills/repo-lifecycle/SKILL.md).
 
 > [!IMPORTANT]
-> **Frontera de invocación con `repo-audit`.** `repo-audit` es una *superficie de
-> invocación* read-only, no un segundo orquestador. `/repo-audit` delega íntegramente en
-> el flujo `full-audit` de `repo-lifecycle`, y a su vez `repo-lifecycle` sitúa a
-> `repo-audit` como paso ② de su flujo resumido. La entrada es por tanto **mutua** y
-> deliberada: existe un único ciclo canónico de ejecución y la etapa ② de ese ciclo se
-> implementa como diagnóstico read-only. **No hay recursión**: las 16 etapas del
-> `full-audit` no reentran en `repo-audit`.
->
-> Para auditar el repositorio, invocar cualquiera de las dos superficies; no ambas de
-> forma encadenada.
+> **Frontera de invocación con `repo-audit`.** `repo-audit` es la superficie de la fase 1
+> (Auditar), no un segundo orquestador: `/repo-audit` (sin modo) ejecuta el `full-audit` de
+> `repo-lifecycle`, y `/repo-audit quick` ejecuta un diagnóstico acotado. Las 16 etapas del
+> `full-audit` no reentran en `repo-audit`, por lo que no hay recursión.
 
 ```mermaid
 flowchart TD
-    START([Solicitud del usuario]) --> CTX
+    START([Solicitud del usuario o calendario]) --> CTX
+    CTX["repo-context
+Contexto técnico (si falta en la sesión)"] --> AUDIT
 
-    CTX["①  repo-context\nConstruir contexto técnico y operativo"]
-    CTX --> AUDIT
+    AUDIT["1 · Auditar
+repo-audit quick | full | delta"] --> IMPACT
+    IMPACT["2 · Matriz de cambios
+repo-impact + change-impact-matrix"] --> EXEC
+    EXEC{{"3 · Ejecutar"}}
+    EXEC -->|"Altera comportamiento"| FIX["repo-fix
+Test que falla primero"]
+    EXEC -->|"Preserva comportamiento"| REFACTOR["repo-refactor
+Micro-pasos compilables"]
+    FIX & REFACTOR --> UPDATE
+    UPDATE["4 · Actualizar
+repo-lifecycle update
+Artefactos derivados + estado AUD-*"] --> DOCS
+    DOCS["5 · Documentar
+repo-docs · lint:md · docs:validate"] --> CLEAN
+    CLEAN["6 · Depurar
+repo-maintenance cleanup"] --> PR
+    PR["repo-pr
+Gate de Pull Request"] --> RELEASE
+    RELEASE["repo-release
+(si amerita tag)"] --> AUDIT
 
-    AUDIT["②  repo-audit\nDiagnóstico integral o delta del repositorio"]
-    AUDIT --> IMPACT
-
-    IMPACT["③  repo-impact\nIdentificar archivos y clasificar radio de cambio"]
-    IMPACT --> DISPATCH
-
-    DISPATCH{{"④  Despacho condicional\n(Change Impact Matrix)"}}
-
-    DISPATCH -->|"Backend / Frontend"| QUALITY
-    DISPATCH -->|"IaC / GitOps"| ARCH
-    DISPATCH -->|"Documentación pura"| DOCS
-    DISPATCH -->|"CI/CD workflows"| CI
-    DISPATCH -->|"Archivos .ignore"| HYGIENE
-
-    QUALITY["repo-quality\nLint · typecheck · pre-commit"]
-    ARCH["repo-architecture\nHelm · GitOps · OpenTofu"]
-    DOCS["repo-docs\nIntegridad documental · lint:md"]
-    CI["repo-ci\nWorkflows · permisos OIDC"]
-    HYGIENE["repo-lifecycle\n(configuration-hygiene)\nAuditoría de archivos *.ignore"]
-
-    QUALITY & ARCH & DOCS & CI & HYGIENE --> SEC
-
-    SEC["repo-security\nSAST · secretos · supply chain · Cilium L7"]
-    SEC --> TEST
-
-    TEST["repo-testing\nPirámide de pruebas · cobertura · valor"]
-    TEST --> REFACTOR
-
-    REFACTOR["⑤  repo-refactor\nImplementación y refactor incremental\n(si aplica)"]
-    REFACTOR --> QGATE
-
-    QGATE["⑥  Quality Gates & Pre-Commit\nrepo-quality · suites técnicas"]
-    QGATE --> DOCGOV
-
-    DOCGOV["⑦  Cierre Documental & Gobernanza\nrepo-docs · lint:md"]
-    DOCGOV --> PR
-
-    PR["⑧  repo-pr\nPreparación y Gate de Pull Request"]
-    PR --> RELEASE
-
-    RELEASE["⑨  repo-release\nCorte y promoción de release\n(si amerita tag)"]
-    RELEASE --> MAINT
-
-    MAINT["⑩  repo-maintenance\nRegistro y mantenimiento de backlog"]
-    MAINT --> END([Ciclo completado])
+    EXEC -.->|"Gates del dominio"| DOMAIN["repo-quality · repo-testing · repo-security
+repo-architecture · repo-ci · repo-dependencies"]
 ```
 
 ---

@@ -15,11 +15,13 @@ Código / Configuración Fuente (TypeScript, YAML, Dockerfiles, OpenTofu, Helm)
        ↓
 Render Declarativo (helm template, kustomize, compilación AST de manifests)
        ↓
+Configuración Efectiva (lo que el componente del entorno realmente interpreta)
+       ↓
 Tests Automatizados (unitarios, integración, contratos de seguridad, CI gates)
        ↓
 Runtime Operacional (pods en clúster K8s, health probes, logs en vivo)
        ↓
-Documentación (Reflejo descriptivo verificable de los 4 niveles superiores)
+Documentación (Reflejo descriptivo verificable de los 5 niveles superiores)
 ```
 
 ### Regla de Oro: Prohibición de Deducción Documental Inversa
@@ -32,9 +34,18 @@ Documentación ──► "Parece que está implementado" ──► Aprobado sin 
 - **Si la documentación afirma que una capacidad existe o está activa:** La auditoría **NO** puede darlo por válido hasta descender por la cadena:
   1. **¿Existe el código/template?** (Ej. ¿existe `templates/backup-cronjob.yaml`?).
   2. **¿Se renderiza en el entorno evaluado?** (Ej. en `gitops/environments/proxmox-preprod/values.yaml` figura `backup.enabled: false`, por tanto en Pre-prod **NO** está renderizado).
-  3. **¿Lo certifican los tests?** (Ej. ¿hay un test en `tests/` que verifique que el Job ejecuta o que el contrato se cumple?).
-  4. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
-- **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado o los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
+  3. **¿Es efectivo en ese entorno?** Renderizar no basta: el componente que lo consume debe interpretarlo. Ej.: anotaciones `nginx.ingress.kubernetes.io/*` renderizadas en un entorno cuyo `ingress.className` es `traefik` se ignoran en silencio; una directiva `add_header` de nginx a nivel `server` no se hereda en un `location` que declara las suyas; una cookie `Secure` no se conserva sobre un entrypoint HTTP.
+  4. **¿Lo certifican los tests?** (Ej. ¿hay un test en `tests/` que verifique que el Job ejecuta o que el contrato se cumple?).
+  5. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).
+- **Veredicto ante Divergencia:** Si la documentación declara como "activo" o "garantizado" algo que el **Render** tiene desactivado, que **no es efectivo** en el entorno o que los **Tests** no cubren, el hallazgo se clasifica de forma inmediata como **Divergencia Fáctica Severa (P1)**. La verdad técnica la dicta el código renderizado y testeado, nunca el texto narrativo.
+
+### Gates en Verde no Certifican Ausencia de Defectos
+
+Los quality gates del repositorio (`npm test`, `docs:validate`, `gitops:verify-parity`, `lint:*`) verifican **forma y contratos declarados**: sintaxis, pinning, enlaces, paridad. No verifican el **comportamiento entre capas** salvo que exista un test que lo ejercite.
+
+- Un reporte de auditoría nunca concluye "sin hallazgos" a partir de gates en `PASS`. La sección de checks automáticos y la de hallazgos son independientes.
+- Toda auditoría que declare cobertura de `architecture` o `security` debe incluir al menos un **trazado de rutas por entorno** (ver `repo-architecture`): seguir una petición real desde el cliente hasta el handler en cada entorno activo.
+- Cuando un hallazgo P0/P1 escapó a gates en verde, su remediación debe incluir el test que lo habría detectado (ver `repo-fix`).
 
 ### Relación entre Prevalencia Fáctica y Decisiones de Arquitectura (ADRs)
 
@@ -59,7 +70,7 @@ Para evitar confusiones en agentes autónomos y análisis automatizados:
 Toda skill de análisis debe asumir como punto de partida el stack real y la topología operativa del repositorio:
 
 - **Estructura:** Monorepo con workspaces npm (`apps/backend` y `apps/frontend`).
-- **Runtime & Lenguajes:** Node.js 22 (LTS), npm 11+, TypeScript estricto.
+- **Runtime & Lenguajes:** Node.js 22 (LTS), npm 11+, TypeScript estricto. Fuentes de verdad de las versiones: `.tool-versions` (Node.js y herramientas de plataforma), `packageManager` en `package.json` (npm) y las imágenes base de `apps/*/Dockerfile`. Ante discrepancia prevalecen esas fuentes, no este resumen.
 - **Backend:** Express, Drizzle ORM, PostgreSQL (con pool nativo y soporte PgBouncer), Redis distribuido (rate limiting / caché).
 - **Frontend:** Vanilla TypeScript puro empaquetado con Vite, saneamiento estricto con DOMPurify, servido mediante contenedor Nginx Alpine. *(No utiliza React ni JSX)*.
 - **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yaml`) con persistencia local y soporte de backup.
@@ -72,7 +83,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
 - **Seguridad y Supply Chain:** OCI digest pinning inmutable (sha256), SBOM CycloneDX, firma Cosign, atestación SLSA y validación Kyverno admission controller.
 - **IaC & Config Management:** OpenTofu para aprovisionamiento y Ansible para configuración de host/servicios base.
 - **Convención de Extensión YAML:** la extensión canónica para todo archivo YAML es **`.yaml`** (manifiestos, values, workflows, configuraciones, playbooks e inventories). La extensión `.yml` está **prohibida para archivos nuevos** y solo se admite si una herramienta externa la impone, en cuyo caso debe documentarse como excepción. Enforcement: `npm run lint:yaml` (`npm run lint:yaml:strict` en CI) mediante `scripts/check-yaml-extension.ts`.
-- **Observabilidad:** OpenTelemetry, Prometheus metrics y correlación distribuida vía `X-Request-Id`.
+- **Observabilidad:** métricas Prometheus (`/metrics`), logs estructurados Pino y propagación W3C `traceparent` / `X-Request-Id` (`apps/backend/src/middleware/request-tracer.ts`). No existe SDK ni exportador OpenTelemetry en el código: `OTEL_EXPORTER_OTLP_ENDPOINT` se inyecta pero no se consume.
 
 ---
 
@@ -126,7 +137,7 @@ Toda auditoría, evaluación o análisis especializado debe seguir rigurosamente
   > **Por qué el namespace es obligatorio.** Los identificadores planos (`DOC-001`, `WF-002`) colisionan entre auditorías sucesivas: en este repositorio `DOC-001` designó en una pasada "referencias históricas `.yml`" y en otra "ambigüedad Active vs Cloud-Ready". Un identificador reutilizado hace que una referencia posterior sea ambigua, y en un repositorio gobernado por evidencia eso es un defecto: la trazabilidad deja de ser verificable.
   >
   > Cuando un hallazgo se reemita bajo un namespace nuevo, **no se renumera ni se reutiliza** el identificador previo: se cita el ID original y se añade el nuevo con su propio ID.
-- **Pipeline de Cambios:** Todo cambio de código debe seguir la secuencia `repo-impact` → `repo-refactor` → `repo-testing` → `repo-pr`/`repo-release`.
+- **Pipeline de Cambios:** Todo cambio de código sigue la secuencia `repo-impact` → (`repo-fix` si altera comportamiento observable | `repo-refactor` si lo preserva) → `repo-testing` → `repo-pr`/`repo-release`.
 - **Integridad de Gates de Validación:** Queda terminantemente prohibido falsear o promover artificialmente el estado de un control técnico. En particular, **ninguna skill o agente puede convertir `CI_REQUIRED` o `NOT_EXECUTED` en `PASS`**. `CI_REQUIRED` documenta formalmente la ausencia de la herramienta en el entorno local y transfiere la certificación obligatoria a los workflows remotos de CI. Un PR puede alcanzar `READY_FOR_PR` con controles en `CI_REQUIRED`, pero el control individual preserva su estado estricto hasta que CI lo certifique.
 - **Política Transversal de Idioma:** Toda interacción humana, reportes, planes, Pull Requests y documentación deben redactarse estrictamente en español, preservando identificadores técnicos, nombres de herramientas y comandos en inglés, conforme a [`_shared/language-policy.md`](language-policy.md).
 - **Markdown Quality Gate Obligatorio:** Todo archivo `.md` creado, generado o actualizado por cualquier skill debe validarse contra markdownlint (`.markdownlint.json`) mediante `npm run lint:md -- <archivos>` siguiendo el procedimiento [`_shared/markdown-quality.md`](markdown-quality.md). Está estrictamente prohibido deshabilitar reglas para forzar un pase. Un archivo Markdown con errores `MDxxx` **no es un artefacto terminado**.

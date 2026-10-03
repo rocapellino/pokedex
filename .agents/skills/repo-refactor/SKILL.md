@@ -1,6 +1,6 @@
 ---
 name: repo-refactor
-description: Convertir hallazgos de calidad/arquitectura en refactors incrementales.
+description: Fase 3 (Ejecutar) para cambios que preservan el comportamiento: refactors incrementales en micro-pasos compilables. Usar para reorganizar código sin alterar contratos; si cambia el comportamiento, usar repo-fix.
 ---
 
 # repo-refactor
@@ -8,6 +8,9 @@ description: Convertir hallazgos de calidad/arquitectura en refactors incrementa
 ## Objetivo
 
 Ejecutar refactorizaciones controladas e incrementales en el código fuente de `rocapellino/pokedex`, remediando hallazgos técnicos sin alterar el comportamiento funcional observable salvo que se especifique contractualmente.
+
+> [!NOTE]
+> Si el cambio altera comportamiento observable (fix de bug o remediación de un hallazgo), usar [`repo-fix`](../repo-fix/SKILL.md). `repo-refactor` exige preservar el comportamiento.
 
 ## Alcance y Verificaciones de Dominio
 
@@ -26,8 +29,8 @@ Ejecutar refactorizaciones controladas e incrementales en el código fuente de `
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Obligatorio formalizar el plan con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact` antes de tocar código.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (planes de refactorización) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

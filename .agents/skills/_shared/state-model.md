@@ -77,7 +77,7 @@ Para evitar ambigüedades operativas, toda capacidad o feature técnica debe cla
 
 ---
 
-## 4. Registro Canónico de Taxonomías de Estado
+## 3. Registro Canónico de Taxonomías de Estado
 
 El repositorio mantiene varios vocabularios de estado porque los dominios son
 legítimamente distintos. Lo que **no** es legítimo es la proliferación sin registro: una
@@ -97,6 +97,7 @@ Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
 | Higiene de archivos ignorados | Reglas de exclusión `.*ignore` | `repo-lifecycle/references/configuration-hygiene.md` | 5 |
 | Estrategia de pruebas | Salud de una suite de pruebas | `repo-testing` | 12 |
 | Scripts y mantenimiento | Estado de scripts, utilidades y artefactos | `repo-maintenance` | 8 |
+| Estado de hallazgo | Avance de un hallazgo `AUD-*` desde su emisión hasta su cierre | `repo-lifecycle/SKILL.md`, fase 4 | 7 |
 
 ### Reglas de Aplicación
 
@@ -122,7 +123,7 @@ Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
 
 ---
 
-## 5. Reglas Cardinales de Consistencia
+## 4. Reglas Cardinales de Consistencia
 
 > [!IMPORTANT]
 >

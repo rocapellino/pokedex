@@ -1,6 +1,6 @@
 ---
 name: repo-dependencies
-description: Gobernar el ciclo de vida de dependencias del monorepo.
+description: Gobernar el ciclo de vida de dependencias npm: overrides, CVEs, huérfanas y planes de actualización. Usar al tocar package.json o package-lock.json, ante alertas SCA o PRs de Renovate.
 ---
 
 # repo-dependencies
@@ -12,7 +12,7 @@ Gobernar el ciclo de vida de dependencias en el monorepo `rocapellino/pokedex`, 
 ## Alcance y Verificaciones de Dominio
 
 - **Fuentes de Verdad:** `package.json` raíz, `apps/backend/package.json`, `apps/frontend/package.json` y `package-lock.json`.
-- **Compatibilidad de Stack:** Garantizar compatibilidad estricta con Node.js 22 LTS, npm 11+ y TypeScript estricto.
+- **Compatibilidad de Stack:** Garantizar compatibilidad estricta con el runtime declarado en `.tool-versions`, el gestor de `packageManager` (`package.json`) y TypeScript estricto.
 - **Auditoría de Overrides:** Revisar la sección `"overrides"` en `package.json` para verificar si las resoluciones forzadas siguen siendo necesarias o introducen inestabilidad.
 - **Detección de Vulnerabilidades (SCA):** Integración con npm audit, Dependabot y herramientas SCA para clasificar CVEs reales frente a falsos positivos.
 - **Dependencias Huérfanas y Duplicadas:**
@@ -32,8 +32,8 @@ Gobernar el ciclo de vida de dependencias en el monorepo `rocapellino/pokedex`, 
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de dependencias) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

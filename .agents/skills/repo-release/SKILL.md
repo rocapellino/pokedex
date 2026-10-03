@@ -1,6 +1,6 @@
 ---
 name: repo-release
-description: Verificación de readiness antes de release.
+description: Verificar readiness y promoción de release (MAIN → RELEASE → GITOPS → RUNTIME) con supply chain. Usar al cortar una versión, promover pines de GitOps o validar un tag.
 ---
 
 # repo-release
@@ -43,11 +43,11 @@ Verificar exhaustivamente los criterios de preparación y *readiness* operaciona
 
 ## Formato de Salida y Gobernanza
 
-- **Metodología y Reglas:** Consultar [methodology.md](../_shared/methodology.md) para el orden de fuentes de verdad, el ciclo de 8 pasos y las reglas comunes (Evidence-first, P0-P3, Read-only).
+Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): metodología, formato de hallazgos y reporte, Markdown Quality Gate e idioma.
+
+Reglas propias de esta skill:
+
 - **Modelo de Estados:** Consultar [state-model.md](../_shared/state-model.md) para los 4 niveles (`MAIN → RELEASE → GITOPS → RUNTIME`) y los 7 estados de ciclo de vida.
 - **Consistencia y Matriz de Capacidades:** Consultar [release-consistency.md](references/release-consistency.md) para la matriz y la lista de chequeo de preparación de promoción.
 - **Matriz de Impacto:** Consultar [change-impact-matrix.md](../_shared/change-impact-matrix.md) para evaluar la propagación de cambios.
-- **Estructura de Hallazgos:** Utilizar el formato atómico definido en [finding.md](../_shared/finding.md).
-- **Reporte:** Estructurar el entregable siguiendo [report-template.md](../_shared/report-template.md) en `docs/audits/<fecha>/release/release-deployment-consistency.md`.
 - **Planes de Cambio:** Formalizar cualquier ajuste pre-release con [change-plan.md](../_shared/change-plan.md).
-- **Quality Gate de Markdown:** Todo archivo Markdown generado o modificado (reportes de readiness) debe validarse obligatoriamente con [markdown-quality.md](../_shared/markdown-quality.md) (`npm run lint:md -- <archivos>`), garantizando 0 errores `MDxxx` antes de finalizar.

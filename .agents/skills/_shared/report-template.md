@@ -19,9 +19,9 @@
 
 ## 2. Matriz de Hallazgos
 
-| ID          | Área     | Evidencia (`ruta:línea`)  | Riesgo / Impacto            | Prioridad | Confianza | Esfuerzo | Recomendación / Acción          |
-|-------------|----------|---------------------------|-----------------------------|-----------|-----------|----------|---------------------------------|
-| `[SEC-001]` | `[Área]` | `[ruta/al/archivo:L10]`   | `[Descripción del riesgo]`  | `P1`      | `HIGH`    | `S`      | `[Acción correctiva propuesta]` |
+| ID                | Área     | Evidencia (`ruta:línea`) | Riesgo / Impacto           | Prioridad | Confianza | Esfuerzo | Recomendación / Acción          |
+|-------------------|----------|--------------------------|----------------------------|-----------|-----------|----------|---------------------------------|
+| `AUD-SEC-APP-001` | `[Área]` | `[ruta/al/archivo:L10]`  | `[Descripción del riesgo]` | `P1`      | `HIGH`    | `S`      | `[Acción correctiva propuesta]` |
 
 ---
 

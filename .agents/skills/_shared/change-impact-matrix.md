@@ -21,6 +21,22 @@ Este documento define el radio de impacto esperado y la cascada de dependencias 
 | **Backup & Disaster Recovery** | Manifiestos de backup (`backup-cronjob.yaml`, `backup-gdrive-cronjob.yaml`); Persistencia (PVC / HostPath); Runbooks de DR (`DISASTER_RECOVERY_PLAN.md`); E2E DR Drill (`dr:drill:e2e`) | Validar cifrado AES-256, checksum SHA-256, exclusiones de red (Cilium FQDN) y scripts de verificación de restore. |
 | **Políticas de Red (NetworkPolicies / Cilium)** | Conectividad Egress L7 FQDN; Bloqueo Anti-SSRF (IMDS / RFC1918); Test de seguridad (`tests/security/egress_anti_ssrf.test.ts`); Sonda activa (`probe:security:egress`) | Toda modificación en destinos externos (ej. APIs de Google) requiere actualizar tanto la lista FQDN de Cilium como la regla de salida en standard NetworkPolicy. |
 | **Workflows de CI/CD (`.github/workflows/`)** | Permisos OIDC de menor privilegio; Tareas en `Taskfile.yaml`; Scripts de validación en `scripts/`; Quality Gates | Evitar redundancia entre jobs; garantizar que todo script invocado en CI cuente con validación equivalente local en Taskfile. |
+| **Proxy web (`apps/frontend/nginx.conf.template`)** | `apps/frontend/nginx.conf` (`nginx:conf:check`); rutas del backend (`apps/backend/src/routes/`); `docker-compose*.yaml`; Ingress de cada entorno | El mismo template sirve compose y Kubernetes. Todo `rewrite`, `location` o `add_header` exige el trazado de rutas (`/repo-architecture route-trace`) en ambos modos. |
+| **Ingress por entorno (`ingress.*` en values)** | `className` del entorno; anotaciones compatibles con ese controlador; `tls`; cookies `Secure` y HSTS del backend; ADR-016 | Una anotación renderizada no es efectiva si el controlador del entorno no la interpreta ([methodology.md](methodology.md) §1). Verificar la configuración efectiva por entorno, no el chart base. |
+| **ADR consolidado, retirado o renombrado (`docs/decisions/`)** | `docs/decisions/README.md`; `.agents/**`; `AGENTS.md`; `docs/**`; comentarios en código y tests que citen el ADR | Aplicar la regla de referencias inversas (§1.1). La consolidación de ADR-022 (#483) dejó un enlace roto en una skill. |
+| **Skills y reglas de agente (`.agents/**`, `AGENTS.md`)** | `.agents/README.md`; catálogo de `AGENTS.md`; tests de gobernanza (`tests/doc_governance.test.ts`, `tests/aas_governance.test.ts`); `docs:validate` | Las skills enlazan las fuentes de verdad; no copian versiones, UIDs ni nombres de archivo volátiles. |
+
+### 1.1 Regla de Referencias Inversas
+
+Todo cambio que **renombre, mueva, consolide o elimine** un archivo, script, tarea de Taskfile, ADR o variable de entorno debe buscar quién lo referencia en **todo** el repositorio antes de cerrarse:
+
+```bash
+git grep -n "<nombre-o-ruta-anterior>" -- . ':!docs/audits/'
+```
+
+- El alcance incluye `.agents/**` y `AGENTS.md`, no solo `docs/`.
+- `docs/audits/` se excluye: es evidencia histórica inmutable.
+- Cada coincidencia se corrige o se justifica en el PR. `npm run docs:validate` cubre los enlaces Markdown, pero no las menciones en texto plano ni en código.
 
 ---
 
@@ -99,7 +115,9 @@ La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes 
 | **Plataforma / Ansible / OpenTofu** | `infra/ansible/`, `infra/opentofu/` | `repo-architecture`, `repo-security` (K8s/Vault) | `secrets:audit-rotation`, linter de Ansible/Tofu | Frontend builds, backend unit tests |
 | **Workflows de CI/CD** | `.github/workflows/` | `repo-ci`, `repo-security` (CI) | Validación sintáctica YAML, auditoría de permisos de tokens (`permissions:`) | Pruebas E2E de navegador, migraciones DB |
 | **Dependencias Monorepo** | `package.json`, `package-lock.json` | `repo-dependencies`, `repo-security` (SCA), `repo-testing` | `npm audit`, `npm test`, paridad de lockfile | Helm render, Playwright E2E (salvo si toca deps de browser) |
-| **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**) | Builds de código, tests unitarios, Docker builds, scans |
+| **Proxy Web / Ingress** | `apps/frontend/nginx.conf.template`, `ingress.*` en values | `repo-architecture` (`route-trace`), `repo-security` | `npm run nginx:conf:check`, `helm template` por entorno, trazado de rutas | Fuzzing, migraciones DB |
+| **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**), `npm run docs:validate` | Builds de código, tests unitarios, Docker builds, scans |
+| **Skills y Reglas de Agente** | `.agents/**`, `AGENTS.md` | `repo-docs`, `repo-lifecycle` (catálogo de skills) | `npm run lint:md -- <archivos>`, `npm run docs:validate`, tests de gobernanza de skills | Builds de código, Docker builds, scans |
 | **Archivos de Exclusión (`*.ignore`)** | `.*ignore`, `**/*ignore*` | `repo-lifecycle`, `repo-security`, `repo-quality` | `npm run validate`, verificación de consistencia cruzada | Ninguno |
 | **Corte de Release** | `package.json` (bump), `Chart.yaml`, GitOps pins | `repo-release`, `repo-security` (Supply Chain), `repo-docs` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |
 
