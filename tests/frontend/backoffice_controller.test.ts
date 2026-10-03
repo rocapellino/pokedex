@@ -53,6 +53,9 @@ const realFetch = globalThis.fetch;
  * pese a que los tests se ejecutaban y pasaban.
  */
 import * as backoffice from '../../apps/frontend/src/backoffice.js';
+import * as backofficeHealth from '../../apps/frontend/src/components/backoffice-health.js';
+import * as backofficeState from '../../apps/frontend/src/components/backoffice-state.js';
+import * as backofficeActions from '../../apps/frontend/src/components/backoffice-actions.js';
 
 const load = async (): Promise<typeof backoffice> => backoffice;
 
@@ -387,4 +390,129 @@ test('Backoffice: executeDelete gestiona 401 y limpia sesion', async () => {
   await settle();
   g.fetch = prevFetch;
   assert.equal(isSessionActive(), false, 'la sesión debe quedar invalidada tras un 401');
+});
+
+test('Backoffice Health: maneja errores sin mensaje estructurado y ausencia de backendStatus', async () => {
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    throw 'Fallo critico sin objeto Error';
+  };
+
+  await backofficeHealth.checkHealthStatus();
+  const status = document.getElementById('backendStatus')!;
+  assert.match(status.textContent ?? '', /Fallo critico sin objeto Error/);
+
+  // Caso en que backendStatus no existe en el DOM
+  status.remove();
+  await assert.doesNotReject(async () => {
+    await backofficeHealth.checkHealthStatus();
+  });
+  document.body.appendChild(status);
+  g.fetch = prevFetch;
+});
+
+test('Backoffice State: getters y setters reactivos operan correctamente', async () => {
+  backofficeState.setBackofficePokemons([{ id: 99, nombre: 'Mew', tipo: 'Psíquico', tipos: ['Psíquico'], fuerza: 100 }], 1);
+  assert.equal(backofficeState.getBackofficePokemons().length, 1);
+  assert.equal(backofficeState.getTotalRecords(), 1);
+
+  backofficeState.setBackofficePokemons([]);
+  assert.equal(backofficeState.getBackofficePokemons().length, 0);
+
+  backofficeState.setCurrentPage(3);
+  assert.equal(backofficeState.getCurrentPage(), 3);
+  backofficeState.setCurrentPage(1);
+
+  backofficeState.setPageSize(25);
+  assert.equal(backofficeState.getPageSize(), 25);
+  backofficeState.setPageSize(50);
+
+  backofficeState.setCurrentSearch('Char');
+  assert.equal(backofficeState.getCurrentSearch(), 'Char');
+  backofficeState.setCurrentSearch('');
+
+  backofficeState.setCurrentType('Fuego');
+  assert.equal(backofficeState.getCurrentType(), 'Fuego');
+  backofficeState.setCurrentType('all');
+});
+
+test('Backoffice State: fallbacks de elementos ausentes en DOM y paginación límite', async () => {
+  // Paginación hacia adelante fuera de rango
+  backofficeState.setBackofficePokemons(CATALOG, CATALOG.length);
+  backofficeState.setPageSize(50);
+  backofficeState.setCurrentPage(1);
+  backofficeState.changeAdminPage(5);
+  assert.equal(backofficeState.getCurrentPage(), 1, 'no debe avanzar más allá de totalPages');
+
+  // PageSize con valor no numérico o elemento ausente
+  const sizeEl = document.getElementById('adminPageSize') as HTMLSelectElement;
+  sizeEl.value = 'invalido';
+  backofficeState.handlePageSizeChange();
+  assert.equal(backofficeState.getPageSize(), 50, 'debe usar fallback 50');
+
+  // Elementos ausentes en DOM
+  const tableBody = document.getElementById('adminTableBody')!;
+  tableBody.remove();
+  const searchEl = document.getElementById('adminSearch')!;
+  searchEl.remove();
+  const typeFilterEl = document.getElementById('adminTypeFilter')!;
+  typeFilterEl.remove();
+
+  await assert.doesNotReject(async () => {
+    await backofficeState.loadAdminData();
+    backofficeState.handleAdminSearch();
+    backofficeState.handleAdminTypeFilter();
+    backofficeState.renderTable();
+  });
+
+  // Restaurar DOM
+  document.body.appendChild(tableBody);
+  document.body.appendChild(searchEl);
+  document.body.appendChild(typeFilterEl);
+});
+
+test('Backoffice: listener de error en imágenes asigna fallback de Pokéball', async () => {
+  const img = document.createElement('img');
+  img.src = 'https://broken.domain/invalid.png';
+  document.body.appendChild(img);
+
+  const errorEvent = new dom.window.Event('error', { bubbles: true });
+  Object.defineProperty(errorEvent, 'target', { value: img, enumerable: true });
+  dom.window.dispatchEvent(errorEvent);
+
+  assert.match(img.src, /poke-ball\.png/, 'debe asignar el sprite de pokeball como fallback');
+
+  // Si ya tiene el fallback, no debe reasignar
+  dom.window.dispatchEvent(errorEvent);
+  assert.match(img.src, /poke-ball\.png/);
+
+  // Si el target no es una imagen, no debe mutar
+  const div = document.createElement('div');
+  const divErrorEvent = new dom.window.Event('error', { bubbles: true });
+  Object.defineProperty(divErrorEvent, 'target', { value: div, enumerable: true });
+  assert.doesNotThrow(() => dom.window.dispatchEvent(divErrorEvent));
+
+  img.remove();
+  div.remove();
+});
+
+test('Backoffice Actions: executeDelete retorna inmediatamente sin pendingId', async () => {
+  await assert.doesNotReject(async () => {
+    await backofficeActions.executeDelete();
+  });
+});
+
+test('Backoffice Actions: invalidateCache tolera fallos de carga', async () => {
+  const g = globalThis as Record<string, unknown>;
+  const prevFetch = g.fetch;
+  g.fetch = async () => {
+    throw new Error('Fallo de red al invalidar caché');
+  };
+
+  await assert.doesNotReject(async () => {
+    await backofficeActions.invalidateCache();
+    await settle();
+  });
+  g.fetch = prevFetch;
 });

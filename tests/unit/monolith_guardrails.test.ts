@@ -93,6 +93,30 @@ const MONOLITH_WATCHLIST: readonly MonolithGuardrail[] = Object.freeze([
     maxImports: 5,
     description: 'Matriz de debilidades elementales de Pokémon',
   },
+  {
+    file: 'apps/frontend/src/backoffice.ts',
+    maxLoc: 200,
+    maxImports: 10,
+    description: 'Controlador de la interfaz administrativa de backoffice (< 200 LOC)',
+  },
+  {
+    file: 'apps/frontend/src/components/backoffice-state.ts',
+    maxLoc: 160,
+    maxImports: 10,
+    description: 'Gestor de estado, paginación y filtros reactivos de backoffice',
+  },
+  {
+    file: 'apps/frontend/src/components/backoffice-health.ts',
+    maxLoc: 50,
+    maxImports: 5,
+    description: 'Monitor de salud y estado de backend para backoffice',
+  },
+  {
+    file: 'apps/frontend/src/components/backoffice-actions.ts',
+    maxLoc: 120,
+    maxImports: 10,
+    description: 'Acciones de mutación CRUD y sincronización de caché para backoffice',
+  },
 ]);
 
 test('🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)', () => {
