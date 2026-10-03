@@ -1,6 +1,6 @@
 {
   "name": "pokedex",
-  "version": "1.89.9",
+  "version": "1.89.10",
   "private": true,
   "type": "module",
   "packageManager": "npm@11.17.0",
