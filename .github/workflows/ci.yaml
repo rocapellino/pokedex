@@ -60,7 +60,9 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  # Las imágenes de aplicación se publican como <registry>/<owner>/pokedex-{api,web}
+  # (matriz de build-docker, trivy-scan y publish), los mismos repositorios que
+  # despliega GitOps. Ver tests/security/image_publication_contract.test.ts.
   CHART_PATH: infra/helm/pokedex
 
 jobs:
@@ -286,8 +288,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    outputs:
-      image_tag: ${{ steps.meta.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            image: pokedex-api
+            dockerfile: ./apps/backend/Dockerfile
+            description: Pokédex Backend Native Node.js & TypeScript Service
+          - component: web
+            image: pokedex-web
+            dockerfile: ./apps/frontend/Dockerfile
+            description: Pokédex Frontend Vite MPA servido por Nginx
+    env:
+      # jobs.<id>.env no admite el contexto env: el registro coincide con env.REGISTRY.
+      IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
     steps:
       - name: Checkout del código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -299,14 +314,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_REF }}
           tags: |
             type=sha,format=long,prefix=
             type=ref,event=branch
             type=semver,pattern={{version}}
           labels: |
-            org.opencontainers.image.title=pokedex-api
-            org.opencontainers.image.description=Pokédex Backend Native Node.js & TypeScript Service
+            org.opencontainers.image.title=${{ matrix.image }}
+            org.opencontainers.image.description=${{ matrix.description }}
             org.opencontainers.image.source=https://github.com/rocapellino/pokedex
             org.opencontainers.image.url=https://github.com/rocapellino/pokedex
             org.opencontainers.image.revision=${{ github.sha }}
@@ -329,24 +344,26 @@ jobs:
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
-          file: ./apps/backend/Dockerfile
+          file: ${{ matrix.dockerfile }}
           load: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             APP_VERSION=${{ steps.version-metadata.outputs.APP_VERSION }}
             GIT_SHA=${{ steps.version-metadata.outputs.GIT_SHA }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 
       - name: Guardar imagen Docker en archivo tar
         run: |
-          docker save ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} -o /tmp/image.tar
+          # Se guarda el repositorio completo: incluye el tag del SHA (que usan
+          # trivy-scan y publish) y los tags de rama/semver.
+          docker save "${IMAGE_REF}" -o /tmp/image.tar
 
       - name: Subir artefacto de imagen para escaneo
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: docker-image
+          name: docker-image-${{ matrix.component }}
           path: /tmp/image.tar
           retention-days: 1
 
@@ -359,11 +376,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            image: pokedex-api
+          - component: web
+            image: pokedex-web
+    env:
+      IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
     steps:
       - name: Descargar artefacto de la imagen
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: docker-image
+          name: docker-image-${{ matrix.component }}
           path: /tmp
 
       - name: Cargar imagen al Docker daemon
@@ -373,7 +400,7 @@ jobs:
       - name: Escanear imagen con Trivy
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          image-ref: ${{ env.IMAGE_REF }}:${{ github.sha }}
           format: 'table'
           exit-code: '1' # Falla si detecta vulnerabilidades CRITICAL o HIGH
           ignore-unfixed: true
@@ -383,14 +410,14 @@ jobs:
       - name: Generar SBOM (Software Bill of Materials) con Trivy
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          image-ref: ${{ env.IMAGE_REF }}:${{ github.sha }}
           format: 'cyclonedx'
           output: 'pokedex-sbom.json'
 
       - name: Subir artefacto SBOM
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: sbom-cyclonedx
+          name: sbom-cyclonedx-${{ matrix.component }}
           path: pokedex-sbom.json
           retention-days: 14
 
@@ -413,6 +440,16 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            image: pokedex-api
+          - component: web
+            image: pokedex-web
+    env:
+      IMAGE_REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
     steps:
       - name: Checkout del código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -427,21 +464,24 @@ jobs:
       - name: Descargar imagen y hacer Push a GHCR
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: docker-image
+          name: docker-image-${{ matrix.component }}
           path: /tmp
 
       - name: Push de imagen Docker a GHCR
         run: |
           docker load -i /tmp/image.tar
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }}
+          # Tags explícitos: el SHA completo lo resuelve la fase promote de
+          # release-tag.yaml para fijar el digest en GitOps; `main` es informativo.
+          docker push "${IMAGE_REF}:${{ github.sha }}"
+          docker push "${IMAGE_REF}:main"
 
       - name: Extraer digest de imagen publicada
         id: image-digest
         run: |
           # Extraer digest OCI remoto directo desde GHCR usando docker buildx imagetools
-          DIGEST=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"')
+          DIGEST=$(docker buildx imagetools inspect "${IMAGE_REF}:${{ github.sha }}" --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"')
           if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
-            DIGEST=$(docker inspect --format='{{range .RepoDigests}}{{.}}{{"\n"}}{{end}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-docker.outputs.image_tag }} | grep '@sha256:' | head -n 1 | awk -F'@' '{print $2}')
+            DIGEST=$(docker inspect --format='{{range .RepoDigests}}{{.}}{{"\n"}}{{end}}' "${IMAGE_REF}:${{ github.sha }}" | grep '@sha256:' | head -n 1 | awk -F'@' '{print $2}')
           fi
           test -n "$DIGEST" || { echo "❌ Error: No se pudo determinar el digest OCI remoto de la imagen"; exit 1; }
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
@@ -467,6 +507,8 @@ jobs:
 
       - name: Validar, empaquetar y publicar Helm Chart como OCI
         id: helm-push
+        # El chart es único: se publica y firma una sola vez, en la pata api de la matriz.
+        if: matrix.component == 'api'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -500,9 +542,10 @@ jobs:
 
       - name: Firmar imagen Docker con Cosign por Digest Inmutable (Keyless Sigstore OIDC)
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
+          cosign sign --yes "${IMAGE_REF}@${{ steps.image-digest.outputs.digest }}"
 
       - name: Firmar Helm Chart OCI con Cosign (Keyless Sigstore OIDC)
+        if: matrix.component == 'api'
         run: |
           test -n "${{ steps.helm-push.outputs.chart_digest }}" || {
             echo "❌ Error crítico: chart_digest no disponible para firma inmutable"
@@ -514,44 +557,45 @@ jobs:
       - name: Descargar artefacto SBOM para adjuntar y atestar
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: sbom-cyclonedx
+          name: sbom-cyclonedx-${{ matrix.component }}
           path: /tmp
 
       - name: Adjuntar SBOM a la imagen en GHCR con Cosign
         run: |
-          cosign attach sbom --sbom /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
+          cosign attach sbom --sbom /tmp/pokedex-sbom.json --type cyclonedx "${IMAGE_REF}@${{ steps.image-digest.outputs.digest }}"
 
       - name: Atestar criptográficamente SBOM con Cosign (in-toto attestation)
         run: |
-          cosign attest --yes --predicate /tmp/pokedex-sbom.json --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }}
+          cosign attest --yes --predicate /tmp/pokedex-sbom.json --type cyclonedx "${IMAGE_REF}@${{ steps.image-digest.outputs.digest }}"
 
       - name: Generar y Firmar SLSA Provenance (GitHub Attestations)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-name: ${{ env.IMAGE_REF }}
           subject-digest: ${{ steps.image-digest.outputs.digest }}
           push-to-registry: true
 
       - name: Verificar Criptográficamente Firma y Atestación con Cosign
         run: |
           echo "Verificando firma criptográfica de imagen Docker..."
-          cosign verify ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }} \
+          cosign verify "${IMAGE_REF}@${{ steps.image-digest.outputs.digest }}" \
             --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
           echo "Verificando atestación criptográfica de SBOM CycloneDX..."
-          cosign verify-attestation --type cyclonedx ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.image-digest.outputs.digest }} \
+          cosign verify-attestation --type cyclonedx "${IMAGE_REF}@${{ steps.image-digest.outputs.digest }}" \
             --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
-          echo "Verificando firma criptográfica de Helm Chart OCI..."
+          echo "✅ Firma de imagen y Atestación de SBOM verificadas criptográficamente con éxito."
+
+      - name: Verificar Criptográficamente la Firma del Helm Chart OCI
+        if: matrix.component == 'api'
+        run: |
           cosign verify ${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/pokedex@${{ steps.helm-push.outputs.chart_digest }} \
             --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
             --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
-          echo "✅ Firma de imagen, Atestación de SBOM y Firma de Helm Chart verificadas criptográficamente con éxito."
+          echo "✅ Firma de Helm Chart verificada criptográficamente con éxito."
 
-      - name: 🧹 Aplicar política de retención en GHCR
-        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
-        with:
-          keep-n-tagged: 3
-          delete-untagged: true
-          dry-run: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # La retención de GHCR la gobierna exclusivamente ghcr-retention.yaml
+      # (scripts/ghcr-retention.ts), que protege los digests fijados en GitOps y los
+      # artefactos de Cosign. La acción inline anterior (keep-n-tagged: 3) podía
+      # purgar imágenes todavía desplegadas en producción.

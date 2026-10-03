@@ -17,28 +17,18 @@ Conforme a los estándares de **Supply Chain Security** y optimización del alma
 
 ## 2. Mecanismos de Ejecución y Automatización
 
-La política se aplica de forma automatizada mediante tres niveles complementarios:
+La política se aplica con un único mecanismo, el script canónico, invocado de dos formas:
 
 ```mermaid
 flowchart TD
-    A["Push a main (CI/CD)"] -->|Post-Publish| B["ci.yaml: dataaxiom/ghcr-cleanup-action<br/>keep-n-tagged: 3"]
-    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D["ghcr-retention.yaml<br/>Auditoría y Purgado Periódico"]
+    A["Fin del orquestador en main<br/>(workflow_run)"] --> D["ghcr-retention.yaml<br/>scripts/ghcr-retention.ts"]
+    C["Programación Semanal (Cron)<br/>Domingos 04:00 UTC"] --> D
     E["Operador / Terminal Local"] -->|task ghcr:retention| F["scripts/ghcr-retention.ts<br/>Inspección y Limpieza Manual"]
 ```
 
-### Nivel 1: En Línea en el Pipeline de Publicación ([`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml))
+### Nivel 1 retirado: retención inline en `ci.yaml`
 
-En cada fusión a la rama `main`, tras la compilación, firma con Cosign, atestación de SBOM y publicación en GHCR, el job `publish` ejecuta automáticamente el paso:
-
-```yaml
-- name: 🧹 Aplicar política de retención en GHCR (Mantener últimos 3 activos)
-  uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
-  with:
-    keep-n-tagged: 3
-    delete-untagged: true
-    dry-run: false
-    token: ${{ secrets.GITHUB_TOKEN }}
-```
+Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](../../.github/workflows/ci.yaml) ejecutaba `dataaxiom/ghcr-cleanup-action` con `keep-n-tagged: 3` y `delete-untagged: true`. Se retiró por dos motivos: purgaba digests que GitOps seguía fijando en cuanto se publicaban tres imágenes más nuevas, y `delete-untagged` eliminaba los referrers sin tag de firmas y atestaciones SLSA. `tests/security/ghcr_retention.test.ts` impide reintroducirlo.
 
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 
@@ -75,5 +65,4 @@ node --experimental-strip-types scripts/ghcr-retention.ts --simulate --keep=3
 
 La política de purgado está diseñada específicamente para registros OCI con firmas **Sigstore/Cosign** y atestaciones **in-toto/SLSA**:
 
-- Al eliminar una versión obsoleta, las referencias asociadas (archivos `.sig`, `.att` y SBOMs adjuntos) son depurados de forma coordinada, evitando la existencia de capas y tags huérfanos (*dangling layers*).
-- Las directivas `delete-untagged: true` y `keep-n-tagged: 3` aseguran que las 3 versiones activas preserven intacta su trazabilidad criptográfica y atestaciones SLSA.
+- El script no purga artefactos de Cosign (`sha256-<digest>.sig`, `.sbom`, `.att`) ni versiones sin tag, de modo que las imágenes conservadas y las fijadas en GitOps preservan su firma, SBOM y atestación SLSA. Como contrapartida, los artefactos de imágenes ya purgadas quedan huérfanos en el registro hasta una limpieza dirigida.

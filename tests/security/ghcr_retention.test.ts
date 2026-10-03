@@ -157,27 +157,13 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
     !withoutComments(retentionWf).includes('dataaxiom/ghcr-cleanup-action'),
     'ghcr-retention.yaml no debe volver a duplicar la poda dentro del mismo job (WF-003)'
   );
-  // La política "eliminar untagged" debe seguir garantizada en el pipeline; tras
-  // WF-003 su único proveedor es el paso post-publish de ci.yaml.
-  const ciRetention = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/ci.yaml'),
-    'utf-8'
-  );
+  // 2. ci.yaml ya no aplica retención inline: `keep-n-tagged: 3` purgaba digests todavía
+  //    fijados en GitOps y `delete-untagged` eliminaba referrers de firmas y atestaciones.
+  //    El único mecanismo es el script, que protege ambos (reemplaza a WF-003).
+  const ciWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
   assert.ok(
-    ciRetention.includes('delete-untagged: true'),
-    'ci.yaml debe conservar delete-untagged: true: es quien garantiza la limpieza de untagged'
-  );
-
-  // 2. ci.yaml incorpora paso de retención en job publish
-  const ciWfPath = path.join(ROOT_DIR, '.github/workflows/ci.yaml');
-  const ciWf = fs.readFileSync(ciWfPath, 'utf-8');
-  assert.ok(
-    ciWf.includes('dataaxiom/ghcr-cleanup-action'),
-    'ci.yaml debe incluir dataaxiom/ghcr-cleanup-action en job publish'
-  );
-  assert.ok(
-    ciWf.includes('keep-n-tagged: 3'),
-    'ci.yaml debe fijar keep-n-tagged: 3 para retener solo los últimos 3'
+    !withoutComments(ciWf).includes('dataaxiom/ghcr-cleanup-action'),
+    'ci.yaml no debe aplicar retención inline sin proteger los digests fijados en GitOps'
   );
 
   // 3. package.json y Taskfile.yaml exponen las tareas oficiales

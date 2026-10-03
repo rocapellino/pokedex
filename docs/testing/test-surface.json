@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T22:18:47.103Z",
+  "generatedAt": "2026-10-03T22:26:47.370Z",
   "summary": {
-    "totalFiles": 61,
-    "testFiles": 58,
+    "totalFiles": 62,
+    "testFiles": 59,
     "helperFiles": 2,
     "performanceScripts": 1,
-    "totalTestCases": 521,
-    "totalLines": 14674,
-    "totalSizeBytes": 672606,
+    "totalTestCases": 525,
+    "totalLines": 14753,
+    "totalSizeBytes": 676740,
     "suitesCount": 9
   },
   "suites": [
@@ -28,8 +28,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 21,
-      "testCases": 195,
+      "files": 22,
+      "testCases": 199,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2314,10 +2314,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 42,
-      "sizeBytes": 10933,
-      "lineCount": 251,
-      "sha256": "a4c0ce98f007b322a1db0881873a9f396ab5861715345e329d8caef4e2c3140b",
+      "assertionCountEst": 40,
+      "sizeBytes": 10589,
+      "lineCount": 237,
+      "sha256": "24573d20a18c7c87236991792e359908fb5f3e4603b7c849274c5a14ab16bc71",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -2349,15 +2349,15 @@
         },
         {
           "name": "📦 GHCR Retention: firmas, SBOM y versiones sin tag no desplazan ni purgan imágenes",
-          "line": 215
+          "line": 201
         },
         {
           "name": "📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede fuera del top N",
-          "line": 231
+          "line": 217
         },
         {
           "name": "📦 GHCR Retention: protege los digests api y web declarados en GitOps y gestiona ambos paquetes",
-          "line": 241
+          "line": 227
         }
       ]
     },
@@ -2769,6 +2769,50 @@
       ]
     },
     {
+      "path": "tests/security/image_publication_contract.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 11,
+      "sizeBytes": 4318,
+      "lineCount": 91,
+      "sha256": "bb82d891972305e32d51519e9df86ebad62b8f2712c6b86d7411187f5fd4b366",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: image_publication_contract.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📦 Publicación: build, escaneo y publicación recorren las imágenes api y web",
+          "line": 50
+        },
+        {
+          "name": "📦 Publicación: cada repositorio que GitOps despliega es publicado por CI",
+          "line": 60
+        },
+        {
+          "name": "📦 Publicación: la imagen se publica con el SHA completo del commit para que la promoción la resuelva",
+          "line": 77
+        },
+        {
+          "name": "📦 Publicación: el Helm Chart se publica una sola vez y la retención inline no purga digests fijados",
+          "line": 82
+        }
+      ]
+    },
+    {
       "path": "tests/security/k8s_workload_hardening.test.ts",
       "suite": "security",
       "type": "Security / Kubernetes",
@@ -3051,9 +3095,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 114,
-      "sizeBytes": 32932,
-      "lineCount": 697,
-      "sha256": "bd7c91f5b0d828158bde90fd58deddc9295fad492ef6027345decee1a65b7873",
+      "sizeBytes": 33092,
+      "lineCount": 699,
+      "sha256": "adc2099b4d63ee2acca78faf1855cbd92b39f4f7ced18dbb24c6bd2c8663c895",
       "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
       "targetArtifacts": [
         "package.json",
@@ -3114,47 +3158,47 @@
         },
         {
           "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 366
+          "line": 368
         },
         {
           "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
-          "line": 379
+          "line": 381
         },
         {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 405
+          "line": 407
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 418
+          "line": 420
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 443
+          "line": 445
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 539
+          "line": 541
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 547
+          "line": 549
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 568
+          "line": 570
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 590
+          "line": 592
         },
         {
           "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 641
+          "line": 643
         },
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 674
+          "line": 676
         }
       ]
     },
