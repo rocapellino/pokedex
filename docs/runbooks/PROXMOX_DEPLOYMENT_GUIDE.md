@@ -346,6 +346,17 @@ traefik.ingress.kubernetes.io/router.entrypoints: "web"
 
 No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reduciendo el consumo de memoria y la complejidad operacional.
 
+### Orígenes CORS por Entorno
+
+Cada `values.yaml` de entorno declara `api.env.corsOrigins` con un origen por host del
+ingress, usando el esquema que ve el navegador. Si un entorno no lo declara, hereda el
+valor de ejemplo del chart y el backend rechaza el login y las mutaciones del backoffice:
+el navegador envía `Origin` en todo `POST`, aunque sea del mismo origen.
+
+Al agregar o renombrar un host en `ingress.hosts`, agregar su origen en `corsOrigins`.
+El contrato [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts)
+falla si un entorno activo omite un host o hereda un dominio de ejemplo.
+
 ### Sincronización Manual o Automatizada
 
 ```bash

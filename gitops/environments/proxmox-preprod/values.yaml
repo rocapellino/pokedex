@@ -35,6 +35,11 @@ api:
       memory: "128Mi"
   autoscaling:
     enabled: false
+  env:
+    # AUD-SEC-CORS-001: un origen por host del ingress, con el esquema que usa el
+    # navegador. Sin override se heredaba el ejemplo del chart y el backend
+    # rechazaba toda mutación del backoffice. Ver tests/gitops/environment_http_contract.test.ts.
+    corsOrigins: "http://pokedex.preprod.proxmox.internal.lan,http://k8s-preprod.internal.lan"
 
 web:
   replicaCount: 1
