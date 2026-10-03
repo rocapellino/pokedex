@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T02:33:10.758Z",
+  "generatedAt": "2026-10-03T02:45:25.348Z",
   "summary": {
     "totalFiles": 51,
     "testFiles": 49,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 487,
-    "totalLines": 13815,
-    "totalSizeBytes": 635302,
+    "totalTestCases": 493,
+    "totalLines": 13967,
+    "totalSizeBytes": 640956,
     "suitesCount": 9
   },
   "suites": [
@@ -49,7 +49,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 3,
-      "testCases": 36,
+      "testCases": 42,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -765,12 +765,12 @@
       "type": "Component / Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 22,
+      "testCount": 28,
       "describeCount": 0,
-      "assertionCountEst": 36,
-      "sizeBytes": 15189,
-      "lineCount": 391,
-      "sha256": "99002fb8056325f0afc827d5f4fd2353bb77c8f7e5f101e36fc0f331f4483793",
+      "assertionCountEst": 53,
+      "sizeBytes": 20091,
+      "lineCount": 519,
+      "sha256": "88de1fb1fa5f63c8f95e8b3d4e494bc0004e91f6e9e5ab089ed08dbd28b7beae",
       "targetDomain": "Controlador DOM de Backoffice",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts"
@@ -788,91 +788,115 @@
       "testCases": [
         {
           "name": "Backoffice: checkHealthStatus reporta backend saludable",
-          "line": 88
+          "line": 91
         },
         {
           "name": "Backoffice: checkHealthStatus marca rojo ante respuesta no-ok",
-          "line": 97
+          "line": 100
         },
         {
           "name": "Backoffice: checkHealthStatus captura un rechazo de red",
-          "line": 108
+          "line": 111
         },
         {
           "name": "Backoffice: checkHealthStatus retorna pronto sin elementos de estado",
-          "line": 119
+          "line": 122
         },
         {
           "name": "Backoffice: loadAdminData completa el camino de exito",
-          "line": 131
+          "line": 134
         },
         {
           "name": "Backoffice: loadAdminData muestra el estado de error sin lanzar",
-          "line": 138
+          "line": 141
         },
         {
           "name": "Backoffice: handlePageSizeChange aplica el valor seleccionado",
-          "line": 149
+          "line": 152
         },
         {
           "name": "Backoffice: handleAdminSearch programa el debounce",
-          "line": 158
+          "line": 161
         },
         {
           "name": "Backoffice: changeAdminPage navega dentro del rango y rechaza el exterior",
-          "line": 167
+          "line": 170
         },
         {
           "name": "Backoffice: handleFormSubmit exige sesion activa",
-          "line": 188
+          "line": 191
         },
         {
           "name": "Backoffice: los modales delegan sin lanzar",
-          "line": 199
+          "line": 202
         },
         {
           "name": "Backoffice: executeDelete exige sesion activa",
-          "line": 210
+          "line": 213
         },
         {
           "name": "Backoffice: invalidateCache sincroniza tras recargar",
-          "line": 219
+          "line": 222
         },
         {
           "name": "Backoffice: initEventListeners enlaza sin lanzar",
-          "line": 227
+          "line": 230
         },
         {
           "name": "Backoffice: la superficie publica permanece exportada",
-          "line": 232
+          "line": 235
         },
         {
           "name": "Backoffice: handleFormSubmit con sesion activa rehabilita el boton",
-          "line": 261
+          "line": 264
         },
         {
           "name": "Backoffice: applyAdminFilters recarga los datos",
-          "line": 274
+          "line": 277
         },
         {
           "name": "Backoffice: handleAdminTypeFilter lee el valor del selector",
-          "line": 282
+          "line": 285
         },
         {
           "name": "Backoffice: bootstrap inicializa listeners y sondeos sin lanzar",
-          "line": 291
+          "line": 294
         },
         {
           "name": "Backoffice: eventos interactivos disparan manejadores delegados en admin-events",
-          "line": 297
+          "line": 300
         },
         {
           "name": "Backoffice: handleFormSubmit gestiona 401 y limpia sesion",
-          "line": 355
+          "line": 358
         },
         {
           "name": "Backoffice: executeDelete gestiona 401 y limpia sesion",
-          "line": 374
+          "line": 377
+        },
+        {
+          "name": "Backoffice Health: maneja errores sin mensaje estructurado y ausencia de backendStatus",
+          "line": 395
+        },
+        {
+          "name": "Backoffice State: getters y setters reactivos operan correctamente",
+          "line": 415
+        },
+        {
+          "name": "Backoffice State: fallbacks de elementos ausentes en DOM y paginación límite",
+          "line": 440
+        },
+        {
+          "name": "Backoffice: listener de error en imágenes asigna fallback de Pokéball",
+          "line": 475
+        },
+        {
+          "name": "Backoffice Actions: executeDelete retorna inmediatamente sin pendingId",
+          "line": 500
+        },
+        {
+          "name": "Backoffice Actions: invalidateCache tolera fallos de carga",
+          "line": 506
         }
       ]
     },
@@ -3231,9 +3255,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 37,
-      "sizeBytes": 6872,
-      "lineCount": 187,
-      "sha256": "158a783ac5022d24975311e8069a32788d66be35326a82ee2d37b61768df036e",
+      "sizeBytes": 7624,
+      "lineCount": 211,
+      "sha256": "88a105787b5889d381c61fe31488cf67377fb9273b489693c6d1d5f26089cae2",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3250,19 +3274,19 @@
       "testCases": [
         {
           "name": "🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)",
-          "line": 98
+          "line": 122
         },
         {
           "name": "🛡️ Monolith Watch: network-security.ts está completamente desacoplado de Express, DB y servicios",
-          "line": 123
+          "line": 147
         },
         {
           "name": "🛡️ Network Security [Unit]: isPrivateOrRestrictedIp rechaza rangos restringidos y metadatos de nube",
-          "line": 135
+          "line": 159
         },
         {
           "name": "🛡️ Network Security [Unit]: validateImageUrl valida protocolo y previene SSRF",
-          "line": 162
+          "line": 186
         }
       ]
     },
