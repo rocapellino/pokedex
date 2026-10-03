@@ -16,7 +16,7 @@ Describir el ciclo de vida operativo de las copias de seguridad locales de Postg
 - **Algoritmo de cifrado**: AES-256-CBC con derivación PBKDF2 y salt criptográfico.
 - **Integridad**: Suma de comprobación SHA-256 generada simultáneamente (`.sha256`).
 - **Retención local**: 30 días en volúmenes dedicados (`pokedex-backup-pvc`).
-- **Retención remota/offsite**: Replicación automatizada hacia Google Drive (formalizada en [ADR-028](../decisions/ADR-028-gdrive-offsite-backup-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
+- **Retención remota/offsite**: Replicación automatizada hacia Google Drive (formalizada en [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
 
 ## 3. Procedimientos Operativos
 

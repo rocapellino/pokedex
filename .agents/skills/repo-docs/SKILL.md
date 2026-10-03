@@ -83,10 +83,15 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
   2. Se añade un enlace hacia la especificación vigente en `docs/architecture/` o `docs/operations/`.
   3. Se preserva el contenido histórico como evidencia de trazabilidad.
 
-### 4. Gobernanza de ADRs (ADR Drift)
+### 4. Gobernanza de ADRs y ADR Lifecycle (`ADR_LIFECYCLE`)
 
-- Las decisiones arquitectónicas formalizadas (`docs/decisions/ADR-*.md`) no pueden ser modificadas directamente por una automatización.
-- Toda divergencia detectada entre un ADR y el código en `main` se clasifica como `ADR REVIEW REQUIRED` para enmienda formal por parte de los mantenedores.
+- **Semántica Canónica de Estados**:
+  - `Activo`: Rige y restringe la arquitectura viva.
+  - `Consolidado`: Subsumido en un ADR de mayor alcance con trazabilidad explícita (`## Trazabilidad y Decisiones Consolidadas`).
+  - `Retirado`: Migración técnica o deprecación puntual concluida.
+- **Inmutabilidad de Identificadores**: Los números de ADR nunca se reutilizan para nuevas decisiones.
+- **Catálogo Oficial en `docs/decisions/README.md`**: Es la Fuente de Verdad del corpus de decisiones activas y consolidadas/retiradas.
+- **Detección de Deriva (ADR Drift)**: Toda divergencia entre un ADR activo y el código en `main` se clasifica como `ADR REVIEW REQUIRED`.
 
 ---
 
@@ -100,6 +105,7 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 - `/repo-docs versions`: Validación de consistencia de números de versión entre monorepo, Helm, GitOps y docs.
 - `/repo-docs claims`: Extracción y verificación fáctica de afirmaciones individuales frente al SSOT.
 - `/repo-docs adr`: Auditoría de vigencia y consistencia de ADRs frente a la implementación.
+- `/repo-docs adr-matrix`: Construcción de la matriz estructurada de consolidación y estado de ADRs.
 - `/repo-docs architecture`: Validación de diagramas, topología y diseño de seguridad.
 
 ---

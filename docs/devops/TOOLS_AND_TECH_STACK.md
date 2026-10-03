@@ -204,7 +204,7 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Gestión de Base de Datos y Ciclo de Vida del Esquema
 
-- **Drizzle ORM**: Adoptado como estándar y única fuente de verdad (SSOT) para la base de datos (ADR-011, ADR-029). Provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas versionadas en `apps/backend/src/db/migrations/`, habiéndose retirado los scripts estáticos `init.sql`.
+- **Drizzle ORM**: Adoptado como estándar y única fuente de verdad (SSOT) para la base de datos (ADR-011). Provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas versionadas en `apps/backend/src/db/migrations/`, habiéndose retirado los scripts estáticos `init.sql`.
 - **Atlas / Flyway**: Herramientas complementarias para verificación avanzada de migraciones en CI/CD si se requiere inspección de linter DDL antes del despliegue productivo.
 
 #### Resiliencia y Manejo de Integraciones Externas

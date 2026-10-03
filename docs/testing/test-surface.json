@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T16:47:15.284Z",
+  "generatedAt": "2026-10-03T17:21:12.238Z",
   "summary": {
     "totalFiles": 56,
     "testFiles": 53,
     "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 495,
-    "totalLines": 14081,
-    "totalSizeBytes": 643344,
+    "totalLines": 14089,
+    "totalSizeBytes": 644505,
     "suitesCount": 9
   },
   "suites": [
@@ -2385,10 +2385,10 @@
       "runner": "node:test (tsx)",
       "testCount": 28,
       "describeCount": 0,
-      "assertionCountEst": 229,
-      "sizeBytes": 60801,
-      "lineCount": 1082,
-      "sha256": "9d5178f0b69d48b2d5ff7ad54a5a8e9ee30a61afe038e20f377adc69913761d5",
+      "assertionCountEst": 234,
+      "sizeBytes": 61962,
+      "lineCount": 1090,
+      "sha256": "84fc092430bab43a1118ed17d7e4c5fb76f789d040745d44bd45b5d3cdf69936",
       "targetDomain": "Hardening de Infraestructura como Código (IaC)",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2507,16 +2507,16 @@
           "line": 862
         },
         {
-          "name": "🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada",
+          "name": "🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)",
           "line": 899
         },
         {
           "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
-          "line": 1006
+          "line": 1014
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 1056
+          "line": 1064
         }
       ]
     },

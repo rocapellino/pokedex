@@ -65,8 +65,8 @@ infra/helm/
 ```
 
 > [!NOTE]
-> **El esquema de base de datos NO se despliega como ConfigMap.** Hasta
-> [ADR-029](../decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md)
+> **El esquema de base de datos NO se despliega como ConfigMap.** Conforme a
+> [ADR-011](../decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md)
 > existían `postgres-init-configmap.yaml` (en Helm) e `infra/docker/postgres/init.sql`
 > (en Docker Compose), ambos retirados. El esquema canónico lo aplican las
 > migraciones versionadas de Drizzle (`apps/backend/src/db/migrations/`) al

@@ -2,7 +2,7 @@
 
 ## 1. Principio Rector: `task --list` como Interfaz Oficialmente Soportada
 
-Conforme a las decisiones arquitectónicas [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md), el proyecto consolida **`Taskfile.yaml`** como el único orquestador canónico de operaciones, compilación, pruebas, infraestructura y entrega continua.
+Conforme a la decisión arquitectónica [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) (que consolida el ciclo de vida de aliases de ADR-026), el proyecto consolida **`Taskfile.yaml`** como el único orquestador canónico de operaciones, compilación, pruebas, infraestructura y entrega continua.
 
 La interfaz oficialmente soportada para el descubrimiento dinámico, documentación contextual e inspección de tareas disponibles es:
 
@@ -87,7 +87,7 @@ flowchart LR
 
 ### Fase 1: Documentar Aliases (Inventario y Mapeo)
 
-- Se registran de forma exhaustiva todos los aliases históricos en esta guía de referencia y en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md).
+- Se registran de forma exhaustiva todos los aliases históricos en esta guía de referencia y en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md).
 - Toda la documentación oficial de despliegue, guías de Proxmox y READMEs se actualizan para emplear exclusivamente la sintaxis canónica (`task infra:plan:proxmox`, `task ansible:prepare`, `task lint`).
 
 ### Fase 2: Medir Uso y Telemetría Informativa
@@ -107,14 +107,14 @@ flowchart LR
 
 ### Fase 4: Eliminación Definitiva (Ejecutada en v1.76.0)
 
-- Conforme al ciclo de vida formalizado en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md), los 18 aliases legados fueron retirados definitivamente de `Taskfile.yaml` en la versión `v1.76.0`. La interfaz soportada es exclusivamente la canónica.
+- Conforme al ciclo de vida formalizado en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), los 18 aliases legados fueron retirados definitivamente de `Taskfile.yaml` en la versión `v1.76.0`. La interfaz soportada es exclusivamente la canónica.
 
 ---
 
 ## 4. Matriz de Aliases en Deprecación y Sustitutos Canónicos
 
 > [!NOTE]
-> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4 (v1.76.0)**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-026](../decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md).
+> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4 (v1.76.0)**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y en el registro histórico de [ADR-026](../decisions/README.md).
 
 | Alias Histórico Deprecado | Tarea Canónica Sustituta | Fase Actual | Fecha / Versión de Retiro |
 | :--- | :--- | :---: | :---: |

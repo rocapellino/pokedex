@@ -216,10 +216,8 @@ La documentación técnica detallada se organiza en:
 - [ADR-023: Adopción del Compilador Nativo TypeScript](docs/decisions/ADR-023-typescript-native-compiler-adoption.md)
 - [ADR-024: Cómputo Bimodal en Proxmox (LXC Preprod y VM Prod)](docs/decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md)
 - [ADR-025: Separación de Planos de Gestión, Runtime y Preparación Cloud](docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)
-- [ADR-026: Ciclo de Vida Aliases Taskfile CLI](docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md)
 - [ADR-027: Resiliencia Fail-Open vs Fail-Closed](docs/decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)
-- [ADR-028: Estrategia de Respaldo Offsite en Google Drive](docs/decisions/ADR-028-gdrive-offsite-backup-strategy.md)
-- [ADR-029: Unificación de Esquema de Base de Datos y Retiro de init.sql](docs/decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md)
+- [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md): Catálogo de las 26 decisiones activas y registro de decisiones consolidadas (ADR-026, ADR-028, ADR-029).
 - [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI con Taskfile.
 
 ---
