@@ -51,7 +51,8 @@ LABEL maintainer="Rodrigo Capellino" \
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=3000 \
+    NODE_PATH=/app/apps/backend/node_modules:/app/node_modules
 
 # VER-002: APP_VERSION y GIT_SHA son metadatos conceptualmente distintos
 # (versión semántica de la release vs. commit exacto que la compila).

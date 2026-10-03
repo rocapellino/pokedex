@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { execSync } from 'node:child_process';
-import { load as yamlSafeLoad } from 'js-yaml';
+import yaml from 'js-yaml';
+const yamlSafeLoad = (yaml as unknown as { load: typeof yaml.load }).load ?? yaml.load;
 import {
   loadImpactConfig,
   analyzeChangeImpact,
