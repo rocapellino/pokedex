@@ -1,0 +1,50 @@
+# ==============================================================================
+# Pokédex Platform CLI - Calidad de Código, Linters y Análisis Estático
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+tasks:
+  # ----------------------------------------------------------------------------
+  # Tipos y linting de código
+  # ----------------------------------------------------------------------------
+  typecheck:
+    desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
+    cmds:
+      - npm run typecheck
+
+  lint:
+    desc: "Ejecuta linting y validación de tipos en backend, frontend y raíz"
+    cmds:
+      - npm run lint
+
+  lint:mega:
+    desc: "Ejecuta MegaLinter localmente mediante Docker"
+    cmds:
+      - docker run --rm -v "${PWD}:/tmp/lint:ro" -e MEGALINTER_CONFIG=.mega-linter.yml oxsecurity/megalinter-cupcake:v8.4.2
+
+  # ----------------------------------------------------------------------------
+  # Documentación Markdown
+  # ----------------------------------------------------------------------------
+  lint:md:
+    desc: "Valida la calidad y consistencia de la documentación Markdown con markdownlint (0 errores MDxxx)"
+    cmds:
+      - npm run lint:md -- {{.CLI_ARGS}}
+
+  lint:md:fix:
+    desc: "Aplica autocorrección de formato a la documentación Markdown con markdownlint"
+    cmds:
+      - npm run lint:md:fix -- {{.CLI_ARGS}}
+
+  # ----------------------------------------------------------------------------
+  # Deuda técnica y SonarQube
+  # ----------------------------------------------------------------------------
+  sonar:
+    desc: "Ejecuta SonarScanner localmente mediante contenedor Docker"
+    cmds:
+      - docker run --rm -v "${PWD}:/usr/src" -e SONAR_TOKEN="${SONAR_TOKEN}" sonarsource/sonar-scanner-cli:11.2.0
+
+  audit:
+    desc: "Auditoría de calidad, duplicación de código y deuda técnica con SonarQube"
+    cmds:
+      - task: sonar

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T16:16:13.949Z",
+  "generatedAt": "2026-10-03T16:47:15.284Z",
   "summary": {
     "totalFiles": 56,
     "testFiles": 53,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 495,
     "totalLines": 14081,
-    "totalSizeBytes": 643348,
+    "totalSizeBytes": 643344,
     "suitesCount": 9
   },
   "suites": [
@@ -1802,9 +1802,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 211,
-      "sizeBytes": 45561,
+      "sizeBytes": 45559,
       "lineCount": 766,
-      "sha256": "ea6ee7dc8d4d189803851e6c2f6191340d92b90acf880f76f1b944b32f38a111",
+      "sha256": "829d8bcc6c036f73b91efa561ba4130a56afa76b91d8a30259fffcf152cf9898",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2386,9 +2386,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 229,
-      "sizeBytes": 60803,
+      "sizeBytes": 60801,
       "lineCount": 1082,
-      "sha256": "b76f69f663c76a517d9d44fc8712472779bc79e2c109be9ea3253513320d76e2",
+      "sha256": "9d5178f0b69d48b2d5ff7ad54a5a8e9ee30a61afe038e20f377adc69913761d5",
       "targetDomain": "Hardening de Infraestructura como Código (IaC)",
       "targetArtifacts": [
         "infra/k8s/",

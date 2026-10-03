@@ -927,7 +927,7 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   assert.ok(cliRefContent.includes('Fase 4: Eliminar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 4');
 
   // 3. Taskfile.yaml define default con task --list y start como tarea canónica
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yaml debe ejecutar task --list en tarea default');
   assert.ok(taskfileContent.includes('start:'), 'Taskfile.yaml debe incluir la tarea start canónica');
 

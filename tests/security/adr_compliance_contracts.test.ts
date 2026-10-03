@@ -580,7 +580,7 @@ test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de buil
   assert.ok(packageJson.scripts?.['build:turbo'], 'package.json debe incluir script build:turbo');
 
   // 5. Taskfile.yaml define tareas turbo
-  const taskfileContent = fs.readFileSync(taskfilePath, 'utf-8');
+  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('turbo:build:'), 'Taskfile.yaml debe exponer tarea turbo:build');
   assert.ok(taskfileContent.includes('turbo:lint:'), 'Taskfile.yaml debe exponer tarea turbo:lint');
   assert.ok(taskfileContent.includes('turbo:typecheck:'), 'Taskfile.yaml debe exponer tarea turbo:typecheck');

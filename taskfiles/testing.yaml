@@ -1,0 +1,53 @@
+# ==============================================================================
+# Pokédex Platform CLI - Pirámide de Pruebas y Rendimiento
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+tasks:
+  # ----------------------------------------------------------------------------
+  # Pruebas funcionales y de seguridad
+  # ----------------------------------------------------------------------------
+  test:
+    desc: "Ejecuta las pruebas unitarias y validaciones de tipos"
+    cmds:
+      - npm run lint
+      - npm test
+
+  test:fuzz:
+    desc: "Ejecuta la suite dinámica de API Fuzzing y resiliencia DAST"
+    cmds:
+      - npm run test:fuzz
+
+  test:security:
+    desc: "Ejecuta las pruebas de políticas de seguridad, pentest y contratos de hardening"
+    cmds:
+      - npm run test:security
+
+  test:e2e:
+    desc: "Ejecuta las pruebas E2E multi-dispositivo con Playwright"
+    cmds:
+      - npm run test:e2e
+
+  test:a11y:
+    desc: "Ejecuta la auditoría automatizada de accesibilidad WCAG con Axe-core"
+    cmds:
+      - npm run test:a11y
+
+  test:coverage:
+    desc: "Ejecuta la suite de pruebas unitarias y genera reporte de cobertura LCOV"
+    cmds:
+      - npm run test:coverage
+
+  # ----------------------------------------------------------------------------
+  # Rendimiento y Web Vitals
+  # ----------------------------------------------------------------------------
+  perf:
+    desc: "Ejecuta pruebas de rendimiento y estrés con k6"
+    cmds:
+      - k6 run tests/performance/k6_stress_test.js
+
+  perf:lighthouse:
+    desc: "Ejecuta la auditoría de rendimiento y Web Vitals con Lighthouse CI"
+    cmds:
+      - npx @lhci/cli autorun
