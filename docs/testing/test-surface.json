@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T01:26:58.172Z",
+  "generatedAt": "2026-10-03T01:35:59.937Z",
   "summary": {
     "totalFiles": 50,
     "testFiles": 48,
     "helperFiles": 1,
     "performanceScripts": 1,
-    "totalTestCases": 475,
-    "totalLines": 13373,
-    "totalSizeBytes": 620237,
+    "totalTestCases": 481,
+    "totalLines": 13532,
+    "totalSizeBytes": 626202,
     "suitesCount": 9
   },
   "suites": [
@@ -49,7 +49,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 3,
-      "testCases": 30,
+      "testCases": 36,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -904,12 +904,12 @@
       "type": "Component / Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 8,
+      "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 40,
-      "sizeBytes": 4904,
-      "lineCount": 142,
-      "sha256": "97165081fcd3f95234e68b300ebf6702b1bd2ed20e9b3aec2b8e6cc121213199",
+      "assertionCountEst": 81,
+      "sizeBytes": 10869,
+      "lineCount": 301,
+      "sha256": "850b0f39884ef163c8f362bd9f212a1be83155263742ca04f3f358da7f897f04",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -928,35 +928,59 @@
       "testCases": [
         {
           "name": "🧩 Modal Detail: calculateWeaknesses calcula debilidades elementales correctamente",
-          "line": 61
+          "line": 64
         },
         {
           "name": "🧩 Modal Detail: renderStatEqualizer genera columnas y segmentos proporcionales",
-          "line": 73
+          "line": 76
         },
         {
           "name": "🧩 Modal Detail: getTriggerIcon devuelve iconos representativos según método",
-          "line": 82
+          "line": 85
         },
         {
           "name": "🧩 Modal Detail: renderDetailModalContent genera markup semántico y sanitizado",
-          "line": 90
+          "line": 93
         },
         {
           "name": "🧩 Pokemon Card: renderPokemonCard genera article semántico con identificadores seguros",
-          "line": 103
+          "line": 106
         },
         {
           "name": "🧩 Admin Table: renderTableRows genera celdas y botones de acción data-attributes",
-          "line": 114
+          "line": 117
         },
         {
           "name": "🧩 Admin Table: computeKPIs agrega métricas de catálogo deterministamente",
-          "line": 126
+          "line": 129
         },
         {
           "name": "🧩 Modal CRUD: gestión de estado de borrado pendiente",
-          "line": 135
+          "line": 138
+        },
+        {
+          "name": "🧩 Modal Evolution: getTriggerIcon cubre todas las ramas de métodos evolutivos",
+          "line": 146
+        },
+        {
+          "name": "🧩 Modal Evolution: renderTransitionConnector genera chevrons y badges según contexto",
+          "line": 156
+        },
+        {
+          "name": "🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alternos y catálogos",
+          "line": 167
+        },
+        {
+          "name": "🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks",
+          "line": 189
+        },
+        {
+          "name": "🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales",
+          "line": 219
+        },
+        {
+          "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
+          "line": 287
         }
       ]
     },

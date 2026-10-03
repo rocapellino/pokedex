@@ -4,6 +4,9 @@ import {
   calculateWeaknesses,
   renderStatEqualizer,
   getTriggerIcon,
+  renderTransitionConnector,
+  renderSingleEvolutionNode,
+  renderEvolutionSystem,
   renderDetailModalContent,
   TYPE_WEAKNESSES,
 } from '../../apps/frontend/src/components/modal-detail.js';
@@ -139,3 +142,159 @@ test('🧩 Modal CRUD: gestión de estado de borrado pendiente', () => {
   closeDeleteModal();
   assert.equal(getPendingDeleteId(), null);
 });
+
+test('🧩 Modal Evolution: getTriggerIcon cubre todas las ramas de métodos evolutivos', () => {
+  assert.equal(getTriggerIcon('mineral evolutivo'), '💎');
+  assert.equal(getTriggerIcon('manzana ácida'), '💎');
+  assert.equal(getTriggerIcon('conociendo movimiento rayo'), '⚔️');
+  assert.equal(getTriggerIcon('bajo la lluvia'), '🌧️');
+  assert.equal(getTriggerIcon('durante la noche'), '🌙');
+  assert.equal(getTriggerIcon('durante el día'), '☀️');
+  assert.equal(getTriggerIcon('condición especial'), '⚡');
+});
+
+test('🧩 Modal Evolution: renderTransitionConnector genera chevrons y badges según contexto', () => {
+  const withoutMethod = renderTransitionConnector();
+  assert.ok(withoutMethod.includes('evolution-chevron-arrow'));
+  assert.ok(!withoutMethod.includes('evolution-trigger-badge'));
+
+  const withMethod = renderTransitionConnector({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' });
+  assert.ok(withMethod.includes('evolution-trigger-badge'));
+  assert.ok(withMethod.includes('Nivel 16'));
+  assert.ok(withMethod.includes('📈'));
+});
+
+test('🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alternos y catálogos', () => {
+  const catalog = [mockBulbasaur, mockCharmander];
+
+  // Nodo actual
+  const currentNodeHtml = renderSingleEvolutionNode({ id: 1, nombre: 'Bulbasaur' }, 1, false, catalog);
+  assert.ok(currentNodeHtml.includes('active-current'));
+  assert.ok(currentNodeHtml.includes('Estás viendo a Bulbasaur'));
+  assert.ok(currentNodeHtml.includes('evolution-type-mini'));
+
+  // Nodo diferente con método visible
+  const nextNodeHtml = renderSingleEvolutionNode(
+    { id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' },
+    1,
+    true,
+    catalog
+  );
+  assert.ok(!nextNodeHtml.includes('active-current'));
+  assert.ok(nextNodeHtml.includes('Ver ficha de Ivysaur'));
+  assert.ok(nextNodeHtml.includes('evolution-method-tag'));
+  assert.ok(nextNodeHtml.includes('Nivel 16'));
+});
+
+test('🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks', () => {
+  const catalog = [mockBulbasaur];
+
+  // 1. Array vacío o de un elemento
+  const singleHtml = renderEvolutionSystem([{ id: 1, nombre: 'Bulbasaur' }], 1, catalog);
+  assert.ok(singleHtml.includes('pokedex-evolutions-official-panel'));
+  assert.ok(!singleHtml.includes('evolution-transition-connector'));
+
+  // 2. Array lineal de múltiples elementos
+  const multiArrayHtml = renderEvolutionSystem(
+    [
+      { id: 1, nombre: 'Bulbasaur' },
+      { id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' },
+      { id: 3, nombre: 'Venusaur', metodo: 'Nivel 32' },
+    ],
+    1,
+    catalog
+  );
+  assert.ok(multiArrayHtml.includes('evolution-transition-connector'));
+
+  // 3. Objeto sin árbol (fallback)
+  const fallbackHtml = renderEvolutionSystem(null, 25, catalog);
+  assert.ok(fallbackHtml.includes('official-artwork/25.png'));
+
+  // 4. Árbol con raíz sin evoluciones
+  const rootOnlyHtml = renderEvolutionSystem({ arbol: { id: 132, nombre: 'Ditto', evolves_to: [] } }, 132, catalog);
+  assert.ok(rootOnlyHtml.includes('Ditto'));
+  assert.ok(!rootOnlyHtml.includes('branched-evolution-container'));
+});
+
+test('🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales', () => {
+  const catalog = [mockBulbasaur];
+
+  // 1. Ramificación inmediata en raíz (tipo Eevee)
+  const eeveeTree = {
+    es_ramificada: true,
+    arbol: {
+      id: 133,
+      nombre: 'Eevee',
+      evolves_to: [
+        { id: 134, nombre: 'Vaporeon', metodo: 'Piedra Agua' },
+        { id: 135, nombre: 'Jolteon', metodo: 'Piedra Trueno' },
+        { id: 136, nombre: 'Flareon', metodo: 'Piedra Fuego' },
+      ],
+    },
+  };
+  const eeveeHtml = renderEvolutionSystem(eeveeTree, 133, catalog);
+  assert.ok(eeveeHtml.includes('branched-fork-indicator'));
+  assert.ok(eeveeHtml.includes('branched-children-grid'));
+  assert.ok(eeveeHtml.includes('Vaporeon'));
+  assert.ok(eeveeHtml.includes('Jolteon'));
+
+  // 2. Árbol estrictamente lineal no ramificado
+  const linearTree = {
+    es_ramificada: false,
+    arbol: {
+      id: 1,
+      nombre: 'Bulbasaur',
+      evolves_to: [
+        {
+          id: 2,
+          nombre: 'Ivysaur',
+          metodo: 'Nivel 16',
+          evolves_to: [{ id: 3, nombre: 'Venusaur', metodo: 'Nivel 32' }],
+        },
+      ],
+    },
+  };
+  const linearTreeHtml = renderEvolutionSystem(linearTree, 1, catalog);
+  assert.ok(linearTreeHtml.includes('evolution-transition-connector'));
+  assert.ok(linearTreeHtml.includes('Ivysaur'));
+  assert.ok(linearTreeHtml.includes('Venusaur'));
+
+  // 3. Ramificación posterior tras prefijo lineal (tipo Oddish -> Gloom -> [Vileplume, Bellossom])
+  const gloomBranchTree = {
+    es_ramificada: true,
+    arbol: {
+      id: 43,
+      nombre: 'Oddish',
+      evolves_to: [
+        {
+          id: 44,
+          nombre: 'Gloom',
+          metodo: 'Nivel 21',
+          evolves_to: [
+            { id: 45, nombre: 'Vileplume', metodo: 'Piedra Hoja' },
+            { id: 182, nombre: 'Bellossom', metodo: 'Piedra Solar' },
+          ],
+        },
+      ],
+    },
+  };
+  const gloomBranchHtml = renderEvolutionSystem(gloomBranchTree, 44, catalog);
+  assert.ok(gloomBranchHtml.includes('Evoluciones alternativas'));
+  assert.ok(gloomBranchHtml.includes('Vileplume'));
+  assert.ok(gloomBranchHtml.includes('Bellossom'));
+});
+
+test('🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas', () => {
+  assert.deepEqual(calculateWeaknesses(['TipoInexistente']), []);
+  assert.deepEqual(calculateWeaknesses([]), []);
+
+  // Probar varios tipos elementales para máxima cobertura
+  const iceWeak = calculateWeaknesses(['Hielo']);
+  assert.ok(iceWeak.includes('Fuego'));
+  assert.ok(iceWeak.includes('Lucha'));
+
+  const dragonWeak = calculateWeaknesses(['Dragón']);
+  assert.ok(dragonWeak.includes('Hada'));
+  assert.ok(dragonWeak.includes('Hielo'));
+});
+
