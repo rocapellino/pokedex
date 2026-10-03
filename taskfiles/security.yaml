@@ -69,6 +69,11 @@ tasks:
   # ----------------------------------------------------------------------------
   # Auditoría de Secretos y Hardening L7
   # ----------------------------------------------------------------------------
+  security:
+    desc: "Ejecuta análisis de vulnerabilidades en dependencias (npm audit)"
+    cmds:
+      - npm audit --audit-level=high
+
   secrets:scan:
     desc: "Escanea el repositorio en busca de secretos expuestos con Gitleaks"
     cmds:

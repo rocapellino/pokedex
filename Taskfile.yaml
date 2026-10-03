@@ -1,6 +1,10 @@
 # ==============================================================================
 # Pokédex Taskfile v3
 # ==============================================================================
+# Fachada de orquestación: la raíz solo declara variables compartidas, los
+# submódulos especializados y los entrypoints de ciclo de vida del desarrollador.
+# Con `flatten: true` los nombres de tarea se conservan sin prefijo de namespace.
+# ==============================================================================
 version: '3'
 
 vars:
@@ -10,6 +14,7 @@ vars:
 # Submódulos Especializados (Modularización Taskfile v3)
 # ------------------------------------------------------------------------------
 includes:
+  # Plataforma e infraestructura
   dev:
     taskfile: ./taskfiles/dev.yaml
     flatten: true
@@ -21,6 +26,19 @@ includes:
     flatten: true
   security:
     taskfile: ./taskfiles/security.yaml
+    flatten: true
+  # Ingeniería, calidad y gobernanza
+  testing:
+    taskfile: ./taskfiles/testing.yaml
+    flatten: true
+  quality:
+    taskfile: ./taskfiles/quality.yaml
+    flatten: true
+  turbo:
+    taskfile: ./taskfiles/turbo.yaml
+    flatten: true
+  ci:
+    taskfile: ./taskfiles/ci.yaml
     flatten: true
 
 tasks:
@@ -49,119 +67,7 @@ tasks:
     cmds:
       - npm start
 
-  turbo:build:
-    desc: "Compila el monorepo con aceleración y caché declarativo de Turborepo"
-    cmds:
-      - npx turbo run build
-
-  turbo:lint:
-    desc: "Ejecuta linting en todos los paquetes del monorepo mediante Turborepo"
-    cmds:
-      - npx turbo run lint
-
-  turbo:typecheck:
-    desc: "Ejecuta verificación de tipos en todos los paquetes del monorepo mediante Turborepo"
-    cmds:
-      - npx turbo run typecheck
-
-  turbo:clean:
-    desc: "Limpia la caché local de Turborepo y artefactos de compilación"
-    cmds:
-      - >-
-        node -e "fs.rmSync('.turbo', { recursive: true, force: true }); fs.rmSync('apps/backend/dist', { recursive: true, force: true }); fs.rmSync('apps/frontend/dist', { recursive: true, force: true });"
-
-  typecheck:
-    desc: "Ejecuta únicamente la verificación estricta de tipos de TypeScript (tsc --noEmit)"
-    cmds:
-      - npm run typecheck
-
-  lint:
-    desc: "Ejecuta linting y validación de tipos en backend, frontend y raíz"
-    cmds:
-      - npm run lint
-
-  lint:md:
-    desc: "Valida la calidad y consistencia de la documentación Markdown con markdownlint (0 errores MDxxx)"
-    cmds:
-      - npm run lint:md -- {{.CLI_ARGS}}
-
-  lint:md:fix:
-    desc: "Aplica autocorrección de formato a la documentación Markdown con markdownlint"
-    cmds:
-      - npm run lint:md:fix -- {{.CLI_ARGS}}
-
   validate:
     desc: "Ejecuta todas las validaciones obligatorias del proyecto (lint, typecheck, build, test, fuzzing)"
     cmds:
       - npm run validate
-
-  test:
-    desc: "Ejecuta las pruebas unitarias y validaciones de tipos"
-    cmds:
-      - npm run lint
-      - npm test
-
-  test:fuzz:
-    desc: "Ejecuta la suite dinámica de API Fuzzing y resiliencia DAST"
-    cmds:
-      - npm run test:fuzz
-
-  test:security:
-    desc: "Ejecuta las pruebas de políticas de seguridad, pentest y contratos de hardening"
-    cmds:
-      - npm run test:security
-
-  test:e2e:
-    desc: "Ejecuta las pruebas E2E multi-dispositivo con Playwright"
-    cmds:
-      - npm run test:e2e
-
-  test:a11y:
-    desc: "Ejecuta la auditoría automatizada de accesibilidad WCAG con Axe-core"
-    cmds:
-      - npm run test:a11y
-
-  test:coverage:
-    desc: "Ejecuta la suite de pruebas unitarias y genera reporte de cobertura LCOV"
-    cmds:
-      - npm run test:coverage
-
-  perf:lighthouse:
-    desc: "Ejecuta la auditoría de rendimiento y Web Vitals con Lighthouse CI"
-    cmds:
-      - npx @lhci/cli autorun
-
-  lint:mega:
-    desc: "Ejecuta MegaLinter localmente mediante Docker"
-    cmds:
-      - docker run --rm -v "${PWD}:/tmp/lint:ro" -e MEGALINTER_CONFIG=.mega-linter.yml oxsecurity/megalinter-cupcake:v8.4.2
-
-  sonar:
-    desc: "Ejecuta SonarScanner localmente mediante contenedor Docker"
-    cmds:
-      - docker run --rm -v "${PWD}:/usr/src" -e SONAR_TOKEN="${SONAR_TOKEN}" sonarsource/sonar-scanner-cli:11.2.0
-
-  audit:
-    desc: "Auditoría de calidad, duplicación de código y deuda técnica con SonarQube"
-    cmds:
-      - task: sonar
-
-  governance:audit-scripts:
-    desc: "Audita la gobernanza de scripts de despliegue y valida la lista blanca de scripts autorizados (ADR-020)"
-    cmds:
-      - npm run governance:audit-scripts
-
-  ci:impact:
-    desc: "Calcula el grafo de impacto de cambios y el DAG dinámico de validaciones de CI"
-    cmds:
-      - npm run ci:detect-impact -- {{.CLI_ARGS}}
-
-  security:
-    desc: "Ejecuta análisis de vulnerabilidades en dependencias (npm audit)"
-    cmds:
-      - npm audit --audit-level=high
-
-  perf:
-    desc: "Ejecuta pruebas de rendimiento y estrés con k6"
-    cmds:
-      - k6 run tests/performance/k6_stress_test.js
