@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Naturaleza del Documento:** Registro vivo de vectores mitigados y madurez DevSecOps, no un snapshot fechado.
-> Sus afirmaciones están gobernadas por contratos en `tests/security/` (`iac_baseline_security.test.ts`, `network_policies_security.test.ts`) y deben actualizarse cuando cambie el control que describen. Los diagnósticos fechados residen en [`docs/audits/`](../audits/README.md); las políticas operativas de respuesta a incidentes, en [SECURITY_RUNBOOK.md](SECURITY_RUNBOOK.md), y la divulgación responsable, en [SECURITY.md](../../SECURITY.md).
+> Sus afirmaciones están gobernadas por contratos en `tests/security/` (`iac_baseline_security.test.ts`, `ansible_baseline_security.test.ts`, `opentofu_baseline_security.test.ts`, `network_policies_security.test.ts`) y deben actualizarse cuando cambie el control que describen. Los diagnósticos fechados residen en [`docs/audits/`](../audits/README.md); las políticas operativas de respuesta a incidentes, en [SECURITY_RUNBOOK.md](SECURITY_RUNBOOK.md), y la divulgación responsable, en [SECURITY.md](../../SECURITY.md).
 
 Este documento condensa los resultados de la auditoría de seguridad integral, análisis estático y dinámico, evaluación de la cadena de suministro y análisis de superficie de ataque para la plataforma **Pokédex**.
 

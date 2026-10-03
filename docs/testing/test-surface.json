@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T22:36:32.356Z",
+  "generatedAt": "2026-10-03T23:47:03.742Z",
   "summary": {
-    "totalFiles": 63,
-    "testFiles": 60,
+    "totalFiles": 65,
+    "testFiles": 62,
     "helperFiles": 2,
     "performanceScripts": 1,
     "totalTestCases": 534,
-    "totalLines": 14921,
-    "totalSizeBytes": 684885,
+    "totalLines": 14812,
+    "totalSizeBytes": 676758,
     "suitesCount": 9
   },
   "suites": [
@@ -28,7 +28,7 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 22,
+      "files": 24,
       "testCases": 201,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
@@ -2024,6 +2024,84 @@
       ]
     },
     {
+      "path": "tests/security/ansible_baseline_security.test.ts",
+      "suite": "security",
+      "type": "Security / Ansible",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 12,
+      "describeCount": 0,
+      "assertionCountEst": 79,
+      "sizeBytes": 19480,
+      "lineCount": 373,
+      "sha256": "8b00e5b6d6a814614194ab23b752546d1ec96ee8a9c37852923d3d78f31a1d39",
+      "targetDomain": "Hardening de Host, Redes y Ansible Baseline",
+      "targetArtifacts": [
+        "infra/ansible/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*",
+          "line": 18
+        },
+        {
+          "name": "🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados",
+          "line": 26
+        },
+        {
+          "name": "🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción",
+          "line": 49
+        },
+        {
+          "name": "🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernetes, GitOps y Ansible baseline",
+          "line": 62
+        },
+        {
+          "name": "🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)",
+          "line": 73
+        },
+        {
+          "name": "🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion",
+          "line": 97
+        },
+        {
+          "name": "🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias",
+          "line": 151
+        },
+        {
+          "name": "🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host",
+          "line": 178
+        },
+        {
+          "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
+          "line": 223
+        },
+        {
+          "name": "🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta",
+          "line": 272
+        },
+        {
+          "name": "🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos",
+          "line": 321
+        },
+        {
+          "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
+          "line": 331
+        }
+      ]
+    },
+    {
       "path": "tests/security/cors_rejection.test.ts",
       "suite": "security",
       "type": "Automated Test",
@@ -2620,19 +2698,21 @@
     {
       "path": "tests/security/iac_baseline_security.test.ts",
       "suite": "security",
-      "type": "Security / IaC",
+      "type": "Security / DevDX",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 28,
+      "testCount": 8,
       "describeCount": 0,
-      "assertionCountEst": 234,
-      "sizeBytes": 61962,
-      "lineCount": 1090,
-      "sha256": "84fc092430bab43a1118ed17d7e4c5fb76f789d040745d44bd45b5d3cdf69936",
-      "targetDomain": "Hardening de Infraestructura como Código (IaC)",
+      "assertionCountEst": 75,
+      "sizeBytes": 17165,
+      "lineCount": 286,
+      "sha256": "8db1fe7368881d2263c3c3e0585af5a7b27880c13d95d529749a2c579144bf76",
+      "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
-        "infra/k8s/",
-        "infra/helm/pokedex/"
+        "Taskfile.yaml",
+        ".vscode/tasks.json",
+        ".tool-versions",
+        "infra/k8s/kind-cluster.yaml"
       ],
       "npmCommands": [
         "npm test",
@@ -2643,120 +2723,40 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos.",
+      "description": "Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables.",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*",
-          "line": 64
-        },
-        {
           "name": "🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa",
-          "line": 72
-        },
-        {
-          "name": "🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados",
-          "line": 77
-        },
-        {
-          "name": "🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción",
-          "line": 100
-        },
-        {
-          "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
-          "line": 113
-        },
-        {
-          "name": "🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente",
-          "line": 125
-        },
-        {
-          "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 136
-        },
-        {
-          "name": "🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernetes, GitOps y Ansible baseline",
-          "line": 148
-        },
-        {
-          "name": "🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)",
-          "line": 160
-        },
-        {
-          "name": "🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion",
-          "line": 186
-        },
-        {
-          "name": "🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias",
-          "line": 252
-        },
-        {
-          "name": "🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host",
-          "line": 295
-        },
-        {
-          "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
-          "line": 354
-        },
-        {
-          "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
-          "line": 414
-        },
-        {
-          "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 480
-        },
-        {
-          "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 540
-        },
-        {
-          "name": "🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta",
-          "line": 574
+          "line": 18
         },
         {
           "name": "🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente",
-          "line": 633
+          "line": 23
         },
         {
           "name": "🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)",
-          "line": 645
+          "line": 35
         },
         {
           "name": "🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa logica operativa",
-          "line": 669
-        },
-        {
-          "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 737
+          "line": 59
         },
         {
           "name": "🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC",
-          "line": 817
+          "line": 111
         },
         {
           "name": "🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy",
-          "line": 840
-        },
-        {
-          "name": "🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos",
-          "line": 852
-        },
-        {
-          "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 862
+          "line": 134
         },
         {
           "name": "🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)",
-          "line": 899
-        },
-        {
-          "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
-          "line": 1014
+          "line": 146
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 1064
+          "line": 260
         }
       ]
     },
@@ -3047,6 +3047,68 @@
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
           "line": 352
+        }
+      ]
+    },
+    {
+      "path": "tests/security/opentofu_baseline_security.test.ts",
+      "suite": "security",
+      "type": "Security / OpenTofu",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 8,
+      "describeCount": 0,
+      "assertionCountEst": 73,
+      "sizeBytes": 17190,
+      "lineCount": 322,
+      "sha256": "d0247de34cd7e245f7f09fa158433ab0cd7efabed77c20cc49b4ff935b99038b",
+      "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
+      "targetArtifacts": [
+        "infra/opentofu/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
+          "line": 60
+        },
+        {
+          "name": "🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente",
+          "line": 72
+        },
+        {
+          "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
+          "line": 83
+        },
+        {
+          "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
+          "line": 95
+        },
+        {
+          "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
+          "line": 161
+        },
+        {
+          "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
+          "line": 207
+        },
+        {
+          "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
+          "line": 236
+        },
+        {
+          "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
+          "line": 287
         }
       ]
     },

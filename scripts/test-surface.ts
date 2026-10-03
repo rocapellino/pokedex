@@ -259,6 +259,12 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['docs/decisions/'],
     description: 'Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).',
   },
+  'tests/security/ansible_baseline_security.test.ts': {
+    type: 'Security / Ansible',
+    targetDomain: 'Hardening de Host, Redes y Ansible Baseline',
+    targetArtifacts: ['infra/ansible/'],
+    description: 'Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas.',
+  },
   'tests/security/docs_portal_integrity.test.ts': {
     type: 'Contract / Docs',
     targetDomain: 'Integridad del Portal de Documentación',
@@ -308,10 +314,10 @@ const FILE_METADATA_CATALOG: Record<string, {
     description: 'Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos.',
   },
   'tests/security/iac_baseline_security.test.ts': {
-    type: 'Security / IaC',
-    targetDomain: 'Hardening de Infraestructura como Código (IaC)',
-    targetArtifacts: ['infra/k8s/', 'infra/helm/pokedex/'],
-    description: 'Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos.',
+    type: 'Security / DevDX',
+    targetDomain: 'Gobernanza de Scripts, Tooling y Dev DX',
+    targetArtifacts: ['Taskfile.yaml', '.vscode/tasks.json', '.tool-versions', 'infra/k8s/kind-cluster.yaml'],
+    description: 'Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables.',
   },
   'tests/security/ignore_hygiene.test.ts': {
     type: 'Contract / Hygiene',
@@ -330,6 +336,12 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetDomain: 'Aislamiento de Red Zero-Trust',
     targetArtifacts: ['infra/helm/pokedex/templates/network-policies.yaml', 'infra/helm/pokedex/templates/cilium-network-policies.yaml'],
     description: 'Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados.',
+  },
+  'tests/security/opentofu_baseline_security.test.ts': {
+    type: 'Security / OpenTofu',
+    targetDomain: 'Hardening de OpenTofu, Cloud Design y Estado IaC',
+    targetArtifacts: ['infra/opentofu/'],
+    description: 'Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud.',
   },
   'tests/security/operation_dr_benchmarks.test.ts': {
     type: 'Security / DR Benchmarks',
