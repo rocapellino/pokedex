@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 1 |
 | **Total de Casos de Prueba Identificados** | **493** |
-| **Líneas de Código de Pruebas** | 13.967 |
-| **Tamaño Total de la Suite** | 625.9 KB |
+| **Líneas de Código de Pruebas** | 13.979 |
+| **Tamaño Total de la Suite** | 626.6 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T02:45:25.348Z |
+| **Última Sincronización** | 2026-10-03T13:09:45.048Z |
 
 ---
 
@@ -77,7 +77,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | `security` | Contract / SecOps | `node:test (tsx)` | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **5** | 241 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **31** | 1190 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **31** | 1202 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **20** | 974 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -135,7 +135,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **5** | 241 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **31** | 1190 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `infra/k8s/`, `infra/helm/pokedex/` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **31** | 1202 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `infra/k8s/`, `infra/helm/pokedex/` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | **20** | 974 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `infra/k8s/`, `infra/helm/pokedex/templates/` |
 | [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | **14** | 412 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml` |

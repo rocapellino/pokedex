@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T02:45:25.348Z",
+  "generatedAt": "2026-10-03T13:09:45.048Z",
   "summary": {
     "totalFiles": 51,
     "testFiles": 49,
     "helperFiles": 1,
     "performanceScripts": 1,
     "totalTestCases": 493,
-    "totalLines": 13967,
-    "totalSizeBytes": 640956,
+    "totalLines": 13979,
+    "totalSizeBytes": 641630,
     "suitesCount": 9
   },
   "suites": [
@@ -262,9 +262,9 @@
       "testCount": 55,
       "describeCount": 0,
       "assertionCountEst": 342,
-      "sizeBytes": 61396,
+      "sizeBytes": 61456,
       "lineCount": 1401,
-      "sha256": "57729b5d9bc790ca450a34a34780540189c5236805cc0596b7937cd963270d7a",
+      "sha256": "95ee0b204331f7f9c2dea5ab9fe47ffef2385769a530cc7de075dc1db8244945",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -446,7 +446,7 @@
           "line": 967
         },
         {
-          "name": "🌐 Nginx SSOT: el renderizador sustituye las variables y falla si faltan",
+          "name": "🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si faltan en modo --render",
           "line": 970
         },
         {
@@ -2263,10 +2263,10 @@
       "runner": "node:test (tsx)",
       "testCount": 31,
       "describeCount": 0,
-      "assertionCountEst": 242,
-      "sizeBytes": 65738,
-      "lineCount": 1190,
-      "sha256": "3a962282b9d72d632bf6548e41d8750ac080fb14196240968686ffa8abe1af62",
+      "assertionCountEst": 240,
+      "sizeBytes": 66315,
+      "lineCount": 1202,
+      "sha256": "55661734e15875547147ce406ec8a88714a2a3ed3870428ff101f8031af808aa",
       "targetDomain": "Hardening de Infraestructura como Código (IaC)",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2405,7 +2405,7 @@
           "line": 1126
         },
         {
-          "name": "🛡️ Tooling Governance: scripts/governance-audit-scripts.ts valida lista blanca de scripts shell y rechaza imperativos",
+          "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
           "line": 1176
         }
       ]
@@ -2419,9 +2419,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 10321,
+      "sizeBytes": 10349,
       "lineCount": 195,
-      "sha256": "2e8f8a0d1b6e645e822da6605ce53df0eb443965ce6a952307996b09fdb5377f",
+      "sha256": "cbad633a1767514105274297a50487b37a44c22d1a0b9b99cedf793ed7d02def",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -2602,9 +2602,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 84,
-      "sizeBytes": 22144,
+      "sizeBytes": 22153,
       "lineCount": 412,
-      "sha256": "39ddee8679d99c60fbeab287065414c02dadd42c948365bace0e6c6c196a9aed",
+      "sha256": "01a8af014c3cfc25e68e8337f28ab0758d3dc135e04287a3ebbe74566f419399",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",

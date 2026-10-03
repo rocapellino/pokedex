@@ -69,7 +69,7 @@ jobs:
           export METRICS_ALLOWED_CIDR="10.42.0.0/24"
 
           RENDERED="${RUNNER_TEMP}/default.conf"
-          node scripts/render-nginx-config.mjs "${RENDERED}"
+          node scripts/generate-nginx-conf.mjs --render "${RENDERED}"
 
           # El contenedor solo valida la sintaxis de la configuracion ya renderizada.
           # `--add-host=api:127.0.0.1` es necesario: el template declara

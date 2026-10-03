@@ -1,26 +1,24 @@
 #!/usr/bin/env node
 /**
  * =============================================================================
- * Gate de Gobernanza de Extensión YAML [CFG-002]
+ * Gate Canónico de Gobernanza de Extensión y Referencias YAML [CFG-002, DOC-002]
  * =============================================================================
  *
  * POLÍTICA: la extensión canónica para archivos YAML del monorepo es `.yaml`.
  * La extensión `.yml` queda PROHIBIDA para archivos nuevos y se tolera
- * únicamente el inventario de deuda técnica pre-existente, que se drena de
- * forma incremental mediante waves de refactor.
+ * únicamente el inventario de deuda técnica pre-existente (.mega-linter.yml).
  *
- * Modos de evaluación:
- *   - Normal : falla si existe un `.yml` fuera del allowlist (deuda no registrada).
- *   - Strict : además falla si el allowlist quedó obsoleto (entradas ya
- *              renombradas), lo que obliga a drenar la lista en el mismo commit.
+ * Este script unifica dos verificaciones de gobernanza YAML:
  *
- * Contrato CLI:
- *   --json     Emite el reporte estructurado en stdout.
- *   --strict   Activa el fail-closed sobre allowlist obsoleta.
+ * 1. AUDITORÍA DE NOMBRES DE ARCHIVO FÍSICOS (CFG-002):
+ *    - `node scripts/check-yaml-extension.ts`: Falla si existe un `.yml` no declarado.
+ *    - `--strict`: Falla si el allowlist tiene entradas obsoletas (ya renombradas).
+ *    - `--json`: Emite el reporte estructurado en stdout.
  *
- * Beneficio de seguridad: al unificar la extensión, los globs de CI y las
- * allowlists de Gitleaks pueden usar rutas exactas en lugar de regex `\.ya?ml`,
- * reduciendo la superficie ambigua de los controles de secrets scanning.
+ * 2. INTEGRIDAD DE REFERENCIAS EN DOCUMENTACIÓN Y CÓDIGO (DOC-002):
+ *    - `--refs`: Escanea referencias textuales a archivos `.yml` en markdown/workflows
+ *      y falla (exit 1) si apuntan a archivos que ya no existen (obsoletas).
+ *    - `--refs --fix`: Reescribe automáticamente las referencias obsoletas a `.yaml`.
  * =============================================================================
  */
 
@@ -28,35 +26,42 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 
+const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const isStrict = args.includes('--strict');
 const isJson = args.includes('--json');
+const isRefsMode = args.includes('--refs');
+const isFixMode = args.includes('--fix');
 
-/**
- * Inventario de deuda técnica tolerada: archivos `.yml` pre-existentes.
- * Cada wave del refactor debe ACORTAR esta lista. Cualquier entrada que ya no
- * exista en disco invalida el allowlist en modo `--strict`.
- *
- * Tras la Wave 3 la migración está completa: solo queda la excepción
- * PERMANENTE de `.mega-linter.yml`, que es el nombre de configuración
- * documentado por MegaLinter y se pasa explícitamente vía `MEGALINTER_CONFIG`.
- */
+// -----------------------------------------------------------------------------
+// SECCIÓN 1: Deuda Técnica y Excepciones Permitidas
+// -----------------------------------------------------------------------------
 export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze(['.mega-linter.yml']);
 
-// Directorios excluidos del escaneo recursivo de filesystem
-const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents']);
+export const EXCEPTIONS: { pattern: RegExp; reason: string }[] = [
+  { pattern: /\.mega-linter\.yml\b/, reason: 'Excepcion permanente: nombre de config impuesto por MegaLinter' },
+  { pattern: /\.travis\.yml\b/, reason: 'Nombre historico literal de herramienta retirada' },
+  { pattern: /sigstore\/gitsign\/\.github\/workflows\/release\.yml/, reason: 'Claim criptografico upstream (Gitsign)' },
+  { pattern: /deploy_proxmox\.yml|deploy_app\.yml|docker-compose\.prod\.yml/, reason: 'Archivos RETIRADOS citados como referencia historica' },
+  { pattern: /\*\.yml/, reason: 'Patron glob generico (documentacion de convenciones)' },
+  { pattern: /Taskfile\.yml|taskfile\.yml/, reason: 'Nombre alterno soportado por go-task' },
+  { pattern: /playbooks\/\*\.yml/, reason: 'Globs historicos citados en laWave 1 (fail-open ya resuelto)' },
+  { pattern: /Taskfile\.yml` a `Taskfile\.yaml|busca `Taskfile\.yml`/, reason: 'Documenta la resolucion de nombres de go-task' },
+  { pattern: /ci\.yml` a `ci\.yaml|ci\.yml@refs\/heads\/main`/, reason: 'Documenta el cambio de identidad OIDC (Wave 3)' },
+];
 
-/**
- * Descubre de forma determinista todos los archivos `.yml` versionados.
- * Prefiere `git ls-files` (fuente de verdad del repositorio) y degrada a
- * escaneo recursivo de filesystem si git no está disponible.
- */
-export function discoverLegacyYmlFiles(rootDir: string = process.cwd()): string[] {
+const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents']);
+const IMMUTABLE_DIRS = ['docs/audits/'];
+
+// -----------------------------------------------------------------------------
+// SECCIÓN 2: Lógica de Auditoría de Archivos Físicos (.yml vs .yaml)
+// -----------------------------------------------------------------------------
+export function discoverLegacyYmlFiles(rootDir: string = ROOT): string[] {
   try {
     const raw = execSync('git ls-files', {
       cwd: rootDir,
       encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore']
+      stdio: ['ignore', 'pipe', 'ignore'],
     });
     const tracked = raw
       .split(/\r?\n/)
@@ -92,7 +97,7 @@ export interface YamlExtensionReport {
   valid: boolean;
 }
 
-export function auditYamlExtensions(rootDir: string = process.cwd()): YamlExtensionReport {
+export function auditYamlExtensions(rootDir: string = ROOT): YamlExtensionReport {
   const found = discoverLegacyYmlFiles(rootDir);
   const allowlist = new Set(LEGACY_YML_ALLOWLIST);
 
@@ -105,9 +110,131 @@ export function auditYamlExtensions(rootDir: string = process.cwd()): YamlExtens
   return { found, allowlisted, undeclared, staleEntries, totalFound: found.length, valid };
 }
 
-// ------------------------------------------------------------------------------
-// Ejecución Principal
-// ------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SECCIÓN 3: Lógica de Auditoría de Referencias Textuales (--refs)
+// -----------------------------------------------------------------------------
+const SCANNED_REF_PATHS = [
+  'docs/',
+  'README.md',
+  'SECURITY.md',
+  'AGENTS.md',
+  '.agents/',
+  'apps/',
+  'infra/',
+  '.github/',
+];
+
+function walkFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkFiles(full, out);
+    } else if (/\.(md|ts|ya?ml)$/.test(entry.name)) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+interface RefRow {
+  file: string;
+  line: number;
+  text: string;
+  verdict: string;
+  rawLine: string;
+}
+
+function runReferencesAudit(): void {
+  const files: string[] = [];
+  for (const target of SCANNED_REF_PATHS) {
+    const p = path.join(ROOT, target);
+    if (!fs.existsSync(p)) continue;
+    if (fs.statSync(p).isDirectory()) walkFiles(p, files);
+    else files.push(p);
+  }
+
+  const realYml = new Set(
+    execSync('git ls-files', { encoding: 'utf-8' })
+      .split('\n')
+      .map((f) => f.trim())
+      .filter((f) => f.toLowerCase().endsWith('.yml'))
+  );
+
+  const rows: RefRow[] = [];
+
+  for (const file of files) {
+    const rel = path.relative(ROOT, file).replace(/\\/g, '/');
+    if (IMMUTABLE_DIRS.some((p) => rel.startsWith(p))) continue;
+
+    const lines = fs.readFileSync(file, 'utf-8').split('\n');
+    lines.forEach((text, i) => {
+      const matches = text.match(/[A-Za-z0-9_.*/-]+\.yml\b/g);
+      if (!matches) return;
+      for (const m of matches) {
+        const exc = EXCEPTIONS.find((e) => e.pattern.test(m));
+        let verdict: string;
+        if (exc) verdict = `EXCEPCION: ${exc.reason}`;
+        else if (realYml.has(m)) verdict = 'REAL';
+        else verdict = 'OBSOLETA';
+        rows.push({ file: rel, line: i + 1, text: m, verdict, rawLine: text });
+      }
+    });
+  }
+
+  const byVerdict = new Map<string, RefRow[]>();
+  for (const r of rows) {
+    const key = r.verdict.split(':')[0];
+    byVerdict.set(key, [...(byVerdict.get(key) ?? []), r]);
+  }
+
+  console.log(`Archivos .yml reales en el repo: ${[...realYml].join(', ')}`);
+  console.log(`Referencias .yml encontradas: ${rows.length}\n`);
+
+  for (const [verdict, list] of [...byVerdict].sort()) {
+    console.log(`=== ${verdict} (${list.length}) ===`);
+    const limit = verdict === 'OBSOLETA' ? 200 : 8;
+    for (const r of list.slice(0, limit)) {
+      console.log(`  ${r.file}:${r.line}  ${r.text}`);
+    }
+    if (list.length > limit) console.log(`  ... +${list.length - limit}`);
+    console.log('');
+  }
+
+  const obsolete = byVerdict.get('OBSOLETA') ?? [];
+  console.log(`RESUMEN: obsoletas=${obsolete.length}`);
+
+  if (isFixMode) {
+    const byFile = new Map<string, RefRow[]>();
+    for (const r of obsolete) byFile.set(r.file, [...(byFile.get(r.file) ?? []), r]);
+
+    let changed = 0;
+    for (const [rel, list] of byFile) {
+      const full = path.join(ROOT, rel);
+      let content = fs.readFileSync(full, 'utf-8');
+      for (const r of list) {
+        const updated = r.rawLine.replace(r.text, r.text.replace(/\.yml$/, '.yaml'));
+        content = content.split(r.rawLine).join(updated);
+        changed++;
+      }
+      fs.writeFileSync(full, content, 'utf-8');
+      console.log(`  FIX ${rel} (${list.length})`);
+    }
+    console.log(`Referencias corregidas: ${changed} en ${byFile.size} archivos.`);
+  } else if (obsolete.length > 0) {
+    console.error('\nDOC-002: referencias a archivos .yml obsoletas detectadas.');
+    console.error('   Renombre las referencias a .yaml o documente la excepcion en EXCEPTIONS.');
+    process.exit(1);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// SECCIÓN 4: Despacho Principal según Flags CLI
+// -----------------------------------------------------------------------------
+if (isRefsMode) {
+  runReferencesAudit();
+  process.exit(0);
+}
 
 const report = auditYamlExtensions();
 
@@ -144,4 +271,3 @@ if (report.valid) {
   console.error('❌ YAML Extension Gate: se detectaron violaciones de la convención de extensión.');
   process.exit(1);
 }
-

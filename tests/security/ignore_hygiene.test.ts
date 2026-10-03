@@ -103,7 +103,7 @@ test('📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .ym
   // Contrato fail-closed: la documentacion no debe citar archivos .yml propios
   // que ya no existen en disco. Sin este gate, una wave de migracion puede
   // renombrar archivos y dejar la documentacion apuntando a rutas muertas.
-  const stdout = execSync('npx tsx scripts/scan-yml-refs.ts', {
+  const stdout = execSync('npx tsx scripts/check-yaml-extension.ts --refs', {
     cwd: ROOT_DIR,
     encoding: 'utf-8'
   });
@@ -118,8 +118,8 @@ test('📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .ym
 });
 
 test('📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones', () => {
-  const scriptPath = path.join(ROOT_DIR, 'scripts/scan-yml-refs.ts');
-  assert.ok(fs.existsSync(scriptPath), 'scripts/scan-yml-refs.ts debe existir');
+  const scriptPath = path.join(ROOT_DIR, 'scripts/check-yaml-extension.ts');
+  assert.ok(fs.existsSync(scriptPath), 'scripts/check-yaml-extension.ts debe existir');
 
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   assert.ok(pkgJson.scripts['lint:docs:refs'], 'package.json debe registrar lint:docs:refs');

@@ -20,7 +20,7 @@ const ROOT_DIR = path.resolve(__dirname, '../../');
  *
  * El SSOT unico de la configuracion de Nginx es `nginx.conf.template`, que es
  * lo que consume el Dockerfile de produccion (`envsubst`) y lo que valida CI
- * contra la imagen real (`scripts/render-nginx-config.mjs`, DOC-003).
+ * contra la imagen real (`scripts/generate-nginx-conf.mjs --render`, DOC-003).
  *
  * Antes de este contrato, `nginx.conf` era una copia paralela mantenida a mano.
  * El riesgo no era cosmetico: una directiva de seguridad (CSP, COOP, COEP,

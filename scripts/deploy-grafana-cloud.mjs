@@ -10,7 +10,7 @@
  *
  * No se eligio Bash a proposito: un wrapper en Bash sufre expansion de comandos
  * (backticks y `${...}` se interpretan como command substitution al viajar dentro
- * de comillas dobles). Ver el encabezado de `render-nginx-config.mjs` para el
+ * de comillas dobles). Ver el encabezado de `generate-nginx-conf.mjs` para el
  * precedente exacto de ese problema.
  *
  * SEGURIDAD DEL TOKEN (mismo contrato que el script PowerShell retirado):
