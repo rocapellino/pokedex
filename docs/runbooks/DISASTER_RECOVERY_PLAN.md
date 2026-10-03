@@ -76,7 +76,7 @@ flowchart LR
 > 2. [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md): Especificación e instrucciones de la implementación off-site actualmente soportada en el repositorio.
 > 3. [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md): Blueprints declarativos para alternativas futuras agnósticas (S3-compatible y Proxmox Backup Server).
 >
-> **Ciclo de Vida y Estado Operacional en Proxmox:** El CronJob de sincronización hacia Google Drive (`pokedex-gdrive-sync`) se encuentra renderizado y gestionado vía GitOps en `main` bajo [ADR-028](../decisions/ADR-028-gdrive-offsite-backup-strategy.md). En clústeres reconciliados por ArgoCD, opera según el schedule programado (03:00 UTC) tras completarse el respaldo local nocturno.
+> **Ciclo de Vida y Estado Operacional en Proxmox:** El CronJob de sincronización hacia Google Drive (`pokedex-gdrive-sync`) se encuentra renderizado y gestionado vía GitOps en `main` bajo [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md). En clústeres reconciliados por ArgoCD, opera según el schedule programado (03:00 UTC) tras completarse el respaldo local nocturno.
 
 ---
 

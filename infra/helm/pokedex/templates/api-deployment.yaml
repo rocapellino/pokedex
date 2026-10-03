@@ -112,7 +112,7 @@ spec:
               name: tmp-volume
           # `startupProbe` da margen al arranque antes de que la livenessProbe pueda
 # matar el proceso. Necesario porque el backend aplica las migraciones Drizzle
-# al arrancar (ADR-011/ADR-029) y, si la migracion falla, el proceso termina con
+# al arrancar (ADR-011) y, si la migracion falla, el proceso termina con
 # codigo distinto de cero por el contrato fail-closed (APPS-002). Sin este margen,
 # una migracion lenta haria que la livenessProbe reiniciara el pod a mitad del
 # arranque, enmascarando la causa real.

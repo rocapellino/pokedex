@@ -56,7 +56,7 @@ api:
   terminationGracePeriodSeconds: 30
   # Margen de arranque antes de que la livenessProbe pueda reiniciar el pod.
   # Necesario porque el backend aplica las migraciones Drizzle al iniciar
-  # (ADR-011/ADR-029): una migracion lenta debe ser tolerable, no reiniciar el pod.
+  # (ADR-011): una migracion lenta debe ser tolerable, no reiniciar el pod.
   # Poner en {} o null para desactivarlo.
   startupProbe:
     failureThreshold: 30

@@ -53,7 +53,7 @@ flowchart TD
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
     SEC --> S3["🔍 DEVSECOPS_AUDIT.md"]
 
-    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-029)"]
+    ADR --> AD1["📐 ADR-001 a ADR-022 (y ADR-023 a ADR-027)"]
     OPS --> OP1["🚨 observability-alerts.md"]
     OPS --> OP2["💾 backup-restore.md"]
     OPS --> OP3["🚀 deployment.md"]
@@ -147,12 +147,12 @@ flowchart TD
 - 📐 [**ADR-003**](./decisions/ADR-003-gitops-with-argocd.md): GitOps Declarativo mediante ArgoCD y Digests Inmutables OCI.
 - 📐 [**ADR-004**](./decisions/ADR-004-opentofu-and-ansible-boundaries.md): Delimitación de Responsabilidades entre OpenTofu e IaC Ansible.
 - 📐 [**ADR-005**](./decisions/ADR-005-secret-management.md): Gestión Canónica de Secretos con External Secrets Operator (ESO) y HashiCorp Vault CE.
-- 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres con Validación Activa y Cifrado AES-256.
+- 📐 [**ADR-006**](./decisions/ADR-006-disaster-recovery-strategy.md): Estrategia de Recuperación ante Desastres (DR), Cifrado 3-2-1 y Respaldo Off-Site en Google Drive (Consolida ADR-028).
 - 📐 [**ADR-007**](./decisions/ADR-007-observability-and-metrics.md): Observabilidad Unificada, Métricas RED y Prometheus ServiceMonitor.
 - 📐 [**ADR-008**](./decisions/ADR-008-supply-chain-security.md): Seguridad de Cadena de Suministro (Supply Chain), Inmutabilidad de Artefactos y Atestaciones Criptográficas.
 - 📐 [**ADR-009**](./decisions/ADR-009-ai-resilience-and-contracts.md): Arquitectura de Resiliencia, Contratos Estructurados y Mitigación de Fallas para Servicios de Inteligencia Artificial.
 - 📐 [**ADR-010**](./decisions/ADR-010-authentication-and-session-management.md): Arquitectura de Autenticación, Gestión de Sesiones Criptográficas y Revocación Distribuida Fail-Closed.
-- 📐 [**ADR-011**](./decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md): Estrategia de Persistencia Relacional, Migraciones Declarativas con Drizzle ORM y Connection Pooling con PgBouncer.
+- 📐 [**ADR-011**](./decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md): Estrategia de Persistencia Relacional, Migraciones Declarativas con Drizzle ORM y Connection Pooling con PgBouncer (Consolida ADR-029).
 - 📐 [**ADR-012**](./decisions/ADR-012-iac-state-management-and-encryption.md): Estrategia de Gestión de Estados IaC, Bloqueo de Concurrencia y Cifrado en Cliente con OpenTofu.
 - 📐 [**ADR-013**](./decisions/ADR-013-zero-trust-network-architecture.md): Arquitectura de Red Zero-Trust, Microsegmentación en 4 Capas y Filtrado Egress Anti-SSRF y FQDN.
 - 📐 [**ADR-014**](./decisions/ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md): Estrategia de Autoescalado Elástico con HPA v2, PodDisruptionBudget y Alta Disponibilidad de Cómputo.
@@ -161,16 +161,14 @@ flowchart TD
 - 📐 [**ADR-017**](./decisions/ADR-017-kyverno-admission-control-and-pod-security.md): Control de Admisión con Kyverno ClusterPolicies y Pod Security Standards (PSS Restricted).
 - 📐 [**ADR-018**](./decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md): Observabilidad de Extremo a Extremo con OpenTelemetry y Trazabilidad Distribuida W3C.
 - 📐 [**ADR-019**](./decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md): Optimización de Build en Monorepo, Grafo de Dependencias y Caché Declarativo con Turborepo.
-- 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados.
+- 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados (Consolida ADR-026).
 - 📐 [**ADR-021**](./decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md): Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks de Ciclo de Vida, Health Checks Declarativos y Patrón App-of-Apps.
 - 📐 [**ADR-022**](./decisions/ADR-022-automated-credential-rotation-and-reloader.md): Rotación Automatizada de Credenciales, Sincronización Periódica con ESO y Recarga Dinámica con Stakater Reloader.
 - 📐 [**ADR-023**](./decisions/ADR-023-typescript-native-compiler-adoption.md): Adopción del Compilador Nativo de TypeScript (`node --experimental-strip-types`) y Desacoplamiento de Bundlers.
 - 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
 - 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
-- 📐 [**ADR-026**](./decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md): Ciclo de Vida, Estrategia en Cuatro Fases y Deprecación de Aliases en Taskfile CLI.
 - 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
-- 📐 [**ADR-028**](./decisions/ADR-028-gdrive-offsite-backup-strategy.md): Estrategia de Respaldo Off-Site en la Nube con Google Drive y Rclone.
-- 📐 [**ADR-029**](./decisions/ADR-029-database-schema-unification-and-init-sql-retirement.md): Unificación de la Fuente de Verdad del Esquema en Drizzle ORM y Retiro de init.sql.
+- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 26 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-026, ADR-028, ADR-029).
 
 ---
 

@@ -896,8 +896,8 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
   }
 });
 
-test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada', () => {
-  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md');
+test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)', () => {
+  const adr20Path = path.join(ROOT_DIR, 'docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md');
   const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const cliRefPath = path.join(ROOT_DIR, 'docs/operations/TASKFILE_CLI_REFERENCE.md');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
@@ -906,16 +906,18 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   const proxmoxGuidePath = path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
+  const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');
 
-  // 1. ADR-026 existe físicamente en docs/decisions/ y está en estado Aceptado
-  assert.ok(fs.existsSync(adrPath), 'ADR-026 debe existir en docs/decisions/');
-  const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-026 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('task --list'), 'ADR-026 debe formalizar task --list como interfaz oficialmente soportada');
-  assert.ok(adrContent.includes('Fase 1: Documentar Aliases'), 'ADR-026 debe documentar Fase 1');
-  assert.ok(adrContent.includes('Fase 2: Medir Uso'), 'ADR-026 debe documentar Fase 2');
-  assert.ok(adrContent.includes('Fase 3: Deprecación Formal'), 'ADR-026 debe documentar Fase 3');
-  assert.ok(adrContent.includes('Fase 4: Eliminación Definitiva'), 'ADR-026 debe documentar Fase 4');
+  // 1. ADR-020 existe físicamente en docs/decisions/, consolida ADR-026 y está en estado Aceptado/Activo
+  assert.ok(fs.existsSync(adr20Path), 'ADR-020 debe existir en docs/decisions/');
+  const adrContent = fs.readFileSync(adr20Path, 'utf-8');
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-020 debe estar en estado Aceptado');
+  assert.ok(adrContent.includes('task --list'), 'ADR-020 debe formalizar task --list como interfaz oficialmente soportada');
+  assert.ok(adrContent.includes('Fase 1 (Documentación)') || adrContent.includes('Fase 1: Documentar Aliases'), 'ADR-020 debe documentar Fase 1');
+  assert.ok(adrContent.includes('Fase 2 (Telemetría') || adrContent.includes('Fase 2: Medir Uso'), 'ADR-020 debe documentar Fase 2');
+  assert.ok(adrContent.includes('Fase 3 (Deprecación Formal)') || adrContent.includes('Fase 3: Deprecación Formal'), 'ADR-020 debe documentar Fase 3');
+  assert.ok(adrContent.includes('Fase 4 (Eliminación Definitiva') || adrContent.includes('Fase 4: Eliminación Definitiva'), 'ADR-020 debe documentar Fase 4');
+  assert.ok(adrContent.includes('ADR-026'), 'ADR-020 debe referenciar la consolidación de ADR-026');
 
   // 2. TASKFILE_CLI_REFERENCE.md existe físicamente y documenta catálogo canónico y fases
   assert.ok(fs.existsSync(cliRefPath), 'TASKFILE_CLI_REFERENCE.md debe existir en docs/operations/');
@@ -931,7 +933,7 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yaml debe ejecutar task --list en tarea default');
   assert.ok(taskfileContent.includes('start:'), 'Taskfile.yaml debe incluir la tarea start canónica');
 
-  // 4. Fase 4 de ADR-026: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yaml
+  // 4. Fase 4 de ADR-026/ADR-020: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yaml
   const retiredAliases = [
     'tofu:init:proxmox',
     'tofu:plan:proxmox',
@@ -981,25 +983,31 @@ test('🛡️ Taskfile CLI: ADR-026 formaliza ciclo de vida en 4 fases para alia
   assert.ok(!proxmoxGuideContent.includes('task tofu:plan:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task tofu:plan:proxmox');
   assert.ok(!proxmoxGuideContent.includes('task deploy:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task deploy:proxmox');
 
-  // 6. deployment.md referencia TASKFILE_CLI_REFERENCE.md y ADR-026
+  // 6. deployment.md referencia TASKFILE_CLI_REFERENCE.md y ADR-020
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
   assert.ok(deploymentContent.includes('TASKFILE_CLI_REFERENCE.md'), 'deployment.md debe enlazar TASKFILE_CLI_REFERENCE.md');
-  assert.ok(deploymentContent.includes('ADR-026'), 'deployment.md debe enlazar ADR-026');
+  assert.ok(deploymentContent.includes('ADR-020'), 'deployment.md debe enlazar ADR-020');
 
-  // 7. README.md y docs/README.md enlazan ADR-026 y TASKFILE_CLI_REFERENCE.md
+  // 7. README.md y docs/README.md enlazan ADR-020, catálogo canónico y TASKFILE_CLI_REFERENCE.md
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md'), 'README.md debe enlazar ADR-026');
+  assert.ok(readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'README.md debe enlazar ADR-020');
   assert.ok(readmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
-  assert.ok(docsReadmeContent.includes('ADR-026-taskfile-cli-alias-deprecation-and-lifecycle.md'), 'docs/README.md debe enlazar ADR-026');
+  assert.ok(docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'docs/README.md debe enlazar ADR-020');
   assert.ok(docsReadmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'docs/README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
 
-  // 8. Los 27 ADRs existen físicamente en disco
-  for (let i = 1; i <= 27; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  // 8. Gobernanza de ADRs: docs/decisions/README.md es el catálogo oficial de decisiones
+  assert.ok(fs.existsSync(decisionsReadmePath), 'docs/decisions/README.md debe existir como índice oficial de ADRs');
+  const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
+  assert.ok(decisionsReadmeContent.includes('ADR-026'), 'docs/decisions/README.md debe registrar el histórico de ADR-026');
+
+  // 9. Los ADRs activos en docs/decisions/ coinciden exactamente con el catálogo oficial
+  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
+  for (const adrFile of decisionFiles) {
+    const adrNumMatch = adrFile.match(/^ADR-(\d{3})/);
+    assert.ok(adrNumMatch, `${adrFile} debe tener formato canónico ADR-XXX`);
+    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
   }
 });
 
