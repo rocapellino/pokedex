@@ -113,6 +113,10 @@ backups/
 *.bak
 *~
 
+# Claude Code: junction local hacia .agents/skills (ver .agents/README.md).
+# Las skills se versionan solo en .agents/; el enlace se crea por clon.
+/.claude/skills
+
 # ==============================================================================
 # Archivos del Sistema Operativo (Windows / macOS / Linux)
 # ==============================================================================

@@ -9,6 +9,28 @@ un dominio específico del ciclo de vida del repositorio.
 > Los identificadores técnicos, comandos y nombres de archivos permanecen en inglés.
 > Referencia: [`_shared/language-policy.md`](skills/_shared/language-policy.md)
 
+## Uso desde Claude Code
+
+Claude Code descubre skills en `.claude/skills/<nombre>/SKILL.md`. Para no duplicar el
+catálogo, `.claude/skills` es un enlace local hacia `.agents/skills`, ignorado por Git
+(`.gitignore`). Las skills se editan y versionan **solo** en `.agents/skills/`.
+
+Crear el enlace una vez por clon, desde la raíz del repositorio:
+
+```powershell
+# Windows: junction, no requiere administrador ni Modo de desarrollador
+New-Item -ItemType Directory -Force .claude | Out-Null
+New-Item -ItemType Junction -Path .claude\skills -Target (Resolve-Path .agents\skills)
+```
+
+```bash
+# Linux / macOS
+mkdir -p .claude && ln -s ../.agents/skills .claude/skills
+```
+
+`_shared/` no contiene `SKILL.md`, por lo que Claude Code no lo expone como skill; los
+enlaces relativos de cada skill hacia `../_shared/` se resuelven igual a través del enlace.
+
 ## Reglas Transversales de Gobernanza (`.agents/rules/`)
 
 El repositorio establece políticas normativas obligatorias para todos los agentes y flujos en `.agents/rules/`:
