@@ -231,8 +231,9 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
   );
 });
 
-test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps', async () => {
-  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-021-advanced-gitops-sync-waves-and-health-checks.md');
+test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)', async () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-003-gitops-with-argocd.md');
+  const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');
   const rootAppPath = path.join(ROOT_DIR, 'gitops/apps/root-application.yaml');
   const appProxmoxPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml');
   const appCloudPath = path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml');
@@ -246,14 +247,15 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
 
-  // 1. ADR-021 existe y está aceptado
-  assert.ok(fs.existsSync(adrPath), 'ADR-021 debe existir en docs/decisions/');
+  // 1. ADR-003 existe, está aceptado y consolida la orquestación avanzada de ADR-021
+  assert.ok(fs.existsSync(adrPath), 'ADR-003 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-021 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('Sync Waves'), 'ADR-021 debe documentar Sync Waves');
-  assert.ok(adrContent.includes('PreSync'), 'ADR-021 debe documentar PreSync hook');
-  assert.ok(adrContent.includes('App-of-Apps'), 'ADR-021 debe documentar patrón App-of-Apps');
-  assert.ok(adrContent.includes('Health Checks'), 'ADR-021 debe documentar Custom Health Checks');
+  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-003 debe estar en estado Aceptado');
+  assert.ok(adrContent.includes('Sync Waves'), 'ADR-003 debe documentar Sync Waves');
+  assert.ok(adrContent.includes('PreSync'), 'ADR-003 debe documentar PreSync hook');
+  assert.ok(adrContent.includes('App-of-Apps'), 'ADR-003 debe documentar patrón App-of-Apps');
+  assert.ok(adrContent.includes('Health Checks'), 'ADR-003 debe documentar Custom Health Checks');
+  assert.ok(adrContent.includes('ADR-021'), 'ADR-003 debe registrar formalmente la consolidación de ADR-021');
 
   // 2. root-application.yaml existe y define App-of-Apps
   assert.ok(fs.existsSync(rootAppPath), 'root-application.yaml debe existir en gitops/apps/');
@@ -376,29 +378,30 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-021 formaliza Sync Waves, PreSy
     'values.yaml debe definir los parametros del startupProbe por defecto'
   );
 
-  // 7. deployment.md documenta sección 5 y ADR-021
+  // 7. deployment.md documenta sección 5 y ADR-003
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
-  assert.ok(deploymentContent.includes('ADR-021'), 'deployment.md debe referenciar ADR-021');
+  assert.ok(deploymentContent.includes('ADR-003'), 'deployment.md debe referenciar ADR-003');
   assert.ok(deploymentContent.includes('task gitops:apps:root'), 'deployment.md debe documentar task gitops:apps:root');
 
-  // 8. README.md y docs/README.md enlazan ADR-021
+  // 8. README.md y docs/README.md enlazan ADR-003 y docs/decisions/README.md registra ADR-021
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-021-advanced-gitops-sync-waves-and-health-checks.md'), 'README.md debe enlazar ADR-021');
-  assert.ok(docsReadmeContent.includes('ADR-021-advanced-gitops-sync-waves-and-health-checks.md'), 'docs/README.md debe enlazar ADR-021');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-021') || docsReadmeContent.includes('ADR-001 a ADR-022'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-021 o posterior');
+  const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-003-gitops-with-argocd.md'), 'docs/README.md debe enlazar ADR-003');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-022') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assert.ok(decisionsReadmeContent.includes('ADR-021'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-021');
 
-  // 9. Los 21 ADRs existen físicamente en disco
-  for (let i = 1; i <= 21; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  // 9. Los ADRs activos catalogados existen físicamente en disco
+  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
+  for (const adrFile of decisionFiles) {
+    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
   }
 });
 
-test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refreshInterval acotado y auditoría', async () => {
-  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-022-automated-credential-rotation-and-reloader.md');
+test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)', async () => {
+  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-005-secret-management.md');
+  const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');
   const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
   const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
   const webDeployPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/web-deployment.yaml');
@@ -408,12 +411,13 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   const readmePath = path.join(ROOT_DIR, 'README.md');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
 
-  // 1. ADR-022 existe con Estado: Aceptado
-  assert.ok(fs.existsSync(adrPath), 'ADR-022 debe existir en docs/decisions/');
+  // 1. ADR-005 existe con Estado: Aceptado y consolida ADR-022
+  assert.ok(fs.existsSync(adrPath), 'ADR-005 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8').replace(/\r\n/g, '\n');
-  assert.ok(adrContent.includes('## Estado\n\nAceptado'), 'ADR-022 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('reloader.stakater.com/auto'), 'ADR-022 debe formalizar anotación de Stakater Reloader');
-  assert.ok(adrContent.includes('External Secrets Operator'), 'ADR-022 debe formalizar External Secrets Operator');
+  assert.ok(adrContent.includes('## Estado\n\nAceptado'), 'ADR-005 debe estar en estado Aceptado');
+  assert.ok(adrContent.includes('reloader.stakater.com/auto'), 'ADR-005 debe formalizar anotación de Stakater Reloader');
+  assert.ok(adrContent.includes('External Secrets Operator'), 'ADR-005 debe formalizar External Secrets Operator');
+  assert.ok(adrContent.includes('ADR-022'), 'ADR-005 debe formalizar la consolidación de ADR-022');
 
   // 2. Helm values configuran anotación de Reloader y refreshInterval acotado
   const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
@@ -426,7 +430,7 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   const webDeployContent = fs.readFileSync(webDeployPath, 'utf-8');
   assert.ok(webDeployContent.includes('.Values.web.deploymentAnnotations'), 'web-deployment.yaml debe soportar web.deploymentAnnotations');
 
-  // 4. Script de auditoría de rotación existe y valida arquitectura dual (ADR-022)
+  // 4. Script de auditoría de rotación existe y valida arquitectura dual (ADR-005)
   assert.ok(fs.existsSync(auditScriptPath), 'scripts/verify-secret-rotation.ts debe existir');
   const auditScriptContent = fs.readFileSync(auditScriptPath, 'utf-8');
   assert.ok(auditScriptContent.includes('Reloader = REQUIRED'), 'verify-secret-rotation.ts debe verificar Reloader REQUIRED en AWS');
@@ -440,23 +444,23 @@ test('🛡️ Rotación de Secretos: ADR-022 formaliza Stakater Reloader, refres
   assert.ok(taskfileContent.includes('secrets:audit-rotation:'), 'Taskfile.yaml debe definir tarea secrets:audit-rotation');
   assert.ok(pkgContent.includes('"secrets:audit-rotation"'), 'package.json debe definir script secrets:audit-rotation');
 
-  // 6. Runbook secret-rotation.md documenta ADR-022 y comando canónico
+  // 6. Runbook secret-rotation.md documenta ADR-005 y comando canónico
   const secretRunbookContent = fs.readFileSync(secretRunbookPath, 'utf-8');
-  assert.ok(secretRunbookContent.includes('ADR-022'), 'secret-rotation.md debe documentar ADR-022');
+  assert.ok(secretRunbookContent.includes('ADR-005'), 'secret-rotation.md debe documentar ADR-005');
   assert.ok(secretRunbookContent.includes('task secrets:audit-rotation'), 'secret-rotation.md debe documentar task secrets:audit-rotation');
 
-  // 7. README.md y docs/README.md enlazan ADR-022
+  // 7. README.md y docs/README.md enlazan ADR-005 y catálogo registra ADR-022
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-022-automated-credential-rotation-and-reloader.md'), 'README.md debe enlazar ADR-022');
-  assert.ok(docsReadmeContent.includes('ADR-022-automated-credential-rotation-and-reloader.md'), 'docs/README.md debe enlazar ADR-022');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-022'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-022');
+  const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
+  assert.ok(docsReadmeContent.includes('ADR-005-secret-management.md'), 'docs/README.md debe enlazar ADR-005');
+  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-022') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assert.ok(decisionsReadmeContent.includes('ADR-022'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022');
 
-  // 8. Los 22 ADRs existen físicamente en disco
-  for (let i = 1; i <= 22; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+  // 8. Los ADRs activos catalogados existen físicamente en disco
+  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
+  for (const adrFile of decisionFiles) {
+    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
   }
 });

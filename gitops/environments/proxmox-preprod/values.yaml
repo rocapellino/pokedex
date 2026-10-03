@@ -2,7 +2,7 @@
 # Sobrescritura de Values para Entorno Pre-producción (LXC 800 Proxmox VE)
 # ==============================================================================
 # Perfil: Pre-producción On-Premise / Staging K3s en LXC 800
-# Formalizado bajo Opción A (ADR-021 / ADR-025): Entorno GitOps operacional real.
+# Formalizado bajo Opción A (ADR-003 / ADR-025): Entorno GitOps operacional real.
 #
 # Racional Arquitectónico:
 # - Secrets: External Secrets Operator (ESO) conectado a 'vault-backend-preprod'

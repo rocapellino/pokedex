@@ -4,7 +4,7 @@
 > **ESTADO DEL DOCUMENTO: VIGENTE (SSOT Actual)**
 > Este documento representa la Fuente Única de Verdad para la gestión de credenciales y secretos en Pokédex mediante HashiCorp Vault CE, AWS Secrets Manager y External Secrets Operator (ESO).
 
-Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps, de conformidad con el [ADR-005](../decisions/ADR-005-secret-management.md), el [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md) y el [ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md).
+Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps, de conformidad con el [ADR-005](../decisions/ADR-005-secret-management.md) y el [ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md).
 
 ---
 

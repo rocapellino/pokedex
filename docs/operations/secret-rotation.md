@@ -31,7 +31,7 @@ kubectl annotate es pokedex-secrets -n pokemon-app force-sync=$(date +%s) --over
 El mecanismo de propagación depende del entorno de ejecución:
 
 - **Entorno Cloud (AWS EKS):**
-  Gracias al controlador de **Stakater Reloader** y la anotación declarativa en los Deployments (`reloader.stakater.com/auto: "true"` formalizado en [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md)), el clúster detecta la mutación del Secret y ejecuta automáticamente un *RollingUpdate* progresivo sin tiempo de inactividad.
+  Gracias al controlador de **Stakater Reloader** y la anotación declarativa en los Deployments (`reloader.stakater.com/auto: "true"` formalizado en [ADR-005](../decisions/ADR-005-secret-management.md)), el clúster detecta la mutación del Secret y ejecuta automáticamente un *RollingUpdate* progresivo sin tiempo de inactividad.
 
 - **Entorno On-Premise (Proxmox VE / K3s - Perfil Lean MVP):**
   Stakater Reloader está **desactivado intencionalmente** (`reloader.enabled: false`) para reducir la sobrecarga de controladores en clúster y mantener un footprint ultraliviano (< 1 GB RAM total).
@@ -52,9 +52,9 @@ Monitorear el estado del despliegue:
 kubectl rollout status deployment/pokemon-api -n pokemon-app
 ```
 
-## 4. Auditoría Automatizada de Rotación (ADR-022)
+## 4. Auditoría Automatizada de Rotación (ADR-005)
 
-Conforme a [ADR-022](../decisions/ADR-022-automated-credential-rotation-and-reloader.md), todos los despliegues de Kubernetes que consumen secretos están obligados a incorporar la anotación de recarga dinámica `reloader.stakater.com/auto: "true"`, y los manifiestos `ExternalSecret` aplican un `refreshInterval: 1h`.
+Conforme a [ADR-005](../decisions/ADR-005-secret-management.md), todos los despliegues de Kubernetes que consumen secretos están obligados a incorporar la anotación de recarga dinámica `reloader.stakater.com/auto: "true"`, y los manifiestos `ExternalSecret` aplican un `refreshInterval: 1h`.
 
 Para auditar la conformidad de toda la plataforma en CI o localmente:
 

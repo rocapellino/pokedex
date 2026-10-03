@@ -75,12 +75,12 @@ tasks:
   # GitOps & CD (ArgoCD & Promoción Declarativa)
   # ----------------------------------------------------------------------------
   gitops:apps:root:
-    desc: "Aplica la aplicación raíz de ArgoCD según el patrón canónico App-of-Apps (ADR-021)"
+    desc: "Aplica la aplicación raíz de ArgoCD según el patrón canónico App-of-Apps (ADR-003)"
     cmds:
       - kubectl apply -f gitops/apps/root-application.yaml
 
   gitops:health-checks:
-    desc: "Aplica los Custom Health Checks de ArgoCD para evaluación de CRDs (ADR-021)"
+    desc: "Aplica los Custom Health Checks de ArgoCD para evaluación de CRDs (ADR-003)"
     cmds:
       # GITOPS-001: ArgoCD solo lee `resource.customizations.health.*` del ConfigMap
       # `argocd-cm`. Se parchea con `--type merge` (no `apply`) para inyectar las

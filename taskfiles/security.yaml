@@ -80,7 +80,7 @@ tasks:
       - gitleaks detect --verbose --no-git
 
   secrets:audit-rotation:
-    desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-022)"
+    desc: "Audita la configuración de rotación de credenciales, refreshInterval y Stakater Reloader (ADR-005)"
     cmds:
       - npm run secrets:audit-rotation
 

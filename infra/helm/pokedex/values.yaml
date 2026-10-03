@@ -456,7 +456,7 @@ monitoring:
     additionalLabels: {}
 
 # ------------------------------------------------------------------------------
-# 13. Stakater Reloader (Rotación Dinámica Zero-Downtime - ADR-022)
+# 13. Stakater Reloader (Rotación Dinámica Zero-Downtime - ADR-005)
 # ------------------------------------------------------------------------------
 # Desactivado por defecto seguro (evita asumir que el operador esté instalado en el clúster)
 reloader:

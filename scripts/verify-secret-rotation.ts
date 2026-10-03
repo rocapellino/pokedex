@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ==============================================================================
- * Auditoría Estática de Rotación de Secretos y Arquitectura Dual (ADR-022)
+ * Auditoría Estática de Rotación de Secretos y Arquitectura Dual (ADR-005)
  * ==============================================================================
  * Valida de forma automatizada y fail-closed la taxonomía y garantías de rotación:
  *
@@ -74,7 +74,7 @@ function parseRefreshIntervalHours(content: string, filename: string): number {
 }
 
 console.log('================================================================');
-console.log('🛡️ Auditoría de Gobernanza: Rotación Dual de Secretos (ADR-022)');
+console.log('🛡️ Auditoría de Gobernanza: Rotación Dual de Secretos (ADR-005)');
 console.log('   - AWS (Cloud Enterprise) : Reloader = REQUIRED');
 console.log('   - Proxmox VE (On-Prem)   : Reloader = FORBIDDEN | rollout restart = REQUIRED');
 console.log('   - Todos los entornos     : ESO refreshInterval <= 24h');
