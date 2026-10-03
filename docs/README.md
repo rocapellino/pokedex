@@ -136,7 +136,7 @@ flowchart TD
 
 - 🛡️ [**SECURITY.md**](../SECURITY.md): **Política oficial de seguridad** y divulgación responsable de vulnerabilidades (Responsible Disclosure) en la raíz del repositorio.
 - 🚨 [**SECURITY_RUNBOOK.md**](./security/SECURITY_RUNBOOK.md): Procedimientos operativos estándar (**SOP**) de respuesta a incidentes de seguridad clasificados por matriz de severidad (SEV-1 a SEV-4).
-- 🔍 [**DEVSECOPS_AUDIT.md**](./security/DEVSECOPS_AUDIT.md): Evaluación técnica integral de arquitectura, matriz de mitigación de vectores de vulnerabilidad y madurez operativa DevSecOps.
+- 🔍 [**DEVSECOPS_AUDIT.md**](./security/DEVSECOPS_AUDIT.md): Registro vivo, gobernado por tests, de vectores de vulnerabilidad mitigados y madurez operativa DevSecOps.
 
 ---
 
