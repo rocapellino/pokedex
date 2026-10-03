@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   extractRenderedApiImage,
+  extractRenderedImage,
   parseImmutableDigest,
   verifyImageDigestParity,
   clearRenderCache,
@@ -137,4 +138,40 @@ test('🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas
   assert.ok(durationCached < 50, `La llamada en caché debe resolver en <50ms (tomó ${durationCached.toFixed(2)}ms, frente a ${durationFresh.toFixed(2)}ms inicial)`);
 
   clearRenderCache();
+});
+
+// Regresión (2026-10-03): la paridad solo cubría la imagen del API. El digest de
+// pokedex-web podía divergir entre entornos sin que ningún gate lo detectara.
+test('🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web renderizado', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const values = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const image = extractRenderedImage(chartPath, values, 'web');
+  assert.match(image, /^ghcr\.io\/rocapellino\/pokedex-web@sha256:[a-f0-9]{64}$/);
+});
+
+test('🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos', () => {
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const tmp = fs.mkdtempSync(path.join(ROOT_DIR, 'tmp', 'parity-web-'));
+  try {
+    const source = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml'), 'utf8');
+    const webDigest = source.match(/web:[\s\S]*?digest:\s*"(sha256:[a-f0-9]{64})"/)?.[1];
+    assert.ok(webDigest, 'El fixture debe contener un digest web');
+    const diverged = source.replace(webDigest, `sha256:${'e'.repeat(64)}`);
+    fs.writeFileSync(path.join(tmp, 'a.yaml'), source);
+    fs.writeFileSync(path.join(tmp, 'b.yaml'), diverged);
+    clearRenderCache();
+    assert.throws(
+      () =>
+        verifyImageDigestParity({
+          chartPath,
+          environments: [
+            { name: 'A', file: path.join(tmp, 'a.yaml') },
+            { name: 'B', file: path.join(tmp, 'b.yaml') },
+          ],
+        }),
+      /web/
+    );
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });

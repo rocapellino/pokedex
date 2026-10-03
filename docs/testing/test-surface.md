@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 60 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 2 |
-| **Total de Casos de Prueba Identificados** | **532** |
-| **Líneas de Código de Pruebas** | 14.884 |
-| **Tamaño Total de la Suite** | 667.2 KB |
+| **Total de Casos de Prueba Identificados** | **534** |
+| **Líneas de Código de Pruebas** | 14.921 |
+| **Tamaño Total de la Suite** | 668.8 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-03T22:32:50.766Z |
+| **Última Sincronización** | 2026-10-03T22:36:32.356Z |
 
 ---
 
@@ -28,7 +28,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 9 | 54 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 22 | 199 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 22 | 201 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 4 | 24 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 46 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -83,7 +83,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | `security` | Security / Network | `node:test (tsx)` | **4** | 226 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`, `npm run test:security:egress` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | `security` | Contract / OCI | `node:test (tsx)` | **6** | 237 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | `security` | Contract / SecOps | `node:test (tsx)` | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **10** | 178 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **5** | 242 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / IaC | `node:test (tsx)` | **28** | 1090 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -134,7 +134,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 199
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 201
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -149,7 +149,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | **4** | 226 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `infra/helm/pokedex/templates/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | **6** | 237 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `scripts/ghcr-retention.ts`, `.github/workflows/ghcr-retention.yaml` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | **12** | 321 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml` |
-| [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **8** | 141 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
+| [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **10** | 178 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **5** | 242 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
 | [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **28** | 1090 | Suite integral de seguridad IaC: valida que ningún manifiesto K8s o chart viole políticas CIS, contraseñas hardcodeadas o permisos. | `infra/k8s/`, `infra/helm/pokedex/` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 195 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
