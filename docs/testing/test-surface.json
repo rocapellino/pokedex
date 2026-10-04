@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T18:16:12.353Z",
+  "generatedAt": "2026-10-04T18:16:25.844Z",
   "summary": {
     "totalFiles": 70,
     "testFiles": 66,
     "helperFiles": 3,
     "performanceScripts": 1,
     "totalTestCases": 565,
-    "totalLines": 15179,
-    "totalSizeBytes": 691738,
+    "totalLines": 15180,
+    "totalSizeBytes": 692285,
     "suitesCount": 9
   },
   "suites": [
@@ -2512,10 +2512,10 @@
       "runner": "node:test (tsx)",
       "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 17,
-      "sizeBytes": 8243,
-      "lineCount": 226,
-      "sha256": "ca01dd55eaa14e8a93993b4f3225e4bb9302a93525bf22e17750e6ad43d84be0",
+      "assertionCountEst": 18,
+      "sizeBytes": 8790,
+      "lineCount": 227,
+      "sha256": "2694b9b140602b8efa2b7382ff0ad675bf0ec94ffee8fcf9ea0c42f29c939e53",
       "targetDomain": "Control de Egress y Prevención SSRF",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/cilium-network-policies.yaml",
@@ -2543,12 +2543,12 @@
           "line": 167
         },
         {
-          "name": "🛡️ GitOps Configuration: Proxmox values.yaml habilita Cilium L7 Zero-Trust para cumplir con el test de salida",
+          "name": "🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti-SSRF sin renderizar CRDs de Cilium (ADR-013)",
           "line": 200
         },
         {
           "name": "🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7",
-          "line": 218
+          "line": 219
         }
       ]
     },
