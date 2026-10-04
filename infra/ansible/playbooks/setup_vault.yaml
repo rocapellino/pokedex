@@ -422,6 +422,42 @@
       failed_when: false
       changed_when: k8s_auth_enable.rc == 0
 
+    # ESO autentica con el JWT de su ServiceAccount. Vault valida ese JWT contra el
+    # API server de K3s (TokenReview usando el propio JWT del cliente, por eso
+    # disable_local_ca_jwt=true y el binding system:auth-delegator de
+    # infra/k8s/bootstrap/eso-auth-delegator.yaml). Sin esta configuración el auth
+    # `kubernetes` queda habilitado pero ningún login de ESO funciona.
+    - name: Leer la CA del API server de K3s (pre-prod, LXC 800)
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/tls/server-ca.crt
+      delegate_to: "{{ groups['k8s_control_plane'][0] }}"
+      register: k3s_server_ca
+      when: vault_init_raw is defined and vault_init_raw.changed
+
+    - name: Persistir la CA de K3s para la configuración del auth kubernetes
+      ansible.builtin.copy:
+        dest: "{{ vault_config_dir }}/k3s-server-ca.crt"
+        content: "{{ k3s_server_ca.content | b64decode }}"
+        owner: root
+        group: root
+        mode: '0644'
+      when: vault_init_raw is defined and vault_init_raw.changed
+
+    - name: Configurar el auth kubernetes contra el API server de pre-prod
+      ansible.builtin.command:
+        cmd: >
+          vault write auth/kubernetes/config
+          kubernetes_host=https://{{ vault_k8s_node_ip }}:6443
+          kubernetes_ca_cert=@{{ vault_config_dir }}/k3s-server-ca.crt
+          disable_local_ca_jwt=true
+      environment:
+        VAULT_ADDR: "https://127.0.0.1:8200"
+        VAULT_CACERT: "{{ vault_tls_dir }}/vault-ca.crt"
+        VAULT_TOKEN: "{{ vault_master_creds.root_token }}"
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+      changed_when: true
+
     - name: Configurar rol pokedex-preprod-role para External Secrets Operator
       ansible.builtin.command:
         cmd: >

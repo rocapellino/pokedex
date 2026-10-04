@@ -1,0 +1,86 @@
+/**
+ * ==============================================================================
+ * Contrato del Bootstrap de Plataforma GitOps en Pre-Prod (ADR-030)
+ * ==============================================================================
+ * El relevamiento del 2026-10-04 mostró que el LXC 800 nunca tuvo ArgoCD ni ESO.
+ * Este contrato fija lo que el bootstrap necesita para funcionar a la primera:
+ * versiones pinneadas, la API de ESO que realmente sirven las versiones vigentes,
+ * y la cadena de autenticación ESO -> Vault -> TokenReview de K3s.
+ * ==============================================================================
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import yaml from 'js-yaml';
+
+const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
+
+const ESO_MANIFESTS = [
+  'infra/helm/pokedex/templates/externalsecret.yaml',
+  'infra/helm/pokedex/templates/ingress-tls-externalsecret.yaml',
+  'infra/helm/pokedex/templates/secretstore.yaml',
+  'infra/k8s/eso/cluster-secret-store.yaml',
+  'infra/k8s/eso/external-secret-pokedex.yaml',
+  'infra/k8s/eso/backup-offsite-externalsecret.yaml.template',
+];
+
+type Task = { vars?: Record<string, string>; cmds?: Array<string | { task: string }> };
+const tasks = (yaml.load(read('taskfiles/k8s.yaml')) as { tasks: Record<string, Task> }).tasks;
+const cmdsOf = (name: string) => (tasks[name]?.cmds ?? []).map((c) => (typeof c === 'string' ? c : `task:${c.task}`));
+
+test('🔐 Bootstrap: los manifiestos de ESO usan external-secrets.io/v1 (v1beta1 ya no se sirve)', () => {
+  for (const rel of ESO_MANIFESTS) {
+    const content = read(rel);
+    assert.match(content, /apiVersion:\s*external-secrets\.io\/v1\s*$/m, `${rel} debe declarar external-secrets.io/v1`);
+    assert.doesNotMatch(content, /external-secrets\.io\/v1beta1/, `${rel} no debe usar v1beta1: ESO >= 1.0 no lo sirve`);
+  }
+});
+
+test('🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas', () => {
+  const esoVersion = tasks['platform:eso:install']?.vars?.ESO_CHART_VERSION;
+  assert.match(esoVersion ?? '', /^\d+\.\d+\.\d+$/, 'ESO_CHART_VERSION debe ser una versión semántica exacta');
+  assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('--version {{.ESO_CHART_VERSION}}')), 'helm install de ESO debe usar la versión fijada');
+
+  const argoVersion = tasks['platform:argocd:install']?.vars?.ARGOCD_VERSION;
+  assert.match(argoVersion ?? '', /^v\d+\.\d+\.\d+$/, 'ARGOCD_VERSION debe ser un tag exacto');
+  const install = cmdsOf('platform:argocd:install').find((c) => c.includes('install.yaml')) ?? '';
+  assert.ok(install.includes('/{{.ARGOCD_VERSION}}/manifests/install.yaml'), 'El manifiesto de ArgoCD debe resolverse por tag fijado');
+  assert.doesNotMatch(install, /\/(stable|latest|master)\//, 'El manifiesto de ArgoCD no debe seguir una rama móvil');
+});
+
+test('🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview', () => {
+  assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('serviceAccount.name=external-secrets-sa')), 'ESO debe crear la SA external-secrets-sa');
+
+  const store = yaml.loadAll(read('infra/k8s/eso/cluster-secret-store.yaml')) as Array<{ spec: any }>;
+  for (const doc of store.filter(Boolean)) {
+    const sa = doc.spec.provider.vault.auth.kubernetes.serviceAccountRef;
+    assert.deepEqual(sa, { name: 'external-secrets-sa', namespace: 'external-secrets' });
+  }
+
+  const binding = yaml.load(read('infra/k8s/bootstrap/eso-auth-delegator.yaml')) as any;
+  assert.equal(binding.roleRef.name, 'system:auth-delegator');
+  assert.deepEqual(binding.subjects, [{ kind: 'ServiceAccount', name: 'external-secrets-sa', namespace: 'external-secrets' }]);
+});
+
+test('🔐 Bootstrap: Vault configura el auth kubernetes contra el API server de pre-prod', () => {
+  const playbook = read('infra/ansible/playbooks/setup_vault.yaml');
+  assert.match(playbook, /vault write auth\/kubernetes\/config/, 'setup_vault.yaml debe configurar auth/kubernetes/config');
+  assert.match(playbook, /kubernetes_host=https:\/\/\{\{ vault_k8s_node_ip \}\}:6443/, 'El host debe ser el API server del LXC 800');
+  assert.match(playbook, /disable_local_ca_jwt=true/, 'Vault externo debe validar con el JWT del cliente (TokenReview)');
+  assert.match(playbook, /server-ca\.crt/, 'Vault debe confiar en la CA del API server de K3s');
+  assert.match(playbook, /vault_k8s_node_ip:\s*"10\.10\.13\.100"/, 'vault_k8s_node_ip debe ser el LXC 800 real');
+});
+
+test('🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps', () => {
+  assert.deepEqual(cmdsOf('platform:bootstrap:preprod'), [
+    'task:platform:eso:install',
+    'task:platform:eso:vault-store',
+    'task:platform:argocd:install',
+    'task:gitops:health-checks',
+    'task:gitops:apps:root',
+  ]);
+});

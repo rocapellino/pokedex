@@ -1,0 +1,24 @@
+# ==============================================================================
+# Bootstrap de Plataforma (pre-prod, LXC 800): permiso de TokenReview para ESO
+# ==============================================================================
+# Vault (LXC 810) valida el JWT de la ServiceAccount de ESO contra el API server
+# de K3s usando ese mismo JWT como token reviewer (auth/kubernetes/config con
+# disable_local_ca_jwt=true, ver infra/ansible/playbooks/setup_vault.yaml). Para
+# poder llamar a TokenReview, la ServiceAccount necesita system:auth-delegator.
+# Se aplica con `task platform:bootstrap:preprod`.
+# ==============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-secrets-sa-auth-delegator
+  labels:
+    app.kubernetes.io/name: pokedex
+    app.kubernetes.io/component: secrets-management
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: external-secrets-sa
+    namespace: external-secrets

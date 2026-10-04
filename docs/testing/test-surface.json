@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T17:15:50.178Z",
+  "generatedAt": "2026-10-04T18:16:12.353Z",
   "summary": {
-    "totalFiles": 69,
-    "testFiles": 65,
+    "totalFiles": 70,
+    "testFiles": 66,
     "helperFiles": 3,
     "performanceScripts": 1,
-    "totalTestCases": 560,
-    "totalLines": 15092,
-    "totalSizeBytes": 686675,
+    "totalTestCases": 565,
+    "totalLines": 15179,
+    "totalSizeBytes": 691738,
     "suitesCount": 9
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/gitops",
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
-      "files": 5,
-      "testCases": 28,
+      "files": 6,
+      "testCases": 33,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -1344,6 +1344,54 @@
         {
           "name": "🧬 Promoción: el script corre en release-tag sin npm ci (solo módulos nativos)",
           "line": 123
+        }
+      ]
+    },
+    {
+      "path": "tests/gitops/platform_bootstrap_contract.test.ts",
+      "suite": "gitops",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 17,
+      "sizeBytes": 5063,
+      "lineCount": 87,
+      "sha256": "ca3a6cba067b46271a41c553043718e733bfc96fcdc22168db5124f943251856",
+      "targetDomain": "Suite gitops",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas gitops: platform_bootstrap_contract.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 Bootstrap: los manifiestos de ESO usan external-secrets.io/v1 (v1beta1 ya no se sirve)",
+          "line": 35
+        },
+        {
+          "name": "🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas",
+          "line": 43
+        },
+        {
+          "name": "🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview",
+          "line": 55
+        },
+        {
+          "name": "🔐 Bootstrap: Vault configura el auth kubernetes contra el API server de pre-prod",
+          "line": 69
+        },
+        {
+          "name": "🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps",
+          "line": 78
         }
       ]
     },

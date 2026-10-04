@@ -377,6 +377,20 @@ Al agregar o renombrar un host en `ingress.hosts`, agregar su origen en `corsOri
 El contrato [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts)
 falla si un entorno activo omite un host o hereda un dominio de ejemplo.
 
+### Bootstrap de GitOps en el LXC 800 y Pasaje desde el Release Manual
+
+El relevamiento del 2026-10-04 encontró pre-prod desplegado con un `helm install` manual (release `pokedex`), sin ArgoCD ni ESO. El pasaje a GitOps se hace una vez, con estos pasos (desde el Bastion o cualquier estación con `kubectl` y `helm` contra el LXC 800):
+
+1. **Backup verificado:** `pg_dump -Fc` de `pokedex_db` fuera del clúster y restauración de prueba en una base temporal.
+2. **Vault (LXC 810):** `task vault:setup:proxmox`. Inicializa Vault, la política y el rol `pokedex-preprod-*` y configura el auth `kubernetes` contra `https://10.10.13.100:6443`. Después cargar `secret/pokedex/preprod` con las claves del Secret `pokemon-secrets` actual y el certificado TLS (sección anterior).
+3. **Plataforma:** `task platform:bootstrap:preprod VAULT_CA=/etc/vault.d/tls/vault-ca.crt` instala ESO (`external-secrets.io/v1`), el `ClusterSecretStore`, ArgoCD, los health checks y la Application raíz.
+4. **Verificar secretos antes de soltar Helm:** `kubectl -n pokemon-app get externalsecret` en `SecretSynced`.
+5. **Retirar la propiedad de Helm sin borrar recursos:** guardar `helm get values pokedex -n pokemon-app` y eliminar los Secrets `sh.helm.release.v1.pokedex.*`. Luego `kubectl -n pokemon-app delete sts postgres --cascade=orphan`: el Pod y el PVC quedan y ArgoCD recrea el StatefulSet con el mismo `volumeClaimTemplate`.
+6. **Sincronización:** ArgoCD adopta los recursos de `pokedex-preprod`. Los objetos con nombre derivado del release (`pokedex-*`) se crean con el prefijo `pokedex-preprod-*`, y los huérfanos del release manual se eliminan a mano.
+7. **DNS y CA:** `pokedex.preprod.proxmox.internal.lan` y `k8s-preprod.internal.lan` → `10.10.13.100`, y distribuir la CA interna a los clientes.
+
+**Rollback:** antes del paso 5 alcanza con desinstalar ArgoCD y ESO, porque el release manual sigue intacto. Después, `helm install pokedex` con los values guardados y `pg_restore` del backup.
+
 ### Sincronización Manual o Automatizada
 
 ```bash

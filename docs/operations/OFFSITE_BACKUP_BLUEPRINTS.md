@@ -58,7 +58,7 @@ backup:
 Las credenciales nunca deben registrarse en Git. Se utiliza el esqueleto de plantilla [`infra/k8s/eso/backup-offsite-externalsecret.yaml.template`](../../infra/k8s/eso/backup-offsite-externalsecret.yaml.template):
 
 ```yaml
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: backup-offsite-credentials-sync
