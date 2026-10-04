@@ -14,7 +14,7 @@ Helm 3 Chart canónico y oficial para el empaquetado, templating y orquestación
 
 > [!IMPORTANT]
 > **SSOT de Runtime Operativo (GitOps):**
-> La configuración de despliegue viva y los valores específicos aplicados por entorno en clústeres productivos residen en el directorio raíz [`gitops/environments/`](../../../gitops/environments/). ArgoCD consume este chart parametrizándolo mediante los values dedicados de cada entorno (`gitops/environments/proxmox/values.yaml` y `gitops/environments/proxmox-preprod/values.yaml`).
+> La configuración de despliegue viva y los valores específicos aplicados por entorno en clústeres productivos residen en el directorio raíz [`gitops/environments/`](../../../gitops/environments/). ArgoCD consume este chart parametrizándolo mediante los values dedicados de cada entorno (`gitops/environments/proxmox-preprod/values.yaml` y el blueprint `gitops/environments/cloud/values.yaml`).
 
 ---
 

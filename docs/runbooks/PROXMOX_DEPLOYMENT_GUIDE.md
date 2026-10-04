@@ -4,8 +4,7 @@ Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y 
 
 De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) (Modelo de Entornos)** y **ADR-025 (Separación de Management Plane y Runtime Plane)**:
 
-- **On-Premise (Proxmox VE):** Aloja el entorno de Pre-producción (K3s en LXC, `k8s-preprod`).
-- **Producción en Proxmox (en retiro):** El clúster `k8s-proxmox` y la Application `pokedex-proxmox` siguen operativos hasta el paso 5 del plan de ADR-030. Las secciones de esta guía que los describen se retiran en ese paso.
+- **On-Premise (Proxmox VE):** Aloja únicamente el entorno de Pre-producción (K3s en el LXC 800, `10.10.13.100`). La producción en VM KVM se retiró (paso 5 de ADR-030).
 - **Cloud:** Producción se declara como un **blueprint agnóstico e inactivo**, que garantiza que el Helm chart universal y los contratos de la aplicación puedan migrar a la nube sin rediseñar la arquitectura.
 
 ---
@@ -298,43 +297,33 @@ kubectl get pods -n kube-system -l k8s-app=cilium
 
 ## 8. Despliegue y Sincronización GitOps con ArgoCD
 
-Todo despliegue de las cargas de trabajo de Pokédex en Proxmox se realiza mediante **ArgoCD** consumiendo el Helm chart universal bajo dos aplicaciones declarativas:
+Todo despliegue de las cargas de trabajo de Pokédex en Proxmox se realiza mediante **ArgoCD** consumiendo el Helm chart universal. Con [ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md), Proxmox aloja un único entorno: pre-producción.
 
-### 1. Producción On-Premise (VM 801 K3s)
-
-- **Definición de Aplicación ArgoCD:** [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) (`name: pokedex-proxmox`)
-- **Capa de Valores de Entorno:** [`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml)
-- **Secret Backend (ESO):** `vault-backend` consumiendo `pokedex/prod` (`secret/data/pokedex/prod/*`)
-- **Apiserver K3s:** `https://k8s-proxmox.internal.lan:6443` (IP `10.10.13.100`)
-- **Ingress Host:** `pokedex.proxmox.internal.lan`
-- **Replicas:** 2 por microservicio (HA local), PgBouncer nativo desactivado, Reloader deshabilitado (rollout restart gobernado).
-
-### 2. Pre-producción On-Premise (LXC 800 K3s)
+### Pre-producción On-Premise (LXC 800 K3s)
 
 - **Definición de Aplicación ArgoCD:** [`gitops/apps/app-proxmox-preprod.yaml`](../../gitops/apps/app-proxmox-preprod.yaml) (`name: pokedex-preprod`)
 - **Capa de Valores de Entorno:** [`gitops/environments/proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml)
 - **Secret Backend (ESO):** `vault-backend-preprod` consumiendo `pokedex/preprod` (`secret/data/pokedex/preprod/*`)
-- **Apiserver K3s:** `https://k8s-preprod.internal.lan:6443` (IP `10.10.13.99`)
-- **Ingress Host:** `pokedex.preprod.proxmox.internal.lan`
-- **Replicas:** 1 por microservicio (perfil lean para LXC sin sobrecargar I/O), Reloader deshabilitado (rollout restart gobernado).
+- **Nodo K3s:** LXC 800 `pokedex-k8s-node`, IP `10.10.13.100`
+- **Destino ArgoCD:** `https://kubernetes.default.svc` (ArgoCD corre dentro del mismo clúster)
+- **Ingress Hosts:** `pokedex.preprod.proxmox.internal.lan` y `k8s-preprod.internal.lan`
+- **Replicas:** 1 por microservicio (perfil lean para LXC), Reloader deshabilitado (rollout restart gobernado).
+- **Catálogo:** completo (1025 Pokémon) mediante el seed job `PostSync` con `SEED_DATASET=full`.
 
-### Requisitos de Red y Resolución DNS de ArgoCD
+> [!NOTE]
+> La producción on-premise en VM KVM (`pokedex-proxmox`, VM 801, `k8s-proxmox.internal.lan`) se retiró con ADR-030; el relevamiento del 2026-10-04 confirmó que la VM nunca se había aprovisionado.
 
-Las aplicaciones de ArgoCD apuntan a los clústeres de K3s mediante sus nombres DNS internos:
+### Requisitos de Red y Resolución DNS
 
-- Producción: `server: https://k8s-proxmox.internal.lan:6443`
-- Pre-producción: `server: https://k8s-preprod.internal.lan:6443`
+ArgoCD reconcilia in-cluster, por lo que no necesita resolver el apiserver por DNS. Los clientes sí necesitan resolver los hosts del ingress hacia el nodo:
 
-Para que la instancia de ArgoCD o la estación de control puedan alcanzar los apiservers en la subred `10.10.13.0/24`:
-
-- **Entorno con DNS Corporativo / CoreDNS:** Asegurar que los registros A resuelvan a las IPs correspondientes:
-  - `k8s-proxmox.internal.lan` → `10.10.13.100` (VM 801)
-  - `k8s-preprod.internal.lan` → `10.10.13.99` (LXC 800)
-- **Entorno sin DNS Centralizado (`/etc/hosts`):** Añadir las entradas estáticas en `/etc/hosts` del servidor o pod donde corre ArgoCD:
+- **Entorno con DNS Corporativo / CoreDNS:** registros A hacia `10.10.13.100` (LXC 800):
+  - `pokedex.preprod.proxmox.internal.lan`
+  - `k8s-preprod.internal.lan`
+- **Entorno sin DNS Centralizado (`/etc/hosts`):**
 
   ```text
-  10.10.13.100  k8s-proxmox.internal.lan
-  10.10.13.99   k8s-preprod.internal.lan
+  10.10.13.100  pokedex.preprod.proxmox.internal.lan k8s-preprod.internal.lan
   ```
 
 ### Ingress Controller Estandarizado (Traefik)
@@ -353,20 +342,19 @@ No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reducien
 
 ### Alta y Renovación del Certificado TLS del Ingress
 
-Ejecutar en el LXC de Vault, donde reside la CA (`/etc/vault.d/tls/`). Para pre-producción,
-reemplazar los hosts y la ruta `pokedex/prod` por `pokedex/preprod`:
+Ejecutar en el LXC de Vault, donde reside la CA (`/etc/vault.d/tls/`):
 
 ```bash
 cd /etc/vault.d/tls
-openssl req -new -newkey rsa:2048 -nodes -keyout pokedex-prod.key -out pokedex-prod.csr \
-  -subj "/CN=pokedex.proxmox.internal.lan" \
-  -addext "subjectAltName=DNS:pokedex.proxmox.internal.lan,DNS:k8s-proxmox.internal.lan"
-openssl x509 -req -in pokedex-prod.csr -CA vault-ca.crt -CAkey vault-ca.key -CAcreateserial \
-  -out pokedex-prod.crt -days 825 -sha256 -copy_extensions copy
+openssl req -new -newkey rsa:2048 -nodes -keyout pokedex-preprod.key -out pokedex-preprod.csr \
+  -subj "/CN=pokedex.preprod.proxmox.internal.lan" \
+  -addext "subjectAltName=DNS:pokedex.preprod.proxmox.internal.lan,DNS:k8s-preprod.internal.lan"
+openssl x509 -req -in pokedex-preprod.csr -CA vault-ca.crt -CAkey vault-ca.key -CAcreateserial \
+  -out pokedex-preprod.crt -days 825 -sha256 -copy_extensions copy
 
 # Agregar las propiedades sin pisar el resto del secreto
-vault kv patch secret/pokedex/prod TLS_CRT=@pokedex-prod.crt TLS_KEY=@pokedex-prod.key
-shred -u pokedex-prod.key pokedex-prod.csr
+vault kv patch secret/pokedex/preprod TLS_CRT=@pokedex-preprod.crt TLS_KEY=@pokedex-preprod.key
+shred -u pokedex-preprod.key pokedex-preprod.csr
 ```
 
 ESO refresca el Secret según `externalSecrets.refreshInterval` (1 h); para aplicarlo de
@@ -393,11 +381,8 @@ falla si un entorno activo omite un host o hereda un dominio de ejemplo.
 ### Sincronización Manual o Automatizada
 
 ```bash
-# Sincronizar el entorno Proxmox Producción vía Taskfile
+# Sincronizar pre-producción vía Taskfile (equivale a argocd app sync pokedex-preprod)
 task gitops:sync:proxmox
-
-# O sincronizar Pre-producción vía ArgoCD CLI
-argocd app sync pokedex-preprod
 
 # O verificar el estado de los Pods en el namespace pokemon-app:
 task k8s:status
@@ -471,7 +456,7 @@ En caso de indisponibilidad de GitHub Actions, falla en el controlador de ArgoCD
 
 ## 12. Aislamiento de Entornos y Dominio de Fallas (SPOF) On-Premise
 
-- **Aislamiento Lógico en Plataforma Física Única:** Pre-producción (LXC 800) y Producción (VM 801) comparten el mismo hardware físico de Proxmox VE (CPU, RAM, storage NVMe, NIC física).
-- **Particionamiento Lógico de Vault:** Para no duplicar recursos, Vault utiliza aislamiento lógico de secretos (`secret/data/pokedex/preprod/*` con rol `pokedex-preprod-role` y `secret/data/pokedex/prod/*` con rol `pokedex-prod-role`).
-- **SPOF Explícito y Mitigación:** La caída del hipervisor físico o corte de energía detiene ambos entornos. Las mitigaciones incluyen copias de seguridad automáticas con Proxmox Backup Server (PBS), snapshots de Raft en Vault y reprovisionamiento 100% reproducible con OpenTofu y Ansible.
+- **Plataforma Física Única:** Pre-producción (LXC 800) es el único entorno de runtime en Proxmox VE; Vault (LXC 810) y Bastion (LXC 820) comparten el mismo hardware físico (CPU, RAM, storage NVMe, NIC física).
+- **Particionamiento Lógico de Vault:** Para no duplicar recursos, Vault utiliza aislamiento lógico de secretos: `secret/data/pokedex/preprod/*` con rol `pokedex-preprod-role`. La ruta `pokedex/prod` queda reservada para el blueprint prod cloud (ADR-030).
+- **SPOF Explícito y Mitigación:** La caída del hipervisor físico o corte de energía detiene pre-producción y Vault. Las mitigaciones incluyen copias de seguridad automáticas con Proxmox Backup Server (PBS), snapshots de Raft en Vault y reprovisionamiento 100% reproducible con OpenTofu y Ansible.
 - **Análisis Detallado:** Ver [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).

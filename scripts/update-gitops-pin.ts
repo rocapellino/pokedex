@@ -27,7 +27,6 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 
 export const DEFAULT_GITOPS_APP_FILES = [
   'gitops/apps/root-application.yaml',
-  'gitops/apps/app-proxmox.yaml',
   'gitops/apps/app-cloud.yaml',
   'gitops/apps/app-proxmox-preprod.yaml',
 ];

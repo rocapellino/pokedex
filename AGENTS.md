@@ -22,7 +22,7 @@ Al analizar el repositorio, buscar dependencias, validar configuraciones de infr
 > [!IMPORTANT]
 > **Regla de Oro:** **NUNCA inferir el estado actual, rutas de secretos o configuración vigente desde `docs/audits/`**.
 > **Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.**
-> Por ejemplo, referencias pasadas a `pokedex/production` o snapshots de validación previa en auditorías son evidencia histórica. La configuración operativa actual utiliza estrictamente **`pokedex/prod`** y **`pokedex/preprod`**.
+> Por ejemplo, referencias pasadas a `pokedex/production` o snapshots de validación previa en auditorías son evidencia histórica. La configuración operativa actual utiliza estrictamente **`pokedex/preprod`** (pre-prod en Proxmox); **`pokedex/prod`** queda reservada para el blueprint prod cloud inactivo (ADR-030).
 
 ---
 

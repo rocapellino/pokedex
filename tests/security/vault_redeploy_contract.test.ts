@@ -31,14 +31,10 @@ test('🔒 ESO Security: manifiestos activos prohíben SecretStore fake y creden
   }
 });
 
-test('🔒 Proxmox GitOps Values: ExternalSecrets apunta al ClusterSecretStore vault-backend y clave pokedex/prod', () => {
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
-  const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');
-
-  assert.match(content, /secretStoreRef:\s*\r?\n\s*name:\s*"vault-backend"/, 'Debe usar vault-backend como secretStoreRef');
-  assert.match(content, /kind:\s*"ClusterSecretStore"/, 'Debe ser de clase ClusterSecretStore');
-  assert.match(content, /key:\s*"pokedex\/prod"/, 'Debe mapear la clave pokedex/prod en el KV v2');
-  assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Proxmox');
+test('🔒 ADR-030: prod Proxmox retirado; pokedex/prod queda reservada para el blueprint cloud', () => {
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'gitops/environments/proxmox')), 'gitops/environments/proxmox se retiró con ADR-030');
+  const cloudValues = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml'), 'utf-8');
+  assert.match(cloudValues, /key:\s*"pokedex\/prod"/, 'pokedex/prod solo debe usarla el blueprint prod cloud');
 });
 
 test('🔒 Proxmox Pre-prod GitOps Values: ExternalSecrets apunta a vault-backend-preprod y clave pokedex/preprod', () => {
@@ -52,7 +48,7 @@ test('🔒 Proxmox Pre-prod GitOps Values: ExternalSecrets apunta a vault-backen
   assert.match(content, /reloader:\s*\r?\n\s*enabled:\s*false/, 'Stakater Reloader debe estar desactivado en Pre-prod');
 });
 
-test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-prod-role', () => {
+test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox sin el rol de la prod retirada', () => {
   const clusterStorePath = path.join(ROOT_DIR, 'infra/k8s/eso/cluster-secret-store.yaml');
   assert.ok(fs.existsSync(clusterStorePath), 'cluster-secret-store.yaml debe existir como manifiesto canónico consolidado');
   const content = fs.readFileSync(clusterStorePath, 'utf-8');
@@ -60,7 +56,8 @@ test('🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y r
   assert.match(content, /server:\s*"https:\/\/10\.10\.13\.110:8200"/, 'Debe apuntar a la IP del contenedor LXC de Vault vía HTTPS');
   assert.match(content, /version:\s*"v2"/, 'Debe usar motor KV v2');
   assert.match(content, /path:\s*"secret"/, 'Debe montar sobre secret');
-  assert.match(content, /role:\s*"pokedex-prod-role"/, 'Debe autenticar con el rol pokedex-prod-role');
+  assert.doesNotMatch(content, /role:\s*"pokedex-prod-role"/, 'pokedex-prod-role pertenecía a la prod Proxmox retirada (ADR-030)');
+  assert.doesNotMatch(content, /name:\s*vault-backend\s*$/m, 'El store vault-backend de prod Proxmox se retiró (ADR-030)');
   assert.match(content, /caProvider:\s*\r?\n\s*type:\s*ConfigMap/, 'Debe utilizar caProvider para validación TLS segura');
 });
 

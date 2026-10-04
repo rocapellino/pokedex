@@ -175,14 +175,14 @@ helm rollback pokedex 1 -n pokemon-app
 Para sincronización continua y despliegue declarativo en la arquitectura multi-backend:
 
 ```bash
-# Despliegue en clúster On-Premises (Proxmox VE):
-kubectl apply -f gitops/apps/app-proxmox.yaml
+# Pre-prod on-premises (Proxmox VE, LXC 800):
+kubectl apply -f gitops/apps/app-proxmox-preprod.yaml
 
 # Blueprint prod cloud (inactivo, ADR-030): solo tras completar su activación
 kubectl apply -f gitops/apps/app-cloud.yaml
 ```
 
-ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) o [`gitops/environments/proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml)). El blueprint prod cloud agrega `values.prod.yaml` y [`gitops/environments/cloud/values.yaml`](../../gitops/environments/cloud/values.yaml).
+ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml)). El blueprint prod cloud agrega `values.prod.yaml` y [`gitops/environments/cloud/values.yaml`](../../gitops/environments/cloud/values.yaml).
 
 ---
 

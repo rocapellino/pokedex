@@ -67,13 +67,12 @@ jobs:
         with:
           version: v3.17.0
 
-      - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
+      - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.dev.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
           helm template pokedex infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-base.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml > /tmp/rendered-prod.yaml
-          helm template pokedex infra/helm/pokedex -f gitops/environments/proxmox/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-proxmox.yaml
           # GITOPS-005: `proxmox-preprod` es un target ACTIVO gobernado por el
           # App-of-Apps (gitops/apps/app-proxmox-preprod.yaml). Sin este render, un
           # error de template, de valores o de paridad en ese entorno solo se
@@ -81,14 +80,13 @@ jobs:
           helm template pokedex infra/helm/pokedex -f gitops/environments/proxmox-preprod/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-proxmox-preprod.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml -f gitops/environments/cloud/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-cloud.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
-          echo "✅ Helm Chart validado y renderizado para dev, base secure, prod, proxmox, proxmox-preprod, cloud blueprint y Cilium L7 eBPF."
+          echo "✅ Helm Chart validado y renderizado para dev, base secure, prod, proxmox-preprod, cloud blueprint y Cilium L7 eBPF."
 
       - name: 4. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
         run: |
           test -s /tmp/rendered-dev.yaml    || { echo "❌ rendered-dev.yaml vacío";    exit 1; }
           test -s /tmp/rendered-base.yaml   || { echo "❌ rendered-base.yaml vacío";   exit 1; }
           test -s /tmp/rendered-prod.yaml   || { echo "❌ rendered-prod.yaml vacío";   exit 1; }
-          test -s /tmp/rendered-proxmox.yaml|| { echo "❌ rendered-proxmox.yaml vacío";exit 1; }
           # GITOPS-005: el render de preprod no puede estar vacio.
           test -s /tmp/rendered-proxmox-preprod.yaml || { echo "❌ rendered-proxmox-preprod.yaml vacío"; exit 1; }
           test -s /tmp/rendered-cloud.yaml    || { echo "❌ rendered-cloud.yaml vacío";  exit 1; }
@@ -118,7 +116,7 @@ jobs:
           echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum --check --strict
           tar -xz -C /tmp -f /tmp/kubeconform.tar.gz kubeconform
           /tmp/kubeconform -v
-          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-proxmox-preprod.yaml /tmp/rendered-cloud.yaml
+          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox-preprod.yaml /tmp/rendered-cloud.yaml
           echo "✅ Validación de esquemas OpenAPI K8s con Kubeconform completada."
 
       - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)

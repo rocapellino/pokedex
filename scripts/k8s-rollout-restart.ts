@@ -42,7 +42,8 @@ function parseArgs(): RolloutOptions {
 
 export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boolean; reasons: string[] } {
   const reasons: string[] = [];
-  const proxmoxValuesPath = path.join(rootDir, 'gitops/environments/proxmox/values.yaml');
+  // ADR-030: pre-prod (LXC 800) es el único entorno Proxmox.
+  const proxmoxValuesPath = path.join(rootDir, 'gitops/environments/proxmox-preprod/values.yaml');
   const clusterStorePath = path.join(rootDir, 'infra/k8s/eso/cluster-secret-store.yaml');
   const setupVaultPlaybook = path.join(rootDir, 'infra/ansible/playbooks/setup_vault.yaml');
 
@@ -52,11 +53,11 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('reloader:\n  enabled: false') && !content.includes('reloader:\r\n  enabled: false')) {
       reasons.push('Proxmox values.yaml debe tener reloader.enabled: false para perfil Lean');
     }
-    if (!content.includes('secretStoreRef:\n    name: "vault-backend"') && !content.includes('secretStoreRef:\r\n    name: "vault-backend"')) {
-      reasons.push('Proxmox values.yaml debe referenciar a vault-backend como ClusterSecretStore');
+    if (!/secretStoreRef:\r?\n\s+name: "vault-backend-preprod"/.test(content)) {
+      reasons.push('Pre-prod values.yaml debe referenciar a vault-backend-preprod como ClusterSecretStore');
     }
-    if (!content.includes('key: "pokedex/prod"')) {
-      reasons.push('Proxmox values.yaml debe apuntar a la ruta de secretos pokedex/prod en Vault KV-v2');
+    if (!content.includes('key: "pokedex/preprod"')) {
+      reasons.push('Pre-prod values.yaml debe apuntar a la ruta de secretos pokedex/preprod en Vault KV-v2');
     }
   } else {
     reasons.push(`Archivo no encontrado: ${proxmoxValuesPath}`);
@@ -71,8 +72,11 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('caProvider:')) {
       reasons.push('cluster-secret-store.yaml debe configurar caProvider para validación criptográfica de TLS');
     }
-    if (!content.includes('role: "pokedex-prod-role"')) {
-      reasons.push('cluster-secret-store.yaml debe utilizar el rol pokedex-prod-role para autenticación Kubernetes');
+    if (!content.includes('role: "pokedex-preprod-role"')) {
+      reasons.push('cluster-secret-store.yaml debe utilizar el rol pokedex-preprod-role para autenticación Kubernetes');
+    }
+    if (content.includes('role: "pokedex-prod-role"')) {
+      reasons.push('cluster-secret-store.yaml no debe declarar el rol pokedex-prod-role: prod Proxmox se retiró (ADR-030)');
     }
   } else {
     reasons.push(`Archivo no encontrado: ${clusterStorePath}`);

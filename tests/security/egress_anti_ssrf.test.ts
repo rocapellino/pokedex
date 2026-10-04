@@ -198,7 +198,7 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
 });
 
 test('🛡️ GitOps Configuration: Proxmox values.yaml habilita Cilium L7 Zero-Trust para cumplir con el test de salida', () => {
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');
 
   assert.match(content, /ciliumNetworkPolicy:/, 'Proxmox values.yaml debe configurar ciliumNetworkPolicy');

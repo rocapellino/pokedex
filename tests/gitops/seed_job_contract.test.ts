@@ -64,7 +64,6 @@ test('🌱 Seed Job: corre después de la sincronización, no antes de crear la 
 
 test('🌱 Seed Job: los demás entornos no siembran por defecto', () => {
   for (const valueFiles of [
-    ['gitops/environments/proxmox/values.yaml'],
     ['infra/helm/pokedex/values.dev.yaml'],
     ['infra/helm/pokedex/values.prod.yaml'],
   ]) {

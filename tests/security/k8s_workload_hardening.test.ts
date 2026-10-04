@@ -441,8 +441,8 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   const helmValues = fs.readFileSync(helmValuesPath, 'utf-8');
   assert.match(helmValues, /namespace:\s*pokemon-app/, 'Helm values.yaml debe definir namespace: pokemon-app');
 
-  const appProxmox = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml'), 'utf-8');
-  assert.match(appProxmox, /namespace:\s*pokemon-app/, 'app-proxmox.yaml debe definir namespace: pokemon-app');
+  const appProxmox = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
+  assert.match(appProxmox, /namespace:\s*pokemon-app/, 'app-proxmox-preprod.yaml debe definir namespace: pokemon-app');
 
   const appProxmoxPreprod = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
   assert.match(appProxmoxPreprod, /namespace:\s*pokemon-app/, 'app-proxmox-preprod.yaml debe definir namespace: pokemon-app');

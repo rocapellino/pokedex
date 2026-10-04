@@ -219,7 +219,7 @@ Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido
 ### Fase 6: Despliegue GitOps y Control de Admisión (ArgoCD & Kyverno)
 
 - **ArgoCD** detecta los cambios en el directorio `gitops/`:
-  - **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) aplicando `values.yaml` específicos.
+  - **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox-preprod.yaml`](../../gitops/apps/app-proxmox-preprod.yaml) aplicando `values.yaml` específicos de pre-prod (único entorno Proxmox, ADR-030).
   - **Blueprint prod cloud (inactivo, ADR-030)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) queda **excluido del App-of-Apps** (GITOPS-001); ArgoCD no lo sincroniza. Proxmox y Proxmox-preprod son los únicos targets desplegados.
 - **Control de Admisión con Kyverno:**
   - La política de clúster [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) intercepta la creación de Pods en modo `Enforce`.

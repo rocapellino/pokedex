@@ -33,7 +33,7 @@ La auditoría no se limita a contrastar títulos o nombres de archivos, sino que
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │                 SOURCE OF TRUTH (SSOT)                 │
-│      gitops/apps/app-proxmox.yaml (targetRevision)     │
+│ gitops/apps/app-proxmox-preprod.yaml (targetRevision)  │
 └───────────────────────────┬────────────────────────────┘
                             │  2. Obtener Evidencia Fáctica
                             ▼

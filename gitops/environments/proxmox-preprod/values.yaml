@@ -174,5 +174,22 @@ ciliumNetworkPolicy:
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
 
+# ADR-030: pre-prod es el único entorno Proxmox con datos, así que hereda la
+# política de backup de la antigua prod on-prem (PVC local + copia a Google Drive).
 backup:
-  enabled: false # Pre-prod no ejecuta backups persistentes en schedule nocturno para ahorrar I/O en LXC
+  enabled: true
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  offsite:
+    enabled: false
+    provider: "s3-compatible"
+    bucket: "pokedex-backups-offsite"
+    region: "us-east-1"
+    prefix: "preprod/postgres"
+    secretName: "backup-offsite-creds"
+  # Requiere las credenciales de rclone en Vault (secret/data/pokedex/preprod), ver GDRIVE_BACKUP_GUIDE.md
+  gdrive:
+    enabled: true
+    folder: "PokedexBackups/preprod"

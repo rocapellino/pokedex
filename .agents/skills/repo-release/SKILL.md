@@ -29,7 +29,7 @@ Verificar exhaustivamente los criterios de preparación y *readiness* operaciona
   - Mapeo y contraste de capacidades entre estado candidato (`main`), estado promocionable (`git tag`), estado declarado (`gitops/apps/`) y estado observado (`runtime`).
   - Detección de drift entre templates implementados y el `targetRevision` activo en ArgoCD.
   - Verificación de consistencia documental: auditar afirmaciones de "activo" o "desplegado" en runbooks y documentación frente a la evidencia fáctica.
-- **Sincronización GitOps (ArgoCD):** Paridad declarativa entre `gitops/apps/` (`pokedex-preprod`, `pokedex-proxmox`, `pokedex-cloud`) y las plantillas base.
+- **Sincronización GitOps (ArgoCD):** Paridad declarativa entre `gitops/apps/` (`pokedex-preprod`, `pokedex-cloud`) y las plantillas base.
 - **Readiness de Persistencia:** Revisión de migraciones Drizzle pendientes y validación de compatibilidad hacia atrás para evitar downtime.
 - **Procedimientos de Rollback y Runbooks:** Confirmar que los runbooks de contingencia y rollback estén vigentes.
 

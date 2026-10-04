@@ -64,7 +64,7 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   assert.ok(fs.existsSync(guidePath), 'PROXMOX_DEPLOYMENT_GUIDE.md debe existir');
   const content = fs.readFileSync(guidePath, 'utf-8');
   assert.ok(content.includes('host_baseline.yaml'), 'Debe referenciar host_baseline.yaml');
-  assert.ok(content.includes('app-proxmox.yaml'), 'Debe referenciar app-proxmox.yaml para GitOps');
+  assert.ok(content.includes('app-proxmox-preprod.yaml'), 'Debe referenciar app-proxmox-preprod.yaml para GitOps');
   assert.ok(content.includes('ArgoCD'), 'Debe referenciar ArgoCD');
   assert.ok(!content.includes('docker-compose.prod.yml'), 'No debe referenciar docker-compose.prod.yml');
   assert.ok(!content.includes('deploy_proxmox.yml'), 'No debe referenciar deploy_proxmox.yml');
@@ -351,7 +351,7 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   assert.ok(setupK3sContent.includes('--flannel-backend=none'), 'setup_k3s.yaml debe desacoplar Flannel con --flannel-backend=none');
   assert.ok(setupK3sContent.includes('cilium'), 'setup_k3s.yml debe desplegar Cilium CNI');
 
-  const proxmoxValues = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml'), 'utf-8');
+  const proxmoxValues = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml'), 'utf-8');
   assert.ok(!proxmoxValues.includes('nginx.ingress.kubernetes.io/configuration-snippet: null'), 'proxmox/values.yaml no debe contener anotaciones huérfanas de Nginx');
   assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
 
@@ -368,5 +368,5 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
   const proxmoxGuideContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/runbooks/PROXMOX_DEPLOYMENT_GUIDE.md'), 'utf-8');
   assert.ok(proxmoxGuideContent.includes('task k3s:setup:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar task k3s:setup:proxmox');
   assert.ok(proxmoxGuideContent.includes('setup_k3s.yaml'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe referenciar setup_k3s.yaml');
-  assert.ok(proxmoxGuideContent.includes('k8s-proxmox.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-proxmox.internal.lan');
+  assert.ok(proxmoxGuideContent.includes('k8s-preprod.internal.lan'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe documentar resolución para k8s-preprod.internal.lan');
 });

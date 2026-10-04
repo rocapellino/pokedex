@@ -18,7 +18,6 @@ Un único manifiesto raíz gobierna el resto mediante el campo `directory` de Ar
 pokedex-root  (root-application.yaml)
     │  escanea gitops/apps/  (recurse: false)
     │
-    ├── pokedex-proxmox        → gitops/environments/proxmox/values.yaml        🟢 ACTIVO
     ├── pokedex-preprod        → gitops/environments/proxmox-preprod/values.yaml 🟢 ACTIVO
     └── (pokedex-cloud)         → values.prod.yaml + gitops/environments/cloud/values.yaml ⚪ INACTIVO
 ```
@@ -28,8 +27,7 @@ pokedex-root  (root-application.yaml)
 | Ruta | Contenido |
 | :--- | :--- |
 | [`apps/root-application.yaml`](apps/root-application.yaml) | Application raíz. Declara el App-of-Apps y el `exclude` |
-| [`apps/app-proxmox.yaml`](apps/app-proxmox.yaml) | Producción on-premise. Freeze de fin de semana (62 h) |
-| [`apps/app-proxmox-preprod.yaml`](apps/app-proxmox-preprod.yaml) | Pre-producción. Continuous Delivery, sin ventanas de bloqueo |
+| [`apps/app-proxmox-preprod.yaml`](apps/app-proxmox-preprod.yaml) | Pre-producción (LXC 800, in-cluster). Continuous Delivery, sin ventanas de bloqueo |
 | [`apps/app-cloud.yaml`](apps/app-cloud.yaml) | **Blueprint prod cloud agnóstico e inactivo** (GITOPS-001, ADR-030) |
 | [`environments/`](environments/) | Overrides de valores por entorno |
 | [`health-checks/argocd-cm-healthchecks.yaml`](health-checks/argocd-cm-healthchecks.yaml) | Evaluadores Lua de salud para CRDs (ADR-003) |
@@ -39,14 +37,13 @@ pokedex-root  (root-application.yaml)
 ## Entornos: cuál está activo y cuál no
 
 > [!WARNING]
-> **Sólo Proxmox y Proxmox-preprod están desplegados.** Prod cloud es un
-> **blueprint inactivo** sin proveedor fijado (ADR-030). `pokedex-proxmox` se retira
-> en el paso 5 del plan de ADR-030; desde entonces pre-prod es el único target.
+> **Sólo pre-prod está desplegado** (LXC 800, `10.10.13.100`). Prod cloud es un
+> **blueprint inactivo** sin proveedor fijado (ADR-030). La antigua prod Proxmox
+> (VM 801) se retiró en el paso 5 de ADR-030.
 
 | Entorno | Application | Clasificación | Estado | Cluster destino |
 | :--- | :--- | :--- | :--- | :--- |
-| Producción (on-prem) | `pokedex-proxmox` | 🟢 **ACTIVE** | Activo | `k8s-proxmox.internal.lan` |
-| Pre-producción | `pokedex-preprod` | 🟢 **ACTIVE** | Activo | `k8s-preprod.internal.lan` |
+| Pre-producción | `pokedex-preprod` | 🟢 **ACTIVE** | Activo | in-cluster (`https://kubernetes.default.svc`, LXC 800) |
 | Prod cloud (agnóstico) | `pokedex-cloud` | ⚪ **REFERENCE** | Inactivo (Blueprint) | marcador `.invalid`, sin clúster registrado |
 
 La exclusión de `app-cloud.yaml` está declarada en `root-application.yaml:38-40` con el motivo
@@ -123,11 +120,11 @@ task gitops:status           # Consultar estado de salud de las aplicaciones en 
    (GITOPS-005). Un entorno activo sin render es un fallo de cobertura.
 2. **Los digests OCI van fijados por SHA-256** en todos los perfiles, con paridad verificada
    entre entornos (`gitops:verify-parity:strict`).
-3. **Production no se toca sin ventana.** `pokedex-proxmox` declara un `syncWindow` de bloqueo
-   de viernes 18:00 UTC a lunes 08:00 UTC, con `manualSync: true` para hotfix.
-4. **La referencia de `infra/helm/pokedex/values.prod.yaml` no aplica.** Ese archivo es un
-   perfil de referencia que ninguna Application consume (INFRA-011). El perfil de producción
-   real es `environments/proxmox/values.yaml`.
+3. **Pre-prod es entrega continua.** `pokedex-preprod` no declara `syncWindows`; la ventana
+   de fin de semana pertenecía a la prod Proxmox retirada.
+4. **`infra/helm/pokedex/values.prod.yaml` es la base del blueprint prod cloud.** Solo lo
+   consume `app-cloud.yaml`, inactiva (INFRA-011, ADR-030). El perfil desplegado es
+   `environments/proxmox-preprod/values.yaml`.
 
 ## Trazabilidad
 

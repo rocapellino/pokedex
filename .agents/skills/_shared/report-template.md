@@ -3,7 +3,7 @@
 **Repositorio:** `rocapellino/pokedex`
 **Fecha:** YYYY-MM-DD
 **Commit:** `<sha>`
-**Contexto Operativo:** Monorepo (`apps/backend`, `apps/frontend`) | Entornos: Kind / Proxmox Pre-prod / Proxmox Prod (en retiro) / Prod Cloud (blueprint)
+**Contexto Operativo:** Monorepo (`apps/backend`, `apps/frontend`) | Entornos: Kind / Proxmox Pre-prod / Prod Cloud (blueprint)
 
 ---
 

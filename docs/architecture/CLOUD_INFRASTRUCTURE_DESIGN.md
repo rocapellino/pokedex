@@ -52,11 +52,11 @@ El principio rector es la **portabilidad del núcleo de la aplicación**: la ló
 | Entorno | Runtime | Despliegue | Catálogo | Estado |
 | :--- | :--- | :--- | :--- | :--- |
 | **Dev** | Docker Compose y Kind | Local, fuera de ArgoCD | Muestra (35 Pokémon) | Activo |
-| **Pre-Prod** | K3s en LXC sobre Proxmox VE (`k8s-preprod`) | ArgoCD `pokedex-preprod` | Completo (1025), desde el paso 4 de ADR-030 | Activo (único target tras el paso 5) |
+| **Pre-Prod** | K3s en LXC sobre Proxmox VE (`k8s-preprod`) | ArgoCD `pokedex-preprod` | Completo (1025), desde el paso 4 de ADR-030 | Activo, único target desplegado |
 | **Prod** | Kubernetes gestionado en una nube a elegir | ArgoCD `pokedex-cloud`, excluida del App-of-Apps | Completo | Blueprint declarado, inactivo |
 
 > [!NOTE]
-> La Application `pokedex-proxmox` (clúster `k8s-proxmox`) sigue declarada hasta el paso 5 del plan de ADR-030, que la retira con backup previo y borrado no cascada.
+> La Application `pokedex-proxmox` (VM 801, `k8s-proxmox`) se retiró en el paso 5 de ADR-030. El relevamiento del 2026-10-04 confirmó que la VM nunca se había aprovisionado: el único clúster Proxmox es el LXC 800 (`10.10.13.100`).
 
 ---
 
@@ -159,11 +159,9 @@ gitops/
 ├── apps/
 │   ├── root-application.yaml         # App-of-Apps (excluye app-cloud.yaml)
 │   ├── app-proxmox-preprod.yaml      # ✅ Pre-Prod activo
-│   ├── app-proxmox.yaml              # ⏳ En retiro (paso 5 de ADR-030)
 │   └── app-cloud.yaml                # ⚪ Blueprint prod cloud (inactivo)
 └── environments/
     ├── proxmox-preprod/values.yaml   # Perfil Lean de pre-prod
-    ├── proxmox/values.yaml           # ⏳ En retiro
     └── cloud/values.yaml             # Puntos de variación del proveedor
 ```
 
@@ -190,8 +188,7 @@ gitops/
 
 | Target de Infraestructura | Nivel de Soporte | Entorno IaC / GitOps | Propósito y Garantías Operativas |
 | :--- | :--- | :--- | :--- |
-| **Proxmox VE Pre-Prod (LXC)** | **Activo** | `infra/opentofu/environments/proxmox` + `gitops/environments/proxmox-preprod` | Target de pre-prod; queda como único target desplegado tras el paso 5 de ADR-030. Host baseline con Ansible y TLS con la CA interna. El catálogo completo se siembra desde el paso 4 de ADR-030. |
-| **Proxmox VE Prod (VM)** | **En retiro** | `gitops/environments/proxmox` | Sigue sincronizado hasta el paso 5 de ADR-030. |
+| **Proxmox VE Pre-Prod (LXC)** | **Activo** | `infra/opentofu/environments/proxmox` + `gitops/environments/proxmox-preprod` | Único target desplegado. Host baseline con Ansible y TLS con la CA interna. El catálogo completo se siembra desde el paso 4 de ADR-030. |
 | **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Pruebas destructivas, validación de playbooks y simulación de fallos. |
 | **Prod Cloud** | **Blueprint inactivo** | `infra/opentofu/environments/cloud-template` + `gitops/environments/cloud` | Renderizado y validado en CI, con digests fijados en cada promoción. Sin SLA ni RTO hasta su activación. |
 | **Kind (Local / CI)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Tests de integración en GitHub Actions (`infra.yaml`) y paridad local. |

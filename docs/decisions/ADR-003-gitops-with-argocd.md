@@ -68,8 +68,8 @@ Los manifiestos `app-proxmox.yaml` y `app-cloud.yaml` incorporan:
 entornos y modifica los apartados 4 y 5:
 
 - **Único target sincronizado:** `pokedex-preprod` (`app-proxmox-preprod.yaml`, clúster
-  `k8s-preprod`). `app-proxmox.yaml` (`pokedex-proxmox`) se retira en el paso 5 del plan de
-  ADR-030. Hasta entonces sigue declarada y sincronizada.
+  `k8s-preprod`). `app-proxmox.yaml` (`pokedex-proxmox`) se retiró en el paso 5 del plan de
+  ADR-030; pre-prod se sincroniza in-cluster (`https://kubernetes.default.svc`).
 - **Prod como blueprint:** `app-cloud.yaml` (`pokedex-cloud`) apunta al entorno agnóstico
   `cloud`, sigue excluida de `pokedex-root` y sin `syncPolicy.automated`. La promoción de
   releases mantiene su `targetRevision` y sus digests alineados con pre-prod.

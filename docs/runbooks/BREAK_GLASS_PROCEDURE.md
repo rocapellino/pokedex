@@ -192,7 +192,7 @@ Una vez mitigada la emergencia, el operador que utilizó el procedimiento Break-
 
 1. **Abrir Issue / Ticket de Incidente:** Documentar causa raíz y registrar los comandos extraídos de `/var/log/bastion/audit.log`.
 2. **Reconciliación en Git (Backporting):**
-   - Si se modificaron réplicas, variables o imágenes en K8s, actualizar `gitops/environments/proxmox/values.yaml` o el Helm Chart correspondiente.
+   - Si se modificaron réplicas, variables o imágenes en K8s, actualizar `gitops/environments/proxmox-preprod/values.yaml` o el Helm Chart correspondiente.
    - Enviar Pull Request con etiqueta `incident-remediation` y mergear a `main`.
 3. **Verificar GitOps Sync:**
    - Confirmar en ArgoCD que el estado `Synced` y `Healthy` se restableció sin discrepancias (`OutOfSync`).

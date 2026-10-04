@@ -27,7 +27,6 @@ const IMAGE_JOBS = ['build-docker', 'trivy-scan', 'publish'];
 /** Repositorios de imagen de la aplicación que declaran los values de GitOps y Helm de producción. */
 function deployedRepositories(): Set<string> {
   const files = [
-    'gitops/environments/proxmox/values.yaml',
     'gitops/environments/proxmox-preprod/values.yaml',
     'gitops/environments/cloud/values.yaml',
     'infra/helm/pokedex/values.prod.yaml',

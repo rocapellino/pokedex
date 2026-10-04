@@ -236,7 +236,6 @@ test('🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de 
   // restringe a un host explicito de acceso directo. Asi se cierra la exposicion
   // por `Host` arbitrario sin romper el acceso por IP que hacian las pruebas.
   const deployableEnvs: Array<[string, string]> = [
-    ['proxmox', 'gitops/environments/proxmox/values.yaml'],
     ['proxmox-preprod', 'gitops/environments/proxmox-preprod/values.yaml'],
   ];
 
