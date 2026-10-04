@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T21:50:54.029Z",
+  "generatedAt": "2026-10-04T23:06:13.139Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
@@ -8,8 +8,8 @@
     "performanceScripts": 1,
     "totalTestCases": 577,
     "totalLines": 15386,
-    "totalSizeBytes": 704980,
-    "suitesCount": 9
+    "totalSizeBytes": 705025,
+    "suitesCount": 10
   },
   "suites": [
     {
@@ -21,6 +21,16 @@
       "files": 11,
       "testCases": 75,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
+    },
+    {
+      "id": "integration",
+      "name": "Pruebas de Integración de API y Servicios",
+      "path": "tests/integration",
+      "runner": "node:test (tsx)",
+      "command": "npm run test:integration",
+      "files": 4,
+      "testCases": 26,
+      "description": "Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión."
     },
     {
       "id": "security",
@@ -98,8 +108,8 @@
       "path": "tests/",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 18,
-      "testCases": 184,
+      "files": 14,
+      "testCases": 158,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -175,48 +185,6 @@
       ]
     },
     {
-      "path": "tests/api-limits.test.ts",
-      "suite": "governance",
-      "type": "Integration",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 3,
-      "describeCount": 0,
-      "assertionCountEst": 21,
-      "sizeBytes": 1775,
-      "lineCount": 43,
-      "sha256": "15392698ca0406b993b7619578c62d159905502c56dd89ac8b7fbc20f02a0539",
-      "targetDomain": "Backend HTTP API / Rate Limiting",
-      "targetArtifacts": [
-        "apps/backend/src/middleware/rate-limiter.ts",
-        "apps/backend/server.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ API Limits: parsePaginationLimit limita estrictamente al MAX_PAGE_SIZE de 100",
-          "line": 11
-        },
-        {
-          "name": "🛡️ API Limits: parsePaginationOffset limita estrictamente al MAX_OFFSET de 10000",
-          "line": 24
-        },
-        {
-          "name": "🛡️ API Limits: parsePagination combina limit y offset correctamente",
-          "line": 36
-        }
-      ]
-    },
-    {
       "path": "tests/audit_freshness.test.ts",
       "suite": "governance",
       "type": "Contract / Governance",
@@ -278,9 +246,9 @@
       "testCount": 33,
       "describeCount": 0,
       "assertionCountEst": 249,
-      "sizeBytes": 35003,
+      "sizeBytes": 35015,
       "lineCount": 760,
-      "sha256": "ce544b918780bcd0283a83de3784113fcce08e925d8b76a12be987f1dc6362ee",
+      "sha256": "b62016bd972e682de4aee49cae968a980770988aec7388d2e381fe9a9ada2536",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -568,39 +536,6 @@
         {
           "name": "🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad",
           "line": 166
-        }
-      ]
-    },
-    {
-      "path": "tests/concurrency.test.ts",
-      "suite": "governance",
-      "type": "Integration",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 1,
-      "describeCount": 0,
-      "assertionCountEst": 3,
-      "sizeBytes": 821,
-      "lineCount": 24,
-      "sha256": "300b11d78b31095b729978b6d5fd3fa2a5b56fd1ffff3e44f77413b2ca84daaf",
-      "targetDomain": "Concurrencia y Consistencia de Almacenamiento",
-      "targetArtifacts": [
-        "apps/backend/src/services/db.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "⚡ Concurrencia: llamadas paralelas a getNextPokemonId generan IDs estrictamente únicos",
-          "line": 5
         }
       ]
     },
@@ -1561,6 +1496,232 @@
       "description": "Suite de pruebas helpers: taskfile.ts.",
       "status": "HELPER",
       "testCases": []
+    },
+    {
+      "path": "tests/integration/api-limits.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 21,
+      "sizeBytes": 1778,
+      "lineCount": 43,
+      "sha256": "e9dcdb8355a2c068e3d95ce1b333e4d9dd1812da65b62b6099bcc1093413c062",
+      "targetDomain": "Backend HTTP API / Rate Limiting",
+      "targetArtifacts": [
+        "apps/backend/src/middleware/rate-limiter.ts",
+        "apps/backend/server.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ API Limits: parsePaginationLimit limita estrictamente al MAX_PAGE_SIZE de 100",
+          "line": 11
+        },
+        {
+          "name": "🛡️ API Limits: parsePaginationOffset limita estrictamente al MAX_OFFSET de 10000",
+          "line": 24
+        },
+        {
+          "name": "🛡️ API Limits: parsePagination combina limit y offset correctamente",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/concurrency.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 3,
+      "sizeBytes": 824,
+      "lineCount": 24,
+      "sha256": "5d7467ae3ce044a523bb002c8c2f549dcafc5cac529b56eafd811575976660ad",
+      "targetDomain": "Concurrencia y Consistencia de Almacenamiento",
+      "targetArtifacts": [
+        "apps/backend/src/services/db.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "⚡ Concurrencia: llamadas paralelas a getNextPokemonId generan IDs estrictamente únicos",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/storage.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 8,
+      "describeCount": 0,
+      "assertionCountEst": 32,
+      "sizeBytes": 4589,
+      "lineCount": 121,
+      "sha256": "ee52ac50af303b7d92a1978c2b00df480daa8b39df2b4d53c93b875c063fb73b",
+      "targetDomain": "Capa de Persistencia y Caché",
+      "targetArtifacts": [
+        "apps/backend/src/services/db.ts",
+        "apps/backend/src/services/cache.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📦 Storage Layer: getStorageHealth reporta estado por defecto",
+          "line": 17
+        },
+        {
+          "name": "📦 Storage Layer: getAllPokemons pagina y filtra correctamente",
+          "line": 25
+        },
+        {
+          "name": "📦 Storage Layer: getPokemonById retorna pokemon existente y null para inexistente",
+          "line": 36
+        },
+        {
+          "name": "📦 Storage Layer: savePokemon guarda y actualiza un registro",
+          "line": 45
+        },
+        {
+          "name": "📦 Storage Layer: getNextPokemonId genera IDs continuos",
+          "line": 72
+        },
+        {
+          "name": "📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correctamente",
+          "line": 77
+        },
+        {
+          "name": "📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en disco",
+          "line": 94
+        },
+        {
+          "name": "📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en producción",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/version.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 14,
+      "describeCount": 0,
+      "assertionCountEst": 64,
+      "sizeBytes": 16679,
+      "lineCount": 414,
+      "sha256": "c041716d141eec9ee42e900b59461c43a3f5a6e9ce575aa9cc08d0690991b4c4",
+      "targetDomain": "Endpoint de Telemetría /version",
+      "targetArtifacts": [
+        "apps/backend/server.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva la causa",
+          "line": 14
+        },
+        {
+          "name": "🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a memoria",
+          "line": 35
+        },
+        {
+          "name": "🛡️ APPS-002: el arranque aborta el proceso si initStorage falla",
+          "line": 71
+        },
+        {
+          "name": "🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POSTGRES_*",
+          "line": 86
+        },
+        {
+          "name": "📦 Endpoint /version expone metadata segura de la aplicación y base de datos",
+          "line": 190
+        },
+        {
+          "name": "🏷️ VER-002: /version expone la versión semántica real de la SSOT, no un SHA",
+          "line": 220
+        },
+        {
+          "name": "🏷️ VER-002: /version degrada a \"unknown\" en lugar de anunciar una versión ficticia",
+          "line": 259
+        },
+        {
+          "name": "🛡️ Startup Env Check: bypass transparente en entorno de tests",
+          "line": 288
+        },
+        {
+          "name": "🛡️ Startup Env Check: detecta variables requeridas faltantes en producción",
+          "line": 294
+        },
+        {
+          "name": "🛡️ Startup Env Check: pasa exitosamente en producción si variables críticas existen",
+          "line": 317
+        },
+        {
+          "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true NO bypasses validación en producción",
+          "line": 334
+        },
+        {
+          "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true sí permite bypass en entornos no productivos",
+          "line": 352
+        },
+        {
+          "name": "🛡️ Seguridad Express: Middleware inyecta cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy",
+          "line": 369
+        },
+        {
+          "name": "🔍 Observabilidad: requestTracer genera y propaga X-Request-Id para correlación de trazas",
+          "line": 391
+        }
+      ]
     },
     {
       "path": "tests/markdown_gate.test.ts",
@@ -3695,68 +3856,6 @@
       ]
     },
     {
-      "path": "tests/storage.test.ts",
-      "suite": "governance",
-      "type": "Integration",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 8,
-      "describeCount": 0,
-      "assertionCountEst": 32,
-      "sizeBytes": 4577,
-      "lineCount": 121,
-      "sha256": "7a646e5c89173dbbfc035245e1bd0dedaf66bedbaee0ed1c058bec9e788341f3",
-      "targetDomain": "Capa de Persistencia y Caché",
-      "targetArtifacts": [
-        "apps/backend/src/services/db.ts",
-        "apps/backend/src/services/cache.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "📦 Storage Layer: getStorageHealth reporta estado por defecto",
-          "line": 17
-        },
-        {
-          "name": "📦 Storage Layer: getAllPokemons pagina y filtra correctamente",
-          "line": 25
-        },
-        {
-          "name": "📦 Storage Layer: getPokemonById retorna pokemon existente y null para inexistente",
-          "line": 36
-        },
-        {
-          "name": "📦 Storage Layer: savePokemon guarda y actualiza un registro",
-          "line": 45
-        },
-        {
-          "name": "📦 Storage Layer: getNextPokemonId genera IDs continuos",
-          "line": 72
-        },
-        {
-          "name": "📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correctamente",
-          "line": 77
-        },
-        {
-          "name": "📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en disco",
-          "line": 94
-        },
-        {
-          "name": "📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en producción",
-          "line": 111
-        }
-      ]
-    },
-    {
       "path": "tests/unit/ai_security.test.ts",
       "suite": "unit",
       "type": "Automated Test",
@@ -4414,91 +4513,6 @@
         {
           "name": "VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json",
           "line": 77
-        }
-      ]
-    },
-    {
-      "path": "tests/version.test.ts",
-      "suite": "governance",
-      "type": "Integration",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 14,
-      "describeCount": 0,
-      "assertionCountEst": 64,
-      "sizeBytes": 16664,
-      "lineCount": 414,
-      "sha256": "2d2672124becbaca5bf73694645dcb529918e8d145c0ecff3a017e517d755fc9",
-      "targetDomain": "Endpoint de Telemetría /version",
-      "targetArtifacts": [
-        "apps/backend/server.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva la causa",
-          "line": 14
-        },
-        {
-          "name": "🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a memoria",
-          "line": 35
-        },
-        {
-          "name": "🛡️ APPS-002: el arranque aborta el proceso si initStorage falla",
-          "line": 71
-        },
-        {
-          "name": "🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POSTGRES_*",
-          "line": 86
-        },
-        {
-          "name": "📦 Endpoint /version expone metadata segura de la aplicación y base de datos",
-          "line": 190
-        },
-        {
-          "name": "🏷️ VER-002: /version expone la versión semántica real de la SSOT, no un SHA",
-          "line": 220
-        },
-        {
-          "name": "🏷️ VER-002: /version degrada a \"unknown\" en lugar de anunciar una versión ficticia",
-          "line": 259
-        },
-        {
-          "name": "🛡️ Startup Env Check: bypass transparente en entorno de tests",
-          "line": 288
-        },
-        {
-          "name": "🛡️ Startup Env Check: detecta variables requeridas faltantes en producción",
-          "line": 294
-        },
-        {
-          "name": "🛡️ Startup Env Check: pasa exitosamente en producción si variables críticas existen",
-          "line": 317
-        },
-        {
-          "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true NO bypasses validación en producción",
-          "line": 334
-        },
-        {
-          "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true sí permite bypass en entornos no productivos",
-          "line": 352
-        },
-        {
-          "name": "🛡️ Seguridad Express: Middleware inyecta cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy",
-          "line": 369
-        },
-        {
-          "name": "🔍 Observabilidad: requestTracer genera y propaga X-Request-Id para correlación de trazas",
-          "line": 391
         }
       ]
     }

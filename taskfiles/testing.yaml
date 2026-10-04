@@ -19,6 +19,11 @@ tasks:
     cmds:
       - npm run test:unit
 
+  test:integration:
+    desc: "Ejecuta las pruebas de integración de API, base de datos y servicios"
+    cmds:
+      - npm run test:integration
+
   test:fuzz:
     desc: "Ejecuta la suite dinámica de API Fuzzing y resiliencia DAST"
     cmds:

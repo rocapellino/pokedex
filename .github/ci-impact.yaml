@@ -304,13 +304,16 @@ rules:
     description: "Pruebas unitarias, contratos y fuzzing de backend"
     paths:
       - "tests/unit/**"
-      - "tests/api-limits.test.ts"
-      - "tests/concurrency.test.ts"
       - "tests/contracts.test.ts"
       - "tests/fuzzing.test.ts"
-      - "tests/storage.test.ts"
-      - "tests/version.test.ts"
       - "tests/version_consistency.test.ts"
+    triggers:
+      backend: true
+
+  tests_integration:
+    description: "Pruebas de integración de base de datos, concurrencia y límites"
+    paths:
+      - "tests/integration/**"
     triggers:
       backend: true
 

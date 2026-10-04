@@ -35,6 +35,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task validate` | Suite obligatoria previa a commit (`lint`, `typecheck`, `build`, `test`). |
 | | `task test` | Pruebas unitarias de seguridad y lógica de negocio. |
 | | `task test:unit` | Pruebas unitarias aisladas de aplicación. |
+| | `task test:integration` | Pruebas de integración de base de datos, concurrencia y límites. |
 | | `task test:gitops` | Pruebas de contratos de GitOps y despliegue. |
 | | `task test:surface` | Valida consistencia e inventario de la superficie de pruebas (`test-surface`). |
 | | `task test:e2e` | Pruebas de integración E2E con Playwright. |
