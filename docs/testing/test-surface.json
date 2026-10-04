@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T19:08:19.786Z",
+  "generatedAt": "2026-10-04T19:30:46.737Z",
   "summary": {
-    "totalFiles": 71,
-    "testFiles": 66,
+    "totalFiles": 72,
+    "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 571,
-    "totalLines": 15268,
-    "totalSizeBytes": 698544,
+    "totalTestCases": 575,
+    "totalLines": 15347,
+    "totalSizeBytes": 702497,
     "suitesCount": 9
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 6,
-      "testCases": 37,
+      "testCases": 38,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -48,8 +48,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 4,
-      "testCases": 46,
+      "files": 5,
+      "testCases": 49,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -946,6 +946,45 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/catalog_fetch.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 8,
+      "sizeBytes": 2360,
+      "lineCount": 56,
+      "sha256": "05ab98208e90ca4219aa053bbf03119bd69959983cfe6a1fffd77c82ba469f58",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_fetch.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧭 Catálogo: fetchAllPokemons descarga todas las páginas hasta X-Total-Count",
+          "line": 24
+        },
+        {
+          "name": "🧭 Catálogo: un catálogo menor a una página se resuelve con una sola petición",
+          "line": 37
+        },
+        {
+          "name": "🧭 Catálogo: termina aunque el total cambie durante la descarga",
+          "line": 47
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/modal_components.test.ts",
       "suite": "frontend",
       "type": "Component / Unit",
@@ -1353,12 +1392,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 9,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 27,
-      "sizeBytes": 8473,
-      "lineCount": 140,
-      "sha256": "66ce21dcec286d37bf082c21ff8008800ffec572b084864bd395830c664ed8be",
+      "assertionCountEst": 30,
+      "sizeBytes": 10066,
+      "lineCount": 163,
+      "sha256": "a7a5b7067a4430b84dd0255aecd72e46a4623d89ff5b83f9c8de70737ca6498d",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1408,6 +1447,10 @@
         {
           "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
           "line": 135
+        },
+        {
+          "name": "🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación",
+          "line": 141
         }
       ]
     },

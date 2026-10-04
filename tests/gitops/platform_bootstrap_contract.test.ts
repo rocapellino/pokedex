@@ -137,3 +137,26 @@ test('🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de
   assert.match(playbook, /http:\s*\n\s*redirections:\s*\n\s*entryPoint:\s*\n\s*to: websecure/, 'Debe usar ports.web.http.redirections.entryPoint');
   assert.doesNotMatch(playbook, /^\s*redirectTo:/m, 'redirectTo se ignora en silencio en el chart de Traefik >= 34');
 });
+
+test('🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación', async () => {
+  // Regresión: con default-deny, allow-postgres-ingress solo admitía api y
+  // db-seeder; pg_dump recibía "Connection refused" y no se generaba ningún backup.
+  const { execSync } = await import('node:child_process');
+  const rendered = execSync(
+    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
+    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
+  );
+  const docs = (yaml.loadAll(rendered) as any[]).filter(Boolean);
+  const policy = docs.find((d) => d.kind === 'NetworkPolicy' && d.metadata.name.endsWith('-allow-postgres-ingress'));
+  assert.ok(policy, 'Debe existir la NetworkPolicy de ingreso a PostgreSQL');
+  const allowed = policy.spec.ingress.flatMap((r: any) => r.from.map((f: any) => f.podSelector?.matchLabels?.['app.kubernetes.io/component']));
+
+  const clientComponents = docs
+    .filter((d) => d.kind === 'CronJob')
+    .filter((cj) => cj.spec.jobTemplate.spec.template.spec.containers.some((c: any) => (c.env ?? []).some((e: any) => e.name === 'PGHOST')))
+    .map((cj) => cj.spec.jobTemplate.spec.template.metadata.labels['app.kubernetes.io/component']);
+  assert.ok(clientComponents.length >= 2, 'Deben existir los CronJobs que se conectan a PostgreSQL');
+  for (const component of clientComponents) {
+    assert.ok(allowed.includes(component), `allow-postgres-ingress no admite a "${component}" (${allowed.join(', ')})`);
+  }
+});

@@ -233,6 +233,16 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: db-seeder
+        {{- if and .Values.backup .Values.backup.enabled }}
+        # Backup (pg_dump) y verificación de restauración (base efímera). Sin estas
+        # reglas el default-deny rechazaba sus conexiones y ningún backup se generaba.
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: backup
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: dr-verification
+        {{- end }}
       ports:
         - protocol: TCP
           port: 5432
