@@ -333,7 +333,7 @@ traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
 traefik.ingress.kubernetes.io/router.tls: "true"
 ```
 
-- **Redirección 308 `web → websecure`:** es global de Traefik. La configura `setup_k3s.yaml` (`task k3s:setup:proxmox`) con el manifiesto `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml`, que K3s aplica sin intervención.
+- **Redirección permanente (301) `web → websecure`:** es global de Traefik (`ports.web.http.redirections`). La configura `setup_k3s.yaml` (`task k3s:setup:proxmox`) con el manifiesto `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml`, que K3s aplica sin intervención.
 - **Certificado:** un único certificado por entorno con todos los hosts de `ingress.tls`, firmado por la CA interna que ya valida Vault. ESO lo sincroniza como Secret `pokedex-tls-cert` (`kubernetes.io/tls`).
 
 No se requiere desplegar Nginx Ingress Controller adicional en Proxmox, reduciendo el consumo de memoria y la complejidad operacional.
@@ -387,6 +387,13 @@ El relevamiento del 2026-10-04 encontró pre-prod desplegado con un `helm instal
 5. **Retirar la propiedad de Helm sin borrar recursos:** guardar `helm get values pokedex -n pokemon-app` y eliminar los Secrets `sh.helm.release.v1.pokedex.*`. Luego `kubectl -n pokemon-app delete sts postgres --cascade=orphan`: el Pod y el PVC quedan y ArgoCD recrea el StatefulSet con el mismo `volumeClaimTemplate`.
 6. **Sincronización:** ArgoCD adopta los recursos de `pokedex-preprod`. Los objetos con nombre derivado del release (`pokedex-*`) se crean con el prefijo `pokedex-preprod-*`, y los huérfanos del release manual se eliminan a mano.
 7. **DNS y CA:** `pokedex.preprod.proxmox.internal.lan` y `k8s-preprod.internal.lan` → `10.10.13.100`, y distribuir la CA interna a los clientes.
+8. **Redirección HTTP → HTTPS:** si K3s no se instaló con `setup_k3s.yaml`, aplicar a mano su `HelmChartConfig` de Traefik (`ports.web.http.redirections`).
+
+**Lecciones del pasaje del 2026-10-04:**
+
+- El PVC de backup queda `Pending` hasta la primera ejecución del CronJob (`local-path` es `WaitForFirstConsumer`). Sin el health check de `PersistentVolumeClaim` de `gitops/health-checks/`, ArgoCD espera ese PVC indefinidamente.
+- Huérfanos del release manual que se eliminaron a mano: `deploy/pokedex-web`, `ingress/pokedex-ingress`, los CronJobs `pokedex-db-backup` y `pokedex-dr-restore-verify` (y sus Jobs), `cm/postgres-init-sql`, las NetworkPolicies, PDBs, `ResourceQuota` y `LimitRange` con prefijo `pokedex-`. Una `ResourceQuota` duplicada suma restricciones, así que no conviene dejarla.
+- El `ExternalSecret` adopta el Secret `pokemon-secrets` existente sin cortar los Pods, porque sus variables ya están cargadas.
 
 **Rollback:** antes del paso 5 alcanza con desinstalar ArgoCD y ESO, porque el release manual sigue intacto. Después, `helm install pokedex` con los values guardados y `pg_restore` del backup.
 

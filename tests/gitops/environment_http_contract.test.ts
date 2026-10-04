@@ -18,6 +18,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import { parseDirectoryExclude } from '../helpers/argocd.js';
 
 const ROOT_DIR = process.cwd();
 const CHART_DIR = path.join(ROOT_DIR, 'infra/helm/pokedex');
@@ -44,8 +45,7 @@ function mergeValues(base: Values, override: Values): Values {
 /** Applications activas: las de gitops/apps/ que root-application.yaml no excluye. */
 function activeEnvironments(): Array<{ app: string; values: Values; valueFiles: string[] }> {
   const appsDir = path.join(ROOT_DIR, 'gitops/apps');
-  const root = readYaml(path.join(appsDir, 'root-application.yaml'));
-  const excluded = String(root.spec.source.directory.exclude).split(/\s+/).filter(Boolean);
+  const excluded = parseDirectoryExclude(fs.readFileSync(path.join(appsDir, 'root-application.yaml'), 'utf-8'));
 
   return fs
     .readdirSync(appsDir)

@@ -79,8 +79,8 @@
     # 3b. Redirección HTTP → HTTPS de Traefik (ADR-016, AUD-SEC-TLS-001)
     # --------------------------------------------------------------------------
     # K3s aplica automáticamente los manifiestos de este directorio. El chart de
-    # Traefik que incluye k3s_version (v27) redirige el entrypoint web a websecure
-    # con 308 mediante ports.web.redirectTo. Los Ingress de la aplicación se
+    # Traefik de K3s 1.36 (chart 40) redirige el entrypoint web a websecure con
+    # 301 mediante ports.web.http.redirections. Los Ingress de la aplicación se
     # publican solo en websecure con el certificado de la CA interna.
     - name: Configurar redirección global web → websecure en Traefik
       ansible.builtin.copy:
@@ -96,10 +96,17 @@
             namespace: kube-system
           spec:
             valuesContent: |-
+              # Chart de Traefik >= 34 (K3s 1.36 trae el 40): la redirección vive en
+              # ports.web.http.redirections. La clave anterior `redirectTo` se ignora
+              # en silencio y el puerto 80 responde 404 en lugar de redirigir.
               ports:
                 web:
-                  redirectTo:
-                    port: websecure
+                  http:
+                    redirections:
+                      entryPoint:
+                        to: websecure
+                        scheme: https
+                        permanent: true
 
     # --------------------------------------------------------------------------
     # 4. Despliegue Declarativo de Cilium CNI vía Helm
