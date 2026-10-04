@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T20:20:04.069Z",
+  "generatedAt": "2026-10-04T21:50:54.029Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 577,
-    "totalLines": 15392,
-    "totalSizeBytes": 705509,
+    "totalLines": 15386,
+    "totalSizeBytes": 704980,
     "suitesCount": 9
   },
   "suites": [
@@ -1399,9 +1399,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 38,
-      "sizeBytes": 12289,
-      "lineCount": 195,
-      "sha256": "ba66d7dbb0da6f24e4ee464ec3f3614845d3ef5c1798151e8344a6dd1e9c9fed",
+      "sizeBytes": 11966,
+      "lineCount": 196,
+      "sha256": "acd9b229aa71b98042921efb7500dbc6345aa045c28e035a634c098fbea3eb43",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1438,27 +1438,27 @@
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea",
-          "line": 92
+          "line": 105
         },
         {
           "name": "🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)",
-          "line": 115
+          "line": 124
         },
         {
           "name": "🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates",
-          "line": 123
+          "line": 132
         },
         {
           "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
-          "line": 135
+          "line": 144
         },
         {
           "name": "🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación",
-          "line": 141
+          "line": 150
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail",
-          "line": 164
+          "line": 169
         }
       ]
     },
@@ -2475,9 +2475,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 127,
-      "sizeBytes": 22073,
-      "lineCount": 321,
-      "sha256": "e3a4cac202c7743356a5d43c27cab8f13b93236c97a4f4c4611b6cc38ad9fd43",
+      "sizeBytes": 21867,
+      "lineCount": 314,
+      "sha256": "96c276e2555fbd49d245fe601c1c9bf2e6afe347af428f748e9b7a18063fe24b",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -2521,19 +2521,19 @@
         },
         {
           "name": "🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)",
-          "line": 166
+          "line": 159
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC",
-          "line": 206
+          "line": 199
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (fail-closed) si GDRIVE_TOKEN está ausente o vacío",
-          "line": 273
+          "line": 266
         },
         {
           "name": "🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)",
-          "line": 314
+          "line": 307
         }
       ]
     },
