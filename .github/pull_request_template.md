@@ -29,7 +29,7 @@
 
 - [ ] `apps/backend` (API Express & Node.js 22 LTS / Gemini AI SDK / PostgreSQL / Redis)
 - [ ] `apps/frontend` (SPA Vanilla HTML5/CSS3 / Nginx Alpine)
-- [ ] `infra` (Helm Chart / OpenTofu Proxmox & AWS / K8s / Vault CE & ESO / ArgoCD)
+- [ ] `infra` (Helm Chart / OpenTofu Proxmox & Cloud Template / K8s / Vault CE & ESO / ArgoCD)
 - [ ] `scripts` (Scripts de sincronización Linear/Sonar, auditoría o seeders)
 - [ ] `docs` / `.github` (Documentación técnica, Workflows CI/CD, Templates)
 

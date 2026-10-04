@@ -63,7 +63,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task platform:eso:vault-store VAULT_CA=<ruta>` | Publica la CA de Vault (`vault-ca`) y aplica el `ClusterSecretStore` de pre-prod. |
 | | `task platform:argocd:install` | Instala ArgoCD desde el manifiesto oficial fijado por versión. |
 | **GitOps (ArgoCD)** | `task gitops:apps:root` | Sincroniza la aplicación App-of-Apps en el clúster. |
-| | `task gitops:sync:proxmox` | Fuerza sincronización declarativa para Proxmox VE. |
+| | `task gitops:sync:preprod` | Sincroniza la aplicación ArgoCD de pre-prod en Proxmox VE (ADR-030). |
+| | `task gitops:sync:proxmox` | Alias de compatibilidad para sincronización en Proxmox VE. |
 | | `task gitops:sync:cloud` | Fuerza sincronización del blueprint prod cloud (solo tras activarlo, ADR-030). |
 | | `task gitops:health-checks` | Aplica evaluadores de salud personalizados para CRDs. |
 | **Seguridad & Egress L7** | `task security:egress` | Ejecuta pruebas automatizadas de política de egress L7 Anti-SSRF. |

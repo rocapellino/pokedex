@@ -140,8 +140,13 @@ tasks:
     cmds:
       - node --experimental-strip-types scripts/update-gitops-pin.ts --check
 
+  gitops:sync:preprod:
+    desc: "Sincroniza la aplicación ArgoCD de pre-prod en Proxmox VE (ADR-030)"
+    cmds:
+      - argocd app sync pokedex-preprod
+
   gitops:sync:proxmox:
-    desc: "Sincroniza la aplicación ArgoCD de pre-prod, el único entorno Proxmox (ADR-030)"
+    desc: "Alias de compatibilidad para sincronizar la aplicación ArgoCD de pre-prod en Proxmox (ADR-030)"
     cmds:
       - argocd app sync pokedex-preprod
 
@@ -167,7 +172,7 @@ tasks:
       - kubectl get applications -n argocd
 
   gitops:verify-parity:
-    desc: "Valida la paridad de digest criptográfico entre entornos GitOps (AWS, Proxmox, Pre-prod, Prod)"
+    desc: "Valida la paridad de digest criptográfico entre entornos GitOps (Pre-prod Proxmox, Cloud Blueprint y Helm Prod)"
     cmds:
       - node --experimental-strip-types scripts/verify-image-digest-parity.ts
 
