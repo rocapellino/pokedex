@@ -109,7 +109,7 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['.agents/aas/aas-stack.json'],
     description: 'Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas.',
   },
-  'tests/api-limits.test.ts': {
+  'tests/integration/api-limits.test.ts': {
     type: 'Integration',
     targetDomain: 'Backend HTTP API / Rate Limiting',
     targetArtifacts: ['apps/backend/src/middleware/rate-limiter.ts', 'apps/backend/server.ts'],
@@ -127,7 +127,7 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['scripts/detect-change-impact.ts', '.agents/skills/_shared/change-impact-matrix.md'],
     description: 'Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed.',
   },
-  'tests/concurrency.test.ts': {
+  'tests/integration/concurrency.test.ts': {
     type: 'Integration',
     targetDomain: 'Concurrencia y Consistencia de Almacenamiento',
     targetArtifacts: ['apps/backend/src/services/db.ts'],
@@ -187,7 +187,7 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/'],
     description: 'Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.',
   },
-  'tests/storage.test.ts': {
+  'tests/integration/storage.test.ts': {
     type: 'Integration',
     targetDomain: 'Capa de Persistencia y Caché',
     targetArtifacts: ['apps/backend/src/services/db.ts', 'apps/backend/src/services/cache.ts'],
@@ -199,7 +199,7 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['package.json', 'apps/backend/package.json', 'apps/frontend/package.json', 'infra/helm/pokedex/Chart.yaml'],
     description: 'Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm).',
   },
-  'tests/version.test.ts': {
+  'tests/integration/version.test.ts': {
     type: 'Integration',
     targetDomain: 'Endpoint de Telemetría /version',
     targetArtifacts: ['apps/backend/server.ts'],
@@ -414,6 +414,13 @@ const SUITES_DEFINITION: Record<string, {
     command: 'npm run test:unit',
     description: 'Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.',
   },
+  integration: {
+    name: 'Pruebas de Integración de API y Servicios',
+    path: 'tests/integration',
+    runner: 'node:test (tsx)',
+    command: 'npm run test:integration',
+    description: 'Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión.',
+  },
   security: {
     name: 'Seguridad, Hardening y DevSecOps',
     path: 'tests/security',
@@ -575,6 +582,9 @@ export function parseTestFile(fullPath: string): TestFileRecord {
       npmCommands.push('npm test', 'npm run test:all', 'npm run test:coverage');
       if (relativePath.startsWith('tests/unit/')) {
         npmCommands.push('npm run test:unit');
+      }
+      if (relativePath.startsWith('tests/integration/')) {
+        npmCommands.push('npm run test:integration');
       }
       if (relativePath.startsWith('tests/security/') || relativePath === 'tests/security.test.ts' || relativePath === 'tests/pentest.test.ts') {
         npmCommands.push('npm run test:security');

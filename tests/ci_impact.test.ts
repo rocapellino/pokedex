@@ -386,7 +386,7 @@ test('🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) 
 
 test('🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes', () => {
   const result = analyzeChangeImpact({
-    files: ['tests/unit/pokemon.test.ts', 'tests/storage.test.ts'],
+    files: ['tests/unit/pokemon.test.ts', 'tests/integration/storage.test.ts'],
     configPath: CONFIG_PATH,
   });
 

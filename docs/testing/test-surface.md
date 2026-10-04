@@ -18,8 +18,8 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Total de Casos de Prueba Identificados** | **577** |
 | **Líneas de Código de Pruebas** | 15.386 |
 | **Tamaño Total de la Suite** | 688.5 KB |
-| **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-04T21:50:54.029Z |
+| **Suites Especializadas Gobernadas** | 10 |
+| **Última Sincronización** | 2026-10-04T23:06:13.139Z |
 
 ---
 
@@ -28,6 +28,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 11 | 75 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 24 | 204 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 40 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 5 | 49 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
@@ -35,7 +36,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 18 | 184 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 14 | 158 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -46,12 +47,10 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | Archivo | Suite | Tipo | Runner | Casos | Líneas | Dominio / Qué Verifica | Comandos |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 147 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts) | `governance` | Integration | `node:test (tsx)` | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 86 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **33** | 760 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **17** | 480 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 186 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | `governance` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 126 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **5** | 108 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
@@ -71,6 +70,10 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/helpers/argocd.ts`](../../tests/helpers/argocd.ts) | `helpers` | Helper | `none` | **0** | 18 | Suite de pruebas helpers: argocd.ts. | *(Helper)* |
 | [`tests/helpers/docs-portal.ts`](../../tests/helpers/docs-portal.ts) | `helpers` | Helper | `none` | **0** | 25 | Suite de pruebas helpers: docs-portal.ts. | *(Helper)* |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 27 | Suite de pruebas helpers: taskfile.ts. | *(Helper)* |
+| [`tests/integration/api-limits.test.ts`](../../tests/integration/api-limits.test.ts) | `integration` | Integration | `node:test (tsx)` | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/concurrency.test.ts`](../../tests/integration/concurrency.test.ts) | `integration` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | `integration` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/version.test.ts`](../../tests/integration/version.test.ts) | `integration` | Integration | `node:test (tsx)` | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **7** | 78 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/pentest.test.ts`](../../tests/pentest.test.ts) | `governance` | Security / Pentest | `node:test (tsx)` | **28** | 627 | Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) | `performance` | Load / Stress | `k6` | **4** | 167 | Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios. | `k6 run tests/performance/k6_stress_test.js` |
@@ -103,7 +106,6 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **12** | 207 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 130 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/storage.test.ts`](../../tests/storage.test.ts) | `governance` | Integration | `node:test (tsx)` | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/unit/ai_security.test.ts`](../../tests/unit/ai_security.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **11** | 155 | Suite de pruebas unit: ai_security.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 262 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -116,7 +118,6 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **16** | 147 | Suite de pruebas unit: seed_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 101 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/version.test.ts`](../../tests/version.test.ts) | `governance` | Integration | `node:test (tsx)` | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 
 ---
 
@@ -142,6 +143,18 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | **8** | 196 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `apps/backend/src/services/pokemon.repository.ts` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | **16** | 147 | Suite de pruebas unit: seed_catalog.test.ts. | *(General)* |
+
+### Suite: Pruebas de Integración de API y Servicios (`integration`)
+
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:integration` | **Total Casos:** 26
+- **Propósito:** Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión.
+
+| Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
+| :--- | :---: | :---: | :--- | :--- |
+| [`tests/integration/api-limits.test.ts`](../../tests/integration/api-limits.test.ts) | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/server.ts` |
+| [`tests/integration/concurrency.test.ts`](../../tests/integration/concurrency.test.ts) | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `apps/backend/src/services/db.ts` |
+| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts` |
+| [`tests/integration/version.test.ts`](../../tests/integration/version.test.ts) | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `apps/backend/server.ts` |
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
@@ -241,17 +254,15 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Gobernanza y Contratos de Plataforma (Root) (`governance`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 184
+- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 158
 - **Propósito:** Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **10** | 147 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
-| [`tests/api-limits.test.ts`](../../tests/api-limits.test.ts) | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/server.ts` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | **6** | 86 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `docs/audits/` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **33** | 760 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **17** | 480 | Suite de pruebas governance: ci_workflow_governance.test.ts. | *(General)* |
-| [`tests/concurrency.test.ts`](../../tests/concurrency.test.ts) | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `apps/backend/src/services/db.ts` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | **3** | 101 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `apps/backend/src/types.ts`, `apps/frontend/src/types.ts` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | **2** | 126 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `docs/decisions/`, `.agents/rules/documentation-governance.md` |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | **7** | 78 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `scripts/lint-markdown.ts`, `.markdownlint.json` |
@@ -261,9 +272,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts) | **10** | 254 | Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub. | `.github/rulesets/main-protection.json`, `scripts/check-ruleset-parity.ts` |
 | [`tests/security.test.ts`](../../tests/security.test.ts) | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `apps/backend/server.ts`, `apps/backend/src/middleware/` |
 | [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | *(General)* |
-| [`tests/storage.test.ts`](../../tests/storage.test.ts) | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | **3** | 101 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `package.json`, `apps/backend/package.json`, `apps/frontend/package.json`, `infra/helm/pokedex/Chart.yaml` |
-| [`tests/version.test.ts`](../../tests/version.test.ts) | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `apps/backend/server.ts` |
 
 ---
 
