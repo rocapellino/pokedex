@@ -41,9 +41,27 @@ async function handleResponse<T>(res: Response): Promise<T> {
 // Catálogo Público de Pokémon
 // ----------------------------------------------------------------------------
 
+/** Página máxima que acepta la API (`MAX_PAGE_SIZE` en apps/backend/src/utils/pagination.ts). */
+export const CATALOG_PAGE_SIZE = 100;
+
+/**
+ * Descarga el catálogo completo recorriendo la API por páginas.
+ *
+ * `GET /pokemons` sin parámetros devuelve solo la primera página (50) e informa
+ * el total en `X-Total-Count`. La vista pública filtra y pagina del lado del
+ * cliente, así que necesita todas las entradas: con el catálogo nacional
+ * (1025) mostraba solo las primeras 50.
+ */
 export async function fetchAllPokemons(): Promise<Pokemon[]> {
-  const res = await fetch('/pokemons');
-  return handleResponse<Pokemon[]>(res);
+  const all: Pokemon[] = [];
+  let total = Number.POSITIVE_INFINITY;
+  while (all.length < total) {
+    const page = await fetchPokemonsWithCount({ offset: all.length, limit: CATALOG_PAGE_SIZE });
+    total = page.total;
+    if (page.pokemons.length === 0) break; // el total cambió durante la descarga
+    all.push(...page.pokemons);
+  }
+  return all;
 }
 
 export async function fetchPokemonsWithCount(params: {
@@ -57,10 +75,10 @@ export async function fetchPokemonsWithCount(params: {
   const query = new URLSearchParams();
   if (params.offset !== undefined) query.set('offset', String(params.offset));
   if (params.limit !== undefined) query.set('limit', String(params.limit));
-  
+
   const searchVal = params.nombre || params.search;
   if (searchVal?.trim()) query.set('nombre', searchVal.trim());
-  
+
   const typeVal = params.tipo || params.type;
   if (typeVal && typeVal !== 'all') query.set('tipo', typeVal);
 
