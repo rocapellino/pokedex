@@ -32,6 +32,7 @@ global:
     - ".github/workflows/**"
     # Matriz y motor de análisis de impacto requieren validación global integral
     - ".github/ci-impact.yaml"
+    - ".github/pull_request_template.md"
     - "scripts/detect-change-impact.ts"
     - "scripts/validate-pr-body.ts"
     - "tests/pr_template_governance.test.ts"

@@ -29,7 +29,7 @@
 
 - [ ] `apps/backend` (API Express & Node.js 22 LTS / Gemini AI SDK / PostgreSQL / Redis)
 - [ ] `apps/frontend` (SPA Vanilla HTML5/CSS3 / Nginx Alpine)
-- [ ] `infra` (Helm Chart / OpenTofu Proxmox & Cloud Template / K8s / Vault CE & ESO / ArgoCD)
+- [ ] `infra` (Helm Chart / OpenTofu Proxmox Pre-prod LXC 800 / Cloud Blueprint Inactivo / K8s K3s / Vault CE & ESO / ArgoCD)
 - [ ] `scripts` (Scripts de sincronización Linear/Sonar, auditoría o seeders)
 - [ ] `docs` / `.github` (Documentación técnica, Workflows CI/CD, Templates)
 
@@ -46,11 +46,10 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 
 <!-- INICIO TABLA GENERADA: sustituir el bloque de abajo por la tabla que emite el comando. -->
 
-| Dominio | Estado | Pipeline / Quality Gate |
+| Dominio / Calidad | Impacto | Pipeline / Quality Gate |
 | :--- | :---: | :--- |
-| **Nivel Always: PR Governance** | — | `PR template & políticas de calidad` |
-| **Nivel Always: Secrets Scan** | — | `Gitleaks Detector` |
 | **Documentation** | — | `docs-ci (Fast Track)` |
+| **Agent Governance** | — | `ci.yaml (aas-governance)` |
 | **Backend Core** | — | `ci.yaml (code-quality)` |
 | **Frontend SPA** | — | `ci.yaml & web.yaml` |
 | **Unit & Integration Tests** | — | `npm test & fuzzing` |
@@ -59,12 +58,14 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 | **Helm Packaging** | — | `helm lint & parity` |
 | **OpenTofu IaC** | — | `infra.yaml (Tofu)` |
 | **Ansible Baseline** | — | `infra.yaml (Ansible)` |
-| **Linting & Config Hygiene** | — | `MegaLinter & lint:ignore` |
-| **Security: SAST** | — | `Semgrep` |
-| **Security: SCA** | — | `Dependency Review` |
-| **Security: Container** | — | `Trivy Image Scan` |
-| **Security: IaC** | — | `Checkov IaC` |
-| **Security: Supply Chain** | — | `Cosign, SBOM & Digest` |
+| **Linting & Configuration Hygiene** | — | `MegaLinter & npm run lint:ignore` |
+| **PR Governance (always)** | — | `PR template & políticas de calidad` |
+| **Security: Secrets Scan (always)** | — | `Gitleaks Detector` |
+| **Security: SAST Code** | — | `Semgrep` |
+| **Security: Dependencies SCA** | — | `Dependency Review` |
+| **Security: Container Scan** | — | `Trivy Image Scan` |
+| **Security: IaC & K8s Scan** | — | `Checkov IaC` |
+| **Security: Supply Chain / SBOM** | — | `Cosign, SBOM & Digest` |
 
 <!-- FIN TABLA GENERADA. -->
 
