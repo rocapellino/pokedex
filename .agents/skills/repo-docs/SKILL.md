@@ -136,3 +136,4 @@ La skill debe auditar y reportar como hallazgo P1/P2 cualquier mención a:
 - **Drift y Verificación de Claims:** [documentation-drift.md](references/documentation-drift.md)
 - **Registro de Fuentes de Verdad:** [source-of-truth.md](../_shared/source-of-truth.md)
 - **Matriz de Impacto en Documentación:** [documentation-impact-matrix.md](../_shared/documentation-impact-matrix.md)
+- **Referencias Externas Aprobadas (AAS):** para patrones de ADRs y trazabilidad documental, consultar `documentation-and-adrs` en [aas-references.md](../_shared/aas-references.md).

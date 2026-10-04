@@ -106,3 +106,4 @@ Reglas propias de esta skill:
 - **Regla Cardenal:** Una auditoría histórica nunca puede utilizarse como evidencia del estado actual del repositorio.
 - **Reporte:** Estructurar los informes de revisión siguiendo [report-template.md](../_shared/report-template.md).
 - **Planes de Cambio:** Si la preparación del PR evidencia drift no resuelto, planificarlo mediante [change-plan.md](../_shared/change-plan.md).
+- **Referencias Externas Aprobadas (AAS):** para heurísticas de revisión rigurosa y prevención de regresiones, consultar `code-review-excellence` en [aas-references.md](../_shared/aas-references.md).

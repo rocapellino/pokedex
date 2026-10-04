@@ -37,3 +37,4 @@ Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): 
 Reglas propias de esta skill:
 
 - **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.
+- **Referencias Externas Aprobadas (AAS):** para auditoría y evaluación de riesgos en la cadena de suministro de dependencias, consultar `dependency-scanning` en [aas-references.md](../_shared/aas-references.md).

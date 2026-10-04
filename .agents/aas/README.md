@@ -27,6 +27,14 @@ La selección está limitada a ocho referencias: diagnóstico sistemático, audi
 skills, code review, dependencias, documentación y ADR, arquitectura, GitOps y hardening
 de Kubernetes.
 
+## Integración Funcional en Skills Locales
+
+Las directrices metodológicas de las ocho referencias están formalizadas en:
+
+- [`.agents/skills/_shared/aas-references.md`](../skills/_shared/aas-references.md)
+
+Cada skill local responsable (`repo-architecture`, `repo-security`, `repo-docs`, `repo-quality`, `repo-refactor`, `repo-lifecycle`, `repo-pr`, `repo-dependencies`, `repo-release`) enlaza a estas directrices en sus reglas propias. Esto permite a cualquier agente consultar sus patrones de diagnóstico, hardening y buenas prácticas de forma determinista y subordinada a la autoridad del repositorio, sin depender de red ni materializar código upstream.
+
 ## Verificación
 
 ```bash

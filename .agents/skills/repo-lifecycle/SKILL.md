@@ -246,3 +246,4 @@ declarar los metadatos de la sección *Identificación* de
 - **Planes de Cambio:** [change-plan.md](../_shared/change-plan.md)
 - **Quality Gate de Markdown:** [markdown-quality.md](../_shared/markdown-quality.md)
 - **Plantilla de Reporte:** [report-template.md](../_shared/report-template.md)
+- **Referencias Externas Aprobadas (AAS):** para auditoría del catálogo de habilidades y prevención de sobre-gobernanza, consultar `project-skill-audit` en [aas-references.md](../_shared/aas-references.md).
