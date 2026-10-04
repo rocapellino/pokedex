@@ -392,9 +392,9 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   const taxonomyContent = fs.readFileSync(taxonomyPath, 'utf-8');
   assert.ok(taxonomyContent.includes('pokemon-app (SSOT Canónico)'), 'Taxonomía debe formalizar pokemon-app como SSOT');
   assert.ok(taxonomyContent.includes('pokedex-preprod-role'), 'Taxonomía debe documentar pokedex-preprod-role');
-  assert.ok(taxonomyContent.includes('pokedex-prod-role'), 'Taxonomía debe documentar pokedex-prod-role');
   assert.ok(taxonomyContent.includes('secret/data/pokedex/preprod/*'), 'Taxonomía debe documentar ruta de secretos preprod');
-  assert.ok(taxonomyContent.includes('secret/data/pokedex/prod/*'), 'Taxonomía debe documentar ruta de secretos prod');
+  assert.ok(taxonomyContent.includes('pokedex/prod'), 'Taxonomía debe documentar la ruta pokedex/prod reservada para el blueprint cloud');
+  assert.ok(!taxonomyContent.includes('pokedex-prod-role'), 'ADR-030: la taxonomía no debe documentar el rol de la prod Proxmox retirada');
 
   // 2. docs/README.md enlaza la taxonomía
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
@@ -457,9 +457,5 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
     /pokedex-preprod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,
     'pokedex-preprod-role en setup_vault.yml debe incluir pokemon-app'
   );
-  assert.match(
-    setupVault,
-    /pokedex-prod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,
-    'pokedex-prod-role en setup_vault.yml debe incluir pokemon-app'
-  );
+  assert.doesNotMatch(setupVault, /pokedex-prod-role/, 'ADR-030: setup_vault.yaml no debe crear el rol de la prod Proxmox retirada');
 });

@@ -71,7 +71,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)
 
-- **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/` - ACTIVE):** Provisión bi-modal declarativa de nodos Kubernetes: contenedores **LXC** ultralivianos para Pre-Prod y máquinas virtuales **KVM** con aislamiento estricto de hardware para Producción.
+- **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/` - ACTIVE):** Provisión declarativa del nodo K3s de pre-prod en un contenedor **LXC** (LXC 800, `10.10.13.100`), más Vault (LXC 810) y Bastion (LXC 820). Proxmox no aloja producción (ADR-030).
 - **Cloud Template (`infra/opentofu/environments/cloud-template/` - REFERENCE):** Base agnóstica del blueprint prod cloud (ADR-030). Se valida en CI sin credenciales y se completa con los recursos del proveedor al activarlo.
 - Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
 

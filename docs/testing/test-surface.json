@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T17:13:30.507Z",
+  "generatedAt": "2026-10-04T17:15:50.178Z",
   "summary": {
     "totalFiles": 69,
     "testFiles": 65,
     "helperFiles": 3,
     "performanceScripts": 1,
     "totalTestCases": 560,
-    "totalLines": 15116,
-    "totalSizeBytes": 687030,
+    "totalLines": 15092,
+    "totalSizeBytes": 686675,
     "suitesCount": 9
   },
   "suites": [
@@ -2095,10 +2095,10 @@
       "runner": "node:test (tsx)",
       "testCount": 12,
       "describeCount": 0,
-      "assertionCountEst": 79,
-      "sizeBytes": 19504,
-      "lineCount": 373,
-      "sha256": "d082027ea141106655607790c7507cdb6ec85012197ed1406e50043880b8989e",
+      "assertionCountEst": 80,
+      "sizeBytes": 19868,
+      "lineCount": 377,
+      "sha256": "d0bfb161da545447228eb66a10e6944c3fa2104bbfffa70bc42766c15daa87ad",
       "targetDomain": "Hardening de Host, Redes y Ansible Baseline",
       "targetArtifacts": [
         "infra/ansible/"
@@ -2149,19 +2149,19 @@
         },
         {
           "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
-          "line": 223
+          "line": 227
         },
         {
           "name": "🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta",
-          "line": 272
+          "line": 276
         },
         {
           "name": "🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos",
-          "line": 321
+          "line": 325
         },
         {
           "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
-          "line": 331
+          "line": 335
         }
       ]
     },
@@ -2949,9 +2949,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 139,
-      "sizeBytes": 28863,
-      "lineCount": 466,
-      "sha256": "b2f4065f45f5f35e67cd19c4d8dd0ec316cd7c20d51c9d10c24e301f83d83edd",
+      "sizeBytes": 28861,
+      "lineCount": 462,
+      "sha256": "d8da754402fd70b36a94678a493a7eb9eaf29f81394f32514491d990cbf1f4e9",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -3123,9 +3123,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 66,
-      "sizeBytes": 16681,
-      "lineCount": 326,
-      "sha256": "e596e7f6b286a6b295403325e4ef32ff02bc54ba4515017a0c2770779cf171ac",
+      "sizeBytes": 16116,
+      "lineCount": 303,
+      "sha256": "5a33781fefb93bad5561d8a00713ab3b2aa34914b743899ac798a1107aef0954",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -3160,23 +3160,23 @@
         },
         {
           "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 164
+          "line": 142
         },
         {
           "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 210
+          "line": 187
         },
         {
           "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 239
+          "line": 216
         },
         {
           "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 279
+          "line": 256
         },
         {
           "name": "🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)",
-          "line": 315
+          "line": 292
         }
       ]
     },
@@ -3404,10 +3404,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 76,
-      "sizeBytes": 12948,
-      "lineCount": 187,
-      "sha256": "58b7d6b45715f6f954a57498cdd5158bc09d0cd8477c5f06df575f41a671b9a8",
+      "assertionCountEst": 74,
+      "sizeBytes": 12796,
+      "lineCount": 186,
+      "sha256": "55a5a0701c512cbe4fc01ba21ae61a765096f171e44ed1f4d99dd882bcf53491",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
@@ -3458,11 +3458,11 @@
         },
         {
           "name": "🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y políticas operativas",
-          "line": 115
+          "line": 114
         },
         {
           "name": "📊 DR & SLA Canonical Contract: Unificación de SLA (99.5%), RPO (< 24h) y RTO (< 2h) en SSOT arquitectural",
-          "line": 163
+          "line": 162
         }
       ]
     },

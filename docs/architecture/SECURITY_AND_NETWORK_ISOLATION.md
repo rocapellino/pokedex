@@ -242,6 +242,6 @@ El backend `server.ts` implementa principios de seguridad estricta para evitar e
 - **Cero Secretos en Claro en Git:** Ningún archivo de configuración contiene contraseñas reales. Se provee exclusivamente [`.env.example`](../../.env.example).
 - **Detección Preventiva con Gitleaks:** Hook local de pre-commit y pipeline [`.github/workflows/security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml) con reglas estrictas ([`.gitleaks.toml`](../../.gitleaks.toml)).
 - **Desacoplamiento Canónico con External Secrets Operator (ESO) y HashiCorp Vault CE:**
-  - En entornos on-premise (Proxmox VE), ESO sincroniza credenciales desde **HashiCorp Vault CE** (LXC 810 con almacenamiento Raft, TLS 1.2+ y roles RBAC segregados `pokedex-prod-role` y `pokedex-preprod-role`).
+  - En entornos on-premise (Proxmox VE), ESO sincroniza credenciales desde **HashiCorp Vault CE** (LXC 810 con almacenamiento Raft, TLS 1.2+ y el rol RBAC `pokedex-preprod-role`; `pokedex/prod` queda reservada para el blueprint cloud, ADR-030).
   - En el blueprint prod cloud (inactivo, ADR-030), ESO sincroniza desde el backend elegido al activarlo, mediante `ClusterSecretStore/cloud-secret-store`.
   - El Chart de Helm desacopla el nombre mediante `pokedex.secretName` (`secrets.existingSecret: "pokemon-secrets"`), erradicando el almacenamiento de secretos en Git. Bitnami Sealed Secrets fue formalmente retirado bajo `CLN-002`.

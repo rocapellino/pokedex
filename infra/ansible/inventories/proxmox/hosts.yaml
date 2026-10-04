@@ -16,6 +16,7 @@ all:
     k8s_control_plane:
       hosts:
         k8s-master-01:
+          # LXC 800 `pokedex-k8s-node` (nodo único de pre-prod).
           ansible_host: 10.10.13.100
           # INFRA-003: los contenedores LXC de Proxmox solo admiten claves SSH
           # para la cuenta `root` (el provider no expone `username` en
@@ -26,16 +27,11 @@ all:
           # con este contrato.
           ansible_user: root
           node_role: control-plane
+    # ADR-030: pre-prod es K3s mononodo en el LXC 800 (pokedex-k8s-node). Los workers
+    # 10.10.13.101/102 nunca se aprovisionaron (relevamiento 2026-10-04). El grupo se
+    # conserva vacío como punto de extensión del grupo k8s_cluster.
     k8s_workers:
-      hosts:
-        k8s-worker-01:
-          ansible_host: 10.10.13.101
-          ansible_user: root
-          node_role: worker
-        k8s-worker-02:
-          ansible_host: 10.10.13.102
-          ansible_user: root
-          node_role: worker
+      hosts: {}
     k8s_cluster:
       children:
         k8s_control_plane:
@@ -58,4 +54,3 @@ all:
 # recurso. Con `hosts: all` en los playbooks, el duplicado ejecutaba el
 # hardening dos veces sobre el mismo host. Los recursos reales de OpenTofu son
 # los nodos k3s (800+), vault (810) y bastion (820), todos declarados arriba.
-

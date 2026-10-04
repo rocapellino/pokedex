@@ -38,7 +38,7 @@ infra/opentofu/
 ├── README.md                      # Esta documentación de arquitectura y guía de uso
 ├── environments/
 │   ├── backend.tf.example         # Plantilla para estado remoto seguro (S3/GCS con SSE y bloqueo)
-│   ├── proxmox/                   # [ACTIVE] Backend On-Premise: Nodos Proxmox VE bi-modales (LXC / KVM)
+│   ├── proxmox/                   # [ACTIVE] Backend On-Premise: LXC K3s de pre-prod, Vault y Bastion
 │   │   ├── main.tf
 │   │   ├── providers.tf
 │   │   └── variables.tf

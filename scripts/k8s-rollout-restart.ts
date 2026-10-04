@@ -97,8 +97,11 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (!content.includes('community.general.ufw')) {
       reasons.push('setup_vault.yml debe configurar firewall perimetral UFW para puerto 8200');
     }
-    if (!content.includes('pokedex-prod-policy') || !content.includes('pokedex-prod-role') || !content.includes('pokedex-preprod-policy') || !content.includes('pokedex-preprod-role')) {
-      reasons.push('setup_vault.yml debe configurar políticas y roles segregados pokedex-prod-role y pokedex-preprod-role');
+    if (!content.includes('pokedex-preprod-policy') || !content.includes('pokedex-preprod-role')) {
+      reasons.push('setup_vault.yml debe configurar la política y el rol pokedex-preprod');
+    }
+    if (content.includes('pokedex-prod-policy') || content.includes('pokedex-prod-role')) {
+      reasons.push('setup_vault.yml no debe crear la política ni el rol de la prod Proxmox retirada (ADR-030)');
     }
     if (content.includes('auth/kubernetes/role/pokedex-role\n') || content.includes('auth/kubernetes/role/pokedex-role ') || content.includes('pokedex-policy.hcl')) {
       reasons.push('setup_vault.yml no debe incluir rol o política comodín pokedex-role/pokedex-policy (violación de Least Privilege)');
