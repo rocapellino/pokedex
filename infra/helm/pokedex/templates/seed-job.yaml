@@ -1,4 +1,15 @@
 {{- if .Values.seedJob.enabled }}
+{{- /*
+Siembra del catálogo (ADR-030).
+
+- Hook PostSync / post-install,post-upgrade: corre cuando PostgreSQL, Redis y
+  la API ya están sanos. Como PreSync corría antes de crear el StatefulSet de
+  PostgreSQL, fallaba en la primera instalación.
+- Imagen: por defecto, la misma de la API (mismo digest firmado con Cosign):
+  `dist/seed.cjs` forma parte de su build. `seedJob.image.repository` solo se
+  declara para usar una imagen distinta.
+- Entorno: el mismo ConfigMap y Secret que la API.
+*/ -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -9,9 +20,8 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
-    "argocd.argoproj.io/hook": PreSync
+    "argocd.argoproj.io/hook": PostSync
     "argocd.argoproj.io/hook-delete-policy": BeforeHookCreation,HookSucceeded
-    "argocd.argoproj.io/sync-wave": "1"
 spec:
   ttlSecondsAfterFinished: 300
   backoffLimit: 3
@@ -37,22 +47,23 @@ spec:
           type: RuntimeDefault
       containers:
         - name: db-seeder
-          image: "{{ .Values.seedJob.image.repository }}{{ if .Values.seedJob.image.digest }}{{ if .Values.seedJob.image.tag }}:{{ .Values.seedJob.image.tag }}{{ end }}@{{ .Values.seedJob.image.digest }}{{ else }}:{{ .Values.seedJob.image.tag | default "1.0.0" }}{{ end }}"
-          imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
+          image: "{{ if .Values.seedJob.image.repository }}{{ .Values.seedJob.image.repository }}{{ if .Values.seedJob.image.digest }}@{{ .Values.seedJob.image.digest }}{{ else }}:{{ .Values.seedJob.image.tag | default .Chart.AppVersion }}{{ end }}{{ else }}{{ .Values.api.image.repository }}{{ if .Values.api.image.digest }}@{{ .Values.api.image.digest }}{{ else }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}{{ end }}{{ end }}"
+          imagePullPolicy: {{ .Values.seedJob.image.pullPolicy | default .Values.api.image.pullPolicy | default "IfNotPresent" }}
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
           command: ["node", "dist/seed.cjs"]
           envFrom:
             - configMapRef:
-                name: {{ include "pokedex.fullname" . }}-config
+                name: pokemon-config
             - secretRef:
-                name: {{ include "pokedex.fullname" . }}-secrets
+                name: {{ include "pokedex.secretName" . }}
           env:
-            - name: POKEMON_LIMIT
-              value: "1025"
+            - name: SEED_DATASET
+              value: {{ .Values.seedJob.dataset | default "sample" | quote }}
             - name: FORCE_SEED
               value: {{ .Values.seedJob.forceSeed | default false | quote }}
           resources:
