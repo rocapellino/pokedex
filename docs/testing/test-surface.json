@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T15:05:11.296Z",
+  "generatedAt": "2026-10-04T15:47:19.753Z",
   "summary": {
-    "totalFiles": 68,
-    "testFiles": 64,
+    "totalFiles": 69,
+    "testFiles": 65,
     "helperFiles": 3,
     "performanceScripts": 1,
-    "totalTestCases": 555,
-    "totalLines": 15073,
-    "totalSizeBytes": 684669,
+    "totalTestCases": 560,
+    "totalLines": 15149,
+    "totalSizeBytes": 688587,
     "suitesCount": 9
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 10,
-      "testCases": 70,
+      "files": 11,
+      "testCases": 75,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -3862,6 +3862,54 @@
         {
           "name": "🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece",
           "line": 25
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/migrate_baseline.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 11,
+      "sizeBytes": 3918,
+      "lineCount": 76,
+      "sha256": "5916acfd5043173c4649e0e1edd573ccf84540880aefc4fb6eedd98ce7ddde5e",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: migrate_baseline.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🗄️ Migrations: una base vacía no se toca (la migración inicial la crea)",
+          "line": 42
+        },
+        {
+          "name": "🗄️ Migrations: una base con journal no se toca",
+          "line": 48
+        },
+        {
+          "name": "🗄️ Migrations: un esquema heredado sin journal registra la migración inicial como aplicada",
+          "line": 54
+        },
+        {
+          "name": "🗄️ Migrations: un journal existente pero vacío también se completa",
+          "line": 66
+        },
+        {
+          "name": "🗄️ Migrations: un esquema heredado distinto falla sin escribir (fail-closed)",
+          "line": 71
         }
       ]
     },
