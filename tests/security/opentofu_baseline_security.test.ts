@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -306,7 +307,7 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'docs/README.md debe enlazar ADR-012');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-012') || docsReadmeContent.includes('ADR-001 a ADR-013') || docsReadmeContent.includes('ADR-001 a ADR-014') || docsReadmeContent.includes('ADR-001 a ADR-015') || docsReadmeContent.includes('ADR-001 a ADR-016') || docsReadmeContent.includes('ADR-001 a ADR-017') || docsReadmeContent.includes('ADR-001 a ADR-018') || docsReadmeContent.includes('ADR-001 a ADR-019') || docsReadmeContent.includes('ADR-001 a ADR-020') || docsReadmeContent.includes('ADR-001 a ADR-021') || docsReadmeContent.includes('ADR-001 a ADR-022'), 'Mermaid en docs/README.md debe indicar ADR-001 a ADR-012 o posterior');
+  assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
   assert.ok(auditContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'DEVSECOPS_AUDIT.md debe enlazar ADR-012');
@@ -318,4 +319,23 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
     const match = files.find(f => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
+});
+
+test('🛡️ Trivy IaC: la excepción AVD-AWS-0104 vive solo en infra/opentofu/.trivyignore (SECURITY_REVIEW 2026-10-03)', () => {
+  // Una copia en la raíz aplicaría la supresión a cualquier escaneo de Trivy
+  // que use el directorio del repositorio, no solo al de OpenTofu.
+  assert.equal(
+    fs.existsSync(path.join(ROOT_DIR, '.trivyignore')),
+    false,
+    'No debe existir un .trivyignore en la raíz: las excepciones IaC se acotan a infra/opentofu/',
+  );
+
+  const scopedIgnore = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/.trivyignore'), 'utf-8');
+  assert.match(scopedIgnore, /^AVD-AWS-0104$/m, 'infra/opentofu/.trivyignore debe conservar la excepción AVD-AWS-0104');
+
+  const workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-code-scanning.yaml'), 'utf-8');
+  assert.ok(
+    workflow.includes("trivyignores: 'infra/opentofu/.trivyignore'"),
+    'El escaneo Trivy IaC debe consumir explícitamente infra/opentofu/.trivyignore',
+  );
 });
