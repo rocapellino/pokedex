@@ -34,6 +34,9 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task lint:md:fix` | Aplica autocorrección de formato a la documentación Markdown. |
 | | `task validate` | Suite obligatoria previa a commit (`lint`, `typecheck`, `build`, `test`). |
 | | `task test` | Pruebas unitarias de seguridad y lógica de negocio. |
+| | `task test:unit` | Pruebas unitarias aisladas de aplicación. |
+| | `task test:gitops` | Pruebas de contratos de GitOps y despliegue. |
+| | `task test:surface` | Valida consistencia e inventario de la superficie de pruebas (`test-surface`). |
 | | `task test:e2e` | Pruebas de integración E2E con Playwright. |
 | | `task test:a11y` | Auditoría de accesibilidad WCAG 2.1 con Axe-core. |
 | | `task test:coverage` | Generación de reporte de cobertura LCOV. |
