@@ -159,16 +159,20 @@ externalSecrets:
   remoteRef:
     key: "pokedex/preprod"
 
-# Aislamiento de Red Zero-Trust en LXC 800 (Cilium eBPF L7 Egress)
+# Aislamiento de Red en LXC 800 (ADR-013, enmienda 2026-10-04).
+# El K3s real corre Flannel: el CRD CiliumNetworkPolicy no existe y su render haría
+# fallar el sync de ArgoCD. Mientras no se reinstale K3s con Cilium (setup_k3s.yaml),
+# el egreso usa el fallback L4: 0.0.0.0/0:443 con exclusiones anti-SSRF (IMDS,
+# RFC1918 y loopback). La allowlist FQDN se conserva para cuando vuelva Cilium.
 networkPolicies:
   enabled: true
   egress:
     antiSsrf: true
-    externalHttps: false
+    externalHttps: true
     allowedExternalCidrs: []
 
 ciliumNetworkPolicy:
-  enabled: true
+  enabled: false
   fqdnAllowlist:
     - matchName: "generativelanguage.googleapis.com"
     - matchPattern: "*.githubusercontent.com"

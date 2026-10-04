@@ -58,6 +58,10 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Kubernetes Runtime** | `task k8s:up` | Despliega o actualiza el release de Helm en el clúster activo. |
 | | `task k8s:down` | Desinstala el release de Helm de forma controlada. |
 | | `task k8s:status` | Diagnóstico de pods, réplicas, servicios e ingress. |
+| **Bootstrap de Plataforma** | `task platform:bootstrap:preprod VAULT_CA=<ruta>` | Bootstrap completo de GitOps en pre-prod: ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps. |
+| | `task platform:eso:install` | Instala External Secrets Operator (chart fijado) y el binding `system:auth-delegator` de su ServiceAccount. |
+| | `task platform:eso:vault-store VAULT_CA=<ruta>` | Publica la CA de Vault (`vault-ca`) y aplica el `ClusterSecretStore` de pre-prod. |
+| | `task platform:argocd:install` | Instala ArgoCD desde el manifiesto oficial fijado por versión. |
 | **GitOps (ArgoCD)** | `task gitops:apps:root` | Sincroniza la aplicación App-of-Apps en el clúster. |
 | | `task gitops:sync:proxmox` | Fuerza sincronización declarativa para Proxmox VE. |
 | | `task gitops:sync:cloud` | Fuerza sincronización del blueprint prod cloud (solo tras activarlo, ADR-030). |

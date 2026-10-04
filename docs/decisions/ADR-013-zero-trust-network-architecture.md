@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado
+Aceptado (enmendado el 2026-10-04: excepción temporal de pre-prod con Flannel; ver la sección
+*Enmienda 2026-10-04*)
 
 ## Contexto
 
@@ -42,6 +43,24 @@ Se adopta una arquitectura de red **Zero-Trust de Defensa en Profundidad** basad
 
 5. **Aislamiento de Resolución DNS**:
    - Todas las reglas egress de resolución DNS (`:53` UDP/TCP) están estrictamente vinculadas a pods con etiqueta `k8s-app: kube-dns` en el clúster, previniendo el secuestro de DNS o el uso de resolvedores externos no autorizados.
+
+## Enmienda 2026-10-04: Pre-Prod con Flannel (Excepción Temporal)
+
+El relevamiento de runtime de pre-prod (LXC 800, ADR-030) mostró que K3s corre con Flannel,
+no con Cilium: el clúster se instaló a mano y no con `setup_k3s.yaml`. Sin el CRD
+`CiliumNetworkPolicy`, renderizarlo hace fallar el sync de ArgoCD por completo.
+
+- **Pre-prod:** `ciliumNetworkPolicy.enabled: false` y `networkPolicies.egress.externalHttps: true`.
+  Rige el fallback L4 de la directiva 3: egreso `0.0.0.0/0:443` con exclusiones anti-SSRF
+  (IMDS `169.254.169.254/32`, RFC1918 y loopback). La directiva 4 (allowlist FQDN L7) **no se
+  aplica**: un pod comprometido puede salir por 443 a cualquier IP pública. Riesgo aceptado
+  porque pre-prod es un entorno de pruebas sin datos reales de usuarios (ADR-030).
+- **Aplicación de las NetworkPolicies L3/L4:** depende del controlador de políticas embebido de
+  K3s (kube-router), activo salvo que K3s se instale con `--disable-network-policy`.
+- **Cierre de la excepción:** reinstalar K3s con `setup_k3s.yaml` (`--flannel-backend=none` y
+  Cilium) y volver a `ciliumNetworkPolicy.enabled: true` y `externalHttps: false`.
+- **Contrato:** `tests/security/egress_anti_ssrf.test.ts` verifica que pre-prod no renderice
+  CRDs de Cilium y que el fallback L4 mantenga las exclusiones anti-SSRF.
 
 ## Consecuencias
 

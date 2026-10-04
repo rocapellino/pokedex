@@ -197,22 +197,23 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
   );
 });
 
-test('🛡️ GitOps Configuration: Proxmox values.yaml habilita Cilium L7 Zero-Trust para cumplir con el test de salida', () => {
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
-  const content = fs.readFileSync(proxmoxValuesPath, 'utf-8');
+test('🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti-SSRF sin renderizar CRDs de Cilium (ADR-013)', () => {
+  // Regresión (2026-10-04): el K3s real del LXC 800 corre Flannel. Con
+  // ciliumNetworkPolicy.enabled: true el chart renderiza CiliumNetworkPolicy, un
+  // CRD inexistente en el clúster, y el sync de ArgoCD falla por completo.
+  const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  const valuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
+  const rendered = execSync(`helm template pokedex "${chartPath}" -f "${valuesPath}"`, { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 });
 
-  assert.match(content, /ciliumNetworkPolicy:/, 'Proxmox values.yaml debe configurar ciliumNetworkPolicy');
-  assert.match(content, /enabled:\s*true/, 'Proxmox values.yaml debe habilitar ciliumNetworkPolicy para soportar FQDN allowlist');
-  assert.match(
-    content,
-    /matchName:\s*["']?generativelanguage\.googleapis\.com/,
-    'Proxmox values.yaml debe incluir generativelanguage en fqdnAllowlist'
-  );
-  assert.match(
-    content,
-    /externalHttps:\s*false/,
-    'Proxmox values.yaml debe desactivar externalHttps L4 para evitar el bypass de 0.0.0.0/0'
-  );
+  assert.doesNotMatch(rendered, /kind:\s*CiliumNetworkPolicy/, 'pre-prod no debe renderizar CiliumNetworkPolicy mientras corra Flannel');
+  assert.match(rendered, /cidr:\s*0\.0\.0\.0\/0\s*\n\s*except:/, 'El fallback L4 debe abrir 443 con lista de exclusiones');
+  for (const blocked of ['169.254.169.254/32', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']) {
+    assert.ok(rendered.includes(`- ${blocked}`), `El fallback L4 debe excluir ${blocked} (anti-SSRF)`);
+  }
+
+  const values = fs.readFileSync(valuesPath, 'utf-8');
+  assert.match(values, /antiSsrf:\s*true/, 'pre-prod debe mantener antiSsrf');
+  assert.match(values, /matchName:\s*["']?generativelanguage\.googleapis\.com/, 'La allowlist FQDN se conserva para cuando vuelva Cilium');
 });
 
 test('🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7', () => {

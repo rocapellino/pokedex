@@ -72,6 +72,49 @@ tasks:
       - npm run k8s:verify-vault-architecture
 
   # ----------------------------------------------------------------------------
+  # Bootstrap de Plataforma GitOps en Pre-Prod (LXC 800, ADR-030)
+  # ----------------------------------------------------------------------------
+  # Versiones fijadas: ESO >= 1.0 solo sirve external-secrets.io/v1 (el chart ya lo usa).
+  platform:eso:install:
+    desc: "Instala External Secrets Operator (chart fijado) con la ServiceAccount que espera el ClusterSecretStore"
+    vars:
+      ESO_CHART_VERSION: "2.11.0"
+    cmds:
+      - helm repo add external-secrets https://charts.external-secrets.io --force-update
+      - helm upgrade --install external-secrets external-secrets/external-secrets --version {{.ESO_CHART_VERSION}} --namespace external-secrets --create-namespace --set installCRDs=true --set serviceAccount.name=external-secrets-sa --wait
+      - kubectl apply -f infra/k8s/bootstrap/eso-auth-delegator.yaml
+
+  platform:eso:vault-store:
+    desc: "Publica la CA de Vault y aplica el ClusterSecretStore de pre-prod (Uso: task platform:eso:vault-store VAULT_CA=/ruta/vault-ca.crt)"
+    requires:
+      vars: [VAULT_CA]
+    cmds:
+      - kubectl -n external-secrets create configmap vault-ca --from-file=ca.crt={{.VAULT_CA}} --dry-run=client -o yaml | kubectl apply -f -
+      - kubectl apply -f infra/k8s/eso/cluster-secret-store.yaml
+
+  platform:argocd:install:
+    desc: "Instala ArgoCD (manifiesto oficial fijado por versión) en el namespace argocd"
+    vars:
+      ARGOCD_VERSION: "v3.5.3"
+    cmds:
+      - kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+      - kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/{{.ARGOCD_VERSION}}/manifests/install.yaml
+      - kubectl -n argocd rollout status deploy/argocd-repo-server --timeout=300s
+      - kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
+
+  platform:bootstrap:preprod:
+    desc: "Bootstrap completo de GitOps en pre-prod: ESO + ClusterSecretStore + ArgoCD + health checks + App-of-Apps (Uso: VAULT_CA=/ruta/vault-ca.crt)"
+    requires:
+      vars: [VAULT_CA]
+    cmds:
+      - task: platform:eso:install
+      - task: platform:eso:vault-store
+        vars: { VAULT_CA: "{{.VAULT_CA}}" }
+      - task: platform:argocd:install
+      - task: gitops:health-checks
+      - task: gitops:apps:root
+
+  # ----------------------------------------------------------------------------
   # GitOps & CD (ArgoCD & Promoción Declarativa)
   # ----------------------------------------------------------------------------
   gitops:apps:root:
