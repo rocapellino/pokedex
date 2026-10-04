@@ -17,6 +17,9 @@ export function getDatabaseUrl(): string | undefined {
   );
 }
 
+const POKEDEX_ID_SEQUENCE_SYNC_SQL =
+  "SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true)";
+
 let pgPool: pg.Pool | null = null;
 let drizzleDb: AppDatabase | null = null;
 let isPgConnected = false;
@@ -165,9 +168,7 @@ export async function connectPg(): Promise<boolean> {
         lastKnownPgCount = countTotal;
       }
 
-      await client.query(`
-        SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true);
-      `);
+      await client.query(POKEDEX_ID_SEQUENCE_SYNC_SQL);
       isPgConnected = true;
       logger.info('[Storage: PostgreSQL] Conectado, Drizzle ORM activo, tabla y secuencia pokedex_id_seq sincronizadas');
       return true;
@@ -225,6 +226,18 @@ export function decrementPgCount(): void {
  * Consulta y parsea la versión activa de PostgreSQL para endpoints de diagnóstico.
  * Si PostgreSQL no está conectado, retorna null.
  */
+/**
+ * Alinea `pokedex_id_seq` con el mayor ID persistido (mínimo 1008).
+ *
+ * `connectPg()` la ejecuta al arrancar, pero el seed job inserta IDs explícitos
+ * después de conectarse: con el catálogo completo (IDs hasta 1025) la secuencia
+ * quedaría por debajo y el próximo Pokémon creado colisionaría con uno sembrado.
+ */
+export async function syncPokedexIdSequence(): Promise<void> {
+  if (!isPgConnected || !drizzleDb) return;
+  await drizzleDb.execute(sql.raw(POKEDEX_ID_SEQUENCE_SYNC_SQL));
+}
+
 export async function getPostgresVersion(): Promise<string | null> {
   if (!isPgConnected || !drizzleDb) return null;
   try {

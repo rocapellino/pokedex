@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T13:09:12.681Z",
+  "generatedAt": "2026-10-04T14:07:13.949Z",
   "summary": {
-    "totalFiles": 66,
-    "testFiles": 62,
+    "totalFiles": 67,
+    "testFiles": 63,
     "helperFiles": 3,
     "performanceScripts": 1,
-    "totalTestCases": 535,
-    "totalLines": 14855,
-    "totalSizeBytes": 672488,
+    "totalTestCases": 551,
+    "totalLines": 15002,
+    "totalSizeBytes": 679364,
     "suitesCount": 9
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 9,
-      "testCases": 54,
+      "files": 10,
+      "testCases": 70,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -4043,6 +4043,98 @@
         {
           "name": "APPS-002: connectPg en producción ejecuta auto-seed si AUTO_SEED=true",
           "line": 203
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/seed_catalog.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 16,
+      "describeCount": 0,
+      "assertionCountEst": 30,
+      "sizeBytes": 6876,
+      "lineCount": 147,
+      "sha256": "b208210ed5dabec9e267cec7218f648addba9cd5a5c33ce85474203300874f0c",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: seed_catalog.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌱 SeedCatalog: SEED_DATASET vacío usa la muestra y acepta full sin distinguir mayúsculas",
+          "line": 32
+        },
+        {
+          "name": "🌱 SeedCatalog: un SEED_DATASET desconocido falla en lugar de degradar a otro dataset",
+          "line": 39
+        },
+        {
+          "name": "🌱 SeedCatalog: sample es la muestra curada y full el catálogo nacional",
+          "line": 43
+        },
+        {
+          "name": "🌱 SeedCatalog: el catálogo completo tiene IDs contiguos y supera el validador del backend",
+          "line": 52
+        },
+        {
+          "name": "🌱 SeedCatalog: todos los tipos del catálogo tienen color en el frontend",
+          "line": 56
+        },
+        {
+          "name": "🌱 SeedCatalog: las evoluciones referencian especies del propio catálogo e incluyen a la entrada",
+          "line": 64
+        },
+        {
+          "name": "🌱 SeedCatalog: las imágenes apuntan al artwork oficial de PokeAPI por HTTPS",
+          "line": 76
+        },
+        {
+          "name": "🌱 SeedCatalog: el archivo versionado coincide con la serialización canónica (una entrada por línea)",
+          "line": 82
+        },
+        {
+          "name": "🌱 SeedPlan: sin FORCE_SEED solo inserta los IDs ausentes",
+          "line": 93
+        },
+        {
+          "name": "🌱 SeedPlan: con el catálogo completo persistido no hay nada que sembrar",
+          "line": 99
+        },
+        {
+          "name": "🌱 SeedPlan: FORCE_SEED=true reescribe todo fuera de producción",
+          "line": 104
+        },
+        {
+          "name": "🌱 SeedPlan: en producción FORCE_SEED=true queda bloqueado y solo inserta faltantes",
+          "line": 110
+        },
+        {
+          "name": "🌱 SeedPlan: en producción el token de confirmación habilita la reescritura",
+          "line": 117
+        },
+        {
+          "name": "🌱 SeedJob: sincroniza pokedex_id_seq después de insertar IDs explícitos",
+          "line": 127
+        },
+        {
+          "name": "🌱 SeedJob: syncPokedexIdSequence es un no-op sin PostgreSQL conectado",
+          "line": 134
+        },
+        {
+          "name": "🌱 Generator: normaliza el flavor text y las categorías",
+          "line": 142
         }
       ]
     },

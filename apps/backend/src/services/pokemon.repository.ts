@@ -172,6 +172,20 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
   return found;
 }
 
+/**
+ * IDs presentes en el almacenamiento de verdad (PostgreSQL o, sin él, memoria).
+ * Lo usa el seed job para insertar solo las entradas que faltan sin pisar
+ * las ediciones hechas desde el backoffice.
+ */
+export async function listPersistedPokemonIds(): Promise<Set<number>> {
+  const drizzleDb = getDrizzleDb();
+  if (isPgConnectedStatus() && drizzleDb) {
+    const rows = await drizzleDb.select({ id: pokedexEntries.id }).from(pokedexEntries);
+    return new Set(rows.map((row) => row.id));
+  }
+  return new Set(memoryMap.keys());
+}
+
 export async function savePokemon(pokemon: Pokemon): Promise<void> {
   // Fail-Closed: si PostgreSQL está configurado pero desconectado, rechazar la escritura para evitar pérdida de datos
   const drizzleDb = getDrizzleDb();
