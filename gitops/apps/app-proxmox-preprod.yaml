@@ -1,5 +1,5 @@
 # ==============================================================================
-# ArgoCD Application - Despliegue Pre-producción (LXC 800 Proxmox VE)
+# ArgoCD Application - Pre-producción (LXC 800 Proxmox VE, único target activo, ADR-030)
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -23,8 +23,9 @@ spec:
         - values.yaml
         - ../../../gitops/environments/proxmox-preprod/values.yaml
   destination:
-    # URL o nombre del clúster de Kubernetes en LXC 800 registrado en ArgoCD
-    server: https://k8s-preprod.internal.lan:6443
+    # ArgoCD corre dentro del mismo clúster K3s del LXC 800 (10.10.13.100), por eso
+    # el destino es el API server in-cluster y no un clúster externo registrado.
+    server: https://kubernetes.default.svc
     namespace: pokemon-app
   syncPolicy:
     automated:
@@ -43,4 +44,3 @@ spec:
         maxDuration: 3m
   # syncWindows: Omitido intencionalmente en pre-producción para permitir Continuous Delivery
   # y validación automatizada de pruebas 24/7 sin ventanas de bloqueo.
-

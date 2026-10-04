@@ -86,7 +86,7 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
 
   assert.equal(result.success, true);
   assert.equal(result.newTag, 'v1.99.0');
-  assert.equal(result.updatedFiles.length, 4);
+  assert.equal(result.updatedFiles.length, 3, 'root, pre-prod y el blueprint cloud (ADR-030)');
 
   // Asegurar que en dryRun los archivos en disco NO cambiaron
   const parity = checkGitOpsPinParity(DEFAULT_GITOPS_APP_FILES, ROOT_DIR);

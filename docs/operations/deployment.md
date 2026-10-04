@@ -106,7 +106,7 @@ task gitops:apps:root       # 2. Aplicar el App-of-Apps
 >
 > **Taxonomía de Entornos (GITOPS-001):**
 >
-> - **Entornos Activos (`ACTIVE`):** `pokedex-proxmox` (Producción con freeze window de 62 h) y `pokedex-preprod` (Pre-producción continua).
+> - **Entorno Activo (`ACTIVE`):** `pokedex-preprod` (pre-producción continua en el LXC 800, ADR-030).
 > - **Blueprint Referencial (`REFERENCE`):** `app-cloud.yaml`, `values.prod.yaml` y `gitops/environments/cloud/values.yaml` constituyen el blueprint prod cloud inactivo (ADR-030) excluida del descubrimiento de `root-application.yaml`.
-> - **SSOT de Runtime vs. Perfil Helm (INFRA-011):** La configuración real de producción reside en `gitops/environments/proxmox/values.yaml`. El archivo `infra/helm/pokedex/values.prod.yaml` es exclusivamente un perfil de referencia estático para validaciones locales con Helm (`task helm:template:prod`), no consumido por ArgoCD.
+> - **SSOT de Runtime vs. Perfil Helm (INFRA-011):** La configuración desplegada reside en `gitops/environments/proxmox-preprod/values.yaml`. El archivo `infra/helm/pokedex/values.prod.yaml` es la base del blueprint prod cloud inactivo (`task helm:template:cloud`), no consumido por ArgoCD.
 > - **Modelo de Release Inmutable:** La propia Application raíz `root-application.yaml` está anclada a un tag inmutable (`targetRevision: vX.Y.Z`). Por diseño, los cambios en `gitops/` no impactan los clústeres hasta que se realiza una promoción formal de versión mediante `task gitops:pin TAG=vX.Y.Z`.

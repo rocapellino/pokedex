@@ -10,7 +10,7 @@ Para garantizar que ningún blueprint o referencia de laboratorio sea confundido
 
 | Estado | Significado | Componentes |
 | :--- | :--- | :--- |
-| 🟢 **ACTIVE** | Plataforma operativa en producción y pre-producción. Sujeto a SLAs y monitoreo continuo. | Proxmox VE (`infra/opentofu/environments/proxmox/`), K3s + Cilium (`setup_k3s.yaml`), Helm Chart (`values.yaml`), ESO consolidado (`cluster-secret-store.yaml`), Vault LXC. |
+| 🟢 **ACTIVE** | Plataforma operativa de pre-producción (ADR-030). Entorno de pruebas sin SLA de producción. | Proxmox VE (`infra/opentofu/environments/proxmox/`), K3s + Cilium (`setup_k3s.yaml`), Helm Chart (`values.yaml`), ESO consolidado (`cluster-secret-store.yaml`), Vault LXC. |
 | 🔵 **SUPPORTED** | Entornos mantenidos y probados para desarrollo local, CI o laboratorio efímero. | Kind (`infra/k8s/kind-cluster.yaml`), Helm local (`values.dev.yaml`), Entorno Lab (`infra/opentofu/environments/lab/`), Bastion host. |
 | 🟡 **REFERENCE** | Blueprints de portabilidad multi-cloud o perfiles estáticos de validación sin runtime activo. | Blueprint prod cloud agnóstico (ADR-030): `infra/opentofu/environments/cloud-template/`, `gitops/environments/cloud/` y Helm `values.prod.yaml` como su base endurecida (INFRA-011). |
 | ⚪ **BLUEPRINT** | Esqueletos inactivos preservados para extensión futura, fuera de pipelines activos. | `setup_pbs_backup_blueprint.yaml` (Proxmox Backup Server), esquemas de storage agnósticos. |

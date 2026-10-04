@@ -470,7 +470,6 @@ jobs:
           - \`infra/helm/pokedex/Chart.yaml\` (\`version\` y \`appVersion\`)
           - \`gitops/apps/root-application.yaml\`
           - \`gitops/apps/app-proxmox-preprod.yaml\`
-          - \`gitops/apps/app-proxmox.yaml\`
           - \`gitops/apps/app-cloud.yaml\`
           - \`gitops/environments/*/values.yaml\` e \`infra/helm/pokedex/values.prod.yaml\` (digests verificados con Cosign)
             - \`pokedex-api@${API_DIGEST}\`

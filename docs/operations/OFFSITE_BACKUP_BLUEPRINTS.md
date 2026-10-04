@@ -107,7 +107,7 @@ spec:
    ```
 
 4. **Habilitar en GitOps:**
-   En `gitops/environments/proxmox/values.yaml`, cambiar:
+   En `gitops/environments/proxmox-preprod/values.yaml`, cambiar:
 
    ```yaml
    backup:

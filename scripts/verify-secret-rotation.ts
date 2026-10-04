@@ -16,10 +16,10 @@
  *      reservada `pokedex/prod`; el backend concreto se elige al activar el entorno.
  *    - refreshInterval <= 24h.
  *
- * 3. Entorno On-Premise Lean (Proxmox VE K3s):
+ * 3. Entorno On-Premise Lean (Proxmox VE K3s, pre-prod: único entorno Proxmox, ADR-030):
  *    - Reloader = FORBIDDEN (reloader.enabled: false para footprint < 1GB y menor RBAC).
  *    - rollout restart = REQUIRED (scripts/k8s-rollout-restart.ts operativo y formalizado).
- *    - ExternalSecrets = REQUIRED con ClusterSecretStore 'vault-backend'.
+ *    - ExternalSecrets = REQUIRED con ClusterSecretStore 'vault-backend-preprod'.
  *    - refreshInterval <= 24h.
  *
  * 4. Gobernanza Global de Frescura:
@@ -149,20 +149,8 @@ check('Cloud GitOps: ESO = REQUIRED con ClusterSecretStore declarado, ruta poked
   }
 });
 
-// 3. Proxmox VE Lean: Reloader = FORBIDDEN, rollout restart = REQUIRED, ESO = REQUIRED
-check('Proxmox On-Prem GitOps: Reloader = FORBIDDEN (reloader.enabled: false para perfil Lean)', () => {
-  const file = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
-  const content = fs.readFileSync(file, 'utf-8');
-  const isReloaderDisabled = content.includes('reloader:\n  enabled: false') || content.includes('reloader:\r\n  enabled: false');
-  if (!isReloaderDisabled) {
-    throw new Error('gitops/environments/proxmox/values.yaml debe tener reloader.enabled: false (Reloader prohibido en perfil Lean)');
-  }
-  if (content.includes('reloader:\n  enabled: true') || content.includes('reloader:\r\n  enabled: true')) {
-    throw new Error('gitops/environments/proxmox/values.yaml tiene reloader.enabled: true, violando el perfil Lean de Proxmox');
-  }
-});
-
-check('Proxmox On-Prem GitOps: rollout restart = REQUIRED (mecanismo de recarga sin Stakater)', () => {
+// 3. Proxmox VE Lean (ADR-030: pre-prod es el único entorno Proxmox): rollout restart = REQUIRED
+check('Proxmox Pre-prod GitOps: rollout restart = REQUIRED (mecanismo de recarga sin Stakater)', () => {
   const rolloutScript = path.join(ROOT_DIR, 'scripts/k8s-rollout-restart.ts');
   if (!fs.existsSync(rolloutScript)) {
     throw new Error('scripts/k8s-rollout-restart.ts debe existir para soportar rollout restart en Proxmox');
@@ -173,18 +161,6 @@ check('Proxmox On-Prem GitOps: rollout restart = REQUIRED (mecanismo de recarga 
   }
   if (!scriptContent.includes('validateProxmoxSecretArchitecture')) {
     throw new Error('scripts/k8s-rollout-restart.ts debe exportar validateProxmoxSecretArchitecture');
-  }
-});
-
-check('Proxmox On-Prem GitOps: ESO = REQUIRED con ClusterSecretStore vault-backend y refreshInterval <= 24h', () => {
-  const file = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
-  const content = fs.readFileSync(file, 'utf-8');
-  if (!content.includes('name: "vault-backend"')) {
-    throw new Error('Proxmox values.yaml debe referenciar vault-backend');
-  }
-  const hours = parseRefreshIntervalHours(content, 'gitops/environments/proxmox/values.yaml');
-  if (hours > 24) {
-    throw new Error(`refreshInterval en Proxmox supera 24h: ${hours}h`);
   }
 });
 

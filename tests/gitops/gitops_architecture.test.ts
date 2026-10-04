@@ -43,21 +43,17 @@ test('🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones 
     'El README debe declarar que el blueprint de AWS es una referencia inactiva'
   );
 
-  // 2. Los endpoints citados deben existir REALES en los manifiestos. Un README
-  //    que documenta un cluster inexistente desvia la depuracion.
-  const appProxmox = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml'),
-    'utf-8'
-  );
+  // 2. El README no debe documentar clusteres inexistentes: un README que cita un
+  //    cluster retirado desvia la depuracion. ADR-030: el unico cluster Proxmox es
+  //    el LXC 800 y ArgoCD lo gestiona in-cluster.
   const appPreprod = fs.readFileSync(
     path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'),
     'utf-8'
   );
-  for (const endpoint of ['k8s-proxmox.internal.lan', 'k8s-preprod.internal.lan']) {
-    assert.ok(
-      appProxmox.includes(endpoint) || appPreprod.includes(endpoint),
-      `GITOPS-003: el README cita ${endpoint} pero no existe en ninguna Application activa`
-    );
+  assert.match(appPreprod, /server:\s*https:\/\/kubernetes\.default\.svc/, 'GITOPS-003: pre-prod debe sincronizarse in-cluster');
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml')), 'GITOPS-003: app-proxmox.yaml se retiro con ADR-030');
+  for (const retired of ['k8s-proxmox.internal.lan', 'app-proxmox.yaml']) {
+    assert.ok(!readme.includes(retired), `GITOPS-003: el README no debe citar ${retired}, retirado con ADR-030`);
   }
 
   // 3. La afirmacion "AWS esta excluido del App-of-Apps" debe ser CIERTA: se lee
@@ -271,7 +267,6 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-003-gitops-with-argocd.md');
   const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');
   const rootAppPath = path.join(ROOT_DIR, 'gitops/apps/root-application.yaml');
-  const appProxmoxPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml');
   const appCloudPath = path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml');
   const healthChecksPath = path.join(ROOT_DIR, 'gitops/health-checks/argocd-cm-healthchecks.yaml');
   const seedJobPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/seed-job.yaml');
@@ -346,19 +341,13 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
 
   // 5. Las Applications ACTIVAS configuran opciones avanzadas de sync.
   const appProxmoxPreprodPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml');
-  const proxmoxContent = fs.readFileSync(appProxmoxPath, 'utf-8');
   const preprodContent = fs.readFileSync(appProxmoxPreprodPath, 'utf-8');
   const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
-  assert.ok(proxmoxContent.includes('ServerSideApply=true'), 'app-proxmox.yaml debe configurar ServerSideApply');
   assert.ok(preprodContent.includes('ServerSideApply=true'), 'app-proxmox-preprod.yaml debe configurar ServerSideApply');
 
-  // Validar semántica real de syncWindows en Producción (Protección de fin de semana con kind: deny)
-  assert.ok(proxmoxContent.includes('syncWindows:'), 'app-proxmox.yaml debe configurar syncWindows');
-  assert.match(proxmoxContent, /kind:\s*deny/, 'app-proxmox.yaml debe configurar una ventana de protección (kind: deny)');
-  assert.match(proxmoxContent, /schedule:\s*["']0 18 \* \* 5["']/, 'app-proxmox.yaml debe bloquear despliegues en fin de semana (viernes 18:00 UTC)');
-  assert.match(proxmoxContent, /duration:\s*62h/, 'app-proxmox.yaml debe extender la protección por 62 horas');
-  assert.match(proxmoxContent, /manualSync:\s*true/, 'app-proxmox.yaml debe permitir sync manual de emergencia');
-  assert.ok(!proxmoxContent.includes('* * * * *'), 'app-proxmox.yaml no debe tener el antipatrón * * * * *');
+  // ADR-030: pre-prod es entrega continua (sin ventanas de bloqueo); la ventana de
+  // fin de semana pertenecia a la antigua prod Proxmox, retirada.
+  assert.ok(!/^\s*syncWindows:/m.test(preprodContent), 'app-proxmox-preprod.yaml no debe declarar syncWindows (entrega continua)');
 
   assert.ok(
     !cloudContent.includes('syncWindows:'),

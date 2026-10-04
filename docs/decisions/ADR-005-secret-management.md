@@ -79,7 +79,7 @@ apartados 1 y 6:
   `pokedex-preprod-role` y `ClusterSecretStore/vault-backend-preprod`.
 - **Producción:** deja de correr en Proxmox. La ruta lógica `pokedex/prod` queda reservada
   para el blueprint cloud. El rol `pokedex-prod-role` y `ClusterSecretStore/vault-backend`
-  siguen operativos mientras `pokedex-proxmox` exista (paso 5 del plan de ADR-030).
+  se retiraron con `pokedex-proxmox` (paso 5 del plan de ADR-030).
 - **Backend cloud:** deja de fijarse en AWS Secrets Manager con IRSA. El blueprint `cloud`
   declara el nombre del `ClusterSecretStore` como parámetro, y el backend concreto (Vault
   externo o el gestor de secretos del proveedor) se elige al activar el entorno.

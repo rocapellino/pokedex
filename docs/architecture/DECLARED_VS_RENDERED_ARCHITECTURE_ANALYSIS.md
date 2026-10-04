@@ -35,7 +35,7 @@ Su objetivo es responder con precisión:
 ### 2.1. PgBouncer: El caso del "Código Preparado no Activado"
 
 - **En la documentación y `values.prod.yaml`:** PgBouncer aparece como habilitado (`enabled: true`, 2 réplicas, poolSize: 50).
-- **En el GitOps real (`gitops/environments/proxmox/values.yaml`):**
+- **En el GitOps real (`gitops/environments/proxmox-preprod/values.yaml`):**
 
   ```yaml
   pgbouncer:

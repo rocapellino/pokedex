@@ -24,7 +24,6 @@ export type ImageComponent = 'api' | 'web';
 
 /** Values cuyo digest de api y web despliegan los entornos (inter-environment parity). */
 export const IMAGE_VALUES_FILES = [
-  'gitops/environments/proxmox/values.yaml',
   'gitops/environments/proxmox-preprod/values.yaml',
   'gitops/environments/cloud/values.yaml',
   'infra/helm/pokedex/values.prod.yaml',

@@ -422,7 +422,6 @@ test('🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de re
   // forman el blueprint inactivo de prod, que la promoción mantiene fijado.
   const envFiles = [
     'gitops/environments/cloud/values.yaml',
-    'gitops/environments/proxmox/values.yaml',
     'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml'
   ];
@@ -495,37 +494,30 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
   };
 
   const cloudPath = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
-  const proxmoxPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
   const preprodPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const prodPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
 
   // Verificar ausencia de campo tag redundante
   assertNoConfusingTag(cloudPath, 'api');
   assertNoConfusingTag(cloudPath, 'web');
-  assertNoConfusingTag(proxmoxPath, 'api');
-  assertNoConfusingTag(proxmoxPath, 'web');
   assertNoConfusingTag(preprodPath, 'api');
   assertNoConfusingTag(preprodPath, 'web');
   assertNoConfusingTag(prodPath, 'api');
   assertNoConfusingTag(prodPath, 'web');
 
   const cloudApiDigest = parseImageDigest(cloudPath, 'api');
-  const proxmoxApiDigest = parseImageDigest(proxmoxPath, 'api');
   const preprodApiDigest = parseImageDigest(preprodPath, 'api');
   const prodApiDigest = parseImageDigest(prodPath, 'api');
 
   const cloudWebDigest = parseImageDigest(cloudPath, 'web');
-  const proxmoxWebDigest = parseImageDigest(proxmoxPath, 'web');
   const preprodWebDigest = parseImageDigest(preprodPath, 'web');
   const prodWebDigest = parseImageDigest(prodPath, 'web');
 
   // 1. Paridad estricta inter-entornos para API por digest
-  assert.strictEqual(cloudApiDigest, proxmoxApiDigest, 'Digest de api debe ser idéntico entre Cloud y Proxmox');
   assert.strictEqual(cloudApiDigest, preprodApiDigest, 'Digest de api debe ser idéntico entre Cloud y Proxmox Pre-prod');
   assert.strictEqual(cloudApiDigest, prodApiDigest, 'Digest de api debe ser idéntico entre Cloud y Prod');
 
   // 2. Paridad estricta inter-entornos para Web por digest
-  assert.strictEqual(cloudWebDigest, proxmoxWebDigest, 'Digest de web debe ser idéntico entre Cloud y Proxmox');
   assert.strictEqual(cloudWebDigest, preprodWebDigest, 'Digest de web debe ser idéntico entre Cloud y Proxmox Pre-prod');
   assert.strictEqual(cloudWebDigest, prodWebDigest, 'Digest de web debe ser idéntico entre Cloud y Prod');
 

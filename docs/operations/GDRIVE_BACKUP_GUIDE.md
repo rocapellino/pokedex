@@ -114,7 +114,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
    - **Aislamiento de Red (Zero-Trust L7):** CiliumNetworkPolicy dedicada (`pokedex-gdrive-sync-cilium-l7-policy`) con eBPF y FQDN Allowlist (`*.googleapis.com`, `accounts.google.com`) sobre TCP 443 y resolución interna DNS en `kube-dns` (puerto 53), eliminando la salida permisiva a destinos HTTPS arbitrarios. En clústeres sin Cilium, se aplica fallback de NetworkPolicy con Anti-SSRF (bloqueo estricto de IMDS `169.254.169.254/32` y RFC1918).
    - **Hardening:** `automountServiceAccountToken: false`, `runAsNonRoot: true`, `readOnlyRootFilesystem: true`, `drop: [ALL]`.
 
-2. **Activación en GitOps (`gitops/environments/proxmox/values.yaml`):**
+2. **Activación en GitOps (`gitops/environments/proxmox-preprod/values.yaml`):**
 
    ```yaml
    backup:
@@ -123,7 +123,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
        enabled: true
      gdrive:
        enabled: true
-       folder: "PokedexBackups/proxmox"
+       folder: "PokedexBackups/preprod"
    ```
 
 3. **Ejecución y Verificación en Kubernetes:**
@@ -140,7 +140,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
    ```
 
    > [!NOTE]
-   > **Gestión y Promoción GitOps:** En clústeres gestionados mediante ArgoCD (como Proxmox Prod), la plantilla `backup-gdrive-cronjob.yaml` está incorporada en el Helm chart e integrada en `gitops/apps/app-proxmox.yaml`. El CronJob opera activamente en el entorno productivo reconciliado, sincronizando los respaldos cifrados hacia Google Drive tras el volcado local nocturno.
+   > **Gestión y Promoción GitOps:** En clústeres gestionados mediante ArgoCD (pre-prod en Proxmox), la plantilla `backup-gdrive-cronjob.yaml` está incorporada en el Helm chart e integrada en `gitops/apps/app-proxmox-preprod.yaml`. El CronJob opera en el entorno reconciliado, sincronizando los respaldos cifrados hacia Google Drive tras el volcado local nocturno.
 
 ---
 

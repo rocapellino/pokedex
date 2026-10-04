@@ -19,7 +19,6 @@ test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const environments = [
     'gitops/environments/cloud/values.yaml',
-    'gitops/environments/proxmox/values.yaml',
     'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml',
   ];
@@ -53,14 +52,13 @@ test('🔒 GitOps Parity: parseImmutableDigest valida formato SHA256 y rechaza e
   );
 });
 
-test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre Cloud, Proxmox, Preprod y Helm Prod', () => {
+test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre Cloud, Preprod y Helm Prod', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const results = verifyImageDigestParity({ chartPath });
 
-  assert.strictEqual(results.length, 4, 'Debe evaluar exactamente 4 entornos (incluido Proxmox Pre-prod)');
-  const [cloud, proxmox, preprod, prod] = results;
+  assert.strictEqual(results.length, 3, 'Debe evaluar exactamente 3 entornos (ADR-030: prod Proxmox retirada)');
+  const [cloud, preprod, prod] = results;
 
-  assert.strictEqual(cloud.digest, proxmox.digest, 'Cloud y Proxmox deben tener digests idénticos');
   assert.strictEqual(cloud.digest, preprod.digest, 'Cloud y Proxmox Pre-prod deben tener digests idénticos');
   assert.strictEqual(cloud.digest, prod.digest, 'Cloud y Helm Prod deben tener digests idénticos');
 });
@@ -144,7 +142,7 @@ test('🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas
 // pokedex-web podía divergir entre entornos sin que ningún gate lo detectara.
 test('🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web renderizado', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
-  const values = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const values = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const image = extractRenderedImage(chartPath, values, 'web');
   assert.match(image, /^ghcr\.io\/rocapellino\/pokedex-web@sha256:[a-f0-9]{64}$/);
 });
@@ -153,7 +151,7 @@ test('🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const tmp = fs.mkdtempSync(path.join(ROOT_DIR, 'tmp', 'parity-web-'));
   try {
-    const source = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml'), 'utf8');
+    const source = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml'), 'utf8');
     const webDigest = source.match(/web:[\s\S]*?digest:\s*"(sha256:[a-f0-9]{64})"/)?.[1];
     assert.ok(webDigest, 'El fixture debe contener un digest web');
     const diverged = source.replace(webDigest, `sha256:${'e'.repeat(64)}`);

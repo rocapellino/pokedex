@@ -6,7 +6,6 @@
 #
 # Cadena de values por Application:
 #   - pokedex-preprod (activa)   -> values.yaml + gitops/environments/proxmox-preprod/values.yaml
-#   - pokedex-proxmox (en retiro) -> values.yaml + gitops/environments/proxmox/values.yaml
 #   - pokedex-cloud (blueprint)  -> values.yaml + values.prod.yaml (este archivo)
 #                                   + gitops/environments/cloud/values.yaml
 #

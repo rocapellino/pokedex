@@ -133,10 +133,12 @@ Dev (Compose / Kind) ──PR + CI──▶ main ──release vX.Y.Z──▶ P
 | 4 | Seed job `PostSync` con `SEED_DATASET=full` en pre-prod | Pre-prod siembra el catálogo completo |
 | 5 | Retiro de `pokedex-proxmox` y de la rama `vm` de OpenTofu | Se desmantela el clúster `k8s-proxmox` |
 
-Hasta completar el paso 5, `pokedex-proxmox` sigue declarada y sincronizada. Ese paso
-requiere un backup verificado de PostgreSQL y quitar el `resources-finalizer` de la Application
-en vivo antes del merge: `pokedex-root` usa `prune: true` y, de lo contrario, borraría en
-cascada los recursos del clúster, incluidos los PVC.
+**Estado (2026-10-04).** Los pasos 1 a 4 están integrados (v1.91.0). El relevamiento de
+runtime mostró que la VM 801 de producción nunca se aprovisionó y que el LXC 800
+(`10.10.13.100`) corría un `helm install` manual, sin ArgoCD ni ESO. El paso 5 se ejecuta
+como un cambio solo de repositorio, sin riesgo de pérdida de datos: no existe clúster que
+desmantelar. Pre-prod pasa a sincronizarse in-cluster y la puesta en marcha de GitOps en el
+LXC 800 se documenta en el runbook de Proxmox.
 
 ## Consecuencias
 

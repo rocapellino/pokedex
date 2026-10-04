@@ -60,7 +60,6 @@ export const DEFAULT_OWNER = 'rocapellino';
 
 /** Values de GitOps y Helm de producción cuyos digests fijados nunca se purgan. */
 export const PINNED_VALUES_FILES = [
-  'gitops/environments/proxmox/values.yaml',
   'gitops/environments/proxmox-preprod/values.yaml',
   'gitops/environments/cloud/values.yaml',
   'infra/helm/pokedex/values.prod.yaml',

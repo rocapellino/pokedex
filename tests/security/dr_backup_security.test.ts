@@ -120,7 +120,7 @@ test('🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible a
   const esoTemplatePath = path.join(ROOT_DIR, 'infra/k8s/eso/backup-offsite-externalsecret.yaml.template');
   assert.ok(fs.existsSync(esoTemplatePath), 'backup-offsite-externalsecret.yaml.template debe existir');
 
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
   assert.match(proxmoxValues, /offsite:\s*\r?\n\s*enabled:\s*false/, 'Proxmox GitOps values debe declarar offsite inactivo');
 
@@ -136,7 +136,7 @@ test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan Persis
   const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
   assert.match(valuesContent, /persistence:\s*\r?\n\s*enabled:\s*true/, 'values.yaml base debe declarar backup.persistence.enabled: true');
 
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
   assert.match(proxmoxValues, /persistence:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe declarar backup.persistence.enabled: true');
 
@@ -208,7 +208,7 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   const cronjobTemplatePath = path.join(chartPath, 'templates/backup-gdrive-cronjob.yaml');
   assert.ok(fs.existsSync(cronjobTemplatePath), 'backup-gdrive-cronjob.yaml debe existir en los templates de Helm');
 
-  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
+  const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   assert.ok(fs.existsSync(proxmoxValuesPath), 'proxmox values.yaml debe existir');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
   assert.match(proxmoxValues, /gdrive:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe tener backup.gdrive.enabled: true');
@@ -318,9 +318,3 @@ test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (s
   assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
   assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
 });
-
-
-
-
-
-
