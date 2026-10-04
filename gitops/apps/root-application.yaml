@@ -34,9 +34,10 @@ spec:
       # Prod cloud se activa de forma explicita (fuera del App-of-Apps) con
       # `task gitops:bootstrap:cloud`. Para declararlo activo, eliminar la entrada
       # de este exclude y actualizar el estado en CLOUD_INFRASTRUCTURE_DESIGN.md.
-      exclude: |
-        root-application.yaml
-        app-cloud.yaml
+      # ArgoCD interpreta `exclude` como UN glob: una lista multilínea no se
+      # aplica y descubría app-cloud.yaml (pokedex-cloud apareció en el clúster
+      # el 2026-10-04). Varios archivos se expresan con llaves.
+      exclude: '{root-application.yaml,app-cloud.yaml}'
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

@@ -57,6 +57,17 @@ spec:
   # GITOPS-001: syncPolicy configurada sin bloque `automated` activo para
   # evitar sincronización ni podas accidentales durante pruebas de blueprint.
   # Al activar prod cloud, habilitar `automated: { prune: true, selfHeal: true }`.
+  # Kubernetes completa apiVersion, kind, status y volumeMode en los
+  # volumeClaimTemplates del StatefulSet; sin esto ArgoCD lo marca OutOfSync
+  # para siempre aunque el spec coincida (observado en pre-prod, 2026-10-04).
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[]?.apiVersion
+        - .spec.volumeClaimTemplates[]?.kind
+        - .spec.volumeClaimTemplates[]?.status
+        - .spec.volumeClaimTemplates[]?.spec.volumeMode
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

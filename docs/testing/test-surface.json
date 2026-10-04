@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T18:24:25.237Z",
+  "generatedAt": "2026-10-04T19:08:19.786Z",
   "summary": {
-    "totalFiles": 70,
+    "totalFiles": 71,
     "testFiles": 66,
-    "helperFiles": 3,
+    "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 567,
-    "totalLines": 15201,
-    "totalSizeBytes": 694166,
+    "totalTestCases": 571,
+    "totalLines": 15268,
+    "totalSizeBytes": 698544,
     "suitesCount": 9
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 6,
-      "testCases": 33,
+      "testCases": 37,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -1196,9 +1196,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 7209,
+      "sizeBytes": 7222,
       "lineCount": 153,
-      "sha256": "1de1c1fa041a53b8474bf331e8f5a67c5d4348bfb51ab10723e4073bded331a5",
+      "sha256": "8dee97a72ca3e806c08ef0e9b3c6c8f689ae610d34470602a17e10086dedc16d",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1247,10 +1247,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 100,
-      "sizeBytes": 27190,
-      "lineCount": 492,
-      "sha256": "1b9bc29d364ac0011f34e34090eef2377e210e9979acf3a6b1f5d5bdde226e82",
+      "assertionCountEst": 101,
+      "sizeBytes": 27204,
+      "lineCount": 488,
+      "sha256": "189fcdb9d74ad28edce21415e449d52c215ffe8b09819ef781a5ac492ff21e1f",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1267,27 +1267,27 @@
       "testCases": [
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 32
+          "line": 33
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 90
+          "line": 91
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 166
+          "line": 163
         },
         {
           "name": "🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un proveedor",
-          "line": 231
+          "line": 227
         },
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)",
-          "line": 266
+          "line": 262
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 427
+          "line": 423
         }
       ]
     },
@@ -1353,12 +1353,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 5,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 17,
-      "sizeBytes": 5063,
-      "lineCount": 87,
-      "sha256": "ca3a6cba067b46271a41c553043718e733bfc96fcdc22168db5124f943251856",
+      "assertionCountEst": 27,
+      "sizeBytes": 8473,
+      "lineCount": 140,
+      "sha256": "66ce21dcec286d37bf082c21ff8008800ffec572b084864bd395830c664ed8be",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1392,6 +1392,22 @@
         {
           "name": "🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps",
           "line": 78
+        },
+        {
+          "name": "🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea",
+          "line": 92
+        },
+        {
+          "name": "🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)",
+          "line": 115
+        },
+        {
+          "name": "🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates",
+          "line": 123
+        },
+        {
+          "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
+          "line": 135
         }
       ]
     },
@@ -1434,6 +1450,26 @@
           "line": 65
         }
       ]
+    },
+    {
+      "path": "tests/helpers/argocd.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 941,
+      "lineCount": 18,
+      "sha256": "c91fa6279d8d1064b71d5af414eb21dcbcc1bff61a81343a82e805838c94b33f",
+      "targetDomain": "Suite helpers",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas helpers: argocd.ts.",
+      "status": "HELPER",
+      "testCases": []
     },
     {
       "path": "tests/helpers/docs-portal.ts",
