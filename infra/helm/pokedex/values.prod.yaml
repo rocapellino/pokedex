@@ -1,25 +1,21 @@
 # ==============================================================================
-# PERFIL DE REFERENCIA — Endurecimiento de producción (Alta Disponibilidad)
+# BASE DEL BLUEPRINT PROD CLOUD — Endurecimiento de producción (Alta Disponibilidad)
 # ==============================================================================
-# INFRA-011: este archivo **NO despliega ningún entorno**.
+# INFRA-011 / ADR-030: este archivo es la capa intermedia del blueprint prod cloud,
+# hoy INACTIVO. Ningún entorno desplegado lo consume.
 #
-# Ninguna Application de ArgoCD lo consume. Las tres Applications activas usan
-# exclusivamente `valueFiles: [values.yaml, <override de gitops/environments/>]`:
-#   - pokedex-proxmox       -> gitops/environments/proxmox/values.yaml
-#   - pokedex-preprod       -> gitops/environments/proxmox-preprod/values.yaml
-#   - pokedex-cloud         -> gitops/environments/aws/values.yaml (referencia inactiva)
+# Cadena de values por Application:
+#   - pokedex-preprod (activa)   -> values.yaml + gitops/environments/proxmox-preprod/values.yaml
+#   - pokedex-proxmox (en retiro) -> values.yaml + gitops/environments/proxmox/values.yaml
+#   - pokedex-cloud (blueprint)  -> values.yaml + values.prod.yaml (este archivo)
+#                                   + gitops/environments/cloud/values.yaml
 #
-# Es decir: el perfil de PRODUCCIÓN real es `gitops/environments/proxmox/values.yaml`.
-# Este archivo se renderiza en CI y hay tests que verifican su configuración,
-# pero ninguna de esas aserciones describe el estado de un entorno desplegado.
-#
-# SE CONSERVA porque cumple dos funciones:
-#   1. Documenta la postura objetivo de endurecimiento (HA, Zero-Trust L7,
-#      digest pinning, ResourceQuota) como referencia para endurar el perfil real.
-#   2. Si en el futuro se decide conectar producción a este perfil, ya viene
-#      endurecido por defecto en lugar de arrancar desde el perfil base.
-#
-# Si buscas qué se despliega realmente, consulta `gitops/environments/`.
+# Aquí vive la postura endurecida independiente del proveedor (HA, PgBouncer,
+# Reloader, Zero-Trust L7, digest pinning, ResourceQuota, backups). El override
+# `gitops/environments/cloud/` solo declara los puntos de variación del proveedor.
+# CI renderiza la cadena completa y los tests verifican su configuración, pero
+# ninguna de esas aserciones describe un entorno desplegado hasta que prod cloud
+# se active.
 # ==============================================================================
 
 api:
@@ -155,8 +151,8 @@ ingress:
 # Arquitectura y Jerarquía Canónica:
 # 1. MODELO OFICIAL (GitOps / Entornos Multi-Cloud & On-Prem):
 #    External Secrets Operator (ESO) con recarga automática vía Stakater Reloader.
-#    Habilitado por environment en gitops/environments/{proxmox,aws}/values.yaml
-#    consumiendo HashiCorp Vault (on-prem) o AWS Secrets Manager (cloud).
+#    Habilitado por environment en gitops/environments/{proxmox-preprod,cloud}/values.yaml
+#    consumiendo HashiCorp Vault (on-prem) o el backend elegido al activar prod cloud.
 # 2. MODELO DE RESPALDO / AIR-GAPPED (CI / Standalone):
 #    Secret preexistente (existingSecret: "pokedex-prod-secrets") inyectado de forma
 #    independiente a Helm, evitando secretos planos o el uso de --set en pipelines.
@@ -164,11 +160,11 @@ secrets:
   existingSecret: "pokedex-prod-secrets"
 
 externalSecrets:
-  enabled: false # En values.prod.yaml base permanece false; los entornos GitOps (proxmox/aws) lo activan como SSOT
+  enabled: false # En values.prod.yaml base permanece false; los overrides GitOps (proxmox-preprod/cloud) lo activan como SSOT
   refreshInterval: "1h"
   # Especificidad de Nomenclatura por Proveedor (ADR-011 / SECRETS_MANAGEMENT.md):
   # - HashiCorp Vault KV v2 (Proxmox On-Prem): name: "vault-backend" | key: "secret/data/pokedex/prod"
-  # - AWS Secrets Manager (Public Cloud):      name: "aws-secrets-manager" | key: "pokedex/prod"
+  # - Prod cloud (blueprint, ADR-030):         name: parámetro del override cloud | key: "pokedex/prod"
   secretStoreRef:
     name: "vault-backend"
     kind: "ClusterSecretStore"
@@ -179,14 +175,14 @@ externalSecrets:
 # Recarga Dinámica de Cargas de Trabajo (Stakater Reloader vs checksum/config)
 # ------------------------------------------------------------------------------
 # Justificación de la Dualidad Arquitectónica Multi-Entorno (ADR-005):
-# - ENTORNO CLOUD (AWS EKS / values.prod.yaml base):
+# - ENTORNO PROD CLOUD (blueprint / values.prod.yaml base):
 #   reloader.enabled: true | reloader.auto: true.
 #   Imprescindible porque los Secrets son gestionados de forma asíncrona por ESO
-#   desde AWS Secrets Manager en runtime. Cuando una credencial rota fuera del ciclo
+#   desde el backend de secretos en runtime. Cuando una credencial rota fuera del ciclo
 #   de vida de Helm, la anotación checksum/config NO varía (el Secret no forma parte
 #   del render estático de Helm). Stakater Reloader observa la API de Kubernetes y
 #   dispara el RollingUpdate autónomo de forma zero-touch.
-# - ENTORNO ON-PREMISE (Proxmox VE - Perfil Lean MVP / gitops/environments/proxmox):
+# - ENTORNO ON-PREMISE (Proxmox VE - Perfil Lean / gitops/environments/proxmox-preprod):
 #   reloader.enabled: false.
 #   Desactivado deliberadamente para reducir la huella de memoria (< 1 GB RAM) y evitar
 #   controladores RBAC cluster-wide en un laboratorio/MVP. La recarga de cambios en

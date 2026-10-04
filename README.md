@@ -150,13 +150,13 @@ La infraestructura está modelada de forma declarativa e interoperable:
 
 - **Desarrollo y Pruebas:** Localmente con Docker Compose o en clústeres efímeros con Kind (`infra/kind/`).
 - **Producción y Preproducción:** Despliegue mediante Helm Chart oficial ([infra/helm/pokedex/](infra/helm/pokedex/)) y sincronización GitOps gestionada por ArgoCD ([gitops/](gitops/)), operando sobre clústeres on-premise en Proxmox VE (K3s).
-- **Blueprint Cloud-Ready:** Plantilla de referencia para Amazon EKS ([gitops/apps/app-cloud.yaml](gitops/apps/app-cloud.yaml)), conservada como arquitectura de referencia inactiva.
+- **Blueprint Prod Cloud:** Producción en la nube sin proveedor fijado ([gitops/apps/app-cloud.yaml](gitops/apps/app-cloud.yaml)), declarada e inactiva (ADR-030).
 
 ### Matriz de Estado y Nivel de Soporte de Componentes
 
 | Componente | Nivel de Soporte |
 | :--- | :--- |
-| Kubernetes (EKS / Bare-Metal) | Activo |
+| Kubernetes (K3s on-premise / cloud gestionado) | Activo |
 | Helm 3 (OCI Artifacts) | Activo |
 | ArgoCD (GitOps) | Activo |
 | OpenTofu 1.8+ | Activo |

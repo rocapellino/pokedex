@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **ESTADO DEL DOCUMENTO: VIGENTE (SSOT Actual)**
-> Este documento representa la Fuente Única de Verdad para la gestión de credenciales y secretos en Pokédex mediante HashiCorp Vault CE, AWS Secrets Manager y External Secrets Operator (ESO).
+> Este documento representa la Fuente Única de Verdad para la gestión de credenciales y secretos en Pokédex mediante HashiCorp Vault CE y External Secrets Operator (ESO), con un backend agnóstico reservado para el blueprint prod cloud (ADR-030).
 
 Este documento describe la arquitectura, herramientas y estándares implementados en el repositorio para garantizar el desacoplamiento total de credenciales y evitar la fuga de contraseñas y claves en texto plano a través de todo el ciclo de vida DevOps, de conformidad con el [ADR-005](../decisions/ADR-005-secret-management.md) y el [ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md).
 
@@ -14,7 +14,7 @@ Este documento describe la arquitectura, herramientas y estándares implementado
 2. [Prevención y Detección de Fugas con Gitleaks (CI/CD)](#2-prevención-y-detección-de-fugas-con-gitleaks-cicd)
 3. [Arquitectura Canónica de Secretos en Kubernetes (ESO)](#3-arquitectura-canónica-de-secretos-en-kubernetes-eso)
    - [3.1. Entorno On-Premise (Proxmox VE): HashiCorp Vault CE](#31-entorno-on-premise-proxmox-ve-hashicorp-vault-ce)
-   - [3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager](#32-entorno-cloud-aws-eks-aws-secrets-manager)
+   - [3.2. Prod Cloud (Blueprint Agnóstico): Backend a Elegir](#32-prod-cloud-blueprint-agnóstico-backend-a-elegir)
    - [3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets](#33-transición-y-soporte-histórico-bitnami-sealed-secrets)
 4. [Helper de Resolución Dinámica en Helm (`pokedex.secretName`)](#4-helper-de-resolución-dinámica-en-helm-pokedexsecretname)
 5. [Rotación y Reinicio Progresivo (Rollout Restart)](#5-rotación-y-reinicio-progresivo-rollout-restart)
@@ -60,10 +60,10 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
                                                 │
                  ┌──────────────────────────────┴──────────────────────────────┐
                  ▼                                                             ▼
-        On-Premise (Proxmox VE)                                         Cloud (AWS EKS)
-        ClusterSecretStore: vault-backend                              ClusterSecretStore: aws-secrets-manager
-        Server: https://10.10.13.110:8200                               Provider: AWS Secrets Manager (IRSA)
-        Auth: K8s SA (pokedex-prod-role / preprod-role)                 Auth: AWS IAM Roles for Service Accounts
+        On-Premise (Proxmox VE)                                         Prod Cloud (blueprint inactivo)
+        ClusterSecretStore: vault-backend(-preprod)                    ClusterSecretStore: cloud-secret-store
+        Server: https://10.10.13.110:8200                               Provider: se elige al activar (ADR-030)
+        Auth: K8s SA (pokedex-prod-role / preprod-role)                 Auth: la del backend elegido
                   │                                                             │
                   └──────────────────────────────┬──────────────────────────────┘
                                                  ▼
@@ -86,10 +86,12 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
 - **Manifiesto:**
   - Proxmox (Prod y Pre-prod): [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend` y `ClusterSecretStore/vault-backend-preprod`).
 
-### 3.2. Entorno Cloud (AWS EKS): AWS Secrets Manager
+### 3.2. Prod Cloud (Blueprint Agnóstico): Backend a Elegir
 
-- **Instancia:** Almacén gestionado nativo de AWS con autenticación IAM mediante IRSA (`eks.amazonaws.com/role-arn`).
-- **Manifiesto:** [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/aws-secrets-manager`).
+- **Estado:** inactivo (ADR-030). El blueprint no fija proveedor.
+- **Contrato:** [`gitops/environments/cloud/values.yaml`](../../gitops/environments/cloud/values.yaml) referencia `ClusterSecretStore/cloud-secret-store` y la ruta lógica reservada `pokedex/prod`.
+- **Activación:** el manifiesto del `ClusterSecretStore` se crea al activar el entorno, con el backend que se elija (Vault externo o el gestor de secretos del proveedor). No se versiona un store de un proveedor concreto en [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml).
+- **Recarga:** el perfil prod mantiene Stakater Reloader, porque ESO actualiza el Secret de forma asíncrona tras cada rotación.
 
 ### 3.3. Transición y Soporte Histórico: Bitnami Sealed Secrets
 
@@ -116,13 +118,13 @@ Prioridad: .Values.secrets.existingSecret -> pokemon-secrets
 {{- end }}
 ```
 
-Tanto en AWS como en Proxmox, `.Values.secrets.existingSecret: "pokemon-secrets"` mapea directamente hacia el Secret sincronizado por ESO.
+Tanto en Proxmox como en el blueprint prod cloud, `.Values.secrets.existingSecret: "pokemon-secrets"` mapea directamente hacia el Secret sincronizado por ESO.
 
 ---
 
 ## 5. Rotación y Reinicio Progresivo (Rollout Restart)
 
-- **En AWS EKS:** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
+- **En prod cloud (al activarse):** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
 - **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
 
   ```bash

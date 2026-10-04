@@ -20,7 +20,7 @@ pokedex-root  (root-application.yaml)
     │
     ├── pokedex-proxmox        → gitops/environments/proxmox/values.yaml        🟢 ACTIVO
     ├── pokedex-preprod        → gitops/environments/proxmox-preprod/values.yaml 🟢 ACTIVO
-    └── (pokedex-cloud)         → gitops/environments/aws/values.yaml           ⚪ INACTIVO
+    └── (pokedex-cloud)         → values.prod.yaml + gitops/environments/cloud/values.yaml ⚪ INACTIVO
 ```
 
 ## Estructura
@@ -30,7 +30,7 @@ pokedex-root  (root-application.yaml)
 | [`apps/root-application.yaml`](apps/root-application.yaml) | Application raíz. Declara el App-of-Apps y el `exclude` |
 | [`apps/app-proxmox.yaml`](apps/app-proxmox.yaml) | Producción on-premise. Freeze de fin de semana (62 h) |
 | [`apps/app-proxmox-preprod.yaml`](apps/app-proxmox-preprod.yaml) | Pre-producción. Continuous Delivery, sin ventanas de bloqueo |
-| [`apps/app-cloud.yaml`](apps/app-cloud.yaml) | **Referencia inactiva** para AWS/EKS (GITOPS-001) |
+| [`apps/app-cloud.yaml`](apps/app-cloud.yaml) | **Blueprint prod cloud agnóstico e inactivo** (GITOPS-001, ADR-030) |
 | [`environments/`](environments/) | Overrides de valores por entorno |
 | [`health-checks/argocd-cm-healthchecks.yaml`](health-checks/argocd-cm-healthchecks.yaml) | Evaluadores Lua de salud para CRDs (ADR-003) |
 
@@ -39,15 +39,15 @@ pokedex-root  (root-application.yaml)
 ## Entornos: cuál está activo y cuál no
 
 > [!WARNING]
-> **Sólo Proxmox y Proxmox-preprod están desplegados.** AWS/EKS es una
-> **referencia inactiva**: existe para preparar una futura migración, no para
-> desplegarse.
+> **Sólo Proxmox y Proxmox-preprod están desplegados.** Prod cloud es un
+> **blueprint inactivo** sin proveedor fijado (ADR-030). `pokedex-proxmox` se retira
+> en el paso 5 del plan de ADR-030; desde entonces pre-prod es el único target.
 
 | Entorno | Application | Clasificación | Estado | Cluster destino |
 | :--- | :--- | :--- | :--- | :--- |
 | Producción (on-prem) | `pokedex-proxmox` | 🟢 **ACTIVE** | Activo | `k8s-proxmox.internal.lan` |
 | Pre-producción | `pokedex-preprod` | 🟢 **ACTIVE** | Activo | `k8s-preprod.internal.lan` |
-| Nube pública (AWS) | `pokedex-cloud` | ⚪ **REFERENCE** | Inactivo (Blueprint) | endpoint EKS no registrado |
+| Prod cloud (agnóstico) | `pokedex-cloud` | ⚪ **REFERENCE** | Inactivo (Blueprint) | marcador `.invalid`, sin clúster registrado |
 
 La exclusión de `app-cloud.yaml` está declarada en `root-application.yaml:38-40` con el motivo
 escrito dentro del propio manifiesto: sin ella, ArgoCD descubriría el blueprint y lo
@@ -55,17 +55,18 @@ sincronizaría contra un endpoint inexistente. Además, `app-cloud.yaml` porta l
 normativas `architecture.pokedex.io/tier: "reference-template"` y `architecture.pokedex.io/status: "inactive"`,
 y no define sincronización automatizada (`syncPolicy.automated`) para prevenir reconciliaciones accidentales.
 
-### Activar AWS (decisión de arquitectura, no trivial)
+### Activar prod cloud (decisión de arquitectura, no trivial)
 
 ```bash
 task gitops:bootstrap:cloud    # aplica app-cloud.yaml fuera del App-of-Apps
 ```
 
-Para declararlo **activo de forma permanente** hay que hacer tres cosas, no una:
+Para declararlo **activo de forma permanente** hay que hacer varias cosas, no una:
 
-1. Registrar el endpoint EKS como cluster secret en ArgoCD.
-2. Eliminar `app-cloud.yaml` del `exclude` de `root-application.yaml`.
-3. Actualizar el estado declarado en `CLOUD_INFRASTRUCTURE_DESIGN.md`.
+1. Fijar el proveedor en un ADR y completar los puntos de variación de `environments/cloud/values.yaml`.
+2. Registrar el clúster en ArgoCD y reemplazar el marcador `destination.server`.
+3. Eliminar `app-cloud.yaml` del `exclude` de `root-application.yaml`.
+4. Actualizar el estado declarado en `CLOUD_INFRASTRUCTURE_DESIGN.md`.
 
 ---
 

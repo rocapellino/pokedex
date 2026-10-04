@@ -100,8 +100,8 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
    - La separación de entornos se garantiza lógicamente:
      - En **Vault**: Rutas segregadas (`secret/data/pokedex/preprod/*` vs `secret/data/pokedex/prod/*`) y roles RBAC independientes (`pokedex-preprod-role` vs `pokedex-prod-role`).
      - En **Kubernetes**: Entornos segregados en instancias de computación dedicadas (LXC 800 para Pre-producción vs. VM 801 K3s para Producción), ambos ejecutando sobre el namespace estándar canónico `pokemon-app` con `NetworkPolicies` y ServiceAccounts dedicados (consulte la [Taxonomía de Namespaces](KUBERNETES_NAMESPACE_TAXONOMY.md)).
-3. **Estrategia Cloud-Ready (AWS / EKS):**
-   - La alta disponibilidad física multi-nodo y multi-zona (Multi-AZ) está diseñada en el plano de infraestructura Cloud ([ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)), listo para activarse cuando los requisitos de negocio lo exijan.
+3. **Estrategia Prod Cloud (blueprint agnóstico, ADR-030):**
+   - La alta disponibilidad física multi-nodo y multi-zona está diseñada en el blueprint prod cloud ([ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)), listo para activarse cuando los requisitos de negocio lo exijan.
 
 ---
 

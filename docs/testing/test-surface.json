@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T14:07:13.949Z",
+  "generatedAt": "2026-10-04T14:53:13.994Z",
   "summary": {
     "totalFiles": 67,
     "testFiles": 63,
     "helperFiles": 3,
     "performanceScripts": 1,
-    "totalTestCases": 551,
-    "totalLines": 15002,
-    "totalSizeBytes": 679364,
+    "totalTestCases": 552,
+    "totalLines": 14999,
+    "totalSizeBytes": 680851,
     "suitesCount": 9
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 4,
-      "testCases": 24,
+      "testCases": 25,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -277,10 +277,10 @@
       "runner": "node:test (tsx)",
       "testCount": 33,
       "describeCount": 0,
-      "assertionCountEst": 248,
-      "sizeBytes": 34900,
-      "lineCount": 759,
-      "sha256": "dab5cf2d009ace7751b6d3c6a7f765bb5de80170223c54466a1c5790cbb3484a",
+      "assertionCountEst": 249,
+      "sizeBytes": 35003,
+      "lineCount": 760,
+      "sha256": "ce544b918780bcd0283a83de3784113fcce08e925d8b76a12be987f1dc6362ee",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -327,107 +327,107 @@
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 200
+          "line": 199
         },
         {
-          "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AWS",
-          "line": 217
+          "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud",
+          "line": 216
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 234
+          "line": 236
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 257
+          "line": 259
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 276
+          "line": 278
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 294
+          "line": 296
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 311
+          "line": 313
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 326
+          "line": 328
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 352
+          "line": 354
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 369
+          "line": 371
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 385
+          "line": 387
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 401
+          "line": 403
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 416
+          "line": 418
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 432
+          "line": 434
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 447
+          "line": 449
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 462
+          "line": 464
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 482
+          "line": 484
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 501
+          "line": 503
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 528
+          "line": 530
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 550
+          "line": 552
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 593
+          "line": 595
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 609
+          "line": 611
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 647
+          "line": 649
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 674
+          "line": 676
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 695
+          "line": 697
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 711
+          "line": 713
         }
       ]
     },
@@ -1245,12 +1245,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 5,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 95,
-      "sizeBytes": 25252,
-      "lineCount": 468,
-      "sha256": "0679462c2632d9a5d6ec42ec906e189118b3d6a17e352acacb04ff7e5da2f8d6",
+      "assertionCountEst": 105,
+      "sizeBytes": 27805,
+      "lineCount": 503,
+      "sha256": "aab1436695715b94dd753c5dacc74d379d9669ddf6fb161f48b50c3adf438aab",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1278,12 +1278,16 @@
           "line": 170
         },
         {
-          "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)",
+          "name": "🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un proveedor",
           "line": 235
         },
         {
+          "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)",
+          "line": 270
+        },
+        {
           "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 403
+          "line": 438
         }
       ]
     },
@@ -1946,9 +1950,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 204,
-      "sizeBytes": 42068,
+      "sizeBytes": 42085,
       "lineCount": 767,
-      "sha256": "d11392e7399483851c3ea575083831cb74f31e0425b86e3b6805d0b9418ea68c",
+      "sha256": "1266fc91cc52003e7af5fba52f63612d86c46102c3dc5ad88c0ebdd6b83be5b1",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2603,9 +2607,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 8312,
+      "sizeBytes": 8330,
       "lineCount": 178,
-      "sha256": "fa75e4d7e5375d82138e6e1d69ea8b53d667a6f9a7c3760154124f5c1fce50aa",
+      "sha256": "b384e4af66e92bcbfebec104ad84110eaeac9e9d62a052378e3ed00a2f539dd2",
       "targetDomain": "Paridad de Imágenes en GitOps",
       "targetArtifacts": [
         "scripts/verify-image-digest-parity.ts",
@@ -2632,7 +2636,7 @@
           "line": 36
         },
         {
-          "name": "🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre AWS, Proxmox, Preprod y Helm Prod",
+          "name": "🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre Cloud, Proxmox, Preprod y Helm Prod",
           "line": 56
         },
         {
@@ -2723,10 +2727,10 @@
       "runner": "node:test (tsx)",
       "testCount": 8,
       "describeCount": 0,
-      "assertionCountEst": 75,
-      "sizeBytes": 17165,
-      "lineCount": 286,
-      "sha256": "8db1fe7368881d2263c3c3e0585af5a7b27880c13d95d529749a2c579144bf76",
+      "assertionCountEst": 76,
+      "sizeBytes": 17323,
+      "lineCount": 287,
+      "sha256": "08dd07f55e7068e9944c88feaf2c90756101f72e310d05574742e55fe70bfe64",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",
@@ -2776,7 +2780,7 @@
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 260
+          "line": 261
         }
       ]
     },
@@ -2789,9 +2793,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 10349,
-      "lineCount": 195,
-      "sha256": "cbad633a1767514105274297a50487b37a44c22d1a0b9b99cedf793ed7d02def",
+      "sizeBytes": 10750,
+      "lineCount": 200,
+      "sha256": "5f34b48f3e8db4496f6b1c76dd6672dcaf6919166f65fc70c002ea053d31cf23",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -2820,35 +2824,35 @@
         },
         {
           "name": "📐 Extension Governance: la regla de extensión YAML está incorporada en la suite de skills",
-          "line": 40
+          "line": 45
         },
         {
           "name": "📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 67
+          "line": 72
         },
         {
           "name": "📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .yml obsoletas",
-          "line": 102
+          "line": 107
         },
         {
           "name": "📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones",
-          "line": 120
+          "line": 125
         },
         {
           "name": "🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore",
-          "line": 142
+          "line": 147
         },
         {
           "name": "🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no sobre-extensivo",
-          "line": 150
+          "line": 155
         },
         {
           "name": "🧹 Repository Hygiene: la regla /tmp/ ignora efectivamente archivos en tmp/ y no fuera de tmp/",
-          "line": 159
+          "line": 164
         },
         {
           "name": "🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe y rige AGENTS.md y skills",
-          "line": 178
+          "line": 183
         }
       ]
     },
@@ -2861,9 +2865,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 4318,
+      "sizeBytes": 4320,
       "lineCount": 91,
-      "sha256": "bb82d891972305e32d51519e9df86ebad62b8f2712c6b86d7411187f5fd4b366",
+      "sha256": "9cdfe0b1124fb454c706d533790a30b157bb351a7e78ad37d1c47e9634ca8421",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2905,9 +2909,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 139,
-      "sizeBytes": 28946,
-      "lineCount": 467,
-      "sha256": "bdc646aa9e2d72f7183d9e711637f094f10e6227db762ad8055e1755b90ea12d",
+      "sizeBytes": 28847,
+      "lineCount": 466,
+      "sha256": "74c8d99cdc6df0f8e3f5c3fa96ab842612b81f4fa43dc91156c5940d8b99e5e0",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2963,23 +2967,23 @@
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 197
+          "line": 196
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 228
+          "line": 227
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 268
+          "line": 267
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 353
+          "line": 352
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 389
+          "line": 388
         }
       ]
     },
@@ -2992,9 +2996,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 21287,
-      "lineCount": 410,
-      "sha256": "2d2a24fcb9fc3e5f0f4a4de0e09733998623800d9d64f12f65e99d7a985ea2be",
+      "sizeBytes": 20619,
+      "lineCount": 385,
+      "sha256": "bcef6a298ed92ca8b038aa501a2a18aaceef9282fa0651e7e113062c8b627759",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -3045,28 +3049,28 @@
           "line": 142
         },
         {
-          "name": "🗂️ INFRA-011: ninguna Application de ArgoCD consume el perfil de referencia",
-          "line": 176
+          "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
+          "line": 171
         },
         {
-          "name": "🗂️ INFRA-011: el perfil de referencia declara en su cabecera que no despliega",
-          "line": 216
+          "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
+          "line": 205
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 245
+          "line": 221
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 259
+          "line": 234
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 317
+          "line": 292
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 353
+          "line": 328
         }
       ]
     },
@@ -3078,10 +3082,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 75,
-      "sizeBytes": 17661,
-      "lineCount": 342,
-      "sha256": "80af0ce31fca47b9bb5b69b46cde5730c5408a07970df28557b31f34bf1ec7b5",
+      "assertionCountEst": 66,
+      "sizeBytes": 16681,
+      "lineCount": 326,
+      "sha256": "e596e7f6b286a6b295403325e4ef32ff02bc54ba4515017a0c2770779cf171ac",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -3103,36 +3107,36 @@
           "line": 61
         },
         {
-          "name": "🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente",
+          "name": "🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)",
           "line": 73
         },
         {
           "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 84
+          "line": 86
         },
         {
           "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
-          "line": 96
+          "line": 98
         },
         {
           "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 162
+          "line": 164
         },
         {
           "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 208
+          "line": 210
         },
         {
           "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 237
+          "line": 239
         },
         {
           "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 288
+          "line": 279
         },
         {
-          "name": "🛡️ Trivy IaC: la excepción AVD-AWS-0104 vive solo en infra/opentofu/.trivyignore (SECURITY_REVIEW 2026-10-03)",
-          "line": 324
+          "name": "🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)",
+          "line": 315
         }
       ]
     },
@@ -3245,9 +3249,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 114,
-      "sizeBytes": 33092,
-      "lineCount": 699,
-      "sha256": "adc2099b4d63ee2acca78faf1855cbd92b39f4f7ced18dbb24c6bd2c8663c895",
+      "sizeBytes": 33074,
+      "lineCount": 696,
+      "sha256": "7574f94cb45a5fb4d9502475457de0585ac5b6b614764422f75882301fce86d5",
       "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
       "targetArtifacts": [
         "package.json",
@@ -3324,31 +3328,31 @@
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 445
+          "line": 444
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 541
+          "line": 540
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 549
+          "line": 548
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 570
+          "line": 569
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 592
+          "line": 591
         },
         {
           "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 643
+          "line": 642
         },
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 676
+          "line": 675
         }
       ]
     },

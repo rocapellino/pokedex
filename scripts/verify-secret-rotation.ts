@@ -10,9 +10,10 @@
  *    - externalsecret.yaml parametriza refreshInterval.
  *    - configmap.yaml no contiene contraseñas ni claves confidenciales.
  *
- * 2. Entorno Cloud Enterprise (AWS EKS):
+ * 2. Entorno Prod Cloud (blueprint agnóstico, ADR-030):
  *    - Reloader = REQUIRED (reloader.enabled: true, reloader.auto: true o annotations).
- *    - ExternalSecrets = REQUIRED con ClusterSecretStore 'aws-secrets-manager'.
+ *    - ExternalSecrets = REQUIRED con un ClusterSecretStore declarado y la ruta
+ *      reservada `pokedex/prod`; el backend concreto se elige al activar el entorno.
  *    - refreshInterval <= 24h.
  *
  * 3. Entorno On-Premise Lean (Proxmox VE K3s):
@@ -75,7 +76,7 @@ function parseRefreshIntervalHours(content: string, filename: string): number {
 
 console.log('================================================================');
 console.log('🛡️ Auditoría de Gobernanza: Rotación Dual de Secretos (ADR-005)');
-console.log('   - AWS (Cloud Enterprise) : Reloader = REQUIRED');
+console.log('   - Cloud (blueprint)      : Reloader = REQUIRED');
 console.log('   - Proxmox VE (On-Prem)   : Reloader = FORBIDDEN | rollout restart = REQUIRED');
 console.log('   - Todos los entornos     : ESO refreshInterval <= 24h');
 console.log('================================================================\n');
@@ -116,32 +117,35 @@ check('Templates Helm: configmap.yaml no contiene contraseñas ni claves confide
   }
 });
 
-// 2. AWS Cloud Enterprise: Reloader = REQUIRED, ESO = REQUIRED, refreshInterval <= 24h
-check('AWS Cloud GitOps: Reloader = REQUIRED (reloader.enabled: true)', () => {
-  const file = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
+// 2. Prod Cloud (blueprint agnóstico): Reloader = REQUIRED, ESO = REQUIRED, refreshInterval <= 24h
+check('Cloud GitOps: Reloader = REQUIRED (reloader.enabled: true)', () => {
+  const file = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
   const content = fs.readFileSync(file, 'utf-8');
   const hasReloaderBlock = content.includes('reloader:\n  enabled: true') || content.includes('reloader:\r\n  enabled: true');
   if (!hasReloaderBlock) {
-    throw new Error('gitops/environments/aws/values.yaml debe declarar reloader.enabled: true (Reloader es obligatorio en Cloud)');
+    throw new Error('gitops/environments/cloud/values.yaml debe declarar reloader.enabled: true (Reloader es obligatorio en Cloud)');
   }
   const hasAuto = content.includes('reloader.stakater.com/auto: "true"') || content.includes('auto: true');
   if (!hasAuto) {
-    throw new Error('gitops/environments/aws/values.yaml debe configurar recarga automática (auto: true o anotación stakater)');
+    throw new Error('gitops/environments/cloud/values.yaml debe configurar recarga automática (auto: true o anotación stakater)');
   }
 });
 
-check('AWS Cloud GitOps: ESO = REQUIRED con ClusterSecretStore aws-secrets-manager y refreshInterval <= 24h', () => {
-  const file = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
+check('Cloud GitOps: ESO = REQUIRED con ClusterSecretStore declarado, ruta pokedex/prod y refreshInterval <= 24h', () => {
+  const file = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
   const content = fs.readFileSync(file, 'utf-8');
-  if (!content.includes('enabled: true')) {
-    throw new Error('AWS values.yaml debe tener externalSecrets habilitado');
+  if (!/externalSecrets:\r?\n\s+enabled: true/.test(content)) {
+    throw new Error('cloud values.yaml debe tener externalSecrets habilitado');
   }
-  if (!content.includes('name: "aws-secrets-manager"')) {
-    throw new Error('AWS values.yaml debe referenciar aws-secrets-manager');
+  if (!/secretStoreRef:\r?\n\s+name: "[a-z0-9-]+"\r?\n\s+kind: "ClusterSecretStore"/.test(content)) {
+    throw new Error('cloud values.yaml debe declarar el nombre del ClusterSecretStore (punto de variación del proveedor)');
   }
-  const hours = parseRefreshIntervalHours(content, 'gitops/environments/aws/values.yaml');
+  if (!content.includes('key: "pokedex/prod"')) {
+    throw new Error('cloud values.yaml debe usar la ruta reservada pokedex/prod');
+  }
+  const hours = parseRefreshIntervalHours(content, 'gitops/environments/cloud/values.yaml');
   if (hours > 24) {
-    throw new Error(`refreshInterval en AWS supera 24h: ${hours}h`);
+    throw new Error(`refreshInterval en Cloud supera 24h: ${hours}h`);
   }
 });
 
@@ -252,6 +256,6 @@ if (failed.length > 0) {
   console.error(`❌ Auditoría fallida: ${failed.length} de ${results.length} verificaciones no pasaron.`);
   process.exit(1);
 } else {
-  console.log(`✅ Auditoría exitosa: ${results.length}/${results.length} controles de la arquitectura dual (AWS Reloader / Proxmox Rollout) en cumplimiento estricto.`);
+  console.log(`✅ Auditoría exitosa: ${results.length}/${results.length} controles de la arquitectura dual (Cloud Reloader / Proxmox Rollout) en cumplimiento estricto.`);
   process.exit(0);
 }

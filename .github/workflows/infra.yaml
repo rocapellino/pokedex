@@ -67,7 +67,7 @@ jobs:
         with:
           version: v3.17.0
 
-      - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, Proxmox-Preprod, AWS y Cilium L7 eBPF)
+      - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
         run: |
           helm lint infra/helm/pokedex --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.dev.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-dev.yaml
@@ -79,9 +79,9 @@ jobs:
           # error de template, de valores o de paridad en ese entorno solo se
           # detectaria al sincronizar contra el cluster real.
           helm template pokedex infra/helm/pokedex -f gitops/environments/proxmox-preprod/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-proxmox-preprod.yaml
-          helm template pokedex infra/helm/pokedex -f gitops/environments/aws/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-aws.yaml
+          helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml -f gitops/environments/cloud/values.yaml --set postgresql.auth.password=ci-validation-dummy-pass --set secrets.adminApiKey=ci-validation-dummy-key --set secrets.adminSessionSecret=ci-validation-dummy-session-secret --set redis.auth.password=ci-validation-dummy-pass --set secrets.backupEncryptionKey=ci-validation-dummy-key > /tmp/rendered-cloud.yaml
           helm template pokedex infra/helm/pokedex -f infra/helm/pokedex/values.prod.yaml --set ciliumNetworkPolicy.enabled=true > /tmp/rendered-cilium.yaml
-          echo "✅ Helm Chart validado y renderizado para dev, base secure, prod, proxmox, proxmox-preprod, aws y Cilium L7 eBPF."
+          echo "✅ Helm Chart validado y renderizado para dev, base secure, prod, proxmox, proxmox-preprod, cloud blueprint y Cilium L7 eBPF."
 
       - name: 4. Validar Integridad y Contratos de Seguridad en Manifiestos Renderizados
         run: |
@@ -91,7 +91,7 @@ jobs:
           test -s /tmp/rendered-proxmox.yaml|| { echo "❌ rendered-proxmox.yaml vacío";exit 1; }
           # GITOPS-005: el render de preprod no puede estar vacio.
           test -s /tmp/rendered-proxmox-preprod.yaml || { echo "❌ rendered-proxmox-preprod.yaml vacío"; exit 1; }
-          test -s /tmp/rendered-aws.yaml    || { echo "❌ rendered-aws.yaml vacío";    exit 1; }
+          test -s /tmp/rendered-cloud.yaml    || { echo "❌ rendered-cloud.yaml vacío";  exit 1; }
           test -s /tmp/rendered-cilium.yaml || { echo "❌ rendered-cilium.yaml vacío"; exit 1; }
           grep -q "allow-postgres-ingress" /tmp/rendered-prod.yaml      || { echo "❌ Falta NetworkPolicy PostgreSQL en prod"; exit 1; }
           grep -q "allow-redis-ingress" /tmp/rendered-prod.yaml         || { echo "❌ Falta NetworkPolicy Redis en prod"; exit 1; }
@@ -118,7 +118,7 @@ jobs:
           echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum --check --strict
           tar -xz -C /tmp -f /tmp/kubeconform.tar.gz kubeconform
           /tmp/kubeconform -v
-          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-proxmox-preprod.yaml /tmp/rendered-aws.yaml
+          /tmp/kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.30.0 /tmp/rendered-dev.yaml /tmp/rendered-base.yaml /tmp/rendered-prod.yaml /tmp/rendered-proxmox.yaml /tmp/rendered-proxmox-preprod.yaml /tmp/rendered-cloud.yaml
           echo "✅ Validación de esquemas OpenAPI K8s con Kubeconform completada."
 
       - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)
@@ -174,7 +174,7 @@ jobs:
         run: |
           echo "Verificando formato recursivo de OpenTofu (fmt -check)..."
           tofu fmt -check -recursive infra/opentofu
-          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/lab infra/opentofu/environments/cloud-template infra/opentofu/environments/aws; do
+          for dir in infra/opentofu/environments/proxmox infra/opentofu/environments/lab infra/opentofu/environments/cloud-template; do
             echo "Validando entorno OpenTofu en $dir..."
             tofu -chdir="$dir" init -backend=false
             tofu -chdir="$dir" validate

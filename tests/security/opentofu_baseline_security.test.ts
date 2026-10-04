@@ -70,15 +70,17 @@ test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default har
   assert.ok(!varBlock.includes('default'), 'variable "ssh_public_key" no debe tener un valor default hardcodeado');
 });
 
-test('🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente', () => {
-  const awsEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/aws');
-  assert.ok(fs.existsSync(awsEnvPath), 'infra/opentofu/environments/aws debe existir');
-  assert.ok(fs.existsSync(path.join(awsEnvPath, 'main.tf')), 'aws/main.tf debe existir');
-  assert.ok(fs.existsSync(path.join(awsEnvPath, 'providers.tf')), 'aws/providers.tf debe existir');
-  assert.ok(fs.existsSync(path.join(awsEnvPath, 'variables.tf')), 'aws/variables.tf debe existir');
+test('🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)', () => {
+  const cloudTemplatePath = path.join(ROOT_DIR, 'infra/opentofu/environments/cloud-template');
+  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'main.tf')), 'cloud-template/main.tf debe existir como base del blueprint prod cloud');
 
   const proxmoxEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox');
   assert.ok(fs.existsSync(proxmoxEnvPath), 'infra/opentofu/environments/proxmox debe existir');
+
+  assert.ok(
+    !fs.existsSync(path.join(ROOT_DIR, 'infra/opentofu/environments/aws')),
+    'infra/opentofu/environments/aws se retiró con ADR-030: prod cloud no fija proveedor'
+  );
 });
 
 test('🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend', () => {
@@ -86,7 +88,7 @@ test('🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runt
   assert.ok(fs.existsSync(docPath), 'CLOUD_INFRASTRUCTURE_DESIGN.md debe existir');
   const content = fs.readFileSync(docPath, 'utf-8');
   assert.ok(content.includes('Kubernetes como el runtime universal'), 'Debe formalizar Kubernetes como runtime universal');
-  assert.ok(content.includes('environments/aws'), 'Debe referenciar environments/aws');
+  assert.ok(content.includes('environments/cloud'), 'Debe referenciar el blueprint environments/cloud');
   assert.ok(content.includes('environments/proxmox'), 'Debe referenciar environments/proxmox');
   assert.ok(content.includes('Single Production Runtime') || content.includes('Producción Universal'), 'Debe formalizar política de producción');
   assert.ok(content.includes('task dev:compose'), 'Debe formalizar task dev:compose');
@@ -251,19 +253,6 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(labEnvPath, 'variables.tf')), 'lab/variables.tf debe existir');
   assert.ok(fs.existsSync(path.join(labEnvPath, 'outputs.tf')), 'lab/outputs.tf debe existir');
 
-  const awsEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/aws');
-  assert.ok(fs.existsSync(awsEnvPath), 'infra/opentofu/environments/aws debe existir');
-  const awsVars = fs.readFileSync(path.join(awsEnvPath, 'variables.tf'), 'utf-8');
-  assert.ok(awsVars.includes('variable "vpc_id"'), 'AWS variables.tf debe declarar vpc_id');
-  assert.ok(awsVars.includes('variable "subnet_ids"'), 'AWS variables.tf debe declarar subnet_ids');
-  assert.ok(awsVars.includes('variable "control_plane_subnet_ids"'), 'AWS variables.tf debe declarar control_plane_subnet_ids');
-
-  const awsMain = fs.readFileSync(path.join(awsEnvPath, 'main.tf'), 'utf-8');
-  assert.ok(awsMain.includes('vpc_id                   = var.vpc_id'), 'AWS main.tf debe usar var.vpc_id');
-  assert.ok(awsMain.includes('subnet_ids               = var.subnet_ids'), 'AWS main.tf debe usar var.subnet_ids');
-  assert.ok(fs.existsSync(path.join(awsEnvPath, 'terraform.tfvars.example')), 'AWS terraform.tfvars.example debe existir');
-  assert.ok(fs.existsSync(path.join(awsEnvPath, 'README.md')), 'AWS README.md debe existir como plantilla de referencia');
-
   const cloudTemplatePath = path.join(ROOT_DIR, 'infra/opentofu/environments/cloud-template');
   assert.ok(fs.existsSync(cloudTemplatePath), 'infra/opentofu/environments/cloud-template debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'main.tf')), 'cloud-template/main.tf debe existir');
@@ -271,6 +260,8 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'outputs.tf')), 'cloud-template/outputs.tf debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'terraform.tfvars.example')), 'cloud-template/terraform.tfvars.example debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'README.md')), 'cloud-template/README.md debe existir');
+  const cloudVars = fs.readFileSync(path.join(cloudTemplatePath, 'variables.tf'), 'utf-8');
+  assert.ok(cloudVars.includes('variable "network_id"'), 'cloud-template/variables.tf debe parametrizar la red sin fijar un proveedor');
 
   const backendExamplePath = path.join(ROOT_DIR, 'infra/opentofu/environments/backend.tf.example');
   assert.ok(fs.existsSync(backendExamplePath), 'backend.tf.example debe existir');
@@ -321,21 +312,14 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
   }
 });
 
-test('🛡️ Trivy IaC: la excepción AVD-AWS-0104 vive solo en infra/opentofu/.trivyignore (SECURITY_REVIEW 2026-10-03)', () => {
-  // Una copia en la raíz aplicaría la supresión a cualquier escaneo de Trivy
-  // que use el directorio del repositorio, no solo al de OpenTofu.
-  assert.equal(
-    fs.existsSync(path.join(ROOT_DIR, '.trivyignore')),
-    false,
-    'No debe existir un .trivyignore en la raíz: las excepciones IaC se acotan a infra/opentofu/',
-  );
-
-  const scopedIgnore = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/.trivyignore'), 'utf-8');
-  assert.match(scopedIgnore, /^AVD-AWS-0104$/m, 'infra/opentofu/.trivyignore debe conservar la excepción AVD-AWS-0104');
+test('🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)', () => {
+  // AVD-AWS-0104 solo cubría el security group de EKS de infra/opentofu/environments/aws.
+  // Retirado ese entorno, una supresión residual ocultaría hallazgos reales en IaC futura.
+  for (const ignorePath of ['.trivyignore', 'infra/opentofu/.trivyignore']) {
+    assert.equal(fs.existsSync(path.join(ROOT_DIR, ignorePath)), false, `${ignorePath} no debe existir sin un recurso que justifique la excepción`);
+  }
 
   const workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-code-scanning.yaml'), 'utf-8');
-  assert.ok(
-    workflow.includes("trivyignores: 'infra/opentofu/.trivyignore'"),
-    'El escaneo Trivy IaC debe consumir explícitamente infra/opentofu/.trivyignore',
-  );
+  assert.ok(workflow.includes("scan-ref: 'infra/opentofu'"), 'El escaneo Trivy IaC debe seguir cubriendo infra/opentofu');
+  assert.ok(!workflow.includes('trivyignores:'), 'El escaneo Trivy IaC no debe consumir archivos de exclusión retirados');
 });

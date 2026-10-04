@@ -99,7 +99,7 @@ pokedex/
 ├── infra/                        # Infraestructura como Código (IaC) y Manifiestos Cloud-Native
 │   ├── helm/pokedex/             # Chart oficial de Helm 3 (Deployments, PgBouncer, HPA, NetPols)
 │   ├── k8s/                      # ClusterPolicy de Kyverno para verificación de firmas Cosign
-│   ├── opentofu/                 # Entornos Proxmox VE (on-premise) y AWS EKS (cloud)
+│   ├── opentofu/                 # Entornos Proxmox VE (on-premise), lab y cloud-template (blueprint prod)
 │   ├── proxmox/                  # Plantillas Cloud-Init y contenedores LXC on-premise
 │   └── ansible/                  # Playbooks de baseline de nodos y hardening de firewall UFW
 ├── gitops/                       # GitOps con ArgoCD
@@ -142,7 +142,7 @@ pokedex/
 ### `infra/` y `gitops/` (Infraestructura, Orquestación y GitOps)
 
 - **Helm 3 Chart (`infra/helm/pokedex`)**: Despliegue altamente parametrizado con políticas NetworkPolicy Zero-Trust (Anti-SSRF, PgBouncer enforced isolation), soporte para External Secrets Operator, HPA v2 y PodDisruptionBudgets.
-- **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise y AWS EKS en la nube).
+- **ArgoCD (`gitops/`)**: Sincronización continua declarativa en clústeres híbridos (Proxmox VE on-premise; prod cloud agnóstico como blueprint inactivo).
 
 ---
 

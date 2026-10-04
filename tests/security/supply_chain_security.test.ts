@@ -418,11 +418,10 @@ test('🛡️ Supply Chain Security: Política Kyverno verify-image-signature ex
 });
 
 test('🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)', () => {
-  // INFRA-011: los tres primeros sí son targets activos gobernados por el
-  // App-of-Apps. `values.prod.yaml` es el perfil de referencia: se incluye para
-  // que no quede sin fijar si algun dia se conecta a un entorno real.
+  // ADR-030: proxmox y proxmox-preprod se despliegan; `cloud` + `values.prod.yaml`
+  // forman el blueprint inactivo de prod, que la promoción mantiene fijado.
   const envFiles = [
-    'gitops/environments/aws/values.yaml',
+    'gitops/environments/cloud/values.yaml',
     'gitops/environments/proxmox/values.yaml',
     'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml'
@@ -495,14 +494,14 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
     }
   };
 
-  const awsPath = path.join(ROOT_DIR, 'gitops/environments/aws/values.yaml');
+  const cloudPath = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
   const proxmoxPath = path.join(ROOT_DIR, 'gitops/environments/proxmox/values.yaml');
   const preprodPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const prodPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
 
   // Verificar ausencia de campo tag redundante
-  assertNoConfusingTag(awsPath, 'api');
-  assertNoConfusingTag(awsPath, 'web');
+  assertNoConfusingTag(cloudPath, 'api');
+  assertNoConfusingTag(cloudPath, 'web');
   assertNoConfusingTag(proxmoxPath, 'api');
   assertNoConfusingTag(proxmoxPath, 'web');
   assertNoConfusingTag(preprodPath, 'api');
@@ -510,32 +509,32 @@ test('🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad est
   assertNoConfusingTag(prodPath, 'api');
   assertNoConfusingTag(prodPath, 'web');
 
-  const awsApiDigest = parseImageDigest(awsPath, 'api');
+  const cloudApiDigest = parseImageDigest(cloudPath, 'api');
   const proxmoxApiDigest = parseImageDigest(proxmoxPath, 'api');
   const preprodApiDigest = parseImageDigest(preprodPath, 'api');
   const prodApiDigest = parseImageDigest(prodPath, 'api');
 
-  const awsWebDigest = parseImageDigest(awsPath, 'web');
+  const cloudWebDigest = parseImageDigest(cloudPath, 'web');
   const proxmoxWebDigest = parseImageDigest(proxmoxPath, 'web');
   const preprodWebDigest = parseImageDigest(preprodPath, 'web');
   const prodWebDigest = parseImageDigest(prodPath, 'web');
 
   // 1. Paridad estricta inter-entornos para API por digest
-  assert.strictEqual(awsApiDigest, proxmoxApiDigest, 'Digest de api debe ser idéntico entre AWS y Proxmox');
-  assert.strictEqual(awsApiDigest, preprodApiDigest, 'Digest de api debe ser idéntico entre AWS y Proxmox Pre-prod');
-  assert.strictEqual(awsApiDigest, prodApiDigest, 'Digest de api debe ser idéntico entre AWS y Prod');
+  assert.strictEqual(cloudApiDigest, proxmoxApiDigest, 'Digest de api debe ser idéntico entre Cloud y Proxmox');
+  assert.strictEqual(cloudApiDigest, preprodApiDigest, 'Digest de api debe ser idéntico entre Cloud y Proxmox Pre-prod');
+  assert.strictEqual(cloudApiDigest, prodApiDigest, 'Digest de api debe ser idéntico entre Cloud y Prod');
 
   // 2. Paridad estricta inter-entornos para Web por digest
-  assert.strictEqual(awsWebDigest, proxmoxWebDigest, 'Digest de web debe ser idéntico entre AWS y Proxmox');
-  assert.strictEqual(awsWebDigest, preprodWebDigest, 'Digest de web debe ser idéntico entre AWS y Proxmox Pre-prod');
-  assert.strictEqual(awsWebDigest, prodWebDigest, 'Digest de web debe ser idéntico entre AWS y Prod');
+  assert.strictEqual(cloudWebDigest, proxmoxWebDigest, 'Digest de web debe ser idéntico entre Cloud y Proxmox');
+  assert.strictEqual(cloudWebDigest, preprodWebDigest, 'Digest de web debe ser idéntico entre Cloud y Proxmox Pre-prod');
+  assert.strictEqual(cloudWebDigest, prodWebDigest, 'Digest de web debe ser idéntico entre Cloud y Prod');
 
   // 3. Diferenciación de digests entre servicios (previene copy-paste cruzado)
-  assert.notStrictEqual(awsApiDigest, awsWebDigest, 'Los digests de api y web deben ser distintos');
+  assert.notStrictEqual(cloudApiDigest, cloudWebDigest, 'Los digests de api y web deben ser distintos');
 
   // 4. Formato estricto sha256
-  assert.match(awsApiDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de api debe ser un hash sha256 válido');
-  assert.match(awsWebDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de web debe ser un hash sha256 válido');
+  assert.match(cloudApiDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de api debe ser un hash sha256 válido');
+  assert.match(cloudWebDigest, /^sha256:[a-f0-9]{64}$/, 'Digest de web debe ser un hash sha256 válido');
 });
 
 test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)', () => {
@@ -694,5 +693,3 @@ test('🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable'
     'El repositorio despliega la imagen oficial pgbouncer/pgbouncer, no edoburu/pgbouncer'
   );
 });
-
-

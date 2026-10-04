@@ -8,7 +8,7 @@ Este directorio contiene la arquitectura declarativa de referencia para la gesti
 
 | Entorno | Operador | Proveedor Upstream | ClusterSecretStore | Rol de Vault / IAM | Ruta de Secretos | Secret Destino |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **AWS (Cloud - Reference)** | ESO | AWS Secrets Manager (IRSA) | `ClusterSecretStore/aws-secrets-manager` | IAM Role IRSA | `pokedex/*` | `pokemon-secrets` |
+| **Prod cloud (blueprint, ADR-030)** | ESO | Backend elegido al activar el entorno | `ClusterSecretStore/cloud-secret-store` (se declara al activar) | Según el proveedor | `pokedex/prod` | `pokemon-secrets` |
 | **Proxmox Prod (Active)** | ESO | HashiCorp Vault (K8s Auth) | `ClusterSecretStore/vault-backend` | `pokedex-prod-role` | `secret/data/pokedex/prod/*` | `pokemon-secrets` |
 | **Proxmox Pre-prod (Active)** | ESO | HashiCorp Vault (K8s Auth) | `ClusterSecretStore/vault-backend-preprod` | `pokedex-preprod-role` | `secret/data/pokedex/preprod/*` | `pokemon-secrets` |
 
@@ -16,7 +16,7 @@ Este directorio contiene la arquitectura declarativa de referencia para la gesti
 
 ## 📐 Manifiestos y Taxonomía Operativa
 
-1. **`cluster-secret-store.yaml` [ACTIVE / CANONICAL]:** Manifiesto canónico consolidado para despliegue unificado de plataforma que define los tres conectores de clúster (`vault-backend` para Proxmox Prod, `vault-backend-preprod` para Proxmox Pre-prod y `aws-secrets-manager` para AWS). Actúa como la única SSOT contractual de `ClusterSecretStore` consumida por `tests/security/vault_redeploy_contract.test.ts` y `scripts/k8s-rollout-restart.ts`. Los antiguos manifiestos fragmentados (`vault-backend.yaml`, `vault-backend-preprod.yaml`, `aws-secrets-manager.yaml`) fueron deprecados y consolidados de forma definitiva para prevenir drift de configuración.
+1. **`cluster-secret-store.yaml` [ACTIVE / CANONICAL]:** Manifiesto canónico consolidado para despliegue unificado de plataforma que define los conectores de clúster de Proxmox (`vault-backend` para Proxmox Prod, en retiro, y `vault-backend-preprod` para Pre-prod). El store del blueprint prod cloud (`cloud-secret-store`) se declara al activarlo (ADR-030). Actúa como la única SSOT contractual de `ClusterSecretStore` consumida por `tests/security/vault_redeploy_contract.test.ts` y `scripts/k8s-rollout-restart.ts`. Los antiguos manifiestos fragmentados (`vault-backend.yaml`, `vault-backend-preprod.yaml`, `aws-secrets-manager.yaml`) fueron deprecados y consolidados de forma definitiva para prevenir drift de configuración.
 2. **`external-secret-pokedex.yaml` [REFERENCE STATIC]:** Recurso `ExternalSecret` estático de referencia técnica. La SSOT operativa viva, templarizada y GitOps-aware reside en el Chart Helm (`infra/helm/pokedex/templates/externalsecret.yaml`).
 3. **`backup-offsite-externalsecret.yaml.template` [TEMPLATE]:** Plantilla declarativa para la sincronización de credenciales de respaldo off-site (rclone / S3 / Google Drive) gestionada por ESO.
 
@@ -30,6 +30,6 @@ Se erradicó por completo el uso de roles o políticas comodín globales (`poked
 
 ## 🔄 Flujo de Sincronización y Rotación
 
-1. El operador de seguridad o sistema de gestión de identidades actualiza el secreto en Vault o AWS Secrets Manager.
+1. El operador de seguridad o sistema de gestión de identidades actualiza el secreto en Vault o en el backend del entorno cloud.
 2. ESO detecta el cambio en su ciclo de reconciliación (`1h`) y actualiza atómicamente el Secret `pokemon-secrets`.
 3. En entornos productivos Proxmox (perfil Lean MVP sin Reloader), se ejecuta `npm run k8s:rollout-restart` para un refresco ordenado y progresivo.

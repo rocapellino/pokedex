@@ -7,7 +7,7 @@
  * app-proxmox-preprod y app-cloud).
  *
  * GITOPS-001: `app-cloud.yaml` se incluye aunque sea una referencia inactiva
- * (excluida del App-of-Apps). Mantenerla fijada evita que, al activarse AWS,
+ * (excluida del App-of-Apps). Mantenerla fijada evita que, al activarse prod cloud,
  * despliegue contra un targetRevision obsoleto.
  *
  * Uso CLI:

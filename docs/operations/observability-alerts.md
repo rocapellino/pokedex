@@ -30,7 +30,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **TlsCertExpiringSoon** | `warning` | `(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 15` | Certificado TLS próximo a expirar (< 15 días). |
 | **ArgoCDAppOutOfSync** | `warning` | `argocd_app_info{sync_status!="Synced"} == 1` | Aplicación GitOps desincronizada con el repositorio. |
 | **ArgoCDAppDegraded** | `critical` | `argocd_app_info{health_status="Degraded"} == 1` | Aplicación GitOps con recursos degradados en el clúster. |
-| **ExternalSecretSyncFailed** | `critical` | `externalsecret_status_condition{status="False",type="Ready"} == 1` | Fallo en la sincronización de secretos externos desde Vault/AWS Secrets Manager. |
+| **ExternalSecretSyncFailed** | `critical` | `externalsecret_status_condition{status="False",type="Ready"} == 1` | Fallo en la sincronización de secretos externos desde Vault o el backend cloud. |
 
 ---
 

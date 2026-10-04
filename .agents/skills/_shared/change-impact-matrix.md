@@ -14,9 +14,9 @@ Este documento define el radio de impacto esperado y la cascada de dependencias 
 | Tipo de Cambio | Componentes que Obligatoriamente Deben Revisarse | Justificación / Criterio de Propagación |
 | :--- | :--- | :--- |
 | **Helm Templates (`infra/helm/pokedex/templates/`)** | `infra/helm/pokedex/values.yaml`; `gitops/environments/*/values.yaml`; `tests/` (render tests); Documentación (`docs/architecture/`) | Si se añade un nuevo recurso o parámetro condicional (`if .Values.x`), debe existir un valor seguro por defecto en `values.yaml` y verificarse si los entornos activos lo sobrescriben. |
-| **Helm Values (`infra/helm/pokedex/values.yaml`)** | Entornos GitOps (`gitops/environments/`); Release metadata (`Chart.yaml`); Documentación de configuración | Validar si el cambio altera defaults contractuales o requiere alineación en Proxmox / AWS. |
+| **Helm Values (`infra/helm/pokedex/values.yaml`)** | Entornos GitOps (`gitops/environments/`); Release metadata (`Chart.yaml`); Documentación de configuración | Validar si el cambio altera defaults contractuales o requiere alineación en Proxmox o en el blueprint cloud. |
 | **Imagen Docker / Código (`apps/backend`, `apps/frontend`)** | CI/CD (`.github/workflows/ci.yaml`); Registry GHCR; Digest SHA256 inmutable; `verify-image-digest-parity.ts`; Release tag | Toda mutación en código fuente altera el digest OCI. Se requiere compilación, firma Cosign y posterior promoción hacia GitOps. |
-| **Digest Pinning (`infra/` o `gitops/`)** | Paridad entre entornos (`AWS == Proxmox == Helm Prod`); Política Kyverno de firmas Cosign | La paridad interna entre entornos debe mantenerse estrictamente 1:1 en producción para evitar drift de versión. |
+| **Digest Pinning (`infra/` o `gitops/`)** | Paridad entre entornos (`Cloud == Proxmox == Helm Prod`); Política Kyverno de firmas Cosign | La paridad interna entre entornos debe mantenerse estrictamente 1:1 en producción para evitar drift de versión. |
 | **Secretos / Credenciales** | HashiCorp Vault (`setup_vault.yaml`); ExternalSecrets (`ClusterSecretStore`); Secret paths (`pokedex/prod`, `pokedex/preprod`); Values de entorno; Runbook de rotación | No almacenar secretos en Git. Verificar mapeo en Vault, sincronización de ESO y necesidad de `rollout restart` ante ausencia de Reloader. |
 | **Backup & Disaster Recovery** | Manifiestos de backup (`backup-cronjob.yaml`, `backup-gdrive-cronjob.yaml`); Persistencia (PVC / HostPath); Runbooks de DR (`DISASTER_RECOVERY_PLAN.md`); E2E DR Drill (`dr:drill:e2e`) | Validar cifrado AES-256, checksum SHA-256, exclusiones de red (Cilium FQDN) y scripts de verificación de restore. |
 | **Políticas de Red (NetworkPolicies / Cilium)** | Conectividad Egress L7 FQDN; Bloqueo Anti-SSRF (IMDS / RFC1918); Test de seguridad (`tests/security/egress_anti_ssrf.test.ts`); Sonda activa (`probe:security:egress`) | Toda modificación en destinos externos (ej. APIs de Google) requiere actualizar tanto la lista FQDN de Cilium como la regla de salida en standard NetworkPolicy. |
@@ -93,12 +93,12 @@ No todos los archivos de un subsistema deben alterarse ante un cambio. La skill 
 1. **Desacoplamiento Contractual:** Si un cambio en el backend no altera esquemas Zod ni contratos de API, **no debe modificarse `apps/frontend/`**.
 2. **Promoción Desacoplada de CI:** Si se publica una nueva imagen en CI pero el release actual de producción permanece deliberadamente fijado en un tag anterior, **no debe modificarse `targetRevision` en GitOps** de forma inmediata.
 3. **Persistencia Agnóstica:** Si se modifica la programación de un CronJob (`schedule`), pero el volumen PVC y el script de restore permanecen intactos, **no deben modificarse las políticas de almacenamiento ni OpenTofu**.
-4. **Entorno Aislado:** Si un cambio aplica únicamente al perfil on-premise Proxmox (ej. `values.yaml`), **no debe modificarse el perfil de AWS** (`gitops/environments/aws/values.yaml`).
+4. **Entorno Aislado:** Si un cambio aplica únicamente al perfil on-premise Proxmox (ej. `gitops/environments/proxmox-preprod/values.yaml`), **no debe modificarse el perfil prod cloud** (`gitops/environments/cloud/values.yaml`).
    > [!NOTE]
-   > `infra/helm/pokedex/values.prod.yaml` **no es** el perfil de AWS: ninguna
-   > Application de ArgoCD lo consume. Es un perfil de referencia que CI renderiza y
-   > sobre el que se escriben aserciones, pero que no despliega ningún entorno
-   > (`INFRA-011`).
+   > El perfil prod cloud es la cadena `values.yaml` → `infra/helm/pokedex/values.prod.yaml`
+   > → `gitops/environments/cloud/values.yaml` (`app-cloud.yaml`, blueprint inactivo de
+   > ADR-030). Un cambio en `values.prod.yaml` afecta a ese blueprint; el override `cloud`
+   > solo declara los puntos de variación del proveedor.
 
 ---
 

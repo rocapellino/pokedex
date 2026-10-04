@@ -7,13 +7,13 @@ Este documento establece la **única fuente de verdad (SSOT)** para la nomenclat
 ## 1. Declaración Canónica (SSOT)
 
 > **Regla Operativa Canónica:**
-> En **todos** los clústeres y entornos (Kind local, Proxmox VE Pre-producción LXC 800, Proxmox VE Producción K3s VM 801, y AWS EKS Cloud-Ready), **la aplicación Pokédex se despliega exclusivamente en el namespace `pokemon-app`**.
+> En **todos** los clústeres y entornos (Kind local, Proxmox VE Pre-producción LXC 800, Proxmox VE Producción K3s VM 801, y el blueprint prod cloud), **la aplicación Pokédex se despliega exclusivamente en el namespace `pokemon-app`**.
 >
 > Ningún runbook, manifiesto, pipeline o comando operativo debe utilizar los namespaces legados `pokedex` o `pokedex-preprod`.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       PLATAFORMA KUBERNETES (K3s / EKS)                     │
+│                       PLATAFORMA KUBERNETES (K3s / cloud)                   │
 ├──────────────────────────────┬──────────────────────────────────────────────┤
 │ Namespace de Aplicación      │ pokemon-app (SSOT Canónico)                  │
 │ Namespaces de Plataforma     │ kube-system, external-secrets, monitoring,   │

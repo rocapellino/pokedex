@@ -26,7 +26,7 @@ export type ImageComponent = 'api' | 'web';
 export const IMAGE_VALUES_FILES = [
   'gitops/environments/proxmox/values.yaml',
   'gitops/environments/proxmox-preprod/values.yaml',
-  'gitops/environments/aws/values.yaml',
+  'gitops/environments/cloud/values.yaml',
   'infra/helm/pokedex/values.prod.yaml',
 ];
 

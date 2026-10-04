@@ -6,7 +6,7 @@ Aceptado
 
 ## Contexto
 
-La infraestructura como código (IaC) de la plataforma Pokédex se aprovisiona de forma declarativa mediante OpenTofu sobre entornos híbridos (Proxmox VE on-premise, laboratorios locales y AWS EKS). La gestión de los archivos de estado (`.tfstate`) y planes ejecutables (`.tfplan`) presenta riesgos operativos y de seguridad significativos:
+La infraestructura como código (IaC) de la plataforma Pokédex se aprovisiona de forma declarativa mediante OpenTofu sobre entornos híbridos (Proxmox VE on-premise, laboratorios locales y la plantilla cloud agnóstica). La gestión de los archivos de estado (`.tfstate`) y planes ejecutables (`.tfplan`) presenta riesgos operativos y de seguridad significativos:
 
 1. **Exposición Crítica de Secretos en Texto Claro**: El estado de OpenTofu contiene metadatos sensibles de infraestructura, contraseñas maestras de bases de datos, claves privadas SSH generadas por cloud-init y tokens de acceso a APIs de nube.
 2. **Riesgo de Fuga en el Control de Versiones**: Cualquier persistencia inadvertida de archivos `.tfstate` en repositorios Git públicos o privados expone la superficie de ataque completa del sistema.
@@ -23,8 +23,8 @@ Se adopta una arquitectura integral de gestión de estados IaC estructurada en c
    - Se aplican hooks de pre-commit y escaneo de secretos (Gitleaks) en los pipelines de CI para interceptar cualquier intento de inclusión de estados.
 
 2. **Backends Remotos Centralizados y Cifrados**:
-   - Para entornos cloud (AWS) y virtualizados (Proxmox VE), se formaliza el uso de backends remotos desacoplados basados en la plantilla canónica `infra/opentofu/environments/backend.tf.example`.
-   - En despliegues AWS, se utiliza el backend `s3` con `encrypt = true` (Server-Side Encryption mediante KMS o claves gestionadas) y almacenamiento versionado para habilitar rollback de estados.
+   - Para entornos cloud y virtualizados (Proxmox VE), se formaliza el uso de backends remotos desacoplados basados en la plantilla canónica `infra/opentofu/environments/backend.tf.example`.
+   - En proveedores con almacenamiento compatible con S3, se utiliza el backend `s3` con `encrypt = true` (Server-Side Encryption mediante KMS o claves gestionadas) y almacenamiento versionado para habilitar rollback de estados.
    - En entornos on-premise Proxmox, se soporta la mediación con MinIO o el backend relacional `pg` canalizado a través del pooler de base de datos.
 
 3. **Bloqueo Distribuido Obligatorio de Concurrencia (State Locking)**:
@@ -39,7 +39,7 @@ Se adopta una arquitectura integral de gestión de estados IaC estructurada en c
    - Con este esquema, incluso si el almacenamiento remoto en S3 o MinIO se ve comprometido, los datos de estado son matemáticamente inaccesibles sin la clave simétrica o la clave KMS.
 
 5. **Aislamiento por Entornos**:
-   - Cada entorno (`environments/proxmox`, `environments/aws`, `environments/lab`, `environments/cloud-template`) mantiene claves de estado independientes y segregadas (`environments/<env>/terraform.tfstate`), impidiendo la interferencia cruzada entre infraestructuras.
+   - Cada entorno (`environments/proxmox`, `environments/lab`, `environments/cloud-template`) mantiene claves de estado independientes y segregadas (`environments/<env>/terraform.tfstate`), impidiendo la interferencia cruzada entre infraestructuras.
 
 ## Consecuencias
 

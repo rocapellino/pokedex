@@ -2,7 +2,7 @@
 # ArgoCD Root Application - Patrón App-of-Apps Canónico
 # ==============================================================================
 # Este manifiesto gobierna la totalidad de las aplicaciones del monorepo Pokédex
-# en Kubernetes, coordinando los entornos on-premise (Proxmox) y cloud (AWS EKS).
+# en Kubernetes: pre-prod on-premise (Proxmox) y el blueprint prod cloud (ADR-030).
 # Formalizado bajo ADR-003 (Advanced GitOps Orchestration & Sync Waves).
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
@@ -27,12 +27,11 @@ spec:
       # GITOPS-001: la Application raiz gobierna UNICAMENTE entornos activos.
       #
       # - `root-application.yaml` se excluye para que el root no se gestione a si mismo.
-      # - `app-cloud.yaml` se excluye porque AWS/EKS es una REFERENCIA INACTIVA:
-      #   Proxmox (prod) y Proxmox-preprod son los unicos targets desplegados. Sin
-      #   esta exclusion, ArgoCD descubriria el manifiesto de referencia y lo
-      #   sincronizaria automaticamente contra un endpoint EKS no registrado.
+      # - `app-cloud.yaml` se excluye porque prod cloud es un BLUEPRINT INACTIVO
+      #   (ADR-030). Sin esta exclusion, ArgoCD descubriria el manifiesto y lo
+      #   sincronizaria contra un cluster que todavia no existe.
       #
-      # AWS se activa de forma explicita (fuera del App-of-Apps) con
+      # Prod cloud se activa de forma explicita (fuera del App-of-Apps) con
       # `task gitops:bootstrap:cloud`. Para declararlo activo, eliminar la entrada
       # de este exclude y actualizar el estado en CLOUD_INFRASTRUCTURE_DESIGN.md.
       exclude: |

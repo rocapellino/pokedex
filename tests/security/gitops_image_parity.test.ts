@@ -18,7 +18,7 @@ const ROOT_DIR = path.resolve(__dirname, '../..');
 test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante Helm y extrae la imagen del contenedor api', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const environments = [
-    'gitops/environments/aws/values.yaml',
+    'gitops/environments/cloud/values.yaml',
     'gitops/environments/proxmox/values.yaml',
     'gitops/environments/proxmox-preprod/values.yaml',
     'infra/helm/pokedex/values.prod.yaml',
@@ -53,16 +53,16 @@ test('🔒 GitOps Parity: parseImmutableDigest valida formato SHA256 y rechaza e
   );
 });
 
-test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre AWS, Proxmox, Preprod y Helm Prod', () => {
+test('🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre Cloud, Proxmox, Preprod y Helm Prod', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const results = verifyImageDigestParity({ chartPath });
 
   assert.strictEqual(results.length, 4, 'Debe evaluar exactamente 4 entornos (incluido Proxmox Pre-prod)');
-  const [aws, proxmox, preprod, prod] = results;
+  const [cloud, proxmox, preprod, prod] = results;
 
-  assert.strictEqual(aws.digest, proxmox.digest, 'AWS y Proxmox deben tener digests idénticos');
-  assert.strictEqual(aws.digest, preprod.digest, 'AWS y Proxmox Pre-prod deben tener digests idénticos');
-  assert.strictEqual(aws.digest, prod.digest, 'AWS y Helm Prod deben tener digests idénticos');
+  assert.strictEqual(cloud.digest, proxmox.digest, 'Cloud y Proxmox deben tener digests idénticos');
+  assert.strictEqual(cloud.digest, preprod.digest, 'Cloud y Proxmox Pre-prod deben tener digests idénticos');
+  assert.strictEqual(cloud.digest, prod.digest, 'Cloud y Helm Prod deben tener digests idénticos');
 });
 
 test('🔒 GitOps Parity: el gate estricto incluye Proxmox Pre-prod en el conjunto de paridad', () => {

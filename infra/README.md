@@ -12,7 +12,7 @@ Para garantizar que ningún blueprint o referencia de laboratorio sea confundido
 | :--- | :--- | :--- |
 | 🟢 **ACTIVE** | Plataforma operativa en producción y pre-producción. Sujeto a SLAs y monitoreo continuo. | Proxmox VE (`infra/opentofu/environments/proxmox/`), K3s + Cilium (`setup_k3s.yaml`), Helm Chart (`values.yaml`), ESO consolidado (`cluster-secret-store.yaml`), Vault LXC. |
 | 🔵 **SUPPORTED** | Entornos mantenidos y probados para desarrollo local, CI o laboratorio efímero. | Kind (`infra/k8s/kind-cluster.yaml`), Helm local (`values.dev.yaml`), Entorno Lab (`infra/opentofu/environments/lab/`), Bastion host. |
-| 🟡 **REFERENCE** | Blueprints de portabilidad multi-cloud o perfiles estáticos de validación sin runtime activo. | AWS EKS (`infra/opentofu/environments/aws/`), `cloud-template`, Helm `values.prod.yaml` (perfil de referencia para `helm template/lint`, INFRA-011). |
+| 🟡 **REFERENCE** | Blueprints de portabilidad multi-cloud o perfiles estáticos de validación sin runtime activo. | Blueprint prod cloud agnóstico (ADR-030): `infra/opentofu/environments/cloud-template/`, `gitops/environments/cloud/` y Helm `values.prod.yaml` como su base endurecida (INFRA-011). |
 | ⚪ **BLUEPRINT** | Esqueletos inactivos preservados para extensión futura, fuera de pipelines activos. | `setup_pbs_backup_blueprint.yaml` (Proxmox Backup Server), esquemas de storage agnósticos. |
 
 ---
@@ -72,7 +72,7 @@ La orquestación en clúster está 100% estandarizada en **Helm 3**:
 ### 2. Infraestructura como Código con OpenTofu (`infra/opentofu/`)
 
 - **Proxmox VE (On-Premise - `infra/opentofu/environments/proxmox/` - ACTIVE):** Provisión bi-modal declarativa de nodos Kubernetes: contenedores **LXC** ultralivianos para Pre-Prod y máquinas virtuales **KVM** con aislamiento estricto de hardware para Producción.
-- **AWS Cloud (Pública - `infra/opentofu/environments/aws/` - REFERENCE):** Provisión de VPC segregada, Internet Gateway, Subnets y clúster gestionado AWS EKS como blueprint de portabilidad.
+- **Cloud Template (`infra/opentofu/environments/cloud-template/` - REFERENCE):** Base agnóstica del blueprint prod cloud (ADR-030). Se valida en CI sin credenciales y se completa con los recursos del proveedor al activarlo.
 - Totalmente compatible con la sintaxis HCL y proveedores del Registry bajo licenciamiento open-source (MPL-2.0).
 
 ### 3. Automatización con Ansible (`infra/ansible/`)
@@ -101,6 +101,4 @@ task infra:validate
 # Planificar aprovisionamiento en Proxmox VE (comando canónico)
 task infra:plan:proxmox
 
-# Planificar aprovisionamiento en AWS EKS (referencia)
-task infra:plan:aws
 ```

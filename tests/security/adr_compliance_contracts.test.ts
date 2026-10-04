@@ -229,7 +229,7 @@ test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan
     readmeContent.includes('Matriz de Estado y Nivel de Soporte de Componentes'),
     'README.md debe contener la Matriz de Estado y Nivel de Soporte de Componentes'
   );
-  assert.ok(readmeContent.includes('Kubernetes (EKS / Bare-Metal)'), 'Matriz debe listar Kubernetes');
+  assert.ok(readmeContent.includes('Kubernetes (K3s on-premise / cloud gestionado)'), 'Matriz debe listar Kubernetes');
   assert.ok(readmeContent.includes('Helm 3 (OCI Artifacts)'), 'Matriz debe listar Helm 3');
   assert.ok(readmeContent.includes('ArgoCD (GitOps)'), 'Matriz debe listar ArgoCD');
   assert.ok(readmeContent.includes('OpenTofu 1.8+'), 'Matriz debe listar OpenTofu');

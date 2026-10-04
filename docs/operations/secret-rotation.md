@@ -8,17 +8,17 @@ Establecer el protocolo para la rotación periódica y de emergencia de claves c
 
 | Secreto | Mecanismo de Inyección | Periodicidad de Rotación | Impacto de Rotación |
 | :--- | :--- | :--- | :--- |
-| **`POSTGRES_PASSWORD`** | ExternalSecret (Vault / AWS SM) | 90 días | Reinicio de pool de conexiones (`pg.Pool` nativo / PgBouncer) |
-| **`REDIS_PASSWORD`** | ExternalSecret (Vault / AWS SM) | 90 días | Reinicio de conexiones del pool Redis |
-| **`ADMIN_API_KEY`** | ExternalSecret (Vault / AWS SM) | 60 días | Exige actualizar clientes de administración |
-| **`ADMIN_SESSION_SECRET`** | ExternalSecret (Vault / AWS SM) | 60 días | Invalida sesiones activas en curso |
+| **`POSTGRES_PASSWORD`** | ExternalSecret (Vault / backend cloud) | 90 días | Reinicio de pool de conexiones (`pg.Pool` nativo / PgBouncer) |
+| **`REDIS_PASSWORD`** | ExternalSecret (Vault / backend cloud) | 90 días | Reinicio de conexiones del pool Redis |
+| **`ADMIN_API_KEY`** | ExternalSecret (Vault / backend cloud) | 60 días | Exige actualizar clientes de administración |
+| **`ADMIN_SESSION_SECRET`** | ExternalSecret (Vault / backend cloud) | 60 días | Invalida sesiones activas en curso |
 | **`BACKUP_ENCRYPTION_KEY`** | Secret de Kubernetes / CI | 180 días | Cifra volcados futuros (no altera pasados) |
 
 ## 3. Procedimiento de Rotación
 
-### Paso 1: Actualizar el secreto en el proveedor upstream (AWS Secrets Manager o Vault)
+### Paso 1: Actualizar el secreto en el proveedor upstream (Vault o el backend cloud)
 
-Actualizar el valor de la clave correspondiente en el almacén de secretos (HashiCorp Vault en On-Premise Proxmox o AWS Secrets Manager en Cloud).
+Actualizar el valor de la clave correspondiente en el almacén de secretos (HashiCorp Vault en On-Premise Proxmox o el backend elegido al activar prod cloud).
 
 ### Paso 2: Forzar sincronización en External Secrets Operator
 
@@ -30,7 +30,7 @@ kubectl annotate es pokedex-secrets -n pokemon-app force-sync=$(date +%s) --over
 
 El mecanismo de propagación depende del entorno de ejecución:
 
-- **Entorno Cloud (AWS EKS):**
+- **Entorno Prod Cloud (blueprint, al activarse):**
   Gracias al controlador de **Stakater Reloader** y la anotación declarativa en los Deployments (`reloader.stakater.com/auto: "true"` formalizado en [ADR-005](../decisions/ADR-005-secret-management.md)), el clúster detecta la mutación del Secret y ejecuta automáticamente un *RollingUpdate* progresivo sin tiempo de inactividad.
 
 - **Entorno On-Premise (Proxmox VE / K3s - Perfil Lean MVP):**

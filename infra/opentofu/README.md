@@ -14,9 +14,9 @@ La aplicación Pokédex está empaquetada como un **Helm Chart agnóstico y port
                ┌────────────┴────────────┐
                ▼                         ▼
       On-Premise Backend           Cloud Backend
-       (Proxmox VE / KVM)            (AWS EKS)
+       (Proxmox VE)              (Prod, blueprint)
                │                         │
-     [ environments/proxmox ]     [ environments/aws ]
+     [ environments/proxmox ]  [ environments/cloud-template ]
                │                         │
                ▼                         ▼
          Kubernetes                 Kubernetes
@@ -46,11 +46,7 @@ infra/opentofu/
 │   │   ├── main.tf
 │   │   ├── providers.tf
 │   │   └── variables.tf
-│   ├── aws/                       # [REFERENCE] Backend Cloud: Clúster AWS EKS, VPC, subredes y NodeGroups
-│   │   ├── main.tf
-│   │   ├── providers.tf
-│   │   └── variables.tf
-│   └── cloud-template/            # [BLUEPRINT] Plantilla universal desacoplada de proveedor cloud
+│   └── cloud-template/            # [BLUEPRINT] Base agnóstica del blueprint prod cloud (ADR-030)
 │       ├── main.tf
 │       └── variables.tf
 └── modules/                       # Módulos reutilizables compartidos
@@ -64,16 +60,14 @@ infra/opentofu/
 
 ## 🚀 Uso Operativo (Comandos Canónicos)
 
-### Aprovisionamiento en AWS (EKS)
+### Validación del Blueprint Prod Cloud
 
 ```bash
-# Validación previa e inicialización
+# Valida proxmox, cloud-template y lab sin credenciales ni backend remoto
 task infra:validate
-
-# Planificación y aplicación en AWS EKS
-task infra:plan:aws
-task infra:apply:aws
 ```
+
+El blueprint prod cloud no tiene `plan` ni `apply` hasta que un ADR fije el proveedor (ADR-030).
 
 ### Aprovisionamiento en Proxmox VE
 
