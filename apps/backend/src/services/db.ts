@@ -105,7 +105,7 @@ export function getStorageHealth(): {
 // 3. Re-exportaciones de Contratos Públicos (Compatibilidad Retrocompatible 100%)
 // ------------------------------------------------------------------------------
 
-export { getDrizzleDb, getPostgresVersion } from './postgres.js';
+export { getDrizzleDb, getPostgresVersion, syncPokedexIdSequence } from './postgres.js';
 
 export {
   getAllPokemons,
@@ -113,7 +113,8 @@ export {
   savePokemon,
   deletePokemon,
   getNextPokemonId,
-  isWritableStorageAvailable
+  isWritableStorageAvailable,
+  listPersistedPokemonIds
 } from './pokemon.repository.js';
 
 export {

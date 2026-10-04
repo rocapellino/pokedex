@@ -23,6 +23,9 @@ repos:
       - id: check-json
       - id: check-added-large-files
         args: ['--maxkb=500']
+        # ADR-030: catálogo nacional completo (~1 MB, una entrada por línea) generado con
+        # scripts/generate-pokemon-catalog.ts. Única excepción; el resto del repo sigue en 500 KB.
+        exclude: '^apps/backend/src/data/pokemon-catalog\.full\.json$'
       - id: check-merge-conflict
 
   - repo: https://github.com/gitleaks/gitleaks

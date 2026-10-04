@@ -1,55 +1,65 @@
 // ==============================================================================
 // Script CLI de Siembra Masiva del Catálogo Pokédex (K8s Job / DevOps Tooling)
 // ==============================================================================
-import { initialPokemons } from './data/initialPokemons.js';
-import { initStorage, savePokemon, getAllPokemons, getStorageHealth } from './services/db.js';
+import { loadSeedCatalog, planSeed, resolveSeedDataset } from './data/seed-catalog.js';
+import {
+  initStorage,
+  savePokemon,
+  getStorageHealth,
+  listPersistedPokemonIds,
+  syncPokedexIdSequence,
+} from './services/db.js';
 
 async function main() {
   console.log('🌱 [Seed Job] Iniciando verificación y siembra de catálogo Pokémon...');
-  console.log(`📦 [Seed Job] Catálogo base disponible: ${initialPokemons.length} Pokémon.`);
 
   try {
+    // 0. Seleccionar el dataset (ADR-030): `sample` por defecto, `full` en pre-prod y prod
+    const dataset = resolveSeedDataset(process.env.SEED_DATASET);
+    const catalog = loadSeedCatalog(dataset);
+    console.log(`📦 [Seed Job] Dataset '${dataset}': ${catalog.length} Pokémon.`);
+
     // 1. Inicializar conexiones a PostgreSQL y Redis
     await initStorage();
     const health = getStorageHealth();
 
     console.log(`📡 [Seed Job] Modo de almacenamiento activo: ${health.database.toUpperCase()} (PG conectado: ${health.postgres_connected})`);
 
-    // 2. Verificar estado actual del catálogo
-    const { total } = await getAllPokemons({ limit: 1, offset: 0 });
-    console.log(`📊 [Seed Job] Registros actualmente en base de datos: ${total}.`);
+    // 2. Comparar el catálogo con los IDs ya persistidos
+    const existingIds = await listPersistedPokemonIds();
+    console.log(`📊 [Seed Job] Registros actualmente en base de datos: ${existingIds.size}.`);
 
-    const isProduction = process.env.NODE_ENV === 'production';
-    const forceSeedRaw = (process.env.FORCE_SEED || '').trim();
-    const isForceSeedRequested = forceSeedRaw === 'true' || forceSeedRaw === '1' || forceSeedRaw === 'OVERRIDE_PRODUCTION_CONFIRMED';
-
-    if (total >= initialPokemons.length) {
-      if (!isForceSeedRequested) {
-        console.log('✅ [Seed Job] El catálogo ya se encuentra completo y sincronizado. No se requieren cambios.');
-        process.exit(0);
-      }
-
-      // En entornos de producción se requiere la confirmación explícita para evitar sobreescrituras accidentales
-      if (isProduction && forceSeedRaw !== 'OVERRIDE_PRODUCTION_CONFIRMED') {
-        console.warn('⚠️ [Seed Job: Seguridad] FORCE_SEED bloqueado en producción: no se permite reactivación accidental con true/1.');
-        console.warn('⚠️ [Seed Job: Seguridad] Para forzar la resiembra deliberada en producción configure FORCE_SEED="OVERRIDE_PRODUCTION_CONFIRMED".');
-        process.exit(0);
-      }
-
-      console.warn('⚠️ [Seed Job: Advertencia] FORCE_SEED activado explícitamente: se sincronizarán y actualizarán los registros del catálogo base.');
+    const plan = planSeed(catalog, existingIds, {
+      forceSeed: process.env.FORCE_SEED,
+      isProduction: process.env.NODE_ENV === 'production',
+    });
+    if (plan.blockedForce) {
+      console.warn(`⚠️ [Seed Job: Seguridad] ${plan.blockedForce}`);
+    }
+    if (plan.mode === 'force-sync') {
+      console.warn('⚠️ [Seed Job: Advertencia] FORCE_SEED activado explícitamente: se reescribirán los registros del catálogo base.');
     }
 
-    console.log(`🚀 [Seed Job] Sembrando/sincronizando ${initialPokemons.length} entradas en almacenamiento persistente...`);
+    if (plan.toSeed.length === 0) {
+      console.log('✅ [Seed Job] El catálogo ya se encuentra completo. No se requieren cambios.');
+      process.exit(0);
+    }
+
+    // 3. Sembrar (insertar faltantes o reescribir con FORCE_SEED)
+    console.log(`🚀 [Seed Job] Sembrando ${plan.toSeed.length} entradas (${plan.mode}) en almacenamiento persistente...`);
     let count = 0;
-    for (const p of initialPokemons) {
+    for (const p of plan.toSeed) {
       await savePokemon(p);
       count++;
-      if (count % 200 === 0 || count === initialPokemons.length) {
-        console.log(`⏳ [Seed Job] Progreso: ${count}/${initialPokemons.length} Pokémon procesados...`);
+      if (count % 200 === 0 || count === plan.toSeed.length) {
+        console.log(`⏳ [Seed Job] Progreso: ${count}/${plan.toSeed.length} Pokémon procesados...`);
       }
     }
 
-    console.log(`🎉 [Seed Job] ¡Siembra finalizada con éxito! Total de Pokémon registrados: ${count}.`);
+    // 4. Alinear la secuencia de IDs con los IDs explícitos recién sembrados
+    await syncPokedexIdSequence();
+
+    console.log(`🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}.`);
     process.exit(0);
   } catch (err: any) {
     console.error('❌ [Seed Job] Error fatal durante la siembra:', err?.message || err);
