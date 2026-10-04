@@ -218,7 +218,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/pla
    - Se activa el listener TLS estricto en el puerto 8200 (`tls_disable = 0`, `tls_min_version = "tls12"`).
 2. **Almacenamiento Transaccional Raft y Anti-Swap:**
    - Se configura `storage "raft"` en `/opt/vault/data` con permisos restrictivos `0700` (`vault:vault`).
-   - Se habilita el bloqueo de memoria física (`disable_mlock = false`) respaldado por la capacidad de Linux `CAP_IPC_LOCK` y límites de systemd `LimitMEMLOCK=infinity` para prevenir el volcado de claves criptográficas a disco swap.
+   - `disable_mlock = true`: con almacenamiento Raft integrado HashiCorp recomienda desactivar mlock, y el LXC 810 sin privilegios no puede elevar `RLIMIT_MEMLOCK`. El riesgo de volcado a swap se acota con el swap limitado del LXC y el cifrado de disco del host.
 3. **Firewall Perimetral UFW:**
    - Se aplica política por defecto de denegación (`default deny incoming`).
    - El puerto API `8200/tcp` se restringe de forma estricta para ser alcanzable únicamente desde los nodos del clúster K8s (`10.10.13.100`), el host Bastion (`10.10.13.120`) y loopback.
@@ -226,10 +226,9 @@ El playbook [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/pla
 4. **Shamir Secret Sharing Multipartito (5 llaves / umbral 3):**
    - Inicialización con esquema robusto de Shamir (`key-shares=5`, `key-threshold=3`).
 5. **Zero-Disk Persistence (Sin Resguardo de Root Token en LXC):**
-   - El proceso de inicialización captura las claves de unseal y el root token **únicamente en la memoria volátil de Ansible**.
-   - Se realiza el unseal inicial aplicando 3 llaves en memoria y se configuran las entidades de Vault.
+   - El proceso de inicialización captura las claves de unseal y el root token en memoria de Ansible, aplica el unseal inicial con 3 llaves y configura las entidades de Vault.
    - Se garantiza la eliminación permanente de cualquier archivo `vault-init.json` en el contenedor LXC.
-   - Las llaves maestras se entregan al operador fuera del contenedor.
+   - Las credenciales se entregan al operador en el nodo de control (Bastion) como `~/vault-init-vault-01.json` con permisos `0600` (`vault_init_export_path`). El operador debe repartir las 5 llaves Shamir y el root token en custodia offline y borrar el archivo con `shred -u`. Sin esta entrega, Vault queda sellado sin recuperación tras el primer reinicio.
 6. **Integración con External Secrets Operator (ESO):**
    - El certificado público de la CA interna se exporta a `infra/k8s/eso/vault-ca.crt` y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
 

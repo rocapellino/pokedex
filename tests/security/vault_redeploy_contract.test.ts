@@ -183,3 +183,24 @@ test('📊 DR & SLA Canonical Contract: Unificación de SLA (99.5%), RPO (< 24h)
   assert.match(adrContent, /<\s*24\s*horas/, 'ADR-006 debe formalizar RPO canónico < 24 horas');
   assert.match(adrContent, /<\s*2\s*horas/, 'ADR-006 debe formalizar RTO canónico < 2 horas');
 });
+
+test('🔒 Vault Init: las credenciales se entregan al operador fuera del LXC y nunca quedan en el contenedor', () => {
+  // Regresión (2026-10-04): el playbook inicializaba Vault y descartaba las llaves
+  // Shamir y el root token. Tras el primer reinicio Vault quedaba sellado sin
+  // recuperación y no había token para cargar los secretos de pre-prod.
+  const playbook = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml'), 'utf-8').replace(/\r\n/g, '\n');
+  const exportTask = /- name: Entregar las credenciales de init al operador[\s\S]*?(?=\n    - name:)/.exec(playbook)?.[0] ?? '';
+  assert.ok(exportTask, 'setup_vault.yaml debe entregar las credenciales de init al operador');
+  assert.match(exportTask, /dest:\s*"\{\{ vault_init_export_path \}\}"/, 'La entrega debe usar vault_init_export_path');
+  assert.match(exportTask, /mode:\s*'0600'/, 'El archivo de credenciales debe ser 0600');
+  assert.match(exportTask, /delegate_to:\s*localhost/, 'Las credenciales deben quedar en el nodo de control, no en el LXC de Vault');
+  assert.match(exportTask, /no_log:\s*true/, 'Las credenciales no deben aparecer en la salida de Ansible');
+  assert.match(playbook, /path:\s*"\{\{ vault_config_dir \}\}\/vault-init\.json"\s*\n\s*state:\s*absent/, 'vault-init.json no debe persistir en el LXC');
+});
+
+test('🔒 Vault Storage: disable_mlock = true con Raft integrado en LXC sin privilegios', () => {
+  const playbook = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml'), 'utf-8');
+  assert.match(playbook, /storage "raft"/, 'Vault debe usar almacenamiento Raft integrado');
+  assert.match(playbook, /disable_mlock = true/, 'Raft integrado en LXC sin privilegios requiere disable_mlock = true');
+  assert.doesNotMatch(playbook, /setcap cap_ipc_lock/, 'No debe intentar conceder CAP_IPC_LOCK en un LXC sin privilegios');
+});

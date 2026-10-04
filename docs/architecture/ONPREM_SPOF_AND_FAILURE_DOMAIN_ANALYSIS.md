@@ -59,8 +59,8 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 
 - **Impacto:** Terminación forzada de procesos por parte del kernel.
 - **Mitigación Arquitectural:**
-  - K3s Prod VM tiene asignación de memoria estática y no ballooning dinámico.
-  - Vault LXC tiene `disable_mlock = false` y capacidad `CAP_IPC_LOCK` (`LimitMEMLOCK=infinity`), impidiendo que sus secretos sean swappeados al disco.
+  - El LXC 800 de pre-prod tiene memoria y swap acotados por OpenTofu (5 GB / 1 GB).
+  - Vault LXC usa `disable_mlock = true` (recomendación de HashiCorp para Raft integrado; un LXC sin privilegios no puede elevar `RLIMIT_MEMLOCK`). El swap del LXC está acotado (512 MB) y el riesgo residual de volcado de secretos a swap queda aceptado en pre-prod.
   - En Kubernetes, se definen `requests` y `limits` estrictos en los manifiestos de la aplicación y `ResourceQuota` en cada namespace.
 
 ### 3.3. Corrupción o Degradación de Storage
