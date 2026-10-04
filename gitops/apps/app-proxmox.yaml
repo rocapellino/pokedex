@@ -15,7 +15,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rocapellino/pokedex.git
-    targetRevision: v1.89.18
+    targetRevision: v1.89.19
     path: infra/helm/pokedex
     helm:
       releaseName: pokedex-proxmox
