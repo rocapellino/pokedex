@@ -267,7 +267,7 @@ test('🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un
   assert.ok(!clusterStores.includes('name: aws-secrets-manager'), 'cluster-secret-store.yaml no debe declarar aws-secrets-manager');
 });
 
-test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)', async () => {
+test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-003-gitops-with-argocd.md');
   const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');
   const rootAppPath = path.join(ROOT_DIR, 'gitops/apps/root-application.yaml');
@@ -288,7 +288,7 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSy
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-003 debe estar en estado Aceptado');
   assert.ok(adrContent.includes('Sync Waves'), 'ADR-003 debe documentar Sync Waves');
-  assert.ok(adrContent.includes('PreSync'), 'ADR-003 debe documentar PreSync hook');
+  assert.ok(adrContent.includes('PostSync'), 'ADR-003 debe documentar el hook PostSync del seed job');
   assert.ok(adrContent.includes('App-of-Apps'), 'ADR-003 debe documentar patrón App-of-Apps');
   assert.ok(adrContent.includes('Health Checks'), 'ADR-003 debe documentar Custom Health Checks');
   assert.ok(adrContent.includes('ADR-021'), 'ADR-003 debe registrar formalmente la consolidación de ADR-021');
@@ -331,8 +331,8 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSy
   assert.ok(stsContent.includes('argocd.argoproj.io/sync-wave: "0"'), 'PostgreSQL StatefulSet debe estar en sync-wave 0');
 
   const seedContent = fs.readFileSync(seedJobPath, 'utf-8');
-  assert.ok(seedContent.includes('sync-wave') && seedContent.includes('"1"'), 'Seed Job debe estar en sync-wave 1');
-  assert.ok(seedContent.includes('PreSync'), 'Seed Job debe definir hook PreSync');
+  // ADR-030: el seed corre como PostSync; el contrato renderizado vive en seed_job_contract.test.ts.
+  assert.ok(seedContent.includes('"argocd.argoproj.io/hook": PostSync'), 'Seed Job debe definir hook PostSync');
   assert.ok(seedContent.includes('HookSucceeded'), 'Seed Job debe definir hook-delete-policy');
 
   const apiContent = fs.readFileSync(apiDeploymentPath, 'utf-8');

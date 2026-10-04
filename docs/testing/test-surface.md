@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **67** |
-| **Archivos de Test Automatizados** | 63 |
+| **Total de Archivos en `tests/`** | **68** |
+| **Archivos de Test Automatizados** | 64 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 3 |
-| **Total de Casos de Prueba Identificados** | **552** |
-| **Líneas de Código de Pruebas** | 14.999 |
-| **Tamaño Total de la Suite** | 664.9 KB |
+| **Total de Casos de Prueba Identificados** | **555** |
+| **Líneas de Código de Pruebas** | 15.073 |
+| **Tamaño Total de la Suite** | 668.6 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-04T14:53:13.994Z |
+| **Última Sincronización** | 2026-10-04T15:05:11.296Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 10 | 70 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 24 | 202 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
-| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 4 | 25 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
+| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 5 | 28 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 4 | 46 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
@@ -65,6 +65,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 153 | Suite de pruebas gitops: environment_http_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 503 | Suite de pruebas gitops: gitops_architecture.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **7** | 131 | Suite de pruebas gitops: image_digest_promotion.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
+| [`tests/gitops/seed_job_contract.test.ts`](../../tests/gitops/seed_job_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas gitops: seed_job_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/helpers/docs-portal.ts`](../../tests/helpers/docs-portal.ts) | `helpers` | Helper | `none` | **0** | 25 | Suite de pruebas helpers: docs-portal.ts. | *(Helper)* |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 27 | Suite de pruebas helpers: taskfile.ts. | *(Helper)* |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **7** | 78 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -171,7 +172,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Contratos de GitOps y Despliegue (`gitops`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 25
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 28
 - **Propósito:** Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -180,6 +181,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | **6** | 153 | Suite de pruebas gitops: environment_http_contract.test.ts. | *(General)* |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | **6** | 503 | Suite de pruebas gitops: gitops_architecture.test.ts. | *(General)* |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | **7** | 131 | Suite de pruebas gitops: image_digest_promotion.test.ts. | *(General)* |
+| [`tests/gitops/seed_job_contract.test.ts`](../../tests/gitops/seed_job_contract.test.ts) | **3** | 74 | Suite de pruebas gitops: seed_job_contract.test.ts. | *(General)* |
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 

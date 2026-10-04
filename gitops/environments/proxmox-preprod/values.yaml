@@ -136,6 +136,13 @@ ingress:
 secrets:
   existingSecret: "pokemon-secrets"
 
+# ADR-030: pre-prod siembra el catálogo nacional completo con la imagen de la API.
+# Sin FORCE_SEED solo inserta los IDs ausentes y no pisa ediciones del backoffice.
+seedJob:
+  enabled: true
+  dataset: "full"
+  forceSeed: false
+
 pgbouncer:
   enabled: false
 
