@@ -148,9 +148,9 @@ npm run lint:md
 
 La infraestructura está modelada de forma declarativa e interoperable:
 
-- **Desarrollo y Pruebas:** Localmente con Docker Compose o en clústeres efímeros con Kind (`infra/kind/`).
-- **Producción y Preproducción:** Despliegue mediante Helm Chart oficial ([infra/helm/pokedex/](infra/helm/pokedex/)) y sincronización GitOps gestionada por ArgoCD ([gitops/](gitops/)), operando sobre clústeres on-premise en Proxmox VE (K3s).
-- **Blueprint Prod Cloud:** Producción en la nube sin proveedor fijado ([gitops/apps/app-cloud.yaml](gitops/apps/app-cloud.yaml)), declarada e inactiva (ADR-030).
+- **Desarrollo y Pruebas:** Localmente con Docker Compose o en clústeres efímeros con Kind ([infra/k8s/kind-cluster.yaml](infra/k8s/kind-cluster.yaml)).
+- **Preproducción On-Premise:** Despliegue mediante Helm Chart oficial ([infra/helm/pokedex/](infra/helm/pokedex/)) y sincronización GitOps gestionada por ArgoCD in-cluster ([gitops/apps/app-proxmox-preprod.yaml](gitops/apps/app-proxmox-preprod.yaml)), operando sobre K3s en Proxmox VE (LXC 800).
+- **Blueprint Prod Cloud:** Producción en la nube sin proveedor fijado ([gitops/apps/app-cloud.yaml](gitops/apps/app-cloud.yaml)), declarada e inactiva ([ADR-030](docs/decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)).
 
 ### Matriz de Estado y Nivel de Soporte de Componentes
 
@@ -159,7 +159,7 @@ La infraestructura está modelada de forma declarativa e interoperable:
 | Kubernetes (K3s on-premise / cloud gestionado) | Activo |
 | Helm 3 (OCI Artifacts) | Activo |
 | ArgoCD (GitOps) | Activo |
-| OpenTofu 1.8+ | Activo |
+| OpenTofu 1.8+ (Proxmox VE & Cloud Template) | Activo |
 
 ---
 
