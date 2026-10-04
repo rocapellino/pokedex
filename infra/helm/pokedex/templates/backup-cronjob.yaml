@@ -47,8 +47,8 @@ spec:
             fsGroup: 70
           containers:
             - name: db-backup
-              image: "{{ .Values.postgresql.image.repository }}{{ if .Values.postgresql.image.digest }}{{ if .Values.postgresql.image.tag }}:{{ .Values.postgresql.image.tag }}{{ end }}@{{ .Values.postgresql.image.digest }}{{ else }}:{{ .Values.postgresql.image.tag }}{{ end }}"
-              imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+              image: "{{ .Values.backup.image.repository }}{{ if .Values.backup.image.digest }}{{ if .Values.backup.image.tag }}:{{ .Values.backup.image.tag }}{{ end }}@{{ .Values.backup.image.digest }}{{ else }}:{{ .Values.backup.image.tag }}{{ end }}"
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
@@ -102,7 +102,8 @@ spec:
                 {{- end }}
                 {{- end }}
               command:
-                - /bin/sh
+                # bash: el script usa `pipefail`, que dash (/bin/sh en Debian) no soporta.
+                - /bin/bash
                 - -c
                 - |
                   set -euo pipefail

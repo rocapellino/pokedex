@@ -394,6 +394,7 @@ El relevamiento del 2026-10-04 encontró pre-prod desplegado con un `helm instal
 - El PVC de backup queda `Pending` hasta la primera ejecución del CronJob (`local-path` es `WaitForFirstConsumer`). Sin el health check de `PersistentVolumeClaim` de `gitops/health-checks/`, ArgoCD espera ese PVC indefinidamente.
 - Huérfanos del release manual que se eliminaron a mano: `deploy/pokedex-web`, `ingress/pokedex-ingress`, los CronJobs `pokedex-db-backup` y `pokedex-dr-restore-verify` (y sus Jobs), `cm/postgres-init-sql`, las NetworkPolicies, PDBs, `ResourceQuota` y `LimitRange` con prefijo `pokedex-`. Una `ResourceQuota` duplicada suma restricciones, así que no conviene dejarla.
 - El `ExternalSecret` adopta el Secret `pokemon-secrets` existente sin cortar los Pods, porque sus variables ya están cargadas.
+- Los CronJobs de backup y DR Verify usan `backup.image` (`postgres:16-bookworm`), no la imagen del servidor: `postgres:16-alpine` no trae `openssl` y el backup fallaba con `openssl: not found`. En Debian `/bin/sh` es `dash`, sin `pipefail`, así que los scripts corren con `/bin/bash`. Para probar el ciclo a mano: `kubectl -n pokemon-app create job --from=cronjob/pokedex-preprod-db-backup <nombre>` y luego lo mismo con `pokedex-preprod-dr-restore-verify`.
 
 **Rollback:** antes del paso 5 alcanza con desinstalar ArgoCD y ESO, porque el release manual sigue intacto. Después, `helm install pokedex` con los values guardados y `pg_restore` del backup.
 

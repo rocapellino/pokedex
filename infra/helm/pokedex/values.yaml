@@ -406,6 +406,16 @@ limitRange:
 backup:
   enabled: true
   schedule: "0 2 * * *"
+  # Imagen de los CronJobs de backup y DR Verify. Es independiente de
+  # `postgresql.image`: `postgres:16-alpine` trae pg_dump pero NO el CLI openssl
+  # que cifra (AES-256-CBC) y descifra los volcados; el backup fallaba con
+  # "openssl: not found" (pre-prod, 2026-10-04). La variante Debian trae ambos.
+  # Debe mantener la misma major que el servidor (pg_dump 16).
+  image:
+    repository: postgres
+    tag: "16-bookworm"
+    digest: "sha256:efedf3595f1d6f415c08568ba171029bf54052e754cc9f030e3f2412b21f3d67"
+    pullPolicy: IfNotPresent
   retentionDays: 7
   persistence:
     enabled: true
