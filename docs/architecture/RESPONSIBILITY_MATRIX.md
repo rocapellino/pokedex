@@ -24,7 +24,7 @@ Su propósito es responder de forma definitiva e inequívoca a la pregunta:
 | **PostgreSQL 16** | Base de datos relacional primaria con almacenamiento JSONB estructurado y persistencia de catálogos y usuarios. | K8s Runtime (Pre-prod y Prod) | **Sí** | Si se elimina, se pierde el estado persistente y transaccional de la aplicación Pokédex. |
 | **Cilium (eBPF)** | Seguridad de red avanzada L7, políticas de salida estrictas (egress toFQDNs) y mitigación Anti-SSRF. | K8s Red & Seguridad | **Condicional** | En perfil Proxmox Lean puede utilizarse Flannel + K8s NetworkPolicies estándar si se requiere menor consumo de RAM (< 150MB). |
 | **PgBouncer** | Multiplexor y pool de conexiones para PostgreSQL. | K8s Runtime | **Condicional** | Solo necesario en Producción cuando la concurrencia supera los 50 pods o conexiones concurrentes para evitar agotar sockets en PostgreSQL. |
-| **Stakater Reloader** | Reinicio automático de deployments ante cambios en `v1/Secret` o `v1/ConfigMap`. | K8s Controllers | **Condicional** | **Desactivado en Proxmox** (ADR-024) para ahorrar RAM y overhead de RBAC; reservado para el perfil AWS Cloud-Ready con HPA elástico. |
+| **Stakater Reloader** | Reinicio automático de deployments ante cambios en `v1/Secret` o `v1/ConfigMap`. | K8s Controllers | **Condicional** | **Desactivado en Proxmox** (ADR-030) para ahorrar RAM y overhead de RBAC; reservado para el perfil AWS Cloud-Ready con HPA elástico. |
 
 ---
 

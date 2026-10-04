@@ -2,10 +2,11 @@
 
 Esta guía detalla los procedimientos oficiales para aprovisionar, configurar y operar la infraestructura de **Pokédex** en servidores **Proxmox Virtual Environment (PVE)**.
 
-De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Management Plane y Runtime Plane)**:
+De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) (Modelo de Entornos)** y **ADR-025 (Separación de Management Plane y Runtime Plane)**:
 
-- **On-Premise (Proxmox VE):** Es la plataforma operacionalmente activa donde corren los entornos de Pre-producción y Producción.
-- **Cloud (AWS):** Se define como un **Target Arquitectónico Cloud-Ready (no activo concurrentemente)**, garantizando que el Helm chart universal y los contratos de la aplicación puedan migrar a la nube sin rediseñar la arquitectura.
+- **On-Premise (Proxmox VE):** Aloja el entorno de Pre-producción (K3s en LXC, `k8s-preprod`).
+- **Producción en Proxmox (en retiro):** El clúster `k8s-proxmox` y la Application `pokedex-proxmox` siguen operativos hasta el paso 5 del plan de ADR-030. Las secciones de esta guía que los describen se retiran en ese paso.
+- **Cloud:** Producción se declara como un **blueprint agnóstico e inactivo**, que garantiza que el Helm chart universal y los contratos de la aplicación puedan migrar a la nube sin rediseñar la arquitectura.
 
 ---
 
@@ -87,7 +88,7 @@ De acuerdo con **ADR-024 (Cómputo Bi-Modal)** y **ADR-025 (Separación de Manag
 **SÍ, ES ESTRICTAMENTE NECESARIO.** Las razones arquitectónicas y técnicas son:
 
 1. **Snapshot de Variables de Entorno en Linux (`execve`):** Los servicios Node.js (`pokedex-api`, `pokedex-web`) leen sus credenciales desde `process.env` (inyectadas vía `envFrom: secretRef: name: pokemon-secrets`). En sistemas operativos basados en Linux, las variables de entorno se copian al espacio de memoria del proceso en el momento exacto de su ejecución inicial (`execve()`). Las modificaciones en Secrets de Kubernetes **no mutan** el entorno de procesos ya en ejecución.
-2. **Ausencia Intencional de Stakater Reloader en Proxmox:** Conforme al ADR-024 (Perfil Lean MVP), el controlador de Stakater Reloader está expresamente **desactivado** (`reloader.enabled: false`) en Proxmox para ahorrar recursos (CPU/RAM y overhead de RBAC). Si bien el chart de Helm renderiza transversalmente la anotación `reloader.stakater.com/auto: "true"` en los Deployments ([ADR-005](../decisions/ADR-005-secret-management.md)), esta resulta **completamente inocua/inerte** en Proxmox al no existir el daemon observador en ejecución. Por ende, no existe ningún proceso automático forzando reinicios ante mutaciones de Secrets externos.
+2. **Ausencia Intencional de Stakater Reloader en Proxmox:** Conforme al ADR-030 (perfil Lean de pre-prod), el controlador de Stakater Reloader está expresamente **desactivado** (`reloader.enabled: false`) en Proxmox para ahorrar recursos (CPU/RAM y overhead de RBAC). Si bien el chart de Helm renderiza transversalmente la anotación `reloader.stakater.com/auto: "true"` en los Deployments ([ADR-005](../decisions/ADR-005-secret-management.md)), esta resulta **completamente inocua/inerte** en Proxmox al no existir el daemon observador en ejecución. Por ende, no existe ningún proceso automático forzando reinicios ante mutaciones de Secrets externos.
 3. **Invisibilidad del Hash `checksum/config`:** El mecanismo nativo de Helm `checksum/config` calcula únicamente el hash de ConfigMaps renderizados estáticamente durante `helm upgrade`. No tiene visibilidad sobre cambios asíncronos generados por ESO en el Secret `pokemon-secrets`.
 4. **Garantía Zero-Downtime:** El reinicio progresivo (`kubectl rollout restart`) asegura que los nuevos pods carguen las credenciales frescas de Vault pasando exitosamente las sondas de salud (`liveness` y `readiness`) antes de terminar los pods antiguos, garantizando cero tiempo de inactividad.
 

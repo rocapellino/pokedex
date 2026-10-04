@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado
+Aceptado (enmendado el 2026-10-04 por el modelo de entornos de ADR-030; ver la sección
+*Enmienda 2026-10-04*)
 
 ## Contexto
 
@@ -60,6 +61,23 @@ Los manifiestos `app-proxmox.yaml` y `app-cloud.yaml` incorporan:
 - `RespectIgnoreDifferences=true`: Para coexistencia armoniosa con controladores dinámicos (e.g. HPA escalando réplicas).
 - `syncWindows`: Ventanas de sincronización declarativas para prevenir cambios imprevistos en horarios de alta demanda.
 - Reintentos con retroceso exponencial (`backoff: duration: 5s, factor: 2, maxDuration: 3m`).
+
+## Enmienda 2026-10-04: Entornos Gobernados por el App-of-Apps (ADR-030)
+
+[ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) redefine los
+entornos y modifica los apartados 4 y 5:
+
+- **Único target sincronizado:** `pokedex-preprod` (`app-proxmox-preprod.yaml`, clúster
+  `k8s-preprod`). `app-proxmox.yaml` (`pokedex-proxmox`) se retira en el paso 5 del plan de
+  ADR-030. Hasta entonces sigue declarada y sincronizada.
+- **Prod como blueprint:** `app-cloud.yaml` (`pokedex-cloud`) apunta al entorno agnóstico
+  `cloud`, sigue excluida de `pokedex-root` y sin `syncPolicy.automated`. La promoción de
+  releases mantiene su `targetRevision` y sus digests alineados con pre-prod.
+- **Dev fuera de ArgoCD:** Docker Compose y Kind no tienen Application.
+- **Retiro seguro de Applications:** `pokedex-root` usa `prune: true` y las Applications
+  llevan `resources-finalizer.argocd.argoproj.io`. Quitar un manifiesto de `gitops/apps/` borra
+  en cascada los recursos del clúster destino. Antes de retirar una Application con datos
+  persistentes, hay que respaldarlos y quitar el finalizer en vivo.
 
 ## Consecuencias
 

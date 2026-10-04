@@ -123,7 +123,7 @@ Tanto en AWS como en Proxmox, `.Values.secrets.existingSecret: "pokemon-secrets"
 ## 5. Rotación y Reinicio Progresivo (Rollout Restart)
 
 - **En AWS EKS:** El controlador **Stakater Reloader** detecta mutaciones en `pokemon-secrets` y reinicia los pods automáticamente sin intervención humana.
-- **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-024](../decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
+- **En Proxmox VE (Perfil Lean MVP):** Reloader está desactivado (`reloader.enabled: false`) por [ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md). Tras actualizar credenciales en Vault, el operador ejecuta el reinicio progresivo canónico:
 
   ```bash
   npm run k8s:rollout-restart -- --live
