@@ -63,7 +63,7 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
         On-Premise (Proxmox VE)                                         Prod Cloud (blueprint inactivo)
         ClusterSecretStore: vault-backend(-preprod)                    ClusterSecretStore: cloud-secret-store
         Server: https://10.10.13.110:8200                               Provider: se elige al activar (ADR-030)
-        Auth: K8s SA (pokedex-prod-role / preprod-role)                 Auth: la del backend elegido
+        Auth: K8s SA (pokedex-preprod-role)                             Auth: la del backend elegido
                   │                                                             │
                   └──────────────────────────────┬──────────────────────────────┘
                                                  ▼
@@ -81,7 +81,7 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
 - **Instancia:** Desplegada en contenedor LXC dedicado (ID `810`, IP `10.10.13.110`) con almacenamiento transaccional **Raft**, cifrado en tránsito **TLS 1.2+**, esquema **Shamir 5/3** y Zero-Disk persistence.
 - **Segregación Estricta de Secretos y Roles RBAC (Erradicación de Roles Comodín - Zero-Trust):**
   - **Pre-producción:** `secret/data/pokedex/preprod/*` bajo el rol `pokedex-preprod-role` (política `pokedex-preprod-policy`).
-  - **Producción:** `secret/data/pokedex/prod/*` bajo el rol `pokedex-prod-role` (política `pokedex-prod-policy`).
+  - **Producción:** no corre en Proxmox ([ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)); `pokedex/prod` queda reservada para el blueprint cloud.
   - *Principio de Blast Radius Reducido:* Se eliminó el rol global genérico `pokedex-role` y su política comodín `secret/data/pokedex/*`. Las credenciales comprometidas en pre-producción no tienen alcance ni visibilidad sobre los secretos de producción.
 - **Manifiesto:**
   - Proxmox (Prod y Pre-prod): [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend` y `ClusterSecretStore/vault-backend-preprod`).

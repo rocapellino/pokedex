@@ -104,10 +104,9 @@ test('🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-pr
 
   assert.match(content, /pokedex-preprod-policy\.hcl/, 'Debe generar la política pokedex-preprod-policy');
   assert.match(content, /secret\/data\/pokedex\/preprod\/\*/, 'La política de pre-prod debe restringir a secret/data/pokedex/preprod/*');
-  assert.match(content, /pokedex-prod-policy\.hcl/, 'Debe generar la política pokedex-prod-policy');
-  assert.match(content, /secret\/data\/pokedex\/prod\/\*/, 'La política de prod debe restringir a secret/data/pokedex/prod/*');
   assert.match(content, /auth\/kubernetes\/role\/pokedex-preprod-role/, 'Debe configurar el rol de autenticación K8s pokedex-preprod-role');
-  assert.match(content, /auth\/kubernetes\/role\/pokedex-prod-role/, 'Debe configurar el rol de autenticación K8s pokedex-prod-role');
+  // ADR-030: prod Proxmox se retiró; Vault on-prem solo sirve a pre-prod.
+  assert.doesNotMatch(content, /pokedex-prod-(policy|role)/, 'setup_vault.yaml no debe crear la política ni el rol de la prod retirada');
   assert.doesNotMatch(content, /auth\/kubernetes\/role\/pokedex-role\b/, 'No debe existir el rol genérico pokedex-role (violación de Least Privilege)');
   assert.doesNotMatch(content, /dest:\s*"\{\{\s*vault_config_dir\s*\}\}\/pokedex-policy\.hcl"/, 'No debe existir la política genérica pokedex-policy');
 });

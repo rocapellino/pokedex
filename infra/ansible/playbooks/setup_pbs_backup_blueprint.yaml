@@ -47,8 +47,8 @@
     pbs_prune_keep_weekly: 4
     pbs_prune_keep_monthly: 12
 
-    # Invitados a respaldar (VM 801 K3s Prod + LXC 810 Vault Prod)
-    target_vmid_list: "801,810"
+    # Invitados a respaldar (LXC 800 K3s Pre-prod + LXC 810 Vault). ADR-030: no hay VM 801.
+    target_vmid_list: "800,810"
 
   tasks:
     - name: "Validar que el playbook se ejecute solo cuando se solicite activación explícita"

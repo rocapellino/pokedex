@@ -76,7 +76,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
 - **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yaml`) con persistencia local y soporte de backup.
 - **Orquestación & Cómputo:**
   - **Kind:** Clúster local para validación rápida y pruebas en CI.
-  - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800) y Producción (VM 801 K3s dedicada). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.
+  - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800, único entorno Proxmox, ADR-030). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.
   - **Prod cloud (blueprint agnóstico, ADR-030):** `values.prod.yaml` + `gitops/environments/cloud/`, con backend de secretos a elegir y Reloader Stakater.
 - **GitOps:** ArgoCD bajo patrón App-of-Apps (`root-application.yaml` reconciliando `pokedex-preprod`, in-cluster en el LXC 800). `pokedex-cloud` (prod cloud agnóstico) es un **blueprint inactivo**, excluida del App-of-Apps (GITOPS-001) y activable solo de forma explícita.
 - **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/prod` y `pokedex/preprod`).

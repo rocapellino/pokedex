@@ -61,7 +61,7 @@ ssh -i ~/.ssh/pokedex_admin_ed25519 sysadmin@10.10.13.120
 
 Una vez iniciada la sesión interactiva, el entorno carga automáticamente las credenciales necesarias:
 
-- `KUBECONFIG=/etc/rancher/k3s/k3s.yaml` (con permisos de cluster-admin hacia el K3s VM 801).
+- `KUBECONFIG=/etc/rancher/k3s/k3s.yaml` (con permisos de cluster-admin hacia el K3s del LXC 800).
 - `VAULT_ADDR=https://10.10.13.110:8200` y `VAULT_CACERT=/etc/ssl/vault/vault-ca.crt`.
 - Variables de entorno de Ansible con inventario Proxmox en `/etc/ansible/hosts`.
 

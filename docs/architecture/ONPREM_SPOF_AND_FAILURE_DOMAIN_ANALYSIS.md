@@ -7,9 +7,9 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
 ## 1. Declaración Formal del Nivel de Aislamiento
 
 > [!IMPORTANT]
-> **Aislamiento Lógico vs. Físico**: Los entornos de **Pre-producción** (LXC 800) y **Producción** (VM 801 K3s) operan como entidades lógicamente aisladas dentro de una **misma plataforma física compartida** (servidor host Proxmox VE).
+> **Plataforma física única**: Con [ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md), el host Proxmox VE aloja solo **Pre-producción** (LXC 800), Vault (LXC 810) y Bastion (LXC 820). Producción es un blueprint cloud y no comparte este dominio de falla.
 >
-> Esto significa que no existen límites de tolerancia a fallos de hardware entre ambos entornos. Una indisponibilidad en el hardware del host Proxmox afectará simultáneamente a Pre-producción, Producción, Vault (LXC 810) y Bastion (LXC 820).
+> Una indisponibilidad en el hardware del host Proxmox afecta simultáneamente a Pre-producción, Vault y Bastion.
 
 ```text
                                Proxmox VE Host Físico (Single Hardware Node)
@@ -17,13 +17,13 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
   │                                                                                         │
   │   Recursos Físicos Compartidos: CPU (Sockets/Cores) ── RAM ── NVMe/ZFS ── NIC (vmbr0)    │
   │                                                                                         │
-  │   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌─────────────────┐ │
-  │   │   Pre-prod LXC   │  │   K3s Prod VM    │  │    Vault LXC     │  │   Bastion LXC   │ │
-  │   │     (CT 800)     │  │     (VM 801)     │  │     (CT 810)     │  │    (CT 820)     │ │
-  │   │                  │  │                  │  │                  │  │                 │ │
-  │   │  Linux Namespaces│  │  KVM Hypervisor  │  │  Raft Storage    │  │ Break-Glass     │ │
-  │   │  cgroups v2      │  │  Dedicated Kernel│  │  Shamir 5/3      │  │ Audit Logs      │ │
-  │   └──────────────────┘  └──────────────────┘  └──────────────────┘  └─────────────────┘ │
+  │   ┌──────────────────┐  ┌──────────────────┐  ┌─────────────────┐                       │
+  │   │   Pre-prod LXC   │  │    Vault LXC     │  │   Bastion LXC   │                       │
+  │   │     (CT 800)     │  │     (CT 810)     │  │    (CT 820)     │                       │
+  │   │                  │  │                  │  │                 │                       │
+  │   │  Linux Namespaces│  │  Raft Storage    │  │ Break-Glass     │                       │
+  │   │  cgroups v2      │  │  Shamir 5/3      │  │ Audit Logs      │                       │
+  │   └──────────────────┘  └──────────────────┘  └─────────────────┘                       │
   └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -33,11 +33,11 @@ Este documento detalla formalmente el modelo de aislamiento, los dominios de fal
 
 | Vector de Recurso | Nivel de Compartición | Mecanismo de Aislamiento Lógico | Límite del Aislamiento (Riesgo Residual) |
 | :--- | :--- | :--- | :--- |
-| **CPU** | Host Cores compartidos | KVM vCPUs con scheduling CFS, LXC cgroups limits | Throttling cruzado si un proceso de Pre-prod consume 100% de CPU del host. |
-| **RAM** | Memoria física ECC compartida | VM con asignación estática fija; LXCs con límites de memoria | Si el host entra en saturación severa, el kernel OOM-killer puede matar procesos arbitrarios. |
-| **Storage (Disco)** | Mismo ZFS Pool / Disco NVMe | Datasets ZFS separados, cuotas por contenedor/VM | Contención de I/O (IOPS saturation) o corrupción a nivel de bloque del hardware físico. |
+| **CPU** | Host Cores compartidos | LXC cgroups limits | Throttling cruzado si un proceso de Pre-prod consume 100% de CPU del host. |
+| **RAM** | Memoria física ECC compartida | LXCs con límites de memoria | Si el host entra en saturación severa, el kernel OOM-killer puede matar procesos arbitrarios. |
+| **Storage (Disco)** | Mismo ZFS Pool / Disco NVMe | Volúmenes separados y cuotas por contenedor | Contención de I/O (IOPS saturation) o corrupción a nivel de bloque del hardware físico. |
 | **Networking** | Misma tarjeta física (NIC) | Bridge Linux `vmbr0`, segmentación por IP/VLAN | Caída de enlace físico, saturación del ancho de banda o loop ARP en el bridge. |
-| **Kernel / OS** | KVM usa kernel propio; LXCs comparten kernel Proxmox | Virtualización completa en VM Prod; Namespaces en Preprod/Vault | Un Kernel Panic en Proxmox reinicia inmediatamente todos los contenedores y VMs. |
+| **Kernel / OS** | Los LXC comparten el kernel de Proxmox | Namespaces y cgroups en Pre-prod, Vault y Bastion | Un Kernel Panic en Proxmox reinicia inmediatamente todos los contenedores y VMs. |
 
 ---
 
@@ -47,10 +47,10 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 
 ### 3.1. Caída o Reinicio Imprevisto de Proxmox (Host Crash / Power Loss)
 
-- **Impacto:** Caída total de Producción, Pre-producción, Vault y Bastion.
+- **Impacto:** Caída total de Pre-producción, Vault y Bastion.
 - **Comportamiento post-rearranque:**
   1. Proxmox inicia y arranca las VMs/LXCs configuradas con `onboot: 1`.
-  2. K3s Runtime (VM 801) levanta y los pods quedan a la espera de sus secretos.
+  2. K3s Runtime (LXC 800) levanta y los pods quedan a la espera de sus secretos.
   3. HashiCorp Vault (LXC 810) arranca en estado **sellado (sealed / HTTP 503)** por diseño de seguridad.
   4. External Secrets Operator (ESO) queda bloqueado esperando la disponibilidad de Vault.
 - **Acción Operativa:** Requiere procedimiento [Break-Glass](../runbooks/BREAK_GLASS_PROCEDURE.md) desde Bastion para inyectar 3 de las 5 llaves Shamir (`vault operator unseal`).
@@ -84,7 +84,7 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
 
 ### 3.5. Actualización de K3s / Mantenimiento Programado
 
-- **Impacto:** Reinicio temporal del servicio `k3s.service` o reboot de la VM 801.
+- **Impacto:** Reinicio temporal del servicio `k3s.service` o reboot del LXC 800.
 - **Comportamiento:**
   - K3s mononodo implica downtime del plano de control durante la actualización (< 60 segundos).
   - Los pods continúan ejecutándose en el runtime containerd existente.
@@ -98,8 +98,8 @@ A continuación se define el comportamiento de la plataforma ante contingencias 
    - El cluster completo (K3s + Vault + Bastion + Pre-prod) consume menos de 6 GB de RAM y menos de 100 GB de disco. Duplicar hardware físico solo para separar ambientes pre-prod incurriría en gastos y mantenimiento injustificados para la fase actual.
 2. **Separación de Responsabilidades:**
    - La separación de entornos se garantiza lógicamente:
-     - En **Vault**: Rutas segregadas (`secret/data/pokedex/preprod/*` vs `secret/data/pokedex/prod/*`) y roles RBAC independientes (`pokedex-preprod-role` vs `pokedex-prod-role`).
-     - En **Kubernetes**: Entornos segregados en instancias de computación dedicadas (LXC 800 para Pre-producción vs. VM 801 K3s para Producción), ambos ejecutando sobre el namespace estándar canónico `pokemon-app` con `NetworkPolicies` y ServiceAccounts dedicados (consulte la [Taxonomía de Namespaces](KUBERNETES_NAMESPACE_TAXONOMY.md)).
+     - En **Vault**: ruta `secret/data/pokedex/preprod/*` con el rol `pokedex-preprod-role`; `pokedex/prod` queda reservada para el blueprint cloud.
+     - En **Kubernetes**: pre-producción corre en su propio clúster (LXC 800) sobre el namespace canónico `pokemon-app`, con `NetworkPolicies` y ServiceAccounts dedicados (consulte la [Taxonomía de Namespaces](KUBERNETES_NAMESPACE_TAXONOMY.md)).
 3. **Estrategia Prod Cloud (blueprint agnóstico, ADR-030):**
    - La alta disponibilidad física multi-nodo y multi-zona está diseñada en el blueprint prod cloud ([ADR-025](../decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)), listo para activarse cuando los requisitos de negocio lo exijan.
 
@@ -129,7 +129,7 @@ flowchart TD
     end
 
     subgraph S2["Tier 2: Imágenes de Sistema (Proxmox VE / PBS)"]
-        T2A["Proxmox Backup Server (Deduplicación LAN)"] --> T2B["Restauración VM 801 / LXC 810"]
+        T2A["Proxmox Backup Server (Deduplicación LAN)"] --> T2B["Restauración LXC 800 / LXC 810"]
         T2B --> T2C["RTO Operativo: ~15 - 20 minutos"]
     end
 
@@ -145,7 +145,7 @@ flowchart TD
 
 1. **Cumplimiento de RPO (< 24 horas):**
    - El CronJob en Kubernetes genera volcados consistentes con `pg_dump` diariamente a las `02:00 UTC`.
-   - Proxmox Backup Server (PBS) ejecuta respaldos diarios nocturnos de las imágenes completas de los discos de VM 801 (K3s) y LXC 810 (Vault).
+   - Proxmox Backup Server (PBS) ejecuta respaldos diarios nocturnos de las imágenes completas de los discos de LXC 800 (K3s) y LXC 810 (Vault).
    - En el peor escenario de falla justo antes del respaldo nocturno, el delta máximo de pérdida de datos es estrictamente inferior a 24 horas.
 
 2. **Cumplimiento de RTO (< 2 horas):**

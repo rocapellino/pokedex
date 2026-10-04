@@ -1,12 +1,12 @@
 # ==============================================================================
-# Provisión Bi-Modal en Proxmox VE con OpenTofu (Pre-Prod: LXC / Prod: VM)
+# Provisión en Proxmox VE con OpenTofu: K3s en LXC para Pre-Prod (ADR-030)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# 1. Recursos para Entorno Pre-Prod / Lab: Contenedor LXC Ultraliviano
+# 1. Nodo Kubernetes de Pre-Prod: Contenedor LXC Ultraliviano
 # ------------------------------------------------------------------------------
 resource "proxmox_download_file" "debian_lxc_template" {
-  count              = (var.compute_type == "lxc" || var.vault_enabled || var.bastion_enabled) ? 1 : 0
+  count              = 1
   content_type       = "vztmpl"
   datastore_id       = "local"
   node_name          = var.node_name
@@ -17,10 +17,10 @@ resource "proxmox_download_file" "debian_lxc_template" {
 }
 
 resource "proxmox_virtual_environment_container" "k8s_nodes" {
-  count       = var.compute_type == "lxc" ? var.vm_count : 0
+  count       = var.vm_count
   node_name   = var.node_name
   vm_id       = 800 + count.index
-  description = "Nodo Kubernetes (k3s) en Contenedor LXC [Pre-Prod/Lab] (OpenTofu Managed)"
+  description = "Nodo Kubernetes (k3s) en Contenedor LXC [Pre-Prod] (OpenTofu Managed)"
   tags        = ["kubernetes", "lxc", "onprem", "pokedex", var.environment_tier]
 
   unprivileged  = false
@@ -88,103 +88,7 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
 }
 
 # ------------------------------------------------------------------------------
-# 2. Recursos para Entorno Producción: Máquina Virtual KVM (Aislamiento Estricto)
-# ------------------------------------------------------------------------------
-resource "proxmox_download_file" "debian_vm_image" {
-  count        = var.compute_type == "vm" ? 1 : 0
-  content_type = "import"
-  datastore_id = "local"
-  node_name    = var.node_name
-  url          = var.vm_image_url
-  file_name    = var.vm_image_file_name
-  # INFRA-007: verificación de integridad en la imagen de PRODUCCIÓN, en paridad
-  # con la plantilla LXC. Sin esto, un `apply` materializaría el artefacto que
-  # publicase el servidor en ese momento, sin ninguna garantía de que sea el
-  # artefacto auditado. `overwrite = false` evita además que el provider
-  # re-descargue la imagen cuando detecta un cambio de tamaño upstream.
-  checksum           = var.vm_image_checksum
-  checksum_algorithm = var.vm_image_checksum_algorithm
-  overwrite          = false
-}
-
-resource "proxmox_virtual_environment_vm" "k8s_nodes" {
-  count       = var.compute_type == "vm" ? var.vm_count : 0
-  name        = var.vm_count == 1 ? "pokedex-k8s-node" : "k8s-node-0${count.index + 1}"
-  description = "Nodo Kubernetes On-Premise [Producción - Aislamiento KVM] (OpenTofu Managed)"
-  node_name   = var.node_name
-  vm_id       = 800 + count.index
-
-  cpu {
-    cores = var.vm_cores
-    type  = "host"
-  }
-
-  memory {
-    dedicated = var.vm_memory
-  }
-
-  disk {
-    datastore_id = "local-lvm"
-    file_format  = "raw"
-    size         = var.vm_disk_size
-    interface    = "scsi0"
-    import_from  = proxmox_download_file.debian_vm_image[0].id
-    discard      = "on"
-    ssd          = true
-    iothread     = true
-  }
-
-  boot_order = ["scsi0"]
-
-  operating_system {
-    type = "l26"
-  }
-
-  agent {
-    enabled = true
-  }
-
-  serial_device {
-    device = "socket"
-  }
-
-  network_device {
-    bridge = var.network_bridge
-    model  = "virtio"
-  }
-
-  initialization {
-    datastore_id = "local-lvm"
-    dns {
-      servers = [var.network_gateway, "1.1.1.1"]
-    }
-    ip_config {
-      ipv4 {
-        address = var.vm_count == 1 ? var.network_ip : "${var.network_base_ip}${100 + count.index}${var.network_cidr_mask}"
-        gateway = var.network_gateway
-      }
-    }
-    user_account {
-      # INFRA-003: a diferencia del LXC, la VM SI admite `username` via
-      # cloud-init. Este usuario DEBE coincidir con el `ansible_user` declarado
-      # para este host en el inventario, o Ansible no podra conectar.
-      username = "devops"
-      password = var.vm_user_password
-      keys     = [var.ssh_public_key]
-    }
-  }
-
-  tags = ["kubernetes", "kvm", "onprem", "pokedex", "production"]
-
-  lifecycle {
-    ignore_changes = [
-      initialization[0].user_account[0].password,
-    ]
-  }
-}
-
-# ------------------------------------------------------------------------------
-# 3. HashiCorp Vault (Community Edition) - Contenedor LXC Dedicado
+# 2. HashiCorp Vault (Community Edition) - Contenedor LXC Dedicado
 # ------------------------------------------------------------------------------
 resource "proxmox_virtual_environment_container" "vault" {
   count       = var.vault_enabled ? 1 : 0
@@ -253,7 +157,7 @@ resource "proxmox_virtual_environment_container" "vault" {
 }
 
 # ------------------------------------------------------------------------------
-# 4. Bastion Host y Nodo de Automatización Centralizado - Contenedor LXC Dedicado
+# 3. Bastion Host y Nodo de Automatización Centralizado - Contenedor LXC Dedicado
 # ------------------------------------------------------------------------------
 moved {
   from = proxmox_virtual_environment_container.ansible_satellite
@@ -325,6 +229,3 @@ resource "proxmox_virtual_environment_container" "bastion" {
     ]
   }
 }
-
-
-
