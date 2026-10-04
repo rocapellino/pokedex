@@ -2,8 +2,8 @@
 
 ## Estado
 
-Aceptado (enmendado el 2026-10-03 para los entornos Proxmox con Traefik; ver la sección
-*Enmienda 2026-10-03*)
+Aceptado (enmendado el 2026-10-03 para los entornos Proxmox con Traefik y el 2026-10-04 por
+el modelo de entornos de ADR-030; ver las secciones *Enmienda*)
 
 ## Contexto
 
@@ -95,6 +95,18 @@ Las directivas 2, 3 y 4 no tienen equivalente en el Ingress de Traefik, y esta e
 crea. Las cabeceras de seguridad las emiten Express (`apps/backend/server.ts`) y el nginx del
 frontend; el rate limiting, Express (ADR-010). El bloqueo de `/metrics` depende de la allowlist
 del nginx del frontend, que detrás de Traefik ve la IP del pod de Traefik y no la del cliente.
+
+## Enmienda 2026-10-04: Alcance por Entorno (ADR-030)
+
+Con el modelo de [ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md):
+
+- **Pre-prod (Proxmox):** aplica la enmienda 2026-10-03 (Traefik, CA interna y certificado
+  `pokedex/preprod` sincronizado por ESO).
+- **Prod (blueprint cloud):** aplican las directivas originales con cert-manager. El
+  `ingress.className` y el emisor TLS se declaran como parámetros del entorno `cloud` en lugar
+  de fijar el controlador de un proveedor. El contrato de `environment_http_contract.test.ts`
+  sigue exigiendo TLS en todo host del blueprint.
+- **Dev:** sin TLS (Docker Compose y Kind), como establece la directiva original.
 
 ## Consecuencias
 

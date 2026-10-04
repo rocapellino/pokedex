@@ -163,10 +163,10 @@ flowchart TD
 - 📐 [**ADR-019**](./decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md): Optimización de Build en Monorepo, Grafo de Dependencias y Caché Declarativo con Turborepo.
 - 📐 [**ADR-020**](./decisions/ADR-020-unified-deployment-governance-and-script-retirement.md): Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts Legados (Consolida ADR-026).
 - 📐 [**ADR-023**](./decisions/ADR-023-typescript-native-compiler-adoption.md): Adopción del Compilador Nativo de TypeScript (`node --experimental-strip-types`) y Desacoplamiento de Bundlers.
-- 📐 [**ADR-024**](./decisions/ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md): Arquitectura Bimodal de Cómputo en Proxmox: Contenedores LXC para Pre-Prod y Máquinas Virtuales KVM para Producción.
 - 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
 - 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
-- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 24 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-021, ADR-022, ADR-026, ADR-028, ADR-029).
+- 📐 [**ADR-030**](./decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md): Modelo de Entornos: Dev Local, Pre-Prod en Proxmox LXC y Prod Cloud Agnóstico (Consolida ADR-024).
+- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 24 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-021, ADR-022, ADR-024, ADR-026, ADR-028, ADR-029).
 
 ---
 
