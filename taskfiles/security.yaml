@@ -107,4 +107,9 @@ tasks:
   linear:sonar-sync:
     desc: "Sincroniza el estado de SonarCloud y genera tickets en Linear ante Quality Gate fallido o vulnerabilidades"
     cmds:
-      - node --experimental-strip-types scripts/sonar-linear-sync.ts
+      - npm run linear:sonar-sync
+
+  linear:security-sync:
+    desc: "Sincroniza alertas de seguridad de GitHub (Dependabot, CodeQL, Secret Scanning) hacia Linear"
+    cmds:
+      - npm run linear:security-sync
