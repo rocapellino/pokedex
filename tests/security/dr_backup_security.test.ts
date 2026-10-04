@@ -142,25 +142,18 @@ test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan Persis
 
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
 
-  // 1. Validar renderizado de backup-cronjob.yaml
-  const renderedBackup = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-cronjob.yaml`,
+  // 1. Validar renderizado de backup-cronjob.yaml y backup-restore-verify-cronjob.yaml
+  const rendered = execSync(
+    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-cronjob.yaml -s templates/backup-restore-verify-cronjob.yaml`,
     { encoding: 'utf-8' }
   );
 
-  assert.match(renderedBackup, /kind:\s*PersistentVolumeClaim/, 'Debe generar el recurso PersistentVolumeClaim para backup');
-  assert.match(renderedBackup, /name:\s*pokedex-backup-pvc/, 'El PVC de backup debe llamarse pokedex-backup-pvc');
-  assert.match(renderedBackup, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de backup debe montar claimName: pokedex-backup-pvc');
-  assert.doesNotMatch(renderedBackup, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de backup');
-
-  // 2. Validar renderizado de backup-restore-verify-cronjob.yaml
-  const renderedVerify = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-restore-verify-cronjob.yaml`,
-    { encoding: 'utf-8' }
-  );
-
-  assert.match(renderedVerify, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de verificación debe montar el mismo claimName: pokedex-backup-pvc');
-  assert.doesNotMatch(renderedVerify, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de verificación');
+  assert.match(rendered, /kind:\s*PersistentVolumeClaim/, 'Debe generar el recurso PersistentVolumeClaim para backup');
+  assert.match(rendered, /name:\s*pokedex-backup-pvc/, 'El PVC de backup debe llamarse pokedex-backup-pvc');
+  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de backup debe montar claimName: pokedex-backup-pvc');
+  assert.doesNotMatch(rendered, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de backup');
+  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de verificación debe montar el mismo claimName: pokedex-backup-pvc');
+  assert.doesNotMatch(rendered, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de verificación');
 });
 
 test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)', () => {

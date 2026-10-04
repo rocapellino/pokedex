@@ -89,14 +89,23 @@ test('🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD
 // Contratos aprendidos en el pasaje a GitOps de pre-prod (2026-10-04)
 // ------------------------------------------------------------------------------
 
+import { execSync } from 'node:child_process';
+
+let cachedPreprodRender: string | null = null;
+function getRenderedPreprodChart(): string {
+  if (!cachedPreprodRender) {
+    cachedPreprodRender = execSync(
+      `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
+      { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
+    );
+  }
+  return cachedPreprodRender;
+}
+
 test('🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea', async () => {
   // Regresión: PGHOST era `<release>-postgres`, un Service inexistente; todos los
   // backups fallaban con "could not translate host name".
-  const { execSync } = await import('node:child_process');
-  const rendered = execSync(
-    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
-    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
-  );
+  const rendered = getRenderedPreprodChart();
   const docs = (yaml.loadAll(rendered) as any[]).filter(Boolean);
   const services = new Set(docs.filter((d) => d.kind === 'Service').map((d) => d.metadata.name));
   const cronJobs = docs.filter((d) => d.kind === 'CronJob');
@@ -141,11 +150,7 @@ test('🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de
 test('🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación', async () => {
   // Regresión: con default-deny, allow-postgres-ingress solo admitía api y
   // db-seeder; pg_dump recibía "Connection refused" y no se generaba ningún backup.
-  const { execSync } = await import('node:child_process');
-  const rendered = execSync(
-    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
-    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
-  );
+  const rendered = getRenderedPreprodChart();
   const docs = (yaml.loadAll(rendered) as any[]).filter(Boolean);
   const policy = docs.find((d) => d.kind === 'NetworkPolicy' && d.metadata.name.endsWith('-allow-postgres-ingress'));
   assert.ok(policy, 'Debe existir la NetworkPolicy de ingreso a PostgreSQL');
@@ -166,7 +171,6 @@ test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y u
   // que no trae el CLI openssl; el backup fallaba con "openssl: not found" antes de
   // cifrar el volcado. La imagen dedicada es Debian, donde /bin/sh es dash y no
   // admite `set -o pipefail`, así que los scripts deben correr con bash.
-  const { execSync } = await import('node:child_process');
   const values = yaml.load(read('infra/helm/pokedex/values.yaml')) as any;
   const backupImage = values.backup.image;
   assert.notEqual(backupImage.tag, values.postgresql.image.tag, 'backup.image no debe ser la variante alpine del servidor');
@@ -177,10 +181,7 @@ test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y u
     'El escaneo programado de Trivy (WF-001) debe cubrir backup.image'
   );
 
-  const rendered = execSync(
-    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
-    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
-  );
+  const rendered = getRenderedPreprodChart();
   const cronJobs = (yaml.loadAll(rendered) as any[]).filter((d) => d?.kind === 'CronJob');
   const expected = `${backupImage.repository}:${backupImage.tag}@${backupImage.digest}`;
   for (const component of ['backup', 'dr-verification']) {

@@ -14,6 +14,11 @@ tasks:
       - npm run lint
       - npm test
 
+  test:unit:
+    desc: "Ejecuta las pruebas unitarias aisladas de aplicación"
+    cmds:
+      - npm run test:unit
+
   test:fuzz:
     desc: "Ejecuta la suite dinámica de API Fuzzing y resiliencia DAST"
     cmds:
@@ -23,6 +28,16 @@ tasks:
     desc: "Ejecuta las pruebas de políticas de seguridad, pentest y contratos de hardening"
     cmds:
       - npm run test:security
+
+  test:gitops:
+    desc: "Ejecuta las pruebas de contratos de GitOps y despliegue"
+    cmds:
+      - npm run test:gitops
+
+  test:surface:
+    desc: "Valida la consistencia e inventario de la superficie de pruebas (test-surface)"
+    cmds:
+      - npm run test:surface:check
 
   test:e2e:
     desc: "Ejecuta las pruebas E2E multi-dispositivo con Playwright"
