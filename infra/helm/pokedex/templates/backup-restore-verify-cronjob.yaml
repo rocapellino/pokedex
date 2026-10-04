@@ -28,8 +28,8 @@ spec:
             fsGroup: 70
           containers:
             - name: dr-restore-verify
-              image: "{{ .Values.postgresql.image.repository }}{{ if .Values.postgresql.image.digest }}{{ if .Values.postgresql.image.tag }}:{{ .Values.postgresql.image.tag }}{{ end }}@{{ .Values.postgresql.image.digest }}{{ else }}:{{ .Values.postgresql.image.tag }}{{ end }}"
-              imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+              image: "{{ .Values.backup.image.repository }}{{ if .Values.backup.image.digest }}{{ if .Values.backup.image.tag }}:{{ .Values.backup.image.tag }}{{ end }}@{{ .Values.backup.image.digest }}{{ else }}:{{ .Values.backup.image.tag }}{{ end }}"
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
@@ -56,7 +56,8 @@ spec:
                       name: {{ .Values.secrets.existingSecret | default (printf "%s-secrets" (include "pokedex.fullname" .)) }}
                       key: BACKUP_ENCRYPTION_KEY
               command:
-                - /bin/sh
+                # bash: el script usa `pipefail`, que dash (/bin/sh en Debian) no soporta.
+                - /bin/bash
                 - -c
                 - |
                   set -euo pipefail

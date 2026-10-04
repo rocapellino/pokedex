@@ -160,3 +160,35 @@ test('🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de back
     assert.ok(allowed.includes(component), `allow-postgres-ingress no admite a "${component}" (${allowed.join(', ')})`);
   }
 });
+
+test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail', async () => {
+  // Regresión: backup y DR Verify reutilizaban `postgresql.image` (postgres:16-alpine),
+  // que no trae el CLI openssl; el backup fallaba con "openssl: not found" antes de
+  // cifrar el volcado. La imagen dedicada es Debian, donde /bin/sh es dash y no
+  // admite `set -o pipefail`, así que los scripts deben correr con bash.
+  const { execSync } = await import('node:child_process');
+  const values = yaml.load(read('infra/helm/pokedex/values.yaml')) as any;
+  const backupImage = values.backup.image;
+  assert.notEqual(backupImage.tag, values.postgresql.image.tag, 'backup.image no debe ser la variante alpine del servidor');
+  assert.match(backupImage.tag, /^16-/, 'pg_dump debe tener la misma major que el servidor PostgreSQL 16');
+  assert.match(backupImage.digest, /^sha256:[a-f0-9]{64}$/, 'backup.image debe fijarse por digest (INFRA-005)');
+  assert.ok(
+    read('.github/workflows/security-trivy.yaml').includes(`${backupImage.repository}@${backupImage.digest}`),
+    'El escaneo programado de Trivy (WF-001) debe cubrir backup.image'
+  );
+
+  const rendered = execSync(
+    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
+    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
+  );
+  const cronJobs = (yaml.loadAll(rendered) as any[]).filter((d) => d?.kind === 'CronJob');
+  const expected = `${backupImage.repository}:${backupImage.tag}@${backupImage.digest}`;
+  for (const component of ['backup', 'dr-verification']) {
+    const cj = cronJobs.find((c) => c.spec.jobTemplate.spec.template.metadata.labels['app.kubernetes.io/component'] === component);
+    assert.ok(cj, `Debe existir el CronJob "${component}"`);
+    const container = cj.spec.jobTemplate.spec.template.spec.containers[0];
+    assert.equal(container.image, expected, `${component} debe usar backup.image`);
+    assert.equal(container.command[0], '/bin/bash', `${component} usa pipefail: debe correr con bash`);
+    assert.match(container.command[2], /\bopenssl enc\b/, `${component} depende de openssl`);
+  }
+});

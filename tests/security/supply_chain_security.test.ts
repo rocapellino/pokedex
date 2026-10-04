@@ -641,14 +641,16 @@ test('🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart
     'utf-8'
   );
 
-  const deployed = ['postgresql', 'redis', 'pgbouncer']
+  // `backup` es la imagen de los CronJobs de backup y DR Verify (`backup.image`):
+  // difiere de `postgresql.image` porque necesita el CLI openssl.
+  const deployed = ['postgresql', 'redis', 'pgbouncer', 'backup']
     .map((k) => readDeployedImage(values, k))
     .filter((v): v is string => v !== null);
 
-  assert.equal(deployed.length, 3, 'values.yaml debe declarar las 3 imágenes de infraestructura');
+  assert.equal(deployed.length, 4, 'values.yaml debe declarar las 4 imágenes de infraestructura');
 
   const scanned = readScannedImages(workflow);
-  assert.equal(scanned.length, 3, 'El matrix de Trivy debe escanear las 3 imágenes');
+  assert.equal(scanned.length, 4, 'El matrix de Trivy debe escanear las 4 imágenes');
 
   for (const image of deployed) {
     assert.ok(
@@ -671,7 +673,7 @@ test('🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable'
   );
   const scanned = readScannedImages(workflow);
 
-  assert.equal(scanned.length, 3);
+  assert.equal(scanned.length, 4);
   for (const image of scanned) {
     assert.match(
       image,
