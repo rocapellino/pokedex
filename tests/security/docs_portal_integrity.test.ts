@@ -65,7 +65,7 @@ const INDEXED_DIRS = [
 const NOT_INDEXED: Record<string, string> = {
   audits: 'Evidencia historica inmutable; no describe el estado actual (Regla de Oro AGENTS.md).',
   decisions:
-    'Los ADR si se indexan en el portal, pero agrupados por rango ("ADR-001 a ADR-029") ' +
+    'Los ADR si se indexan en el portal mediante el nodo "Indice de ADRs" ' +
     'en el diagrama, con el detalle individual en la tabla de la seccion 7. Enumerar 29 nodos ' +
     'mermaid no aporta navegabilidad, asi que no se exige que cada ADR aparezca por nombre.',
 };

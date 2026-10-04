@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
+import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -388,7 +389,7 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSy
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-003-gitops-with-argocd.md'), 'docs/README.md debe enlazar ADR-003');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-022') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assertDocsPortalLinksAdrIndex(docsReadmeContent);
   assert.ok(decisionsReadmeContent.includes('ADR-021'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-021');
 
   // 9. Los ADRs activos catalogados existen físicamente en disco
@@ -454,7 +455,7 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-005-secret-management.md'), 'docs/README.md debe enlazar ADR-005');
-  assert.ok(docsReadmeContent.includes('ADR-001 a ADR-022') || docsReadmeContent.includes('ADR-001 a ADR-020'), 'Mermaid en docs/README.md debe indicar rango de ADRs');
+  assertDocsPortalLinksAdrIndex(docsReadmeContent);
   assert.ok(decisionsReadmeContent.includes('ADR-022'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022');
 
   // 8. Los ADRs activos catalogados existen físicamente en disco
