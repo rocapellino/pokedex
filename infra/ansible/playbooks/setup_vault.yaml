@@ -5,7 +5,7 @@
 # Estándar de Seguridad: Producción / Zero-Trust (Severidad P1 Mitigada)
 #   - Listener HTTPS/TLS 1.2+ con PKI interna dedicada
 #   - Almacenamiento persistente transaccional Raft con permisos 0700
-#   - Protección anti-dumping de memoria (mlock activo con CAP_IPC_LOCK)
+#   - disable_mlock = true (Raft integrado en LXC sin privilegios) y entrega de credenciales de init al operador (0600)
 #   - Esquema Shamir Secret Sharing multipartito (5 llaves / threshold 3)
 #   - Zero-Disk Persistence: Sin almacenamiento de credenciales maestras en LXC
 #   - Firewall perimetral UFW: Puerto 8200 restringido a K8s y Bastion
@@ -23,6 +23,10 @@
     vault_k8s_node_ip: "10.10.13.100"
     vault_shares: 5
     vault_threshold: 3
+    # Entrega de credenciales de init al operador: archivo 0600 en el nodo de control
+    # (Bastion), FUERA del LXC de Vault y fuera del repositorio. El operador debe
+    # repartir las llaves Shamir en custodia offline y borrar el archivo.
+    vault_init_export_path: "{{ lookup('env', 'HOME') }}/vault-init-{{ inventory_hostname }}.json"
 
   tasks:
     # --------------------------------------------------------------------------
@@ -240,11 +244,6 @@
     # --------------------------------------------------------------------------
     # 5. Configuración de Servicio Vault y Memory Lock (mlock) Hardening
     # --------------------------------------------------------------------------
-    - name: Configurar capacidades Linux para mlock en binario de Vault
-      ansible.builtin.command:
-        cmd: setcap cap_ipc_lock=+ep /usr/bin/vault
-      changed_when: false
-
     - name: Crear directorio para drop-in de systemd de Vault
       ansible.builtin.file:
         path: /etc/systemd/system/vault.service.d
@@ -261,9 +260,7 @@
         mode: '0640'
         content: |
           [Service]
-          LimitMEMLOCK=infinity
-          CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
-          AmbientCapabilities=CAP_IPC_LOCK
+          CapabilityBoundingSet=CAP_SYSLOG
 
     - name: Generar archivo de configuración /etc/vault.d/vault.hcl endurecido
       ansible.builtin.copy:
@@ -291,7 +288,11 @@
           api_addr      = "https://{{ vault_api_ip }}:8200"
           cluster_addr  = "https://{{ vault_api_ip }}:8201"
           ui            = true
-          disable_mlock = false
+          # Con almacenamiento Raft integrado HashiCorp recomienda disable_mlock = true
+          # (mlock interactúa mal con los archivos mapeados en memoria de Raft), y en un
+          # LXC sin privilegios no se puede elevar RLIMIT_MEMLOCK. El riesgo de swap se
+          # mitiga con swap acotado en el LXC (OpenTofu) y disco cifrado del host.
+          disable_mlock = true
 
     - name: Iniciar y habilitar el servicio de HashiCorp Vault
       ansible.builtin.systemd:
@@ -337,6 +338,16 @@
     # --------------------------------------------------------------------------
     # 7. Zero-Disk Persistence: Purga de Archivos Locales de Credenciales
     # --------------------------------------------------------------------------
+    - name: Entregar las credenciales de init al operador en el nodo de control (0600)
+      ansible.builtin.copy:
+        dest: "{{ vault_init_export_path }}"
+        content: "{{ vault_init_raw.stdout }}"
+        mode: '0600'
+      delegate_to: localhost
+      become: false
+      when: vault_init_raw is defined and vault_init_raw.changed
+      no_log: true
+
     - name: Garantizar que vault-init.json NO persista en el filesystem del LXC
       ansible.builtin.file:
         path: "{{ vault_config_dir }}/vault-init.json"
@@ -501,6 +512,9 @@
           - "Shamir Scheme      : 5 llaves generadas, threshold 3"
           - "Firewall UFW       : 8200 permitido únicamente para K8s y Bastion"
           - "Zero-Persistence   : /etc/vault.d/vault-init.json PURGADO DEL CONTENEDOR"
+          - "Credenciales init  : {{ vault_init_export_path }} (0600, nodo de control)"
+          - "ACCIÓN REQUERIDA   : repartir las 5 llaves Shamir y el root token en custodia"
+          - "                     offline y BORRAR ese archivo (shred -u)"
           - "Certificado CA     : Exportado a infra/k8s/eso/vault-ca.crt"
           - "========================================================================"
       when: vault_init_raw is defined and vault_init_raw.changed
