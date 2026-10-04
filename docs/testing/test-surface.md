@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 67 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
-| **Total de Casos de Prueba Identificados** | **575** |
-| **Líneas de Código de Pruebas** | 15.347 |
-| **Tamaño Total de la Suite** | 686.0 KB |
+| **Total de Casos de Prueba Identificados** | **576** |
+| **Líneas de Código de Pruebas** | 15.358 |
+| **Tamaño Total de la Suite** | 686.6 KB |
 | **Suites Especializadas Gobernadas** | 9 |
-| **Última Sincronización** | 2026-10-04T19:30:46.737Z |
+| **Última Sincronización** | 2026-10-04T19:46:34.629Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 11 | 75 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 24 | 204 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
-| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 38 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
+| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 39 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 5 | 49 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
@@ -62,7 +62,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **14** | 301 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 224 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 220 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
-| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
+| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 153 | Suite de pruebas gitops: environment_http_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 488 | Suite de pruebas gitops: gitops_architecture.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **7** | 131 | Suite de pruebas gitops: image_digest_promotion.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
@@ -115,7 +115,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | `unit` | Unit | `node:test (tsx)` | **8** | 196 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **16** | 147 | Suite de pruebas unit: seed_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
-| [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 100 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 101 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/version.test.ts`](../../tests/version.test.ts) | `governance` | Integration | `node:test (tsx)` | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 
 ---
@@ -177,12 +177,12 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Contratos de GitOps y Despliegue (`gitops`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 38
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 39
 - **Propósito:** Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | **6** | 238 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts` |
+| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | **6** | 153 | Suite de pruebas gitops: environment_http_contract.test.ts. | *(General)* |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | **6** | 488 | Suite de pruebas gitops: gitops_architecture.test.ts. | *(General)* |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | **7** | 131 | Suite de pruebas gitops: image_digest_promotion.test.ts. | *(General)* |
@@ -262,7 +262,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security.test.ts`](../../tests/security.test.ts) | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `apps/backend/server.ts`, `apps/backend/src/middleware/` |
 | [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | *(General)* |
 | [`tests/storage.test.ts`](../../tests/storage.test.ts) | **8** | 121 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts` |
-| [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | **3** | 100 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `package.json`, `apps/backend/package.json`, `apps/frontend/package.json`, `infra/helm/pokedex/Chart.yaml` |
+| [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | **3** | 101 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `package.json`, `apps/backend/package.json`, `apps/frontend/package.json`, `infra/helm/pokedex/Chart.yaml` |
 | [`tests/version.test.ts`](../../tests/version.test.ts) | **14** | 414 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `apps/backend/server.ts` |
 
 ---

@@ -24,7 +24,8 @@ test('VER-001 🔒 Contrato de versión: package.json == package-lock.json == Ch
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   const lock = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package-lock.json'), 'utf-8'));
   const chart = fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/Chart.yaml'), 'utf-8');
-  const rootApp = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'), 'utf-8');
+  // ADR-003: la raíz sigue main; el tag del release vive en las Applications hijas.
+  const preprodApp = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
 
   const pkgVersion = pkg.version as string;
   assert.match(pkgVersion, /^\d+\.\d+\.\d+$/, `package.json.version debe ser SemVer, recibido: ${pkgVersion}`);
@@ -48,8 +49,8 @@ test('VER-001 🔒 Contrato de versión: package.json == package-lock.json == Ch
   assert.equal(chartVersion, pkgVersion, `Chart.yaml.version (${chartVersion}) debe igualar package.json (${pkgVersion})`);
   assert.equal(chartAppVersion, pkgVersion, `Chart.yaml.appVersion (${chartAppVersion}) debe igualar package.json (${pkgVersion})`);
 
-  // GitOps targetRevision (los 4 manifiestos, paridad estricta ya validada por argocd_pinning)
-  const gitopsTag = rootApp.match(/targetRevision:\s*(\S+)/)?.[1];
+  // GitOps targetRevision de las hijas (paridad estricta validada por argocd_pinning)
+  const gitopsTag = preprodApp.match(/targetRevision:\s*(\S+)/)?.[1];
   assert.equal(gitopsTag, `v${pkgVersion}`, `GitOps targetRevision (${gitopsTag}) debe ser v${pkgVersion}`);
 });
 

@@ -306,7 +306,8 @@ jobs:
           LOCK_VERSION="$(node -e 'const l=require("./package-lock.json");process.stdout.write(l.packages[""].version)')"
           CHART_VERSION="$(grep -E '^version:' infra/helm/pokedex/Chart.yaml | head -n1 | awk '{print $2}' | tr -d '"')"
           CHART_APP_VERSION="$(grep -E '^appVersion:' infra/helm/pokedex/Chart.yaml | head -n1 | awk -F'"' '{print $2}')"
-          GITOPS_TAG="$(grep -E 'targetRevision:' gitops/apps/root-application.yaml | head -n1 | awk '{print $2}')"
+          # ADR-003: la raíz sigue main; el tag del release lo fija la Application de pre-prod.
+          GITOPS_TAG="$(grep -E 'targetRevision:' gitops/apps/app-proxmox-preprod.yaml | head -n1 | awk '{print $2}')"
 
           if [ "$PKG_VERSION" != "$VERSION" ] || [ "$LOCK_VERSION" != "$VERSION" ] || \
              [ "$CHART_VERSION" != "$VERSION" ] || [ "$CHART_APP_VERSION" != "$VERSION" ] || \
@@ -468,7 +469,6 @@ jobs:
           - \`package.json\` (\`version\`)
           - \`package-lock.json\` (versión raíz)
           - \`infra/helm/pokedex/Chart.yaml\` (\`version\` y \`appVersion\`)
-          - \`gitops/apps/root-application.yaml\`
           - \`gitops/apps/app-proxmox-preprod.yaml\`
           - \`gitops/apps/app-cloud.yaml\`
           - \`gitops/environments/*/values.yaml\` e \`infra/helm/pokedex/values.prod.yaml\` (digests verificados con Cosign)

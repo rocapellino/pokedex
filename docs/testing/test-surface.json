@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T19:30:46.737Z",
+  "generatedAt": "2026-10-04T19:46:34.629Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 575,
-    "totalLines": 15347,
-    "totalSizeBytes": 702497,
+    "totalTestCases": 576,
+    "totalLines": 15358,
+    "totalSizeBytes": 703126,
     "suitesCount": 9
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 6,
-      "testCases": 38,
+      "testCases": 39,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -1177,12 +1177,12 @@
       "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 6,
+      "testCount": 7,
       "describeCount": 0,
-      "assertionCountEst": 54,
-      "sizeBytes": 10544,
-      "lineCount": 238,
-      "sha256": "bd05ac669330035d9948d8473e831fa84f3f4795fcd4982f5e872fcd0226d9bf",
+      "assertionCountEst": 56,
+      "sizeBytes": 11087,
+      "lineCount": 248,
+      "sha256": "0ca30d2ee64e9d5ffcde3affe1bd9cef3ed3b307c00d4b8ddbedff63330d9f21",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -1202,27 +1202,31 @@
       "testCases": [
         {
           "name": "🔒 ArgoCD Pinning: validateSemVerTag valida estrictamente tags semánticos inmutables",
-          "line": 20
+          "line": 22
         },
         {
           "name": "🔒 ArgoCD Pinning: extractTargetRevision y replaceTargetRevision manipulan YAML limpiamente",
-          "line": 33
+          "line": 35
         },
         {
           "name": "🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 en targetRevision",
-          "line": 58
+          "line": 60
         },
         {
           "name": "🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRun",
-          "line": 79
+          "line": 81
         },
         {
           "name": "🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción",
-          "line": 96
+          "line": 98
         },
         {
           "name": "🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run",
-          "line": 198
+          "line": 200
+        },
+        {
+          "name": "🔒 ADR-003: la Application raíz sigue main para que los promotes lleguen solos al clúster",
+          "line": 241
         }
       ]
     },
@@ -4374,9 +4378,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 15,
-      "sizeBytes": 4616,
-      "lineCount": 100,
-      "sha256": "1d44c1d2636283351c2aaf5038eb6dfa41286a0ecc3d944270bbce942f53466b",
+      "sizeBytes": 4702,
+      "lineCount": 101,
+      "sha256": "dfbc2414e28b289b4d50186bf485db22b4fc49d0bbb1535d521b2625c85baf91",
       "targetDomain": "Consistencia de Versiones SemVer",
       "targetArtifacts": [
         "package.json",
@@ -4401,11 +4405,11 @@
         },
         {
           "name": "VER-002 🔒 /version expone versión y commit como metadatos independientes",
-          "line": 56
+          "line": 57
         },
         {
           "name": "VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json",
-          "line": 76
+          "line": 77
         }
       ]
     },

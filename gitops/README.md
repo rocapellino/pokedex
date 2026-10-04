@@ -69,14 +69,15 @@ Para declararlo **activo de forma permanente** hay que hacer varias cosas, no un
 
 ## Versión desplegada y pinning
 
-El `targetRevision` de las cuatro Applications es idéntico y **debe apuntar a un tag
-inmutable** (`vX.Y.Z`), nunca a una rama.
+El `targetRevision` de las Applications hijas (`app-proxmox-preprod.yaml` y `app-cloud.yaml`) es
+idéntico y **debe apuntar a un tag inmutable** (`vX.Y.Z`), nunca a una rama.
 
 > [!NOTE]
-> **Modelo de Promoción Inmutable:** La propia Application raíz (`root-application.yaml`)
-> está fijada a un tag inmutable. Esto significa que los cambios en `gitops/` introducidos en `main`
-> no son leídos por ArgoCD hasta que se promociona un nuevo tag de release (`task gitops:pin TAG=vX.Y.Z`).
-> Este desacoplamiento protege el clúster contra drifts no versionados.
+> **Modelo de promoción (ADR-003, enmienda 2026-10-04):** la Application raíz (`root-application.yaml`)
+> sigue `main` y solo lee **qué tag** fija cada hija. Al integrar un PR de promote, ArgoCD aplica el
+> nuevo tag sin reaplicar la raíz. El chart, los values y las imágenes que se despliegan siguen
+> resolviéndose desde el tag inmutable de cada hija, y `main` solo cambia mediante PRs revisados.
+> Antes, la raíz fijada a un tag leía `gitops/apps` desde ese tag y nunca veía los pines nuevos.
 
 La paridad 1:1 es un **gate automático**, no una convención:
 

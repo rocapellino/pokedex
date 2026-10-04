@@ -19,7 +19,7 @@ Analizar integralmente la arquitectura de la aplicación, plataforma e infraestr
 - **GitOps & Inmutabilidad:**
   - Árbol de aplicaciones ArgoCD: targets operativos `ACTIVE` (`root-application.yaml`, `app-proxmox-preprod.yaml`) vs. blueprint inactivo de prod cloud (`app-cloud.yaml`, `gitops/environments/cloud/`).
   - Promoción de artefactos mediante OCI digest pinning inmutable (`sha256`) y paridad estricta 1:1 en `targetRevision` por tag.
-  - Modelo de release desacoplado: `root-application.yaml` anclado a tag de release inmutable.
+  - Modelo de release desacoplado: `root-application.yaml` sigue `main` y las Applications hijas se anclan a tags de release inmutables (ADR-003).
 - **Aislamiento de Red:** Políticas Ingress (Traefik), Cilium L7 NetworkPolicies, bloqueo Egress anti-SSRF y service boundaries.
 - **Trazado de Rutas por Entorno (`route-trace`):** Para cada entorno activo (compose, `proxmox-preprod`, `proxmox`) seguir cada ruta que invoca el cliente hasta su handler, verificando en cada salto la **configuración efectiva** ([methodology.md](../_shared/methodology.md) §1):
   1. **Inventario de rutas del cliente:** `fetch(...)` en `apps/frontend/src/` y formularios.

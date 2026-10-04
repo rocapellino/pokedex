@@ -78,6 +78,12 @@ entornos y modifica los apartados 4 y 5:
   llevan `resources-finalizer.argocd.argoproj.io`. Quitar un manifiesto de `gitops/apps/` borra
   en cascada los recursos del clúster destino. Antes de retirar una Application con datos
   persistentes, hay que respaldarlos y quitar el finalizer en vivo.
+- **La raíz sigue `main`:** con `pokedex-root` fijada a un tag, ArgoCD leía `gitops/apps` desde
+  ese tag y nunca veía los pines nuevos. v1.92.1 no llegó a pre-prod hasta reaplicar la raíz a
+  mano. Ahora la raíz usa `targetRevision: main` y las hijas siguen fijadas a `vX.Y.Z`: el
+  contenido desplegado (chart, values y digests) sigue siendo inmutable, y lo que cambia por
+  `main` es solo qué tag usa cada hija, siempre vía PR de promote revisado.
+  `update-gitops-pin --check` exige que la raíz siga `main`.
 
 ## Consecuencias
 

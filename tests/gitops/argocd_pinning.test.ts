@@ -11,6 +11,8 @@ import {
   checkGitOpsPinParity,
   applyGitOpsPin,
   DEFAULT_GITOPS_APP_FILES,
+  checkRootTracksMain,
+  ROOT_APP_FILE,
 } from '../../scripts/update-gitops-pin.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -86,7 +88,7 @@ test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRu
 
   assert.equal(result.success, true);
   assert.equal(result.newTag, 'v1.99.0');
-  assert.equal(result.updatedFiles.length, 3, 'root, pre-prod y el blueprint cloud (ADR-030)');
+  assert.equal(result.updatedFiles.length, 2, 'pre-prod y el blueprint cloud; la raíz sigue main (ADR-003)');
 
   // Asegurar que en dryRun los archivos en disco NO cambiaron
   const parity = checkGitOpsPinParity(DEFAULT_GITOPS_APP_FILES, ROOT_DIR);
@@ -234,4 +236,12 @@ test('🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado,
     releaseWf.includes('NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}'),
     'El PR de promoción debe seguir usando new_tag del dry-run'
   );
+});
+
+test('🔒 ADR-003: la Application raíz sigue main para que los promotes lleguen solos al clúster', () => {
+  // Regresión (2026-10-04): con la raíz fijada a un tag, ArgoCD leía gitops/apps
+  // desde ese tag y nunca veía los nuevos pines; v1.92.1 no llegó a pre-prod hasta
+  // reaplicar la raíz a mano.
+  assert.equal(checkRootTracksMain(ROOT_DIR), null);
+  assert.ok(!DEFAULT_GITOPS_APP_FILES.includes(ROOT_APP_FILE), 'La raíz no debe fijarse a un tag en cada promote');
 });
