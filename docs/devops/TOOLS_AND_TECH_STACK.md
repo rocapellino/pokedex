@@ -139,7 +139,7 @@ flowchart LR
 | **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Trivy (Aqua Security)** | Latest | Escáner de vulnerabilidades (CVEs) en filesystem y capas de contenedores | [`.github/workflows/security-trivy.yaml`](../../.github/workflows/security-trivy.yaml) |
-| **External Secrets Operator** | `v1beta1` | Sincronización automática de secretos desde Vault / AWS / GCP Secrets | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
+| **External Secrets Operator** | `v1` | Sincronización automática de secretos desde Vault CE y SecretStore cloud | [`infra/helm/pokedex/templates/externalsecret.yaml`](../../infra/helm/pokedex/templates/externalsecret.yaml) |
 | **HashiCorp Vault CE** | `1.18+` | Almacén centralizado de secretos transaccional (Raft, TLS 1.2+, Shamir 5/3) | [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/playbooks/setup_vault.yaml) |
 
 ### 2.7. Contenedores, Orquestación & GitOps
@@ -155,7 +155,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](../../infra/opentofu) |
+| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox VE & Cloud Template) | [`infra/opentofu/`](../../infra/opentofu) |
 | **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yaml`](../../.github/workflows/infra.yaml), [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Proxmox VE** | `8.x` | Virtualización on-premise de pre-prod en LXC (ADR-030) gestionada por OpenTofu | [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) |
 | **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
