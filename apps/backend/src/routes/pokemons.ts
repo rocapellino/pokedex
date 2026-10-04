@@ -68,7 +68,7 @@ pokemonsRouter.get('/pokemons', asyncHandler(async (req: Request, res: Response)
 
 // Búsqueda instantánea vía PostgreSQL / Redis con ETag
 pokemonsRouter.get('/pokemons/:id', asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
+  const id = Number.parseInt(String(req.params.id), 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID de Pokémon debe ser un número entero' });
   }
@@ -109,7 +109,7 @@ pokemonsRouter.post('/pokemons', mutationRateLimiterStandard, mutationRateLimite
 
 // Edición persistente con validación e invalidación de caché
 pokemonsRouter.put('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
+  const id = Number.parseInt(String(req.params.id), 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
@@ -136,7 +136,7 @@ pokemonsRouter.put('/pokemons/:id', mutationRateLimiterStandard, mutationRateLim
 
 // Eliminación persistente
 pokemonsRouter.delete('/pokemons/:id', mutationRateLimiterStandard, mutationRateLimiter, verifyAdmin, requireWritableStorage, asyncHandler(async (req: Request, res: Response) => {
-  const id = Number.parseInt(req.params.id, 10);
+  const id = Number.parseInt(String(req.params.id), 10);
   if (Number.isNaN(id)) {
     return res.status(400).json({ detail: 'ID inválido' });
   }
