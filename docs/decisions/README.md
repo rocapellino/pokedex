@@ -11,7 +11,7 @@ Este directorio alberga los **Architecture Decision Records (ADR)** oficiales qu
    - **Consolidado**: Decisiones o enmiendas que fueron subsumidas de forma coherente dentro de un ADR de mayor alcance.
    - **Retirado**: Decisiones históricas vinculadas a hitos de migración técnica puntual que completaron su ciclo y ya no imponen restricciones vivas.
 2. **Inmutabilidad de Identificadores Históricos**:
-   Los identificadores numéricos de decisiones retiradas o consolidadas (ej. `ADR-021`, `ADR-022`, `ADR-026`, `ADR-028`, `ADR-029`) **nunca serán reutilizados** para futuras decisiones, garantizando la trazabilidad histórica de commits, Pull Requests y auditorías.
+   Los identificadores numéricos de decisiones retiradas o consolidadas (ej. `ADR-021`, `ADR-022`, `ADR-024`, `ADR-026`, `ADR-028`, `ADR-029`) **nunca serán reutilizados** para futuras decisiones, garantizando la trazabilidad histórica de commits, Pull Requests y auditorías.
 
 ---
 
@@ -42,9 +42,9 @@ Actualmente rigen **24 decisiones arquitectónicas activas**:
 | [**ADR-019**](./ADR-019-monorepo-build-optimization-and-dependency-graph.md) | Optimización de Build en Monorepo, Grafo y Caché con Turborepo | **Activo** | Build / Tooling |
 | [**ADR-020**](./ADR-020-unified-deployment-governance-and-script-retirement.md) | Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts | **Activo** | Gobernanza de Operaciones |
 | [**ADR-023**](./ADR-023-typescript-native-compiler-adoption.md) | Adopción del Compilador Nativo de TypeScript y Desacoplamiento de Bundlers | **Activo** | Runtime Backend |
-| [**ADR-024**](./ADR-024-proxmox-bimodal-compute-lxc-preprod-vm-prod.md) | Arquitectura Bimodal de Cómputo en Proxmox: LXC (Pre-Prod) y VM KVM (Prod) | **Activo** | Plataforma Proxmox |
 | [**ADR-025**](./ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md) | Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready | **Activo** | Arquitectura de Red |
 | [**ADR-027**](./ADR-027-resilience-fail-open-vs-fail-closed-contracts.md) | Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed | **Activo** | Resiliencia de Software |
+| [**ADR-030**](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) | Modelo de Entornos: Dev Local, Pre-Prod en Proxmox LXC y Prod Cloud Agnóstico | **Activo** | Plataforma / Entornos |
 
 ---
 
@@ -56,6 +56,7 @@ Para eliminar el ruido en el directorio de decisiones activas sin perder trazabi
 | :--- | :--- | :--- | :--- | :--- |
 | **ADR-021** | Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks y App-of-Apps | **Consolidado** | [ADR-003](./ADR-003-gitops-with-argocd.md) | Orquestación determinista por olas (Sync Waves 0-4), Custom Health Checks en Lua para CRDs y patrón App-of-Apps integrados en el modelo declarativo GitOps oficial. |
 | **ADR-022** | Rotación Automatizada de Credenciales con ESO y Stakater Reloader | **Consolidado** | [ADR-005](./ADR-005-secret-management.md) | Protocolo de recarga dinámica con Stakater Reloader, refreshInterval acotado, perfil Lean Proxmox vs Cloud y auditoría CI/CD integrados en la gestión canónica de secretos. |
+| **ADR-024** | Arquitectura Bimodal de Cómputo en Proxmox: LXC (Pre-Prod) y VM KVM (Prod) | **Consolidado** | [ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) | Proxmox deja de alojar producción. El endurecimiento del LXC, el perfil Lean y las reglas de credenciales de OpenTofu se conservan en ADR-030; se retira la rama de producción en VM KVM. |
 | **ADR-026** | Ciclo de Vida Aliases Taskfile CLI | **Retirado** | [ADR-020](./ADR-020-unified-deployment-governance-and-script-retirement.md) | Fase 4 ejecutada con éxito (purga definitiva de los 18 aliases legados). La gobernanza canónica de `task --list` fue integrada en ADR-020. |
 | **ADR-028** | Estrategia de Respaldo Off-Site en la Nube con Google Drive y Rclone | **Consolidado** | [ADR-006](./ADR-006-disaster-recovery-strategy.md) | Adenda operacional de replicación en la nube incorporada como la tercera copia oficial de la estrategia 3-2-1 en ADR-006. |
 | **ADR-029** | Unificación de Esquema en Drizzle ORM y Retiro de `init.sql` | **Consolidado** | [ADR-011](./ADR-011-persistence-drizzle-orm-and-pgbouncer.md) | Migración completada; la definición de Drizzle como SSOT exclusivo y erradicación de scripts SQL estáticos fue absorbida en ADR-011. |

@@ -18,7 +18,7 @@ Su objetivo es responder con precisión:
 | **Cilium (eBPF)** | `(P)` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Renderizado en Helm / Dependiente de CNI** | Helm renderiza `CiliumNetworkPolicy` L7 en todos los entornos. En Proxmox requiere instalación de Cilium CNI vía Helm (`kube-system`). En AWS requiere Cilium CNI chaining. |
 | **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 810) | `✓` (LXC 810) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
 | **External Secrets (ESO)** | `✓` (AWS SM) | `✓` (Vault) | `✓` (Vault) | **Desplegado Real** | Renderizado activamente en Helm. En AWS conecta a `aws-secrets-manager`; en Proxmox conecta a `vault-backend`. |
-| **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En AWS renderiza anotación `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-024 (Lean MVP). |
+| **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En AWS renderiza anotación `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-030 (perfil Lean de pre-prod). |
 | **PgBouncer** | `-` (Inactivo) | `-` (Inactivo) | `-` (Inactivo) | **Código Preparado (No Renderizado)** | Existe template `pgbouncer-deployment.yaml` y está habilitado en `values.prod.yaml`, pero **ninguna aplicación de ArgoCD** (`app-proxmox.yaml`, `app-cloud.yaml`) lo activa. Se usa pool nativo `pg.Pool` (40 conns). |
 | **Grafana Alloy** | `✓` (Cloud values) | `✓` (Proxmox values) | `✓` (Proxmox values) | **Desplegado Real** | Agente único desplegado en K8s para métricas, logs y trazas hacia Grafana Cloud. |
 | **cAdvisor** | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | **Herencia de Docker Compose** | **NO corre como pod en Kubernetes**. Kubelet expone cAdvisor nativamente en `:10250/metrics/cadvisor`. Solo corre como contenedor auxiliar en `docker-compose.dev.yaml`. |
@@ -42,7 +42,7 @@ Su objetivo es responder con precisión:
     enabled: false
   ```
 
-- **Razón Arquitectónica:** Conforme al ADR-024 (Perfil Lean MVP), desplegar dos réplicas de PgBouncer consume ~128MB de RAM y añade un salto de red innecesario para un clúster con 2 réplicas de API. El pool interno de Node.js (`pg.Pool` con `max: 20` por pod = 40 conexiones totales) es más que suficiente para PostgreSQL mononodo.
+- **Razón Arquitectónica:** Conforme al ADR-030 (perfil Lean de pre-prod), desplegar dos réplicas de PgBouncer consume ~128MB de RAM y añade un salto de red innecesario para un clúster con 2 réplicas de API. El pool interno de Node.js (`pg.Pool` con `max: 20` por pod = 40 conexiones totales) es más que suficiente para PostgreSQL mononodo.
 - **Conclusión:** El template `pgbouncer-deployment.yaml` **no es código muerto**, sino código preparado para cuando el tráfico exceda 50 conexiones simultáneas.
 
 ---

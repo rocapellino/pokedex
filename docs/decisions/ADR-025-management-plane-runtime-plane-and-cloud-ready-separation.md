@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado
+Aceptado (enmendado el 2026-10-04 por el modelo de entornos de ADR-030; ver la sección
+*Enmienda 2026-10-04*)
 
 ## Contexto
 
@@ -98,7 +99,24 @@ Se formaliza la distinción estricta entre el flujo normal y el flujo de conting
 
 - **Dominio Compartido:** Pre-producción y Producción comparten el mismo hardware físico de Proxmox (CPU, RAM, disco y red). El aislamiento es estrictamente lógico (cgroups, namespaces y KVM).
 - **Particionamiento Lógico de Vault:** Para evitar duplicación de infraestructura, un único Vault CE gestiona secretos segregados por rutas (`secret/data/pokedex/preprod/*` vs `secret/data/pokedex/prod/*`) con roles de acceso diferenciados (`pokedex-preprod-role` vs `pokedex-prod-role`).
-- **SPOF Documentado:** Se asume explícitamente el nodo Proxmox como Single Point of Failure (SPOF). Las mitigaciones arquitecturales comprenden copias de seguridad automáticas (Proxmox Backup Server), esquemas Shamir 5/3 para Vault y despliegues declarativos reproducibles con OpenTofu y Ansible. Ver análisis completo: [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
+- **SPOF Documentado (ver la enmienda 2026-10-04):** Se asume explícitamente el nodo Proxmox como Single Point of Failure (SPOF). Las mitigaciones arquitecturales comprenden copias de seguridad automáticas (Proxmox Backup Server), esquemas Shamir 5/3 para Vault y despliegues declarativos reproducibles con OpenTofu y Ansible. Ver análisis completo: [Análisis de Dominios de Falla y SPOF](../architecture/ONPREM_SPOF_AND_FAILURE_DOMAIN_ANALYSIS.md).
+
+## Enmienda 2026-10-04: Proxmox Solo para Pre-Prod y Cloud Agnóstico (ADR-030)
+
+[ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) modifica los
+apartados 3, 4 y 7. Los apartados 1, 2, 5 y 6 (planos, Bastion, cadena de responsabilidad y
+break-glass) siguen vigentes sin cambios.
+
+- **Apartado 3:** Proxmox VE aloja solo pre-producción. El target cloud deja de ser un
+  "Cloud-Ready Skeleton" de AWS y pasa a ser el blueprint agnóstico de producción, inactivo.
+- **Apartado 4:** los overlays de plataforma son `gitops/environments/proxmox-preprod/` y
+  `gitops/environments/cloud/`, que sobre `values.yaml` agrega `values.prod.yaml` y solo
+  parametriza los puntos de variación de un proveedor. `gitops/environments/proxmox/` y
+  `gitops/environments/aws/` se retiran.
+- **Apartado 7:** con un solo entorno de runtime en Proxmox, el host deja de ser un dominio de
+  falla compartido entre pre-prod y prod. El SPOF sigue asumido, pero ahora solo afecta a
+  pre-prod. Vault conserva el particionamiento por rutas: `pokedex/preprod` está activa y
+  `pokedex/prod` queda reservada para el blueprint cloud.
 
 ## Consecuencias
 

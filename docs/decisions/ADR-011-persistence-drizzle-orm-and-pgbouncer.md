@@ -42,7 +42,7 @@ Tabla canónica `pokedex_entries`:
 ### 4. Multiplexación de Conexiones con PgBouncer (Perfil Enterprise vs. Lean)
 
 - **Plantilla Canónica en Helm**: El chart (`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`) provee la plantilla de PgBouncer con `pool_mode = transaction` y aislamiento de red listo para alta concurrencia.
-- **Perfil On-Premise Lean (Proxmox VE - ADR-024)**: Para optimizar memoria (< 150MB) en el clúster K3s mononodo, PgBouncer se mantiene como capacidad preparada pero **desactivada** (`pgbouncer.enabled: false`). La API utiliza el pool nativo de Node.js (`pg.Pool` con `max: 20` conexiones por pod = 40 totales), satisfaciendo plenamente la carga de producción actual sin sobrecosto de pods intermediarios.
+- **Perfil On-Premise Lean (Proxmox VE - ADR-030)**: Para optimizar memoria (< 150MB) en el clúster K3s mononodo, PgBouncer se mantiene como capacidad preparada pero **desactivada** (`pgbouncer.enabled: false`). La API utiliza el pool nativo de Node.js (`pg.Pool` con `max: 20` conexiones por pod = 40 totales), satisfaciendo plenamente la carga de producción actual sin sobrecosto de pods intermediarios.
 - **Perfil Cloud-Ready (AWS EKS)**: Se activa bajo demanda para gestionar picos elásticos con HPA sin agotar conexiones en Amazon RDS.
 
 ### 5. Drizzle ORM como SSOT Exclusivo y Retiro Definitivo de `init.sql`
