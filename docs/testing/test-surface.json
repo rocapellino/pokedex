@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-03T23:47:03.742Z",
+  "generatedAt": "2026-10-04T13:09:12.681Z",
   "summary": {
-    "totalFiles": 65,
+    "totalFiles": 66,
     "testFiles": 62,
-    "helperFiles": 2,
+    "helperFiles": 3,
     "performanceScripts": 1,
-    "totalTestCases": 534,
-    "totalLines": 14812,
-    "totalSizeBytes": 676758,
+    "totalTestCases": 535,
+    "totalLines": 14855,
+    "totalSizeBytes": 672488,
     "suitesCount": 9
   },
   "suites": [
@@ -29,7 +29,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 24,
-      "testCases": 201,
+      "testCases": 202,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -1247,10 +1247,10 @@
       "runner": "node:test (tsx)",
       "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 97,
-      "sizeBytes": 25411,
-      "lineCount": 467,
-      "sha256": "16dd7b7ee995b4fb7ec775a10909227f166976c5bdb40f0d61e9b436d22960d8",
+      "assertionCountEst": 95,
+      "sizeBytes": 25252,
+      "lineCount": 468,
+      "sha256": "0679462c2632d9a5d6ec42ec906e189118b3d6a17e352acacb04ff7e5da2f8d6",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1267,23 +1267,23 @@
       "testCases": [
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 31
+          "line": 32
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 93
+          "line": 94
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 169
+          "line": 170
         },
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)",
-          "line": 234
+          "line": 235
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 402
+          "line": 403
         }
       ]
     },
@@ -1342,6 +1342,26 @@
           "line": 123
         }
       ]
+    },
+    {
+      "path": "tests/helpers/docs-portal.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 992,
+      "lineCount": 25,
+      "sha256": "f18f6e70e61ac7718200a0f3e969ee52237aaccd956e5aa92cb2c9d7fa537df9",
+      "targetDomain": "Suite helpers",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas helpers: docs-portal.ts.",
+      "status": "HELPER",
+      "testCases": []
     },
     {
       "path": "tests/helpers/taskfile.ts",
@@ -1925,10 +1945,10 @@
       "runner": "node:test (tsx)",
       "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 211,
-      "sizeBytes": 45559,
-      "lineCount": 766,
-      "sha256": "829d8bcc6c036f73b91efa561ba4130a56afa76b91d8a30259fffcf152cf9898",
+      "assertionCountEst": 204,
+      "sizeBytes": 42068,
+      "lineCount": 767,
+      "sha256": "d11392e7399483851c3ea575083831cb74f31e0425b86e3b6805d0b9418ea68c",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -1947,79 +1967,79 @@
       "testCases": [
         {
           "name": "🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)",
-          "line": 18
+          "line": 19
         },
         {
           "name": "🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)",
-          "line": 29
+          "line": 30
         },
         {
           "name": "🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini",
-          "line": 34
+          "line": 35
         },
         {
           "name": "🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals",
-          "line": 53
+          "line": 54
         },
         {
           "name": "🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml",
-          "line": 70
+          "line": 71
         },
         {
           "name": "🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad",
-          "line": 135
+          "line": 136
         },
         {
           "name": "🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta de versión de Helm en todos sus jobs",
-          "line": 159
+          "line": 160
         },
         {
           "name": "🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml",
-          "line": 194
+          "line": 195
         },
         {
           "name": "🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs",
-          "line": 216
+          "line": 217
         },
         {
           "name": "🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Keyless, SLSA L3 y Kyverno",
-          "line": 244
+          "line": 245
         },
         {
           "name": "🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista",
-          "line": 267
+          "line": 268
         },
         {
           "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
-          "line": 301
+          "line": 302
         },
         {
           "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
-          "line": 333
+          "line": 334
         },
         {
           "name": "🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md",
-          "line": 365
+          "line": 366
         },
         {
           "name": "🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:///",
-          "line": 411
+          "line": 412
         },
         {
           "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 451
+          "line": 452
         },
         {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo",
-          "line": 545
+          "line": 546
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 604
+          "line": 605
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 696
+          "line": 697
         }
       ]
     },
@@ -2234,9 +2254,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 6037,
+      "sizeBytes": 6023,
       "lineCount": 152,
-      "sha256": "bfbe61aa522547208f2738075eca32223c1cf9dac97e29787f98fa5ed0d627c8",
+      "sha256": "ca30e51dd644bc4fa12d43d5ea0bdbc9c9548170dd5a228719e6c4cc05eb6732",
       "targetDomain": "Integridad del Portal de Documentación",
       "targetArtifacts": [
         "docs/"
@@ -2884,10 +2904,10 @@
       "runner": "node:test (tsx)",
       "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 142,
-      "sizeBytes": 30149,
-      "lineCount": 469,
-      "sha256": "9afd087928d3f236f8b625cc22a42764a08053a17f7206fab274d0d4ff1daed0",
+      "assertionCountEst": 139,
+      "sizeBytes": 28946,
+      "lineCount": 467,
+      "sha256": "bdc646aa9e2d72f7183d9e711637f094f10e6227db762ad8055e1755b90ea12d",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -2907,59 +2927,59 @@
       "testCases": [
         {
           "name": "🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFilesystem y montajes emptyDir",
-          "line": 17
+          "line": 18
         },
         {
           "name": "🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)",
-          "line": 34
+          "line": 35
         },
         {
           "name": "🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage",
-          "line": 56
+          "line": 57
         },
         {
           "name": "🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints",
-          "line": 64
+          "line": 65
         },
         {
           "name": "🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test",
-          "line": 92
+          "line": 93
         },
         {
           "name": "🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión",
-          "line": 112
+          "line": 113
         },
         {
           "name": "🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe",
-          "line": 129
+          "line": 130
         },
         {
           "name": "🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator",
-          "line": 147
+          "line": 148
         },
         {
           "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange",
-          "line": 168
+          "line": 169
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 196
+          "line": 197
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 227
+          "line": 228
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 267
+          "line": 268
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 355
+          "line": 353
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 391
+          "line": 389
         }
       ]
     },
@@ -2971,10 +2991,10 @@
       "runner": "node:test (tsx)",
       "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 84,
-      "sizeBytes": 22153,
-      "lineCount": 412,
-      "sha256": "01a8af014c3cfc25e68e8337f28ab0758d3dc135e04287a3ebbe74566f419399",
+      "assertionCountEst": 82,
+      "sizeBytes": 21287,
+      "lineCount": 410,
+      "sha256": "2d2a24fcb9fc3e5f0f4a4de0e09733998623800d9d64f12f65e99d7a985ea2be",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -2994,59 +3014,59 @@
       "testCases": [
         {
           "name": "🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)",
-          "line": 33
+          "line": 34
         },
         {
           "name": "🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin",
-          "line": 48
+          "line": 49
         },
         {
           "name": "🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src",
-          "line": 59
+          "line": 60
         },
         {
           "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 73
+          "line": 74
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 92
+          "line": 93
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
-          "line": 117
+          "line": 118
         },
         {
           "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 130
+          "line": 131
         },
         {
           "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
-          "line": 141
+          "line": 142
         },
         {
           "name": "🗂️ INFRA-011: ninguna Application de ArgoCD consume el perfil de referencia",
-          "line": 175
+          "line": 176
         },
         {
           "name": "🗂️ INFRA-011: el perfil de referencia declara en su cabecera que no despliega",
-          "line": 215
+          "line": 216
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 244
+          "line": 245
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 258
+          "line": 259
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 316
+          "line": 317
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 352
+          "line": 353
         }
       ]
     },
@@ -3056,12 +3076,12 @@
       "type": "Security / OpenTofu",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 8,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 73,
-      "sizeBytes": 17190,
-      "lineCount": 322,
-      "sha256": "d0247de34cd7e245f7f09fa158433ab0cd7efabed77c20cc49b4ff935b99038b",
+      "assertionCountEst": 75,
+      "sizeBytes": 17661,
+      "lineCount": 342,
+      "sha256": "80af0ce31fca47b9bb5b69b46cde5730c5408a07970df28557b31f34bf1ec7b5",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -3080,35 +3100,39 @@
       "testCases": [
         {
           "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
-          "line": 60
+          "line": 61
         },
         {
           "name": "🛡️ Infra Multi-Cloud: OpenTofu entornos aws y proxmox estructurados correctamente",
-          "line": 72
+          "line": 73
         },
         {
           "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 83
+          "line": 84
         },
         {
           "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
-          "line": 95
+          "line": 96
         },
         {
           "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 161
+          "line": 162
         },
         {
           "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 207
+          "line": 208
         },
         {
           "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 236
+          "line": 237
         },
         {
           "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 287
+          "line": 288
+        },
+        {
+          "name": "🛡️ Trivy IaC: la excepción AVD-AWS-0104 vive solo en infra/opentofu/.trivyignore (SECURITY_REVIEW 2026-10-03)",
+          "line": 324
         }
       ]
     },
