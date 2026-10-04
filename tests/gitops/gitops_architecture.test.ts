@@ -232,6 +232,41 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
   );
 });
 
+test('🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un proveedor', () => {
+  const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
+  const cloudValuesPath = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
+  assert.ok(fs.existsSync(cloudValuesPath), 'gitops/environments/cloud/values.yaml debe existir');
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'gitops/environments/aws')), 'gitops/environments/aws se retiró con ADR-030');
+
+  // 1. Cadena de values: base -> perfil HA endurecido -> override del proveedor.
+  const valueFiles = /valueFiles:\s*\n((?:\s+- .+\n)+)/.exec(appCloud.replace(/\r\n/g, '\n'))?.[1] ?? '';
+  assert.deepEqual(
+    valueFiles.split('\n').map((l) => l.replace(/^\s*-\s*/, '').trim()).filter(Boolean),
+    ['values.yaml', 'values.prod.yaml', '../../../gitops/environments/cloud/values.yaml'],
+    'app-cloud.yaml debe encadenar values.yaml, values.prod.yaml y el override cloud en ese orden'
+  );
+
+  // 2. Sin destino real hasta la activación: el TLD .invalid no resuelve.
+  assert.match(appCloud, /server:\s*https:\/\/[^\s]+\.invalid\b/, 'El destino del blueprint debe ser un marcador .invalid');
+
+  // 3. Ni el manifiesto ni el override fijan recursos de un proveedor concreto.
+  const cloudValues = fs.readFileSync(cloudValuesPath, 'utf-8');
+  for (const marker of ['alb.ingress.kubernetes.io', 'eks.amazonaws.com', 'aws-secrets-manager', 'gce', 'azure']) {
+    assert.ok(!cloudValues.includes(marker), `cloud/values.yaml no debe fijar el proveedor (${marker})`);
+    assert.ok(!appCloud.includes(marker), `app-cloud.yaml no debe fijar el proveedor (${marker})`);
+  }
+
+  // 4. Secretos: ruta lógica reservada pokedex/prod y ClusterSecretStore como parámetro.
+  assert.match(cloudValues, /secretStoreRef:\s*\r?\n\s+name: "[a-z0-9-]+"/, 'El override cloud debe declarar el ClusterSecretStore como parámetro');
+  assert.ok(cloudValues.includes('key: "pokedex/prod"'), 'El override cloud debe usar la ruta reservada pokedex/prod');
+
+  // 5. El manifiesto canónico de ESO no declara stores de un proveedor: el del
+  //    blueprint se crea al activarlo, con el backend elegido.
+  const clusterStores = fs.readFileSync(path.join(ROOT_DIR, 'infra/k8s/eso/cluster-secret-store.yaml'), 'utf-8');
+  assert.ok(!/^\s+aws:\s*$/m.test(clusterStores), 'cluster-secret-store.yaml no debe declarar un provider aws');
+  assert.ok(!clusterStores.includes('name: aws-secrets-manager'), 'cluster-secret-store.yaml no debe declarar aws-secrets-manager');
+});
+
 test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, PreSync Hooks, Health Checks y App-of-Apps (consolida ADR-021)', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-003-gitops-with-argocd.md');
   const decisionsReadmePath = path.join(ROOT_DIR, 'docs/decisions/README.md');

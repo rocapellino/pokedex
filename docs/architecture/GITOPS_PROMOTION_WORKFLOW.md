@@ -50,7 +50,7 @@ Para evitar ambigüedades operativas en agentes autónomos, desarrolladores y he
 
 - **Definición:** Garantía matemática de que todos los destinos declarados en GitOps consumen exactamente el mismo artefacto inmutable.
 - **Ecuación:**
-  $$\text{Digest(AWS)} = \text{Digest(Proxmox)} = \text{Digest(Proxmox Pre-prod)} = \text{Digest(Helm Prod)}$$
+  $$\text{Digest(Cloud)} = \text{Digest(Proxmox)} = \text{Digest(Proxmox Pre-prod)} = \text{Digest(Helm Prod)}$$
 - **Mecanismo de Control:** `scripts/verify-image-digest-parity.ts --strict`.
 - **Rol en CI:** **Quality Gate obligatorio y bloqueante en cada PR y push a main**. Si alguno de los archivos de values difiere, la integración falla inmediatamente.
 
@@ -95,7 +95,7 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
    - `ci.yaml` publica `ghcr.io/rocapellino/pokedex-api` y `pokedex-web` con el tag del SHA completo de cada commit de `main`, firmadas con Cosign, con SBOM y procedencia SLSA.
    - La fase `promote` (pasos 8a y 8b de `release-tag.yaml`) espera a que ambas imágenes de **su mismo commit** estén publicadas y verifica su firma con la identidad `ci.yaml@refs/heads/main`, la misma que exige Kyverno. Sin imagen firmada no hay PR de promoción.
    - `scripts/update-image-digests.ts --api <digest> --web <digest>` reemplaza el digest de cada componente en:
-     - `gitops/environments/aws/values.yaml`
+     - `gitops/environments/cloud/values.yaml`
      - `gitops/environments/proxmox/values.yaml`
      - `gitops/environments/proxmox-preprod/values.yaml`
      - `infra/helm/pokedex/values.prod.yaml`

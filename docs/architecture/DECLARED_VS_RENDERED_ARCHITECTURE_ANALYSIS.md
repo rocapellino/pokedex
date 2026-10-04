@@ -12,19 +12,19 @@ Su objetivo es responder con precisión:
 
 ## 1. Matriz Canónica: Declarado vs. Renderizado por Entorno
 
-| Componente | AWS Cloud-Ready | Proxmox Pre-prod | Proxmox Prod | Estado Real en el Repositorio | Diagnóstico y Clasificación |
+| Componente | Prod Cloud (blueprint) | Proxmox Pre-prod | Proxmox Prod | Estado Real en el Repositorio | Diagnóstico y Clasificación |
 | --- | :---: | :---: | :---: | --- | --- |
-| **K3s Runtime** | `-` (EKS) | `✓` (LXC 800) | `✓` (VM 801) | **Desplegado Real** | K3s es el motor exclusivo on-premise; AWS target utiliza EKS. |
+| **K3s Runtime** | `-` (Kubernetes gestionado) | `✓` (LXC 800) | `✓` (VM 801) | **Desplegado Real** | K3s es el motor exclusivo on-premise; el blueprint prod cloud usará el Kubernetes gestionado del proveedor elegido. |
 | **Cilium (eBPF)** | `(P)` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Renderizado en Helm / Dependiente de CNI** | Helm renderiza `CiliumNetworkPolicy` L7 en todos los entornos. En Proxmox requiere instalación de Cilium CNI vía Helm (`kube-system`). En AWS requiere Cilium CNI chaining. |
 | **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 810) | `✓` (LXC 810) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
-| **External Secrets (ESO)** | `✓` (AWS SM) | `✓` (Vault) | `✓` (Vault) | **Desplegado Real** | Renderizado activamente en Helm. En AWS conecta a `aws-secrets-manager`; en Proxmox conecta a `vault-backend`. |
-| **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En AWS renderiza anotación `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-030 (perfil Lean de pre-prod). |
+| **External Secrets (ESO)** | `✓` (`cloud-secret-store`) | `✓` (Vault) | `✓` (Vault) | **Desplegado Real** | Renderizado activamente en Helm. En el blueprint prod cloud referencia `cloud-secret-store` (backend a elegir); en Proxmox conecta a `vault-backend`. |
+| **Stakater Reloader** | `✓` (Activo) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | En el blueprint prod cloud renderiza `reloader.stakater.com/auto: "true"`. En Proxmox está desactivado (`reloader.enabled: false`, anotación `null`) por ADR-030 (perfil Lean de pre-prod). |
 | **PgBouncer** | `-` (Inactivo) | `-` (Inactivo) | `-` (Inactivo) | **Código Preparado (No Renderizado)** | Existe template `pgbouncer-deployment.yaml` y está habilitado en `values.prod.yaml`, pero **ninguna aplicación de ArgoCD** (`app-proxmox.yaml`, `app-cloud.yaml`) lo activa. Se usa pool nativo `pg.Pool` (40 conns). |
 | **Grafana Alloy** | `✓` (Cloud values) | `✓` (Proxmox values) | `✓` (Proxmox values) | **Desplegado Real** | Agente único desplegado en K8s para métricas, logs y trazas hacia Grafana Cloud. |
 | **cAdvisor** | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | `-` (Nativo Kubelet) | **Herencia de Docker Compose** | **NO corre como pod en Kubernetes**. Kubelet expone cAdvisor nativamente en `:10250/metrics/cadvisor`. Solo corre como contenedor auxiliar en `docker-compose.dev.yaml`. |
 | **ArgoCD** | `(P)` (Plantilla) | `✓` (Sincronizado) | `✓` (Sincronizado) | **Desplegado Real (On-prem)** | `app-proxmox.yaml` sincroniza activamente K3s. `app-cloud.yaml` existe como plantilla de referencia no conectada a un cluster vivo. |
-| **HPA (HorizontalPodAutoscaler)** | `✓` (Renderizado) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | Renderizado en AWS (`minReplicas: 3, maxReplicas: 10`). En Proxmox `autoscaling.enabled: false` para capacidad garantizada fija. |
-| **PostgreSQL 16 StatefulSet** | `✓` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Desplegado Real** | Base de datos persistente única con volumen PVC `10Gi` (AWS gp3 / Proxmox local-path). |
+| **HPA (HorizontalPodAutoscaler)** | `✓` (Renderizado) | `-` (Inactivo) | `-` (Inactivo) | **Diferenciado por Perfil** | Renderizado en el blueprint prod cloud (`minReplicas: 3, maxReplicas: 10`). En Proxmox `autoscaling.enabled: false` para capacidad garantizada fija. |
+| **PostgreSQL 16 StatefulSet** | `✓` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Desplegado Real** | Base de datos persistente única con volumen PVC `10Gi` (StorageClass por defecto del clúster cloud / Proxmox local-path). |
 | **Redis 7 Deployment** | `✓` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Desplegado Real** | Caché sub-3ms con PVC `8Gi` y persistencia AOF/RDB. |
 | **CronJobs de Backup y DR** | `✓` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Desplegado Real** | Backup nocturno cifrado y certificación periódica de restauración en base temporal. |
 
@@ -59,7 +59,7 @@ Su objetivo es responder con precisión:
 
 ### 2.3. Cilium: La brecha entre Manifiesto Renderizado y Runtime CNI
 
-- **En el render de Helm:** Tanto en AWS como en Proxmox se renderiza:
+- **En el render de Helm:** Tanto en el blueprint prod cloud como en Proxmox se renderiza:
 
   ```yaml
   apiVersion: "cilium.io/v2"
@@ -75,7 +75,7 @@ Su objetivo es responder con precisión:
 
 ### 2.4. Stakater Reloader: Dualidad intencional Cloud vs On-Premise
 
-- **En AWS:** Renderiza `reloader.stakater.com/auto: "true"`. Es necesario porque en AWS Secrets Manager las rotaciones son automáticas y los pods deben refrescarse elásticamente.
+- **En el blueprint prod cloud:** Renderiza `reloader.stakater.com/auto: "true"`. Es necesario porque ESO actualiza el Secret de forma asíncrona tras cada rotación del backend y los pods deben refrescarse sin intervención.
 - **En Proxmox:** Anotación removida (`reloader.stakater.com/auto: null`). Se evita correr el pod controlador de Reloader para ahorrar memoria. El refresco de secretos se realiza mediante el script canónico `k8s-rollout-restart.ts`.
 
 ---
@@ -99,13 +99,14 @@ Recursos Idénticos en Ambos Entornos (Núcleo Universal):
 
 Divergencias Específicas por Entorno:
 ┌───────────────────────────┬───────────────────────────┐
-│       AWS Cloud-Ready     │       Proxmox On-Premise  │
+│  Prod Cloud (blueprint)   │       Proxmox On-Premise  │
 ├───────────────────────────┼───────────────────────────┤
 │ • HPA (api-hpa, web-hpa)  │ • Sin HPA (capacidad fija)│
-│ • Ingress class: alb      │ • Ingress class: traefik  │
-│ • ESO: aws-secrets-manager│ • ESO: vault-backend      │
+│ • Ingress class: nginx (*)│ • Ingress class: traefik  │
+│ • ESO: cloud-secret-store │ • ESO: vault-backend      │
 │ • Reloader: habilitado    │ • Reloader: deshabilitado │
 └───────────────────────────┴───────────────────────────┘
+(*) Punto de variación del proveedor (ADR-030).
 ```
 
 ---

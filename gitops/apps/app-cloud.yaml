@@ -1,22 +1,27 @@
 # ==============================================================================
-# ArgoCD Application - REFERENCIA INACTIVA para Nube Pública (AWS EKS)
+# ArgoCD Application - Prod Cloud (BLUEPRINT AGNÓSTICO E INACTIVO, ADR-030)
 # ==============================================================================
 # ESTADO DECLARADO: INACTIVA / BLUEPRINT (GITOPS-001)
 #
-# AWS/EKS NO es un target desplegado. Proxmox (produccion) y Proxmox-preprod son
-# los unicos targets activos de la plataforma.
+# Prod se declara en la nube, sin proveedor fijado, y todavía no se despliega.
+# Pre-prod (Proxmox, pokedex-preprod) es el target activo de la plataforma.
 #
 # Este manifiesto NO forma parte del App-of-Apps: `root-application.yaml` lo
-# excluye de su descubrimiento de forma explicita (ver `directory.exclude`).
-# Por tanto, aunque conserve `syncPolicy.automated`, ArgoCD NUNCA lo sincroniza
-# mientras siga excluido: esas directivas solo tomarian efecto si alguien lo
-# aplicara manualmente con `task gitops:bootstrap:cloud`.
+# excluye de su descubrimiento de forma explicita (ver `directory.exclude`) y no
+# declara `syncPolicy.automated`. La promocion de releases mantiene su
+# `targetRevision` y sus digests alineados con pre-prod.
 #
-# Para ACTIVAR AWS como target real (fuera de alcance actual):
-#   1. Registrar el endpoint EKS en ArgoCD como cluster secret.
-#   2. Eliminar `app-cloud.yaml` del `exclude` de `root-application.yaml`.
-#   3. Actualizar el estado declarado en CLOUD_INFRASTRUCTURE_DESIGN.md y
-#      APPLICATION_LIFECYCLE.md, que hoy lo describen como referencia.
+# Cadena de values: values.yaml -> values.prod.yaml (perfil HA endurecido) ->
+# gitops/environments/cloud/values.yaml (puntos de variacion del proveedor).
+#
+# Para ACTIVAR prod cloud (requiere un ADR que fije el proveedor):
+#   1. Completar los puntos de variacion de gitops/environments/cloud/values.yaml.
+#   2. Aprovisionar el cluster (infra/opentofu/environments/cloud-template) y
+#      registrarlo en ArgoCD; reemplazar `destination.server`.
+#   3. Declarar el ClusterSecretStore del backend de secretos elegido.
+#   4. Quitar `app-cloud.yaml` del `exclude` de `root-application.yaml` y
+#      habilitar `automated: { prune: true, selfHeal: true }`.
+#   5. Actualizar CLOUD_INFRASTRUCTURE_DESIGN.md y APPLICATION_LIFECYCLE.md.
 # ==============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -25,9 +30,9 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/name: pokedex
-    environment: reference-cloud
+    environment: prod-cloud-blueprint
   annotations:
-    argocd.argoproj.io/manifest-generate-paths: "infra/helm/pokedex;gitops/environments/aws"
+    argocd.argoproj.io/manifest-generate-paths: "infra/helm/pokedex;gitops/environments/cloud"
     architecture.pokedex.io/tier: "reference-template"
     architecture.pokedex.io/status: "inactive"
   finalizers:
@@ -42,14 +47,16 @@ spec:
       releaseName: pokedex-cloud
       valueFiles:
         - values.yaml
-        - ../../../gitops/environments/aws/values.yaml
+        - values.prod.yaml
+        - ../../../gitops/environments/cloud/values.yaml
   destination:
-    # Endpoint o nombre del clúster de Kubernetes en Nube registrado en ArgoCD
-    server: https://k8s-cloud-cluster.privatelink.us-east-1.eks.amazonaws.com
+    # Marcador: el TLD reservado `.invalid` (RFC 2606) garantiza que no resuelve
+    # hasta que se registre el cluster real en ArgoCD (paso 2 de la activacion).
+    server: https://kubernetes.prod-cloud.invalid
     namespace: pokemon-app
   # GITOPS-001: syncPolicy configurada sin bloque `automated` activo para
   # evitar sincronización ni podas accidentales durante pruebas de blueprint.
-  # Si el clúster AWS se activa formalmente, habilitar `automated: { prune: true, selfHeal: true }`.
+  # Al activar prod cloud, habilitar `automated: { prune: true, selfHeal: true }`.
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
@@ -66,5 +73,3 @@ spec:
   # de 62h en un manifiesto que no se despliega es contradictorio: si el freeze
   # se aplicara, el estado de la Application quedaria bloqueado sin despliegue
   # que proteger. Las Applications ACTIVAS (app-proxmox) si declaran syncWindows.
-
-

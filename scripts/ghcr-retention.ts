@@ -62,7 +62,7 @@ export const DEFAULT_OWNER = 'rocapellino';
 export const PINNED_VALUES_FILES = [
   'gitops/environments/proxmox/values.yaml',
   'gitops/environments/proxmox-preprod/values.yaml',
-  'gitops/environments/aws/values.yaml',
+  'gitops/environments/cloud/values.yaml',
   'infra/helm/pokedex/values.prod.yaml',
 ];
 
@@ -330,7 +330,7 @@ if (process.argv[1] && process.argv[1].endsWith('ghcr-retention.ts')) {
   const args = process.argv.slice(2);
   const isDryRun = args.includes('--dry-run');
   const isSimulate = args.includes('--simulate');
-  
+
   let keepCount = DEFAULT_KEEP_COUNT;
   const keepArg = args.find((a) => a.startsWith('--keep='));
   if (keepArg) {

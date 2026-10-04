@@ -1,17 +1,17 @@
 # ☁️ Diseño de Infraestructura Multi-Entorno y GitOps Universal
 
-Este documento define formalmente la arquitectura de infraestructura, topología de red, servicios administrados y sincronización declarativa GitOps para la plataforma **Pokédex**. Establece a **Kubernetes como el runtime universal y agnóstico de producción**, soportando múltiples backends de cómputo: **Proxmox VE (On-Premises)** y nubes públicas (**AWS EKS**, Google Cloud / Azure).
+Este documento define la arquitectura de infraestructura, la topología de red y la sincronización declarativa GitOps de la plataforma **Pokédex**. Establece a **Kubernetes como el runtime universal y agnóstico de producción** y describe el modelo de entornos de ADR-030: **Dev** local, **Pre-Prod** en Proxmox VE y **Prod** en la nube como blueprint agnóstico e inactivo.
 
 ---
 
 ## 📑 Tabla de Contenidos
 
 1. [Arquitectura Agnóstica y Núcleo Portable](#1-arquitectura-agnóstica-y-núcleo-portable)
-2. [Estructura de Capas en la Nube y On-Premises](#2-estructura-de-capas-en-la-nube-y-on-premises)
-3. [Diagrama de Flujo: Aprovisionamiento y Despliegue Híbrido GitOps](#3-diagrama-de-flujo-aprovisionamiento-y-despliegue-híbrido-gitops)
-4. [Matriz de Objetos de Infraestructura (IaC con OpenTofu)](#4-matriz-de-objetos-de-infraestructura-iac-con-opentofu)
+2. [Modelo de Entornos](#2-modelo-de-entornos)
+3. [Diagrama de Flujo: Aprovisionamiento y Despliegue GitOps](#3-diagrama-de-flujo-aprovisionamiento-y-despliegue-gitops)
+4. [Blueprint Prod Cloud: Puntos de Variación del Proveedor](#4-blueprint-prod-cloud-puntos-de-variación-del-proveedor)
 5. [Topología de Red y Aislamiento (Zero-Trust)](#5-topología-de-red-y-aislamiento-zero-trust)
-6. [Estructura del Código IaC Multi-Backend](#6-estructura-del-código-iac-multi-backend)
+6. [Estructura del Código IaC y GitOps](#6-estructura-del-código-iac-y-gitops)
 7. [Política de Runtime Oficial y Experiencia de Desarrollo Dual](#7-política-de-runtime-oficial-y-experiencia-de-desarrollo-dual)
 8. [Matriz de Estado Real de Soporte de Infraestructura](#8-matriz-de-estado-real-de-soporte-de-infraestructura)
 
@@ -19,7 +19,7 @@ Este documento define formalmente la arquitectura de infraestructura, topología
 
 ## 1. Arquitectura Agnóstica y Núcleo Portable
 
-El principio rector del diseño de Pokédex es la **portabilidad absoluta del núcleo de la aplicación**. La lógica del negocio, el empaquetado de contenedores y los manifiestos de despliegue no contienen dependencias acopladas a un proveedor de nube específico ni a hardware particular.
+El principio rector es la **portabilidad del núcleo de la aplicación**: la lógica de negocio, el empaquetado de contenedores y los manifiestos de despliegue no dependen de un proveedor de nube ni de un hardware particular.
 
 ```text
                                 POKÉDEX
@@ -28,78 +28,44 @@ El principio rector del diseño de Pokédex es la **portabilidad absoluta del n�
                 │                                     │
          NÚCLEO PORTABLE                      INFRAESTRUCTURA
                 │                                     │
-       ┌────────┴────────┐                   ┌────────┴────────┐
-       │                 │                   │                 │
-    Backend           Frontend             Cloud            On-Prem
- (Node.js API)     (Vite/Nginx)            (AWS)           (Proxmox)
-       │                 │                   │                 │
-       └────────┬────────┘                   ▼                 ▼
-                │                         OpenTofu          OpenTofu
-                ▼                       (modules/...)     (environments/
-         Helm Universal Chart                               proxmox)
-       (infra/helm/pokedex)                  │                 │
-                │                            ▼                 ▼
-                │                         AWS EKS           K8s Node
-                │                         Clúster          (k3s/Talos)
-                │                            │                 │
-                └────────────────────────────┼─────────────────┘
-                                             │
-                                             ▼
-                                     ArgoCD GitOps Sync
+       ┌────────┴────────┐                ┌───────────┼───────────┐
+       │                 │                │           │           │
+    Backend           Frontend           Dev       Pre-Prod      Prod
+ (Node.js API)     (Vite/Nginx)      (Compose /   (Proxmox VE   (Cloud,
+       │                 │             Kind)       K3s LXC)    blueprint)
+       └────────┬────────┘                │           │           │
+                ▼                         │           ▼           ▼
+         Helm Universal Chart             │        ArgoCD      ArgoCD
+       (infra/helm/pokedex) ──────────────┴───── (activo) ── (inactivo)
 ```
 
 ### Principios de Aislamiento de Capas
 
 1. **Contratos Estándar CNCF:** La aplicación consume exclusivamente interfaces estándar de Kubernetes (>= 1.28): `Deployment`, `Service`, `Ingress`, `ConfigMap`, `Secret`, `HorizontalPodAutoscaler` y `PersistentVolumeClaim` mediante `storageClassName`.
-2. **Cero Vendor Lock-in en el Helm Chart:** El chart principal ([`infra/helm/pokedex`](../../infra/helm/pokedex)) no contiene anotaciones propietarias fijas de AWS o Proxmox. Cualquier ajuste específico de entorno se inyecta mediante capas de valores de GitOps (`values.yaml` para on-premises/local, `values.prod.yaml` para cloud).
-3. **Inmutabilidad de Imágenes de Contenedor:** Las imágenes OCI se compilan una sola vez en CI, se firman criptográficamente mediante Cosign (Sigstore) y se publican en GitHub Container Registry (`ghcr.io/rocapellino/pokedex`). La misma imagen binaria se ejecuta en local, Proxmox o AWS EKS.
+2. **Cero Vendor Lock-in en el Helm Chart:** El chart ([`infra/helm/pokedex`](../../infra/helm/pokedex)) no contiene anotaciones propietarias de un proveedor. Lo específico de cada entorno se inyecta con capas de values: `gitops/environments/proxmox-preprod/` para pre-prod, y `values.prod.yaml` + `gitops/environments/cloud/` para el blueprint prod.
+3. **Inmutabilidad de Imágenes de Contenedor:** Las imágenes OCI se compilan una sola vez en CI, se firman con Cosign (Sigstore) y se publican en GitHub Container Registry (`ghcr.io/rocapellino/pokedex-*`). El mismo digest se ejecuta en Kind, pre-prod y, al activarse, prod.
 
 ---
 
-## 2. Estructura de Capas en la Nube y On-Premises
+## 2. Modelo de Entornos
 
-```text
-                                [ Usuarios Globales ]
-                                          │
-                                          ▼
-  ════════════════════════════════════════════════════════════════════════════════
-  CAPA 1: EDGE, WAF Y CDN GLOBAL (CloudFront / Cloud Armor / Ingress Controller)
-  ════════════════════════════════════════════════════════════════════════════════
-                     │                                           │
-          (Ruta / /index.html / assets)                 (Ruta /api /pokemons)
-                     │                                           │
-                     ▼                                           ▼
-  ┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
-  │ CAPA 2: FRONTEND ESTÁTICO           │     │ CAPA 3: CÓMPUTO KUBERNETES / RUNTIME│
-  │ • S3 Bucket / GCS con CloudFront    │     │ • Pokédex API (Node.js 22 Express)  │
-  │   (o Nginx Pod en On-Premises/Edge) │     │ • Autoescalado HPA v2 (CPU/Memoria) │
-  │ • Compresión gzip/brotli en Edge    │     │ • Kyverno Cosign Image Enforcer     │
-  └─────────────────────────────────────┘     └──────────────────┬──────────────────┘
-                                                                 │
-                                                   (VPC Private Peering / Red Local Privada)
-                                                                 │
-                                                                 ▼
-  ════════════════════════════════════════════════════════════════════════════════
-  RED PRIVADA AISLADA (Zero-Trust Network - Sin IPs públicas en capas de datos)
-  ════════════════════════════════════════════════════════════════════════════════
-                                 │                               │
-                                 ▼                               ▼
-  ┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
-  │ CAPA 4: CACHÉ DISTRIBUIDA (REDIS 7) │     │ CAPA 5: BASE DE DATOS (POSTGRES 16) │
-  │ • AWS ElastiCache / Redis Cluster   │     │ • Amazon RDS / Cloud SQL Postgres   │
-  │ • StatefulSet local en On-Prem      │     │ • StatefulSet local con PVC Ceph    │
-  │ • Sub-3ms Lecturas de Catálogo      │     │ • Backups continuos y WAL-G         │
-  └─────────────────────────────────────┘     └─────────────────────────────────────┘
-```
+| Entorno | Runtime | Despliegue | Catálogo | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+| **Dev** | Docker Compose y Kind | Local, fuera de ArgoCD | Muestra (35 Pokémon) | Activo |
+| **Pre-Prod** | K3s en LXC sobre Proxmox VE (`k8s-preprod`) | ArgoCD `pokedex-preprod` | Completo (1025), desde el paso 4 de ADR-030 | Activo (único target tras el paso 5) |
+| **Prod** | Kubernetes gestionado en una nube a elegir | ArgoCD `pokedex-cloud`, excluida del App-of-Apps | Completo | Blueprint declarado, inactivo |
+
+> [!NOTE]
+> La Application `pokedex-proxmox` (clúster `k8s-proxmox`) sigue declarada hasta el paso 5 del plan de ADR-030, que la retira con backup previo y borrado no cascada.
 
 ---
 
-## 3. Diagrama de Flujo: Aprovisionamiento y Despliegue Híbrido GitOps
+## 3. Diagrama de Flujo: Aprovisionamiento y Despliegue GitOps
 
 ```mermaid
 flowchart TD
     subgraph SCM["📦 Repositorio Git (Monorepo)"]
-        CODE["💻 Código Fuente\n(server.ts, apps/frontend)"]
+        CODE["💻 Código Fuente\n(apps/backend, apps/frontend)"]
         HELM_CHART["⚙️ Helm Chart Universal\n(infra/helm/pokedex)"]
         GITOPS_DIR["📋 Manifiestos GitOps\n(gitops/apps, gitops/environments)"]
         TOFU_DIR["🏗️ IaC OpenTofu\n(infra/opentofu/environments)"]
@@ -108,14 +74,14 @@ flowchart TD
     subgraph CI_PIPELINE["🤖 GitHub Actions (CI & Supply Chain)"]
         CODE --> CI_BUILD["Build Docker + SBOM CycloneDX"]
         CI_BUILD --> COSIGN_SIGN["Cosign Keyless OIDC (Sigstore)"]
-        COSIGN_SIGN --> GHCR["📦 GitHub Container Registry (GHCR)\nghcr.io/rocapellino/pokedex"]
+        COSIGN_SIGN --> GHCR["📦 GitHub Container Registry (GHCR)"]
     end
 
     subgraph IAC_ENGINE["🏗️ OpenTofu IaC Engine"]
         TOFU_DIR -->|environments/proxmox| TOFU_PROX["tofu apply (Proxmox)"]
-        TOFU_DIR -->|environments/aws| TOFU_AWS["tofu apply (AWS)"]
-        TOFU_PROX --> PROX_INFRA["🖥️ Nodos Proxmox VE (LXC / VMs)"]
-        TOFU_AWS --> AWS_INFRA["☁️ AWS VPC, EKS, RDS, ElastiCache"]
+        TOFU_DIR -->|environments/cloud-template| TOFU_CLOUD["tofu validate (blueprint)"]
+        TOFU_PROX --> PROX_INFRA["🖥️ LXC K3s, Vault y Bastion en Proxmox VE"]
+        TOFU_CLOUD --> CLOUD_INFRA["☁️ Clúster gestionado del proveedor elegido"]
     end
 
     subgraph GITOPS_SYNC["☸️ ArgoCD GitOps Engine"]
@@ -123,8 +89,8 @@ flowchart TD
         HELM_CHART --> ARGO
         GHCR --> ARGO
 
-        ARGO -->|app-proxmox.yaml\nvalues.yaml| ENV_PROX["🖥️ Clúster Proxmox (On-Premise)\n• Ingress Nginx Local\n• StatefulSet Postgres + Redis\n• Kyverno Cosign Enforcer"]
-        ARGO -->|app-cloud.yaml\nvalues.prod.yaml| ENV_AWS["☁️ Clúster AWS EKS (Cloud)\n• AWS Load Balancer Controller\n• AWS RDS Postgres 16\n• AWS ElastiCache Redis 7\n• Kyverno Cosign Enforcer"]
+        ARGO -->|app-proxmox-preprod.yaml\nvalues.yaml + proxmox-preprod| ENV_PREPROD["🖥️ Pre-Prod (Proxmox LXC)\n• Traefik + TLS CA interna\n• StatefulSet Postgres + Redis\n• Catálogo completo (seed job)"]
+        ARGO -.->|app-cloud.yaml (inactiva)\nvalues.yaml + values.prod.yaml + cloud| ENV_CLOUD["☁️ Prod Cloud (blueprint)\n• Ingress + cert-manager\n• HA: HPA, PDB, PgBouncer\n• Kyverno Cosign Enforcer"]
     end
 
     classDef git fill:#3b82f6,stroke:#1d4ed8,color:#fff;
@@ -134,115 +100,98 @@ flowchart TD
 
     class CODE,HELM_CHART,GITOPS_DIR,TOFU_DIR git;
     class CI_BUILD,COSIGN_SIGN,GHCR ci;
-    class TOFU_PROX,TOFU_AWS,PROX_INFRA,AWS_INFRA iac;
-    class ARGO,ENV_PROX,ENV_AWS gitops;
+    class TOFU_PROX,TOFU_CLOUD,PROX_INFRA,CLOUD_INFRA iac;
+    class ARGO,ENV_PREPROD,ENV_CLOUD gitops;
 ```
 
 ---
 
-## 4. Matriz de Objetos de Infraestructura (IaC con OpenTofu)
+## 4. Blueprint Prod Cloud: Puntos de Variación del Proveedor
 
-| Objeto de Infraestructura | Módulo / Directorio IaC | Propósito Arquitectónico | Implementación Cloud (AWS) | Implementación On-Prem (Proxmox) |
-| :--- | :--- | :--- | :--- | :--- |
-| **VPC & Networking** | `modules/networking` | Aislamiento por subredes DMZ, Cómputo y Datos. | AWS VPC, Subredes privadas, NAT Gateway | Linux Bridge (`vmbr0`), VLANs 802.1Q |
-| **Cómputo Kubernetes** | `modules/compute` | Orquestación elástica de Pods de la API y Frontend. | Amazon EKS v1.28+ con Managed Node Groups | Nodos Proxmox VE (LXC/VM) con k3s / Talos |
-| **Política de Seguridad** | `infra/k8s` | Admisión de contenedores y firma de la cadena de suministro. | Kyverno Policy Validating Cosign OIDC | Kyverno Policy Validating Cosign OIDC |
-| **Base de Datos** | `modules/database` | Persistencia relacional PostgreSQL 16 con JSONB. | Amazon RDS for PostgreSQL (Multi-AZ) | PostgreSQL 16 HA StatefulSet / Bitnami |
-| **Caché en Memoria** | `modules/database` | Caché distribuida sub-3ms y sesiones. | Amazon ElastiCache Redis 7 | Redis 7 StatefulSet / Sentinel |
-| **Almacenamiento de Objetos** | `modules/storage` | Almacenamiento de backups cifrados y assets. | Amazon S3 con Bucket Policy restrictiva | MinIO S3-Compatible / Ceph RGW |
+El blueprint prod se compone de tres capas de values ([`app-cloud.yaml`](../../gitops/apps/app-cloud.yaml)):
+
+1. `infra/helm/pokedex/values.yaml`: base segura del chart.
+2. `infra/helm/pokedex/values.prod.yaml`: postura endurecida e independiente del proveedor (HA, PgBouncer, Reloader, Zero-Trust L7, ResourceQuota, backups).
+3. [`gitops/environments/cloud/values.yaml`](../../gitops/environments/cloud/values.yaml): solo los puntos de variación del proveedor.
+
+| Punto de variación | Parámetro | Valor actual del blueprint |
+| :--- | :--- | :--- |
+| Controlador de ingress | `ingress.className` | `nginx` (portable; se reemplaza por el del proveedor) |
+| Emisor TLS | `ingress.annotations["cert-manager.io/cluster-issuer"]` | `letsencrypt-prod` |
+| Backend de secretos | `externalSecrets.secretStoreRef.name` | `cloud-secret-store` sobre la ruta reservada `pokedex/prod` |
+| Almacenamiento | `postgresql`, `redis` y `backup` `.persistence.storageClass` | `""` (StorageClass por defecto del clúster) |
+| Exposición pública | `ingress.hosts`, `ingress.tls`, `api.env.corsOrigins` | `pokedex.cloud.rodrigo.dev` |
+| Clúster destino | `app-cloud.yaml` `destination.server` | Marcador `.invalid` hasta registrar el clúster |
+
+Activar prod cloud requiere un ADR que fije el proveedor, completar estos parámetros, aprovisionar el clúster, declarar el `ClusterSecretStore` y quitar `app-cloud.yaml` del `exclude` de [`root-application.yaml`](../../gitops/apps/root-application.yaml).
 
 ---
 
 ## 5. Topología de Red y Aislamiento (Zero-Trust)
 
-1. **Subred Pública DMZ (`10.0.1.0/24`):**
-   - Aloja únicamente el balanceador de carga público (AWS ALB o Ingress-Nginx Controller en on-prem).
-   - Todo el tráfico no-HTTPS es redirigido obligatoriamente a HTTPS (TLS 1.3).
-2. **Subred Privada de Cómputo (`10.0.10.0/24`):**
-   - Aloja los nodos trabajadores de Kubernetes donde ejecutan los Pods de la API y el Frontend.
-   - Sin direcciones IP públicas asignadas; egreso hacia internet restringido mediante NAT Gateway (o Gateway Proxmox) para pull de imágenes y parches de seguridad.
-3. **Subred Privada de Datos (`10.0.20.0/24`):**
-   - Aislada sin salida a internet ni ruta default.
-   - Aloja PostgreSQL y Redis. Solo acepta conexiones entrantes originadas desde la subred de cómputo en los puertos autorizados (`5432` y `6379`).
+La segmentación es la misma en cualquier sustrato; cambia el mecanismo que la implementa.
+
+1. **Borde público:** solo el ingress controller recibe tráfico externo. Todo el tráfico HTTP se redirige a HTTPS.
+2. **Cómputo:** los nodos de Kubernetes no tienen IPs públicas. El egreso se limita con NetworkPolicies (`antiSsrf`, `externalHttps: false`) y la allowlist FQDN de Cilium (Gemini, GitHub raw y PokeAPI).
+3. **Datos:** PostgreSQL y Redis solo aceptan conexiones desde los Pods autorizados en `5432` y `6379`.
+
+En pre-prod la red de gestión es `10.10.13.0/24` sobre el bridge de Proxmox (ADR-025). En prod cloud, la VPC o red equivalente del proveedor se declara al activarlo.
 
 ---
 
-## 6. Estructura del Código IaC Multi-Backend
-
-La infraestructura como código está modularizada bajo `infra/opentofu/` separando explícitamente los proveedores y garantizando que cada entorno declare sus propios recursos sin mezclar dependencias de proveedores:
+## 6. Estructura del Código IaC y GitOps
 
 ```text
-infra/
-├── opentofu/
-│   ├── modules/                      # Módulos reutilizables agnósticos
-│   │   ├── compute/                  # Interfaz genérica y especificación de nodos
-│   │   ├── naming/                   # Generación estandarizada de nombres
-│   │   ├── security_baseline/        # Restricciones de red y cifrado
-│   │   └── tagging/                  # Metadata y etiquetas consistentes
-│   └── environments/
-│       ├── proxmox/                  # ✅ Target On-Premises Oficial GA (Proxmox VE)
-│       │   ├── main.tf
-│       │   ├── providers.tf
-│       │   ├── variables.tf
-│       │   └── terraform.tfvars.example
-│       ├── lab/                      # ✅ Entorno efímero de pruebas
-│       │   └── main.tf
-│       └── aws/                      # ℹ️ Plantilla de Referencia Arquitectónica Multi-Cloud
-│           ├── README.md
-│           ├── main.tf
-│           ├── providers.tf
-│           ├── variables.tf
-│           └── terraform.tfvars.example
-├── ansible/                          # Hardening y configuración de nodos base
-│   ├── roles/                        # Roles modulares (base_os, container_runtime, etc.)
-│   └── playbooks/
-│       └── host_baseline.yaml         # Orquestación de roles sobre nodos Proxmox
-└── k8s/                              # Definiciones Kubernetes locales y perfiles
-    └── kind-cluster.yaml             # Perfil de desarrollo local con paridad K8s
+infra/opentofu/
+├── modules/                          # Módulos reutilizables agnósticos
+│   ├── compute/                      # Especificación genérica de nodos
+│   ├── naming/                       # Nombres estandarizados
+│   ├── security_baseline/            # Restricciones de red y cifrado
+│   └── tagging/                      # Metadata y etiquetas
+└── environments/
+    ├── proxmox/                      # ✅ Pre-Prod: LXC K3s, Vault y Bastion en Proxmox VE
+    ├── lab/                          # ✅ Entorno efímero de pruebas
+    └── cloud-template/               # ℹ️ Base agnóstica del blueprint prod cloud
 ```
-
-Asimismo, el repositorio GitOps refleja esta misma topología bajo `gitops/`:
 
 ```text
 gitops/
 ├── apps/
-│   ├── app-cloud.yaml                # ArgoCD Application (Plantilla de Referencia AWS)
-│   └── app-proxmox.yaml              # ArgoCD Application apuntando a environments/proxmox
+│   ├── root-application.yaml         # App-of-Apps (excluye app-cloud.yaml)
+│   ├── app-proxmox-preprod.yaml      # ✅ Pre-Prod activo
+│   ├── app-proxmox.yaml              # ⏳ En retiro (paso 5 de ADR-030)
+│   └── app-cloud.yaml                # ⚪ Blueprint prod cloud (inactivo)
 └── environments/
-    ├── aws/                          # Capa de valores para clúster AWS EKS (Referencia)
-    │   └── values.yaml               # Valores específicos (ALB Ingress, RDS endpoint)
-    └── proxmox/                      # Capa de valores para clúster Proxmox (Oficial)
-        └── values.yaml               # Valores específicos (Nginx Ingress, StatefulSet)
+    ├── proxmox-preprod/values.yaml   # Perfil Lean de pre-prod
+    ├── proxmox/values.yaml           # ⏳ En retiro
+    └── cloud/values.yaml             # Puntos de variación del proveedor
 ```
 
 ---
 
 ## 7. Política de Runtime Oficial y Experiencia de Desarrollo Dual
 
-Para evitar duplicidad operativa, inconsistencias entre entornos y scripts de despliegue monolíticos fuera de control de versiones, la plataforma establece una estricta delimitación de responsabilidades:
-
 | Entorno / Propósito | Tecnología Oficial | Responsabilidad y Alcance |
 | :--- | :--- | :--- |
-| **Producción Universal** | **Kubernetes (Helm + ArgoCD)** | **Único runtime oficial de producción**. Gestiona ciclo de vida de Pods, balanceo L7, autoscaling HPA, NetworkPolicies, y validación criptográfica de firmas mediante Kyverno. |
-| **Aprovisionamiento Infra** | **OpenTofu (`infra/opentofu`)** | Declaración inmutable de recursos de cómputo, redes, VPCs, bases de datos gestionadas y almacenamiento en la nube o en Proxmox. |
-| **Baseline y Hardening** | **Ansible (`host_baseline.yaml`)** | Configuración base a nivel de sistema operativo en nodos Proxmox / bare-metal: containerd, parámetros de kernel `sysctl` y firewall `ufw`. **No gestiona el despliegue de contenedores de la aplicación**. |
-| **Desarrollo: Perfil Rápido** | **Docker Compose (`task dev:compose`)** | Iteración rápida en máquina local. Levanta la API, Frontend, Postgres y Redis con recarga en caliente sin sobrecarga de orquestación. |
-| **Desarrollo: Paridad K8s** | **Kind (`task dev:k8s:up`)** | Validación local con paridad total frente a producción. Levanta un clúster Kind con mapeo de Ingress y despliega el Helm chart idéntico al de producción. |
+| **Producción Universal** | **Kubernetes (Helm + ArgoCD)** | **Único runtime oficial de pre-prod y prod**. Gestiona Pods, balanceo L7, HPA, NetworkPolicies y la validación de firmas con Kyverno. |
+| **Aprovisionamiento Infra** | **OpenTofu (`infra/opentofu`)** | Declaración inmutable de cómputo, red y almacenamiento en Proxmox o en la nube elegida. |
+| **Baseline y Hardening** | **Ansible (`host_baseline.yaml`)** | Configuración de sistema operativo en los nodos de Proxmox: containerd, `sysctl` y `ufw`. **No despliega contenedores de la aplicación**. |
+| **Desarrollo: Perfil Rápido** | **Docker Compose (`task dev:compose`)** | Iteración local con API, Frontend, Postgres y Redis, con recarga en caliente. |
+| **Desarrollo: Paridad K8s** | **Kind (`task dev:k8s:up`)** | Clúster Kind con mapeo de Ingress y el mismo Helm chart. Es también el entorno de integración de CI. |
 
 ### Regla de Oro Operativa
 
-> **No se despliegan contenedores de aplicación en producción mediante Docker Compose ni scripts bash aislados.**
-> Todo despliegue productivo debe originarse en un commit Git auditado, pasar los controles de CI (tests, SBOM, firma Cosign) y ser sincronizado declarativamente en un clúster Kubernetes mediante ArgoCD.
+> **No se despliegan contenedores de aplicación en pre-prod ni prod mediante Docker Compose ni scripts aislados.**
+> Todo despliegue se origina en un commit auditado, pasa los controles de CI (tests, SBOM, firma Cosign) y se sincroniza declarativamente con ArgoCD.
 
 ---
 
 ## 8. Matriz de Estado Real de Soporte de Infraestructura
 
-Para garantizar máxima transparencia arquitectónica y evitar falsas expectativas sobre entornos no provistos físicamente:
-
-| Target de Infraestructura | Nivel de Soporte | Entorno OpenTofu | Propósito y Garantías Operativas |
+| Target de Infraestructura | Nivel de Soporte | Entorno IaC / GitOps | Propósito y Garantías Operativas |
 | :--- | :--- | :--- | :--- |
-| **Proxmox VE (On-Premises)** | **GA (Oficial)** | `infra/opentofu/environments/proxmox` | **Único target de producción on-premise soportado**. Cuenta con automatización completa de host baseline vía Ansible, almacenamiento persistente, Ingress perimetral y cobertura en planes de Disaster Recovery. |
-| **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Entorno efímero para pruebas destructivas, validación de playbooks y simulación de fallos controlados. |
-| **AWS EKS (Nube Pública)** | **Plantilla de Referencia** | `infra/opentofu/environments/aws` | **Blueprint ilustrativo de portabilidad multi-cloud**. Parametrizado mediante variables; no forma parte de los pipelines de despliegue continuo activo ni de los compromisos de SLA/RTO de Disaster Recovery. |
-| **Kind (Local)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Clúster Kubernetes ligero utilizado para tests de integración en GitHub Actions (`infra.yaml`) y pruebas de paridad para desarrolladores locales. |
+| **Proxmox VE Pre-Prod (LXC)** | **Activo** | `infra/opentofu/environments/proxmox` + `gitops/environments/proxmox-preprod` | Target de pre-prod; queda como único target desplegado tras el paso 5 de ADR-030. Host baseline con Ansible y TLS con la CA interna. El catálogo completo se siembra desde el paso 4 de ADR-030. |
+| **Proxmox VE Prod (VM)** | **En retiro** | `gitops/environments/proxmox` | Sigue sincronizado hasta el paso 5 de ADR-030. |
+| **Proxmox Lab** | **Soportado (Lab)** | `infra/opentofu/environments/lab` | Pruebas destructivas, validación de playbooks y simulación de fallos. |
+| **Prod Cloud** | **Blueprint inactivo** | `infra/opentofu/environments/cloud-template` + `gitops/environments/cloud` | Renderizado y validado en CI, con digests fijados en cada promoción. Sin SLA ni RTO hasta su activación. |
+| **Kind (Local / CI)** | **Soportado (CI/CD / Dev)** | `infra/k8s/kind-cluster.yaml` | Tests de integración en GitHub Actions (`infra.yaml`) y paridad local. |

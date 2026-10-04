@@ -190,7 +190,7 @@ rules:
         supply_chain: true
 
   opentofu:
-    description: "Infraestructura como Código (Proxmox VE, AWS EKS, módulos)"
+    description: "Infraestructura como Código (Proxmox VE, cloud-template, módulos)"
     paths:
       - "infra/opentofu/**"
       # Tareas de formateo y validación OpenTofu

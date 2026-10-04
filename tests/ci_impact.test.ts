@@ -192,10 +192,9 @@ test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', ()
 });
 
 /**
- * CI-001 (documentacion) — la matriz de impacto no debe afirmar que
- * `values.prod.yaml` es el perfil de AWS. Ninguna Application de ArgoCD lo
- * consume: el perfil AWS real es `gitops/environments/aws/values.yaml`
- * (`INFRA-011`).
+ * CI-001 (documentacion) — la matriz de impacto debe identificar el perfil prod
+ * cloud por su cadena real: `values.prod.yaml` como base endurecida y
+ * `gitops/environments/cloud/values.yaml` como override del proveedor (ADR-030).
  */
 test('🎯 CI-001: la configuración del motor es global, igual que el motor', () => {
   // `scripts/detect-change-impact.ts` ya es global. Su CONFIGURACION no lo era:
@@ -214,20 +213,23 @@ test('🎯 CI-001: la configuración del motor es global, igual que el motor', (
   );
 });
 
-test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil de AWS', () => {
+test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud', () => {
   const matrix = fs.readFileSync(
     path.join(ROOT_DIR, '.agents', 'skills', '_shared', 'change-impact-matrix.md'),
     'utf-8'
   );
 
   assert.ok(
-    matrix.includes('gitops/environments/aws/values.yaml'),
-    'CI-001: la matriz debe identificar a gitops/environments/aws/values.yaml como el perfil de AWS'
+    matrix.includes('gitops/environments/cloud/values.yaml'),
+    'CI-001: la matriz debe identificar a gitops/environments/cloud/values.yaml como override prod cloud'
   );
   assert.ok(
-    !/perfil de AWS \(`?values\.prod\.yaml`?\)/.test(matrix),
-    'CI-001: la matriz no debe afirmar que values.prod.yaml es el perfil de AWS; ' +
-    'ninguna Application de ArgoCD lo consume (INFRA-011)'
+    matrix.includes('infra/helm/pokedex/values.prod.yaml'),
+    'CI-001: la matriz debe declarar values.prod.yaml como base del perfil prod cloud'
+  );
+  assert.ok(
+    !matrix.includes('gitops/environments/aws/'),
+    'CI-001: la matriz no debe citar el entorno aws retirado por ADR-030'
   );
 });
 
@@ -675,7 +677,7 @@ test('🎯 Change Impact Matrix: combinación de archivos modificados, eliminado
   // Simulando conjunto de archivos resultantes de un diff que incluye borrado, renombrado y creación
   const diffFiles = [
     'apps/backend/src/legacy_controller.ts', // Simula archivo eliminado o renombrado en backend
-    'infra/opentofu/environments/aws/main.tf', // Modificación IaC
+    'infra/opentofu/environments/cloud-template/main.tf', // Modificación IaC
   ];
 
   const result = analyzeChangeImpact({
@@ -755,4 +757,3 @@ test('🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspon
     );
   }
 });
-

@@ -43,11 +43,9 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task dev:k8s:up` | Despliega clúster Kind local con ingress y namespaces configurados. |
 | | `task dev:k8s:status` | Consulta estado de pods, servicios e ingress en namespace `pokemon-app`. |
 | **Infraestructura (OpenTofu)** | `task infra:fmt` | Verifica formato canónico en todos los entornos de OpenTofu (`tofu fmt -check`). |
-| | `task infra:validate` | Valida sintaxis e inicializa backends (`Proxmox`, `AWS`, `Lab`). |
+| | `task infra:validate` | Valida sintaxis e inicializa backends (`Proxmox`, `Cloud Template`, `Lab`). |
 | | `task infra:plan:proxmox` | Genera plan de ejecución para entorno on-premise Proxmox VE. |
 | | `task infra:apply:proxmox` | Aplica configuración IaC en Proxmox VE. |
-| | `task infra:plan:aws` | Genera plan de ejecución para clúster AWS EKS en la nube. |
-| | `task infra:apply:aws` | Aplica infraestructura AWS EKS con OpenTofu. |
 | | `task infra:plan:lab` | Plan de ejecución para entorno de laboratorio de pruebas. |
 | | `task infra:apply:lab` | Aplica infraestructura de laboratorio. |
 | **Automatización (Ansible)** | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
@@ -62,7 +60,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task k8s:status` | Diagnóstico de pods, réplicas, servicios e ingress. |
 | **GitOps (ArgoCD)** | `task gitops:apps:root` | Sincroniza la aplicación App-of-Apps en el clúster. |
 | | `task gitops:sync:proxmox` | Fuerza sincronización declarativa para Proxmox VE. |
-| | `task gitops:sync:cloud` | Fuerza sincronización declarativa para AWS EKS. |
+| | `task gitops:sync:cloud` | Fuerza sincronización del blueprint prod cloud (solo tras activarlo, ADR-030). |
 | | `task gitops:health-checks` | Aplica evaluadores de salud personalizados para CRDs. |
 | **Seguridad & Egress L7** | `task security:egress` | Ejecuta pruebas automatizadas de política de egress L7 Anti-SSRF. |
 | | `task security:egress:probe` | Ejecuta la sonda activa de seguridad y filtrado egress L7 en clúster. |
@@ -122,11 +120,11 @@ flowchart LR
 | `task tofu:plan:proxmox` | `task infra:plan:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:apply:proxmox` | `task infra:apply:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:init:aws` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:plan:aws` | `task infra:plan:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:apply:aws` | `task infra:apply:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:plan:aws` | `task infra:plan:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:apply:aws` | `task infra:apply:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:init:cloud` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:plan:cloud` | `task infra:plan:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:apply:cloud` | `task infra:apply:aws` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:plan:cloud` | `task infra:plan:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+| `task tofu:apply:cloud` | `task infra:apply:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:validate` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task ts:install` | `task install` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task ts:dev` | `task dev` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |

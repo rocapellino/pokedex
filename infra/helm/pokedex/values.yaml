@@ -309,7 +309,7 @@ secrets:
   backupEncryptionKey: ""
 
 # ------------------------------------------------------------------------------
-# 7b. External Secrets Operator (ESO - Sincronización automática con Vault / AWS / GCP)
+# 7b. External Secrets Operator (ESO - Sincronización automática con Vault o el backend cloud)
 # ------------------------------------------------------------------------------
 externalSecrets:
   enabled: false
@@ -317,7 +317,7 @@ externalSecrets:
   targetSecretName: "pokemon-secrets"
   annotations: {}
   # Convención de Nomenclatura según Proveedor:
-  # - AWS Secrets Manager: key: "pokedex/prod" (sin prefijo secret/data)
+  # - Prod cloud (blueprint, ADR-030): key: "pokedex/prod" (sin prefijo secret/data)
   # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/prod" (prefijo API requerido por Vault KV engine v2)
   secretStoreRef:
     name: "vault-backend"
@@ -471,7 +471,3 @@ monitoring:
 reloader:
   enabled: false
   auto: false
-
-
-
-

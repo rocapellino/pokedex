@@ -1,15 +1,27 @@
 # ==============================================================================
-# Sobrescritura de Values para Entorno de Nube Pública (AWS / GCP / Azure)
+# Override del Entorno Prod Cloud (Blueprint Agnóstico e Inactivo, ADR-030)
+# ==============================================================================
+# Cadena de values de `pokedex-cloud` (gitops/apps/app-cloud.yaml):
+#   values.yaml -> values.prod.yaml (perfil HA endurecido) -> este archivo
+#
+# Este archivo solo declara lo que depende del clúster y del proveedor de nube.
+# No contiene recursos ni anotaciones de un proveedor concreto: al activar el
+# entorno se completan los PUNTOS DE VARIACIÓN marcados abajo.
+#
+#   1. ingress.className y el emisor TLS (cert-manager ClusterIssuer).
+#   2. externalSecrets.secretStoreRef.name: ClusterSecretStore del backend elegido
+#      (Vault externo o el gestor de secretos del proveedor). La ruta lógica
+#      `pokedex/prod` queda reservada para este entorno.
+#   3. StorageClass de PostgreSQL, Redis y backups (vacío = la default del clúster).
+#   4. Hosts públicos, TLS y orígenes CORS.
 # ==============================================================================
 
 global:
-  environment: public-cloud
+  environment: cloud
   namespace: pokemon-app
 
 api:
   replicaCount: 3
-  deploymentAnnotations:
-    reloader.stakater.com/auto: "true"
   image:
     repository: ghcr.io/rocapellino/pokedex-api
     digest: "sha256:ada21b853cb6b6804954f45160aa9dd7b01fe81f307164c27187234a91e6d2b9" # SHA256 digest pinning inmutable (SSOT)
@@ -27,6 +39,9 @@ api:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
+  env:
+    # PUNTO DE VARIACIÓN 4: un origen por host del ingress, con esquema https.
+    corsOrigins: "https://pokedex.cloud.rodrigo.dev"
 
 web:
   replicaCount: 3
@@ -46,13 +61,27 @@ web:
     minReplicas: 2
     maxReplicas: 6
 
+# PUNTO DE VARIACIÓN 3: "" usa la StorageClass por defecto del clúster.
+postgresql:
+  persistence:
+    storageClass: ""
+
+redis:
+  persistence:
+    storageClass: ""
+
+backup:
+  persistence:
+    storageClass: ""
+
 ingress:
   enabled: true
-  className: "alb" # o gce / traefik según el proveedor de nube
+  # PUNTO DE VARIACIÓN 1: controlador de ingress instalado en el clúster. Con
+  # className "nginx" aplican las cabeceras de seguridad de values.prod.yaml; con
+  # otro controlador la plantilla las omite y deben declararse en ese controlador.
+  className: "nginx"
   annotations:
-    kubernetes.io/ingress.class: "alb"
-    alb.ingress.kubernetes.io/scheme: "internet-facing"
-    alb.ingress.kubernetes.io/target-type: "ip"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
     - host: pokedex.cloud.rodrigo.dev
       paths:
@@ -89,14 +118,15 @@ externalSecrets:
   enabled: true
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
+  # PUNTO DE VARIACIÓN 2: nombre del ClusterSecretStore declarado al activar el entorno.
   secretStoreRef:
-    name: "aws-secrets-manager"
+    name: "cloud-secret-store"
     kind: "ClusterSecretStore"
   remoteRef:
     key: "pokedex/prod"
 
-# Stakater Reloader habilitado en Cloud para detectar mutaciones asíncronas de v1/Secret
-# generadas por ESO tras rotaciones en AWS Secrets Manager (checksum/config no cubre este caso):
+# Stakater Reloader: ESO actualiza el Secret de forma asíncrona tras una rotación
+# en el backend de secretos, y checksum/config no detecta ese cambio (ADR-005).
 reloader:
   enabled: true
   auto: true
@@ -115,5 +145,3 @@ ciliumNetworkPolicy:
     - matchName: "generativelanguage.googleapis.com"
     - matchPattern: "*.githubusercontent.com"
     - matchPattern: "*.pokeapi.co"
-
-

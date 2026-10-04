@@ -77,7 +77,7 @@ flowchart TD
         KYVERNO_CHECK -->|Sin firma o workflow no autorizado| REJECT["🚫 Bloquear Despliegue (Enforce)"]
         KYVERNO_CHECK -->|Firma OIDC legítima verificada en Rekor| ACCEPT["✅ Admitir Pod en Clúster"]
         ACCEPT --> PROXMOX_K8S["🖥️ On-Premise (Proxmox VE)"]
-        ACCEPT --> CLOUD_EKS["☁️ Cloud (AWS EKS)"]
+        ACCEPT -.-> CLOUD_EKS["☁️ Prod Cloud (blueprint inactivo)"]
     end
 
     %% FASE 7: MANTENIMIENTO CONTINUO
@@ -220,7 +220,7 @@ Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido
 
 - **ArgoCD** detecta los cambios en el directorio `gitops/`:
   - **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox.yaml`](../../gitops/apps/app-proxmox.yaml) aplicando `values.yaml` específicos.
-  - **Referencia inactiva (AWS EKS)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) queda **excluido del App-of-Apps** (GITOPS-001); ArgoCD no lo sincroniza. Proxmox y Proxmox-preprod son los únicos targets desplegados.
+  - **Blueprint prod cloud (inactivo, ADR-030)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) queda **excluido del App-of-Apps** (GITOPS-001); ArgoCD no lo sincroniza. Proxmox y Proxmox-preprod son los únicos targets desplegados.
 - **Control de Admisión con Kyverno:**
   - La política de clúster [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) intercepta la creación de Pods en modo `Enforce`.
   - Verifica que la imagen provenga de `ghcr.io/rocapellino/pokedex:*`, que esté firmada con el emisor OIDC `https://token.actions.githubusercontent.com` y que la identidad del workflow firmante sea exactamente `https://github.com/rocapellino/pokedex/.github/workflows/ci.yaml@refs/heads/main`.

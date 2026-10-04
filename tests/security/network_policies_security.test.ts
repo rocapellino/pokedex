@@ -161,92 +161,67 @@ test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener
 });
 
 /**
- * INFRA-011 — `values.prod.yaml` no debe convertirse en un target desplegado
- * sin una decisión explícita.
+ * INFRA-011 / ADR-030 — `values.prod.yaml` es la base del blueprint prod cloud.
  *
- * Hoy ninguna Application de ArgoCD lo consume: las tres usan exclusivamente
- * `valueFiles: [values.yaml, <override de gitops/environments/>]`. El perfil de
- * producción real es `gitops/environments/proxmox/values.yaml`.
- *
- * El archivo se conserva como perfil de referencia, pero si alguna vez se
- * conecta a un entorno real debe ser una decisión consciente. Este gate
- * detecta esa transición para que alguien la valide en lugar de que ocurra por
- * descuido.
+ * Solo `app-cloud.yaml` (inactiva, excluida del App-of-Apps) lo consume, como
+ * capa intermedia entre `values.yaml` y `gitops/environments/cloud/`. Ninguna
+ * Application activa puede consumirlo: si pre-prod lo heredara, recibiría el
+ * perfil HA (PgBouncer, Reloader, HPA) que el perfil Lean de Proxmox descarta.
  */
-test('🗂️ INFRA-011: ninguna Application de ArgoCD consume el perfil de referencia', () => {
+test('🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml', () => {
   const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
   const appFiles = fs
     .readdirSync(gitopsAppsDir)
     .filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
 
-  assert.ok(appFiles.length >= 3, 'Deben existir Applications de ArgoCD en gitops/apps');
+  assert.ok(appFiles.length >= 2, 'Deben existir Applications de ArgoCD en gitops/apps');
 
   const consumers = appFiles.filter((f) => {
     const content = fs.readFileSync(path.join(gitopsAppsDir, f), 'utf-8');
-    return /infra\/helm\/pokedex\/values\.prod\.yaml/.test(content);
+    return /^\s+- values\.prod\.yaml\s*$/m.test(content);
   });
 
   assert.deepEqual(
     consumers,
-    [],
-    'INFRA-011: una Application de ArgoCD consume values.prod.yaml. Ese archivo es un ' +
-    'perfil de REFERENCIA; el perfil de producción real es gitops/environments/proxmox/values.yaml. ' +
-    'Si la conexión es intencional, actualiza este gate y la cabecera del archivo.'
+    ['app-cloud.yaml'],
+    'INFRA-011: values.prod.yaml solo puede consumirlo el blueprint prod cloud (app-cloud.yaml, ADR-030). ' +
+    'Las Applications activas usan values.yaml + su override de gitops/environments/.'
   );
 
-  // Y el perfil real de producción debe seguir siendo el override de GitOps.
-  const proxmoxApp = fs.readFileSync(
-    path.join(gitopsAppsDir, 'app-proxmox.yaml'),
-    'utf-8'
-  );
+  const preprodApp = fs.readFileSync(path.join(gitopsAppsDir, 'app-proxmox-preprod.yaml'), 'utf-8');
   assert.match(
-    proxmoxApp,
-    /gitops\/environments\/proxmox\/values\.yaml/,
-    'INFRA-011: la Application de producción debe usar el override de gitops/environments/proxmox'
+    preprodApp,
+    /gitops\/environments\/proxmox-preprod\/values\.yaml/,
+    'INFRA-011: pre-prod debe usar su override de gitops/environments/proxmox-preprod'
   );
 });
 
 /**
  * INFRA-011 — la cabecera de `values.prod.yaml` debe declarar su rol.
  *
- * Si alguien reintroduce el encabezado "Overrides para Entorno de Producción" sin
- * más contexto, vuelve a parecer que ese archivo gobierna producción, y las
+ * Sin ese contexto, el archivo parece gobernar un entorno desplegado y las
  * aserciones de los tests vuelven a leerse como garantías operativas.
  */
-test('🗂️ INFRA-011: el perfil de referencia declara en su cabecera que no despliega', () => {
+test('🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo', () => {
   // La asercion es INMUNE al final de linea y al locale. `values.prod.yaml` esta
   // versionado con CRLF y los runners Linux no convierten al hacer checkout, de
   // modo que el `\r` final y las vocales acentuadas impiden el match de una
-  // expresion literal. Windows convierte al leer, por eso el fallo era exclusivo
-  // de CI. Se normaliza el texto y se eliminan los caracteres no ASCII.
+  // expresion literal. Se normaliza el texto y se eliminan los caracteres no ASCII.
   const raw = fs.readFileSync(
     path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml'),
     'utf-8'
   );
   const prodValues = raw.replace(/\r\n/g, '\n').replace(/[^\x00-\x7F]/g, '');
 
-  assert.match(
-    prodValues,
-    /NO\s+despliega\s+ning/,
-    'INFRA-011: values.prod.yaml debe declarar explicitamente que no despliega ningun entorno'
-  );
-  assert.match(
-    prodValues,
-    /PERFIL DE REFERENCIA/,
-    'INFRA-011: values.prod.yaml debe rotularse como perfil de referencia'
-  );
-  assert.match(
-    prodValues,
-    /gitops\/environments\//,
-    'INFRA-011: la cabecera debe apuntar al directorio donde si viven los perfiles desplegados'
-  );
+  assert.match(prodValues, /BLUEPRINT PROD CLOUD/, 'INFRA-011: values.prod.yaml debe rotularse como base del blueprint prod cloud');
+  assert.match(prodValues, /INACTIV/, 'INFRA-011: la cabecera debe declarar que el blueprint esta inactivo');
+  assert.match(prodValues, /gitops\/environments\/cloud\//, 'INFRA-011: la cabecera debe apuntar al override cloud que lo completa');
 });
 
 test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
-  // INFRA-011: `values.prod.yaml` NO despliega ningun entorno (ninguna Application
-  // de ArgoCD lo consume). El test verifica que el perfil de referencia mantiene la
-  // postura Zero-Trust L7, para que si algun dia se conecta a un entorno real ya
-  // venga endurecido por defecto.
+  // INFRA-011: `values.prod.yaml` es la base del blueprint prod cloud (inactivo,
+  // ADR-030). El test verifica que mantiene la postura Zero-Trust L7 para que la
+  // activación de prod cloud parta de un perfil endurecido.
   const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
   assert.ok(fs.existsSync(prodValuesPath), 'values.prod.yaml debe existir');
   const content = fs.readFileSync(prodValuesPath, 'utf-8');

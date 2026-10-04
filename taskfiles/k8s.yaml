@@ -108,13 +108,13 @@ tasks:
       - kubectl apply -f gitops/apps/app-proxmox.yaml
 
   gitops:sync:cloud:
-    desc: "[REFERENCIA INACTIVA] Sincroniza la aplicación ArgoCD para AWS EKS (requiere clúster activado)"
+    desc: "[BLUEPRINT INACTIVO] Sincroniza la aplicación ArgoCD de prod cloud (requiere clúster activado, ADR-030)"
     cmds:
-      - echo "⚠️ [GITOPS-001] AWS EKS es una referencia inactiva. Verifique que pokedex-cloud esté desplegada y activa en ArgoCD antes de sincronizar."
+      - echo "⚠️ [GITOPS-001] Prod cloud es un blueprint inactivo. Verifique que pokedex-cloud esté desplegada y activa en ArgoCD antes de sincronizar."
       - argocd app sync pokedex-cloud
 
   gitops:bootstrap:cloud:
-    desc: "[Activacion AWS] Aplica app-cloud.yaml. AWS es una REFERENCIA INACTIVA (GITOPS-001) y queda fuera del App-of-Apps; esta tarea es la via intencional para activarlo como target real"
+    desc: "[Activacion prod cloud] Aplica app-cloud.yaml. Prod cloud es un BLUEPRINT INACTIVO (GITOPS-001, ADR-030) fuera del App-of-Apps; esta tarea es la via intencional para activarlo como target real"
     cmds:
       - kubectl apply -f gitops/apps/app-cloud.yaml
 

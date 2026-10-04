@@ -20,7 +20,7 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 | **Redis** | `Deployment`, `Service` | `6379` | Caché de alta velocidad para endpoints, revocación distribuida de sesiones y rate limiting en Lua. |
 | **Ingress** | `Ingress` | `80`, `443` | Enrutamiento perimetral L7 (`/` -> web, `/api` -> api) con terminación TLS. |
 | **Seguridad de Red** | `NetworkPolicy`, `PDB` | — | Zero-Trust NetworkPolicies (anti-SSRF, PgBouncer enforced isolation, CoreDNS restriction) y PodDisruptionBudgets. |
-| **Gestión de Secretos** | `Secret`, `ExternalSecret`, `SecretStore` | — | Desacoplamiento canónico mediante External Secrets Operator (ESO) conectado a HashiCorp Vault CE o AWS Secrets Manager, y modo local desacoplado (`existingSecret`). |
+| **Gestión de Secretos** | `Secret`, `ExternalSecret`, `SecretStore` | — | Desacoplamiento canónico mediante External Secrets Operator (ESO) conectado a HashiCorp Vault CE o al backend de secretos del proveedor cloud, y modo local desacoplado (`existingSecret`). |
 | **Seed Job** | `Job` (Helm Hook) | — | Carga inicial opcional de 1.025 Pokémon (`src/seed.ts` compilado). |
 
 ---
@@ -39,7 +39,7 @@ infra/helm/
         ├── _helpers.tpl                 # Macros de nombres, etiquetas y helper pokedex.secretName
         ├── configmap.yaml               # Variables de entorno y host dinámico (PostgreSQL vs PgBouncer)
         ├── secret.yaml                  # Secret condicional (solo activo si no hay existingSecret ni ESO)
-        ├── externalsecret.yaml          # Sincronización automática con Vault / AWS / GCP Secrets
+        ├── externalsecret.yaml          # Sincronización automática con Vault o el backend del proveedor
         ├── secretstore.yaml             # SecretStore del CSI Driver para integración con Vault
         ├── postgres-service.yaml        # Servicio Headless para StatefulSet
         ├── postgres-statefulset.yaml    # StatefulSet con PVC y probes
@@ -178,11 +178,11 @@ Para sincronización continua y despliegue declarativo en la arquitectura multi-
 # Despliegue en clúster On-Premises (Proxmox VE):
 kubectl apply -f gitops/apps/app-proxmox.yaml
 
-# Despliegue en clúster Cloud (AWS EKS):
+# Blueprint prod cloud (inactivo, ADR-030): solo tras completar su activación
 kubectl apply -f gitops/apps/app-cloud.yaml
 ```
 
-ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) o [`gitops/environments/aws/values.yaml`](../../gitops/environments/aws/values.yaml)).
+ArgoCD sincroniza automáticamente el Chart ubicado en `infra/helm/pokedex` aplicando los valores base de `values.yaml` combinados con la sobrescritura del entorno ([`gitops/environments/proxmox/values.yaml`](../../gitops/environments/proxmox/values.yaml) o [`gitops/environments/proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml)). El blueprint prod cloud agrega `values.prod.yaml` y [`gitops/environments/cloud/values.yaml`](../../gitops/environments/cloud/values.yaml).
 
 ---
 

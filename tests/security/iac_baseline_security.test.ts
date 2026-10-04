@@ -214,13 +214,14 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
   // 5. La documentación activa utiliza comandos canónicos y no aliases deprecados
   const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
   assert.ok(infraReadmeContent.includes('task infra:plan:proxmox'), 'infra/README.md debe usar comando canónico task infra:plan:proxmox');
-  assert.ok(infraReadmeContent.includes('task infra:plan:aws'), 'infra/README.md debe usar comando canónico task infra:plan:aws');
+  assert.ok(!infraReadmeContent.includes('task infra:plan:aws'), 'infra/README.md no debe citar task infra:plan:aws, retirada con ADR-030');
   assert.ok(!infraReadmeContent.includes('task tofu:plan:proxmox'), 'infra/README.md no debe contener task tofu:plan:proxmox');
   assert.ok(!infraReadmeContent.includes('task tofu:plan:cloud'), 'infra/README.md no debe contener task tofu:plan:cloud');
 
   const tofuReadmeContent = fs.readFileSync(tofuReadmePath, 'utf-8');
   assert.ok(tofuReadmeContent.includes('task infra:plan:proxmox'), 'infra/opentofu/README.md debe usar task infra:plan:proxmox');
-  assert.ok(tofuReadmeContent.includes('task infra:plan:aws'), 'infra/opentofu/README.md debe usar task infra:plan:aws');
+  assert.ok(tofuReadmeContent.includes('task infra:validate'), 'infra/opentofu/README.md debe usar task infra:validate');
+  assert.ok(!tofuReadmeContent.includes('task infra:plan:aws'), 'infra/opentofu/README.md no debe citar task infra:plan:aws, retirada con ADR-030');
   assert.ok(!tofuReadmeContent.includes('task tofu:plan:aws'), 'infra/opentofu/README.md no debe contener task tofu:plan:aws');
 
   const proxmoxGuideContent = fs.readFileSync(proxmoxGuidePath, 'utf-8');

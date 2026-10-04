@@ -34,9 +34,9 @@ De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-prox
                                  │
                    ┌─────────────┴─────────────┐
                    │                           │
-             Cloud-Ready                  On-Premise
-              AWS / EKS                    Proxmox
-             (Preparado)                  (Operativo)
+              Prod Cloud                  On-Premise
+             (Blueprint)                   Proxmox
+             (Inactivo)                   (Operativo)
                                                │
                                 ┌──────────────┴──────────────┐
                                 ▼                             ▼

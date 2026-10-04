@@ -17,12 +17,12 @@ tasks:
       - tofu fmt -check -recursive infra/opentofu
 
   infra:validate:
-    desc: "Valida la sintaxis de todos los entornos de OpenTofu (Proxmox + AWS + Lab)"
+    desc: "Valida la sintaxis de todos los entornos de OpenTofu (Proxmox + Cloud Template + Lab)"
     cmds:
       - tofu -chdir=infra/opentofu/environments/proxmox init -backend=false
       - tofu -chdir=infra/opentofu/environments/proxmox validate
-      - tofu -chdir=infra/opentofu/environments/aws init -backend=false
-      - tofu -chdir=infra/opentofu/environments/aws validate
+      - tofu -chdir=infra/opentofu/environments/cloud-template init -backend=false
+      - tofu -chdir=infra/opentofu/environments/cloud-template validate
       - tofu -chdir=infra/opentofu/environments/lab init -backend=false
       - tofu -chdir=infra/opentofu/environments/lab validate
 
@@ -35,18 +35,6 @@ tasks:
   infra:apply:proxmox:
     desc: "Aplica la infraestructura en Proxmox VE con OpenTofu"
     dir: infra/opentofu/environments/proxmox
-    cmds:
-      - tofu apply
-
-  infra:plan:aws:
-    desc: "Ejecuta tofu plan para el clúster AWS EKS en la nube"
-    dir: infra/opentofu/environments/aws
-    cmds:
-      - tofu plan
-
-  infra:apply:aws:
-    desc: "Aplica la infraestructura AWS EKS con OpenTofu"
-    dir: infra/opentofu/environments/aws
     cmds:
       - tofu apply
 
@@ -126,10 +114,10 @@ tasks:
     cmds:
       - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/proxmox/values.yaml {{.HELM_TEST_SECRETS}}
 
-  helm:template:aws:
-    desc: "Renderiza los manifiestos de Kubernetes para el entorno GitOps Cloud AWS"
+  helm:template:cloud:
+    desc: "Renderiza el blueprint prod cloud (values.yaml + values.prod.yaml + gitops/environments/cloud, ADR-030)"
     cmds:
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/gitops/environments/aws/values.yaml {{.HELM_TEST_SECRETS}}
+      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -f /apps/infra/helm/pokedex/values.yaml -f /apps/infra/helm/pokedex/values.prod.yaml -f /apps/gitops/environments/cloud/values.yaml {{.HELM_TEST_SECRETS}}
 
   helm:package:
     desc: "Empaqueta el Chart de Helm en un archivo .tgz listo para distribución"

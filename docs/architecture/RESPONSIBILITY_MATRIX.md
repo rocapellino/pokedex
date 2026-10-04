@@ -11,7 +11,7 @@ Su propósito es responder de forma definitiva e inequívoca a la pregunta:
 
 | Componente | Responsabilidad Primaria | Ambiente / Capa | ¿Obligatorio? | Justificación Arquitectónica / Consecuencia de su Eliminación |
 | --- | --- | --- | --- | --- |
-| **OpenTofu** | Aprovisionamiento declarativo de infraestructura base (VMs, LXCs, CPU, RAM, NVMe/ZFS, bridges y firewall perimetral). | On-prem (Proxmox) & Cloud-ready (AWS) | **Sí** | Si se elimina, la infraestructura se convierte en configuraciones manuales irreproducibles (*snowflakes*), impidiendo la reconstrucción automatizada en Disaster Recovery. |
+| **OpenTofu** | Aprovisionamiento declarativo de infraestructura base (VMs, LXCs, CPU, RAM, NVMe/ZFS, bridges y firewall perimetral). | On-prem (Proxmox) y blueprint prod cloud (`cloud-template`) | **Sí** | Si se elimina, la infraestructura se convierte en configuraciones manuales irreproducibles (*snowflakes*), impidiendo la reconstrucción automatizada en Disaster Recovery. |
 | **Ansible** | Configuración de SO invitado, hardening de kernel/SSH, UFW, runtime K3s, HashiCorp Vault y aprovisionamiento de herramientas en Bastion. | On-prem (Proxmox OS layer) | **Sí** | Si se elimina, no existe automatización para el bootstrap de paquetes, hardening del sistema operativo ni inicialización de Vault. |
 | **Bastion Host (LXC 820)** | Punto único de entrada administrativa (Management Plane), sesión interactiva restringida, auditoría local con reenvío remoto a syslog/Loki para no-repudio y ejecución de *Break-Glass*. | On-prem (10.10.13.120) | **Sí** | Si se elimina, los operadores accederían directamente a los nodos de cómputo y clúster K8s sin registro ni forwarding de auditoría (`/var/log/bastion/audit.log`), violando Zero-Trust. |
 | **HashiCorp Vault CE (LXC 810)** | Secret Manager on-premise en caliente con almacenamiento transaccional Raft, esquema Shamir 5/3, TLS y particionamiento lógico multi-ambiente. | On-prem (10.10.13.110) | **Sí** | Si se elimina, los secretos deberían guardarse en texto plano en disco o en Git, violando las políticas de Zero-Disk y el principio de no-persistencia de credenciales. |
@@ -24,7 +24,7 @@ Su propósito es responder de forma definitiva e inequívoca a la pregunta:
 | **PostgreSQL 16** | Base de datos relacional primaria con almacenamiento JSONB estructurado y persistencia de catálogos y usuarios. | K8s Runtime (Pre-prod y Prod) | **Sí** | Si se elimina, se pierde el estado persistente y transaccional de la aplicación Pokédex. |
 | **Cilium (eBPF)** | Seguridad de red avanzada L7, políticas de salida estrictas (egress toFQDNs) y mitigación Anti-SSRF. | K8s Red & Seguridad | **Condicional** | En perfil Proxmox Lean puede utilizarse Flannel + K8s NetworkPolicies estándar si se requiere menor consumo de RAM (< 150MB). |
 | **PgBouncer** | Multiplexor y pool de conexiones para PostgreSQL. | K8s Runtime | **Condicional** | Solo necesario en Producción cuando la concurrencia supera los 50 pods o conexiones concurrentes para evitar agotar sockets en PostgreSQL. |
-| **Stakater Reloader** | Reinicio automático de deployments ante cambios en `v1/Secret` o `v1/ConfigMap`. | K8s Controllers | **Condicional** | **Desactivado en Proxmox** (ADR-030) para ahorrar RAM y overhead de RBAC; reservado para el perfil AWS Cloud-Ready con HPA elástico. |
+| **Stakater Reloader** | Reinicio automático de deployments ante cambios en `v1/Secret` o `v1/ConfigMap`. | K8s Controllers | **Condicional** | **Desactivado en Proxmox** (ADR-030) para ahorrar RAM y overhead de RBAC; reservado para el perfil prod cloud con HPA elástico. |
 
 ---
 
@@ -60,7 +60,7 @@ Para erradicar la percepción de redundancia entre analizadores de código y esc
 
 ---
 
-## 3. Demarcación de Plataformas: Proxmox On-Premise vs AWS Cloud-Ready
+## 3. Demarcación de Plataformas: Proxmox On-Premise vs Blueprint Prod Cloud
 
 Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compartido con Overlays Mínimos**:
 
@@ -70,11 +70,11 @@ Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compa
                                            │
                     ┌──────────────────────┴──────────────────────┐
                     ▼                                             ▼
-       gitops/environments/proxmox/                   gitops/environments/aws/
-       (Overlay On-Premise Operativo)                 (Overlay Cloud-Ready Skeleton)
-       • Storage: Local-Path PV                       • Storage: AWS EBS gp3 CSI
-       • Ingress: Traefik / MetalLB                   • Ingress: AWS Load Balancer Controller
-       • Secrets: Vault CE LXC + ESO                  • Secrets: AWS Secrets Manager / IRSA
+       gitops/environments/proxmox-preprod/           values.prod.yaml + gitops/environments/cloud/
+       (Overlay On-Premise Operativo)                 (Blueprint prod agnóstico, ADR-030)
+       • Storage: Local-Path PV                       • Storage: StorageClass por defecto del clúster
+       • Ingress: Traefik / MetalLB                   • Ingress: className del proveedor + cert-manager
+       • Secrets: Vault CE LXC + ESO                  • Secrets: ESO con cloud-secret-store (a elegir)
        • Reloader: false (Perfil Lean)                • Reloader: true (Auto-redeploy elástico)
        • Recursos: CPU/RAM fijos                      • Recursos: HPA v2 con escalado elástico
 ```
