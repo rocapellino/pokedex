@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
+import { parseDirectoryExclude } from '../helpers/argocd.js';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,7 +63,7 @@ test('🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones 
     path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
     'utf-8'
   );
-  const excludeBlock = rootApp.match(/exclude:\s*\|([\s\S]*?)\n\s{2}\w/s)?.[1] ?? '';
+  const excludeBlock = parseDirectoryExclude(rootApp).join(',');
   assert.match(
     excludeBlock,
     /app-cloud\.yaml/,
@@ -103,11 +104,7 @@ test('🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI', (
     path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
     'utf-8'
   );
-  const excludeBlock = rootApp.match(/exclude:\s*\|([\s\S]*?)\n\s{2}\w/s)?.[1] ?? '';
-  const excluded = excludeBlock
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l.endsWith('.yaml'));
+  const excluded = parseDirectoryExclude(rootApp);
 
   const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
   const appFiles = fs
@@ -191,11 +188,10 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
   // 2. El root NO debe descubrir de forma implicita ningun otro manifiesto.
   //    Solo se gobiernan prod y preprod; cualquier cuarto archivo seria un
   //    despliegue no declarado.
-  const excludeBlock = /exclude:\s*([\s\S]*?)(?=\n  [a-z]|\n\n|$)/.exec(rootApp)?.[1] ?? '';
-  const excluded = excludeBlock
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l.endsWith('.yaml'));
+  // ArgoCD interpreta `exclude` como un único glob: una lista multilínea no se
+  // aplicaba y pokedex-cloud apareció en el clúster (2026-10-04).
+  assert.doesNotMatch(rootApp, /exclude:\s*[|>]/, 'GITOPS-001: exclude debe ser un glob de una línea, no un bloque multilínea');
+  const excluded = parseDirectoryExclude(rootApp);
   assert.deepEqual(
     excluded.sort(),
     ['app-cloud.yaml', 'root-application.yaml'],

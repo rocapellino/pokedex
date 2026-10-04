@@ -78,7 +78,7 @@ Para `ingress.className: traefik` la directiva 1 se implementa así:
 - **Terminación TLS en Traefik:** el router se publica solo en el entrypoint `websecure`
   (`traefik.ingress.kubernetes.io/router.entrypoints: websecure` y `router.tls: "true"`), y
   `ingress.tls` cubre todos los hosts.
-- **Redirección 308:** es global de Traefik (`ports.web.redirectTo.port: websecure`). La
+- **Redirección permanente (301):** es global de Traefik (`ports.web.http.redirections.entryPoint`, chart de Traefik >= 34; la clave `redirectTo` anterior se ignora en silencio). La
   aplica un `HelmChartConfig` que escribe
   [`setup_k3s.yaml`](../../infra/ansible/playbooks/setup_k3s.yaml).
 - **Certificado:** sin cert-manager. Lo firma la CA interna que ya valida Vault, se guarda en

@@ -57,7 +57,7 @@ spec:
                     - ALL
               env:
                 - name: PGHOST
-                  value: {{ include "pokedex.fullname" . }}-postgres
+                  value: postgres-service
                 - name: PGPORT
                   value: "5432"
                 - name: PGDATABASE

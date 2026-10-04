@@ -84,3 +84,56 @@ test('🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD
     'task:gitops:apps:root',
   ]);
 });
+
+// ------------------------------------------------------------------------------
+// Contratos aprendidos en el pasaje a GitOps de pre-prod (2026-10-04)
+// ------------------------------------------------------------------------------
+
+test('🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea', async () => {
+  // Regresión: PGHOST era `<release>-postgres`, un Service inexistente; todos los
+  // backups fallaban con "could not translate host name".
+  const { execSync } = await import('node:child_process');
+  const rendered = execSync(
+    `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
+    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
+  );
+  const docs = (yaml.loadAll(rendered) as any[]).filter(Boolean);
+  const services = new Set(docs.filter((d) => d.kind === 'Service').map((d) => d.metadata.name));
+  const cronJobs = docs.filter((d) => d.kind === 'CronJob');
+  let checked = 0;
+  for (const cj of cronJobs) {
+    for (const c of cj.spec.jobTemplate.spec.template.spec.containers) {
+      const host = (c.env ?? []).find((e: { name: string }) => e.name === 'PGHOST')?.value;
+      if (!host) continue;
+      checked++;
+      assert.ok(services.has(host), `${cj.metadata.name}: PGHOST=${host} no es un Service renderizado (${[...services].join(', ')})`);
+    }
+  }
+  assert.ok(checked >= 2, 'Deben validarse al menos el backup y el restore-verify');
+});
+
+test('🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)', () => {
+  const cm = yaml.load(read('gitops/health-checks/argocd-cm-healthchecks.yaml')) as { data: Record<string, string> };
+  const lua = cm.data['resource.customizations.health.PersistentVolumeClaim'];
+  assert.ok(lua, 'argocd-cm debe declarar el health check de PersistentVolumeClaim');
+  assert.match(lua, /phase == "Pending"[\s\S]*?hs\.status = "Healthy"/, 'Pending debe ser Healthy: el PVC de backup solo se enlaza cuando corre el CronJob');
+  assert.match(lua, /phase == "Lost"[\s\S]*?hs\.status = "Degraded"/, 'Lost debe ser Degraded');
+});
+
+test('🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates', () => {
+  for (const app of ['gitops/apps/app-proxmox-preprod.yaml', 'gitops/apps/app-cloud.yaml']) {
+    const doc = yaml.load(read(app)) as any;
+    const rule = (doc.spec.ignoreDifferences ?? []).find((r: any) => r.kind === 'StatefulSet');
+    assert.ok(rule, `${app} debe ignorar diferencias de StatefulSet`);
+    for (const field of ['apiVersion', 'kind', 'status', 'spec.volumeMode']) {
+      assert.ok(rule.jqPathExpressions.includes(`.spec.volumeClaimTemplates[]?.${field}`), `${app} debe ignorar volumeClaimTemplates.${field}`);
+    }
+    assert.ok(doc.spec.syncPolicy.syncOptions.includes('RespectIgnoreDifferences=true'), `${app} debe respetar ignoreDifferences al sincronizar`);
+  }
+});
+
+test('🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente', () => {
+  const playbook = read('infra/ansible/playbooks/setup_k3s.yaml');
+  assert.match(playbook, /http:\s*\n\s*redirections:\s*\n\s*entryPoint:\s*\n\s*to: websecure/, 'Debe usar ports.web.http.redirections.entryPoint');
+  assert.doesNotMatch(playbook, /^\s*redirectTo:/m, 'redirectTo se ignora en silencio en el chart de Traefik >= 34');
+});
