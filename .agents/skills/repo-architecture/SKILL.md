@@ -47,3 +47,4 @@ Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): 
 Reglas propias de esta skill:
 
 - **Planes de Cambio:** Si se solicitan modificaciones arquitectónicas, modelar el cambio con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact`.
+- **Referencias Externas Aprobadas (AAS):** ante análisis de alta complejidad en arquitectura, GitOps o plataforma, consultar los patrones de `senior-architect`, `gitops-workflow` y `kubernetes-hardening` en [aas-references.md](../_shared/aas-references.md).

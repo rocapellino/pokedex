@@ -34,3 +34,4 @@ Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): 
 Reglas propias de esta skill:
 
 - **Planes de Cambio:** Obligatorio formalizar el plan con [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-impact` antes de tocar código.
+- **Referencias Externas Aprobadas (AAS):** para diseño de refactors sin regresiones, consultar las pautas de `systematic-debugging` (micro-pasos compilables y pruebas de caracterización) en [aas-references.md](../_shared/aas-references.md).

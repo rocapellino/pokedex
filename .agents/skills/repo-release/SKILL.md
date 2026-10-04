@@ -51,3 +51,4 @@ Reglas propias de esta skill:
 - **Consistencia y Matriz de Capacidades:** Consultar [release-consistency.md](references/release-consistency.md) para la matriz y la lista de chequeo de preparación de promoción.
 - **Matriz de Impacto:** Consultar [change-impact-matrix.md](../_shared/change-impact-matrix.md) para evaluar la propagación de cambios.
 - **Planes de Cambio:** Formalizar cualquier ajuste pre-release con [change-plan.md](../_shared/change-plan.md).
+- **Referencias Externas Aprobadas (AAS):** para control de inmutabilidad y reconciliación GitOps en promoción de versiones, consultar `gitops-workflow` en [aas-references.md](../_shared/aas-references.md).

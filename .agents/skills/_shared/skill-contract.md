@@ -11,6 +11,7 @@ Este contrato aplica a **todas** las skills de `.agents/skills/`. Cada `SKILL.md
 - **Vocabulario de estados:** declarar el vocabulario usado según el registro de [state-model.md](state-model.md) §3.
 - **Markdown Quality Gate:** todo `.md` creado o modificado pasa `npm run lint:md -- <archivos>` con 0 errores `MDxxx` y `npm run docs:validate` sin enlaces rotos ([markdown-quality.md](markdown-quality.md)).
 - **Idioma:** español para toda comunicación humana; identificadores técnicos en inglés ([language-policy.md](language-policy.md)).
+- **Referencias Metodológicas Externas (AAS):** para profundizar en análisis o revisiones complejas, se pueden consultar los marcos de [aas-references.md](aas-references.md), bajo la autoridad y gobernanza exclusiva de la skill local responsable.
 
 ## Hechos Volátiles: Enlazar, no Copiar
 

@@ -70,3 +70,4 @@ Aplica el contrato común de [skill-contract.md](../_shared/skill-contract.md): 
 Reglas propias de esta skill:
 
 - **Planes de Cambio:** Planificar las mejoras incrementales mediante [change-plan.md](../_shared/change-plan.md) y coordinar con `repo-refactor`.
+- **Referencias Externas Aprobadas (AAS):** para diagnosis de fallos elusivos y estándares de revisión de código, consultar `systematic-debugging` y `code-review-excellence` en [aas-references.md](../_shared/aas-references.md).
