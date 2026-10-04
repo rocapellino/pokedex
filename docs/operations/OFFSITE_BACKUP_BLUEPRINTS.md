@@ -119,14 +119,14 @@ spec:
 
 ## 🖥️ 3. Esqueleto On-Premise: Proxmox Backup Server (PBS) y Sync Remoto
 
-Diseñado para respaldar no solo la base de datos, sino las **imágenes completas de disco del clúster** (VM 801 K3s y LXC 810 Vault) con deduplicación y cifrado en el origen (*client-side encryption*).
+Diseñado para respaldar no solo la base de datos, sino las **imágenes completas de disco del clúster** (LXC 800 K3s y LXC 810 Vault) con deduplicación y cifrado en el origen (*client-side encryption*).
 
 ```text
                Proxmox VE (Host Físico Local)
                              │
             ┌────────────────┴────────────────┐
             ▼                                 ▼
-      VM 801 (K3s)                      LXC 810 (Vault)
+      LXC 800 (K3s)                     LXC 810 (Vault)
             │                                 │
             └───────────────┬─────────────────┘
                             │
@@ -146,7 +146,7 @@ Diseñado para respaldar no solo la base de datos, sino las **imágenes completa
 El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml`](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml) define la configuración completa del cliente y las tareas programadas:
 
 - **Almacenamiento Seguro:** `pvesm add pbs` utilizando clave criptográfica client-side (`/etc/pve/priv/storage/pbs-pokedex.enc`).
-- **Respaldo Automático:** Tarea en `/etc/pve/vzdump.cron` para VM 801 y LXC 810 diariamente a las `02:30 UTC`.
+- **Respaldo Automático:** Tarea en `/etc/pve/vzdump.cron` para LXC 800 y LXC 810 diariamente a las `02:30 UTC`.
 - **Remote Sync Job:** Sincronización de chunks entre el datastore local y el datastore remoto fuera de las instalaciones.
 - **Retención GFS (Grandfather-Father-Son):**
   - Diarios: 7 snapshots
@@ -195,7 +195,7 @@ El archivo [`infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml`](../../inf
 
 | Criterio | Vía A: Cloud S3-Compatible | Vía B: Proxmox Backup Server (PBS) Remoto |
 | --- | --- | --- |
-| **Alcance de los Datos** | Base de datos PostgreSQL (`.sql.gz.enc` + checksum) | Imágenes completas de SO y discos (VM 801 + LXC 810 + PostgreSQL) |
+| **Alcance de los Datos** | Base de datos PostgreSQL (`.sql.gz.enc` + checksum) | Imágenes completas de SO y discos (LXC 800 + LXC 810 + PostgreSQL) |
 | **Complejidad de Infraestructura** | Mínima (servicio SaaS administrado, ej. Cloudflare R2 / AWS S3) | Media-Alta (requiere servidor o VPS dedicado ejecutando PBS OS) |
 | **Costo Operativo** | Muy bajo (pocos gigabytes mensuales, cero costo de egreso en R2) | Costo de servidor / storage mensual (VPS o máquina física secundaria) |
 | **Velocidad de Recuperación (RTO)** | RTO BD: **< 5 minutos**; requiere reinstalar K8s si el host muere. | RTO Completo: **~15-20 minutos** para restaurar la VM y LXC completos. |

@@ -14,7 +14,7 @@ Analizar integralmente la arquitectura de la aplicación, plataforma e infraestr
 - **Flujo de Aplicación:** Mapeo frontend (Vanilla TS/Vite) -> Nginx Alpine -> API Express -> PostgreSQL / Redis / Gemini AI.
 - **Límites de Monorepo:** Aislamiento de dependencias entre `apps/backend` y `apps/frontend`, tipado compartido y contratos de DTOs.
 - **Arquitectura de Cómputo & Plataforma:**
-  - Paridad y delimitación: Docker Compose (`dev`) vs. K3s On-Prem (Pre-prod LXC 800 / Prod VM 801) vs. prod cloud agnóstico (blueprint inactivo, ADR-030).
+  - Paridad y delimitación: Docker Compose (`dev`) vs. K3s On-Prem (Pre-prod LXC 800, `10.10.13.100`) vs. prod cloud agnóstico (blueprint inactivo, ADR-030).
   - OpenTofu e infraestructura base vs. Ansible vs. manifiestos Kubernetes nativos.
 - **GitOps & Inmutabilidad:**
   - Árbol de aplicaciones ArgoCD: targets operativos `ACTIVE` (`root-application.yaml`, `app-proxmox-preprod.yaml`) vs. blueprint inactivo de prod cloud (`app-cloud.yaml`, `gitops/environments/cloud/`).

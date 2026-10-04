@@ -9,7 +9,7 @@ Este directorio contiene la arquitectura declarativa de referencia para la gesti
 | Entorno | Operador | Proveedor Upstream | ClusterSecretStore | Rol de Vault / IAM | Ruta de Secretos | Secret Destino |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Prod cloud (blueprint, ADR-030)** | ESO | Backend elegido al activar el entorno | `ClusterSecretStore/cloud-secret-store` (se declara al activar) | Según el proveedor | `pokedex/prod` | `pokemon-secrets` |
-| **Proxmox Prod (Active)** | ESO | HashiCorp Vault (K8s Auth) | `ClusterSecretStore/vault-backend` | `pokedex-prod-role` | `secret/data/pokedex/prod/*` | `pokemon-secrets` |
+| **Proxmox Prod (retirado, ADR-030)** | — | — | `ClusterSecretStore/vault-backend` retirado | — | `secret/data/pokedex/prod/*` | `pokemon-secrets` |
 | **Proxmox Pre-prod (Active)** | ESO | HashiCorp Vault (K8s Auth) | `ClusterSecretStore/vault-backend-preprod` | `pokedex-preprod-role` | `secret/data/pokedex/preprod/*` | `pokemon-secrets` |
 
 ---

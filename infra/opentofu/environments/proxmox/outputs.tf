@@ -1,24 +1,19 @@
 # ==============================================================================
-# Outputs - Proxmox VE Kubernetes Node (Bi-Modal)
+# Outputs - Proxmox VE Kubernetes Node (LXC Pre-Prod)
 # ==============================================================================
 
 output "instance_id" {
-  description = "ID de la instancia (LXC o VM) de Kubernetes en Proxmox"
-  value       = var.compute_type == "lxc" ? proxmox_virtual_environment_container.k8s_nodes[*].vm_id : proxmox_virtual_environment_vm.k8s_nodes[*].vm_id
+  description = "ID del contenedor LXC de Kubernetes en Proxmox"
+  value       = proxmox_virtual_environment_container.k8s_nodes[*].vm_id
 }
 
 output "instance_name" {
   description = "Nombre o hostname asignado a la instancia"
-  value       = var.compute_type == "lxc" ? [for ct in proxmox_virtual_environment_container.k8s_nodes : ct.initialization[0].hostname] : proxmox_virtual_environment_vm.k8s_nodes[*].name
-}
-
-output "compute_type" {
-  description = "Modalidad de cómputo seleccionada ('lxc' para Pre-Prod / 'vm' para Prod)"
-  value       = var.compute_type
+  value       = [for ct in proxmox_virtual_environment_container.k8s_nodes : ct.initialization[0].hostname]
 }
 
 output "environment_tier" {
-  description = "Nivel de entorno aprovisionado ('preprod' o 'prod')"
+  description = "Nivel de entorno aprovisionado ('preprod' o 'lab')"
   value       = var.environment_tier
 }
 
@@ -30,12 +25,12 @@ output "instance_ip" {
 # Compatibilidad con herramientas existentes
 output "vm_id" {
   description = "Alias de compatibilidad para ID de instancia"
-  value       = var.compute_type == "lxc" ? proxmox_virtual_environment_container.k8s_nodes[*].vm_id : proxmox_virtual_environment_vm.k8s_nodes[*].vm_id
+  value       = proxmox_virtual_environment_container.k8s_nodes[*].vm_id
 }
 
 output "vm_name" {
   description = "Alias de compatibilidad para nombre de instancia"
-  value       = var.compute_type == "lxc" ? [for ct in proxmox_virtual_environment_container.k8s_nodes : ct.initialization[0].hostname] : proxmox_virtual_environment_vm.k8s_nodes[*].name
+  value       = [for ct in proxmox_virtual_environment_container.k8s_nodes : ct.initialization[0].hostname]
 }
 
 output "vm_ip" {
@@ -83,5 +78,3 @@ output "bastion_ip" {
   description = "Dirección IPv4 del contenedor LXC de bastion"
   value       = var.bastion_enabled ? split("/", var.bastion_network_ip)[0] : null
 }
-
-

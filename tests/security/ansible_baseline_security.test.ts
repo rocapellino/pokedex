@@ -190,8 +190,12 @@ test('🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que cre
   const remoteUser = cfg.match(/^\s*remote_user\s*=\s*(\S+)\s*$/m)?.[1];
   assert.ok(remoteUser, 'ansible.cfg debe declarar remote_user de forma explícita');
 
-  const vmUser = mainTf.match(/resource\s+"proxmox_virtual_environment_vm"[\s\S]*?username\s*=\s*"([^"]+)"/)?.[1];
-  assert.ok(vmUser, 'La VM de producción debe declarar `username` en initialization.user_account');
+  // ADR-030: el entorno proxmox solo crea LXC (cuenta root por SSH key); la única VM
+  // con usuario de cloud-init es la del entorno lab.
+  assert.ok(!/proxmox_virtual_environment_vm/.test(mainTf), 'El entorno proxmox no debe aprovisionar VMs (ADR-030)');
+  const labMainTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/lab/main.tf'), 'utf-8');
+  const vmUser = labMainTf.match(/resource\s+"proxmox_virtual_environment_vm"[\s\S]*?username\s*=\s*"([^"]+)"/)?.[1];
+  assert.ok(vmUser, 'La VM de lab debe declarar `username` en initialization.user_account');
 
   const proxmoxInv = fs.readFileSync(proxmoxInvPath, 'utf-8');
   const labInv = fs.readFileSync(labInvPath, 'utf-8');

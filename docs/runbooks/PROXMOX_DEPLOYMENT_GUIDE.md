@@ -68,7 +68,7 @@ De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-prox
 
     ```text
     Proxmox (LXC 810: Vault CE @ 10.10.13.110:8200)
-       ↓ (k8s auth method / pokedex-prod-role [Least Privilege])
+       ↓ (k8s auth method / pokedex-preprod-role [Least Privilege])
     ESO (External Secrets Operator en K3s)
        ↓ (ClusterSecretStore / vault-backend)
     ExternalSecret (pokedex-secrets @ secret/data/pokedex/prod)
@@ -117,7 +117,6 @@ tofu apply \
   -var="proxmox_endpoint=https://10.10.13.10:8006/" \
   -var="proxmox_api_token=devops@pve!opentofu=00000000-0000-0000-0000-000000000000" \
   -var="ssh_public_key=$(cat ~/.ssh/id_ed25519.pub)" \
-  -var="compute_type=lxc" \
   -var="environment_tier=preprod" \
   -var="vault_enabled=true"
 ```

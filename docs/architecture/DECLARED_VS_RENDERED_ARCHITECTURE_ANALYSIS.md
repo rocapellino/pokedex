@@ -14,7 +14,7 @@ Su objetivo es responder con precisión:
 
 | Componente | Prod Cloud (blueprint) | Proxmox Pre-prod | Proxmox Prod | Estado Real en el Repositorio | Diagnóstico y Clasificación |
 | --- | :---: | :---: | :---: | --- | --- |
-| **K3s Runtime** | `-` (Kubernetes gestionado) | `✓` (LXC 800) | `✓` (VM 801) | **Desplegado Real** | K3s es el motor exclusivo on-premise; el blueprint prod cloud usará el Kubernetes gestionado del proveedor elegido. |
+| **K3s Runtime** | `-` (Kubernetes gestionado) | `✓` (LXC 800) | `-` (Retirado, ADR-030) | **Desplegado Real** | K3s es el motor exclusivo on-premise; el blueprint prod cloud usará el Kubernetes gestionado del proveedor elegido. |
 | **Cilium (eBPF)** | `(P)` (Renderizado) | `✓` (Renderizado) | `✓` (Renderizado) | **Renderizado en Helm / Dependiente de CNI** | Helm renderiza `CiliumNetworkPolicy` L7 en todos los entornos. En Proxmox requiere instalación de Cilium CNI vía Helm (`kube-system`). En AWS requiere Cilium CNI chaining. |
 | **HashiCorp Vault CE** | `-` (Secrets Mgr) | `✓` (LXC 810) | `✓` (LXC 810) | **Desplegado Real** | Vault corre en LXC dedicado con partición lógica `secret/data/pokedex/preprod/*` y `secret/data/pokedex/prod/*`. |
 | **External Secrets (ESO)** | `✓` (`cloud-secret-store`) | `✓` (Vault) | `✓` (Vault) | **Desplegado Real** | Renderizado activamente en Helm. En el blueprint prod cloud referencia `cloud-secret-store` (backend a elegir); en Proxmox conecta a `vault-backend`. |

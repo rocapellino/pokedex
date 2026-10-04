@@ -19,7 +19,7 @@ Este documento define la política oficial, las métricas de servicio (RPO/RTO),
 | **SLA Disponibilidad** | 99.5% mensual | **≥ 99.9% operacional** | Monitoreo continuo mediante sondas de salud k8s, métricas en Prometheus/Grafana y presupuesto de error mensual de ~3.65h. |
 | **RPO** | < 24 horas | **≤ 24 horas** (Snapshot diario garantizado) | Periodicidad del `CronJob` de backup ejecutado a las 02:00 UTC con retención de 7 snapshots rotativos inmutables. |
 | **RTO (Tier 1 - BD/App)** | < 2 horas | **~1.5 segundos** (Restauración completa verificada) | Benchmark automatizado con `scripts/dr_verify_restore.sh --dry-run` en contenedor efímero `postgres:16-alpine` (descifrado AES-256-CBC PBKDF2 + verificación SHA-256 + descompresión gzip + importación DDL/DML real con 21 índices y aserciones de consistencia). |
-| **RTO (Tier 2 - VM/PBS)** | < 2 horas | **~15 - 20 minutos** (Restauración de imagen de disco) | Restauración de imagen completa de VM 801 o LXC 810 desde Proxmox Backup Server (PBS) a través de enlace de red local. |
+| **RTO (Tier 2 - VM/PBS)** | < 2 horas | **~15 - 20 minutos** (Restauración de imagen de disco) | Restauración de imagen completa del LXC 800 o LXC 810 desde Proxmox Backup Server (PBS) a través de enlace de red local. |
 | **RTO (Tier 3 - Host/IaC)** | < 2 horas | **~30 - 45 minutos** (Reconstrucción bare-metal) | Provisión automatizada de infraestructura reproducible mediante OpenTofu y playbooks de Ansible sobre host reinstalado. |
 
 ---
@@ -60,7 +60,7 @@ flowchart LR
 
 | Componente | Nivel / Entorno | Estado Renderizado / Operacional | Destino de los Datos |
 | :--- | :--- | :---: | :--- |
-| **Respaldo Local PostgreSQL** | Proxmox Prod (VM 801 K3s) | **ACTIVO (Renderizado)** | PVC dedicado `pokedex-backup-pvc` (`5Gi`, montado solo en pods de backup) |
+| **Respaldo Local PostgreSQL** | Proxmox Pre-prod (LXC 800 K3s) | **ACTIVO (Renderizado)** | PVC dedicado `pokedex-backup-pvc` (`5Gi`, montado solo en pods de backup) |
 | **Respaldo Local Pre-prod** | Proxmox Pre-prod (LXC 800) | **INACTIVO (`enabled: false`)** | Desactivado intencionalmente para evitar saturación de I/O en LXC de lab |
 | **Respaldo Local Dev** | Local (Docker / Kind) | **INACTIVO (`enabled: false`)** | Base de datos efímera; respaldos puntuales vía script `dev-backup-gdrive.ts` |
 | **Restore Verification Semanal** | Proxmox Prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |

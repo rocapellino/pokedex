@@ -157,7 +157,7 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox + AWS) | [`infra/opentofu/`](../../infra/opentofu) |
 | **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yaml`](../../.github/workflows/infra.yaml), [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
-| **Proxmox VE** | `8.x` | Virtualización on-premise bi-modal (LXC Pre-Prod / VM Prod) gestionada por OpenTofu | [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) |
+| **Proxmox VE** | `8.x` | Virtualización on-premise de pre-prod en LXC (ADR-030) gestionada por OpenTofu | [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) |
 | **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 
 ### 2.9. Observabilidad & Monitoreo

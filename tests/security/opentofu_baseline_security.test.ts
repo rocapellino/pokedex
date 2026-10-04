@@ -109,11 +109,11 @@ test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar chec
     'utf-8'
   );
 
-  // 1. Ambos recursos `proxmox_download_file` (plantilla LXC e imagen VM) deben
-  //    declarar checksum + checksum_algorithm. La asimetria original era que solo
-  //    el LXC verificaba integridad, dejando la imagen de PRODUCCION sin verificar.
+  // 1. Todo recurso `proxmox_download_file` debe declarar checksum + checksum_algorithm.
+  //    ADR-030 retiró la imagen de la VM de prod; queda la plantilla LXC de pre-prod.
   const downloadBlocks = [...mainTf.matchAll(/resource\s+"proxmox_download_file"\s+"([\w.]+)"\s*\{([^}]*)\}/g)];
-  assert.ok(downloadBlocks.length >= 2, 'Deben existir los recursos de descarga LXC y VM');
+  assert.ok(downloadBlocks.length >= 1, 'Debe existir el recurso de descarga de la plantilla LXC');
+  assert.ok(!/proxmox_virtual_environment_vm/.test(mainTf), 'ADR-030: el entorno proxmox no aprovisiona VMs KVM');
 
   for (const [, name, body] of downloadBlocks) {
     assert.ok(
@@ -126,39 +126,17 @@ test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar chec
     );
   }
 
-  // 2. La URL por defecto de la VM NO debe seguir el alias mutable `latest`:
-  //    un checksum sobre una URL cambiante invalida la garantia de integridad.
-  const defaultUrl = varsTf.match(/variable\s+"vm_image_url"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
-  assert.ok(defaultUrl, 'vm_image_url debe declarar un valor por defecto');
-  assert.ok(
-    !/\/latest\//.test(defaultUrl),
-    `INFRA-007: vm_image_url sigue el alias mutable 'latest' (${defaultUrl}); ` +
-    'un apply futuro materializaria una imagen distinta a la verificada'
-  );
-  assert.match(
-    defaultUrl,
-    /\/images\/cloud\/bookworm\/\d{8}-\d+\//,
-    'INFRA-007: vm_image_url debe apuntar a un directorio versionado de Debian (p. ej. 20260923-2610)'
-  );
+  // 2. La URL por defecto de la plantilla LXC debe apuntar a un artefacto versionado,
+  //    nunca a un alias mutable: un checksum sobre una URL cambiante no garantiza nada.
+  const defaultUrl = varsTf.match(/variable\s+"lxc_template_url"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
+  assert.ok(defaultUrl, 'lxc_template_url debe declarar un valor por defecto');
+  assert.ok(!/latest/.test(defaultUrl), `INFRA-007: lxc_template_url no debe usar un alias mutable (${defaultUrl})`);
+  assert.match(defaultUrl, /^https:\/\//, 'INFRA-007: la plantilla LXC debe descargarse por HTTPS');
+  assert.match(defaultUrl, /debian-\d+-standard_[\d.]+-\d+_amd64\.tar\.zst$/, 'INFRA-007: lxc_template_url debe fijar la versión de la plantilla');
 
-  // 3. El nombre de archivo por defecto debe ser el del artefacto versionado.
-  const defaultName = varsTf.match(/variable\s+"vm_image_file_name"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
-  assert.ok(defaultName, 'vm_image_file_name debe declarar un valor por defecto');
-  assert.ok(
-    !/debian-12-genericcloud-amd64\.raw$/.test(defaultName),
-    `INFRA-007: vm_image_file_name debe versionar el artefacto (${defaultName}) para no colisionar entre versiones`
-  );
-
-  // 4. El ejemplo de variables debe documentar el checksum, en paridad con el
-  //    bloque LXC ya existente (si no, el operador no puede fijar el valor).
-  assert.ok(
-    /vm_image_checksum\s*=/.test(tfvars),
-    'INFRA-007: terraform.tfvars.example debe documentar vm_image_checksum'
-  );
-  assert.ok(
-    /vm_image_checksum_algorithm\s*=/.test(tfvars),
-    'INFRA-007: terraform.tfvars.example debe documentar vm_image_checksum_algorithm'
-  );
+  // 3. El ejemplo de variables debe documentar el checksum de la plantilla.
+  assert.ok(/lxc_template_checksum\s*=/.test(tfvars), 'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum');
+  assert.ok(/lxc_template_checksum_algorithm\s*=/.test(tfvars), 'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum_algorithm');
 });
 
 test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado', () => {
@@ -179,7 +157,6 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
 
   const cases: Array<[string, string, number]> = [
     ['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64],
-    ['vm_image_checksum', 'vm_image_checksum_algorithm', 128],
   ];
 
   for (const [checksumVar, algVar, expectedLen] of cases) {
