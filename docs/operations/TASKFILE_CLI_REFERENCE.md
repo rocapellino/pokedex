@@ -74,6 +74,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Gobernanza & Auditoría** | `task governance:audit-scripts` | Valida lista blanca estricta de scripts y prohíbe scripts imperativos. |
 | | `task ci:impact` | Calcula el grafo de impacto de cambios y el DAG dinámico de CI. |
 | | `task security` | Escaneos SAST y auditoría de secretos (Semgrep, Gitleaks, Checkov). |
+| **Sincronización Linear** | `task linear:sonar-sync` | Sincroniza incidencias de SonarCloud con Linear. |
+| | `task linear:security-sync` | Sincroniza alertas de seguridad GitHub (CodeQL, Dependabot, Secret Scanning) con Linear. |
 
 ---
 
