@@ -20,7 +20,11 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rocapellino/pokedex.git
-    targetRevision: v1.92.1
+    # ADR-003 (enmienda 2026-10-04): la raíz sigue `main` y cada Application hija
+    # fija su tag. Al integrar un PR de promote, ArgoCD ve los nuevos pines sin
+    # reaplicar la raíz a mano. La inmutabilidad la dan los tags y digests de las
+    # hijas; `main` solo cambia por PRs revisados.
+    targetRevision: main
     path: gitops/apps
     directory:
       recurse: false

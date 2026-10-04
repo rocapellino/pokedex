@@ -3,8 +3,11 @@
  * scripts/update-gitops-pin.ts
  * ==============================================================================
  * Script canónico para auditar y actualizar el anclaje inmutable (pinning) de
- * versión en las aplicaciones de ArgoCD (root-application, app-proxmox,
- * app-proxmox-preprod y app-cloud).
+ * versión en las Applications hijas de ArgoCD (app-proxmox-preprod y app-cloud).
+ *
+ * ADR-003 (enmienda 2026-10-04): la Application raíz NO se fija a un tag; sigue
+ * `main` para que los PRs de promote lleguen al clúster sin reaplicarla a mano.
+ * `--check` verifica además que la raíz siga `main`.
  *
  * GITOPS-001: `app-cloud.yaml` se incluye aunque sea una referencia inactiva
  * (excluida del App-of-Apps). Mantenerla fijada evita que, al activarse prod cloud,
@@ -26,10 +29,12 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 
 export const DEFAULT_GITOPS_APP_FILES = [
-  'gitops/apps/root-application.yaml',
   'gitops/apps/app-cloud.yaml',
   'gitops/apps/app-proxmox-preprod.yaml',
 ];
+
+export const ROOT_APP_FILE = 'gitops/apps/root-application.yaml';
+export const ROOT_APP_TRACKED_REVISION = 'main';
 
 const SEMVER_TAG_REGEX = /^v\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 const TARGET_REVISION_REGEX = /(targetRevision:\s*)([^\s#\r\n]+)/;
@@ -164,6 +169,17 @@ export function applyGitOpsPin(options: {
   };
 }
 
+/**
+ * Verifica que la Application raíz siga `main` (ADR-003). Devuelve el error o null.
+ */
+export function checkRootTracksMain(rootDir: string = ROOT_DIR): string | null {
+  const content = fs.readFileSync(path.join(rootDir, ROOT_APP_FILE), 'utf-8');
+  const revision = extractTargetRevision(content);
+  return revision === ROOT_APP_TRACKED_REVISION
+    ? null
+    : `${ROOT_APP_FILE} debe seguir '${ROOT_APP_TRACKED_REVISION}' (encontrado: ${revision ?? 'DESCONOCIDO'}); los pines van en las Applications hijas`;
+}
+
 // -----------------------------------------------------------------------------
 // Punto de entrada CLI
 // -----------------------------------------------------------------------------
@@ -181,7 +197,11 @@ function runCli() {
       console.log(`   - ${file}: ${ver ?? 'DESCONOCIDO'}`);
     }
 
-    if (!result.inSync) {
+    const rootError = checkRootTracksMain();
+    console.log(`   - ${ROOT_APP_FILE}: ${rootError ? 'NO SIGUE main' : 'main (raíz)'}`);
+    if (rootError) result.errors.push(rootError);
+
+    if (!result.inSync || rootError) {
       console.error('\n❌ Errores de paridad detectados en GitOps targetRevision:');
       for (const err of result.errors) {
         console.error(`   • ${err}`);
