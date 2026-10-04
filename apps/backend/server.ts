@@ -181,7 +181,7 @@ app.get(['/admin', '/backoffice', '/backoffice.html'], globalRateLimiter, adminI
 
 app.use(express.static(PUBLIC_DIR));
 
-app.get('*', globalRateLimiter, (_req: Request, res: Response) => {
+app.get('/{*splat}', globalRateLimiter, (_req: Request, res: Response) => {
   const html = getIndexHtml();
   if (!html) {
     return res.status(404).json({ error: 'Aplicación cliente no disponible' });

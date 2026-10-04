@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import rateLimit from 'express-rate-limit';
 import { consumeDistributedRateLimit } from '../services/db.js';
 
@@ -100,35 +100,35 @@ export const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global')
 // ---------------------------------------------------------------------------
 // Rate Limiting de Doble Capa: Defensa en Profundidad (Dual-Layer Defense)
 // ---------------------------------------------------------------------------
-export const globalRateLimiterStandard = rateLimit({
+export const globalRateLimiterStandard: RequestHandler = rateLimit({
   windowMs: 60 * 1000,
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.path === '/healthz' || req.path === '/readyz' || req.path === '/metrics',
   message: { detail: 'Límite global de peticiones excedido. Intenta más tarde.' },
-});
+}) as unknown as RequestHandler;
 
-export const mutationRateLimiterStandard = rateLimit({
+export const mutationRateLimiterStandard: RequestHandler = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: { detail: 'Límite de peticiones para Modificaciones CRUD excedido. Intenta más tarde.' },
-});
+}) as unknown as RequestHandler;
 
-export const authRateLimiterStandard = rateLimit({
+export const authRateLimiterStandard: RequestHandler = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: { detail: 'Límite de intentos de autenticación excedido. Intenta más tarde.' },
-});
+}) as unknown as RequestHandler;
 
-export const aiRateLimiterStandard = rateLimit({
+export const aiRateLimiterStandard: RequestHandler = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { detail: 'Límite de peticiones para Endpoints IA excedido. Intenta más tarde.' },
-});
+}) as unknown as RequestHandler;
