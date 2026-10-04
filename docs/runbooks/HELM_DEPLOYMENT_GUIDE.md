@@ -60,7 +60,7 @@ infra/helm/
         ├── backup-cronjob.yaml          # CronJob de backup local cifrado (AES-256) + verificación de restore
         ├── backup-restore-verify-cronjob.yaml # Verificación periódica de restauración
         ├── backup-gdrive-cronjob.yaml   # CronJob de réplica off-site a Google Drive
-        ├── seed-job.yaml                # Job PreSync de migración de esquema y seed de datos
+        ├── seed-job.yaml                # Job PostSync de siembra del catálogo (SEED_DATASET)
         └── NOTES.txt                    # Guía post-instalación mostrada en terminal
 ```
 

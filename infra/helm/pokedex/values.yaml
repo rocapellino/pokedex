@@ -362,11 +362,13 @@ podDisruptionBudget:
 seedJob:
   enabled: false
   forceSeed: false
+  # Dataset de seed.ts (ADR-030): "sample" (35 Pokémon) o "full" (catálogo nacional).
+  dataset: "sample"
   image:
-    repository: pokemon-db-seed
-    tag: "1.0.0"
-    # INFRA-005: soporte de digest. Vacio por defecto porque la imagen de seed
-    # todavia no se publica en un registry; se fija cuando exista el digest.
+    # Vacío = misma imagen y digest que api.image (`dist/seed.cjs` forma parte de su
+    # build y el digest ya está firmado con Cosign). Declarar solo para otra imagen.
+    repository: ""
+    tag: ""
     digest: ""
     pullPolicy: IfNotPresent
 
