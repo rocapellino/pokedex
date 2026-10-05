@@ -366,6 +366,18 @@ test('🎯 Change Impact: Archivo global transversal (package.json y detect-chan
   assert.equal(resultScript.triggers.backend, true);
 });
 
+test('🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)', () => {
+  // Los workflows son rutas globales. Sin `linting: true` en global.triggers, Actionlint y
+  // ShellCheck se omitían justamente cuando se modifican los workflows.
+  const result = analyzeChangeImpact({
+    files: ['.github/workflows/ci.yaml'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.isGlobal, true);
+  assert.equal(result.triggers.linting, true, 'Un cambio global debe activar linting');
+});
+
 test('🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track', () => {
   const result = analyzeChangeImpact({
     files: ['scripts/lint-markdown.ts'],

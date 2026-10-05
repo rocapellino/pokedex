@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T23:07:55.427Z",
+  "generatedAt": "2026-10-05T23:14:36.707Z",
   "summary": {
     "totalFiles": 77,
     "testFiles": 72,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 605,
-    "totalLines": 16912,
-    "totalSizeBytes": 735780,
+    "totalTestCases": 606,
+    "totalLines": 16924,
+    "totalSizeBytes": 736294,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 159,
+      "testCases": 160,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -243,12 +243,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 33,
+      "testCount": 34,
       "describeCount": 0,
-      "assertionCountEst": 249,
-      "sizeBytes": 35210,
-      "lineCount": 777,
-      "sha256": "5525fdc57dc7e9417d17066e4d3e75acc66b5e4aaafe77d9da35fd9c572dd633",
+      "assertionCountEst": 251,
+      "sizeBytes": 35724,
+      "lineCount": 789,
+      "sha256": "90ef5332018036df5b5f7875311a3293ce761d863e9910e90cf21343feafff1e",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -326,76 +326,80 @@
           "line": 343
         },
         {
-          "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
+          "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
           "line": 369
         },
         {
+          "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
+          "line": 381
+        },
+        {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 386
+          "line": 398
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 402
+          "line": 414
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 418
+          "line": 430
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 433
+          "line": 445
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 449
+          "line": 461
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 464
+          "line": 476
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 479
+          "line": 491
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 499
+          "line": 511
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 518
+          "line": 530
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 545
+          "line": 557
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 567
+          "line": 579
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 610
+          "line": 622
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 626
+          "line": 638
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 664
+          "line": 676
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 691
+          "line": 703
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 712
+          "line": 724
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 725
+          "line": 737
         }
       ]
     },
