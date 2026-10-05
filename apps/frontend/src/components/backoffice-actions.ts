@@ -2,7 +2,7 @@
  * Acciones CRUD y Mutaciones de Datos para Pokédex Backoffice
  */
 
-import { showToast, createPokemon, updatePokemon, deletePokemon } from '../shared/index.js';
+import { errorMessage, errorStatus, showToast, createPokemon, updatePokemon, deletePokemon } from '../shared/index.js';
 import { isSessionActive, clearAdminSession, openAuthModal } from './modal-auth.js';
 import { extractPokemonPayload, closeCrudModal, getPendingDeleteId, closeDeleteModal } from './modal-crud.js';
 import { loadAdminData } from './backoffice-state.js';
@@ -36,14 +36,14 @@ export async function handleFormSubmit(e: Event): Promise<void> {
         : `🎉 Pokémon "${payload.nombre}" creado con éxito.`
     );
     await loadAdminData();
-  } catch (err: any) {
-    if (err?.status === 401) {
+  } catch (err) {
+    if (errorStatus(err) === 401) {
       showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
       await clearAdminSession();
       openAuthModal();
       return;
     }
-    showToast(`Error al guardar: ${err?.message || err}`, true);
+    showToast(`Error al guardar: ${errorMessage(err)}`, true);
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerText = 'Guardar Registro';
@@ -70,15 +70,15 @@ export async function executeDelete(): Promise<void> {
     closeDeleteModal();
     showToast(`🗑️ Pokémon #${pendingId} eliminado del catálogo.`);
     await loadAdminData();
-  } catch (err: any) {
-    if (err?.status === 401) {
+  } catch (err) {
+    if (errorStatus(err) === 401) {
       showToast('❌ Sesión de administrador expirada o inválida (401). Reautenticando...', true);
       await clearAdminSession();
       closeDeleteModal();
       openAuthModal();
       return;
     }
-    showToast(`Error al eliminar: ${err?.message || err}`, true);
+    showToast(`Error al eliminar: ${errorMessage(err)}`, true);
   } finally {
     btn.disabled = false;
     btn.innerText = 'Sí, Eliminar';
@@ -90,7 +90,7 @@ export async function invalidateCache(): Promise<void> {
   try {
     await loadAdminData();
     showToast('🎉 Caché sincronizada correctamente.');
-  } catch (err: any) {
-    showToast(`Error al sincronizar: ${err?.message || err}`, true);
+  } catch (err) {
+    showToast(`Error al sincronizar: ${errorMessage(err)}`, true);
   }
 }

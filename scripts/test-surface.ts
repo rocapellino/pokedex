@@ -723,7 +723,7 @@ export function generateMarkdownReport(catalog: TestSurfaceCatalog): string {
   lines.push('');
   lines.push('| Métrica | Valor Registrado |');
   lines.push('| :--- | :--- |');
-  lines.push(`| **Total de Archivos en ` + '`tests/`' + `** | **${catalog.summary.totalFiles}** |`);
+  lines.push(`| **Total de Archivos en \`tests/\`** | **${catalog.summary.totalFiles}** |`);
   lines.push(`| **Archivos de Test Automatizados** | ${catalog.summary.testFiles} |`);
   lines.push(`| **Scripts de Carga / Rendimiento (k6)** | ${catalog.summary.performanceScripts} |`);
   lines.push(`| **Archivos de Soporte / Entorno (Fixtures)** | ${catalog.summary.helperFiles} |`);
@@ -922,7 +922,7 @@ export function writeCatalog(catalog: TestSurfaceCatalog): void {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  fs.writeFileSync(JSON_FILE, JSON.stringify(catalog, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(JSON_FILE, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8');
   const mdContent = generateMarkdownReport(catalog);
   fs.writeFileSync(MD_FILE, mdContent, 'utf8');
 }

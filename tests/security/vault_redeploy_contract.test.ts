@@ -189,7 +189,7 @@ test('🔒 Vault Init: las credenciales se entregan al operador fuera del LXC y 
   // Shamir y el root token. Tras el primer reinicio Vault quedaba sellado sin
   // recuperación y no había token para cargar los secretos de pre-prod.
   const playbook = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml'), 'utf-8').replace(/\r\n/g, '\n');
-  const exportTask = /- name: Entregar las credenciales de init al operador[\s\S]*?(?=\n    - name:)/.exec(playbook)?.[0] ?? '';
+  const exportTask = /- name: Entregar las credenciales de init al operador[\s\S]*?(?=\n {4}- name:)/.exec(playbook)?.[0] ?? '';
   assert.ok(exportTask, 'setup_vault.yaml debe entregar las credenciales de init al operador');
   assert.match(exportTask, /dest:\s*"\{\{ vault_init_export_path \}\}"/, 'La entrega debe usar vault_init_export_path');
   assert.match(exportTask, /mode:\s*'0600'/, 'El archivo de credenciales debe ser 0600');

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { getStorageHealth } from '../services/db.js';
 import { aiCircuitBreaker } from '../services/ai.js';
 
@@ -153,5 +153,5 @@ export function generatePrometheusMetrics(): string {
     }
   }
 
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }

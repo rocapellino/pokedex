@@ -216,7 +216,7 @@ function fixIgnoreFile(relPath: string) {
     cleanedLines.push(withoutTrailing);
   }
 
-  fs.writeFileSync(fullPath, cleanedLines.join('\n') + '\n', 'utf-8');
+  fs.writeFileSync(fullPath, `${cleanedLines.join('\n')}\n`, 'utf-8');
 }
 
 // ------------------------------------------------------------------------------

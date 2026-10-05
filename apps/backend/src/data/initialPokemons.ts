@@ -1,4 +1,4 @@
-import { Pokemon } from '../types.js';
+import type { Pokemon } from '../types.js';
 
 export const initialPokemons: Pokemon[] = [
   // --- GENERACIÓN 1 (Kanto) ---

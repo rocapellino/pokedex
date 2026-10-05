@@ -110,9 +110,6 @@ export function validateDocsGovernance(rootDir: string = process.cwd()): Governa
   const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
   const AGENTS_DIR = path.join(ROOT_DIR, '.agents');
 
-  // 1. Leer versión canónica
-  const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
-  const currentVersion = pkgJson.version;
 
   // 2. Obtener universo markdown de docs/, .agents/ y los documentos raíz.
   //    .agents/ y AGENTS.md se incluyen porque las skills enlazan ADRs y políticas:

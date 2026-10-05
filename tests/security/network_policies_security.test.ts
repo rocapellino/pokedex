@@ -240,7 +240,7 @@ test('🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de 
     ['proxmox-preprod', 'gitops/environments/proxmox-preprod/values.yaml'],
   ];
 
-  for (const [env, relPath] of deployableEnvs) {
+  for (const [, relPath] of deployableEnvs) {
     const valuesPath = path.join(ROOT_DIR, relPath);
     assert.ok(fs.existsSync(valuesPath), `${relPath} debe existir`);
 

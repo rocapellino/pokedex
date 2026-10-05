@@ -9,6 +9,7 @@ import {
   listPersistedPokemonIds,
   syncPokedexIdSequence,
 } from './services/db.js';
+import { errorMessage } from './utils/errors.js';
 
 async function main() {
   console.log('🌱 [Seed Job] Iniciando verificación y siembra de catálogo Pokémon...');
@@ -61,8 +62,8 @@ async function main() {
 
     console.log(`🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}.`);
     process.exit(0);
-  } catch (err: any) {
-    console.error('❌ [Seed Job] Error fatal durante la siembra:', err?.message || err);
+  } catch (err) {
+    console.error('❌ [Seed Job] Error fatal durante la siembra:', errorMessage(err));
     process.exit(1);
   }
 }

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildCatalog, checkDrift } from '../scripts/test-surface.js';
-import type { Pokemon as BackendPokemon, PokemonCharacteristics as BackendChars, PokemonStats as BackendStats } from '../apps/backend/src/types.js';
-import type { Pokemon as FrontendPokemon, PokemonCharacteristics as FrontendChars, PokemonStats as FrontendStats } from '../apps/frontend/src/types.js';
+import type { Pokemon as BackendPokemon, } from '../apps/backend/src/types.js';
+import type { Pokemon as FrontendPokemon, } from '../apps/frontend/src/types.js';
 
 test('🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad entre Backend y Frontend', () => {
   const sampleBackendPokemon: BackendPokemon = {

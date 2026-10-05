@@ -49,9 +49,9 @@ function check(title: string, fn: () => void) {
     fn();
     results.push({ check: title, passed: true });
     console.log(`  ✔ [PASS] ${title}`);
-  } catch (error: any) {
-    results.push({ check: title, passed: false, details: error.message });
-    console.error(`  ✖ [FAIL] ${title}: ${error.message}`);
+  } catch (error) {
+    results.push({ check: title, passed: false, details: error instanceof Error ? error.message : String(error) });
+    console.error(`  ✖ [FAIL] ${title}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

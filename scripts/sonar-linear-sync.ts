@@ -105,7 +105,7 @@ async function fetchSonar<T>(endpoint: string): Promise<T> {
   };
 
   if (SONAR_TOKEN) {
-    headers['Authorization'] = `Bearer ${SONAR_TOKEN}`;
+    headers.Authorization = `Bearer ${SONAR_TOKEN}`;
   }
 
   const response = await fetch(url, { headers });
@@ -241,7 +241,6 @@ export async function syncSonarToLinear(): Promise<void> {
 
   // 1. Verificar Estado del Quality Gate
   console.log('\n📊 Consultando Quality Gate en SonarCloud...');
-  let qualityGateFailed = false;
   try {
     const qgData = await fetchSonar<SonarProjectStatus>(
       `/qualitygates/project_status?projectKey=${encodeURIComponent(SONAR_PROJECT_KEY)}`
@@ -251,7 +250,6 @@ export async function syncSonarToLinear(): Promise<void> {
     console.log(`Quality Gate Status: ${sanitize(qgStatus)}`);
 
     if (qgStatus === 'ERROR') {
-      qualityGateFailed = true;
       const failedConditions = (qgData.projectStatus.conditions || []).filter((c) => c.status === 'ERROR');
 
       const title = `[SonarCloud] Quality Gate Fallido en Pokédex`;

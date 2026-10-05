@@ -12,7 +12,7 @@ import {
   buildSessionCookie,
   extractSessionTokenFromRequest,
 } from '../apps/backend/server.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -253,7 +253,7 @@ test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos mod
   const [b64Payload, signature] = session.token.split('.');
   
   // Alterar firma
-  const tamperedSig = signature.slice(0, -2) + 'aa';
+  const tamperedSig = `${signature.slice(0, -2)}aa`;
   assert.equal(await verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
 
   // Alterar payload decodificado

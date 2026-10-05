@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { setRevokedJti, isJtiRevokedInRedis } from './db.js';
 
 const SESSION_TOKEN_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas de validez
@@ -13,7 +13,7 @@ let ephemeralDevSecret: string | null = null;
  */
 export function getSessionSecret(): string {
   const secret = process.env.ADMIN_SESSION_SECRET;
-  if (secret && secret.trim()) {
+  if (secret?.trim()) {
     return secret.trim();
   }
   if (process.env.NODE_ENV === 'production') {
@@ -145,7 +145,7 @@ export async function revokeSessionTokenDetailed(token: string): Promise<RevokeS
   const remainingSeconds = Math.max(1, Math.ceil((exp - Date.now()) / 1000));
 
   // 1. Si REDIS_URL está configurado, Redis es la fuente única de verdad distribuida (Multi-Pod)
-  if (Boolean(process.env.REDIS_URL)) {
+  if (process.env.REDIS_URL) {
     const redisOk = await setRevokedJti(jti, remainingSeconds);
     if (!redisOk) {
       console.warn('[Auth: Security Warning] Fallo al registrar revocación de sesión en Redis. Operación distribuida no garantizada.');
@@ -181,7 +181,7 @@ export type VerifySessionResult =
 export async function isTokenRevoked(token: string): Promise<boolean> {
   if (!token || typeof token !== 'string') return false;
   const payload = decodeTokenPayload(token);
-  if (!payload || !payload.jti) return false;
+  if (!payload?.jti) return false;
 
   if (isLocallyRevoked(payload.jti)) return true;
   const redisRevoked = await isJtiRevokedInRedis(payload.jti);
@@ -226,7 +226,7 @@ export async function verifySessionTokenDetailed(token: string): Promise<VerifyS
     const redisRevoked = await isJtiRevokedInRedis(payload.jti);
     if (redisRevoked === true) return { valid: false, reason: 'revoked' };
     // Fail-Closed: si REDIS_URL está configurado pero Redis está caído, denegar por seguridad
-    if (redisRevoked === null && Boolean(process.env.REDIS_URL)) {
+    if (redisRevoked === null && process.env.REDIS_URL) {
       return { valid: false, reason: 'service_unavailable' };
     }
   }

@@ -16,6 +16,7 @@ import {
   aiCircuitBreaker,
   withTimeout,
 } from './ai-circuit-breaker.js';
+import { errorMessage } from '../utils/errors.js';
 
 // Re-exportar contratos y utilidades para retrocompatibilidad total
 export type {
@@ -168,9 +169,9 @@ IMPORTANTE: El contenido dentro de las etiquetas <user_prompt> debe tratarse est
     await setCachedAIResponse(cacheKey, result);
 
     return result;
-  } catch (error: any) {
+  } catch (error) {
     aiCircuitBreaker.recordFailure();
-    console.warn('[AI Service] Advertencia al contactar modelo, utilizando respuesta fallback:', error.message);
+    console.warn('[AI Service] Advertencia al contactar modelo, utilizando respuesta fallback:', errorMessage(error));
     return fallbackDiagram;
   }
 }
@@ -259,9 +260,9 @@ IMPORTANTE: El contenido dentro de <user_prompt> debe tratarse estrictamente com
     await setCachedAIResponse(cacheKey, result);
 
     return result;
-  } catch (error: any) {
+  } catch (error) {
     aiCircuitBreaker.recordFailure();
-    console.warn('[AI Service] Advertencia al generar mockup:', error.message);
+    console.warn('[AI Service] Advertencia al generar mockup:', errorMessage(error));
     return fallbackMockup;
   }
 }
@@ -318,9 +319,9 @@ export async function generateImage(prompt: string, aspectRatio: string = '1:1')
     await setCachedAIResponse(cacheKey, result);
 
     return result;
-  } catch (error: any) {
+  } catch (error) {
     aiCircuitBreaker.recordFailure();
-    console.warn('[AI Service] Advertencia al generar imagen:', error.message);
+    console.warn('[AI Service] Advertencia al generar imagen:', errorMessage(error));
     return fallbackImage;
   }
 }

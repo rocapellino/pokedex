@@ -245,7 +245,7 @@ export function validateEvolutionNodeZod(node: unknown, depth = 0): { valid: boo
   if (!node || typeof node !== 'object' || Array.isArray(node)) {
     return { valid: false, error: 'Cada nodo de evolución debe ser un objeto' };
   }
-  const n = node as Record<string, any>;
+  const n = node as Record<string, unknown>;
 
   if (n.id !== undefined) {
     let id: number | null = null;
@@ -359,7 +359,7 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
   }
 
   // 5. Peso y Altura
-  const caract = body.caracteristicas as Record<string, any> | undefined;
+  const caract = body.caracteristicas as Record<string, unknown> | undefined;
   const rawPeso = caract?.peso ?? body.peso;
   if (rawPeso !== undefined && rawPeso !== null) {
     let pVal: number | null = null;
@@ -490,7 +490,7 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
         }
       }
     } else if (typeof body.evoluciones === 'object') {
-      const arbol = (body.evoluciones as any).arbol;
+      const arbol = (body.evoluciones as { arbol?: unknown }).arbol;
       if (arbol) {
         const evoRes = validateEvolutionNodeZod(arbol, 0);
         if (!evoRes.valid) {
