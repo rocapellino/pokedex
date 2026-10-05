@@ -10,7 +10,7 @@ test('🛡️ DR End-to-End Drill: Ejecuta la cadena operacional completa y cert
 
   // 1. backup timestamp
   assert.ok(typeof metrics.backupTimestamp === 'string', 'backupTimestamp debe ser string');
-  assert.ok(!isNaN(Date.parse(metrics.backupTimestamp)), 'backupTimestamp debe ser una fecha ISO válida');
+  assert.ok(!Number.isNaN(Date.parse(metrics.backupTimestamp)), 'backupTimestamp debe ser una fecha ISO válida');
   assert.ok(metrics.backupEpochMs > 0, 'backupEpochMs debe ser un timestamp epoch positivo');
 
   // 2. tamaño
@@ -76,7 +76,6 @@ test('🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc manti
 });
 
 test('🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksum SHA-256 en descarga remota', async () => {
-  const corruptedSql = 'CORRUPTED_INCOMPLETE_SQL';
   await assert.rejects(
     async () => {
       // Forzar un fallo pasando un archivo remoto manipulado

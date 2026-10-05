@@ -5,8 +5,6 @@
 import {
   connectPg,
   closePg,
-  getDrizzleDb,
-  getPostgresVersion,
   isPgConnectedStatus,
   getLastKnownPgCount
 } from './postgres.js';
@@ -14,19 +12,8 @@ import {
   connectRedis,
   closeRedis,
   isCacheConnected,
-  getRedisClient,
-  invalidateCache,
-  consumeDistributedRateLimit,
-  setRevokedJti,
-  isJtiRevokedInRedis
 } from './cache.js';
 import {
-  getAllPokemons,
-  getPokemonById,
-  savePokemon,
-  deletePokemon,
-  getNextPokemonId,
-  isWritableStorageAvailable,
   getMemoryMapSize
 } from './pokemon.repository.js';
 
@@ -42,7 +29,7 @@ export function startStorageHeartbeat(intervalMs = 5000): void {
     if (process.env.DATABASE_URL && !isPgConnectedStatus()) {
       await connectPg();
     }
-    if (Boolean(process.env.REDIS_URL || process.env.REDIS_HOST) && !isCacheConnected()) {
+    if (process.env.REDIS_URL || process.env.REDIS_HOST && !isCacheConnected()) {
       await connectRedis();
     }
   }, intervalMs);

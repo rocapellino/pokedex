@@ -36,7 +36,6 @@ const ROOT_DIR = path.resolve(__dirname, '../../');
 
 const PS1_PATH = path.join(ROOT_DIR, 'infra/monitoring/deploy-grafana-cloud.ps1');
 const MJS_PATH = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');
-const TASKFILE_PATH = path.join(ROOT_DIR, 'Taskfile.yaml');
 const VSCODE_TASKS_PATH = path.join(ROOT_DIR, '.vscode/tasks.json');
 
 /** Ejecuta un comando devolviendo stdout, o cadena vacia si falla. */
@@ -310,7 +309,9 @@ function emittedMetricNames(): Set<string> {
   const names = new Set<string>(['up']);
   for (const [, name, type] of source.matchAll(/# TYPE ([a-z_:][a-z0-9_:]*) (\w+)/g)) {
     names.add(name);
-    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => names.add(name + s));
+    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => {
+      names.add(name + s);
+    });
   }
   return names;
 }
@@ -363,7 +364,7 @@ function dashboardTargets() {
 
 function alertExpr(alertName: string): string {
   const source = fs.readFileSync(ALERTS_PATH, 'utf-8').replace(/\r\n/g, '\n');
-  const block = source.split(/\n\s*- alert: /).find((b) => b.startsWith(alertName + '\n'));
+  const block = source.split(/\n\s*- alert: /).find((b) => b.startsWith(`${alertName}\n`));
   assert.ok(block, `alerts.yaml debe definir ${alertName}`);
   const m = block.match(/expr:\s*\|?\s*\n?([\s\S]*?)\n\s*for:/);
   assert.ok(m, `${alertName} debe tener expr`);

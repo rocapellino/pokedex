@@ -10,7 +10,7 @@ import {
   getNextPokemonId,
   getStorageHealth
 } from '../../apps/backend/src/services/db.js';
-import { Pokemon } from '../../apps/backend/src/types.js';
+import type { Pokemon } from '../../apps/backend/src/types.js';
 
 const ROOT_DIR = path.resolve();
 

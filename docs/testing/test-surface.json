@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T16:05:57.526Z",
+  "generatedAt": "2026-10-05T18:19:19.414Z",
   "summary": {
-    "totalFiles": 73,
-    "testFiles": 68,
+    "totalFiles": 74,
+    "testFiles": 69,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 591,
-    "totalLines": 15736,
-    "totalSizeBytes": 723431,
+    "totalTestCases": 594,
+    "totalLines": 15771,
+    "totalSizeBytes": 724891,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 11,
-      "testCases": 75,
+      "files": 12,
+      "testCases": 78,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -408,9 +408,9 @@
       "testCount": 17,
       "describeCount": 0,
       "assertionCountEst": 68,
-      "sizeBytes": 20480,
+      "sizeBytes": 20469,
       "lineCount": 480,
-      "sha256": "9fee5b50a5c52013aee4330450379087b3e6bb87b90119527ff1b574d7c61d21",
+      "sha256": "03a780351c1ec4a3783dcca66cfba54e21bfab4411e73c7d6099e623c6ec2b8c",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -548,9 +548,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 4287,
+      "sizeBytes": 4147,
       "lineCount": 101,
-      "sha256": "be1d03e8a76b2d7ce1041b1b5edb0c6507f0ee24cca2876d1cbe147e42adda2d",
+      "sha256": "51d1879070182b455eee536a8428600d8b0fc5cb4832e89a80eb237f23f05915",
       "targetDomain": "Interoperabilidad Backend-Frontend",
       "targetArtifacts": [
         "apps/backend/src/types.ts",
@@ -928,9 +928,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 96,
-      "sizeBytes": 12933,
-      "lineCount": 342,
-      "sha256": "18cf9012a085d013aee9cba07c4c225fe22d2014971cc18a240b5aae593403b9",
+      "sizeBytes": 12914,
+      "lineCount": 341,
+      "sha256": "c4402e675b96f5a67ad089adbbb4382bf5e28a22a27344e67efefc8772236bdb",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -949,79 +949,79 @@
       "testCases": [
         {
           "name": "🧩 Modal Detail: calculateWeaknesses calcula debilidades elementales correctamente",
-          "line": 64
+          "line": 63
         },
         {
           "name": "🧩 Modal Detail: renderBaseStats muestra valor numérico por stat y total",
-          "line": 76
+          "line": 75
         },
         {
           "name": "🧩 Modal Detail: renderBaseStats no usa <br>, que DOMPurify elimina y concatena las etiquetas",
-          "line": 86
+          "line": 85
         },
         {
           "name": "🧩 Modal Detail: renderBaseStats escala la barra sobre 255 en pasos de 5 % y asigna tramo de color",
-          "line": 91
+          "line": 90
         },
         {
           "name": "🧩 Modal Detail: renderBaseStats sin stats no inventa valores",
-          "line": 99
+          "line": 98
         },
         {
           "name": "🧩 Modal Detail: renderDetailModalContent no rellena con datos ficticios de Bulbasaur",
-          "line": 109
+          "line": 108
         },
         {
           "name": "🧩 Modal Detail: renderDetailModalContent lista todas las habilidades",
-          "line": 121
+          "line": 120
         },
         {
           "name": "🧩 Modal Detail: getTriggerIcon devuelve iconos representativos según método",
-          "line": 126
+          "line": 125
         },
         {
           "name": "🧩 Modal Detail: renderDetailModalContent genera markup semántico y sanitizado",
-          "line": 134
+          "line": 133
         },
         {
           "name": "🧩 Pokemon Card: renderPokemonCard genera article semántico con identificadores seguros",
-          "line": 147
+          "line": 146
         },
         {
           "name": "🧩 Admin Table: renderTableRows genera celdas y botones de acción data-attributes",
-          "line": 158
+          "line": 157
         },
         {
           "name": "🧩 Admin Table: computeKPIs agrega métricas de catálogo deterministamente",
-          "line": 170
+          "line": 169
         },
         {
           "name": "🧩 Modal CRUD: gestión de estado de borrado pendiente",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🧩 Modal Evolution: getTriggerIcon cubre todas las ramas de métodos evolutivos",
-          "line": 187
+          "line": 186
         },
         {
           "name": "🧩 Modal Evolution: renderTransitionConnector genera chevrons y badges según contexto",
-          "line": 197
+          "line": 196
         },
         {
           "name": "🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alternos y catálogos",
-          "line": 208
+          "line": 207
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks",
-          "line": 230
+          "line": 229
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales",
-          "line": 260
+          "line": 259
         },
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
-          "line": 328
+          "line": 327
         }
       ]
     },
@@ -1077,9 +1077,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 20,
-      "sizeBytes": 7552,
-      "lineCount": 220,
-      "sha256": "f5c0148d6ceccae0b00bb6f5d7052d6ee1bd55f2e6247e6069b7f2395cc415de",
+      "sizeBytes": 7486,
+      "lineCount": 218,
+      "sha256": "ae411f9a5d3ed8f4bf440d9e2b7fa47a9e35f6dacbf63cd6136126b44ae54f9e",
       "targetDomain": "Fuzz Testing / Seguridad de Payloads",
       "targetArtifacts": [
         "apps/backend/src/routes/pokemons.ts",
@@ -1098,31 +1098,31 @@
       "testCases": [
         {
           "name": "🧪 Fuzzing [Payloads Primitivos]: validatePokemonPayload rechaza tipos no estructurados",
-          "line": 20
+          "line": 18
         },
         {
           "name": "🧪 Fuzzing [Números Extremos]: validatePokemonPayload rechaza floats descomunales, Infinity y NaN en stats",
-          "line": 48
+          "line": 46
         },
         {
           "name": "🧪 Fuzzing [Mass Assignment / Object Pollution]: validatePokemonPayload rechaza payloads con 1000 propiedades espurias",
-          "line": 76
+          "line": 74
         },
         {
           "name": "🧪 Fuzzing [Unicode & Caracteres de Control]: validatePokemonPayload maneja secuencias extremas sin crashear",
-          "line": 119
+          "line": 117
         },
         {
           "name": "🧪 Fuzzing [Evoluciones Circulares y Profundidad Extrema]: validatePokemonPayload previene recursión destructiva",
-          "line": 144
+          "line": 142
         },
         {
           "name": "🧪 Fuzzing [Pagination Limits]: parsePagination maneja valores absurdos con gracia",
-          "line": 165
+          "line": 163
         },
         {
           "name": "🧪 Fuzzing [Auth Session Tokens]: verifyTokenSignature resiste payloads malformados masivos",
-          "line": 188
+          "line": 186
         }
       ]
     },
@@ -1246,9 +1246,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 101,
-      "sizeBytes": 27204,
+      "sizeBytes": 27160,
       "lineCount": 488,
-      "sha256": "189fcdb9d74ad28edce21415e449d52c215ffe8b09819ef781a5ac492ff21e1f",
+      "sha256": "8ce8b71008f1df48212f82600b0d8c6e8e8f9c3ba37e4f8fd85e81541b695aa0",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1512,7 +1512,7 @@
       "assertionCountEst": 0,
       "sizeBytes": 1054,
       "lineCount": 27,
-      "sha256": "80d3b28d5befbff2105c3ca8117d93dd691e06368fabb378581a0dc2b59830e2",
+      "sha256": "eda8b1361476b9c148d10c7b07652ec0345d8deb983d4151e5eb52bb50f71809",
       "targetDomain": "Suite helpers",
       "targetArtifacts": [],
       "npmCommands": [],
@@ -1607,9 +1607,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 4589,
+      "sizeBytes": 4594,
       "lineCount": 121,
-      "sha256": "ee52ac50af303b7d92a1978c2b00df480daa8b39df2b4d53c93b875c063fb73b",
+      "sha256": "e122e2274fc5913a795f47f3f53211aff44a259fc03e966bd36fbd944d9f0b3e",
       "targetDomain": "Capa de Persistencia y Caché",
       "targetArtifacts": [
         "apps/backend/src/services/db.ts",
@@ -1756,9 +1756,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 3683,
-      "lineCount": 78,
-      "sha256": "d8e605701ea28b3443833c0a5063b7e8b8d5de695347f9b463d54fa8a3e95a01",
+      "sizeBytes": 3652,
+      "lineCount": 77,
+      "sha256": "c1596555f6bcae778fe387d4da79eef372e13e5cebce55724b030aeab0f3f8b7",
       "targetDomain": "Markdown Quality Gate",
       "targetArtifacts": [
         "scripts/lint-markdown.ts",
@@ -1777,31 +1777,31 @@
       "testCases": [
         {
           "name": "📚 Markdown Gate: una ruta explícita inexistente debe fallar (fail-closed, CI-006)",
-          "line": 12
+          "line": 11
         },
         {
           "name": "📚 Markdown Gate: falla aunque solo una de varias rutas sea inexistente",
-          "line": 23
+          "line": 22
         },
         {
           "name": "📚 Markdown Gate: valida un archivo existente real y reporta 0 errores",
-          "line": 31
+          "line": 30
         },
         {
           "name": "📚 Markdown Gate: un directorio existente se expande recursivamente",
-          "line": 39
+          "line": 38
         },
         {
           "name": "📚 Markdown Gate: sin archivos explícitos valida el repositorio completo",
-          "line": 47
+          "line": 46
         },
         {
           "name": "📚 Markdown Gate: parseIgnorePatterns ignora comentarios y líneas vacías",
-          "line": 55
+          "line": 54
         },
         {
           "name": "📚 Markdown Gate: findMarkdownFiles respeta el directorio .markdownlintignore",
-          "line": 64
+          "line": 63
         }
       ]
     },
@@ -1814,9 +1814,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 101,
-      "sizeBytes": 25889,
-      "lineCount": 627,
-      "sha256": "fba74c6f6d7039a246056cf9496ae47dc4dd0a43144e9b97c9d50fdb38e60aa9",
+      "sizeBytes": 25857,
+      "lineCount": 626,
+      "sha256": "2b677c95be964e1e68867a37bfe8d1d758346bde8efa84faec678cf0dbd2fbb0",
       "targetDomain": "Pruebas de Penetración de API",
       "targetArtifacts": [
         "apps/backend/server.ts",
@@ -1836,115 +1836,115 @@
       "testCases": [
         {
           "name": "🔥 Pentest [Auth]: Falsificación de firma HMAC (Forged Signature Bypass)",
-          "line": 37
+          "line": 36
         },
         {
           "name": "🔥 Pentest [Auth]: Ataque de Algoritmo None / Firma Vacía",
-          "line": 52
+          "line": 51
         },
         {
           "name": "🔥 Pentest [Auth]: Escalación de privilegios modificando payload (Privilege Escalation)",
-          "line": 62
+          "line": 61
         },
         {
           "name": "🔥 Pentest [Auth]: Replay Attack con Token Revocado",
-          "line": 79
+          "line": 78
         },
         {
           "name": "🔥 Pentest [Auth]: Fail-Closed de Autenticación ante Caída de Redis",
-          "line": 94
+          "line": 93
         },
         {
           "name": "🔥 Pentest [Auth]: Fail-Closed de Logout cuando Redis está inaccesible",
-          "line": 113
+          "line": 112
         },
         {
           "name": "🔥 Pentest [Auth]: Logout rechaza tokens con firmas HMAC apócrifas y previene polución en Redis",
-          "line": 133
+          "line": 132
         },
         {
           "name": "🔥 Pentest [Auth]: Logout con token expirado no produce I/O innecesario en Redis",
-          "line": 156
+          "line": 155
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Endpoints de IA fallan cerrado con 503 ante caída de Redis en multi-pod",
-          "line": 169
+          "line": 168
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Endpoints públicos mantienen fallback resiliente a memoria local si Redis está offline",
-          "line": 207
+          "line": 206
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Cuota diaria de IA bloquea con 429 tras superar el umbral diario por IP",
-          "line": 232
+          "line": 231
         },
         {
           "name": "🔥 Pentest [AI Resiliency]: withTimeout aborta llamadas lentas de IA y activa fallback seguro",
-          "line": 266
+          "line": 265
         },
         {
           "name": "🔥 Pentest [AI Resiliency]: AICircuitBreaker entra en estado OPEN tras fallos reiterados y se recupera con éxito",
-          "line": 284
+          "line": 283
         },
         {
           "name": "🔥 Pentest [AI Security]: sanitizePrompt neutraliza jailbreaks, roles falsificados y delimita longitud",
-          "line": 306
+          "line": 305
         },
         {
           "name": "⚡ Cache Semántico [AI]: getSemanticCacheKey normaliza espacios, mayúsculas y produce hash determinista",
-          "line": 323
+          "line": 322
         },
         {
           "name": "🧩 Functional [Result]: ok, err, tryCatch y transformaciones algebraicas",
-          "line": 333
+          "line": 332
         },
         {
           "name": "🔥 Pentest [Input]: Intento de Prototype Pollution vía JSON en Pokémon",
-          "line": 367
+          "line": 366
         },
         {
           "name": "🔥 Pentest [Input]: Mass Assignment intentando inyectar roles en características",
-          "line": 392
+          "line": 391
         },
         {
           "name": "🔥 Pentest [XSS]: Payloads políglotas complejos en campos de texto",
-          "line": 413
+          "line": 412
         },
         {
           "name": "🔥 Pentest [SSRF/XSS]: Evasiones de protocolo y caracteres nulos en imágenes",
-          "line": 432
+          "line": 431
         },
         {
           "name": "🔥 Pentest [SSRF]: Localhost HTTP bloqueado estrictamente en entorno de producción",
-          "line": 447
+          "line": 446
         },
         {
           "name": "🔥 Pentest [DoS]: Árbol de evolución recursivo con profundidad extrema (>5)",
-          "line": 468
+          "line": 467
         },
         {
           "name": "🔥 Pentest [DoS]: Flood masivo de nodos en evoluciones (>20 nodos totales)",
-          "line": 486
+          "line": 485
         },
         {
           "name": "🔥 Pentest [DoS]: Abuso de paginación masiva con valores descomunales",
-          "line": 503
+          "line": 502
         },
         {
           "name": "🔥 Pentest [Resilience]: Mutaciones fallan cerrado cuando PostgreSQL está configurado pero offline",
-          "line": 517
+          "line": 516
         },
         {
           "name": "🔥 Pentest [Observability]: Métricas desglosan PostgreSQL y Memoria sin ambigüedad",
-          "line": 561
+          "line": 560
         },
         {
           "name": "🔥 Pentest [Attack Surface]: Endpoint de descarga de repositorio retirado permanentemente (SEC-002)",
-          "line": 570
+          "line": 569
         },
         {
           "name": "🔥 Pentest [Redis Resilience]: Revocación en memoria persiste en proceso actual tras FLUSHALL simulado",
-          "line": 583
+          "line": 582
         }
       ]
     },
@@ -2001,9 +2001,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 8776,
-      "lineCount": 267,
-      "sha256": "b9e8a2122a4ff5e96ad01d3090275843f909ef0d38fea799dfe3e456de249178",
+      "sizeBytes": 8756,
+      "lineCount": 266,
+      "sha256": "200f8e93d9c6947581b8757dcbbdf7bb75f462d99842959a4dd13382d98554e3",
       "targetDomain": "Gobernanza de Pull Request Template",
       "targetArtifacts": [
         ".github/pull_request_template.md",
@@ -2022,27 +2022,27 @@
       "testCases": [
         {
           "name": "🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y contiene secciones obligatorias",
-          "line": 25
+          "line": 24
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body aprueba un PR body completo y fiel al template",
-          "line": 52
+          "line": 51
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body RECHAZA la estructura no conforme observada en PR #438",
-          "line": 124
+          "line": 123
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body detecta tablas de CI Impact no resueltas o incompletas",
-          "line": 156
+          "line": 155
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake",
-          "line": 199
+          "line": 198
         },
         {
           "name": "🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador",
-          "line": 236
+          "line": 235
         }
       ]
     },
@@ -2167,9 +2167,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 98,
-      "sizeBytes": 17611,
-      "lineCount": 448,
-      "sha256": "e596028804258dd9ef0818db9f0bd7419a4a13ac477c34a131037183338f73f7",
+      "sizeBytes": 17725,
+      "lineCount": 449,
+      "sha256": "eb998c4feeca0babbb39af5394c913776c416a8233087def919099f33abecf7a",
       "targetDomain": "Seguridad Integral de Aplicación y Headers",
       "targetArtifacts": [
         "apps/backend/server.ts",
@@ -2273,31 +2273,31 @@
         },
         {
           "name": "🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados",
-          "line": 318
+          "line": 319
         },
         {
           "name": "🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SECRET y no acepta ADMIN_API_KEY como fallback",
-          "line": 338
+          "line": 339
         },
         {
           "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
-          "line": 358
+          "line": 359
         },
         {
           "name": "🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test",
-          "line": 368
+          "line": 369
         },
         {
           "name": "🔐 Auth Session: revokeSessionToken revoca el token por jti y verifySessionToken lo rechaza inmediatamente",
-          "line": 392
+          "line": 393
         },
         {
           "name": "🔐 Auth Session: revokeSessionToken con token de corta duración expira y se autolimpia",
-          "line": 401
+          "line": 402
         },
         {
           "name": "🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones",
-          "line": 415
+          "line": 416
         }
       ]
     },
@@ -2310,9 +2310,9 @@
       "testCount": 18,
       "describeCount": 0,
       "assertionCountEst": 203,
-      "sizeBytes": 40877,
-      "lineCount": 728,
-      "sha256": "7d117da021707392226926b01173b21115cb960ba24f7d2964c45f28a06c4d34",
+      "sizeBytes": 40749,
+      "lineCount": 726,
+      "sha256": "70461ff1f8d1185d14c05d3153a0116abd460128f9081f1d6fdf51e7df6a21da",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2395,11 +2395,11 @@
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 565
+          "line": 564
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 658
+          "line": 656
         }
       ]
     },
@@ -2614,9 +2614,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 6023,
+      "sizeBytes": 6008,
       "lineCount": 152,
-      "sha256": "ca30e51dd644bc4fa12d43d5ea0bdbc9c9548170dd5a228719e6c4cc05eb6732",
+      "sha256": "0c35f66536b1f755659582e8ed37e9935aa92f8f9078909428f42606d9890f74",
       "targetDomain": "Integridad del Portal de Documentación",
       "targetArtifacts": [
         "docs/"
@@ -2727,9 +2727,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 35,
-      "sizeBytes": 7652,
-      "lineCount": 172,
-      "sha256": "4ad0ccd2755465561411a19b3c4c3c96ccf951f795982fdc5b66c56a675db269",
+      "sizeBytes": 7608,
+      "lineCount": 171,
+      "sha256": "46e0efcc4c8024d449c77997d73c63ed45b2f84e9656c278bc26b927caf5ce43",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -2760,15 +2760,15 @@
         },
         {
           "name": "🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo",
-          "line": 96
+          "line": 95
         },
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
-          "line": 141
+          "line": 140
         },
         {
           "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
-          "line": 158
+          "line": 157
         }
       ]
     },
@@ -2829,9 +2829,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 40,
-      "sizeBytes": 10546,
+      "sizeBytes": 10551,
       "lineCount": 237,
-      "sha256": "8951eca3a51d7326218e18b9cd487dabdbaee0de2f8b770f5f144f2bf3f8ffb7",
+      "sha256": "0c104047044d34bdacc4de59a76904f296db426670c33d56c2ccaa9ce0ba8120",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -2884,9 +2884,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 51,
-      "sizeBytes": 11903,
+      "sizeBytes": 11923,
       "lineCount": 321,
-      "sha256": "7bbd8f4f7beb0efc61424ff095ea255e426cca72f341fd6a80ec2d11f849575e",
+      "sha256": "0c2923c47d7d5ee7c08f91403716f8f835294709e35cb2247267199bf3b3f237",
       "targetDomain": "Sincronización de Seguridad GitHub-Linear",
       "targetArtifacts": [
         "scripts/github-security-linear-sync.ts",
@@ -2962,10 +2962,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 20,
-      "sizeBytes": 8184,
-      "lineCount": 176,
-      "sha256": "8188cf94f7c030d2143c55af653da0534a6dd6b92877ff469173f788160b85eb",
+      "assertionCountEst": 21,
+      "sizeBytes": 8546,
+      "lineCount": 190,
+      "sha256": "6777105aaa04b5f557eea870a1289091cdcf228a2199904f8ff52f3cd397bc9d",
       "targetDomain": "Paridad de Imágenes en GitOps",
       "targetArtifacts": [
         "scripts/verify-image-digest-parity.ts",
@@ -3012,16 +3012,16 @@
           "line": 107
         },
         {
-          "name": "🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas e invalida con clearRenderCache",
+          "name": "🔒 GitOps Parity: la caché de renderizado evita re-ejecutar helm e invalida con clearRenderCache",
           "line": 122
         },
         {
           "name": "🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web renderizado",
-          "line": 143
+          "line": 157
         },
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos",
-          "line": 150
+          "line": 164
         }
       ]
     },
@@ -3081,9 +3081,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 18746,
-      "lineCount": 432,
-      "sha256": "4c37e87a2d93d2265c851da1c06467779ba1175cde576dda8d962b06da4bd0a4",
+      "sizeBytes": 18701,
+      "lineCount": 433,
+      "sha256": "ae197c179c26bc3c13373cef174f5a81208dc8798f2430d01de0b3549348b619",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -3102,43 +3102,43 @@
       "testCases": [
         {
           "name": "🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monitoring",
-          "line": 90
+          "line": 89
         },
         {
           "name": "🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin PowerShell)",
-          "line": 161
+          "line": 160
         },
         {
           "name": "🔀 PORT-001: el script Node preserva la mitigacion de exposicion del token",
-          "line": 195
+          "line": 194
         },
         {
           "name": "🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerShell retirado",
-          "line": 216
+          "line": 215
         },
         {
           "name": "🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud",
-          "line": 232
+          "line": 231
         },
         {
           "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
-          "line": 373
+          "line": 374
         },
         {
           "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
-          "line": 387
+          "line": 388
         },
         {
           "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
-          "line": 394
+          "line": 395
         },
         {
           "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
-          "line": 412
+          "line": 413
         },
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
-          "line": 421
+          "line": 422
         }
       ]
     },
@@ -3216,9 +3216,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 10750,
+      "sizeBytes": 10747,
       "lineCount": 200,
-      "sha256": "5f34b48f3e8db4496f6b1c76dd6672dcaf6919166f65fc70c002ea053d31cf23",
+      "sha256": "ac6bf6d820f865de78a431b8fad6655e6bd4d72e6bcc859efd23c13d5e353020",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -3419,9 +3419,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 20559,
-      "lineCount": 384,
-      "sha256": "49c016b63b3a4cf44fd3d855ada76545ce5db730db2233ce70a0d15a71c19059",
+      "sizeBytes": 20662,
+      "lineCount": 385,
+      "sha256": "4e2ebc0aa2d88edb3a24b2137101230aacab3e759aa5dec48db3d3388878f9dc",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -3481,19 +3481,19 @@
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 221
+          "line": 222
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 234
+          "line": 235
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 291
+          "line": 292
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 327
+          "line": 328
         }
       ]
     },
@@ -3790,7 +3790,7 @@
       "assertionCountEst": 86,
       "sizeBytes": 15188,
       "lineCount": 211,
-      "sha256": "7a0183a360a8843a4f93cd9b7dccb399f6743e0a0dc4f11018e832e16766127a",
+      "sha256": "0129260823b041270f7c54c383ea1f89ed471187e90189ff49804db91fbb4958",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
@@ -3866,9 +3866,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 5220,
+      "sizeBytes": 5217,
       "lineCount": 130,
-      "sha256": "a8d454c50cb953d46b88482ea50d4fbb6c3336b0ed334c27c28b0c0271bb0301",
+      "sha256": "4d46f362a2d9fcbb4fddec489f11f923a1e26d3a543ad94fc7ec992bd924e60b",
       "targetDomain": "Gobernanza de Extensiones YAML",
       "targetArtifacts": [
         "scripts/check-yaml-extension.ts"
@@ -4023,9 +4023,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 49,
-      "sizeBytes": 10538,
-      "lineCount": 262,
-      "sha256": "865d44b349b04a4d5d0033c76e1d1764163cb89114c1ddf4ea7ab852b671a60d",
+      "sizeBytes": 10521,
+      "lineCount": 261,
+      "sha256": "b1b82c0254e40af30098ed68d55a92cb1aa2011fb86342340f521a454e833390",
       "targetDomain": "Servicio de Autenticación y Sesiones",
       "targetArtifacts": [
         "apps/backend/src/services/auth.ts"
@@ -4044,39 +4044,39 @@
       "testCases": [
         {
           "name": "🔐 AuthService [Unit]: getSessionSecret opera con clave efímera en desarrollo y falla en producción",
-          "line": 16
+          "line": 15
         },
         {
           "name": "🔐 AuthService [Unit]: verifyTokenSignature valida formato estructural y delimitadores",
-          "line": 48
+          "line": 47
         },
         {
           "name": "🔐 AuthService [Unit]: verifyTokenSignature rechaza firmas HMAC manipuladas con timingSafeEqual",
-          "line": 63
+          "line": 62
         },
         {
           "name": "🔐 AuthService [Unit]: verifyTokenSignature rechaza payloads JSON corruptos o no conformes",
-          "line": 93
+          "line": 92
         },
         {
           "name": "🔐 AuthService [Unit]: generateSessionToken genera tokens válidos con jti de 32 caracteres hex",
-          "line": 145
+          "line": 144
         },
         {
           "name": "🔐 AuthService [Unit]: verifySessionToken detecta expiración cronológica",
-          "line": 162
+          "line": 161
         },
         {
           "name": "🔐 AuthService [Unit]: ciclo completo de revocación local de sesión",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🔐 AuthService [Unit]: revokeSessionToken rechaza tokens apócrifos y optimiza tokens ya expirados",
-          "line": 214
+          "line": 213
         },
         {
           "name": "🔐 AuthService [Unit]: Fail-Closed ante REDIS_URL configurado pero Redis inaccesible",
-          "line": 230
+          "line": 229
         }
       ]
     },
@@ -4195,6 +4195,46 @@
       ]
     },
     {
+      "path": "tests/unit/error_helpers.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 1482,
+      "lineCount": 29,
+      "sha256": "80e700e503fb4f6194b8028ae92e11e28e7c4b2076f5f662d836c0c5dade72b2",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: error_helpers.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "errorMessage (backend): usa el mensaje de un Error y convierte otros valores a texto",
+          "line": 6
+        },
+        {
+          "name": "errorMessage (frontend): usa el mensaje de un Error y convierte otros valores a texto",
+          "line": 14
+        },
+        {
+          "name": "errorStatus: devuelve el código HTTP solo si el error lo expone como número",
+          "line": 20
+        }
+      ]
+    },
+    {
       "path": "tests/unit/migrate_baseline.test.ts",
       "suite": "unit",
       "type": "Automated Test",
@@ -4251,9 +4291,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 37,
-      "sizeBytes": 7624,
-      "lineCount": 211,
-      "sha256": "88a105787b5889d381c61fe31488cf67377fb9273b489693c6d1d5f26089cae2",
+      "sizeBytes": 7606,
+      "lineCount": 210,
+      "sha256": "6afaca22b003f292b5b5e8b08807a1a67977beef0bbb57385ade80e5145c90ac",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4270,19 +4310,19 @@
       "testCases": [
         {
           "name": "🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)",
-          "line": 122
+          "line": 121
         },
         {
           "name": "🛡️ Monolith Watch: network-security.ts está completamente desacoplado de Express, DB y servicios",
-          "line": 147
+          "line": 146
         },
         {
           "name": "🛡️ Network Security [Unit]: isPrivateOrRestrictedIp rechaza rangos restringidos y metadatos de nube",
-          "line": 159
+          "line": 158
         },
         {
           "name": "🛡️ Network Security [Unit]: validateImageUrl valida protocolo y previene SSRF",
-          "line": 186
+          "line": 185
         }
       ]
     },
@@ -4347,9 +4387,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 30,
-      "sizeBytes": 6732,
+      "sizeBytes": 6737,
       "lineCount": 196,
-      "sha256": "a51671486d8d35bb7fd11e08ac6c3ae26ca088b1ef9fbff8f8e1a7c7adc72b74",
+      "sha256": "ade7c74a761148bc2cb7d725c9e146be3ba99422bdeadc54bd9a315a18965834",
       "targetDomain": "Repositorio de Datos Pokémon",
       "targetArtifacts": [
         "apps/backend/src/services/pokemon.repository.ts"

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
-import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { lintMarkdown, parseIgnorePatterns, findMarkdownFiles } from '../scripts/lint-markdown.js';
 

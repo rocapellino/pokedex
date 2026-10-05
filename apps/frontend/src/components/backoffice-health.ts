@@ -2,6 +2,8 @@
  * Monitor de salud del backend y clúster para Pokédex Backoffice
  */
 
+import { errorMessage } from '../shared/index.js';
+
 export async function checkHealthStatus(): Promise<void> {
   const statusEl = document.getElementById('backendStatus');
   const dotEl = document.getElementById('statusDot');
@@ -18,8 +20,8 @@ export async function checkHealthStatus(): Promise<void> {
     } else {
       throw new Error(`HTTP ${res.status}`);
     }
-  } catch (err: any) {
-    statusEl.innerText = `Fallo en Healthcheck: ${err?.message || err}`;
+  } catch (err) {
+    statusEl.innerText = `Fallo en Healthcheck: ${errorMessage(err)}`;
     dotEl.style.backgroundColor = '#ef4444';
     dotEl.style.boxShadow = '0 0 8px #ef4444';
   }

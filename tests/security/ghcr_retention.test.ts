@@ -10,7 +10,7 @@ import {
   applyGhcrRetention,
   collectPinnedDigests,
   DEFAULT_PACKAGES,
-  PackageVersion,
+  type PackageVersion,
 } from '../../scripts/ghcr-retention.ts';
 
 const __filename = fileURLToPath(import.meta.url);

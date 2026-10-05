@@ -1,12 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import crypto from 'crypto';
 import { validatePokemonPayload, validateImageUrl } from '../apps/backend/src/validation/pokemon.js';
 import { parsePaginationLimit, parsePaginationOffset } from '../apps/backend/src/utils/pagination.js';
 import {
   verifyTokenSignature,
   verifySessionTokenDetailed,
-  verifySessionToken,
   revokeSessionTokenDetailed,
   getSessionSecret,
 } from '../apps/backend/src/services/auth.js';
@@ -186,7 +184,7 @@ test('🧪 Fuzzing [Pagination Limits]: parsePagination maneja valores absurdos 
 });
 
 test('🧪 Fuzzing [Auth Session Tokens]: verifyTokenSignature resiste payloads malformados masivos', async () => {
-  const secret = getSessionSecret();
+  getSessionSecret();
 
   const fuzzedTokenStructures = [
     '',
@@ -196,13 +194,13 @@ test('🧪 Fuzzing [Auth Session Tokens]: verifyTokenSignature resiste payloads 
     'header.payload.signature.extra',
     'not_base64_json.signature',
     'eyJhbGciOiJub25lIn0',
-    Buffer.from('not json at all').toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify([])).toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify(12345)).toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify(true)).toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify({ role: 123, exp: 'never', jti: {} })).toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: null })).toString('base64url') + '.validsig',
-    Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: '\x00\x00\x00' })).toString('base64url') + '.validsig',
+    `${Buffer.from('not json at all').toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify([])).toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify(12345)).toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify(true)).toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify({ role: 123, exp: 'never', jti: {} })).toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: null })).toString('base64url')}.validsig`,
+    `${Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: '\x00\x00\x00' })).toString('base64url')}.validsig`,
   ];
 
   for (const token of fuzzedTokenStructures) {

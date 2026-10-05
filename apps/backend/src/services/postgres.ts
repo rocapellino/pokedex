@@ -5,7 +5,8 @@ import pg from 'pg';
 import { sql, count } from 'drizzle-orm';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
-import { pokedexEntries, createDrizzleClient, AppDatabase, runMigrations } from '../db/index.js';
+import { errorMessage } from '../utils/errors.js';
+import { pokedexEntries, createDrizzleClient, type AppDatabase, runMigrations } from '../db/index.js';
 
 const { Pool } = pg;
 
@@ -116,7 +117,7 @@ export async function connectPg(): Promise<boolean> {
       // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
       try {
         await migrationRunner(dbUrl);
-      } catch (migErr: any) {
+      } catch (migErr) {
         // [APPS-002] Contrato por ambiente:
         //   - produccion: fail-closed. Un esquema no migrado NO es un almacén
         //     degradado, es un almacén con otra forma de datos. Continuar en
@@ -129,7 +130,7 @@ export async function connectPg(): Promise<boolean> {
             { cause: migErr }
           );
         }
-        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: migErr?.message });
+        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: errorMessage(migErr) });
       }
 
       const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);
@@ -175,7 +176,7 @@ export async function connectPg(): Promise<boolean> {
     } finally {
       client.release();
     }
-  } catch (err: any) {
+  } catch (err) {
     // [APPS-002] El sentinel de migraciones NUNCA se degrada a memoria: seria
     // exactamente el fallo que este cambio evita (arrancar "sano" con un
     // esquema distinto al declarado). Se re-lanza para que `initStorage()`
@@ -184,7 +185,7 @@ export async function connectPg(): Promise<boolean> {
       isPgConnected = false;
       throw err;
     }
-    logger.warn(`[Storage: PostgreSQL] No disponible (${err.message}). Operando con almacén en memoria`);
+    logger.warn(`[Storage: PostgreSQL] No disponible (${errorMessage(err)}). Operando con almacén en memoria`);
     isPgConnected = false;
     return false;
   }
@@ -255,8 +256,8 @@ export async function closePg(): Promise<void> {
     try {
       await pgPool.end();
       logger.info('[Storage: PostgreSQL] Pool de conexiones cerrado limpiamente');
-    } catch (err: any) {
-      logger.warn('[Storage: PostgreSQL] Error al cerrar pool', { error: err?.message || String(err) });
+    } catch (err) {
+      logger.warn('[Storage: PostgreSQL] Error al cerrar pool', { error: errorMessage(err) });
     } finally {
       pgPool = null;
       drizzleDb = null;

@@ -309,7 +309,9 @@ class Translator {
     const queue: Array<{ link: ChainLink; depth: number }> = [{ link: chain.chain, depth: 0 }];
 
     while (queue.length > 0) {
-      const { link, depth } = queue.shift()!;
+      const item = queue.shift();
+      if (!item) break;
+      const { link, depth } = item;
       const id = speciesIdFromUrl(link.species.url);
       nodes.push({
         id,

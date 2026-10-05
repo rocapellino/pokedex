@@ -14,6 +14,7 @@ import {
   showToast,
   renderEmptyState,
   fetchAllPokemons,
+  errorMessage,
 } from './shared/index.js';
 import {
   openDetailModal as openDetailModalComponent,
@@ -44,13 +45,13 @@ export async function loadPokemons(): Promise<void> {
 
     applyFilters();
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error al cargar datos:', err);
-    showToast(`Error al cargar datos: ${err?.message || err}`, true);
+    showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
     container.innerHTML = renderEmptyState({
       icon: '⚠️',
       title: 'Error al conectar con el backend',
-      description: err?.message || String(err),
+      description: errorMessage(err),
       retryBtnId: 'btnRetryConnection',
       retryBtnText: 'Reintentar Conexión',
     });

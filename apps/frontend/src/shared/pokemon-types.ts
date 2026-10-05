@@ -32,7 +32,9 @@ export function calculateWeaknesses(types: string[]): string[] {
   const weakSet = new Set<string>();
   types.forEach((t) => {
     const list = TYPE_WEAKNESSES[t] || [];
-    list.forEach((w) => weakSet.add(w));
+    list.forEach((w) => {
+      weakSet.add(w);
+    });
   });
   return Array.from(weakSet);
 }

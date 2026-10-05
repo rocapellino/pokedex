@@ -210,8 +210,8 @@ test('🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset
 test('⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación', () => {
   const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
   const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'), 'utf8');
-  assert.match(ci, /^  trivy-scan:/m);
-  assert.doesNotMatch(scheduledTrivy, /pull_request:|\n  push:/);
+  assert.match(ci, /^ {2}trivy-scan:/m);
+  assert.doesNotMatch(scheduledTrivy, /pull_request:|\n {2}push:/);
   assert.doesNotMatch(scheduledTrivy, /docker build|pokedex-server:test|pokedex-web:test/);
   assert.match(scheduledTrivy, /schedule:/);
   assert.match(scheduledTrivy, /infra-images-scan:/);
@@ -262,9 +262,9 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
   );
   assert.ok(
     ci.includes("node -e \"if (!/^(0|[1-9]\\\\d*)") &&
-      ci.includes('.test(process.argv[1])) process.exit(1)\" \"$VERSION\"') &&
+      ci.includes('.test(process.argv[1])) process.exit(1)" "$VERSION"') &&
       ci.indexOf('.test(process.argv[1])) process.exit(1)') <
-        ci.indexOf('echo \"version=$VERSION\" >> \"$GITHUB_OUTPUT\"'),
+        ci.indexOf('echo "version=$VERSION" >> "$GITHUB_OUTPUT"'),
     'El workflow debe rechazar versiones que no cumplan SemVer antes de publicar el output'
   );
   assert.ok(
@@ -368,12 +368,12 @@ test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issu
   const parsed = yamlSafeLoad(fs.readFileSync(zapPath, 'utf-8')) as any;
 
   assert.equal(
-    parsed.permissions?.['issues'],
+    parsed.permissions?.issues,
     undefined,
     'security-dast-zap.yaml no debe solicitar permiso issues: write cuando allow_issue_writing es false'
   );
   assert.equal(
-    parsed.jobs?.zap_scan?.permissions?.['issues'],
+    parsed.jobs?.zap_scan?.permissions?.issues,
     undefined,
     'El job zap_scan no debe solicitar permiso issues: write'
   );

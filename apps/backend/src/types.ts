@@ -46,6 +46,6 @@ export interface Pokemon {
   peso?: number;
   altura?: number;
   edad?: number;
-  evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode };
+  evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode; es_ramificada?: boolean };
   [key: string]: unknown;
 }

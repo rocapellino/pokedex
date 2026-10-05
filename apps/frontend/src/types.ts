@@ -49,7 +49,7 @@ export interface Pokemon {
   caracteristicas?: PokemonCaracteristicas;
   habilidades?: string[] | string;
   stats?: PokemonStats;
-  evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode };
+  evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode; es_ramificada?: boolean };
   [key: string]: unknown;
 }
 

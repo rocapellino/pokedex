@@ -24,6 +24,7 @@ export interface ValidationResult {
  * Retorna un ValidationResult ({ valid: boolean, error?: string }) para compatibilidad total
  * con los controladores de Express y la suite de tests de seguridad/pentest.
  */
+// biome-ignore lint/suspicious/noExplicitAny: cuerpo JSON sin validar; la función lo valida estructuralmente
 export function validatePokemonPayload(body: any): ValidationResult {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return { valid: false, error: 'El cuerpo de la petición debe ser un objeto JSON válido' };

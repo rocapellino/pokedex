@@ -2,7 +2,7 @@
 // Repositorio de Dominio Pokémon (Drizzle ORM con Fallback Resiliente en Memoria)
 // ==============================================================================
 import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
-import { Pokemon } from '../types.js';
+import type { Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { pokedexEntries } from '../db/index.js';

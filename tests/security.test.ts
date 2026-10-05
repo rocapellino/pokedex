@@ -12,7 +12,7 @@ import {
   buildSessionCookie,
   extractSessionTokenFromRequest,
 } from '../apps/backend/server.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
   const result = validatePokemonPayload({
@@ -253,7 +253,7 @@ test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos mod
   const [b64Payload, signature] = session.token.split('.');
   
   // Alterar firma
-  const tamperedSig = signature.slice(0, -2) + 'aa';
+  const tamperedSig = `${signature.slice(0, -2)}aa`;
   assert.equal(await verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
 
   // Alterar payload decodificado
@@ -284,6 +284,7 @@ test('🔐 Auth Session: verifyTokenSignature rechaza límites y tipos anómalos
   assert.equal(await verifySessionToken(tokenInf), false);
 
   // 2. exp descomunal (> año 2100)
+  // biome-ignore lint/correctness/noPrecisionLoss: valor extremo intencional para probar exp fuera de rango
   const tokenOverYear2100 = sign({ role: 'admin', exp: 999999999999999999, jti: '0123456789abcdef0123456789abcdef' });
   assert.equal(verifyTokenSignature(tokenOverYear2100).valid, false);
   assert.equal(await verifySessionToken(tokenOverYear2100), false);
