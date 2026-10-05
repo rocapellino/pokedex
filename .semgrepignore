@@ -10,7 +10,6 @@ test-results/
 playwright-report/
 lighthouse-results/
 .scannerwork/
-.mega-linter-reports/
 # Directorio efímero y archivos temporales de agentes/ejecución (AGENTS.md)
 tmp/
 /tmp/

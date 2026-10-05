@@ -13,7 +13,7 @@
 - [ ] `fix`: Corrección de bug (genera release patch)
 - [ ] `refactor`: Refactorización o mejora de código sin alterar comportamiento
 - [ ] `infra`: Cambios en infraestructura (Helm, OpenTofu, Kubernetes, Proxmox)
-- [ ] `ci`/`cd`: Modificaciones en GitHub Actions, MegaLinter, SonarCloud o Workflows
+- [ ] `ci`/`cd`: Modificaciones en GitHub Actions, Config Linters, SonarCloud o Workflows
 - [ ] `test`: Adición o actualización de pruebas unitarias, E2E o de integración
 - [ ] `chore`: Tareas de mantenimiento, dependencias o configuración
 - [ ] `docs`: Documentación técnica
@@ -58,7 +58,7 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 | **Helm Packaging** | — | `helm lint & parity` |
 | **OpenTofu IaC** | — | `infra.yaml (Tofu)` |
 | **Ansible Baseline** | — | `infra.yaml (Ansible)` |
-| **Linting & Configuration Hygiene** | — | `MegaLinter & npm run lint:ignore` |
+| **Linting & Configuration Hygiene** | — | `Config Linters & npm run lint:ignore` |
 | **PR Governance (always)** | — | `PR template & políticas de calidad` |
 | **Security: Secrets Scan (always)** | — | `Gitleaks Detector` |
 | **Security: SAST Code** | — | `Semgrep` |
@@ -85,7 +85,7 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 - [ ] **Pruebas E2E (Playwright):** `npm run test:e2e` (`task test:e2e`)
 - [ ] **Accesibilidad WCAG 2.1 (Axe-core):** `npm run test:a11y` (`task test:a11y`)
 - [ ] **Auditoría Core Web Vitals (Lighthouse):** `task perf:lighthouse`
-- [ ] **MegaLinter Local / CI:** Validado sin errores de sintaxis (`task lint:mega` o en CI)
+- [ ] **Config Linters Local / CI:** Actionlint y ShellCheck sin errores (`task lint:config` o en CI)
 - [ ] **SonarCloud Quality Gate:** Analizado y conforme a estándar A
 - [ ] **Seguridad & SAST:** Semgrep, Dependency Review, Trivy y Gitleaks (`npm run test:fuzz`)
 - [ ] **Paridad GitOps / Digest Pinning:** `npm run gitops:verify-parity:strict`

@@ -30,7 +30,6 @@ playwright-report/
 lighthouse-results/
 .lighthouseci/
 .scannerwork/
-.mega-linter-reports/
 .sonarlint/
 
 # ==============================================================================
