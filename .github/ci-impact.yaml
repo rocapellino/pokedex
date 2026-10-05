@@ -251,6 +251,8 @@ rules:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'infra/**/*.yaml'
+      # Dashboards de Grafana: contrato validado por tests/security/grafana_portability.test.ts
+      - 'infra/monitoring/dashboards/*.json'
       # Documentación operacional de soporte a infraestructura
       - 'infra/**/README.md'
       - 'scripts/**/*.sh'
