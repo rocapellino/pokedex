@@ -54,7 +54,8 @@ app.use(requestTracer);
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  // Desactiva el auditor XSS heredado de los navegadores (OWASP): la defensa real es la CSP.
+  res.setHeader('X-XSS-Protection', '0');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
@@ -174,22 +175,17 @@ function getBackofficeHtml(): string {
 
 // Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
 // antes de que express.static sirva cualquier archivo estático
-app.get(
-  ['/admin', '/backoffice', '/backoffice.html'],
-  globalRateLimiter,
-  adminIpRestricted,
-  (_req: Request, res: Response) => {
-    const html = getBackofficeHtml();
-    if (!html) {
-      return res.status(404).json({ error: 'Panel administrativo no disponible' });
-    }
-    res.type('html').send(html);
-  },
-);
+app.get(['/admin', '/backoffice', '/backoffice.html'], adminIpRestricted, (_req: Request, res: Response) => {
+  const html = getBackofficeHtml();
+  if (!html) {
+    return res.status(404).json({ error: 'Panel administrativo no disponible' });
+  }
+  res.type('html').send(html);
+});
 
 app.use(express.static(PUBLIC_DIR));
 
-app.get('/{*splat}', globalRateLimiter, (_req: Request, res: Response) => {
+app.get('/{*splat}', (_req: Request, res: Response) => {
   const html = getIndexHtml();
   if (!html) {
     return res.status(404).json({ error: 'Aplicación cliente no disponible' });

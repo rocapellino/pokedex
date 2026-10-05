@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T22:19:24.473Z",
+  "generatedAt": "2026-10-05T22:31:11.046Z",
   "summary": {
-    "totalFiles": 74,
-    "testFiles": 69,
+    "totalFiles": 75,
+    "testFiles": 70,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 595,
-    "totalLines": 16743,
-    "totalSizeBytes": 728364,
+    "totalTestCases": 597,
+    "totalLines": 16801,
+    "totalSizeBytes": 730706,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 25,
-      "testCases": 212,
+      "files": 26,
+      "testCases": 214,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3143,6 +3143,42 @@
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
           "line": 449
+        }
+      ]
+    },
+    {
+      "path": "tests/security/http_hardening.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 4,
+      "sizeBytes": 2342,
+      "lineCount": 58,
+      "sha256": "99892b6b6c4876640e20cfe9af3ee0805dd881306fe5825420d5e2933b2b29fe",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: http_hardening.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ HTTP Hardening: X-XSS-Protection desactiva el auditor heredado y la CSP sigue presente",
+          "line": 30
+        },
+        {
+          "name": "🛡️ HTTP Hardening: una petición al fallback SPA consume un solo cupo del limitador global",
+          "line": 40
         }
       ]
     },
