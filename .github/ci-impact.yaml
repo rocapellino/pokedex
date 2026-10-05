@@ -26,7 +26,6 @@ global:
   paths:
     - "package.json"
     - "package-lock.json"
-    - "turbo.json"
     - "tsconfig.json"
     - "biome.json"
     - ".pre-commit-config.yaml"

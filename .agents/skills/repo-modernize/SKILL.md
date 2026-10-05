@@ -14,7 +14,7 @@ Evaluar objetivamente oportunidades de modernización del stack tecnológico, fr
 - **Criterio Anti-Hype:** Queda prohibido recomendar migraciones o sustitución de herramientas únicamente por novedad o tendencia. Todo reemplazo debe sustentarse en ventajas funcionales, de seguridad o de rendimiento cuantificables.
 - **Runtime y Plataforma:**
   - Evaluación de versiones de Node.js (manteniendo una LTS activa; versión vigente en `.tool-versions`), npm (`packageManager`) y TypeScript.
-  - Opciones de orquestación de monorepos y aceleración de builds (`turbo`, esbuild, vite).
+  - Opciones de orquestación de monorepos y aceleración de builds (esbuild, vite).
 - **Herramientas de Validación y Testing:**
   - Modernización de test runners (ej. node:test vs suites legacy).
   - Optimización de linters, formateadores y reglas de compilación estricta (`tsconfig.json`).
