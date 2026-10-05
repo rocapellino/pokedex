@@ -28,27 +28,33 @@ test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante
     const image = extractRenderedApiImage(chartPath, fullPath);
 
     assert.ok(image, `Debe extraer imagen válida para ${envFile}`);
-    assert.match(image, /^ghcr\.io\/rocapellino\/pokedex-api@sha256:[a-f0-9]{64}$/, `La imagen renderizada en ${envFile} debe apuntar al registry y tener digest SHA256 inmutable`);
+    assert.match(
+      image,
+      /^ghcr\.io\/rocapellino\/pokedex-api@sha256:[a-f0-9]{64}$/,
+      `La imagen renderizada en ${envFile} debe apuntar al registry y tener digest SHA256 inmutable`,
+    );
   }
 });
 
 test('🔒 GitOps Parity: parseImmutableDigest valida formato SHA256 y rechaza etiquetas mutables', () => {
   // Caso válido
-  const validDigest = parseImmutableDigest('ghcr.io/rocapellino/pokedex-api@sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd');
+  const validDigest = parseImmutableDigest(
+    'ghcr.io/rocapellino/pokedex-api@sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd',
+  );
   assert.strictEqual(validDigest, 'sha256:4113ac3d61577bd4eef013e80ec8f05ffcfa4c079b51a1dcec9d884dacc4ddbd');
 
   // Casos inválidos que deben fallar
   assert.throws(
     () => parseImmutableDigest('ghcr.io/rocapellino/pokedex-api:latest'),
-    /Violación de seguridad de Supply Chain: La imagen '.*' no utiliza digest inmutable/
+    /Violación de seguridad de Supply Chain: La imagen '.*' no utiliza digest inmutable/,
   );
   assert.throws(
     () => parseImmutableDigest('ghcr.io/rocapellino/pokedex-api:v1.9.5'),
-    /Violación de seguridad de Supply Chain: La imagen '.*' no utiliza digest inmutable/
+    /Violación de seguridad de Supply Chain: La imagen '.*' no utiliza digest inmutable/,
   );
   assert.throws(
     () => parseImmutableDigest('ghcr.io/rocapellino/pokedex-api@sha256:shortinvalid'),
-    /Formato de digest SHA256 inválido/
+    /Formato de digest SHA256 inválido/,
   );
 });
 
@@ -73,7 +79,7 @@ test('🔒 GitOps Parity: el gate estricto incluye Proxmox Pre-prod en el conjun
 
   assert.ok(
     files.includes('gitops/environments/proxmox-preprod/values.yaml'),
-    'El gate de paridad DEBE validar también el entorno Proxmox Pre-prod'
+    'El gate de paridad DEBE validar también el entorno Proxmox Pre-prod',
   );
 });
 
@@ -83,7 +89,7 @@ test('🔒 GitOps Parity: verifyImageDigestParity detecta discrepancias con dige
 
   assert.throws(
     () => verifyImageDigestParity({ chartPath, publishedDigest: fakeDigest }),
-    /Discrepancia entre la imagen publicada en CI y los manifiestos GitOps/
+    /Discrepancia entre la imagen publicada en CI y los manifiestos GitOps/,
   );
 });
 
@@ -93,14 +99,14 @@ test('🔒 Supply Chain: .github/workflows/ci.yaml utiliza validación determini
   // Asegurar que no use grep -A 4 ni awk para extraer digests en CI
   assert.ok(
     !ciWorkflow.includes("grep -A 4 'pokedex-api'"),
-    'ci.yaml no debe utilizar grep -A 4 para extraer digests de GitOps'
+    'ci.yaml no debe utilizar grep -A 4 para extraer digests de GitOps',
   );
 
   // Asegurar que invoque el script determinista verify-image-digest-parity.ts con flag --strict
   assert.match(
     ciWorkflow,
     /verify-image-digest-parity\.ts.*--strict/,
-    'ci.yaml debe invocar scripts/verify-image-digest-parity.ts en modo estricto (--strict)'
+    'ci.yaml debe invocar scripts/verify-image-digest-parity.ts en modo estricto (--strict)',
   );
 });
 
@@ -115,7 +121,7 @@ test('🔒 Supply Chain: extractRenderedApiImage en modo estricto (strict: true)
   // Caso 2: Si el chart es inválido o no existe, en modo estricto NUNCA usa fallback a AST y lanza error
   assert.throws(
     () => extractRenderedApiImage(path.join(ROOT_DIR, 'non-existent-chart'), validValues, { strict: true }),
-    /Ruta de Helm chart no encontrada/
+    /Ruta de Helm chart no encontrada/,
   );
 });
 
@@ -137,14 +143,14 @@ test('🔒 GitOps Parity: la caché de renderizado evita re-ejecutar helm e inva
     assert.throws(
       () => extractRenderedApiImage(chartPath, validValues, { strict: true, skipCache: true }),
       /Modo Estricto CI/,
-      'skipCache debe forzar un nuevo render (y fallar sin helm)'
+      'skipCache debe forzar un nuevo render (y fallar sin helm)',
     );
 
     clearRenderCache();
     assert.throws(
       () => extractRenderedApiImage(chartPath, validValues, { strict: true }),
       /Modo Estricto CI/,
-      'clearRenderCache debe invalidar la entrada'
+      'clearRenderCache debe invalidar la entrada',
     );
   } finally {
     process.env.PATH = originalPath;
@@ -181,7 +187,7 @@ test('🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest
             { name: 'B', file: path.join(tmp, 'b.yaml') },
           ],
         }),
-      /web/
+      /web/,
     );
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });

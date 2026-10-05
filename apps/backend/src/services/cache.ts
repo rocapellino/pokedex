@@ -5,11 +5,11 @@ import { Redis } from 'ioredis';
 import { logger } from '../utils/logger.js';
 import { errorMessage } from '../utils/errors.js';
 
-const REDIS_URL = process.env.REDIS_URL || (
-  process.env.REDIS_HOST
+const REDIS_URL =
+  process.env.REDIS_URL ||
+  (process.env.REDIS_HOST
     ? `redis://${process.env.REDIS_PASSWORD ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@` : ''}${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
-    : undefined
-);
+    : undefined);
 
 let redisClient: Redis | null = null;
 let isRedisConnected = false;
@@ -47,7 +47,9 @@ export async function connectRedis(): Promise<boolean> {
   } catch (err) {
     logger.warn(`[Cache: Redis] No disponible (${errorMessage(err)}). Caching en memoria desactivado`);
     if (redisClient) {
-      try { redisClient.disconnect(); } catch {}
+      try {
+        redisClient.disconnect();
+      } catch {}
       redisClient = null;
     }
     isRedisConnected = false;
@@ -107,7 +109,7 @@ export async function invalidateCache(id?: number): Promise<void> {
 export async function consumeDistributedRateLimit(
   key: string,
   limit: number,
-  windowMs: number
+  windowMs: number,
 ): Promise<{ allowed: boolean; retryAfterSeconds: number; remaining: number } | null> {
   if (!isRedisConnected || !redisClient) {
     return null; // Fallback a ventana local en memoria

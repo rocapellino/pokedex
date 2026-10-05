@@ -24,7 +24,9 @@ async function main() {
     await initStorage();
     const health = getStorageHealth();
 
-    console.log(`📡 [Seed Job] Modo de almacenamiento activo: ${health.database.toUpperCase()} (PG conectado: ${health.postgres_connected})`);
+    console.log(
+      `📡 [Seed Job] Modo de almacenamiento activo: ${health.database.toUpperCase()} (PG conectado: ${health.postgres_connected})`,
+    );
 
     // 2. Comparar el catálogo con los IDs ya persistidos
     const existingIds = await listPersistedPokemonIds();
@@ -38,7 +40,9 @@ async function main() {
       console.warn(`⚠️ [Seed Job: Seguridad] ${plan.blockedForce}`);
     }
     if (plan.mode === 'force-sync') {
-      console.warn('⚠️ [Seed Job: Advertencia] FORCE_SEED activado explícitamente: se reescribirán los registros del catálogo base.');
+      console.warn(
+        '⚠️ [Seed Job: Advertencia] FORCE_SEED activado explícitamente: se reescribirán los registros del catálogo base.',
+      );
     }
 
     if (plan.toSeed.length === 0) {
@@ -47,7 +51,9 @@ async function main() {
     }
 
     // 3. Sembrar (insertar faltantes o reescribir con FORCE_SEED)
-    console.log(`🚀 [Seed Job] Sembrando ${plan.toSeed.length} entradas (${plan.mode}) en almacenamiento persistente...`);
+    console.log(
+      `🚀 [Seed Job] Sembrando ${plan.toSeed.length} entradas (${plan.mode}) en almacenamiento persistente...`,
+    );
     let count = 0;
     for (const p of plan.toSeed) {
       await savePokemon(p);

@@ -86,12 +86,12 @@ test('📦 GHCR Retention: calculateVersionsToPrune conserva estrictamente los �
   assert.deepEqual(
     result.keep.map((v) => v.id),
     [4, 3, 2],
-    'Las versiones conservadas deben ser las de fechas más recientes'
+    'Las versiones conservadas deben ser las de fechas más recientes',
   );
   assert.deepEqual(
     result.prune.map((v) => v.id),
     [1, 5],
-    'Las versiones purgadas deben ser las más antiguas'
+    'Las versiones purgadas deben ser las más antiguas',
   );
 
   // Caso borde: lista vacía
@@ -151,11 +151,11 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
   // Se quitó la acción de terceros que repetía la poda dentro del mismo job.
   assert.ok(
     retentionWf.includes('scripts/ghcr-retention.ts'),
-    'ghcr-retention.yaml debe delegar la retención en el script canónico tipado'
+    'ghcr-retention.yaml debe delegar la retención en el script canónico tipado',
   );
   assert.ok(
     !withoutComments(retentionWf).includes('dataaxiom/ghcr-cleanup-action'),
-    'ghcr-retention.yaml no debe volver a duplicar la poda dentro del mismo job (WF-003)'
+    'ghcr-retention.yaml no debe volver a duplicar la poda dentro del mismo job (WF-003)',
   );
   // 2. ci.yaml ya no aplica retención inline: `keep-n-tagged: 3` purgaba digests todavía
   //    fijados en GitOps y `delete-untagged` eliminaba referrers de firmas y atestaciones.
@@ -163,7 +163,7 @@ test('🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y par�
   const ciWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
   assert.ok(
     !withoutComments(ciWf).includes('dataaxiom/ghcr-cleanup-action'),
-    'ci.yaml no debe aplicar retención inline sin proteger los digests fijados en GitOps'
+    'ci.yaml no debe aplicar retención inline sin proteger los digests fijados en GitOps',
   );
 
   // 3. package.json y Taskfile.yaml exponen las tareas oficiales
@@ -207,20 +207,35 @@ test('📦 GHCR Retention: firmas, SBOM y versiones sin tag no desplazan ni purg
 
   const { keep, prune } = calculateVersionsToPrune([image, signature, sbom, referrer, ...older], 3);
 
-  assert.ok(keep.some((v) => v.id === image.id), 'La imagen más reciente debe conservarse');
-  assert.deepEqual(prune.map((v) => v.id), [5], 'Solo se purga la imagen de release más antigua fuera del top 3');
+  assert.ok(
+    keep.some((v) => v.id === image.id),
+    'La imagen más reciente debe conservarse',
+  );
+  assert.deepEqual(
+    prune.map((v) => v.id),
+    [5],
+    'Solo se purga la imagen de release más antigua fuera del top 3',
+  );
   for (const artifact of [signature, sbom, referrer]) {
-    assert.ok(!prune.some((v) => v.id === artifact.id), `La versión ${artifact.id} (artefacto Cosign o sin tag) no se purga`);
+    assert.ok(
+      !prune.some((v) => v.id === artifact.id),
+      `La versión ${artifact.id} (artefacto Cosign o sin tag) no se purga`,
+    );
   }
 });
 
 test('📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede fuera del top N', () => {
   const pinned = version(10, '9', '2026-09-01T10:00:00Z', ['v1.80.0']);
-  const recent = [11, 12, 13].map((id) => version(id, String(id - 10), `2026-10-0${id - 10}T10:00:00Z`, [`v1.9${id}.0`]));
+  const recent = [11, 12, 13].map((id) =>
+    version(id, String(id - 10), `2026-10-0${id - 10}T10:00:00Z`, [`v1.9${id}.0`]),
+  );
 
   const { keep, prune } = calculateVersionsToPrune([pinned, ...recent], 3, new Set([pinned.name]));
 
-  assert.ok(keep.some((v) => v.id === pinned.id), 'El digest fijado debe conservarse');
+  assert.ok(
+    keep.some((v) => v.id === pinned.id),
+    'El digest fijado debe conservarse',
+  );
   assert.equal(prune.length, 0);
 });
 

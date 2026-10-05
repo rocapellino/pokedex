@@ -77,7 +77,10 @@ test('🛡️ GitHub Security Linear Sync: formatDependabotTitle formatea paquet
   };
 
   const title = formatDependabotTitle(alert);
-  assert.equal(title, '[GitHub Dependabot #42] express (GHSA-xxxx-yyyy-zzzz): Express prototype pollution in query parser');
+  assert.equal(
+    title,
+    '[GitHub Dependabot #42] express (GHSA-xxxx-yyyy-zzzz): Express prototype pollution in query parser',
+  );
 });
 
 test('🛡️ GitHub Security Linear Sync: formatSecretScanningTitle formatea el tipo de secreto expuesto', () => {
@@ -95,10 +98,13 @@ test('🛡️ GitHub Security Linear Sync: formatSecretScanningTitle formatea el
 });
 
 test('🛡️ GitHub Security Linear Sync: extractAlertKeyFromTitle extrae herramienta y número de alerta', () => {
-  assert.deepEqual(extractAlertKeyFromTitle('[GitHub CodeQL #18] Use of password hash with insufficient computational effort'), {
-    tool: 'codeql',
-    number: 18,
-  });
+  assert.deepEqual(
+    extractAlertKeyFromTitle('[GitHub CodeQL #18] Use of password hash with insufficient computational effort'),
+    {
+      tool: 'codeql',
+      number: 18,
+    },
+  );
 
   assert.deepEqual(extractAlertKeyFromTitle('[GitHub Dependabot #42] express (GHSA-xxxx): Prototype pollution'), {
     tool: 'dependabot',
@@ -222,10 +228,7 @@ function repoWorkflowNames(): Set<string> {
 
 /** Entradas de la lista `workflow_run.workflows` del workflow de sincronización. */
 function declaredWorkflowRunTriggers(): string[] {
-  const content = fs.readFileSync(
-    path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'),
-    'utf-8'
-  );
+  const content = fs.readFileSync(path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'), 'utf-8');
   // Se acota al bloque `workflows:` del trigger workflow_run para no capturar
   // otras listas del archivo.
   const runBlock = content.slice(content.indexOf('workflow_run:'));
@@ -246,7 +249,7 @@ test('🚨 WF-002: los triggers workflow_run referencian workflows que existen',
     dead,
     [],
     `Triggers workflow_run que no corresponden a ningún workflow existente: ${dead.join(' | ')}. ` +
-      'Un nombre inválido no da error: el trigger simplemente nunca dispara.'
+      'Un nombre inválido no da error: el trigger simplemente nunca dispara.',
   );
 });
 
@@ -256,23 +259,17 @@ test('🚨 WF-002: se cubren los productores de alertas de seguridad', () => {
   // Sin esto, Gitleaks y CodeQL solo se sincronizarían por el schedule diario.
   assert.ok(
     declared.includes('🔐 Security Scan (Gitleaks)'),
-    'Gitleaks sube SARIF a Code Scanning y debe disparar la sincronización'
+    'Gitleaks sube SARIF a Code Scanning y debe disparar la sincronización',
   );
   assert.ok(
     declared.includes('🛡️ Security & Code Scanning SAST (njsscan, Hadolint & Trivy IaC)'),
-    'El pipeline SAST (njsscan/Hadolint/Trivy IaC) debe disparar la sincronización'
+    'El pipeline SAST (njsscan/Hadolint/Trivy IaC) debe disparar la sincronización',
   );
-  assert.ok(
-    declared.includes('CodeQL'),
-    'CodeQL genera alertas de Code Scanning y debe disparar la sincronización'
-  );
+  assert.ok(declared.includes('CodeQL'), 'CodeQL genera alertas de Code Scanning y debe disparar la sincronización');
 
   // El schedule diario es la red de seguridad: sin él, un workflow_run fallido
   // dejaría las alertas sin sincronizar indefinidamente.
-  const content = fs.readFileSync(
-    path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'),
-    'utf-8'
-  );
+  const content = fs.readFileSync(path.join(WORKFLOWS_DIR, 'github-security-linear-sync.yaml'), 'utf-8');
   assert.match(content, /schedule:/, 'Debe mantenerse el schedule diario como red de seguridad');
   assert.match(content, /cron:\s*["']?0 4 \* \* \*["']?/, 'El schedule diario debe mantenerse');
 });

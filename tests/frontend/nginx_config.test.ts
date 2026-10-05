@@ -27,26 +27,22 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
   assert.doesNotMatch(
     webWf,
     /nginx:\d+\.\d+/,
-    'web.yaml no debe hardcodear una version de Nginx: debe extraerse del Dockerfile (SSOT)'
+    'web.yaml no debe hardcodear una version de Nginx: debe extraerse del Dockerfile (SSOT)',
   );
 
   // 2. El workflow debe resolver la imagen desde el Dockerfile.
   assert.match(
     webWf,
     /DOCKERFILE=apps\/frontend\/Dockerfile/,
-    'web.yaml debe apuntar al Dockerfile del frontend como SSOT'
+    'web.yaml debe apuntar al Dockerfile del frontend como SSOT',
   );
-  assert.match(
-    webWf,
-    /grep -oE '\^FROM nginx:/,
-    'web.yaml debe extraer la imagen de Nginx del Dockerfile'
-  );
+  assert.match(webWf, /grep -oE '\^FROM nginx:/, 'web.yaml debe extraer la imagen de Nginx del Dockerfile');
 
   // 3. La validacion debe usar la plantilla que realmente despliega produccion.
   assert.match(
     webWf,
     /nginx\.conf\.template/,
-    'web.yaml debe validar nginx.conf.template, que es lo que renderiza el Dockerfile en produccion'
+    'web.yaml debe validar nginx.conf.template, que es lo que renderiza el Dockerfile en produccion',
   );
   // El renderizado no puede ejecutarse inline con `node -e`: los backticks y
   // los `${...}` se interpretan como command substitution en bash y la
@@ -54,34 +50,30 @@ test('🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfil
   assert.match(
     webWf,
     /node scripts\/generate-nginx-conf\.mjs --render/,
-    'web.yaml debe delegar el renderizado en scripts/generate-nginx-conf.mjs --render'
+    'web.yaml debe delegar el renderizado en scripts/generate-nginx-conf.mjs --render',
   );
-  assert.doesNotMatch(
-    webWf,
-    /node -e/,
-    'web.yaml no debe usar `node -e` inline: bash expande los backticks y ${...}'
-  );
+  assert.doesNotMatch(webWf, /node -e/, 'web.yaml no debe usar `node -e` inline: bash expande los backticks y ${...}');
   // El template declara `proxy_pass http://api:3000`, y `nginx -t` resuelve los
   // hosts de upstream en tiempo de validacion: sin --add-host falla.
   assert.match(webWf, /proxy_pass/, 'sanity: el template debe usar proxy_pass');
   assert.match(
     webWf,
     /--add-host=api:127\.0\.0\.1/,
-    'web.yaml debe resolver el host `api`, usado por proxy_pass en nginx.conf.template'
+    'web.yaml debe resolver el host `api`, usado por proxy_pass en nginx.conf.template',
   );
 
   // 4. La documentacion de seguridad debe reflejar la imagen real, no una anterior.
   const securityDoc = fs.readFileSync(
     path.join(ROOT_DIR, 'docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md'),
-    'utf-8'
+    'utf-8',
   );
   assert.ok(
     securityDoc.includes(version),
-    `SECURITY_AND_NETWORK_ISOLATION.md debe documentar la version productiva ${version}`
+    `SECURITY_AND_NETWORK_ISOLATION.md debe documentar la version productiva ${version}`,
   );
   assert.ok(
     securityDoc.includes(digest),
-    'SECURITY_AND_NETWORK_ISOLATION.md debe documentar el digest productivo real'
+    'SECURITY_AND_NETWORK_ISOLATION.md debe documentar el digest productivo real',
   );
 });
 
@@ -90,10 +82,7 @@ test('🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si
   assert.ok(fs.existsSync(scriptPath), 'scripts/generate-nginx-conf.mjs debe existir');
 
   const script = fs.readFileSync(scriptPath, 'utf-8');
-  const template = fs.readFileSync(
-    path.join(ROOT_DIR, 'apps/frontend/nginx.conf.template'),
-    'utf-8'
-  );
+  const template = fs.readFileSync(path.join(ROOT_DIR, 'apps/frontend/nginx.conf.template'), 'utf-8');
 
   // Toda variable usada por la plantilla debe estar contemplada por el renderizador.
   const used = [...new Set([...template.matchAll(/\$\{(\w+)\}/g)].map((m) => m[1]))];
@@ -114,14 +103,10 @@ test('🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si
       },
     });
     const rendered = fs.readFileSync(outOk, 'utf-8');
-    assert.doesNotMatch(
-      rendered,
-      /\$\{\w+\}/,
-      'La configuracion renderizada no debe conservar placeholders'
-    );
+    assert.doesNotMatch(rendered, /\$\{\w+\}/, 'La configuracion renderizada no debe conservar placeholders');
     assert.ok(
       rendered.includes('allow 10.42.0.1/32;'),
-      'La IP del backoffice debe quedar sustituida en la configuracion'
+      'La IP del backoffice debe quedar sustituida en la configuracion',
     );
   } finally {
     if (fs.existsSync(outOk)) fs.rmSync(outOk, { force: true });
@@ -158,19 +143,19 @@ test('📦 OCI-001: los labels de imagen usan la version y revision reales', () 
     assert.doesNotMatch(
       content,
       /^\s*version="/m,
-      `${relPath} no debe declarar un label \`version\` generico (OCI-001)`
+      `${relPath} no debe declarar un label \`version\` generico (OCI-001)`,
     );
 
     // Version y revision OCI deben venir de los build-args inyectados por CI.
     assert.match(
       content,
       /org\.opencontainers\.image\.version="\$\{APP_VERSION\}"/,
-      `${relPath} debe declarar org.opencontainers.image.version desde APP_VERSION`
+      `${relPath} debe declarar org.opencontainers.image.version desde APP_VERSION`,
     );
     assert.match(
       content,
       /org\.opencontainers\.image\.revision="\$\{GIT_SHA\}"/,
-      `${relPath} debe declarar org.opencontainers.image.revision desde GIT_SHA`
+      `${relPath} debe declarar org.opencontainers.image.revision desde GIT_SHA`,
     );
 
     // Los ARG deben declararse ANTES del LABEL para que puedan expandirse.
@@ -181,7 +166,7 @@ test('📦 OCI-001: los labels de imagen usan la version y revision reales', () 
 
     assert.ok(
       content.includes(`org.opencontainers.image.title="${title}"`),
-      `${relPath} debe declarar el titulo OCI ${title}`
+      `${relPath} debe declarar el titulo OCI ${title}`,
     );
   }
 });
@@ -207,12 +192,20 @@ test('🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta re
       const full = path.join(dir, entry.name);
       return entry.isDirectory() ? listFiles(full) : full.endsWith('.ts') ? [full] : [];
     });
-  const read = (dir: string) => listFiles(path.join(ROOT_DIR, dir)).map((file) => fs.readFileSync(file, 'utf-8')).join('\n');
+  const read = (dir: string) =>
+    listFiles(path.join(ROOT_DIR, dir))
+      .map((file) => fs.readFileSync(file, 'utf-8'))
+      .join('\n');
 
-  const frontendCalls = [...new Set([...read('apps/frontend/src').matchAll(/['`"](\/api\/[^'`"?$]+)/g)].map((m) => m[1]))];
+  const frontendCalls = [
+    ...new Set([...read('apps/frontend/src').matchAll(/['`"](\/api\/[^'`"?$]+)/g)].map((m) => m[1])),
+  ];
   const backendRoutes = new Set(
-    [...(read('apps/backend/src/routes') + fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8'))
-      .matchAll(/(?:Router|app)\.(?:get|post|put|patch|delete)\('([^']+)'/g)].map((m) => m[1])
+    [
+      ...(
+        read('apps/backend/src/routes') + fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8')
+      ).matchAll(/(?:Router|app)\.(?:get|post|put|patch|delete)\(\s*'([^']+)'/g),
+    ].map((m) => m[1]),
   );
 
   assert.ok(frontendCalls.length > 0, 'El frontend debe consumir al menos una ruta /api/');

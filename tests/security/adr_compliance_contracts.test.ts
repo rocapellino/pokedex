@@ -23,7 +23,7 @@ test('🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegia
   assert.equal(
     content.includes('--exclude scripts'),
     false,
-    '.github/workflows/ci.yaml no debe excluir scripts del análisis SAST de Semgrep'
+    '.github/workflows/ci.yaml no debe excluir scripts del análisis SAST de Semgrep',
   );
 });
 
@@ -39,16 +39,10 @@ test('🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estruc
 
   assert.ok(
     content.includes("responseMimeType: 'application/json'"),
-    'ai.ts debe exigir responseMimeType application/json para garantizar contratos estructurados'
+    'ai.ts debe exigir responseMimeType application/json para garantizar contratos estructurados',
   );
-  assert.ok(
-    content.includes('mermaid_code'),
-    'generateDiagram debe solicitar clave estructurada mermaid_code'
-  );
-  assert.ok(
-    content.includes('html_code'),
-    'generateMockup debe solicitar clave estructurada html_code'
-  );
+  assert.ok(content.includes('mermaid_code'), 'generateDiagram debe solicitar clave estructurada mermaid_code');
+  assert.ok(content.includes('html_code'), 'generateMockup debe solicitar clave estructurada html_code');
 });
 
 test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals', () => {
@@ -58,13 +52,10 @@ test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupue
 
   assert.ok(content.ci, 'lighthouserc.json debe tener sección ci');
   assert.ok(content.ci.assert?.assertions, 'lighthouserc.json debe definir assertions');
-  assert.ok(
-    content.ci.assert.assertions['categories:performance'],
-    'Debe definir presupuesto mínimo para performance'
-  );
+  assert.ok(content.ci.assert.assertions['categories:performance'], 'Debe definir presupuesto mínimo para performance');
   assert.ok(
     content.ci.assert.assertions['categories:accessibility'],
-    'Debe definir presupuesto mínimo para accessibility'
+    'Debe definir presupuesto mínimo para accessibility',
   );
 });
 
@@ -81,55 +72,43 @@ test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coheren
   const alertsContent = fs.readFileSync(alertsPath, 'utf-8');
 
   // Coherencia con alertas de estado de infraestructura
-  assert.ok(
-    serverContent.includes('pokedex_storage_status'),
-    'metrics.ts debe exponer pokedex_storage_status'
-  );
+  assert.ok(serverContent.includes('pokedex_storage_status'), 'metrics.ts debe exponer pokedex_storage_status');
   assert.ok(
     alertsContent.includes('pokedex_storage_status == 0'),
-    'alerts.yaml debe monitorear desconexión de base de datos'
+    'alerts.yaml debe monitorear desconexión de base de datos',
   );
 
-  assert.ok(
-    serverContent.includes('pokedex_redis_status'),
-    'server.ts debe exponer pokedex_redis_status'
-  );
-  assert.ok(
-    alertsContent.includes('pokedex_redis_status == 0'),
-    'alerts.yaml debe monitorear desconexión de Redis'
-  );
+  assert.ok(serverContent.includes('pokedex_redis_status'), 'server.ts debe exponer pokedex_redis_status');
+  assert.ok(alertsContent.includes('pokedex_redis_status == 0'), 'alerts.yaml debe monitorear desconexión de Redis');
 
   // Coherencia con métricas estándar HTTP y latencia
-  assert.ok(
-    serverContent.includes('http_requests_total'),
-    'server.ts debe exponer http_requests_total estándar'
-  );
+  assert.ok(serverContent.includes('http_requests_total'), 'server.ts debe exponer http_requests_total estándar');
   assert.ok(
     alertsContent.includes('http_requests_total'),
-    'alerts.yaml debe evaluar tasa de errores sobre http_requests_total'
+    'alerts.yaml debe evaluar tasa de errores sobre http_requests_total',
   );
 
   assert.ok(
     serverContent.includes('http_request_duration_seconds_bucket'),
-    'server.ts debe exponer buckets de histograma para duración de requests'
+    'server.ts debe exponer buckets de histograma para duración de requests',
   );
   assert.ok(
     alertsContent.includes('http_request_duration_seconds_bucket'),
-    'alerts.yaml debe calcular percentil P99 con http_request_duration_seconds_bucket'
+    'alerts.yaml debe calcular percentil P99 con http_request_duration_seconds_bucket',
   );
 
   // Coherencia con disyuntor de IA (Gemini)
   assert.ok(
     serverContent.includes('pokedex_ai_circuit_breaker_open'),
-    'server.ts debe exponer pokedex_ai_circuit_breaker_open'
+    'server.ts debe exponer pokedex_ai_circuit_breaker_open',
   );
   assert.ok(
     alertsContent.includes('PokedexAICircuitBreakerOpen'),
-    'alerts.yaml debe definir alerta PokedexAICircuitBreakerOpen'
+    'alerts.yaml debe definir alerta PokedexAICircuitBreakerOpen',
   );
   assert.ok(
     alertsContent.includes('pokedex_ai_circuit_breaker_open == 1'),
-    'alerts.yaml debe evaluar condición de circuito de IA abierto'
+    'alerts.yaml debe evaluar condición de circuito de IA abierto',
   );
 });
 
@@ -144,7 +123,10 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
 
   const smContent = fs.readFileSync(serviceMonitorPath, 'utf-8');
   assert.ok(smContent.includes('kind: ServiceMonitor'), 'Debe definir tipo ServiceMonitor');
-  assert.ok(smContent.includes('apiVersion: monitoring.coreos.com/v1'), 'Debe usar apiVersion monitoring.coreos.com/v1');
+  assert.ok(
+    smContent.includes('apiVersion: monitoring.coreos.com/v1'),
+    'Debe usar apiVersion monitoring.coreos.com/v1',
+  );
   assert.ok(smContent.includes('path: /metrics'), 'Debe apuntar a /metrics');
 
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
@@ -176,10 +158,17 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
   const expectedHelmVersion = `v${helmVersionMatch[1]}`;
 
   // Extraer todas las versiones configuradas para setup-helm en infra.yaml y ci.yaml
-  const infraVersions = Array.from(infraContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
-  assert.ok(infraVersions.length >= 2, 'infra.yaml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)');
+  const infraVersions = Array.from(
+    infraContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g),
+  ).map((m) => m[1]);
+  assert.ok(
+    infraVersions.length >= 2,
+    'infra.yaml debe configurar Helm en al menos 2 jobs (validate-iac y kind-integration)',
+  );
 
-  const ciVersions = Array.from(ciContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g)).map(m => m[1]);
+  const ciVersions = Array.from(
+    ciContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g),
+  ).map((m) => m[1]);
   assert.ok(ciVersions.length >= 1, 'ci.yaml debe configurar Helm en el job publish');
 
   const allVersions = [...infraVersions, ...ciVersions];
@@ -187,7 +176,7 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
     assert.equal(
       ver,
       expectedHelmVersion,
-      `Cada workflow de CI (infra.yaml, ci.yaml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`
+      `Cada workflow de CI (infra.yaml, ci.yaml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`,
     );
   }
 });
@@ -203,13 +192,13 @@ test('🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cu
   const runbookContent = fs.readFileSync(runbookPath, 'utf-8');
 
   // Extraer nombres de alertas de alerts.yaml
-  const alertMatches = Array.from(alertsContent.matchAll(/alert:\s*([A-Za-z0-9_-]+)/g)).map(m => m[1]);
+  const alertMatches = Array.from(alertsContent.matchAll(/alert:\s*([A-Za-z0-9_-]+)/g)).map((m) => m[1]);
   assert.ok(alertMatches.length > 0, 'alerts.yaml debe contener al menos una alerta');
 
   for (const alertName of alertMatches) {
     assert.ok(
       runbookContent.includes(alertName),
-      `El runbook de observabilidad debe documentar el procedimiento de respuesta para la alerta ${alertName}`
+      `El runbook de observabilidad debe documentar el procedimiento de respuesta para la alerta ${alertName}`,
     );
   }
 });
@@ -227,7 +216,7 @@ test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan
   // Matriz de estado en README.md
   assert.ok(
     readmeContent.includes('Matriz de Estado y Nivel de Soporte de Componentes'),
-    'README.md debe contener la Matriz de Estado y Nivel de Soporte de Componentes'
+    'README.md debe contener la Matriz de Estado y Nivel de Soporte de Componentes',
   );
   assert.ok(readmeContent.includes('Kubernetes (K3s on-premise / cloud gestionado)'), 'Matriz debe listar Kubernetes');
   assert.ok(readmeContent.includes('Helm 3 (OCI Artifacts)'), 'Matriz debe listar Helm 3');
@@ -235,10 +224,19 @@ test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan
   assert.ok(readmeContent.includes('OpenTofu 1.8+'), 'Matriz debe listar OpenTofu');
 
   // Enlaces a Observabilidad y ADR-007
-  assert.ok(readmeContent.includes('docs/operations/observability-alerts.md'), 'README.md debe enlazar observability-alerts.md');
-  assert.ok(readmeContent.includes('docs/decisions/ADR-007-observability-and-metrics.md'), 'README.md debe enlazar ADR-007');
+  assert.ok(
+    readmeContent.includes('docs/operations/observability-alerts.md'),
+    'README.md debe enlazar observability-alerts.md',
+  );
+  assert.ok(
+    readmeContent.includes('docs/decisions/ADR-007-observability-and-metrics.md'),
+    'README.md debe enlazar ADR-007',
+  );
 
-  assert.ok(docsReadmeContent.includes('observability-alerts.md'), 'docs/README.md debe enlazar observability-alerts.md');
+  assert.ok(
+    docsReadmeContent.includes('observability-alerts.md'),
+    'docs/README.md debe enlazar observability-alerts.md',
+  );
   assert.ok(docsReadmeContent.includes('ADR-007-observability-and-metrics.md'), 'docs/README.md debe enlazar ADR-007');
 });
 
@@ -276,25 +274,34 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-009 debe estar aceptado');
   assert.ok(adrContent.includes('GoogleGenAI'), 'ADR-009 debe documentar SDK oficial @google/genai');
   assert.ok(adrContent.includes('gemini-2.5-flash'), 'ADR-009 debe documentar modelo gemini-2.5-flash');
-  assert.ok(adrContent.includes('responseMimeType: \'application/json\''), 'ADR-009 debe documentar modo estructurado JSON');
+  assert.ok(
+    adrContent.includes("responseMimeType: 'application/json'"),
+    'ADR-009 debe documentar modo estructurado JSON',
+  );
   assert.ok(adrContent.includes('AICircuitBreaker'), 'ADR-009 debe documentar patrón Circuit Breaker');
   assert.ok(adrContent.includes('getSemanticCacheKey'), 'ADR-009 debe documentar caché semántica en Redis');
   assert.ok(adrContent.includes('sanitizePrompt'), 'ADR-009 debe documentar sanitización contra prompt injection');
   assert.ok(adrContent.includes('getDeterministicDiagram'), 'ADR-009 debe documentar fallback determinista local');
-  assert.ok(adrContent.includes('pokedex_ai_circuit_breaker_open'), 'ADR-009 debe documentar métricas de observabilidad en /metrics');
+  assert.ok(
+    adrContent.includes('pokedex_ai_circuit_breaker_open'),
+    'ADR-009 debe documentar métricas de observabilidad en /metrics',
+  );
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   assert.ok(readmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'README.md debe enlazar ADR-009');
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'), 'docs/README.md debe enlazar ADR-009');
+  assert.ok(
+    docsReadmeContent.includes('ADR-009-ai-resilience-and-contracts.md'),
+    'docs/README.md debe enlazar ADR-009',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // Validar que los 9 ADRs existen físicamente en disco
   for (let i = 1; i <= 9; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -308,25 +315,46 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-010 debe estar aceptado');
-  assert.ok(adrContent.includes('timingSafeEqual'), 'ADR-010 debe documentar mitigación timing attacks con timingSafeEqual');
-  assert.ok(adrContent.includes('ADMIN_SESSION_SECRET'), 'ADR-010 debe documentar desacoplamiento de ADMIN_SESSION_SECRET');
-  assert.ok(adrContent.includes('fail-closed') || adrContent.includes('Fail-Closed'), 'ADR-010 debe documentar revocación fail-closed');
-  assert.ok(adrContent.includes('pokedex:revoked:') || adrContent.includes('jti'), 'ADR-010 debe documentar revocación distribuida con jti en Redis');
-  assert.ok(adrContent.includes('POST /api/v1/auth/session'), 'ADR-010 debe documentar endpoint de emisión de sesiones');
+  assert.ok(
+    adrContent.includes('timingSafeEqual'),
+    'ADR-010 debe documentar mitigación timing attacks con timingSafeEqual',
+  );
+  assert.ok(
+    adrContent.includes('ADMIN_SESSION_SECRET'),
+    'ADR-010 debe documentar desacoplamiento de ADMIN_SESSION_SECRET',
+  );
+  assert.ok(
+    adrContent.includes('fail-closed') || adrContent.includes('Fail-Closed'),
+    'ADR-010 debe documentar revocación fail-closed',
+  );
+  assert.ok(
+    adrContent.includes('pokedex:revoked:') || adrContent.includes('jti'),
+    'ADR-010 debe documentar revocación distribuida con jti en Redis',
+  );
+  assert.ok(
+    adrContent.includes('POST /api/v1/auth/session'),
+    'ADR-010 debe documentar endpoint de emisión de sesiones',
+  );
   assert.ok(adrContent.includes('POST /api/v1/auth/logout'), 'ADR-010 debe documentar endpoint de revocación/logout');
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-010-authentication-and-session-management.md'), 'README.md debe enlazar ADR-010');
+  assert.ok(
+    readmeContent.includes('ADR-010-authentication-and-session-management.md'),
+    'README.md debe enlazar ADR-010',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-010-authentication-and-session-management.md'), 'docs/README.md debe enlazar ADR-010');
+  assert.ok(
+    docsReadmeContent.includes('ADR-010-authentication-and-session-management.md'),
+    'docs/README.md debe enlazar ADR-010',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // Validar que los 10 ADRs existen físicamente en disco
   for (let i = 1; i <= 10; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -345,20 +373,29 @@ test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBounc
   assert.ok(adrContent.includes('pokedex_id_seq'), 'ADR-011 debe documentar secuencia atómica pokedex_id_seq');
   assert.ok(adrContent.includes('pokedex_entries'), 'ADR-011 debe documentar tabla pokedex_entries');
   assert.ok(adrContent.includes('JSONB'), 'ADR-011 debe documentar modelo híbrido JSONB');
-  assert.ok(adrContent.includes('pool_mode = transaction') || adrContent.includes('transaction'), 'ADR-011 debe documentar pooling en modo transacción');
+  assert.ok(
+    adrContent.includes('pool_mode = transaction') || adrContent.includes('transaction'),
+    'ADR-011 debe documentar pooling en modo transacción',
+  );
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'README.md debe enlazar ADR-011');
+  assert.ok(
+    readmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'),
+    'README.md debe enlazar ADR-011',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'), 'docs/README.md debe enlazar ADR-011');
+  assert.ok(
+    docsReadmeContent.includes('ADR-011-persistence-drizzle-orm-and-pgbouncer.md'),
+    'docs/README.md debe enlazar ADR-011',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // Validar que los 11 ADRs existen físicamente en disco
   for (let i = 1; i <= 11; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -390,22 +427,19 @@ test('🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 S
     assert.ok(content.startsWith('# '), `Runbook ${file} debe comenzar con título H1`);
     assert.ok(
       !/\n## [^\n]+\n[^\n\r#\s]/.test(content),
-      `Runbook ${file} debe respetar espaciado MD022 tras encabezados H2`
+      `Runbook ${file} debe respetar espaciado MD022 tras encabezados H2`,
     );
 
-    assert.ok(
-      docsReadmeContent.includes(file),
-      `docs/README.md debe indexar y enlazar ${file}`
-    );
+    assert.ok(docsReadmeContent.includes(file), `docs/README.md debe indexar y enlazar ${file}`);
   }
 
   // Validar que el diagrama Mermaid contiene los 7 nodos de operaciones y R5 en runbooks
-  assert.ok(docsReadmeContent.includes('RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]'), 'Mermaid debe enlazar R5 DISASTER_RECOVERY_PLAN');
+  assert.ok(
+    docsReadmeContent.includes('RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]'),
+    'Mermaid debe enlazar R5 DISASTER_RECOVERY_PLAN',
+  );
   for (let i = 1; i <= 7; i++) {
-    assert.ok(
-      docsReadmeContent.includes(`OP${i}`),
-      `Mermaid en docs/README.md debe contener nodo OP${i}`
-    );
+    assert.ok(docsReadmeContent.includes(`OP${i}`), `Mermaid en docs/README.md debe contener nodo OP${i}`);
   }
 });
 
@@ -421,29 +455,32 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   // 1. ADR-018 existe y está aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-018 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-018 debe estar en estado Aceptado');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-018 debe estar en estado Aceptado',
+  );
 
   // 2. ADR-018 documenta W3C traceparent y OpenTelemetry
   assert.ok(
     adrContent.includes('OpenTelemetry') || adrContent.includes('OTel'),
-    'ADR-018 debe documentar OpenTelemetry'
+    'ADR-018 debe documentar OpenTelemetry',
   );
   assert.ok(
     adrContent.includes('W3C Trace Context') || adrContent.includes('traceparent'),
-    'ADR-018 debe documentar W3C Trace Context traceparent'
+    'ADR-018 debe documentar W3C Trace Context traceparent',
   );
-  assert.ok(
-    adrContent.includes('requestTracer'),
-    'ADR-018 debe documentar middleware requestTracer'
-  );
+  assert.ok(adrContent.includes('requestTracer'), 'ADR-018 debe documentar middleware requestTracer');
   assert.ok(
     adrContent.includes('Loki') || adrContent.includes('Tempo'),
-    'ADR-018 debe documentar correlación con Loki o Tempo'
+    'ADR-018 debe documentar correlación con Loki o Tempo',
   );
 
   // 3. Helm declara variables OTel
   const configmapContent = fs.readFileSync(helmConfigmapPath, 'utf-8');
-  assert.ok(configmapContent.includes('OTEL_EXPORTER_OTLP_ENDPOINT'), 'configmap.yaml debe declarar OTEL_EXPORTER_OTLP_ENDPOINT');
+  assert.ok(
+    configmapContent.includes('OTEL_EXPORTER_OTLP_ENDPOINT'),
+    'configmap.yaml debe declarar OTEL_EXPORTER_OTLP_ENDPOINT',
+  );
   assert.ok(configmapContent.includes('OTEL_SERVICE_NAME'), 'configmap.yaml debe declarar OTEL_SERVICE_NAME');
 
   const valuesContent = fs.readFileSync(helmValuesPath, 'utf-8');
@@ -452,10 +489,16 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   // 4. request-tracer.ts y logger.ts implementan W3C traceparent y AsyncLocalStorage
   const tracerContent = fs.readFileSync(requestTracerPath, 'utf-8');
   assert.ok(tracerContent.includes('traceparent'), 'request-tracer.ts debe manejar cabecera traceparent');
-  assert.ok(tracerContent.includes('W3C_TRACEPARENT_REGEX') || tracerContent.includes('traceparent'), 'request-tracer.ts debe validar formato W3C');
+  assert.ok(
+    tracerContent.includes('W3C_TRACEPARENT_REGEX') || tracerContent.includes('traceparent'),
+    'request-tracer.ts debe validar formato W3C',
+  );
 
   const loggerContent = fs.readFileSync(loggerPath, 'utf-8');
-  assert.ok(loggerContent.includes('spanId') || loggerContent.includes('traceparent'), 'logger.ts debe incluir spanId/traceparent en LogTraceContext');
+  assert.ok(
+    loggerContent.includes('spanId') || loggerContent.includes('traceparent'),
+    'logger.ts debe incluir spanId/traceparent en LogTraceContext',
+  );
 
   // 5. Test funcional de requestTracer con W3C Trace Context
   const tracerMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/src/middleware/request-tracer.js'))
@@ -482,16 +525,22 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   assert.ok(headersSet.traceparent, 'requestTracer debe emitir cabecera traceparent');
   assert.ok(
     headersSet.traceparent.startsWith('00-4bf92f3577b34da6a3ce929d0e0e4736-'),
-    'requestTracer debe preservar el traceId W3C entrante'
+    'requestTracer debe preservar el traceId W3C entrante',
   );
   assert.ok(headersSet['x-request-id'], 'requestTracer debe emitir cabecera X-Request-Id');
 
   // 6. README.md y docs/README.md enlazan ADR-018
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-018-opentelemetry-distributed-tracing-and-w3c.md'), 'README.md debe enlazar ADR-018');
+  assert.ok(
+    readmeContent.includes('ADR-018-opentelemetry-distributed-tracing-and-w3c.md'),
+    'README.md debe enlazar ADR-018',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-018-opentelemetry-distributed-tracing-and-w3c.md'), 'docs/README.md debe enlazar ADR-018');
+  assert.ok(
+    docsReadmeContent.includes('ADR-018-opentelemetry-distributed-tracing-and-w3c.md'),
+    'docs/README.md debe enlazar ADR-018',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // 7. Los 18 ADRs existen físicamente en disco
@@ -512,28 +561,38 @@ test('🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no
   // 1. El ADR retirado no conserva archivo (convención de ADR retirados) y consta en el índice
   assert.ok(
     !fs.readdirSync(decisionsDir).some((f: string) => f.startsWith('ADR-019')),
-    'ADR-019 retirado no debe tener archivo en docs/decisions/'
+    'ADR-019 retirado no debe tener archivo en docs/decisions/',
   );
-  assert.match(decisionsIndex, /\*\*ADR-019\*\*[^\n]*\*\*Retirado\*\*/, 'ADR-019 debe constar como Retirado en el índice');
+  assert.match(
+    decisionsIndex,
+    /\*\*ADR-019\*\*[^\n]*\*\*Retirado\*\*/,
+    'ADR-019 debe constar como Retirado en el índice',
+  );
 
   // 2. Sin restos de Turborepo en configuración ni scripts
   assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'turbo.json')), 'turbo.json no debe existir');
   assert.ok(!packageJson.devDependencies?.turbo, 'package.json no debe declarar turbo');
   assert.ok(
     !Object.keys(packageJson.scripts ?? {}).some((name) => name.endsWith(':turbo')),
-    'package.json no debe exponer scripts :turbo'
+    'package.json no debe exponer scripts :turbo',
   );
   assert.ok(!taskfileContent.includes('turbo:'), 'Taskfile.yaml no debe exponer tareas turbo');
 
   // 3. npm workspaces sigue siendo el orquestador canónico
   assert.ok(packageJson.packageManager?.startsWith('npm@'), 'package.json debe declarar packageManager npm');
-  assert.ok(Array.isArray(packageJson.workspaces) && packageJson.workspaces.length > 0, 'package.json debe declarar workspaces');
+  assert.ok(
+    Array.isArray(packageJson.workspaces) && packageJson.workspaces.length > 0,
+    'package.json debe declarar workspaces',
+  );
 
   // 4. Los ADR activos contiguos hasta ADR-018 siguen existiendo en disco
   const files = fs.readdirSync(decisionsDir);
   for (let i = 1; i <= 18; i++) {
     const num = String(i).padStart(3, '0');
-    assert.ok(files.some((f: string) => f.startsWith(`ADR-${num}`)), `Debe existir archivo para ADR-${num} en docs/decisions/`);
+    assert.ok(
+      files.some((f: string) => f.startsWith(`ADR-${num}`)),
+      `Debe existir archivo para ADR-${num} en docs/decisions/`,
+    );
   }
 });
 
@@ -547,7 +606,10 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   // 1. ADR-020 existe y está aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-020 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-020 debe estar en estado Aceptado');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-020 debe estar en estado Aceptado',
+  );
   assert.ok(adrContent.includes('Taskfile.yaml'), 'ADR-020 debe documentar Taskfile.yaml como interfaz canónica');
   assert.ok(adrContent.includes('dr_verify_restore.sh'), 'ADR-020 debe inventariar dr_verify_restore.sh');
   assert.ok(adrContent.includes('governance:audit-scripts'), 'ADR-020 debe documentar governance:audit-scripts');
@@ -574,11 +636,11 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
     return results;
   };
   const actualShScripts = findSh(ROOT_DIR);
-  const unauthorizedSh = actualShScripts.filter(s => !allowedShScripts.includes(s));
+  const unauthorizedSh = actualShScripts.filter((s) => !allowedShScripts.includes(s));
   assert.equal(
     unauthorizedSh.length,
     0,
-    `No se permiten scripts shell fuera de la lista blanca autorizada. No autorizados: ${unauthorizedSh.join(', ')}`
+    `No se permiten scripts shell fuera de la lista blanca autorizada. No autorizados: ${unauthorizedSh.join(', ')}`,
   );
 
   // 3. Prohibición expresa de scripts imperativos de despliegue ad-hoc
@@ -587,22 +649,29 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
     assert.equal(
       fs.existsSync(path.join(ROOT_DIR, forbidden)),
       false,
-      `Script prohibido no debe existir en la raíz: ${forbidden}`
+      `Script prohibido no debe existir en la raíz: ${forbidden}`,
     );
     assert.equal(
       fs.existsSync(path.join(ROOT_DIR, 'scripts', forbidden)),
       false,
-      `Script prohibido no debe existir en scripts/: ${forbidden}`
+      `Script prohibido no debe existir en scripts/: ${forbidden}`,
     );
   }
 
   // 4. Taskfile.yaml expone tareas canónicas de ciclo de vida y gobernanza
   const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
-  assert.ok(taskfileContent.includes('governance:audit-scripts:'), 'Taskfile.yaml debe definir governance:audit-scripts');
+  assert.ok(
+    taskfileContent.includes('governance:audit-scripts:'),
+    'Taskfile.yaml debe definir governance:audit-scripts',
+  );
   assert.ok(taskfileContent.includes('k8s:up:'), 'Taskfile.yaml debe definir k8s:up');
   assert.ok(taskfileContent.includes('gitops:sync:cloud:'), 'Taskfile.yaml debe definir gitops:sync:cloud');
   assert.ok(taskfileContent.includes('gitops:sync:preprod:'), 'Taskfile.yaml debe definir gitops:sync:preprod');
-  assert.equal(taskfileContent.includes('gitops:sync:proxmox:'), false, 'Taskfile.yaml no debe definir el alias legado gitops:sync:proxmox (retirado según ADR-020)');
+  assert.equal(
+    taskfileContent.includes('gitops:sync:proxmox:'),
+    false,
+    'Taskfile.yaml no debe definir el alias legado gitops:sync:proxmox (retirado según ADR-020)',
+  );
 
   // 5. package.json incluye script de auditoría
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
@@ -611,13 +680,22 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   // 6. deployment.md referencia ADR-020 y Taskfile
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
   assert.ok(deploymentContent.includes('ADR-020'), 'deployment.md debe enlazar ADR-020');
-  assert.ok(deploymentContent.includes('task governance:audit-scripts'), 'deployment.md debe documentar task governance:audit-scripts');
+  assert.ok(
+    deploymentContent.includes('task governance:audit-scripts'),
+    'deployment.md debe documentar task governance:audit-scripts',
+  );
 
   // 7. README.md y docs/README.md enlazan ADR-020
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'README.md debe enlazar ADR-020');
-  assert.ok(docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'docs/README.md debe enlazar ADR-020');
+  assert.ok(
+    readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'),
+    'README.md debe enlazar ADR-020',
+  );
+  assert.ok(
+    docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'),
+    'docs/README.md debe enlazar ADR-020',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // 8. Los ADR activos hasta el 020 existen físicamente en disco (ADR-019 está retirado)
@@ -638,8 +716,14 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   // 1. Documentos arquitectónicos existen y están en estado Aceptado
   assert.ok(fs.existsSync(adr27Path), 'ADR-027 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adr27Path, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-027 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('Fail-Closed (Seguridad & Integridad)'), 'ADR-027 debe documentar políticas Fail-Closed');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-027 debe estar en estado Aceptado',
+  );
+  assert.ok(
+    adrContent.includes('Fail-Closed (Seguridad & Integridad)'),
+    'ADR-027 debe documentar políticas Fail-Closed',
+  );
   assert.ok(adrContent.includes('Fail-Open (Disponibilidad)'), 'ADR-027 debe documentar políticas Fail-Open');
 
   assert.ok(fs.existsSync(specPath), 'FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md debe existir');
@@ -651,8 +735,14 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
 
   // 2. docs/README.md enlaza ADR-027 y FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md
   const docsReadme = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadme.includes('ADR-027-resilience-fail-open-vs-fail-closed-contracts.md'), 'docs/README.md debe enlazar ADR-027');
-  assert.ok(docsReadme.includes('FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md'), 'docs/README.md debe enlazar FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md');
+  assert.ok(
+    docsReadme.includes('ADR-027-resilience-fail-open-vs-fail-closed-contracts.md'),
+    'docs/README.md debe enlazar ADR-027',
+  );
+  assert.ok(
+    docsReadme.includes('FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md'),
+    'docs/README.md debe enlazar FAIL_OPEN_VS_FAIL_CLOSED_CONTRACTS.md',
+  );
 
   // 3. Frontend: Módulos compartidos existen y contienen utilidades esperadas
   const sharedDir = path.join(ROOT_DIR, 'apps/frontend/src/shared');
@@ -669,14 +759,20 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   const formattersContent = fs.readFileSync(path.join(sharedDir, 'formatters.ts'), 'utf-8');
   assert.ok(formattersContent.includes('export function normalizeStr'), 'formatters.ts debe exportar normalizeStr');
   assert.ok(formattersContent.includes('export function getTypeColor'), 'formatters.ts debe exportar getTypeColor');
-  assert.ok(formattersContent.includes('export function formatPokemonId'), 'formatters.ts debe exportar formatPokemonId');
+  assert.ok(
+    formattersContent.includes('export function formatPokemonId'),
+    'formatters.ts debe exportar formatPokemonId',
+  );
 
   const uiContent = fs.readFileSync(path.join(sharedDir, 'ui.ts'), 'utf-8');
   assert.ok(uiContent.includes('export function showToast'), 'ui.ts debe exportar showToast');
   assert.ok(uiContent.includes('export function renderTypeBadge'), 'ui.ts debe exportar renderTypeBadge');
 
   const apiContent = fs.readFileSync(path.join(sharedDir, 'api.ts'), 'utf-8');
-  assert.ok(apiContent.includes('export async function fetchPokemonsWithCount'), 'api.ts debe exportar fetchPokemonsWithCount');
+  assert.ok(
+    apiContent.includes('export async function fetchPokemonsWithCount'),
+    'api.ts debe exportar fetchPokemonsWithCount',
+  );
   assert.ok(apiContent.includes('export async function loginWithApiKey'), 'api.ts debe exportar loginWithApiKey');
 
   // 4. Frontend: pokedex.ts y backoffice.ts consumen módulos compartidos sin duplicar constantes
@@ -684,10 +780,16 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   const backofficeTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/frontend/src/backoffice.ts'), 'utf-8');
 
   assert.ok(pokedexTs.includes("from './shared/index.js'"), "pokedex.ts debe importar desde './shared/index.js'");
-  assert.ok(!pokedexTs.includes('const TYPE_COLORS: Record<string, string>'), 'pokedex.ts no debe duplicar TYPE_COLORS localmente');
+  assert.ok(
+    !pokedexTs.includes('const TYPE_COLORS: Record<string, string>'),
+    'pokedex.ts no debe duplicar TYPE_COLORS localmente',
+  );
 
   assert.ok(backofficeTs.includes("from './shared/index.js'"), "backoffice.ts debe importar desde './shared/index.js'");
-  assert.ok(!backofficeTs.includes('const TYPE_COLORS: Record<string, string>'), 'backoffice.ts no debe duplicar TYPE_COLORS localmente');
+  assert.ok(
+    !backofficeTs.includes('const TYPE_COLORS: Record<string, string>'),
+    'backoffice.ts no debe duplicar TYPE_COLORS localmente',
+  );
 
   // 5. Backend: Contratos de resiliencia alineados en código
   const serverTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8');
@@ -695,8 +797,17 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   const authTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/auth.ts'), 'utf-8');
   const dbTs = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/db.ts'), 'utf-8');
 
-  assert.ok(rateLimiterTs.includes('failClosedOnRedisOutage: true'), 'rate-limiter.ts debe configurar limitadores de IA con failClosedOnRedisOutage: true');
-  assert.ok(serverTs.includes('requireWritableStorage'), 'server.ts debe utilizar requireWritableStorage para mutaciones');
-  assert.ok(authTs.includes("reason: 'service_unavailable'"), 'auth.ts debe implementar Fail-Closed en verificación de sesión cuando Redis está caído');
+  assert.ok(
+    rateLimiterTs.includes('failClosedOnRedisOutage: true'),
+    'rate-limiter.ts debe configurar limitadores de IA con failClosedOnRedisOutage: true',
+  );
+  assert.ok(
+    serverTs.includes('requireWritableStorage'),
+    'server.ts debe utilizar requireWritableStorage para mutaciones',
+  );
+  assert.ok(
+    authTs.includes("reason: 'service_unavailable'"),
+    'auth.ts debe implementar Fail-Closed en verificación de sesión cuando Redis está caído',
+  );
   assert.ok(dbTs.includes('invalidateCache'), 'db.ts debe implementar invalidateCache con versionado atómico');
 });

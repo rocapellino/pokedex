@@ -72,14 +72,17 @@ test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default har
 
 test('🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)', () => {
   const cloudTemplatePath = path.join(ROOT_DIR, 'infra/opentofu/environments/cloud-template');
-  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'main.tf')), 'cloud-template/main.tf debe existir como base del blueprint prod cloud');
+  assert.ok(
+    fs.existsSync(path.join(cloudTemplatePath, 'main.tf')),
+    'cloud-template/main.tf debe existir como base del blueprint prod cloud',
+  );
 
   const proxmoxEnvPath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox');
   assert.ok(fs.existsSync(proxmoxEnvPath), 'infra/opentofu/environments/proxmox debe existir');
 
   assert.ok(
     !fs.existsSync(path.join(ROOT_DIR, 'infra/opentofu/environments/aws')),
-    'infra/opentofu/environments/aws se retiró con ADR-030: prod cloud no fija proveedor'
+    'infra/opentofu/environments/aws se retiró con ADR-030: prod cloud no fija proveedor',
   );
 });
 
@@ -87,26 +90,26 @@ test('🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runt
   const docPath = path.join(ROOT_DIR, 'docs/architecture/CLOUD_INFRASTRUCTURE_DESIGN.md');
   assert.ok(fs.existsSync(docPath), 'CLOUD_INFRASTRUCTURE_DESIGN.md debe existir');
   const content = fs.readFileSync(docPath, 'utf-8');
-  assert.ok(content.includes('Kubernetes como el runtime universal'), 'Debe formalizar Kubernetes como runtime universal');
+  assert.ok(
+    content.includes('Kubernetes como el runtime universal'),
+    'Debe formalizar Kubernetes como runtime universal',
+  );
   assert.ok(content.includes('environments/cloud'), 'Debe referenciar el blueprint environments/cloud');
   assert.ok(content.includes('environments/proxmox'), 'Debe referenciar environments/proxmox');
-  assert.ok(content.includes('Single Production Runtime') || content.includes('Producción Universal'), 'Debe formalizar política de producción');
+  assert.ok(
+    content.includes('Single Production Runtime') || content.includes('Producción Universal'),
+    'Debe formalizar política de producción',
+  );
   assert.ok(content.includes('task dev:compose'), 'Debe formalizar task dev:compose');
   assert.ok(content.includes('task dev:k8s:up'), 'Debe formalizar task dev:k8s:up');
 });
 
 test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable', () => {
-  const mainTf = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf'),
-    'utf-8'
-  );
-  const varsTf = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'),
-    'utf-8'
-  );
+  const mainTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf'), 'utf-8');
+  const varsTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'), 'utf-8');
   const tfvars = fs.readFileSync(
     path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/terraform.tfvars.example'),
-    'utf-8'
+    'utf-8',
   );
 
   // 1. Todo recurso `proxmox_download_file` debe declarar checksum + checksum_algorithm.
@@ -118,11 +121,11 @@ test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar chec
   for (const [, name, body] of downloadBlocks) {
     assert.ok(
       /checksum\s*=\s*var\.\w+/.test(body),
-      `INFRA-007: el recurso proxmox_download_file.${name} no verifica checksum; una imagen sustituta pasaria desapercibida`
+      `INFRA-007: el recurso proxmox_download_file.${name} no verifica checksum; una imagen sustituta pasaria desapercibida`,
     );
     assert.ok(
       /checksum_algorithm\s*=\s*var\.\w+/.test(body),
-      `INFRA-007: el recurso proxmox_download_file.${name} no declara checksum_algorithm`
+      `INFRA-007: el recurso proxmox_download_file.${name} no declara checksum_algorithm`,
     );
   }
 
@@ -132,18 +135,25 @@ test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar chec
   assert.ok(defaultUrl, 'lxc_template_url debe declarar un valor por defecto');
   assert.ok(!/latest/.test(defaultUrl), `INFRA-007: lxc_template_url no debe usar un alias mutable (${defaultUrl})`);
   assert.match(defaultUrl, /^https:\/\//, 'INFRA-007: la plantilla LXC debe descargarse por HTTPS');
-  assert.match(defaultUrl, /debian-\d+-standard_[\d.]+-\d+_amd64\.tar\.zst$/, 'INFRA-007: lxc_template_url debe fijar la versión de la plantilla');
+  assert.match(
+    defaultUrl,
+    /debian-\d+-standard_[\d.]+-\d+_amd64\.tar\.zst$/,
+    'INFRA-007: lxc_template_url debe fijar la versión de la plantilla',
+  );
 
   // 3. El ejemplo de variables debe documentar el checksum de la plantilla.
-  assert.ok(/lxc_template_checksum\s*=/.test(tfvars), 'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum');
-  assert.ok(/lxc_template_checksum_algorithm\s*=/.test(tfvars), 'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum_algorithm');
+  assert.ok(
+    /lxc_template_checksum\s*=/.test(tfvars),
+    'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum',
+  );
+  assert.ok(
+    /lxc_template_checksum_algorithm\s*=/.test(tfvars),
+    'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum_algorithm',
+  );
 });
 
 test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado', () => {
-  const varsTf = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'),
-    'utf-8'
-  );
+  const varsTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'), 'utf-8');
 
   const tfSource = varsTf.replace(/\r\n/g, '\n');
   const readDefault = (name: string): string | undefined => {
@@ -155,9 +165,7 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
     return block.match(/default\s*=\s*"([^"]+)"/)?.[1];
   };
 
-  const cases: Array<[string, string, number]> = [
-    ['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64],
-  ];
+  const cases: Array<[string, string, number]> = [['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64]];
 
   for (const [checksumVar, algVar, expectedLen] of cases) {
     const checksum = readDefault(checksumVar);
@@ -169,17 +177,17 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
     assert.equal(
       algorithm,
       expectedAlgorithm,
-      `${algVar} debe ser '${expectedAlgorithm}' para que ${checksumVar} tenga ${expectedLen} caracteres`
+      `${algVar} debe ser '${expectedAlgorithm}' para que ${checksumVar} tenga ${expectedLen} caracteres`,
     );
     assert.equal(
       checksum.length,
       expectedLen,
-      `${checksumVar} debe tener exactamente ${expectedLen} caracteres hexadecimales (${algorithm})`
+      `${checksumVar} debe tener exactamente ${expectedLen} caracteres hexadecimales (${algorithm})`,
     );
     assert.match(
       checksum,
       new RegExp(`^[a-f0-9]{${expectedLen}}$`),
-      `${checksumVar} debe ser un digest hexadecimal en minúsculas`
+      `${checksumVar} debe ser un digest hexadecimal en minúsculas`,
     );
   }
 });
@@ -203,13 +211,13 @@ test('🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor',
     dead,
     [],
     `INFRA-008: variables declaradas y nunca consumidas: ${dead.join(', ')}. ` +
-    'Eliminalas o conectalas a un recurso: una variable muerta sugiere un control inexistente.'
+      'Eliminalas o conectalas a un recurso: una variable muerta sugiere un control inexistente.',
   );
 
   assert.ok(
     !varsTf.includes('image_file_id'),
     'INFRA-008: `image_file_id` no debe volver a declararse; los recursos LXC consumen ' +
-    'proxmox_download_file.debian_lxc_template[0].id'
+      'proxmox_download_file.debian_lxc_template[0].id',
   );
 });
 
@@ -235,21 +243,27 @@ test('🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansibl
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'main.tf')), 'cloud-template/main.tf debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'variables.tf')), 'cloud-template/variables.tf debe existir');
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'outputs.tf')), 'cloud-template/outputs.tf debe existir');
-  assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'terraform.tfvars.example')), 'cloud-template/terraform.tfvars.example debe existir');
+  assert.ok(
+    fs.existsSync(path.join(cloudTemplatePath, 'terraform.tfvars.example')),
+    'cloud-template/terraform.tfvars.example debe existir',
+  );
   assert.ok(fs.existsSync(path.join(cloudTemplatePath, 'README.md')), 'cloud-template/README.md debe existir');
   const cloudVars = fs.readFileSync(path.join(cloudTemplatePath, 'variables.tf'), 'utf-8');
-  assert.ok(cloudVars.includes('variable "network_id"'), 'cloud-template/variables.tf debe parametrizar la red sin fijar un proveedor');
+  assert.ok(
+    cloudVars.includes('variable "network_id"'),
+    'cloud-template/variables.tf debe parametrizar la red sin fijar un proveedor',
+  );
 
   const backendExamplePath = path.join(ROOT_DIR, 'infra/opentofu/environments/backend.tf.example');
   assert.ok(fs.existsSync(backendExamplePath), 'backend.tf.example debe existir');
   const backendExampleContent = fs.readFileSync(backendExamplePath, 'utf-8');
   assert.ok(
     backendExampleContent.includes('key_provider "pbkdf2"'),
-    'backend.tf.example debe documentar cifrado nativo del lado del cliente con pbkdf2'
+    'backend.tf.example debe documentar cifrado nativo del lado del cliente con pbkdf2',
   );
   assert.ok(
     backendExampleContent.includes('method "aes_gcm"'),
-    'backend.tf.example debe documentar método de cifrado aes_gcm en reposo'
+    'backend.tf.example debe documentar método de cifrado aes_gcm en reposo',
   );
 });
 
@@ -265,26 +279,44 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-012 debe estar aceptado');
   assert.ok(adrContent.includes('OpenTofu'), 'ADR-012 debe documentar OpenTofu');
   assert.ok(adrContent.includes('.gitignore'), 'ADR-012 debe documentar exclusión en .gitignore');
-  assert.ok(adrContent.includes('backend "s3"') || adrContent.includes('backend'), 'ADR-012 debe documentar backend remoto');
-  assert.ok(adrContent.includes('dynamodb_table') || adrContent.includes('bloqueo'), 'ADR-012 debe documentar state locking');
-  assert.ok(adrContent.includes('Client-Side Encryption') || adrContent.includes('encryption'), 'ADR-012 debe documentar client-side encryption');
+  assert.ok(
+    adrContent.includes('backend "s3"') || adrContent.includes('backend'),
+    'ADR-012 debe documentar backend remoto',
+  );
+  assert.ok(
+    adrContent.includes('dynamodb_table') || adrContent.includes('bloqueo'),
+    'ADR-012 debe documentar state locking',
+  );
+  assert.ok(
+    adrContent.includes('Client-Side Encryption') || adrContent.includes('encryption'),
+    'ADR-012 debe documentar client-side encryption',
+  );
   assert.ok(adrContent.includes('aes_gcm'), 'ADR-012 debe documentar método aes_gcm');
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   assert.ok(readmeContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'README.md debe enlazar ADR-012');
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'docs/README.md debe enlazar ADR-012');
+  assert.ok(
+    docsReadmeContent.includes('ADR-012-iac-state-management-and-encryption.md'),
+    'docs/README.md debe enlazar ADR-012',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   const auditContent = fs.readFileSync(auditPath, 'utf-8');
-  assert.ok(auditContent.includes('ADR-012-iac-state-management-and-encryption.md'), 'DEVSECOPS_AUDIT.md debe enlazar ADR-012');
-  assert.ok(auditContent.includes('Implementado'), 'DEVSECOPS_AUDIT.md debe marcar como Implementado la gestión de estados IaC');
+  assert.ok(
+    auditContent.includes('ADR-012-iac-state-management-and-encryption.md'),
+    'DEVSECOPS_AUDIT.md debe enlazar ADR-012',
+  );
+  assert.ok(
+    auditContent.includes('Implementado'),
+    'DEVSECOPS_AUDIT.md debe marcar como Implementado la gestión de estados IaC',
+  );
 
   for (let i = 1; i <= 12; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -293,10 +325,20 @@ test('🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws 
   // AVD-AWS-0104 solo cubría el security group de EKS de infra/opentofu/environments/aws.
   // Retirado ese entorno, una supresión residual ocultaría hallazgos reales en IaC futura.
   for (const ignorePath of ['.trivyignore', 'infra/opentofu/.trivyignore']) {
-    assert.equal(fs.existsSync(path.join(ROOT_DIR, ignorePath)), false, `${ignorePath} no debe existir sin un recurso que justifique la excepción`);
+    assert.equal(
+      fs.existsSync(path.join(ROOT_DIR, ignorePath)),
+      false,
+      `${ignorePath} no debe existir sin un recurso que justifique la excepción`,
+    );
   }
 
   const workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-code-scanning.yaml'), 'utf-8');
-  assert.ok(workflow.includes("scan-ref: 'infra/opentofu'"), 'El escaneo Trivy IaC debe seguir cubriendo infra/opentofu');
-  assert.ok(!workflow.includes('trivyignores:'), 'El escaneo Trivy IaC no debe consumir archivos de exclusión retirados');
+  assert.ok(
+    workflow.includes("scan-ref: 'infra/opentofu'"),
+    'El escaneo Trivy IaC debe seguir cubriendo infra/opentofu',
+  );
+  assert.ok(
+    !workflow.includes('trivyignores:'),
+    'El escaneo Trivy IaC no debe consumir archivos de exclusión retirados',
+  );
 });

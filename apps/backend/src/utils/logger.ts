@@ -52,22 +52,22 @@ export class PinoStructuredLogger {
   }
 
   info(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    const data = traceId ? { traceId, ...context } : (context || {});
+    const data = traceId ? { traceId, ...context } : context || {};
     this.pinoInstance.info(data, message);
   }
 
   warn(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    const data = traceId ? { traceId, ...context } : (context || {});
+    const data = traceId ? { traceId, ...context } : context || {};
     this.pinoInstance.warn(data, message);
   }
 
   error(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    const data = traceId ? { traceId, ...context } : (context || {});
+    const data = traceId ? { traceId, ...context } : context || {};
     this.pinoInstance.error(data, message);
   }
 
   debug(message: string, context?: Record<string, unknown>, traceId?: string): void {
-    const data = traceId ? { traceId, ...context } : (context || {});
+    const data = traceId ? { traceId, ...context } : context || {};
     this.pinoInstance.debug(data, message);
   }
 

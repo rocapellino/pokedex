@@ -33,7 +33,7 @@ export async function handleFormSubmit(e: Event): Promise<void> {
     showToast(
       isEdit
         ? `✅ Pokémon "${payload.nombre}" actualizado con éxito.`
-        : `🎉 Pokémon "${payload.nombre}" creado con éxito.`
+        : `🎉 Pokémon "${payload.nombre}" creado con éxito.`,
     );
     await loadAdminData();
   } catch (err) {

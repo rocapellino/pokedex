@@ -8,7 +8,7 @@ import {
   invalidateCache,
   consumeDistributedRateLimit,
   setRevokedJti,
-  isJtiRevokedInRedis
+  isJtiRevokedInRedis,
 } from '../../apps/backend/src/services/cache.js';
 
 test('⚡ CacheService [Unit]: estado desconectado por defecto y no-op seguro', async () => {

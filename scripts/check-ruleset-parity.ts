@@ -54,11 +54,7 @@ export const RULESET_FILE = path.join('.github', 'rulesets', 'main-protection.js
 export const RULESET_NAME = 'main-protection';
 
 /** Valores de bypass_mode aceptados por la REST API de repository rulesets. */
-export const CANONICAL_BYPASS_MODES: readonly string[] = Object.freeze([
-  'always',
-  'pull_request',
-  'exempt',
-]);
+export const CANONICAL_BYPASS_MODES: readonly string[] = Object.freeze(['always', 'pull_request', 'exempt']);
 
 /** Valor legacy retirado de la API. Su presencia es un defecto del contrato. */
 export const LEGACY_BYPASS_MODE = 'pull_requests_only';
@@ -105,14 +101,11 @@ function sorted<T>(values: T[]): T[] {
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return JSON.stringify(sorted(value));
   if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-      a < b ? -1 : a > b ? 1 : 0
-    );
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
     return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
   }
   return JSON.stringify(value) ?? 'undefined';
 }
-
 
 /**
  * Proyecta un ruleset (declarativo o live) al subconjunto que constituye el
@@ -137,7 +130,7 @@ export function normalizeRuleset(raw: Record<string, any>): NormalizedRuleset {
     ruleTypes: sorted(rules.map((r) => r.type)),
     pullRequest: (pullRule?.parameters ?? {}) as Record<string, unknown>,
     requiredStatusChecks: sorted(
-      (statusRule?.parameters?.required_status_checks ?? []).map((c: { context: string }) => c.context)
+      (statusRule?.parameters?.required_status_checks ?? []).map((c: { context: string }) => c.context),
     ),
     // Se ordena por clave canonica (y no por el orden del array) porque el
     // orden de `bypass_actors` no esta garantizado entre la API y el archivo.
@@ -147,12 +140,9 @@ export function normalizeRuleset(raw: Record<string, any>): NormalizedRuleset {
         actor_type: a.actor_type,
         actor_id: a.actor_id ?? null,
         bypass_mode: a.bypass_mode ?? 'always',
-      }))
+      })),
     ).sort((a, b) =>
-      `${a.actor_type}:${a.actor_id}:${a.bypass_mode}` <
-      `${b.actor_type}:${b.actor_id}:${b.bypass_mode}`
-        ? -1
-        : 1
+      `${a.actor_type}:${a.actor_id}:${a.bypass_mode}` < `${b.actor_type}:${b.actor_id}:${b.bypass_mode}` ? -1 : 1,
     ) as BypassActor[],
   };
 }
@@ -185,7 +175,6 @@ export function diffRulesets(declared: NormalizedRuleset, live: NormalizedRulese
 
   return drift;
 }
-
 
 export function loadDeclarativeRuleset(rootDir: string = process.cwd()): NormalizedRuleset {
   const full = path.join(rootDir, RULESET_FILE);
@@ -227,10 +216,7 @@ function main(): number {
   const asJson = args.includes('--json');
   const required = args.includes('--required');
   const repoIdx = args.indexOf('--repo');
-  const repo =
-    (repoIdx > -1 ? args[repoIdx + 1] : undefined) ??
-    process.env.GITHUB_REPOSITORY ??
-    'rocapellino/pokedex';
+  const repo = (repoIdx > -1 ? args[repoIdx + 1] : undefined) ?? process.env.GITHUB_REPOSITORY ?? 'rocapellino/pokedex';
 
   let declared: NormalizedRuleset;
   try {

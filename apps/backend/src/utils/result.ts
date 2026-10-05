@@ -103,7 +103,7 @@ export function tryCatch<T, E = Error>(fn: () => T, mapErr?: (error: unknown) =>
  */
 export async function fromPromise<T, E = Error>(
   promise: Promise<T>,
-  mapErr?: (error: unknown) => E
+  mapErr?: (error: unknown) => E,
 ): Promise<Result<T, E>> {
   try {
     const value = await promise;

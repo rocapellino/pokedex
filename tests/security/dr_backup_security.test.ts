@@ -21,9 +21,18 @@ test('🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256,
   assert.ok(content.includes('pbkdf2'), 'Debe utilizar derivación de claves robusta PBKDF2');
   assert.ok(content.includes('sha256sum'), 'Debe calcular la suma de comprobación SHA-256 del volcado');
   assert.ok(content.includes('gzip -9'), 'El volcado debe comprimirse antes del cifrado');
-  assert.ok(content.includes('optional: false'), 'La clave BACKUP_ENCRYPTION_KEY debe ser obligatoria (optional: false)');
-  assert.ok(!content.includes('pokedex_dr_default_secure_key_2026'), 'No debe existir fallback hardcodeado público para BACKUP_ENCRYPTION_KEY');
-  assert.ok(content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'), 'Debe fallar cerrado con error explícito si falta BACKUP_ENCRYPTION_KEY');
+  assert.ok(
+    content.includes('optional: false'),
+    'La clave BACKUP_ENCRYPTION_KEY debe ser obligatoria (optional: false)',
+  );
+  assert.ok(
+    !content.includes('pokedex_dr_default_secure_key_2026'),
+    'No debe existir fallback hardcodeado público para BACKUP_ENCRYPTION_KEY',
+  );
+  assert.ok(
+    content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'),
+    'Debe fallar cerrado con error explícito si falta BACKUP_ENCRYPTION_KEY',
+  );
 
   // Validar soporte de réplica remota off-site (S3 / MinIO / Object Storage)
   assert.ok(content.includes('OFFSITE_BACKUP_ENABLED'), 'Debe soportar sincronización remota off-site');
@@ -50,22 +59,41 @@ test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo autom
   assert.ok(content.includes('sha256sum'), 'Debe validar checksum de integridad antes del descifrado');
   assert.ok(content.includes('pokedex_entries'), 'Debe verificar la integridad de la estructura de tablas');
   assert.ok(content.includes('--dry-run'), 'Debe soportar modo de prueba sintética dry-run para CI');
-  assert.ok(!content.includes('pokedex_dr_default_secure_key_2026'), 'dr_verify_restore.sh no debe contener clave hardcodeada pública');
-  assert.ok(!content.includes('synthetic_dr_key_ephemeral_test_2026'), 'dr_verify_restore.sh no debe contener clave fallback estática');
-  assert.ok(content.includes('openssl rand -hex 32'), 'Debe generar clave efímera dinámica de alta entropía con openssl rand');
-  assert.ok(content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'), 'dr_verify_restore.sh debe validar fail-closed en ejecuciones reales');
+  assert.ok(
+    !content.includes('pokedex_dr_default_secure_key_2026'),
+    'dr_verify_restore.sh no debe contener clave hardcodeada pública',
+  );
+  assert.ok(
+    !content.includes('synthetic_dr_key_ephemeral_test_2026'),
+    'dr_verify_restore.sh no debe contener clave fallback estática',
+  );
+  assert.ok(
+    content.includes('openssl rand -hex 32'),
+    'Debe generar clave efímera dinámica de alta entropía con openssl rand',
+  );
+  assert.ok(
+    content.includes(': "${BACKUP_ENCRYPTION_KEY:?Error:'),
+    'dr_verify_restore.sh debe validar fail-closed en ejecuciones reales',
+  );
 
   // Validar restauración real en PostgreSQL y aserciones de integridad
   assert.ok(content.includes('count(*)'), 'Debe validar conteo de registros en la restauración');
   assert.ok(content.includes('pg_indexes'), 'Debe validar la integridad de índices en PostgreSQL');
   assert.ok(content.includes('to_regclass'), 'Debe validar la creación formal del objeto tabla');
   assert.ok(content.includes('pg_constraint'), 'Debe validar Primary Keys');
-  assert.ok(content.includes('relkind = \'S\''), 'Debe validar secuencias activas');
+  assert.ok(content.includes("relkind = 'S'"), 'Debe validar secuencias activas');
 
   // Validar pinning de imagen efímera y bandera --syntax-only
-  assert.match(content, /postgres:16-alpine@sha256:[a-f0-9]{64}/, 'PostgreSQL efímero debe estar fijado por digest criptográfico SHA-256');
+  assert.match(
+    content,
+    /postgres:16-alpine@sha256:[a-f0-9]{64}/,
+    'PostgreSQL efímero debe estar fijado por digest criptográfico SHA-256',
+  );
   assert.ok(content.includes('--syntax-only'), 'Debe soportar bandera explícita --syntax-only');
-  assert.ok(content.includes('No hay motor PostgreSQL disponible'), 'Debe fallar (fail-closed) si no hay motor SQL y no se pasa --syntax-only');
+  assert.ok(
+    content.includes('No hay motor PostgreSQL disponible'),
+    'Debe fallar (fail-closed) si no hay motor SQL y no se pasa --syntax-only',
+  );
 });
 
 test('🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h', () => {
@@ -108,25 +136,44 @@ test('🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible a
 
   assert.ok(blueprintContent.includes('S3-Compatible'), 'Debe documentar esqueleto S3-compatible');
   assert.ok(blueprintContent.includes('Proxmox Backup Server'), 'Debe documentar esqueleto PBS');
-  assert.ok(blueprintContent.includes('PREPARADO (INACTIVO)'), 'Debe formalizar que los esqueletos off-site están inactivos');
-  assert.ok(blueprintContent.includes('Riesgo Residual Asumido'), 'Debe advertir sobre el riesgo residual de SPOF del host');
+  assert.ok(
+    blueprintContent.includes('PREPARADO (INACTIVO)'),
+    'Debe formalizar que los esqueletos off-site están inactivos',
+  );
+  assert.ok(
+    blueprintContent.includes('Riesgo Residual Asumido'),
+    'Debe advertir sobre el riesgo residual de SPOF del host',
+  );
 
   const pbsPlaybookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml');
   assert.ok(fs.existsSync(pbsPlaybookPath), 'setup_pbs_backup_blueprint.yml debe existir');
   const pbsContent = fs.readFileSync(pbsPlaybookPath, 'utf-8');
-  assert.ok(pbsContent.includes('pbs_remote_offsite_enabled: false'), 'PBS playbook debe tener offsite inactivo por defecto');
-  assert.ok(pbsContent.includes('proxmox-backup-manager sync-job'), 'PBS playbook debe definir el esqueleto de sync job');
+  assert.ok(
+    pbsContent.includes('pbs_remote_offsite_enabled: false'),
+    'PBS playbook debe tener offsite inactivo por defecto',
+  );
+  assert.ok(
+    pbsContent.includes('proxmox-backup-manager sync-job'),
+    'PBS playbook debe definir el esqueleto de sync job',
+  );
 
   const esoTemplatePath = path.join(ROOT_DIR, 'infra/k8s/eso/backup-offsite-externalsecret.yaml.template');
   assert.ok(fs.existsSync(esoTemplatePath), 'backup-offsite-externalsecret.yaml.template debe existir');
 
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
-  assert.match(proxmoxValues, /offsite:\s*\r?\n\s*enabled:\s*false/, 'Proxmox GitOps values debe declarar offsite inactivo');
+  assert.match(
+    proxmoxValues,
+    /offsite:\s*\r?\n\s*enabled:\s*false/,
+    'Proxmox GitOps values debe declarar offsite inactivo',
+  );
 
   const drpPlanPath = path.join(ROOT_DIR, 'docs/runbooks/DISASTER_RECOVERY_PLAN.md');
   const drpPlan = fs.readFileSync(drpPlanPath, 'utf-8');
-  assert.ok(drpPlan.includes('2.2. Estado de Implementación'), 'DRP debe incluir sección 2.2 de estado de implementación');
+  assert.ok(
+    drpPlan.includes('2.2. Estado de Implementación'),
+    'DRP debe incluir sección 2.2 de estado de implementación',
+  );
   assert.ok(drpPlan.includes('ESQUELETO (INACTIVO)'), 'DRP debe formalizar off-site como esqueleto inactivo');
 });
 
@@ -134,26 +181,50 @@ test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan Persis
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const valuesPath = path.join(chartPath, 'values.yaml');
   const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
-  assert.match(valuesContent, /persistence:\s*\r?\n\s*enabled:\s*true/, 'values.yaml base debe declarar backup.persistence.enabled: true');
+  assert.match(
+    valuesContent,
+    /persistence:\s*\r?\n\s*enabled:\s*true/,
+    'values.yaml base debe declarar backup.persistence.enabled: true',
+  );
 
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
-  assert.match(proxmoxValues, /persistence:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe declarar backup.persistence.enabled: true');
+  assert.match(
+    proxmoxValues,
+    /persistence:\s*\r?\n\s*enabled:\s*true/,
+    'Proxmox GitOps values debe declarar backup.persistence.enabled: true',
+  );
 
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
 
   // 1. Validar renderizado de backup-cronjob.yaml y backup-restore-verify-cronjob.yaml
   const rendered = execSync(
     `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-cronjob.yaml -s templates/backup-restore-verify-cronjob.yaml`,
-    { encoding: 'utf-8' }
+    { encoding: 'utf-8' },
   );
 
   assert.match(rendered, /kind:\s*PersistentVolumeClaim/, 'Debe generar el recurso PersistentVolumeClaim para backup');
   assert.match(rendered, /name:\s*pokedex-backup-pvc/, 'El PVC de backup debe llamarse pokedex-backup-pvc');
-  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de backup debe montar claimName: pokedex-backup-pvc');
-  assert.doesNotMatch(rendered, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de backup');
-  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'El CronJob de verificación debe montar el mismo claimName: pokedex-backup-pvc');
-  assert.doesNotMatch(rendered, /name:\s*backup-storage\s*\r?\n\s*emptyDir:/, 'backup-storage NUNCA debe ser emptyDir en el CronJob de verificación');
+  assert.match(
+    rendered,
+    /claimName:\s*pokedex-backup-pvc/,
+    'El CronJob de backup debe montar claimName: pokedex-backup-pvc',
+  );
+  assert.doesNotMatch(
+    rendered,
+    /name:\s*backup-storage\s*\r?\n\s*emptyDir:/,
+    'backup-storage NUNCA debe ser emptyDir en el CronJob de backup',
+  );
+  assert.match(
+    rendered,
+    /claimName:\s*pokedex-backup-pvc/,
+    'El CronJob de verificación debe montar el mismo claimName: pokedex-backup-pvc',
+  );
+  assert.doesNotMatch(
+    rendered,
+    /name:\s*backup-storage\s*\r?\n\s*emptyDir:/,
+    'backup-storage NUNCA debe ser emptyDir en el CronJob de verificación',
+  );
 });
 
 test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)', () => {
@@ -163,7 +234,11 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   const composeContent = fs.readFileSync(dockerComposeDevPath, 'utf-8');
   assert.ok(composeContent.includes('backup-gdrive:'), 'Debe definir servicio backup-gdrive');
   assert.ok(composeContent.includes('rclone/rclone'), 'Debe usar imagen oficial rclone');
-  assert.match(composeContent, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'docker-compose.dev.yaml debe fijar rclone por digest SHA-256 inmutable');
+  assert.match(
+    composeContent,
+    /rclone\/rclone@sha256:[a-f0-9]{64}/,
+    'docker-compose.dev.yaml debe fijar rclone por digest SHA-256 inmutable',
+  );
   assert.ok(composeContent.includes('profiles:'), 'Debe aislarse mediante perfiles de compose');
   assert.ok(composeContent.includes('backup'), 'Debe pertenecer al perfil backup');
 
@@ -204,24 +279,40 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   const proxmoxValuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
   assert.ok(fs.existsSync(proxmoxValuesPath), 'proxmox values.yaml debe existir');
   const proxmoxValues = fs.readFileSync(proxmoxValuesPath, 'utf-8');
-  assert.match(proxmoxValues, /gdrive:\s*\r?\n\s*enabled:\s*true/, 'Proxmox GitOps values debe tener backup.gdrive.enabled: true');
+  assert.match(
+    proxmoxValues,
+    /gdrive:\s*\r?\n\s*enabled:\s*true/,
+    'Proxmox GitOps values debe tener backup.gdrive.enabled: true',
+  );
 
   // Renderizar con Helm usando values.prod.yaml
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
   const rendered = execSync(
     `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-gdrive-cronjob.yaml`,
-    { encoding: 'utf-8' }
+    { encoding: 'utf-8' },
   );
 
   // 1. Validar CronJob y Componentes
   assert.match(rendered, /kind:\s*CronJob/, 'Debe generar el recurso CronJob');
   assert.match(rendered, /name:\s*pokedex-gdrive-sync/, 'El CronJob debe llamarse pokedex-gdrive-sync');
   assert.match(rendered, /rclone\/rclone/, 'Debe utilizar la imagen oficial de Rclone');
-  assert.match(rendered, /rclone\/rclone@sha256:[a-f0-9]{64}/, 'El CronJob de Rclone debe utilizar pinning por digest SHA-256 inmutable');
+  assert.match(
+    rendered,
+    /rclone\/rclone@sha256:[a-f0-9]{64}/,
+    'El CronJob de Rclone debe utilizar pinning por digest SHA-256 inmutable',
+  );
 
   // 2. Validar puente al PVC con readOnly: true (Inmutabilidad del almacenamiento local)
-  assert.match(rendered, /claimName:\s*pokedex-backup-pvc/, 'Debe montar claimName: pokedex-backup-pvc para enlazar el puente de DR');
-  assert.match(rendered, /mountPath:\s*\/backups\s*\r?\n\s*readOnly:\s*true/, 'El volumen /backups DEBE ser montado obligatoriamente como readOnly: true');
+  assert.match(
+    rendered,
+    /claimName:\s*pokedex-backup-pvc/,
+    'Debe montar claimName: pokedex-backup-pvc para enlazar el puente de DR',
+  );
+  assert.match(
+    rendered,
+    /mountPath:\s*\/backups\s*\r?\n\s*readOnly:\s*true/,
+    'El volumen /backups DEBE ser montado obligatoriamente como readOnly: true',
+  );
 
   // 3. Validar Hardening y Least Privilege
   assert.match(rendered, /automountServiceAccountToken:\s*false/, 'Debe declarar automountServiceAccountToken: false');
@@ -231,12 +322,20 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
 
   // 4. Validar Aislamiento de Red Zero-Trust en NetworkPolicy y CiliumNetworkPolicy L7
   assert.match(rendered, /kind:\s*NetworkPolicy/, 'Debe generar recurso NetworkPolicy');
-  assert.match(rendered, /name:\s*pokedex-allow-gdrive-sync-egress/, 'NetworkPolicy debe llamarse pokedex-allow-gdrive-sync-egress');
+  assert.match(
+    rendered,
+    /name:\s*pokedex-allow-gdrive-sync-egress/,
+    'NetworkPolicy debe llamarse pokedex-allow-gdrive-sync-egress',
+  );
   assert.match(rendered, /port:\s*53/, 'Debe permitir resolución DNS en puerto 53');
 
   // En producción (con Cilium habilitado), el filtrado L7 se delega a CiliumNetworkPolicy con FQDN allowlist
   assert.match(rendered, /kind:\s*CiliumNetworkPolicy/, 'Debe generar recurso CiliumNetworkPolicy');
-  assert.match(rendered, /name:\s*pokedex-gdrive-sync-cilium-l7-policy/, 'CiliumNetworkPolicy debe llamarse pokedex-gdrive-sync-cilium-l7-policy');
+  assert.match(
+    rendered,
+    /name:\s*pokedex-gdrive-sync-cilium-l7-policy/,
+    'CiliumNetworkPolicy debe llamarse pokedex-gdrive-sync-cilium-l7-policy',
+  );
   assert.match(rendered, /toFQDNs:/, 'Debe definir sección toFQDNs para filtrado eBPF');
   assert.match(rendered, /\*\.googleapis\.com/, 'Debe restringir el tráfico HTTPS estrictamente a *.googleapis.com');
   assert.match(rendered, /accounts\.google\.com/, 'Debe permitir endpoint de auth accounts.google.com');
@@ -244,22 +343,29 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   // Validar fallback en clústeres sin Cilium (Flannel / Calico básico con Anti-SSRF)
   const renderedNoCilium = execSync(
     `helm template pokedex "${chartPath}" -f "${valuesProdPath}" --set ciliumNetworkPolicy.enabled=false -s templates/backup-gdrive-cronjob.yaml`,
-    { encoding: 'utf-8' }
+    { encoding: 'utf-8' },
   );
-  assert.ok(!renderedNoCilium.includes('kind: CiliumNetworkPolicy'), 'No debe generar CiliumNetworkPolicy si ciliumNetworkPolicy.enabled=false');
-  assert.match(renderedNoCilium, /169\.254\.169\.254\/32/, 'Fallback de NetworkPolicy debe bloquear endpoint IMDS (Anti-SSRF)');
+  assert.ok(
+    !renderedNoCilium.includes('kind: CiliumNetworkPolicy'),
+    'No debe generar CiliumNetworkPolicy si ciliumNetworkPolicy.enabled=false',
+  );
+  assert.match(
+    renderedNoCilium,
+    /169\.254\.169\.254\/32/,
+    'Fallback de NetworkPolicy debe bloquear endpoint IMDS (Anti-SSRF)',
+  );
   assert.match(renderedNoCilium, /port:\s*443/, 'Fallback debe permitir port 443 bajo ipBlock Anti-SSRF');
 
   // 5. Validar fail-closed obligatorio para GDRIVE_TOKEN (P1 Operacional)
   assert.match(
     rendered,
     /key:\s*GDRIVE_TOKEN\s*\r?\n\s*optional:\s*false/,
-    'RCLONE_CONFIG_GDRIVE_TOKEN debe ser estrictamente obligatorio (optional: false) cuando gdrive.enabled=true'
+    'RCLONE_CONFIG_GDRIVE_TOKEN debe ser estrictamente obligatorio (optional: false) cuando gdrive.enabled=true',
   );
   assert.match(
     rendered,
     /: "\$\{RCLONE_CONFIG_GDRIVE_TOKEN:\?GDRIVE_TOKEN is mandatory when gdrive backup is enabled\}"/,
-    'Debe implementar la aserción de shell fail-closed para GDRIVE_TOKEN'
+    'Debe implementar la aserción de shell fail-closed para GDRIVE_TOKEN',
   );
 });
 
@@ -287,7 +393,7 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (
       const stderr = err.stderr ? err.stderr.toString() : '';
       return stderr.includes('GDRIVE_TOKEN is mandatory when gdrive backup is enabled');
     },
-    'El job DEBE fallar inmediatamente con código de error y mensaje explícito si GDRIVE_TOKEN está vacío'
+    'El job DEBE fallar inmediatamente con código de error y mensaje explícito si GDRIVE_TOKEN está vacío',
   );
 
   assert.throws(
@@ -300,7 +406,7 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (
       const stderr = err.stderr ? err.stderr.toString() : '';
       return stderr.includes('GDRIVE_TOKEN is mandatory when gdrive backup is enabled');
     },
-    'El job DEBE fallar inmediatamente si RCLONE_CONFIG_GDRIVE_TOKEN no está definido'
+    'El job DEBE fallar inmediatamente si RCLONE_CONFIG_GDRIVE_TOKEN no está definido',
   );
 });
 
@@ -309,5 +415,8 @@ test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (s
   assert.ok(content.includes('dr:drill:'), 'Taskfile.yaml debe definir tarea dr:drill');
   assert.ok(content.includes('dr:verify:'), 'Taskfile.yaml debe definir tarea dr:verify');
   assert.ok(content.includes('dr_verify_restore.sh --dry-run'), 'dr:drill debe invocar dr_verify_restore.sh --dry-run');
-  assert.ok(content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'), 'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real');
+  assert.ok(
+    content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'),
+    'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real',
+  );
 });

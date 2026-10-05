@@ -83,7 +83,10 @@ const TARGETS: TargetSpec[] = [
   },
 ];
 
-async function probeUrl(urlStr: string, timeoutMs: number = 3000): Promise<{ success: boolean; error?: string; status?: number }> {
+async function probeUrl(
+  urlStr: string,
+  timeoutMs: number = 3000,
+): Promise<{ success: boolean; error?: string; status?: number }> {
   return new Promise((resolve) => {
     const parsed = new URL(urlStr);
     const client = parsed.protocol === 'https:' ? https : http;
@@ -100,7 +103,7 @@ async function probeUrl(urlStr: string, timeoutMs: number = 3000): Promise<{ suc
         // Si responde cualquier código HTTP (incluso 401, 403, 404), la conexión TCP/TLS se completó con éxito
         res.resume();
         resolve({ success: true, status: res.statusCode });
-      }
+      },
     );
 
     req.on('timeout', () => {
@@ -142,7 +145,10 @@ async function runProbe() {
     if (isSimulate) {
       if (profile === 'cilium-l7') {
         actual = target.expectedResult;
-        details = target.expectedResult === 'SUCCESS' ? 'Permitido por Cilium toFQDNs rule' : 'Descartado a nivel kernel por Cilium eBPF';
+        details =
+          target.expectedResult === 'SUCCESS'
+            ? 'Permitido por Cilium toFQDNs rule'
+            : 'Descartado a nivel kernel por Cilium eBPF';
       } else {
         // En Flannel L4:
         if (target.category === 'UNAUTHORIZED_PUBLIC') {
@@ -150,7 +156,10 @@ async function runProbe() {
           details = 'ADVERTENCIA: Flannel L4 no puede filtrar dominios FQDN; tráfico permitido hacia 0.0.0.0/0:443';
         } else {
           actual = target.expectedResult;
-          details = target.expectedResult === 'SUCCESS' ? 'Permitido en L4 0.0.0.0/0:443' : 'Bloqueado por regla L4 ipBlock.except';
+          details =
+            target.expectedResult === 'SUCCESS'
+              ? 'Permitido en L4 0.0.0.0/0:443'
+              : 'Bloqueado por regla L4 ipBlock.except';
         }
       }
     } else {
@@ -186,7 +195,9 @@ async function runProbe() {
   if (!passed) {
     console.error('\n❌ La auditoría de seguridad de red ha fallado.');
     if (profile === 'flannel-l4') {
-      console.error('   Causa identificada: Flannel L4 no soporta listas blancas FQDN y permite acceso a dominios públicos no autorizados (ej. https://example.com).');
+      console.error(
+        '   Causa identificada: Flannel L4 no soporta listas blancas FQDN y permite acceso a dominios públicos no autorizados (ej. https://example.com).',
+      );
       console.error('   Solución recomendada: Habilitar Cilium CNI en Proxmox con CiliumNetworkPolicy L7.');
     }
     process.exit(1);

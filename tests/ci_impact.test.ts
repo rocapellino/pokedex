@@ -28,22 +28,38 @@ const CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
  */
 test('🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente', () => {
   const all = {
-    documentation: true, agent_governance: true, backend: true, frontend: true,
-    tests: true, docker: true, kubernetes: true, helm: true, opentofu: true,
-    ansible: true, linting: true, pr_governance: true, security: true, security_secrets: true,
-    security_sast: true, security_dependencies: true, security_container: true,
-    security_iac: true, security_supply_chain: true,
+    documentation: true,
+    agent_governance: true,
+    backend: true,
+    frontend: true,
+    tests: true,
+    docker: true,
+    kubernetes: true,
+    helm: true,
+    opentofu: true,
+    ansible: true,
+    linting: true,
+    pr_governance: true,
+    security: true,
+    security_secrets: true,
+    security_sast: true,
+    security_dependencies: true,
+    security_container: true,
+    security_iac: true,
+    security_supply_chain: true,
   };
 
   const table = formatImpactMarkdown(all, ['global (configuración transversal modificada)'], []);
 
-  const stale = table.match(/\b(ci|infra|web|change-impact|mega-linter|release-tag|performance-k6|dr-simulation|security-trivy|security-gitleaks|security-code-scanning|security-dast-zap|renovate-linear-sync|sonar-linear-sync|ghcr-retention)\.yml\b/);
+  const stale = table.match(
+    /\b(ci|infra|web|change-impact|mega-linter|release-tag|performance-k6|dr-simulation|security-trivy|security-gitleaks|security-code-scanning|security-dast-zap|renovate-linear-sync|sonar-linear-sync|ghcr-retention)\.yml\b/,
+  );
 
   assert.equal(
     stale,
     null,
     `La tabla de impacto cita "${stale?.[0]}", una ruta que no existe. ` +
-      'Es el texto que se pega en cada Pull Request, así que el error se propaga a todos.'
+      'Es el texto que se pega en cada Pull Request, así que el error se propaga a todos.',
   );
 
   // Y confirma que la tabla sigue produciendo contenido real (evita un test
@@ -53,16 +69,15 @@ test('🎯 Change Impact: la tabla generada cita workflows con la extensión .ya
 });
 
 test('🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml', () => {
-  const template = fs.readFileSync(
-    path.join(ROOT_DIR, '.github', 'pull_request_template.md'),
-    'utf-8'
-  );
+  const template = fs.readFileSync(path.join(ROOT_DIR, '.github', 'pull_request_template.md'), 'utf-8');
 
-  const stale = template.match(/\b(ci|infra|web|mega-linter|release-tag|performance-k6|dr-simulation|security-trivy)\.yml\b/);
+  const stale = template.match(
+    /\b(ci|infra|web|mega-linter|release-tag|performance-k6|dr-simulation|security-trivy)\.yml\b/,
+  );
   assert.equal(
     stale,
     null,
-    `pull_request_template.md cita "${stale?.[0]}" en su tabla por defecto, que se ve antes de generar la definitiva.`
+    `pull_request_template.md cita "${stale?.[0]}" en su tabla por defecto, que se ve antes de generar la definitiva.`,
   );
 });
 
@@ -150,12 +165,12 @@ test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', ()
   assert.equal(
     result.isUnknown,
     false,
-    'CI-001: Taskfile.yaml debe estar clasificado; si no, el motor aplica fail-closed y despacha Full CI'
+    'CI-001: Taskfile.yaml debe estar clasificado; si no, el motor aplica fail-closed y despacha Full CI',
   );
   assert.equal(
     result.isGlobal,
     false,
-    'CI-001: Taskfile.yaml no debe clasificarse como global; es mas especifico que eso'
+    'CI-001: Taskfile.yaml no debe clasificarse como global; es mas especifico que eso',
   );
 
   // El Taskfile orquesta la operativa de plataforma: estos dominios deben activarse.
@@ -171,7 +186,7 @@ test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', ()
       result.triggers[trigger],
       true,
       `CI-001: Taskfile.yaml debe activar '${String(trigger)}' porque gobierna ${reason}. ` +
-      'Clasificarlo en una regla mas laxa omitiria un gate real.'
+        'Clasificarlo en una regla mas laxa omitiria un gate real.',
     );
   }
 
@@ -186,7 +201,7 @@ test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', ()
     assert.equal(
       result.triggers[trigger],
       false,
-      `CI-001: Taskfile.yaml no debe activar '${label}'; no modifica codigo de aplicacion`
+      `CI-001: Taskfile.yaml no debe activar '${label}'; no modifica codigo de aplicacion`,
     );
   }
 });
@@ -209,27 +224,27 @@ test('🎯 CI-001: la configuración del motor es global, igual que el motor', (
     result.isGlobal,
     true,
     'CI-001: .github/ci-impact.yaml debe ser una ruta global; cambiar la matriz de ' +
-    'impacto altera el comportamiento de todos los Pull Requests'
+      'impacto altera el comportamiento de todos los Pull Requests',
   );
 });
 
 test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud', () => {
   const matrix = fs.readFileSync(
     path.join(ROOT_DIR, '.agents', 'skills', '_shared', 'change-impact-matrix.md'),
-    'utf-8'
+    'utf-8',
   );
 
   assert.ok(
     matrix.includes('gitops/environments/cloud/values.yaml'),
-    'CI-001: la matriz debe identificar a gitops/environments/cloud/values.yaml como override prod cloud'
+    'CI-001: la matriz debe identificar a gitops/environments/cloud/values.yaml como override prod cloud',
   );
   assert.ok(
     matrix.includes('infra/helm/pokedex/values.prod.yaml'),
-    'CI-001: la matriz debe declarar values.prod.yaml como base del perfil prod cloud'
+    'CI-001: la matriz debe declarar values.prod.yaml como base del perfil prod cloud',
   );
   assert.ok(
     !matrix.includes('gitops/environments/aws/'),
-    'CI-001: la matriz no debe citar el entorno aws retirado por ADR-030'
+    'CI-001: la matriz no debe citar el entorno aws retirado por ADR-030',
   );
 });
 
@@ -523,7 +538,7 @@ test('🔒 Change Impact Always: PR documental sigue activando security_secrets 
   assert.deepEqual(
     result.appliedAlwaysControls.sort(),
     ['pr-governance', 'secrets'],
-    'appliedAlwaysControls debe reflejar los controles declarados en always:'
+    'appliedAlwaysControls debe reflejar los controles declarados en always:',
   );
 });
 
@@ -542,7 +557,7 @@ test('🔒 Change Impact Always: los controles se aplican en los 4 caminos de re
     assert.deepEqual(
       result.appliedAlwaysControls.sort(),
       ['pr-governance', 'secrets'],
-      `El camino "${label}" debe aplicar los controles always`
+      `El camino "${label}" debe aplicar los controles always`,
     );
     assert.equal(result.triggers.security_secrets, true, `security_secrets debe estar activo en "${label}"`);
     assert.equal(result.triggers.pr_governance, true, `pr_governance debe estar activo en "${label}"`);
@@ -588,7 +603,7 @@ test('🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed 
   assert.throws(
     () => applyAlwaysTriggers({ ...base }, [{ id: 'control-inventado', description: 'x' }]),
     /sin mapeo de triggers/,
-    'Un id de always sin mapeo debe lanzar error (fail-closed)'
+    'Un id de always sin mapeo debe lanzar error (fail-closed)',
   );
 });
 
@@ -703,10 +718,7 @@ test('🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a script
   ];
 
   for (const script of prunedScripts) {
-    assert.ok(
-      !rawYaml.includes(script),
-      `ci-impact.yaml contiene referencia al script podado: ${script}`
-    );
+    assert.ok(!rawYaml.includes(script), `ci-impact.yaml contiene referencia al script podado: ${script}`);
   }
 });
 
@@ -748,12 +760,12 @@ test('🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspon
     assert.equal(
       res.triggers[c.expectedTrigger as keyof typeof res.triggers],
       true,
-      `${c.file} debe activar ${c.expectedTrigger}`
+      `${c.file} debe activar ${c.expectedTrigger}`,
     );
     assert.equal(
       res.triggers[c.notExpectedTrigger as keyof typeof res.triggers],
       false,
-      `${c.file} no debe activar ${c.notExpectedTrigger}`
+      `${c.file} no debe activar ${c.notExpectedTrigger}`,
     );
   }
 });

@@ -21,7 +21,7 @@ test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta
   const scriptPath = path.join(ROOT_DIR, 'scripts/check-ignore-hygiene.ts');
   const stdout = execSync(`npx tsx "${scriptPath}" --json --strict`, {
     cwd: ROOT_DIR,
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   });
 
   const report = JSON.parse(stdout);
@@ -29,16 +29,34 @@ test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta
   // Un umbral numérico fallaba al retirar exclusiones huérfanas (las .trivyignore de
   // AWS, ADR-030); se exige el núcleo que debe descubrirse siempre.
   const discovered = new Set(report.files.map((f: { file: string }) => f.file.replace(/\\/g, '/')));
-  for (const required of ['.gitignore', '.dockerignore', 'apps/backend/.dockerignore', 'apps/frontend/.dockerignore', 'infra/helm/pokedex/.helmignore']) {
+  for (const required of [
+    '.gitignore',
+    '.dockerignore',
+    'apps/backend/.dockerignore',
+    'apps/frontend/.dockerignore',
+    'infra/helm/pokedex/.helmignore',
+  ]) {
     assert.ok(discovered.has(required), `El descubrimiento dinámico debe incluir ${required}`);
   }
 
   for (const fileReport of report.files) {
     assert.equal(fileReport.valid, true, `El archivo ${fileReport.file} debe ser válido`);
     assert.equal(fileReport.duplicates.length, 0, `No debe haber duplicados en ${fileReport.file}`);
-    assert.equal(fileReport.securityRulesMissing.length, 0, `No debe faltar ninguna regla de seguridad en ${fileReport.file}`);
-    assert.equal(fileReport.unjustifiedRules.length, 0, `No debe haber reglas de excepción sin justificar en ${fileReport.file}`);
-    assert.equal(fileReport.obsoleteRules.length, 0, `No debe haber reglas de herramientas retiradas en ${fileReport.file}`);
+    assert.equal(
+      fileReport.securityRulesMissing.length,
+      0,
+      `No debe faltar ninguna regla de seguridad en ${fileReport.file}`,
+    );
+    assert.equal(
+      fileReport.unjustifiedRules.length,
+      0,
+      `No debe haber reglas de excepción sin justificar en ${fileReport.file}`,
+    );
+    assert.equal(
+      fileReport.obsoleteRules.length,
+      0,
+      `No debe haber reglas de herramientas retiradas en ${fileReport.file}`,
+    );
   }
 });
 
@@ -74,10 +92,20 @@ test('📐 Extension Governance: las skills no citan workflows con la extensión
   // sino el archivo de configuración de la herramienta, y constituye la
   // excepción permanente documentada (se pasa vía MEGALINTER_CONFIG).
   const workflows = [
-    'ci', 'infra', 'security-gitleaks', 'security-trivy',
-    'security-dast-zap', 'performance-k6', 'dr-simulation',
-    'change-impact', 'release-tag', 'web', 'sonar-linear-sync',
-    'renovate-linear-sync', 'security-code-scanning', 'ghcr-retention',
+    'ci',
+    'infra',
+    'security-gitleaks',
+    'security-trivy',
+    'security-dast-zap',
+    'performance-k6',
+    'dr-simulation',
+    'change-impact',
+    'release-tag',
+    'web',
+    'sonar-linear-sync',
+    'renovate-linear-sync',
+    'security-code-scanning',
+    'ghcr-retention',
     'github-security-linear-sync',
   ];
 
@@ -110,16 +138,12 @@ test('📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .ym
   // renombrar archivos y dejar la documentacion apuntando a rutas muertas.
   const stdout = execSync('npx tsx scripts/check-yaml-extension.ts --refs', {
     cwd: ROOT_DIR,
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   });
 
   const match = stdout.match(/RESUMEN: obsoletas=(\d+)/);
   assert.ok(match, 'El scanner debe emitir el resumen de referencias obsoletas');
-  assert.equal(
-    match[1],
-    '0',
-    `La documentacion no debe citar archivos .yml obsoletas:\n${stdout.slice(0, 2000)}`
-  );
+  assert.equal(match[1], '0', `La documentacion no debe citar archivos .yml obsoletas:\n${stdout.slice(0, 2000)}`);
 });
 
 test('📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones', () => {
@@ -131,11 +155,7 @@ test('📚 YAML Reference Integrity: el scanner esta registrado y declara sus ex
   assert.ok(pkgJson.scripts['lint:docs:refs:fix'], 'package.json debe registrar lint:docs:refs:fix');
 
   const ciContent = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
-  assert.match(
-    ciContent,
-    /npm run lint:docs:refs/,
-    'ci.yaml debe invocar el gate de integridad de referencias YAML'
-  );
+  assert.match(ciContent, /npm run lint:docs:refs/, 'ci.yaml debe invocar el gate de integridad de referencias YAML');
 
   // Las excepciones deben seguir declaradas explicitamente, no borradas en silencio.
   const scanner = fs.readFileSync(scriptPath, 'utf-8');
@@ -157,7 +177,7 @@ test('🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no s
   assert.match(gitignoreContent, /^\/tmp\/$/m, '.gitignore debe declarar exactamente la regla /tmp/ anclada a la raíz');
 
   // Validar que no se usó una regla genérica "tmp/" desanclada
-  const lines = gitignoreContent.split(/\r?\n/).map(l => l.trim());
+  const lines = gitignoreContent.split(/\r?\n/).map((l) => l.trim());
   assert.ok(!lines.includes('tmp/'), '.gitignore no debe incluir la regla relativa desanclada tmp/');
 });
 
@@ -185,7 +205,11 @@ test('🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe
   assert.ok(fs.existsSync(rulePath), '.agents/rules/repository-hygiene.md debe existir');
 
   const ruleContent = fs.readFileSync(rulePath, 'utf-8');
-  assert.match(ruleContent, /<repository-root>\/tmp\//, 'repository-hygiene.md debe definir la ubicación canónica <repository-root>/tmp/');
+  assert.match(
+    ruleContent,
+    /<repository-root>\/tmp\//,
+    'repository-hygiene.md debe definir la ubicación canónica <repository-root>/tmp/',
+  );
 
   const agentsMd = fs.readFileSync(path.join(ROOT_DIR, 'AGENTS.md'), 'utf-8');
   assert.match(agentsMd, /repository-hygiene\.md/, 'AGENTS.md debe referenciar repository-hygiene.md');

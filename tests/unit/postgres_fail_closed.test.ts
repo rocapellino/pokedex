@@ -104,7 +104,7 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
         assert.match(err.message, /Las migraciones Drizzle fallaron/);
         assert.equal(err.cause, migrationError);
         return true;
-      }
+      },
     );
 
     assert.equal(isPgConnectedStatus(), false, 'isPgConnected debe ser false tras el fallo');

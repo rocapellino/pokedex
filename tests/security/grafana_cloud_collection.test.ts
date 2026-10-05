@@ -63,20 +63,32 @@ function renderCollection(): string {
   renderedCache = execFileSync(
     'helm',
     [
-      'template', deployDefault('release'), 'k8s-monitoring',
-      '--repo', 'https://grafana.github.io/helm-charts',
-      '--version', deployDefault('chartVersion'),
-      '--namespace', deployDefault('namespace'),
-      '--values', VALUES_PATH,
-      '--set', 'cluster.name=pokedex-k8s-cluster',
-      '--set', 'collectorCommon.alloy.remoteConfig.enabled=true',
-      '--set-string', `collectorCommon.alloy.remoteConfig.url=${deployDefault('remoteConfig')}`,
-      '--set-string', `collectorCommon.alloy.remoteConfig.auth.username=${deployDefault('username')}`,
+      'template',
+      deployDefault('release'),
+      'k8s-monitoring',
+      '--repo',
+      'https://grafana.github.io/helm-charts',
+      '--version',
+      deployDefault('chartVersion'),
+      '--namespace',
+      deployDefault('namespace'),
+      '--values',
+      VALUES_PATH,
+      '--set',
+      'cluster.name=pokedex-k8s-cluster',
+      '--set',
+      'collectorCommon.alloy.remoteConfig.enabled=true',
+      '--set-string',
+      `collectorCommon.alloy.remoteConfig.url=${deployDefault('remoteConfig')}`,
+      '--set-string',
+      `collectorCommon.alloy.remoteConfig.auth.username=${deployDefault('username')}`,
       // Credenciales ficticias: el render no las valida y el test no debe tocar secretos.
-      '--set-string', 'collectorCommon.alloy.remoteConfig.auth.password=ci-dummy-token',
-      '--set-string', 'destinations.grafana-cloud-metrics.auth.password=ci-dummy-token',
+      '--set-string',
+      'collectorCommon.alloy.remoteConfig.auth.password=ci-dummy-token',
+      '--set-string',
+      'destinations.grafana-cloud-metrics.auth.password=ci-dummy-token',
     ],
-    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }
+    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] },
   );
   return renderedCache;
 }
@@ -89,33 +101,46 @@ function alertKubernetesMetrics(): string[] {
   return [...new Set(names)].sort();
 }
 
-test('📡 OBS-002: el chart que instala el script renderiza con los values del repo', { skip: !HELM_AVAILABLE && 'helm no disponible' }, () => {
+test('📡 OBS-002: el chart que instala el script renderiza con los values del repo', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
   assert.doesNotThrow(
     () => renderCollection(),
-    'helm template debe renderizar: una version de chart incompatible con el esquema de los values rompe task monitoring:grafana-cloud:install'
+    'helm template debe renderizar: una version de chart incompatible con el esquema de los values rompe task monitoring:grafana-cloud:install',
   );
 });
 
-test('📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud', { skip: !HELM_AVAILABLE && 'helm no disponible' }, () => {
+test('📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
   const rendered = renderCollection();
-  for (const job of ['integrations/kubernetes/cadvisor', 'integrations/kubernetes/kubelet', 'integrations/kubernetes/kube-state-metrics', 'integrations/node_exporter']) {
+  for (const job of [
+    'integrations/kubernetes/cadvisor',
+    'integrations/kubernetes/kubelet',
+    'integrations/kubernetes/kube-state-metrics',
+    'integrations/node_exporter',
+  ]) {
     assert.ok(rendered.includes(`job_name = "${job}"`), `Falta el scrape ${job}`);
   }
   assert.match(
     rendered,
     /prometheus\.remote_write "grafana_cloud_metrics"[\s\S]*?url = "https:\/\/prometheus-prod-40-prod-sa-east-1\.grafana\.net\/api\/prom\/push"/,
-    'Las metricas del cluster deben enviarse al Prometheus de Grafana Cloud'
+    'Las metricas del cluster deben enviarse al Prometheus de Grafana Cloud',
   );
 });
 
-test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists', { skip: !HELM_AVAILABLE && 'helm no disponible' }, () => {
+test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
   const rendered = renderCollection();
   // Las allowlists se renderizan como reglas `keep` con un regex de nombres de metrica.
-  const keepRegexes = [...rendered.matchAll(/source_labels = \["__name__"\]\s*\n\s*regex = "([^"]+)"\s*\n\s*action = "keep"/g)].map(
+  const keepRegexes = [
+    ...rendered.matchAll(/source_labels = \["__name__"\]\s*\n\s*regex = "([^"]+)"\s*\n\s*action = "keep"/g),
+  ].map(
     // El regex sale del render del chart fijado en el repo, no de entrada de usuario:
     // evaluarlo es lo que verifica este contrato.
     // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
-    ([, r]) => new RegExp(`^(?:${r})$`)
+    ([, r]) => new RegExp(`^(?:${r})$`),
   );
   assert.ok(keepRegexes.length > 0, 'Se esperaban allowlists en el render');
 
@@ -123,7 +148,9 @@ test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las a
   assert.deepEqual(dropped, [], 'Metricas usadas por alertas que el colector descarta: las alertas nunca evaluarian');
 });
 
-test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector', { skip: !HELM_AVAILABLE && 'helm no disponible' }, () => {
+test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
   const appValues = fs.readFileSync(APP_VALUES_PATH, 'utf-8');
   const endpoint = appValues.match(/otelEndpoint:\s*"http:\/\/([a-z0-9-]+)\.([a-z0-9-]+)\.svc[^:]*:(\d+)"/);
   assert.ok(endpoint, 'infra/helm/pokedex/values.yaml debe declarar otelEndpoint');
@@ -135,7 +162,10 @@ test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colec
     .split(/^---$/m)
     .find((doc) => lines(doc).includes('kind: Alloy') && lines(doc).includes(`  name: ${service}`));
   assert.ok(alloyCr, `El colector debe llamarse ${service}: la API envia OTLP a ${service}.${namespace}`);
-  assert.ok(lines(alloyCr).includes(`  namespace: ${namespace}`), `El colector debe vivir en el namespace ${namespace}`);
+  assert.ok(
+    lines(alloyCr).includes(`  namespace: ${namespace}`),
+    `El colector debe vivir en el namespace ${namespace}`,
+  );
   const ports = [...alloyCr.matchAll(/^\s+port: (\d+)$/gm)].map(([, p]) => p);
   assert.ok(ports.includes(port), `El colector debe exponer el puerto OTLP ${port}`);
 });

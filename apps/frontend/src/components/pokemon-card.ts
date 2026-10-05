@@ -35,7 +35,9 @@ export function renderPokemonCard(p: Pokemon): string {
   }
 
   const normType = normalizeStr(p.tipo || 'normal');
-  const safeImg = p.imagen ? escapeText(p.imagen) : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+  const safeImg = p.imagen
+    ? escapeText(p.imagen)
+    : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
 
   return `
     <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${escapeText(normType)}">

@@ -3,13 +3,7 @@
  * Controlador de Vista de Administración Modularizado (< 200 LOC)
  */
 
-import {
-  TYPE_COLORS,
-  normalizeStr,
-  getTypeColor,
-  formatPokemonId,
-  showToast,
-} from './shared/index.js';
+import { TYPE_COLORS, normalizeStr, getTypeColor, formatPokemonId, showToast } from './shared/index.js';
 import {
   openCreateModal as openCreateModalComponent,
   openEditModal as openEditModalComponent,
@@ -106,7 +100,7 @@ window.addEventListener(
       }
     }
   },
-  true
+  true,
 );
 
 export function initEventListeners(): void {

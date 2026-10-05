@@ -260,7 +260,6 @@ test('Backoffice: la superficie publica permanece exportada', async () => {
   }
 });
 
-
 test('Backoffice: handleFormSubmit con sesion activa rehabilita el boton', async () => {
   const { handleFormSubmit, setAdminSessionActive } = await load();
   setAdminSessionActive(true);
@@ -413,7 +412,10 @@ test('Backoffice Health: maneja errores sin mensaje estructurado y ausencia de b
 });
 
 test('Backoffice State: getters y setters reactivos operan correctamente', async () => {
-  backofficeState.setBackofficePokemons([{ id: 99, nombre: 'Mew', tipo: 'Psíquico', tipos: ['Psíquico'], fuerza: 100 }], 1);
+  backofficeState.setBackofficePokemons(
+    [{ id: 99, nombre: 'Mew', tipo: 'Psíquico', tipos: ['Psíquico'], fuerza: 100 }],
+    1,
+  );
   assert.equal(backofficeState.getBackofficePokemons().length, 1);
   assert.equal(backofficeState.getTotalRecords(), 1);
 

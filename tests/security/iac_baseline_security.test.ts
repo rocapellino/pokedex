@@ -17,7 +17,11 @@ const ROOT_DIR = path.resolve(__dirname, '../../');
 
 test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa', () => {
   const legacyScript = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
-  assert.equal(fs.existsSync(legacyScript), false, 'scripts/proxmox_deploy.sh debe estar eliminado; el aprovisionamiento se gestiona vía OpenTofu + Ansible + Helm');
+  assert.equal(
+    fs.existsSync(legacyScript),
+    false,
+    'scripts/proxmox_deploy.sh debe estar eliminado; el aprovisionamiento se gestiona vía OpenTofu + Ansible + Helm',
+  );
 });
 
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
@@ -73,7 +77,7 @@ test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa
     offenders.map((t) => `${t.label} => ${t.command}`),
     [],
     'Las tareas de VS Code no deben implementar logica de orquestacion o cluster. ' +
-      'Delegar en `task <nombre>` para que Taskfile.yaml siga siendo el SSOT unico.'
+      'Delegar en `task <nombre>` para que Taskfile.yaml siga siendo el SSOT unico.',
   );
 
   // 2. Toda delegacion `task X` debe apuntar a una tarea que EXISTA en el Taskfile.
@@ -87,14 +91,14 @@ test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa
     taskfile
       .split('\n')
       .map((line) => /^ {2}([A-Za-z0-9_:.-]+):\s*$/.exec(line)?.[1])
-      .filter((name): name is string => name !== undefined)
+      .filter((name): name is string => name !== undefined),
   );
   const missing = delegations.filter((name) => !declaredTasks.has(name));
   assert.deepEqual(
     missing,
     [],
     `Wrappers que apuntan a tareas inexistentes en Taskfile.yaml: ${missing.join(' | ')}. ` +
-      'Un nombre inexistente no produce error de validacion: la tarea falla al ejecutarse.'
+      'Un nombre inexistente no produce error de validacion: la tarea falla al ejecutarse.',
   );
 
   // 3. Las tareas de Kubernetes deben delegar (no invocar kubectl/helm directo).
@@ -103,7 +107,7 @@ test('🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa
     assert.ok(k8s, `Debe existir la tarea de Kubernetes: ${label}`);
     assert.ok(
       k8s!.command.startsWith('task '),
-      `La tarea "${k8s!.label}" debe delegar en Taskfile.yaml, no invocar helm/kubectl directamente`
+      `La tarea "${k8s!.label}" debe delegar en Taskfile.yaml, no invocar helm/kubectl directamente`,
     );
   }
 });
@@ -122,13 +126,9 @@ test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del 
   const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
   assert.ok(
     infraWorkflow.includes('--only-binary :all:'),
-    'infra.yaml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables'
+    'infra.yaml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables',
   );
-  assert.match(
-    infraWorkflow,
-    /ansible-core==\d+\.\d+\.\d+/,
-    'infra.yaml debe fijar la versión exacta de ansible-core'
-  );
+  assert.match(infraWorkflow, /ansible-core==\d+\.\d+\.\d+/, 'infra.yaml debe fijar la versión exacta de ansible-core');
 });
 
 test('🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
@@ -137,14 +137,26 @@ test('🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificad
   const content = getCompleteTaskfileContent(ROOT_DIR);
 
   assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yaml no debe incluir la variable obsoleta MONITORING_DIR');
-  assert.ok(!content.includes('docker_monitoreo'), 'Taskfile.yaml no debe incluir referencias al stack legacy docker_monitoreo');
-  assert.ok(content.includes('monitoring:grafana-cloud:install:'), 'Taskfile.yaml debe incluir la tarea de instalación de Grafana Cloud');
-  assert.ok(content.includes('monitoring:dev:status:'), 'Taskfile.yaml debe incluir la tarea de diagnóstico dev:status');
+  assert.ok(
+    !content.includes('docker_monitoreo'),
+    'Taskfile.yaml no debe incluir referencias al stack legacy docker_monitoreo',
+  );
+  assert.ok(
+    content.includes('monitoring:grafana-cloud:install:'),
+    'Taskfile.yaml debe incluir la tarea de instalación de Grafana Cloud',
+  );
+  assert.ok(
+    content.includes('monitoring:dev:status:'),
+    'Taskfile.yaml debe incluir la tarea de diagnóstico dev:status',
+  );
   assert.ok(content.includes('monitoring:dev:logs:'), 'Taskfile.yaml debe incluir la tarea de logs de dev');
 });
 
 test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)', () => {
-  const adr20Path = path.join(ROOT_DIR, 'docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md');
+  const adr20Path = path.join(
+    ROOT_DIR,
+    'docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md',
+  );
   const cliRefPath = path.join(ROOT_DIR, 'docs/operations/TASKFILE_CLI_REFERENCE.md');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
   const infraReadmePath = path.join(ROOT_DIR, 'infra/README.md');
@@ -157,12 +169,30 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
   // 1. ADR-020 existe físicamente en docs/decisions/, consolida ADR-026 y está en estado Aceptado/Activo
   assert.ok(fs.existsSync(adr20Path), 'ADR-020 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adr20Path, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-020 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('task --list'), 'ADR-020 debe formalizar task --list como interfaz oficialmente soportada');
-  assert.ok(adrContent.includes('Fase 1 (Documentación)') || adrContent.includes('Fase 1: Documentar Aliases'), 'ADR-020 debe documentar Fase 1');
-  assert.ok(adrContent.includes('Fase 2 (Telemetría') || adrContent.includes('Fase 2: Medir Uso'), 'ADR-020 debe documentar Fase 2');
-  assert.ok(adrContent.includes('Fase 3 (Deprecación Formal)') || adrContent.includes('Fase 3: Deprecación Formal'), 'ADR-020 debe documentar Fase 3');
-  assert.ok(adrContent.includes('Fase 4 (Eliminación Definitiva') || adrContent.includes('Fase 4: Eliminación Definitiva'), 'ADR-020 debe documentar Fase 4');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-020 debe estar en estado Aceptado',
+  );
+  assert.ok(
+    adrContent.includes('task --list'),
+    'ADR-020 debe formalizar task --list como interfaz oficialmente soportada',
+  );
+  assert.ok(
+    adrContent.includes('Fase 1 (Documentación)') || adrContent.includes('Fase 1: Documentar Aliases'),
+    'ADR-020 debe documentar Fase 1',
+  );
+  assert.ok(
+    adrContent.includes('Fase 2 (Telemetría') || adrContent.includes('Fase 2: Medir Uso'),
+    'ADR-020 debe documentar Fase 2',
+  );
+  assert.ok(
+    adrContent.includes('Fase 3 (Deprecación Formal)') || adrContent.includes('Fase 3: Deprecación Formal'),
+    'ADR-020 debe documentar Fase 3',
+  );
+  assert.ok(
+    adrContent.includes('Fase 4 (Eliminación Definitiva') || adrContent.includes('Fase 4: Eliminación Definitiva'),
+    'ADR-020 debe documentar Fase 4',
+  );
   assert.ok(adrContent.includes('ADR-026'), 'ADR-020 debe referenciar la consolidación de ADR-026');
 
   // 2. TASKFILE_CLI_REFERENCE.md existe físicamente y documenta catálogo canónico y fases
@@ -198,7 +228,7 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
     'ts:lint',
     'docker:up',
     'docker:down',
-    'deploy:proxmox'
+    'deploy:proxmox',
   ];
 
   for (const alias of retiredAliases) {
@@ -207,60 +237,122 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
     assert.strictEqual(
       taskfileContent.includes(`task ${alias}`),
       false,
-      `Taskfile.yaml no debe referenciar el alias retirado ${alias}`
+      `Taskfile.yaml no debe referenciar el alias retirado ${alias}`,
     );
   }
 
   // 5. La documentación activa utiliza comandos canónicos y no aliases deprecados
   const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
-  assert.ok(infraReadmeContent.includes('task infra:plan:proxmox'), 'infra/README.md debe usar comando canónico task infra:plan:proxmox');
-  assert.ok(!infraReadmeContent.includes('task infra:plan:aws'), 'infra/README.md no debe citar task infra:plan:aws, retirada con ADR-030');
-  assert.ok(!infraReadmeContent.includes('task tofu:plan:proxmox'), 'infra/README.md no debe contener task tofu:plan:proxmox');
-  assert.ok(!infraReadmeContent.includes('task tofu:plan:cloud'), 'infra/README.md no debe contener task tofu:plan:cloud');
+  assert.ok(
+    infraReadmeContent.includes('task infra:plan:proxmox'),
+    'infra/README.md debe usar comando canónico task infra:plan:proxmox',
+  );
+  assert.ok(
+    !infraReadmeContent.includes('task infra:plan:aws'),
+    'infra/README.md no debe citar task infra:plan:aws, retirada con ADR-030',
+  );
+  assert.ok(
+    !infraReadmeContent.includes('task tofu:plan:proxmox'),
+    'infra/README.md no debe contener task tofu:plan:proxmox',
+  );
+  assert.ok(
+    !infraReadmeContent.includes('task tofu:plan:cloud'),
+    'infra/README.md no debe contener task tofu:plan:cloud',
+  );
 
   const tofuReadmeContent = fs.readFileSync(tofuReadmePath, 'utf-8');
-  assert.ok(tofuReadmeContent.includes('task infra:plan:proxmox'), 'infra/opentofu/README.md debe usar task infra:plan:proxmox');
-  assert.ok(tofuReadmeContent.includes('task infra:validate'), 'infra/opentofu/README.md debe usar task infra:validate');
-  assert.ok(!tofuReadmeContent.includes('task infra:plan:aws'), 'infra/opentofu/README.md no debe citar task infra:plan:aws, retirada con ADR-030');
-  assert.ok(!tofuReadmeContent.includes('task tofu:plan:aws'), 'infra/opentofu/README.md no debe contener task tofu:plan:aws');
+  assert.ok(
+    tofuReadmeContent.includes('task infra:plan:proxmox'),
+    'infra/opentofu/README.md debe usar task infra:plan:proxmox',
+  );
+  assert.ok(
+    tofuReadmeContent.includes('task infra:validate'),
+    'infra/opentofu/README.md debe usar task infra:validate',
+  );
+  assert.ok(
+    !tofuReadmeContent.includes('task infra:plan:aws'),
+    'infra/opentofu/README.md no debe citar task infra:plan:aws, retirada con ADR-030',
+  );
+  assert.ok(
+    !tofuReadmeContent.includes('task tofu:plan:aws'),
+    'infra/opentofu/README.md no debe contener task tofu:plan:aws',
+  );
 
   const proxmoxGuideContent = fs.readFileSync(proxmoxGuidePath, 'utf-8');
-  assert.ok(proxmoxGuideContent.includes('task infra:plan:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task infra:plan:proxmox');
-  assert.ok(proxmoxGuideContent.includes('task ansible:prepare'), 'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task ansible:prepare');
-  assert.ok(!proxmoxGuideContent.includes('task tofu:plan:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task tofu:plan:proxmox');
-  assert.ok(!proxmoxGuideContent.includes('task deploy:proxmox'), 'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task deploy:proxmox');
+  assert.ok(
+    proxmoxGuideContent.includes('task infra:plan:proxmox'),
+    'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task infra:plan:proxmox',
+  );
+  assert.ok(
+    proxmoxGuideContent.includes('task ansible:prepare'),
+    'PROXMOX_DEPLOYMENT_GUIDE.md debe usar task ansible:prepare',
+  );
+  assert.ok(
+    !proxmoxGuideContent.includes('task tofu:plan:proxmox'),
+    'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task tofu:plan:proxmox',
+  );
+  assert.ok(
+    !proxmoxGuideContent.includes('task deploy:proxmox'),
+    'PROXMOX_DEPLOYMENT_GUIDE.md no debe contener task deploy:proxmox',
+  );
 
   // 6. deployment.md referencia TASKFILE_CLI_REFERENCE.md y ADR-020
   const deploymentContent = fs.readFileSync(deploymentRunbookPath, 'utf-8');
-  assert.ok(deploymentContent.includes('TASKFILE_CLI_REFERENCE.md'), 'deployment.md debe enlazar TASKFILE_CLI_REFERENCE.md');
+  assert.ok(
+    deploymentContent.includes('TASKFILE_CLI_REFERENCE.md'),
+    'deployment.md debe enlazar TASKFILE_CLI_REFERENCE.md',
+  );
   assert.ok(deploymentContent.includes('ADR-020'), 'deployment.md debe enlazar ADR-020');
 
   // 7. README.md y docs/README.md enlazan ADR-020, catálogo canónico y TASKFILE_CLI_REFERENCE.md
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'README.md debe enlazar ADR-020');
+  assert.ok(
+    readmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'),
+    'README.md debe enlazar ADR-020',
+  );
   assert.ok(readmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
-  assert.ok(docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'docs/README.md debe enlazar ADR-020');
-  assert.ok(docsReadmeContent.includes('TASKFILE_CLI_REFERENCE.md'), 'docs/README.md debe enlazar TASKFILE_CLI_REFERENCE.md');
+  assert.ok(
+    docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'),
+    'docs/README.md debe enlazar ADR-020',
+  );
+  assert.ok(
+    docsReadmeContent.includes('TASKFILE_CLI_REFERENCE.md'),
+    'docs/README.md debe enlazar TASKFILE_CLI_REFERENCE.md',
+  );
 
   // 8. Gobernanza de ADRs: docs/decisions/README.md es el catálogo oficial de decisiones
   assert.ok(fs.existsSync(decisionsReadmePath), 'docs/decisions/README.md debe existir como índice oficial de ADRs');
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
-  assert.ok(decisionsReadmeContent.includes('ADR-026'), 'docs/decisions/README.md debe registrar el histórico de ADR-026');
+  assert.ok(
+    decisionsReadmeContent.includes('ADR-026'),
+    'docs/decisions/README.md debe registrar el histórico de ADR-026',
+  );
 
   // 9. Los ADRs activos en docs/decisions/ coinciden exactamente con el catálogo oficial
-  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  const decisionFiles = fs
+    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
+    .filter((f: string) => f.startsWith('ADR-'));
   assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
   for (const adrFile of decisionFiles) {
     const adrNumMatch = adrFile.match(/^ADR-(\d{3})/);
     assert.ok(adrNumMatch, `${adrFile} debe tener formato canónico ADR-XXX`);
-    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
+    assert.ok(
+      decisionsReadmeContent.includes(adrFile),
+      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
+    );
   }
 });
 
 test('🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)', () => {
   const allowedShScripts = ['scripts/dr_verify_restore.sh'];
-  const forbiddenDeployPatterns = ['deploy.sh', 'proxmox_deploy.sh', 'deploy_aws.sh', 'deploy_proxmox.sh', 'deploy_app.sh'];
+  const forbiddenDeployPatterns = [
+    'deploy.sh',
+    'proxmox_deploy.sh',
+    'deploy_aws.sh',
+    'deploy_proxmox.sh',
+    'deploy_app.sh',
+  ];
   const excludedDirs = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini', '.agents']);
 
   function findShellScripts(dir: string, baseDir: string = dir): string[] {
@@ -277,10 +369,17 @@ test('🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verif
   }
 
   const foundSh = findShellScripts(ROOT_DIR);
-  assert.deepEqual(foundSh, allowedShScripts, 'La única secuencia shell autorizada en el repositorio debe ser scripts/dr_verify_restore.sh');
+  assert.deepEqual(
+    foundSh,
+    allowedShScripts,
+    'La única secuencia shell autorizada en el repositorio debe ser scripts/dr_verify_restore.sh',
+  );
 
   for (const pattern of forbiddenDeployPatterns) {
     assert.ok(!fs.existsSync(path.join(ROOT_DIR, pattern)), `No debe existir script imperativo en raíz: ${pattern}`);
-    assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'scripts', pattern)), `No debe existir script imperativo en scripts/: ${pattern}`);
+    assert.ok(
+      !fs.existsSync(path.join(ROOT_DIR, 'scripts', pattern)),
+      `No debe existir script imperativo en scripts/: ${pattern}`,
+    );
   }
 });

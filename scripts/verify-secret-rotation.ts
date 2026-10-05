@@ -69,7 +69,9 @@ function parseRefreshIntervalHours(content: string, filename: string): number {
   else if (unit === 'd') hours = val * 24;
 
   if (hours > 24) {
-    throw new Error(`${filename} define refreshInterval de ${val}${unit} (${hours}h), superando el máximo permitido de 24h`);
+    throw new Error(
+      `${filename} define refreshInterval de ${val}${unit} (${hours}h), superando el máximo permitido de 24h`,
+    );
   }
   return hours;
 }
@@ -121,33 +123,43 @@ check('Templates Helm: configmap.yaml no contiene contraseñas ni claves confide
 check('Cloud GitOps: Reloader = REQUIRED (reloader.enabled: true)', () => {
   const file = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
   const content = fs.readFileSync(file, 'utf-8');
-  const hasReloaderBlock = content.includes('reloader:\n  enabled: true') || content.includes('reloader:\r\n  enabled: true');
+  const hasReloaderBlock =
+    content.includes('reloader:\n  enabled: true') || content.includes('reloader:\r\n  enabled: true');
   if (!hasReloaderBlock) {
-    throw new Error('gitops/environments/cloud/values.yaml debe declarar reloader.enabled: true (Reloader es obligatorio en Cloud)');
+    throw new Error(
+      'gitops/environments/cloud/values.yaml debe declarar reloader.enabled: true (Reloader es obligatorio en Cloud)',
+    );
   }
   const hasAuto = content.includes('reloader.stakater.com/auto: "true"') || content.includes('auto: true');
   if (!hasAuto) {
-    throw new Error('gitops/environments/cloud/values.yaml debe configurar recarga automática (auto: true o anotación stakater)');
+    throw new Error(
+      'gitops/environments/cloud/values.yaml debe configurar recarga automática (auto: true o anotación stakater)',
+    );
   }
 });
 
-check('Cloud GitOps: ESO = REQUIRED con ClusterSecretStore declarado, ruta pokedex/prod y refreshInterval <= 24h', () => {
-  const file = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
-  const content = fs.readFileSync(file, 'utf-8');
-  if (!/externalSecrets:\r?\n\s+enabled: true/.test(content)) {
-    throw new Error('cloud values.yaml debe tener externalSecrets habilitado');
-  }
-  if (!/secretStoreRef:\r?\n\s+name: "[a-z0-9-]+"\r?\n\s+kind: "ClusterSecretStore"/.test(content)) {
-    throw new Error('cloud values.yaml debe declarar el nombre del ClusterSecretStore (punto de variación del proveedor)');
-  }
-  if (!content.includes('key: "pokedex/prod"')) {
-    throw new Error('cloud values.yaml debe usar la ruta reservada pokedex/prod');
-  }
-  const hours = parseRefreshIntervalHours(content, 'gitops/environments/cloud/values.yaml');
-  if (hours > 24) {
-    throw new Error(`refreshInterval en Cloud supera 24h: ${hours}h`);
-  }
-});
+check(
+  'Cloud GitOps: ESO = REQUIRED con ClusterSecretStore declarado, ruta pokedex/prod y refreshInterval <= 24h',
+  () => {
+    const file = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
+    const content = fs.readFileSync(file, 'utf-8');
+    if (!/externalSecrets:\r?\n\s+enabled: true/.test(content)) {
+      throw new Error('cloud values.yaml debe tener externalSecrets habilitado');
+    }
+    if (!/secretStoreRef:\r?\n\s+name: "[a-z0-9-]+"\r?\n\s+kind: "ClusterSecretStore"/.test(content)) {
+      throw new Error(
+        'cloud values.yaml debe declarar el nombre del ClusterSecretStore (punto de variación del proveedor)',
+      );
+    }
+    if (!content.includes('key: "pokedex/prod"')) {
+      throw new Error('cloud values.yaml debe usar la ruta reservada pokedex/prod');
+    }
+    const hours = parseRefreshIntervalHours(content, 'gitops/environments/cloud/values.yaml');
+    if (hours > 24) {
+      throw new Error(`refreshInterval en Cloud supera 24h: ${hours}h`);
+    }
+  },
+);
 
 // 3. Proxmox VE Lean (ADR-030: pre-prod es el único entorno Proxmox): rollout restart = REQUIRED
 check('Proxmox Pre-prod GitOps: rollout restart = REQUIRED (mecanismo de recarga sin Stakater)', () => {
@@ -171,7 +183,8 @@ check('Proxmox Pre-prod GitOps (LXC 800): Reloader = FORBIDDEN (reloader.enabled
     throw new Error('gitops/environments/proxmox-preprod/values.yaml debe existir bajo Opción A');
   }
   const content = fs.readFileSync(file, 'utf-8');
-  const isReloaderDisabled = content.includes('reloader:\n  enabled: false') || content.includes('reloader:\r\n  enabled: false');
+  const isReloaderDisabled =
+    content.includes('reloader:\n  enabled: false') || content.includes('reloader:\r\n  enabled: false');
   if (!isReloaderDisabled) {
     throw new Error('gitops/environments/proxmox-preprod/values.yaml debe tener reloader.enabled: false');
   }
@@ -227,11 +240,13 @@ check('Gobernanza Global: values.yaml define refreshInterval <= 24h', () => {
 
 // Resumen final
 console.log('\n----------------------------------------------------------------');
-const failed = results.filter(r => !r.passed);
+const failed = results.filter((r) => !r.passed);
 if (failed.length > 0) {
   console.error(`❌ Auditoría fallida: ${failed.length} de ${results.length} verificaciones no pasaron.`);
   process.exit(1);
 } else {
-  console.log(`✅ Auditoría exitosa: ${results.length}/${results.length} controles de la arquitectura dual (Cloud Reloader / Proxmox Rollout) en cumplimiento estricto.`);
+  console.log(
+    `✅ Auditoría exitosa: ${results.length}/${results.length} controles de la arquitectura dual (Cloud Reloader / Proxmox Rollout) en cumplimiento estricto.`,
+  );
   process.exit(0);
 }

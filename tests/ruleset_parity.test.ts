@@ -49,16 +49,13 @@ test('🔒 RULESET-001: el mapeo de actor_id de RepositoryRole esta blindado', (
   // Cuando se reevalue la politica al sumar un segundo colaborador, el valor
   // correcto ya queda documentado y protegido contra regresiones.
   assert.equal(REPOSITORY_ROLE_ACTOR_IDS[5], 5, 'admin debe identificarse con 5');
-  assert.ok(
-    Object.hasOwn(REPOSITORY_ROLE_ACTOR_IDS, '2'),
-    'maintain debe identificarse con 2'
-  );
+  assert.ok(Object.hasOwn(REPOSITORY_ROLE_ACTOR_IDS, '2'), 'maintain debe identificarse con 2');
   // 1 NO pertenece a RepositoryRole: corresponde a OrganizationAdmin, que no
   // aplica en repositorios personales. Fue la causa del drift original.
   assert.equal(
     Object.hasOwn(REPOSITORY_ROLE_ACTOR_IDS, '1'),
     false,
-    'actor_id 1 es OrganizationAdmin y no debe usarse como RepositoryRole'
+    'actor_id 1 es OrganizationAdmin y no debe usarse como RepositoryRole',
   );
 });
 
@@ -69,7 +66,7 @@ test('🔒 RULESET-001: los bypass_mode conocidos excluyen el valor legacy', () 
   assert.equal(
     CANONICAL_BYPASS_MODES.includes(LEGACY_BYPASS_MODE),
     false,
-    'pull_requests_only fue retirado de la API y no debe usarse'
+    'pull_requests_only fue retirado de la API y no debe usarse',
   );
 });
 
@@ -93,23 +90,19 @@ test('🔒 RULESET-001: la politica de aprobaciones refleja el estado de maintai
   assert.equal(
     pullRequestRule.parameters.required_approving_review_count,
     0,
-    'Sin un segundo revisor, exigir aprobaciones solo genera bypass'
+    'Sin un segundo revisor, exigir aprobaciones solo genera bypass',
   );
   assert.deepEqual(
     raw.bypass_actors,
     [],
-    'Sin aprobaciones que saltear, un bypass actor solo abre superficie de ataque'
+    'Sin aprobaciones que saltear, un bypass actor solo abre superficie de ataque',
   );
 });
 
 test('🔒 RULESET-001: el modo maintainer unico NO relaja el resto de las protecciones', () => {
   const pr = pullRequestRule.parameters;
   // Estos si aportan valor con un solo colaborador y deben permanecer.
-  assert.equal(
-    pr.required_review_thread_resolution,
-    true,
-    'Debe exigirse resolver las conversaciones de revision'
-  );
+  assert.equal(pr.required_review_thread_resolution, true, 'Debe exigirse resolver las conversaciones de revision');
   assert.equal(pr.dismiss_stale_reviews_on_push, true);
   assert.deepEqual(pr.allowed_merge_methods.sort(), ['merge', 'rebase', 'squash']);
 
@@ -119,7 +112,6 @@ test('🔒 RULESET-001: el modo maintainer unico NO relaja el resto de las prote
   assert.ok(types.includes('required_status_checks'), 'Los required checks son el gate real');
   assert.equal(raw.enforcement, 'active');
 });
-
 
 // ==============================================================================
 // 2. MOTOR DE DRIFT (fixtures, offline)
@@ -134,14 +126,12 @@ test('🚨 RULESET-001: detecta un bypass actor anadido en live sin declarar', (
   const escalated = clone(raw);
   // Escenario de escalada de privilegio: alguien concede bypass a un rol con
   // escritura directamente en la API, sin tocar el archivo declarativo.
-  escalated.bypass_actors = [
-    { actor_id: 4, actor_type: 'RepositoryRole', bypass_mode: 'always' },
-  ];
+  escalated.bypass_actors = [{ actor_id: 4, actor_type: 'RepositoryRole', bypass_mode: 'always' }];
 
   const drift = diffRulesets(declared, normalizeRuleset(escalated));
   assert.ok(
     drift.some((d) => d.field === 'bypass_actors'),
-    'Un bypass actor en live que no existe en el contrato debe considerarse drift'
+    'Un bypass actor en live que no existe en el contrato debe considerarse drift',
   );
 });
 
@@ -159,9 +149,7 @@ test('🚨 RULESET-001: detecta la relajacion de thread resolution y de aprobaci
   assert.ok(fields.includes('pull_request.parameters.required_review_thread_resolution'));
   assert.ok(fields.includes('pull_request.parameters.required_approving_review_count'));
 
-  const approvals = drift.find(
-    (d) => d.field === 'pull_request.parameters.required_approving_review_count'
-  )!;
+  const approvals = drift.find((d) => d.field === 'pull_request.parameters.required_approving_review_count')!;
   assert.equal(approvals.declared, '0');
   assert.equal(approvals.live, '1');
 });
@@ -196,7 +184,7 @@ test('🧪 RULESET-001: no hay drift cuando el live solo agrega metadatos de sol
   assert.deepEqual(
     diffRulesets(declared, normalizeRuleset(live)),
     [],
-    'Los metadatos de solo lectura no deben producir drift falso permanente'
+    'Los metadatos de solo lectura no deben producir drift falso permanente',
   );
 });
 
@@ -219,21 +207,19 @@ test('🧪 RULESET-001: el orden de claves y de listas no genera drift', () => {
 
 const liveCheckEnabled = process.env.RULESET_LIVE_CHECK === '1';
 
-test(
-  '🔗 RULESET-001: el contrato declarativo coincide con el ruleset aplicado en GitHub',
-  { skip: liveCheckEnabled ? false : 'requiere RULESET_LIVE_CHECK=1 (lo ejecuta el workflow programado)' },
-  () => {
-    const repo = process.env.GITHUB_REPOSITORY ?? 'rocapellino/pokedex';
-    const drift = diffRulesets(loadDeclarativeRuleset(ROOT_DIR), fetchLiveRuleset(repo));
-    assert.deepEqual(
-      drift,
-      [],
-      `Drift entre el contrato y ${repo}:\n${drift
-        .map((d) => `  - ${d.field}: declarativo=${d.declared} live=${d.live}`)
-        .join('\n')}`
-    );
-  }
-);
+test('🔗 RULESET-001: el contrato declarativo coincide con el ruleset aplicado en GitHub', {
+  skip: liveCheckEnabled ? false : 'requiere RULESET_LIVE_CHECK=1 (lo ejecuta el workflow programado)',
+}, () => {
+  const repo = process.env.GITHUB_REPOSITORY ?? 'rocapellino/pokedex';
+  const drift = diffRulesets(loadDeclarativeRuleset(ROOT_DIR), fetchLiveRuleset(repo));
+  assert.deepEqual(
+    drift,
+    [],
+    `Drift entre el contrato y ${repo}:\n${drift
+      .map((d) => `  - ${d.field}: declarativo=${d.declared} live=${d.live}`)
+      .join('\n')}`,
+  );
+});
 
 // ==============================================================================
 // 4. CABLEADO DEL GATE
@@ -245,7 +231,7 @@ test('🔌 RULESET-001: el gate esta cableado en package.json y en un workflow p
 
   const workflow = fs.readFileSync(
     path.join(ROOT_DIR, '.github', 'workflows', 'governance-ruleset-parity.yaml'),
-    'utf-8'
+    'utf-8',
   );
   assert.match(workflow, /schedule:/, 'El gate debe correr de forma programada');
   assert.match(workflow, /lint:ruleset/, 'El workflow debe invocar el gate');

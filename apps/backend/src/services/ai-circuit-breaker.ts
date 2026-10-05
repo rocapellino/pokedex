@@ -7,7 +7,7 @@ export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
 export interface CircuitBreakerConfig {
   failureThreshold: number; // Número consecutivo de fallos para abrir el circuito
-  cooldownMs: number;       // Tiempo de espera en milisegundos antes de intentar reabrir
+  cooldownMs: number; // Tiempo de espera en milisegundos antes de intentar reabrir
 }
 
 export class AICircuitBreaker {

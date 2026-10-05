@@ -28,7 +28,7 @@ test('📚 Gobernanza Documental: el gate detecta enlaces rotos dentro de .agent
     fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ version: '0.0.0' }));
     fs.writeFileSync(
       path.join(root, '.agents', 'skills', 'repo-x', 'SKILL.md'),
-      '[ADR retirado](../../../docs/decisions/ADR-999-retirado.md)\n'
+      '[ADR retirado](../../../docs/decisions/ADR-999-retirado.md)\n',
     );
     fs.writeFileSync(path.join(root, 'AGENTS.md'), '[regla](.agents/rules/inexistente.md)\n');
 
@@ -50,6 +50,6 @@ test('📚 Gobernanza Documental: validateDocsGovernance() no reporta enlaces ro
     violations.length,
     0,
     `Se detectaron ${violations.length} violaciones de gobernanza documental:\n` +
-      violations.map((v) => `  - [${v.rule}] ${v.file}: ${v.message}`).join('\n')
+      violations.map((v) => `  - [${v.rule}] ${v.file}: ${v.message}`).join('\n'),
   );
 });

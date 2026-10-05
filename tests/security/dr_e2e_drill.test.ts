@@ -37,7 +37,11 @@ test('🛡️ DR End-to-End Drill: Ejecuta la cadena operacional completa y cert
   assert.ok(metrics.tiempoRestoreMs >= 0, 'tiempoRestoreMs debe medirse');
 
   // 9. cantidad de registros restaurados
-  assert.equal(metrics.cantidadRegistrosRestaurados, 5, 'Debe restaurar exactamente los 5 registros canónicos de Pokédex');
+  assert.equal(
+    metrics.cantidadRegistrosRestaurados,
+    5,
+    'Debe restaurar exactamente los 5 registros canónicos de Pokédex',
+  );
 
   // 10. RPO efectivo
   assert.ok(metrics.rpoEfectivoSegundos >= 0, 'rpoEfectivoSegundos debe ser no negativo');
@@ -63,7 +67,11 @@ test('🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc manti
   assert.equal(encrypted.subarray(0, 8).toString('ascii'), 'Salted__', 'Debe incluir encabezado Salted__ de OpenSSL');
 
   const decrypted = decryptAes256Cbc(encrypted, secretKey);
-  assert.equal(decrypted.toString('utf-8'), originalData.toString('utf-8'), 'El texto descifrado debe ser idéntico al original');
+  assert.equal(
+    decrypted.toString('utf-8'),
+    originalData.toString('utf-8'),
+    'El texto descifrado debe ser idéntico al original',
+  );
 
   // Clave incorrecta debe fallar
   assert.throws(
@@ -71,7 +79,7 @@ test('🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc manti
       decryptAes256Cbc(encrypted, 'wrong_key');
     },
     /bad decrypt|error/i,
-    'Descifrado con clave incorrecta debe lanzar excepción'
+    'Descifrado con clave incorrecta debe lanzar excepción',
   );
 });
 
@@ -88,7 +96,7 @@ test('🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksu
     (err: any) => {
       return err.message.includes('DDL de tabla pokedex_entries ausente');
     },
-    'Debe rechazar volcados que no contengan la tabla esencial pokedex_entries'
+    'Debe rechazar volcados que no contengan la tabla esencial pokedex_entries',
   );
 });
 
@@ -113,7 +121,11 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
     });
 
     assert.equal(metrics.drillPassed, true, 'El simulacro con PostgreSQL 16 real debe ser exitoso');
-    assert.equal(metrics.cantidadRegistrosRestaurados, 5, 'Debe registrar 5 registros en la base de datos PostgreSQL real');
+    assert.equal(
+      metrics.cantidadRegistrosRestaurados,
+      5,
+      'Debe registrar 5 registros en la base de datos PostgreSQL real',
+    );
     assert.ok(metrics.detallesRestauracion.indicesDetectados.length > 0, 'Debe detectar índices en la BD real');
     assert.ok(metrics.detallesRestauracion.primaryKey !== null, 'Debe detectar PK en la BD real');
     assert.ok(metrics.tiempoRestoreMs > 0, 'tiempoRestoreMs en BD real debe ser mayor a 0');
@@ -129,7 +141,7 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
     ) {
       console.warn(
         '⚠️ Omitiendo live engine DR drill: docker run/exec no pudo inicializar el contenedor PostgreSQL en este runner (posible rate limit o restricción de red). Detalle:',
-        err.message
+        err.message,
       );
       return;
     }
@@ -147,10 +159,9 @@ test('🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente 
       });
     },
     /entropía insuficiente/i,
-    'Debe fallar si la clave tiene menos de 32 caracteres'
+    'Debe fallar si la clave tiene menos de 32 caracteres',
   );
 });
-
 
 // AUD-TST-HYG-001: runDrDrill limpiaba tmp/dr_drill_* solo en el camino feliz; cada
 // caso de error dejaba el directorio de trabajo residual en tmp/.

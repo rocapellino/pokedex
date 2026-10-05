@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildCatalog, checkDrift } from '../scripts/test-surface.js';
-import type { Pokemon as BackendPokemon, } from '../apps/backend/src/types.js';
-import type { Pokemon as FrontendPokemon, } from '../apps/frontend/src/types.js';
+import type { Pokemon as BackendPokemon } from '../apps/backend/src/types.js';
+import type { Pokemon as FrontendPokemon } from '../apps/frontend/src/types.js';
 
 test('🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad entre Backend y Frontend', () => {
   const sampleBackendPokemon: BackendPokemon = {
@@ -53,12 +53,12 @@ test('🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json
   assert.strictEqual(
     drift.hasDrift,
     false,
-    `No debe existir drift en la superficie de testing. Nuevos: ${drift.newFiles.length}, Eliminados: ${drift.removedFiles.length}, Conteo modificado: ${drift.countChangedFiles.length}, Modificados: ${drift.modifiedFiles.length}`
+    `No debe existir drift en la superficie de testing. Nuevos: ${drift.newFiles.length}, Eliminados: ${drift.removedFiles.length}, Conteo modificado: ${drift.countChangedFiles.length}, Modificados: ${drift.modifiedFiles.length}`,
   );
   assert.strictEqual(
     drift.orphanFiles.length,
     0,
-    `No debe haber tests huérfanos sin comandos asignados: ${drift.orphanFiles.join(', ')}`
+    `No debe haber tests huérfanos sin comandos asignados: ${drift.orphanFiles.join(', ')}`,
   );
 });
 
@@ -79,7 +79,7 @@ test('🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yam
   const commitlintTypes = typeEnumBlock
     .slice(innerArrayStart + 1, innerArrayEnd)
     .split(',')
-    .map(t => t.replace(/['"\s\r\n]/g, ''))
+    .map((t) => t.replace(/['"\s\r\n]/g, ''))
     .filter(Boolean);
 
   const preCommitRaw = fs.readFileSync(preCommitPath, 'utf-8');
@@ -87,14 +87,13 @@ test('🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yam
   assert.ok(preCommitMatch, '.pre-commit-config.yaml debe declarar conventional-pre-commit con args');
   const preCommitTypes = preCommitMatch[1]
     .split(',')
-    .map(t => t.replace(/['"\s\r\n]/g, ''))
+    .map((t) => t.replace(/['"\s\r\n]/g, ''))
     .filter(Boolean);
 
   assert.deepEqual(
     commitlintTypes.sort(),
     preCommitTypes.sort(),
-    'Los tipos de commit permitidos en commitlint.config.js y .pre-commit-config.yaml deben ser idénticos'
+    'Los tipos de commit permitidos en commitlint.config.js y .pre-commit-config.yaml deben ser idénticos',
   );
   assert.ok(commitlintTypes.length >= 8, 'Debe haber al menos 8 tipos estándar configurados');
 });
-

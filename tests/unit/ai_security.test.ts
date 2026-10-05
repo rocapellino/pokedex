@@ -5,10 +5,7 @@ import {
   sanitizeAIHtml,
   sanitizePrompt,
 } from '../../apps/backend/src/validation/ai-security.js';
-import {
-  AICircuitBreaker,
-  withTimeout,
-} from '../../apps/backend/src/services/ai-circuit-breaker.js';
+import { AICircuitBreaker, withTimeout } from '../../apps/backend/src/services/ai-circuit-breaker.js';
 
 test('🛡️ AI Security [Unit]: sanitizeAIHtml preserva HTML limpio y seguro', () => {
   const safeSnippet = '<div class="card"><h3>Pikachu</h3><p>Tipo: Eléctrico</p></div>';
@@ -145,10 +142,7 @@ test('🛡️ AI Resiliencia [Unit]: withTimeout resuelve antes de expiración o
 
   // Caso de timeout alcanzado
   const slowPromise = new Promise<string>((resolve) => setTimeout(() => resolve('too-late'), 150));
-  await assert.rejects(
-    async () => {
-      await withTimeout(slowPromise, 50);
-    },
-    /Timeout de servicio IA/
-  );
+  await assert.rejects(async () => {
+    await withTimeout(slowPromise, 50);
+  }, /Timeout de servicio IA/);
 });

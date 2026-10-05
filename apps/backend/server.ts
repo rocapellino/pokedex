@@ -2,11 +2,7 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import cors from 'cors';
 import path from 'node:path';
 import fs from 'node:fs';
-import {
-  initStorage,
-  getStorageHealth,
-  closeStorage,
-} from './src/services/db.js';
+import { initStorage, getStorageHealth, closeStorage } from './src/services/db.js';
 import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
 import { logger } from './src/utils/logger.js';
 import { errorMessage } from './src/utils/errors.js';
@@ -27,11 +23,7 @@ import {
   verifyAdmin,
   requireWritableStorage,
 } from './src/middleware/auth.js';
-import {
-  getLifecycleStatus,
-  setShuttingDownForTest,
-  setIsShuttingDown,
-} from './src/utils/lifecycle.js';
+import { getLifecycleStatus, setShuttingDownForTest, setIsShuttingDown } from './src/utils/lifecycle.js';
 import { authRouter } from './src/routes/auth.js';
 import { healthRouter } from './src/routes/health.js';
 import { pokemonsRouter } from './src/routes/pokemons.js';
@@ -47,7 +39,8 @@ const candidatePublicDirs = [
   path.join(process.cwd(), '..', 'frontend', 'public'),
   path.join(process.cwd(), 'public'),
 ];
-const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'dist');
+const PUBLIC_DIR =
+  candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'dist');
 
 // ---------------------------------------------------------------------------
 // Security: Server Hardening & Security Headers
@@ -68,7 +61,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';",
   );
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 
@@ -93,34 +86,44 @@ class CorsOriginRejectedError extends Error {
   }
 }
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permitir solicitudes sin origin (como herramientas internas, curl, llamadas entre servicios locales)
-    if (!origin) {
-      return callback(null, true);
-    }
-    // En producción, si no hay orígenes configurados explícitamente, denegar por defecto (fail-closed)
-    if (!configuredCorsOrigins || configuredCorsOrigins.length === 0) {
-      if (isProduction) {
-        return callback(new Error('Bloqueado por directiva de seguridad CORS: CORS_ORIGINS no configurado en producción'));
-      }
-      // En desarrollo sin CORS_ORIGINS explícito, restringir estrictamente a orígenes locales reconocidos
-      if (DEFAULT_DEV_CORS_ORIGINS.includes(origin)) {
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Permitir solicitudes sin origin (como herramientas internas, curl, llamadas entre servicios locales)
+      if (!origin) {
         return callback(null, true);
       }
-      return callback(new CorsOriginRejectedError('Bloqueado por directiva de seguridad CORS: Origen no permitido en entorno de desarrollo'));
-    }
-    // La especificación CORS y navegadores modernos prohíben wildcard '*' con credentials: true
-    if (configuredCorsOrigins.includes('*')) {
-      return callback(new Error('Directiva CORS inválida: no se permite wildcard (*) combinado con credentials: true'));
-    }
-    if (configuredCorsOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new CorsOriginRejectedError('Bloqueado por directiva de seguridad CORS'));
-  },
-  credentials: true,
-}));
+      // En producción, si no hay orígenes configurados explícitamente, denegar por defecto (fail-closed)
+      if (!configuredCorsOrigins || configuredCorsOrigins.length === 0) {
+        if (isProduction) {
+          return callback(
+            new Error('Bloqueado por directiva de seguridad CORS: CORS_ORIGINS no configurado en producción'),
+          );
+        }
+        // En desarrollo sin CORS_ORIGINS explícito, restringir estrictamente a orígenes locales reconocidos
+        if (DEFAULT_DEV_CORS_ORIGINS.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(
+          new CorsOriginRejectedError(
+            'Bloqueado por directiva de seguridad CORS: Origen no permitido en entorno de desarrollo',
+          ),
+        );
+      }
+      // La especificación CORS y navegadores modernos prohíben wildcard '*' con credentials: true
+      if (configuredCorsOrigins.includes('*')) {
+        return callback(
+          new Error('Directiva CORS inválida: no se permite wildcard (*) combinado con credentials: true'),
+        );
+      }
+      if (configuredCorsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new CorsOriginRejectedError('Bloqueado por directiva de seguridad CORS'));
+    },
+    credentials: true,
+  }),
+);
 
 // Payload limit reducido a 250kb para prevenir abusos de memoria
 app.use(express.json({ limit: '250kb' }));
@@ -171,13 +174,18 @@ function getBackofficeHtml(): string {
 
 // Defensa en profundidad: interceptar '/backoffice.html', '/admin' y '/backoffice'
 // antes de que express.static sirva cualquier archivo estático
-app.get(['/admin', '/backoffice', '/backoffice.html'], globalRateLimiter, adminIpRestricted, (_req: Request, res: Response) => {
-  const html = getBackofficeHtml();
-  if (!html) {
-    return res.status(404).json({ error: 'Panel administrativo no disponible' });
-  }
-  res.type('html').send(html);
-});
+app.get(
+  ['/admin', '/backoffice', '/backoffice.html'],
+  globalRateLimiter,
+  adminIpRestricted,
+  (_req: Request, res: Response) => {
+    const html = getBackofficeHtml();
+    if (!html) {
+      return res.status(404).json({ error: 'Panel administrativo no disponible' });
+    }
+    res.type('html').send(html);
+  },
+);
 
 app.use(express.static(PUBLIC_DIR));
 
@@ -225,7 +233,7 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
 // ---------------------------------------------------------------------------
 export function setupGracefulShutdown(
   server: import('http').Server,
-  options: { drainTimeoutMs?: number; shutdownTimeoutMs?: number } = {}
+  options: { drainTimeoutMs?: number; shutdownTimeoutMs?: number } = {},
 ): () => void {
   const drainTimeoutMs = options.drainTimeoutMs ?? (process.env.NODE_ENV === 'test' ? 10 : 2000);
   const shutdownTimeoutMs = options.shutdownTimeoutMs ?? 15000;
@@ -233,7 +241,9 @@ export function setupGracefulShutdown(
   const handleShutdown = async (signal: string) => {
     if (getLifecycleStatus().isShuttingDown) return;
     setIsShuttingDown(true);
-    logger.info(`[Lifecycle: Graceful Shutdown] Señal ${signal} recibida. Iniciando secuencia de apagado grácil...`, { signal });
+    logger.info(`[Lifecycle: Graceful Shutdown] Señal ${signal} recibida. Iniciando secuencia de apagado grácil...`, {
+      signal,
+    });
 
     // 1. Temporizador de salvaguarda en caso de sockets o pools bloqueados
     const forceExitTimer = setTimeout(() => {
@@ -260,7 +270,9 @@ export function setupGracefulShutdown(
       try {
         await closeStorage();
       } catch (closeErr) {
-        logger.error('[Lifecycle: Graceful Shutdown] Error al cerrar capas de almacenamiento', { error: errorMessage(closeErr) });
+        logger.error('[Lifecycle: Graceful Shutdown] Error al cerrar capas de almacenamiento', {
+          error: errorMessage(closeErr),
+        });
       }
 
       clearTimeout(forceExitTimer);
@@ -283,10 +295,7 @@ export function setupGracefulShutdown(
   };
 }
 
-function handleStartupError(
-  err: unknown,
-  exitFn: (code: number) => void = (code) => process.exit(code)
-): void {
+function handleStartupError(err: unknown, exitFn: (code: number) => void = (code) => process.exit(code)): void {
   // [APPS-002] Fallo de arranque: en produccion se aborta el proceso con
   // codigo distinto de cero para que el orquestador NO marque el pod como
   // listo. No se escucha ningún puerto: es preferible no servir tráfico que
@@ -298,27 +307,31 @@ function handleStartupError(
 }
 
 // Start Server tras inicializar la capa de persistencia y caché (solo si no es test runner)
-const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('test'));
+const isRunningTests = process.env.NODE_ENV === 'test' || process.argv.some((arg) => arg.includes('test'));
 if (!isRunningTests) {
   checkRequiredEnvVars();
-  initStorage().then(() => {
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      const health = getStorageHealth();
-      logger.info(`Pokédex Server iniciado en http://0.0.0.0:${PORT}`, {
-        port: PORT,
-        storage: health.database.toUpperCase(),
-        pgConnected: health.postgres_connected,
-        redisConnected: health.redis_connected,
+  initStorage()
+    .then(() => {
+      const server = app.listen(PORT, '0.0.0.0', () => {
+        const health = getStorageHealth();
+        logger.info(`Pokédex Server iniciado en http://0.0.0.0:${PORT}`, {
+          port: PORT,
+          storage: health.database.toUpperCase(),
+          pgConnected: health.postgres_connected,
+          redisConnected: health.redis_connected,
+        });
+        if (process.env.NODE_ENV === 'production') {
+          logger.info(
+            '[APPS-003] Serving estático en Express activo como contingencia; el tráfico web productivo es canalizado por Nginx Ingress.',
+          );
+        }
       });
-      if (process.env.NODE_ENV === 'production') {
-        logger.info('[APPS-003] Serving estático en Express activo como contingencia; el tráfico web productivo es canalizado por Nginx Ingress.');
-      }
+      setupGracefulShutdown(server);
+    })
+    .catch((err: unknown) => {
+      handleStartupError(err);
+      process.exit(1);
     });
-    setupGracefulShutdown(server);
-  }).catch((err: unknown) => {
-    handleStartupError(err);
-    process.exit(1);
-  });
 }
 
 export {

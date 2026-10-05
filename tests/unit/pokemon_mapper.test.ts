@@ -56,7 +56,7 @@ test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload construye entidad con 
   assert.deepEqual(entity.tipos, ['Fantasma']);
   assert.equal(
     entity.imagen,
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png'
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png',
   );
   assert.equal(entity.habitat, 'Kanto');
   assert.equal(entity.fuerza, 50);
@@ -267,4 +267,3 @@ test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload cubre payloads exhaust
   assert.equal(entity.caracteristicas.descripcion, 'Alas poderosas');
   assert.equal(entity.evoluciones.length, 1);
 });
-

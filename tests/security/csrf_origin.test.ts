@@ -29,7 +29,13 @@ interface Outcome {
 
 async function runVerifyAdmin(method: string, headers: Record<string, string>): Promise<Outcome> {
   const outcome: Outcome = { status: null, nextCalled: false };
-  const req = { method, path: '/pokemons', headers: { host: HOST, ...headers }, ip: '10.0.0.1', socket: {} } as unknown as Request;
+  const req = {
+    method,
+    path: '/pokemons',
+    headers: { host: HOST, ...headers },
+    ip: '10.0.0.1',
+    socket: {},
+  } as unknown as Request;
   const res = {
     status(code: number) {
       outcome.status = code;

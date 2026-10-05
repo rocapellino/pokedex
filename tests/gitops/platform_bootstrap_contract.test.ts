@@ -36,36 +36,63 @@ test('🔐 Bootstrap: los manifiestos de ESO usan external-secrets.io/v1 (v1beta
   for (const rel of ESO_MANIFESTS) {
     const content = read(rel);
     assert.match(content, /apiVersion:\s*external-secrets\.io\/v1\s*$/m, `${rel} debe declarar external-secrets.io/v1`);
-    assert.doesNotMatch(content, /external-secrets\.io\/v1beta1/, `${rel} no debe usar v1beta1: ESO >= 1.0 no lo sirve`);
+    assert.doesNotMatch(
+      content,
+      /external-secrets\.io\/v1beta1/,
+      `${rel} no debe usar v1beta1: ESO >= 1.0 no lo sirve`,
+    );
   }
 });
 
 test('🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas y verificación criptográfica', () => {
   const esoVersion = tasks['platform:eso:install']?.vars?.ESO_CHART_VERSION;
   assert.match(esoVersion ?? '', /^\d+\.\d+\.\d+$/, 'ESO_CHART_VERSION debe ser una versión semántica exacta');
-  assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('--version {{.ESO_CHART_VERSION}}')), 'helm install de ESO debe usar la versión fijada');
+  assert.ok(
+    cmdsOf('platform:eso:install').some((c) => c.includes('--version {{.ESO_CHART_VERSION}}')),
+    'helm install de ESO debe usar la versión fijada',
+  );
 
   const argoVersion = tasks['platform:argocd:install']?.vars?.ARGOCD_VERSION;
   assert.match(argoVersion ?? '', /^v\d+\.\d+\.\d+$/, 'ARGOCD_VERSION debe ser un tag exacto');
   const argoSha = tasks['platform:argocd:install']?.vars?.ARGOCD_MANIFEST_SHA256;
-  assert.match(argoSha ?? '', /^[a-f0-9]{64}$/, 'ARGOCD_MANIFEST_SHA256 debe ser un digest SHA256 criptográfico de 64 caracteres');
+  assert.match(
+    argoSha ?? '',
+    /^[a-f0-9]{64}$/,
+    'ARGOCD_MANIFEST_SHA256 debe ser un digest SHA256 criptográfico de 64 caracteres',
+  );
 
   const install = cmdsOf('platform:argocd:install').find((c) => c.includes('install.yaml')) ?? '';
-  assert.ok(install.includes('/{{.ARGOCD_VERSION}}/manifests/install.yaml'), 'El manifiesto de ArgoCD debe resolverse por tag fijado');
+  assert.ok(
+    install.includes('/{{.ARGOCD_VERSION}}/manifests/install.yaml'),
+    'El manifiesto de ArgoCD debe resolverse por tag fijado',
+  );
   assert.doesNotMatch(install, /\/(stable|latest|master)\//, 'El manifiesto de ArgoCD no debe seguir una rama móvil');
-  assert.ok(cmdsOf('platform:argocd:install').some((c) => c.includes('{{.ARGOCD_MANIFEST_SHA256}}')), 'platform:argocd:install debe validar la integridad del manifiesto');
+  assert.ok(
+    cmdsOf('platform:argocd:install').some((c) => c.includes('{{.ARGOCD_MANIFEST_SHA256}}')),
+    'platform:argocd:install debe validar la integridad del manifiesto',
+  );
 });
 
 test('🔐 Bootstrap & Tooling: Taskfile fija imagen de Helm con digest sha256 inmutable', () => {
   const k8sContent = read('taskfiles/k8s.yaml');
   const infraContent = read('taskfiles/infra.yaml');
-  assert.match(k8sContent, /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/, 'k8s.yaml debe fijar HELM_IMAGE por digest sha256');
-  assert.match(infraContent, /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/, 'infra.yaml debe fijar HELM_IMAGE por digest sha256');
+  assert.match(
+    k8sContent,
+    /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/,
+    'k8s.yaml debe fijar HELM_IMAGE por digest sha256',
+  );
+  assert.match(
+    infraContent,
+    /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/,
+    'infra.yaml debe fijar HELM_IMAGE por digest sha256',
+  );
 });
 
-
 test('🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview', () => {
-  assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('serviceAccount.name=external-secrets-sa')), 'ESO debe crear la SA external-secrets-sa');
+  assert.ok(
+    cmdsOf('platform:eso:install').some((c) => c.includes('serviceAccount.name=external-secrets-sa')),
+    'ESO debe crear la SA external-secrets-sa',
+  );
 
   const store = yaml.loadAll(read('infra/k8s/eso/cluster-secret-store.yaml')) as Array<{ spec: any }>;
   for (const doc of store.filter(Boolean)) {
@@ -75,14 +102,28 @@ test('🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecret
 
   const binding = yaml.load(read('infra/k8s/bootstrap/eso-auth-delegator.yaml')) as any;
   assert.equal(binding.roleRef.name, 'system:auth-delegator');
-  assert.deepEqual(binding.subjects, [{ kind: 'ServiceAccount', name: 'external-secrets-sa', namespace: 'external-secrets' }]);
+  assert.deepEqual(binding.subjects, [
+    { kind: 'ServiceAccount', name: 'external-secrets-sa', namespace: 'external-secrets' },
+  ]);
 });
 
 test('🔐 Bootstrap: Vault configura el auth kubernetes contra el API server de pre-prod', () => {
   const playbook = read('infra/ansible/playbooks/setup_vault.yaml');
-  assert.match(playbook, /vault write auth\/kubernetes\/config/, 'setup_vault.yaml debe configurar auth/kubernetes/config');
-  assert.match(playbook, /kubernetes_host=https:\/\/\{\{ vault_k8s_node_ip \}\}:6443/, 'El host debe ser el API server del LXC 800');
-  assert.match(playbook, /disable_local_ca_jwt=true/, 'Vault externo debe validar con el JWT del cliente (TokenReview)');
+  assert.match(
+    playbook,
+    /vault write auth\/kubernetes\/config/,
+    'setup_vault.yaml debe configurar auth/kubernetes/config',
+  );
+  assert.match(
+    playbook,
+    /kubernetes_host=https:\/\/\{\{ vault_k8s_node_ip \}\}:6443/,
+    'El host debe ser el API server del LXC 800',
+  );
+  assert.match(
+    playbook,
+    /disable_local_ca_jwt=true/,
+    'Vault externo debe validar con el JWT del cliente (TokenReview)',
+  );
   assert.match(playbook, /server-ca\.crt/, 'Vault debe confiar en la CA del API server de K3s');
   assert.match(playbook, /vault_k8s_node_ip:\s*"10\.10\.13\.100"/, 'vault_k8s_node_ip debe ser el LXC 800 real');
 });
@@ -108,7 +149,7 @@ function getRenderedPreprodChart(): string {
   if (!cachedPreprodRender) {
     cachedPreprodRender = execSync(
       `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
-      { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 }
+      { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 },
     );
   }
   return cachedPreprodRender;
@@ -127,7 +168,10 @@ test('🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el cha
       const host = (c.env ?? []).find((e: { name: string }) => e.name === 'PGHOST')?.value;
       if (!host) continue;
       checked++;
-      assert.ok(services.has(host), `${cj.metadata.name}: PGHOST=${host} no es un Service renderizado (${[...services].join(', ')})`);
+      assert.ok(
+        services.has(host),
+        `${cj.metadata.name}: PGHOST=${host} no es un Service renderizado (${[...services].join(', ')})`,
+      );
     }
   }
   assert.ok(checked >= 2, 'Deben validarse al menos el backup y el restore-verify');
@@ -137,7 +181,11 @@ test('🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass Wai
   const cm = yaml.load(read('gitops/health-checks/argocd-cm-healthchecks.yaml')) as { data: Record<string, string> };
   const lua = cm.data['resource.customizations.health.PersistentVolumeClaim'];
   assert.ok(lua, 'argocd-cm debe declarar el health check de PersistentVolumeClaim');
-  assert.match(lua, /phase == "Pending"[\s\S]*?hs\.status = "Healthy"/, 'Pending debe ser Healthy: el PVC de backup solo se enlaza cuando corre el CronJob');
+  assert.match(
+    lua,
+    /phase == "Pending"[\s\S]*?hs\.status = "Healthy"/,
+    'Pending debe ser Healthy: el PVC de backup solo se enlaza cuando corre el CronJob',
+  );
   assert.match(lua, /phase == "Lost"[\s\S]*?hs\.status = "Degraded"/, 'Lost debe ser Degraded');
 });
 
@@ -147,15 +195,25 @@ test('🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTe
     const rule = (doc.spec.ignoreDifferences ?? []).find((r: any) => r.kind === 'StatefulSet');
     assert.ok(rule, `${app} debe ignorar diferencias de StatefulSet`);
     for (const field of ['apiVersion', 'kind', 'status', 'spec.volumeMode']) {
-      assert.ok(rule.jqPathExpressions.includes(`.spec.volumeClaimTemplates[]?.${field}`), `${app} debe ignorar volumeClaimTemplates.${field}`);
+      assert.ok(
+        rule.jqPathExpressions.includes(`.spec.volumeClaimTemplates[]?.${field}`),
+        `${app} debe ignorar volumeClaimTemplates.${field}`,
+      );
     }
-    assert.ok(doc.spec.syncPolicy.syncOptions.includes('RespectIgnoreDifferences=true'), `${app} debe respetar ignoreDifferences al sincronizar`);
+    assert.ok(
+      doc.spec.syncPolicy.syncOptions.includes('RespectIgnoreDifferences=true'),
+      `${app} debe respetar ignoreDifferences al sincronizar`,
+    );
   }
 });
 
 test('🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente', () => {
   const playbook = read('infra/ansible/playbooks/setup_k3s.yaml');
-  assert.match(playbook, /http:\s*\n\s*redirections:\s*\n\s*entryPoint:\s*\n\s*to: websecure/, 'Debe usar ports.web.http.redirections.entryPoint');
+  assert.match(
+    playbook,
+    /http:\s*\n\s*redirections:\s*\n\s*entryPoint:\s*\n\s*to: websecure/,
+    'Debe usar ports.web.http.redirections.entryPoint',
+  );
   assert.doesNotMatch(playbook, /^\s*redirectTo:/m, 'redirectTo se ignora en silencio en el chart de Traefik >= 34');
 });
 
@@ -166,11 +224,17 @@ test('🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de back
   const docs = (yaml.loadAll(rendered) as any[]).filter(Boolean);
   const policy = docs.find((d) => d.kind === 'NetworkPolicy' && d.metadata.name.endsWith('-allow-postgres-ingress'));
   assert.ok(policy, 'Debe existir la NetworkPolicy de ingreso a PostgreSQL');
-  const allowed = policy.spec.ingress.flatMap((r: any) => r.from.map((f: any) => f.podSelector?.matchLabels?.['app.kubernetes.io/component']));
+  const allowed = policy.spec.ingress.flatMap((r: any) =>
+    r.from.map((f: any) => f.podSelector?.matchLabels?.['app.kubernetes.io/component']),
+  );
 
   const clientComponents = docs
     .filter((d) => d.kind === 'CronJob')
-    .filter((cj) => cj.spec.jobTemplate.spec.template.spec.containers.some((c: any) => (c.env ?? []).some((e: any) => e.name === 'PGHOST')))
+    .filter((cj) =>
+      cj.spec.jobTemplate.spec.template.spec.containers.some((c: any) =>
+        (c.env ?? []).some((e: any) => e.name === 'PGHOST'),
+      ),
+    )
     .map((cj) => cj.spec.jobTemplate.spec.template.metadata.labels['app.kubernetes.io/component']);
   assert.ok(clientComponents.length >= 2, 'Deben existir los CronJobs que se conectan a PostgreSQL');
   for (const component of clientComponents) {
@@ -185,19 +249,25 @@ test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y u
   // admite `set -o pipefail`, así que los scripts deben correr con bash.
   const values = yaml.load(read('infra/helm/pokedex/values.yaml')) as any;
   const backupImage = values.backup.image;
-  assert.notEqual(backupImage.tag, values.postgresql.image.tag, 'backup.image no debe ser la variante alpine del servidor');
+  assert.notEqual(
+    backupImage.tag,
+    values.postgresql.image.tag,
+    'backup.image no debe ser la variante alpine del servidor',
+  );
   assert.match(backupImage.tag, /^16-/, 'pg_dump debe tener la misma major que el servidor PostgreSQL 16');
   assert.match(backupImage.digest, /^sha256:[a-f0-9]{64}$/, 'backup.image debe fijarse por digest (INFRA-005)');
   assert.ok(
     read('.github/workflows/security-trivy.yaml').includes(`${backupImage.repository}@${backupImage.digest}`),
-    'El escaneo programado de Trivy (WF-001) debe cubrir backup.image'
+    'El escaneo programado de Trivy (WF-001) debe cubrir backup.image',
   );
 
   const rendered = getRenderedPreprodChart();
   const cronJobs = (yaml.loadAll(rendered) as any[]).filter((d) => d?.kind === 'CronJob');
   const expected = `${backupImage.repository}:${backupImage.tag}@${backupImage.digest}`;
   for (const component of ['backup', 'dr-verification']) {
-    const cj = cronJobs.find((c) => c.spec.jobTemplate.spec.template.metadata.labels['app.kubernetes.io/component'] === component);
+    const cj = cronJobs.find(
+      (c) => c.spec.jobTemplate.spec.template.metadata.labels['app.kubernetes.io/component'] === component,
+    );
     assert.ok(cj, `Debe existir el CronJob "${component}"`);
     const container = cj.spec.jobTemplate.spec.template.spec.containers[0];
     assert.equal(container.image, expected, `${component} debe usar backup.image`);

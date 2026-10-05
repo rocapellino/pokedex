@@ -8,7 +8,7 @@ import {
   savePokemon,
   deletePokemon,
   getNextPokemonId,
-  getStorageHealth
+  getStorageHealth,
 } from '../../apps/backend/src/services/db.js';
 import type { Pokemon } from '../../apps/backend/src/types.js';
 
@@ -30,7 +30,7 @@ test('📦 Storage Layer: getAllPokemons pagina y filtra correctamente', async (
   // Filtrado por tipo
   const firePokemons = await getAllPokemons({ type: 'Fuego' });
   assert.ok(firePokemons.pokemons.length > 0);
-  assert.ok(firePokemons.pokemons.some(p => p.nombre.toLowerCase().includes('charmander')));
+  assert.ok(firePokemons.pokemons.some((p) => p.nombre.toLowerCase().includes('charmander')));
 });
 
 test('📦 Storage Layer: getPokemonById retorna pokemon existente y null para inexistente', async () => {
@@ -52,9 +52,9 @@ test('📦 Storage Layer: savePokemon guarda y actualiza un registro', async () 
       peso: 20.0,
       altura: 1.0,
       fuerza: 50,
-      descripcion: 'Pokemon de prueba unitaria'
+      descripcion: 'Pokemon de prueba unitaria',
     },
-    habilidades: ['Placaje']
+    habilidades: ['Placaje'],
   };
 
   await savePokemon(testPokemon);
@@ -98,7 +98,7 @@ test('📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en dis
 
   assert.ok(fs.existsSync(migrationsDir), 'El directorio de migraciones debe existir');
   const files = fs.readdirSync(migrationsDir);
-  const sqlMigrations = files.filter(f => f.endsWith('.sql'));
+  const sqlMigrations = files.filter((f) => f.endsWith('.sql'));
 
   assert.ok(sqlMigrations.length >= 1, 'Debe existir al menos un archivo de migración SQL');
   const initialMigration = fs.readFileSync(path.join(migrationsDir, sqlMigrations[0]), 'utf-8');
@@ -116,5 +116,8 @@ test('📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en pr
   assert.ok(fs.existsSync(configPath), 'drizzle.config.ts debe existir');
   const content = fs.readFileSync(configPath, 'utf-8');
   assert.ok(content.includes("NODE_ENV === 'production'"), 'drizzle.config.ts debe evaluar NODE_ENV');
-  assert.ok(content.includes('DATABASE_URL o POSTGRES_PASSWORD es obligatoria'), 'drizzle.config.ts debe requerir credenciales en producción');
+  assert.ok(
+    content.includes('DATABASE_URL o POSTGRES_PASSWORD es obligatoria'),
+    'drizzle.config.ts debe requerir credenciales en producción',
+  );
 });

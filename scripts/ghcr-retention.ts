@@ -101,7 +101,7 @@ export function collectPinnedDigests(root: string = process.cwd()): Set<string> 
 export function calculateVersionsToPrune(
   versions: PackageVersion[],
   keepCount: number = DEFAULT_KEEP_COUNT,
-  protectedDigests: Set<string> = new Set()
+  protectedDigests: Set<string> = new Set(),
 ): { keep: PackageVersion[]; prune: PackageVersion[] } {
   if (!Array.isArray(versions) || versions.length === 0) {
     return { keep: [], prune: [] };
@@ -158,7 +158,7 @@ export function generateMockPackageVersions(packageName: string, count: number =
 export async function fetchPackageVersions(
   token: string,
   owner: string,
-  packageName: string
+  packageName: string,
 ): Promise<PackageVersion[]> {
   const url = `https://api.github.com/users/${encodeURIComponent(owner)}/packages/container/${encodeURIComponent(packageName)}/versions?per_page=100`;
 
@@ -187,11 +187,7 @@ export async function fetchPackageVersions(
 /**
  * Elimina una versión específica de un contenedor en GHCR vía GitHub REST API.
  */
-export async function deletePackageVersion(
-  token: string,
-  packageName: string,
-  versionId: number
-): Promise<boolean> {
+export async function deletePackageVersion(token: string, packageName: string, versionId: number): Promise<boolean> {
   const url = `https://api.github.com/user/packages/container/${encodeURIComponent(packageName)}/versions/${versionId}`;
 
   const response = await fetch(url, {
@@ -291,7 +287,9 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
     for (const v of prune) {
       const tags = v.metadata?.container?.tags?.length ? v.metadata.container.tags.join(', ') : '(sin tag)';
       if (dryRun || effectiveSimulate) {
-        console.log(`     [PURGA - DRY RUN] ID: ${v.id} | Tags: [${tags}] | Fecha: ${v.created_at} -> Se mantendría seguro`);
+        console.log(
+          `     [PURGA - DRY RUN] ID: ${v.id} | Tags: [${tags}] | Fecha: ${v.created_at} -> Se mantendría seguro`,
+        );
         deletedIds.push(v.id);
       } else {
         try {

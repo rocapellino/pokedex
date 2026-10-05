@@ -1,18 +1,7 @@
 import express, { type Request, type Response } from 'express';
-import {
-  authRateLimiter,
-  authRateLimiterStandard,
-} from '../middleware/rate-limiter.js';
-import {
-  extractSessionToken,
-  safeCompareKeys,
-  buildSessionCookie,
-} from '../middleware/auth.js';
-import {
-  generateSessionToken,
-  verifySessionTokenDetailed,
-  revokeSessionTokenDetailed,
-} from '../services/auth.js';
+import { authRateLimiter, authRateLimiterStandard } from '../middleware/rate-limiter.js';
+import { extractSessionToken, safeCompareKeys, buildSessionCookie } from '../middleware/auth.js';
+import { generateSessionToken, verifySessionTokenDetailed, revokeSessionTokenDetailed } from '../services/auth.js';
 import { asyncHandler } from '../utils/async-handler.js';
 
 export const authRouter = express.Router();
@@ -46,40 +35,49 @@ authRouter.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter
   });
 });
 
-authRouter.get('/api/v1/auth/session', asyncHandler(async (req: Request, res: Response) => {
-  const token = extractSessionToken(req);
-  if (!token) {
-    return res.status(200).json({ authenticated: false });
-  }
-  const sessionCheck = await verifySessionTokenDetailed(token);
-  if (!sessionCheck.valid) {
-    return res.status(200).json({ authenticated: false });
-  }
-  return res.status(200).json({
-    authenticated: true,
-    expiresAt: sessionCheck.expiresAt,
-  });
-}));
+authRouter.get(
+  '/api/v1/auth/session',
+  asyncHandler(async (req: Request, res: Response) => {
+    const token = extractSessionToken(req);
+    if (!token) {
+      return res.status(200).json({ authenticated: false });
+    }
+    const sessionCheck = await verifySessionTokenDetailed(token);
+    if (!sessionCheck.valid) {
+      return res.status(200).json({ authenticated: false });
+    }
+    return res.status(200).json({
+      authenticated: true,
+      expiresAt: sessionCheck.expiresAt,
+    });
+  }),
+);
 
-authRouter.post('/api/v1/auth/logout', authRateLimiterStandard, authRateLimiter, asyncHandler(async (req: Request, res: Response) => {
-  const token = extractSessionToken(req);
-  res.setHeader('Set-Cookie', 'pokedex_admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
-  if (token) {
-    const revokeResult = await revokeSessionTokenDetailed(token);
-    if (!revokeResult.success) {
-      if (revokeResult.reason === 'invalid_signature' || revokeResult.reason === 'invalid_format') {
-        return res.status(400).json({
-          detail: 'Token de sesión inválido o firma HMAC apócrifa.',
-        });
-      }
-      if (revokeResult.reason === 'service_unavailable') {
-        return res.status(503).json({
-          detail: 'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
-        });
+authRouter.post(
+  '/api/v1/auth/logout',
+  authRateLimiterStandard,
+  authRateLimiter,
+  asyncHandler(async (req: Request, res: Response) => {
+    const token = extractSessionToken(req);
+    res.setHeader('Set-Cookie', 'pokedex_admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+    if (token) {
+      const revokeResult = await revokeSessionTokenDetailed(token);
+      if (!revokeResult.success) {
+        if (revokeResult.reason === 'invalid_signature' || revokeResult.reason === 'invalid_format') {
+          return res.status(400).json({
+            detail: 'Token de sesión inválido o firma HMAC apócrifa.',
+          });
+        }
+        if (revokeResult.reason === 'service_unavailable') {
+          return res.status(503).json({
+            detail:
+              'No fue posible registrar la revocación de la sesión en el clúster distribuido (Redis no disponible).',
+          });
+        }
       }
     }
-  }
-  return res.status(200).json({
-    detail: 'Sesión finalizada y token revocado correctamente.',
-  });
-}));
+    return res.status(200).json({
+      detail: 'Sesión finalizada y token revocado correctamente.',
+    });
+  }),
+);

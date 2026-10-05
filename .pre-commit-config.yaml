@@ -39,3 +39,11 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [feat, fix, chore, ci, docs, test, refactor, perf, revert]
+
+  - repo: local
+    hooks:
+      - id: biome-check
+        name: Biome (lint y formato)
+        entry: npx --no-install biome check --no-errors-on-unmatched
+        language: system
+        types: [ts]

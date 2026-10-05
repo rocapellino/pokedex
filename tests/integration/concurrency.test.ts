@@ -13,7 +13,7 @@ test('⚡ Concurrencia: llamadas paralelas a getNextPokemonId generan IDs estric
   assert.equal(
     uniqueIds.size,
     NUM_REQUESTS,
-    `Colisión de IDs detectada bajo concurrencia. IDs generados: ${ids.length}, únicos: ${uniqueIds.size}`
+    `Colisión de IDs detectada bajo concurrencia. IDs generados: ${ids.length}, únicos: ${uniqueIds.size}`,
   );
 
   // Validar que todos son enteros mayores a 1008

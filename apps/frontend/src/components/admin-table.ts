@@ -11,8 +11,10 @@ export function renderTableRows(pokemons: Pokemon[]): string {
     .map((p) => {
       const car = p.caracteristicas || {};
       const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
-      const safeImg = p.imagen ? escapeText(p.imagen) : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
-      const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : (p.habilidades || 'Ninguna');
+      const safeImg = p.imagen
+        ? escapeText(p.imagen)
+        : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+      const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || 'Ninguna';
 
       return `
       <tr>
@@ -69,7 +71,10 @@ export function renderTableRows(pokemons: Pokemon[]): string {
     .join('');
 }
 
-export function computeKPIs(pokemons: Pokemon[], totalRecords: number): {
+export function computeKPIs(
+  pokemons: Pokemon[],
+  totalRecords: number,
+): {
   total: number;
   avgForce: number;
   uniqueTypesCount: number;
@@ -94,7 +99,7 @@ export function renderAdminTable(
   pokemons: Pokemon[],
   totalRecords: number,
   pageSize: number,
-  currentPage: number
+  currentPage: number,
 ): void {
   if (pokemons.length === 0) {
     tbody.innerHTML = sanitizeHtml(`

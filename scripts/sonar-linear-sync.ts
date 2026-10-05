@@ -3,7 +3,7 @@
  * scripts/sonar-linear-sync.ts
  * Sincronización Automática entre SonarCloud / SonarQube y Linear
  * ==============================================================================
- * 
+ *
  * Consulta el estado del Quality Gate y las incidencias (Bugs / Vulnerabilidades)
  * en SonarCloud y crea tickets correlativos en Linear evitando duplicaciones.
  *
@@ -62,7 +62,9 @@ interface LinearIssueNode {
 }
 
 function sanitize(input: unknown): string {
-  return String(input ?? '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
+  return String(input ?? '')
+    .replace(/[\r\n\t]/g, ' ')
+    .slice(0, 120);
 }
 
 const LINEAR_API_URL = 'https://api.linear.app/graphql';
@@ -77,7 +79,7 @@ const IS_DRY_RUN = process.env.DRY_RUN === 'true';
 async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': LINEAR_API_KEY,
+    Authorization: LINEAR_API_KEY,
   };
 
   const response = await fetch(LINEAR_API_URL, {
@@ -101,7 +103,7 @@ async function fetchLinear<T>(query: string, variables: Record<string, unknown> 
 async function fetchSonar<T>(endpoint: string): Promise<T> {
   const url = `${SONAR_API_BASE}${endpoint}`;
   const headers: Record<string, string> = {
-    'Accept': 'application/json',
+    Accept: 'application/json',
   };
 
   if (SONAR_TOKEN) {
@@ -142,7 +144,9 @@ async function getLinearTeamId(teamKey: string): Promise<string> {
     throw new Error(`No se encontró ningún equipo en Linear (buscado: ${teamKey}).`);
   }
 
-  console.log(`📌 Equipo Linear seleccionado: ${sanitize(selected.name)} (${sanitize(selected.key)}) - ID: ${sanitize(selected.id)}`);
+  console.log(
+    `📌 Equipo Linear seleccionado: ${sanitize(selected.name)} (${sanitize(selected.key)}) - ID: ${sanitize(selected.id)}`,
+  );
   return selected.id;
 }
 
@@ -176,7 +180,9 @@ async function isIssueAlreadyOpenInLinear(searchTerm: string): Promise<boolean> 
     });
 
     if (matches.length > 0) {
-      console.log(`ℹ️ Ya existe un ticket abierto en Linear para "${searchTerm}": ${matches[0].identifier} (${matches[0].title})`);
+      console.log(
+        `ℹ️ Ya existe un ticket abierto en Linear para "${searchTerm}": ${matches[0].identifier} (${matches[0].title})`,
+      );
       return true;
     }
     return false;
@@ -213,7 +219,7 @@ async function createLinearIssue(teamId: string, title: string, description: str
 
   const result = await fetchLinear<{ issueCreate: { success: boolean; issue: { identifier: string; url: string } } }>(
     mutation,
-    { teamId, title, desc: description, priority }
+    { teamId, title, desc: description, priority },
   );
 
   if (result.issueCreate?.success) {
@@ -243,7 +249,7 @@ export async function syncSonarToLinear(): Promise<void> {
   console.log('\n📊 Consultando Quality Gate en SonarCloud...');
   try {
     const qgData = await fetchSonar<SonarProjectStatus>(
-      `/qualitygates/project_status?projectKey=${encodeURIComponent(SONAR_PROJECT_KEY)}`
+      `/qualitygates/project_status?projectKey=${encodeURIComponent(SONAR_PROJECT_KEY)}`,
     );
 
     const qgStatus = qgData.projectStatus.status;
@@ -261,7 +267,8 @@ export async function syncSonarToLinear(): Promise<void> {
           conditionList += `- **${c.metricKey}**: Valor actual \`${c.actualValue}\` (Límite: \`${c.errorThreshold}\`)\n`;
         });
 
-        const desc = `El Quality Gate de SonarCloud ha fallado en la rama principal.\n\n` +
+        const desc =
+          `El Quality Gate de SonarCloud ha fallado en la rama principal.\n\n` +
           `### ❌ Condiciones no cumplidas:\n${conditionList || '- Sin detalles adicionales'}\n\n` +
           `🔗 **Panel de SonarCloud:** [Ver Proyecto](https://sonarcloud.io/dashboard?id=${encodeURIComponent(SONAR_PROJECT_KEY)})\n\n` +
           `> *Acción requerida:* Resolver las condiciones que bloquean el estándar de calidad antes del próximo release.`;
@@ -280,7 +287,7 @@ export async function syncSonarToLinear(): Promise<void> {
   console.log('\n🔍 Consultando Bugs y Vulnerabilidades activas en SonarCloud...');
   try {
     const issuesData = await fetchSonar<SonarIssuesResponse>(
-      `/issues/search?projectKeys=${encodeURIComponent(SONAR_PROJECT_KEY)}&resolved=false&types=VULNERABILITY,BUG&ps=10`
+      `/issues/search?projectKeys=${encodeURIComponent(SONAR_PROJECT_KEY)}&resolved=false&types=VULNERABILITY,BUG&ps=10`,
     );
 
     console.log(`Total de incidencias activas detectadas: ${sanitize(issuesData.total)}`);
@@ -293,7 +300,8 @@ export async function syncSonarToLinear(): Promise<void> {
         const title = `[SonarCloud] ${issue.type}: ${issue.message.substring(0, 80)}`;
         const priority = issue.severity === 'BLOCKER' ? 1 : issue.severity === 'CRITICAL' ? 2 : 3;
 
-        const desc = `Se ha detectado una incidencia de tipo **${issue.type}** en SonarCloud.\n\n` +
+        const desc =
+          `Se ha detectado una incidencia de tipo **${issue.type}** en SonarCloud.\n\n` +
           `### 📋 Detalle de la incidencia:\n` +
           `- **Regla:** \`${issue.rule}\`\n` +
           `- **Severidad:** \`${issue.severity}\`\n` +

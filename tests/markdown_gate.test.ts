@@ -15,7 +15,7 @@ test('📚 Markdown Gate: una ruta explícita inexistente debe fallar (fail-clos
   await assert.rejects(
     () => lintMarkdown({ files: ['docs/audits/no-existe/nunca-existira.md'] }),
     /no se encontraron los archivos solicitados/,
-    'Una ruta Markdown inexistente debe producir error, no un PASS silencioso'
+    'Una ruta Markdown inexistente debe producir error, no un PASS silencioso',
   );
 });
 
@@ -23,7 +23,7 @@ test('📚 Markdown Gate: falla aunque solo una de varias rutas sea inexistente'
   await assert.rejects(
     () => lintMarkdown({ files: ['README.md', 'docs/audits/no-existe/x.md'] }),
     /no se encontraron los archivos solicitados/,
-    'Una sola ruta inexistente debe hacer fallar el gate completo'
+    'Una sola ruta inexistente debe hacer fallar el gate completo',
   );
 });
 
@@ -67,10 +67,10 @@ test('📚 Markdown Gate: findMarkdownFiles respeta el directorio .markdownlinti
   assert.ok(found.length > 0, 'Debe encontrar archivos Markdown');
   assert.ok(
     !found.some((f) => f.replace(/\\/g, '/').includes('node_modules')),
-    'No debe incluir archivos bajo node_modules'
+    'No debe incluir archivos bajo node_modules',
   );
   assert.ok(
     found.every((f) => f.endsWith('.md')),
-    'Solo debe devolver archivos .md'
+    'Solo debe devolver archivos .md',
   );
 });

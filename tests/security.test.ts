@@ -8,10 +8,7 @@ import {
   getSessionSecret,
   verifyTokenSignature,
 } from '../apps/backend/src/services/auth.js';
-import {
-  buildSessionCookie,
-  extractSessionTokenFromRequest,
-} from '../apps/backend/server.js';
+import { buildSessionCookie, extractSessionTokenFromRequest } from '../apps/backend/server.js';
 import crypto from 'node:crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {
@@ -54,7 +51,10 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   assert.equal(validateImageUrl('//evil.com/image.png'), false);
   assert.equal(validateImageUrl('http://evil.com/image.png'), false);
 
-  assert.equal(validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'), true);
+  assert.equal(
+    validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'),
+    true,
+  );
   assert.equal(validateImageUrl('/static/pokemon.png'), true);
 
   // localhost en desarrollo/test (HTTP permitido para tooling local)
@@ -106,7 +106,6 @@ test('🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corru
   assert.equal(validatePokemonPayload({ ...basePayload, stats: { defense: NaN } }).valid, false);
   assert.equal(validatePokemonPayload({ ...basePayload, stats: { speed: Infinity } }).valid, false);
 });
-
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza URL maliciosa en campo imagen', () => {
   const result = validatePokemonPayload({
@@ -244,20 +243,22 @@ test('🔐 Auth Session: generateSessionToken genera token HMAC válido y estruc
 test('🔐 Auth Session: verifySessionToken rechaza tokens expirados', async () => {
   // Generar token con TTL de 10ms
   const expiredSession = generateSessionToken(10);
-  await new Promise(r => setTimeout(r, 25));
+  await new Promise((r) => setTimeout(r, 25));
   assert.equal(await verifySessionToken(expiredSession.token), false);
 });
 
 test('🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados', async () => {
   const session = generateSessionToken();
   const [b64Payload, signature] = session.token.split('.');
-  
+
   // Alterar firma
   const tamperedSig = `${signature.slice(0, -2)}aa`;
   assert.equal(await verifySessionToken(`${b64Payload}.${tamperedSig}`), false);
 
   // Alterar payload decodificado
-  const tamperedPayload = Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 100000, jti: 'test' })).toString('base64url');
+  const tamperedPayload = Buffer.from(
+    JSON.stringify({ role: 'admin', exp: Date.now() + 100000, jti: 'test' }),
+  ).toString('base64url');
   assert.equal(await verifySessionToken(`${tamperedPayload}.${signature}`), false);
 });
 
@@ -408,7 +409,7 @@ test('🔐 Auth Session: revokeSessionToken con token de corta duración expira 
   assert.equal(await verifySessionToken(token), false);
 
   // Esperar a que el token expire naturalmente
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise((r) => setTimeout(r, 50));
   // Debe seguir siendo rechazado por haber expirado
   assert.equal(await verifySessionToken(token), false);
 });
@@ -428,9 +429,7 @@ test('🛡️ Seguridad: validatePokemonPayload valida estructura y límites en 
   const xssEvolution = {
     nombre: 'Charmander',
     tipo: 'Fuego',
-    evoluciones: [
-      { id: 5, nombre: '<script>alert("xss")</script>' },
-    ],
+    evoluciones: [{ id: 5, nombre: '<script>alert("xss")</script>' }],
   };
   assert.equal(validatePokemonPayload(xssEvolution).valid, false);
 
@@ -438,11 +437,7 @@ test('🛡️ Seguridad: validatePokemonPayload valida estructura y límites en 
   const badImgEvolution = {
     nombre: 'Charmander',
     tipo: 'Fuego',
-    evoluciones: [
-      { id: 5, nombre: 'Charmeleon', imagen: 'javascript:alert(1)' },
-    ],
+    evoluciones: [{ id: 5, nombre: 'Charmeleon', imagen: 'javascript:alert(1)' }],
   };
   assert.equal(validatePokemonPayload(badImgEvolution).valid, false);
 });
-
-

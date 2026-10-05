@@ -44,10 +44,7 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
 const DOCS_DIR = path.join(ROOT_DIR, 'docs');
 const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
-const IMPACT_MATRIX_PATH = path.join(
-  ROOT_DIR,
-  '.agents/skills/_shared/documentation-impact-matrix.md'
-);
+const IMPACT_MATRIX_PATH = path.join(ROOT_DIR, '.agents/skills/_shared/documentation-impact-matrix.md');
 
 /** Categorias que el portal indexa de forma explicita. */
 const INDEXED_DIRS = [
@@ -84,7 +81,10 @@ test('📚 DOC-011: todo documento de las categorias indexadas esta enlazado en 
     const fullDir = path.join(DOCS_DIR, dir);
     assert.ok(fs.existsSync(fullDir), `docs/${dir}/ debe existir`);
 
-    for (const file of fs.readdirSync(fullDir).filter((f) => f.endsWith('.md')).sort()) {
+    for (const file of fs
+      .readdirSync(fullDir)
+      .filter((f) => f.endsWith('.md'))
+      .sort()) {
       // El portal puede enlazar el archivo con o sin ruta; basta con que el
       // nombre del documento aparezca en el contenido del portal.
       if (!portal.includes(file)) {
@@ -98,7 +98,7 @@ test('📚 DOC-011: todo documento de las categorias indexadas esta enlazado en 
     [],
     `Documentos existentes que NO estan enlazados en docs/README.md:\n  ${missing.join('\n  ')}\n` +
       'Un documento no indexado es un documento que nadie encuentra. Anadelo al ' +
-      'diagrama mermaid (con su nodo en `classDef doc`) y a la lista por categoria.'
+      'diagrama mermaid (con su nodo en `classDef doc`) y a la lista por categoria.',
   );
 });
 
@@ -110,32 +110,25 @@ test('📚 DOC-011: las categorias del portal coinciden con las carpetas reales 
     .map((e) => e.name)
     .sort();
 
-  const undocumented = realDirs.filter(
-    (d) => !INDEXED_DIRS.includes(d) && !(d in NOT_INDEXED)
-  );
+  const undocumented = realDirs.filter((d) => !INDEXED_DIRS.includes(d) && !(d in NOT_INDEXED));
 
   assert.deepEqual(
     undocumented,
     [],
     `Carpetas de docs/ sin categoria en el portal y sin exencion declarada: ` +
       `${undocumented.join(' | ')}. Declara la categoria en el portal o documenta la ` +
-      'exencion en NOT_INDEXED con su motivo.'
+      'exencion en NOT_INDEXED con su motivo.',
   );
 });
 
 test('📚 DOC-011: toda ruta docs/... citada por la politica existe en disco', () => {
-  assert.ok(
-    fs.existsSync(IMPACT_MATRIX_PATH),
-    '.agents/skills/_shared/documentation-impact-matrix.md debe existir'
-  );
+  assert.ok(fs.existsSync(IMPACT_MATRIX_PATH), '.agents/skills/_shared/documentation-impact-matrix.md debe existir');
   const matrix = fs.readFileSync(IMPACT_MATRIX_PATH, 'utf-8');
 
   // Solo se validan rutas concretas (`docs/<algo>/<archivo>.md`). Los globs con
   // comodin (`docs/decisions/ADR-006-*.md`) y las carpetas sin archivo concreto
   // (`docs/api/`) son patrones de busqueda intencionales, no rutas literales.
-  const cited = new Set(
-    [...matrix.matchAll(/`(docs\/[A-Za-z0-9_\-./]+\.md)`/g)].map((m) => m[1])
-  );
+  const cited = new Set([...matrix.matchAll(/`(docs\/[A-Za-z0-9_\-./]+\.md)`/g)].map((m) => m[1]));
 
   assert.ok(cited.size > 0, 'La matriz debe citar al menos una ruta docs/ concreta');
 
@@ -147,6 +140,6 @@ test('📚 DOC-011: toda ruta docs/... citada por la politica existe en disco', 
     `La politica documental cita documentos que NO existen: ${broken.join(' | ')}.\n` +
       'Una skill que apunta a un archivo inexistente instruye a los agentes a ' +
       'trabajar sobre un archivo que no esta. Corrige la matriz para apuntar a ' +
-      'documentos reales.'
+      'documentos reales.',
   );
 });

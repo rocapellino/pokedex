@@ -151,7 +151,9 @@ export function getChangedFilesFromGit(baseRef: string = 'origin/main'): string[
       .map((line) => line.trim().replace(/\\/g, '/'))
       .filter((line) => line.length > 0);
   } catch (_error) {
-    console.warn('[Change Impact] Advertencia: No se pudo obtener git diff contra la rama base. Aplicando política fail-closed.');
+    console.warn(
+      '[Change Impact] Advertencia: No se pudo obtener git diff contra la rama base. Aplicando política fail-closed.',
+    );
     return [];
   }
 }
@@ -213,7 +215,7 @@ export function applyAlwaysTriggers(target: DomainTriggers, alwaysControls: Alwa
       const known = Object.keys(ALWAYS_CONTROL_TRIGGERS).join(', ');
       throw new Error(
         `Control 'always' sin mapeo de triggers: '${control.id}'. ` +
-        `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`
+          `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`,
       );
     }
 
@@ -278,7 +280,7 @@ export function analyzeChangeImpact(options: {
       const known = Object.keys(ALWAYS_CONTROL_TRIGGERS).join(', ');
       throw new Error(
         `Control 'always' sin mapeo de triggers: '${control.id}'. ` +
-        `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`
+          `Ids soportados: ${known}. Agrega el mapeo en ALWAYS_CONTROL_TRIGGERS.`,
       );
     }
     return control.id;
@@ -383,7 +385,7 @@ export function formatImpactMarkdown(
   triggers: DomainTriggers,
   matchedRules: string[],
   files: string[],
-  unmappedFiles?: string[]
+  unmappedFiles?: string[],
 ): string {
   const rows: { domain: string; affected: boolean; pipeline: string }[] = [
     { domain: 'Documentation', affected: triggers.documentation, pipeline: 'docs-ci (Fast Track)' },
@@ -396,14 +398,26 @@ export function formatImpactMarkdown(
     { domain: 'Helm Packaging', affected: triggers.helm, pipeline: 'helm lint & parity' },
     { domain: 'OpenTofu IaC', affected: triggers.opentofu, pipeline: 'infra.yaml (Tofu)' },
     { domain: 'Ansible Baseline', affected: triggers.ansible, pipeline: 'infra.yaml (Ansible)' },
-    { domain: 'Linting & Configuration Hygiene', affected: triggers.linting, pipeline: 'MegaLinter & npm run lint:ignore' },
-    { domain: 'PR Governance (always)', affected: triggers.pr_governance, pipeline: 'PR template & políticas de calidad' },
+    {
+      domain: 'Linting & Configuration Hygiene',
+      affected: triggers.linting,
+      pipeline: 'MegaLinter & npm run lint:ignore',
+    },
+    {
+      domain: 'PR Governance (always)',
+      affected: triggers.pr_governance,
+      pipeline: 'PR template & políticas de calidad',
+    },
     { domain: 'Security: Secrets Scan (always)', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
     { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep' },
     { domain: 'Security: Dependencies SCA', affected: triggers.security_dependencies, pipeline: 'Dependency Review' },
     { domain: 'Security: Container Scan', affected: triggers.security_container, pipeline: 'Trivy Image Scan' },
     { domain: 'Security: IaC & K8s Scan', affected: triggers.security_iac, pipeline: 'Checkov IaC' },
-    { domain: 'Security: Supply Chain / SBOM', affected: triggers.security_supply_chain, pipeline: 'Cosign, SBOM & Digest' },
+    {
+      domain: 'Security: Supply Chain / SBOM',
+      affected: triggers.security_supply_chain,
+      pipeline: 'Cosign, SBOM & Digest',
+    },
   ];
 
   let output = '### 🎯 Change Impact Analysis\n\n';

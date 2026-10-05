@@ -146,8 +146,8 @@ export async function lintMarkdown(options: LintOptions = {}): Promise<LintRepor
     if (missingFiles.length > 0) {
       throw new Error(
         `Markdown Quality Gate: no se encontraron los archivos solicitados: ` +
-        `${missingFiles.join(', ')}. ` +
-        `Un Quality Gate que apunta a rutas inexistentes no debe pasar en verde.`
+          `${missingFiles.join(', ')}. ` +
+          `Un Quality Gate que apunta a rutas inexistentes no debe pasar en verde.`,
       );
     }
   } else {

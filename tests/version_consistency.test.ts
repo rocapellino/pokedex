@@ -34,20 +34,28 @@ test('VER-001 🔒 Contrato de versión: package.json == package-lock.json == Ch
   assert.equal(
     (lock as { version: string }).version,
     pkgVersion,
-    `package-lock.json.version (${(lock as { version: string }).version}) debe igualar package.json (${pkgVersion})`
+    `package-lock.json.version (${(lock as { version: string }).version}) debe igualar package.json (${pkgVersion})`,
   );
   const lockRootVersion = (lock as { packages: Record<string, { version?: string }> }).packages[''].version;
   assert.equal(
     lockRootVersion,
     pkgVersion,
-    `package-lock.json packages[""].version (${lockRootVersion}) debe igualar package.json (${pkgVersion})`
+    `package-lock.json packages[""].version (${lockRootVersion}) debe igualar package.json (${pkgVersion})`,
   );
 
   // Chart.yaml: version y appVersion
   const chartVersion = chart.match(/^version:\s*(\S+)/m)?.[1]?.replace(/['"]/g, '');
   const chartAppVersion = chart.match(/^appVersion:\s*["']?([^"'\s#]+)/m)?.[1];
-  assert.equal(chartVersion, pkgVersion, `Chart.yaml.version (${chartVersion}) debe igualar package.json (${pkgVersion})`);
-  assert.equal(chartAppVersion, pkgVersion, `Chart.yaml.appVersion (${chartAppVersion}) debe igualar package.json (${pkgVersion})`);
+  assert.equal(
+    chartVersion,
+    pkgVersion,
+    `Chart.yaml.version (${chartVersion}) debe igualar package.json (${pkgVersion})`,
+  );
+  assert.equal(
+    chartAppVersion,
+    pkgVersion,
+    `Chart.yaml.appVersion (${chartAppVersion}) debe igualar package.json (${pkgVersion})`,
+  );
 
   // GitOps targetRevision de las hijas (paridad estricta validada por argocd_pinning)
   const gitopsTag = preprodApp.match(/targetRevision:\s*(\S+)/)?.[1];
@@ -58,19 +66,23 @@ test('VER-002 🔒 /version expone versión y commit como metadatos independient
   const healthRoute = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/routes/health.ts'), 'utf-8');
 
   // La versión se resuelve desde APP_VERSION (no desde GIT_SHA) y viceversa.
-  assert.match(healthRoute, /version:\s*process\.env\.APP_VERSION\s*\|\|\s*'unknown'/, '/version debe leer APP_VERSION');
+  assert.match(
+    healthRoute,
+    /version:\s*process\.env\.APP_VERSION\s*\|\|\s*'unknown'/,
+    '/version debe leer APP_VERSION',
+  );
   assert.match(healthRoute, /git_sha:\s*process\.env\.GIT_SHA/, '/version debe leer GIT_SHA');
   assert.doesNotMatch(
     healthRoute,
     /version:\s*process\.env\.GIT_SHA/,
-    '/version.version no debe derivarse de GIT_SHA (conflaría versión y commit)'
+    '/version.version no debe derivarse de GIT_SHA (conflaría versión y commit)',
   );
 
   // Sin metadatos de build no se debe anunciar una versión semántica ficticia.
   assert.doesNotMatch(
     healthRoute,
     /process\.env\.APP_VERSION\s*\|\|\s*'1\.0\.0'/,
-    '/version no debe hardcodear una versión de fallback ficticia'
+    '/version no debe hardcodear una versión de fallback ficticia',
   );
 });
 
@@ -79,22 +91,19 @@ test('VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto 
 
   assert.ok(
     wf.includes('npm version "$VERSION" --no-git-tag-version'),
-    'El workflow debe usar npm version para actualizar package.json y package-lock.json atómicamente'
+    'El workflow debe usar npm version para actualizar package.json y package-lock.json atómicamente',
   );
   assert.ok(
     !wf.includes('npm pkg set version='),
-    'npm pkg set version= no actualiza package-lock.json y está prohibido en el flujo de release (VER-001)'
+    'npm pkg set version= no actualiza package-lock.json y está prohibido en el flujo de release (VER-001)',
   );
   assert.ok(
     wf.includes('git add package.json package-lock.json infra/helm/pokedex/Chart.yaml gitops/apps/'),
-    'El commit de promoción debe incluir package-lock.json'
+    'El commit de promoción debe incluir package-lock.json',
   );
   assert.ok(
     wf.includes('LOCK_VERSION='),
-    'La fase tag debe verificar la coherencia de package-lock.json antes de taggear'
+    'La fase tag debe verificar la coherencia de package-lock.json antes de taggear',
   );
-  assert.ok(
-    wf.includes('l.packages[""].version'),
-    'La fase tag debe leer packages[""].version de package-lock.json'
-  );
+  assert.ok(wf.includes('l.packages[""].version'), 'La fase tag debe leer packages[""].version de package-lock.json');
 });

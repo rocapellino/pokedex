@@ -66,13 +66,7 @@ export const TEMPLATE_CANDIDATE_PATHS = [
 ];
 
 /** Caracteres y secuencias típicas de mojibake en consolas Windows */
-export const MOJIBAKE_PATTERNS = [
-  /Ã[¡-ÿ]/,
-  /Â[¡-ÿ]/,
-  /â€[™œž]/,
-  /ï¿½/,
-  /[├Ôƒ]/,
-];
+export const MOJIBAKE_PATTERNS = [/Ã[¡-ÿ]/, /Â[¡-ÿ]/, /â€[™œž]/, /ï¿½/, /[├Ôƒ]/];
 
 /** Normaliza un heading eliminando emojis, enlaces markdown, puntuación superflua y espacios extras */
 export function normalizeHeading(text: string): string {
@@ -89,15 +83,17 @@ export function normalizeHeading(text: string): string {
     str = str.slice(0, start) + str.slice(end + 1);
   }
 
-  return str
-    // Quitar emojis comunes y símbolos de presentación
-    // biome-ignore lint/suspicious/noMisleadingCharacterClass: rangos emoji intencionales con selectores de variacion
-    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '')
-    // Conservar caracteres alfanuméricos Unicode, barras, ampersand, guiones y espacios
-    .replace(/[^\p{L}\p{N}\s/&_-]/gu, '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+  return (
+    str
+      // Quitar emojis comunes y símbolos de presentación
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: rangos emoji intencionales con selectores de variacion
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '')
+      // Conservar caracteres alfanuméricos Unicode, barras, ampersand, guiones y espacios
+      .replace(/[^\p{L}\p{N}\s/&_-]/gu, '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+  );
 }
 
 /** Descubre dinámicamente la ruta del PR Template activo */
@@ -109,7 +105,7 @@ export function discoverPrTemplate(rootDir: string = process.cwd()): string {
     }
   }
   throw new Error(
-    `No se encontró ningún PR Template físico en el repositorio. Evaluadas:\n${TEMPLATE_CANDIDATE_PATHS.map(p => `  - ${p}`).join('\n')}`
+    `No se encontró ningún PR Template físico en el repositorio. Evaluadas:\n${TEMPLATE_CANDIDATE_PATHS.map((p) => `  - ${p}`).join('\n')}`,
   );
 }
 
@@ -145,7 +141,7 @@ export function extractHeadings(markdown: string): HeadingNode[] {
 export function validatePrBody(
   templateContent: string,
   bodyContent: string,
-  templatePath: string = '.github/pull_request_template.md'
+  templatePath: string = '.github/pull_request_template.md',
 ): ValidationResult {
   const issues: ValidationIssue[] = [];
 
@@ -165,8 +161,8 @@ export function validatePrBody(
   const bodyHeadings = extractHeadings(bodyContent);
 
   // Filtrar encabezados H2 del template (secciones obligatorias)
-  const templateH2s = templateHeadings.filter(h => h.level === 2);
-  const bodyH2s = bodyHeadings.filter(h => h.level === 2);
+  const templateH2s = templateHeadings.filter((h) => h.level === 2);
+  const bodyH2s = bodyHeadings.filter((h) => h.level === 2);
 
   if (templateH2s.length === 0) {
     issues.push({
@@ -188,13 +184,10 @@ export function validatePrBody(
 
   for (const tH2 of templateH2s) {
     // Buscamos coincidencia exacta de heading normalizado o subcadena significativa
-    const matchIndex = bodyH2s.findIndex(bH2 => {
+    const matchIndex = bodyH2s.findIndex((bH2) => {
       if (bH2.normalized === tH2.normalized) return true;
       // Compatibilidad con variaciones menores (ej. "tipo de cambio" vs "tipo de cambio conventional commits")
-      if (
-        bH2.normalized.startsWith(tH2.normalized) ||
-        tH2.normalized.startsWith(bH2.normalized)
-      ) {
+      if (bH2.normalized.startsWith(tH2.normalized) || tH2.normalized.startsWith(bH2.normalized)) {
         return true;
       }
       return false;
@@ -234,8 +227,8 @@ export function validatePrBody(
   ];
 
   for (const bH2 of bodyH2s) {
-    if (forbiddenHeadings.some(forbidden => bH2.normalized.includes(forbidden))) {
-      const isExpectedInTemplate = templateH2s.some(t => t.normalized.includes(bH2.normalized));
+    if (forbiddenHeadings.some((forbidden) => bH2.normalized.includes(forbidden))) {
+      const isExpectedInTemplate = templateH2s.some((t) => t.normalized.includes(bH2.normalized));
       if (!isExpectedInTemplate && missingHeadings.length > 0) {
         issues.push({
           code: 'UNAUTHORIZED_ALTERNATIVE_STRUCTURE',
@@ -258,11 +251,11 @@ export function validatePrBody(
   };
 
   // 6.A: CI Impact Analysis
-  const ciImpactHeading = templateH2s.find(h => h.normalized.includes('ci impact analysis'));
+  const ciImpactHeading = templateH2s.find((h) => h.normalized.includes('ci impact analysis'));
   if (ciImpactHeading && !missingHeadings.includes(ciImpactHeading)) {
     // Buscar la sección en el body
     const bodyLines = bodyContent.split(/\r?\n/);
-    const ciHeadingIdx = bodyLines.findIndex(l => {
+    const ciHeadingIdx = bodyLines.findIndex((l) => {
       const raw = extractH2Raw(l);
       return raw !== null && normalizeHeading(raw).includes('ci impact analysis');
     });
@@ -278,11 +271,12 @@ export function validatePrBody(
       const sectionText = sectionLines.join('\n');
 
       // Debe incluir tabla Markdown
-      const hasMarkdownTable = sectionLines.some(l => /^\|\s*:\s*---\s*\|/.test(l) || /^\|.*\|.*\|/.test(l));
+      const hasMarkdownTable = sectionLines.some((l) => /^\|\s*:\s*---\s*\|/.test(l) || /^\|.*\|.*\|/.test(l));
       if (!hasMarkdownTable) {
         issues.push({
           code: 'CI_IMPACT_MISSING_TABLE',
-          message: 'La sección "## 🎯 CI Impact Analysis" debe incluir la tabla de impacto generada por scripts/detect-change-impact.ts.',
+          message:
+            'La sección "## 🎯 CI Impact Analysis" debe incluir la tabla de impacto generada por scripts/detect-change-impact.ts.',
           section: ciImpactHeading.raw,
         });
       }
@@ -291,7 +285,8 @@ export function validatePrBody(
       if (/\|\s*—\s*\|/.test(sectionText)) {
         issues.push({
           code: 'CI_IMPACT_UNRESOLVED_PLACEHOLDERS',
-          message: 'La tabla de CI Impact Analysis contiene celdas con placeholders no resueltos ("—"). Todas las celdas deben indicar "✅ Afectado" u "⏭️ Omitido".',
+          message:
+            'La tabla de CI Impact Analysis contiene celdas con placeholders no resueltos ("—"). Todas las celdas deben indicar "✅ Afectado" u "⏭️ Omitido".',
           section: ciImpactHeading.raw,
         });
       }
@@ -300,7 +295,8 @@ export function validatePrBody(
       if (/<!-- INICIO TABLA GENERADA/.test(sectionText)) {
         issues.push({
           code: 'CI_IMPACT_RAW_DIRECTIVES',
-          message: 'La sección CI Impact Analysis conserva directivas de plantilla no sustituidas ("<!-- INICIO TABLA GENERADA ... -->").',
+          message:
+            'La sección CI Impact Analysis conserva directivas de plantilla no sustituidas ("<!-- INICIO TABLA GENERADA ... -->").',
           section: ciImpactHeading.raw,
         });
       }
@@ -308,10 +304,10 @@ export function validatePrBody(
   }
 
   // 6.B: Pruebas y Verificaciones Realizadas
-  const testsHeading = templateH2s.find(h => h.normalized.includes('pruebas y verificaciones'));
+  const testsHeading = templateH2s.find((h) => h.normalized.includes('pruebas y verificaciones'));
   if (testsHeading && !missingHeadings.includes(testsHeading)) {
     const bodyLines = bodyContent.split(/\r?\n/);
-    const testsHeadingIdx = bodyLines.findIndex(l => {
+    const testsHeadingIdx = bodyLines.findIndex((l) => {
       const raw = extractH2Raw(l);
       return raw !== null && normalizeHeading(raw).includes('pruebas y verificaciones');
     });
@@ -332,7 +328,8 @@ export function validatePrBody(
       if (!hasCheckboxes && !hasNa) {
         issues.push({
           code: 'TESTS_SECTION_EMPTY',
-          message: 'La sección "## 🧪 Pruebas y Verificaciones Realizadas" no contiene verificaciones marcadas ni declaraciones justificadas.',
+          message:
+            'La sección "## 🧪 Pruebas y Verificaciones Realizadas" no contiene verificaciones marcadas ni declaraciones justificadas.',
           section: testsHeading.raw,
         });
       }
@@ -344,7 +341,7 @@ export function validatePrBody(
     if (missingHeadings.includes(tH2)) continue;
 
     const bodyLines = bodyContent.split(/\r?\n/);
-    const hIdx = bodyLines.findIndex(l => {
+    const hIdx = bodyLines.findIndex((l) => {
       const raw = extractH2Raw(l);
       return raw !== null && normalizeHeading(raw) === tH2.normalized;
     });
@@ -393,7 +390,7 @@ export function fetchRemotePrBody(prNumber: number | string): string {
   } catch (error) {
     const err = error as Error & { stderr?: string };
     throw new Error(
-      `No se pudo obtener el cuerpo del PR remoto #${prNumber} mediante gh CLI: ${err.stderr || err.message}`
+      `No se pudo obtener el cuerpo del PR remoto #${prNumber} mediante gh CLI: ${err.stderr || err.message}`,
     );
   }
 }
@@ -477,7 +474,7 @@ Opciones:
         if (!isQuiet) {
           console.log('✅ PASS: El cuerpo del PR cumple estrictamente con el contrato del template físico.');
           console.log(`   Template SSOT: ${templatePath}`);
-          console.log(`   Secciones validadas: ${result.templateHeadings.filter(h => h.level === 2).length}`);
+          console.log(`   Secciones validadas: ${result.templateHeadings.filter((h) => h.level === 2).length}`);
         }
       } else {
         console.error('❌ FAIL: El cuerpo del PR incumple el contrato del template físico:');

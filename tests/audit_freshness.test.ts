@@ -19,7 +19,9 @@ const CURRENT = {
   gitOpsRevisions: ['v1.84.7', 'v1.84.7', 'v1.84.7'],
 };
 
-function baseline(overrides: Partial<Record<'commit' | 'packageVersion' | 'chartVersion' | 'gitOpsRevision', string>> = {}): string {
+function baseline(
+  overrides: Partial<Record<'commit' | 'packageVersion' | 'chartVersion' | 'gitOpsRevision', string>> = {},
+): string {
   return `> **Commit:** \`${overrides.commit ?? CURRENT.head}\`
 | \`package.json\` | \`${overrides.packageVersion ?? CURRENT.packageVersion}\` | SSOT |
 | \`infra/helm/pokedex/Chart.yaml\` (\`version\` / \`appVersion\`) | \`${overrides.chartVersion ?? CURRENT.chartVersion}\` | SSOT |
@@ -73,7 +75,10 @@ test('Audit lifecycle: el baseline vigente expone commit, versión, Chart y revi
   const baselinePath = findLatestBaseline();
   assert.ok(baselinePath, 'No se encontró ningún baseline en docs/audits/<fecha>/');
   const result = evaluateAuditFreshness(fs.readFileSync(baselinePath, 'utf8'), readRepositoryState());
-  assert.deepEqual(result.differences.filter((d) => d.startsWith('MISSING_')), []);
+  assert.deepEqual(
+    result.differences.filter((d) => d.startsWith('MISSING_')),
+    [],
+  );
 });
 
 test('Audit lifecycle: el script se ejecuta como CLI y emite JSON no bloqueante', () => {

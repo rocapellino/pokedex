@@ -94,7 +94,7 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
   assert.ok(
     !fs.existsSync(orphanPath),
     'INFRA-006: alloy-proxmox-values.yaml no debe existir; no tiene consumidores y su ' +
-    'configuración vive en grafana-cloud-values.yaml (consumido por scripts/deploy-grafana-cloud.mjs)'
+      'configuración vive en grafana-cloud-values.yaml (consumido por scripts/deploy-grafana-cloud.mjs)',
   );
 
   // 2. El sustituto vigente debe existir y tener consumidores REALES. Si en el
@@ -103,14 +103,14 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
   const canonicalPath = path.join(monitoringDir, 'grafana-cloud-values.yaml');
   assert.ok(
     fs.existsSync(canonicalPath),
-    'INFRA-006: grafana-cloud-values.yaml debe existir como configuracion canonica de telemetria'
+    'INFRA-006: grafana-cloud-values.yaml debe existir como configuracion canonica de telemetria',
   );
 
   const deployScript = fs.readFileSync(MJS_PATH, 'utf-8');
   assert.match(
     deployScript,
     /grafana-cloud-values\.yaml/,
-    'INFRA-006: scripts/deploy-grafana-cloud.mjs debe referenciar grafana-cloud-values.yaml'
+    'INFRA-006: scripts/deploy-grafana-cloud.mjs debe referenciar grafana-cloud-values.yaml',
   );
 
   // 3. La cadena operativa completa debe seguir cableada: Taskfile y VS Code.
@@ -123,16 +123,14 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
     assert.match(
       source,
       /scripts\/deploy-grafana-cloud\.mjs/,
-      `INFRA-006: ${label} debe seguir invocando el desplegador de Grafana Cloud`
+      `INFRA-006: ${label} debe seguir invocando el desplegador de Grafana Cloud`,
     );
   }
 
   // 4. Ningun otro values de Grafana Alloy puede quedar sin consumidor. Se
   //    listan los *.yaml de nivel superior y se exige que cada uno este en la
   //    lista blanca de consumidores conocidos.
-  const topLevelYaml = fs
-    .readdirSync(monitoringDir)
-    .filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+  const topLevelYaml = fs.readdirSync(monitoringDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
 
   const knownConsumers = new Set(['alerts.yaml', 'grafana-cloud-values.yaml']);
   const unconsumed = topLevelYaml.filter((f) => !knownConsumers.has(f));
@@ -141,19 +139,16 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
     unconsumed,
     [],
     `INFRA-006: hay values YAML en infra/monitoring sin consumidor declarado: ${unconsumed.join(', ')}. ` +
-    'Todo values de esa ruta debe ser consumible por el script de despliegue o estar en la lista blanca.'
+      'Todo values de esa ruta debe ser consumible por el script de despliegue o estar en la lista blanca.',
   );
 
   // 5. El README de la ruta debe estar clasificado en el motor de impacto. Si no,
   //    el fail-closed lo enmascara y este archivo puede publicarse sin validar.
-  const config = fs.readFileSync(
-    path.join(ROOT_DIR, '.github', 'ci-impact.yaml'),
-    'utf-8'
-  );
+  const config = fs.readFileSync(path.join(ROOT_DIR, '.github', 'ci-impact.yaml'), 'utf-8');
   assert.match(
     config,
     /infra\/\*\*\/README\.md/,
-    'INFRA-006: los README de ruta bajo infra/ deben estar clasificados en ci-impact.yaml'
+    'INFRA-006: los README de ruta bajo infra/ deben estar clasificados en ci-impact.yaml',
   );
 });
 
@@ -164,31 +159,27 @@ test('🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin Powe
   const taskfile = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(
     !/deploy-grafana-cloud\.ps1/.test(taskfile),
-    'Taskfile.yaml no debe invocar el script PowerShell de Grafana Cloud'
+    'Taskfile.yaml no debe invocar el script PowerShell de Grafana Cloud',
   );
   assert.match(
     taskfile,
     /node scripts\/deploy-grafana-cloud\.mjs/,
-    'Taskfile.yaml debe delegar en el script Node multiplataforma'
+    'Taskfile.yaml debe delegar en el script Node multiplataforma',
   );
 
   const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
   assert.ok(
     !/deploy-grafana-cloud\.ps1/.test(vscodeTasks),
-    '.vscode/tasks.json no debe invocar el script PowerShell de Grafana Cloud'
+    '.vscode/tasks.json no debe invocar el script PowerShell de Grafana Cloud',
   );
   assert.ok(
     !/\bpowershell\b/i.test(vscodeTasks),
-    '.vscode/tasks.json no debe depender de powershell: ataria las tareas a Windows'
+    '.vscode/tasks.json no debe depender de powershell: ataria las tareas a Windows',
   );
 
   // 2. No debe quedar ningun .ps1 versionado en el repositorio.
   const ps1Files = execFileSyncSafe('git', ['ls-files', '*.ps1']);
-  assert.equal(
-    ps1Files,
-    '',
-    `Persisten scripts PowerShell, que atan la operacion a Windows: ${ps1Files}`
-  );
+  assert.equal(ps1Files, '', `Persisten scripts PowerShell, que atan la operacion a Windows: ${ps1Files}`);
 });
 
 test('🔀 PORT-001: el script Node preserva la mitigacion de exposicion del token', () => {
@@ -196,15 +187,11 @@ test('🔀 PORT-001: el script Node preserva la mitigacion de exposicion del tok
 
   // El token debe viajar por --set-file, nunca por --set/--set-string: en la linea
   // de comandos queda visible en `ps aux` / `auditd` durante toda la ejecucion.
-  assert.match(
-    source,
-    /--set-file/,
-    'El token debe pasarse con --set-file (no aparece en la tabla de procesos)'
-  );
+  assert.match(source, /--set-file/, 'El token debe pasarse con --set-file (no aparece en la tabla de procesos)');
   assert.doesNotMatch(
     source,
     /--set-string[^']*password=\$\{token/i,
-    'El token NO debe interpolarse en un --set-string: lo expone en la linea de comandos'
+    'El token NO debe interpolarse en un --set-string: lo expone en la linea de comandos',
   );
 
   // El archivo temporal debe crearse restringido y borrarse en finally.
@@ -224,7 +211,7 @@ test('🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerSh
     ps1Flags,
     'Los flags de `helm upgrade` deben ser identicos a los del script PowerShell. ' +
       'Un flag divergente (por ejemplo, sin --create-namespace) solo fallaria en el ' +
-      'cluster real, no en la suite.'
+      'cluster real, no en la suite.',
   );
 });
 
@@ -236,7 +223,7 @@ test('🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud
   assert.match(
     vscodeTasks,
     /node scripts\/deploy-grafana-cloud\.mjs/,
-    '.vscode/tasks.json debe invocar el mismo script Node que el Taskfile'
+    '.vscode/tasks.json debe invocar el mismo script Node que el Taskfile',
   );
 });
 
@@ -275,9 +262,11 @@ const K8S_CADVISOR_API_LABELS = {
 type Matcher = { name: string; op: '=' | '!=' | '=~' | '!~'; value: string };
 
 function parseMatchers(body: string): Matcher[] {
-  return [...body.matchAll(/([a-zA-Z_][a-zA-Z0-9_]*)\s*(=~|!~|!=|=)\s*"([^"]*)"/g)].map(
-    ([, name, op, value]) => ({ name, op: op as Matcher['op'], value })
-  );
+  return [...body.matchAll(/([a-zA-Z_][a-zA-Z0-9_]*)\s*(=~|!~|!=|=)\s*"([^"]*)"/g)].map(([, name, op, value]) => ({
+    name,
+    op: op as Matcher['op'],
+    value,
+  }));
 }
 
 /** Extrae los matchers del primer selector `<metric>{...}` de una expresion PromQL. */
@@ -309,19 +298,53 @@ function emittedMetricNames(): Set<string> {
   const names = new Set<string>(['up']);
   for (const [, name, type] of source.matchAll(/# TYPE ([a-z_:][a-z0-9_:]*) (\w+)/g)) {
     names.add(name);
-    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => {
-      names.add(name + s);
-    });
+    if (type === 'histogram')
+      ['_bucket', '_sum', '_count'].forEach((s) => {
+        names.add(name + s);
+      });
   }
   return names;
 }
 
 const PROMQL_KEYWORDS = new Set([
-  'sum', 'max', 'min', 'avg', 'count', 'rate', 'irate', 'increase', 'histogram_quantile',
-  'clamp_min', 'clamp_max', 'time', 'vector', 'scalar', 'abs', 'by', 'without', 'or',
-  'and', 'unless', 'on', 'ignoring', 'group_left', 'group_right', 'bool', 'offset',
-  'sort_desc', 'topk', 'changes', 'resets', 'max_over_time', 'min_over_time', 'avg_over_time',
-  'label_replace', 'absent', 'deriv', 'delta', 'round',
+  'sum',
+  'max',
+  'min',
+  'avg',
+  'count',
+  'rate',
+  'irate',
+  'increase',
+  'histogram_quantile',
+  'clamp_min',
+  'clamp_max',
+  'time',
+  'vector',
+  'scalar',
+  'abs',
+  'by',
+  'without',
+  'or',
+  'and',
+  'unless',
+  'on',
+  'ignoring',
+  'group_left',
+  'group_right',
+  'bool',
+  'offset',
+  'sort_desc',
+  'topk',
+  'changes',
+  'resets',
+  'max_over_time',
+  'min_over_time',
+  'avg_over_time',
+  'label_replace',
+  'absent',
+  'deriv',
+  'delta',
+  'round',
 ]);
 
 /** Nombres de metrica citados en una expresion PromQL (sin funciones ni etiquetas). */
@@ -375,13 +398,17 @@ test('📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API
   const emitted = emittedMetricNames();
   const missing = dashboardTargets()
     .filter((t) => t.type === 'prometheus')
-    .flatMap((t) => referencedMetrics(t.expr).filter((m) => !emitted.has(m)).map((m) => `${t.panel}: ${m}`));
+    .flatMap((t) =>
+      referencedMetrics(t.expr)
+        .filter((m) => !emitted.has(m))
+        .map((m) => `${t.panel}: ${m}`),
+    );
 
   assert.deepEqual(
     missing,
     [],
     'Paneles que consultan metricas inexistentes en pre-prod (se veran como "No data"). ' +
-      'Las metricas de cAdvisor y de exporters vuelven al tablero cuando su recoleccion este declarada en el repo.'
+      'Las metricas de cAdvisor y de exporters vuelven al tablero cuando su recoleccion este declarada en el repo.',
   );
 });
 
@@ -415,7 +442,7 @@ test('🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la A
   assert.ok(matchers.length > 0, 'PokedexAPIDown debe filtrar `up` por etiquetas');
   assert.ok(
     matchesLabels(matchers, LIVE_API_TARGET_LABELS),
-    'PokedexAPIDown no coincide con el target vivo: la alerta nunca dispararia con la API caida'
+    'PokedexAPIDown no coincide con el target vivo: la alerta nunca dispararia con la API caida',
   );
 });
 
@@ -423,10 +450,13 @@ test('🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de 
   const expr = alertExpr('ContainerHighMemoryUsage');
   for (const metric of ['container_memory_working_set_bytes', 'container_spec_memory_limit_bytes']) {
     const matchers = selectorMatchers(expr, metric);
-    assert.ok(matchesLabels(matchers, K8S_CADVISOR_API_LABELS), `${metric}: debe coincidir con el contenedor de la API en K3s`);
+    assert.ok(
+      matchesLabels(matchers, K8S_CADVISOR_API_LABELS),
+      `${metric}: debe coincidir con el contenedor de la API en K3s`,
+    );
     assert.ok(
       !matchesLabels(matchers, { ...K8S_CADVISOR_API_LABELS, container: '' }),
-      `${metric}: debe excluir la serie agregada del pod (container="")`
+      `${metric}: debe excluir la serie agregada del pod (container="")`,
     );
   }
 });

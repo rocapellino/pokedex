@@ -10,7 +10,10 @@ const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../
 const MIGRATIONS = path.join(ROOT_DIR, 'apps/backend/src/db/migrations');
 const journal = JSON.parse(fs.readFileSync(path.join(MIGRATIONS, 'meta/_journal.json'), 'utf-8'));
 const INITIAL = journal.entries[0];
-const INITIAL_HASH = crypto.createHash('sha256').update(fs.readFileSync(path.join(MIGRATIONS, `${INITIAL.tag}.sql`), 'utf-8')).digest('hex');
+const INITIAL_HASH = crypto
+  .createHash('sha256')
+  .update(fs.readFileSync(path.join(MIGRATIONS, `${INITIAL.tag}.sql`), 'utf-8'))
+  .digest('hex');
 
 interface FakeDb {
   entries: boolean;
@@ -27,10 +30,18 @@ function fakeClient(db: FakeDb) {
     async query(text: string, params?: unknown[]) {
       executed.push({ text, params });
       if (text.includes('to_regclass')) {
-        return { rows: [{ entries: db.entries ? 'pokedex_entries' : null, journal: db.journal ? 'drizzle.__drizzle_migrations' : null }] };
+        return {
+          rows: [
+            {
+              entries: db.entries ? 'pokedex_entries' : null,
+              journal: db.journal ? 'drizzle.__drizzle_migrations' : null,
+            },
+          ],
+        };
       }
       if (text.includes('count(*)')) return { rows: [{ total: String(db.tracked) }] };
-      if (text.includes('information_schema.columns')) return { rows: db.columns.map((column_name) => ({ column_name })) };
+      if (text.includes('information_schema.columns'))
+        return { rows: db.columns.map((column_name) => ({ column_name })) };
       return { rows: [] };
     },
   };
@@ -59,7 +70,11 @@ test('🗄️ Migrations: un esquema heredado sin journal registra la migración
 
   const insert = client.executed.find((q) => q.text.startsWith('INSERT INTO drizzle.__drizzle_migrations'));
   assert.ok(insert, 'Debe registrar la migración inicial en el journal');
-  assert.deepEqual(insert.params, [INITIAL_HASH, INITIAL.when], 'El registro debe coincidir con el hash y el timestamp que usa Drizzle');
+  assert.deepEqual(
+    insert.params,
+    [INITIAL_HASH, INITIAL.when],
+    'El registro debe coincidir con el hash y el timestamp que usa Drizzle',
+  );
   assert.ok(client.executed.some((q) => q.text === 'CREATE SCHEMA IF NOT EXISTS drizzle'));
 });
 

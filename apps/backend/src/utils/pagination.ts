@@ -28,10 +28,7 @@ export function parsePaginationOffset(offset: unknown): number {
   return Math.min(MAX_OFFSET, parsed);
 }
 
-export function parsePagination(
-  limitOrOptions?: unknown,
-  offsetArg?: unknown
-): { limit: number; offset: number } {
+export function parsePagination(limitOrOptions?: unknown, offsetArg?: unknown): { limit: number; offset: number } {
   if (typeof limitOrOptions === 'object' && limitOrOptions !== null) {
     const opts = limitOrOptions as { limit?: unknown; offset?: unknown };
     return {
