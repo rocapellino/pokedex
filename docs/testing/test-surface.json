@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T15:01:01.169Z",
+  "generatedAt": "2026-10-05T15:29:59.972Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 587,
-    "totalLines": 15589,
-    "totalSizeBytes": 715600,
+    "totalLines": 15594,
+    "totalSizeBytes": 715941,
     "suitesCount": 10
   },
   "suites": [
@@ -3034,9 +3034,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 18405,
-      "lineCount": 427,
-      "sha256": "cdc0df714dd071500b749fa92f36a5485b6894c1e1c3dcb668485c11671ac5a9",
+      "sizeBytes": 18746,
+      "lineCount": 432,
+      "sha256": "4c37e87a2d93d2265c851da1c06467779ba1175cde576dda8d962b06da4bd0a4",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -3075,23 +3075,23 @@
         },
         {
           "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
-          "line": 368
+          "line": 373
         },
         {
           "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
-          "line": 382
+          "line": 387
         },
         {
           "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
-          "line": 389
+          "line": 394
         },
         {
           "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
-          "line": 407
+          "line": 412
         },
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
-          "line": 416
+          "line": 421
         }
       ]
     },

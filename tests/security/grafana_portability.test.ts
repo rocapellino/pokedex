@@ -283,14 +283,19 @@ function parseMatchers(body: string): Matcher[] {
 
 /** Extrae los matchers del primer selector `<metric>{...}` de una expresion PromQL. */
 function selectorMatchers(expr: string, metric: string): Matcher[] {
-  const m = expr.match(new RegExp(`\\b${metric}\\s*\\{([^}]*)\\}`));
-  return m ? parseMatchers(m[1]) : [];
+  for (const [, name, body] of expr.matchAll(/\b([a-zA-Z_:][a-zA-Z0-9_:]*)\s*\{([^}]*)\}/g)) {
+    if (name === metric) return parseMatchers(body);
+  }
+  return [];
 }
 
 /** Evalua matchers con semantica de Prometheus (regex anclada, etiqueta ausente = ""). */
 function matchesLabels(matchers: Matcher[], labels: Record<string, string>): boolean {
   return matchers.every(({ name, op, value }) => {
     const actual = labels[name] ?? '';
+    // El regex proviene de un matcher PromQL versionado en el repo (dashboard o alerts.yaml),
+    // no de entrada de usuario: evaluarlo es justamente lo que verifica este contrato.
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
     const re = new RegExp(`^(?:${value})$`);
     if (op === '=') return actual === value;
     if (op === '!=') return actual !== value;
