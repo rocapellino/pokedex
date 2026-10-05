@@ -402,7 +402,7 @@ El relevamiento del 2026-10-04 encontró pre-prod desplegado con un `helm instal
 
 ```bash
 # Sincronizar pre-producción vía Taskfile (equivale a argocd app sync pokedex-preprod)
-task gitops:sync:proxmox
+task gitops:sync:preprod
 
 # O verificar el estado de los Pods en el namespace pokemon-app:
 task k8s:status

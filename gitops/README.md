@@ -100,7 +100,7 @@ task gitops:pin TAG=vX.Y.Z   # actualiza el targetRevision tras una promoción
 ```bash
 task gitops:apps:root        # 1. Aplicar la Application raíz (App-of-Apps canónico, ADR-003)
 task gitops:health-checks    # 2. Configurar Custom Health Checks en ArgoCD (PRERREQUISITO)
-task gitops:sync:proxmox     # Forzar sincronización declarativa en pre-prod Proxmox (ADR-030)
+task gitops:sync:preprod     # Forzar sincronización declarativa en pre-prod Proxmox (ADR-030)
 task gitops:status           # Consultar estado de salud de las aplicaciones en el clúster
 ```
 

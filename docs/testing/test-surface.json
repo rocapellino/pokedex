@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T12:00:12.209Z",
+  "generatedAt": "2026-10-05T12:14:10.232Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 577,
-    "totalLines": 15386,
-    "totalSizeBytes": 704994,
+    "totalLines": 15387,
+    "totalSizeBytes": 705162,
     "suitesCount": 10
   },
   "suites": [
@@ -2285,10 +2285,10 @@
       "runner": "node:test (tsx)",
       "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 204,
-      "sizeBytes": 42085,
-      "lineCount": 767,
-      "sha256": "1266fc91cc52003e7af5fba52f63612d86c46102c3dc5ad88c0ebdd6b83be5b1",
+      "assertionCountEst": 205,
+      "sizeBytes": 42253,
+      "lineCount": 768,
+      "sha256": "909aa6bcf2636d786576d7a9274b4f8462f820dc83edd178ecab9104d877602e",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2379,7 +2379,7 @@
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 697
+          "line": 698
         }
       ]
     },

@@ -42,7 +42,7 @@ task validate
 ### Sincronización Manual de ArgoCD (si la auto-sincronización está pausada)
 
 ```bash
-task gitops:sync:proxmox   # Sincronización declarativa en Proxmox VE (Preproducción, ADR-030)
+task gitops:sync:preprod   # Sincronización declarativa en Proxmox VE (Preproducción, ADR-030)
 # task gitops:sync:cloud   # Solo aplicable si el blueprint prod cloud fue activado formalmente (ADR-030)
 ```
 

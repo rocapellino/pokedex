@@ -70,7 +70,6 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task platform:argocd:install` | Instala ArgoCD desde el manifiesto oficial fijado por versión. |
 | **GitOps (ArgoCD)** | `task gitops:apps:root` | Sincroniza la aplicación App-of-Apps en el clúster. |
 | | `task gitops:sync:preprod` | Sincroniza la aplicación ArgoCD de pre-prod en Proxmox VE (ADR-030). |
-| | `task gitops:sync:proxmox` | Alias de compatibilidad para sincronización en Proxmox VE. |
 | | `task gitops:sync:cloud` | Fuerza sincronización del blueprint prod cloud (solo tras activarlo, ADR-030). |
 | | `task gitops:health-checks` | Aplica evaluadores de salud personalizados para CRDs. |
 | **Seguridad & Egress L7** | `task security:egress` | Ejecuta pruebas automatizadas de política de egress L7 Anti-SSRF. |
@@ -116,19 +115,20 @@ flowchart LR
 - Las descripciones de las tareas en `Taskfile.yaml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
 - Se mantiene 100% la funcionalidad subyacente para no bloquear pipelines existentes durante todo el ciclo de versiones `v1.x`.
 
-### Fase 4: Eliminación Definitiva (Ejecutada en v1.76.0)
+### Fase 4: Eliminación Definitiva (Ejecutada en v1.76.0 y consolidada en v1.94.1)
 
-- Conforme al ciclo de vida formalizado en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), los 18 aliases legados fueron retirados definitivamente de `Taskfile.yaml` en la versión `v1.76.0`. La interfaz soportada es exclusivamente la canónica.
+- Conforme al ciclo de vida formalizado en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), los aliases legados fueron retirados definitivamente de `Taskfile.yaml` (los 18 iniciales en `v1.76.0` y el alias residual `gitops:sync:proxmox` en `v1.94.1`). La interfaz soportada es exclusivamente la canónica.
 
 ---
 
 ## 4. Matriz de Aliases en Deprecación y Sustitutos Canónicos
 
 > [!NOTE]
-> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4 (v1.76.0)**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y en el registro histórico de [ADR-026](../decisions/README.md).
+> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y en el registro histórico de [ADR-026](../decisions/README.md).
 
 | Alias Histórico Deprecado | Tarea Canónica Sustituta | Fase Actual | Fecha / Versión de Retiro |
 | :--- | :--- | :---: | :---: |
+| `task gitops:sync:proxmox` | `task gitops:sync:preprod` | Fase 4 (Retirado) | Ejecutado (v1.94.1) |
 | `task tofu:init:proxmox` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:plan:proxmox` | `task infra:plan:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
 | `task tofu:apply:proxmox` | `task infra:apply:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
