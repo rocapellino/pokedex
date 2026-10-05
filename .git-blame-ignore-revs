@@ -1,0 +1,4 @@
+# Commits de formateo masivo: se ignoran en git blame (GitHub lo respeta automáticamente).
+# Uso local: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# style: activar el formateador de Biome (#543)
+2a3c68643195003fb80c7cfe30273bdfd4196adf
