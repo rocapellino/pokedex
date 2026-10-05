@@ -19,6 +19,7 @@ jobs:
   repository-scan:
     name: 🔍 Scheduled Trivy Repository Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
 
@@ -39,6 +40,7 @@ jobs:
     name: ☸️ Weekly Infrastructure Base Images Scan
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     strategy:

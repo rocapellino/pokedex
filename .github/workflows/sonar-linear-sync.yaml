@@ -36,6 +36,10 @@ on:
         type: string
         default: "PEX"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -43,6 +47,7 @@ jobs:
   sync-to-linear:
     name: 🎫 Sync Sonar Quality to Linear Tickets
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')

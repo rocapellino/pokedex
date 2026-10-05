@@ -34,6 +34,7 @@ jobs:
   config-linters:
     name: "⚡ Config Linters (Actionlint, ShellCheck)"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
