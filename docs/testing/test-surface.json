@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T22:54:59.513Z",
+  "generatedAt": "2026-10-05T23:01:21.128Z",
   "summary": {
     "totalFiles": 77,
     "testFiles": 72,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 605,
-    "totalLines": 16914,
-    "totalSizeBytes": 735910,
+    "totalLines": 16919,
+    "totalSizeBytes": 736041,
     "suitesCount": 10
   },
   "suites": [
@@ -246,9 +246,9 @@
       "testCount": 33,
       "describeCount": 0,
       "assertionCountEst": 249,
-      "sizeBytes": 35079,
-      "lineCount": 772,
-      "sha256": "10274990557293071759a98c2907c7bd88031f274d8cf65e52e7e467ed5ebea9",
+      "sizeBytes": 35210,
+      "lineCount": 777,
+      "sha256": "5525fdc57dc7e9417d17066e4d3e75acc66b5e4aaafe77d9da35fd9c572dd633",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
