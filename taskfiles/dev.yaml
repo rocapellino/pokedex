@@ -22,6 +22,11 @@ tasks:
     cmds:
       - docker compose down
 
+  dev:catalog:generate:
+    desc: "Regenera el catálogo nacional completo de Pokémon desde PokeAPI (data/pokemon-catalog.full.json)"
+    cmds:
+      - npm run catalog:generate
+
   dev:verify:
     desc: "Valida la disponibilidad de los servicios locales (healthz, readyz y frontend Web)"
     cmds:
