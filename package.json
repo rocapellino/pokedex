@@ -14,6 +14,7 @@
     "build:backend": "npm run build --workspace=@pokedex/backend",
     "build:frontend": "npm run build --workspace=@pokedex/frontend",
     "seed": "npm run seed --workspace=@pokedex/backend",
+    "catalog:generate": "tsx scripts/generate-pokemon-catalog.ts",
     "start": "npm run start --workspace=@pokedex/backend",
     "typecheck": "tsc --noEmit",
     "lint:md": "tsx scripts/lint-markdown.ts",

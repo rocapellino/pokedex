@@ -85,23 +85,46 @@ Para evitar duplicidad de configuración, se aplica el patrón **Canónico Compa
 
 ## 4. Gobernanza y Catálogo de Scripts (`scripts/`)
 
-En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), se erradicaron los scripts shell dispersos e históricos. Todos los scripts operativos son programas TypeScript modernos ejecutados mediante `node --experimental-strip-types`:
+En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), se erradicaron los scripts shell dispersos e imperativos. Todos los scripts operativos son programas TypeScript modernos ejecutados mediante Node.js nativo o `tsx`:
+
+### A. Operaciones de Plataforma, GitOps y Contenedores
 
 | Script | Lenguaje | Propósito Operativo | ¿Activo en CI/CD o Runbooks? |
 | :--- | :--- | :--- | :--- |
 | `scripts/k8s-rollout-restart.ts` | TypeScript | Reinicio progresivo de pods y validación contractual de la arquitectura de secretos Proxmox. | **Sí** (`npm run k8s:rollout-restart`, `npm run k8s:verify-vault-architecture`). |
-| `scripts/probe-egress-security.ts` | TypeScript | Sonda de validación de seguridad de red L7 eBPF Anti-SSRF hacia APIs externas. | **Sí** (`npm run probe:security:egress`, Job K8s). |
-| `scripts/verify-image-digest-parity.ts` | TypeScript | Validación de inmutabilidad y paridad de digest SHA-256 de imágenes OCI entre GitOps y GHCR. | **Sí** (`npm run gitops:verify-parity`). |
-| `scripts/verify-secret-rotation.ts` | TypeScript | Verificación de rotación y frescura de credenciales en Vault y K8s. | **Sí** (`npm run secrets:audit-rotation`). |
+| `scripts/verify-image-digest-parity.ts` | TypeScript | Validación de inmutabilidad y paridad de digest SHA-256 de imágenes OCI entre GitOps y GHCR. | **Sí** (`npm run gitops:verify-parity`, `npm run gitops:verify-parity:strict`). |
 | `scripts/update-gitops-pin.ts` | TypeScript | Auditoría y actualización del targetRevision de ArgoCD en manifiestos de GitOps. | **Sí** (`npm run gitops:pin`, `npm run gitops:pin:check`). |
 | `scripts/update-image-digests.ts` | TypeScript | Fija los digests de `pokedex-api` y `pokedex-web` en los values de despliegue durante la promoción. | **Sí** (fase `promote` de `release-tag.yaml`). |
-| `scripts/ghcr-retention.ts` | TypeScript | Poda de imágenes de release en GHCR protegiendo los digests fijados en GitOps y los artefactos de Cosign. | **Sí** (`npm run ghcr:retention`, workflow programado). |
+| `scripts/ghcr-retention.ts` | TypeScript | Poda de imágenes de release en GHCR protegiendo los digests fijados en GitOps y artefactos Cosign. | **Sí** (`npm run ghcr:retention`, workflow programado). |
+| `scripts/generate-nginx-conf.mjs` | Node.js (ESM) | Generador y verificador determinista de configuración Nginx desde template único (`nginx.conf.template`). | **Sí** (`npm run nginx:conf`, `npm run nginx:conf:check`, `web.yaml`). |
+| `scripts/deploy-grafana-cloud.mjs` | Node.js (ESM) | Generador de configuración de observabilidad para Grafana Cloud Alloy. | **Sí** (`task obs:cloud:setup`). |
+
+### B. DevSecOps, Resiliencia y Disaster Recovery (DR)
+
+| Script | Lenguaje | Propósito Operativo | ¿Activo en CI/CD o Runbooks? |
+| :--- | :--- | :--- | :--- |
+| `scripts/probe-egress-security.ts` | TypeScript | Sonda de validación de seguridad de red L7 eBPF Anti-SSRF hacia APIs externas. | **Sí** (`npm run probe:security:egress`, Job K8s). |
+| `scripts/verify-secret-rotation.ts` | TypeScript | Verificación de rotación y frescura de credenciales en Vault y K8s. | **Sí** (`npm run secrets:audit-rotation`). |
 | `scripts/dr-drill.ts` | TypeScript | Simulación E2E de Disaster Recovery con volcado PostgreSQL, cifrado AES-256 y restore drill. | **Sí** (`npm run dr:drill:e2e`, workflow DR). |
+| `scripts/dr_verify_restore.sh` | Bash | Script canónico de simulación de Disaster Recovery y restauración de snapshots en entornos aislados. | **Sí** (Único script shell explícitamente autorizado en whitelist por ADR-020). |
 | `scripts/dev-backup-gdrive.ts` | TypeScript | Respaldo local de PostgreSQL y sincronización a Google Drive en Docker Compose (Alternativa A). | **Sí** (`task dr:gdrive:backup:dev`). |
-| `scripts/lint-markdown.ts` | TypeScript | Quality Gate de linting y formateo para archivos Markdown del monorepo. | **Sí** (`npm run lint:md`, `npm run lint:md:fix`). |
+
+### C. Calidad, Gobernanza y Compuertas CI/CD
+
+| Script | Lenguaje | Propósito Operativo | ¿Activo en CI/CD o Runbooks? |
+| :--- | :--- | :--- | :--- |
+| `scripts/lint-markdown.ts` | TypeScript | Quality Gate de linting y formateo para archivos Markdown del monorepo (0 errores MDxxx). | **Sí** (`npm run lint:md`, `npm run lint:md:fix`, pre-commit). |
+| `scripts/validate-docs-governance.ts` | TypeScript | Verificador de enlaces, contratos arquitectónicos y presupuesto documental sin drift. | **Sí** (`npm run docs:validate`, CI `docs-ci`). |
+| `scripts/validate-pr-body.ts` | TypeScript | Motor de validación contractual del cuerpo de Pull Requests contra el template físico oficial. | **Sí** (`npm run pr:validate`, CI `pr-governance`). |
+| `scripts/detect-change-impact.ts` | TypeScript | Motor determinista de análisis de impacto de cambios y orquestación dinámica del DAG de CI. | **Sí** (`npm run ci:detect-impact`, CI, PR template). |
+| `scripts/test-surface.ts` | TypeScript | Gobernanza de superficie de pruebas, paridad JSON/Markdown e inventario de suites. | **Sí** (`npm run test:surface`, `npm run test:surface:check`). |
+| `scripts/check-ignore-hygiene.ts` | TypeScript | Verificación de higiene y simetría en archivos de exclusión (.gitignore, .dockerignore, .helmignore). | **Sí** (`npm run lint:ignore`, `npm run lint:ignore:strict`). |
+| `scripts/check-yaml-extension.ts` | TypeScript | Detección y corrección de nomenclatura de extensiones YAML (.yaml canónico vs .yml obsoleto). | **Sí** (`npm run lint:yaml`, `npm run lint:docs:refs`). |
+| `scripts/check-ruleset-parity.ts` | TypeScript | Auditoría de paridad de reglas de calidad entre IDE, linter y SonarCloud. | **Sí** (`npm run lint:ruleset`). |
+| `scripts/aas-governance.ts` | TypeScript | Validación local y determinista de conformidad del stack Agentic Awesome Skills (AAS). | **Sí** (`npm run aas:governance`, `npm run aas:verify`). |
+| `scripts/generate-pokemon-catalog.ts` | TypeScript | Generador del catálogo nacional completo de Pokémon desde PokeAPI para auto-seed de base de datos. | **Sí** (`npm run catalog:generate`, `task dev:catalog:generate`). |
 | `scripts/github-security-linear-sync.ts` | TypeScript | Sincronización automática de alertas de seguridad de GitHub Dependabot/CodeQL hacia Linear. | **Sí** (Workflow programado de GitHub Actions). |
 | `scripts/sonar-linear-sync.ts` | TypeScript | Sincronización de issues de calidad y deuda técnica de SonarCloud hacia Linear. | **Sí** (Workflow de CI SonarQube). |
-| `scripts/dr_verify_restore.sh` | Bash | Script canónico de simulación de Disaster Recovery y restauración de snapshots en entornos aislados. | **Sí** (Único script shell explícitamente autorizado en whitelist por gobernanza). |
 
 ---
 
