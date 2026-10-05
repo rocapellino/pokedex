@@ -28,7 +28,7 @@ groups:
           description: "La API ha perdido conectividad con la base de datos principal y está respondiendo usando datos en memoria volátil."
 
       - alert: PokedexAPIDown
-        expr: up{job=~".*pokedex.*"} == 0
+        expr: up{app="pokemon-api"} == 0
         for: 1m
         labels:
           severity: critical
@@ -123,14 +123,14 @@ groups:
       # 4. Saturación de Recursos y Resiliencia en Kubernetes / Contenedores
       # --------------------------------------------------------------------------
       - alert: ContainerHighMemoryUsage
-        expr: (container_memory_working_set_bytes{name=~".*pokemon.*"} / (container_spec_memory_limit_bytes{name=~".*pokemon.*"} > 0)) * 100 > 85
+        expr: (container_memory_working_set_bytes{namespace="pokemon-app", container!=""} / (container_spec_memory_limit_bytes{namespace="pokemon-app", container!=""} > 0)) * 100 > 85
         for: 3m
         labels:
           severity: warning
           service: containers
         annotations:
           summary: "Contenedor de Pokédex consumiendo más del 85% de su límite de RAM"
-          description: "El contenedor {{ $labels.name }} está próximo al umbral de OOM-Kill (> 85% de RAM asignada)."
+          description: "El contenedor {{ $labels.container }} del pod {{ $labels.pod }} está próximo al umbral de OOM-Kill (> 85% de RAM asignada)."
 
       - alert: PokedexHpaMaxReplicasReached
         expr: |
