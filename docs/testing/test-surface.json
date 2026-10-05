@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-04T23:06:13.139Z",
+  "generatedAt": "2026-10-05T12:00:12.209Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 577,
     "totalLines": 15386,
-    "totalSizeBytes": 705025,
+    "totalSizeBytes": 704994,
     "suitesCount": 10
   },
   "suites": [
@@ -1646,9 +1646,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 64,
-      "sizeBytes": 16679,
+      "sizeBytes": 16648,
       "lineCount": 414,
-      "sha256": "c041716d141eec9ee42e900b59461c43a3f5a6e9ce575aa9cc08d0690991b4c4",
+      "sha256": "5cab5ef58de8a2b6f304e849b27f8b9c1cd42cc0641bc20709846a24a81135e3",
       "targetDomain": "Endpoint de Telemetría /version",
       "targetArtifacts": [
         "apps/backend/server.ts"
