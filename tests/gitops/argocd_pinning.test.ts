@@ -73,7 +73,7 @@ test('🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 
     assert.equal(
       version,
       parity.canonicalVersion,
-      `${relPath} debe tener targetRevision igual a ${parity.canonicalVersion}`
+      `${relPath} debe tener targetRevision igual a ${parity.canonicalVersion}`,
     );
   }
 });
@@ -102,88 +102,84 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y 
   const releaseWf = fs.readFileSync(releaseWfPath, 'utf-8');
 
   assert.ok(releaseWf.includes('pull-requests: write'), 'release-tag.yaml debe declarar pull-requests: write');
-  assert.ok(
-    releaseWf.includes('update-gitops-pin.ts'),
-    'release-tag.yaml debe ejecutar scripts/update-gitops-pin.ts'
-  );
+  assert.ok(releaseWf.includes('update-gitops-pin.ts'), 'release-tag.yaml debe ejecutar scripts/update-gitops-pin.ts');
   assert.ok(
     releaseWf.includes('gh pr create'),
-    'release-tag.yaml debe invocar gh pr create para abrir PR de promoción'
+    'release-tag.yaml debe invocar gh pr create para abrir PR de promoción',
   );
   assert.ok(
     releaseWf.includes('[skip-release]'),
-    'El commit de actualización debe incluir [skip-release] para evitar recursión'
+    'El commit de actualización debe incluir [skip-release] para evitar recursión',
   );
   assert.equal(
     releaseWf.match(/gh pr create/g)?.length,
     1,
-    'release-tag.yaml debe crear exactamente un PR atómico por release'
+    'release-tag.yaml debe crear exactamente un PR atómico por release',
   );
   assert.ok(
     releaseWf.includes('BRANCH="release/promote-${NEW_TAG}"'),
-    'La promoción debe usar la rama bot release/promote-vX.Y.Z'
+    'La promoción debe usar la rama bot release/promote-vX.Y.Z',
   );
   assert.ok(!releaseWf.includes('release/bump-${NEW_TAG}'), 'No debe conservar la rama de bump separada');
   assert.ok(!releaseWf.includes('gitops/pin-${NEW_TAG}'), 'No debe conservar la rama GitOps separada');
   assert.ok(
     releaseWf.includes('git add package.json package-lock.json infra/helm/pokedex/Chart.yaml gitops/apps/'),
-    'El commit debe preparar conjuntamente metadata (incluido package-lock.json) y manifiestos GitOps'
+    'El commit debe preparar conjuntamente metadata (incluido package-lock.json) y manifiestos GitOps',
   );
   assert.ok(
     releaseWf.includes('git commit -m "chore(release): promote ${NEW_TAG} [skip-release]"'),
-    'El commit atómico debe impedir recursión'
+    'El commit atómico debe impedir recursión',
   );
   assert.ok(
     releaseWf.includes('--title "chore(release): promote ${NEW_TAG} [skip-release]"'),
-    'El título del PR debe impedir recursión con cualquier estrategia de merge'
+    'El título del PR debe impedir recursión con cualquier estrategia de merge',
   );
   assert.ok(
     releaseWf.includes('gh pr list --head "$BRANCH" --state open'),
-    'La automatización debe reutilizar un PR de promoción abierto'
+    'La automatización debe reutilizar un PR de promoción abierto',
   );
   assert.ok(
     releaseWf.includes('git push -u --force-with-lease origin "$BRANCH"'),
-    'Solo la rama bot de promoción puede actualizarse mediante force-with-lease'
+    'Solo la rama bot de promoción puede actualizarse mediante force-with-lease',
   );
   assert.doesNotMatch(
     releaseWf,
     /git push[^\n]*--force(?!-with-lease)/,
-    'El workflow no debe usar force push sin lease'
+    'El workflow no debe usar force push sin lease',
   );
 
   // REL-001: el tag se crea solo en la fase "tag", sobre el commit de promoción.
   assert.ok(releaseWf.includes('id: state'), 'Debe existir el paso que determina la fase (promote | tag)');
   assert.ok(
     releaseWf.includes("contains(github.event.head_commit.message, 'chore(release): promote')"),
-    'El job debe ejecutarse también en el merge del PR de promoción'
+    'El job debe ejecutarse también en el merge del PR de promoción',
   );
   assert.ok(
     releaseWf.includes("steps.state.outputs.phase == 'tag'"),
-    'La creación de tag y release debe condicionarse a la fase tag'
+    'La creación de tag y release debe condicionarse a la fase tag',
   );
   assert.ok(
     releaseWf.includes("steps.state.outputs.phase == 'promote'"),
-    'El PR de promoción debe condicionarse a la fase promote'
+    'El PR de promoción debe condicionarse a la fase promote',
   );
   assert.ok(
     releaseWf.includes('NEW_TAG: ${{ steps.state.outputs.current_tag }}'),
-    'El tag debe derivarse de package.json (versión ya presente en main), no del dry-run'
+    'El tag debe derivarse de package.json (versión ya presente en main), no del dry-run',
   );
   assert.ok(
     !releaseWf.includes('tag_name: ${{ steps.tag_version.outputs.new_tag }}'),
-    'El GitHub Release no debe anclarse al dry-run sino a la versión vigente en main'
+    'El GitHub Release no debe anclarse al dry-run sino a la versión vigente en main',
   );
   assert.ok(
     releaseWf.includes('git tag -s -m "Release ${NEW_TAG}" "${NEW_TAG}" "${GITHUB_SHA}"'),
-    'El tag debe anclarse explícitamente al commit de promoción (GITHUB_SHA)'
+    'El tag debe anclarse explícitamente al commit de promoción (GITHUB_SHA)',
   );
+  assert.ok(releaseWf.includes('concurrency:'), 'El workflow debe declarar concurrency para serializar promote y tag');
   assert.ok(
-    releaseWf.includes('concurrency:'),
-    'El workflow debe declarar concurrency para serializar promote y tag'
-  );
-  assert.ok(
-    !releaseWf.includes('if: steps.tag_version.outputs.new_tag\n        env:\n          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}\n        run: |\n          git config --local user.name'),
-    'La creación del tag no debe basarse en steps.tag_version.outputs.new_tag'
+    !releaseWf.includes(
+      'if: steps.tag_version.outputs.new_tag\n        env:\n          NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}\n        run: |\n          git config --local user.name',
+    ),
+    'La creación del tag no debe basarse en steps.tag_version.outputs.new_tag',
   );
 
   // 2. package.json expone gitops:pin y gitops:pin:check
@@ -208,33 +204,33 @@ test('🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado,
   // 1. El paso 3 (dry-run) solo debe ejecutarse en la fase promote.
   const dryRunStep = releaseWf.slice(
     releaseWf.indexOf('Calcular Próxima Versión y Changelog'),
-    releaseWf.indexOf('4. Instalar Cosign')
+    releaseWf.indexOf('4. Instalar Cosign'),
   );
   assert.ok(
     dryRunStep.includes("if: steps.state.outputs.phase == 'promote'"),
-    'El dry-run de github-tag-action debe condicionarse a la fase promote (REL-003)'
+    'El dry-run de github-tag-action debe condicionarse a la fase promote (REL-003)',
   );
 
   // 2. El release no debe usar el changelog del dry-run.
   assert.ok(
     !/body:\s*\$\{\{\s*steps\.tag_version\.outputs\.changelog\s*\}\}/.test(releaseWf),
-    'El GitHub Release no debe usar steps.tag_version.outputs.changelog (REL-003)'
+    'El GitHub Release no debe usar steps.tag_version.outputs.changelog (REL-003)',
   );
 
   // 3. El release sigue anclado a current_tag y con notas automáticas.
   assert.ok(
     releaseWf.includes('tag_name: ${{ steps.state.outputs.current_tag }}'),
-    'El release debe anclarse a la versión vigente en main (current_tag)'
+    'El release debe anclarse a la versión vigente en main (current_tag)',
   );
   assert.ok(
     releaseWf.includes('generate_release_notes: true'),
-    'El changelog debe generarse con generate_release_notes desde el tag publicado'
+    'El changelog debe generarse con generate_release_notes desde el tag publicado',
   );
 
   // 4. La fase promote debe conservar el contrato de new_tag para el paso 8.
   assert.ok(
     releaseWf.includes('NEW_TAG: ${{ steps.tag_version.outputs.new_tag }}'),
-    'El PR de promoción debe seguir usando new_tag del dry-run'
+    'El PR de promoción debe seguir usando new_tag del dry-run',
   );
 });
 

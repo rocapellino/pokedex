@@ -62,9 +62,7 @@ export function openEditModal(id: number, catalog: Pokemon[]): Pokemon | null {
 
     const habilidades = document.getElementById('habilidades') as HTMLInputElement | null;
     if (habilidades) {
-      habilidades.value = Array.isArray(p.habilidades)
-        ? p.habilidades.join(', ')
-        : p.habilidades || '';
+      habilidades.value = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || '';
     }
 
     document.getElementById('crudModal')?.classList.add('active');

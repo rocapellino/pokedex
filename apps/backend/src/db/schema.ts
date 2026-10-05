@@ -18,10 +18,7 @@ export const pokedexEntries = pgTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
-  (table) => [
-    index('idx_pokedex_tipo').on(table.tipo),
-    index('idx_pokedex_nombre').on(table.nombre),
-  ]
+  (table) => [index('idx_pokedex_tipo').on(table.tipo), index('idx_pokedex_nombre').on(table.nombre)],
 );
 
 export type PokedexEntry = typeof pokedexEntries.$inferSelect;

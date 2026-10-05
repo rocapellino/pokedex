@@ -16,7 +16,10 @@ export const SCRIPT_PATTERN = {
  * Determina si un hostname o dirección IP pertenece a rangos privados, loopback, link-local o IMDS (Anti-SSRF).
  */
 export function isPrivateOrRestrictedIp(hostname: string): boolean {
-  const host = hostname.replace(/^\[|\]$/g, '').trim().toLowerCase();
+  const host = hostname
+    .replace(/^\[|\]$/g, '')
+    .trim()
+    .toLowerCase();
 
   // 1. Cloud Metadata Hostnames
   if (host === 'metadata.google.internal' || host === 'metadata.internal' || host.endsWith('.internal')) {

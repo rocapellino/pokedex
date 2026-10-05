@@ -28,10 +28,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 
-export const DEFAULT_GITOPS_APP_FILES = [
-  'gitops/apps/app-cloud.yaml',
-  'gitops/apps/app-proxmox-preprod.yaml',
-];
+export const DEFAULT_GITOPS_APP_FILES = ['gitops/apps/app-cloud.yaml', 'gitops/apps/app-proxmox-preprod.yaml'];
 
 export const ROOT_APP_FILE = 'gitops/apps/root-application.yaml';
 export const ROOT_APP_TRACKED_REVISION = 'main';
@@ -72,7 +69,7 @@ export function replaceTargetRevision(content: string, newTag: string): string {
  */
 export function checkGitOpsPinParity(
   targetFiles: string[] = DEFAULT_GITOPS_APP_FILES,
-  baseDir: string = ROOT_DIR
+  baseDir: string = ROOT_DIR,
 ): {
   inSync: boolean;
   canonicalVersion: string | null;
@@ -101,9 +98,7 @@ export function checkGitOpsPinParity(
     }
   }
 
-  const distinctVersions = Array.from(
-    new Set(Object.values(versions).filter((v): v is string => v !== null))
-  );
+  const distinctVersions = Array.from(new Set(Object.values(versions).filter((v): v is string => v !== null)));
 
   const inSync = errors.length === 0 && distinctVersions.length === 1;
   const canonicalVersion = inSync ? distinctVersions[0] : null;

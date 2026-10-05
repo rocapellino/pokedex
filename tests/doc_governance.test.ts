@@ -23,20 +23,16 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
   assert.match(
     methodology,
     /AUD-<ÁMBITO>-<CLAVE>-<NNN>/,
-    'methodology.md debe declarar el formato AUD-<ÁMBITO>-<CLAVE>-<NNN>'
+    'methodology.md debe declarar el formato AUD-<ÁMBITO>-<CLAVE>-<NNN>',
   );
   assert.match(
     methodology,
     /Identificadores de Hallazgo con Namespace/,
-    'methodology.md debe tener una regla explícita sobre identificadores de hallazgo'
+    'methodology.md debe tener una regla explícita sobre identificadores de hallazgo',
   );
 
   // 2. La plantilla de hallazgo la referencia y da ejemplos válidos e inválidos.
-  assert.match(
-    finding,
-    /AUD-<ÁMBITO>-<CLAVE>-<NNN>/,
-    'finding.md debe declarar el formato de ID con namespace'
-  );
+  assert.match(finding, /AUD-<ÁMBITO>-<CLAVE>-<NNN>/, 'finding.md debe declarar el formato de ID con namespace');
   assert.match(finding, /Inválidos/, 'finding.md debe advertir contra los IDs planos');
 
   // 3. Ambas fuentes concuerdan en el prefijo: si methodology cambia el prefijo y
@@ -45,14 +41,14 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
   assert.equal(
     prefixIn(methodology),
     prefixIn(finding),
-    'methodology.md y finding.md deben usar el mismo prefijo de namespace'
+    'methodology.md y finding.md deben usar el mismo prefijo de namespace',
   );
 
   // 4. El campo de trazabilidad de reemisión existe en la plantilla atómica.
   assert.match(
     finding,
     /Supersedes \/ Reemitido como/,
-    'finding.md debe permitir citar el ID de la auditoría previa que se reemite'
+    'finding.md debe permitir citar el ID de la auditoría previa que se reemite',
   );
 
   // 5. Ninguna skill puede reintroducir el formato plano como si fuera válido.
@@ -76,7 +72,7 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
   assert.deepEqual(
     offenders,
     [],
-    `Las skills no deben emitir IDs de hallazgo planos sin namespace:\n${offenders.join('\n')}`
+    `Las skills no deben emitir IDs de hallazgo planos sin namespace:\n${offenders.join('\n')}`,
   );
 });
 
@@ -95,7 +91,10 @@ test('📚 Gobernanza Documental: validación contractual de la regla transversa
   // 2. Verificación de existencia de documentation-contract.yaml en repo-docs
   assert.ok(fs.existsSync(contractFile), 'documentation-contract.yaml debe existir en repo-docs/references/');
   const contractContent = fs.readFileSync(contractFile, 'utf-8');
-  assert.ok(contractContent.includes('framework: "documentation-governance"'), 'Debe declarar framework documentation-governance');
+  assert.ok(
+    contractContent.includes('framework: "documentation-governance"'),
+    'Debe declarar framework documentation-governance',
+  );
   assert.ok(contractContent.includes('README.md:'), 'Debe definir contrato para README.md');
   assert.ok(contractContent.includes('SECURITY.md:'), 'Debe definir contrato para SECURITY.md');
   assert.ok(contractContent.includes('README-ARCH-001'), 'Debe contener regla README-ARCH-001');
@@ -120,6 +119,12 @@ test('📚 Gobernanza Documental: validación contractual de la regla transversa
   const agentsFile = path.join(rootDir, 'AGENTS.md');
   const agentsContent = fs.readFileSync(agentsFile, 'utf-8');
   assert.ok(agentsContent.includes('`repo-docs`'), 'AGENTS.md debe registrar repo-docs en el catalogo de skills');
-  assert.ok(agentsContent.includes('documentation-governance.md'), 'AGENTS.md debe referenciar la regla documentation-governance.md');
-  assert.ok(!agentsContent.includes('`repo-doc-governance`'), 'AGENTS.md no debe contener la skill retirada repo-doc-governance');
+  assert.ok(
+    agentsContent.includes('documentation-governance.md'),
+    'AGENTS.md debe referenciar la regla documentation-governance.md',
+  );
+  assert.ok(
+    !agentsContent.includes('`repo-doc-governance`'),
+    'AGENTS.md no debe contener la skill retirada repo-doc-governance',
+  );
 });

@@ -9,7 +9,8 @@ import { inspectEnvironment, checkRequiredEnvVars } from '../../apps/backend/src
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../../');
-const PKG_VERSION = (JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8')) as { version: string }).version;
+const PKG_VERSION = (JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8')) as { version: string })
+  .version;
 
 test('🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva la causa', async () => {
   // El sentinel es lo que impide que un fallo de migracion degrade a memoria.
@@ -33,10 +34,7 @@ test('🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva l
 });
 
 test('🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a memoria', async () => {
-  const src = fs.readFileSync(
-    path.join(ROOT_DIR, 'apps/backend/src/services/postgres.ts'),
-    'utf-8'
-  );
+  const src = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/postgres.ts'), 'utf-8');
 
   // 1. El sentinel debe re-lanzarse en el catch externo; si no, el fallback a
   //    memoria se tragaria el fallo y el fix seria cosmetico.
@@ -45,26 +43,26 @@ test('🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a 
   assert.match(
     src,
     /if \(err instanceof MigrationFailedError\) \{\s*\n\s*isPgConnected = false;\s*\n\s*throw err;/,
-    'El catch externo debe re-lanzar MigrationFailedError (sin condiciones que lo neutralicen) en vez de degradar a memoria'
+    'El catch externo debe re-lanzar MigrationFailedError (sin condiciones que lo neutralicen) en vez de degradar a memoria',
   );
   assert.doesNotMatch(
     src,
     /if \(err instanceof MigrationFailedError\s*&&\s*/,
-    'La guarda de re-lanzamiento no debe estar condicionada a una falsy: dejaria de ser fail-closed'
+    'La guarda de re-lanzamiento no debe estar condicionada a una falsy: dejaria de ser fail-closed',
   );
 
   // 2. La rama de produccion debe existir explicitamente.
   assert.match(
     src,
     /if \(isProductionEnv\(\)\) \{\s*throw new MigrationFailedError\(/,
-    'La rama de produccion debe lanzar MigrationFailedError'
+    'La rama de produccion debe lanzar MigrationFailedError',
   );
 
   // 3. El comportamiento tolerante debe conservar el warn para desarrollo.
   assert.match(
     src,
     /logger\.warn\('\[Storage: PostgreSQL\] Aviso al verificar\/aplicar migraciones Drizzle:/,
-    'Desarrollo debe conservar el aviso tolerante de migraciones'
+    'Desarrollo debe conservar el aviso tolerante de migraciones',
   );
 });
 
@@ -73,13 +71,13 @@ test('🛡️ APPS-002: el arranque aborta el proceso si initStorage falla', () 
 
   assert.match(
     src,
-    /initStorage\(\)\.then\([\s\S]{0,900}\)\.catch\(/,
-    'server.ts debe encadenar .catch() sobre initStorage()'
+    /initStorage\(\)\s*\.then\([\s\S]{0,900}\)\s*\.catch\(/,
+    'server.ts debe encadenar .catch() sobre initStorage()',
   );
   assert.match(
     src,
     /\.catch\([\s\S]{0,600}process\.exit\(1\);/,
-    'El catch de arranque debe terminar con process.exit(1) (fail-closed)'
+    'El catch de arranque debe terminar con process.exit(1) (fail-closed)',
   );
 });
 
@@ -89,9 +87,19 @@ test('🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POST
   // no estar en la lista), y tests posteriores que dependan de ella fallan de
   // forma inexplicable.
   const ENV_KEYS = [
-    'NODE_ENV', 'DATABASE_URL', 'POSTGRES_HOST', 'POSTGRES_USER', 'POSTGRES_PASSWORD',
-    'POSTGRES_DB', 'POSTGRES_PORT', 'REDIS_URL', 'REDIS_HOST', 'GEMINI_API_KEY',
-    'ADMIN_API_KEY', 'ADMIN_SESSION_SECRET', 'CORS_ORIGINS',
+    'NODE_ENV',
+    'DATABASE_URL',
+    'POSTGRES_HOST',
+    'POSTGRES_USER',
+    'POSTGRES_PASSWORD',
+    'POSTGRES_DB',
+    'POSTGRES_PORT',
+    'REDIS_URL',
+    'REDIS_HOST',
+    'GEMINI_API_KEY',
+    'ADMIN_API_KEY',
+    'ADMIN_SESSION_SECRET',
+    'CORS_ORIGINS',
   ] as const;
   // Estos tests NO pueden usar `process.env = prevEnv`: los tests vecinos de este
   // mismo archivo restauran el entorno REEMPLAZANDO el objeto completo
@@ -122,14 +130,10 @@ test('🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POST
     delete process.env.POSTGRES_USER;
 
     const sinDb = inspectEnvironment();
-    assert.equal(
-      sinDb.valid,
-      false,
-      'APPS-008: produccion sin PostgreSQL debe considerarse invalido'
-    );
+    assert.equal(sinDb.valid, false, 'APPS-008: produccion sin PostgreSQL debe considerarse invalido');
     assert.ok(
       sinDb.missingRequired.includes('DATABASE_URL'),
-      'APPS-008: DATABASE_URL / POSTGRES_* debe reportarse como faltante en produccion'
+      'APPS-008: DATABASE_URL / POSTGRES_* debe reportarse como faltante en produccion',
     );
 
     // 2. Regresion: la alternativa compuesta POSTGRES_* debe bastar en
@@ -152,35 +156,27 @@ test('🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POST
     assert.equal(
       conPostgres.valid,
       true,
-      'APPS-008: POSTGRES_HOST + POSTGRES_USER deben satisfacer el requisito de produccion'
+      'APPS-008: POSTGRES_HOST + POSTGRES_USER deben satisfacer el requisito de produccion',
     );
     assert.ok(
       !conPostgres.missingRequired.includes('DATABASE_URL'),
-      'APPS-008: la alternativa POSTGRES_* no debe reportarse como faltante'
+      'APPS-008: la alternativa POSTGRES_* no debe reportarse como faltante',
     );
 
     // 3. DATABASE_URL directa tambien es valida.
     delete process.env.POSTGRES_HOST;
     delete process.env.POSTGRES_USER;
     process.env.DATABASE_URL = 'postgresql://pg:5432/pokedex';
-    assert.equal(
-      inspectEnvironment().valid,
-      true,
-      'APPS-008: DATABASE_URL debe satisfacer el requisito por defecto'
-    );
+    assert.equal(inspectEnvironment().valid, true, 'APPS-008: DATABASE_URL debe satisfacer el requisito por defecto');
 
     // 4. En desarrollo la ausencia sigue siendo valida (fallback en memoria).
     process.env.NODE_ENV = 'development';
     delete process.env.DATABASE_URL;
     const dev = inspectEnvironment();
-    assert.equal(
-      dev.valid,
-      true,
-      'El fallback en memoria debe seguir siendo valido fuera de produccion'
-    );
+    assert.equal(dev.valid, true, 'El fallback en memoria debe seguir siendo valido fuera de produccion');
     assert.ok(
       dev.warnings.some((w) => w.includes('DATABASE_URL')),
-      'En desarrollo debe emitirse el aviso de fallback a memoria'
+      'En desarrollo debe emitirse el aviso de fallback a memoria',
     );
   } finally {
     restore();
@@ -237,7 +233,7 @@ test('🏷️ VER-002: /version expone la versión semántica real de la SSOT, n
     assert.equal(
       data.version,
       PKG_VERSION,
-      `/version.version debe exponer APP_VERSION (${PKG_VERSION}), recibido: ${data.version}`
+      `/version.version debe exponer APP_VERSION (${PKG_VERSION}), recibido: ${data.version}`,
     );
     assert.match(data.version, /^\d+\.\d+\.\d+$/, `version debe ser SemVer, recibido: ${data.version}`);
 
@@ -248,7 +244,7 @@ test('🏷️ VER-002: /version expone la versión semántica real de la SSOT, n
     assert.notEqual(
       data.version,
       data.git_sha,
-      '/version.version y /version.git_sha no deben exponer el mismo valor (conflación de metadatos)'
+      '/version.version y /version.git_sha no deben exponer el mismo valor (conflación de metadatos)',
     );
   } finally {
     process.env = prevEnv;
@@ -277,7 +273,7 @@ test('🏷️ VER-002: /version degrada a "unknown" en lugar de anunciar una ver
     assert.notEqual(
       data.version,
       '1.0.0',
-      'El endpoint no debe anunciar una versión semántica ficticia cuando no dispone de APP_VERSION'
+      'El endpoint no debe anunciar una versión semántica ficticia cuando no dispone de APP_VERSION',
     );
   } finally {
     process.env = prevEnv;
@@ -305,10 +301,7 @@ test('🛡️ Startup Env Check: detecta variables requeridas faltantes en produ
     assert.ok(result.missingRequired.includes('ADMIN_SESSION_SECRET'));
     assert.ok(result.missingRequired.includes('CORS_ORIGINS'));
 
-    assert.throws(
-      () => checkRequiredEnvVars({ throwOnError: true, logWarnings: false }),
-      /ERROR DE ARRANQUE/
-    );
+    assert.throws(() => checkRequiredEnvVars({ throwOnError: true, logWarnings: false }), /ERROR DE ARRANQUE/);
   } finally {
     process.env = prevEnv;
   }
@@ -340,10 +333,7 @@ test('🛡️ Startup Env Check: SKIP_ENV_CHECK=true NO bypasses validación en 
     delete process.env.ADMIN_SESSION_SECRET;
     delete process.env.CORS_ORIGINS;
 
-    assert.throws(
-      () => checkRequiredEnvVars({ throwOnError: true, logWarnings: false }),
-      /ERROR DE ARRANQUE/
-    );
+    assert.throws(() => checkRequiredEnvVars({ throwOnError: true, logWarnings: false }), /ERROR DE ARRANQUE/);
   } finally {
     process.env = prevEnv;
   }

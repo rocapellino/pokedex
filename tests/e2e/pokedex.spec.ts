@@ -58,7 +58,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     // Filtrar violaciones críticas o serias
     const seriousViolations = accessibilityScanResults.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
+      (v) => v.impact === 'critical' || v.impact === 'serious',
     );
 
     expect(seriousViolations).toEqual([]);

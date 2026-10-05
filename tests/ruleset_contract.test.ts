@@ -50,15 +50,11 @@ const EXPECTED_REQUIRED_CONTEXTS = [
 /** Detecta mojibake: un required check nunca debe empezar con U+00AD ni ser ASCII puro. */
 function assertNoMojibake(context: string): void {
   const first = context.codePointAt(0)!;
-  assert.notEqual(
-    first,
-    0x00ad,
-    `Context corrupto (soft hyphen U+00AD): "${context}". El emoji fue mal decodificado.`
-  );
+  assert.notEqual(first, 0x00ad, `Context corrupto (soft hyphen U+00AD): "${context}". El emoji fue mal decodificado.`);
   assert.ok(
     first > 0x2000,
     `Context sin el emoji esperado (U+${first.toString(16).toUpperCase().padStart(4, '0')}): ` +
-      `"${context}". GitHub compara el context de forma exacta.`
+      `"${context}". GitHub compara el context de forma exacta.`,
   );
 }
 
@@ -80,14 +76,12 @@ test('🔤 RULESET-001: los contexts del ruleset coinciden con los checks reales
   const { rules } = readRuleset();
   const rsc = rules.find((r) => r.type === 'required_status_checks');
   assert.ok(rsc, 'El ruleset debe declarar required_status_checks');
-  const contexts: string[] = rsc!.parameters.required_status_checks.map(
-    (c: { context: string }) => c.context
-  );
+  const contexts: string[] = rsc!.parameters.required_status_checks.map((c: { context: string }) => c.context);
 
   assert.deepEqual(
     [...contexts].sort(),
     [...EXPECTED_REQUIRED_CONTEXTS].sort(),
-    'Los required checks deben coincidir exactamente con los nombres que reporta GitHub Actions'
+    'Los required checks deben coincidir exactamente con los nombres que reporta GitHub Actions',
   );
 });
 
@@ -95,11 +89,7 @@ test('🔤 RULESET-001: el archivo de reglas se serializa en UTF-8 real', () => 
   const raw = fs.readFileSync(RULESET_PATH);
 
   // 0xEF 0xBB 0xBF = BOM UTF-8, que rompe el parseo en algunos consumidores.
-  assert.notDeepEqual(
-    [...raw.subarray(0, 3)],
-    [0xef, 0xbb, 0xbf],
-    'main-protection.json no debe llevar BOM UTF-8'
-  );
+  assert.notDeepEqual([...raw.subarray(0, 3)], [0xef, 0xbb, 0xbf], 'main-protection.json no debe llevar BOM UTF-8');
 
   // Debe ser decodificable como UTF-8 estricto sin replacement chars.
   const text = new TextDecoder('utf-8', { fatal: true }).decode(raw);

@@ -24,13 +24,18 @@ const CI_SECRETS = [
   'secrets.adminSessionSecret=ci',
   'redis.auth.password=ci',
   'secrets.backupEncryptionKey=ci',
-].map((s) => `--set ${s}`).join(' ');
+]
+  .map((s) => `--set ${s}`)
+  .join(' ');
 
 type K8sDoc = { kind: string; metadata: { name: string; annotations?: Record<string, string> }; spec: any };
 
 function render(valueFiles: string[]): K8sDoc[] {
   const files = valueFiles.map((f) => `-f "${path.join(ROOT_DIR, f)}"`).join(' ');
-  const out = execSync(`helm template pokedex "${CHART}" ${files} ${CI_SECRETS}`, { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 });
+  const out = execSync(`helm template pokedex "${CHART}" ${files} ${CI_SECRETS}`, {
+    encoding: 'utf-8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
   return (yaml.loadAll(out) as K8sDoc[]).filter(Boolean);
 }
 
@@ -42,7 +47,8 @@ test('🌱 Seed Job: pre-prod siembra el catálogo completo con la imagen y el e
   assert.ok(job, 'pre-prod debe renderizar el Job de siembra');
 
   const seeder = job.spec.template.spec.containers[0];
-  const api = docs.find((d) => d.kind === 'Deployment' && d.metadata.name === 'pokemon-api')!.spec.template.spec.containers[0];
+  const api = docs.find((d) => d.kind === 'Deployment' && d.metadata.name === 'pokemon-api')!.spec.template.spec
+    .containers[0];
 
   assert.equal(seeder.image, api.image, 'El seed job debe usar la misma imagen (y digest firmado) que la API');
   assert.match(seeder.image, /@sha256:[a-f0-9]{64}$/, 'La imagen del seed job debe fijarse por digest');
@@ -63,10 +69,7 @@ test('🌱 Seed Job: corre después de la sincronización, no antes de crear la 
 });
 
 test('🌱 Seed Job: los demás entornos no siembran por defecto', () => {
-  for (const valueFiles of [
-    ['infra/helm/pokedex/values.dev.yaml'],
-    ['infra/helm/pokedex/values.prod.yaml'],
-  ]) {
+  for (const valueFiles of [['infra/helm/pokedex/values.dev.yaml'], ['infra/helm/pokedex/values.prod.yaml']]) {
     assert.equal(seedJobOf(render(valueFiles)), undefined, `${valueFiles.join(' + ')} no debe renderizar el seed job`);
   }
 });

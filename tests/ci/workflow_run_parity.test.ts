@@ -63,7 +63,10 @@ function declaredWorkflowRunTriggers(file: string): string[] {
   const declared = new Set<string>();
   for (const m of listBlock.matchAll(/"([^"\n]+)"/g)) declared.add(m[1].trim());
   for (const m of listBlock.matchAll(/^\s*-\s*([^\s"'\n].*)$/gm)) {
-    const value = m[1].trim().replace(/,$/, '').replace(/^["']|["']$/g, '');
+    const value = m[1]
+      .trim()
+      .replace(/,$/, '')
+      .replace(/^["']|["']$/g, '');
     if (value) declared.add(value);
   }
   return [...declared];
@@ -71,7 +74,9 @@ function declaredWorkflowRunTriggers(file: string): string[] {
 
 /** Workflows que declaran al menos un trigger `workflow_run`. */
 function workflowsUsingWorkflowRun(): string[] {
-  return workflowFiles().filter((f) => fs.readFileSync(path.join(WORKFLOWS_DIR, f), 'utf-8').includes('\n  workflow_run:'));
+  return workflowFiles().filter((f) =>
+    fs.readFileSync(path.join(WORKFLOWS_DIR, f), 'utf-8').includes('\n  workflow_run:'),
+  );
 }
 
 /**
@@ -126,7 +131,7 @@ test('🚨 WF-004: ningun producer de workflow_run es un reusable sin ejecucion 
     [],
     `Triggers workflow_run que apuntan a workflows sin ejecucion propia (p. ej. reusables): ` +
       `${offenders.join(' | ')}. Un reusable nunca genera un run propio, asi que el trigger ` +
-      'no dispara NUNCA y GitHub no reporta error. Usar el workflow invocador de nivel superior.'
+      'no dispara NUNCA y GitHub no reporta error. Usar el workflow invocador de nivel superior.',
   );
 });
 
@@ -140,15 +145,12 @@ test('🚨 WF-002: ningun trigger workflow_run referencia un workflow inexistent
     }
   }
 
-  assert.ok(
-    workflowsUsingWorkflowRun().length >= 1,
-    'Se espera al menos un workflow con trigger workflow_run'
-  );
+  assert.ok(workflowsUsingWorkflowRun().length >= 1, 'Se espera al menos un workflow con trigger workflow_run');
   assert.deepEqual(
     offenders,
     [],
     `Triggers workflow_run que no corresponden a ningun workflow existente: ${offenders.join(' | ')}. ` +
-      'Un nombre invalido no produce error de sintaxis: el trigger simplemente nunca dispara.'
+      'Un nombre invalido no produce error de sintaxis: el trigger simplemente nunca dispara.',
   );
 });
 
@@ -159,7 +161,7 @@ test('🚨 WF-002: la paridad cubre mas de un workflow (evita regresion de alcan
   assert.ok(
     consumers.length >= 3,
     `Se esperan 3 workflows con trigger workflow_run (ghcr-retention, github-security-linear-sync, ` +
-      `sonar-linear-sync); encontrados: ${consumers.join(', ')}`
+      `sonar-linear-sync); encontrados: ${consumers.join(', ')}`,
   );
 });
 
@@ -180,6 +182,6 @@ test('🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad'
     sinSchedule,
     [],
     `Workflows con trigger workflow_run sin red de seguridad (ni schedule ni workflow_dispatch): ` +
-      `${sinSchedule.join(' | ')}. Si el nombre del productor cambia, nunca se ejecutan.`
+      `${sinSchedule.join(' | ')}. Si el nombre del productor cambia, nunca se ejecutan.`,
   );
 });

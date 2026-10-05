@@ -7,7 +7,7 @@ import {
   getPokemonById,
   savePokemon,
   deletePokemon,
-  getNextPokemonId
+  getNextPokemonId,
 } from '../../apps/backend/src/services/pokemon.repository.js';
 import type { Pokemon } from '../../apps/backend/src/types.js';
 import { validatePokemonPayload } from '../../apps/backend/src/validation/pokemon.js';
@@ -59,7 +59,7 @@ test('🐾 PokemonRepository [Unit]: getAllPokemons filtrado insensible por tipo
   assert.ok(aguaPokemons.pokemons.length > 0);
   for (const p of aguaPokemons.pokemons) {
     const matchesTipo = p.tipo.toLowerCase() === 'agua';
-    const matchesTipos = p.tipos?.some(t => t.toLowerCase() === 'agua');
+    const matchesTipos = p.tipos?.some((t) => t.toLowerCase() === 'agua');
     assert.ok(matchesTipo || matchesTipos, `El Pokémon ${p.nombre} debe ser de tipo agua`);
   }
 
@@ -103,9 +103,9 @@ test('🐾 PokemonRepository [Unit]: ciclo completo de savePokemon y deletePokem
         peso: 15.5,
         altura: 0.8,
         fuerza: 60,
-        descripcion: 'Pokémon de prueba para repositorio unitario'
+        descripcion: 'Pokémon de prueba para repositorio unitario',
       },
-      habilidades: ['Impactrueno', 'Rayo']
+      habilidades: ['Impactrueno', 'Rayo'],
     };
 
     // Validar con esquema antes de persistir
@@ -121,7 +121,7 @@ test('🐾 PokemonRepository [Unit]: ciclo completo de savePokemon y deletePokem
     const updatedPokemon: Pokemon = {
       ...testPokemon,
       nombre: 'UnitMon Mega',
-      fuerza: 95
+      fuerza: 95,
     };
     await savePokemon(updatedPokemon);
     const retrievedUpdated = await getPokemonById(8888);
@@ -158,23 +158,17 @@ test('🐾 PokemonRepository [Unit]: savePokemon y deletePokemon fallan cerrado 
         peso: 10,
         altura: 1,
         fuerza: 40,
-        descripcion: 'Pokemon de prueba fail closed'
-      }
+        descripcion: 'Pokemon de prueba fail closed',
+      },
     };
 
-    await assert.rejects(
-      async () => {
-        await savePokemon(dummyPokemon);
-      },
-      /Almacenamiento persistente \(PostgreSQL\) no disponible para escritura/
-    );
+    await assert.rejects(async () => {
+      await savePokemon(dummyPokemon);
+    }, /Almacenamiento persistente \(PostgreSQL\) no disponible para escritura/);
 
-    await assert.rejects(
-      async () => {
-        await deletePokemon(7777);
-      },
-      /Almacenamiento persistente \(PostgreSQL\) no disponible para eliminación/
-    );
+    await assert.rejects(async () => {
+      await deletePokemon(7777);
+    }, /Almacenamiento persistente \(PostgreSQL\) no disponible para eliminación/);
   } finally {
     if (origDbUrl) {
       process.env.DATABASE_URL = origDbUrl;

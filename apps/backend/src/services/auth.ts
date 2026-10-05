@@ -17,12 +17,16 @@ export function getSessionSecret(): string {
     return secret.trim();
   }
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('Configuración de seguridad crítica faltante: ADMIN_SESSION_SECRET es obligatorio en producción para el firmado y verificación de sesiones.');
+    throw new Error(
+      'Configuración de seguridad crítica faltante: ADMIN_SESSION_SECRET es obligatorio en producción para el firmado y verificación de sesiones.',
+    );
   }
   if (!ephemeralDevSecret) {
     ephemeralDevSecret = crypto.randomBytes(32).toString('hex');
     if (process.env.NODE_ENV !== 'test') {
-      console.warn('[Security Warning] ADMIN_SESSION_SECRET no configurado: utilizando secreto efímero en memoria para desarrollo local. En despliegues multi-pod (e.g. staging), cada réplica generará un secreto distinto invalidando tokens de sesión entre pods.');
+      console.warn(
+        '[Security Warning] ADMIN_SESSION_SECRET no configurado: utilizando secreto efímero en memoria para desarrollo local. En despliegues multi-pod (e.g. staging), cada réplica generará un secreto distinto invalidando tokens de sesión entre pods.',
+      );
     }
   }
   return ephemeralDevSecret;
@@ -99,7 +103,7 @@ export function verifyTokenSignature(token: string): {
       return { valid: false, reason: 'invalid_signature' };
     }
     const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
-    
+
     // Validación estricta de límites de payload (role, jti y exp)
     if (
       payload.role !== 'admin' ||
@@ -148,7 +152,9 @@ export async function revokeSessionTokenDetailed(token: string): Promise<RevokeS
   if (process.env.REDIS_URL) {
     const redisOk = await setRevokedJti(jti, remainingSeconds);
     if (!redisOk) {
-      console.warn('[Auth: Security Warning] Fallo al registrar revocación de sesión en Redis. Operación distribuida no garantizada.');
+      console.warn(
+        '[Auth: Security Warning] Fallo al registrar revocación de sesión en Redis. Operación distribuida no garantizada.',
+      );
       return { success: false, reason: 'service_unavailable' };
     }
     // Solo tras confirmar la persistencia en el clúster distribuido, actualizar la caché local del pod
@@ -243,4 +249,3 @@ export async function verifySessionToken(token: string): Promise<boolean> {
   const result = await verifySessionTokenDetailed(token);
   return result.valid;
 }
-

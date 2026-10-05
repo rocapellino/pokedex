@@ -49,7 +49,7 @@ test('🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountT
     const content = fs.readFileSync(fullPath, 'utf-8');
     assert.ok(
       content.includes('automountServiceAccountToken: false'),
-      `${relPath} debe declarar explícitamente automountServiceAccountToken: false`
+      `${relPath} debe declarar explícitamente automountServiceAccountToken: false`,
     );
   }
 });
@@ -74,7 +74,7 @@ test('🛡️ K8s Quality & High Availability: api y web deployments implementan
     const content = fs.readFileSync(fullPath, 'utf-8');
     assert.ok(
       content.includes('topologySpreadConstraints:'),
-      `${relPath} debe soportar topologySpreadConstraints para alta disponibilidad`
+      `${relPath} debe soportar topologySpreadConstraints para alta disponibilidad`,
     );
   }
 
@@ -82,12 +82,9 @@ test('🛡️ K8s Quality & High Availability: api y web deployments implementan
   const prodContent = fs.readFileSync(prodValuesPath, 'utf-8');
   assert.ok(
     prodContent.includes('topologySpreadConstraints:'),
-    'values.prod.yaml debe configurar topologySpreadConstraints'
+    'values.prod.yaml debe configurar topologySpreadConstraints',
   );
-  assert.ok(
-    !prodContent.includes('tag: "latest"'),
-    'values.prod.yaml no debe utilizar el tag :latest en producción'
-  );
+  assert.ok(!prodContent.includes('tag: "latest"'), 'values.prod.yaml no debe utilizar el tag :latest en producción');
 });
 
 test('🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test', () => {
@@ -131,18 +128,37 @@ test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canóni
   const rootDockerPath = path.join(ROOT_DIR, 'Dockerfile');
   const backendDockerPath = path.join(ROOT_DIR, 'apps/backend/Dockerfile');
 
-  assert.ok(!fs.existsSync(rootDockerPath), 'El Dockerfile espejo en la raíz no debe existir (la SSOT canónica es apps/backend/Dockerfile)');
+  assert.ok(
+    !fs.existsSync(rootDockerPath),
+    'El Dockerfile espejo en la raíz no debe existir (la SSOT canónica es apps/backend/Dockerfile)',
+  );
   assert.ok(fs.existsSync(backendDockerPath), 'apps/backend/Dockerfile debe existir como SSOT');
 
   const backendContent = fs.readFileSync(backendDockerPath, 'utf-8');
-  assert.match(backendContent, /FROM node:22-alpine/, 'apps/backend/Dockerfile debe usar la imagen base node:22-alpine');
-  assert.match(backendContent, /USER (?:1000:1000|node)/, 'apps/backend/Dockerfile debe ejecutar como usuario no privilegiado (UID 1000 o node)');
+  assert.match(
+    backendContent,
+    /FROM node:22-alpine/,
+    'apps/backend/Dockerfile debe usar la imagen base node:22-alpine',
+  );
+  assert.match(
+    backendContent,
+    /USER (?:1000:1000|node)/,
+    'apps/backend/Dockerfile debe ejecutar como usuario no privilegiado (UID 1000 o node)',
+  );
 
   const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
-  assert.match(ciWorkflow, /file:\s*\.\/apps\/backend\/Dockerfile/, 'ci.yaml debe compilar con ./apps/backend/Dockerfile');
+  assert.match(
+    ciWorkflow,
+    /file:\s*\.\/apps\/backend\/Dockerfile/,
+    'ci.yaml debe compilar con ./apps/backend/Dockerfile',
+  );
 
   const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
-  assert.match(infraWorkflow, /-f apps\/backend\/Dockerfile \./, 'infra.yaml debe compilar con apps/backend/Dockerfile');
+  assert.match(
+    infraWorkflow,
+    /-f apps\/backend\/Dockerfile \./,
+    'infra.yaml debe compilar con apps/backend/Dockerfile',
+  );
 });
 
 test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator', () => {
@@ -188,7 +204,10 @@ test('🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templ
   assert.ok(valuesProdContent.includes('limitRange:'), 'values.prod.yaml debe configurar limitRange');
 
   const infraCiContent = fs.readFileSync(infraCiPath, 'utf-8');
-  assert.ok(infraCiContent.includes('kind: PodDisruptionBudget'), 'infra.yaml debe validar PodDisruptionBudget en prod');
+  assert.ok(
+    infraCiContent.includes('kind: PodDisruptionBudget'),
+    'infra.yaml debe validar PodDisruptionBudget en prod',
+  );
   assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yaml debe validar ResourceQuota en prod');
   assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yaml debe validar LimitRange en prod');
 });
@@ -204,22 +223,37 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-014 debe estar aceptado');
   assert.ok(adrContent.includes('autoscaling/v2'), 'ADR-014 debe documentar HPA autoscaling/v2');
   assert.ok(adrContent.includes('PodDisruptionBudget'), 'ADR-014 debe documentar PodDisruptionBudget');
-  assert.ok(adrContent.includes('topologySpreadConstraints') || adrContent.includes('TopologySpreadConstraints'), 'ADR-014 debe documentar TopologySpreadConstraints');
-  assert.ok(adrContent.includes('scaleDown') || adrContent.includes('Scale Down') || adrContent.includes('estabilización'), 'ADR-014 debe documentar políticas de estabilización para mitigar flapping');
-  assert.ok(adrContent.includes('minAvailable: 1') || adrContent.includes('minAvailable'), 'ADR-014 debe documentar minAvailable en PDB');
+  assert.ok(
+    adrContent.includes('topologySpreadConstraints') || adrContent.includes('TopologySpreadConstraints'),
+    'ADR-014 debe documentar TopologySpreadConstraints',
+  );
+  assert.ok(
+    adrContent.includes('scaleDown') || adrContent.includes('Scale Down') || adrContent.includes('estabilización'),
+    'ADR-014 debe documentar políticas de estabilización para mitigar flapping',
+  );
+  assert.ok(
+    adrContent.includes('minAvailable: 1') || adrContent.includes('minAvailable'),
+    'ADR-014 debe documentar minAvailable en PDB',
+  );
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'), 'README.md debe enlazar ADR-014');
+  assert.ok(
+    readmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'),
+    'README.md debe enlazar ADR-014',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'), 'docs/README.md debe enlazar ADR-014');
+  assert.ok(
+    docsReadmeContent.includes('ADR-014-elastic-autoscaling-hpa-and-pod-disruption-budget.md'),
+    'docs/README.md debe enlazar ADR-014',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // Validar que los 14 ADRs existen físicamente en disco
   for (let i = 1; i <= 14; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -235,31 +269,49 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
   assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-015 debe estar aceptado');
-  assert.ok(adrContent.includes('SIGTERM') && adrContent.includes('SIGINT'), 'ADR-015 debe documentar señales SIGTERM y SIGINT');
+  assert.ok(
+    adrContent.includes('SIGTERM') && adrContent.includes('SIGINT'),
+    'ADR-015 debe documentar señales SIGTERM y SIGINT',
+  );
   assert.ok(adrContent.includes('setupGracefulShutdown'), 'ADR-015 debe documentar setupGracefulShutdown');
   assert.ok(adrContent.includes('closeStorage'), 'ADR-015 debe documentar closeStorage');
   assert.ok(adrContent.includes('/healthz'), 'ADR-015 debe documentar sonda /healthz');
   assert.ok(adrContent.includes('/readyz'), 'ADR-015 debe documentar sonda /readyz');
-  assert.ok(adrContent.includes('terminationGracePeriodSeconds: 30') || adrContent.includes('terminationGracePeriodSeconds'), 'ADR-015 debe documentar terminationGracePeriodSeconds');
+  assert.ok(
+    adrContent.includes('terminationGracePeriodSeconds: 30') || adrContent.includes('terminationGracePeriodSeconds'),
+    'ADR-015 debe documentar terminationGracePeriodSeconds',
+  );
 
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'), 'README.md debe enlazar ADR-015');
+  assert.ok(
+    readmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'),
+    'README.md debe enlazar ADR-015',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'), 'docs/README.md debe enlazar ADR-015');
+  assert.ok(
+    docsReadmeContent.includes('ADR-015-pod-lifecycle-graceful-shutdown-and-probes.md'),
+    'docs/README.md debe enlazar ADR-015',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   const helmApiContent = fs.readFileSync(helmApiDeploymentPath, 'utf-8');
-  assert.ok(helmApiContent.includes('terminationGracePeriodSeconds:'), 'api-deployment.yaml debe configurar terminationGracePeriodSeconds');
+  assert.ok(
+    helmApiContent.includes('terminationGracePeriodSeconds:'),
+    'api-deployment.yaml debe configurar terminationGracePeriodSeconds',
+  );
 
   const helmValuesContent = fs.readFileSync(helmValuesPath, 'utf-8');
-  assert.ok(helmValuesContent.includes('terminationGracePeriodSeconds: 30'), 'values.yaml debe fijar terminationGracePeriodSeconds: 30');
+  assert.ok(
+    helmValuesContent.includes('terminationGracePeriodSeconds: 30'),
+    'values.yaml debe fijar terminationGracePeriodSeconds: 30',
+  );
 
   // Validar que los 15 ADRs existen físicamente en disco
   for (let i = 1; i <= 15; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
@@ -277,36 +329,36 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
   // 1. ADR-017 existe y está aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-017 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-017 debe estar en estado Aceptado');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-017 debe estar en estado Aceptado',
+  );
 
   // 2. ADR-017 documenta las tres capas de control de admisión
   assert.ok(
     adrContent.includes('pod-security-standards') || adrContent.includes('PSS'),
-    'ADR-017 debe documentar Pod Security Standards'
+    'ADR-017 debe documentar Pod Security Standards',
   );
   assert.ok(
     adrContent.includes('disallow-latest-tag') || adrContent.includes('latest'),
-    'ADR-017 debe documentar política disallow-latest-tag'
+    'ADR-017 debe documentar política disallow-latest-tag',
   );
   assert.ok(
     adrContent.includes('require-seccomp-profile') || adrContent.includes('seccomp'),
-    'ADR-017 debe documentar política require-seccomp-profile'
+    'ADR-017 debe documentar política require-seccomp-profile',
   );
   assert.ok(
     adrContent.includes('Cosign') || adrContent.includes('cosign'),
-    'ADR-017 debe documentar política de verificación Cosign'
+    'ADR-017 debe documentar política de verificación Cosign',
   );
-  assert.ok(
-    adrContent.includes('Enforce'),
-    'ADR-017 debe documentar validationFailureAction: Enforce'
-  );
+  assert.ok(adrContent.includes('Enforce'), 'ADR-017 debe documentar validationFailureAction: Enforce');
   assert.ok(
     adrContent.includes('kyverno test') || adrContent.includes('kyverno-test'),
-    'ADR-017 debe documentar validación CI con kyverno test'
+    'ADR-017 debe documentar validación CI con kyverno test',
   );
   assert.ok(
     adrContent.includes('restricted') || adrContent.includes('Restricted'),
-    'ADR-017 debe documentar PSA nivel restricted'
+    'ADR-017 debe documentar PSA nivel restricted',
   );
 
   // 3. Políticas físicas existen
@@ -319,11 +371,17 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
   // 4. Política seccomp documenta RuntimeDefault
   const seccompContent = fs.readFileSync(seccompPolicyPath, 'utf-8');
   assert.ok(seccompContent.includes('RuntimeDefault'), 'require-seccomp-profile.yaml debe exigir RuntimeDefault');
-  assert.ok(seccompContent.includes('Enforce'), 'require-seccomp-profile.yaml debe usar validationFailureAction: Enforce');
+  assert.ok(
+    seccompContent.includes('Enforce'),
+    'require-seccomp-profile.yaml debe usar validationFailureAction: Enforce',
+  );
 
   // 5. Namespace PSA en modo restricted
   const nsContent = fs.readFileSync(namespacePsaPath, 'utf-8');
-  assert.ok(nsContent.includes('pod-security.kubernetes.io/enforce: restricted'), 'Namespace debe tener PSA enforce: restricted');
+  assert.ok(
+    nsContent.includes('pod-security.kubernetes.io/enforce: restricted'),
+    'Namespace debe tener PSA enforce: restricted',
+  );
 
   // 6. Suite de tests de seccomp existe
   const seccompTestPath = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/require-seccomp-profile/kyverno-test.yaml');
@@ -333,21 +391,26 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
 
   // 7. README.md y docs/README.md enlazan ADR-017
   const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-017-kyverno-admission-control-and-pod-security.md'), 'README.md debe enlazar ADR-017');
+  assert.ok(
+    readmeContent.includes('ADR-017-kyverno-admission-control-and-pod-security.md'),
+    'README.md debe enlazar ADR-017',
+  );
 
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadmeContent.includes('ADR-017-kyverno-admission-control-and-pod-security.md'), 'docs/README.md debe enlazar ADR-017');
+  assert.ok(
+    docsReadmeContent.includes('ADR-017-kyverno-admission-control-and-pod-security.md'),
+    'docs/README.md debe enlazar ADR-017',
+  );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
   // 8. Los 17 ADRs existen físicamente en disco
   for (let i = 1; i <= 17; i++) {
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find(f => f.startsWith(`ADR-${num}`));
+    const match = files.find((f) => f.startsWith(`ADR-${num}`));
     assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
-
 
 test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo', () => {
   const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
@@ -363,25 +426,55 @@ test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml pro
   const valuesDevContent = fs.readFileSync(valuesDevPath, 'utf-8');
 
   // 2. values.yaml implementa Secure by Default: producción, HTTPS obligatorio, TLS, Cilium L7 y Reloader deshabilitado
-  assert.ok(valuesContent.includes('nodeEnv: "production"'), 'values.yaml debe configurar nodeEnv: "production" por defecto');
-  assert.ok(valuesContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "true"'), 'values.yaml debe forzar ssl-redirect: "true" por defecto');
-  assert.ok(valuesContent.includes('cert-manager.io/cluster-issuer: "letsencrypt-prod"'), 'values.yaml debe definir cluster-issuer letsencrypt-prod');
-  assert.ok(valuesContent.includes('secretName: pokedex-tls-cert'), 'values.yaml debe tener bloque tls configurado con secretName');
-  assert.ok(/ciliumNetworkPolicy:\s+enabled:\s*true/.test(valuesContent), 'values.yaml debe activar ciliumNetworkPolicy.enabled: true');
+  assert.ok(
+    valuesContent.includes('nodeEnv: "production"'),
+    'values.yaml debe configurar nodeEnv: "production" por defecto',
+  );
+  assert.ok(
+    valuesContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "true"'),
+    'values.yaml debe forzar ssl-redirect: "true" por defecto',
+  );
+  assert.ok(
+    valuesContent.includes('cert-manager.io/cluster-issuer: "letsencrypt-prod"'),
+    'values.yaml debe definir cluster-issuer letsencrypt-prod',
+  );
+  assert.ok(
+    valuesContent.includes('secretName: pokedex-tls-cert'),
+    'values.yaml debe tener bloque tls configurado con secretName',
+  );
+  assert.ok(
+    /ciliumNetworkPolicy:\s+enabled:\s*true/.test(valuesContent),
+    'values.yaml debe activar ciliumNetworkPolicy.enabled: true',
+  );
   assert.ok(/reloader:\s+enabled:\s*false/.test(valuesContent), 'values.yaml debe configurar reloader.enabled: false');
 
   // 3. values.dev.yaml proporciona overrides permisivos para desarrollo local (Kind/Minikube)
-  assert.ok(valuesDevContent.includes('nodeEnv: "development"'), 'values.dev.yaml debe configurar nodeEnv: "development"');
-  assert.ok(valuesDevContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "false"'), 'values.dev.yaml debe permitir ssl-redirect: "false"');
+  assert.ok(
+    valuesDevContent.includes('nodeEnv: "development"'),
+    'values.dev.yaml debe configurar nodeEnv: "development"',
+  );
+  assert.ok(
+    valuesDevContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "false"'),
+    'values.dev.yaml debe permitir ssl-redirect: "false"',
+  );
   assert.ok(/tls:\s*\[\]/.test(valuesDevContent), 'values.dev.yaml debe permitir tls: [] vacío para desarrollo HTTP');
-  assert.ok(/ciliumNetworkPolicy:\s+enabled:\s*false/.test(valuesDevContent), 'values.dev.yaml debe desactivar ciliumNetworkPolicy para entornos locales');
-  assert.ok(/reloader:\s+enabled:\s*false/.test(valuesDevContent), 'values.dev.yaml debe mantener reloader desactivado en desarrollo');
+  assert.ok(
+    /ciliumNetworkPolicy:\s+enabled:\s*false/.test(valuesDevContent),
+    'values.dev.yaml debe desactivar ciliumNetworkPolicy para entornos locales',
+  );
+  assert.ok(
+    /reloader:\s+enabled:\s*false/.test(valuesDevContent),
+    'values.dev.yaml debe mantener reloader desactivado en desarrollo',
+  );
 
   // 4. Documentación formaliza la separación conceptual
   const helmGuideContent = fs.readFileSync(helmGuidePath, 'utf-8');
   const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
   assert.ok(helmGuideContent.includes('values.dev.yaml'), 'HELM_DEPLOYMENT_GUIDE.md debe documentar values.dev.yaml');
-  assert.ok(helmGuideContent.includes('Secure by Default'), 'HELM_DEPLOYMENT_GUIDE.md debe documentar el principio Secure by Default');
+  assert.ok(
+    helmGuideContent.includes('Secure by Default'),
+    'HELM_DEPLOYMENT_GUIDE.md debe documentar el principio Secure by Default',
+  );
   assert.ok(infraReadmeContent.includes('values.dev.yaml'), 'infra/README.md debe documentar values.dev.yaml');
 });
 
@@ -392,14 +485,26 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   const taxonomyContent = fs.readFileSync(taxonomyPath, 'utf-8');
   assert.ok(taxonomyContent.includes('pokemon-app (SSOT Canónico)'), 'Taxonomía debe formalizar pokemon-app como SSOT');
   assert.ok(taxonomyContent.includes('pokedex-preprod-role'), 'Taxonomía debe documentar pokedex-preprod-role');
-  assert.ok(taxonomyContent.includes('secret/data/pokedex/preprod/*'), 'Taxonomía debe documentar ruta de secretos preprod');
-  assert.ok(taxonomyContent.includes('pokedex/prod'), 'Taxonomía debe documentar la ruta pokedex/prod reservada para el blueprint cloud');
-  assert.ok(!taxonomyContent.includes('pokedex-prod-role'), 'ADR-030: la taxonomía no debe documentar el rol de la prod Proxmox retirada');
+  assert.ok(
+    taxonomyContent.includes('secret/data/pokedex/preprod/*'),
+    'Taxonomía debe documentar ruta de secretos preprod',
+  );
+  assert.ok(
+    taxonomyContent.includes('pokedex/prod'),
+    'Taxonomía debe documentar la ruta pokedex/prod reservada para el blueprint cloud',
+  );
+  assert.ok(
+    !taxonomyContent.includes('pokedex-prod-role'),
+    'ADR-030: la taxonomía no debe documentar el rol de la prod Proxmox retirada',
+  );
 
   // 2. docs/README.md enlaza la taxonomía
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
   const docsReadme = fs.readFileSync(docsReadmePath, 'utf-8');
-  assert.ok(docsReadme.includes('KUBERNETES_NAMESPACE_TAXONOMY.md'), 'docs/README.md debe indexar KUBERNETES_NAMESPACE_TAXONOMY.md');
+  assert.ok(
+    docsReadme.includes('KUBERNETES_NAMESPACE_TAXONOMY.md'),
+    'docs/README.md debe indexar KUBERNETES_NAMESPACE_TAXONOMY.md',
+  );
 
   // 3. SECURITY_RUNBOOK.md utiliza -n pokemon-app y nombres de deployment/service/statefulset estándar
   const secRunbookPath = path.join(ROOT_DIR, 'docs/security/SECURITY_RUNBOOK.md');
@@ -407,10 +512,16 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   assert.ok(!secRunbook.includes('-n pokedex'), 'SECURITY_RUNBOOK.md no debe contener -n pokedex');
   assert.ok(!secRunbook.includes('--namespace pokedex'), 'SECURITY_RUNBOOK.md no debe contener --namespace pokedex');
   assert.ok(secRunbook.includes('-n pokemon-app'), 'SECURITY_RUNBOOK.md debe utilizar -n pokemon-app');
-  assert.ok(secRunbook.includes('deployment/pokemon-api'), 'SECURITY_RUNBOOK.md debe referenciar deployment/pokemon-api');
+  assert.ok(
+    secRunbook.includes('deployment/pokemon-api'),
+    'SECURITY_RUNBOOK.md debe referenciar deployment/pokemon-api',
+  );
   assert.ok(secRunbook.includes('statefulset/postgres'), 'SECURITY_RUNBOOK.md debe referenciar statefulset/postgres');
   assert.ok(secRunbook.includes('pokemon-redis-svc'), 'SECURITY_RUNBOOK.md debe referenciar pokemon-redis-svc');
-  assert.ok(secRunbook.includes('secret generic pokemon-secrets'), 'SECURITY_RUNBOOK.md debe referenciar pokemon-secrets');
+  assert.ok(
+    secRunbook.includes('secret generic pokemon-secrets'),
+    'SECURITY_RUNBOOK.md debe referenciar pokemon-secrets',
+  );
 
   // 4. Verificación exhaustiva: Ningún archivo markdown en docs/ utiliza -n pokedex o --namespace pokedex
   const scanDir = (dir: string): string[] => {
@@ -432,7 +543,7 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
     const docContent = fs.readFileSync(docFile, 'utf-8');
     assert.ok(
       !legacyNsRegex.test(docContent),
-      `El documento ${path.relative(ROOT_DIR, docFile)} no debe contener referencias obsoletas '-n pokedex' o '--namespace pokedex'`
+      `El documento ${path.relative(ROOT_DIR, docFile)} no debe contener referencias obsoletas '-n pokedex' o '--namespace pokedex'`,
     );
   }
 
@@ -445,7 +556,11 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   assert.match(appProxmox, /namespace:\s*pokemon-app/, 'app-proxmox-preprod.yaml debe definir namespace: pokemon-app');
 
   const appProxmoxPreprod = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
-  assert.match(appProxmoxPreprod, /namespace:\s*pokemon-app/, 'app-proxmox-preprod.yaml debe definir namespace: pokemon-app');
+  assert.match(
+    appProxmoxPreprod,
+    /namespace:\s*pokemon-app/,
+    'app-proxmox-preprod.yaml debe definir namespace: pokemon-app',
+  );
 
   const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
   assert.match(appCloud, /namespace:\s*pokemon-app/, 'app-cloud.yaml debe definir namespace: pokemon-app');
@@ -455,7 +570,11 @@ test('🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segr
   assert.match(
     setupVault,
     /pokedex-preprod-role[\s\S]*?bound_service_account_namespaces=[^\n]*pokemon-app/,
-    'pokedex-preprod-role en setup_vault.yml debe incluir pokemon-app'
+    'pokedex-preprod-role en setup_vault.yml debe incluir pokemon-app',
   );
-  assert.doesNotMatch(setupVault, /pokedex-prod-role/, 'ADR-030: setup_vault.yaml no debe crear el rol de la prod Proxmox retirada');
+  assert.doesNotMatch(
+    setupVault,
+    /pokedex-prod-role/,
+    'ADR-030: setup_vault.yaml no debe crear el rol de la prod Proxmox retirada',
+  );
 });

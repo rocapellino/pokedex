@@ -105,7 +105,9 @@ export function generatePrometheusMetrics(): string {
   }
 
   lines.push('');
-  lines.push('# HELP http_requests_total Contador total estándar de solicitudes HTTP recibidas por endpoint, estado y método.');
+  lines.push(
+    '# HELP http_requests_total Contador total estándar de solicitudes HTTP recibidas por endpoint, estado y método.',
+  );
   lines.push('# TYPE http_requests_total counter');
   if (httpRequestsTotal.size === 0) {
     lines.push(`http_requests_total{endpoint="/",status="200",method="GET"} 0`);
@@ -117,7 +119,9 @@ export function generatePrometheusMetrics(): string {
   }
 
   lines.push('');
-  lines.push('# HELP http_request_duration_seconds Histograma y percentiles de duración de solicitudes HTTP en segundos.');
+  lines.push(
+    '# HELP http_request_duration_seconds Histograma y percentiles de duración de solicitudes HTTP en segundos.',
+  );
   lines.push('# TYPE http_request_duration_seconds histogram');
   const endpoints = Array.from(new Set([...httpDurationCount.keys(), '/']));
   for (const ep of endpoints) {
@@ -132,7 +136,9 @@ export function generatePrometheusMetrics(): string {
   }
 
   lines.push('');
-  lines.push('# HELP pokedex_http_request_duration_seconds_sum Suma acumulada de la duración de solicitudes HTTP en segundos.');
+  lines.push(
+    '# HELP pokedex_http_request_duration_seconds_sum Suma acumulada de la duración de solicitudes HTTP en segundos.',
+  );
   lines.push('# TYPE pokedex_http_request_duration_seconds_sum counter');
   if (httpDurationSum.size === 0) {
     lines.push(`pokedex_http_request_duration_seconds_sum{endpoint="/"} 0`);

@@ -27,7 +27,19 @@ const isFix = args.includes('--fix');
 const isJson = args.includes('--json');
 
 const CODE_EXTENSIONS = new Set([
-  '.ts', '.js', '.mjs', '.cjs', '.py', '.sh', '.json', '.yaml', '.yml', '.md', '.txt', '.log', '.map'
+  '.ts',
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.py',
+  '.sh',
+  '.json',
+  '.yaml',
+  '.yml',
+  '.md',
+  '.txt',
+  '.log',
+  '.map',
 ]);
 
 /**
@@ -47,7 +59,10 @@ function isIgnoreFile(filePath: string): boolean {
 function discoverIgnoreFiles(): string[] {
   try {
     const raw = execSync('git ls-files', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const files = raw.trim().split(/\r?\n/).filter(f => f && isIgnoreFile(f));
+    const files = raw
+      .trim()
+      .split(/\r?\n/)
+      .filter((f) => f && isIgnoreFile(f));
     if (files.length > 0) return files;
   } catch {
     // Fallback si git no está disponible
@@ -166,7 +181,7 @@ function checkIgnoreFile(relPath: string): IgnoreFileCheck {
   const requiredPatterns = REQUIRED_SECURITY_PATTERNS[relPath];
   if (requiredPatterns) {
     for (const pattern of requiredPatterns) {
-      const match = Array.from(seenRules).some(r => r.includes(pattern) || r.startsWith(pattern));
+      const match = Array.from(seenRules).some((r) => r.includes(pattern) || r.startsWith(pattern));
       if (match) {
         result.securityRulesPresent.push(pattern);
       } else {

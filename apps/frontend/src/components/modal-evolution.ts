@@ -51,7 +51,7 @@ export function renderSingleEvolutionNode(
   node: EvolutionNode,
   currentId: number,
   showMethod = false,
-  catalog: Pokemon[] = []
+  catalog: Pokemon[] = [],
 ): string {
   const nodeId = Number(node.id) || 0;
   const isCurrent = nodeId === currentId;
@@ -60,7 +60,7 @@ export function renderSingleEvolutionNode(
   const nodeTypes = targetPk?.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
   const safeNombre = escapeText(node.nombre || 'Pokémon');
   const safeImagen = escapeText(
-    node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+    node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
   );
   const safeMetodo = node.metodo ? escapeText(node.metodo) : '';
 
@@ -82,14 +82,21 @@ export function renderSingleEvolutionNode(
       ${methodBadge}
       <div class="evolution-types-row">
         ${nodeTypes
-          .map((t) => `<span class="evolution-type-mini" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`)
+          .map(
+            (t) =>
+              `<span class="evolution-type-mini" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`,
+          )
           .join('')}
       </div>
     </div>
   `;
 }
 
-export function renderEvolutionSystem(evolData: Pokemon['evoluciones'], currentId: number, catalog: Pokemon[] = []): string {
+export function renderEvolutionSystem(
+  evolData: Pokemon['evoluciones'],
+  currentId: number,
+  catalog: Pokemon[] = [],
+): string {
   if (Array.isArray(evolData)) {
     if (evolData.length <= 1) {
       return `

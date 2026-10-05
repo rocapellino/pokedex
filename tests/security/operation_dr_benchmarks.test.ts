@@ -17,7 +17,11 @@ test('🛡️ Operación: Kind clúster declarativo existe y define puertos e in
   assert.match(content, /ingress-ready=true/, 'Debe etiquetar nodo con ingress-ready=true');
   assert.match(content, /hostPort:\s*8080/, 'Debe mapear puerto Ingress HTTP 8080');
   assert.match(content, /hostPort:\s*3000/, 'Debe mapear puerto API 3000');
-  assert.match(content, /kindnet/, 'Debe documentar explícitamente el uso de kindnet y su relación con NetworkPolicies');
+  assert.match(
+    content,
+    /kindnet/,
+    'Debe documentar explícitamente el uso de kindnet y su relación con NetworkPolicies',
+  );
 });
 
 test('🛡️ Operación: infra.yaml integra Kind como prueba canónica de integración', () => {
@@ -57,7 +61,11 @@ test('🛡️ Operación: k6_stress_test.js y performance-k6.yaml definen y vali
 test('🛡️ Operación: DISASTER_RECOVERY_PLAN.md documenta RPO y RTO medidos experimentalmente', () => {
   const drpPlan = fs.readFileSync(path.join(ROOT_DIR, 'docs/runbooks/DISASTER_RECOVERY_PLAN.md'), 'utf-8');
 
-  assert.match(drpPlan, /1\.1\. Comparativa de SLAs: Objetivos Declarados vs\. Mediciones Empíricas/, 'Debe contener sección 1.1 de benchmarks medidos');
+  assert.match(
+    drpPlan,
+    /1\.1\. Comparativa de SLAs: Objetivos Declarados vs\. Mediciones Empíricas/,
+    'Debe contener sección 1.1 de benchmarks medidos',
+  );
   assert.match(drpPlan, /Benchmark Empírico/, 'Debe contener columna de benchmark empírico');
   assert.match(drpPlan, /~1\.5 segundos/, 'Debe documentar RTO medido (~1.5 segundos)');
   assert.match(drpPlan, /≤ 24 horas/, 'Debe documentar RPO medido (≤ 24 horas)');
@@ -80,7 +88,11 @@ test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa validación est
   const content = fs.readFileSync(drScriptPath, 'utf-8');
   assert.match(content, /CHECKSUM_FILE="\$\{BACKUP_FILE\}\.sha256"/, 'Debe definir ruta de archivo .sha256');
   assert.match(content, /sha256sum -c "\$\{CHECKSUM_FILE\}"/, 'Debe validar el checksum con sha256sum');
-  assert.match(content, /Archivo de checksum \$\{CHECKSUM_FILE\} ausente/, 'Debe fallar si el checksum falta fuera de dry-run');
+  assert.match(
+    content,
+    /Archivo de checksum \$\{CHECKSUM_FILE\} ausente/,
+    'Debe fallar si el checksum falta fuera de dry-run',
+  );
   assert.match(content, /TEMP_RESTORE_DB=/, 'Debe utilizar base de datos temporal para aislamiento');
   assert.match(content, /DROP DATABASE IF EXISTS \$\{TEMP_RESTORE_DB\}/, 'Debe limpiar la base temporal en CLEANUP');
   assert.match(content, /ALLOW_PROD_RESTORE/, 'Debe proteger contra ejecuciones no autorizadas en producción');
@@ -93,7 +105,7 @@ test('🛡️ Gobernanza & Arquitectura: Suite formal de ADRs existe en docs/dec
     'ADR-003-gitops-with-argocd.md',
     'ADR-004-opentofu-and-ansible-boundaries.md',
     'ADR-005-secret-management.md',
-    'ADR-006-disaster-recovery-strategy.md'
+    'ADR-006-disaster-recovery-strategy.md',
   ];
 
   for (const adr of adrs) {
@@ -112,7 +124,7 @@ test('🛡️ Excelencia Operacional: Runbooks formales estructurados en docs/op
     'incident-response.md',
     'backup-restore.md',
     'kubernetes-troubleshooting.md',
-    'secret-rotation.md'
+    'secret-rotation.md',
   ];
 
   for (const runbook of runbooks) {

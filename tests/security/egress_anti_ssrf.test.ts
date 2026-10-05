@@ -117,7 +117,7 @@ function evaluateL7CiliumPolicy(target: EgressTarget, fqdnAllowlist: string[]): 
   }
 
   // Comprobar coincidencia exacta o con wildcard
-  const matches = fqdnAllowlist.some(pattern => {
+  const matches = fqdnAllowlist.some((pattern) => {
     if (pattern.startsWith('*.')) {
       const suffix = pattern.slice(1); // ej: .pokeapi.co
       return target.host.endsWith(suffix) || target.host === pattern.slice(2);
@@ -139,28 +139,28 @@ test('🛡️ Egress Matrix: Verificación formal de los 6 destinos requeridos b
     assert.equal(
       l7Decision,
       target.expectedL7Cilium,
-      `[Cilium L7] ${target.name} (${target.url}) debió resultar en ${target.expectedL7Cilium} pero fue ${l7Decision}. Razón: ${target.reason}`
+      `[Cilium L7] ${target.name} (${target.url}) debió resultar en ${target.expectedL7Cilium} pero fue ${l7Decision}. Razón: ${target.reason}`,
     );
 
     // 2. Validar comportamiento bajo Flannel L4
     assert.equal(
       l4Decision,
       target.expectedL4Flannel,
-      `[Flannel L4] ${target.name} (${target.url}) debió resultar en ${target.expectedL4Flannel} pero fue ${l4Decision}. Razón: ${target.reason}`
+      `[Flannel L4] ${target.name} (${target.url}) debió resultar en ${target.expectedL4Flannel} pero fue ${l4Decision}. Razón: ${target.reason}`,
     );
   }
 
   // Demostración explícita de la brecha de seguridad de Flannel L4:
-  const exampleTarget = TEST_TARGETS.find(t => t.host === 'example.com')!;
+  const exampleTarget = TEST_TARGETS.find((t) => t.host === 'example.com')!;
   assert.equal(
     evaluateL7CiliumPolicy(exampleTarget, ciliumAllowlist),
     'DENY',
-    'Cilium L7 DEBE bloquear https://example.com'
+    'Cilium L7 DEBE bloquear https://example.com',
   );
   assert.equal(
     evaluateL4Policy(exampleTarget, true),
     'ALLOW',
-    'Flannel L4 NO PUEDE bloquear https://example.com porque 0.0.0.0/0:443 lo permite'
+    'Flannel L4 NO PUEDE bloquear https://example.com porque 0.0.0.0/0:443 lo permite',
   );
 });
 
@@ -170,7 +170,7 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
 
   const renderedCilium = execSync(
     `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/cilium-network-policies.yaml`,
-    { encoding: 'utf-8' }
+    { encoding: 'utf-8' },
   );
 
   assert.match(renderedCilium, /kind:\s*CiliumNetworkPolicy/, 'Debe generar recurso CiliumNetworkPolicy');
@@ -178,22 +178,26 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
   assert.match(
     renderedCilium,
     /matchName:\s*["']?generativelanguage\.googleapis\.com/,
-    'Debe permitir generativelanguage.googleapis.com'
+    'Debe permitir generativelanguage.googleapis.com',
   );
   assert.match(renderedCilium, /matchPattern:\s*["']?\*\.pokeapi\.co/, 'Debe permitir *.pokeapi.co');
-  assert.match(renderedCilium, /matchPattern:\s*["']?\*\.githubusercontent\.com/, 'Debe permitir *.githubusercontent.com');
+  assert.match(
+    renderedCilium,
+    /matchPattern:\s*["']?\*\.githubusercontent\.com/,
+    'Debe permitir *.githubusercontent.com',
+  );
   assert.doesNotMatch(renderedCilium, /example\.com/, 'NO debe permitir example.com');
 
   // Verificar que en producción, el L4 permisivo 0.0.0.0/0 en network-policies.yaml está desactivado
   const renderedL4 = execSync(
     `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/network-policies.yaml`,
-    { encoding: 'utf-8' }
+    { encoding: 'utf-8' },
   );
 
   assert.doesNotMatch(
     renderedL4,
     /169\.254\.169\.254\/32/,
-    'En producción con Cilium activo, la regla L4 0.0.0.0/0 se omite para delegar el control total a Cilium L7'
+    'En producción con Cilium activo, la regla L4 0.0.0.0/0 se omite para delegar el control total a Cilium L7',
   );
 });
 
@@ -203,17 +207,32 @@ test('🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti
   // CRD inexistente en el clúster, y el sync de ArgoCD falla por completo.
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const valuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
-  const rendered = execSync(`helm template pokedex "${chartPath}" -f "${valuesPath}"`, { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 });
+  const rendered = execSync(`helm template pokedex "${chartPath}" -f "${valuesPath}"`, {
+    encoding: 'utf-8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
 
-  assert.doesNotMatch(rendered, /kind:\s*CiliumNetworkPolicy/, 'pre-prod no debe renderizar CiliumNetworkPolicy mientras corra Flannel');
-  assert.match(rendered, /cidr:\s*0\.0\.0\.0\/0\s*\n\s*except:/, 'El fallback L4 debe abrir 443 con lista de exclusiones');
+  assert.doesNotMatch(
+    rendered,
+    /kind:\s*CiliumNetworkPolicy/,
+    'pre-prod no debe renderizar CiliumNetworkPolicy mientras corra Flannel',
+  );
+  assert.match(
+    rendered,
+    /cidr:\s*0\.0\.0\.0\/0\s*\n\s*except:/,
+    'El fallback L4 debe abrir 443 con lista de exclusiones',
+  );
   for (const blocked of ['169.254.169.254/32', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']) {
     assert.ok(rendered.includes(`- ${blocked}`), `El fallback L4 debe excluir ${blocked} (anti-SSRF)`);
   }
 
   const values = fs.readFileSync(valuesPath, 'utf-8');
   assert.match(values, /antiSsrf:\s*true/, 'pre-prod debe mantener antiSsrf');
-  assert.match(values, /matchName:\s*["']?generativelanguage\.googleapis\.com/, 'La allowlist FQDN se conserva para cuando vuelva Cilium');
+  assert.match(
+    values,
+    /matchName:\s*["']?generativelanguage\.googleapis\.com/,
+    'La allowlist FQDN se conserva para cuando vuelva Cilium',
+  );
 });
 
 test('🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7', () => {

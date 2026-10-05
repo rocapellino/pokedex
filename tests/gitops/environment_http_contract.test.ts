@@ -35,8 +35,12 @@ function mergeValues(base: Values, override: Values): Values {
   for (const [key, value] of Object.entries(override ?? {})) {
     const current = result[key];
     const bothMaps =
-      value && typeof value === 'object' && !Array.isArray(value) &&
-      current && typeof current === 'object' && !Array.isArray(current);
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      current &&
+      typeof current === 'object' &&
+      !Array.isArray(current);
     result[key] = bothMaps ? mergeValues(current, value) : value;
   }
   return result;
@@ -63,7 +67,7 @@ function renderedIngressAnnotations(valueFiles: string[]): Record<string, string
   const rendered = execFileSync(
     'helm',
     ['template', 'pokedex', CHART_DIR, ...valueFiles.flatMap((file) => ['-f', file]), '-s', 'templates/ingress.yaml'],
-    { encoding: 'utf8' }
+    { encoding: 'utf8' },
   );
   const ingress = yaml.loadAll(rendered).find((doc: any) => doc?.kind === 'Ingress') as Values | undefined;
   return ingress?.metadata?.annotations ?? {};
@@ -124,7 +128,7 @@ for (const { app, values, valueFiles } of environments) {
   test(`🔐 AUD-SEC-TLS-001: ${app} no renderiza anotaciones de un controlador distinto`, () => {
     if (!values.ingress?.enabled || values.ingress.className !== 'traefik') return;
     const foreign = Object.keys(renderedIngressAnnotations(valueFiles)).filter((key) =>
-      /^(nginx\.ingress\.kubernetes\.io|cert-manager\.io)\//.test(key)
+      /^(nginx\.ingress\.kubernetes\.io|cert-manager\.io)\//.test(key),
     );
     assert.deepEqual(foreign, [], `${app}: anotaciones ignoradas por Traefik: ${foreign.join(', ')}`);
   });
@@ -145,7 +149,7 @@ for (const { app, values, valueFiles } of environments) {
     for (const expected of expectedOrigins(values)) {
       assert.ok(
         origins.includes(expected),
-        `${app}: falta ${expected} en api.env.corsOrigins (declarado: ${origins.join(', ')})`
+        `${app}: falta ${expected} en api.env.corsOrigins (declarado: ${origins.join(', ')})`,
       );
     }
   });

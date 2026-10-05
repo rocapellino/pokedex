@@ -60,9 +60,10 @@ export function requestTracer(req: Request, res: Response, next: NextFunction): 
 
   // Preservar o asignar X-Request-Id para clientes HTTP tradicionales
   const incomingRequestId = req.headers['x-request-id'] || req.headers['x-correlation-id'];
-  const requestId = (typeof incomingRequestId === 'string' && /^[a-zA-Z0-9\-_]{1,64}$/.test(incomingRequestId))
-    ? incomingRequestId
-    : traceId;
+  const requestId =
+    typeof incomingRequestId === 'string' && /^[a-zA-Z0-9\-_]{1,64}$/.test(incomingRequestId)
+      ? incomingRequestId
+      : traceId;
 
   const traceContext: TraceContext = {
     traceId,

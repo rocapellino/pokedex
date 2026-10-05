@@ -66,7 +66,10 @@ test('🌱 SeedCatalog: las evoluciones referencian especies del propio catálog
   for (const entry of fullCatalog) {
     const nodes = entry.evoluciones as EvolutionNode[];
     assert.ok(Array.isArray(nodes) && nodes.length > 0, `#${entry.id} debe declarar su cadena evolutiva`);
-    assert.ok(nodes.some((n) => n.id === entry.id), `#${entry.id} debe figurar en su propia cadena`);
+    assert.ok(
+      nodes.some((n) => n.id === entry.id),
+      `#${entry.id} debe figurar en su propia cadena`,
+    );
     for (const node of nodes) {
       assert.ok(ids.has(node.id), `#${entry.id}: la evolución ${node.id} no existe en el catálogo`);
     }
@@ -93,7 +96,10 @@ const tiny = initialPokemons.slice(0, 3);
 test('🌱 SeedPlan: sin FORCE_SEED solo inserta los IDs ausentes', () => {
   const plan = planSeed(tiny, new Set([tiny[0].id]), { isProduction: true });
   assert.equal(plan.mode, 'insert-missing');
-  assert.deepEqual(plan.toSeed.map((p) => p.id), [tiny[1].id, tiny[2].id]);
+  assert.deepEqual(
+    plan.toSeed.map((p) => p.id),
+    [tiny[1].id, tiny[2].id],
+  );
 });
 
 test('🌱 SeedPlan: con el catálogo completo persistido no hay nada que sembrar', () => {

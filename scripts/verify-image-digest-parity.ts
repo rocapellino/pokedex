@@ -37,8 +37,16 @@ export type ImageComponent = 'api' | 'web';
 
 /** Plantilla y contenedor que renderizan la imagen de cada componente. */
 const COMPONENTS: Record<ImageComponent, { template: string; container: string; defaultRepository: string }> = {
-  api: { template: 'templates/api-deployment.yaml', container: 'api', defaultRepository: 'ghcr.io/rocapellino/pokedex-api' },
-  web: { template: 'templates/web-deployment.yaml', container: 'web', defaultRepository: 'ghcr.io/rocapellino/pokedex-web' },
+  api: {
+    template: 'templates/api-deployment.yaml',
+    container: 'api',
+    defaultRepository: 'ghcr.io/rocapellino/pokedex-api',
+  },
+  web: {
+    template: 'templates/web-deployment.yaml',
+    container: 'web',
+    defaultRepository: 'ghcr.io/rocapellino/pokedex-web',
+  },
 };
 
 export interface EnvironmentDigestResult {
@@ -117,7 +125,7 @@ function getChartMtime(chartDir: string): number {
 export function extractRenderedApiImage(
   chartPath: string,
   valuesPath: string,
-  options: { strict?: boolean; skipCache?: boolean } = {}
+  options: { strict?: boolean; skipCache?: boolean } = {},
 ): string {
   return extractRenderedImage(chartPath, valuesPath, 'api', options);
 }
@@ -130,12 +138,12 @@ export function extractRenderedImage(
   chartPath: string,
   valuesPath: string,
   component: ImageComponent,
-  options: { strict?: boolean; skipCache?: boolean } = {}
+  options: { strict?: boolean; skipCache?: boolean } = {},
 ): string {
   const spec = COMPONENTS[component];
   const resolvedValues = path.resolve(process.cwd(), valuesPath);
   const resolvedChart = path.resolve(process.cwd(), chartPath);
-  const isStrict = options.strict ?? (process.env.STRICT_HELM === 'true');
+  const isStrict = options.strict ?? process.env.STRICT_HELM === 'true';
 
   if (!fs.existsSync(resolvedValues)) {
     throw new Error(`Archivo de values no encontrado: ${resolvedValues}`);
@@ -169,7 +177,7 @@ export function extractRenderedImage(
     helmExecError = err as Error;
     if (isStrict) {
       throw new Error(
-        `[Modo Estricto CI - Sin Fallback] Falló la ejecución obligatoria de 'helm template' para ${valuesPath}:\n${helmExecError.message}`
+        `[Modo Estricto CI - Sin Fallback] Falló la ejecución obligatoria de 'helm template' para ${valuesPath}:\n${helmExecError.message}`,
       );
     }
   }
@@ -177,12 +185,14 @@ export function extractRenderedImage(
   if (helmOutput) {
     const documents = yaml.loadAll(helmOutput) as Array<Record<string, unknown> | null>;
     const containersOf = (doc: Record<string, unknown>) => {
-      const template = (doc.spec as Record<string, unknown> | undefined)?.template as Record<string, unknown> | undefined;
+      const template = (doc.spec as Record<string, unknown> | undefined)?.template as
+        | Record<string, unknown>
+        | undefined;
       const podSpec = template?.spec as Record<string, unknown> | undefined;
       return (podSpec?.containers || []) as Array<{ name: string; image?: string }>;
     };
     const deployment = documents.find(
-      (doc) => doc && doc.kind === 'Deployment' && containersOf(doc).some((c) => c.name === spec.container)
+      (doc) => doc && doc.kind === 'Deployment' && containersOf(doc).some((c) => c.name === spec.container),
     );
 
     if (deployment) {
@@ -196,7 +206,7 @@ export function extractRenderedImage(
 
     if (isStrict) {
       throw new Error(
-        `[Modo Estricto CI - Sin Fallback] 'helm template' no generó un Deployment con el contenedor '${spec.container}' en ${valuesPath}`
+        `[Modo Estricto CI - Sin Fallback] 'helm template' no generó un Deployment con el contenedor '${spec.container}' en ${valuesPath}`,
       );
     }
   }
@@ -204,7 +214,7 @@ export function extractRenderedImage(
   // 2. Fallback determinista mediante AST parsing (js-yaml) reservado exclusivamente para desarrollo local
   if (isStrict) {
     throw new Error(
-      `[Modo Estricto CI - Sin Fallback] Se requiere 'helm template' válido en release de CI para ${valuesPath}. El fallback a values AST está prohibido.`
+      `[Modo Estricto CI - Sin Fallback] Se requiere 'helm template' válido en release de CI para ${valuesPath}. El fallback a values AST está prohibido.`,
     );
   }
 
@@ -222,7 +232,8 @@ export function extractRenderedImage(
   const envApi = envDoc?.[component] as Record<string, unknown> | undefined;
   const envApiImage = (envApi?.image as Record<string, unknown>) || {};
 
-  const repository = (envApiImage.repository as string) || (baseApiImage.repository as string) || spec.defaultRepository;
+  const repository =
+    (envApiImage.repository as string) || (baseApiImage.repository as string) || spec.defaultRepository;
   const digest = (envApiImage.digest as string) || (baseApiImage.digest as string);
   const tag = (envApiImage.tag as string) || (baseApiImage.tag as string);
 
@@ -248,7 +259,7 @@ export function parseImmutableDigest(imageString: string): string {
   const parts = imageString.split('@');
   if (parts.length !== 2) {
     throw new Error(
-      `Violación de seguridad de Supply Chain: La imagen '${imageString}' no utiliza digest inmutable (@sha256:...). El uso de tags o :latest está estrictamente prohibido.`
+      `Violación de seguridad de Supply Chain: La imagen '${imageString}' no utiliza digest inmutable (@sha256:...). El uso de tags o :latest está estrictamente prohibido.`,
     );
   }
 
@@ -267,7 +278,7 @@ export function parseImmutableDigest(imageString: string): string {
 export function verifyImageDigestParity(options: VerificationOptions = {}): EnvironmentDigestResult[] {
   const chartPath = options.chartPath || DEFAULT_CHART_PATH;
   const envs = options.environments || DEFAULT_ENVIRONMENTS;
-  const strict = options.strict ?? (process.env.STRICT_HELM === 'true');
+  const strict = options.strict ?? process.env.STRICT_HELM === 'true';
   const results: EnvironmentDigestResult[] = [];
 
   const modeLabel = strict ? 'Helm Template Real [CI Estricto - Sin Fallback]' : 'Helm Template / Fallback Dev';
@@ -296,7 +307,7 @@ export function verifyImageDigestParity(options: VerificationOptions = {}): Envi
         `❌ Discrepancia crítica de digest entre entornos:\n` +
           `   ${baseResult.envName} (${baseResult.valuesPath}): ${baseResult.digest}\n` +
           `   ${current.envName} (${current.valuesPath}): ${current.digest}\n` +
-          `Todos los entornos de producción y GitOps deben apuntar al mismo digest inmutable.`
+          `Todos los entornos de producción y GitOps deben apuntar al mismo digest inmutable.`,
       );
     }
   }
@@ -316,7 +327,7 @@ export function verifyImageDigestParity(options: VerificationOptions = {}): Envi
 ` +
           `   ${current.envName} (${current.valuesPath}): ${current.digest}
 ` +
-          `Todos los entornos deben desplegar el mismo digest inmutable de pokedex-web.`
+          `Todos los entornos deben desplegar el mismo digest inmutable de pokedex-web.`,
       );
     }
   }
@@ -330,12 +341,14 @@ export function verifyImageDigestParity(options: VerificationOptions = {}): Envi
         `❌ Discrepancia entre la imagen publicada en CI y los manifiestos GitOps:\n` +
           `   Digest Publicado (CI): ${expected}\n` +
           `   Digest GitOps / Helm:  ${baseResult.digest}\n` +
-          `Los manifiestos GitOps deben sincronizarse con la imagen recién publicada antes de firmar el release.`
+          `Los manifiestos GitOps deben sincronizarse con la imagen recién publicada antes de firmar el release.`,
       );
     }
   }
 
-  console.log(`🔒 Paridad criptográfica 1:1 certificada en Kubernetes (${results.map((r) => r.envName).join(' == ')}): ${baseResult.digest}`);
+  console.log(
+    `🔒 Paridad criptográfica 1:1 certificada en Kubernetes (${results.map((r) => r.envName).join(' == ')}): ${baseResult.digest}`,
+  );
   return results;
 }
 

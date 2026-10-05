@@ -214,12 +214,7 @@ test('🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alt
   assert.ok(currentNodeHtml.includes('evolution-type-mini'));
 
   // Nodo diferente con método visible
-  const nextNodeHtml = renderSingleEvolutionNode(
-    { id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' },
-    1,
-    true,
-    catalog
-  );
+  const nextNodeHtml = renderSingleEvolutionNode({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' }, 1, true, catalog);
   assert.ok(!nextNodeHtml.includes('active-current'));
   assert.ok(nextNodeHtml.includes('Ver ficha de Ivysaur'));
   assert.ok(nextNodeHtml.includes('evolution-method-tag'));
@@ -242,7 +237,7 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallback
       { id: 3, nombre: 'Venusaur', metodo: 'Nivel 32' },
     ],
     1,
-    catalog
+    catalog,
   );
   assert.ok(multiArrayHtml.includes('evolution-transition-connector'));
 
@@ -337,4 +332,3 @@ test('🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrice
   assert.ok(dragonWeak.includes('Hada'));
   assert.ok(dragonWeak.includes('Hielo'));
 });
-

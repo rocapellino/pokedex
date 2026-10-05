@@ -18,7 +18,7 @@ export function createRateLimiter(
   maxRequests: number,
   windowMs: number,
   serviceName = 'Servicio',
-  options: RateLimiterOptions = {}
+  options: RateLimiterOptions = {},
 ) {
   const clients = new Map<string, RateLimitEntry>();
 
@@ -43,7 +43,7 @@ export function createRateLimiter(
       const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
       const rateKey = `${serviceName.toLowerCase().replace(/[^a-z0-9]/g, '')}:${ip}`;
 
-      const unit = windowMs >= 24 * 3600 * 1000 ? 'día' : (windowMs >= 3600 * 1000 ? 'hora' : 'min');
+      const unit = windowMs >= 24 * 3600 * 1000 ? 'día' : windowMs >= 3600 * 1000 ? 'hora' : 'min';
 
       // 1. Intentar rate limiting distribuido con Redis (multi-pod / multi-instancia)
       const distResult = await consumeDistributedRateLimit(rateKey, maxRequests, windowMs);
@@ -92,7 +92,9 @@ export function createRateLimiter(
 }
 
 export const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { failClosedOnRedisOutage: true });
-export const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', { failClosedOnRedisOutage: true });
+export const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', {
+  failClosedOnRedisOutage: true,
+});
 export const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
 export const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
 export const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');

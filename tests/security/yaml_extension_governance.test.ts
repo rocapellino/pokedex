@@ -24,20 +24,16 @@ test('📐 Extension Governance: el gate pasa en modo normal y estricto sin viol
   for (const mode of ['', '--strict']) {
     const stdout = execSync(`npx tsx "${scriptPath}" --json ${mode}`.trim(), {
       cwd: ROOT_DIR,
-      encoding: 'utf-8'
+      encoding: 'utf-8',
     });
     const report = JSON.parse(stdout);
 
     assert.equal(report.valid, true, `El reporte (${mode || 'normal'}) debe ser válido`);
-    assert.equal(
-      report.undeclared.length,
-      0,
-      `No debe haber archivos .yml fuera del allowlist (${mode || 'normal'})`
-    );
+    assert.equal(report.undeclared.length, 0, `No debe haber archivos .yml fuera del allowlist (${mode || 'normal'})`);
     assert.equal(
       report.staleEntries.length,
       0,
-      `El allowlist no debe contener entradas obsoletas (${mode || 'normal'})`
+      `El allowlist no debe contener entradas obsoletas (${mode || 'normal'})`,
     );
   }
 });
@@ -45,7 +41,7 @@ test('📐 Extension Governance: el gate pasa en modo normal y estricto sin viol
 test('📐 Extension Governance: toda la deuda .yml del repositorio está declarada y esSubset del disco', () => {
   const stdout = execSync(`npx tsx "${path.join(ROOT_DIR, 'scripts/check-yaml-extension.ts')}" --json`, {
     cwd: ROOT_DIR,
-    encoding: 'utf-8'
+    encoding: 'utf-8',
   });
   const report = JSON.parse(stdout);
 
@@ -53,7 +49,7 @@ test('📐 Extension Governance: toda la deuda .yml del repositorio está declar
   for (const file of report.found) {
     assert.ok(
       LEGACY_YML_ALLOWLIST.includes(file),
-      `El archivo .yml ${file} debe estar declarado en LEGACY_YML_ALLOWLIST`
+      `El archivo .yml ${file} debe estar declarado en LEGACY_YML_ALLOWLIST`,
     );
   }
 
@@ -61,7 +57,7 @@ test('📐 Extension Governance: toda la deuda .yml del repositorio está declar
   for (const entry of LEGACY_YML_ALLOWLIST) {
     assert.ok(
       report.found.includes(entry),
-      `La entrada ${entry} del allowlist debe existir en disco (drenar allowlist obsoleta)`
+      `La entrada ${entry} del allowlist debe existir en disco (drenar allowlist obsoleta)`,
     );
   }
 
@@ -72,7 +68,7 @@ test('📐 Extension Governance: toda la deuda .yml del repositorio está declar
 
   assert.ok(
     yamlCount > report.found.length,
-    `La adopción de .yaml (${yamlCount}) debe superar a la deuda .yml (${report.found.length})`
+    `La adopción de .yaml (${yamlCount}) debe superar a la deuda .yml (${report.found.length})`,
   );
 });
 
@@ -89,9 +85,7 @@ test('📐 Extension Governance: el gate es fail-closed ante un .yml trackeado n
     let report: { undeclared: string[] } | null = null;
 
     try {
-      report = JSON.parse(
-        execSync(`npx tsx "${scriptPath}" --json`, { cwd: ROOT_DIR, encoding: 'utf-8' })
-      );
+      report = JSON.parse(execSync(`npx tsx "${scriptPath}" --json`, { cwd: ROOT_DIR, encoding: 'utf-8' }));
     } catch (error) {
       // El gate debe terminar con código de error (fail-closed) y aún reportar el archivo.
       failed = true;
@@ -103,7 +97,7 @@ test('📐 Extension Governance: el gate es fail-closed ante un .yml trackeado n
     assert.ok(report !== null, 'El gate debe emitir el reporte JSON incluso al fallar');
     assert.ok(
       report!.undeclared.includes(relativeProbe),
-      `El reporte debe señalar ${relativeProbe} como .yml no declarado`
+      `El reporte debe señalar ${relativeProbe} como .yml no declarado`,
     );
   } finally {
     try {
@@ -124,6 +118,6 @@ test('📐 Extension Governance: CI y el contrato de impacto integran el gate de
   assert.match(
     ciImpact,
     /scripts\/check-yaml-extension\.ts/,
-    'ci-impact.yaml debe incluir el script del gate en las rutas de linting'
+    'ci-impact.yaml debe incluir el script del gate en las rutas de linting',
   );
 });

@@ -121,7 +121,8 @@ export function applyAdminFilters(): void {
 }
 
 export function handleAdminSearch(): void {
-  const input = (document.getElementById('adminSearch') || document.getElementById('adminSearchInput')) as HTMLInputElement | null;
+  const input = (document.getElementById('adminSearch') ||
+    document.getElementById('adminSearchInput')) as HTMLInputElement | null;
   currentSearch = input ? input.value : '';
   window.clearTimeout(searchDebounceTimeout);
   searchDebounceTimeout = window.setTimeout(() => {

@@ -99,7 +99,7 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
       .analyze();
 
     const seriousViolations = accessibilityScanResults.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
+      (v) => v.impact === 'critical' || v.impact === 'serious',
     );
 
     expect(seriousViolations).toEqual([]);

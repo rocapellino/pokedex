@@ -16,11 +16,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import {
-  IMAGE_VALUES_FILES,
-  applyImageDigests,
-  replaceComponentDigest,
-} from '../../scripts/update-image-digests.ts';
+import { IMAGE_VALUES_FILES, applyImageDigests, replaceComponentDigest } from '../../scripts/update-image-digests.ts';
 
 const API = `sha256:${'a'.repeat(64)}`;
 const WEB = `sha256:${'b'.repeat(64)}`;
@@ -96,16 +92,27 @@ test('🧬 Promoción: los values reales tienen un digest api y uno web reemplaz
 
 test('🧬 Promoción: release-tag fija digests verificados con Cosign en el PR de promoción', () => {
   const workflowText = fs.readFileSync(path.join(process.cwd(), '.github/workflows/release-tag.yaml'), 'utf8');
-  const workflow = yaml.load(workflowText) as { permissions: Record<string, string>; jobs: Record<string, { steps: Array<Record<string, any>> }> };
+  const workflow = yaml.load(workflowText) as {
+    permissions: Record<string, string>;
+    jobs: Record<string, { steps: Array<Record<string, any>> }>;
+  };
   const steps = Object.values(workflow.jobs).flatMap((job) => job.steps);
 
-  assert.equal(workflow.permissions.packages, 'read', 'release-tag necesita packages: read para resolver digests en GHCR');
+  assert.equal(
+    workflow.permissions.packages,
+    'read',
+    'release-tag necesita packages: read para resolver digests en GHCR',
+  );
 
   const resolve = steps.find((step) => step.id === 'image-digests');
   assert.ok(resolve, 'Debe existir el paso image-digests en la fase promote');
   assert.match(String(resolve.if), /phase == 'promote'/);
   const run = String(resolve.run);
-  assert.match(run, /REPO="ghcr\.io\/\$\{GITHUB_REPOSITORY_OWNER\}\/pokedex-\$\{component\}"/, 'Debe resolver pokedex-api y pokedex-web');
+  assert.match(
+    run,
+    /REPO="ghcr\.io\/\$\{GITHUB_REPOSITORY_OWNER\}\/pokedex-\$\{component\}"/,
+    'Debe resolver pokedex-api y pokedex-web',
+  );
   assert.match(run, /for component in api web; do/);
   assert.match(run, /REF="\$\{REPO\}:\$\{GITHUB_SHA\}"/, 'Debe resolver la imagen construida para el mismo commit');
   assert.match(run, /cosign verify/, 'Debe verificar la firma antes de fijar el digest');

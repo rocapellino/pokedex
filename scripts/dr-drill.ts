@@ -155,9 +155,12 @@ async function executeDrDrill(options: DrDrillOptions, tempBase: string): Promis
   fs.mkdirSync(remoteStorageDir, { recursive: true });
   fs.mkdirSync(localRestoreDir, { recursive: true });
 
-  const encryptionKey = options.encryptionKey || process.env.BACKUP_ENCRYPTION_KEY || 'pokedex_dr_drill_dynamic_key_2026';
+  const encryptionKey =
+    options.encryptionKey || process.env.BACKUP_ENCRYPTION_KEY || 'pokedex_dr_drill_dynamic_key_2026';
   if (!encryptionKey || encryptionKey.length < 32) {
-    throw new Error(`[DR Security] BACKUP_ENCRYPTION_KEY tiene entropía insuficiente (${encryptionKey?.length || 0} caracteres < 32 mínimos requeridos)`);
+    throw new Error(
+      `[DR Security] BACKUP_ENCRYPTION_KEY tiene entropía insuficiente (${encryptionKey?.length || 0} caracteres < 32 mínimos requeridos)`,
+    );
   }
 
   // 2. Generar fuente de datos canónica Pokédex (DDL + DML)
@@ -211,13 +214,16 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   const tiempoCopiaMs = Math.round(tCopiaEnd - tCopiaStart);
 
   // Verificación de presencia del objeto remoto
-  const remoteObjectPresent = fs.existsSync(remoteBackupFilePath) && fs.statSync(remoteBackupFilePath).size === backupSizeBytes;
+  const remoteObjectPresent =
+    fs.existsSync(remoteBackupFilePath) && fs.statSync(remoteBackupFilePath).size === backupSizeBytes;
   const remoteObjectUri = options.useLiveGdrive
     ? `gdrive:${options.gdriveFolder || 'PokedexBackups/prod'}/${backupFileName}`
     : `remote://${remoteStorageDir.replace(/\\/g, '/')}/${backupFileName}`;
 
   log(`☁️ [4/6] Tiempo de copia remota: ${tiempoCopiaMs} ms`);
-  log(`🛰️ Presencia de objeto remoto certificada: ${remoteObjectPresent ? 'SÍ (200 OK)' : 'NO (Fallo)'} en ${remoteObjectUri}`);
+  log(
+    `🛰️ Presencia de objeto remoto certificada: ${remoteObjectPresent ? 'SÍ (200 OK)' : 'NO (Fallo)'} en ${remoteObjectUri}`,
+  );
 
   if (!remoteObjectPresent) {
     throw new Error(`Objeto remoto ausente en destino off-site: ${remoteObjectUri}`);
@@ -248,7 +254,7 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
 
   if (downloadedSha256 !== expectedSha256 || downloadedSha256 !== checksumSha256) {
     throw new Error(
-      `Fallo crítico de integridad SHA-256 en descarga remota. Obtenido: ${downloadedSha256}, Esperado: ${expectedSha256}`
+      `Fallo crítico de integridad SHA-256 en descarga remota. Obtenido: ${downloadedSha256}, Esperado: ${expectedSha256}`,
     );
   }
   log(`✅ Checksum SHA-256 de descarga validado con éxito: ${downloadedSha256}`);
@@ -289,14 +295,16 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
     try {
       execSync(
         `docker run -d --name "${containerName}" -e POSTGRES_PASSWORD=drill_pass -e POSTGRES_DB=pokedex_drill ${postgresImage}`,
-        { stdio: 'ignore' }
+        { stdio: 'ignore' },
       );
 
       // Esperar readiness real de Postgres (comprobando que acepte conexiones de psql)
       let ready = false;
       for (let i = 0; i < 30; i++) {
         try {
-          execSync(`docker exec "${containerName}" psql -U postgres -d pokedex_drill -c "SELECT 1;"`, { stdio: 'ignore' });
+          execSync(`docker exec "${containerName}" psql -U postgres -d pokedex_drill -c "SELECT 1;"`, {
+            stdio: 'ignore',
+          });
           ready = true;
           break;
         } catch {
@@ -320,25 +328,25 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
       const tValStart = performance.now();
       const countOutput = execSync(
         `docker exec "${containerName}" psql -U postgres -d pokedex_drill -tAc "SELECT count(*) FROM pokedex_entries;"`,
-        { encoding: 'utf-8' }
+        { encoding: 'utf-8' },
       );
       cantidadRegistrosRestaurados = parseInt(countOutput.trim(), 10);
 
       const pkOutput = execSync(
         `docker exec "${containerName}" psql -U postgres -d pokedex_drill -tAc "SELECT conname FROM pg_constraint WHERE conrelid = 'pokedex_entries'::regclass AND contype = 'p';"`,
-        { encoding: 'utf-8' }
+        { encoding: 'utf-8' },
       );
       primaryKey = pkOutput.trim() || null;
 
       const idxOutput = execSync(
         `docker exec "${containerName}" psql -U postgres -d pokedex_drill -tAc "SELECT indexname FROM pg_indexes WHERE tablename = 'pokedex_entries';"`,
-        { encoding: 'utf-8' }
+        { encoding: 'utf-8' },
       );
       indicesDetectados = idxOutput.trim().split(/\r?\n/).filter(Boolean);
 
       const tablesOutput = execSync(
         `docker exec "${containerName}" psql -U postgres -d pokedex_drill -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';"`,
-        { encoding: 'utf-8' }
+        { encoding: 'utf-8' },
       );
       tablasTotal = parseInt(tablesOutput.trim(), 10) || 1;
 
@@ -352,7 +360,9 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
       }
     }
   } else {
-    log('ℹ️ Docker no disponible o skipPostgresContainer activo: ejecutando validación estructural sintáctica de alto rendimiento...');
+    log(
+      'ℹ️ Docker no disponible o skipPostgresContainer activo: ejecutando validación estructural sintáctica de alto rendimiento...',
+    );
     const tRestoreStart = performance.now();
     // Parseo y aserción estricta de estructura SQL
     if (!decryptedSql.includes('pokedex_entries')) {
@@ -422,14 +432,20 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   log(`1.  Backup Timestamp              : ${result.backupTimestamp}`);
   log(`2.  Tamaño                        : ${result.backupSizeFormatted}`);
   log(`3.  Checksum SHA-256              : ${result.checksumSha256}`);
-  log(`4.  Presencia Objeto Remoto       : ${result.remoteObjectPresent ? 'CONFIRMADO' : 'FALLO'} (${result.remoteObjectUri})`);
+  log(
+    `4.  Presencia Objeto Remoto       : ${result.remoteObjectPresent ? 'CONFIRMADO' : 'FALLO'} (${result.remoteObjectUri})`,
+  );
   log(`5.  Tiempo de Copia               : ${result.tiempoCopiaMs} ms`);
   log(`6.  Tiempo de Descarga            : ${result.tiempoDescargaMs} ms`);
   log(`7.  Tiempo de Descifrado          : ${result.tiempoDescifradoMs} ms`);
   log(`8.  Tiempo de Restore             : ${result.tiempoRestoreMs} ms`);
   log(`9.  Cantidad Registros Restaurados: ${result.cantidadRegistrosRestaurados}`);
-  log(`10. RPO Efectivo                  : ${result.rpoEfectivoFormatted} [SLA < 24h: ${result.rpoSlaPassed ? 'CUMPLIDO' : 'FALLO'}]`);
-  log(`11. RTO Efectivo                  : ${result.rtoEfectivoFormatted} [SLA < 2h: ${result.rtoSlaPassed ? 'CUMPLIDO' : 'FALLO'}]`);
+  log(
+    `10. RPO Efectivo                  : ${result.rpoEfectivoFormatted} [SLA < 24h: ${result.rpoSlaPassed ? 'CUMPLIDO' : 'FALLO'}]`,
+  );
+  log(
+    `11. RTO Efectivo                  : ${result.rtoEfectivoFormatted} [SLA < 2h: ${result.rtoSlaPassed ? 'CUMPLIDO' : 'FALLO'}]`,
+  );
   log('================================================================');
   log(`Resultado Global: ${result.drillPassed ? '✅ DR DRILL EXITOSO' : '❌ DR DRILL FALLIDO'}\n`);
 

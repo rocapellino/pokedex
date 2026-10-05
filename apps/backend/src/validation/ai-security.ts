@@ -60,7 +60,7 @@ export function sanitizePrompt(rawPrompt: string, maxLength = 500): string {
   // 4. Neutralizar frases de jailbreak / desobediencia de instrucciones
   cleaned = cleaned.replace(
     /\b(ignore|forget|disregard)\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)/gi,
-    '[instruccion_neutralizada]'
+    '[instruccion_neutralizada]',
   );
 
   return cleaned.trim();

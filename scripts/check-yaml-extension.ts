@@ -42,12 +42,21 @@ export const EXCEPTIONS: { pattern: RegExp; reason: string }[] = [
   { pattern: /\.mega-linter\.yml\b/, reason: 'Excepcion permanente: nombre de config impuesto por MegaLinter' },
   { pattern: /\.travis\.yml\b/, reason: 'Nombre historico literal de herramienta retirada' },
   { pattern: /sigstore\/gitsign\/\.github\/workflows\/release\.yml/, reason: 'Claim criptografico upstream (Gitsign)' },
-  { pattern: /deploy_proxmox\.yml|deploy_app\.yml|docker-compose\.prod\.yml/, reason: 'Archivos RETIRADOS citados como referencia historica' },
+  {
+    pattern: /deploy_proxmox\.yml|deploy_app\.yml|docker-compose\.prod\.yml/,
+    reason: 'Archivos RETIRADOS citados como referencia historica',
+  },
   { pattern: /\*\.yml/, reason: 'Patron glob generico (documentacion de convenciones)' },
   { pattern: /Taskfile\.yml|taskfile\.yml/, reason: 'Nombre alterno soportado por go-task' },
   { pattern: /playbooks\/\*\.yml/, reason: 'Globs historicos citados en laWave 1 (fail-open ya resuelto)' },
-  { pattern: /Taskfile\.yml` a `Taskfile\.yaml|busca `Taskfile\.yml`/, reason: 'Documenta la resolucion de nombres de go-task' },
-  { pattern: /ci\.yml` a `ci\.yaml|ci\.yml@refs\/heads\/main`/, reason: 'Documenta el cambio de identidad OIDC (Wave 3)' },
+  {
+    pattern: /Taskfile\.yml` a `Taskfile\.yaml|busca `Taskfile\.yml`/,
+    reason: 'Documenta la resolucion de nombres de go-task',
+  },
+  {
+    pattern: /ci\.yml` a `ci\.yaml|ci\.yml@refs\/heads\/main`/,
+    reason: 'Documenta el cambio de identidad OIDC (Wave 3)',
+  },
 ];
 
 const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents', '.terraform', '.tofu']);
@@ -113,16 +122,7 @@ export function auditYamlExtensions(rootDir: string = ROOT): YamlExtensionReport
 // -----------------------------------------------------------------------------
 // SECCIÓN 3: Lógica de Auditoría de Referencias Textuales (--refs)
 // -----------------------------------------------------------------------------
-const SCANNED_REF_PATHS = [
-  'docs/',
-  'README.md',
-  'SECURITY.md',
-  'AGENTS.md',
-  '.agents/',
-  'apps/',
-  'infra/',
-  '.github/',
-];
+const SCANNED_REF_PATHS = ['docs/', 'README.md', 'SECURITY.md', 'AGENTS.md', '.agents/', 'apps/', 'infra/', '.github/'];
 
 function walkFiles(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -158,7 +158,7 @@ function runReferencesAudit(): void {
     execSync('git ls-files', { encoding: 'utf-8' })
       .split('\n')
       .map((f) => f.trim())
-      .filter((f) => f.toLowerCase().endsWith('.yml'))
+      .filter((f) => f.toLowerCase().endsWith('.yml')),
   );
 
   const rows: RefRow[] = [];
@@ -246,7 +246,9 @@ if (isJson) {
 console.log('\n==============================================================================');
 console.log('📋 Pokédex YAML Extension Gate: [.yaml canónico / .yml heredado]');
 console.log('==============================================================================');
-console.log(`Archivos .yml detectados: ${report.totalFound} | Modo Estricto: ${isStrict ? 'Activado' : 'Desactivado'}\n`);
+console.log(
+  `Archivos .yml detectados: ${report.totalFound} | Modo Estricto: ${isStrict ? 'Activado' : 'Desactivado'}\n`,
+);
 
 if (report.undeclared.length > 0) {
   console.error('✖ Archivos .yml NO declarados en la deuda técnica tolerada:');

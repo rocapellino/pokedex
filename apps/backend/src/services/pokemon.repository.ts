@@ -6,18 +6,8 @@ import type { Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { pokedexEntries } from '../db/index.js';
-import {
-  getDrizzleDb,
-  isPgConnectedStatus,
-  isPgConfigured,
-  incrementPgCount,
-  decrementPgCount
-} from './postgres.js';
-import {
-  invalidateCache,
-  getRedisClient,
-  isCacheConnected
-} from './cache.js';
+import { getDrizzleDb, isPgConnectedStatus, isPgConfigured, incrementPgCount, decrementPgCount } from './postgres.js';
+import { invalidateCache, getRedisClient, isCacheConnected } from './cache.js';
 
 // Almacén en memoria sincronizado como fallback resiliente
 const memoryMap = new Map<number, Pokemon>();
@@ -37,12 +27,9 @@ export function isWritableStorageAvailable(): boolean {
   return true;
 }
 
-export async function getAllPokemons(options: {
-  limit?: number;
-  offset?: number;
-  type?: string;
-  search?: string;
-} = {}): Promise<{ total: number; pokemons: Pokemon[] }> {
+export async function getAllPokemons(
+  options: { limit?: number; offset?: number; type?: string; search?: string } = {},
+): Promise<{ total: number; pokemons: Pokemon[] }> {
   const { limit = 20, offset = 0, type, search } = options;
   const redis = getRedisClient();
   const hasRedis = isCacheConnected() && redis !== null;
@@ -78,10 +65,7 @@ export async function getAllPokemons(options: {
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-      const [countRow] = await drizzleDb
-        .select({ total: count() })
-        .from(pokedexEntries)
-        .where(whereClause);
+      const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries).where(whereClause);
       const total = Number(countRow?.total ?? 0);
 
       const rows = await drizzleDb
@@ -92,7 +76,7 @@ export async function getAllPokemons(options: {
         .limit(limit)
         .offset(offset);
 
-      const pokemons = rows.map(r => r.data);
+      const pokemons = rows.map((r) => r.data);
       resultData = { total, pokemons };
     } catch (err) {
       logger.error('[Storage: PostgreSQL Error] Fallback a memoria', { error: err });
@@ -103,10 +87,13 @@ export async function getAllPokemons(options: {
   if (!resultData) {
     let list = Array.from(memoryMap.values());
     if (type) {
-      list = list.filter(p => p.tipo.toLowerCase() === type.toLowerCase() || p.tipos?.some(t => t.toLowerCase() === type.toLowerCase()));
+      list = list.filter(
+        (p) =>
+          p.tipo.toLowerCase() === type.toLowerCase() || p.tipos?.some((t) => t.toLowerCase() === type.toLowerCase()),
+      );
     }
     if (search) {
-      list = list.filter(p => p.nombre.toLowerCase().includes(search.toLowerCase()));
+      list = list.filter((p) => p.nombre.toLowerCase().includes(search.toLowerCase()));
     }
     list.sort((a, b) => a.id - b.id);
     const total = list.length;
@@ -261,9 +248,7 @@ export async function getNextPokemonId(): Promise<number> {
   const drizzleDb = getDrizzleDb();
   if (isPgConnectedStatus() && drizzleDb) {
     try {
-      const res = await drizzleDb.execute<{ next_id: string }>(
-        sql`SELECT nextval('pokedex_id_seq') AS next_id`
-      );
+      const res = await drizzleDb.execute<{ next_id: string }>(sql`SELECT nextval('pokedex_id_seq') AS next_id`);
       if (res.rows.length > 0) {
         return Number.parseInt(res.rows[0].next_id, 10);
       }
@@ -272,9 +257,10 @@ export async function getNextPokemonId(): Promise<number> {
     }
   }
 
-  inMemorySequence = Math.max(
-    inMemorySequence,
-    Array.from(memoryMap.keys()).reduce((max, id) => Math.max(max, id), 1008)
-  ) + 1;
+  inMemorySequence =
+    Math.max(
+      inMemorySequence,
+      Array.from(memoryMap.keys()).reduce((max, id) => Math.max(max, id), 1008),
+    ) + 1;
   return inMemorySequence;
 }

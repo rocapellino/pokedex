@@ -3,7 +3,7 @@
  * scripts/github-security-linear-sync.ts
  * Sincronización Automática entre GitHub Security & Quality y Linear
  * ==============================================================================
- * 
+ *
  * Sincroniza incidencias y alertas de seguridad de GitHub con tickets en Linear:
  *  1. GitHub Code Scanning (CodeQL, Trivy, Gitleaks SARIF)
  *  2. GitHub Dependabot Alerts
@@ -115,7 +115,9 @@ export interface LinearIssueNode {
 }
 
 export function sanitize(input: unknown): string {
-  return String(input ?? '').replace(/[\r\n\t]/g, ' ').slice(0, 120);
+  return String(input ?? '')
+    .replace(/[\r\n\t]/g, ' ')
+    .slice(0, 120);
 }
 
 export function mapSeverityToPriority(severity?: string): number {
@@ -176,7 +178,7 @@ const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PEX';
 export async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': process.env.LINEAR_API_KEY || '',
+    Authorization: process.env.LINEAR_API_KEY || '',
   };
 
   const response = await fetch(LINEAR_API_URL, {
@@ -200,7 +202,7 @@ export async function fetchLinear<T>(query: string, variables: Record<string, un
 export async function fetchGitHub<T>(endpoint: string): Promise<T | null> {
   const url = `${GITHUB_API_URL}${endpoint}`;
   const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github+json',
+    Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
 
@@ -324,7 +326,7 @@ export async function createLinearIssue(
   teamId: string,
   title: string,
   description: string,
-  priority = 3
+  priority = 3,
 ): Promise<{ id: string; identifier: string } | null> {
   if (isDryRun()) {
     console.log(`[DRY-RUN] Se crearía ticket en Linear:\n  Título: ${title}\n  Prioridad: ${priority}`);
@@ -350,10 +352,9 @@ export async function createLinearIssue(
     }
   `;
 
-  const result = await fetchLinear<{ issueCreate: { success: boolean; issue: { id: string; identifier: string; url: string } } }>(
-    mutation,
-    { teamId, title, desc: description, priority }
-  );
+  const result = await fetchLinear<{
+    issueCreate: { success: boolean; issue: { id: string; identifier: string; url: string } };
+  }>(mutation, { teamId, title, desc: description, priority });
 
   if (result.issueCreate?.success) {
     console.log(`✅ Ticket creado en Linear: ${sanitize(result.issueCreate.issue.identifier)} - ${sanitize(title)}`);
@@ -413,7 +414,7 @@ export async function markLinearIssueDuplicate(
   duplicateIssueId: string,
   primaryIssueId: string,
   duplicateStateId: string,
-  canceledStateId: string
+  canceledStateId: string,
 ): Promise<void> {
   if (isDryRun()) {
     console.log(`[DRY-RUN] Se marcaría ticket ${duplicateIssueId} como duplicado de ${primaryIssueId}`);
@@ -493,10 +494,12 @@ export async function syncAlertLifecycle(params: SyncLifecycleParams): Promise<v
         await addLinearComment(
           primary.id,
           `⚠️ **Alerta #${alertNumber} reabierta en GitHub**\n\n` +
-          `El escaneo reporta nuevamente esta alerta en estado \`${stateDescription}\`. Se reabre el ticket para análisis y remediación.`
+            `El escaneo reporta nuevamente esta alerta en estado \`${stateDescription}\`. Se reabre el ticket para análisis y remediación.`,
         );
       } else {
-        console.log(`ℹ️ Alerta #${alertNumber} activa y sincronizada en Linear: ${primary.identifier} (${primary.state.name})`);
+        console.log(
+          `ℹ️ Alerta #${alertNumber} activa y sincronizada en Linear: ${primary.identifier} (${primary.state.name})`,
+        );
       }
 
       // Manejo de duplicados redundantes
@@ -505,7 +508,10 @@ export async function syncAlertLifecycle(params: SyncLifecycleParams): Promise<v
         if (dup.state.type !== 'duplicate' && dup.state.type !== 'canceled') {
           console.log(`🧹 Marcando ticket redundante ${dup.identifier} como duplicado de ${primary.identifier}`);
           await markLinearIssueDuplicate(dup.id, primary.id, duplicateStateId, canceledStateId);
-          await addLinearComment(dup.id, `ℹ️ Ticket redundante cerrado por sincronización. Duplicado de ${primary.identifier}.`);
+          await addLinearComment(
+            dup.id,
+            `ℹ️ Ticket redundante cerrado por sincronización. Duplicado de ${primary.identifier}.`,
+          );
         }
       }
     }
@@ -514,20 +520,28 @@ export async function syncAlertLifecycle(params: SyncLifecycleParams): Promise<v
     if (existingIssues.length > 0) {
       const primary = existingIssues[0];
       const isDismissed = stateDescription.toLowerCase().includes('dismissed');
-      const targetStateId = isDismissed ? (canceledStateId || doneStateId) : doneStateId;
+      const targetStateId = isDismissed ? canceledStateId || doneStateId : doneStateId;
 
-      if (primary.state.type !== 'completed' && primary.state.type !== 'canceled' && primary.state.type !== 'duplicate') {
-        console.log(`🎉 Alerta #${alertNumber} resuelta en GitHub (${stateDescription}). Actualizando ${primary.identifier} a Done.`);
+      if (
+        primary.state.type !== 'completed' &&
+        primary.state.type !== 'canceled' &&
+        primary.state.type !== 'duplicate'
+      ) {
+        console.log(
+          `🎉 Alerta #${alertNumber} resuelta en GitHub (${stateDescription}). Actualizando ${primary.identifier} a Done.`,
+        );
         await updateLinearIssueState(primary.id, targetStateId);
         await addLinearComment(
           primary.id,
           `✅ **Alerta de seguridad #${alertNumber} resuelta en GitHub**\n\n` +
-          `- **Estado en GitHub:** \`${stateDescription}\`\n` +
-          `- **Remediación:** Verificada e integrada en la rama principal.\n` +
-          `- Ticket completado automáticamente por el workflow de sincronización.`
+            `- **Estado en GitHub:** \`${stateDescription}\`\n` +
+            `- **Remediación:** Verificada e integrada en la rama principal.\n` +
+            `- Ticket completado automáticamente por el workflow de sincronización.`,
         );
       } else {
-        console.log(`✅ Alerta #${alertNumber} ya cerrada/completada en Linear: ${primary.identifier} (${primary.state.name})`);
+        console.log(
+          `✅ Alerta #${alertNumber} ya cerrada/completada en Linear: ${primary.identifier} (${primary.state.name})`,
+        );
       }
 
       // Duplicados redundantes
@@ -573,9 +587,15 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
   console.log('🔍 [1/3] Consultando alertas de GitHub Code Scanning (open, closed, dismissed)...');
   try {
     const [openAlerts, closedAlerts, dismissedAlerts] = await Promise.all([
-      fetchGitHub<GitHubCodeScanningAlert[]>(`/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=open&per_page=100`),
-      fetchGitHub<GitHubCodeScanningAlert[]>(`/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=closed&per_page=100`),
-      fetchGitHub<GitHubCodeScanningAlert[]>(`/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=dismissed&per_page=100`),
+      fetchGitHub<GitHubCodeScanningAlert[]>(
+        `/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=open&per_page=100`,
+      ),
+      fetchGitHub<GitHubCodeScanningAlert[]>(
+        `/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=closed&per_page=100`,
+      ),
+      fetchGitHub<GitHubCodeScanningAlert[]>(
+        `/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=dismissed&per_page=100`,
+      ),
     ]);
 
     const allCodeAlertsMap = new Map<number, GitHubCodeScanningAlert>();
@@ -595,7 +615,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
       const location = alert.most_recent_instance?.location;
       const locationStr = location?.path ? `${location.path}:${location.start_line || 1}` : 'N/A';
 
-      const desc = `Se ha detectado una vulnerabilidad mediante **GitHub Code Scanning (${alert.tool?.name || 'CodeQL'})**.\n\n` +
+      const desc =
+        `Se ha detectado una vulnerabilidad mediante **GitHub Code Scanning (${alert.tool?.name || 'CodeQL'})**.\n\n` +
         `### 📋 Detalle de la Alerta:\n` +
         `- **Alerta:** #${alert.number}\n` +
         `- **Regla:** \`${alert.rule?.id || 'N/A'}\` (${alert.rule?.name || alert.rule?.description || 'N/A'})\n` +
@@ -633,7 +654,7 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
   console.log('\n📦 [2/3] Consultando alertas de GitHub Dependabot...');
   try {
     const dependabotAlerts = await fetchGitHub<GitHubDependabotAlert[]>(
-      `/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open,fixed,dismissed,auto_dismissed&per_page=100`
+      `/repos/${GITHUB_REPOSITORY}/dependabot/alerts?state=open,fixed,dismissed,auto_dismissed&per_page=100`,
     );
 
     if (dependabotAlerts && dependabotAlerts.length > 0) {
@@ -649,7 +670,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
         const pkg = alert.dependency?.package?.name || 'dependencia';
         const patched = alert.security_vulnerability?.first_patched_version?.identifier || 'Pendiente de parche';
 
-        const desc = `Se ha detectado una vulnerabilidad de dependencia mediante **GitHub Dependabot**.\n\n` +
+        const desc =
+          `Se ha detectado una vulnerabilidad de dependencia mediante **GitHub Dependabot**.\n\n` +
           `### 📋 Detalle de la Alerta:\n` +
           `- **Alerta:** #${alert.number}\n` +
           `- **Paquete:** \`${pkg}\` (${alert.dependency?.package?.ecosystem || 'npm'})\n` +
@@ -691,8 +713,12 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
   console.log('\n🔑 [3/3] Consultando alertas de GitHub Secret Scanning...');
   try {
     const [openSecrets, resolvedSecrets] = await Promise.all([
-      fetchGitHub<GitHubSecretScanningAlert[]>(`/repos/${GITHUB_REPOSITORY}/secret-scanning/alerts?state=open&per_page=100`),
-      fetchGitHub<GitHubSecretScanningAlert[]>(`/repos/${GITHUB_REPOSITORY}/secret-scanning/alerts?state=resolved&per_page=100`),
+      fetchGitHub<GitHubSecretScanningAlert[]>(
+        `/repos/${GITHUB_REPOSITORY}/secret-scanning/alerts?state=open&per_page=100`,
+      ),
+      fetchGitHub<GitHubSecretScanningAlert[]>(
+        `/repos/${GITHUB_REPOSITORY}/secret-scanning/alerts?state=resolved&per_page=100`,
+      ),
     ]);
 
     const allSecretAlerts = [...(openSecrets || []), ...(resolvedSecrets || [])];
@@ -706,7 +732,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
         const title = formatSecretScanningTitle(alert);
         const priority = 1; // Máxima prioridad urgente ante secretos expuestos
 
-        const desc = `🚨 **ALERTA CRÍTICA: Secreto detectado en el repositorio por GitHub Secret Scanning.**\n\n` +
+        const desc =
+          `🚨 **ALERTA CRÍTICA: Secreto detectado en el repositorio por GitHub Secret Scanning.**\n\n` +
           `### 📋 Detalle de la Alerta:\n` +
           `- **Alerta:** #${alert.number}\n` +
           `- **Tipo de Secreto:** \`${alert.secret_type_display_name || alert.secret_type}\`\n` +

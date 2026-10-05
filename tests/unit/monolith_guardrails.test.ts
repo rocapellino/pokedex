@@ -3,10 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  isPrivateOrRestrictedIp,
-  validateImageUrl,
-} from '../../apps/backend/src/validation/network-security.js';
+import { isPrivateOrRestrictedIp, validateImageUrl } from '../../apps/backend/src/validation/network-security.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -133,12 +130,12 @@ test('🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e impo
 
     assert.ok(
       loc <= item.maxLoc,
-      `[Monolith Guardrail] ${item.file} (${item.description}) supera el límite de LOC: ${loc} > ${item.maxLoc}`
+      `[Monolith Guardrail] ${item.file} (${item.description}) supera el límite de LOC: ${loc} > ${item.maxLoc}`,
     );
 
     assert.ok(
       importCount <= item.maxImports,
-      `[Monolith Guardrail] ${item.file} (${item.description}) supera el límite de imports: ${importCount} > ${item.maxImports}`
+      `[Monolith Guardrail] ${item.file} (${item.description}) supera el límite de imports: ${importCount} > ${item.maxImports}`,
     );
   }
 });
@@ -184,7 +181,10 @@ test('🛡️ Network Security [Unit]: isPrivateOrRestrictedIp rechaza rangos re
 
 test('🛡️ Network Security [Unit]: validateImageUrl valida protocolo y previene SSRF', () => {
   // URLs HTTPS públicas válidas
-  assert.equal(validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'), true);
+  assert.equal(
+    validateImageUrl('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'),
+    true,
+  );
   assert.equal(validateImageUrl('https://images.pokemontcg.io/base1/4.png'), true);
 
   // Rutas relativas seguras

@@ -2,11 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  discoverPrTemplate,
-  extractHeadings,
-  validatePrBody,
-} from '../scripts/validate-pr-body.js';
+import { discoverPrTemplate, extractHeadings, validatePrBody } from '../scripts/validate-pr-body.js';
 
 /**
  * ==============================================================================
@@ -30,7 +26,7 @@ test('🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y 
 
   // Comprobar headings H2 estructurales canónicos
   const headings = extractHeadings(content);
-  const h2Normalized = headings.filter(h => h.level === 2).map(h => h.normalized);
+  const h2Normalized = headings.filter((h) => h.level === 2).map((h) => h.normalized);
 
   const mandatoryKeywords = [
     'issues vinculados',
@@ -43,7 +39,7 @@ test('🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y 
   ];
 
   for (const keyword of mandatoryKeywords) {
-    const found = h2Normalized.some(h => h.includes(keyword));
+    const found = h2Normalized.some((h) => h.includes(keyword));
     assert.ok(found, `El template físico debe contener una sección H2 que incluya "${keyword}"`);
   }
 });
@@ -115,7 +111,7 @@ Se consolida la gobernanza contractual del PR Template mediante validación dete
   assert.strictEqual(
     result.isValid,
     true,
-    `El PR body válido debe pasar la validación sin errores: ${JSON.stringify(result.issues)}`
+    `El PR body válido debe pasar la validación sin errores: ${JSON.stringify(result.issues)}`,
   );
   assert.strictEqual(result.issues.length, 0);
 });
@@ -145,10 +141,10 @@ Este Pull Request implementa la **Fase B** del plan de saneamiento:
   assert.strictEqual(result.isValid, false, 'El cuerpo tipo PR #438 debe ser rechazado');
   assert.ok(
     result.issues.length >= 7,
-    `Debe reportar al menos 7 infracciones por secciones faltantes (obtenidas: ${result.issues.length})`
+    `Debe reportar al menos 7 infracciones por secciones faltantes (obtenidas: ${result.issues.length})`,
   );
 
-  const issueCodes = result.issues.map(i => i.code);
+  const issueCodes = result.issues.map((i) => i.code);
   assert.ok(issueCodes.includes('MISSING_MANDATORY_SECTION'));
 });
 
@@ -186,13 +182,8 @@ Texto de resumen
 
   const result = validatePrBody(templateContent, bodyWithUnresolvedCi, templatePath);
   assert.strictEqual(result.isValid, false);
-  const hasPlaceholderIssue = result.issues.some(
-    i => i.code === 'CI_IMPACT_UNRESOLVED_PLACEHOLDERS'
-  );
-  assert.ok(
-    hasPlaceholderIssue,
-    'Debe rechazar la presencia de placeholders "—" en CI Impact Analysis'
-  );
+  const hasPlaceholderIssue = result.issues.some((i) => i.code === 'CI_IMPACT_UNRESOLVED_PLACEHOLDERS');
+  assert.ok(hasPlaceholderIssue, 'Debe rechazar la presencia de placeholders "—" en CI Impact Analysis');
 });
 
 test('🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake', () => {
@@ -228,21 +219,14 @@ VerificaciÃ³n de cÃ³digo
 
   const result = validatePrBody(templateContent, mojibakeBody, templatePath);
   assert.strictEqual(result.isValid, false);
-  const hasMojibake = result.issues.some(i => i.code === 'PR_MOJIBAKE_DETECTED');
+  const hasMojibake = result.issues.some((i) => i.code === 'PR_MOJIBAKE_DETECTED');
   assert.ok(hasMojibake, 'Debe detectar y rechazar caracteres corruptos de mojibake');
 });
 
 test('🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador', () => {
   const rootDir = process.cwd();
   const repoPrSkill = path.join(rootDir, '.agents', 'skills', 'repo-pr', 'SKILL.md');
-  const templatePolicy = path.join(
-    rootDir,
-    '.agents',
-    'skills',
-    'repo-pr',
-    'references',
-    'pr-template-policy.md'
-  );
+  const templatePolicy = path.join(rootDir, '.agents', 'skills', 'repo-pr', 'references', 'pr-template-policy.md');
   const repoLifecycleSkill = path.join(rootDir, '.agents', 'skills', 'repo-lifecycle', 'SKILL.md');
 
   assert.ok(fs.existsSync(repoPrSkill));
@@ -252,14 +236,11 @@ test('🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albe
   const policyContent = fs.readFileSync(templatePolicy, 'utf-8');
   assert.ok(
     policyContent.includes('validate-pr-body') || policyContent.includes('pr:validate'),
-    'pr-template-policy.md debe referenciar el validador canónico validate-pr-body o pr:validate'
+    'pr-template-policy.md debe referenciar el validador canónico validate-pr-body o pr:validate',
   );
 
   // Verificar que package.json declare el script pr:validate
   const pkgJsonPath = path.join(rootDir, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
-  assert.ok(
-    pkg.scripts['pr:validate'],
-    'package.json debe registrar el script "pr:validate"'
-  );
+  assert.ok(pkg.scripts['pr:validate'], 'package.json debe registrar el script "pr:validate"');
 });

@@ -4,50 +4,54 @@ import { z } from 'zod';
 // Esquemas Declarativos Zod & Sanitización de Datos (Pokédex API)
 // ==============================================================================
 
-import {
-  SCRIPT_PATTERN,
-  isPrivateOrRestrictedIp,
-  validateImageUrl,
-} from './network-security.js';
+import { SCRIPT_PATTERN, isPrivateOrRestrictedIp, validateImageUrl } from './network-security.js';
 
 export { SCRIPT_PATTERN, isPrivateOrRestrictedIp, validateImageUrl };
-
 
 /**
  * Validador Zod para enteros estrictos (números o strings de solo dígitos).
  * Rechaza cadenas como '100abc', floats '55.5', NaN o Infinity.
  */
 export const strictInteger = (fieldName: string, min = 0, max = 1000) =>
-  z.preprocess((val) => {
-    if (typeof val === 'number') {
-      return Number.isInteger(val) ? val : null;
-    }
-    if (typeof val === 'string') {
-      const trimmed = val.trim();
-      if (!/^-?\d+$/.test(trimmed)) return null;
-      const parsed = Number(trimmed);
-      return Number.isSafeInteger(parsed) ? parsed : null;
-    }
-    return null;
-  }, z.number().int().min(min, { message: `El stat '${fieldName}' debe ser un entero entre ${min} y ${max.toLocaleString('es-ES')}` })
-      .max(max, { message: `El stat '${fieldName}' debe ser un entero entre ${min} y ${max.toLocaleString('es-ES')}` }));
+  z.preprocess(
+    (val) => {
+      if (typeof val === 'number') {
+        return Number.isInteger(val) ? val : null;
+      }
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (!/^-?\d+$/.test(trimmed)) return null;
+        const parsed = Number(trimmed);
+        return Number.isSafeInteger(parsed) ? parsed : null;
+      }
+      return null;
+    },
+    z
+      .number()
+      .int()
+      .min(min, { message: `El stat '${fieldName}' debe ser un entero entre ${min} y ${max.toLocaleString('es-ES')}` })
+      .max(max, { message: `El stat '${fieldName}' debe ser un entero entre ${min} y ${max.toLocaleString('es-ES')}` }),
+  );
 
 /**
  * Validador Zod para números finitos estrictos (peso, altura).
  */
 export const strictFiniteNumber = (min: number, max: number, errorMsg: string) =>
-  z.preprocess((val) => {
-    if (typeof val === 'number') {
-      return Number.isFinite(val) ? val : null;
-    }
-    if (typeof val === 'string') {
-      const trimmed = val.trim();
-      if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
-      const parsed = Number(trimmed);
-      return Number.isFinite(parsed) ? parsed : null;
-    }
-    return null;
-  }, z.number().gt(min, { message: errorMsg }).lte(max, { message: errorMsg }));
+  z.preprocess(
+    (val) => {
+      if (typeof val === 'number') {
+        return Number.isFinite(val) ? val : null;
+      }
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+        const parsed = Number(trimmed);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    },
+    z.number().gt(min, { message: errorMsg }).lte(max, { message: errorMsg }),
+  );
 
 /**
  * Esquema de Stats con Whitelist cerrada anti-inyección/mass assignment
@@ -269,7 +273,11 @@ export function validateEvolutionNodeZod(node: unknown, depth = 0): { valid: boo
     return { valid: false, error: 'El campo etapa en evolución contiene caracteres no permitidos' };
   }
 
-  if (n.metodo !== undefined && n.metodo !== null && (typeof n.metodo !== 'string' || n.metodo.length > 100 || SCRIPT_PATTERN.test(n.metodo))) {
+  if (
+    n.metodo !== undefined &&
+    n.metodo !== null &&
+    (typeof n.metodo !== 'string' || n.metodo.length > 100 || SCRIPT_PATTERN.test(n.metodo))
+  ) {
     return { valid: false, error: 'El método de evolución contiene caracteres no permitidos' };
   }
 
@@ -309,7 +317,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
     return;
   }
   if (SCRIPT_PATTERN.test(nombreTrimmed)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El campo nombre contiene código HTML o scripts no permitidos (prevención XSS)' });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'El campo nombre contiene código HTML o scripts no permitidos (prevención XSS)',
+    });
     return;
   }
 
@@ -324,14 +335,20 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
     return;
   }
   if (SCRIPT_PATTERN.test(tipoTrimmed)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)' });
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'El campo tipo contiene código HTML o scripts no permitidos (prevención XSS)',
+    });
     return;
   }
 
   // 3. Imagen
   if (body.imagen !== undefined && body.imagen !== null && body.imagen !== '') {
     if (!validateImageUrl(body.imagen)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El campo imagen debe ser una URL válida con protocolo https o ruta relativa segura' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El campo imagen debe ser una URL válida con protocolo https o ruta relativa segura',
+      });
       return;
     }
   }
@@ -348,7 +365,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
     }
     for (const t of body.tipos) {
       if (typeof t !== 'string' || !t.trim() || t.trim().length > 30) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Cada elemento en tipos debe ser un texto de máximo 30 caracteres' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Cada elemento en tipos debe ser un texto de máximo 30 caracteres',
+        });
         return;
       }
       if (SCRIPT_PATTERN.test(t)) {
@@ -369,7 +389,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
       if (Number.isFinite(parsed)) pVal = parsed;
     }
     if (pVal === null || pVal <= 0 || pVal > 10000) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El peso debe ser un número positivo menor o igual a 10.000 kg' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El peso debe ser un número positivo menor o igual a 10.000 kg',
+      });
       return;
     }
   }
@@ -383,7 +406,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
       if (Number.isFinite(parsed)) aVal = parsed;
     }
     if (aVal === null || aVal <= 0 || aVal > 200) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'La altura debe ser un número positivo menor o igual a 200 m' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'La altura debe ser un número positivo menor o igual a 200 m',
+      });
       return;
     }
   }
@@ -412,7 +438,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
       if (Number.isSafeInteger(parsed)) eVal = parsed;
     }
     if (eVal === null || eVal < 0 || eVal > 10000) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'La edad debe ser un número entero positivo razonable (máx 10.000)' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'La edad debe ser un número entero positivo razonable (máx 10.000)',
+      });
       return;
     }
   }
@@ -425,7 +454,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
     }
     const cRes = CaracteristicasSchema.safeParse(body.caracteristicas);
     if (!cRes.success) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: cRes.error.issues[0]?.message || 'Características inválidas' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: cRes.error.issues[0]?.message || 'Características inválidas',
+      });
       return;
     }
   }
@@ -439,7 +471,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
       }
       for (const h of body.habilidades) {
         if (typeof h !== 'string' || h.length > 50) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Cada habilidad debe ser un texto de máximo 50 caracteres' });
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Cada habilidad debe ser un texto de máximo 50 caracteres',
+          });
           return;
         }
         if (SCRIPT_PATTERN.test(h)) {
@@ -479,7 +514,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
   if (body.evoluciones !== undefined && body.evoluciones !== null) {
     if (Array.isArray(body.evoluciones)) {
       if (body.evoluciones.length > 20) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'La lista de evoluciones no puede exceder los 20 elementos' });
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'La lista de evoluciones no puede exceder los 20 elementos',
+        });
         return;
       }
       for (const node of body.evoluciones) {
@@ -499,7 +537,10 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
         }
       }
     } else {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El campo evoluciones debe ser una lista o un objeto con árbol de evoluciones' });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El campo evoluciones debe ser una lista o un objeto con árbol de evoluciones',
+      });
       return;
     }
   }

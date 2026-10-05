@@ -202,7 +202,7 @@ window.addEventListener(
       }
     }
   },
-  true
+  true,
 );
 
 export function initInteractiveListeners(): void {

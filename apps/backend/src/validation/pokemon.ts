@@ -5,11 +5,7 @@
 
 import { PokemonPayloadSchema } from './schemas.js';
 import type { PokemonPayload } from './schemas.js';
-import {
-  validateImageUrl,
-  isPrivateOrRestrictedIp,
-  SCRIPT_PATTERN,
-} from './network-security.js';
+import { validateImageUrl, isPrivateOrRestrictedIp, SCRIPT_PATTERN } from './network-security.js';
 
 export { validateImageUrl, isPrivateOrRestrictedIp, SCRIPT_PATTERN };
 export type { PokemonPayload };

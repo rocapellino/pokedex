@@ -30,11 +30,11 @@ interface RolloutOptions {
 function parseArgs(): RolloutOptions {
   const args = process.argv.slice(2);
   const isSimulate = args.includes('--simulate') || process.env.ROLLOUT_SIMULATE === 'true';
-  const nsArg = args.find(a => a.startsWith('--namespace='));
+  const nsArg = args.find((a) => a.startsWith('--namespace='));
   const namespace = nsArg ? nsArg.split('=')[1] : 'pokemon-app';
-  const depArg = args.find(a => a.startsWith('--deployments='));
+  const depArg = args.find((a) => a.startsWith('--deployments='));
   const deployments = depArg ? depArg.split('=')[1].split(',') : ['pokedex-api', 'pokedex-web'];
-  const timeoutArg = args.find(a => a.startsWith('--timeout='));
+  const timeoutArg = args.find((a) => a.startsWith('--timeout='));
   const timeoutSeconds = timeoutArg ? Number.parseInt(timeoutArg.split('=')[1], 10) : 120;
 
   return { namespace, deployments, timeoutSeconds, isSimulate };
@@ -67,7 +67,9 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
   if (fs.existsSync(clusterStorePath)) {
     const content = fs.readFileSync(clusterStorePath, 'utf-8');
     if (!content.includes('server: "https://10.10.13.110:8200"')) {
-      reasons.push('cluster-secret-store.yaml debe apuntar a la IP del contenedor LXC de Vault vía HTTPS (https://10.10.13.110:8200)');
+      reasons.push(
+        'cluster-secret-store.yaml debe apuntar a la IP del contenedor LXC de Vault vía HTTPS (https://10.10.13.110:8200)',
+      );
     }
     if (!content.includes('caProvider:')) {
       reasons.push('cluster-secret-store.yaml debe configurar caProvider para validación criptográfica de TLS');
@@ -76,7 +78,9 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
       reasons.push('cluster-secret-store.yaml debe utilizar el rol pokedex-preprod-role para autenticación Kubernetes');
     }
     if (content.includes('role: "pokedex-prod-role"')) {
-      reasons.push('cluster-secret-store.yaml no debe declarar el rol pokedex-prod-role: prod Proxmox se retiró (ADR-030)');
+      reasons.push(
+        'cluster-secret-store.yaml no debe declarar el rol pokedex-prod-role: prod Proxmox se retiró (ADR-030)',
+      );
     }
   } else {
     reasons.push(`Archivo no encontrado: ${clusterStorePath}`);
@@ -103,8 +107,14 @@ export function validateProxmoxSecretArchitecture(rootDir: string): { valid: boo
     if (content.includes('pokedex-prod-policy') || content.includes('pokedex-prod-role')) {
       reasons.push('setup_vault.yml no debe crear la política ni el rol de la prod Proxmox retirada (ADR-030)');
     }
-    if (content.includes('auth/kubernetes/role/pokedex-role\n') || content.includes('auth/kubernetes/role/pokedex-role ') || content.includes('pokedex-policy.hcl')) {
-      reasons.push('setup_vault.yml no debe incluir rol o política comodín pokedex-role/pokedex-policy (violación de Least Privilege)');
+    if (
+      content.includes('auth/kubernetes/role/pokedex-role\n') ||
+      content.includes('auth/kubernetes/role/pokedex-role ') ||
+      content.includes('pokedex-policy.hcl')
+    ) {
+      reasons.push(
+        'setup_vault.yml no debe incluir rol o política comodín pokedex-role/pokedex-policy (violación de Least Privilege)',
+      );
     }
   } else {
     reasons.push(`Archivo no encontrado: ${setupVaultPlaybook}`);
@@ -124,12 +134,7 @@ function getSafeKubectlExecutable(): string {
         'C:\\Program Files\\Kubernetes\\bin\\kubectl.exe',
         'C:\\ProgramData\\chocolatey\\bin\\kubectl.exe',
       ]
-    : [
-        '/usr/local/bin/kubectl',
-        '/usr/bin/kubectl',
-        '/bin/kubectl',
-        '/snap/bin/kubectl',
-      ];
+    : ['/usr/local/bin/kubectl', '/usr/bin/kubectl', '/bin/kubectl', '/snap/bin/kubectl'];
 
   for (const candidate of trustedPaths) {
     if (fs.existsSync(candidate)) {
@@ -144,7 +149,7 @@ function getSafeExecutionOptions(): { stdio: 'inherit'; env: NodeJS.ProcessEnv }
   const isWin = process.platform === 'win32';
   // Restringir PATH a directorios fijos de sistema para mitigar CWE-426 / CWE-427 (SonarQube S5883)
   const safePath = isWin
-    ? (process.env.PATH || 'C:\\Windows\\System32')
+    ? process.env.PATH || 'C:\\Windows\\System32'
     : '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
 
   return {
@@ -164,7 +169,10 @@ async function run() {
   console.log('🔄 Pokédex Application Rollout Restart & Secret Synchronization');
   console.log('   Namespace   :', opts.namespace);
   console.log('   Deployments :', opts.deployments.join(', '));
-  console.log('   Modo        :', opts.isSimulate ? 'Simulación / Validación Contractual (CI)' : 'Ejecución en Vivo (Kubectl)');
+  console.log(
+    '   Modo        :',
+    opts.isSimulate ? 'Simulación / Validación Contractual (CI)' : 'Ejecución en Vivo (Kubectl)',
+  );
   console.log('='.repeat(78));
 
   if (opts.isSimulate) {
@@ -180,9 +188,13 @@ async function run() {
     }
 
     console.log('✅ 1. Stakater Reloader desactivado en Proxmox (Confirmado: reloader.enabled: false).');
-    console.log('✅ 2. Backend de Secretos: HashiCorp Vault CE Endurecido en LXC (https://10.10.13.110:8200, TLS + Raft + Shamir 5/3 + UFW).');
+    console.log(
+      '✅ 2. Backend de Secretos: HashiCorp Vault CE Endurecido en LXC (https://10.10.13.110:8200, TLS + Raft + Shamir 5/3 + UFW).',
+    );
     console.log('✅ 3. External Secrets Operator (ESO) configurado con ClusterSecretStore/vault-backend vía HTTPS.');
-    console.log('✅ 4. Contrato de Redeploy: Debido a que Node.js copia process.env al arrancar y Reloader está inactivo,');
+    console.log(
+      '✅ 4. Contrato de Redeploy: Debido a que Node.js copia process.env al arrancar y Reloader está inactivo,',
+    );
     console.log('      el rollout restart progresivo es la vía oficial y obligatoria para inyectar credenciales.');
     console.log('\n🎉 ¡Validación contractual completada exitosamente!');
     return;
@@ -197,7 +209,11 @@ async function run() {
     try {
       execFileSync(kubectlBin, ['rollout', 'restart', 'deployment', dep, '-n', opts.namespace], execOptions);
       console.log('⏳ Esperando estado saludable de:', dep, 'timeout:', `${opts.timeoutSeconds}s`);
-      execFileSync(kubectlBin, ['rollout', 'status', `deployment/${dep}`, '-n', opts.namespace, `--timeout=${opts.timeoutSeconds}s`], execOptions);
+      execFileSync(
+        kubectlBin,
+        ['rollout', 'status', `deployment/${dep}`, '-n', opts.namespace, `--timeout=${opts.timeoutSeconds}s`],
+        execOptions,
+      );
       console.log('✅ Deployment reiniciado y en servicio activo:', dep);
     } catch (err) {
       console.error('❌ Error al reiniciar o verificar el deployment:', dep, err);
@@ -209,7 +225,7 @@ async function run() {
 }
 
 if (import.meta.url.endsWith(process.argv[1]) || process.argv[1]?.includes('k8s-rollout-restart')) {
-  run().catch(err => {
+  run().catch((err) => {
     console.error('Error fatal durante el rollout restart:', err);
     process.exit(1);
   });

@@ -92,9 +92,13 @@ export function inspectEnvironment(): EnvCheckResult {
     } else if (!isPresent) {
       // Chequear si hay alternativas compuestas (ej. POSTGRES_* o REDIS_*)
       if (spec.name === 'DATABASE_URL') {
-        warnings.push(`DATABASE_URL / POSTGRES_* no configurado: almacenamiento PostgreSQL inactivo (fallback en memoria activo)`);
+        warnings.push(
+          `DATABASE_URL / POSTGRES_* no configurado: almacenamiento PostgreSQL inactivo (fallback en memoria activo)`,
+        );
       } else if (spec.name === 'REDIS_URL') {
-        warnings.push(`REDIS_URL / REDIS_* no configurado: rate limiter distribuido inactivo (fallback en memoria local activo)`);
+        warnings.push(
+          `REDIS_URL / REDIS_* no configurado: rate limiter distribuido inactivo (fallback en memoria local activo)`,
+        );
       } else if (spec.name === 'GEMINI_API_KEY') {
         warnings.push(`GEMINI_API_KEY no configurado: servicios de IA en modo fallback generativo local`);
       }

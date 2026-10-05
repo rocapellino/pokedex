@@ -11,10 +11,11 @@ import { pokedexEntries, createDrizzleClient, type AppDatabase, runMigrations } 
 const { Pool } = pg;
 
 export function getDatabaseUrl(): string | undefined {
-  return process.env.DATABASE_URL || (
-    process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
+  return (
+    process.env.DATABASE_URL ||
+    (process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
       ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
-      : undefined
+      : undefined)
   );
 }
 
@@ -127,10 +128,12 @@ export async function connectPg(): Promise<boolean> {
           throw new MigrationFailedError(
             '[Storage: PostgreSQL] Las migraciones Drizzle fallaron. ' +
               'Arranque abortado (fail-closed) para no operar con un esquema distinto al declarado.',
-            { cause: migErr }
+            { cause: migErr },
           );
         }
-        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', { error: errorMessage(migErr) });
+        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', {
+          error: errorMessage(migErr),
+        });
       }
 
       const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);
@@ -161,7 +164,7 @@ export async function connectPg(): Promise<boolean> {
         } else {
           logger.info(
             '[Storage: PostgreSQL] Base de datos vacía detectada en producción. ' +
-              'Población de catálogo delegada al K8s Seed Job o `npm run seed`.'
+              'Población de catálogo delegada al K8s Seed Job o `npm run seed`.',
           );
           lastKnownPgCount = 0;
         }
@@ -171,7 +174,9 @@ export async function connectPg(): Promise<boolean> {
 
       await client.query(POKEDEX_ID_SEQUENCE_SYNC_SQL);
       isPgConnected = true;
-      logger.info('[Storage: PostgreSQL] Conectado, Drizzle ORM activo, tabla y secuencia pokedex_id_seq sincronizadas');
+      logger.info(
+        '[Storage: PostgreSQL] Conectado, Drizzle ORM activo, tabla y secuencia pokedex_id_seq sincronizadas',
+      );
       return true;
     } finally {
       client.release();
@@ -245,7 +250,7 @@ export async function getPostgresVersion(): Promise<string | null> {
     const res = await drizzleDb.execute<{ version: string }>(sql`SELECT version()`);
     const raw = (res.rows[0]?.version as string) || '';
     const match = raw.match(/^PostgreSQL\s+\S+/);
-    return match ? match[0] : (raw || null);
+    return match ? match[0] : raw || null;
   } catch {
     return null;
   }

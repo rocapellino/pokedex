@@ -41,38 +41,39 @@ test('🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones 
   assert.match(
     readme,
     /pokedex-cloud[\s\S]*INACTIV/,
-    'El README debe declarar que el blueprint de AWS es una referencia inactiva'
+    'El README debe declarar que el blueprint de AWS es una referencia inactiva',
   );
 
   // 2. El README no debe documentar clusteres inexistentes: un README que cita un
   //    cluster retirado desvia la depuracion. ADR-030: el unico cluster Proxmox es
   //    el LXC 800 y ArgoCD lo gestiona in-cluster.
-  const appPreprod = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'),
-    'utf-8'
+  const appPreprod = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml'), 'utf-8');
+  assert.match(
+    appPreprod,
+    /server:\s*https:\/\/kubernetes\.default\.svc/,
+    'GITOPS-003: pre-prod debe sincronizarse in-cluster',
   );
-  assert.match(appPreprod, /server:\s*https:\/\/kubernetes\.default\.svc/, 'GITOPS-003: pre-prod debe sincronizarse in-cluster');
-  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml')), 'GITOPS-003: app-proxmox.yaml se retiro con ADR-030');
+  assert.ok(
+    !fs.existsSync(path.join(ROOT_DIR, 'gitops/apps/app-proxmox.yaml')),
+    'GITOPS-003: app-proxmox.yaml se retiro con ADR-030',
+  );
   for (const retired of ['k8s-proxmox.internal.lan', 'app-proxmox.yaml']) {
     assert.ok(!readme.includes(retired), `GITOPS-003: el README no debe citar ${retired}, retirado con ADR-030`);
   }
 
   // 3. La afirmacion "AWS esta excluido del App-of-Apps" debe ser CIERTA: se lee
   //    del bloque `exclude` del manifiesto raiz, no del README.
-  const rootApp = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
-    'utf-8'
-  );
+  const rootApp = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'), 'utf-8');
   const excludeBlock = parseDirectoryExclude(rootApp).join(',');
   assert.match(
     excludeBlock,
     /app-cloud\.yaml/,
-    'GITOPS-003: el README afirma que app-cloud.yaml esta excluido, pero el manifiesto raiz no lo excluye'
+    'GITOPS-003: el README afirma que app-cloud.yaml esta excluido, pero el manifiesto raiz no lo excluye',
   );
   assert.match(
     excludeBlock,
     /root-application\.yaml/,
-    'GITOPS-003: el root-application.yaml debe excluirse a si mismo'
+    'GITOPS-003: el root-application.yaml debe excluirse a si mismo',
   );
 
   // 4. Todo enlace relativo del README debe resolver. Un enlace roto en la
@@ -81,10 +82,7 @@ test('🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones 
   assert.ok(links.length > 0, 'El README debe enlazar documentacion relacionada');
   for (const link of links) {
     const target = path.resolve(path.dirname(readmePath), link);
-    assert.ok(
-      fs.existsSync(target),
-      `GITOPS-003: enlace roto en gitops/README.md -> ${link}`
-    );
+    assert.ok(fs.existsSync(target), `GITOPS-003: enlace roto en gitops/README.md -> ${link}`);
   }
 });
 
@@ -93,23 +91,15 @@ test('🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI', (
   // App-of-Apps y sus values existen completos. Antes de este cambio, `infra.yaml`
   // renderizaba solo `proxmox` y `aws`, de modo que un error de template, de valores
   // o de paridad en preprod solo se detectaba al sincronizar contra el cluster real.
-  const infraWorkflow = fs.readFileSync(
-    path.join(ROOT_DIR, '.github/workflows/infra.yaml'),
-    'utf-8'
-  );
+  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
 
   // 1. Determinar los targets ACTIVOS a partir del App-of-Apps, que es la
   //    declaracion de verdad. `app-cloud.yaml` esta excluido (GITOPS-001).
-  const rootApp = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
-    'utf-8'
-  );
+  const rootApp = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'), 'utf-8');
   const excluded = parseDirectoryExclude(rootApp);
 
   const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
-  const appFiles = fs
-    .readdirSync(gitopsAppsDir)
-    .filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
+  const appFiles = fs.readdirSync(gitopsAppsDir).filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
 
   const activeEnvs = appFiles
     .filter((f) => !excluded.includes(f))
@@ -117,7 +107,7 @@ test('🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI', (
 
   assert.ok(
     activeEnvs.includes('proxmox-preprod'),
-    'INFRA-005: se espera que proxmox-preprod sea un target activo segun el App-of-Apps'
+    'INFRA-005: se espera que proxmox-preprod sea un target activo segun el App-of-Apps',
   );
 
   // 2. Cada entorno activo debe renderizarse en el workflow de infraestructura.
@@ -125,38 +115,37 @@ test('🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI', (
     const valuesFile = `gitops/environments/${env}/values.yaml`;
     assert.ok(
       fs.existsSync(path.join(ROOT_DIR, valuesFile)),
-      `INFRA-005: el entorno activo ${env} debe tener ${valuesFile}`
+      `INFRA-005: el entorno activo ${env} debe tener ${valuesFile}`,
     );
     assert.ok(
       infraWorkflow.includes(valuesFile),
       `GITOPS-005: infra.yaml debe renderizar el entorno activo ${env} (${valuesFile}); ` +
-      'un error en el solo se detectaria al sincronizar contra el cluster real.'
+        'un error en el solo se detectaria al sincronizar contra el cluster real.',
     );
   }
 
   // 3. El render debe pasar las validaciones de esquema y de buenas practicas.
   assert.ok(
     infraWorkflow.includes('/tmp/rendered-proxmox-preprod.yaml'),
-    'GITOPS-005: debe verificarse que el render de preprod no esta vacio'
+    'GITOPS-005: debe verificarse que el render de preprod no esta vacio',
   );
   const kubeconformLine = infraWorkflow.match(/kubeconform[^\n]*rendered-dev\.yaml[^\n]*/)?.[0] ?? '';
   assert.ok(
     kubeconformLine.includes('rendered-proxmox-preprod.yaml'),
-    'GITOPS-005: kubeconform debe validar tambien el render de preprod'
+    'GITOPS-005: kubeconform debe validar tambien el render de preprod',
   );
   const lintLine = infraWorkflow.match(/kube-linter lint[^\n]*/)?.[0] ?? '';
   assert.ok(
     lintLine.includes('rendered-proxmox-preprod.yaml'),
-    'GITOPS-005: kube-linter debe validar tambien el render de preprod'
+    'GITOPS-005: kube-linter debe validar tambien el render de preprod',
   );
 
   // 4. Anti-regresion: ningun entorno activo puede quedar fuera del render por
   //    descuido. El numero de entornos declarados debe coincidir con los renderizados.
-  const renderedCount = (infraWorkflow.match(/gitops\/environments\/[a-z-]+\/values\.yaml/g) ?? [])
-    .length;
+  const renderedCount = (infraWorkflow.match(/gitops\/environments\/[a-z-]+\/values\.yaml/g) ?? []).length;
   assert.ok(
     renderedCount >= activeEnvs.length,
-    `GITOPS-005: se renderizan ${renderedCount} entornos pero hay ${activeEnvs.length} activos (${activeEnvs.join(', ')})`
+    `GITOPS-005: se renderizan ${renderedCount} entornos pero hay ${activeEnvs.length} activos (${activeEnvs.join(', ')})`,
   );
 });
 
@@ -169,20 +158,14 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
   // Este gate blinda la exclusion. Si alguien reintroduce la referencia en el
   // conjunto gobernado por el root, la suite falla antes de que llegue al
   // despliegue.
-  const rootApp = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'),
-    'utf-8'
-  );
-  const appCloud = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'),
-    'utf-8'
-  );
+  const rootApp = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/root-application.yaml'), 'utf-8');
+  const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
 
   // 1. El root DEBE excluir explicitamente el manifiesto de referencia.
   assert.match(
     rootApp,
     /exclude:[\s\S]*?app-cloud\.yaml/,
-    'GITOPS-001: root-application.yaml debe excluir app-cloud.yaml del descubrimiento'
+    'GITOPS-001: root-application.yaml debe excluir app-cloud.yaml del descubrimiento',
   );
 
   // 2. El root NO debe descubrir de forma implicita ningun otro manifiesto.
@@ -190,37 +173,37 @@ test('🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of
   //    despliegue no declarado.
   // ArgoCD interpreta `exclude` como un único glob: una lista multilínea no se
   // aplicaba y pokedex-cloud apareció en el clúster (2026-10-04).
-  assert.doesNotMatch(rootApp, /exclude:\s*[|>]/, 'GITOPS-001: exclude debe ser un glob de una línea, no un bloque multilínea');
+  assert.doesNotMatch(
+    rootApp,
+    /exclude:\s*[|>]/,
+    'GITOPS-001: exclude debe ser un glob de una línea, no un bloque multilínea',
+  );
   const excluded = parseDirectoryExclude(rootApp);
   assert.deepEqual(
     excluded.sort(),
     ['app-cloud.yaml', 'root-application.yaml'],
     'GITOPS-001: el conjunto excluido debe ser exactamente {root, cloud}. ' +
-      'Proxmox y preprod son los unicos targets activos.'
+      'Proxmox y preprod son los unicos targets activos.',
   );
 
   // 3. La referencia no debe declarar semantica de produccion: una ventana de
   //    freeze de 62h sobre un manifiesto que no se despliega es contradictoria.
   assert.ok(
     !appCloud.includes('syncWindows:'),
-    'GITOPS-001: la referencia inactiva no debe declarar syncWindows de produccion'
+    'GITOPS-001: la referencia inactiva no debe declarar syncWindows de produccion',
   );
 
   // 4. El estado debe quedar escrito, no solo inferido del comportamiento.
-  assert.match(
-    appCloud,
-    /INACTIVA/,
-    'GITOPS-001: app-cloud.yaml debe declarar su estado inactivo de forma explicita'
-  );
+  assert.match(appCloud, /INACTIVA/, 'GITOPS-001: app-cloud.yaml debe declarar su estado inactivo de forma explicita');
 
   // 5. La referencia inactiva debe portar anotación de status y no definir auto-sync activo
   assert.ok(
     appCloud.includes('architecture.pokedex.io/status: "inactive"'),
-    'GITOPS-001: app-cloud.yaml debe declarar la anotación architecture.pokedex.io/status: "inactive"'
+    'GITOPS-001: app-cloud.yaml debe declarar la anotación architecture.pokedex.io/status: "inactive"',
   );
   assert.ok(
     !/^\s*automated:\s*$/m.test(appCloud),
-    'GITOPS-001: la referencia inactiva no debe tener syncPolicy.automated activo'
+    'GITOPS-001: la referencia inactiva no debe tener syncPolicy.automated activo',
   );
 });
 
@@ -228,18 +211,28 @@ test('🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un
   const appCloud = fs.readFileSync(path.join(ROOT_DIR, 'gitops/apps/app-cloud.yaml'), 'utf-8');
   const cloudValuesPath = path.join(ROOT_DIR, 'gitops/environments/cloud/values.yaml');
   assert.ok(fs.existsSync(cloudValuesPath), 'gitops/environments/cloud/values.yaml debe existir');
-  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'gitops/environments/aws')), 'gitops/environments/aws se retiró con ADR-030');
+  assert.ok(
+    !fs.existsSync(path.join(ROOT_DIR, 'gitops/environments/aws')),
+    'gitops/environments/aws se retiró con ADR-030',
+  );
 
   // 1. Cadena de values: base -> perfil HA endurecido -> override del proveedor.
   const valueFiles = /valueFiles:\s*\n((?:\s+- .+\n)+)/.exec(appCloud.replace(/\r\n/g, '\n'))?.[1] ?? '';
   assert.deepEqual(
-    valueFiles.split('\n').map((l) => l.replace(/^\s*-\s*/, '').trim()).filter(Boolean),
+    valueFiles
+      .split('\n')
+      .map((l) => l.replace(/^\s*-\s*/, '').trim())
+      .filter(Boolean),
     ['values.yaml', 'values.prod.yaml', '../../../gitops/environments/cloud/values.yaml'],
-    'app-cloud.yaml debe encadenar values.yaml, values.prod.yaml y el override cloud en ese orden'
+    'app-cloud.yaml debe encadenar values.yaml, values.prod.yaml y el override cloud en ese orden',
   );
 
   // 2. Sin destino real hasta la activación: el TLD .invalid no resuelve.
-  assert.match(appCloud, /server:\s*https:\/\/[^\s]+\.invalid\b/, 'El destino del blueprint debe ser un marcador .invalid');
+  assert.match(
+    appCloud,
+    /server:\s*https:\/\/[^\s]+\.invalid\b/,
+    'El destino del blueprint debe ser un marcador .invalid',
+  );
 
   // 3. Ni el manifiesto ni el override fijan recursos de un proveedor concreto.
   const cloudValues = fs.readFileSync(cloudValuesPath, 'utf-8');
@@ -249,14 +242,21 @@ test('🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un
   }
 
   // 4. Secretos: ruta lógica reservada pokedex/prod y ClusterSecretStore como parámetro.
-  assert.match(cloudValues, /secretStoreRef:\s*\r?\n\s+name: "[a-z0-9-]+"/, 'El override cloud debe declarar el ClusterSecretStore como parámetro');
+  assert.match(
+    cloudValues,
+    /secretStoreRef:\s*\r?\n\s+name: "[a-z0-9-]+"/,
+    'El override cloud debe declarar el ClusterSecretStore como parámetro',
+  );
   assert.ok(cloudValues.includes('key: "pokedex/prod"'), 'El override cloud debe usar la ruta reservada pokedex/prod');
 
   // 5. El manifiesto canónico de ESO no declara stores de un proveedor: el del
   //    blueprint se crea al activarlo, con el backend elegido.
   const clusterStores = fs.readFileSync(path.join(ROOT_DIR, 'infra/k8s/eso/cluster-secret-store.yaml'), 'utf-8');
   assert.ok(!/^\s+aws:\s*$/m.test(clusterStores), 'cluster-secret-store.yaml no debe declarar un provider aws');
-  assert.ok(!clusterStores.includes('name: aws-secrets-manager'), 'cluster-secret-store.yaml no debe declarar aws-secrets-manager');
+  assert.ok(
+    !clusterStores.includes('name: aws-secrets-manager'),
+    'cluster-secret-store.yaml no debe declarar aws-secrets-manager',
+  );
 });
 
 test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)', async () => {
@@ -277,7 +277,10 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   // 1. ADR-003 existe, está aceptado y consolida la orquestación avanzada de ADR-021
   assert.ok(fs.existsSync(adrPath), 'ADR-003 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-003 debe estar en estado Aceptado');
+  assert.ok(
+    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
+    'ADR-003 debe estar en estado Aceptado',
+  );
   assert.ok(adrContent.includes('Sync Waves'), 'ADR-003 debe documentar Sync Waves');
   assert.ok(adrContent.includes('PostSync'), 'ADR-003 debe documentar el hook PostSync del seed job');
   assert.ok(adrContent.includes('App-of-Apps'), 'ADR-003 debe documentar patrón App-of-Apps');
@@ -292,34 +295,43 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   assert.match(
     rootAppContent,
     /-\s+resources-finalizer\.argocd\.argoproj\.io/,
-    'root-application.yaml debe incluir finalizer'
+    'root-application.yaml debe incluir finalizer',
   );
 
   // 3. Health checks existen y cubren CRDs críticos (ExternalSecret y ClusterPolicy; SealedSecret purgado)
   assert.ok(fs.existsSync(healthChecksPath), 'argocd-cm-healthchecks.yaml debe existir en gitops/health-checks/');
   const healthContent = fs.readFileSync(healthChecksPath, 'utf-8');
-  assert.ok(healthContent.includes('external-secrets.io_ExternalSecret'), 'Debe definir health check para ExternalSecret');
-  assert.ok(!healthContent.includes('bitnami.com_SealedSecret'), 'No debe contener health check residual de SealedSecret');
+  assert.ok(
+    healthContent.includes('external-secrets.io_ExternalSecret'),
+    'Debe definir health check para ExternalSecret',
+  );
+  assert.ok(
+    !healthContent.includes('bitnami.com_SealedSecret'),
+    'No debe contener health check residual de SealedSecret',
+  );
   assert.ok(healthContent.includes('kyverno.io_ClusterPolicy'), 'Debe definir health check para ClusterPolicy');
 
   // 3.1 GITOPS-001: el manifiesto debe extender `argocd-cm`, NO un ConfigMap homónimo.
   assert.match(
     healthContent,
     /^\s*name:\s*argocd-cm\s*$/m,
-    'GITOPS-001: el manifiesto debe parchear el ConfigMap `argocd-cm`, el único que ArgoCD lee'
+    'GITOPS-001: el manifiesto debe parchear el ConfigMap `argocd-cm`, el único que ArgoCD lee',
   );
   assert.ok(
     !/^\s*name:\s*argocd-cm-healthchecks\s*$/m.test(healthContent),
-    'GITOPS-001: no debe declararse un ConfigMap homónimo `argocd-cm-healthchecks` (ArgoCD lo ignoraría)'
+    'GITOPS-001: no debe declararse un ConfigMap homónimo `argocd-cm-healthchecks` (ArgoCD lo ignoraría)',
   );
   assert.ok(
     !/^\s*app\.kubernetes\.io\/name:\s*argocd-cm-healthchecks\s*$/m.test(healthContent),
-    'GITOPS-001: no debe quedar la etiqueta del ConfigMap homónimo purgado'
+    'GITOPS-001: no debe quedar la etiqueta del ConfigMap homónimo purgado',
   );
 
   // 4. Helm templates declaran Sync Waves deterministas (0 a 4)
   const stsContent = fs.readFileSync(postgresStsPath, 'utf-8');
-  assert.ok(stsContent.includes('argocd.argoproj.io/sync-wave: "0"'), 'PostgreSQL StatefulSet debe estar en sync-wave 0');
+  assert.ok(
+    stsContent.includes('argocd.argoproj.io/sync-wave: "0"'),
+    'PostgreSQL StatefulSet debe estar en sync-wave 0',
+  );
 
   const seedContent = fs.readFileSync(seedJobPath, 'utf-8');
   // ADR-030: el seed corre como PostSync; el contrato renderizado vive en seed_job_contract.test.ts.
@@ -339,64 +351,69 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   const appProxmoxPreprodPath = path.join(ROOT_DIR, 'gitops/apps/app-proxmox-preprod.yaml');
   const preprodContent = fs.readFileSync(appProxmoxPreprodPath, 'utf-8');
   const cloudContent = fs.readFileSync(appCloudPath, 'utf-8');
-  assert.ok(preprodContent.includes('ServerSideApply=true'), 'app-proxmox-preprod.yaml debe configurar ServerSideApply');
+  assert.ok(
+    preprodContent.includes('ServerSideApply=true'),
+    'app-proxmox-preprod.yaml debe configurar ServerSideApply',
+  );
 
   // ADR-030: pre-prod es entrega continua (sin ventanas de bloqueo); la ventana de
   // fin de semana pertenecia a la antigua prod Proxmox, retirada.
-  assert.ok(!/^\s*syncWindows:/m.test(preprodContent), 'app-proxmox-preprod.yaml no debe declarar syncWindows (entrega continua)');
+  assert.ok(
+    !/^\s*syncWindows:/m.test(preprodContent),
+    'app-proxmox-preprod.yaml no debe declarar syncWindows (entrega continua)',
+  );
 
   assert.ok(
     !cloudContent.includes('syncWindows:'),
-    'GITOPS-001: una referencia inactiva no debe declarar ventanas de proteccion de produccion'
+    'GITOPS-001: una referencia inactiva no debe declarar ventanas de proteccion de produccion',
   );
   assert.ok(!cloudContent.includes('* * * * *'), 'app-cloud.yaml no debe tener el antipatrón * * * * *');
 
   // Pre-producción: Continuous Delivery sin bloqueos artificiales
   assert.ok(!preprodContent.includes('* * * * *'), 'app-proxmox-preprod.yaml no debe tener el antipatrón * * * * *');
-  assert.ok(!preprodContent.includes('kind: deny'), 'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción');
+  assert.ok(
+    !preprodContent.includes('kind: deny'),
+    'app-proxmox-preprod.yaml no debe bloquear despliegues en pre-producción',
+  );
 
   // 6. Taskfile.yaml define tareas gitops:apps:root y gitops:health-checks (retirando el legacy gitops:apps)
   const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('gitops:apps:root:'), 'Taskfile.yaml debe definir gitops:apps:root');
-  assert.ok(!/^\s*gitops:apps:\s*$/m.test(taskfileContent), 'Taskfile.yaml no debe contener la tarea legada gitops:apps');
+  assert.ok(
+    !/^\s*gitops:apps:\s*$/m.test(taskfileContent),
+    'Taskfile.yaml no debe contener la tarea legada gitops:apps',
+  );
   assert.ok(taskfileContent.includes('gitops:health-checks:'), 'Taskfile.yaml debe definir gitops:health-checks');
 
   assert.match(
     taskfileContent,
     /kubectl patch configmap argocd-cm[^\n]*--type merge/,
-    'GITOPS-001: `task gitops:health-checks` debe parchear argocd-cm con `--type merge`'
+    'GITOPS-001: `task gitops:health-checks` debe parchear argocd-cm con `--type merge`',
   );
   assert.ok(
     !/kubectl apply -f gitops\/health-checks\/argocd-cm-healthchecks\.yaml/.test(taskfileContent),
-    'GITOPS-001: no debe usarse `kubectl apply` sobre el manifiesto de health checks (sobrescribiría argocd-cm)'
+    'GITOPS-001: no debe usarse `kubectl apply` sobre el manifiesto de health checks (sobrescribiría argocd-cm)',
   );
 
   // 8. startupProbe presente en las apps que ejecutan codigo de aplicacion.
-  const helmValues2 = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'),
-    'utf-8'
-  );
+  const helmValues2 = fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'), 'utf-8');
 
   const apiContent2 = fs.readFileSync(apiDeploymentPath, 'utf-8');
   assert.match(
     apiContent2,
     /startupProbe:/,
-    'api-deployment.yaml debe declarar startupProbe (margen para migraciones de arranque)'
+    'api-deployment.yaml debe declarar startupProbe (margen para migraciones de arranque)',
   );
   assert.ok(
     /api\.startupProbe/.test(apiContent2),
-    'api-deployment.yaml debe parametrizar el startupProbe desde values'
+    'api-deployment.yaml debe parametrizar el startupProbe desde values',
   );
   const webContent2 = fs.readFileSync(webDeploymentPath, 'utf-8');
-  assert.match(
-    webContent2,
-    /startupProbe:/,
-    'web-deployment.yaml debe declarar startupProbe'
-  );
+  assert.match(webContent2, /startupProbe:/, 'web-deployment.yaml debe declarar startupProbe');
   assert.match(
     helmValues2,
     /startupProbe:\s*\n\s*failureThreshold:/,
-    'values.yaml debe definir los parametros del startupProbe por defecto'
+    'values.yaml debe definir los parametros del startupProbe por defecto',
   );
 
   // 7. deployment.md documenta sección 5 y ADR-003
@@ -410,13 +427,21 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-003-gitops-with-argocd.md'), 'docs/README.md debe enlazar ADR-003');
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-  assert.ok(decisionsReadmeContent.includes('ADR-021'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-021');
+  assert.ok(
+    decisionsReadmeContent.includes('ADR-021'),
+    'docs/decisions/README.md debe registrar el histórico consolidado de ADR-021',
+  );
 
   // 9. Los ADRs activos catalogados existen físicamente en disco
-  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  const decisionFiles = fs
+    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
+    .filter((f: string) => f.startsWith('ADR-'));
   assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
   for (const adrFile of decisionFiles) {
-    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
+    assert.ok(
+      decisionsReadmeContent.includes(adrFile),
+      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
+    );
   }
 });
 
@@ -436,39 +461,69 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
   assert.ok(fs.existsSync(adrPath), 'ADR-005 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8').replace(/\r\n/g, '\n');
   assert.ok(adrContent.includes('## Estado\n\nAceptado'), 'ADR-005 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('reloader.stakater.com/auto'), 'ADR-005 debe formalizar anotación de Stakater Reloader');
+  assert.ok(
+    adrContent.includes('reloader.stakater.com/auto'),
+    'ADR-005 debe formalizar anotación de Stakater Reloader',
+  );
   assert.ok(adrContent.includes('External Secrets Operator'), 'ADR-005 debe formalizar External Secrets Operator');
   assert.ok(adrContent.includes('ADR-022'), 'ADR-005 debe formalizar la consolidación de ADR-022');
 
   // 2. Helm values configuran anotación de Reloader y refreshInterval acotado
   const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
   const valuesProdContent = fs.readFileSync(valuesProdPath, 'utf-8');
-  assert.ok(valuesContent.includes('reloader.stakater.com/auto: "true"'), 'values.yaml debe incluir anotación reloader.stakater.com/auto: "true"');
-  assert.ok(valuesProdContent.includes('reloader.stakater.com/auto: "true"'), 'values.prod.yaml debe incluir anotación reloader.stakater.com/auto: "true"');
+  assert.ok(
+    valuesContent.includes('reloader.stakater.com/auto: "true"'),
+    'values.yaml debe incluir anotación reloader.stakater.com/auto: "true"',
+  );
+  assert.ok(
+    valuesProdContent.includes('reloader.stakater.com/auto: "true"'),
+    'values.prod.yaml debe incluir anotación reloader.stakater.com/auto: "true"',
+  );
   assert.ok(valuesProdContent.includes('refreshInterval: "1h"'), 'values.prod.yaml debe acotar refreshInterval a 1h');
 
   // 3. Template de web deployment soporta deploymentAnnotations
   const webDeployContent = fs.readFileSync(webDeployPath, 'utf-8');
-  assert.ok(webDeployContent.includes('.Values.web.deploymentAnnotations'), 'web-deployment.yaml debe soportar web.deploymentAnnotations');
+  assert.ok(
+    webDeployContent.includes('.Values.web.deploymentAnnotations'),
+    'web-deployment.yaml debe soportar web.deploymentAnnotations',
+  );
 
   // 4. Script de auditoría de rotación existe y valida arquitectura dual (ADR-005)
   assert.ok(fs.existsSync(auditScriptPath), 'scripts/verify-secret-rotation.ts debe existir');
   const auditScriptContent = fs.readFileSync(auditScriptPath, 'utf-8');
-  assert.ok(auditScriptContent.includes('Reloader = REQUIRED'), 'verify-secret-rotation.ts debe verificar Reloader REQUIRED en AWS');
-  assert.ok(auditScriptContent.includes('Reloader = FORBIDDEN'), 'verify-secret-rotation.ts debe verificar Reloader FORBIDDEN en Proxmox');
-  assert.ok(auditScriptContent.includes('rollout restart = REQUIRED'), 'verify-secret-rotation.ts debe verificar rollout restart REQUIRED en Proxmox');
-  assert.ok(auditScriptContent.includes('refreshInterval <= 24h'), 'verify-secret-rotation.ts debe auditar refreshInterval <= 24h');
+  assert.ok(
+    auditScriptContent.includes('Reloader = REQUIRED'),
+    'verify-secret-rotation.ts debe verificar Reloader REQUIRED en AWS',
+  );
+  assert.ok(
+    auditScriptContent.includes('Reloader = FORBIDDEN'),
+    'verify-secret-rotation.ts debe verificar Reloader FORBIDDEN en Proxmox',
+  );
+  assert.ok(
+    auditScriptContent.includes('rollout restart = REQUIRED'),
+    'verify-secret-rotation.ts debe verificar rollout restart REQUIRED en Proxmox',
+  );
+  assert.ok(
+    auditScriptContent.includes('refreshInterval <= 24h'),
+    'verify-secret-rotation.ts debe auditar refreshInterval <= 24h',
+  );
 
   // 5. Taskfile.yaml y package.json exponen secrets:audit-rotation
   const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   const pkgContent = fs.readFileSync(pkgPath, 'utf-8');
-  assert.ok(taskfileContent.includes('secrets:audit-rotation:'), 'Taskfile.yaml debe definir tarea secrets:audit-rotation');
+  assert.ok(
+    taskfileContent.includes('secrets:audit-rotation:'),
+    'Taskfile.yaml debe definir tarea secrets:audit-rotation',
+  );
   assert.ok(pkgContent.includes('"secrets:audit-rotation"'), 'package.json debe definir script secrets:audit-rotation');
 
   // 6. Runbook secret-rotation.md documenta ADR-005 y comando canónico
   const secretRunbookContent = fs.readFileSync(secretRunbookPath, 'utf-8');
   assert.ok(secretRunbookContent.includes('ADR-005'), 'secret-rotation.md debe documentar ADR-005');
-  assert.ok(secretRunbookContent.includes('task secrets:audit-rotation'), 'secret-rotation.md debe documentar task secrets:audit-rotation');
+  assert.ok(
+    secretRunbookContent.includes('task secrets:audit-rotation'),
+    'secret-rotation.md debe documentar task secrets:audit-rotation',
+  );
 
   // 7. README.md y docs/README.md enlazan ADR-005 y catálogo registra ADR-022
   fs.readFileSync(readmePath, 'utf-8');
@@ -476,12 +531,20 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-005-secret-management.md'), 'docs/README.md debe enlazar ADR-005');
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-  assert.ok(decisionsReadmeContent.includes('ADR-022'), 'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022');
+  assert.ok(
+    decisionsReadmeContent.includes('ADR-022'),
+    'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022',
+  );
 
   // 8. Los ADRs activos catalogados existen físicamente en disco
-  const decisionFiles = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions')).filter((f: string) => f.startsWith('ADR-'));
+  const decisionFiles = fs
+    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
+    .filter((f: string) => f.startsWith('ADR-'));
   assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
   for (const adrFile of decisionFiles) {
-    assert.ok(decisionsReadmeContent.includes(adrFile), `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`);
+    assert.ok(
+      decisionsReadmeContent.includes(adrFile),
+      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
+    );
   }
 });

@@ -43,23 +43,29 @@ export type BaselineOutcome = 'fresh' | 'tracked' | 'baselined';
  * es el esperado y se lanza un error en lugar de adivinar.
  */
 export async function baselineLegacySchema(client: Queryable, migrationsFolder: string): Promise<BaselineOutcome> {
-  const { rows: [state] } = await client.query<{ entries: string | null; journal: string | null }>(
-    "SELECT to_regclass('public.pokedex_entries')::text AS entries, to_regclass('drizzle.__drizzle_migrations')::text AS journal"
+  const {
+    rows: [state],
+  } = await client.query<{ entries: string | null; journal: string | null }>(
+    "SELECT to_regclass('public.pokedex_entries')::text AS entries, to_regclass('drizzle.__drizzle_migrations')::text AS journal",
   );
   if (!state?.entries) return 'fresh';
 
   if (state.journal) {
-    const { rows: [tracked] } = await client.query<{ total: string }>('SELECT count(*)::text AS total FROM drizzle.__drizzle_migrations');
+    const {
+      rows: [tracked],
+    } = await client.query<{ total: string }>('SELECT count(*)::text AS total FROM drizzle.__drizzle_migrations');
     if (Number(tracked?.total ?? 0) > 0) return 'tracked';
   }
 
   const { rows: columns } = await client.query<{ column_name: string }>(
-    "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pokedex_entries'"
+    "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'pokedex_entries'",
   );
   const present = new Set(columns.map((c) => c.column_name));
   const missing = BASELINE_REQUIRED_COLUMNS.filter((c) => !present.has(c));
   if (missing.length > 0) {
-    throw new Error(`[Migrations] pokedex_entries existe sin journal y no coincide con la migración inicial (faltan: ${missing.join(', ')})`);
+    throw new Error(
+      `[Migrations] pokedex_entries existe sin journal y no coincide con la migración inicial (faltan: ${missing.join(', ')})`,
+    );
   }
 
   const journal = JSON.parse(fs.readFileSync(path.join(migrationsFolder, 'meta', '_journal.json'), 'utf-8')) as {
@@ -71,8 +77,13 @@ export async function baselineLegacySchema(client: Queryable, migrationsFolder: 
   const hash = crypto.createHash('sha256').update(initialSql).digest('hex');
 
   await client.query('CREATE SCHEMA IF NOT EXISTS drizzle');
-  await client.query('CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint)');
-  await client.query('INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ($1, $2)', [hash, initial.when]);
+  await client.query(
+    'CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint)',
+  );
+  await client.query('INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ($1, $2)', [
+    hash,
+    initial.when,
+  ]);
   logger.warn(`[Migrations] Esquema heredado sin journal: ${initial.tag} registrada como aplicada (baseline)`);
   return 'baselined';
 }
@@ -104,8 +115,7 @@ export async function runMigrations(connectionString?: string): Promise<void> {
 
 // Ejecución directa vía CLI (tsx src/db/migrate.ts o node dist/migrate.cjs)
 const isCli = Boolean(
-  process.argv[1] &&
-  (process.argv[1].endsWith('migrate.ts') || process.argv[1].endsWith('migrate.cjs'))
+  process.argv[1] && (process.argv[1].endsWith('migrate.ts') || process.argv[1].endsWith('migrate.cjs')),
 );
 
 if (isCli) {

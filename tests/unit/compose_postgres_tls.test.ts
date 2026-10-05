@@ -17,9 +17,7 @@ type Service = { environment?: Record<string, string>; command?: string };
 
 /** Resuelve `${VAR:-default}` y `${VAR:?msg}` como lo haría Compose sin .env. */
 function resolveDefaults(value: string): string {
-  return value
-    .replace(/\$\{[A-Z_]+:-([^}]*)\}/g, '$1')
-    .replace(/\$\{[A-Z_]+(?::\?[^}]*)?\}/g, 'x');
+  return value.replace(/\$\{[A-Z_]+:-([^}]*)\}/g, '$1').replace(/\$\{[A-Z_]+(?::\?[^}]*)?\}/g, 'x');
 }
 
 test('🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece', () => {
@@ -35,6 +33,6 @@ test('🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece',
   assert.equal(
     usesTls,
     postgresOffersTls,
-    `El API ${usesTls ? 'exige' : 'no usa'} TLS pero el PostgreSQL de Compose ${postgresOffersTls ? 'lo ofrece' : 'no lo ofrece'}`
+    `El API ${usesTls ? 'exige' : 'no usa'} TLS pero el PostgreSQL de Compose ${postgresOffersTls ? 'lo ofrece' : 'no lo ofrece'}`,
   );
 });

@@ -15,10 +15,21 @@ function stubCatalog(total: number) {
     calls.push(url.pathname + url.search);
     const offset = Number(url.searchParams.get('offset') ?? 0);
     const limit = Number(url.searchParams.get('limit') ?? 50);
-    const items = Array.from({ length: Math.max(0, Math.min(limit, total - offset)) }, (_, i) => ({ id: offset + i + 1, nombre: `P${offset + i + 1}` }));
-    return new Response(JSON.stringify(items), { status: 200, headers: { 'Content-Type': 'application/json', 'X-Total-Count': String(total) } });
+    const items = Array.from({ length: Math.max(0, Math.min(limit, total - offset)) }, (_, i) => ({
+      id: offset + i + 1,
+      nombre: `P${offset + i + 1}`,
+    }));
+    return new Response(JSON.stringify(items), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'X-Total-Count': String(total) },
+    });
   }) as typeof fetch;
-  return { calls, restore: () => { globalThis.fetch = original; } };
+  return {
+    calls,
+    restore: () => {
+      globalThis.fetch = original;
+    },
+  };
 }
 
 test('🧭 Catálogo: fetchAllPokemons descarga todas las páginas hasta X-Total-Count', async () => {
@@ -26,9 +37,16 @@ test('🧭 Catálogo: fetchAllPokemons descarga todas las páginas hasta X-Total
   try {
     const pokemons = await fetchAllPokemons();
     assert.equal(pokemons.length, 1025);
-    assert.deepEqual(pokemons.map((p) => p.id), Array.from({ length: 1025 }, (_, i) => i + 1), 'Sin huecos ni duplicados');
+    assert.deepEqual(
+      pokemons.map((p) => p.id),
+      Array.from({ length: 1025 }, (_, i) => i + 1),
+      'Sin huecos ni duplicados',
+    );
     assert.equal(stub.calls.length, Math.ceil(1025 / CATALOG_PAGE_SIZE));
-    assert.ok(stub.calls.every((c) => c.includes(`limit=${CATALOG_PAGE_SIZE}`)), 'Cada página debe pedir el máximo permitido por la API');
+    assert.ok(
+      stub.calls.every((c) => c.includes(`limit=${CATALOG_PAGE_SIZE}`)),
+      'Cada página debe pedir el máximo permitido por la API',
+    );
   } finally {
     stub.restore();
   }

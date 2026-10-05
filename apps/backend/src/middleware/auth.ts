@@ -22,7 +22,9 @@ export const DEFAULT_DEV_CORS_ORIGINS = [
 
 export function getConfiguredCorsOrigins(): string[] | null {
   return process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGINS.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
     : null;
 }
 
@@ -86,13 +88,7 @@ export function buildSessionCookie(token: string, expiresInSeconds: number): str
   const value = encodeURIComponent(token.trim());
   const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
   const maxAgeSeconds = Math.max(1, Math.floor(expiresInSeconds));
-  const parts = [
-    `pokedex_admin_session=${value}`,
-    'Path=/',
-    `Max-Age=${maxAgeSeconds}`,
-    'HttpOnly',
-    'SameSite=Lax',
-  ];
+  const parts = [`pokedex_admin_session=${value}`, 'Path=/', `Max-Age=${maxAgeSeconds}`, 'HttpOnly', 'SameSite=Lax'];
 
   if (secure) {
     parts.push('Secure');
@@ -148,9 +144,12 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
       const originHeader = (req.headers.origin || req.headers.referer) as string | undefined;
 
       if (isMutative && isCookieAuth && !originHeader) {
-        logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', { path: req.path });
+        logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', {
+          path: req.path,
+        });
         return res.status(403).json({
-          detail: 'Cabecera Origin/Referer requerida para mutaciones administrativas mediante cookie (CSRF protection).',
+          detail:
+            'Cabecera Origin/Referer requerida para mutaciones administrativas mediante cookie (CSRF protection).',
         });
       }
 
@@ -164,9 +163,13 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
           const isSameHost = Boolean(req.headers.host) && originUrl.host === req.headers.host;
           const isAllowed = allowed.includes(originHost) || isSameHost;
           if (!isAllowed) {
-            logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', { origin: originHost, path: req.path });
+            logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', {
+              origin: originHost,
+              path: req.path,
+            });
             return res.status(403).json({
-              detail: 'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
+              detail:
+                'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
             });
           }
         } catch {
@@ -183,7 +186,8 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
     // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
     if (sessionCheck.reason === 'service_unavailable') {
       return res.status(503).json({
-        detail: 'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
+        detail:
+          'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
       });
     }
   }
@@ -210,7 +214,8 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
 export function requireWritableStorage(_req: Request, res: Response, next: NextFunction) {
   if (!isWritableStorageAvailable()) {
     return res.status(503).json({
-      detail: 'Almacenamiento persistente (PostgreSQL) no disponible. Operaciones de escritura suspendidas para prevenir pérdida de datos.',
+      detail:
+        'Almacenamiento persistente (PostgreSQL) no disponible. Operaciones de escritura suspendidas para prevenir pérdida de datos.',
     });
   }
   next();
@@ -251,7 +256,10 @@ export function verifyAIKey(req: Request, res: Response, next: NextFunction) {
 export const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
   const allowed = process.env.ADMIN_ALLOWED_IPS;
   if (allowed) {
-    const list = allowed.split(',').map(s => s.trim()).filter(Boolean);
+    const list = allowed
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     const clientIp = req.ip || req.socket.remoteAddress || '';
     if (list.length > 0 && !list.includes(clientIp) && clientIp !== '127.0.0.1' && clientIp !== '::1') {
       return res.status(403).json({ error: 'Acceso restringido: IP no autorizada para el panel de administración' });

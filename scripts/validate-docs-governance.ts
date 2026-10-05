@@ -110,7 +110,6 @@ export function validateDocsGovernance(rootDir: string = process.cwd()): Governa
   const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
   const AGENTS_DIR = path.join(ROOT_DIR, '.agents');
 
-
   // 2. Obtener universo markdown de docs/, .agents/ y los documentos raíz.
   //    .agents/ y AGENTS.md se incluyen porque las skills enlazan ADRs y políticas:
   //    una consolidación de ADR (#483) dejó un enlace roto en repo-security que
@@ -191,7 +190,10 @@ export function validateDocsGovernance(rootDir: string = process.cwd()): Governa
 }
 
 // Ejecución CLI directa
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))
+) {
   console.log('📚 Pokédex Documentation Governance Gate');
   console.log('==========================================');
 

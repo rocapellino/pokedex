@@ -45,10 +45,13 @@ export function replaceComponentDigest(content: string, component: ImageComponen
     const key = line.match(/^([A-Za-z][\w-]*):/);
     if (key) topLevel = key[1];
     if (topLevel !== component) return line;
-    return line.replace(/^(\s+digest:\s*"?)sha256:[a-f0-9]{64}("?[^\r]*\r?)$/, (_all, prefix: string, suffix: string) => {
-      matches++;
-      return `${prefix}${digest}${suffix}`;
-    });
+    return line.replace(
+      /^(\s+digest:\s*"?)sha256:[a-f0-9]{64}("?[^\r]*\r?)$/,
+      (_all, prefix: string, suffix: string) => {
+        matches++;
+        return `${prefix}${digest}${suffix}`;
+      },
+    );
   });
 
   if (matches !== 1) {
@@ -85,7 +88,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const api = argValue(args, '--api');
   const web = argValue(args, '--web');
   if (!api || !web) {
-    console.error('Uso: node --experimental-strip-types scripts/update-image-digests.ts --api sha256:<hex> --web sha256:<hex>');
+    console.error(
+      'Uso: node --experimental-strip-types scripts/update-image-digests.ts --api sha256:<hex> --web sha256:<hex>',
+    );
     process.exit(1);
   }
   try {
@@ -93,7 +98,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     console.log(
       changed.length
         ? `✅ Digests fijados (api=${api}, web=${web}) en:\n${changed.map((f) => `   - ${f}`).join('\n')}`
-        : '✅ Los values ya fijan esos digests; sin cambios.'
+        : '✅ Los values ya fijan esos digests; sin cambios.',
     );
   } catch (err) {
     console.error(`❌ ${err instanceof Error ? err.message : String(err)}`);

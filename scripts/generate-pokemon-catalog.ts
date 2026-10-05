@@ -107,8 +107,14 @@ const STAT_KEYS: Record<string, StatKey> = {
   speed: 'speed',
 };
 
-interface NamedResource { name: string; url: string }
-interface LocalizedName { name: string; language: NamedResource }
+interface NamedResource {
+  name: string;
+  url: string;
+}
+interface LocalizedName {
+  name: string;
+  language: NamedResource;
+}
 
 interface GeneratorOptions {
   limit?: number;
@@ -385,12 +391,15 @@ async function buildEntry(
   const categoria = genusEs ? stripGenusPrefix(genusEs) : genusEn ? stripGenusSuffixEn(genusEn) : 'Desconocida';
   if (!genusEs) motivos.push('categoría en inglés (sin traducción al español)');
 
-  const flavorOf = (lang: string) => species.flavor_text_entries.filter((f) => f.language.name === lang).at(-1)?.flavor_text;
+  const flavorOf = (lang: string) =>
+    species.flavor_text_entries.filter((f) => f.language.name === lang).at(-1)?.flavor_text;
   const flavor = flavorOf('es') ?? flavorOf('en');
   const descripcion = flavor ? truncate(normalizeFlavorText(flavor), 1000) : 'Sin descripción disponible.';
   if (!flavorOf('es')) motivos.push('descripción en inglés (sin traducción al español)');
 
-  const habitat = species.habitat ? HABITAT_NAMES_ES[species.habitat.name] ?? titleCaseSlug(species.habitat.name) : UNKNOWN_HABITAT;
+  const habitat = species.habitat
+    ? (HABITAT_NAMES_ES[species.habitat.name] ?? titleCaseSlug(species.habitat.name))
+    : UNKNOWN_HABITAT;
   if (!species.habitat) motivos.push('hábitat no publicado por PokeAPI');
 
   const peso = pokemon.weight / 10;
@@ -440,7 +449,9 @@ export function serializeCatalog(catalog: Pokemon[]): string {
   return `[\n${catalog.map((entry) => JSON.stringify(entry)).join(',\n')}\n]\n`;
 }
 
-export async function generateCatalog(options: GeneratorOptions): Promise<{ catalog: Pokemon[]; degraded: DegradedEntry[] }> {
+export async function generateCatalog(
+  options: GeneratorOptions,
+): Promise<{ catalog: Pokemon[]; degraded: DegradedEntry[] }> {
   const api = new PokeApiClient(options.cacheDir);
   const translator = new Translator(api);
 
@@ -455,14 +466,16 @@ export async function generateCatalog(options: GeneratorOptions): Promise<{ cata
 
   // Los nombres se resuelven antes para que las cadenas evolutivas usen el mismo nombre que la entrada.
   const names = new Map<number, string>();
-  for (const s of speciesList) names.set(s.id, pickLocalized(s.names, 'es') ?? pickLocalized(s.names, 'en') ?? titleCaseSlug(s.name));
+  for (const s of speciesList)
+    names.set(s.id, pickLocalized(s.names, 'es') ?? pickLocalized(s.names, 'en') ?? titleCaseSlug(s.name));
 
   const degraded: DegradedEntry[] = [];
   let done = 0;
   const catalog = await mapLimit(speciesList, CONCURRENCY, async (species) => {
     const entry = await buildEntry(species, api, translator, names, degraded);
     done++;
-    if (done % 100 === 0 || done === speciesList.length) console.log(`⏳ ${done}/${speciesList.length} entradas construidas`);
+    if (done % 100 === 0 || done === speciesList.length)
+      console.log(`⏳ ${done}/${speciesList.length} entradas construidas`);
     return entry;
   });
 

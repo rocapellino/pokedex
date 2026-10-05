@@ -2,20 +2,9 @@
 // Fachada Unificada de Almacenamiento & Persistencia (PostgreSQL, Redis & Memoria)
 // Arquitectura Modular Desacoplada (IMP-ARC-001)
 // ==============================================================================
-import {
-  connectPg,
-  closePg,
-  isPgConnectedStatus,
-  getLastKnownPgCount
-} from './postgres.js';
-import {
-  connectRedis,
-  closeRedis,
-  isCacheConnected,
-} from './cache.js';
-import {
-  getMemoryMapSize
-} from './pokemon.repository.js';
+import { connectPg, closePg, isPgConnectedStatus, getLastKnownPgCount } from './postgres.js';
+import { connectRedis, closeRedis, isCacheConnected } from './cache.js';
+import { getMemoryMapSize } from './pokemon.repository.js';
 
 let heartbeatTimer: NodeJS.Timeout | null = null;
 
@@ -29,7 +18,7 @@ export function startStorageHeartbeat(intervalMs = 5000): void {
     if (process.env.DATABASE_URL && !isPgConnectedStatus()) {
       await connectPg();
     }
-    if (process.env.REDIS_URL || process.env.REDIS_HOST && !isCacheConnected()) {
+    if (process.env.REDIS_URL || (process.env.REDIS_HOST && !isCacheConnected())) {
       await connectRedis();
     }
   }, intervalMs);
@@ -101,7 +90,7 @@ export {
   deletePokemon,
   getNextPokemonId,
   isWritableStorageAvailable,
-  listPersistedPokemonIds
+  listPersistedPokemonIds,
 } from './pokemon.repository.js';
 
 export {
@@ -109,5 +98,5 @@ export {
   consumeDistributedRateLimit,
   setRevokedJti,
   isJtiRevokedInRedis,
-  getRedisClient
+  getRedisClient,
 } from './cache.js';

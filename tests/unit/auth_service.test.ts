@@ -30,10 +30,7 @@ test('🔐 AuthService [Unit]: getSessionSecret opera con clave efímera en desa
     // 3. En producción sin variable de entorno falla cerrado lanzando error
     delete process.env.ADMIN_SESSION_SECRET;
     process.env.NODE_ENV = 'production';
-    assert.throws(
-      () => getSessionSecret(),
-      /ADMIN_SESSION_SECRET es obligatorio en producción/
-    );
+    assert.throws(() => getSessionSecret(), /ADMIN_SESSION_SECRET es obligatorio en producción/);
   } finally {
     process.env.NODE_ENV = originalEnv;
     if (originalSecret) {
@@ -65,28 +62,23 @@ test('🔐 AuthService [Unit]: verifyTokenSignature rechaza firmas HMAC manipula
 
   // Firma alterada en longitud
   const shortenedSig = signature.slice(0, 10);
-  assert.deepEqual(
-    verifyTokenSignature(`${payloadBase64}.${shortenedSig}`),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  assert.deepEqual(verifyTokenSignature(`${payloadBase64}.${shortenedSig}`), {
+    valid: false,
+    reason: 'invalid_signature',
+  });
 
   // Firma alterada de igual longitud
   const corruptedChar = signature[0] === 'a' ? 'b' : 'a';
   const tamperedSig = corruptedChar + signature.slice(1);
-  assert.deepEqual(
-    verifyTokenSignature(`${payloadBase64}.${tamperedSig}`),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  assert.deepEqual(verifyTokenSignature(`${payloadBase64}.${tamperedSig}`), {
+    valid: false,
+    reason: 'invalid_signature',
+  });
 
   // Firma legítima pero generada con una clave secreta apócrifa distinta
   const attackerKey = crypto.randomBytes(32);
-  const fakeSig = crypto.createHmac('sha256', attackerKey)
-    .update(payloadBase64)
-    .digest('base64url');
-  assert.deepEqual(
-    verifyTokenSignature(`${payloadBase64}.${fakeSig}`),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  const fakeSig = crypto.createHmac('sha256', attackerKey).update(payloadBase64).digest('base64url');
+  assert.deepEqual(verifyTokenSignature(`${payloadBase64}.${fakeSig}`), { valid: false, reason: 'invalid_signature' });
 });
 
 test('🔐 AuthService [Unit]: verifyTokenSignature rechaza payloads JSON corruptos o no conformes', () => {
@@ -99,36 +91,23 @@ test('🔐 AuthService [Unit]: verifyTokenSignature rechaza payloads JSON corrup
 
   // JSON inválido / corrupto
   const invalidJsonToken = signCustom('{ "incompleto": true');
-  assert.deepEqual(
-    verifyTokenSignature(invalidJsonToken),
-    { valid: false, reason: 'invalid_format' }
-  );
+  assert.deepEqual(verifyTokenSignature(invalidJsonToken), { valid: false, reason: 'invalid_format' });
 
   // Payload con rol no permitido
   const userRoleToken = signCustom(JSON.stringify({ role: 'guest', exp: Date.now() + 60000, jti: '0123456789abcdef' }));
-  assert.deepEqual(
-    verifyTokenSignature(userRoleToken),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  assert.deepEqual(verifyTokenSignature(userRoleToken), { valid: false, reason: 'invalid_signature' });
 
   // Payload con jti ausente, no-string o con caracteres inválidos
   const noJtiToken = signCustom(JSON.stringify({ role: 'admin', exp: Date.now() + 60000 }));
-  assert.deepEqual(
-    verifyTokenSignature(noJtiToken),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  assert.deepEqual(verifyTokenSignature(noJtiToken), { valid: false, reason: 'invalid_signature' });
 
-  const nonHexJtiToken = signCustom(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: 'xyz-not-hex-chars!' }));
-  assert.deepEqual(
-    verifyTokenSignature(nonHexJtiToken),
-    { valid: false, reason: 'invalid_signature' }
+  const nonHexJtiToken = signCustom(
+    JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: 'xyz-not-hex-chars!' }),
   );
+  assert.deepEqual(verifyTokenSignature(nonHexJtiToken), { valid: false, reason: 'invalid_signature' });
 
   const shortJtiToken = signCustom(JSON.stringify({ role: 'admin', exp: Date.now() + 60000, jti: '0123' }));
-  assert.deepEqual(
-    verifyTokenSignature(shortJtiToken),
-    { valid: false, reason: 'invalid_signature' }
-  );
+  assert.deepEqual(verifyTokenSignature(shortJtiToken), { valid: false, reason: 'invalid_signature' });
 
   // Payload con exp anómalo (negativo, cero, flotante, infinito, año > 2100)
   const negExpToken = signCustom(JSON.stringify({ role: 'admin', exp: -100, jti: '0123456789abcdef' }));

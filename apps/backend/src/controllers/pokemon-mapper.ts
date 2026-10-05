@@ -6,7 +6,9 @@ import type { Pokemon } from '../types.js';
  */
 export function sanitizeLogString(val: unknown): string {
   if (val === undefined || val === null) return '';
-  return String(val).replace(/[\r\n\t]/g, '_').slice(0, 100);
+  return String(val)
+    .replace(/[\r\n\t]/g, '_')
+    .slice(0, 100);
 }
 
 /**
@@ -111,10 +113,7 @@ export function applyPokemonUpdates(existing: Pokemon, body: Record<string, any>
     },
     stats: body.stats
       ? {
-          hp:
-            body.stats.hp !== undefined
-              ? Number.parseInt(String(body.stats.hp), 10)
-              : (existing.stats?.hp ?? 50),
+          hp: body.stats.hp !== undefined ? Number.parseInt(String(body.stats.hp), 10) : (existing.stats?.hp ?? 50),
           attack:
             body.stats.attack !== undefined
               ? Number.parseInt(String(body.stats.attack), 10)

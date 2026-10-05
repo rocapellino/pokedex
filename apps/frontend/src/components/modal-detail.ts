@@ -169,7 +169,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
             ${tipos
               .map(
                 (t) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`
+                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`,
               )
               .join('')}
           </div>
@@ -181,7 +181,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
             ${weaknesses
               .map(
                 (w) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(w))}">${escapeText(w)}</span>`
+                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(w))}">${escapeText(w)}</span>`,
               )
               .join('')}
           </div>
