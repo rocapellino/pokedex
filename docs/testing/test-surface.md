@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **75** |
-| **Archivos de Test Automatizados** | 70 |
+| **Total de Archivos en `tests/`** | **76** |
+| **Archivos de Test Automatizados** | 71 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
-| **Total de Casos de Prueba Identificados** | **596** |
-| **Líneas de Código de Pruebas** | 16.780 |
-| **Tamaño Total de la Suite** | 712.9 KB |
+| **Total de Casos de Prueba Identificados** | **598** |
+| **Líneas de Código de Pruebas** | 16.838 |
+| **Tamaño Total de la Suite** | 715.2 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-05T22:37:26.923Z |
+| **Última Sincronización** | 2026-10-05T22:46:57.474Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 13 | 79 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 25 | 212 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 26 | 214 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 5 | 54 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 10 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -95,6 +95,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **10** | 196 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_cloud_collection.test.ts`](../../tests/security/grafana_cloud_collection.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **4** | 172 | Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **10** | 463 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/http_hardening.test.ts`](../../tests/security/http_hardening.test.ts) | `security` | Automated Test | `node:test (tsx)` | **2** | 58 | Suite de pruebas security: http_hardening.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / DevDX | `node:test (tsx)` | **8** | 386 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 224 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -163,7 +164,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 212
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 214
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -182,6 +183,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **10** | 196 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
 | [`tests/security/grafana_cloud_collection.test.ts`](../../tests/security/grafana_cloud_collection.test.ts) | **4** | 172 | Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API. | `infra/monitoring/grafana-cloud-values.yaml`, `scripts/deploy-grafana-cloud.mjs` |
 | [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **10** | 463 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
+| [`tests/security/http_hardening.test.ts`](../../tests/security/http_hardening.test.ts) | **2** | 58 | Suite de pruebas security: http_hardening.test.ts. | *(General)* |
 | [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **8** | 386 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `Taskfile.yaml`, `.vscode/tasks.json`, `.tool-versions`, `infra/k8s/kind-cluster.yaml` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 224 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | *(General)* |
