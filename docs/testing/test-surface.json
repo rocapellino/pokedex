@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T15:21:37.867Z",
+  "generatedAt": "2026-10-05T15:32:11.201Z",
   "summary": {
     "totalFiles": 73,
     "testFiles": 68,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 586,
-    "totalLines": 15539,
-    "totalSizeBytes": 714320,
+    "totalLines": 15546,
+    "totalSizeBytes": 714773,
     "suitesCount": 10
   },
   "suites": [
@@ -3034,9 +3034,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 10,
-      "sizeBytes": 7037,
-      "lineCount": 135,
-      "sha256": "58cca110610031b7a87123bfea8b5122c131dc8ec0dc7a6e20b1af62fbb03030",
+      "sizeBytes": 7490,
+      "lineCount": 142,
+      "sha256": "88c4e8d48a9cbf81244782788590efd35ebf0a9eab6b77f83f4ed6ea843d18fe",
       "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
       "targetArtifacts": [
         "infra/monitoring/grafana-cloud-values.yaml",
@@ -3068,7 +3068,7 @@
         },
         {
           "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
-          "line": 123
+          "line": 126
         }
       ]
     },

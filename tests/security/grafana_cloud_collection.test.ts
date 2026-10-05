@@ -50,9 +50,9 @@ const HELM_AVAILABLE = (() => {
 /** Valor de una clave del objeto DEFAULTS del script de despliegue. */
 function deployDefault(key: string): string {
   const source = fs.readFileSync(DEPLOY_SCRIPT, 'utf-8');
-  const m = source.match(new RegExp(`\\b${key}:\\s*'([^']+)'`));
-  assert.ok(m, `deploy-grafana-cloud.mjs debe definir DEFAULTS.${key}`);
-  return m[1];
+  const entry = [...source.matchAll(/^\s+([a-zA-Z]+):\s*'([^']+)',?$/gm)].find(([, k]) => k === key);
+  assert.ok(entry, `deploy-grafana-cloud.mjs debe definir DEFAULTS.${key}`);
+  return entry[2];
 }
 
 let renderedCache: string | undefined;
@@ -112,6 +112,9 @@ test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las a
   const rendered = renderCollection();
   // Las allowlists se renderizan como reglas `keep` con un regex de nombres de metrica.
   const keepRegexes = [...rendered.matchAll(/source_labels = \["__name__"\]\s*\n\s*regex = "([^"]+)"\s*\n\s*action = "keep"/g)].map(
+    // El regex sale del render del chart fijado en el repo, no de entrada de usuario:
+    // evaluarlo es lo que verifica este contrato.
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
     ([, r]) => new RegExp(`^(?:${r})$`)
   );
   assert.ok(keepRegexes.length > 0, 'Se esperaban allowlists en el render');
@@ -127,8 +130,12 @@ test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colec
   const [, service, namespace, port] = endpoint;
 
   const rendered = renderCollection();
-  const alloyCr = rendered.split(/^---$/m).find((doc) => /^kind: Alloy$/m.test(doc) && new RegExp(`^  name: ${service}$`, 'm').test(doc));
+  const lines = (doc: string) => doc.split(/\r?\n/);
+  const alloyCr = rendered
+    .split(/^---$/m)
+    .find((doc) => lines(doc).includes('kind: Alloy') && lines(doc).includes(`  name: ${service}`));
   assert.ok(alloyCr, `El colector debe llamarse ${service}: la API envia OTLP a ${service}.${namespace}`);
-  assert.match(alloyCr, new RegExp(`^  namespace: ${namespace}$`, 'm'));
-  assert.match(alloyCr, new RegExp(`port: ${port}\\b`), `El colector debe exponer el puerto OTLP ${port}`);
+  assert.ok(lines(alloyCr).includes(`  namespace: ${namespace}`), `El colector debe vivir en el namespace ${namespace}`);
+  const ports = [...alloyCr.matchAll(/^\s+port: (\d+)$/gm)].map(([, p]) => p);
+  assert.ok(ports.includes(port), `El colector debe exponer el puerto OTLP ${port}`);
 });
