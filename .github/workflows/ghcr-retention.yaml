@@ -32,6 +32,10 @@ on:
     types: [completed]
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   packages: write
   contents: read
@@ -41,6 +45,7 @@ jobs:
     name: "🧹 Purgar imágenes antiguas en GHCR (Retención: 3)"
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       packages: write
       contents: read

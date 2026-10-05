@@ -440,3 +440,33 @@ test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene 
     'pr-governance debe excluir PRs de bots (promote y Renovate generan cuerpos propios)',
   );
 });
+
+test('⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency', () => {
+  const dir = path.join(ROOT_DIR, '.github/workflows');
+  const missingTimeout: string[] = [];
+  const missingConcurrency: string[] = [];
+
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
+    const doc = yamlSafeLoad(fs.readFileSync(path.join(dir, file), 'utf-8')) as {
+      on?: unknown;
+      concurrency?: unknown;
+      jobs?: Record<string, { uses?: string; 'timeout-minutes'?: number }>;
+    };
+    const triggers = (doc.on ?? (doc as Record<string, unknown>).true ?? {}) as Record<string, unknown>;
+    const isReusable = typeof triggers === 'object' && 'workflow_call' in triggers;
+
+    // Un job que invoca un reusable (`uses:`) no admite timeout-minutes: lo declaran los jobs del reusable.
+    for (const [id, job] of Object.entries(doc.jobs ?? {})) {
+      if (!job.uses && typeof job['timeout-minutes'] !== 'number') {
+        missingTimeout.push(`${file}:${id}`);
+      }
+    }
+    // Los reusables no deben declarar concurrency (ver test de regresión de topología).
+    if (!isReusable && !doc.concurrency) {
+      missingConcurrency.push(file);
+    }
+  }
+
+  assert.deepEqual(missingTimeout, [], 'Jobs sin timeout-minutes: un job colgado consumiría 6 horas de runner');
+  assert.deepEqual(missingConcurrency, [], 'Workflows no reusables sin concurrency: los runs se solaparían');
+});

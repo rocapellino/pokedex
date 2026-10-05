@@ -27,6 +27,7 @@ jobs:
   detect-impact:
     name: "🎯 Detect Change Impact"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
@@ -211,6 +212,7 @@ jobs:
       github.event.pull_request.user.type != 'Bot' &&
       needs.detect-impact.outputs.pr_governance == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
@@ -252,6 +254,7 @@ jobs:
     needs: [detect-impact, ci-core, infra, frontend-web, config-linters, security-code-scanning, pr-governance]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:

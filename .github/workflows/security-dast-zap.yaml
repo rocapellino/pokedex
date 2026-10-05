@@ -12,6 +12,10 @@ on:
   schedule:
     - cron: "0 4 * * 1" # Semanal los lunes a las 04:00 UTC
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -19,6 +23,7 @@ jobs:
   zap_scan:
     name: "🕷️ OWASP ZAP Baseline Scan"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     env:

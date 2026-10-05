@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T23:14:36.707Z",
+  "generatedAt": "2026-10-05T23:21:27.076Z",
   "summary": {
     "totalFiles": 77,
     "testFiles": 72,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 606,
-    "totalLines": 16924,
-    "totalSizeBytes": 736294,
+    "totalTestCases": 607,
+    "totalLines": 16954,
+    "totalSizeBytes": 737742,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 160,
+      "testCases": 161,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -409,12 +409,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 17,
+      "testCount": 18,
       "describeCount": 0,
-      "assertionCountEst": 69,
-      "sizeBytes": 20529,
-      "lineCount": 443,
-      "sha256": "36438909efb1b2fce55b2a5f0278af5cbeb715305150648bc5f731ee6cf9e802",
+      "assertionCountEst": 71,
+      "sizeBytes": 21977,
+      "lineCount": 473,
+      "sha256": "e33f83bc23d2aa5dc7d8067be10353b5eafc713e427ac5231b787edb9c72b644",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -495,6 +495,10 @@
         {
           "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
           "line": 397
+        },
+        {
+          "name": "⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency",
+          "line": 444
         }
       ]
     },

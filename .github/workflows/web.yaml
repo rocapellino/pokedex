@@ -18,6 +18,7 @@ jobs:
   validate-web:
     name: 🎨 Lint, E2E, A11y & Lighthouse
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
 

@@ -56,6 +56,10 @@ on:
       - dependabot_alert
       - secret_scanning_alert
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   security-events: read
@@ -64,6 +68,7 @@ jobs:
   sync-security-to-linear:
     name: 🎫 Sync Security Alerts to Linear Tickets
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       security-events: read
