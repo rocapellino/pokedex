@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T12:36:40.229Z",
+  "generatedAt": "2026-10-05T12:59:28.951Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 578,
-    "totalLines": 15399,
-    "totalSizeBytes": 706084,
+    "totalLines": 15403,
+    "totalSizeBytes": 706595,
     "suitesCount": 10
   },
   "suites": [
@@ -3704,10 +3704,10 @@
       "runner": "node:test (tsx)",
       "testCount": 12,
       "describeCount": 0,
-      "assertionCountEst": 83,
-      "sizeBytes": 14677,
-      "lineCount": 207,
-      "sha256": "558f8e483416de6f36ae8e90c98addabd976241f2b57127839b62025e6cf6edf",
+      "assertionCountEst": 86,
+      "sizeBytes": 15188,
+      "lineCount": 211,
+      "sha256": "7a0183a360a8843a4f93cd9b7dccb399f6743e0a0dc4f11018e832e16766127a",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
@@ -3770,7 +3770,7 @@
         },
         {
           "name": "🔒 Vault Storage: disable_mlock = true con Raft integrado en LXC sin privilegios",
-          "line": 201
+          "line": 205
         }
       ]
     },

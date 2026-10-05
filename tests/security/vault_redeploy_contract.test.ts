@@ -195,8 +195,12 @@ test('🔒 Vault Init: las credenciales se entregan al operador fuera del LXC y 
   assert.match(exportTask, /mode:\s*'0600'/, 'El archivo de credenciales debe ser 0600');
   assert.match(exportTask, /delegate_to:\s*localhost/, 'Las credenciales deben quedar en el nodo de control, no en el LXC de Vault');
   assert.match(exportTask, /no_log:\s*true/, 'Las credenciales no deben aparecer en la salida de Ansible');
+  assert.match(playbook, /Prevenir sobrescritura accidental de credenciales de init previas/, 'setup_vault.yaml debe implementar guarda anti-sobrescritura para vault_init_export_path');
+  assert.match(playbook, /Auditar integridad y permisos 0600 del archivo de custodia generado/, 'setup_vault.yaml debe auditar existencia y permisos 0600 de las credenciales');
+  assert.match(playbook, /shred -u \{\{ vault_init_export_path \}\}/, 'El playbook debe instruir explícitamente el borrado seguro con shred -u');
   assert.match(playbook, /path:\s*"\{\{ vault_config_dir \}\}\/vault-init\.json"\s*\n\s*state:\s*absent/, 'vault-init.json no debe persistir en el LXC');
 });
+
 
 test('🔒 Vault Storage: disable_mlock = true con Raft integrado en LXC sin privilegios', () => {
   const playbook = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_vault.yaml'), 'utf-8');
