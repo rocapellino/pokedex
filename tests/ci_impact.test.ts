@@ -745,6 +745,11 @@ test('🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspon
       notExpectedTrigger: 'kubernetes',
     },
     {
+      file: 'scripts/test-surface/parser.ts',
+      expectedTrigger: 'tests',
+      notExpectedTrigger: 'kubernetes',
+    },
+    {
       file: 'scripts/check-ruleset-parity.ts',
       expectedTrigger: 'linting',
       notExpectedTrigger: 'backend',

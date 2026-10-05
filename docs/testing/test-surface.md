@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
 | **Total de Casos de Prueba Identificados** | **605** |
-| **Líneas de Código de Pruebas** | 16.907 |
-| **Tamaño Total de la Suite** | 718.4 KB |
+| **Líneas de Código de Pruebas** | 16.912 |
+| **Tamaño Total de la Suite** | 718.5 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-05T23:05:10.039Z |
+| **Última Sincronización** | 2026-10-05T23:07:55.427Z |
 
 ---
 
@@ -48,7 +48,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 145 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **33** | 772 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **33** | 777 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **17** | 443 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -271,7 +271,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **10** | 145 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `docs/audits/` |
-| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **33** | 772 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
+| [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **33** | 777 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **17** | 443 | Suite de pruebas governance: ci_workflow_governance.test.ts. | *(General)* |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `apps/backend/src/types.ts`, `apps/frontend/src/types.ts` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `docs/decisions/`, `.agents/rules/documentation-governance.md` |
