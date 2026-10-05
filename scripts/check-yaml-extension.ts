@@ -50,7 +50,7 @@ export const EXCEPTIONS: { pattern: RegExp; reason: string }[] = [
   { pattern: /ci\.yml` a `ci\.yaml|ci\.yml@refs\/heads\/main`/, reason: 'Documenta el cambio de identidad OIDC (Wave 3)' },
 ];
 
-const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents']);
+const EXCLUDED_DIRS = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.agents', '.terraform', '.tofu']);
 const IMMUTABLE_DIRS = ['docs/audits/'];
 
 // -----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ const SCANNED_REF_PATHS = [
 
 function walkFiles(dir: string, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue;
+    if (EXCLUDED_DIRS.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       walkFiles(full, out);

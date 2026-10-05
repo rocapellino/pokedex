@@ -53,7 +53,8 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task infra:apply:proxmox` | Aplica configuración IaC en Proxmox VE. |
 | | `task infra:plan:lab` | Plan de ejecución para entorno de laboratorio de pruebas. |
 | | `task infra:apply:lab` | Aplica infraestructura de laboratorio. |
-| **Automatización (Ansible)** | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
+| **Automatización (Ansible)** | `task ansible:syntax` | Valida sintaxis de los 9 playbooks y roles de Ansible (`--syntax-check`). |
+| | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
 | | `task ansible:harden` | Aplica blindaje perimetral y reglas de firewall UFW en hosts. |
 | | `task ansible:validate` | Auditoría y compliance de hosts sin alterar estado. |
 | | `task k3s:setup:proxmox` | Aprovisiona K3s y Cilium CNI en Proxmox mediante Ansible (`setup_k3s.yaml`). |

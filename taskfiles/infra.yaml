@@ -60,6 +60,11 @@ tasks:
       - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/security_hardening.yaml --syntax-check
       - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/prepare_hosts.yaml --syntax-check
       - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/validate_hosts.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_vault.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_bastion.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_gdrive_backup.yaml --syntax-check
+      - ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml --syntax-check
 
   ansible:prepare:
     desc: "Aprovisiona la configuración base, runtime de contenedores y tuning en hosts"

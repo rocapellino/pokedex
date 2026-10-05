@@ -79,7 +79,7 @@
       changed_when: pvesm_add_result.rc == 0
       when: pbs_remote_offsite_enabled | bool
 
-    - name: "Programar tarea de respaldo automático vzdump hacia PBS para K3s (801) y Vault (810)"
+    - name: "Programar tarea de respaldo automático vzdump hacia PBS para K3s (800) y Vault (810)"
       ansible.builtin.copy:
         dest: /etc/pve/vzdump.cron
         content: |
