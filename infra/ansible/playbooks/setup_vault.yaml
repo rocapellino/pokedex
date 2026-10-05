@@ -488,7 +488,7 @@
         content: "{{ k3s_server_ca.content | b64decode }}"
         owner: root
         group: root
-        mode: '0644'
+        mode: '0600'
       when: vault_init_raw is defined and vault_init_raw.changed
 
     - name: Configurar el auth kubernetes contra el API server de pre-prod
