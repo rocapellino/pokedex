@@ -336,8 +336,30 @@
       no_log: true
 
     # --------------------------------------------------------------------------
-    # 7. Zero-Disk Persistence: Purga de Archivos Locales de Credenciales
+    # 7. Zero-Disk Persistence y Custodia Segura de Credenciales de Inicialización
     # --------------------------------------------------------------------------
+    - name: Verificar si ya existe un archivo de custodia previo en el nodo de control
+      ansible.builtin.stat:
+        path: "{{ vault_init_export_path }}"
+      delegate_to: localhost
+      become: false
+      register: existing_vault_init_file
+      when: vault_init_raw is defined and vault_init_raw.changed
+
+    - name: Prevenir sobrescritura accidental de credenciales de init previas
+      ansible.builtin.fail:
+        msg: >
+          [ALERTA DE SEGURIDAD OPERACIONAL] El archivo de custodia '{{ vault_init_export_path }}'
+          ya existe en el nodo de control (Bastion). Para evitar la pérdida irreversible
+          de las claves Shamir anteriores, traslade o archive el archivo antes de inicializar nuevamente.
+      delegate_to: localhost
+      become: false
+      when:
+        - vault_init_raw is defined
+        - vault_init_raw.changed
+        - existing_vault_init_file.stat.exists
+        - not (vault_force_overwrite_init_file | default(false) | bool)
+
     - name: Entregar las credenciales de init al operador en el nodo de control (0600)
       ansible.builtin.copy:
         dest: "{{ vault_init_export_path }}"
@@ -345,8 +367,23 @@
         mode: '0600'
       delegate_to: localhost
       become: false
-      when: vault_init_raw is defined and vault_init_raw.changed
+      when:
+        - vault_init_raw is defined
+        - vault_init_raw.changed
+        - (not existing_vault_init_file.stat.exists) or (vault_force_overwrite_init_file | default(false) | bool)
       no_log: true
+
+    - name: Auditar integridad y permisos 0600 del archivo de custodia generado
+      ansible.builtin.stat:
+        path: "{{ vault_init_export_path }}"
+      delegate_to: localhost
+      become: false
+      register: verified_vault_init_file
+      failed_when: >
+        not verified_vault_init_file.stat.exists or
+        verified_vault_init_file.stat.mode != '0600' or
+        verified_vault_init_file.stat.size == 0
+      when: vault_init_raw is defined and vault_init_raw.changed
 
     - name: Garantizar que vault-init.json NO persista en el filesystem del LXC
       ansible.builtin.file:
@@ -500,7 +537,7 @@
       delegate_to: localhost
       become: false
 
-    - name: Informar al operador sobre inicialización completada y resguardo de credenciales
+    - name: Informar al operador sobre inicialización completada y contrato estricto de custodia
       ansible.builtin.debug:
         msg:
           - "========================================================================"
@@ -512,11 +549,15 @@
           - "Shamir Scheme      : 5 llaves generadas, threshold 3"
           - "Firewall UFW       : 8200 permitido únicamente para K8s y Bastion"
           - "Zero-Persistence   : /etc/vault.d/vault-init.json PURGADO DEL CONTENEDOR"
-          - "Credenciales init  : {{ vault_init_export_path }} (0600, nodo de control)"
-          - "ACCIÓN REQUERIDA   : repartir las 5 llaves Shamir y el root token en custodia"
-          - "                     offline y BORRAR ese archivo (shred -u)"
+          - "Credenciales init  : {{ vault_init_export_path }} (Verificado: 0600, nodo de control)"
+          - "CONTRATO CUSTODIA  : El archivo temporal existe SOLO durante el bootstrap."
+          - "                     1. Distribuir las 5 llaves Shamir entre los custodios designados."
+          - "                     2. Resguardar el root token en gestor de secretos offline seguro."
+          - "                     3. ELIMINAR INMEDIATAMENTE este archivo con sobreescritura segura:"
+          - "                        shred -u {{ vault_init_export_path }}"
           - "Certificado CA     : Exportado a infra/k8s/eso/vault-ca.crt"
           - "========================================================================"
+
       when: vault_init_raw is defined and vault_init_raw.changed
 
   handlers:

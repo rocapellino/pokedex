@@ -228,7 +228,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/pla
 5. **Zero-Disk Persistence (Sin Resguardo de Root Token en LXC):**
    - El proceso de inicialización captura las claves de unseal y el root token en memoria de Ansible, aplica el unseal inicial con 3 llaves y configura las entidades de Vault.
    - Se garantiza la eliminación permanente de cualquier archivo `vault-init.json` en el contenedor LXC.
-   - Las credenciales se entregan al operador en el nodo de control (Bastion) como `~/vault-init-vault-01.json` con permisos `0600` (`vault_init_export_path`). El operador debe repartir las 5 llaves Shamir y el root token en custodia offline y borrar el archivo con `shred -u`. Sin esta entrega, Vault queda sellado sin recuperación tras el primer reinicio.
+   - Las credenciales se entregan al operador en el nodo de control (Bastion) como `~/vault-init-vault-01.json` con permisos `0600` auditados (`vault_init_export_path`). El playbook incluye una guarda que previene la sobrescritura destructiva si ya existiera un archivo previo. El contrato operacional estipula que este archivo existe estrictamente durante el bootstrap: el operador debe resguardar las 5 llaves Shamir y el root token en custodia offline y purgarlo inmediatamente con `shred -u ~/vault-init-vault-01.json`. Sin esta entrega, Vault queda sellado sin recuperación tras el primer reinicio.
 6. **Integración con External Secrets Operator (ESO):**
    - El certificado público de la CA interna se exporta a `infra/k8s/eso/vault-ca.crt` y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
 
