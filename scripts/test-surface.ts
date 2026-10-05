@@ -307,6 +307,12 @@ const FILE_METADATA_CATALOG: Record<string, {
     targetArtifacts: ['scripts/verify-image-digest-parity.ts', 'gitops/'],
     description: 'Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod.',
   },
+  'tests/security/grafana_cloud_collection.test.ts': {
+    type: 'Contract / Observability',
+    targetDomain: 'Recolección de Métricas del Clúster hacia Grafana Cloud',
+    targetArtifacts: ['infra/monitoring/grafana-cloud-values.yaml', 'scripts/deploy-grafana-cloud.mjs'],
+    description: 'Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API.',
+  },
   'tests/security/grafana_portability.test.ts': {
     type: 'Contract / Observability',
     targetDomain: 'Portabilidad de Dashboards Grafana',

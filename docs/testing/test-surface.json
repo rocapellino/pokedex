@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T15:29:59.972Z",
+  "generatedAt": "2026-10-05T16:05:57.526Z",
   "summary": {
-    "totalFiles": 72,
-    "testFiles": 67,
+    "totalFiles": 73,
+    "testFiles": 68,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 587,
-    "totalLines": 15594,
-    "totalSizeBytes": 715941,
+    "totalTestCases": 591,
+    "totalLines": 15736,
+    "totalSizeBytes": 723431,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 24,
-      "testCases": 208,
+      "files": 25,
+      "testCases": 212,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3022,6 +3022,53 @@
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos",
           "line": 150
+        }
+      ]
+    },
+    {
+      "path": "tests/security/grafana_cloud_collection.test.ts",
+      "suite": "security",
+      "type": "Contract / Observability",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 10,
+      "sizeBytes": 7490,
+      "lineCount": 142,
+      "sha256": "88c4e8d48a9cbf81244782788590efd35ebf0a9eab6b77f83f4ed6ea843d18fe",
+      "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
+      "targetArtifacts": [
+        "infra/monitoring/grafana-cloud-values.yaml",
+        "scripts/deploy-grafana-cloud.mjs"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📡 OBS-002: el chart que instala el script renderiza con los values del repo",
+          "line": 92
+        },
+        {
+          "name": "📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud",
+          "line": 99
+        },
+        {
+          "name": "📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists",
+          "line": 111
+        },
+        {
+          "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
+          "line": 126
         }
       ]
     },

@@ -1,10 +1,53 @@
 # ==============================================================================
-# Grafana Cloud: k8s-monitoring Values
+# Grafana Cloud: k8s-monitoring Values (esquema v4)
 # Chart: https://grafana.github.io/helm-charts (k8s-monitoring)
+# La version del chart se fija en scripts/deploy-grafana-cloud.mjs (DEFAULTS.chartVersion)
+# y el contrato de render lo valida tests/security/grafana_cloud_collection.test.ts.
 # ==============================================================================
 
 cluster:
   name: "pokedex-k8s-cluster"
+
+# ------------------------------------------------------------------------------
+# Destinos declarados en el repo (SSOT). Los pipelines remotos de Fleet Management
+# (scrape de /metrics de la API, logs de pods y receptor OTLP) siguen activos
+# hasta migrarlos a este archivo.
+# ------------------------------------------------------------------------------
+destinations:
+  grafana-cloud-metrics:
+    type: prometheus
+    url: "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
+    auth:
+      type: basic
+      # ID de la instancia Prometheus del stack (basicAuthUser de grafanacloud-prom).
+      username: "3589862"
+      # El token (Access Policy con metrics:write) se inyecta con --set-file desde
+      # scripts/deploy-grafana-cloud.mjs; nunca se versiona.
+
+# ------------------------------------------------------------------------------
+# Metricas del cluster: cAdvisor, kubelet y kube-state-metrics.
+# Las allowlists por defecto se amplian con las metricas que consulta
+# infra/monitoring/alerts.yaml y que el chart descarta de fabrica.
+# ------------------------------------------------------------------------------
+clusterMetrics:
+  enabled: true
+  collector: alloy
+  cadvisor:
+    metricsTuning:
+      includeMetrics:
+        - container_spec_memory_limit_bytes
+  kube-state-metrics:
+    metricsTuning:
+      includeMetrics:
+        - kube_job_status_failed
+        - kube_cronjob_status_last_successful_time
+
+# Metricas de host del nodo K3s (node-exporter desplegado en telemetryServices).
+hostMetrics:
+  enabled: true
+  collector: alloy
+  linuxHosts:
+    enabled: true
 
 collectorCommon:
   alloy:
@@ -14,10 +57,13 @@ collectorCommon:
       auth:
         type: "basic"
         username: "1832819"
-        # La contraseña (token de Access Policy) se inyecta dinámicamente vía --set-string o secret
+        # La contraseña (token de Access Policy) se inyecta con --set-file desde el script
 
 collectors:
-  alloy-daemon:
+  # El nombre `alloy` produce el colector `grafana-cloud-alloy`, el Service al que la
+  # API envia OTLP (infra/helm/pokedex/values.yaml: otelEndpoint). No renombrar sin
+  # actualizar ese endpoint.
+  alloy:
     presets:
       - large
       - root
@@ -28,6 +74,18 @@ collectors:
       - service-discovery
       - filesystem-log-reader
       - daemonset
+    alloy:
+      alloy:
+        # Puertos del receptor OTLP que hoy configura Fleet Management.
+        extraPorts:
+          - name: otlp-grpc
+            port: 4317
+            targetPort: 4317
+            protocol: TCP
+          - name: otlp-http
+            port: 4318
+            targetPort: 4318
+            protocol: TCP
 
 telemetryServices:
   node-exporter:
