@@ -667,7 +667,8 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   assert.ok(taskfileContent.includes('governance:audit-scripts:'), 'Taskfile.yaml debe definir governance:audit-scripts');
   assert.ok(taskfileContent.includes('k8s:up:'), 'Taskfile.yaml debe definir k8s:up');
   assert.ok(taskfileContent.includes('gitops:sync:cloud:'), 'Taskfile.yaml debe definir gitops:sync:cloud');
-  assert.ok(taskfileContent.includes('gitops:sync:proxmox:'), 'Taskfile.yaml debe definir gitops:sync:proxmox');
+  assert.ok(taskfileContent.includes('gitops:sync:preprod:'), 'Taskfile.yaml debe definir gitops:sync:preprod');
+  assert.equal(taskfileContent.includes('gitops:sync:proxmox:'), false, 'Taskfile.yaml no debe definir el alias legado gitops:sync:proxmox (retirado según ADR-020)');
 
   // 5. package.json incluye script de auditoría
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));

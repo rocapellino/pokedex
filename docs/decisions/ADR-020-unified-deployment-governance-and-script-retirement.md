@@ -27,7 +27,7 @@ Se adopta una **Gobernanza Unificada de Despliegue y Operaciones** sustentada en
 - Tareas de ciclo de vida básico: `task install`, `task dev`, `task build`, `task start`, `task validate`.
 - Tareas de ingeniería y calidad: `task test`, `task lint`, `task typecheck`, `task test:security`, `task perf`.
 - Tareas de infraestructura y plataforma: `task k8s:status`, `task k8s:rollout-restart`, `task infra:validate`, `task infra:plan:proxmox`.
-- Tareas de entrega continua GitOps: `task gitops:status`, `task gitops:sync:proxmox`, `task gitops:pin`.
+- Tareas de entrega continua GitOps: `task gitops:status`, `task gitops:sync:preprod`, `task gitops:pin`.
 - Tareas de gobernanza: `task governance:audit-scripts`.
 
 Se establece `task --list` (invocado también por defecto al ejecutar `task` sin argumentos) como la **única interfaz oficialmente soportada** para el descubrimiento, documentación e inspección de tareas operativas y de desarrollo en el repositorio.

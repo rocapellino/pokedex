@@ -145,10 +145,6 @@ tasks:
     cmds:
       - argocd app sync pokedex-preprod
 
-  gitops:sync:proxmox:
-    desc: "Alias de compatibilidad para sincronizar la aplicación ArgoCD de pre-prod en Proxmox (ADR-030)"
-    cmds:
-      - argocd app sync pokedex-preprod
 
   gitops:bootstrap:proxmox:
     desc: "[Bootstrap/Emergencia] Aplica directamente la Application de pre-prod en Proxmox (ADR-030)"

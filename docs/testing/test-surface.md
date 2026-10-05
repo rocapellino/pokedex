@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
 | **Total de Casos de Prueba Identificados** | **577** |
-| **Líneas de Código de Pruebas** | 15.386 |
-| **Tamaño Total de la Suite** | 688.5 KB |
+| **Líneas de Código de Pruebas** | 15.387 |
+| **Tamaño Total de la Suite** | 688.6 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-05T12:00:12.209Z |
+| **Última Sincronización** | 2026-10-05T12:14:10.232Z |
 
 ---
 
@@ -81,7 +81,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/ruleset_contract.test.ts`](../../tests/ruleset_contract.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **3** | 108 | Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ruleset_parity.test.ts`](../../tests/ruleset_parity.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 254 | Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/security.test.ts`](../../tests/security.test.ts) | `governance` | Security / Application | `node:test (tsx)` | **28** | 448 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | `security` | Contract / Architecture | `node:test (tsx)` | **19** | 767 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | `security` | Contract / Architecture | `node:test (tsx)` | **19** | 768 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | `security` | Security / Ansible | `node:test (tsx)` | **12** | 377 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | `security` | Automated Test | `node:test (tsx)` | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | `security` | Automated Test | `node:test (tsx)` | **7** | 93 | Suite de pruebas security: csrf_origin.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -163,7 +163,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | **19** | 767 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `docs/decisions/` |
+| [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | **19** | 768 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `docs/decisions/` |
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | **12** | 377 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `infra/ansible/` |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | *(General)* |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | **7** | 93 | Suite de pruebas security: csrf_origin.test.ts. | *(General)* |
