@@ -11,10 +11,10 @@ import {
   extractAlertKeyFromTitle,
   syncAlertLifecycle,
   syncGitHubSecurityToLinear,
-  GitHubCodeScanningAlert,
-  GitHubDependabotAlert,
-  GitHubSecretScanningAlert,
-  LinearIssueNode,
+  type GitHubCodeScanningAlert,
+  type GitHubDependabotAlert,
+  type GitHubSecretScanningAlert,
+  type LinearIssueNode,
 } from '../../scripts/github-security-linear-sync.js';
 
 test('🛡️ GitHub Security Linear Sync: mapSeverityToPriority mapea severidades a prioridades de Linear', () => {

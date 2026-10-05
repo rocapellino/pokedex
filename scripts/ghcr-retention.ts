@@ -325,7 +325,7 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
 }
 
 // Ejecución CLI directa
-if (process.argv[1] && process.argv[1].endsWith('ghcr-retention.ts')) {
+if (process.argv[1]?.endsWith('ghcr-retention.ts')) {
   const args = process.argv.slice(2);
   const isDryRun = args.includes('--dry-run');
   const isSimulate = args.includes('--simulate');
@@ -334,7 +334,7 @@ if (process.argv[1] && process.argv[1].endsWith('ghcr-retention.ts')) {
   const keepArg = args.find((a) => a.startsWith('--keep='));
   if (keepArg) {
     const parsed = parseInt(keepArg.split('=')[1], 10);
-    if (!isNaN(parsed) && parsed > 0) {
+    if (!Number.isNaN(parsed) && parsed > 0) {
       keepCount = parsed;
     }
   }

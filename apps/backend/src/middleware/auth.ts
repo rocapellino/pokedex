@@ -1,8 +1,16 @@
-import crypto from 'crypto';
-import { Request, Response, NextFunction } from 'express';
+import crypto from 'node:crypto';
+import type { Request, Response, NextFunction } from 'express';
 import { verifySessionTokenDetailed } from '../services/auth.js';
 import { isWritableStorageAvailable } from '../services/db.js';
 import { logger } from '../utils/logger.js';
+
+declare global {
+  namespace Express {
+    interface Request {
+      authMechanism?: 'hmac_session_token' | 'master_api_key';
+    }
+  }
+}
 
 // Orígenes locales seguros permitidos por defecto en entorno de desarrollo
 export const DEFAULT_DEV_CORS_ORIGINS = [
@@ -41,7 +49,7 @@ export function safeCompareKeys(provided: string, expected: string): boolean {
  * Extrae exclusivamente tokens de sesión efímeros firmados con HMAC.
  */
 export function extractSessionTokenFromRequest(req: Request): string {
-  const authHeader = (req.headers['authorization'] || '') as string;
+  const authHeader = (req.headers.authorization || '') as string;
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7).trim();
   }
@@ -101,7 +109,7 @@ export function extractApiKey(req: Request): string {
   if (keyHeader) {
     return keyHeader.trim();
   }
-  const authHeader = (req.headers['authorization'] || '') as string;
+  const authHeader = (req.headers.authorization || '') as string;
   if (authHeader && !authHeader.startsWith('Bearer ')) {
     return authHeader.trim();
   }
@@ -135,9 +143,9 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
       // El token proviene de la cookie solo si no hay Bearer (extractSessionTokenFromRequest
       // prioriza la cabecera Authorization, que un sitio ajeno no puede fijar).
       const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
-      const hasBearer = String(req.headers['authorization'] || '').startsWith('Bearer ');
-      const isCookieAuth = !hasBearer && Boolean(req.headers.cookie && req.headers.cookie.includes('pokedex_admin_session='));
-      const originHeader = (req.headers['origin'] || req.headers['referer']) as string | undefined;
+      const hasBearer = String(req.headers.authorization || '').startsWith('Bearer ');
+      const isCookieAuth = !hasBearer && Boolean(req.headers.cookie?.includes('pokedex_admin_session='));
+      const originHeader = (req.headers.origin || req.headers.referer) as string | undefined;
 
       if (isMutative && isCookieAuth && !originHeader) {
         logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', { path: req.path });
@@ -168,7 +176,7 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
         }
       }
 
-      (req as any).authMechanism = 'hmac_session_token';
+      req.authMechanism = 'hmac_session_token';
       return next();
     }
 
@@ -182,7 +190,7 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
   if (apiKey && safeCompareKeys(apiKey, configuredKey)) {
-    (req as any).authMechanism = 'master_api_key';
+    req.authMechanism = 'master_api_key';
     if (process.env.NODE_ENV !== 'test') {
       const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
       logger.audit(`Acceso administrativo vía MASTER_API_KEY en ${req.method} ${req.path}`, {

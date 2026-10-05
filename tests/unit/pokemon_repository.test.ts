@@ -9,7 +9,7 @@ import {
   deletePokemon,
   getNextPokemonId
 } from '../../apps/backend/src/services/pokemon.repository.js';
-import { Pokemon } from '../../apps/backend/src/types.js';
+import type { Pokemon } from '../../apps/backend/src/types.js';
 import { validatePokemonPayload } from '../../apps/backend/src/validation/pokemon.js';
 
 test('🐾 PokemonRepository [Unit]: inicialización de catálogo y reporte de memoria', () => {

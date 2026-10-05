@@ -128,8 +128,6 @@ export function mapSeverityToPriority(severity?: string): number {
     case 'medium':
     case 'warning':
       return 3; // Medium en Linear
-    case 'low':
-    case 'note':
     default:
       return 4; // Low en Linear
   }
@@ -167,7 +165,6 @@ export function formatSecretScanningTitle(alert: GitHubSecretScanningAlert): str
 const LINEAR_API_URL = 'https://api.linear.app/graphql';
 const GITHUB_API_URL = 'https://api.github.com';
 
-const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY || 'rocapellino/pokedex';
 export function isDryRun(): boolean {
@@ -208,7 +205,7 @@ export async function fetchGitHub<T>(endpoint: string): Promise<T | null> {
   };
 
   if (GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
+    headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
   }
 
   const response = await fetch(url, { headers });
@@ -626,8 +623,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
         duplicateStateId: duplicateState.id,
       });
     }
-  } catch (err: any) {
-    console.error('⚠️ Error procesando alertas de GitHub Code Scanning:', err.message || err);
+  } catch (err) {
+    console.error('⚠️ Error procesando alertas de GitHub Code Scanning:', err instanceof Error ? err.message : err);
   }
 
   // --------------------------------------------------------------------------
@@ -684,8 +681,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
     } else {
       console.log('✅ No hay alertas registradas de GitHub Dependabot.');
     }
-  } catch (err: any) {
-    console.error('⚠️ Error procesando alertas de GitHub Dependabot:', err.message || err);
+  } catch (err) {
+    console.error('⚠️ Error procesando alertas de GitHub Dependabot:', err instanceof Error ? err.message : err);
   }
 
   // --------------------------------------------------------------------------
@@ -740,8 +737,8 @@ export async function syncGitHubSecurityToLinear(): Promise<void> {
     } else {
       console.log('✅ No hay alertas registradas de GitHub Secret Scanning.');
     }
-  } catch (err: any) {
-    console.error('⚠️ Error procesando alertas de GitHub Secret Scanning:', err.message || err);
+  } catch (err) {
+    console.error('⚠️ Error procesando alertas de GitHub Secret Scanning:', err instanceof Error ? err.message : err);
   }
 
   console.log('\n🏁 Sincronización GitHub Security & Quality ➔ Linear completada exitosamente.');

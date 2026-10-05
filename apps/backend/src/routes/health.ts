@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import { getStorageHealth, getPostgresVersion } from '../services/db.js';
 import { getLifecycleStatus } from '../utils/lifecycle.js';
 import { startTime, generatePrometheusMetrics } from '../middleware/metrics.js';

@@ -18,7 +18,7 @@ export function getCompleteTaskfileContent(rootDir: string): string {
   if (fs.existsSync(taskfilesDir)) {
     const files = fs.readdirSync(taskfilesDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml')).sort();
     for (const file of files) {
-      content += '\n' + fs.readFileSync(path.join(taskfilesDir, file), 'utf-8');
+      content += `\n${fs.readFileSync(path.join(taskfilesDir, file), 'utf-8')}`;
     }
   }
 

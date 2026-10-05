@@ -14,7 +14,7 @@ test('🧹 Configuration Hygiene: check-ignore-hygiene.ts existe y está registr
   assert.ok(pkgJson.scripts['lint:ignore'], 'package.json debe registrar el script lint:ignore');
   assert.ok(pkgJson.scripts['lint:ignore:strict'], 'package.json debe registrar el script lint:ignore:strict');
   assert.ok(pkgJson.scripts['lint:ignore:fix'], 'package.json debe registrar el script lint:ignore:fix');
-  assert.match(pkgJson.scripts['validate'], /lint:ignore/, 'El script validate debe incluir lint:ignore');
+  assert.match(pkgJson.scripts.validate, /lint:ignore/, 'El script validate debe incluir lint:ignore');
 });
 
 test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta de todos los archivos .ignore', () => {

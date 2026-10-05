@@ -72,7 +72,7 @@ export const aiCircuitBreaker = new AICircuitBreaker();
  * Previene acumulación de conexiones abiertas y garantiza degradación elegante hacia fallback local.
  */
 export async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT_MS): Promise<T> {
-  let timer: NodeJS.Timeout;
+  let timer: NodeJS.Timeout | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       reject(new Error(`Timeout de servicio IA: la llamada excedió el límite de ${timeoutMs}ms`));
@@ -82,6 +82,6 @@ export async function withTimeout<T>(promise: Promise<T>, timeoutMs = AI_TIMEOUT
   try {
     return await Promise.race([promise, timeoutPromise]);
   } finally {
-    clearTimeout(timer!);
+    clearTimeout(timer);
   }
 }

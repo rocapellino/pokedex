@@ -13,6 +13,7 @@ export function sanitizeLogString(val: unknown): string {
  * Construye una nueva entidad Pokémon validada a partir de un payload entrante.
  * Garantiza saneamiento de tipos, límites máximos de longitud y valores por defecto canónicos.
  */
+// biome-ignore lint/suspicious/noExplicitAny: payload ya validado por validatePokemonPayload; acceso dinámico por clave
 export function buildPokemonFromPayload(newId: number, body: Record<string, any>): Pokemon {
   const rawDesc = body.caracteristicas?.descripcion || `${body.nombre} registrado recientemente en la Pokédex.`;
 
@@ -24,7 +25,7 @@ export function buildPokemonFromPayload(newId: number, body: Record<string, any>
       `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${newId}.png`,
     tipo: String(body.tipo).trim().slice(0, 30),
     tipos: Array.isArray(body.tipos)
-      ? body.tipos.map((t: any) => String(t).slice(0, 30))
+      ? body.tipos.map((t: unknown) => String(t).slice(0, 30))
       : [String(body.tipo).trim()],
     habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
     fuerza: Number.parseInt(String(body.fuerza || body.caracteristicas?.fuerza || 50), 10),
@@ -38,7 +39,7 @@ export function buildPokemonFromPayload(newId: number, body: Record<string, any>
       habitat: String(body.habitat || body.caracteristicas?.habitat || 'Kanto').slice(0, 50),
     },
     habilidades: Array.isArray(body.habilidades)
-      ? body.habilidades.map((h: any) => String(h).slice(0, 50))
+      ? body.habilidades.map((h: unknown) => String(h).slice(0, 50))
       : [String(body.habilidades || 'Adaptable').slice(0, 50)],
     stats: body.stats || {
       hp: 50,
@@ -55,6 +56,7 @@ export function buildPokemonFromPayload(newId: number, body: Record<string, any>
 /**
  * Aplica mutaciones parciales sobre un Pokémon existente respetando inmutabilidad y contratos de tipos.
  */
+// biome-ignore lint/suspicious/noExplicitAny: payload ya validado por validatePokemonPayload; acceso dinámico por clave
 export function applyPokemonUpdates(existing: Pokemon, body: Record<string, any>): Pokemon {
   return {
     id: existing.id,
@@ -63,14 +65,14 @@ export function applyPokemonUpdates(existing: Pokemon, body: Record<string, any>
     tipo: body.tipo ? String(body.tipo).trim().slice(0, 30) : existing.tipo,
     tipos: body.tipos
       ? Array.isArray(body.tipos)
-        ? body.tipos.map((t: any) => String(t).slice(0, 30))
+        ? body.tipos.map((t: unknown) => String(t).slice(0, 30))
         : [String(body.tipos)]
       : existing.tipos,
     habitat: body.habitat ? String(body.habitat).slice(0, 50) : existing.habitat,
     fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : existing.fuerza,
     habilidades: body.habilidades
       ? Array.isArray(body.habilidades)
-        ? body.habilidades.map((h: any) => String(h).slice(0, 50))
+        ? body.habilidades.map((h: unknown) => String(h).slice(0, 50))
         : [String(body.habilidades)]
       : existing.habilidades,
     caracteristicas: {

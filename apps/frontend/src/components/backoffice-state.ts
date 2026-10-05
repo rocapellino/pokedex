@@ -4,7 +4,7 @@
 
 import { sanitizeHtml, escapeText } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { fetchPokemonsWithCount, showToast } from '../shared/index.js';
+import { errorMessage, fetchPokemonsWithCount, showToast } from '../shared/index.js';
 import { renderAdminTable, renderKPIs } from './admin-table.js';
 
 let currentPokemons: Pokemon[] = [];
@@ -13,7 +13,7 @@ let currentPage = 1;
 let pageSize = 50;
 let currentSearch = '';
 let currentType = 'all';
-let searchDebounceTimeout: any = null;
+let searchDebounceTimeout: number | undefined;
 
 export function getBackofficePokemons(): Pokemon[] {
   return currentPokemons;
@@ -98,16 +98,16 @@ export async function loadAdminData(): Promise<void> {
     renderTable();
     updateKPIs();
     showToast(`✅ Catálogo cargado: ${currentPokemons.length} de ${totalRecords} registros.`);
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error al conectar con la API:', err);
-    showToast(`Error al cargar datos: ${err?.message || err}`, true);
+    showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
     if (tbody) {
       tbody.innerHTML = sanitizeHtml(`
         <tr>
           <td colspan="8" class="table-empty">
             <div class="text-danger text-2xl mb-2">⚠️</div>
             <strong>Error de conexión con la API</strong>
-            <p class="text-muted">${escapeText(err?.message || err)}</p>
+            <p class="text-muted">${escapeText(errorMessage(err))}</p>
           </td>
         </tr>
       `);
@@ -123,8 +123,8 @@ export function applyAdminFilters(): void {
 export function handleAdminSearch(): void {
   const input = (document.getElementById('adminSearch') || document.getElementById('adminSearchInput')) as HTMLInputElement | null;
   currentSearch = input ? input.value : '';
-  clearTimeout(searchDebounceTimeout);
-  searchDebounceTimeout = setTimeout(() => {
+  window.clearTimeout(searchDebounceTimeout);
+  searchDebounceTimeout = window.setTimeout(() => {
     currentPage = 1;
     void loadAdminData();
   }, 300);

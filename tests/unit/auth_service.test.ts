@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import {
   getSessionSecret,
   generateSessionToken,
@@ -10,7 +10,6 @@ import {
   revokeSessionTokenDetailed,
   revokeSessionToken,
   isTokenRevoked,
-  SessionTokenPayload
 } from '../../apps/backend/src/services/auth.js';
 
 test('🔐 AuthService [Unit]: getSessionSecret opera con clave efímera en desarrollo y falla en producción', () => {

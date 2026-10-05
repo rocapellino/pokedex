@@ -32,7 +32,7 @@ export function getTriggerIcon(metodo?: string | null): string {
 }
 
 export function renderTransitionConnector(node?: EvolutionNode): string {
-  if (!node || !node.metodo) {
+  if (!node?.metodo) {
     return `<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
   }
   const safeMetodo = escapeText(node.metodo);
@@ -57,7 +57,7 @@ export function renderSingleEvolutionNode(
   const isCurrent = nodeId === currentId;
   const formattedId = String(nodeId).padStart(4, '0');
   const targetPk = catalog.find((x) => x.id === nodeId);
-  const nodeTypes = targetPk && targetPk.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
+  const nodeTypes = targetPk?.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
   const safeNombre = escapeText(node.nombre || 'Pokémon');
   const safeImagen = escapeText(
     node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
@@ -71,7 +71,7 @@ export function renderSingleEvolutionNode(
 
   return `
     <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" title="${
-      isCurrent ? 'Estás viendo a ' + safeNombre : 'Ver ficha de ' + safeNombre
+      isCurrent ? `Estás viendo a ${safeNombre}` : `Ver ficha de ${safeNombre}`
     }">
       <div class="evolution-circle-frame">
         <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
@@ -89,7 +89,7 @@ export function renderSingleEvolutionNode(
   `;
 }
 
-export function renderEvolutionSystem(evolData: any, currentId: number, catalog: Pokemon[] = []): string {
+export function renderEvolutionSystem(evolData: Pokemon['evoluciones'], currentId: number, catalog: Pokemon[] = []): string {
   if (Array.isArray(evolData)) {
     if (evolData.length <= 1) {
       return `
@@ -116,7 +116,7 @@ export function renderEvolutionSystem(evolData: any, currentId: number, catalog:
     `;
   }
 
-  if (!evolData || !evolData.arbol) {
+  if (!evolData?.arbol) {
     const fallbackNode: EvolutionNode = {
       id: currentId,
       nombre: 'Pokémon',
@@ -191,7 +191,7 @@ export function renderEvolutionSystem(evolData: any, currentId: number, catalog:
 
   const linearPrefix: EvolutionNode[] = [];
   let cur: EvolutionNode | null = root;
-  while (cur && cur.evolves_to && cur.evolves_to.length === 1) {
+  while (cur?.evolves_to && cur.evolves_to.length === 1) {
     linearPrefix.push(cur);
     cur = cur.evolves_to[0];
   }

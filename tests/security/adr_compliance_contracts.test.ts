@@ -479,9 +479,9 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   });
 
   assert.ok(nextCalled, 'requestTracer debe invocar next()');
-  assert.ok(headersSet['traceparent'], 'requestTracer debe emitir cabecera traceparent');
+  assert.ok(headersSet.traceparent, 'requestTracer debe emitir cabecera traceparent');
   assert.ok(
-    headersSet['traceparent'].startsWith('00-4bf92f3577b34da6a3ce929d0e0e4736-'),
+    headersSet.traceparent.startsWith('00-4bf92f3577b34da6a3ce929d0e0e4736-'),
     'requestTracer debe preservar el traceId W3C entrante'
   );
   assert.ok(headersSet['x-request-id'], 'requestTracer debe emitir cabecera X-Request-Id');
@@ -539,7 +539,6 @@ test('🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no
 
 test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-020-unified-deployment-governance-and-script-retirement.md');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
   const packageJsonPath = path.join(ROOT_DIR, 'package.json');
   const deploymentRunbookPath = path.join(ROOT_DIR, 'docs/operations/deployment.md');
   const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');

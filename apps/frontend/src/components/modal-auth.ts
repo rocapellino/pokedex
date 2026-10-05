@@ -3,7 +3,7 @@
  * Gestiona ciclo de vida de la sesión (cookie HttpOnly), UI de estado y diálogo de login.
  */
 
-import { getSessionStatus, loginWithApiKey, logoutSession, showToast } from '../shared/index.js';
+import { errorMessage, getSessionStatus, loginWithApiKey, logoutSession, showToast } from '../shared/index.js';
 
 let isAdminActive = false;
 let adminSessionExpiresAt: number | null = null;
@@ -109,8 +109,8 @@ export async function handleAuthSubmit(e: Event): Promise<void> {
     setAdminSessionActive(true, data.expiresAt);
     closeAuthModal();
     showToast('🔐 Sesión administrativa autenticada (cookie HttpOnly emitida).');
-  } catch (err: any) {
-    showToast(`❌ Error de autenticación: ${err?.message || err}`, true);
+  } catch (err) {
+    showToast(`❌ Error de autenticación: ${errorMessage(err)}`, true);
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;

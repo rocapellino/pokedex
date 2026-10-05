@@ -101,6 +101,7 @@ export interface DomainTriggers {
   security_container: boolean;
   security_iac: boolean;
   security_supply_chain: boolean;
+  // biome-ignore lint/suspicious/noExplicitAny: el contrato YAML admite claves arbitrarias por dominio
   [key: string]: any;
 }
 
@@ -485,7 +486,7 @@ export function runCLI(): void {
       `linting=${result.triggers.linting}`,
       `pr_governance=${result.triggers.pr_governance}`,
     ];
-    fs.appendFileSync(githubOutputFile, outputs.join('\n') + '\n', 'utf-8');
+    fs.appendFileSync(githubOutputFile, `${outputs.join('\n')}\n`, 'utf-8');
   }
 
   if (formatArg === 'markdown') {
