@@ -11,13 +11,13 @@ Este directorio alberga los **Architecture Decision Records (ADR)** oficiales qu
    - **Consolidado**: Decisiones o enmiendas que fueron subsumidas de forma coherente dentro de un ADR de mayor alcance.
    - **Retirado**: Decisiones históricas vinculadas a hitos de migración técnica puntual que completaron su ciclo y ya no imponen restricciones vivas.
 2. **Inmutabilidad de Identificadores Históricos**:
-   Los identificadores numéricos de decisiones retiradas o consolidadas (ej. `ADR-021`, `ADR-022`, `ADR-024`, `ADR-026`, `ADR-028`, `ADR-029`) **nunca serán reutilizados** para futuras decisiones, garantizando la trazabilidad histórica de commits, Pull Requests y auditorías.
+   Los identificadores numéricos de decisiones retiradas o consolidadas (ej. `ADR-019`, `ADR-021`, `ADR-022`, `ADR-024`, `ADR-026`, `ADR-028`, `ADR-029`) **nunca serán reutilizados** para futuras decisiones, garantizando la trazabilidad histórica de commits, Pull Requests y auditorías.
 
 ---
 
 ## 📋 Catálogo de Decisiones Arquitectónicas Activas
 
-Actualmente rigen **24 decisiones arquitectónicas activas**:
+Actualmente rigen **23 decisiones arquitectónicas activas**:
 
 | Identificador | Título Canónico | Estado | Alcance / Dominio |
 | :--- | :--- | :--- | :--- |
@@ -39,7 +39,6 @@ Actualmente rigen **24 decisiones arquitectónicas activas**:
 | [**ADR-016**](./ADR-016-ingress-tls-and-http-hardening.md) | Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP L7 | **Activo** | Redes / Ingress |
 | [**ADR-017**](./ADR-017-kyverno-admission-control-and-pod-security.md) | Control de Admisión con Kyverno y Pod Security Standards (Restricted) | **Activo** | Gobernanza K8s |
 | [**ADR-018**](./ADR-018-opentelemetry-distributed-tracing-and-w3c.md) | Observabilidad con OpenTelemetry y Trazabilidad Distribuida W3C | **Activo** | Observabilidad / Tracing |
-| [**ADR-019**](./ADR-019-monorepo-build-optimization-and-dependency-graph.md) | Optimización de Build en Monorepo, Grafo y Caché con Turborepo | **Activo** | Build / Tooling |
 | [**ADR-020**](./ADR-020-unified-deployment-governance-and-script-retirement.md) | Gobernanza Unificada de Despliegue, CLI Canónico con Taskfile y Retiro de Scripts | **Activo** | Gobernanza de Operaciones |
 | [**ADR-023**](./ADR-023-typescript-native-compiler-adoption.md) | Adopción del Compilador Nativo de TypeScript y Desacoplamiento de Bundlers | **Activo** | Runtime Backend |
 | [**ADR-025**](./ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md) | Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready | **Activo** | Arquitectura de Red |
@@ -54,6 +53,7 @@ Para eliminar el ruido en el directorio de decisiones activas sin perder trazabi
 
 | ID Histórico | Título Original | Estado | Documento Absorbe | Justificación Técnica |
 | :--- | :--- | :--- | :--- | :--- |
+| **ADR-019** | Optimización de Build en Monorepo y Caché con Turborepo | **Retirado** | [MONOREPO_STRUCTURE](../architecture/MONOREPO_STRUCTURE.md) | Turborepo solo cacheaba `build`, `lint` y `typecheck` de dos workspaces como capa opt-in local y nunca fue compuerta de CI. Se eliminó `turbo.json` y su dependencia; la orquestación canónica son los npm workspaces. |
 | **ADR-021** | Orquestación GitOps Avanzada con ArgoCD: Sync Waves, Hooks y App-of-Apps | **Consolidado** | [ADR-003](./ADR-003-gitops-with-argocd.md) | Orquestación determinista por olas (Sync Waves 0-4), Custom Health Checks en Lua para CRDs y patrón App-of-Apps integrados en el modelo declarativo GitOps oficial. |
 | **ADR-022** | Rotación Automatizada de Credenciales con ESO y Stakater Reloader | **Consolidado** | [ADR-005](./ADR-005-secret-management.md) | Protocolo de recarga dinámica con Stakater Reloader, refreshInterval acotado, perfil Lean Proxmox vs Cloud y auditoría CI/CD integrados en la gestión canónica de secretos. |
 | **ADR-024** | Arquitectura Bimodal de Cómputo en Proxmox: LXC (Pre-Prod) y VM KVM (Prod) | **Consolidado** | [ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) | Proxmox deja de alojar producción. El endurecimiento del LXC, el perfil Lean y las reglas de credenciales de OpenTofu se conservan en ADR-030; se retira la rama de producción en VM KVM. |

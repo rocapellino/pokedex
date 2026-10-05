@@ -503,62 +503,37 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
   }
 });
 
-test('🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo', async () => {
-  const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-019-monorepo-build-optimization-and-dependency-graph.md');
-  const turboJsonPath = path.join(ROOT_DIR, 'turbo.json');
-  const gitignorePath = path.join(ROOT_DIR, '.gitignore');
-  const packageJsonPath = path.join(ROOT_DIR, 'package.json');
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
-  const docsReadmePath = path.join(ROOT_DIR, 'docs/README.md');
-  const readmePath = path.join(ROOT_DIR, 'README.md');
-
-  // 1. ADR-019 existe y está aceptado
-  assert.ok(fs.existsSync(adrPath), 'ADR-019 debe existir en docs/decisions/');
-  const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-019 debe estar en estado Aceptado');
-  assert.ok(adrContent.includes('Turborepo'), 'ADR-019 debe documentar Turborepo');
-  assert.ok(adrContent.includes('turbo.json'), 'ADR-019 debe documentar turbo.json');
-  assert.ok(adrContent.includes('DAG') || adrContent.includes('dependencias'), 'ADR-019 debe documentar grafo de dependencias');
-
-  // 2. turbo.json existe y define pipeline estructurado
-  assert.ok(fs.existsSync(turboJsonPath), 'turbo.json debe existir en la raíz');
-  const turboConfig = JSON.parse(fs.readFileSync(turboJsonPath, 'utf-8'));
-  assert.ok(turboConfig.$schema?.includes('turbo.build/schema.json'), 'turbo.json debe definir $schema oficial');
-  assert.ok(turboConfig.tasks?.build, 'turbo.json debe definir tarea build');
-  assert.ok(turboConfig.tasks?.lint, 'turbo.json debe definir tarea lint');
-  assert.ok(turboConfig.tasks?.typecheck, 'turbo.json debe definir tarea typecheck');
-  assert.deepEqual(turboConfig.tasks.build.dependsOn, ['^build'], 'turbo.json build debe depender de ^build');
-  assert.ok(turboConfig.tasks.build.outputs?.includes('dist/**'), 'turbo.json build debe declarar outputs dist/**');
-
-  // 3. .gitignore ignora .turbo/
-  const gitignoreContent = fs.readFileSync(gitignorePath, 'utf-8');
-  assert.ok(gitignoreContent.includes('.turbo/'), '.gitignore debe ignorar .turbo/');
-
-  // 4. package.json declara turbo y scripts
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-  assert.ok(packageJson.devDependencies?.turbo, 'package.json debe declarar turbo en devDependencies');
-  assert.ok(packageJson.packageManager?.startsWith('npm@'), 'package.json debe declarar packageManager para Turborepo');
-  assert.ok(packageJson.scripts?.['build:turbo'], 'package.json debe incluir script build:turbo');
-
-  // 5. Taskfile.yaml define tareas turbo
+test('🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no quedan restos de la herramienta', async () => {
+  const decisionsDir = path.join(ROOT_DIR, 'docs/decisions');
+  const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
-  assert.ok(taskfileContent.includes('turbo:build:'), 'Taskfile.yaml debe exponer tarea turbo:build');
-  assert.ok(taskfileContent.includes('turbo:lint:'), 'Taskfile.yaml debe exponer tarea turbo:lint');
-  assert.ok(taskfileContent.includes('turbo:typecheck:'), 'Taskfile.yaml debe exponer tarea turbo:typecheck');
+  const decisionsIndex = fs.readFileSync(path.join(decisionsDir, 'README.md'), 'utf-8');
 
-  // 6. README.md y docs/README.md enlazan ADR-019
-  const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-  assert.ok(readmeContent.includes('ADR-019-monorepo-build-optimization-and-dependency-graph.md'), 'README.md debe enlazar ADR-019');
-  assert.ok(docsReadmeContent.includes('ADR-019-monorepo-build-optimization-and-dependency-graph.md'), 'docs/README.md debe enlazar ADR-019');
-  assertDocsPortalLinksAdrIndex(docsReadmeContent);
+  // 1. El ADR retirado no conserva archivo (convención de ADR retirados) y consta en el índice
+  assert.ok(
+    !fs.readdirSync(decisionsDir).some((f: string) => f.startsWith('ADR-019')),
+    'ADR-019 retirado no debe tener archivo en docs/decisions/'
+  );
+  assert.match(decisionsIndex, /\*\*ADR-019\*\*[^\n]*\*\*Retirado\*\*/, 'ADR-019 debe constar como Retirado en el índice');
 
-  // 7. Los 19 ADRs existen físicamente en disco
-  for (let i = 1; i <= 19; i++) {
+  // 2. Sin restos de Turborepo en configuración ni scripts
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, 'turbo.json')), 'turbo.json no debe existir');
+  assert.ok(!packageJson.devDependencies?.turbo, 'package.json no debe declarar turbo');
+  assert.ok(
+    !Object.keys(packageJson.scripts ?? {}).some((name) => name.endsWith(':turbo')),
+    'package.json no debe exponer scripts :turbo'
+  );
+  assert.ok(!taskfileContent.includes('turbo:'), 'Taskfile.yaml no debe exponer tareas turbo');
+
+  // 3. npm workspaces sigue siendo el orquestador canónico
+  assert.ok(packageJson.packageManager?.startsWith('npm@'), 'package.json debe declarar packageManager npm');
+  assert.ok(Array.isArray(packageJson.workspaces) && packageJson.workspaces.length > 0, 'package.json debe declarar workspaces');
+
+  // 4. Los ADR activos contiguos hasta ADR-018 siguen existiendo en disco
+  const files = fs.readdirSync(decisionsDir);
+  for (let i = 1; i <= 18; i++) {
     const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
+    assert.ok(files.some((f: string) => f.startsWith(`ADR-${num}`)), `Debe existir archivo para ADR-${num} en docs/decisions/`);
   }
 });
 
@@ -646,8 +621,9 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   assert.ok(docsReadmeContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'), 'docs/README.md debe enlazar ADR-020');
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
 
-  // 8. Los 20 ADRs existen físicamente en disco
+  // 8. Los ADR activos hasta el 020 existen físicamente en disco (ADR-019 está retirado)
   for (let i = 1; i <= 20; i++) {
+    if (i === 19) continue;
     const num = String(i).padStart(3, '0');
     const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
     const match = files.find((f: string) => f.startsWith(`ADR-${num}`));

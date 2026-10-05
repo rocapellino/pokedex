@@ -25,10 +25,6 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Desarrollo** | `task dev` | Servidor Pokédex en modo hot-reload interactivo. |
 | **Compilación** | `task build` | Compila backend con esbuild y frontend con Vite. |
 | **Producción** | `task start` | Ejecuta el bundle de producción compilado (`npm start`). |
-| **Turborepo** | `task turbo:build` | Compilación optimizada con caché declarativa. |
-| | `task turbo:lint` | Verificación de linter en todos los paquetes del monorepo. |
-| | `task turbo:typecheck` | Verificación estricta de tipos de TypeScript (`tsc --noEmit`). |
-| | `task turbo:clean` | Limpieza de caché `.turbo` y artefactos compilados en `dist/`. |
 | **Validación y QA** | `task lint` | Ejecuta linting y análisis de tipos unificado. |
 | | `task lint:md` | Valida la calidad y consistencia de Markdown con markdownlint (0 errores MDxxx). |
 | | `task lint:md:fix` | Aplica autocorrección de formato a la documentación Markdown. |

@@ -49,9 +49,6 @@
     "playwright:install": "playwright install chromium",
     "perf:lighthouse": "lhci autorun",
     "commitlint": "commitlint --edit",
-    "build:turbo": "turbo run build",
-    "lint:turbo": "turbo run lint",
-    "typecheck:turbo": "turbo run typecheck",
     "secrets:audit-rotation": "node --experimental-strip-types scripts/verify-secret-rotation.ts",
     "governance:audit-scripts": "tsx --test tests/security/iac_baseline_security.test.ts tests/security/ansible_baseline_security.test.ts tests/security/opentofu_baseline_security.test.ts",
     "gitops:verify-parity": "node --experimental-strip-types scripts/verify-image-digest-parity.ts",
@@ -104,7 +101,6 @@
     "jsdom": "^30.1.1",
     "markdownlint-cli": "^0.49.1",
     "tsx": "^4.19.3",
-    "turbo": "^2.11.7",
     "typescript": "~7.0.2"
   }
 }

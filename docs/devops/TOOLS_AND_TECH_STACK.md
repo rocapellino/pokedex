@@ -219,7 +219,7 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Herramientas de Monorepo y Build
 
-- **Turborepo / Nx**: Orquestación eficiente de los espacios de trabajo `apps/backend` y `apps/frontend`, habilitando compilación en paralelo, verificación de tipos y caché distribuida de tareas en CI.
+- **npm workspaces**: Orquestación de los espacios de trabajo `apps/backend` y `apps/frontend` mediante los scripts raíz de `package.json`.
 - **Vite**: Empaquetador ultrarrápido para modernizar la capa de presentación web, habilitando minificación, módulos ES nativos, tree-shaking y sustitución de scripts directos en el DOM.
 
 ---

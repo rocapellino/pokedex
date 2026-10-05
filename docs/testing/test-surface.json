@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T16:05:57.526Z",
+  "generatedAt": "2026-10-05T18:05:35.718Z",
   "summary": {
     "totalFiles": 73,
     "testFiles": 68,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 591,
-    "totalLines": 15736,
-    "totalSizeBytes": 723431,
+    "totalLines": 15712,
+    "totalSizeBytes": 721508,
     "suitesCount": 10
   },
   "suites": [
@@ -2309,10 +2309,10 @@
       "runner": "node:test (tsx)",
       "testCount": 18,
       "describeCount": 0,
-      "assertionCountEst": 203,
-      "sizeBytes": 40877,
-      "lineCount": 728,
-      "sha256": "7d117da021707392226926b01173b21115cb960ba24f7d2964c45f28a06c4d34",
+      "assertionCountEst": 190,
+      "sizeBytes": 38954,
+      "lineCount": 704,
+      "sha256": "dc3b3f5aaf8abeb8f84901c5020c0a48038e9df83da513fa798749ff67b6784c",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2390,16 +2390,16 @@
           "line": 412
         },
         {
-          "name": "🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo",
+          "name": "🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no quedan restos de la herramienta",
           "line": 506
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 565
+          "line": 540
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 658
+          "line": 634
         }
       ]
     },
