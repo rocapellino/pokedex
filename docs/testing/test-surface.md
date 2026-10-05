@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **74** |
-| **Archivos de Test Automatizados** | 69 |
+| **Total de Archivos en `tests/`** | **75** |
+| **Archivos de Test Automatizados** | 70 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
-| **Total de Casos de Prueba Identificados** | **595** |
-| **Líneas de Código de Pruebas** | 16.743 |
-| **Tamaño Total de la Suite** | 711.3 KB |
+| **Total de Casos de Prueba Identificados** | **596** |
+| **Líneas de Código de Pruebas** | 16.780 |
+| **Tamaño Total de la Suite** | 712.9 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-05T22:19:24.473Z |
+| **Última Sincronización** | 2026-10-05T22:37:26.923Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 12 | 78 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 13 | 79 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 25 | 212 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
@@ -115,6 +115,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **5** | 91 | Suite de pruebas unit: migrate_baseline.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 210 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/node_version_consistency.test.ts`](../../tests/unit/node_version_consistency.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 37 | Suite de pruebas unit: node_version_consistency.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **6** | 270 | Suite de pruebas unit: pokemon_mapper.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | `unit` | Unit | `node:test (tsx)` | **8** | 190 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -129,7 +130,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 78
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 79
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -142,6 +143,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | **5** | 91 | Suite de pruebas unit: migrate_baseline.test.ts. | *(General)* |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 210 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
+| [`tests/unit/node_version_consistency.test.ts`](../../tests/unit/node_version_consistency.test.ts) | **1** | 37 | Suite de pruebas unit: node_version_consistency.test.ts. | *(General)* |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | **6** | 270 | Suite de pruebas unit: pokemon_mapper.test.ts. | *(General)* |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | **8** | 190 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `apps/backend/src/services/pokemon.repository.ts` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
