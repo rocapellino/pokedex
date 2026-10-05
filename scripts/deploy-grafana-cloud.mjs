@@ -23,6 +23,7 @@
  * USO:
  *   node scripts/deploy-grafana-cloud.mjs
  *   GRAFANA_CLOUD_TOKEN=<token> node scripts/deploy-grafana-cloud.mjs
+ *   GRAFANA_CLOUD_METRICS_TOKEN=<token> (opcional: token propio para remote_write de métricas)
  * =============================================================================
  */
 
@@ -41,7 +42,8 @@ const DEFAULTS = {
   values: DEFAULT_VALUES,
   username: '1832819',
   remoteConfig: 'https://fleet-management-prod-015.grafana.net',
-  chartVersion: '2.0.12',
+  // Debe coincidir con el esquema de grafana-cloud-values.yaml (v4).
+  chartVersion: '4.5.2',
 };
 
 const options = { ...DEFAULTS };
@@ -68,6 +70,10 @@ if (!token) {
   );
   process.exit(1);
 }
+
+// Token del destino de métricas (Access Policy con metrics:write). Si no se define,
+// se reutiliza el de Fleet Management, que debe incluir ese scope.
+const metricsToken = (process.env.GRAFANA_CLOUD_METRICS_TOKEN || token).trim();
 
 if (!existsSync(resolve(options.values))) {
   console.error(`Values file no encontrado: ${options.values}`);
@@ -122,12 +128,14 @@ run('helm', ['repo', 'update', 'grafana']);
 //    de modo que no queda rastro del token en disco.
 const secretDir = mkdtempSync(join(tmpdir(), 'grafana-cloud-'));
 const tokenFile = join(secretDir, 'token');
+const metricsTokenFile = join(secretDir, 'metrics-token');
 
 try {
   // 0o600: solo el propietario puede leer. En Windows el modelo de permisos es
   // distinto (NTFS hereda la ACL del perfil de usuario); el directorio temporal
   // sigue siendo privado para el usuario actual.
   writeFileSync(tokenFile, token, { encoding: 'utf-8', mode: 0o600 });
+  writeFileSync(metricsTokenFile, metricsToken, { encoding: 'utf-8', mode: 0o600 });
 
   console.log(
     `[Grafana Cloud] Ejecutando helm upgrade --install ${options.release} ` +
@@ -149,6 +157,7 @@ try {
     '--set-string', `collectorCommon.alloy.remoteConfig.auth.username=${options.username}`,
     // El token viaja por archivo, nunca por línea de comandos.
     '--set-file', `collectorCommon.alloy.remoteConfig.auth.password=${tokenFile}`,
+    '--set-file', `destinations.grafana-cloud-metrics.auth.password=${metricsTokenFile}`,
   ]);
 
   console.log('[Grafana Cloud] k8s-monitoring instalado exitosamente.');
