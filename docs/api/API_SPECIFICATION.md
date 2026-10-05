@@ -339,7 +339,7 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
 ### 8.2. Panel de Backoffice (`/backoffice.html`)
 
 - **Rutas alternativas:** `/admin`, `/backoffice`, `/backoffice.html`
-- **Control de Acceso:** Middleware `adminIpRestricted` que restringe el acceso al panel a direcciones IP locales de administración (`127.0.0.1`, `::1`, `localhost` y rangos RFC1918 configurados).
+- **Control de Acceso:** Middleware `adminIpRestricted` que restringe el acceso al panel a la lista `ADMIN_ALLOWED_IPS` (IPs exactas o rangos CIDR IPv4/IPv6) más el loopback (`127.0.0.1`, `::1`). Las entradas inválidas se ignoran (fail-closed) y el prefijo IPv4-mapeado (`::ffff:a.b.c.d`) se normaliza.
 
 ---
 

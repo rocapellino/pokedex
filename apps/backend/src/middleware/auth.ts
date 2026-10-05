@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { BlockList, isIP } from 'node:net';
 import type { Request, Response, NextFunction } from 'express';
 import { verifySessionTokenDetailed } from '../services/auth.js';
 import { isWritableStorageAvailable } from '../services/db.js';
@@ -253,6 +254,52 @@ export function verifyAIKey(req: Request, res: Response, next: NextFunction) {
 // ---------------------------------------------------------------------------
 // Control de Acceso por IP para el Backoffice Administrativo
 // ---------------------------------------------------------------------------
+/**
+ * Normaliza una IP: quita el prefijo IPv4-mapeado (`::ffff:10.0.0.1` → `10.0.0.1`)
+ * que Node reporta en sockets de pila dual.
+ */
+function normalizeIp(ip: string): string {
+  return ip.trim().replace(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i, '$1');
+}
+
+/**
+ * Indica si `clientIp` está autorizada por la lista de `ADMIN_ALLOWED_IPS`.
+ * Cada entrada puede ser una IP exacta (`10.42.0.1`) o un rango CIDR (`10.42.0.0/16`,
+ * `fd00::/8`). Las entradas inválidas se ignoran (fail-closed: nunca autorizan).
+ * El loopback siempre está permitido.
+ */
+export function isAdminIpAllowed(clientIp: string, entries: string[]): boolean {
+  const ip = normalizeIp(clientIp);
+  if (!ip) return false;
+  if (ip === '127.0.0.1' || ip === '::1') return true;
+
+  const ipFamily = isIP(ip);
+  if (ipFamily === 0) return false;
+
+  const blockList = new BlockList();
+  for (const raw of entries) {
+    const entry = normalizeIp(raw);
+    const [address, prefix] = entry.split('/');
+    const family = isIP(address);
+    if (family === 0) {
+      logger.warn('ADMIN_ALLOWED_IPS contiene una entrada inválida y se ignora', { entry: raw });
+      continue;
+    }
+    if (prefix === undefined) {
+      blockList.addAddress(address, family === 4 ? 'ipv4' : 'ipv6');
+      continue;
+    }
+    const bits = Number(prefix);
+    const maxBits = family === 4 ? 32 : 128;
+    if (!/^\d+$/.test(prefix) || bits > maxBits) {
+      logger.warn('ADMIN_ALLOWED_IPS contiene un prefijo CIDR inválido y se ignora', { entry: raw });
+      continue;
+    }
+    blockList.addSubnet(address, bits, family === 4 ? 'ipv4' : 'ipv6');
+  }
+  return blockList.check(ip, ipFamily === 4 ? 'ipv4' : 'ipv6');
+}
+
 export const adminIpRestricted = (req: Request, res: Response, next: NextFunction) => {
   const allowed = process.env.ADMIN_ALLOWED_IPS;
   if (allowed) {
@@ -261,7 +308,7 @@ export const adminIpRestricted = (req: Request, res: Response, next: NextFunctio
       .map((s) => s.trim())
       .filter(Boolean);
     const clientIp = req.ip || req.socket.remoteAddress || '';
-    if (list.length > 0 && !list.includes(clientIp) && clientIp !== '127.0.0.1' && clientIp !== '::1') {
+    if (list.length > 0 && !isAdminIpAllowed(clientIp, list)) {
       return res.status(403).json({ error: 'Acceso restringido: IP no autorizada para el panel de administración' });
     }
   }
