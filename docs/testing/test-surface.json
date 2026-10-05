@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T14:05:44.872Z",
+  "generatedAt": "2026-10-05T14:38:34.519Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 582,
-    "totalLines": 15404,
-    "totalSizeBytes": 707283,
+    "totalTestCases": 587,
+    "totalLines": 15588,
+    "totalSizeBytes": 715599,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 24,
-      "testCases": 203,
+      "testCases": 208,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3031,12 +3031,12 @@
       "type": "Contract / Observability",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 5,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 20,
-      "sizeBytes": 10088,
-      "lineCount": 242,
-      "sha256": "0e7f518786e0a7923dc8844207d307769c6362a84d533954f46c0ed869669cb6",
+      "assertionCountEst": 32,
+      "sizeBytes": 18404,
+      "lineCount": 426,
+      "sha256": "f891ada91771c3792c81035ce8cc14d93af82a6052fbfbeeb654ae23ed5c9def",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -3072,6 +3072,26 @@
         {
           "name": "🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud",
           "line": 232
+        },
+        {
+          "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
+          "line": 368
+        },
+        {
+          "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
+          "line": 382
+        },
+        {
+          "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
+          "line": 389
+        },
+        {
+          "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
+          "line": 407
+        },
+        {
+          "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
+          "line": 416
         }
       ]
     },

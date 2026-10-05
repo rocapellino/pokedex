@@ -240,3 +240,187 @@ test('🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud
     '.vscode/tasks.json debe invocar el mismo script Node que el Taskfile'
   );
 });
+
+// =============================================================================
+// Contrato de consultas contra las etiquetas reales de Grafana Cloud [OBS-001]
+// =============================================================================
+//
+// El dashboard `pokedex-metrics-dashboard` mostraba "No data" en la mayoria de
+// los paneles: consultaba etiquetas de cAdvisor de Docker (`name`, `id=~"/docker/.*"`)
+// y exporters (`pg_*`, `redis_*`) que no existen en pre-prod. Los conjuntos de
+// etiquetas de abajo se observaron en vivo el 2026-10-05 en el datasource
+// `grafanacloud-prom` (unico job ingerido: `prometheus.scrape.pokemon_api`). Si la
+// recoleccion cambia, se actualizan estas fixtures desde Grafana, no a ojo.
+
+const DASHBOARD_PATH = path.join(ROOT_DIR, 'infra/monitoring/dashboards/pokedex-application.json');
+const ALERTS_PATH = path.join(ROOT_DIR, 'infra/monitoring/alerts.yaml');
+const METRICS_SOURCE_PATH = path.join(ROOT_DIR, 'apps/backend/src/middleware/metrics.ts');
+
+/** Etiquetas comunes que el pipeline de Fleet Management agrega a cada serie de la API. */
+const LIVE_API_TARGET_LABELS = {
+  job: 'prometheus.scrape.pokemon_api',
+  app: 'pokemon-api',
+  cluster: 'pokedex-k8s-cluster',
+  environment: 'onprem-proxmox',
+  instance: 'pokedex-k8s-node',
+};
+
+/** Etiquetas estandar del cAdvisor del kubelet que publica el chart k8s-monitoring. */
+const K8S_CADVISOR_API_LABELS = {
+  cluster: 'pokedex-k8s-cluster',
+  namespace: 'pokemon-app',
+  pod: 'pokemon-api-7c9d8b6f5-x2k4q',
+  container: 'api',
+};
+
+type Matcher = { name: string; op: '=' | '!=' | '=~' | '!~'; value: string };
+
+function parseMatchers(body: string): Matcher[] {
+  return [...body.matchAll(/([a-zA-Z_][a-zA-Z0-9_]*)\s*(=~|!~|!=|=)\s*"([^"]*)"/g)].map(
+    ([, name, op, value]) => ({ name, op: op as Matcher['op'], value })
+  );
+}
+
+/** Extrae los matchers del primer selector `<metric>{...}` de una expresion PromQL. */
+function selectorMatchers(expr: string, metric: string): Matcher[] {
+  const m = expr.match(new RegExp(`\\b${metric}\\s*\\{([^}]*)\\}`));
+  return m ? parseMatchers(m[1]) : [];
+}
+
+/** Evalua matchers con semantica de Prometheus (regex anclada, etiqueta ausente = ""). */
+function matchesLabels(matchers: Matcher[], labels: Record<string, string>): boolean {
+  return matchers.every(({ name, op, value }) => {
+    const actual = labels[name] ?? '';
+    const re = new RegExp(`^(?:${value})$`);
+    if (op === '=') return actual === value;
+    if (op === '!=') return actual !== value;
+    if (op === '=~') return re.test(actual);
+    return !re.test(actual);
+  });
+}
+
+/** Metricas que la API expone en /metrics, derivadas de las lineas `# TYPE` del colector. */
+function emittedMetricNames(): Set<string> {
+  const source = fs.readFileSync(METRICS_SOURCE_PATH, 'utf-8');
+  const names = new Set<string>(['up']);
+  for (const [, name, type] of source.matchAll(/# TYPE ([a-z_:][a-z0-9_:]*) (\w+)/g)) {
+    names.add(name);
+    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => names.add(name + s));
+  }
+  return names;
+}
+
+const PROMQL_KEYWORDS = new Set([
+  'sum', 'max', 'min', 'avg', 'count', 'rate', 'irate', 'increase', 'histogram_quantile',
+  'clamp_min', 'clamp_max', 'time', 'vector', 'scalar', 'abs', 'by', 'without', 'or',
+  'and', 'unless', 'on', 'ignoring', 'group_left', 'group_right', 'bool', 'offset',
+  'sort_desc', 'topk', 'changes', 'resets', 'max_over_time', 'min_over_time', 'avg_over_time',
+  'label_replace', 'absent', 'deriv', 'delta', 'round',
+]);
+
+/** Nombres de metrica citados en una expresion PromQL (sin funciones ni etiquetas). */
+function referencedMetrics(expr: string): string[] {
+  const stripped = expr
+    .replace(/"[^"]*"/g, '""')
+    .replace(/\{[^}]*\}/g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .replace(/\b(by|without|on|ignoring)\s*\([^)]*\)/g, '')
+    .replace(/\$\{?[a-zA-Z_]+\}?/g, '');
+  return [...stripped.matchAll(/\b([a-zA-Z_:][a-zA-Z0-9_:]*)\b/g)]
+    .map(([, id]) => id)
+    .filter((id) => !PROMQL_KEYWORDS.has(id));
+}
+
+type DashboardPanel = {
+  title: string;
+  datasource?: { type?: string; uid?: string };
+  targets?: { datasource?: { type?: string; uid?: string }; expr?: string }[];
+  panels?: DashboardPanel[];
+};
+
+function dashboardTargets() {
+  const dashboard = JSON.parse(fs.readFileSync(DASHBOARD_PATH, 'utf-8'));
+  const out: { panel: string; type?: string; uid?: string; expr: string }[] = [];
+  const walk = (panels: DashboardPanel[]) => {
+    for (const p of panels) {
+      for (const t of p.targets ?? []) {
+        const ds = t.datasource ?? p.datasource ?? {};
+        // Las variables del tablero se resuelven con el valor vivo antes de evaluar.
+        const expr = (t.expr ?? '').replace(/\$\{?environment\}?/g, LIVE_API_TARGET_LABELS.environment);
+        out.push({ panel: p.title, type: ds.type, uid: ds.uid, expr });
+      }
+      if (p.panels) walk(p.panels);
+    }
+  };
+  walk(dashboard.panels);
+  return out;
+}
+
+function alertExpr(alertName: string): string {
+  const source = fs.readFileSync(ALERTS_PATH, 'utf-8').replace(/\r\n/g, '\n');
+  const block = source.split(/\n\s*- alert: /).find((b) => b.startsWith(alertName + '\n'));
+  assert.ok(block, `alerts.yaml debe definir ${alertName}`);
+  const m = block.match(/expr:\s*\|?\s*\n?([\s\S]*?)\n\s*for:/);
+  assert.ok(m, `${alertName} debe tener expr`);
+  return m[1].trim();
+}
+
+test('📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite', () => {
+  const emitted = emittedMetricNames();
+  const missing = dashboardTargets()
+    .filter((t) => t.type === 'prometheus')
+    .flatMap((t) => referencedMetrics(t.expr).filter((m) => !emitted.has(m)).map((m) => `${t.panel}: ${m}`));
+
+  assert.deepEqual(
+    missing,
+    [],
+    'Paneles que consultan metricas inexistentes en pre-prod (se veran como "No data"). ' +
+      'Las metricas de cAdvisor y de exporters vuelven al tablero cuando su recoleccion este declarada en el repo.'
+  );
+});
+
+test('📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio', () => {
+  for (const t of dashboardTargets()) {
+    const expected = t.type === 'loki' ? '${logs_datasource}' : '${datasource}';
+    assert.equal(t.uid, expected, `${t.panel}: el datasource debe ser ${expected}`);
+  }
+});
+
+test('📈 OBS-001: trafico y latencia excluyen probes y series sinteticas', () => {
+  const httpTargets = dashboardTargets().filter((t) => /\bhttp_request/.test(t.expr));
+  assert.ok(httpTargets.length > 0, 'El dashboard debe tener paneles de trafico HTTP');
+
+  const at = (endpoint: string) => ({ ...LIVE_API_TARGET_LABELS, endpoint, method: 'GET', status: '200' });
+  for (const t of httpTargets) {
+    const metric = t.expr.match(/\b(http_request[a-z_]*)\s*\{/)?.[1];
+    assert.ok(metric, `${t.panel}: la consulta HTTP debe usar un selector con matchers`);
+    // Se evalua solo la dimension de endpoint: el numerador de 5xx filtra ademas por status.
+    const matchers = selectorMatchers(t.expr, metric).filter((m) => m.name !== 'status');
+
+    assert.ok(matchesLabels(matchers, at('/pokemons')), `${t.panel}: debe incluir trafico de negocio`);
+    for (const probe of ['/healthz', '/readyz', '/metrics', '/']) {
+      assert.ok(!matchesLabels(matchers, at(probe)), `${t.panel}: no debe incluir ${probe}`);
+    }
+  }
+});
+
+test('🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API', () => {
+  const matchers = selectorMatchers(alertExpr('PokedexAPIDown'), 'up');
+  assert.ok(matchers.length > 0, 'PokedexAPIDown debe filtrar `up` por etiquetas');
+  assert.ok(
+    matchesLabels(matchers, LIVE_API_TARGET_LABELS),
+    'PokedexAPIDown no coincide con el target vivo: la alerta nunca dispararia con la API caida'
+  );
+});
+
+test('🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker', () => {
+  const expr = alertExpr('ContainerHighMemoryUsage');
+  for (const metric of ['container_memory_working_set_bytes', 'container_spec_memory_limit_bytes']) {
+    const matchers = selectorMatchers(expr, metric);
+    assert.ok(matchesLabels(matchers, K8S_CADVISOR_API_LABELS), `${metric}: debe coincidir con el contenedor de la API en K3s`);
+    assert.ok(
+      !matchesLabels(matchers, { ...K8S_CADVISOR_API_LABELS, container: '' }),
+      `${metric}: debe excluir la serie agregada del pod (container="")`
+    );
+  }
+});
