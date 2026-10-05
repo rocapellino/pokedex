@@ -35,9 +35,6 @@ includes:
   quality:
     taskfile: ./taskfiles/quality.yaml
     flatten: true
-  turbo:
-    taskfile: ./taskfiles/turbo.yaml
-    flatten: true
   ci:
     taskfile: ./taskfiles/ci.yaml
     flatten: true

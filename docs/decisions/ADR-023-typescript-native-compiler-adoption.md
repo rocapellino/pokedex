@@ -80,5 +80,4 @@ Si se detectan regresiones de tipos no aceptables con `~7.0.x`:
 
 - [TypeScript Native Port Announcement](https://devblogs.microsoft.com/typescript/)
 - [HAL-6 — Auditoría de seguridad y calidad, sept. 2026]
-- [ADR-019 — Monorepo Build Optimization](./ADR-019-monorepo-build-optimization-and-dependency-graph.md)
 - [ADR-008 — Supply Chain Security](./ADR-008-supply-chain-security.md)

@@ -261,9 +261,9 @@ El monorepo adopta un modelo de versión unificada centralizada:
 - **Versión Semver Oficial:** Reside exclusivamente en el `package.json` raíz del repositorio (`version`), gobernada y promovida por la skill `repo-release` mediante tags `vX.Y.Z`.
 - **Workspaces Internos:** Tanto `apps/backend/package.json` como `apps/frontend/package.json` declaran `"private": true` y mantienen un valor fijo (`1.0.0`). Los componentes del monorepo no se publican a registros npm públicos de forma atomizada, sino que se distribuyen como imágenes de contenedor OCI versionadas con el digest y tag semver global del release.
 
-### 5.4. Orquestación Canónica: npm Workspaces vs. Turborepo
+### 5.4. Orquestación Canónica: npm Workspaces
 
 Para garantizar determinismo absoluto en la integración continua:
 
 - **`npm workspaces` (SSOT de CI/CD):** Es el orquestador canónico, reproducible y obligatorio para pipelines de GitHub Actions, pre-commit hooks y Quality Gates. Los scripts raíz (`npm run build`, `npm run lint`, `npm test`) coordinan los workspaces sin dependencias externas de ejecución.
-- **`Turborepo` (`turbo.json`):** Opera como una capa de aceleración opt-in para entornos locales (`npm run build:turbo`, etc.), habilitando cacheo incremental de compilación entre workspaces pero sin constituir una compuerta bloqueante requerida en la infraestructura de CI.
+- **Turborepo:** retirado (ADR-019). Operaba solo como aceleración opt-in local, sin ser compuerta de CI, y con dos workspaces su caché no compensaba la herramienta adicional.
