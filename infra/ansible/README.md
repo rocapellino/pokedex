@@ -76,7 +76,7 @@ infra/ansible/
 
 El playbook `security_hardening.yaml` aplica una política de **denegación por defecto** (`default deny incoming`) con segmentación estricta:
 
-- **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `192.168.1.0/24`).
+- **SSH (`22/tcp`):** Permitido únicamente desde la subred administrativa (`mgmt_cidr`, por defecto `10.10.13.0/24`).
 - **Web Pública (`80/tcp`, `443/tcp`):** Permitido para proxies reversos Nginx / Ingress.
 - **Puerto de Desarrollo/Proxy (`8080/tcp`):** Restringido a la subred de administración (`mgmt_cidr`).
 - **Kubernetes API Server (`6443/tcp`):** Restringido exclusivamente al clúster (`k8s_nodes_cidr`).

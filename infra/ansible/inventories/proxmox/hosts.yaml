@@ -48,6 +48,10 @@ all:
           ansible_host: 10.10.13.120
           ansible_user: root
           env: proxmox
+    # ADR-030: grupo para el host hipervisor Proxmox VE (reservado para playbooks
+    # a nivel host como setup_pbs_backup_blueprint y setup_gdrive_backup).
+    proxmox_hosts:
+      hosts: {}
 # INFRA-012: se elimina el grupo `standalone_servers`. Declaraba dos hosts que
 # OpenTofu no crea: `pokedex-prod-01` colisionaba en 10.10.13.100 con
 # `k8s-master-01` y `pokedex-staging-01` (10.10.13.105) no existe en ningun
