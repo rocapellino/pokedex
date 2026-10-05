@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateWeaknesses,
-  renderStatEqualizer,
+  renderBaseStats,
   getTriggerIcon,
   renderTransitionConnector,
   renderSingleEvolutionNode,
@@ -73,13 +73,54 @@ test('🧩 Modal Detail: calculateWeaknesses calcula debilidades elementales cor
   assert.ok(dualWeaknesses.includes('Psíquico')); // De Veneno
 });
 
-test('🧩 Modal Detail: renderStatEqualizer genera columnas y segmentos proporcionales', () => {
-  const html = renderStatEqualizer(mockBulbasaur.stats);
-  assert.ok(html.includes('equalizer-col'));
-  assert.ok(html.includes('equalizer-segment active'));
-  assert.ok(html.includes('PS'));
-  assert.ok(html.includes('Ataque'));
-  assert.ok(html.includes('Velocidad'));
+test('🧩 Modal Detail: renderBaseStats muestra valor numérico por stat y total', () => {
+  const html = renderBaseStats(mockBulbasaur.stats);
+  for (const label of ['PS', 'Ataque', 'Defensa', 'At. Esp.', 'Def. Esp.', 'Velocidad']) {
+    assert.ok(html.includes(`>${label}<`), `falta la etiqueta ${label}`);
+  }
+  assert.ok(html.includes('aria-label="PS: 45"'));
+  assert.ok(html.includes('aria-label="Ataque especial: 65"'));
+  assert.ok(html.includes('>318<'), 'falta el total de puntos de base');
+});
+
+test('🧩 Modal Detail: renderBaseStats no usa <br>, que DOMPurify elimina y concatena las etiquetas', () => {
+  const html = renderBaseStats(mockBulbasaur.stats);
+  assert.ok(!/<br\s*\/?>/i.test(html));
+});
+
+test('🧩 Modal Detail: renderBaseStats escala la barra sobre 255 en pasos de 5 % y asigna tramo de color', () => {
+  const html = renderBaseStats({ hp: 255, attack: 0, defense: 100, sp_attack: 65, sp_defense: 80, speed: 120 });
+  assert.ok(html.includes('base-stat-fill--w100 base-stat-tier--top'));
+  assert.ok(html.includes('base-stat-fill--w0 base-stat-tier--low'));
+  assert.ok(html.includes('base-stat-fill--w40 base-stat-tier--high'));
+  assert.ok(html.includes('base-stat-tier--mid'));
+});
+
+test('🧩 Modal Detail: renderBaseStats sin stats no inventa valores', () => {
+  const html = renderBaseStats(undefined);
+  assert.ok(html.includes('Sin estadísticas registradas'));
+  assert.ok(!html.includes('base-stat-fill'));
+
+  const partial = renderBaseStats({ hp: 60 });
+  assert.ok(partial.includes('aria-label="Ataque: sin datos"'));
+  assert.ok(!partial.includes('base-stat-total'), 'el total no debe calcularse con stats incompletas');
+});
+
+test('🧩 Modal Detail: renderDetailModalContent no rellena con datos ficticios de Bulbasaur', () => {
+  const sparse: Pokemon = { id: 25, nombre: 'Pikachu', tipo: 'Eléctrico' };
+  const html = renderDetailModalContent(sparse, [sparse]);
+
+  assert.ok(!html.includes('0,7 m'));
+  assert.ok(!html.includes('6,9 kg'));
+  assert.ok(!html.includes('Espesura'));
+  assert.ok(!html.includes('Kanto'));
+  assert.ok(!html.includes('♂'), 'el género no está modelado; no debe mostrarse fijo');
+  assert.ok(html.includes('Sin estadísticas registradas'));
+});
+
+test('🧩 Modal Detail: renderDetailModalContent lista todas las habilidades', () => {
+  const html = renderDetailModalContent(mockBulbasaur, [mockBulbasaur]);
+  assert.ok(html.includes('Espesura, Clorofila'));
 });
 
 test('🧩 Modal Detail: getTriggerIcon devuelve iconos representativos según método', () => {

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T13:31:28.019Z",
+  "generatedAt": "2026-10-05T14:05:44.872Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 577,
-    "totalLines": 15363,
-    "totalSizeBytes": 705219,
+    "totalTestCases": 582,
+    "totalLines": 15404,
+    "totalSizeBytes": 707283,
     "suitesCount": 10
   },
   "suites": [
@@ -59,7 +59,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 5,
-      "testCases": 49,
+      "testCases": 54,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -925,12 +925,12 @@
       "type": "Component / Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 14,
+      "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 81,
-      "sizeBytes": 10869,
-      "lineCount": 301,
-      "sha256": "850b0f39884ef163c8f362bd9f212a1be83155263742ca04f3f358da7f897f04",
+      "assertionCountEst": 96,
+      "sizeBytes": 12933,
+      "lineCount": 342,
+      "sha256": "18cf9012a085d013aee9cba07c4c225fe22d2014971cc18a240b5aae593403b9",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -952,56 +952,76 @@
           "line": 64
         },
         {
-          "name": "🧩 Modal Detail: renderStatEqualizer genera columnas y segmentos proporcionales",
+          "name": "🧩 Modal Detail: renderBaseStats muestra valor numérico por stat y total",
           "line": 76
         },
         {
+          "name": "🧩 Modal Detail: renderBaseStats no usa <br>, que DOMPurify elimina y concatena las etiquetas",
+          "line": 86
+        },
+        {
+          "name": "🧩 Modal Detail: renderBaseStats escala la barra sobre 255 en pasos de 5 % y asigna tramo de color",
+          "line": 91
+        },
+        {
+          "name": "🧩 Modal Detail: renderBaseStats sin stats no inventa valores",
+          "line": 99
+        },
+        {
+          "name": "🧩 Modal Detail: renderDetailModalContent no rellena con datos ficticios de Bulbasaur",
+          "line": 109
+        },
+        {
+          "name": "🧩 Modal Detail: renderDetailModalContent lista todas las habilidades",
+          "line": 121
+        },
+        {
           "name": "🧩 Modal Detail: getTriggerIcon devuelve iconos representativos según método",
-          "line": 85
+          "line": 126
         },
         {
           "name": "🧩 Modal Detail: renderDetailModalContent genera markup semántico y sanitizado",
-          "line": 93
+          "line": 134
         },
         {
           "name": "🧩 Pokemon Card: renderPokemonCard genera article semántico con identificadores seguros",
-          "line": 106
+          "line": 147
         },
         {
           "name": "🧩 Admin Table: renderTableRows genera celdas y botones de acción data-attributes",
-          "line": 117
+          "line": 158
         },
         {
           "name": "🧩 Admin Table: computeKPIs agrega métricas de catálogo deterministamente",
-          "line": 129
+          "line": 170
         },
         {
           "name": "🧩 Modal CRUD: gestión de estado de borrado pendiente",
-          "line": 138
+          "line": 179
         },
         {
           "name": "🧩 Modal Evolution: getTriggerIcon cubre todas las ramas de métodos evolutivos",
-          "line": 146
+          "line": 187
         },
         {
           "name": "🧩 Modal Evolution: renderTransitionConnector genera chevrons y badges según contexto",
-          "line": 156
+          "line": 197
         },
         {
           "name": "🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alternos y catálogos",
-          "line": 167
+          "line": 208
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks",
-          "line": 189
+          "line": 230
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales",
-          "line": 219
+          "line": 260
         },
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
-          "line": 287
+          "line": 328
         }
       ]
     },
