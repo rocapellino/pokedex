@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T18:38:09.264Z",
+  "generatedAt": "2026-10-05T19:49:26.947Z",
   "summary": {
     "totalFiles": 74,
     "testFiles": 69,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 594,
-    "totalLines": 15748,
-    "totalSizeBytes": 723029,
+    "totalLines": 15738,
+    "totalSizeBytes": 722761,
     "suitesCount": 10
   },
   "suites": [
@@ -407,10 +407,10 @@
       "runner": "node:test (tsx)",
       "testCount": 17,
       "describeCount": 0,
-      "assertionCountEst": 68,
-      "sizeBytes": 20469,
-      "lineCount": 480,
-      "sha256": "03a780351c1ec4a3783dcca66cfba54e21bfab4411e73c7d6099e623c6ec2b8c",
+      "assertionCountEst": 69,
+      "sizeBytes": 20639,
+      "lineCount": 475,
+      "sha256": "b1274bd8c35861f902b586c37296e6b5b52bfdeaee451d1b745b51ca18591b58",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -441,56 +441,56 @@
           "line": 59
         },
         {
-          "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
+          "name": "⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea",
           "line": 69
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 110
+          "line": 105
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 154
+          "line": 149
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 199
+          "line": 194
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 210
+          "line": 205
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 220
+          "line": 215
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 301
+          "line": 296
         },
         {
           "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 312
+          "line": 307
         },
         {
           "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 338
+          "line": 333
         },
         {
           "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
-          "line": 366
+          "line": 361
         },
         {
           "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 382
+          "line": 377
         },
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 407
+          "line": 402
         },
         {
           "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
-          "line": 434
+          "line": 429
         }
       ]
     },
@@ -3215,10 +3215,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 42,
-      "sizeBytes": 10747,
-      "lineCount": 200,
-      "sha256": "ac6bf6d820f865de78a431b8fad6655e6bd4d72e6bcc859efd23c13d5e353020",
+      "assertionCountEst": 40,
+      "sizeBytes": 10311,
+      "lineCount": 195,
+      "sha256": "a25cecf95660712914988fe97dae1fc39c473fd70bbe7fdc42355b1c0314dd48",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -3251,31 +3251,31 @@
         },
         {
           "name": "📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 72
+          "line": 71
         },
         {
           "name": "📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .yml obsoletas",
-          "line": 107
+          "line": 103
         },
         {
           "name": "📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones",
-          "line": 125
+          "line": 121
         },
         {
           "name": "🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore",
-          "line": 147
+          "line": 142
         },
         {
           "name": "🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no sobre-extensivo",
-          "line": 155
+          "line": 150
         },
         {
           "name": "🧹 Repository Hygiene: la regla /tmp/ ignora efectivamente archivos en tmp/ y no fuera de tmp/",
-          "line": 164
+          "line": 159
         },
         {
           "name": "🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe y rige AGENTS.md y skills",
-          "line": 183
+          "line": 178
         }
       ]
     },
@@ -3788,9 +3788,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 86,
-      "sizeBytes": 15188,
+      "sizeBytes": 15186,
       "lineCount": 211,
-      "sha256": "0129260823b041270f7c54c383ea1f89ed471187e90189ff49804db91fbb4958",
+      "sha256": "a2483dc3f4043f879f1e88045455beee3ba6dfc75ea607ff6e8175e0a87e9fff",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"

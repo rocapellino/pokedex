@@ -64,12 +64,10 @@ playwright-report/
 lighthouse-results/
 .lighthouseci/
 .scannerwork/
-.mega-linter-reports/
 sonar-project.properties
 playwright.config.ts
 lighthouserc.json
 commitlint.config.js
-.mega-linter.yml
 
 # ==============================================================================
 # Entornos virtuales y caché residual de Python

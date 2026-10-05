@@ -176,7 +176,6 @@ El gate opera con dos listas:
 
 ### 4.3. Excepciones Permanentes
 
-- **`.mega-linter.yml`**: nombre de configuración documentado por MegaLinter, pasado explícitamente vía la variable `MEGALINTER_CONFIG` en CI y en `Taskfile`. No se renombra.
 - **Literales de terceros**: referencias a archivos YAML de proyectos externos (por ejemplo, el workflow `release.yaml` de `sigstore/gitsign` fijado en el `--certificate-identity` de Gitsign) **no** se renombran. Son claims criptográficos de supply chain y deben permanecer literales.
 
 ### 4.4. Deuda Técnica Vigente y Plan de Drenaje
@@ -192,7 +191,7 @@ El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.ya
 
 ### Excepción permanente restante
 
-- **`.mega-linter.yml`**: es el nombre de configuración documentado por MegaLinter, que además se pasa explícitamente vía la variable `MEGALINTER_CONFIG` en el workflow y en `Taskfile.yaml`.
+Ninguna: la configuración de MegaLinter se retiró junto con la herramienta.
 
 ### 4.5. SSOT de Comandos Operativos: `Taskfile.yaml`
 

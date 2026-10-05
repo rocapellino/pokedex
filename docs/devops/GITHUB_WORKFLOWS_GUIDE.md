@@ -13,7 +13,7 @@ Esta guía explica en detalle **qué son, para qué sirven y cómo funcionan** l
    - [3.2. 🚀 `ci.yaml` (Reusable Core CI: Calidad, SAST, Docker & Supply Chain)](#32--ciyaml-reusable-core-ci-calidad-sast-docker--supply-chain)
    - [3.3. 🌐 `web.yaml` (Reusable Frontend CI)](#33--webyaml-reusable-frontend-ci)
    - [3.4. ⚙️ `infra.yaml` (Reusable Infrastructure & IaC CI)](#34-️-infrayaml-reusable-infrastructure--iac-ci)
-   - [3.5. 🧹 `mega-linter.yaml` (Reusable Mega-Linter CI)](#35--mega-linteryaml-reusable-mega-linter-ci)
+   - [3.5. 🧹 `config-linters.yaml` (Reusable Config Linters CI)](#35--config-lintersyaml-reusable-config-linters-ci)
    - [3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)](#36--security-code-scanningyaml-reusable-sast--codeql-ci)
    - [3.7. 🔐 `security-gitleaks.yaml` (Required Secret Scanning Independiente)](#37--security-gitleaksyaml-required-secret-scanning-independiente)
    - [3.8. 🛡️ `security-trivy.yaml` (Escaneo Programado de Vulnerabilidades)](#38-️-security-trivyyaml-escaneo-programado-de-vulnerabilidades)
@@ -37,7 +37,7 @@ Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`),
 - **Reusable Core CI ([`ci.yaml`](../../.github/workflows/ci.yaml)):** Invocado condicionalmente por el orquestador cuando se modifican backend, dependencias raíz, contratos de testing o rutas globales. Ejecuta tipado, tests, Semgrep SAST, escaneo Trivy y firmado Cosign en `main`.
 - **Reusable Frontend CI ([`web.yaml`](../../.github/workflows/web.yaml)):** Invocado condicionalmente cuando cambian `apps/frontend/**` o pruebas E2E.
 - **Reusable Infraestructura CI ([`infra.yaml`](../../.github/workflows/infra.yaml)):** Invocado condicionalmente cuando cambian `infra/**`, `gitops/**` o el `Taskfile.yaml`.
-- **Reusable Mega-Linter ([`mega-linter.yaml`](../../.github/workflows/mega-linter.yaml)):** Ejecuta validación de formato y sintaxis transversal en cambios globales o de linting.
+- **Reusable Config Linters ([`config-linters.yaml`](../../.github/workflows/config-linters.yaml)):** Ejecuta Actionlint y ShellCheck sobre workflows y scripts en cambios globales o de linting.
 - **Reusable Security Scanning ([`security-code-scanning.yaml`](../../.github/workflows/security-code-scanning.yaml)):** Ejecuta análisis avanzado CodeQL y Semgrep en cambios relevantes o programados.
 - **Secret Scanning Incondicional ([`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)):** Se ejecuta de forma independiente y paralela en **cada commit y PR** como Required Check no negociable del ruleset de GitHub, sin depender de la clasificación de impacto.
 - **Quality Gate Unificado:** El job final `quality-gate` en `change-impact.yaml` agrega el estado de todos los workflows invocados (`success` o `skipped` justificado), operando como único required status check orquestado y evitando bloqueos artificiales por jobs condicionales.
@@ -62,7 +62,7 @@ flowchart TD
         ROUTER -->|backend / global / tests| WF_CI["🚀 ci.yaml (Reusable Core)\n• TypeScript & Tests\n• Semgrep SAST\n• Docker & Trivy"]
         ROUTER -->|infra / gitops / taskfile| WF_INFRA["⚙️ infra.yaml (Reusable Infra)\n• Helm, Kubeconform & Kyverno\n• OpenTofu, Ansible & Checkov\n• Test KinD"]
         ROUTER -->|apps/frontend/**| WF_WEB["🌐 web.yaml (Reusable Web)\n• Vite Build & Lint\n• Playwright E2E & Axe-core\n• Lighthouse CI"]
-        ROUTER -->|global / linting| WF_MEGA["🧹 mega-linter.yaml (Reusable)\n• Linting transversal"]
+        ROUTER -->|global / linting| WF_MEGA["🧹 config-linters.yaml (Reusable)\n• Actionlint y ShellCheck"]
         ROUTER -->|security / global| WF_SCAN["🔬 security-code-scanning.yaml\n• CodeQL SAST"]
         ROUTER -->|always: todo PR humano| JOB_PRGOV["📝 pr-governance (job)\n• npm run pr:validate --remote"]
 
@@ -140,11 +140,11 @@ flowchart TD
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
 - **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**.
 
-### 3.5. 🧹 `mega-linter.yaml` (Reusable Mega-Linter CI)
+### 3.5. 🧹 `config-linters.yaml` (Reusable Config Linters CI)
 
-- **Archivo:** [`mega-linter.yaml`](../../.github/workflows/mega-linter.yaml)
+- **Archivo:** [`config-linters.yaml`](../../.github/workflows/config-linters.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
-- **Pasos:** Ejecución del linter integral de repositorio con configuración de [`.mega-linter.yml`](../../.mega-linter.yml).
+- **Pasos:** Actionlint (imagen fijada por digest, con ShellCheck embebido sobre los bloques `run:`) y ShellCheck sobre los `*.sh` versionados, ambos con severidad mínima `warning`. Sin `continue-on-error`: un fallo bloquea a través del Quality Gate.
 
 ### 3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)
 

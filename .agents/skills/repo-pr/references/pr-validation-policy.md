@@ -52,7 +52,7 @@ Antes de dar por finalizada la preparación de un PR, `repo-pr` evalúa dos dime
 
 ### B. Dimensión de Integración Continua (`CI Pipeline State`)
 
-- **`PENDING_CI`:** El PR fue abierto en estado `READY_FOR_PR`, pero los workflows remotos de validación (MegaLinter, SonarCloud, E2E, Pre-Commit en CI) aún están en curso o pendientes de disparo.
+- **`PENDING_CI`:** El PR fue abierto en estado `READY_FOR_PR`, pero los workflows remotos de validación (Config Linters, SonarCloud, E2E, Pre-Commit en CI) aún están en curso o pendientes de disparo.
 - **`ALL_GATES_PASSED`:** Se alcanza **únicamente** cuando la totalidad de los checks requeridos en GitHub Actions han concluido con estado `SUCCESS` y la rama puede integrarse de forma segura.
 - **`CI_FAILED`:** Al menos un workflow requerido en CI falló y requiere investigación o corrección.
 

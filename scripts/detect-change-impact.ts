@@ -396,7 +396,7 @@ export function formatImpactMarkdown(
     { domain: 'Helm Packaging', affected: triggers.helm, pipeline: 'helm lint & parity' },
     { domain: 'OpenTofu IaC', affected: triggers.opentofu, pipeline: 'infra.yaml (Tofu)' },
     { domain: 'Ansible Baseline', affected: triggers.ansible, pipeline: 'infra.yaml (Ansible)' },
-    { domain: 'Linting & Configuration Hygiene', affected: triggers.linting, pipeline: 'MegaLinter & npm run lint:ignore' },
+    { domain: 'Linting & Configuration Hygiene', affected: triggers.linting, pipeline: 'Config Linters & npm run lint:ignore' },
     { domain: 'PR Governance (always)', affected: triggers.pr_governance, pipeline: 'PR template & políticas de calidad' },
     { domain: 'Security: Secrets Scan (always)', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
     { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep' },

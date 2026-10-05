@@ -142,8 +142,8 @@ test('🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y pol
   assert.match(matrixContent, /Vault/, 'Debe documentar Vault');
   assert.match(matrixContent, /ArgoCD/, 'Debe documentar ArgoCD');
   assert.match(matrixContent, /Grafana Alloy/, 'Debe documentar Grafana Alloy');
-  assert.match(matrixContent, /ESLint/, 'Debe documentar demarcación de ESLint');
-  assert.match(matrixContent, /MegaLinter/, 'Debe documentar demarcación de MegaLinter');
+  assert.match(matrixContent, /Biome/, 'Debe documentar demarcación de Biome');
+  assert.match(matrixContent, /Actionlint/, 'Debe documentar demarcación de Actionlint');
   assert.match(matrixContent, /Semgrep/, 'Debe documentar demarcación de Semgrep');
   assert.match(matrixContent, /SonarQube/, 'Debe documentar demarcación de SonarQube');
   assert.match(matrixContent, /Checkov/, 'Debe documentar demarcación de Checkov');

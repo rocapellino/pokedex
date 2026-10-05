@@ -18,10 +18,10 @@ tasks:
     cmds:
       - npm run lint
 
-  lint:mega:
-    desc: "Ejecuta MegaLinter localmente mediante Docker"
+  lint:config:
+    desc: "Ejecuta Actionlint (con ShellCheck embebido) sobre los workflows mediante Docker"
     cmds:
-      - docker run --rm -v "${PWD}:/tmp/lint:ro" -e MEGALINTER_CONFIG=.mega-linter.yml oxsecurity/megalinter-cupcake:v8.4.2
+      - docker run --rm -e SHELLCHECK_OPTS=--severity=warning -v "${PWD}:/repo" -w /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
 
   # ----------------------------------------------------------------------------
   # Documentación Markdown

@@ -49,7 +49,6 @@ test('📐 Extension Governance: la regla de extensión YAML está incorporada e
   // repo-quality: estándar de ingeniería para archivos nuevos
   const quality = read('repo-quality/SKILL.md');
   assert.match(quality, /\.yaml/, 'repo-quality debe declarar la extensión canónica .yaml');
-  assert.match(quality, /\.mega-linter\.yml/, 'repo-quality debe documentar la excepción vigente');
   assert.match(quality, /lint:yaml/, 'repo-quality debe referenciar el gate de enforcement');
 
   // repo-ci: todo workflow nuevo se crea en .yaml
@@ -70,9 +69,6 @@ test('📐 Extension Governance: la regla de extensión YAML está incorporada e
 });
 
 test('📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta', () => {
-  // `mega-linter` se excluye a propósito: `.mega-linter.yml` no es un workflow
-  // sino el archivo de configuración de la herramienta, y constituye la
-  // excepción permanente documentada (se pasa vía MEGALINTER_CONFIG).
   const workflows = [
     'ci', 'infra', 'security-gitleaks', 'security-trivy',
     'security-dast-zap', 'performance-k6', 'dr-simulation',
@@ -139,7 +135,6 @@ test('📚 YAML Reference Integrity: el scanner esta registrado y declara sus ex
 
   // Las excepciones deben seguir declaradas explicitamente, no borradas en silencio.
   const scanner = fs.readFileSync(scriptPath, 'utf-8');
-  assert.match(scanner, /\.mega-linter\\\.yml/, 'El scanner debe declarar la excepcion .mega-linter.yml');
   assert.match(scanner, /\.travis\\\.yml/, 'El scanner debe declarar la excepcion .travis.yml');
   assert.match(scanner, /sigstore/, 'El scanner debe declarar la excepcion del literal upstream de Gitsign');
 });

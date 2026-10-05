@@ -42,7 +42,7 @@ Todo artefacto o texto orientado a humanos generado por las skills debe redactar
 Para evitar traducciones forzadas, ambiguas o que rompan la compatibilidad técnica, los siguientes elementos deben preservarse en su forma canónica en **inglés**:
 
 - **Nombres de Herramientas y Productos Oficiales:**
-  - GitHub, GitHub Actions, Pull Request, Git, Kubernetes, Helm, OpenTofu, Ansible, ArgoCD, Docker, Docker Compose, pre-commit, Trivy, Semgrep, Gitleaks, SonarQube / SonarCloud, MegaLinter, Playwright, Lighthouse, Pino, Drizzle ORM, Zod, Redis, PostgreSQL.
+  - GitHub, GitHub Actions, Pull Request, Git, Kubernetes, Helm, OpenTofu, Ansible, ArgoCD, Docker, Docker Compose, pre-commit, Trivy, Semgrep, Gitleaks, SonarQube / SonarCloud, Actionlint, ShellCheck, Biome, Playwright, Lighthouse, Pino, Drizzle ORM, Zod, Redis, PostgreSQL.
 - **Comandos de Terminal y Sintaxis:**
   - Invocaciones CLI exactas (ej. `npm test`, `git checkout -b`, `helm lint`, `pre-commit run`).
 - **Nombres de Archivos y Rutas:**

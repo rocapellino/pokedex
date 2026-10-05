@@ -167,8 +167,8 @@ jobs:
       contents: read
     uses: ./.github/workflows/web.yaml
 
-  megalinter:
-    name: "⚡ MegaLinter"
+  config-linters:
+    name: "⚡ Config Linters"
     needs: [detect-impact]
     if: |
       needs.detect-impact.outputs.linting == 'true' ||
@@ -176,7 +176,7 @@ jobs:
       github.event_name == 'push'
     permissions:
       contents: read
-    uses: ./.github/workflows/mega-linter.yaml
+    uses: ./.github/workflows/config-linters.yaml
 
   security-code-scanning:
     name: "🛡️ Security Code Scanning"
@@ -249,7 +249,7 @@ jobs:
   # ejecute incluso si alguno de ellos fue omitido o fallo.
   quality-gate:
     name: "🚦 Quality Gate"
-    needs: [detect-impact, ci-core, infra, frontend-web, megalinter, security-code-scanning, pr-governance]
+    needs: [detect-impact, ci-core, infra, frontend-web, config-linters, security-code-scanning, pr-governance]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -264,7 +264,7 @@ jobs:
           CI_CORE: ${{ needs.ci-core.result }}
           INFRA: ${{ needs.infra.result }}
           FRONTEND_WEB: ${{ needs.frontend-web.result }}
-          MEGALINTER: ${{ needs.megalinter.result }}
+          CONFIG_LINTERS: ${{ needs.config-linters.result }}
           SECURITY_CODE_SCANNING: ${{ needs.security-code-scanning.result }}
           PR_GOVERNANCE: ${{ needs.pr-governance.result }}
         run: |
@@ -278,7 +278,7 @@ jobs:
             "ci-core=${CI_CORE}" \
             "infra=${INFRA}" \
             "frontend-web=${FRONTEND_WEB}" \
-            "megalinter=${MEGALINTER}" \
+            "config-linters=${CONFIG_LINTERS}" \
             "security-code-scanning=${SECURITY_CODE_SCANNING}" \
             "pr-governance=${PR_GOVERNANCE}"; do
             JOB="${pair%%=*}"
@@ -308,7 +308,7 @@ jobs:
               "ci-core=${CI_CORE}" \
               "infra=${INFRA}" \
               "frontend-web=${FRONTEND_WEB}" \
-              "megalinter=${MEGALINTER}" \
+              "config-linters=${CONFIG_LINTERS}" \
               "security-code-scanning=${SECURITY_CODE_SCANNING}" \
               "pr-governance=${PR_GOVERNANCE}"; do
               JOB="${pair%%=*}"
