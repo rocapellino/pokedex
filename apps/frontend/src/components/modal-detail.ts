@@ -1,6 +1,6 @@
 /**
  * Componente Modal de Detalle de Pokémon
- * Renderiza atributos avanzados, debilidades, ecualizador de estadísticas y árbol de evoluciones.
+ * Renderiza atributos avanzados, debilidades, estadísticas base y árbol de evoluciones.
  */
 
 import { sanitizeHtml, escapeText } from '../sanitizer.js';
@@ -25,55 +25,95 @@ export {
   renderEvolutionSystem,
 };
 
-export function renderStatEqualizer(stats?: PokemonStats): string {
-  const statDefs = [
-    { key: 'hp', label: 'PS', max: 140 },
-    { key: 'attack', label: 'Ataque', max: 140 },
-    { key: 'defense', label: 'Defensa', max: 140 },
-    { key: 'sp_attack', label: 'Ataque<br>Especial', max: 140 },
-    { key: 'sp_defense', label: 'Defensa<br>Especial', max: 140 },
-    { key: 'speed', label: 'Velocidad', max: 140 },
-  ];
+/** Máximo teórico de una estadística base en los juegos principales. */
+const STAT_SCALE_MAX = 255;
 
-  return statDefs
-    .map((s) => {
-      const val = stats ? (stats[s.key] ?? 50) : 50;
-      const activeSegments = Math.min(15, Math.max(1, Math.round((val / s.max) * 15)));
+const BASE_STAT_DEFS = [
+  { key: 'hp', label: 'PS', name: 'PS' },
+  { key: 'attack', label: 'Ataque', name: 'Ataque' },
+  { key: 'defense', label: 'Defensa', name: 'Defensa' },
+  { key: 'sp_attack', label: 'At. Esp.', name: 'Ataque especial' },
+  { key: 'sp_defense', label: 'Def. Esp.', name: 'Defensa especial' },
+  { key: 'speed', label: 'Velocidad', name: 'Velocidad' },
+] as const;
 
-      let segmentsHtml = '';
-      for (let i = 1; i <= 15; i++) {
-        const isActive = i <= activeSegments;
-        segmentsHtml += `<div class="equalizer-segment ${isActive ? 'active' : ''}"></div>`;
-      }
-
-      return `
-      <div class="equalizer-col">
-        <div class="equalizer-bar-stack">
-          ${segmentsHtml}
-        </div>
-        <div class="equalizer-label">${s.label}</div>
-      </div>
-    `;
-    })
-    .join('');
+function statTier(value: number): 'low' | 'mid' | 'high' | 'top' {
+  if (value < 50) return 'low';
+  if (value < 80) return 'mid';
+  if (value < 110) return 'high';
+  return 'top';
 }
 
+/** Ancho de la barra en pasos de 5 % (clases `base-stat-fill--wN`); la CSP impide `style` inline. */
+function statWidthStep(value: number): number {
+  return Math.min(100, Math.max(0, Math.round((value / STAT_SCALE_MAX) * 20) * 5));
+}
+
+function isValidStat(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+export function renderBaseStats(stats?: PokemonStats): string {
+  if (!stats || !BASE_STAT_DEFS.some((s) => isValidStat(stats[s.key]))) {
+    return '<p class="stats-empty">Sin estadísticas registradas</p>';
+  }
+
+  let total = 0;
+  let complete = true;
+
+  const rows = BASE_STAT_DEFS.map((s) => {
+    const raw = stats[s.key];
+    if (!isValidStat(raw)) {
+      complete = false;
+      return `
+      <div class="base-stat-row" aria-label="${s.name}: sin datos">
+        <span class="base-stat-name">${s.label}</span>
+        <span class="base-stat-value">—</span>
+        <div class="base-stat-track"></div>
+      </div>`;
+    }
+
+    const value = Math.round(raw);
+    total += value;
+    return `
+      <div class="base-stat-row" aria-label="${s.name}: ${value}">
+        <span class="base-stat-name">${s.label}</span>
+        <span class="base-stat-value">${value}</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w${statWidthStep(value)} base-stat-tier--${statTier(value)}"></div></div>
+      </div>`;
+  }).join('');
+
+  const totalRow = complete
+    ? `
+      <div class="base-stat-row base-stat-total" aria-label="Total: ${total}">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">${total}</span>
+      </div>`
+    : '';
+
+  return `<div class="stats-list">${rows}${totalRow}</div>`;
+}
+
+const UNKNOWN = '—';
+
+function formatMeasure(value: unknown, unit: string): string {
+  return isValidStat(value) && value > 0 ? `${String(value).replace('.', ',')} ${unit}` : UNKNOWN;
+}
 
 export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = []): string {
   const car = pokemon.caracteristicas || {};
-  const stats = pokemon.stats || { hp: 45, attack: 49, defense: 49, sp_attack: 65, sp_defense: 65, speed: 45 };
   const tipos = Array.isArray(pokemon.tipos) && pokemon.tipos.length > 0 ? pokemon.tipos : [pokemon.tipo || 'Normal'];
-  const habilidades = Array.isArray(pokemon.habilidades) ? pokemon.habilidades : [pokemon.habilidades || 'Espesura'];
-  const habilidadPrincipal = habilidades[0] || 'Espesura';
+  const habilidades = (Array.isArray(pokemon.habilidades) ? pokemon.habilidades : [pokemon.habilidades])
+    .map((h) => (typeof h === 'string' ? h.trim() : ''))
+    .filter(Boolean);
   const evoluciones = pokemon.evoluciones;
   const weaknesses = calculateWeaknesses(tipos);
   const formattedId = String(pokemon.id).padStart(4, '0');
 
   const desc =
     car.descripcion ||
-    `${pokemon.nombre} es una especie de tipo ${tipos.join('/')} registrada en la Pokédex. Habita comúnmente en la región de ${
-      car.habitat || 'Kanto'
-    } y es reconocido por su desempeño en batalla.`;
+    `${pokemon.nombre} es una especie de tipo ${tipos.join('/')} registrada en la Pokédex.` +
+      (car.habitat ? ` Su hábitat es ${car.habitat}.` : '');
 
   const evolutionsHtml = renderEvolutionSystem(evoluciones, pokemon.id, catalog);
 
@@ -95,8 +135,8 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
 
         <div class="pokedex-stats-panel">
           <div class="stats-panel-title">Puntos de base</div>
-          <div class="stats-equalizer-grid">
-            ${renderStatEqualizer(stats)}
+          <div class="stats-panel-body">
+            ${renderBaseStats(pokemon.stats)}
           </div>
         </div>
       </div>
@@ -107,25 +147,19 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
         <div class="pokedex-blue-card">
           <div class="blue-card-item">
             <span class="blue-card-label">Altura</span>
-            <span class="blue-card-value">${((car.altura as number) || 0.7).toString().replace('.', ',')} m</span>
+            <span class="blue-card-value">${formatMeasure(car.altura, 'm')}</span>
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Categoría</span>
-            <span class="blue-card-value">${escapeText(car.categoria || car.habitat || 'Kanto')}</span>
+            <span class="blue-card-value">${escapeText(car.categoria || car.habitat || UNKNOWN)}</span>
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Peso</span>
-            <span class="blue-card-value">${((car.peso as number) || 6.9).toString().replace('.', ',')} kg</span>
+            <span class="blue-card-value">${formatMeasure(car.peso, 'kg')}</span>
           </div>
           <div class="blue-card-item">
-            <span class="blue-card-label">Habilidad</span>
-            <span class="blue-card-value">
-              ${escapeText(habilidadPrincipal)}
-            </span>
-          </div>
-          <div class="blue-card-item col-span-full">
-            <span class="blue-card-label">Género</span>
-            <span class="gender-symbols">♂ ♀</span>
+            <span class="blue-card-label">${habilidades.length > 1 ? 'Habilidades' : 'Habilidad'}</span>
+            <span class="blue-card-value">${escapeText(habilidades.length > 0 ? habilidades.join(', ') : UNKNOWN)}</span>
           </div>
         </div>
 
