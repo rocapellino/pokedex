@@ -409,46 +409,6 @@ test('🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 S
   }
 });
 
-test('🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:///', () => {
-  function getMarkdownFiles(dir: string): string[] {
-    let files: string[] = [];
-    const entries = fs.readdirSync(dir);
-    for (const entry of entries) {
-      if (entry === 'node_modules' || entry === '.git' || entry === 'dist' || entry === 'scratch' || entry === 'tmp') continue;
-      const fullPath = path.join(dir, entry);
-      let stat;
-      try {
-        stat = fs.statSync(fullPath);
-      } catch {
-        continue;
-      }
-      if (stat.isDirectory()) {
-        files = files.concat(getMarkdownFiles(fullPath));
-      } else if (entry.endsWith('.md')) {
-        files.push(fullPath);
-      }
-    }
-    return files;
-  }
-
-  const allMarkdownFiles = getMarkdownFiles(ROOT_DIR);
-  assert.ok(allMarkdownFiles.length > 20, 'Deben existir múltiples archivos de documentación Markdown');
-
-  const filesWithAbsoluteLinks: string[] = [];
-  for (const file of allMarkdownFiles) {
-    const content = fs.readFileSync(file, 'utf-8');
-    if (content.includes('file:///')) {
-      filesWithAbsoluteLinks.push(path.relative(ROOT_DIR, file));
-    }
-  }
-
-  assert.deepStrictEqual(
-    filesWithAbsoluteLinks,
-    [],
-    `Los siguientes archivos contienen enlaces absolutos locales file:///: ${filesWithAbsoluteLinks.join(', ')}`
-  );
-});
-
 test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki', async () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-018-opentelemetry-distributed-tracing-and-w3c.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');

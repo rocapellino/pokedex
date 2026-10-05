@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T12:59:28.951Z",
+  "generatedAt": "2026-10-05T13:31:28.019Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 578,
-    "totalLines": 15403,
-    "totalSizeBytes": 706595,
+    "totalTestCases": 577,
+    "totalLines": 15363,
+    "totalSizeBytes": 705219,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 24,
-      "testCases": 204,
+      "testCases": 203,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2287,12 +2287,12 @@
       "type": "Contract / Architecture",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 19,
+      "testCount": 18,
       "describeCount": 0,
-      "assertionCountEst": 205,
-      "sizeBytes": 42253,
-      "lineCount": 768,
-      "sha256": "909aa6bcf2636d786576d7a9274b4f8462f820dc83edd178ecab9104d877602e",
+      "assertionCountEst": 203,
+      "sizeBytes": 40877,
+      "lineCount": 728,
+      "sha256": "7d117da021707392226926b01173b21115cb960ba24f7d2964c45f28a06c4d34",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -2366,24 +2366,20 @@
           "line": 366
         },
         {
-          "name": "🛡️ Portabilidad de Documentación: ningún archivo markdown (.md) contiene enlaces absolutos locales file:///",
+          "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
           "line": 412
         },
         {
-          "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 452
-        },
-        {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 formaliza optimización de build, grafo de dependencias y caché con Turborepo",
-          "line": 546
+          "line": 506
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 605
+          "line": 565
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 698
+          "line": 658
         }
       ]
     },
