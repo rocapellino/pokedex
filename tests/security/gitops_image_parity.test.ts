@@ -119,23 +119,37 @@ test('🔒 Supply Chain: extractRenderedApiImage en modo estricto (strict: true)
   );
 });
 
-test('🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas e invalida con clearRenderCache', () => {
+test('🔒 GitOps Parity: la caché de renderizado evita re-ejecutar helm e invalida con clearRenderCache', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const validValues = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
 
   clearRenderCache();
-  const startFresh = performance.now();
   const imageFresh = extractRenderedApiImage(chartPath, validValues, { strict: true });
-  const durationFresh = performance.now() - startFresh;
 
-  const startCached = performance.now();
-  const imageCached = extractRenderedApiImage(chartPath, validValues, { strict: true });
-  const durationCached = performance.now() - startCached;
+  // Sin helm en el PATH, una llamada que no resuelva desde la caché fallaría en modo
+  // estricto. Es una prueba determinista del acierto de caché, sin depender del reloj.
+  const originalPath = process.env.PATH;
+  process.env.PATH = '';
+  try {
+    const imageCached = extractRenderedApiImage(chartPath, validValues, { strict: true });
+    assert.strictEqual(imageCached, imageFresh, 'La imagen en caché debe ser idéntica a la recién renderizada');
 
-  assert.strictEqual(imageCached, imageFresh, 'La imagen en caché debe ser idéntica a la recién renderizada');
-  assert.ok(durationCached < 50, `La llamada en caché debe resolver en <50ms (tomó ${durationCached.toFixed(2)}ms, frente a ${durationFresh.toFixed(2)}ms inicial)`);
+    assert.throws(
+      () => extractRenderedApiImage(chartPath, validValues, { strict: true, skipCache: true }),
+      /Modo Estricto CI/,
+      'skipCache debe forzar un nuevo render (y fallar sin helm)'
+    );
 
-  clearRenderCache();
+    clearRenderCache();
+    assert.throws(
+      () => extractRenderedApiImage(chartPath, validValues, { strict: true }),
+      /Modo Estricto CI/,
+      'clearRenderCache debe invalidar la entrada'
+    );
+  } finally {
+    process.env.PATH = originalPath;
+    clearRenderCache();
+  }
 });
 
 // Regresión (2026-10-03): la paridad solo cubría la imagen del API. El digest de

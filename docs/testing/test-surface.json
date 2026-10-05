@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T16:05:57.526Z",
+  "generatedAt": "2026-10-05T17:15:53.959Z",
   "summary": {
     "totalFiles": 73,
     "testFiles": 68,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 591,
-    "totalLines": 15736,
-    "totalSizeBytes": 723431,
+    "totalLines": 15750,
+    "totalSizeBytes": 723793,
     "suitesCount": 10
   },
   "suites": [
@@ -2962,10 +2962,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 20,
-      "sizeBytes": 8184,
-      "lineCount": 176,
-      "sha256": "8188cf94f7c030d2143c55af653da0534a6dd6b92877ff469173f788160b85eb",
+      "assertionCountEst": 21,
+      "sizeBytes": 8546,
+      "lineCount": 190,
+      "sha256": "6777105aaa04b5f557eea870a1289091cdcf228a2199904f8ff52f3cd397bc9d",
       "targetDomain": "Paridad de Imágenes en GitOps",
       "targetArtifacts": [
         "scripts/verify-image-digest-parity.ts",
@@ -3012,16 +3012,16 @@
           "line": 107
         },
         {
-          "name": "🔒 GitOps Parity: la caché de renderizado acelera llamadas consecutivas e invalida con clearRenderCache",
+          "name": "🔒 GitOps Parity: la caché de renderizado evita re-ejecutar helm e invalida con clearRenderCache",
           "line": 122
         },
         {
           "name": "🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web renderizado",
-          "line": 143
+          "line": 157
         },
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos",
-          "line": 150
+          "line": 164
         }
       ]
     },
