@@ -16,7 +16,7 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 
 test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml', () => {
   const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
-  for (const workflow of ['web.yaml', 'mega-linter.yaml', 'security-code-scanning.yaml']) {
+  for (const workflow of ['web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml']) {
     const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
     assert.match(content, /workflow_call:/, `${workflow} debe ser reutilizable`);
     assert.doesNotMatch(content, /pull_request:/, `${workflow} no debe decidir por paths en PR`);
@@ -32,7 +32,7 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
   // nunca se ejecutaban pese a que sus triggers fueran `true`, dejando la
   // validación de IaC, Ansible, OpenTofu, Kyverno y K8s completamente muda.
   // La serialización por PR ya la aplica `change-impact.yaml` a nivel superior.
-  const reusables = ['ci.yaml', 'infra.yaml', 'web.yaml', 'mega-linter.yaml', 'security-code-scanning.yaml'];
+  const reusables = ['ci.yaml', 'infra.yaml', 'web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml'];
 
   for (const workflow of reusables) {
     const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
@@ -63,37 +63,35 @@ test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', 
   assert.match(ci, /aas-governance:[\s\S]*?npm run aas:verify[\s\S]*?tests\/aas_governance\.test\.ts/);
 });
 
-test('⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador', () => {
-  const mega = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/mega-linter.yaml'), 'utf-8');
+test('⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea', () => {
+  const linters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
 
   // La decision debe estar documentada en el propio workflow, no solo implicita.
-  assert.match(mega, /CI-002/, 'mega-linter.yaml debe referenciar la decisión CI-002');
+  assert.match(linters, /CI-002/, 'config-linters.yaml debe referenciar la decisión CI-002');
   assert.match(
-    mega,
+    linters,
     /no es un Quality Gate por si mismo/,
-    'mega-linter.yaml debe declarar que no es un Quality Gate por si mismo',
+    'config-linters.yaml debe declarar que no es un Quality Gate por si mismo',
+  );
+  assert.match(linters, /Quality Gate/, 'config-linters.yaml debe remitir al Quality Gate único y bloqueante');
+
+  // Sin continue-on-error: el fallo debe ser una señal real, no silenciada (MegaLinter
+  // corría con continue-on-error y DISABLE_ERRORS y por eso no aportaba señal).
+  assert.doesNotMatch(linters, /continue-on-error:\s*true/, 'El job de Config Linters no debe usar continue-on-error');
+
+  // La imagen de actionlint se fija por digest (supply chain).
+  assert.match(
+    linters,
+    /rhysd\/actionlint:[\d.]+@sha256:[a-f0-9]{64}/,
+    'actionlint debe ejecutarse desde una imagen fijada por digest',
   );
 
-  // El flag local se mantiene: evita la senal duplicada de un linter que ya
-  // tiene un control equivalente mas especifico en otro pipeline.
-  assert.match(
-    mega,
-    /continue-on-error:\s*true/,
-    'El job de MegaLinter debe conservar continue-on-error (evita senal duplicada)',
+  // MegaLinter ya no existe en el repositorio.
+  assert.ok(
+    !fs.existsSync(path.join(ROOT_DIR, '.github/workflows/mega-linter.yaml')),
+    'mega-linter.yaml debe estar retirado',
   );
-
-  // Y debe advertirse que el gate agregador lo hace bloqueante de todos modos.
-  assert.match(
-    mega,
-    /Quality Gate[\s\S]*?ATENCION/,
-    'mega-linter.yaml debe advertir que el Quality Gate lo incluye en su needs',
-  );
-  assert.match(
-    mega,
-    /bloquea el merge a traves del gate/,
-    'mega-linter.yaml debe documentar que un fallo bloquea via el gate agregador',
-  );
-  assert.match(mega, /Quality Gate/, 'mega-linter.yaml debe remitir al Quality Gate único y bloqueante');
+  assert.ok(!fs.existsSync(path.join(ROOT_DIR, '.mega-linter.yml')), '.mega-linter.yml debe estar retirado');
 });
 
 test('🛡️ El ruleset declarativo debe registrar los tres required checks', () => {
@@ -157,7 +155,7 @@ test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()',
     'ci-core',
     'infra',
     'frontend-web',
-    'megalinter',
+    'config-linters',
     'security-code-scanning',
   ]) {
     assert.ok(needs.includes(pipeline), `quality-gate debe depender de ${pipeline}`);
@@ -377,7 +375,7 @@ test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en
 
 test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente', () => {
   const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
-  const reusableWorkflows = ['ci.yaml', 'infra.yaml', 'web.yaml', 'mega-linter.yaml', 'security-code-scanning.yaml'];
+  const reusableWorkflows = ['ci.yaml', 'infra.yaml', 'web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml'];
 
   for (const file of reusableWorkflows) {
     const filePath = path.join(workflowsDir, file);

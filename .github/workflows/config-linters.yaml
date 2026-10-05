@@ -1,0 +1,60 @@
+# ==============================================================================
+# Config Linters CI Workflow - Pokédex Monorepo
+# Linters de configuración ejecutados directamente (sin MegaLinter)
+# ==============================================================================
+# NOTA: este workflow NO debe declarar `concurrency`. En un reusable workflow,
+# `github.workflow` conserva el nombre del workflow INVOCADOR, por lo que todos
+# los reusables calculaban el mismo grupo y se cancelaban entre si. La
+# serializacion por PR ya la aplica `change-impact.yaml` a nivel de workflow.
+#
+# CI-002: este workflow no es un Quality Gate por si mismo; el unico Quality Gate
+# del repositorio es el job `🚦 Quality Gate` del orquestador, que lo incluye en su
+# `needs`. Un fallo aqui SI bloquea el merge a traves del gate.
+#
+# Reemplaza a MegaLinter (que corria con continue-on-error y DISABLE_ERRORS, es
+# decir, sin senal real). Cobertura que se conserva:
+#   Actionlint  -> sintaxis y expresiones de .github/workflows (y ShellCheck sobre
+#                  los bloques `run:`, con severidad minima `warning`)
+#   ShellCheck  -> scripts *.sh versionados, con severidad minima `warning`
+# Cobertura que NO se replica por ser redundante con un control mas especifico:
+#   Hadolint    -> ya corre en security-code-scanning.yaml
+#   Yamllint    -> sin configuracion propia; la sintaxis YAML la valida pre-commit
+#                  (check-yaml), la extension lint:yaml:strict y, para Kubernetes,
+#                  Kubeconform, Kyverno CLI y Checkov en Infra CI
+name: ⚡ Config Linters - Actionlint & ShellCheck
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  config-linters:
+    name: "⚡ Config Linters (Actionlint, ShellCheck)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: 2. Actionlint (workflows y scripts embebidos)
+        # Imagen fijada por digest (supply chain, ADR-008). Para actualizarla:
+        # resolver el digest del nuevo tag en Docker Hub y sustituir tag y digest.
+        run: |
+          docker run --rm \
+            -e SHELLCHECK_OPTS="--severity=warning" \
+            -v "${GITHUB_WORKSPACE}:/repo" -w /repo \
+            rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 \
+            -color
+
+      - name: 3. ShellCheck (scripts *.sh)
+        run: |
+          mapfile -t scripts < <(git ls-files '*.sh')
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo "Sin scripts *.sh versionados."
+            exit 0
+          fi
+          shellcheck --severity=warning "${scripts[@]}"

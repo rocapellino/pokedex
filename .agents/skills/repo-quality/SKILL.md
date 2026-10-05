@@ -15,7 +15,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - **Convención de Extensión YAML (archivos nuevos):**
   - Todo archivo YAML creado en el monorepo debe usar la extensión **`.yaml`**. La extensión `.yml` está **prohibida para archivos nuevos**.
   - Aplica a toda ruta del repositorio sin excepción: manifiestos de Kubernetes, values de Helm, definiciones de ArgoCD, workflows de GitHub Actions, configuraciones de herramientas, playbooks e inventories de Ansible.
-  - **Excepciones:** solo se admite `.yml` cuando la extensión la impone una herramienta externa, y debe documentarse de forma explícita. El único caso vigente es `.mega-linter.yml`, nombre de configuración documentado por MegaLinter y pasado explícitamente vía la variable `MEGALINTER_CONFIG`.
+  - **Excepciones:** solo se admite `.yml` cuando la extensión la impone una herramienta externa, y debe documentarse de forma explícita. Hoy no hay casos vigentes.
   - **No confundir con literales de terceros:** los archivos YAML de proyectos externos (por ejemplo, el workflow `release.yaml` de `sigstore/gitsign` fijado en el `--certificate-identity` de Gitsign) son claims literales de supply chain y **no se renombran**. Este tipo de referencia no constituye una excepción a la política.
   - **Enforcement:** el gate `scripts/check-yaml-extension.ts` (`npm run lint:yaml`, y `npm run lint:yaml:strict` en CI) falla ante cualquier `.yml` fuera del allowlist. Para justificar una excepción hay que declararla en `LEGACY_YML_ALLOWLIST` con su motivo.
   - Contrato normativo: [docs/architecture/MONOREPO_STRUCTURE.md](../../../docs/architecture/MONOREPO_STRUCTURE.md) §4.

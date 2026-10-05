@@ -43,19 +43,19 @@ Para erradicar la percepción de redundancia entre analizadores de código y esc
                 ├──────────────────────────────────────────┤
                 │        Semgrep (AST Semantic SAST)       │  Vulnerabilidades Lógicas/OWASP
                 ├──────────────────────────────────────────┤
-                │     MegaLinter (Polyglot Format/Lint)    │  YAML, Markdown, Shell, Actions
+                │  Actionlint + ShellCheck (Config Lint)   │  GitHub Actions, Shell
                 ├──────────────────────────────────────────┤
-                │        ESLint (TS/JS Syntax & Types)     │  Reglas de Código Node.js/Vite
+                │        Biome (TS/JS Lint & Format)       │  Reglas de Código Node.js/Vite
                 └──────────────────────────────────────────┘
 ```
 
 | Herramienta | Capa de Inspección | Objetivo Específico | ¿Por qué NO la reemplaza otra herramienta? |
 | --- | --- | --- | --- |
-| **ESLint** | Código Fuente TypeScript / JavaScript | Detecta errores de sintaxis, violaciones de tipos de TypeScript y anti-patrones en tiempo de edición (IDE) y CI rápido (< 15s). | No analiza YAML, ni infraestructura, ni vulnerabilidades semánticas profundas. |
-| **MegaLinter** | Archivos No-JS (YAML, Markdown, Dockerfile, GH Actions) | Orquestador unificado de linters para mantener coherencia estilística en documentación, pipelines de CI y manifiestos de K8s. | ESLint no tiene capacidad de parsear YAML, Markdown ni scripts Shell. |
-| **Semgrep** | Abstract Syntax Tree (AST) de la aplicación | SAST semántico basado en reglas personalizadas para detectar inyecciones SQL/NoSQL, evasión de autenticación, SSRF y bugs de seguridad específicos. | A diferencia de Sonar o ESLint, permite escribir reglas de seguridad sintácticas de orden superior orientadas al modelo de amenazas del proyecto. |
-| **SonarQube / SonarCloud** | Métricas Globales de Calidad y Deuda Técnica | Quality Gate centralizado de cobertura de tests (LCOV), duplicación de líneas de código, complejidad ciclomática y mantenibilidad a largo plazo. | Semgrep y ESLint no calculan cobertura de pruebas ni rastrean deuda técnica agregada en el tiempo. |
-| **Checkov** | Manifiestos de Infraestructura como Código (IaC) | Analiza configuraciones de OpenTofu/Terraform, Helm charts, manifiestos de Kubernetes y Dockerfiles buscando configuraciones inseguras (ej. pods sin `securityContext`, puertos privilegiados). | Los linters de código (ESLint/Semgrep) no comprenden la semántica de recursos de nube ni políticas CIS Benchmark para K8s/IaC. |
+| **Biome** | Código Fuente TypeScript / JavaScript | Linter y formateador sin dependencia del compilador de TypeScript: detecta anti-patrones y errores de estilo en edición (IDE), pre-commit y CI rápido (< 15s). Los tipos los verifica `tsc`. | No analiza YAML, ni infraestructura, ni vulnerabilidades semánticas profundas. |
+| **Actionlint + ShellCheck** | Workflows de GitHub Actions y scripts Shell | Valida sintaxis y expresiones de `.github/workflows` y la calidad de los scripts `*.sh` y de los bloques `run:`. | Biome no analiza YAML ni Shell; Checkov se centra en seguridad de IaC, no en la corrección de los workflows. |
+| **Semgrep** | Abstract Syntax Tree (AST) de la aplicación | SAST semántico basado en reglas personalizadas para detectar inyecciones SQL/NoSQL, evasión de autenticación, SSRF y bugs de seguridad específicos. | A diferencia de Sonar o Biome, permite escribir reglas de seguridad sintácticas de orden superior orientadas al modelo de amenazas del proyecto. |
+| **SonarQube / SonarCloud** | Métricas Globales de Calidad y Deuda Técnica | Quality Gate centralizado de cobertura de tests (LCOV), duplicación de líneas de código, complejidad ciclomática y mantenibilidad a largo plazo. | Semgrep y Biome no calculan cobertura de pruebas ni rastrean deuda técnica agregada en el tiempo. |
+| **Checkov** | Manifiestos de Infraestructura como Código (IaC) | Analiza configuraciones de OpenTofu/Terraform, Helm charts, manifiestos de Kubernetes y Dockerfiles buscando configuraciones inseguras (ej. pods sin `securityContext`, puertos privilegiados). | Los linters de código (Biome/Semgrep) no comprenden la semántica de recursos de nube ni políticas CIS Benchmark para K8s/IaC. |
 | **Trivy** | Vulnerabilidades conocidas (CVEs) en dependencias e imágenes | Escaneo de Software Composition Analysis (SCA) en `package-lock.json`, vulnerabilidades de paquetes de sistema operativo en imágenes OCI (Alpine/Debian) y generación de SBOM CycloneDX. | Ninguna de las otras herramientas inspecciona el archivo de bloqueo de paquetes contra bases de datos de vulnerabilidades CVE/NVD ni analiza capas binarias de imágenes Docker. |
 
 ---

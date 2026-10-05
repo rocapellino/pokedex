@@ -401,7 +401,7 @@ export function formatImpactMarkdown(
     {
       domain: 'Linting & Configuration Hygiene',
       affected: triggers.linting,
-      pipeline: 'MegaLinter & npm run lint:ignore',
+      pipeline: 'Config Linters & npm run lint:ignore',
     },
     {
       domain: 'PR Governance (always)',

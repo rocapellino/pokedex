@@ -6,7 +6,7 @@
  *
  * POLÍTICA: la extensión canónica para archivos YAML del monorepo es `.yaml`.
  * La extensión `.yml` queda PROHIBIDA para archivos nuevos y se tolera
- * únicamente el inventario de deuda técnica pre-existente (.mega-linter.yml).
+ * únicamente el inventario de deuda técnica pre-existente (hoy vacío).
  *
  * Este script unifica dos verificaciones de gobernanza YAML:
  *
@@ -36,10 +36,9 @@ const isFixMode = args.includes('--fix');
 // -----------------------------------------------------------------------------
 // SECCIÓN 1: Deuda Técnica y Excepciones Permitidas
 // -----------------------------------------------------------------------------
-export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze(['.mega-linter.yml']);
+export const LEGACY_YML_ALLOWLIST: readonly string[] = Object.freeze([]);
 
 export const EXCEPTIONS: { pattern: RegExp; reason: string }[] = [
-  { pattern: /\.mega-linter\.yml\b/, reason: 'Excepcion permanente: nombre de config impuesto por MegaLinter' },
   { pattern: /\.travis\.yml\b/, reason: 'Nombre historico literal de herramienta retirada' },
   { pattern: /sigstore\/gitsign\/\.github\/workflows\/release\.yml/, reason: 'Claim criptografico upstream (Gitsign)' },
   {

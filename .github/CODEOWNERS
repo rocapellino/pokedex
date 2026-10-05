@@ -13,7 +13,6 @@ docs/security/ @rocapellino
 .gitleaks.toml @rocapellino
 renovate.json @rocapellino
 sonar-project.properties @rocapellino
-.mega-linter.yml @rocapellino
 
 # 2. Infraestructura, Helm Charts, Políticas Kubernetes (IaC / GitOps)
 infra/ @rocapellino

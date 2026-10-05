@@ -48,6 +48,9 @@ global:
     ansible: true
     documentation: true
     agent_governance: true
+    # Los linters de configuración (Actionlint/ShellCheck) deben correr cuando cambian
+    # los workflows, que son rutas globales: sin esto se omitían justo en ese caso.
+    linting: true
     security:
       secrets: true
       sast: true

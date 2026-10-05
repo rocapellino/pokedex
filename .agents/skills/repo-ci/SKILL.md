@@ -47,9 +47,9 @@ Auditar y gobernar la **topología integral de CI/CD** en GitHub Actions, asegur
   - `infra.yaml`: Validación granular de Helm, OpenTofu, Ansible, Checkov y prueba de integración canónica en Kind.
   - `security-gitleaks.yaml`: Detección obligatoria de secretos en git diff con paths-ignore documental.
   - `security-trivy.yaml`: Escaneo periódico y condicional de vulnerabilidades de contenedor y dependencias.
-  - `mega-linter.yaml`: Linter estático condicional (`ci_light`) para Dockerfiles, shell scripts y YAML.
+  - `config-linters.yaml`: linters de configuración condicionales: Actionlint (con ShellCheck embebido) sobre `.github/workflows` y ShellCheck sobre los `*.sh` versionados. Bloqueante a través del Quality Gate.
   - `security-dast-zap.yaml`, `performance-k6.yaml`, `dr-simulation.yaml`: Flujos programados y de eventos específicos.
-- **Extensión Canónica de Workflows:** todo workflow nuevo debe crearse en `.github/workflows/` con extensión **`.yaml`**. Está prohibido crear workflows con extensión `.yml`. La única excepción vigente es `.mega-linter.yml`, que es un archivo de configuración de la herramienta, no un workflow, y cuyo nombre impone MegaLinter vía `MEGALINTER_CONFIG`.
+- **Extensión Canónica de Workflows:** todo workflow nuevo debe crearse en `.github/workflows/` con extensión **`.yaml`**. Está prohibido crear workflows con extensión `.yml`. Hoy no hay excepciones vigentes de nombre de archivo de configuración.
 - **Filtrado Eficiente de Triggers:** Mantener filtros de `paths:` y `paths-ignore:` sincronizados con el contrato declarativo de impacto para evitar arranque innecesario de máquinas virtuales.
 
 ### 3. Seguridad y Hardening de CI

@@ -140,7 +140,7 @@ flowchart TD
     - **`ci-core` → `ci.yaml`**: Calidad, tipado, compilación esbuild, tests unitarios/pentest, npm audit, SonarQube Cloud con cobertura LCOV, Semgrep SAST, Dependency Review (solo en contexto de Pull Request), Trivy, Cosign y empaquetado seguro.
     - **`agent_governance` → `ci.yaml`**: valida la allowlist local, el manifest fijado de AAS y sus contratos sin materializar skills upstream ni activar builds de aplicación o infraestructura.
     - **`infra` → `infra.yaml`**: Helm lint/template, esquemas Kubeconform, Kube-linter, Kyverno CLI, OpenTofu, Ansible y Checkov IaC.
-    - **`web.yaml`**, **`mega-linter.yaml`** y **`security-code-scanning.yaml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yaml`.
+    - **`web.yaml`**, **`config-linters.yaml`** y **`security-code-scanning.yaml`**: workflows reutilizables cuya ejecución condicional decide exclusivamente `change-impact.yaml`.
   - **Required independent controls:** `security-gitleaks.yaml` detecta credenciales en **todos** los Pull Requests, incluidos los documentales. Como *Required Status Check*, no declara `paths` ni `paths-ignore` y permanece deliberadamente fuera del orquestador.
   - **Scheduled/manual controls:** `security-trivy.yaml` ejecuta análisis periódico o manual del filesystem y de imágenes base de infraestructura. El escaneo Trivy de imágenes de aplicación pertenece únicamente a `ci.yaml`, reutilizando la imagen construida por el pipeline.
 
@@ -185,7 +185,7 @@ La verificación es **opt-in** en la suite local (requiere `RULESET_LIVE_CHECK=1
 
 #### Quality Gate agregador (`🚦 Quality Gate`)
 
-El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `megalinter`, `security-code-scanning`) en un **único check**, registrado como required check del ruleset `main-protection`.
+El job `quality-gate` de `change-impact.yaml` consolida el resultado de los seis pipelines del orquestador (`detect-impact`, `ci-core`, `infra`, `frontend-web`, `config-linters`, `security-code-scanning`) en un **único check**, registrado como required check del ruleset `main-protection`.
 
 Existe por una razón concreta: el orquestador decide qué ejecutar según el radio de impacto, por lo que la mayoría de los jobs son **condicionales**. Si un job condicional se declara required y no se ejecuta, el Pull Request queda bloqueado esperando un check que nunca se emitió. El agregador resuelve ambos problemas:
 
@@ -199,7 +199,7 @@ Existe por una razón concreta: el orquestador decide qué ejecutar según el ra
 Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido omitida, y publica un artefacto `quality-gate-report` con la decisión tomada para poder auditarla.
 
 > [!IMPORTANT]
-> **Registrado en el ruleset.** `🚦 Quality Gate` forma parte de `required_status_checks` en `.github/rulesets/main-protection.json`, junto a `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` y `🛡️ Gitleaks Secret Detection`. Por lo tanto, un fallo en `Infra CI`, `Frontend Web CI`, `MegaLinter` o `Security Code Scanning` **sí impide el merge**: se ve en rojo a través del gate agregador.
+> **Registrado en el ruleset.** `🚦 Quality Gate` forma parte de `required_status_checks` en `.github/rulesets/main-protection.json`, junto a `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` y `🛡️ Gitleaks Secret Detection`. Por lo tanto, un fallo en `Infra CI`, `Frontend Web CI`, `Config Linters` o `Security Code Scanning` **sí impide el merge**: se ve en rojo a través del gate agregador.
 >
 > Los dos checks anteriores se conservan de forma deliberada. `🛡️ Gitleaks Secret Detection` se ejecuta como workflow **standalone**, no lo invoca `change-impact.yaml` y por tanto el gate no lo espera en su `needs`: si se eliminara del ruleset, la detección de secretos quedaría sin protección de merge. La duplicidad con `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` es inocua y permite auditar el job nativo de forma independiente.
 

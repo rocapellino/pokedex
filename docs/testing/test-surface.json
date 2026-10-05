@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T23:01:21.128Z",
+  "generatedAt": "2026-10-05T23:14:36.707Z",
   "summary": {
     "totalFiles": 77,
     "testFiles": 72,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 605,
-    "totalLines": 16919,
-    "totalSizeBytes": 736041,
+    "totalTestCases": 606,
+    "totalLines": 16924,
+    "totalSizeBytes": 736294,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 159,
+      "testCases": 160,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -243,12 +243,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 33,
+      "testCount": 34,
       "describeCount": 0,
-      "assertionCountEst": 249,
-      "sizeBytes": 35210,
-      "lineCount": 777,
-      "sha256": "5525fdc57dc7e9417d17066e4d3e75acc66b5e4aaafe77d9da35fd9c572dd633",
+      "assertionCountEst": 251,
+      "sizeBytes": 35724,
+      "lineCount": 789,
+      "sha256": "90ef5332018036df5b5f7875311a3293ce761d863e9910e90cf21343feafff1e",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -326,76 +326,80 @@
           "line": 343
         },
         {
-          "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
+          "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
           "line": 369
         },
         {
+          "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
+          "line": 381
+        },
+        {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 386
+          "line": 398
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 402
+          "line": 414
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 418
+          "line": 430
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 433
+          "line": 445
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 449
+          "line": 461
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 464
+          "line": 476
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 479
+          "line": 491
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 499
+          "line": 511
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 518
+          "line": 530
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 545
+          "line": 557
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 567
+          "line": 579
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 610
+          "line": 622
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 626
+          "line": 638
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 664
+          "line": 676
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 691
+          "line": 703
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 712
+          "line": 724
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 725
+          "line": 737
         }
       ]
     },
@@ -407,10 +411,10 @@
       "runner": "node:test (tsx)",
       "testCount": 17,
       "describeCount": 0,
-      "assertionCountEst": 68,
-      "sizeBytes": 20352,
-      "lineCount": 445,
-      "sha256": "0b65c08c3c0da3371e6316b2dd661d3633fcde96e64fdc24bf49a3ebad25bb1e",
+      "assertionCountEst": 69,
+      "sizeBytes": 20529,
+      "lineCount": 443,
+      "sha256": "36438909efb1b2fce55b2a5f0278af5cbeb715305150648bc5f731ee6cf9e802",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -441,56 +445,56 @@
           "line": 53
         },
         {
-          "name": "⚡ CI-002: MegaLinter no es un Quality Gate propio; el unico es el agregador",
+          "name": "⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea",
           "line": 66
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 99
+          "line": 97
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 140
+          "line": 138
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 185
+          "line": 183
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 196
+          "line": 194
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 206
+          "line": 204
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 277
+          "line": 275
         },
         {
           "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 288
+          "line": 286
         },
         {
           "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 314
+          "line": 312
         },
         {
           "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
-          "line": 342
+          "line": 340
         },
         {
           "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 358
+          "line": 356
         },
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 378
+          "line": 376
         },
         {
           "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
-          "line": 399
+          "line": 397
         }
       ]
     },
@@ -3255,10 +3259,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 42,
-      "sizeBytes": 10876,
-      "lineCount": 224,
-      "sha256": "dedadac564a2d8620549bf28623784e3815b3e01ad6a8fdd02bfded99b87dd9a",
+      "assertionCountEst": 40,
+      "sizeBytes": 10440,
+      "lineCount": 219,
+      "sha256": "05a10a5a142e0718d7d19eab2e9b41529ff7edafe3ae5183fa73c13057407185",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -3291,31 +3295,31 @@
         },
         {
           "name": "📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 90
+          "line": 89
         },
         {
           "name": "📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .yml obsoletas",
-          "line": 135
+          "line": 131
         },
         {
           "name": "📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones",
-          "line": 149
+          "line": 145
         },
         {
           "name": "🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore",
-          "line": 167
+          "line": 162
         },
         {
           "name": "🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no sobre-extensivo",
-          "line": 175
+          "line": 170
         },
         {
           "name": "🧹 Repository Hygiene: la regla /tmp/ ignora efectivamente archivos en tmp/ y no fuera de tmp/",
-          "line": 184
+          "line": 179
         },
         {
           "name": "🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe y rige AGENTS.md y skills",
-          "line": 203
+          "line": 198
         }
       ]
     },
@@ -3828,9 +3832,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 86,
-      "sizeBytes": 15566,
+      "sizeBytes": 15564,
       "lineCount": 298,
-      "sha256": "dc3d64122234ee13ec2aaf603647983d555530a4dcb14b59cf2c925c10474835",
+      "sha256": "ca37e76ad56be885aeb245c1060a5753345eeacdd5f68b8db2e62de9fe2119c5",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
