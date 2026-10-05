@@ -14,10 +14,10 @@ export function renderPokemonCard(p: Pokemon): string {
   if (p.evoluciones) {
     if (Array.isArray(p.evoluciones) && p.evoluciones.length > 0) {
       const myNode = p.evoluciones.find((x) => x.id === p.id);
-      if (myNode && myNode.etapa) {
+      if (myNode?.etapa) {
         stageBadge = `<span class="stage-badge">${escapeText(myNode.etapa)}</span>`;
       }
-    } else if ((p.evoluciones as any).arbol) {
+    } else if ((p.evoluciones as { arbol?: EvolutionNode }).arbol) {
       const findStageInTree = (n?: EvolutionNode): string | null => {
         if (!n) return null;
         if (n.id === p.id && n.etapa) return n.etapa;
@@ -27,7 +27,7 @@ export function renderPokemonCard(p: Pokemon): string {
         }
         return null;
       };
-      const stage = findStageInTree((p.evoluciones as any).arbol);
+      const stage = findStageInTree((p.evoluciones as { arbol?: EvolutionNode }).arbol);
       if (stage) {
         stageBadge = `<span class="stage-badge">${escapeText(stage)}</span>`;
       }

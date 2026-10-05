@@ -103,7 +103,7 @@ test('📚 DOC-011: todo documento de las categorias indexadas esta enlazado en 
 });
 
 test('📚 DOC-011: las categorias del portal coinciden con las carpetas reales de docs/', () => {
-  const portal = readPortal();
+  readPortal();
   const realDirs = fs
     .readdirSync(DOCS_DIR, { withFileTypes: true })
     .filter((e) => e.isDirectory())

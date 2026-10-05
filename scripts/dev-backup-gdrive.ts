@@ -64,8 +64,8 @@ try {
     console.info(`ℹ️ Inicie el entorno con: docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d postgres`);
     process.exit(1);
   }
-} catch (error: any) {
-  console.error(`❌ Error al consultar Docker Engine: ${error.message}`);
+} catch (error) {
+  console.error(`❌ Error al consultar Docker Engine: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 
@@ -100,8 +100,8 @@ try {
     `docker exec "${POSTGRES_CONTAINER}" pg_dump -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --clean --if-exists`,
     { maxBuffer: 100 * 1024 * 1024 }
   );
-} catch (error: any) {
-  console.error(`❌ Error al ejecutar pg_dump en el contenedor: ${error.message}`);
+} catch (error) {
+  console.error(`❌ Error al ejecutar pg_dump en el contenedor: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }
 
@@ -151,7 +151,7 @@ try {
     { stdio: 'inherit', cwd: ROOT_DIR }
   );
   console.log('\n🎉 [DR Dev] Respaldo y réplica off-site a Google Drive finalizados con éxito.');
-} catch (error: any) {
-  console.error(`\n❌ Error al sincronizar con Google Drive: ${error.message}`);
+} catch (error) {
+  console.error(`\n❌ Error al sincronizar con Google Drive: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }

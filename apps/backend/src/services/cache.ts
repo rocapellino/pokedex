@@ -3,6 +3,7 @@
 // ==============================================================================
 import { Redis } from 'ioredis';
 import { logger } from '../utils/logger.js';
+import { errorMessage } from '../utils/errors.js';
 
 const REDIS_URL = process.env.REDIS_URL || (
   process.env.REDIS_HOST
@@ -43,8 +44,8 @@ export async function connectRedis(): Promise<boolean> {
     await redisClient.ping();
     isRedisConnected = true;
     return true;
-  } catch (err: any) {
-    logger.warn(`[Cache: Redis] No disponible (${err.message}). Caching en memoria desactivado`);
+  } catch (err) {
+    logger.warn(`[Cache: Redis] No disponible (${errorMessage(err)}). Caching en memoria desactivado`);
     if (redisClient) {
       try { redisClient.disconnect(); } catch {}
       redisClient = null;

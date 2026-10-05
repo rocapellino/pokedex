@@ -8,7 +8,6 @@ import {
   renderSingleEvolutionNode,
   renderEvolutionSystem,
   renderDetailModalContent,
-  TYPE_WEAKNESSES,
 } from '../../apps/frontend/src/components/modal-detail.js';
 import { renderPokemonCard } from '../../apps/frontend/src/components/pokemon-card.js';
 import { renderTableRows, computeKPIs } from '../../apps/frontend/src/components/admin-table.js';

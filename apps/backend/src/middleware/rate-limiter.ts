@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import rateLimit from 'express-rate-limit';
 import { consumeDistributedRateLimit } from '../services/db.js';
 
@@ -61,7 +61,7 @@ export function createRateLimiter(
       // Fail-Closed: para endpoints de alto costo o consumo de cuotas externas (ej. IA Gemini),
       // si Redis está configurado pero temporalmente fuera de línea, denegar con 503
       // para prevenir agotamiento de cuota o evasión del límite distribuido entre pods.
-      if (options.failClosedOnRedisOutage && Boolean(process.env.REDIS_URL)) {
+      if (options.failClosedOnRedisOutage && process.env.REDIS_URL) {
         return res.status(503).json({
           detail: `Servicio temporalmente no disponible: el limitador de tasa distribuido para ${serviceName} requiere conectividad con Redis.`,
         });

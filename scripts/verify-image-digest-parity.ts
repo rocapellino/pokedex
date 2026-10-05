@@ -187,7 +187,7 @@ export function extractRenderedImage(
 
     if (deployment) {
       const container = containersOf(deployment).find((c) => c.name === spec.container);
-      if (container && container.image) {
+      if (container?.image) {
         const imageResult = container.image.trim();
         apiImageRenderCache.set(cacheKey, { valuesMtime, chartMtime, image: imageResult });
         return imageResult;

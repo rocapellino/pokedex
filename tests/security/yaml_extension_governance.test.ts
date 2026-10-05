@@ -15,7 +15,7 @@ test('📐 Extension Governance: check-yaml-extension.ts existe y está registra
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf-8'));
   assert.ok(pkgJson.scripts['lint:yaml'], 'package.json debe registrar el script lint:yaml');
   assert.ok(pkgJson.scripts['lint:yaml:strict'], 'package.json debe registrar el script lint:yaml:strict');
-  assert.match(pkgJson.scripts['validate'], /lint:yaml/, 'El script validate debe incluir lint:yaml');
+  assert.match(pkgJson.scripts.validate, /lint:yaml/, 'El script validate debe incluir lint:yaml');
 });
 
 test('📐 Extension Governance: el gate pasa en modo normal y estricto sin violaciones', () => {

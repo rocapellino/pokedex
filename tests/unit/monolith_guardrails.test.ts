@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import {
   isPrivateOrRestrictedIp,
   validateImageUrl,
-  SCRIPT_PATTERN,
 } from '../../apps/backend/src/validation/network-security.js';
 
 const __filename = fileURLToPath(import.meta.url);

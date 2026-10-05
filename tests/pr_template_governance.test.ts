@@ -5,7 +5,6 @@ import path from 'node:path';
 import {
   discoverPrTemplate,
   extractHeadings,
-  normalizeHeading,
   validatePrBody,
 } from '../scripts/validate-pr-body.js';
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import crypto from 'node:crypto';
 import { traceStorage } from '../utils/logger.js';
 
@@ -30,7 +30,7 @@ const W3C_TRACEPARENT_REGEX = /^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/
  * 4. Encapsula la ejecución en AsyncLocalStorage para correlacionar logs JSON estructurados con Loki/Tempo.
  */
 export function requestTracer(req: Request, res: Response, next: NextFunction): void {
-  const rawTraceparent = req.headers['traceparent'];
+  const rawTraceparent = req.headers.traceparent;
   let traceId = '';
   let traceFlags = '01';
 

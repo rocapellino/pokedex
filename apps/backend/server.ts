@@ -1,7 +1,7 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import {
   initStorage,
   getStorageHealth,
@@ -9,12 +9,12 @@ import {
 } from './src/services/db.js';
 import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
 import { logger } from './src/utils/logger.js';
+import { errorMessage } from './src/utils/errors.js';
 import { requestTracer } from './src/middleware/request-tracer.js';
 import { metricsCollector } from './src/middleware/metrics.js';
 import {
   globalRateLimiter,
   globalRateLimiterStandard,
-  authRateLimiter,
   createRateLimiter,
   type RateLimiterOptions,
 } from './src/middleware/rate-limiter.js';
@@ -192,8 +192,8 @@ app.get('/{*splat}', globalRateLimiter, (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Middleware Global de Manejo de Errores (Express Error Boundary)
 // ---------------------------------------------------------------------------
-app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-  const traceId = (req as any).traceId || (req.headers['x-request-id'] as string) || undefined;
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  const traceId = req.traceId || (req.headers['x-request-id'] as string) || undefined;
   if (err instanceof CorsOriginRejectedError) {
     logger.warn('Petición rechazada por la política CORS', { origin: req.headers.origin, path: req.path, traceId });
     if (res.headersSent) {
@@ -206,8 +206,8 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     });
   }
   logger.error('Error no controlado en el servidor Express', {
-    error: err?.message || String(err),
-    stack: err?.stack,
+    error: errorMessage(err),
+    stack: err instanceof Error ? err.stack : undefined,
     traceId,
   });
   if (res.headersSent) {
@@ -259,8 +259,8 @@ export function setupGracefulShutdown(
       // 4. Cerrar pools de persistencia (PostgreSQL) y caché (Redis)
       try {
         await closeStorage();
-      } catch (closeErr: any) {
-        logger.error('[Lifecycle: Graceful Shutdown] Error al cerrar capas de almacenamiento', { error: closeErr?.message });
+      } catch (closeErr) {
+        logger.error('[Lifecycle: Graceful Shutdown] Error al cerrar capas de almacenamiento', { error: errorMessage(closeErr) });
       }
 
       clearTimeout(forceExitTimer);

@@ -118,7 +118,9 @@ function canonical(value: unknown): string {
  * Proyecta un ruleset (declarativo o live) al subconjunto que constituye el
  * contrato de control, descartando metadatos de solo lectura.
  */
+// biome-ignore lint/suspicious/noExplicitAny: respuesta JSON dinámica de la API de GitHub sin esquema
 export function normalizeRuleset(raw: Record<string, any>): NormalizedRuleset {
+  // biome-ignore lint/suspicious/noExplicitAny: respuesta JSON dinámica de la API de GitHub sin esquema
   const rules = (raw.rules ?? []) as Record<string, any>[];
   const pullRule = rules.find((r) => r.type === 'pull_request') ?? null;
   const statusRule = rules.find((r) => r.type === 'required_status_checks') ?? null;
@@ -140,6 +142,7 @@ export function normalizeRuleset(raw: Record<string, any>): NormalizedRuleset {
     // Se ordena por clave canonica (y no por el orden del array) porque el
     // orden de `bypass_actors` no esta garantizado entre la API y el archivo.
     bypassActors: sorted(
+      // biome-ignore lint/suspicious/noExplicitAny: respuesta JSON dinámica de la API de GitHub sin esquema
       ((raw.bypass_actors ?? []) as Record<string, any>[]).map((a) => ({
         actor_type: a.actor_type,
         actor_id: a.actor_id ?? null,
@@ -200,9 +203,11 @@ function ghApiJson<T>(endpoint: string): T {
 
 /** Localiza el ruleset por NOMBRE (no por id fijo) para sobrevivir a recreaciones. */
 export function fetchLiveRuleset(repo: string): NormalizedRuleset {
+  // biome-ignore lint/suspicious/noExplicitAny: respuesta JSON dinámica de la API de GitHub sin esquema
   const all = ghApiJson<Record<string, any>[]>(`repos/${repo}/rulesets?per_page=100`);
   const found = all.find((r) => r.name === RULESET_NAME);
   if (!found) throw new Error(`No existe un ruleset llamado "${RULESET_NAME}" en ${repo}`);
+  // biome-ignore lint/suspicious/noExplicitAny: respuesta JSON dinámica de la API de GitHub sin esquema
   return normalizeRuleset(ghApiJson<Record<string, any>>(`repos/${repo}/rulesets/${found.id}`));
 }
 

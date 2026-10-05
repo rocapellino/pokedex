@@ -406,7 +406,7 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
 
   // 8. README.md y docs/README.md enlazan ADR-003 y docs/decisions/README.md registra ADR-021
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
-  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  fs.readFileSync(readmePath, 'utf-8');
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-003-gitops-with-argocd.md'), 'docs/README.md debe enlazar ADR-003');
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
@@ -471,7 +471,7 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
   assert.ok(secretRunbookContent.includes('task secrets:audit-rotation'), 'secret-rotation.md debe documentar task secrets:audit-rotation');
 
   // 7. README.md y docs/README.md enlazan ADR-005 y catálogo registra ADR-022
-  const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+  fs.readFileSync(readmePath, 'utf-8');
   const docsReadmeContent = fs.readFileSync(docsReadmePath, 'utf-8');
   const decisionsReadmeContent = fs.readFileSync(decisionsReadmePath, 'utf-8');
   assert.ok(docsReadmeContent.includes('ADR-005-secret-management.md'), 'docs/README.md debe enlazar ADR-005');

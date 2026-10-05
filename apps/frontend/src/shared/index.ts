@@ -6,4 +6,5 @@ export * from './constants.js';
 export * from './formatters.js';
 export * from './ui.js';
 export * from './api.js';
+export * from './errors.js';
 export * from './pokemon-types.js';
