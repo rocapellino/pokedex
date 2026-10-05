@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **73** |
-| **Archivos de Test Automatizados** | 68 |
+| **Total de Archivos en `tests/`** | **74** |
+| **Archivos de Test Automatizados** | 69 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 4 |
-| **Total de Casos de Prueba Identificados** | **591** |
-| **Líneas de Código de Pruebas** | 15.742 |
-| **Tamaño Total de la Suite** | 706.5 KB |
+| **Total de Casos de Prueba Identificados** | **594** |
+| **Líneas de Código de Pruebas** | 15.771 |
+| **Tamaño Total de la Suite** | 707.9 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-05T17:50:30.806Z |
+| **Última Sincronización** | 2026-10-05T18:19:19.414Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 11 | 75 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 12 | 78 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 25 | 212 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
@@ -112,6 +112,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: compose_postgres_tls.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **5** | 76 | Suite de pruebas unit: migrate_baseline.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 210 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **6** | 271 | Suite de pruebas unit: pokemon_mapper.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -128,7 +129,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 75
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 78
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -138,6 +139,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | *(General)* |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | **1** | 41 | Suite de pruebas unit: compose_postgres_tls.test.ts. | *(General)* |
+| [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | **5** | 76 | Suite de pruebas unit: migrate_baseline.test.ts. | *(General)* |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 210 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | **6** | 271 | Suite de pruebas unit: pokemon_mapper.test.ts. | *(General)* |

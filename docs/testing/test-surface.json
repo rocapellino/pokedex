@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T17:50:30.806Z",
+  "generatedAt": "2026-10-05T18:19:19.414Z",
   "summary": {
-    "totalFiles": 73,
-    "testFiles": 68,
+    "totalFiles": 74,
+    "testFiles": 69,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 591,
-    "totalLines": 15742,
-    "totalSizeBytes": 723409,
+    "totalTestCases": 594,
+    "totalLines": 15771,
+    "totalSizeBytes": 724891,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 11,
-      "testCases": 75,
+      "files": 12,
+      "testCases": 78,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -4191,6 +4191,46 @@
         {
           "name": "🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece",
           "line": 25
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/error_helpers.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 1482,
+      "lineCount": 29,
+      "sha256": "80e700e503fb4f6194b8028ae92e11e28e7c4b2076f5f662d836c0c5dade72b2",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: error_helpers.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "errorMessage (backend): usa el mensaje de un Error y convierte otros valores a texto",
+          "line": 6
+        },
+        {
+          "name": "errorMessage (frontend): usa el mensaje de un Error y convierte otros valores a texto",
+          "line": 14
+        },
+        {
+          "name": "errorStatus: devuelve el código HTTP solo si el error lo expone como número",
+          "line": 20
         }
       ]
     },
