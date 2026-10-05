@@ -211,6 +211,7 @@ test('🗂️ INFRA-011: la cabecera declara que es la base del blueprint inacti
     path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml'),
     'utf-8'
   );
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: se eliminan caracteres no ASCII a proposito
   const prodValues = raw.replace(/\r\n/g, '\n').replace(/[^\x00-\x7F]/g, '');
 
   assert.match(prodValues, /BLUEPRINT PROD CLOUD/, 'INFRA-011: values.prod.yaml debe rotularse como base del blueprint prod cloud');

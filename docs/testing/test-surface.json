@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T17:15:53.959Z",
+  "generatedAt": "2026-10-05T17:23:09.644Z",
   "summary": {
     "totalFiles": 73,
     "testFiles": 68,
     "helperFiles": 4,
     "performanceScripts": 1,
     "totalTestCases": 591,
-    "totalLines": 15750,
-    "totalSizeBytes": 723793,
+    "totalLines": 15754,
+    "totalSizeBytes": 724023,
     "suitesCount": 10
   },
   "suites": [
@@ -2167,9 +2167,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 98,
-      "sizeBytes": 17611,
-      "lineCount": 448,
-      "sha256": "e596028804258dd9ef0818db9f0bd7419a4a13ac477c34a131037183338f73f7",
+      "sizeBytes": 17720,
+      "lineCount": 449,
+      "sha256": "9961944ac75df4d23af9d7c9e8a581a5d7da3d29782fabca1a9f26af1479eb0f",
       "targetDomain": "Seguridad Integral de Aplicación y Headers",
       "targetArtifacts": [
         "apps/backend/server.ts",
@@ -2273,31 +2273,31 @@
         },
         {
           "name": "🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados",
-          "line": 318
+          "line": 319
         },
         {
           "name": "🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SECRET y no acepta ADMIN_API_KEY como fallback",
-          "line": 338
+          "line": 339
         },
         {
           "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
-          "line": 358
+          "line": 359
         },
         {
           "name": "🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test",
-          "line": 368
+          "line": 369
         },
         {
           "name": "🔐 Auth Session: revokeSessionToken revoca el token por jti y verifySessionToken lo rechaza inmediatamente",
-          "line": 392
+          "line": 393
         },
         {
           "name": "🔐 Auth Session: revokeSessionToken con token de corta duración expira y se autolimpia",
-          "line": 401
+          "line": 402
         },
         {
           "name": "🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones",
-          "line": 415
+          "line": 416
         }
       ]
     },
@@ -3081,9 +3081,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 18746,
-      "lineCount": 432,
-      "sha256": "4c37e87a2d93d2265c851da1c06467779ba1175cde576dda8d962b06da4bd0a4",
+      "sizeBytes": 18761,
+      "lineCount": 434,
+      "sha256": "165b0442d640b0820a3e4a0c4c456251f3037ef9edec2efa55296b5b52dedbd5",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -3122,23 +3122,23 @@
         },
         {
           "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
-          "line": 373
+          "line": 375
         },
         {
           "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
-          "line": 387
+          "line": 389
         },
         {
           "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
-          "line": 394
+          "line": 396
         },
         {
           "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
-          "line": 412
+          "line": 414
         },
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
-          "line": 421
+          "line": 423
         }
       ]
     },
@@ -3419,9 +3419,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 20559,
-      "lineCount": 384,
-      "sha256": "49c016b63b3a4cf44fd3d855ada76545ce5db730db2233ce70a0d15a71c19059",
+      "sizeBytes": 20665,
+      "lineCount": 385,
+      "sha256": "5512c16fa2c3478a6ccd2a933d08e1738b2f5f771d5297b8d55de17f2269c879",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -3481,19 +3481,19 @@
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 221
+          "line": 222
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 234
+          "line": 235
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 291
+          "line": 292
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 327
+          "line": 328
         }
       ]
     },

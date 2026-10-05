@@ -284,6 +284,7 @@ test('🔐 Auth Session: verifyTokenSignature rechaza límites y tipos anómalos
   assert.equal(await verifySessionToken(tokenInf), false);
 
   // 2. exp descomunal (> año 2100)
+  // biome-ignore lint/correctness/noPrecisionLoss: valor extremo intencional para probar exp fuera de rango
   const tokenOverYear2100 = sign({ role: 'admin', exp: 999999999999999999, jti: '0123456789abcdef0123456789abcdef' });
   assert.equal(verifyTokenSignature(tokenOverYear2100).valid, false);
   assert.equal(await verifySessionToken(tokenOverYear2100), false);

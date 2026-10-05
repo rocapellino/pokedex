@@ -310,7 +310,9 @@ function emittedMetricNames(): Set<string> {
   const names = new Set<string>(['up']);
   for (const [, name, type] of source.matchAll(/# TYPE ([a-z_:][a-z0-9_:]*) (\w+)/g)) {
     names.add(name);
-    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => names.add(name + s));
+    if (type === 'histogram') ['_bucket', '_sum', '_count'].forEach((s) => {
+      names.add(name + s);
+    });
   }
   return names;
 }

@@ -91,6 +91,7 @@ export function normalizeHeading(text: string): string {
 
   return str
     // Quitar emojis comunes y símbolos de presentación
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: rangos emoji intencionales con selectores de variacion
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}]/gu, '')
     // Conservar caracteres alfanuméricos Unicode, barras, ampersand, guiones y espacios
     .replace(/[^\p{L}\p{N}\s/&_-]/gu, '')

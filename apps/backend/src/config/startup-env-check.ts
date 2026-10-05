@@ -123,7 +123,9 @@ export function checkRequiredEnvVars(options: { throwOnError?: boolean; logWarni
 
   if (logWarnings && result.warnings.length > 0) {
     console.warn('\n[Startup Diagnostics] Advertencias de configuración de entorno:');
-    result.warnings.forEach((w) => console.warn(`  ⚠ ${w}`));
+    result.warnings.forEach((w) => {
+      console.warn(`  ⚠ ${w}`);
+    });
     console.warn('');
   }
 
