@@ -162,7 +162,7 @@ test('🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POST
     // 3. DATABASE_URL directa tambien es valida.
     delete process.env.POSTGRES_HOST;
     delete process.env.POSTGRES_USER;
-    process.env.DATABASE_URL = 'postgresql://pokedex:secret@pg:5432/pokedex';
+    process.env.DATABASE_URL = 'postgresql://pg:5432/pokedex';
     assert.equal(
       inspectEnvironment().valid,
       true,
@@ -321,7 +321,7 @@ test('🛡️ Startup Env Check: pasa exitosamente en producción si variables c
     process.env.ADMIN_API_KEY = 'pokedex-super-admin-entropy-key-change-me'; // gitleaks:allow
     process.env.ADMIN_SESSION_SECRET = 'pokedex-internal-hmac-session-secret-entropy'; // gitleaks:allow
     process.env.CORS_ORIGINS = 'https://pokedex.local';
-    process.env.DATABASE_URL = 'postgresql://pokedex:pokedex@127.0.0.1:5432/pokedex';
+    process.env.DATABASE_URL = 'postgresql://127.0.0.1:5432/pokedex';
 
     const result = inspectEnvironment();
     assert.equal(result.valid, true);
