@@ -6,3 +6,12 @@
 # produciendo `syntax error near unexpected token '('` (REL-002).
 .github/workflows/*.yaml text eol=lf
 .github/workflows/*.yml text eol=lf
+
+# Normalización de finales de línea: el repositorio almacena siempre LF.
+# Evita diffs de ruido y mezclas CRLF/LF en Windows y es prerrequisito del formateador.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.jpg binary
+*.webp binary
+*.woff2 binary
