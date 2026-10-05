@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T12:14:10.232Z",
+  "generatedAt": "2026-10-05T12:36:40.229Z",
   "summary": {
     "totalFiles": 72,
     "testFiles": 67,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 577,
-    "totalLines": 15387,
-    "totalSizeBytes": 705162,
+    "totalTestCases": 578,
+    "totalLines": 15399,
+    "totalSizeBytes": 706084,
     "suitesCount": 10
   },
   "suites": [
@@ -49,7 +49,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
       "files": 6,
-      "testCases": 40,
+      "testCases": 41,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -1331,12 +1331,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 11,
+      "testCount": 12,
       "describeCount": 0,
-      "assertionCountEst": 38,
-      "sizeBytes": 11966,
-      "lineCount": 196,
-      "sha256": "acd9b229aa71b98042921efb7500dbc6345aa045c28e035a634c098fbea3eb43",
+      "assertionCountEst": 42,
+      "sizeBytes": 12888,
+      "lineCount": 208,
+      "sha256": "993d837c7c793f686e2e24e1e6fc49a9e3bb62eb5f209256213500334177fa24",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1356,44 +1356,48 @@
           "line": 35
         },
         {
-          "name": "🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas",
+          "name": "🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas y verificación criptográfica",
           "line": 43
         },
         {
+          "name": "🔐 Bootstrap & Tooling: Taskfile fija imagen de Helm con digest sha256 inmutable",
+          "line": 59
+        },
+        {
           "name": "🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview",
-          "line": 55
+          "line": 67
         },
         {
           "name": "🔐 Bootstrap: Vault configura el auth kubernetes contra el API server de pre-prod",
-          "line": 69
+          "line": 81
         },
         {
           "name": "🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps",
-          "line": 78
+          "line": 90
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea",
-          "line": 105
+          "line": 117
         },
         {
           "name": "🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)",
-          "line": 124
+          "line": 136
         },
         {
           "name": "🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates",
-          "line": 132
-        },
-        {
-          "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
           "line": 144
         },
         {
+          "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
+          "line": 156
+        },
+        {
           "name": "🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación",
-          "line": 150
+          "line": 162
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail",
-          "line": 169
+          "line": 181
         }
       ]
     },

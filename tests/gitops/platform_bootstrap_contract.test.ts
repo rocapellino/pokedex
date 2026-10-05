@@ -40,17 +40,29 @@ test('🔐 Bootstrap: los manifiestos de ESO usan external-secrets.io/v1 (v1beta
   }
 });
 
-test('🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas', () => {
+test('🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas y verificación criptográfica', () => {
   const esoVersion = tasks['platform:eso:install']?.vars?.ESO_CHART_VERSION;
   assert.match(esoVersion ?? '', /^\d+\.\d+\.\d+$/, 'ESO_CHART_VERSION debe ser una versión semántica exacta');
   assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('--version {{.ESO_CHART_VERSION}}')), 'helm install de ESO debe usar la versión fijada');
 
   const argoVersion = tasks['platform:argocd:install']?.vars?.ARGOCD_VERSION;
   assert.match(argoVersion ?? '', /^v\d+\.\d+\.\d+$/, 'ARGOCD_VERSION debe ser un tag exacto');
+  const argoSha = tasks['platform:argocd:install']?.vars?.ARGOCD_MANIFEST_SHA256;
+  assert.match(argoSha ?? '', /^[a-f0-9]{64}$/, 'ARGOCD_MANIFEST_SHA256 debe ser un digest SHA256 criptográfico de 64 caracteres');
+
   const install = cmdsOf('platform:argocd:install').find((c) => c.includes('install.yaml')) ?? '';
   assert.ok(install.includes('/{{.ARGOCD_VERSION}}/manifests/install.yaml'), 'El manifiesto de ArgoCD debe resolverse por tag fijado');
   assert.doesNotMatch(install, /\/(stable|latest|master)\//, 'El manifiesto de ArgoCD no debe seguir una rama móvil');
+  assert.ok(cmdsOf('platform:argocd:install').some((c) => c.includes('{{.ARGOCD_MANIFEST_SHA256}}')), 'platform:argocd:install debe validar la integridad del manifiesto');
 });
+
+test('🔐 Bootstrap & Tooling: Taskfile fija imagen de Helm con digest sha256 inmutable', () => {
+  const k8sContent = read('taskfiles/k8s.yaml');
+  const infraContent = read('taskfiles/infra.yaml');
+  assert.match(k8sContent, /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/, 'k8s.yaml debe fijar HELM_IMAGE por digest sha256');
+  assert.match(infraContent, /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/, 'infra.yaml debe fijar HELM_IMAGE por digest sha256');
+});
+
 
 test('🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview', () => {
   assert.ok(cmdsOf('platform:eso:install').some((c) => c.includes('serviceAccount.name=external-secrets-sa')), 'ESO debe crear la SA external-secrets-sa');

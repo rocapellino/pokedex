@@ -4,6 +4,9 @@
 # ==============================================================================
 version: '3'
 
+vars:
+  HELM_IMAGE: "alpine/helm:3.17.0@sha256:93aaa4b514d91720861dd6c9af51359013b178963a47ab421b7fa648ccc7de80"
+
 tasks:
   # ----------------------------------------------------------------------------
   # Operaciones de Clúster y Cargas de Trabajo (Kubernetes)
@@ -27,7 +30,7 @@ tasks:
     desc: "[Dev/Bootstrap] Ejecuta el Job idempotente de siembra masiva de Pokémon en Kubernetes"
     cmds:
       - kubectl delete job pokedex-db-seed -n pokemon-app --ignore-not-found
-      - docker run --rm -v "${PWD}:/apps" alpine/helm:3.17.0 template pokedex /apps/infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
+      - docker run --rm -v "${PWD}:/apps" {{.HELM_IMAGE}} template pokedex /apps/infra/helm/pokedex -s templates/seed-job.yaml | kubectl apply -n pokemon-app -f -
       - kubectl wait --for=condition=complete --timeout=300s job/pokedex-db-seed -n pokemon-app
 
   k8s:test:
@@ -93,14 +96,19 @@ tasks:
       - kubectl apply -f infra/k8s/eso/cluster-secret-store.yaml
 
   platform:argocd:install:
-    desc: "Instala ArgoCD (manifiesto oficial fijado por versión) en el namespace argocd"
+    desc: "Instala ArgoCD (manifiesto oficial con validación criptográfica de integridad SHA256) en el namespace argocd"
     vars:
       ARGOCD_VERSION: "v3.5.3"
+      ARGOCD_MANIFEST_SHA256: "7efe2d6bbc03f63623640f1e4198f16c84009d510fb810ef71e56df1b7614ba9"
     cmds:
       - kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-      - kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/{{.ARGOCD_VERSION}}/manifests/install.yaml
+      - |
+        node -e "const https = require('https'), crypto = require('crypto'), fs = require('fs'), path = require('path'); const targetDir = path.resolve('tmp'); if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true }); const filePath = path.join(targetDir, 'argocd-install-{{.ARGOCD_VERSION}}.yaml'); const file = fs.createWriteStream(filePath); https.get('https://raw.githubusercontent.com/argoproj/argo-cd/{{.ARGOCD_VERSION}}/manifests/install.yaml', (res) => { if (res.statusCode !== 200) { console.error('Fallo HTTP al descargar ArgoCD install.yaml:', res.statusCode); process.exit(1); } const hash = crypto.createHash('sha256'); res.on('data', (d) => hash.update(d)); res.pipe(file); file.on('finish', () => { file.close(); const digest = hash.digest('hex'); if (digest !== '{{.ARGOCD_MANIFEST_SHA256}}') { console.error('Fallo de integridad SHA256:', digest, '!==', '{{.ARGOCD_MANIFEST_SHA256}}'); try { fs.unlinkSync(filePath); } catch {} process.exit(1); } console.log('Integridad criptográfica verificada (SHA256):', digest); }); }).on('error', (err) => { console.error(err); process.exit(1); });"
+      - kubectl apply -n argocd --server-side --force-conflicts -f tmp/argocd-install-{{.ARGOCD_VERSION}}.yaml
+      - node -e "try { require('fs').unlinkSync('tmp/argocd-install-{{.ARGOCD_VERSION}}.yaml'); } catch {}"
       - kubectl -n argocd rollout status deploy/argocd-repo-server --timeout=300s
       - kubectl -n argocd rollout status statefulset/argocd-application-controller --timeout=300s
+
 
   platform:bootstrap:preprod:
     desc: "Bootstrap completo de GitOps en pre-prod: ESO + ClusterSecretStore + ArgoCD + health checks + App-of-Apps (Uso: VAULT_CA=/ruta/vault-ca.crt)"
