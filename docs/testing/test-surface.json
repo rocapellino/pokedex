@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T22:46:57.474Z",
+  "generatedAt": "2026-10-05T22:54:59.513Z",
   "summary": {
-    "totalFiles": 76,
-    "testFiles": 71,
+    "totalFiles": 77,
+    "testFiles": 72,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 598,
-    "totalLines": 16838,
-    "totalSizeBytes": 732373,
+    "totalTestCases": 605,
+    "totalLines": 16914,
+    "totalSizeBytes": 735910,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 13,
-      "testCases": 79,
+      "files": 14,
+      "testCases": 86,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -3979,6 +3979,62 @@
         {
           "name": "🧭 Skills: ${dir}/SKILL.md tiene frontmatter YAML válido con name y description",
           "line": 23
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/admin_ip_allowlist.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 3537,
+      "lineCount": 76,
+      "sha256": "b15d6c3407f4b6cfdcd4f89966ab19b8d0e0aedd593d992c1d903bca87d38c34",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: admin_ip_allowlist.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Admin IP: coincidencia exacta de IPv4 e IPv6",
+          "line": 6
+        },
+        {
+          "name": "🛡️ Admin IP: rangos CIDR IPv4 e IPv6",
+          "line": 13
+        },
+        {
+          "name": "🛡️ Admin IP: el prefijo IPv4-mapeado se normaliza (sockets de pila dual)",
+          "line": 22
+        },
+        {
+          "name": "🛡️ Admin IP: el loopback siempre está permitido y una IP vacía o inválida nunca",
+          "line": 29
+        },
+        {
+          "name": "🛡️ Admin IP: las entradas inválidas se ignoran y nunca autorizan (fail-closed)",
+          "line": 36
+        },
+        {
+          "name": "🛡️ Admin IP: el middleware responde 403 fuera de la lista y deja pasar dentro de un CIDR",
+          "line": 67
+        },
+        {
+          "name": "🛡️ Admin IP: sin ADMIN_ALLOWED_IPS el panel no se restringe por IP",
+          "line": 72
         }
       ]
     },
