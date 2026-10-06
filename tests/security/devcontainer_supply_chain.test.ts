@@ -69,7 +69,11 @@ test('🛡️ DEVCONTAINER-003: toda feature tiene entrada en el lock y versione
     const locked = lock.features[feature];
     assert.ok(locked, `DEVCONTAINER-003: '${feature}' no está en devcontainer-lock.json`);
     assert.match(locked.resolved, /@sha256:[0-9a-f]{64}$/, `'${feature}' debe resolverse por digest en el lock`);
-    assert.equal(locked.integrity, `sha256:${locked.resolved.split('@sha256:')[1]}`, `'${feature}': integrity != digest`);
+    assert.equal(
+      locked.integrity,
+      `sha256:${locked.resolved.split('@sha256:')[1]}`,
+      `'${feature}': integrity != digest`,
+    );
     if (!LATEST_ALLOWED.has(feature)) {
       assert.notEqual(options.version, 'latest', `DEVCONTAINER-003: '${feature}' no debe usar version 'latest'`);
     }
@@ -91,5 +95,9 @@ test('🛡️ DEVCONTAINER-005: el workspace se monta en la misma ruta que en el
     /target=\$\{localWorkspaceFolder\}(,|$)/,
     'DEVCONTAINER-005: el destino del montaje debe ser ${localWorkspaceFolder}; con otra ruta, los bind mounts relativos de docker-compose.dev.yaml llegan vacíos',
   );
-  assert.equal(config.workspaceFolder, '${localWorkspaceFolder}', 'workspaceFolder debe coincidir con la ruta del host');
+  assert.equal(
+    config.workspaceFolder,
+    '${localWorkspaceFolder}',
+    'workspaceFolder debe coincidir con la ruta del host',
+  );
 });
