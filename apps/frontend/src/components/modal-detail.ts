@@ -93,7 +93,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
 
   return `
     <div class="pokedex-notched-header">
-      <h2 class="pokedex-notched-title">
+      <h2 class="pokedex-notched-title" tabindex="-1">
         ${escapeText(pokemon.nombre)} <span class="pokedex-notched-number">N.º ${escapeText(formattedId)}</span>
       </h2>
       <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
@@ -182,9 +182,13 @@ export function openDetailModal(id: number, catalog: Pokemon[]): void {
   const detailContent = document.getElementById('detailContent');
   if (!detailContent) return;
 
+  // Si ya estaba abierto (navegación desde un nodo de evolución) el contenido se reemplaza y el
+  // foco se pierde: se lleva al título de la nueva ficha para que el lector de pantalla lo anuncie.
+  const wasOpen = document.getElementById('detailModal')?.hasAttribute('open') ?? false;
   const rawHtml = renderDetailModalContent(p, catalog);
   detailContent.innerHTML = sanitizeHtml(rawHtml);
   openModal('detailModal');
+  if (wasOpen) detailContent.querySelector<HTMLElement>('.pokedex-notched-title')?.focus();
 }
 
 export function closeDetailModal(): void {

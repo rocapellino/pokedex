@@ -273,6 +273,17 @@ export function initInteractiveListeners(): void {
     });
   }
 
+  if (detailContent) {
+    detailContent.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const node = (e.target as HTMLElement | null)?.closest('.evolution-node-item[role="button"]');
+      if (!node) return;
+      e.preventDefault();
+      const evolId = Number(node.getAttribute('data-evol-id'));
+      if (evolId) openDetailModal(evolId);
+    });
+  }
+
   const btnPrev = document.getElementById('btnPrevPage');
   if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
   const btnNext = document.getElementById('btnNextPage');

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T22:26:18.649Z",
+  "generatedAt": "2026-10-06T22:47:43.624Z",
   "summary": {
-    "totalFiles": 90,
-    "testFiles": 84,
+    "totalFiles": 91,
+    "testFiles": 85,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 717,
-    "totalLines": 19040,
-    "totalSizeBytes": 831828,
+    "totalTestCases": 726,
+    "totalLines": 19183,
+    "totalSizeBytes": 838510,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 10,
-      "testCases": 88,
+      "files": 11,
+      "testCases": 95,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 2,
-      "testCases": 17,
+      "testCases": 19,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -718,12 +718,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 11,
+      "testCount": 13,
       "describeCount": 1,
-      "assertionCountEst": 47,
-      "sizeBytes": 10221,
-      "lineCount": 224,
-      "sha256": "ff0d167e5748da57cdaeaf371bcfb94ee658a4ddcaf786e79371f08a0bfede9f",
+      "assertionCountEst": 59,
+      "sizeBytes": 12249,
+      "lineCount": 273,
+      "sha256": "4ecae91a925e3f866f6843eeae9d522df3c30f1a181dcca001ca94c23958bafd",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -780,8 +780,16 @@
           "line": 189
         },
         {
-          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "name": "@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco",
           "line": 213
+        },
+        {
+          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
+          "line": 243
+        },
+        {
+          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "line": 262
         }
       ]
     },
@@ -1070,6 +1078,61 @@
         {
           "name": "🔤 CSP: style-src y font-src son solo 'self' en todas las fuentes de la política",
           "line": 61
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/keyboard_access.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 4654,
+      "lineCount": 94,
+      "sha256": "fa30a6cc351fac0abe7356ccac59cf358e2b641cc9463466c9ed86bfab643a76",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: keyboard_access.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "⌨️ Tarjeta: el nombre es un botón nativo dentro del encabezado, no el article",
+          "line": 30
+        },
+        {
+          "name": "⌨️ Tarjeta: la pista táctil es decorativa para no duplicar el nombre accesible",
+          "line": 43
+        },
+        {
+          "name": "⌨️ Tarjeta: el nombre del Pokémon se escapa dentro del botón",
+          "line": 48
+        },
+        {
+          "name": "⌨️ Nodo de evolución: es operable con teclado y el actual solo se marca con aria-current",
+          "line": 54
+        },
+        {
+          "name": "⌨️ Ficha: el título recibe el foco al cargar otra ficha (tabindex=\"-1\")",
+          "line": 69
+        },
+        {
+          "name": "⌨️ Sanitizador: conserva tabindex, aria-current y aria-hidden pero sigue eliminando manejadores y style",
+          "line": 74
+        },
+        {
+          "name": "⌨️ CSS: la tarjeta entera es clicable y el foco es visible",
+          "line": 88
         }
       ]
     },

@@ -112,8 +112,10 @@ El panel Backoffice proporciona control operativo completo para la gestión del 
 
 1. **Cumplimiento WCAG 2.1 AA:**
    - Relación de contraste mínima de 4.5:1 en todos los textos sobre fondos claros y oscuros.
-   - Navegación completa mediante teclado (`Tab`, `Shift+Tab`, `Enter`, `Escape` para modales).
-   - Atributos `aria-label`, `role="dialog"` y `aria-modal="true"` en ventanas emergentes.
+   - Navegación completa mediante teclado (`Tab`, `Shift+Tab`, `Enter`, `Espacio`, `Escape` para modales):
+     - **Tarjetas del catálogo:** el nombre es un `<button class="card-open">` dentro del `<h2>`, y su pseudo-elemento `::after` cubre toda la tarjeta, de modo que el `<article>` conserva su semántica y el clic sigue funcionando en cualquier punto. El foco visible es un contorno interior (`:has(.card-open:focus-visible)`) porque la tarjeta recorta con `overflow: hidden`.
+     - **Nodos de evolución:** `role="button"` y `tabindex="0"` con `Enter` y `Espacio`; el nodo actual se marca con `aria-current="true"` y no es navegable. Al abrir otra ficha con el modal ya abierto, el foco pasa al título de la nueva ficha.
+   - Los modales son `<dialog>` nativos abiertos con `showModal()`, que aportan `role="dialog"`, `aria-modal`, foco atrapado y retorno del foco; cada uno lleva `aria-labelledby`.
 2. **Prevención de Errores en Operaciones Destructivas:**
    - Diálogos de confirmación modales antes de eliminar cualquier registro en el Backoffice.
    - Notificaciones tipo *Toast* con temporizador de auto-cierre para confirmar operaciones exitosas o reportar errores.
