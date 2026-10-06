@@ -197,7 +197,7 @@
   </div>
 
   <!-- Modal Crear / Editar Pokémon -->
-  <div class="modal-overlay" id="crudModal">
+  <dialog class="modal-overlay" id="crudModal" aria-labelledby="crudModalTitle">
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="crudModalTitle">Nuevo Pokémon</h3>
@@ -279,13 +279,13 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Modal de Confirmación de Eliminación -->
-  <div class="modal-overlay" id="deleteModal">
+  <dialog class="modal-overlay" id="deleteModal" aria-labelledby="deleteModalTitle">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title text-danger">⚠️ Confirmar Eliminación</h3>
+        <h3 class="modal-title text-danger" id="deleteModalTitle">⚠️ Confirmar Eliminación</h3>
         <button class="btn-icon" data-close-delete="true" aria-label="Cerrar modal">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
@@ -299,10 +299,10 @@
         <button type="button" class="btn btn-danger" id="btnConfirmDelete">Sí, Eliminar</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Modal de Autenticación de Administrador -->
-  <div class="modal-overlay" id="authModal">
+  <dialog class="modal-overlay" id="authModal" aria-labelledby="authModalTitle">
     <div class="modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="authModalTitle">🔐 Autenticación de Administrador</h3>
@@ -327,7 +327,7 @@
         </div>
       </form>
     </div>
-  </div>
+  </dialog>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>

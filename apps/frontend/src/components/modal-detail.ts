@@ -5,7 +5,7 @@
 
 import { sanitizeHtml, escapeText } from '../sanitizer.js';
 import type { Pokemon, PokemonStats } from '../types.js';
-import { normalizeStr } from '../shared/index.js';
+import { normalizeStr, openModal, closeModal } from '../shared/index.js';
 import { BASE_STAT_DEFS, isValidStat, statTier, statWidthStep } from '../shared/base-stats.js';
 
 import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
@@ -184,9 +184,9 @@ export function openDetailModal(id: number, catalog: Pokemon[]): void {
 
   const rawHtml = renderDetailModalContent(p, catalog);
   detailContent.innerHTML = sanitizeHtml(rawHtml);
-  document.getElementById('detailModal')?.classList.add('active');
+  openModal('detailModal');
 }
 
 export function closeDetailModal(): void {
-  document.getElementById('detailModal')?.classList.remove('active');
+  closeModal('detailModal');
 }

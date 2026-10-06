@@ -277,10 +277,6 @@ export function initInteractiveListeners(): void {
   if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
   const btnNext = document.getElementById('btnNextPage');
   if (btnNext) btnNext.addEventListener('click', () => changePage(1));
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDetailModal();
-  });
 }
 
 // Inicialización

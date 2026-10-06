@@ -186,6 +186,30 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     expect(seriousViolations).toEqual([]);
   });
 
+  test('@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape', async ({ page }) => {
+    const card = page.locator('.pokemon-card[data-pokemon-id="25"]');
+    await card.click();
+
+    const dialog = page.locator('dialog#detailModal');
+    await expect(dialog).toHaveAttribute('open', '');
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveAccessibleName(/\S/);
+
+    // Tab nunca debe enfocar la página de fondo: queda inerte (el foco solo puede estar en el
+    // diálogo o, al salir del documento, en el body/UI del navegador).
+    for (let i = 0; i < 12; i++) {
+      await page.keyboard.press('Tab');
+      const escaped = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el !== document.body && !el?.closest('#detailModal');
+      });
+      expect(escaped).toBe(false);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveAttribute('open');
+  });
+
   test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
     await page.locator('.mega-toggle').click();
