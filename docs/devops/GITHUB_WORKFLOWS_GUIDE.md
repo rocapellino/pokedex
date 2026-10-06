@@ -37,7 +37,7 @@ Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`),
 - **Reusable Core CI ([`ci.yaml`](../../.github/workflows/ci.yaml)):** Invocado condicionalmente por el orquestador cuando se modifican backend, dependencias raíz, contratos de testing o rutas globales. Ejecuta tipado, tests, Semgrep SAST, escaneo Trivy y firmado Cosign en `main`.
 - **Reusable Frontend CI ([`web.yaml`](../../.github/workflows/web.yaml)):** Invocado condicionalmente cuando cambian `apps/frontend/**` o pruebas E2E.
 - **Reusable Infraestructura CI ([`infra.yaml`](../../.github/workflows/infra.yaml)):** Invocado condicionalmente cuando cambian `infra/**`, `gitops/**` o el `Taskfile.yaml`.
-- **Reusable Config Linters ([`config-linters.yaml`](../../.github/workflows/config-linters.yaml)):** Ejecuta Actionlint y ShellCheck sobre workflows y scripts en cambios globales o de linting.
+- **Reusable Config Linters ([`config-linters.yaml`](../../.github/workflows/config-linters.yaml)):** Ejecuta Actionlint, Zizmor y ShellCheck sobre workflows y scripts en cambios globales o de linting.
 - **Reusable Security Scanning ([`security-code-scanning.yaml`](../../.github/workflows/security-code-scanning.yaml)):** Ejecuta análisis avanzado CodeQL y Semgrep en cambios relevantes o programados.
 - **Secret Scanning Incondicional ([`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)):** Se ejecuta de forma independiente y paralela en **cada commit y PR** como Required Check no negociable del ruleset de GitHub, sin depender de la clasificación de impacto.
 - **Quality Gate Unificado:** El job final `quality-gate` en `change-impact.yaml` agrega el estado de todos los workflows invocados (`success` o `skipped` justificado), operando como único required status check orquestado y evitando bloqueos artificiales por jobs condicionales.
@@ -62,7 +62,7 @@ flowchart TD
         ROUTER -->|backend / global / tests| WF_CI["🚀 ci.yaml (Reusable Core)\n• TypeScript & Tests\n• Semgrep SAST\n• Docker & Trivy"]
         ROUTER -->|infra / gitops / taskfile| WF_INFRA["⚙️ infra.yaml (Reusable Infra)\n• Helm, Kubeconform & Kyverno\n• OpenTofu, Ansible & Checkov\n• Test KinD"]
         ROUTER -->|apps/frontend/**| WF_WEB["🌐 web.yaml (Reusable Web)\n• Vite Build & Lint\n• Playwright E2E & Axe-core\n• Lighthouse CI"]
-        ROUTER -->|global / linting| WF_MEGA["🧹 config-linters.yaml (Reusable)\n• Actionlint y ShellCheck"]
+        ROUTER -->|global / linting| WF_MEGA["🧹 config-linters.yaml (Reusable)\n• Actionlint, Zizmor y ShellCheck"]
         ROUTER -->|security / global| WF_SCAN["🔬 security-code-scanning.yaml\n• CodeQL SAST"]
         ROUTER -->|always: todo PR humano| JOB_PRGOV["📝 pr-governance (job)\n• npm run pr:validate --remote"]
 
@@ -144,7 +144,7 @@ flowchart TD
 
 - **Archivo:** [`config-linters.yaml`](../../.github/workflows/config-linters.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
-- **Pasos:** Actionlint (imagen fijada por digest, con ShellCheck embebido sobre los bloques `run:`) y ShellCheck sobre los `*.sh` versionados, ambos con severidad mínima `warning`. Sin `continue-on-error`: un fallo bloquea a través del Quality Gate.
+- **Pasos:** Actionlint (imagen fijada por digest, con ShellCheck embebido sobre los bloques `run:`) Zizmor (imagen fijada por digest, modo `--offline`, severidad mínima `medium`; las excepciones justificadas viven en [`zizmor.yaml`](../../.github/zizmor.yaml)) y ShellCheck sobre los `*.sh` versionados. Actionlint y ShellCheck usan severidad mínima `warning`. Sin `continue-on-error`: un fallo bloquea a través del Quality Gate.
 
 ### 3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)
 

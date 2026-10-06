@@ -508,3 +508,18 @@ test('📌 CI-005: cada action se usa con un único SHA pineado en todos los wor
   const drift = [...pins].filter(([, shas]) => shas.size > 1).map(([action]) => action);
   assert.deepEqual(drift, [], 'Actions con más de un SHA pineado (versiones divergentes)');
 });
+
+test('🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y sin continue-on-error', () => {
+  const linters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf8');
+  assert.match(
+    linters,
+    /ghcr\.io\/zizmorcore\/zizmor:[\w.-]+@sha256:[0-9a-f]{64}/,
+    'Zizmor debe fijarse por tag y digest',
+  );
+  assert.match(linters, /--min-severity=medium/, 'Zizmor debe bloquear desde severidad medium');
+  assert.doesNotMatch(linters, /continue-on-error:\s*true/, 'Zizmor no debe ignorar sus fallos');
+  assert.ok(
+    fs.existsSync(path.join(ROOT_DIR, '.github/zizmor.yaml')),
+    'Debe existir .github/zizmor.yaml con las excepciones justificadas',
+  );
+});
