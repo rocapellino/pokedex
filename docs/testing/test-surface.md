@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **87** |
-| **Archivos de Test Automatizados** | 81 |
+| **Total de Archivos en `tests/`** | **88** |
+| **Archivos de Test Automatizados** | 82 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **691** |
-| **Líneas de Código de Pruebas** | 18.439 |
-| **Tamaño Total de la Suite** | 784.3 KB |
+| **Total de Casos de Prueba Identificados** | **696** |
+| **Líneas de Código de Pruebas** | 18.543 |
+| **Tamaño Total de la Suite** | 788.5 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-06T18:14:32.347Z |
+| **Última Sincronización** | 2026-10-06T18:35:14.188Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 126 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 28 | 221 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 226 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 8 | 78 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 15 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -88,6 +88,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | `security` | Security / Ansible | `node:test (tsx)` | **12** | 424 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | `security` | Automated Test | `node:test (tsx)` | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | `security` | Automated Test | `node:test (tsx)` | **7** | 99 | Suite de pruebas security: csrf_origin.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/devcontainer_supply_chain.test.ts`](../../tests/security/devcontainer_supply_chain.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 104 | Suite de pruebas security: devcontainer_supply_chain.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | `security` | Automated Test | `node:test (tsx)` | **2** | 56 | Suite de pruebas security: docs_governance_gate.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | `security` | Contract / Docs | `node:test (tsx)` | **3** | 146 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | `security` | Security / Backup | `node:test (tsx)` | **11** | 462 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -181,7 +182,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 221
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 226
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -190,6 +191,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | **12** | 424 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `infra/ansible/` |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | *(General)* |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | **7** | 99 | Suite de pruebas security: csrf_origin.test.ts. | *(General)* |
+| [`tests/security/devcontainer_supply_chain.test.ts`](../../tests/security/devcontainer_supply_chain.test.ts) | **5** | 104 | Suite de pruebas security: devcontainer_supply_chain.test.ts. | *(General)* |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | **2** | 56 | Suite de pruebas security: docs_governance_gate.test.ts. | *(General)* |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | **3** | 146 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `docs/` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | **11** | 462 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts` |
