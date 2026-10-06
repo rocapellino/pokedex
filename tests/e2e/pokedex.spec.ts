@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+
+/**
+ * Axe calcula el contraste con los colores computados en ese instante: con una transición CSS en curso
+ * (hover del toggle o de la tarjeta, fondos semitransparentes) el resultado fluctúa y produce falsos
+ * positivos intermitentes (~2-3% de las ejecuciones). Se analiza el estado estable, esperando a que
+ * terminen las animaciones finitas; las infinitas (p. ej. el pulso del indicador de estado) se excluyen
+ * porque nunca terminan.
+ */
+async function waitForSettledAnimations(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime))
+        .map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  );
+}
 
 test.describe('Pokédex Web Application E2E Suite', () => {
   test.beforeEach(async ({ page }) => {
@@ -50,6 +69,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
   test('@a11y Auditoría de accesibilidad WCAG con Axe-core', async ({ page }) => {
     // Esperar que la interfaz esté completamente lista
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    await waitForSettledAnimations(page);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -155,6 +175,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
     await page.locator('.mega-toggle').click();
     await expect(page.locator('.mega-section')).toBeVisible();
+    await waitForSettledAnimations(page);
 
     const results = await new AxeBuilder({ page })
       .include('.mega-section')

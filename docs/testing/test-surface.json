@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T21:19:55.612Z",
+  "generatedAt": "2026-10-06T21:44:22.193Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 706,
-    "totalLines": 18815,
-    "totalSizeBytes": 822382,
+    "totalLines": 18836,
+    "totalSizeBytes": 823296,
     "suitesCount": 10
   },
   "suites": [
@@ -717,9 +717,9 @@
       "testCount": 10,
       "describeCount": 1,
       "assertionCountEst": 42,
-      "sizeBytes": 8310,
-      "lineCount": 179,
-      "sha256": "795191302be969759601d899bbb287c8b67447a7c28855f0a88d2e0b2fdc93e2",
+      "sizeBytes": 9224,
+      "lineCount": 200,
+      "sha256": "2f0291ac5bd2539882d0cd8686748fe828295dc5deae28caa0004894c54a7a37",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -737,43 +737,43 @@
       "testCases": [
         {
           "name": "La interfaz principal carga con branding y catálogo de Pokémon",
-          "line": 9
+          "line": 28
         },
         {
           "name": "El buscador en tiempo real filtra los Pokémon por nombre",
-          "line": 24
+          "line": 43
         },
         {
           "name": "El alternador de tema modifica data-theme en el documento",
-          "line": 40
+          "line": 59
         },
         {
           "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
-          "line": 50
+          "line": 69
         },
         {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
-          "line": 67
+          "line": 87
         },
         {
           "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
-          "line": 90
-        },
-        {
-          "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
           "line": 110
         },
         {
+          "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
+          "line": 130
+        },
+        {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 146
+          "line": 166
         },
         {
           "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
-          "line": 154
+          "line": 174
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 168
+          "line": 189
         }
       ]
     },
