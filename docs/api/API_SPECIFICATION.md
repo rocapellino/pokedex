@@ -170,7 +170,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 
 - **Ruta:** `GET /pokemons/:id`
 - **Parámetros de Ruta:** `:id` (Entero positivo, ej: `25`).
-- **Respuesta Exitosa (`200 OK`):** Objeto Pokémon completo.
+- **Respuesta Exitosa (`200 OK`):** Objeto Pokémon completo. Si la especie tiene megaevoluciones, incluye `megaevoluciones` (ver [sección 9](#9-esquema-de-datos-de-pokémon-typescript-interfaces)); es un campo de solo lectura.
 - **Respuesta de Error (`404 Not Found`):**
 
   ```json
@@ -229,6 +229,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 - **Rate Limit:** 30 solicitudes/minuto.
 - **Descripción:** Actualiza de forma parcial o total las propiedades de un Pokémon, persiste los cambios en PostgreSQL e invalida inmediatamente las claves de caché de Redis (`pokedex:list:*`).
 - **Respuesta Exitosa (`200 OK`):** Objeto Pokémon actualizado.
+- **Campo de solo lectura:** `megaevoluciones` proviene del catálogo y no se puede crear, editar ni borrar desde la API: se ignora en `POST` y se conserva sin cambios en `PUT`.
 
 ---
 
@@ -364,6 +365,23 @@ export interface PokemonCharacteristics {
   descripcion?: string;
 }
 
+/**
+ * Megaevolución: transformación de combate de la especie base. No tiene número de Pokédex
+ * Nacional propio ni `id`: cuelga de `Pokemon.megaevoluciones` y se identifica por `clave`.
+ * Solo lectura (se carga desde el catálogo). `habilidades` puede ir vacía si PokeAPI aún no
+ * publica las de una megaevolución reciente.
+ */
+export interface MegaEvolution {
+  clave: string;         // Slug estable, ej: "charizard-mega-x"
+  nombre: string;        // Ej: "Mega-Charizard X"
+  imagen: string;        // Arte oficial (HTTPS)
+  tipos: string[];       // 1 a 2 tipos
+  habilidades: string[]; // 0 a 3 habilidades
+  stats: PokemonStats;   // Las seis estadísticas base
+  peso: number;          // En kilogramos
+  altura: number;        // En metros
+}
+
 export interface Pokemon {
   id: number;
   nombre: string;
@@ -375,6 +393,7 @@ export interface Pokemon {
   caracteristicas?: PokemonCharacteristics;
   stats?: PokemonStats;
   evoluciones?: any;
+  megaevoluciones?: MegaEvolution[]; // Hasta 6, solo lectura
 }
 ```
 

@@ -137,5 +137,7 @@ export function applyPokemonUpdates(existing: Pokemon, body: Record<string, any>
         }
       : existing.stats,
     evoluciones: body.evoluciones !== undefined ? body.evoluciones : existing.evoluciones,
+    // Solo lectura: proviene del catálogo; el cliente no puede crearla, editarla ni borrarla.
+    ...(existing.megaevoluciones === undefined ? {} : { megaevoluciones: existing.megaevoluciones }),
   };
 }

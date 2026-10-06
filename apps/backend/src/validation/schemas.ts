@@ -305,6 +305,105 @@ export function validateEvolutionNodeZod(node: unknown, depth = 0): { valid: boo
 /**
  * Esquema Principal Zod para Pokémon
  */
+/**
+ * Megaevolución (solo lectura, cuelga del Pokémon base): lista blanca cerrada anti mass assignment.
+ * No admite `id`: las megaevoluciones no tienen número de Pokédex Nacional propio.
+ */
+export const ALLOWED_MEGA_KEYS = [
+  'clave',
+  'nombre',
+  'imagen',
+  'tipos',
+  'habilidades',
+  'stats',
+  'peso',
+  'altura',
+] as const;
+export const MAX_MEGAEVOLUCIONES = 6;
+// `habilidades` puede ir vacía: PokeAPI aún no publica las de algunas megaevoluciones recientes.
+const MEGA_CLAVE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function validateShortTextList(
+  value: unknown,
+  label: string,
+  minItems: number,
+  maxItems: number,
+  maxLength: number,
+): string | null {
+  if (!Array.isArray(value) || value.length < minItems || value.length > maxItems) {
+    return `${label} de la megaevolución debe ser una lista de ${minItems} a ${maxItems} elementos`;
+  }
+  for (const item of value) {
+    if (typeof item !== 'string' || !item.trim() || item.trim().length > maxLength || SCRIPT_PATTERN.test(item)) {
+      return `Cada elemento de ${label} de la megaevolución debe ser un texto de hasta ${maxLength} caracteres sin HTML`;
+    }
+  }
+  return null;
+}
+
+export function validateMegaEvolutionZod(mega: unknown): { valid: boolean; error?: string } {
+  if (!mega || typeof mega !== 'object' || Array.isArray(mega)) {
+    return { valid: false, error: 'Cada megaevolución debe ser un objeto' };
+  }
+  const m = mega as Record<string, unknown>;
+
+  for (const key of Object.keys(m)) {
+    if (!(ALLOWED_MEGA_KEYS as readonly string[]).includes(key)) {
+      return { valid: false, error: `La megaevolución contiene una clave no permitida: '${key}'` };
+    }
+  }
+
+  if (typeof m.clave !== 'string' || m.clave.length > 60 || !MEGA_CLAVE_PATTERN.test(m.clave)) {
+    return {
+      valid: false,
+      error: 'La clave de la megaevolución debe ser un slug de hasta 60 caracteres (a-z, 0-9 y guiones)',
+    };
+  }
+  if (
+    typeof m.nombre !== 'string' ||
+    !m.nombre.trim() ||
+    m.nombre.trim().length > 80 ||
+    SCRIPT_PATTERN.test(m.nombre)
+  ) {
+    return { valid: false, error: 'El nombre de la megaevolución es requerido, de hasta 80 caracteres y sin HTML' };
+  }
+  if (!validateImageUrl(m.imagen)) {
+    return { valid: false, error: 'La imagen de la megaevolución debe ser una URL https o ruta relativa segura' };
+  }
+
+  const tiposError = validateShortTextList(m.tipos, 'tipos', 1, 2, 30);
+  if (tiposError) return { valid: false, error: tiposError };
+  const habilidadesError = validateShortTextList(m.habilidades, 'habilidades', 0, 3, 50);
+  if (habilidadesError) return { valid: false, error: habilidadesError };
+
+  const stats = StatsSchema.safeParse(m.stats);
+  if (!stats.success) {
+    return { valid: false, error: stats.error.issues[0]?.message || 'Stats de la megaevolución inválidos' };
+  }
+  for (const key of ALLOWED_STATS_KEYS) {
+    if (!(key in (m.stats as Record<string, unknown>))) {
+      return { valid: false, error: `Falta el stat '${key}' en la megaevolución` };
+    }
+  }
+
+  const peso = strictFiniteNumber(
+    0,
+    10000,
+    'El peso de la megaevolución debe ser un número positivo menor o igual a 10.000 kg',
+  ).safeParse(m.peso);
+  if (!peso.success)
+    return { valid: false, error: peso.error.issues[0]?.message || 'Peso de la megaevolución inválido' };
+  const altura = strictFiniteNumber(
+    0,
+    200,
+    'La altura de la megaevolución debe ser un número positivo menor o igual a 200 m',
+  ).safeParse(m.altura);
+  if (!altura.success)
+    return { valid: false, error: altura.error.issues[0]?.message || 'Altura de la megaevolución inválida' };
+
+  return { valid: true };
+}
+
 export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefine((body, ctx) => {
   // 1. Nombre
   if (typeof body.nombre !== 'string' || !body.nombre.trim()) {
@@ -542,6 +641,35 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
         message: 'El campo evoluciones debe ser una lista o un objeto con árbol de evoluciones',
       });
       return;
+    }
+  }
+
+  // 11. Megaevoluciones (solo lectura; la API no las persiste desde el cliente)
+  if (body.megaevoluciones !== undefined && body.megaevoluciones !== null) {
+    if (!Array.isArray(body.megaevoluciones)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El campo megaevoluciones debe ser una lista' });
+      return;
+    }
+    if (body.megaevoluciones.length > MAX_MEGAEVOLUCIONES) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Un Pokémon no puede tener más de ${MAX_MEGAEVOLUCIONES} megaevoluciones`,
+      });
+      return;
+    }
+    const claves = new Set<string>();
+    for (const mega of body.megaevoluciones) {
+      const megaRes = validateMegaEvolutionZod(mega);
+      if (!megaRes.valid) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: megaRes.error });
+        return;
+      }
+      const clave = (mega as { clave: string }).clave;
+      if (claves.has(clave)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `La megaevolución '${clave}' está repetida` });
+        return;
+      }
+      claves.add(clave);
     }
   }
 });
