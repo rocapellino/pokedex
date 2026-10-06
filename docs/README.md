@@ -39,7 +39,6 @@ flowchart TD
     DEVOPS --> D1["🤖 GITHUB_WORKFLOWS_GUIDE.md"]
     DEVOPS --> D2["🌿 GIT_BRANCHING_AND_MERGE_WORKFLOW.md"]
     DEVOPS --> D3["🛠️ TOOLS_AND_TECH_STACK.md"]
-    DEVOPS --> D4["🧰 DEVCONTAINER.md"]
 
     BEST --> B1["🐳 MEJORES_PRACTICAS_DOCKERFILE.md"]
 
@@ -75,7 +74,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS,TEST section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,D4,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,T1 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,T1 doc;
 ```
 
 ---
@@ -113,7 +112,6 @@ flowchart TD
 - 🤖 [**GITHUB_WORKFLOWS_GUIDE.md**](./devops/GITHUB_WORKFLOWS_GUIDE.md): Guía completa de workflows de GitHub Actions con filtrado por rutas (`paths`), Quality Gates paralelos, firmado de imágenes con Cosign y sincronización bidireccional con Linear y alertas en Slack.
 - 🌿 [**GIT_BRANCHING_AND_MERGE_WORKFLOW.md**](./devops/GIT_BRANCHING_AND_MERGE_WORKFLOW.md): Estrategia de ramas GitHub Flow, estándares de Conventional Commits, apertura de Pull Requests, reglas de protección y resolución de conflictos.
 - 🛠️ [**TOOLS_AND_TECH_STACK.md**](./devops/TOOLS_AND_TECH_STACK.md): Catálogo exhaustivo de tecnologías utilizadas en el proyecto y diagrama de flujo del ecosistema de herramientas.
-- 🧰 [**DEVCONTAINER.md**](./devops/DEVCONTAINER.md): Guía del devcontainer: requisito de abrir el repositorio desde una ruta Linux (WSL2) por docker-outside-of-docker, componentes, puertos, gobernanza de supply chain y diagnóstico.
 
 ---
 
