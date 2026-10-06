@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T15:13:12.101Z",
+  "generatedAt": "2026-10-06T15:27:35.777Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 675,
-    "totalLines": 18088,
-    "totalSizeBytes": 786825,
+    "totalTestCases": 677,
+    "totalLines": 18126,
+    "totalSizeBytes": 788660,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 161,
+      "testCases": 163,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -409,12 +409,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 18,
+      "testCount": 20,
       "describeCount": 0,
-      "assertionCountEst": 71,
-      "sizeBytes": 21977,
-      "lineCount": 473,
-      "sha256": "e33f83bc23d2aa5dc7d8067be10353b5eafc713e427ac5231b787edb9c72b644",
+      "assertionCountEst": 73,
+      "sizeBytes": 23812,
+      "lineCount": 511,
+      "sha256": "4aa88ca5d2649a97053c26653c92cc49d8a978e81cf538f3060bee89f51c42cc",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -499,6 +499,14 @@
         {
           "name": "⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency",
           "line": 444
+        },
+        {
+          "name": "🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git",
+          "line": 474
+        },
+        {
+          "name": "📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows",
+          "line": 497
         }
       ]
     },

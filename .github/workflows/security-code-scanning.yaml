@@ -43,6 +43,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Ejecutar análisis estático njsscan
         uses: ajinabraham/njsscan-action@231750a435d85095d33be7d192d52ec650625146 # v9
@@ -68,6 +70,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Ejecutar Hadolint en Dockerfiles
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
@@ -96,6 +100,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Escaneo de Seguridad IaC con Trivy (Reglas tfsec/defsec)
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
