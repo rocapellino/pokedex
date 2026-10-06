@@ -38,3 +38,8 @@ export function calculateWeaknesses(types: string[]): string[] {
   });
   return Array.from(weakSet);
 }
+
+/** Indica si el Pokémon base tiene al menos una megaevolución registrada. */
+export function hasMegaEvolution(pokemon: { megaevoluciones?: unknown[] }): boolean {
+  return Array.isArray(pokemon.megaevoluciones) && pokemon.megaevoluciones.length > 0;
+}

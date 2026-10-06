@@ -122,7 +122,7 @@ En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-g
 | `scripts/check-yaml-extension.ts` | TypeScript | Detección y corrección de nomenclatura de extensiones YAML (.yaml canónico vs .yml obsoleto). | **Sí** (`npm run lint:yaml`, `npm run lint:docs:refs`). |
 | `scripts/check-ruleset-parity.ts` | TypeScript | Auditoría de paridad de reglas de calidad entre IDE, linter y SonarCloud. | **Sí** (`npm run lint:ruleset`). |
 | `scripts/aas-governance.ts` | TypeScript | Validación local y determinista de conformidad del stack Agentic Awesome Skills (AAS). | **Sí** (`npm run aas:governance`, `npm run aas:verify`). |
-| `scripts/generate-pokemon-catalog.ts` | TypeScript | Generador del catálogo nacional completo de Pokémon desde PokeAPI para auto-seed de base de datos. | **Sí** (`npm run catalog:generate`, `task dev:catalog:generate`). |
+| `scripts/generate-pokemon-catalog.ts` | TypeScript | Generador del catálogo nacional completo de Pokémon desde PokeAPI para auto-seed de base de datos. Incluye las megaevoluciones (`--enrich-megas` las añade al catálogo versionado sin regenerarlo y `--sync-sample-megas` actualiza la muestra de desarrollo). | **Sí** (`npm run catalog:generate`, `task dev:catalog:generate`). |
 | `scripts/github-security-linear-sync.ts` | TypeScript | Sincronización automática de alertas de seguridad de GitHub Dependabot/CodeQL hacia Linear. | **Sí** (Workflow programado de GitHub Actions). |
 | `scripts/sonar-linear-sync.ts` | TypeScript | Sincronización de issues de calidad y deuda técnica de SonarCloud hacia Linear. | **Sí** (Workflow de CI SonarQube). |
 

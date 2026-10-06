@@ -32,6 +32,23 @@ export interface EvolutionNode {
   evoluciones?: EvolutionNode[];
 }
 
+/**
+ * Megaevolución de un Pokémon. Es una transformación de combate de la especie base,
+ * no una entrada del catálogo: no tiene número de Pokédex Nacional propio y por eso
+ * cuelga de `Pokemon.megaevoluciones` sin `id`. `clave` es su identificador estable
+ * dentro de la especie (slug de PokeAPI, p. ej. `charizard-mega-x`).
+ */
+export interface MegaEvolution {
+  clave: string;
+  nombre: string;
+  imagen: string;
+  tipos: string[];
+  habilidades: string[];
+  stats: PokemonStats;
+  peso: number;
+  altura: number;
+}
+
 export interface Pokemon {
   id: number;
   nombre: string;
@@ -47,5 +64,7 @@ export interface Pokemon {
   altura?: number;
   edad?: number;
   evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode; es_ramificada?: boolean };
+  /** Solo lectura: se carga desde el catálogo y la API no permite editarla. */
+  megaevoluciones?: MegaEvolution[];
   [key: string]: unknown;
 }

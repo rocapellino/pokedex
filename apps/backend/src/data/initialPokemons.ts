@@ -1,6 +1,11 @@
-import type { Pokemon } from '../types.js';
+import type { MegaEvolution, Pokemon } from '../types.js';
+import sampleMegaevolucionesJson from './sample-megaevoluciones.json' with { type: 'json' };
 
-export const initialPokemons: Pokemon[] = [
+/** Megaevoluciones de la muestra: JSON generado desde el catálogo completo (`--sync-sample-megas`). */
+const sampleMegaevoluciones = sampleMegaevolucionesJson as unknown as Record<string, MegaEvolution[]>;
+
+/** Muestra curada SIN megaevoluciones; `initialPokemons` las adjunta desde el JSON generado. */
+export const sampleBasePokemons: Pokemon[] = [
   // --- GENERACIÓN 1 (Kanto) ---
   {
     id: 1,
@@ -1091,3 +1096,8 @@ export const initialPokemons: Pokemon[] = [
     stats: { hp: 100, attack: 85, defense: 100, sp_attack: 135, sp_defense: 115, speed: 135 },
   },
 ];
+
+export const initialPokemons: Pokemon[] = sampleBasePokemons.map((pokemon) => {
+  const megaevoluciones = sampleMegaevoluciones[String(pokemon.id)];
+  return megaevoluciones ? { ...pokemon, megaevoluciones } : pokemon;
+});
