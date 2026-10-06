@@ -29,7 +29,7 @@ Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gat
 `repo-pr` es un consumidor de evidencias, no una segunda suite de auditoría:
 
 - **Impacto de Cambios y CI DAG:** Consume de `repo-lifecycle` y `scripts/detect-change-impact.ts` la matriz de impacto y el estado de ejecución condicional (`## 🎯 CI Impact Analysis`), justificando explícitamente en el cuerpo del PR qué workflows son requeridos (`Required`) y cuáles fueron omitidos (`Skipped`) bajo el contrato declarativo de `.github/ci-impact.yaml`.
-- **Quality Gates, Diagnósticos de IDE y Pre-Commit:** Consume de `repo-quality` los resultados de `npm run lint`, `typecheck`, el estado de `pre-commit` evaluado dinámicamente (`EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE`) y la verificación obligatoria del **Zero Problems Gate** (ausencia de advertencias o errores en el panel *Problems* del IDE, SonarQube/SonarLint o linters sobre los archivos modificados).
+- **Quality Gates, Diagnósticos de IDE y Pre-Commit:** Consume de `repo-quality` los resultados de `npm run lint`, `typecheck`, el estado de `pre-commit` evaluado dinámicamente (`EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL`, `NOT_CONFIGURED`, `NOT_APPLICABLE`) y la verificación obligatoria del **Zero Problems Gate** (ausencia de advertencias o errores en el panel *Problems* del IDE, SonarQube/SonarLint o linters sobre los archivos modificados).
 - **Pruebas y Cobertura:** Consume de `repo-testing` los resultados de `npm test`, `test:coverage`, `test:fuzz` y Playwright E2E.
 - **Seguridad y SAST:** Consume de `repo-security` los escaneos de Semgrep, Gitleaks, Trivy y Dependency Review.
 - **Cierre Documental y Gobernanza:** Consume de `repo-docs` y `documentation-governance.md` la verificación de límites, presupuesto y deriva (0 hallazgos `CRITICAL` o `HIGH`), la ausencia de referencias huérfanas o componentes retirados y la ejecución del Markdown Quality Gate (`0 errores MDxxx`).
@@ -39,7 +39,7 @@ Actuar como el agregador canónico de evidencias, evaluador del PR Readiness Gat
 Antes de dar por preparado o aprobado un PR, valida los controles del Readiness Gate distinguiendo formalmente tres niveles:
 
 - **PR Preparation State (Estado de Preparación Local):**
-  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, compuertas pre y post de validación determinista superadas (`npm run pr:validate` con 0 infracciones), gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), sin bloqueos P0/P1 técnicos ni documentales.
+  - `READY_FOR_PR`: Diff higiénico, template completado con evidencia fáctica, compuertas pre y post de validación determinista superadas (`npm run pr:validate` con 0 infracciones), gates locales aprobados o declarados formalmente (`CI_REQUIRED` / `NOT_AVAILABLE_LOCAL` / `NOT_APPLICABLE`), sin bloqueos P0/P1 técnicos ni documentales.
   - `NOT_READY`: Faltan verificaciones locales aplicables, documentación incompleta, fallos locales o divergencia respecto al template físico.
   - `BLOCKED`: Impedimentos estructurales que impiden abrir o procesar el PR (divergencia de rama base, template ausente, fallo en validación contractual de plantilla, drift arquitectónico crítico).
 - **CI State (Estado de Integración Continua):**
