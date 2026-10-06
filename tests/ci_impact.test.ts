@@ -222,6 +222,49 @@ test('🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed', ()
 });
 
 /**
+ * CI-001 — `renovate.json` no estaba clasificado: el motor lo trataba como ruta desconocida
+ * y despachaba Full CI (fail-closed) en cada cambio de su configuración, aunque ninguno de
+ * esos gates lo valida. Este test fija el EFECTO: debe activar solo los gates que sí lo
+ * cubren y no arrastrar dominios de aplicación o infraestructura.
+ */
+test('🎯 CI-001: renovate.json está clasificado, activa SAST y documentación y no dispara fail-closed', () => {
+  const result = analyzeChangeImpact({ files: ['renovate.json'], configPath: CONFIG_PATH });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(
+    result.isUnknown,
+    false,
+    'CI-001: renovate.json debe estar clasificado; si no, el motor aplica fail-closed y despacha Full CI',
+  );
+  assert.equal(result.isGlobal, false, 'CI-001: renovate.json no debe clasificarse como global');
+
+  // Semgrep es el gate que valida la configuración de Renovate; la guía de CI la documenta.
+  assert.equal(result.triggers.security_sast, true, 'CI-001: renovate.json debe activar SAST (Semgrep)');
+  assert.equal(result.triggers.documentation, true, 'CI-001: renovate.json debe activar la coherencia documental');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets siempre debe estar activo');
+
+  const mustStayOff: Array<[keyof typeof result.triggers, string]> = [
+    ['backend', 'backend'],
+    ['frontend', 'frontend'],
+    ['docker', 'docker'],
+    ['kubernetes', 'kubernetes'],
+    ['helm', 'helm'],
+    ['opentofu', 'opentofu'],
+    ['ansible', 'ansible'],
+    ['security_container', 'security_container'],
+    ['security_iac', 'security_iac'],
+    ['security_supply_chain', 'security_supply_chain'],
+  ];
+  for (const [trigger, label] of mustStayOff) {
+    assert.equal(
+      result.triggers[trigger],
+      false,
+      `CI-001: renovate.json no debe activar '${label}'; no modifica codigo de aplicacion ni infraestructura`,
+    );
+  }
+});
+
+/**
  * CI-001 (documentacion) — la matriz de impacto debe identificar el perfil prod
  * cloud por su cadena real: `values.prod.yaml` como base endurecida y
  * `gitops/environments/cloud/values.yaml` como override del proveedor (ADR-030).
