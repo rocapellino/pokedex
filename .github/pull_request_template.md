@@ -12,11 +12,15 @@
 - [ ] `feat`: Nueva funcionalidad (genera release minor)
 - [ ] `fix`: Corrección de bug (genera release patch)
 - [ ] `refactor`: Refactorización o mejora de código sin alterar comportamiento
-- [ ] `infra`: Cambios en infraestructura (Helm, OpenTofu, Kubernetes, Proxmox)
-- [ ] `ci`/`cd`: Modificaciones en GitHub Actions, Config Linters, SonarCloud o Workflows
+- [ ] `perf`: Mejora de rendimiento sin cambiar el comportamiento funcional
+- [ ] `ci`: Modificaciones en GitHub Actions, Config Linters, SonarCloud o Workflows
 - [ ] `test`: Adición o actualización de pruebas unitarias, E2E o de integración
 - [ ] `chore`: Tareas de mantenimiento, dependencias o configuración
 - [ ] `docs`: Documentación técnica
+- [ ] `revert`: Reversión de un cambio previo
+
+> Los tipos son los que acepta `commitlint` (`commitlint.config.js`). Los cambios de infraestructura
+> (Helm, OpenTofu, Kubernetes, Proxmox) usan `feat`, `fix` o `chore` y se declaran en **Componentes Afectados**.
 
 ---
 
@@ -28,9 +32,11 @@
 ## 📦 Componentes Afectados
 
 - [ ] `apps/backend` (API Express & Node.js 22 LTS / Gemini AI SDK / PostgreSQL / Redis)
-- [ ] `apps/frontend` (SPA Vanilla HTML5/CSS3 / Nginx Alpine)
+- [ ] `apps/frontend` (MPA TypeScript + Vite: catálogo público y consola backoffice / Nginx Alpine)
 - [ ] `infra` (Helm Chart / OpenTofu Proxmox Pre-prod LXC 800 / Cloud Blueprint Inactivo / K8s K3s / Vault CE & ESO / ArgoCD)
 - [ ] `scripts` (Scripts de sincronización Linear/Sonar, auditoría o seeders)
+- [ ] `tests` (Suites unitarias, integración, seguridad, GitOps, E2E y rendimiento)
+- [ ] `.agents` (Skills, reglas y gobernanza de agentes)
 - [ ] `docs` / `.github` (Documentación técnica, Workflows CI/CD, Templates)
 
 ---
@@ -79,15 +85,15 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 
 *(Completar con [x] las pruebas ejecutadas o registrar "N/A: [motivo]" según la Change Impact Matrix)*
 
-- [ ] **Tests Unitarios y Cobertura:** `npm test` o `npm run test:coverage` (`task test`)
+- [ ] **Tests Unitarios y Cobertura:** `npm test` o `npm run test:coverage` (`task test`); fuzzing con `npm run test:fuzz`
 - [ ] **Verificación de Tipos y Linting:** `npm run lint` (`task lint`)
 - [ ] **Batería Integral de Validación:** `npm run validate` (`task validate`)
 - [ ] **Pruebas E2E (Playwright):** `npm run test:e2e` (`task test:e2e`)
 - [ ] **Accesibilidad WCAG 2.1 (Axe-core):** `npm run test:a11y` (`task test:a11y`)
 - [ ] **Auditoría Core Web Vitals (Lighthouse):** `task perf:lighthouse`
-- [ ] **Config Linters Local / CI:** Actionlint y ShellCheck sin errores (`task lint:config` o en CI)
+- [ ] **Config Linters Local / CI:** Actionlint, Zizmor y ShellCheck sin errores (`task lint:config` o en CI)
 - [ ] **SonarCloud Quality Gate:** Analizado y conforme a estándar A
-- [ ] **Seguridad & SAST:** Semgrep, Dependency Review, Trivy y Gitleaks (`npm run test:fuzz`)
+- [ ] **Seguridad & SAST:** Semgrep, Dependency Review, Trivy y Gitleaks (se ejecutan en CI)
 - [ ] **Paridad GitOps / Digest Pinning:** `npm run gitops:verify-parity:strict`
 
 ---

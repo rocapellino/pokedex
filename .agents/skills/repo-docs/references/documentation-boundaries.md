@@ -76,6 +76,7 @@ El archivo `SECURITY.md` es la **política pública de divulgación y reporte re
 - **Proceso de Respuesta:** Tiempos de acuse de recibo y fases de triage, parcheo y release.
 - **Política de Divulgación Coordinada:** Compromiso de divulgación responsable y no retaliación.
 - **Enlaces a Documentación Técnica de Seguridad:** Vínculos hacia `docs/security/` y `docs/architecture/`.
+- **Postura de Exposición (repositorio público):** Topología de referencia deliberadamente pública y qué información nunca se publica.
 
 ### Información Prohibida en `SECURITY.md`
 
