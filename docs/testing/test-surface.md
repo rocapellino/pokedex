@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 82 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **705** |
-| **Líneas de Código de Pruebas** | 18.792 |
-| **Tamaño Total de la Suite** | 801.7 KB |
+| **Total de Casos de Prueba Identificados** | **706** |
+| **Líneas de Código de Pruebas** | 18.811 |
+| **Tamaño Total de la Suite** | 802.9 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-06T20:07:50.047Z |
+| **Última Sincronización** | 2026-10-06T20:33:59.190Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 126 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 234 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 8 | 79 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 15 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -60,7 +60,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **21** | 249 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **21** | 248 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 218 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
@@ -108,7 +108,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/nginx_effective_headers.test.ts`](../../tests/security/nginx_effective_headers.test.ts) | `security` | Automated Test | `node:test (tsx)` | **3** | 142 | Suite de pruebas security: nginx_effective_headers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/opentofu_baseline_security.test.ts`](../../tests/security/opentofu_baseline_security.test.ts) | `security` | Security / OpenTofu | `node:test (tsx)` | **9** | 345 | Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | `security` | Security / DR Benchmarks | `node:test (tsx)` | **9** | 137 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **1** | 70 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -182,7 +182,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 234
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 235
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -211,7 +211,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/nginx_effective_headers.test.ts`](../../tests/security/nginx_effective_headers.test.ts) | **3** | 142 | Suite de pruebas security: nginx_effective_headers.test.ts. | *(General)* |
 | [`tests/security/opentofu_baseline_security.test.ts`](../../tests/security/opentofu_baseline_security.test.ts) | **9** | 345 | Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud. | `infra/opentofu/` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | **9** | 137 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `scripts/dr-drill.ts` |
-| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **1** | 70 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
+| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | *(General)* |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `scripts/k8s-rollout-restart.ts` |
@@ -243,7 +243,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | *(General)* |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | *(General)* |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **21** | 249 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **21** | 248 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 

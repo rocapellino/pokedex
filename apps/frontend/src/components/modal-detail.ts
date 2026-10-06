@@ -113,8 +113,6 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
             ${renderBaseStats(pokemon.stats)}
           </div>
         </div>
-
-        ${renderMegaToggle(pokemon)}
       </div>
 
       <div class="pokedex-right-col">
@@ -162,6 +160,8 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
               .join('')}
           </div>
         </div>
+
+        ${renderMegaToggle(pokemon)}
       </div>
     </div>
 

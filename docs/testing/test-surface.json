@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T20:07:50.047Z",
+  "generatedAt": "2026-10-06T20:33:59.190Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 705,
-    "totalLines": 18792,
-    "totalSizeBytes": 820968,
+    "totalTestCases": 706,
+    "totalLines": 18811,
+    "totalSizeBytes": 822127,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 234,
+      "testCases": 235,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -1051,9 +1051,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 72,
-      "sizeBytes": 11288,
-      "lineCount": 249,
-      "sha256": "c0856f37d4d1cfc42224ff732e670efaa267df0bb6fc01e282a15e3c193dccb4",
+      "sizeBytes": 11227,
+      "lineCount": 248,
+      "sha256": "857382e556c53036830212ea66720b3f392c6ca50512eb8f7f4c7ff3288f408f",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1116,40 +1116,40 @@
           "line": 160
         },
         {
-          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base",
+          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de las debilidades",
           "line": 168
         },
         {
           "name": "🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🧬 UI Mega: sin megaevolución no hay botón ni despliegue",
-          "line": 194
+          "line": 193
         },
         {
           "name": "🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega",
-          "line": 200
+          "line": 199
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)",
-          "line": 205
+          "line": 204
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null",
-          "line": 222
+          "line": 221
         },
         {
           "name": "🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución",
-          "line": 226
+          "line": 225
         },
         {
           "name": "🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente",
-          "line": 231
+          "line": 230
         },
         {
           "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
-          "line": 238
+          "line": 237
         }
       ]
     },
@@ -4025,12 +4025,12 @@
       "type": "Contract / CI-CD",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 1,
+      "testCount": 2,
       "describeCount": 0,
-      "assertionCountEst": 10,
-      "sizeBytes": 2803,
-      "lineCount": 70,
-      "sha256": "496b11c3e913b564cc8e7b658c21b932598f6c2d96ab30664ed1cabfc9d01804",
+      "assertionCountEst": 14,
+      "sizeBytes": 4023,
+      "lineCount": 90,
+      "sha256": "e365640d329ced3847f6cd7d30fcc58bd059a7347d14770159993612b68c16bd",
       "targetDomain": "Promoción Automatizada Segura",
       "targetArtifacts": [
         ".github/workflows/promote-auto-approve.yaml"
@@ -4050,6 +4050,10 @@
         {
           "name": "🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks para PRs de release",
           "line": 11
+        },
+        {
+          "name": "🚀 Release Promote: la rama de promoción refresca su referencia remota antes de forzar el push (REL-004)",
+          "line": 71
         }
       ]
     },
