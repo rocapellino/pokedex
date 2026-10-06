@@ -113,6 +113,7 @@ spec:
                   RAW_FILE="${TMP_DIR}/backup_${TIMESTAMP}.sql.gz"
                   ENC_FILE="${TARGET_DIR}/pokedex_${TIMESTAMP}.sql.gz.enc"
                   CHECKSUM_FILE="${TARGET_DIR}/pokedex_${TIMESTAMP}.sql.gz.enc.sha256"
+                  HMAC_FILE="${TARGET_DIR}/pokedex_${TIMESTAMP}.sql.gz.enc.hmac"
 
                   echo "📦 [DR Backup] Iniciando volcado de seguridad de PostgreSQL (${PGDATABASE})..."
                   pg_dump -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" --clean --if-exists | gzip -9 > "${RAW_FILE}"
@@ -127,6 +128,19 @@ spec:
 
                   echo "🔍 [DR Backup] Calculando checksum SHA-256 de integridad..."
                   sha256sum "${ENC_FILE}" > "${CHECKSUM_FILE}"
+
+                  # Autenticidad (Encrypt-then-MAC): el SHA-256 solo detecta corrupción, porque quien altera el
+                  # backup también puede recalcularlo. El HMAC exige la clave y se verifica ANTES de descifrar.
+                  # La clave del MAC se deriva de BACKUP_ENCRYPTION_KEY para no usar la misma clave en dos funciones.
+                  echo "🔏 [DR Backup] Autenticando el backup con HMAC-SHA256 (Encrypt-then-MAC)..."
+                  MAC_KEY=$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${BACKUP_ENCRYPTION_KEY}" -r | cut -d' ' -f1)
+                  HMAC_VALUE=$(openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${ENC_FILE}" | cut -d' ' -f1)
+                  if [ "${#HMAC_VALUE}" -ne 64 ]; then
+                    echo "❌ [DR Backup Error] No se pudo calcular el HMAC-SHA256 del backup." >&2
+                    exit 1
+                  fi
+                  printf '%s  %s\n' "${HMAC_VALUE}" "$(basename "${ENC_FILE}")" > "${HMAC_FILE}"
+                  unset MAC_KEY
 
                   echo "🧹 [DR Backup] Purgando volcado en texto plano de /tmp..."
                   rm -f "${RAW_FILE}"
@@ -146,6 +160,7 @@ spec:
                       fi
                       aws s3 cp "${ENC_FILE}" "s3://${OFFSITE_BUCKET}/" ${ENDPOINT_ARG} --region "${OFFSITE_REGION:-us-east-1}"
                       aws s3 cp "${CHECKSUM_FILE}" "s3://${OFFSITE_BUCKET}/" ${ENDPOINT_ARG} --region "${OFFSITE_REGION:-us-east-1}"
+                      aws s3 cp "${HMAC_FILE}" "s3://${OFFSITE_BUCKET}/" ${ENDPOINT_ARG} --region "${OFFSITE_REGION:-us-east-1}"
                       echo "✅ [DR Backup] Sincronización off-site completada exitosamente."
                     else
                       echo "ℹ️ [DR Backup] Binario aws-cli no presente en imagen; volcado cifrado y checksum listos en PVC para replicación externa."

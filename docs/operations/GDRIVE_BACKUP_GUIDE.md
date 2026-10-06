@@ -28,7 +28,7 @@ flowchart TD
 ### Principios de Seguridad
 
 1. **Zero-Knowledge Cloud Storage**: Google Drive solo recibe blobs binarios cifrados con **AES-256-CBC PBKDF2**. Sin la clave `BACKUP_ENCRYPTION_KEY`, los archivos son ilegibles para Google o cualquier actor externo.
-2. **Firmas de Integridad**: Cada volcado viaja acompañado de su archivo `.sha256` para garantizar detección de corrupción o manipulación en tránsito.
+2. **Firmas de Integridad y Autenticidad**: Cada volcado viaja acompañado de su `.sha256`, que detecta corrupción en tránsito, y de su `.hmac` (HMAC-SHA256 con una clave derivada de `BACKUP_ENCRYPTION_KEY`), que detecta manipulación: el SHA-256 lo puede recalcular quien altere el archivo, el HMAC no. Ambos se replican con el `.enc` (el patrón `pokedex_*.sql.gz.enc*` los incluye).
 3. **Costo Cero**: Un historial rotativo de 7 a 14 snapshots de Pokédex ocupa típicamente entre 50 MB y 300 MB, consumiendo menos del 2% del límite gratuito de 15 GB.
 
 ---
@@ -212,7 +212,7 @@ Si el host físico Proxmox sufre una pérdida total:
    bash scripts/dr_verify_restore.sh ./restauracion/pokedex_YYYYMMDD_HHMMSS.sql.gz.enc
    ```
 
-   El script verificará el checksum SHA-256, probará el descifrado AES-256, descomprimirá y validará la estructura DDL/DML contra la base de datos de destino.
+   El script verificará el checksum SHA-256 y la autenticidad HMAC-SHA256 (antes de descifrar), probará el descifrado AES-256, descomprimirá y validará la estructura DDL/DML contra la base de datos de destino.
 
 3. **Ejecutar simulacro integral end-to-end con 11 métricas contractuales**:
 
