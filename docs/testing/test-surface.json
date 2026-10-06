@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:45:34.458Z",
+  "generatedAt": "2026-10-06T18:18:06.329Z",
   "summary": {
-    "totalFiles": 86,
-    "testFiles": 80,
+    "totalFiles": 87,
+    "testFiles": 81,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 685,
-    "totalLines": 18347,
-    "totalSizeBytes": 799093,
+    "totalTestCases": 689,
+    "totalLines": 18432,
+    "totalSizeBytes": 802728,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 28,
-      "testCases": 219,
+      "files": 29,
+      "testCases": 223,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2757,6 +2757,50 @@
         {
           "name": "🛡️ AUD-SEC-CSRF-001: las lecturas por cookie no exigen Origin",
           "line": 95
+        }
+      ]
+    },
+    {
+      "path": "tests/security/devcontainer_supply_chain.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 10,
+      "sizeBytes": 3635,
+      "lineCount": 85,
+      "sha256": "13f04acdb76b189de0b5ea064bf827a289f899a28472e9493d7026a37ee970b9",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: devcontainer_supply_chain.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ DEVCONTAINER-001: Renovate vigila el devcontainer (imagen, features y lock)",
+          "line": 43
+        },
+        {
+          "name": "🛡️ DEVCONTAINER-002: la imagen base está fijada por digest SHA-256",
+          "line": 53
+        },
+        {
+          "name": "🛡️ DEVCONTAINER-003: toda feature tiene entrada en el lock y versiones fijadas",
+          "line": 61
+        },
+        {
+          "name": "🛡️ DEVCONTAINER-004: kubectl y helm del devcontainer coinciden con .tool-versions",
+          "line": 80
         }
       ]
     },

@@ -17,6 +17,7 @@
     "minimumReleaseAge": null
   },
   "enabledManagers": [
+    "devcontainer",
     "docker-compose",
     "dockerfile",
     "github-actions",
@@ -46,7 +47,7 @@
     },
     {
       "description": "Ecosistemas críticos de infraestructura y supply chain requieren revisión humana obligatoria",
-      "matchManagers": ["docker-compose", "dockerfile", "github-actions", "helmv3", "helm-values", "terraform"],
+      "matchManagers": ["devcontainer", "docker-compose", "dockerfile", "github-actions", "helmv3", "helm-values", "terraform"],
       "automerge": false,
       "labels": ["infra-supply-chain-review"]
     },
@@ -67,6 +68,12 @@
       "matchManagers": ["github-actions"],
       "commitMessagePrefix": "chore(ci):",
       "labels": ["dependencies", "ci-cd", "github-actions"]
+    },
+    {
+      "description": "Gestor devcontainer: imagen base (tag y digest) y features de .devcontainer/devcontainer.json; si el lock no se actualiza solo en el PR de Renovate, regenerarlo a mano. Las versiones de binarios de las features (kubectl, helm, kind, go-task) no las detecta Renovate: se fijan a mano y tests/security/devcontainer_supply_chain.test.ts exige la paridad de kubectl y helm con .tool-versions",
+      "matchManagers": ["devcontainer"],
+      "commitMessagePrefix": "chore(devcontainer):",
+      "labels": ["dependencies", "docker", "devcontainer"]
     },
     {
       "description": "Gestor docker-compose: imágenes de los stacks local y de desarrollo (tag y digest fijados), prefijo chore(docker) y etiquetas de contenedor",

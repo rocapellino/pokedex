@@ -4,8 +4,9 @@
   "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
 
   // Imagen base oficial alineada con Node.js 22 LTS.
-  // Política de actualización: se mantiene el tag LTS activo y se monitorean actualizaciones mediante tooling de dependencias.
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  // Política de actualización: tag LTS activo fijado por digest SHA-256 (igual que los Dockerfiles de apps/);
+  // Renovate (manager 'devcontainer') propone los bumps de tag y digest. Contrato: tests/security/devcontainer_supply_chain.test.ts.
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm@sha256:7c2e711a4f7b02f32d2da16192d5e05aa7c95279be4ce889cff5df316f251c1d",
 
   // Features del entorno de desarrollo.
   // Las versiones exactas y digests SHA-256 están gobernados contractualmente por .devcontainer/devcontainer-lock.json.
@@ -13,6 +14,7 @@
   "features": {
     // Docker outside-of-Docker: Comparte el Docker daemon del host para permitir docker build y orquestación con Kind.
     // Frontera de seguridad: decisión deliberada para desarrollo local con paridad de infraestructura.
+    // 'latest' es aceptable aquí: solo instala el cliente Docker (el daemon es el del host) y la feature queda fijada en el lock.
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
       "enableNonRootDocker": true
@@ -25,11 +27,11 @@
     },
     // Kind (Kubernetes in Docker): Requerido para task dev:k8s:up y validación de paridad K8s local (infra/k8s/kind-cluster.yaml).
     "ghcr.io/devcontainers-extra/features/kind:1": {
-      "version": "latest"
+      "version": "0.33.0"
     },
     // Task (Go-Task): Motor de ejecución de tareas del monorepo definido en Taskfile.yaml.
     "ghcr.io/devcontainers-extra/features/go-task:1": {
-      "version": "latest"
+      "version": "3.54.0"
     }
   },
   "customizations": {
