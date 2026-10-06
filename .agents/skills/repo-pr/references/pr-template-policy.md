@@ -82,8 +82,8 @@ El agente correlaciona dinámicamente las secciones descubiertas con los artefac
 
 - **Secciones de Resumen / Descripción / Contexto:** Se completan sintetizando: (1) problema resuelto, (2) solución técnica implementada y (3) alcance arquitectónico del cambio.
 - **Secciones de Identificadores / Issues:** Se completan con las referencias cruzadas detectadas (Linear, GitHub Issues) o explícitamente `N/A (Tarea operativa / interna)`.
-- **Secciones de Tipología / Categoría:** Se asocia la tipología correspondiente según Conventional Commits (`feat`, `fix`, `refactor`, `infra`, `ci`, `test`, `chore`, `docs`).
-- **Secciones de Componentes Impactados:** Se determinan a partir de las rutas del diff analizadas por `repo-impact` (`apps/backend`, `apps/frontend`, `infra`, `scripts`, `docs`, `.github`).
+- **Secciones de Tipología / Categoría:** Se asocia la tipología correspondiente según Conventional Commits (los aceptados por `commitlint.config.js`: `feat`, `fix`, `refactor`, `perf`, `ci`, `test`, `chore`, `docs`, `revert`).
+- **Secciones de Componentes Impactados:** Se determinan a partir de las rutas del diff analizadas por `repo-impact` (`apps/backend`, `apps/frontend`, `infra`, `scripts`, `tests`, `.agents`, `docs`, `.github`).
 - **Secciones de Pruebas y Verificaciones:** Se mapean contra los resultados reales ejecutados en el workspace:
   - Pruebas unitarias/integración: provistas por `repo-testing`.
   - Linters, tipos y pre-commit: provistos por `repo-quality`.
