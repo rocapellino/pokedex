@@ -78,14 +78,16 @@
       "description": "docker-compose: rclone se referencia solo por digest (sin tag), por lo que Renovate saltaría al digest de latest sin versión. Se excluye hasta fijarle un tag; se actualiza de forma manual",
       "matchManagers": ["docker-compose"],
       "matchPackageNames": ["rclone/rclone"],
-      "enabled": false
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "docker-compose: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major y se mantienen los digests y parches",
       "matchManagers": ["docker-compose"],
       "matchPackageNames": ["postgres", "redis"],
       "matchUpdateTypes": ["major"],
-      "enabled": false
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Gestor Dockerfile: prefijo chore(docker) y etiquetas de contenedor",
