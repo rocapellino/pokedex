@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Configurar Helm CLI
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
@@ -164,6 +166,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
@@ -197,6 +201,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Validar Sintaxis de Playbooks y Roles de Ansible
         run: |
@@ -223,6 +229,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Auditoría de Seguridad IaC con Checkov
         uses: bridgecrewio/checkov-action@f967808197a8d784d3e72919f38c3ff0cda7884e # v12.3122.0
@@ -251,6 +259,8 @@ jobs:
     steps:
       - name: 1. Checkout del código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Crear Clúster Kind Efímero
         uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
