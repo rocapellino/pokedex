@@ -236,7 +236,7 @@ test('🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Com
   assert.ok(composeContent.includes('rclone/rclone'), 'Debe usar imagen oficial rclone');
   assert.match(
     composeContent,
-    /rclone\/rclone@sha256:[a-f0-9]{64}/,
+    /rclone\/rclone(?::[\w.-]+)?@sha256:[a-f0-9]{64}/,
     'docker-compose.dev.yaml debe fijar rclone por digest SHA-256 inmutable',
   );
   assert.ok(composeContent.includes('profiles:'), 'Debe aislarse mediante perfiles de compose');
