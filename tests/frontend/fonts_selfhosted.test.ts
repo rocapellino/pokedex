@@ -19,9 +19,16 @@ const CSP_SOURCES = [
 
 /** Extrae el valor de una directiva (`style-src`, `font-src`) de cada CSP del archivo. */
 function directives(content: string, name: string): string[] {
-  return [...content.matchAll(new RegExp(`Content-Security-Policy[\\s\\S]{0,400}?${name} ([^;"\\n]*)`, 'g'))].map((m) =>
-    (m[1] ?? '').trim(),
-  );
+  const values: string[] = [];
+  for (const chunk of content.split('Content-Security-Policy').slice(1)) {
+    const policy = chunk.slice(0, 600);
+    const start = policy.indexOf(`${name} `);
+    if (start < 0) continue;
+    const rest = policy.slice(start + name.length + 1);
+    const end = rest.search(/[;"\n]/);
+    values.push((end < 0 ? rest : rest.slice(0, end)).trim());
+  }
+  return values;
 }
 
 test('🔤 Fuentes: ninguna página ni hoja de estilo depende de Google Fonts', () => {
@@ -51,14 +58,18 @@ test('🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-f
   }
 });
 
-test('🔤 CSP: style-src y font-src son solo \'self\' en todas las fuentes de la política', () => {
+test("🔤 CSP: style-src y font-src son solo 'self' en todas las fuentes de la política", () => {
   for (const rel of CSP_SOURCES) {
     const content = read(rel);
     for (const name of ['style-src', 'font-src']) {
       const found = directives(content, name);
       assert.ok(found.length > 0, `${rel} debe declarar ${name}`);
       for (const value of found) {
-        assert.equal(value, "'self'", `${rel}: ${name} debe ser 'self' (sin orígenes de fuentes externos), no "${value}"`);
+        assert.equal(
+          value,
+          "'self'",
+          `${rel}: ${name} debe ser 'self' (sin orígenes de fuentes externos), no "${value}"`,
+        );
       }
     }
     assert.ok(!/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(content), `${rel} no debe permitir Google Fonts`);

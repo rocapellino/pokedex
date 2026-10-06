@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T22:15:42.199Z",
+  "generatedAt": "2026-10-06T22:26:18.649Z",
   "summary": {
     "totalFiles": 90,
     "testFiles": 84,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 717,
-    "totalLines": 19032,
-    "totalSizeBytes": 831559,
+    "totalLines": 19040,
+    "totalSizeBytes": 831828,
     "suitesCount": 10
   },
   "suites": [
@@ -1039,9 +1039,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 9,
-      "sizeBytes": 3100,
-      "lineCount": 67,
-      "sha256": "9a68778cae4bd779d92465480e3c2eb53fe4644eeaa2b78e3f7fa62debfc453b",
+      "sizeBytes": 3388,
+      "lineCount": 78,
+      "sha256": "6c70f827016c3aa92e17fd5015d5505280fa53cc3fa182405a5f5e42360b6257",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1057,19 +1057,19 @@
       "testCases": [
         {
           "name": "🔤 Fuentes: ninguna página ni hoja de estilo depende de Google Fonts",
-          "line": 27
-        },
-        {
-          "name": "🔤 Fuentes: los .woff2 declarados en @font-face existen y son archivos WOFF2 válidos",
           "line": 34
         },
         {
-          "name": "🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-face",
-          "line": 47
+          "name": "🔤 Fuentes: los .woff2 declarados en @font-face existen y son archivos WOFF2 válidos",
+          "line": 41
         },
         {
-          "name": "🔤 CSP: style-src y font-src son solo \\",
+          "name": "🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-face",
           "line": 54
+        },
+        {
+          "name": "🔤 CSP: style-src y font-src son solo 'self' en todas las fuentes de la política",
+          "line": 61
         }
       ]
     },
@@ -3867,9 +3867,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 20942,
-      "lineCount": 441,
-      "sha256": "d577dae933e219f6a5ced8a7e1daba28488ad644c828a9a1f28a21208ab53575",
+      "sizeBytes": 20923,
+      "lineCount": 438,
+      "sha256": "1e264a0e7a227f2728b4b138f047708fd171cc16646d7275fe3d8962d6260bf8",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -3901,47 +3901,47 @@
         },
         {
           "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 80
+          "line": 77
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 105
+          "line": 102
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
-          "line": 130
+          "line": 127
         },
         {
           "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 164
+          "line": 161
         },
         {
           "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
-          "line": 178
+          "line": 175
         },
         {
           "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
-          "line": 204
+          "line": 201
         },
         {
           "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
-          "line": 236
+          "line": 233
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 258
+          "line": 255
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 274
+          "line": 271
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 328
+          "line": 325
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 376
+          "line": 373
         }
       ]
     },
