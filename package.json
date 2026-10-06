@@ -87,6 +87,11 @@
     "proxy-agent": "^8.0.2",
     "basic-ftp": "^6.2.1",
     "markdownlint-cli": {
+      "js-yaml": "^5.4.2",
+      "katex": "^0.18.11",
+      "smol-toml": "^1.9.0"
+    },
+    "@lhci/utils": {
       "js-yaml": "^5.4.2"
     }
   },
