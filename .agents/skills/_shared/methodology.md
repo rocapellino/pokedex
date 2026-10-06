@@ -33,7 +33,7 @@ Documentación ──► "Parece que está implementado" ──► Aprobado sin 
 
 - **Si la documentación afirma que una capacidad existe o está activa:** La auditoría **NO** puede darlo por válido hasta descender por la cadena:
   1. **¿Existe el código/template?** (Ej. ¿existe `templates/backup-cronjob.yaml`?).
-  2. **¿Se renderiza en el entorno evaluado?** (Ej. en `gitops/environments/proxmox-preprod/values.yaml` figura `backup.enabled: false`, por tanto en Pre-prod **NO** está renderizado).
+  2. **¿Se renderiza en el entorno evaluado?** (Ej. en `gitops/environments/proxmox-preprod/values.yaml` figura `pgbouncer.enabled: false`, por tanto en Pre-prod `templates/pgbouncer-deployment.yaml` **NO** está renderizado).
   3. **¿Es efectivo en ese entorno?** Renderizar no basta: el componente que lo consume debe interpretarlo. Ej.: anotaciones `nginx.ingress.kubernetes.io/*` renderizadas en un entorno cuyo `ingress.className` es `traefik` se ignoran en silencio; una directiva `add_header` de nginx a nivel `server` no se hereda en un `location` que declara las suyas; una cookie `Secure` no se conserva sobre un entrypoint HTTP.
   4. **¿Lo certifican los tests?** (Ej. ¿hay un test en `tests/` que verifique que el Job ejecuta o que el contrato se cumple?).
   5. **¿Opera en runtime?** (Ej. ¿el pod realmente alcanza el almacenamiento y genera el volcado?).

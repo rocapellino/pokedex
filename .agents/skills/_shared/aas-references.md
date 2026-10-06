@@ -44,7 +44,7 @@ Este documento centraliza los marcos conceptuales y metodológicos de las **ocho
 
 - **Calidad Observable:** Evaluar si el código introduce complejidad innecesaria, acoplamiento oculto o efectos secundarios no tipados.
 - **Prevención de Regresiones:** Todo cambio funcional debe contar con pruebas unitarias o de integración que certifiquen el comportamiento esperado.
-- **Verificación de Contratos:** Comprobar que los DTOs, interfaces de dominio y respuestas HTTP respeten los esquemas OpenAPI/Swagger vigentes.
+- **Verificación de Contratos:** Comprobar que los DTOs, interfaces de dominio y respuestas HTTP respeten los contratos documentados en `docs/api/` y los esquemas Zod vigentes.
 
 ### D. `dependency-scanning` (Gobernada por `repo-dependencies` y `repo-security`)
 
@@ -68,5 +68,5 @@ Este documento centraliza los marcos conceptuales y metodológicos de las **ocho
 
 ### H. `kubernetes-hardening` (Gobernada por `repo-security` y `repo-architecture`)
 
-- **Principio de Menor Privilegio:** Contenedores sin privilegios de root (`USER 10001:10001`), `readOnlyRootFilesystem: true`, y capacidades Linux restringidas (`drop: ALL`).
+- **Principio de Menor Privilegio:** Contenedores sin privilegios de root (`USER` numérico no privilegiado, verificado en `apps/*/Dockerfile`), `readOnlyRootFilesystem: true`, y capacidades Linux restringidas (`drop: ALL`).
 - **Defensa en Profundidad:** Segmentación estricta de red con Cilium L7 NetworkPolicies (Anti-SSRF), SecretStores externos (Vault CE + ESO) y sin uso de tokens default en ServiceAccounts.

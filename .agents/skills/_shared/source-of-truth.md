@@ -25,7 +25,7 @@ Este documento define la autoridad formal de información en `rocapellino/pokede
 ## 2. Reglas de Resolución de Conflictos
 
 1. **Código y Manifiestos superan a Documentación Textual:**
-   Si un documento afirma que una característica está activa pero las plantillas Helm o los values de GitOps la tienen desactivada (`enabled: false`) o inexistente, **el manifiesto prevalece** y el documento se clasifica como `STALE` o `STATE_MISREPRESENTATION`.
+   Si un documento afirma que una característica está activa pero las plantillas Helm o los values de GitOps la tienen desactivada (`enabled: false`) o inexistente, **el manifiesto prevalece** y el documento se clasifica como `OUTDATED` o `INVALID` (con el calificador `PENDING_PROMOTION` si la capacidad solo está en `main`).
 2. **ADR Aceptado supera a Guías Informales:**
    Una decisión registrada en `docs/decisions/` con estado *Aceptado* representa la intención arquitectónica formal. Si el código diverge de un ADR aceptado, se produce un **ADR Drift** que exige revisión (`ADR REVIEW REQUIRED`) o un ADR que lo sustituya (*Superseded*).
 3. **Evidencia Histórica no es SSOT:**
