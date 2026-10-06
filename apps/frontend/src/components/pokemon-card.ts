@@ -57,7 +57,7 @@ export function renderPokemonCard(p: Pokemon): string {
       </div>
 
       <h2 class="pokemon-name"><button type="button" class="card-open">${escapeText(p.nombre)}</button></h2>
-      
+
       <div class="text-center mb-2">
         <span class="type-badge" data-type="${escapeText(normType)}">
           ${escapeText(p.tipo)}

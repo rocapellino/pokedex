@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T22:47:43.624Z",
+  "generatedAt": "2026-10-06T23:21:52.835Z",
   "summary": {
-    "totalFiles": 91,
-    "testFiles": 85,
+    "totalFiles": 92,
+    "testFiles": 86,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 726,
-    "totalLines": 19183,
-    "totalSizeBytes": 838510,
+    "totalTestCases": 730,
+    "totalLines": 19290,
+    "totalSizeBytes": 842387,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 11,
-      "testCases": 95,
+      "files": 12,
+      "testCases": 99,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1133,6 +1133,49 @@
         {
           "name": "⌨️ CSS: la tarjeta entera es clicable y el foco es visible",
           "line": 88
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/keyboard_navigation.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 17,
+      "sizeBytes": 3877,
+      "lineCount": 107,
+      "sha256": "c5b507f25e29f0aee7c3c385944f97cde2f73dacd83e088c62c7a60343023d47",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: keyboard_navigation.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "⌨️ Ficha: la primera apertura no roba el foco al título",
+          "line": 62
+        },
+        {
+          "name": "⌨️ Nodo de evolución: Enter abre la otra ficha y el foco pasa a su título",
+          "line": 69
+        },
+        {
+          "name": "⌨️ Nodo de evolución: la barra espaciadora también abre la otra ficha",
+          "line": 81
+        },
+        {
+          "name": "⌨️ Nodo de evolución: otras teclas y el nodo actual no navegan",
+          "line": 92
         }
       ]
     },
