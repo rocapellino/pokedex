@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import yaml from 'js-yaml';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -80,4 +81,64 @@ test('🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador
     /renovate-config-validator[\s\S]*?--strict/,
     'RENOVATE-002: el validador debe correr con --strict',
   );
+});
+
+/**
+ * RENOVATE-003 — el chart de Helm fija el digest de cada imagen en un campo aparte del `tag`
+ * (INFRA-005) y el gestor `helm-values` solo ve el `tag`: un PR de Renovate cambiaría la etiqueta y
+ * dejaría el digest anterior, de modo que el despliegue seguiría usando la imagen vieja con una
+ * etiqueta que no la refleja. Por eso toda imagen del chart con digest debe excluirse del gestor,
+ * salvo `rclone/rclone`, que se mantiene sincronizada con el compose (agrupamiento + test de paridad
+ * en dr_backup_security). Las imágenes propias (`pokedex-api`, `pokedex-web`) tampoco existen en un
+ * registro público y Renovate las reporta como fallo de búsqueda.
+ */
+const PAIRED_WITH_COMPOSE = new Set(['rclone/rclone']);
+const OWN_IMAGES = ['pokedex-api', 'pokedex-web'];
+
+function collectChartImages(node: unknown, out: Array<{ repository: string; digest: string }> = []) {
+  if (node && typeof node === 'object') {
+    const record = node as Record<string, unknown>;
+    if (typeof record.repository === 'string' && record.repository !== '' && 'digest' in record) {
+      out.push({ repository: record.repository, digest: String(record.digest ?? '') });
+    }
+    for (const value of Object.values(record)) collectChartImages(value, out);
+  }
+  return out;
+}
+
+test('🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    packageRules: PackageRule[];
+  };
+  const values = yaml.load(fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'), 'utf-8'));
+  const images = collectChartImages(values);
+  const disabled = new Set(
+    config.packageRules
+      .filter(
+        (rule) =>
+          rule.enabled === false && rule.matchManagers?.includes('helm-values') && !rule.matchUpdateTypes?.length,
+      )
+      .flatMap((rule) => rule.matchPackageNames ?? []),
+  );
+
+  const pinned = images.filter((image) => /^sha256:[a-f0-9]{64}$/.test(image.digest)).map((i) => i.repository);
+  assert.ok(pinned.length > 0, 'RENOVATE-003: se esperaba al menos una imagen del chart con digest');
+
+  const missing = [...new Set([...pinned, ...OWN_IMAGES])].filter(
+    (repo) => !PAIRED_WITH_COMPOSE.has(repo) && !disabled.has(repo),
+  );
+  assert.deepEqual(
+    missing,
+    [],
+    `RENOVATE-003: Renovate cambiaría solo el tag de ${missing.join(', ')} en values.yaml y dejaría el digest ` +
+      'anterior. Añádelas a una regla helm-values con enabled: false (se actualizan a mano, tag y digest juntos) ' +
+      'o, si existen en el compose, agrúpalas y cubre su paridad con un test.',
+  );
+
+  for (const repo of PAIRED_WITH_COMPOSE) {
+    assert.ok(
+      !disabled.has(repo),
+      `RENOVATE-003: '${repo}' se mantiene sincronizada con el compose y no debe excluirse`,
+    );
+  }
 });
