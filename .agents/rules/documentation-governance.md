@@ -27,7 +27,7 @@ Esta regla aplica a todos los agentes de IA, procesos automatizados y colaborado
 ## 3. Inmutabilidad de Evidencia Histórica
 
 - La documentación en `docs/audits/` y los ADRs sustituidos constituyen evidencia histórica inmutable.
-- Si un componente o convención cambia (por ejemplo, nombres de rutas en Vault de `pokedex/production` a `pokedex/prod`), los informes históricos no se modifican; se preservan y cualquier nuevo análisis contrasta contra el SSOT vigente.
+- Si un componente o convención cambia (por ejemplo, nombres de rutas en Vault de `pokedex/production` a `pokedex/preprod`, la configuración operativa vigente), los informes históricos no se modifican; se preservan y cualquier nuevo análisis contrasta contra el SSOT vigente.
 
 ---
 
