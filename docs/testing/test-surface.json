@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:56:57.538Z",
+  "generatedAt": "2026-10-06T18:14:32.347Z",
   "summary": {
     "totalFiles": 87,
     "testFiles": 81,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 689,
-    "totalLines": 18394,
-    "totalSizeBytes": 801121,
+    "totalTestCases": 691,
+    "totalLines": 18439,
+    "totalSizeBytes": 803144,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 28,
-      "testCases": 219,
+      "testCases": 221,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -249,10 +249,10 @@
       "runner": "node:test (tsx)",
       "testCount": 36,
       "describeCount": 0,
-      "assertionCountEst": 264,
-      "sizeBytes": 38484,
-      "lineCount": 847,
-      "sha256": "ced5089d2ce1522f1f7eb66cff449eb364d39b21f1bd45873f63687f60bdbacf",
+      "assertionCountEst": 265,
+      "sizeBytes": 38745,
+      "lineCount": 853,
+      "sha256": "f6af3a2fb2f2950f59fa8bc466a1eb1a667e0b79d6747d82f23bef354d0a0bec",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -307,111 +307,111 @@
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 272
+          "line": 278
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud",
-          "line": 289
+          "line": 295
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 309
+          "line": 315
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 332
+          "line": 338
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 351
+          "line": 357
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 369
+          "line": 375
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 386
+          "line": 392
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 401
+          "line": 407
         },
         {
           "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
-          "line": 427
+          "line": 433
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 439
+          "line": 445
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 456
+          "line": 462
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 472
+          "line": 478
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 488
+          "line": 494
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 503
+          "line": 509
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 519
+          "line": 525
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 534
+          "line": 540
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 549
+          "line": 555
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 569
+          "line": 575
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 588
+          "line": 594
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 615
+          "line": 621
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 637
+          "line": 643
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 680
+          "line": 686
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 696
+          "line": 702
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 734
+          "line": 740
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 761
+          "line": 767
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 782
+          "line": 788
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 795
+          "line": 801
         }
       ]
     },
@@ -3983,12 +3983,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 1,
+      "testCount": 3,
       "describeCount": 0,
-      "assertionCountEst": 1,
-      "sizeBytes": 1855,
-      "lineCount": 45,
-      "sha256": "0f52edc05a34127077d9e4d11785fba84aef9f3e995aeb7b07844afbca0e300d",
+      "assertionCountEst": 5,
+      "sizeBytes": 3617,
+      "lineCount": 84,
+      "sha256": "d7b0481472930ec8d078a654a9129ae12c4f8a69b85d9b68cd037de4fb765e3e",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4006,6 +4006,14 @@
         {
           "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose y en helm-values",
           "line": 27
+        },
+        {
+          "name": "🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas",
+          "line": 53
+        },
+        {
+          "name": "🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict",
+          "line": 65
         }
       ]
     },
