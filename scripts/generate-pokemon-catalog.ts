@@ -18,6 +18,8 @@
  *
  * Uso CLI:
  *   npx tsx scripts/generate-pokemon-catalog.ts
+ *   npx tsx scripts/generate-pokemon-catalog.ts --enrich-megas   # solo añade megaevoluciones al catálogo versionado
+ *   npx tsx scripts/generate-pokemon-catalog.ts --sync-sample-megas   # regenera el JSON de megas de la muestra (sin red)
  *   npx tsx scripts/generate-pokemon-catalog.ts --limit=151 --out=tmp/catalog.json
  *   npx tsx scripts/generate-pokemon-catalog.ts --no-cache
  * ==============================================================================
@@ -28,14 +30,16 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validatePokemonPayload } from '../apps/backend/src/validation/pokemon.js';
+import { sampleBasePokemons } from '../apps/backend/src/data/initialPokemons.js';
 import { validateEvolutionNodeZod } from '../apps/backend/src/validation/schemas.js';
-import type { EvolutionNode, Pokemon } from '../apps/backend/src/types.js';
+import type { EvolutionNode, MegaEvolution, Pokemon, PokemonStats } from '../apps/backend/src/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = path.resolve(path.dirname(__filename), '..');
 
 const POKEAPI_BASE = 'https://pokeapi.co/api/v2';
 export const DEFAULT_OUTPUT = 'apps/backend/src/data/pokemon-catalog.full.json';
+export const SAMPLE_MEGAS_OUTPUT = 'apps/backend/src/data/sample-megaevoluciones.json';
 const DEFAULT_CACHE_DIR = 'tmp/pokeapi-cache';
 const CONCURRENCY = 8;
 const MAX_ATTEMPTS = 4;
@@ -120,6 +124,10 @@ interface GeneratorOptions {
   limit?: number;
   outFile: string;
   cacheDir: string | null;
+  /** Solo añade `megaevoluciones` al catálogo versionado, sin regenerar las 1025 especies. */
+  enrichMegas?: boolean;
+  /** Regenera `sample-megaevoluciones.json` desde el catálogo completo (sin red). */
+  syncSampleMegas?: boolean;
 }
 
 export interface DegradedEntry {
@@ -179,7 +187,12 @@ function truncate(text: string, max: number): string {
 // Cliente PokeAPI con caché y reintentos
 // ------------------------------------------------------------------------------
 
-class PokeApiClient {
+/** Contrato mínimo del cliente: permite inyectar un doble en los tests sin red. */
+export interface PokeApiLike {
+  get<T>(url: string): Promise<T>;
+}
+
+class PokeApiClient implements PokeApiLike {
   private readonly memo = new Map<string, Promise<unknown>>();
   private readonly cacheDir: string | null;
 
@@ -266,7 +279,7 @@ interface ChainLink {
 }
 
 class Translator {
-  constructor(private readonly api: PokeApiClient) {}
+  constructor(private readonly api: PokeApiLike) {}
 
   async resourceName(resource: NamedResource): Promise<string> {
     const data = await this.api.get<{ names?: LocalizedName[] }>(resource.url);
@@ -349,12 +362,112 @@ interface SpeciesData {
 
 interface PokemonData {
   id: number;
+  name?: string;
+  species?: NamedResource;
   height: number;
   weight: number;
   types: Array<{ slot: number; type: NamedResource }>;
   abilities: Array<{ slot: number; ability: NamedResource }>;
   stats: Array<{ base_stat: number; stat: NamedResource }>;
   sprites: { other?: { 'official-artwork'?: { front_default?: string | null } } };
+}
+
+/** Tipos en español ordenados por slot. */
+function extractTypes(pokemon: PokemonData): string[] {
+  return [...pokemon.types]
+    .sort((a, b) => a.slot - b.slot)
+    .map((t) => TYPE_NAMES_ES[t.type.name] ?? titleCaseSlug(t.type.name));
+}
+
+/** Habilidades en español, sin repetidas, ordenadas por slot. */
+async function extractAbilities(pokemon: PokemonData, translator: Translator): Promise<string[]> {
+  const habilidades: string[] = [];
+  for (const { ability } of [...pokemon.abilities].sort((a, b) => a.slot - b.slot)) {
+    const label = await translator.resourceName(ability);
+    if (!habilidades.includes(label)) habilidades.push(label);
+  }
+  return habilidades;
+}
+
+function extractStats(pokemon: PokemonData): Required<Pick<PokemonStats, StatKey>> {
+  const stats = { hp: 0, attack: 0, defense: 0, sp_attack: 0, sp_defense: 0, speed: 0 };
+  for (const s of pokemon.stats) {
+    const key = STAT_KEYS[s.stat.name];
+    if (key) stats[key] = s.base_stat;
+  }
+  return stats;
+}
+
+// ------------------------------------------------------------------------------
+// Megaevoluciones
+// ------------------------------------------------------------------------------
+
+/** `charizard-mega-x`, `meowstic-male-mega`, `tatsugiri-curly-mega`: el token `mega` identifica la forma. */
+export function isMegaFormName(name: string): boolean {
+  return /(^|-)mega(-|$)/.test(name);
+}
+
+/** Calificativos de forma que PokeAPI no traduce al español para las megaevoluciones. */
+export const MEGA_QUALIFIERS_ES: Record<string, string> = {
+  curly: 'Forma Curvada',
+  droopy: 'Forma Lánguida',
+  stretchy: 'Forma Estirada',
+  original: 'Color Original',
+  male: 'macho',
+  female: 'hembra',
+};
+
+/**
+ * Nombre en español de una megaevolución. Usa el nombre oficial de PokeAPI cuando existe
+ * (`Mega-Charizard X`); si no, lo compone con la convención oficial: `Mega-` + nombre de la
+ * especie + sufijo X/Y/Z o calificativo de forma entre paréntesis.
+ */
+export function megaDisplayName(formName: string, speciesSlug: string, speciesNombre: string): string {
+  // Prefijo de especie quitado como texto literal (una regex dinámica trataría `.` y similares como metacaracteres).
+  const withoutSpecies = formName.startsWith(speciesSlug) ? formName.slice(speciesSlug.length) : formName;
+  const rest = withoutSpecies.split('-').filter((token) => token && token !== 'mega');
+  const letter = rest.find((token) => /^[xyz]$/.test(token));
+  const qualifiers = rest.filter((token) => token !== letter).map((t) => MEGA_QUALIFIERS_ES[t] ?? titleCaseSlug(t));
+
+  let name = `Mega-${speciesNombre}`;
+  if (letter) name += ` ${letter.toUpperCase()}`;
+  if (qualifiers.length > 0) name += ` (${qualifiers.join(', ')})`;
+  return name;
+}
+
+/**
+ * Construye las megaevoluciones de una especie. No tienen número de Pokédex propio: cuelgan de
+ * la especie base y se ordenan por el ID de forma de PokeAPI (X antes que Y).
+ */
+export async function buildMegaEvolutions(
+  speciesSlug: string,
+  speciesNombre: string,
+  megaFormNames: string[],
+  api: PokeApiLike,
+  translator: Pick<Translator, 'resourceName'>,
+): Promise<MegaEvolution[]> {
+  const forms = await Promise.all(
+    megaFormNames.map(async (formName) => {
+      const pokemon = await api.get<PokemonData>(`pokemon/${formName}`);
+      const officialName = await api
+        .get<{ form_names?: LocalizedName[] }>(`pokemon-form/${formName}`)
+        .then((form) => pickLocalized(form.form_names, 'es'))
+        .catch(() => undefined);
+
+      const mega: MegaEvolution = {
+        clave: formName,
+        nombre: officialName ?? megaDisplayName(formName, speciesSlug, speciesNombre),
+        imagen: pokemon.sprites.other?.['official-artwork']?.front_default ?? artworkUrl(pokemon.id),
+        tipos: extractTypes(pokemon),
+        habilidades: await extractAbilities(pokemon, translator as Translator),
+        stats: extractStats(pokemon),
+        peso: pokemon.weight / 10,
+        altura: pokemon.height / 10,
+      };
+      return { order: pokemon.id, mega };
+    }),
+  );
+  return forms.sort((a, b) => a.order - b.order || a.mega.clave.localeCompare(b.mega.clave)).map((f) => f.mega);
 }
 
 async function buildEntry(
@@ -369,21 +482,9 @@ async function buildEntry(
   const motivos: string[] = [];
 
   const nombre = names.get(species.id) ?? titleCaseSlug(species.name);
-  const tipos = [...pokemon.types]
-    .sort((a, b) => a.slot - b.slot)
-    .map((t) => TYPE_NAMES_ES[t.type.name] ?? titleCaseSlug(t.type.name));
-
-  const habilidades: string[] = [];
-  for (const { ability } of [...pokemon.abilities].sort((a, b) => a.slot - b.slot)) {
-    const label = await translator.resourceName(ability);
-    if (!habilidades.includes(label)) habilidades.push(label);
-  }
-
-  const stats = { hp: 0, attack: 0, defense: 0, sp_attack: 0, sp_defense: 0, speed: 0 };
-  for (const s of pokemon.stats) {
-    const key = STAT_KEYS[s.stat.name];
-    if (key) stats[key] = s.base_stat;
-  }
+  const tipos = extractTypes(pokemon);
+  const habilidades = await extractAbilities(pokemon, translator);
+  const stats = extractStats(pokemon);
 
   const genusEs = species.genera.find((g) => g.language.name === 'es')?.genus;
   const genusEn = species.genera.find((g) => g.language.name === 'en')?.genus;
@@ -412,6 +513,18 @@ async function buildEntry(
 
   if (motivos.length > 0) degraded.push({ id: species.id, nombre, motivos });
 
+  const megaForms = species.varieties.filter((v) => !v.is_default && isMegaFormName(v.pokemon.name));
+  const megaevoluciones =
+    megaForms.length > 0
+      ? await buildMegaEvolutions(
+          species.name,
+          nombre,
+          megaForms.map((v) => v.pokemon.name),
+          api,
+          translator,
+        )
+      : undefined;
+
   return {
     id: species.id,
     nombre,
@@ -424,6 +537,7 @@ async function buildEntry(
     habilidades,
     stats,
     evoluciones,
+    ...(megaevoluciones ? { megaevoluciones } : {}),
   };
 }
 
@@ -444,9 +558,68 @@ export function assertCatalogValid(catalog: Pokemon[]): void {
   }
 }
 
+/**
+ * Megaevoluciones de la muestra de desarrollo: las del catálogo completo para los IDs de
+ * `sampleBasePokemons` que las tienen. Es la fuente del JSON versionado de la muestra.
+ */
+export function buildSampleMegas(catalog: Pokemon[], sampleIds: number[]): Record<string, MegaEvolution[]> {
+  const byId = new Map(catalog.map((entry) => [entry.id, entry]));
+  const result: Record<string, MegaEvolution[]> = {};
+  for (const id of [...sampleIds].sort((a, b) => a - b)) {
+    const megas = byId.get(id)?.megaevoluciones;
+    if (megas && megas.length > 0) result[String(id)] = megas;
+  }
+  return result;
+}
+
+/** Una clave por línea: diffs legibles. */
+export function serializeSampleMegas(megas: Record<string, MegaEvolution[]>): string {
+  const lines = Object.entries(megas).map(([id, list]) => `  ${JSON.stringify(id)}: ${JSON.stringify(list)}`);
+  return ['{', lines.join(',\n'), '}', ''].join('\n');
+}
+
 /** Una entrada por línea: diffs legibles sin el peso de un JSON indentado. */
 export function serializeCatalog(catalog: Pokemon[]): string {
   return `[\n${catalog.map((entry) => JSON.stringify(entry)).join(',\n')}\n]\n`;
+}
+
+/**
+ * Añade (o reemplaza) las megaevoluciones de un catálogo ya generado consultando solo las formas
+ * `*-mega*` y sus especies, en lugar de regenerar las 1025 entradas. El resto de cada entrada no
+ * se toca. Devuelve un catálogo nuevo; las entradas sin megaevoluciones salen sin el campo.
+ */
+export async function enrichCatalogWithMegas(
+  catalog: Pokemon[],
+  api: PokeApiLike,
+  translator: Pick<Translator, 'resourceName'>,
+): Promise<Pokemon[]> {
+  const index = await api.get<{ results: NamedResource[] }>('pokemon?limit=100000');
+  const megaNames = index.results.map((r) => r.name).filter(isMegaFormName);
+
+  const formsBySpecies = new Map<number, string[]>();
+  for (const name of megaNames) {
+    const pokemon = await api.get<PokemonData>(`pokemon/${name}`);
+    if (!pokemon.species) throw new Error(`La forma ${name} no informa su especie`);
+    const speciesId = speciesIdFromUrl(pokemon.species.url);
+    formsBySpecies.set(speciesId, [...(formsBySpecies.get(speciesId) ?? []), name]);
+  }
+
+  const megasBySpecies = new Map<number, MegaEvolution[]>();
+  for (const [speciesId, formNames] of [...formsBySpecies.entries()].sort(([a], [b]) => a - b)) {
+    const species = await api.get<SpeciesData>(`pokemon-species/${speciesId}`);
+    const nombre =
+      pickLocalized(species.names, 'es') ?? pickLocalized(species.names, 'en') ?? titleCaseSlug(species.name);
+    megasBySpecies.set(speciesId, await buildMegaEvolutions(species.name, nombre, formNames, api, translator));
+  }
+
+  const unknown = [...megasBySpecies.keys()].filter((id) => !catalog.some((entry) => entry.id === id));
+  if (unknown.length > 0) throw new Error(`Megaevoluciones de especies ausentes del catálogo: ${unknown.join(', ')}`);
+
+  return catalog.map((entry) => {
+    const { megaevoluciones: _previous, ...rest } = entry;
+    const megas = megasBySpecies.get(entry.id);
+    return megas ? { ...rest, megaevoluciones: megas } : rest;
+  });
 }
 
 export async function generateCatalog(
@@ -490,6 +663,8 @@ function parseArgs(argv: string[]): GeneratorOptions {
     if (arg.startsWith('--limit=')) options.limit = Number(arg.slice('--limit='.length));
     else if (arg.startsWith('--out=')) options.outFile = arg.slice('--out='.length);
     else if (arg === '--no-cache') options.cacheDir = null;
+    else if (arg === '--enrich-megas') options.enrichMegas = true;
+    else if (arg === '--sync-sample-megas') options.syncSampleMegas = true;
     else throw new Error(`Argumento no reconocido: ${arg}`);
   }
   if (options.limit !== undefined && (!Number.isInteger(options.limit) || options.limit <= 0)) {
@@ -501,6 +676,42 @@ function parseArgs(argv: string[]): GeneratorOptions {
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const cacheDir = options.cacheDir ? path.resolve(ROOT_DIR, options.cacheDir) : null;
+
+  if (options.syncSampleMegas) {
+    const file = path.resolve(ROOT_DIR, SAMPLE_MEGAS_OUTPUT);
+    const catalog = JSON.parse(fs.readFileSync(path.resolve(ROOT_DIR, DEFAULT_OUTPUT), 'utf-8')) as Pokemon[];
+    const megas = buildSampleMegas(
+      catalog,
+      sampleBasePokemons.map((p) => p.id),
+    );
+    fs.writeFileSync(file, serializeSampleMegas(megas));
+    console.log(
+      `✅ ${path.relative(ROOT_DIR, file)}: megaevoluciones de ${Object.keys(megas).length} Pokémon de la muestra.`,
+    );
+    return;
+  }
+
+  if (options.enrichMegas) {
+    const file = path.resolve(ROOT_DIR, options.outFile);
+    const api = new PokeApiClient(cacheDir);
+    const current = JSON.parse(fs.readFileSync(file, 'utf-8')) as Pokemon[];
+    const enriched = await enrichCatalogWithMegas(current, api, new Translator(api));
+    assertCatalogValid(enriched);
+    fs.writeFileSync(`${file}.tmp`, serializeCatalog(enriched));
+    fs.renameSync(`${file}.tmp`, file);
+    const total = enriched.reduce((sum, entry) => sum + (entry.megaevoluciones?.length ?? 0), 0);
+    console.log(
+      `✅ Megaevoluciones añadidas a ${path.relative(ROOT_DIR, file)}: ${total} formas en ${enriched.filter((e) => e.megaevoluciones).length} especies.`,
+    );
+    const sinHabilidades = enriched.flatMap((e) => (e.megaevoluciones ?? []).filter((m) => m.habilidades.length === 0));
+    if (sinHabilidades.length > 0) {
+      console.log(
+        `⚠️ Megaevoluciones sin habilidades publicadas por PokeAPI: ${sinHabilidades.length} (${sinHabilidades.map((m) => m.clave).join(', ')}).`,
+      );
+    }
+    return;
+  }
+
   const { catalog, degraded } = await generateCatalog({ ...options, cacheDir });
 
   const outFile = path.resolve(ROOT_DIR, options.outFile);

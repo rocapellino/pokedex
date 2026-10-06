@@ -7,7 +7,7 @@
 //
 // Solo el seed job importa este módulo: el JSON completo se empaqueta en
 // `dist/seed.cjs` y no en `dist/server.cjs`.
-import type { Pokemon } from '../types.js';
+import type { MegaEvolution, Pokemon } from '../types.js';
 import { initialPokemons } from './initialPokemons.js';
 import fullCatalog from './pokemon-catalog.full.json' with { type: 'json' };
 
@@ -65,4 +65,49 @@ export function planSeed(
     };
   }
   return { mode: 'force-sync', toSeed: catalog };
+}
+
+/**
+ * Serialización JSON con claves ordenadas: sirve para comparar valores sin depender del
+ * orden de las claves, que `jsonb` de PostgreSQL no preserva.
+ */
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export interface MegaEnrichment {
+  id: number;
+  megaevoluciones: MegaEvolution[];
+}
+
+/**
+ * Decide qué filas YA persistidas deben recibir las megaevoluciones del catálogo.
+ *
+ * El seed solo inserta IDs ausentes, así que las filas existentes nunca las recibirían.
+ * Este plan actualiza únicamente ese campo, sin tocar el resto de la entrada ni las
+ * ediciones hechas desde el backoffice. Es idempotente y nunca borra megaevoluciones
+ * persistidas cuando el catálogo no trae ninguna.
+ */
+export function planMegaEnrichment(
+  catalog: Pokemon[],
+  persistedMegas: ReadonlyMap<number, MegaEvolution[] | undefined>,
+  existingIds: ReadonlySet<number>,
+): MegaEnrichment[] {
+  const plan: MegaEnrichment[] = [];
+  for (const entry of catalog) {
+    const megas = entry.megaevoluciones;
+    if (!megas || megas.length === 0 || !existingIds.has(entry.id)) continue;
+    const current = persistedMegas.get(entry.id);
+    if (current && canonicalJson(current) === canonicalJson(megas)) continue;
+    plan.push({ id: entry.id, megaevoluciones: megas });
+  }
+  return plan;
 }

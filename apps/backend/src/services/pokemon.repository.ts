@@ -2,7 +2,7 @@
 // Repositorio de Dominio Pokémon (Drizzle ORM con Fallback Resiliente en Memoria)
 // ==============================================================================
 import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
-import type { Pokemon } from '../types.js';
+import type { MegaEvolution, Pokemon } from '../types.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { pokedexEntries } from '../db/index.js';
@@ -171,6 +171,59 @@ export async function listPersistedPokemonIds(): Promise<Set<number>> {
     return new Set(rows.map((row) => row.id));
   }
   return new Set(memoryMap.keys());
+}
+
+/**
+ * Megaevoluciones persistidas por ID (solo entradas que las tienen). Lo usa el seed job
+ * para decidir qué filas existentes enriquecer.
+ */
+export async function listPersistedMegaEvolutions(): Promise<Map<number, MegaEvolution[]>> {
+  const drizzleDb = getDrizzleDb();
+  const result = new Map<number, MegaEvolution[]>();
+  if (isPgConnectedStatus() && drizzleDb) {
+    const rows = await drizzleDb
+      .select({ id: pokedexEntries.id, megas: sql<MegaEvolution[] | null>`${pokedexEntries.data}->'megaevoluciones'` })
+      .from(pokedexEntries);
+    for (const row of rows) {
+      if (Array.isArray(row.megas) && row.megas.length > 0) result.set(row.id, row.megas);
+    }
+    return result;
+  }
+  for (const [id, pokemon] of memoryMap) {
+    if (pokemon.megaevoluciones && pokemon.megaevoluciones.length > 0) result.set(id, pokemon.megaevoluciones);
+  }
+  return result;
+}
+
+/**
+ * Reemplaza SOLO las megaevoluciones de una entrada ya persistida, sin tocar el resto de sus
+ * campos (las ediciones del backoffice se conservan). En PostgreSQL usa `jsonb_set` en una
+ * sola sentencia, sin ciclo leer-modificar-escribir. Devuelve `false` si la entrada no existe.
+ */
+export async function setPokemonMegaEvolutions(id: number, megaevoluciones: MegaEvolution[]): Promise<boolean> {
+  const drizzleDb = getDrizzleDb();
+  if (isPgConfigured() && (!isPgConnectedStatus() || !drizzleDb)) {
+    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para escritura. Operación cancelada.');
+  }
+
+  if (isPgConnectedStatus() && drizzleDb) {
+    const updatedRows = await drizzleDb
+      .update(pokedexEntries)
+      .set({
+        data: sql`jsonb_set(${pokedexEntries.data}, '{megaevoluciones}', ${JSON.stringify(megaevoluciones)}::jsonb, true)`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(pokedexEntries.id, id))
+      .returning({ id: pokedexEntries.id });
+    if (updatedRows.length === 0) return false;
+  } else if (!memoryMap.has(id)) {
+    return false;
+  }
+
+  const inMemory = memoryMap.get(id);
+  if (inMemory) memoryMap.set(id, { ...inMemory, megaevoluciones });
+  await invalidateCache(id);
+  return true;
 }
 
 export async function savePokemon(pokemon: Pokemon): Promise<void> {

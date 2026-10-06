@@ -91,6 +91,8 @@ export {
   getNextPokemonId,
   isWritableStorageAvailable,
   listPersistedPokemonIds,
+  listPersistedMegaEvolutions,
+  setPokemonMegaEvolutions,
 } from './pokemon.repository.js';
 
 export {

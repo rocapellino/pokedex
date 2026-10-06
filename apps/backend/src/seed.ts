@@ -1,12 +1,14 @@
 // ==============================================================================
 // Script CLI de Siembra Masiva del Catálogo Pokédex (K8s Job / DevOps Tooling)
 // ==============================================================================
-import { loadSeedCatalog, planSeed, resolveSeedDataset } from './data/seed-catalog.js';
+import { loadSeedCatalog, planMegaEnrichment, planSeed, resolveSeedDataset } from './data/seed-catalog.js';
 import {
   initStorage,
   savePokemon,
   getStorageHealth,
+  listPersistedMegaEvolutions,
   listPersistedPokemonIds,
+  setPokemonMegaEvolutions,
   syncPokedexIdSequence,
 } from './services/db.js';
 import { errorMessage } from './utils/errors.js';
@@ -45,28 +47,48 @@ async function main() {
       );
     }
 
-    if (plan.toSeed.length === 0) {
+    // 3. Enriquecer filas existentes con megaevoluciones: solo ese campo, sin pisar ediciones.
+    // Con force-sync el catálogo completo (megaevoluciones incluidas) se reescribe en el paso 4.
+    const enrichment =
+      plan.mode === 'force-sync' ? [] : planMegaEnrichment(catalog, await listPersistedMegaEvolutions(), existingIds);
+
+    if (plan.toSeed.length === 0 && enrichment.length === 0) {
       console.log('✅ [Seed Job] El catálogo ya se encuentra completo. No se requieren cambios.');
       process.exit(0);
     }
 
-    // 3. Sembrar (insertar faltantes o reescribir con FORCE_SEED)
-    console.log(
-      `🚀 [Seed Job] Sembrando ${plan.toSeed.length} entradas (${plan.mode}) en almacenamiento persistente...`,
-    );
+    // 4. Sembrar (insertar faltantes o reescribir con FORCE_SEED)
     let count = 0;
-    for (const p of plan.toSeed) {
-      await savePokemon(p);
-      count++;
-      if (count % 200 === 0 || count === plan.toSeed.length) {
-        console.log(`⏳ [Seed Job] Progreso: ${count}/${plan.toSeed.length} Pokémon procesados...`);
+    if (plan.toSeed.length > 0) {
+      console.log(
+        `🚀 [Seed Job] Sembrando ${plan.toSeed.length} entradas (${plan.mode}) en almacenamiento persistente...`,
+      );
+      for (const p of plan.toSeed) {
+        await savePokemon(p);
+        count++;
+        if (count % 200 === 0 || count === plan.toSeed.length) {
+          console.log(`⏳ [Seed Job] Progreso: ${count}/${plan.toSeed.length} Pokémon procesados...`);
+        }
       }
     }
 
-    // 4. Alinear la secuencia de IDs con los IDs explícitos recién sembrados
+    // 5. Aplicar el enriquecimiento de megaevoluciones sobre las filas existentes
+    let enriched = 0;
+    for (const item of enrichment) {
+      if (await setPokemonMegaEvolutions(item.id, item.megaevoluciones)) enriched++;
+    }
+    if (enrichment.length > 0) {
+      console.log(
+        `🧬 [Seed Job] Megaevoluciones aplicadas a ${enriched} de ${enrichment.length} Pokémon existentes (ediciones conservadas).`,
+      );
+    }
+
+    // 6. Alinear la secuencia de IDs con los IDs explícitos recién sembrados
     await syncPokedexIdSequence();
 
-    console.log(`🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}.`);
+    console.log(
+      `🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}; enriquecidos con megaevoluciones: ${enriched}.`,
+    );
     process.exit(0);
   } catch (err) {
     console.error('❌ [Seed Job] Error fatal durante la siembra:', errorMessage(err));

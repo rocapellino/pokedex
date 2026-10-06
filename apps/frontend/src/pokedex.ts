@@ -16,10 +16,12 @@ import {
   fetchAllPokemons,
   errorMessage,
 } from './shared/index.js';
+import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
 import {
   openDetailModal as openDetailModalComponent,
   closeDetailModal,
   renderPokemonCard,
+  selectMegaTab,
 } from './components/index.js';
 
 export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
@@ -30,6 +32,7 @@ let currentPage = 1;
 const ITEMS_PER_PAGE = 48;
 let currentType = 'all';
 let currentGeneration = 'all';
+let onlyWithMega = false;
 let searchQuery = '';
 
 export function openDetailModal(id: number): void {
@@ -59,31 +62,13 @@ export async function loadPokemons(): Promise<void> {
 }
 
 export function applyFilters(): void {
-  const term = normalizeStr(searchQuery);
-  const targetType = normalizeStr(currentType);
-
-  filteredPokemons = allPokemons.filter((p) => {
-    const matchesSearch =
-      !term ||
-      normalizeStr(p.nombre).includes(term) ||
-      normalizeStr(p.tipo).includes(term) ||
-      (Array.isArray(p.tipos) && p.tipos.some((t) => normalizeStr(t).includes(term))) ||
-      (Array.isArray(p.habilidades) && p.habilidades.some((h) => normalizeStr(h).includes(term))) ||
-      (typeof p.habilidades === 'string' && normalizeStr(p.habilidades).includes(term)) ||
-      (p.caracteristicas?.habitat && normalizeStr(p.caracteristicas.habitat).includes(term)) ||
-      (typeof p.habitat === 'string' && normalizeStr(p.habitat).includes(term)) ||
-      String(p.id).includes(term);
-
-    const matchesType =
-      currentType === 'all' ||
-      normalizeStr(p.tipo) === targetType ||
-      (Array.isArray(p.tipos) && p.tipos.some((t) => normalizeStr(t) === targetType));
-
-    const gen = getGeneration(p.id);
-    const matchesGen = currentGeneration === 'all' || gen === Number.parseInt(currentGeneration, 10);
-
-    return matchesSearch && matchesType && matchesGen;
-  });
+  const filters: CatalogFilters = {
+    searchQuery,
+    type: currentType,
+    generation: currentGeneration,
+    onlyWithMega,
+  };
+  filteredPokemons = allPokemons.filter((p) => matchesCatalogFilters(p, filters));
 
   currentPage = 1;
   renderPokemons();
@@ -104,6 +89,12 @@ export function selectTypeFilter(type: string): void {
     const isActive = (type === 'all' && btnType === 'all') || normalizeStr(btnType) === targetTypeNorm;
     btn.classList.toggle('active', isActive);
   });
+  applyFilters();
+}
+
+export function handleMegaFilterChange(): void {
+  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+  onlyWithMega = Boolean(checkbox?.checked);
   applyFilters();
 }
 
@@ -213,6 +204,8 @@ export function initInteractiveListeners(): void {
     searchInput.addEventListener('search', handleSearch);
   }
 
+  document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
+
   const generationFilter = document.getElementById('generationFilter');
   if (generationFilter) {
     generationFilter.addEventListener('change', handleGenerationChange);
@@ -262,6 +255,11 @@ export function initInteractiveListeners(): void {
   if (detailContent) {
     detailContent.addEventListener('click', (e) => {
       const target = e.target as HTMLElement | null;
+      const megaTab = target?.closest('.mega-tab');
+      if (megaTab) {
+        selectMegaTab(detailContent, Number(megaTab.getAttribute('data-mega-index')));
+        return;
+      }
       const node = target?.closest('.evolution-node-item');
       if (node) {
         const evolId = Number(node.getAttribute('data-evol-id'));

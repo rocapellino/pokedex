@@ -73,7 +73,7 @@ Conforme a [ADR-003](../decisions/ADR-003-gitops-with-argocd.md), los despliegue
 | Ola de Sincronización | Componentes / Recursos | Rol en el Despliegue |
 | :---: | :--- | :--- |
 | **Ola 0** | `ConfigMap`, `Secret`, `ClusterSecretStore`, `ExternalSecret`, `PostgreSQL StatefulSet`, `Redis` | Aprovisiona almacenamiento de datos, secretos y dependencias base. |
-| **PostSync** | Job de siembra del catálogo (`pokedex-db-seed`, solo pre-prod) | Inserta los Pokémon ausentes del dataset `SEED_DATASET` cuando la API ya está sana; las migraciones Drizzle las aplica la API al arrancar. |
+| **PostSync** | Job de siembra del catálogo (`pokedex-db-seed`, solo pre-prod) | Inserta los Pokémon ausentes del dataset `SEED_DATASET` y añade las megaevoluciones a los ya existentes sin pisar sus ediciones, cuando la API ya está sana; las migraciones Drizzle las aplica la API al arrancar. |
 | **Ola 2** | `PgBouncer`, `Deployment/pokemon-api`, `ServiceAccount` | Inicia la capa de servicios backend cuando la base de datos está migrada. |
 | **Ola 3** | `Deployment/pokedex-web`, `HPA v2`, `PodDisruptionBudget` | Inicia la capa web y políticas de autoescalado elástico. |
 | **Ola 4** | `Ingress`, `NetworkPolicies`, `CiliumNetworkPolicy` | Habilita enrutamiento perimetral L7 una vez que la aplicación es saludable. |

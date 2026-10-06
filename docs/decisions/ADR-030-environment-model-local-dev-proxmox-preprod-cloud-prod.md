@@ -77,6 +77,10 @@ backend. El seed job:
 - Selecciona el dataset con `SEED_DATASET=full`; el valor por defecto sigue siendo la muestra.
 - Corre como hook `PostSync`, después de que PostgreSQL y las migraciones estén disponibles.
 - Es idempotente: reejecutarlo no duplica registros.
+- Enriquece con megaevoluciones las filas ya existentes: aplica únicamente el campo `megaevoluciones`
+  (en PostgreSQL con `jsonb_set`, sin ciclo leer-modificar-escribir), de modo que las ediciones del
+  backoffice se conservan y una segunda ejecución no cambia nada. Las megaevoluciones no tienen
+  número de Pokédex propio: cuelgan de la especie base y la API las trata como solo lectura.
 
 El dataset no se descarga en runtime: el despliegue no depende de la disponibilidad ni de los
 límites de tasa de PokeAPI, y dos sincronizaciones del mismo tag producen la misma base.

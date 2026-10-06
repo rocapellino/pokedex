@@ -8,3 +8,5 @@ export * from './ui.js';
 export * from './api.js';
 export * from './errors.js';
 export * from './pokemon-types.js';
+export * from './base-stats.js';
+export * from './catalog-filters.js';

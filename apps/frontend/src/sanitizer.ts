@@ -103,6 +103,10 @@ const SANITIZE_CONFIG: Config = {
     'xmlns',
     'role',
     'aria-label',
+    // Pestañas accesibles de megaevolución (atributos inertes: no ejecutan ni cargan nada)
+    'aria-selected',
+    'aria-controls',
+    'hidden',
   ],
   ALLOW_DATA_ATTR: true,
   FORCE_BODY: false,
