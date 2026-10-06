@@ -165,15 +165,14 @@ test('🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y de
   assert.equal(root.querySelectorAll('.mega-panel[hidden]').length, 1);
 });
 
-test('🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base', () => {
+test('🧬 UI Mega: el botón Mega nace contraído y va debajo de las debilidades', () => {
   const html = renderDetailModalContent(charizard);
 
   assert.match(html, /class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure"/);
   assert.match(html, /id="mega-disclosure" hidden>/);
-  const art = html.indexOf('pokedex-artwork-box');
-  const stats = html.indexOf('pokedex-stats-panel');
+  const weaknesses = html.indexOf('Debilidad');
   const toggle = html.indexOf('mega-toggle');
-  assert.ok(art < stats && stats < toggle, 'orden: arte, puntos de base, botón Mega');
+  assert.ok(weaknesses > 0 && weaknesses < toggle, 'orden: debilidades, botón Mega');
 });
 
 test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones', () => {
@@ -182,8 +181,8 @@ test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y a
   const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
   assert.equal(body.closest('.pokedex-entry-grid'), null, 'no está dentro de la rejilla de dos columnas');
   assert.equal(body.parentElement, root, 'es hijo directo del detalle, igual que Evoluciones');
-  const toggle = root.querySelector('.pokedex-left-col .mega-toggle');
-  assert.ok(toggle, 'el botón sí está en la columna izquierda');
+  const toggle = root.querySelector('.pokedex-right-col .mega-toggle');
+  assert.ok(toggle, 'el botón sí está en la columna derecha');
   assert.ok(
     body.compareDocumentPosition(root.querySelector('.evolutions-panel-header') as HTMLElement) &
       dom.window.Node.DOCUMENT_POSITION_FOLLOWING,
