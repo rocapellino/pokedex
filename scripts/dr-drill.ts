@@ -37,6 +37,13 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { execSync } from 'node:child_process';
+import {
+  BACKUP_HMAC_SUFFIX,
+  computeBackupHmac,
+  formatHmacSidecar,
+  parseHmacSidecar,
+  verifyBackupHmac,
+} from './lib/backup-integrity.ts';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -60,6 +67,7 @@ export interface DrDrillMetrics {
   backupSizeBytes: number;
   backupSizeFormatted: string;
   checksumSha256: string;
+  hmacVerified: boolean;
   remoteObjectPresent: boolean;
   remoteObjectUri: string;
   tiempoCopiaMs: number;
@@ -189,6 +197,7 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   const fileTimestamp = backupTimestamp.replace(/[-:T]/g, '_').slice(0, 15);
   const backupFileName = `pokedex_${fileTimestamp}.sql.gz.enc`;
   const checksumFileName = `${backupFileName}.sha256`;
+  const hmacFileName = `${backupFileName}${BACKUP_HMAC_SUFFIX}`;
 
   log(`📅 [1/6] Backup Timestamp generado: ${backupTimestamp}`);
 
@@ -196,19 +205,23 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   const compressed = zlib.gzipSync(Buffer.from(rawSql, 'utf-8'), { level: 9 });
   const encryptedPayload = encryptAes256Cbc(compressed, encryptionKey);
   const checksumSha256 = crypto.createHash('sha256').update(encryptedPayload).digest('hex');
+  const backupHmac = computeBackupHmac(encryptedPayload, encryptionKey);
   const backupSizeBytes = encryptedPayload.length;
   const backupSizeFormatted = `${(backupSizeBytes / 1024).toFixed(2)} KB (${backupSizeBytes} bytes)`;
 
   log(`📦 [2/6] Tamaño de respaldo cifrado: ${backupSizeFormatted}`);
   log(`🔒 [3/6] Checksum SHA-256 emitido: ${checksumSha256}`);
+  log(`🔏 HMAC-SHA256 de autenticidad emitido: ${backupHmac}`);
 
   // 3. Cadena Directa: Copia remota a Google Drive (Tiempo de Copia)
   const tCopiaStart = performance.now();
   const remoteBackupFilePath = path.join(remoteStorageDir, backupFileName);
   const remoteChecksumFilePath = path.join(remoteStorageDir, checksumFileName);
+  const remoteHmacFilePath = path.join(remoteStorageDir, hmacFileName);
 
   fs.writeFileSync(remoteBackupFilePath, encryptedPayload);
   fs.writeFileSync(remoteChecksumFilePath, `${checksumSha256}  ${backupFileName}\n`);
+  fs.writeFileSync(remoteHmacFilePath, formatHmacSidecar(backupHmac, backupFileName));
 
   const tCopiaEnd = performance.now();
   const tiempoCopiaMs = Math.round(tCopiaEnd - tCopiaStart);
@@ -236,12 +249,14 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   const tDescargaStart = performance.now();
   const downloadedBackupPath = path.join(localRestoreDir, backupFileName);
   const downloadedChecksumPath = path.join(localRestoreDir, checksumFileName);
+  const downloadedHmacPath = path.join(localRestoreDir, hmacFileName);
 
   // Simulación de descarga remota
   const remoteData = fs.readFileSync(remoteBackupFilePath);
   const remoteChecksumData = fs.readFileSync(remoteChecksumFilePath, 'utf-8');
   fs.writeFileSync(downloadedBackupPath, remoteData);
   fs.writeFileSync(downloadedChecksumPath, remoteChecksumData);
+  fs.copyFileSync(remoteHmacFilePath, downloadedHmacPath);
 
   const tDescargaEnd = performance.now();
   const tiempoDescargaMs = Math.round(tDescargaEnd - tDescargaStart);
@@ -258,6 +273,16 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
     );
   }
   log(`✅ Checksum SHA-256 de descarga validado con éxito: ${downloadedSha256}`);
+
+  // 5b. Autenticidad (Encrypt-then-MAC): se verifica ANTES de descifrar. El SHA-256 anterior solo detecta
+  // corrupción (quien altera el backup puede recalcularlo); el HMAC exige conocer la clave.
+  const expectedHmac = parseHmacSidecar(fs.readFileSync(downloadedHmacPath, 'utf-8'));
+  if (!expectedHmac || !verifyBackupHmac(downloadedPayload, encryptionKey, expectedHmac)) {
+    throw new Error(
+      'Fallo crítico de autenticidad HMAC-SHA256 en la descarga remota: el backup fue manipulado, el .hmac es inválido o la clave no corresponde',
+    );
+  }
+  log('✅ HMAC-SHA256 de autenticidad verificado con éxito antes de descifrar.');
 
   // 6. Descifrado y Descompresión (Tiempo de Descifrado)
   const tDescifradoStart = performance.now();
@@ -403,6 +428,7 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
     backupSizeBytes,
     backupSizeFormatted,
     checksumSha256,
+    hmacVerified: true,
     remoteObjectPresent,
     remoteObjectUri,
     tiempoCopiaMs,

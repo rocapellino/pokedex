@@ -417,6 +417,16 @@ backup:
     digest: "sha256:efedf3595f1d6f415c08568ba171029bf54052e754cc9f030e3f2412b21f3d67"
     pullPolicy: IfNotPresent
   retentionDays: 7
+  # Autenticación de los backups (Encrypt-then-MAC). El cifrado AES-256-CBC no autentica y el .sha256 solo
+  # detecta corrupción (quien altera el backup lo recalcula), así que cada .enc lleva un .enc.hmac con un
+  # HMAC-SHA256 calculado con una clave derivada de BACKUP_ENCRYPTION_KEY. El .enc no cambia y sigue siendo
+  # legible con `openssl enc -d`.
+  hmac:
+    # Los backups creados desde esta fecha (YYYYMMDD en UTC, la del nombre pokedex_YYYYMMDD_HHMMSS) DEBEN llevar
+    # .hmac; la verificación los rechaza si falta. Los anteriores nacieron antes de la autenticación y se aceptan
+    # sin él con un aviso. Sin esta fecha, quien tuviera acceso de escritura podría borrar el .hmac y degradar la
+    # verificación. Debe ser posterior al despliegue de este cambio y anterior al primer backup que ya lo incluya.
+    requiredFrom: "20261008"
   persistence:
     enabled: true
     size: 5Gi

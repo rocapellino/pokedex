@@ -87,6 +87,10 @@ EOF
     BACKUP_FILE="${TEST_TMP_DIR}/sample.sql.gz.enc"
     openssl enc -aes-256-cbc -pbkdf2 -salt -in "${TEST_TMP_DIR}/sample.sql.gz" -out "${BACKUP_FILE}" -k "${ENCRYPTION_KEY}"
     sha256sum "${BACKUP_FILE}" > "${BACKUP_FILE}.sha256"
+    MAC_KEY="$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${ENCRYPTION_KEY}" -r | cut -d' ' -f1)"
+    openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${BACKUP_FILE}" | cut -d' ' -f1 | \
+      awk -v f="$(basename "${BACKUP_FILE}")" '{ printf "%s  %s\n", $1, f }' > "${BACKUP_FILE}.hmac"
+    unset MAC_KEY
   else
     echo "❌ [DR Verification] Error: No se encontró ningún archivo de backup (.sql.gz.enc) para verificar."
     exit 1
@@ -109,6 +113,36 @@ elif [[ "${DRY_RUN}" == "true" ]]; then
 else
   echo "❌ [DR Verification] Fallo crítico: Archivo de checksum ${CHECKSUM_FILE} ausente. En producción se exige suma de comprobación SHA-256 obligatoria."
   exit 1
+fi
+
+# 2b. Autenticidad HMAC-SHA256 (Encrypt-then-MAC), ANTES de descifrar. El SHA-256 de arriba solo detecta corrupción:
+# quien altera el backup también puede recalcularlo. El HMAC exige la clave (derivada de BACKUP_ENCRYPTION_KEY).
+# Los backups creados desde BACKUP_HMAC_REQUIRED_FROM (YYYYMMDD, UTC) deben llevar .hmac; los anteriores se aceptan sin
+# él con un aviso. Coincide con backup.hmac.requiredFrom del chart.
+BACKUP_HMAC_REQUIRED_FROM="${BACKUP_HMAC_REQUIRED_FROM:-20261008}"
+HMAC_FILE="${BACKUP_FILE}.hmac"
+if [[ -f "${HMAC_FILE}" ]]; then
+  echo "🔏 [DR Verification] Validando autenticidad HMAC-SHA256 del backup..."
+  MAC_KEY="$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${ENCRYPTION_KEY}" -r | cut -d' ' -f1)"
+  EXPECTED_HMAC="$(cut -d' ' -f1 "${HMAC_FILE}")"
+  ACTUAL_HMAC="$(openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${BACKUP_FILE}" | cut -d' ' -f1)"
+  unset MAC_KEY
+  if [[ -z "${EXPECTED_HMAC}" || "${EXPECTED_HMAC}" != "${ACTUAL_HMAC}" ]]; then
+    echo "❌ [DR Verification] Fallo crítico: El HMAC no coincide (backup manipulado, .hmac inválido o clave incorrecta)."
+    exit 1
+  fi
+  echo "✅ [DR Verification] Autenticidad HMAC-SHA256 verificada con éxito."
+else
+  # Un nombre que no se pueda leer (pokedex_YYYYMMDD_HHMMSS) cuenta como posterior a la fecha: se rechaza.
+  BACKUP_DATE="$(basename "${BACKUP_FILE}" | cut -d_ -f2)"
+  if [[ "${BACKUP_DATE}" =~ ^[0-9]{8}$ && "${BACKUP_DATE}" -lt "${BACKUP_HMAC_REQUIRED_FROM}" ]]; then
+    echo "⚠️ [DR Verification] Backup anterior a ${BACKUP_HMAC_REQUIRED_FROM} sin .hmac: se acepta con aviso (se creó antes de la autenticación)."
+  elif [[ "${DRY_RUN}" == "true" ]]; then
+    echo "⚠️ [DR Verification: Dry-Run] Archivo .hmac no disponible en simulación. Continuando..."
+  else
+    echo "❌ [DR Verification] Fallo crítico: Falta ${HMAC_FILE} en un backup creado desde ${BACKUP_HMAC_REQUIRED_FROM}; posible degradación de la autenticación."
+    exit 1
+  fi
 fi
 
 # 3. Prueba de descifrado seguro en directorio temporal aislado

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T19:10:30.597Z",
+  "generatedAt": "2026-10-06T19:50:52.264Z",
   "summary": {
-    "totalFiles": 88,
-    "testFiles": 82,
+    "totalFiles": 89,
+    "testFiles": 83,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 698,
-    "totalLines": 18684,
-    "totalSizeBytes": 814602,
+    "totalTestCases": 709,
+    "totalLines": 18879,
+    "totalSizeBytes": 824288,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 29,
-      "testCases": 228,
+      "files": 30,
+      "testCases": 239,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2716,6 +2716,78 @@
       ]
     },
     {
+      "path": "tests/security/backup_hmac.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 34,
+      "sizeBytes": 9411,
+      "lineCount": 193,
+      "sha256": "e2deb2601836731664faed39ad2d36b29a587730fa60ad6fabb2f451543ef31f",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: backup_hmac.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔏 BACKUP-HMAC-001: el HMAC detecta clave incorrecta y manipulación de forma determinista",
+          "line": 26
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: con una clave incorrecta el HMAC nunca verifica, frente a 2 000 payloads aleatorios",
+          "line": 47
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: la clave del MAC se deriva y no coincide con la de cifrado",
+          "line": 62
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el sidecar .hmac se escribe y se lee con el formato de sha256sum",
+          "line": 69
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el HMAC de Node coincide con el que calcula el CLI de openssl (interoperabilidad)",
+          "line": 82
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el .enc sigue siendo descifrable con `openssl enc -d` sin conocer el HMAC (compatibilidad)",
+          "line": 105
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: el CronJob de backup genera el .hmac y lo sube off-site",
+          "line": 125
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la verificación exige el HMAC antes de descifrar, con el corte configurable",
+          "line": 137
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la fecha de corte de values.yaml coincide con el valor por defecto de dr_verify_restore.sh",
+          "line": 164
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la réplica a Google Drive incluye el .hmac",
+          "line": 173
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: los scripts de Node escriben el .hmac con el módulo común",
+          "line": 182
+        }
+      ]
+    },
+    {
       "path": "tests/security/cors_rejection.test.ts",
       "suite": "security",
       "type": "Automated Test",
@@ -3012,10 +3084,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 36,
-      "sizeBytes": 8679,
-      "lineCount": 197,
-      "sha256": "4ba6ea244a7e024454953cce64c2fdceeb499f4fb8ea36b4203af36b120a647c",
+      "assertionCountEst": 37,
+      "sizeBytes": 8954,
+      "lineCount": 199,
+      "sha256": "54634a385cda0b752a02bbbb712138c7a76973b850a65a195bb9739fc3607709",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -3038,23 +3110,23 @@
         },
         {
           "name": "🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc mantienen interoperabilidad OpenSSL PBKDF2",
-          "line": 61
+          "line": 62
         },
         {
           "name": "🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksum SHA-256 en descarga remota",
-          "line": 101
+          "line": 103
         },
         {
           "name": "🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo",
-          "line": 118
+          "line": 120
         },
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
-          "line": 167
+          "line": 169
         },
         {
           "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
-          "line": 183
+          "line": 185
         }
       ]
     },
