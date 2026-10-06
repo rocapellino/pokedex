@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T13:51:42.044Z",
+  "generatedAt": "2026-10-06T14:20:03.503Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 670,
-    "totalLines": 18028,
-    "totalSizeBytes": 783999,
+    "totalTestCases": 675,
+    "totalLines": 18088,
+    "totalSizeBytes": 786803,
     "suitesCount": 10
   },
   "suites": [
@@ -59,7 +59,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 7,
-      "testCases": 69,
+      "testCases": 74,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -684,10 +684,10 @@
       "runner": "playwright",
       "testCount": 10,
       "describeCount": 1,
-      "assertionCountEst": 36,
-      "sizeBytes": 7542,
-      "lineCount": 163,
-      "sha256": "1857edefad3452196957c26da17fc8eb2c276c14fee1189f7a4ac4a119bca0f5",
+      "assertionCountEst": 42,
+      "sizeBytes": 8310,
+      "lineCount": 179,
+      "sha256": "795191302be969759601d899bbb287c8b67447a7c28855f0a88d2e0b2fdc93e2",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -733,15 +733,15 @@
         },
         {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 133
+          "line": 146
         },
         {
           "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
-          "line": 140
+          "line": 154
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 153
+          "line": 168
         }
       ]
     },
@@ -973,12 +973,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 15,
+      "testCount": 20,
       "describeCount": 0,
-      "assertionCountEst": 51,
-      "sizeBytes": 8333,
-      "lineCount": 188,
-      "sha256": "1335fae3278b929f5dcd5d7e7f72ad9defe51afce669f125814250415a9c4c1c",
+      "assertionCountEst": 67,
+      "sizeBytes": 10369,
+      "lineCount": 232,
+      "sha256": "1a56b717eccdb2bb71e5e7b05decc82ba0206a8ed4a90396424a031b253c2690",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -994,63 +994,83 @@
       "testCases": [
         {
           "name": "🧬 UI Mega: describeStatDelta indica subida, bajada, igualdad y ausencia de base",
-          "line": 56
+          "line": 58
         },
         {
           "name": "🧬 UI Mega: renderMegaStats compara cada estadística y el total con la forma base",
-          "line": 63
+          "line": 65
         },
         {
           "name": "🧬 UI Mega: sin estadísticas base no inventa diferencias",
-          "line": 73
+          "line": 75
         },
         {
           "name": "🧬 UI Mega: un Pokémon sin megaevolución no renderiza la sección",
-          "line": 79
+          "line": 81
         },
         {
           "name": "🧬 UI Mega: varias formas generan una pestaña por forma y solo la primera visible",
-          "line": 85
+          "line": 87
         },
         {
           "name": "🧬 UI Mega: una sola forma no muestra pestañas y usa el título en singular",
-          "line": 96
+          "line": 98
         },
         {
           "name": "🧬 UI Mega: el detalle del Pokémon base incluye la sección de megaevolución",
-          "line": 104
+          "line": 106
         },
         {
           "name": "🧬 UI Mega: habilidades vacías se muestran como no publicadas",
-          "line": 111
+          "line": 113
         },
         {
           "name": "🧬 UI Mega: el contenido escapa texto no confiable (XSS) en nombre y tipos",
-          "line": 117
+          "line": 119
         },
         {
           "name": "🧬 UI Mega: el sanitizador conserva los atributos de las pestañas accesibles",
-          "line": 125
+          "line": 127
         },
         {
           "name": "🧬 UI Mega: selectMegaTab alterna pestaña, aria-selected y panel visible",
-          "line": 136
+          "line": 138
         },
         {
           "name": "🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y devuelve false",
-          "line": 157
+          "line": 159
+        },
+        {
+          "name": "🧬 UI Mega: el botón Mega nace contraído y va entre el arte y los puntos de base",
+          "line": 167
+        },
+        {
+          "name": "🧬 UI Mega: sin megaevolución no hay botón ni despliegue",
+          "line": 178
+        },
+        {
+          "name": "🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega",
+          "line": 183
+        },
+        {
+          "name": "🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)",
+          "line": 188
+        },
+        {
+          "name": "🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null",
+          "line": 205
         },
         {
           "name": "🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución",
-          "line": 165
+          "line": 209
         },
         {
           "name": "🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente",
-          "line": 170
+          "line": 214
         },
         {
           "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
-          "line": 177
+          "line": 221
         }
       ]
     },

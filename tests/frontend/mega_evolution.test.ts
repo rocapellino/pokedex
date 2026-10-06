@@ -3,9 +3,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   describeStatDelta,
+  renderMegaDisclosure,
   renderMegaEvolutionSection,
   renderMegaStats,
   selectMegaTab,
+  toggleMegaDisclosure,
 } from '../../apps/frontend/src/components/modal-mega.js';
 import { renderDetailModalContent } from '../../apps/frontend/src/components/modal-detail.js';
 import { renderPokemonCard } from '../../apps/frontend/src/components/pokemon-card.js';
@@ -160,6 +162,48 @@ test('🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y de
   assert.equal(selectMegaTab(root, 7), false);
   assert.equal((root.querySelector('.mega-tab') as HTMLElement).getAttribute('aria-selected'), 'true');
   assert.equal(root.querySelectorAll('.mega-panel[hidden]').length, 1);
+});
+
+test('🧬 UI Mega: el botón Mega nace contraído y va entre el arte y los puntos de base', () => {
+  const html = renderDetailModalContent(charizard);
+
+  assert.match(html, /class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure"/);
+  assert.match(html, /id="mega-disclosure" hidden>/);
+  const art = html.indexOf('pokedex-artwork-box');
+  const toggle = html.indexOf('mega-toggle');
+  const stats = html.indexOf('pokedex-stats-panel');
+  assert.ok(art < toggle && toggle < stats, 'orden: arte, botón Mega, puntos de base');
+});
+
+test('🧬 UI Mega: sin megaevolución no hay botón ni despliegue', () => {
+  assert.equal(renderMegaDisclosure(pikachu), '');
+  assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-toggle|mega-disclosure/);
+});
+
+test('🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega', () => {
+  assert.match(renderMegaDisclosure(charizard), /aria-label="Ver 2 megaevoluciones"/);
+  assert.match(renderMegaDisclosure({ ...charizard, megaevoluciones: [megaX] }), /aria-label="Ver megaevolución"/);
+});
+
+test('🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)', () => {
+  const root = mount(renderMegaDisclosure(charizard));
+  const toggle = root.querySelector('.mega-toggle') as HTMLElement;
+  const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
+
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(body.hasAttribute('hidden'), true);
+
+  assert.equal(toggleMegaDisclosure(root), true);
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(body.hasAttribute('hidden'), false);
+
+  assert.equal(toggleMegaDisclosure(root), false);
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(body.hasAttribute('hidden'), true);
+});
+
+test('🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null', () => {
+  assert.equal(toggleMegaDisclosure(mount('<p>sin mega</p>')), null);
 });
 
 test('🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución', () => {
