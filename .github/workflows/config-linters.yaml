@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: 2. Actionlint (workflows y scripts embebidos)
         # Imagen fijada por digest (supply chain, ADR-008). Para actualizarla:

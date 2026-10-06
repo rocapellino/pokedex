@@ -620,7 +620,7 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
     let results: string[] = [];
     for (const file of fs.readdirSync(dir)) {
       const fullPath = path.join(dir, file);
-      if (['node_modules', '.git', 'dist', 'coverage', '.turbo', 'tmp'].includes(file)) continue;
+      if (['node_modules', '.git', 'dist', 'coverage', '.turbo', 'tmp', '.claude'].includes(file)) continue;
       let stat: fs.Stats;
       try {
         stat = fs.statSync(fullPath);

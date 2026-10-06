@@ -65,6 +65,7 @@ rules:
     description: "Gobernanza del catálogo externo AAS y sus contratos locales"
     paths:
       - ".agents/aas/**"
+      - ".agents/skills/*/SKILL.md"
       - "scripts/aas-governance.ts"
       - "tests/aas_governance.test.ts"
     triggers:

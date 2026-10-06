@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T14:20:03.503Z",
+  "generatedAt": "2026-10-06T15:37:35.247Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 675,
-    "totalLines": 18088,
-    "totalSizeBytes": 786803,
+    "totalTestCases": 679,
+    "totalLines": 18151,
+    "totalSizeBytes": 789930,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 161,
+      "testCases": 165,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -120,12 +120,12 @@
       "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 10,
+      "testCount": 11,
       "describeCount": 0,
-      "assertionCountEst": 21,
-      "sizeBytes": 6329,
-      "lineCount": 145,
-      "sha256": "4fef1b16b4a61c9074f229bb0f89940ce154068955d35fdab824068273fa352e",
+      "assertionCountEst": 22,
+      "sizeBytes": 6780,
+      "lineCount": 155,
+      "sha256": "483a08d91bbfd5d6c1a33b728e072ee6fea389bf004d20c27f9ca17ac077f8a9",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -144,43 +144,47 @@
       "testCases": [
         {
           "name": "la selección AAS cumple el contrato local",
-          "line": 31
+          "line": 32
         },
         {
           "name": "AAS está fijado por versión y digest",
-          "line": 35
+          "line": 36
         },
         {
           "name": "rechaza sustituir coordinadamente una skill en manifest y revisión",
-          "line": 40
+          "line": 41
+        },
+        {
+          "name": "rechaza una skill AAS cuyo responsable local no existe",
+          "line": 49
         },
         {
           "name": "rechaza riesgo, responsables y razón divergentes",
-          "line": 48
+          "line": 58
         },
         {
           "name": "rechaza una novena skill y metadata ausente",
-          "line": 59
+          "line": 69
         },
         {
           "name": "reporta JSON inválido como error gobernado",
-          "line": 70
+          "line": 80
         },
         {
           "name": "los scripts no exponen apply, recover ni install",
-          "line": 78
+          "line": 88
         },
         {
           "name": "la configuración MCP del editor permanece fuera del alcance",
-          "line": 87
+          "line": 97
         },
         {
           "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 92
+          "line": 102
         },
         {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 125
+          "line": 135
         }
       ]
     },
@@ -243,12 +247,12 @@
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 34,
+      "testCount": 35,
       "describeCount": 0,
-      "assertionCountEst": 251,
-      "sizeBytes": 35724,
-      "lineCount": 789,
-      "sha256": "90ef5332018036df5b5f7875311a3293ce761d863e9910e90cf21343feafff1e",
+      "assertionCountEst": 257,
+      "sizeBytes": 36543,
+      "lineCount": 804,
+      "sha256": "ee9c666f2e7938a1d1a3aeea8716826ac64334a783d6d1c428ad17fd2325e079",
       "targetDomain": "Pipeline CI / Detección de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -290,116 +294,120 @@
           "line": 136
         },
         {
+          "name": "🤖 Change Impact: SKILL.md local activa gobierno de agentes sin fuga a aplicación o infraestructura",
+          "line": 146
+        },
+        {
           "name": "🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed",
-          "line": 161
+          "line": 176
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 214
+          "line": 229
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud",
-          "line": 231
+          "line": 246
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 251
+          "line": 266
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 274
+          "line": 289
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 293
+          "line": 308
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 311
+          "line": 326
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 328
-        },
-        {
-          "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
           "line": 343
         },
         {
+          "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
+          "line": 358
+        },
+        {
           "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
-          "line": 369
+          "line": 384
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 381
+          "line": 396
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 398
+          "line": 413
         },
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 414
+          "line": 429
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 430
-        },
-        {
-          "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
           "line": 445
         },
         {
-          "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 461
+          "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
+          "line": 460
         },
         {
-          "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
+          "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
           "line": 476
         },
         {
-          "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
+          "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
           "line": 491
         },
         {
+          "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
+          "line": 506
+        },
+        {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 511
+          "line": 526
         },
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 530
+          "line": 545
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 557
+          "line": 572
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 579
+          "line": 594
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 622
+          "line": 637
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 638
+          "line": 653
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 676
+          "line": 691
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 703
+          "line": 718
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 724
+          "line": 739
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 737
+          "line": 752
         }
       ]
     },
@@ -409,12 +417,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 18,
+      "testCount": 20,
       "describeCount": 0,
-      "assertionCountEst": 71,
-      "sizeBytes": 21977,
-      "lineCount": 473,
-      "sha256": "e33f83bc23d2aa5dc7d8067be10353b5eafc713e427ac5231b787edb9c72b644",
+      "assertionCountEst": 73,
+      "sizeBytes": 23812,
+      "lineCount": 511,
+      "sha256": "4aa88ca5d2649a97053c26653c92cc49d8a978e81cf538f3060bee89f51c42cc",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -499,6 +507,14 @@
         {
           "name": "⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency",
           "line": 444
+        },
+        {
+          "name": "🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git",
+          "line": 474
+        },
+        {
+          "name": "📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows",
+          "line": 497
         }
       ]
     },
@@ -2469,9 +2485,9 @@
       "testCount": 18,
       "describeCount": 0,
       "assertionCountEst": 189,
-      "sizeBytes": 39407,
+      "sizeBytes": 39418,
       "lineCount": 814,
-      "sha256": "92665c67138565a4b6e1226ce8735e3c7d239c81a861e2b6b894a0837c2440ab",
+      "sha256": "b45633baa8e42c9694b47dbbc6994938cb41cdd2fbc832acc655588d3481f792",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -3346,9 +3362,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 76,
-      "sizeBytes": 17772,
+      "sizeBytes": 17783,
       "lineCount": 386,
-      "sha256": "69fe2e6171f69df18b0471cbf04ceebe769b5b139c3006054c86573523cea021",
+      "sha256": "32d51624049830454a0321a3111693c91a448a99ac952ded2f448f3b3b2d4435",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",

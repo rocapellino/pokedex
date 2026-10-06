@@ -470,3 +470,41 @@ test('⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusabl
   assert.deepEqual(missingTimeout, [], 'Jobs sin timeout-minutes: un job colgado consumiría 6 horas de runner');
   assert.deepEqual(missingConcurrency, [], 'Workflows no reusables sin concurrency: los runs se solaparían');
 });
+
+test('🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git', () => {
+  // Con persist-credentials activo el GITHUB_TOKEN queda en .git/config y lo puede leer
+  // cualquier step posterior. Solo release-tag.yaml necesita credenciales (git push de tags y ramas).
+  const dir = path.join(ROOT_DIR, '.github/workflows');
+  const allowCredentials = new Set(['release-tag.yaml']);
+  const offenders: string[] = [];
+
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml') && !allowCredentials.has(f))) {
+    const doc = yamlSafeLoad(fs.readFileSync(path.join(dir, file), 'utf-8')) as {
+      jobs?: Record<string, { steps?: Array<{ uses?: string; with?: Record<string, unknown> }> }>;
+    };
+    for (const [id, job] of Object.entries(doc.jobs ?? {})) {
+      for (const step of job.steps ?? []) {
+        if (step.uses?.startsWith('actions/checkout@') && step.with?.['persist-credentials'] !== false) {
+          offenders.push(`${file}:${id}`);
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(offenders, [], 'Checkouts sin persist-credentials: false');
+});
+
+test('📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows', () => {
+  const dir = path.join(ROOT_DIR, '.github/workflows');
+  const pins = new Map<string, Set<string>>();
+
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
+    const content = fs.readFileSync(path.join(dir, file), 'utf-8');
+    for (const match of content.matchAll(/uses:\s*([\w.-]+\/[\w./-]+)@([0-9a-f]{40})/g)) {
+      pins.set(match[1], (pins.get(match[1]) ?? new Set()).add(match[2]));
+    }
+  }
+
+  const drift = [...pins].filter(([, shas]) => shas.size > 1).map(([action]) => action);
+  assert.deepEqual(drift, [], 'Actions con más de un SHA pineado (versiones divergentes)');
+});
