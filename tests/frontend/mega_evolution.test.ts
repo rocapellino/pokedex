@@ -119,7 +119,7 @@ test('🧬 UI Mega: el contenido escapa texto no confiable (XSS) en nombre y tip
   const html = renderMegaEvolutionSection({ ...charizard, megaevoluciones: [evil] });
 
   assert.doesNotMatch(html, /<img src=x/);
-  assert.doesNotMatch(html, /<script>/);
+  assert.doesNotMatch(html, /<script/i);
 });
 
 test('🧬 UI Mega: el sanitizador conserva los atributos de las pestañas accesibles', () => {
