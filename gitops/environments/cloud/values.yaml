@@ -24,7 +24,7 @@ api:
   replicaCount: 3
   image:
     repository: ghcr.io/rocapellino/pokedex-api
-    digest: "sha256:a2c1b7b7d8830046d23ca953fc892249ae9166ed3aceaa1fa89041e251918a1a" # SHA256 digest pinning inmutable (SSOT)
+    digest: "sha256:197a919ded064608c48d5e7068dfb09558c256dc2aa36e021d7ecf77a4b72f1a" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:
@@ -47,7 +47,7 @@ web:
   replicaCount: 3
   image:
     repository: ghcr.io/rocapellino/pokedex-web
-    digest: "sha256:3a37a4dc39d18c748f779ffa64d4b912a83819b8c4ccea55148de9717daf4715" # SHA256 digest pinning inmutable (SSOT)
+    digest: "sha256:f59b77833b595fa3722e18bae8165de3e55d19fb1d83b6e1c697873cb918165a" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:
