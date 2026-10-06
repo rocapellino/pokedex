@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-05T23:21:27.076Z",
+  "generatedAt": "2026-10-06T00:42:11.984Z",
   "summary": {
-    "totalFiles": 77,
-    "testFiles": 72,
+    "totalFiles": 78,
+    "testFiles": 73,
     "helperFiles": 4,
     "performanceScripts": 1,
-    "totalTestCases": 607,
-    "totalLines": 16954,
-    "totalSizeBytes": 737742,
+    "totalTestCases": 610,
+    "totalLines": 17096,
+    "totalSizeBytes": 743459,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 26,
-      "testCases": 214,
+      "files": 27,
+      "testCases": 217,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3542,6 +3542,46 @@
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
           "line": 376
+        }
+      ]
+    },
+    {
+      "path": "tests/security/nginx_effective_headers.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 5,
+      "sizeBytes": 5717,
+      "lineCount": 142,
+      "sha256": "26d2a1d6f4dc54d49b7bef40fe40138cb341e091f699d389334fe7c6e7fc9563",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: nginx_effective_headers.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Nginx efectivo: el nivel server declara todas las cabeceras de seguridad requeridas",
+          "line": 97
+        },
+        {
+          "name": "🛡️ Nginx efectivo: toda location que sirve contenido envía TODAS las cabeceras (herencia de add_header)",
+          "line": 103
+        },
+        {
+          "name": "🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del upstream para no duplicarlas",
+          "line": 120
         }
       ]
     },
