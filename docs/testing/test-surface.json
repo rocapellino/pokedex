@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:44:51.351Z",
+  "generatedAt": "2026-10-06T18:48:24.422Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 698,
-    "totalLines": 18658,
-    "totalSizeBytes": 812995,
+    "totalLines": 18660,
+    "totalSizeBytes": 813186,
     "suitesCount": 10
   },
   "suites": [
@@ -4034,9 +4034,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 17,
-      "sizeBytes": 9229,
-      "lineCount": 199,
-      "sha256": "071c45f4e70966ac1f7eacdcef85c2a04a43021c40fca13d6a533c81fc301be1",
+      "sizeBytes": 9420,
+      "lineCount": 201,
+      "sha256": "8de94ee9771ef962ba7b8ece278fc205bd827847677451a3012455753cc3fdae",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
