@@ -62,8 +62,8 @@ test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload construye entidad con 
   assert.equal(entity.fuerza, 50);
   assert.equal(entity.caracteristicas.peso, 10.0);
   assert.equal(entity.caracteristicas.altura, 1.0);
-  assert.equal(entity.stats.hp, 50);
-  assert.equal(entity.stats.attack, 50);
+  assert.equal(entity.stats!.hp, 50);
+  assert.equal(entity.stats!.attack, 50);
 
   // Payload con tipos y habilidades múltiples
   const multiPayload = {
@@ -132,9 +132,9 @@ test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates preserva inmutabilidad y f
   // Campos preservados del existing
   assert.equal(updated.caracteristicas.altura, 0.7);
   assert.equal(updated.caracteristicas.categoria, 'Semilla');
-  assert.equal(updated.stats.hp, 45);
-  assert.equal(updated.stats.attack, 60);
-  assert.equal(updated.stats.defense, 49);
+  assert.equal(updated.stats!.hp, 45);
+  assert.equal(updated.stats!.attack, 60);
+  assert.equal(updated.stats!.defense, 49);
 });
 
 test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates cubre mutaciones completas y todas las ramas de fallback', () => {
@@ -201,11 +201,11 @@ test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates cubre mutaciones completas
   assert.equal(updatedFull.caracteristicas.categoria, 'Llama');
   assert.equal(updatedFull.caracteristicas.descripcion, 'Escupe fuego intenso');
   assert.equal(updatedFull.caracteristicas.fuerza, 64);
-  assert.equal(updatedFull.stats.defense, 58);
-  assert.equal(updatedFull.stats.sp_attack, 80);
-  assert.equal(updatedFull.stats.sp_defense, 65);
-  assert.equal(updatedFull.stats.speed, 80);
-  assert.equal(updatedFull.evoluciones.length, 1);
+  assert.equal(updatedFull.stats!.defense, 58);
+  assert.equal(updatedFull.stats!.sp_attack, 80);
+  assert.equal(updatedFull.stats!.sp_defense, 65);
+  assert.equal(updatedFull.stats!.speed, 80);
+  assert.equal((updatedFull.evoluciones as unknown[]).length, 1);
 
   // 2. Mutación con strings individuales en tipos/habilidades y habitat en caracteristicas
   const stringTypeUpdates = {
@@ -226,7 +226,7 @@ test('🐾 Pokemon Mapper [Unit]: applyPokemonUpdates cubre mutaciones completas
   assert.equal(emptyUpdate.imagen, existing.imagen);
   assert.equal(emptyUpdate.habitat, existing.habitat);
   assert.equal(emptyUpdate.caracteristicas.peso, existing.caracteristicas.peso);
-  assert.equal(emptyUpdate.stats.hp, existing.stats.hp);
+  assert.equal(emptyUpdate.stats!.hp, existing.stats!.hp);
 });
 
 test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload cubre payloads exhaustivos y tipos no-array', () => {
@@ -263,7 +263,7 @@ test('🐾 Pokemon Mapper [Unit]: buildPokemonFromPayload cubre payloads exhaust
   assert.equal(entity.nombre, 'Charizard');
   assert.deepEqual(entity.tipos, ['Fuego']);
   assert.deepEqual(entity.habilidades, ['Mar Llamas']);
-  assert.equal(entity.stats.sp_attack, 109);
+  assert.equal(entity.stats!.sp_attack, 109);
   assert.equal(entity.caracteristicas.descripcion, 'Alas poderosas');
-  assert.equal(entity.evoluciones.length, 1);
+  assert.equal((entity.evoluciones as unknown[]).length, 1);
 });

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { AxeBuilder } from '@axe-core/playwright';
 
 test.describe('Pokédex Web Application E2E Suite', () => {
   test.beforeEach(async ({ page }) => {
