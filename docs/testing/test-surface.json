@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:19:56.029Z",
+  "generatedAt": "2026-10-06T17:22:44.771Z",
   "summary": {
     "totalFiles": 86,
     "testFiles": 80,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 683,
-    "totalLines": 18278,
-    "totalSizeBytes": 795645,
+    "totalTestCases": 684,
+    "totalLines": 18317,
+    "totalSizeBytes": 797696,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 28,
-      "testCases": 218,
+      "testCases": 219,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2840,12 +2840,12 @@
       "type": "Security / Backup",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 10,
+      "testCount": 11,
       "describeCount": 0,
-      "assertionCountEst": 127,
-      "sizeBytes": 22352,
-      "lineCount": 423,
-      "sha256": "2485c2dd3da62cd36ede85cd56eb734d61684721fe9a48b17f36af48550a112c",
+      "assertionCountEst": 131,
+      "sizeBytes": 24403,
+      "lineCount": 462,
+      "sha256": "df415648e5b5eea810276cfbdadeb66ae5bbc373d6a9019eb56fdf0618f055a3",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -2865,43 +2865,47 @@
       "testCases": [
         {
           "name": "🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256, checksum y hardening de pod",
-          "line": 10
+          "line": 11
         },
         {
           "name": "🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo automatizado, clave efímera dinámica y restauración real",
-          "line": 52
+          "line": 53
         },
         {
           "name": "🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h",
-          "line": 99
+          "line": 100
         },
         {
           "name": "🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa verificación periódica de restauración en K8s",
-          "line": 117
+          "line": 118
         },
         {
           "name": "🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible agnóstico y PBS Remote Sync) formalizados como inactivos",
-          "line": 132
+          "line": 133
         },
         {
           "name": "🛡️ Disaster Recovery: Backup y Restore Verification renderizan PersistentVolumeClaim real y evitan almacenamiento efímero (Anti-emptyDir)",
-          "line": 180
+          "line": 181
         },
         {
           "name": "🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)",
-          "line": 230
+          "line": 231
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC",
-          "line": 274
+          "line": 275
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (fail-closed) si GDRIVE_TOKEN está ausente o vacío",
-          "line": 372
+          "line": 373
         },
         {
           "name": "🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)",
-          "line": 413
+          "line": 414
+        },
+        {
+          "name": "🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y digest) en docker-compose y en el chart de Helm",
+          "line": 435
         }
       ]
     },

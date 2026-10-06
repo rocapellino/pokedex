@@ -75,6 +75,14 @@
       "labels": ["dependencies", "docker"]
     },
     {
+      "description": "rclone: la imagen se declara en docker-compose.dev.yaml y en el chart de Helm (tag y digest en values.yaml); se agrupan en un solo PR para que no diverjan. Renovate solo cambia el tag del chart: el digest se copia del compose en ese PR y tests/security/dr_backup_security.test.ts falla hasta que coincidan",
+      "matchManagers": ["docker-compose", "helm-values"],
+      "matchPackageNames": ["rclone/rclone"],
+      "groupName": "rclone",
+      "groupSlug": "rclone",
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "description": "docker-compose y chart de Helm: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major en ambos gestores y se mantienen los digests y parches",
       "matchManagers": ["docker-compose", "helm-values"],
       "matchPackageNames": ["postgres", "redis"],
