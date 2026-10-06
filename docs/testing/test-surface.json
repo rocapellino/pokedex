@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T15:13:12.101Z",
+  "generatedAt": "2026-10-06T15:28:45.903Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 675,
-    "totalLines": 18088,
-    "totalSizeBytes": 786825,
+    "totalTestCases": 676,
+    "totalLines": 18098,
+    "totalSizeBytes": 787276,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 161,
+      "testCases": 162,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -120,12 +120,12 @@
       "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 10,
+      "testCount": 11,
       "describeCount": 0,
-      "assertionCountEst": 21,
-      "sizeBytes": 6329,
-      "lineCount": 145,
-      "sha256": "4fef1b16b4a61c9074f229bb0f89940ce154068955d35fdab824068273fa352e",
+      "assertionCountEst": 22,
+      "sizeBytes": 6780,
+      "lineCount": 155,
+      "sha256": "483a08d91bbfd5d6c1a33b728e072ee6fea389bf004d20c27f9ca17ac077f8a9",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -144,43 +144,47 @@
       "testCases": [
         {
           "name": "la selección AAS cumple el contrato local",
-          "line": 31
+          "line": 32
         },
         {
           "name": "AAS está fijado por versión y digest",
-          "line": 35
+          "line": 36
         },
         {
           "name": "rechaza sustituir coordinadamente una skill en manifest y revisión",
-          "line": 40
+          "line": 41
+        },
+        {
+          "name": "rechaza una skill AAS cuyo responsable local no existe",
+          "line": 49
         },
         {
           "name": "rechaza riesgo, responsables y razón divergentes",
-          "line": 48
+          "line": 58
         },
         {
           "name": "rechaza una novena skill y metadata ausente",
-          "line": 59
+          "line": 69
         },
         {
           "name": "reporta JSON inválido como error gobernado",
-          "line": 70
+          "line": 80
         },
         {
           "name": "los scripts no exponen apply, recover ni install",
-          "line": 78
+          "line": 88
         },
         {
           "name": "la configuración MCP del editor permanece fuera del alcance",
-          "line": 87
+          "line": 97
         },
         {
           "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 92
+          "line": 102
         },
         {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 125
+          "line": 135
         }
       ]
     },
