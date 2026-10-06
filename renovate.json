@@ -26,7 +26,6 @@
     "npm",
     "terraform"
   ],
-  "//gitsign": "Gitsign se actualiza de forma MANUAL y deliberada. No existe datasource de Renovate (ni de Dependabot) para binarios de Sigstore, y ningun regex manager puede calcular el SHA-256 de un release asset: el digest vive en el campo `digest` de la API de GitHub y en `checksums.txt`. Un bump automatico de la version dejaria los digests obsoletos y el release fallaria en modo fail-closed. Procedimiento: cambiar GITSIGN_VERSION, ejecutar el workflow con el input `gitsign_refresh` y pegar el bloque `env:` impreso. La coherencia version-digests se valida en runtime (SEC-001).",
   "packageRules": [
     {
       "description": "Auto-merge estricto únicamente para parches de dependencias npm (semver patch)",

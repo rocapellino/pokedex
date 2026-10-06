@@ -18,6 +18,7 @@
 #   Zizmor      -> auditoria de seguridad de los workflows (inyeccion de plantillas,
 #                  triggers peligrosos, credenciales persistidas), con severidad
 #                  minima `medium`. Excepciones justificadas en .github/zizmor.yaml
+#   Renovate    -> validacion de renovate.json con renovate-config-validator --strict
 #   ShellCheck  -> scripts *.sh versionados, con severidad minima `warning`
 # Cobertura que NO se replica por ser redundante con un control mas especifico:
 #   Hadolint    -> ya corre en security-code-scanning.yaml
@@ -64,7 +65,22 @@ jobs:
         run: |
           docker run --rm             -v "${GITHUB_WORKSPACE}:/repo" -w /repo             ghcr.io/zizmorcore/zizmor:1.30.1@sha256:a2eb396d886c053073405c7a980f2139ba2248ec172243cfa3841e57196e8101             --offline --no-progress --min-severity=medium .github/workflows
 
-      - name: 4. ShellCheck (scripts *.sh)
+      - name: 4. Renovate (validar renovate.json)
+        # Una opcion invalida (p. ej. una clave de comentario como `//x`) hace que Renovate
+        # hospedado deje de abrir PRs de dependencias, sin que ningun otro gate lo detecte.
+        # Sin argumentos valida renovate.json como configuracion de repositorio (con un
+        # archivo como argumento lo trataria como configuracion global). --strict tambien
+        # rechaza claves obsoletas. El motor local es el mismo que usa el
+        # servicio. Imagen fijada por digest (supply chain, ADR-008). Para actualizarla:
+        # resolver el digest del nuevo tag en Docker Hub y sustituir tag y digest.
+        run: |
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/repo:ro" -w /repo \
+            --entrypoint renovate-config-validator \
+            renovate/renovate:44.140.0@sha256:7c1f8ef90ac394f44368e1ab65e014ea51b76acab7d55a28f9c79740cf8da0dc \
+            --strict
+
+      - name: 5. ShellCheck (scripts *.sh)
         run: |
           mapfile -t scripts < <(git ls-files '*.sh')
           if [ "${#scripts[@]}" -eq 0 ]; then
