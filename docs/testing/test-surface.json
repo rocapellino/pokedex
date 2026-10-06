@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:09:44.328Z",
+  "generatedAt": "2026-10-06T17:25:33.903Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 683,
-    "totalLines": 18272,
-    "totalSizeBytes": 795841,
+    "totalTestCases": 684,
+    "totalLines": 18291,
+    "totalSizeBytes": 796855,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 168,
+      "testCases": 169,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -421,12 +421,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 22,
+      "testCount": 23,
       "describeCount": 0,
-      "assertionCountEst": 78,
-      "sizeBytes": 25448,
-      "lineCount": 544,
-      "sha256": "fd360068b6ec68d4790e18640540819fdec135c8d99bebfb84267a17040bad9e",
+      "assertionCountEst": 81,
+      "sizeBytes": 26462,
+      "lineCount": 563,
+      "sha256": "4982d06ebc7a14031eaf454cee91aa1999212c923f1d6c03e90695250c3bce65",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -525,8 +525,12 @@
           "line": 512
         },
         {
-          "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
+          "name": "📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate",
           "line": 527
+        },
+        {
+          "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
+          "line": 546
         }
       ]
     },
