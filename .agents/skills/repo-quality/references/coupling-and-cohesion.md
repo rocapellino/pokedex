@@ -46,7 +46,7 @@ Para clasificar la calidad interna de los módulos, se emplea la escala clásica
 | :--- | :---: | :--- | :--- |
 | **Funcional** | **ÓPTIMA** | Todas las partes colaboran para realizar una única tarea bien definida. | `sanitizer.ts`: Funciones puras orientadas exclusivamente a desinfectar strings y HTML. |
 | **Secuencial** | **BUENA** | La salida de una función es la entrada de la siguiente en un pipeline. | Cadena de middleware: `requestTracer` → `rateLimiter` → `auth`. |
-| **Comunicacional** | **ACEPTABLE** | Múltiples funciones que operan sobre la misma estructura de datos central. | `pokemons.repository.ts`: Funciones que leen y escriben registros del esquema `pokedexEntries`. |
+| **Comunicacional** | **ACEPTABLE** | Múltiples funciones que operan sobre la misma estructura de datos central. | `pokemon.repository.ts`: Funciones que leen y escriben registros del esquema `pokedexEntries`. |
 | **Lógica** | **DEFICIENTE** | Funciones agrupadas porque realizan tareas vagamente similares pero disjuntas. | Un archivo `validators.ts` que valida emails de usuarios, payloads de Pokémon y firmas de webhooks. |
 | **Coincidente** | **ANTIPATRÓN** | Funciones agrupadas arbitrariamente sin ninguna relación lógica ni de datos. | Un archivo `helpers.ts` con cálculo matemático, formateo de fechas y envío de emails. |
 

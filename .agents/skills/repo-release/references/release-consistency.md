@@ -39,7 +39,7 @@ Para cada funcionalidad relevante del repositorio, se evalúa su estado real a t
    - El tag referenciado debe contener los manifiestos Helm y valores requeridos por la versión declarada.
 2. **Paridad de Imágenes y Digests OCI:**
    - El digest declarado en GitOps debe coincidir con la imagen compilada y firmada en el release.
-   - En producción, debe cumplirse la paridad 1:1 entre entornos (`AWS == Proxmox == Helm Prod`).
+   - En producción, debe cumplirse la paridad 1:1 entre entornos (`Cloud == Proxmox == Helm Prod`).
 3. **Contratos de Secretos y Configuración:**
    - La clave de Vault o SecretStore apuntada en GitOps (`pokedex/preprod` en el entorno operativo; `pokedex/prod` solo en el blueprint prod cloud inactivo, ADR-030) debe existir en la infraestructura y ser compatible con la versión de la aplicación desplegada.
 
@@ -53,8 +53,8 @@ Para erradicar la asunción de *"tag existe = todo validado"*, la certificación
 | **`OCI Image`** | Existencia del artefacto en GHCR bajo la etiqueta de versión. | Consulta al registry (`ghcr.io/rocapellino/pokedex-api:vX.Y.Z`). |
 | **`OCI Digest`** | Presencia de digest inmutable SHA-256 y paridad 1:1 con GitOps. | `npm run gitops:verify-parity:strict`. |
 | **`Cosign Signature`** | Firma criptográfica Sigstore en imagen Docker y Helm Chart. | `cosign verify <image>@sha256:...`. |
-| **`SBOM`** | SBOM CycloneDX generado y adjunto al digest OCI. | Inspección de capa SBOM en GHCR (`cosign download sbom`). |
-| **`SLSA Provenance`** | Atestación *in-toto* de procedencia verificable. | `cosign verify-attestation --type cyclonedx ...`. |
+| **`SBOM`** | SBOM CycloneDX generado y adjunto al digest OCI. | Atestación CycloneDX asociada al digest (`cosign verify-attestation --type cyclonedx`); se publica con `cosign attest`, no como SBOM adjunto. |
+| **`SLSA Provenance`** | Atestación *in-toto* de procedencia verificable. | `gh attestation verify oci://<imagen>@sha256:... --owner <owner>`; la genera `actions/attest-build-provenance` y el CI hoy no la verifica, por lo que sin verificación manual es `UNKNOWN`. |
 
 Cada sub-dimensión debe clasificarse estrictamente como `PASS`, `FAIL`, `UNKNOWN` (en caso de no contar con credenciales o conectividad al registry) o `NOT_APPLICABLE`.
 
@@ -82,7 +82,7 @@ Antes de autorizar la promoción de un nuevo release hacia GitOps, se evalúan 9
 | **Code Consistency** | PASS / WARNING / BLOCKER | Working tree limpio, tipos TypeScript verificados (`typecheck`), tests pasando. |
 | **Helm Consistency** | PASS / WARNING / BLOCKER | `helm lint` y `helm template` renderizan sin errores sintácticos. |
 | **OCI Artifact Consistency** | PASS / WARNING / BLOCKER | Imágenes Docker y Helm Charts publicados en GHCR y firmados con Cosign (`cosign verify`). |
-| **Provenance & SBOM Attestation** | PASS / WARNING / BLOCKER | Atestación *in-toto* y SBOM CycloneDX asociados al *digest* OCI verificados (`cosign verify-attestation`). |
+| **Provenance & SBOM Attestation** | PASS / WARNING / BLOCKER | Atestación *in-toto* y SBOM CycloneDX asociados al *digest* OCI verificados (`cosign verify-attestation` para el SBOM; `gh attestation verify` para la procedencia). |
 | **Secrets Consistency** | PASS / WARNING / BLOCKER | Claves de Vault y ExternalSecrets coinciden con el contrato del nuevo release. |
 | **GitOps Consistency** | PASS / WARNING / BLOCKER | Los values por entorno no contienen flags obsoletos o incompatibles. |
 | **DR Consistency** | PASS / WARNING / BLOCKER | Procedimientos de backup y restore validados (simulacro o test de restore). |

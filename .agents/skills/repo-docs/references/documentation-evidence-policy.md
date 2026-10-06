@@ -25,7 +25,7 @@ Ante cualquier contradicción entre artefactos del repositorio, la verdad técni
     │
  4. Infraestructura Declarativa (IaC)                (infra/helm/, infra/opentofu/, infra/ansible/)
     │
- 5. Manifiestos de Paquetes y Lockfiles              (package.json, bun.lock)
+ 5. Manifiestos de Paquetes y Lockfiles              (package.json, package-lock.json)
     │
  6. Manifiestos de GitOps y Runtime                  (gitops/)
     │

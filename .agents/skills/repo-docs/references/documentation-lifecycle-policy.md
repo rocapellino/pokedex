@@ -101,7 +101,7 @@ HISTORICAL
 | **Documento SSOT actual** (`docs/architecture/`, `docs/operations/`, `docs/runbooks/`) | Permanente | `KEEP` / `UPDATE` |
 | **ADR** (`docs/decisions/ADR-*.md`) | Permanente | `KEEP` |
 | **Runbook Operativo** | Permanente mientras esté vigente | `KEEP` / `UPDATE` |
-| **Baseline Activo Vigente** (`docs/audits/<fecha-actual>/baseline_post-release.md`) | Conservar en árbol activo | `KEEP` |
+| **Baseline Activo Vigente** (`docs/audits/<fecha-actual>/baseline.md`) | Conservar en árbol activo | `KEEP` |
 | **Auditoría con hallazgos o tareas abiertas** | Conservar mientras no se cierren | `KEEP` |
 | **Auditoría cerrada y consolidada en baseline** | Eliminar del árbol activo | `DELETE` (Git preserva historial) |
 | **Auditorías intermedias, duplicadas o borradores** | Eliminar / Consolidar | `DELETE` |

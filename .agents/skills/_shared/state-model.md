@@ -55,7 +55,7 @@ El repositorio opera bajo una arquitectura de cuatro niveles secuenciales y desa
    ```
 
 3. **`GITOPS` (Estado Declarado / Desplegable):**
-   Manifiestos de Kubernetes y configuraciones declaradas en `gitops/` que especifican qué versión (`targetRevision`) y qué valores (`values.yaml`) debe reconciliar ArgoCD para cada entorno (`proxmox`, `proxmox-preprod`, `cloud-aws`).
+   Manifiestos de Kubernetes y configuraciones declaradas en `gitops/` que especifican qué versión (`targetRevision`) y qué valores (`values.yaml`) debe reconciliar ArgoCD para cada entorno (`proxmox-preprod` y `cloud`).
 4. **`RUNTIME` (Estado Observado):**
    El estado real y vivo de los recursos desplegados en los clústeres físicos o virtuales. Si no existe conexión o telemetría activa directa hacia el clúster en el momento de la auditoría, su estado debe reportarse estrictamente como `UNKNOWN`.
 
@@ -116,7 +116,7 @@ Ante la duda, **consultar esta tabla antes de clasificar un hallazgo**.
    declarado se considera no conforme.
 
 > [!NOTE]
-> Los nueve vocabularios eran en su origen correctos: cada uno describe un dominio
+> Los diez vocabularios eran en su origen correctos: cada uno describe un dominio
 > distinto. El defecto era exclusivamente la ausencia de este registro, no la
 > coexistencia. La unificación de la taxonomía documental (7 estados) es el único caso
 > en que dos vocabularios describían realmente el mismo fenómeno.
