@@ -1715,8 +1715,68 @@ body {
   cursor: pointer;
 }
 
+/* Botón "Mega" entre el arte y los puntos de base; despliega la sección */
+.mega-disclosure {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mega-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-glass);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mega-toggle:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+.mega-toggle:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+.mega-toggle[aria-expanded="true"] {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+.mega-toggle[aria-expanded="true"] .mega-title-mark {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mega-toggle-text {
+  flex: 1;
+  text-align: left;
+}
+
+.mega-toggle-chevron {
+  transition: transform var(--transition-fast);
+}
+
+.mega-toggle[aria-expanded="true"] .mega-toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.mega-disclosure-body[hidden] {
+  display: none;
+}
+
 .mega-section {
-  margin-top: 1.5rem;
   padding: 1.25rem;
   background: var(--bg-glass);
   border: 1px solid rgba(139, 92, 246, 0.35);
@@ -1794,15 +1854,9 @@ body {
 
 .mega-panel-grid {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
-}
-
-@media (max-width: 768px) {
-  .mega-panel-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .mega-artwork-box {

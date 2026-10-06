@@ -9,7 +9,7 @@ import { normalizeStr } from '../shared/index.js';
 import { BASE_STAT_DEFS, isValidStat, statTier, statWidthStep } from '../shared/base-stats.js';
 
 import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
-import { renderMegaEvolutionSection } from './modal-mega.js';
+import { renderMegaDisclosure } from './modal-mega.js';
 import {
   getTriggerIcon,
   renderTransitionConnector,
@@ -107,6 +107,8 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
           <img src="${escapeText(pokemon.imagen || '')}" alt="${escapeText(pokemon.nombre)}" class="pokedex-artwork-img">
         </div>
 
+        ${renderMegaDisclosure(pokemon)}
+
         <div class="pokedex-stats-panel">
           <div class="stats-panel-title">Puntos de base</div>
           <div class="stats-panel-body">
@@ -164,7 +166,6 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
     </div>
 
     ${evolutionsHtml}
-    ${renderMegaEvolutionSection(pokemon)}
   `;
 }
 
