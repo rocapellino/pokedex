@@ -523,3 +523,21 @@ test('🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y
     'Debe existir .github/zizmor.yaml con las excepciones justificadas',
   );
 });
+
+test('🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN', () => {
+  // pull_request_target corre con secretos en el contexto del repo base. El token de
+  // administracion solo se admite en workflows disparados por push/schedule/dispatch.
+  const dir = path.join(ROOT_DIR, '.github/workflows');
+  const offenders: string[] = [];
+
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
+    const content = fs.readFileSync(path.join(dir, file), 'utf8');
+    const doc = yamlSafeLoad(content) as { on?: unknown; true?: unknown };
+    const triggers = (doc.on ?? doc.true ?? {}) as Record<string, unknown>;
+    if (typeof triggers === 'object' && 'pull_request_target' in triggers && /RULESET_ADMIN_TOKEN/.test(content)) {
+      offenders.push(file);
+    }
+  }
+
+  assert.deepEqual(offenders, [], 'pull_request_target con RULESET_ADMIN_TOKEN expone un token de admin');
+});
