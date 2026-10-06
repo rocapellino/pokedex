@@ -13,7 +13,7 @@ Ejecutar auditorías y evaluaciones de seguridad DevSecOps profundas, repetibles
 
 - **Gestión de Secretos y Rotación:**
   - Búsqueda de secretos, tokens o credenciales expuestas en código, historial git o artefactos de build.
-  - Verificación del contrato de External Secrets Operator (ESO) con HashiCorp Vault CE (`pokedex/prod` y `pokedex/preprod`).
+  - Verificación del contrato de External Secrets Operator (ESO) con HashiCorp Vault CE (`pokedex/preprod` operativo; `pokedex/prod` reservado al blueprint prod cloud inactivo, ADR-030).
   - Cumplimiento de la rotación automatizada y del contrato Reloader ([ADR-005](../../../docs/decisions/ADR-005-secret-management.md), que consolida al retirado ADR-022).
 - **Seguridad de Aplicación y API:**
   - Validación de esquemas Zod en todas las entradas de datos externos.

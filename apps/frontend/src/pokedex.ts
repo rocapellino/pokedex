@@ -22,6 +22,7 @@ import {
   closeDetailModal,
   renderPokemonCard,
   selectMegaTab,
+  toggleMegaDisclosure,
 } from './components/index.js';
 
 export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
@@ -255,6 +256,10 @@ export function initInteractiveListeners(): void {
   if (detailContent) {
     detailContent.addEventListener('click', (e) => {
       const target = e.target as HTMLElement | null;
+      if (target?.closest('.mega-toggle')) {
+        toggleMegaDisclosure(detailContent);
+        return;
+      }
       const megaTab = target?.closest('.mega-tab');
       if (megaTab) {
         selectMegaTab(detailContent, Number(megaTab.getAttribute('data-mega-index')));
