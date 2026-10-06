@@ -79,7 +79,7 @@ Toda skill de análisis debe asumir como punto de partida el stack real y la top
   - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800, único entorno Proxmox, ADR-030). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.
   - **Prod cloud (blueprint agnóstico, ADR-030):** `values.prod.yaml` + `gitops/environments/cloud/`, con backend de secretos a elegir y Reloader Stakater.
 - **GitOps:** ArgoCD bajo patrón App-of-Apps (`root-application.yaml` reconciliando `pokedex-preprod`, in-cluster en el LXC 800). `pokedex-cloud` (prod cloud agnóstico) es un **blueprint inactivo**, excluida del App-of-Apps (GITOPS-001) y activable solo de forma explícita.
-- **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/prod` y `pokedex/preprod`).
+- **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/preprod` operativo; `pokedex/prod` reservado al blueprint prod cloud inactivo, ADR-030).
 - **Seguridad y Supply Chain:** OCI digest pinning inmutable (sha256), SBOM CycloneDX, firma Cosign, atestación SLSA y validación Kyverno admission controller.
 - **IaC & Config Management:** OpenTofu para aprovisionamiento y Ansible para configuración de host/servicios base.
 - **Convención de Extensión YAML:** la extensión canónica para todo archivo YAML es **`.yaml`** (manifiestos, values, workflows, configuraciones, playbooks e inventories). La extensión `.yml` está **prohibida para archivos nuevos** y solo se admite si una herramienta externa la impone, en cuyo caso debe documentarse como excepción. Enforcement: `npm run lint:yaml` (`npm run lint:yaml:strict` en CI) mediante `scripts/check-yaml-extension.ts`.
