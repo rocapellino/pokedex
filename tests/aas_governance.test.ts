@@ -14,6 +14,7 @@ function withFixture(
   mkdirSync(directory, { recursive: true });
   cpSync('.agents/aas/aas-stack.json', join(directory, 'aas-stack.json'));
   cpSync('.agents/aas/reviewed-selection.json', join(directory, 'reviewed-selection.json'));
+  cpSync('.agents/skills', join(root, '.agents', 'skills'), { recursive: true });
   const stackPath = join(directory, 'aas-stack.json');
   const reviewPath = join(directory, 'reviewed-selection.json');
   const stack = JSON.parse(readFileSync(stackPath, 'utf8')) as Record<string, any>;
@@ -43,6 +44,15 @@ test('rechaza sustituir coordinadamente una skill en manifest y revisión', () =
     review.approved[0].id = 'architecture-review';
   });
   assert.ok(errors.some((error) => error.includes('allowlist')));
+});
+
+test('rechaza una skill AAS cuyo responsable local no existe', () => {
+  const errors = withFixture((_stack, _review, root) => {
+    rmSync(join(root, '.agents', 'skills', 'repo-docs'), { recursive: true, force: true });
+  });
+  assert.deepEqual(errors, [
+    'La skill local repo-docs, responsable de documentation-and-adrs, no existe en .agents/skills/.',
+  ]);
 });
 
 test('rechaza riesgo, responsables y razón divergentes', () => {
