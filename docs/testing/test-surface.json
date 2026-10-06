@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T12:44:17.378Z",
+  "generatedAt": "2026-10-06T13:18:14.843Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
@@ -978,7 +978,7 @@
       "assertionCountEst": 51,
       "sizeBytes": 8333,
       "lineCount": 188,
-      "sha256": "5a5601517efc0a17175cd7a8504956f85fb6e7c7923ef1fa4fe9fbcb7dc662d7",
+      "sha256": "1335fae3278b929f5dcd5d7e7f72ad9defe51afce669f125814250415a9c4c1c",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
