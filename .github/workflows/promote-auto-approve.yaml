@@ -32,7 +32,9 @@ jobs:
     steps:
       - name: Aprobar workflows pendientes en action_required
         env:
-          GH_TOKEN: ${{ secrets.RULESET_ADMIN_TOKEN || secrets.GITHUB_TOKEN }}
+          # Solo GITHUB_TOKEN (actions: write): este job corre en pull_request_target y nunca
+          # debe recibir el token de administracion del repositorio. Ver test CI-007.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           echo "🔍 Verificando workflows en espera de aprobación para ${HEAD_BRANCH}..."

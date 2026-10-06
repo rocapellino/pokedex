@@ -38,6 +38,12 @@ test('🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks 
     'promote-auto-approve.yaml debe requerir permiso actions: write para interactuar con la Actions API',
   );
 
+  // 3b. Trust boundary: pull_request_target no debe recibir el token de administración
+  assert.ok(
+    !autoApproveWf.includes('RULESET_ADMIN_TOKEN'),
+    'promote-auto-approve.yaml (pull_request_target) debe usar solo GITHUB_TOKEN, nunca RULESET_ADMIN_TOKEN',
+  );
+
   // 4. Debe llamar al endpoint de aprobación de runs
   assert.ok(
     autoApproveWf.includes('/actions/runs/${RUN_ID}/approve'),
