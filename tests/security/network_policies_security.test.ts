@@ -67,10 +67,7 @@ test('🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite
       !content.includes("style-src 'self' 'unsafe-inline'"),
       `${relPath} no debe contener unsafe-inline en style-src`,
     );
-    assert.ok(
-      content.includes("style-src 'self' https://fonts.googleapis.com;"),
-      `${relPath} debe definir style-src estricto`,
-    );
+    assert.ok(content.includes("style-src 'self';"), `${relPath} debe definir style-src estricto`);
     assert.ok(content.includes("base-uri 'self';"), `${relPath} debe contener base-uri 'self'`);
     assert.ok(content.includes("form-action 'self';"), `${relPath} debe contener form-action 'self'`);
     assert.ok(content.includes('Permissions-Policy'), `${relPath} debe incluir Permissions-Policy`);
