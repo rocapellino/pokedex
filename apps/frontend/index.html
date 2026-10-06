@@ -176,11 +176,11 @@
   </div>
 
   <!-- Modal Ficha de Detalle de Pokémon -->
-  <div class="modal-overlay" id="detailModal">
+  <dialog class="modal-overlay" id="detailModal" aria-labelledby="detailTitle">
     <div class="modal-card detail-modal-card">
       <div class="modal-header">
         <h3 class="modal-title" id="detailTitle">Ficha Pokémon</h3>
-        <button class="btn-icon">
+        <button class="btn-icon" aria-label="Cerrar ficha">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
@@ -190,7 +190,7 @@
         <!-- Renderizado dinámico de la ficha -->
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>

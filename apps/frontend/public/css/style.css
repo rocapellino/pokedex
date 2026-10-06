@@ -623,28 +623,34 @@ body {
   color: var(--text-secondary);
 }
 
+/* Modal nativo <dialog>: el propio elemento es el overlay a pantalla completa. */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
   background: var(--bg-modal-overlay);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition-normal);
   padding: 1.5rem;
 }
 
-.modal-overlay.active {
+.modal-overlay[open] {
+  display: flex;
   opacity: 1;
-  visibility: visible;
+  transition: opacity var(--transition-normal);
+}
+
+.modal-overlay::backdrop {
+  background: transparent;
 }
 
 .modal-card {
@@ -657,12 +663,27 @@ body {
   overflow-y: auto;
   padding: 2rem;
   box-shadow: var(--shadow-card);
-  transform: scale(0.95) translateY(10px);
+}
+
+.modal-overlay[open] .modal-card {
+  transform: scale(1) translateY(0);
   transition: transform var(--transition-normal);
 }
 
-.modal-overlay.active .modal-card {
-  transform: scale(1) translateY(0);
+@starting-style {
+  .modal-overlay[open] {
+    opacity: 0;
+  }
+  .modal-overlay[open] .modal-card {
+    transform: scale(0.95) translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay[open],
+  .modal-overlay[open] .modal-card {
+    transition: none;
+  }
 }
 
 .modal-header {

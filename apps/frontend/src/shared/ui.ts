@@ -74,3 +74,22 @@ export function renderEmptyState(options: {
     </div>
   `);
 }
+
+/**
+ * Abre un modal declarado como `<dialog>`: `showModal()` aporta foco, Escape, capa superior e
+ * `inert` del resto de la página. Si el elemento no implementa la API (p. ej. jsdom) degrada a
+ * marcar `[open]`.
+ */
+export function openModal(id: string): void {
+  const el = document.getElementById(id) as HTMLDialogElement | null;
+  if (!el || el.hasAttribute('open')) return;
+  if (typeof el.showModal === 'function') el.showModal();
+  else el.setAttribute('open', '');
+}
+
+export function closeModal(id: string): void {
+  const el = document.getElementById(id) as HTMLDialogElement | null;
+  if (!el?.hasAttribute('open')) return;
+  if (typeof el.close === 'function') el.close();
+  else el.removeAttribute('open');
+}

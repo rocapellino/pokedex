@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T21:44:22.193Z",
+  "generatedAt": "2026-10-06T21:50:02.822Z",
   "summary": {
-    "totalFiles": 88,
-    "testFiles": 82,
+    "totalFiles": 89,
+    "testFiles": 83,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 706,
-    "totalLines": 18836,
-    "totalSizeBytes": 823296,
+    "totalTestCases": 713,
+    "totalLines": 18965,
+    "totalSizeBytes": 828487,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 8,
-      "testCases": 79,
+      "files": 9,
+      "testCases": 84,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 2,
-      "testCases": 15,
+      "testCases": 17,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -665,12 +665,12 @@
       "type": "E2E",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 5,
+      "testCount": 6,
       "describeCount": 1,
-      "assertionCountEst": 28,
-      "sizeBytes": 4636,
-      "lineCount": 108,
-      "sha256": "b1be1742551ee8b8984b6cc0fb4834e3f86af5aad6de03a6e9931af67dad9fc9",
+      "assertionCountEst": 32,
+      "sizeBytes": 5224,
+      "lineCount": 123,
+      "sha256": "9cb01f9d9ec2e642a76d66bf2aea13154ff6c18b9b219a00c94b11ee638bd208",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -703,8 +703,12 @@
           "line": 64
         },
         {
-          "name": "@a11y Auditoría de accesibilidad WCAG en Backoffice",
+          "name": "@a11y El modal de autenticación enfoca la clave y devuelve el foco al cerrarse con Escape",
           "line": 93
+        },
+        {
+          "name": "@a11y Auditoría de accesibilidad WCAG en Backoffice",
+          "line": 108
         }
       ]
     },
@@ -714,12 +718,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 10,
+      "testCount": 11,
       "describeCount": 1,
-      "assertionCountEst": 42,
-      "sizeBytes": 9224,
-      "lineCount": 200,
-      "sha256": "2f0291ac5bd2539882d0cd8686748fe828295dc5deae28caa0004894c54a7a37",
+      "assertionCountEst": 47,
+      "sizeBytes": 10220,
+      "lineCount": 224,
+      "sha256": "2f53db34424fd8d426ba8bb1fbe249d54baa9d0f888617e0188a23df1fd2365f",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -772,8 +776,12 @@
           "line": 174
         },
         {
-          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "name": "@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape",
           "line": 189
+        },
+        {
+          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "line": 213
         }
       ]
     },
@@ -1256,6 +1264,53 @@
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
           "line": 322
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/modal_dialog.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 3607,
+      "lineCount": 90,
+      "sha256": "6a1a394d119370d721cfa3ed5c42e45135759d5f304aea3ea950715966ca8b1b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: modal_dialog.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "♿ Modal ${id} (${page}): es un <dialog> con nombre accesible",
+          "line": 23
+        },
+        {
+          "name": "♿ Modal detalle: el botón de cierre tiene nombre accesible",
+          "line": 38
+        },
+        {
+          "name": "♿ Modales: ya no se abren con la clase .active",
+          "line": 43
+        },
+        {
+          "name": "♿ Modales: openModal/closeModal usan showModal() y close() cuando existen",
+          "line": 49
+        },
+        {
+          "name": "♿ Modales: openModal/closeModal degradan a [open] si el entorno no implementa <dialog>",
+          "line": 76
         }
       ]
     },
