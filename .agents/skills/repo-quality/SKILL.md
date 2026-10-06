@@ -32,10 +32,10 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
 - **Gobernanza Dinámica de Pre-Commit y Quality Gates Locales:**
   - Inspección dinámica de configuración: Verificar si existe archivo de configuración de hooks en la raíz del repositorio (`.pre-commit-config.yaml`). Si no existe, clasificar el estado como `NOT_CONFIGURED`.
   - Si existe configuración, parsear dinámicamente los repositorios y hooks declarados en tiempo de ejecución, determinando su aplicabilidad frente a las extensiones y rutas de los archivos modificados en el diff.
-  - Verificación de disponibilidad del CLI en el entorno local (`pre-commit --version`). Si el comando no está disponible en el PATH, reportar `NOT_AVAILABLE_LOCAL / CI_REQUIRED` delegando la validación a CI sin registrar falsos fallos locales.
+  - Verificación de disponibilidad del CLI en el entorno local (`pre-commit --version`). Si el comando no está disponible en el PATH, reportar `NOT_AVAILABLE_LOCAL` sin registrar falsos fallos locales. CI no ejecuta pre-commit, así que el estado no se delega a CI: de sus hooks, solo `gitleaks` y `biome-check` tienen gate equivalente en CI (Gitleaks Secret Detection y `npm run lint:code`).
   - Si el CLI está disponible y aplican hooks, ejecutar selectivamente sobre los archivos modificados (`pre-commit run --files <archivos>`).
-  - Clasificación fáctica del resultado: `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
-  - Principio de complementariedad: `pre-commit` es un control previo local que complementa y no sustituye los pipelines integrales de CI/CD.
+  - Clasificación fáctica del resultado: `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL`, `NOT_CONFIGURED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
+  - Principio de complementariedad: `pre-commit` es un control previo local que ningún workflow de CI ejecuta; complementa y no sustituye los pipelines integrales de CI/CD.
 - **Compuerta de Diagnósticos de IDE y Análisis Estático Local (Zero Problems Gate):**
   - Todo archivo nuevo o modificado en el diff debe estar libre de advertencias y errores reportados en el panel *Problems* del IDE (diagnósticos de TypeScript, Biome, SonarLint/SonarQube).
   - Reglas SonarQube críticas a verificar proactivamente antes de commit:

@@ -33,7 +33,7 @@ La evidencia debe clasificarse estrictamente en uno de los siguientes estados:
 | :--- | :--- | :--- |
 | **`EXECUTED_SUCCESS`** | Los hooks aplicables corrieron localmente y pasaron sin errores (exit code 0). | Marcar como superado con mención de los hooks validados. |
 | **`EXECUTED_FAILED`** | Los hooks corrieron y detectaron infracciones no corregidas. | **Bloquea la apertura (`FAIL`).** Requiere resolver el fallo antes de abrir el PR. |
-| **`NOT_AVAILABLE_LOCAL / CI_REQUIRED`** | La configuración existe pero el binario `pre-commit` no está instalado en el entorno local. | Declarar explícitamente la ausencia local del CLI; delegar la certificación a los runners de CI. **No falsear como ejecutado ni marcar error local.** |
+| **`NOT_AVAILABLE_LOCAL`** | La configuración existe pero el binario `pre-commit` no está instalado en el entorno local. | Declarar explícitamente la ausencia local del CLI. CI no ejecuta pre-commit, así que no se delega ni equivale a `PASS`; solo `gitleaks` y `biome-check` tienen gate equivalente en CI. **No falsear como ejecutado ni marcar error local.** |
 | **`NOT_CONFIGURED`** | No existe archivo de configuración de pre-commit en el repositorio. | Declarar como no configurado. No genera advertencia ni bloqueo. |
 | **`NOT_APPLICABLE`** | Los archivos modificados en el diff no coinciden con los tipos auditados por los hooks configurados. | Documentar como exento según tipos de archivo. |
 | **`NOT_EXECUTED`** | La configuración y el CLI estaban disponibles, pero se omitió la ejecución. | Mantener desmarcado `[ ]` y solicitar ejecución previa al PR. |
@@ -46,13 +46,13 @@ Antes de dar por finalizada la preparación de un PR, `repo-pr` evalúa dos dime
 
 ### A. Dimensión de Preparación Local (`PR Preparation State`)
 
-- **`READY_FOR_PR`:** Se alcanza cuando el diff está limpio e higiénico, el template de PR fue descubierto y completado en español fáctico, los quality gates locales aplicables (`npm run lint`, `tsc`, `npm test`, Markdown lint) pasaron con éxito o fueron declarados formalmente (`CI_REQUIRED` / `NOT_APPLICABLE`), y no existen bloqueos P0/P1.
+- **`READY_FOR_PR`:** Se alcanza cuando el diff está limpio e higiénico, el template de PR fue descubierto y completado en español fáctico, los quality gates locales aplicables (`npm run lint`, `tsc`, `npm test`, Markdown lint) pasaron con éxito o fueron declarados formalmente (`CI_REQUIRED` / `NOT_AVAILABLE_LOCAL` / `NOT_APPLICABLE`), y no existen bloqueos P0/P1.
 - **`NOT_READY`:** Pendiente completar pruebas locales requeridas, documentar secciones o corregir fallos locales detectados.
 - **`BLOCKED`:** Impedimentos estructurales que impiden abrir el PR (ej. rama base divergente, template ausente, drift arquitectónico crítico).
 
 ### B. Dimensión de Integración Continua (`CI Pipeline State`)
 
-- **`PENDING_CI`:** El PR fue abierto en estado `READY_FOR_PR`, pero los workflows remotos de validación (Config Linters, SonarCloud, E2E, Pre-Commit en CI) aún están en curso o pendientes de disparo.
+- **`PENDING_CI`:** El PR fue abierto en estado `READY_FOR_PR`, pero los workflows remotos de validación (Config Linters, SonarCloud, E2E) aún están en curso o pendientes de disparo.
 - **`ALL_GATES_PASSED`:** Se alcanza **únicamente** cuando la totalidad de los checks requeridos en GitHub Actions han concluido con estado `SUCCESS` y la rama puede integrarse de forma segura.
 - **`CI_FAILED`:** Al menos un workflow requerido en CI falló y requiere investigación o corrección.
 

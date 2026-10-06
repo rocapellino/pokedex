@@ -141,7 +141,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 2. **`repo-quality` (Quality Gates Técnicos y Formato):**
    - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml).
    - Valida la sintaxis y formateo de archivos de configuración cuando corresponda.
-   - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
+   - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
 3. **`repo-security` (Superficie de Seguridad y DevSecOps):**
    - Analiza implicancias de seguridad de las exclusiones (riesgo de enmascarar secretos o código no auditado).
    - Audita a fondo las excepciones de `.gitleaksignore` y `.trivyignore` bajo principios Zero-Trust.
