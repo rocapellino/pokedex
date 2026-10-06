@@ -12,6 +12,9 @@ server {
     index index.html index.htm;
 
     # Cabeceras de seguridad globales
+    # IMPORTANTE (herencia de add_header): nginx hereda las cabeceras de este nivel SOLO en las
+    # location que no declaran ninguno. Toda location con su propio add_header debe repetir el
+    # conjunto completo; tests/security/nginx_effective_headers.test.ts lo verifica.
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "0" always;
@@ -37,6 +40,10 @@ server {
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';" always;
         add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-XSS-Protection "0" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        add_header Cross-Origin-Resource-Policy "same-origin" always;
+        add_header Cross-Origin-Embedder-Policy "require-corp" always;
         try_files $uri =404;
     }
 
@@ -58,6 +65,10 @@ server {
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';" always;
         add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-XSS-Protection "0" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        add_header Cross-Origin-Resource-Policy "same-origin" always;
+        add_header Cross-Origin-Embedder-Policy "require-corp" always;
         try_files /backoffice.html =404;
     }
 
@@ -70,12 +81,28 @@ server {
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';" always;
         add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-XSS-Protection "0" always;
+        add_header Cross-Origin-Opener-Policy "same-origin" always;
+        add_header Cross-Origin-Resource-Policy "same-origin" always;
+        add_header Cross-Origin-Embedder-Policy "require-corp" always;
         try_files $uri $uri/ /index.html;
     }
 
     # 3. Proxy inverso hacia el backend API Node.js / Express (/api/)
     location /api/ {
         proxy_pass http://api:3000;
+        # El backend emite las mismas cabeceras: se ocultan las suyas para no duplicarlas
+        # (nginx conserva su copia, heredada del server).
+        proxy_hide_header X-Content-Type-Options;
+        proxy_hide_header X-Frame-Options;
+        proxy_hide_header X-XSS-Protection;
+        proxy_hide_header Referrer-Policy;
+        proxy_hide_header Strict-Transport-Security;
+        proxy_hide_header Content-Security-Policy;
+        proxy_hide_header Permissions-Policy;
+        proxy_hide_header Cross-Origin-Opener-Policy;
+        proxy_hide_header Cross-Origin-Resource-Policy;
+        proxy_hide_header Cross-Origin-Embedder-Policy;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -88,6 +115,18 @@ server {
     # 4. Proxy directo para endpoints REST /pokemons
     location /pokemons {
         proxy_pass http://api:3000/pokemons;
+        # El backend emite las mismas cabeceras: se ocultan las suyas para no duplicarlas
+        # (nginx conserva su copia, heredada del server).
+        proxy_hide_header X-Content-Type-Options;
+        proxy_hide_header X-Frame-Options;
+        proxy_hide_header X-XSS-Protection;
+        proxy_hide_header Referrer-Policy;
+        proxy_hide_header Strict-Transport-Security;
+        proxy_hide_header Content-Security-Policy;
+        proxy_hide_header Permissions-Policy;
+        proxy_hide_header Cross-Origin-Opener-Policy;
+        proxy_hide_header Cross-Origin-Resource-Policy;
+        proxy_hide_header Cross-Origin-Embedder-Policy;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
