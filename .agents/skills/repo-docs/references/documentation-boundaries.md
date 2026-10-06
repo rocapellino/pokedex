@@ -102,6 +102,6 @@ La carpeta `docs/` contiene la **especificación formal permanente y activa (SSO
 
 ## 5. Límites para Auditorías (`docs/audits/`)
 
-- Solo se mantiene en el árbol de trabajo el **último baseline consolidado** (por ejemplo, `2026-09-27/baseline.md`) como snapshot histórico, nunca como SSOT vigente.
+- Solo se mantiene en el árbol de trabajo el **último baseline consolidado** (`docs/audits/<fecha>/baseline.md`) como snapshot histórico, nunca como SSOT vigente.
 - Todas las auditorías históricas y reportes intermedios cerrados residen exclusivamente en el **historial de commits de Git**, consultables vía `git log`.
 - **Regla de Oro:** Ningún documento activo infiere configuración ni estado actual desde `docs/audits/`.

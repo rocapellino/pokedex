@@ -112,7 +112,7 @@ En otro caso                                       ──► CURRENT
 Los registros de decisiones arquitectónicas (`docs/decisions/ADR-*.md`) gozan de máxima jerarquía formal:
 
 - **Regla de No Mutación Automática:** Los agentes y skills **NUNCA deben modificar automáticamente un ADR** por el simple hecho de que la implementación haya cambiado.
-- **Protocolo de Detección:** Si una implementación difiere de una decisión formal (ej. ADR-006 declara off-site solo como blueprint S3/PBS, mientras `main` implementa Rclone a Google Drive):
+- **Protocolo de Detección:** Si una implementación difiere de una decisión formal (ej. un ADR declara una capacidad como blueprint inactivo, mientras `main` la implementa y la habilita):
   1. El hallazgo se marca como **`ADR REVIEW REQUIRED`**.
   2. Se expone la contradicción con evidencia concreta.
   3. Se recomienda al equipo actualizar el ADR existente mediante una enmienda explícita o crear un nuevo ADR que lo sustituya formalmente (*Superseded*).
@@ -133,7 +133,7 @@ Se emplea el historial de Git como señal de priorización de revisión:
 - **Modo Audit (Lectura):**
   Inspecciona los documentos frente al código y los manifiestos, extrae claims, construye la matriz de consistencia, detecta contradicciones y emite el reporte en `docs/audits/<fecha>/documentation/documentation-consistency.md` sin modificar archivos.
 - **Modo Reconcile (Acción Controlada):**
-  1. Identifica los documentos en estado `STALE` o `STATE_MISREPRESENTATION`.
+  1. Identifica los documentos en estado `OUTDATED` o `INVALID`.
   2. Elabora un plan de cambio formal ([change-plan.md](../../_shared/change-plan.md)).
   3. Actualiza exclusivamente los runbooks o guías operativas autorizadas (reemplazando afirmaciones erróneas por lenguaje preciso como *"implementado en main / pendiente de release"*).
   4. Los ADRs marcados como `ADR REVIEW REQUIRED` se dejan intactos para decisión humana.

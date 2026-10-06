@@ -11,11 +11,12 @@ El análisis **no debe asumir que todos los archivos existen ni hardcodear una l
 
 - `.gitignore` (control de versiones Git)
 - `.dockerignore` (raíz y subproyectos en `apps/backend/`, `apps/frontend/`)
-- `.gitleaksignore` (excepciones de escaneo de secretos)
+- `.gitleaksignore` (excepciones de escaneo de secretos; hoy no existe: las excepciones viven en el bloque `[allowlist]` de `.gitleaks.toml`)
 - `.markdownlintignore` (exclusiones de linter de documentación)
 - `.semgrepignore` (exclusiones de análisis estático SAST)
 - `.helmignore` (exclusiones de empaquetado de Helm charts)
-- `.trivyignore` (excepciones de escaneo de vulnerabilidades e IaC)
+- `.trivyignore` (excepciones de escaneo de vulnerabilidades e IaC; hoy no existe)
+- `.github/zizmor.yaml` (excepciones `ignore` de la auditoría de workflows; cada una exige justificación)
 - `.npmignore` (si existiera empaquetado npm)
 - Cualquier otro archivo cuyo nombre, extensión o función corresponda a un mecanismo `.ignore`.
 
