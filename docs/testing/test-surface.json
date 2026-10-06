@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T15:48:57.159Z",
+  "generatedAt": "2026-10-06T16:05:07.170Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 680,
-    "totalLines": 18166,
-    "totalSizeBytes": 790644,
+    "totalTestCases": 681,
+    "totalLines": 18190,
+    "totalSizeBytes": 791836,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 166,
+      "testCases": 167,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -417,12 +417,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 21,
+      "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 77,
-      "sizeBytes": 24526,
-      "lineCount": 526,
-      "sha256": "317841abd47d335ed7bc9c8391c8cc88cd64a2a1535d9c4872d28bb8da8ac8d2",
+      "assertionCountEst": 78,
+      "sizeBytes": 25448,
+      "lineCount": 544,
+      "sha256": "fd360068b6ec68d4790e18640540819fdec135c8d99bebfb84267a17040bad9e",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -519,6 +519,10 @@
         {
           "name": "🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y sin continue-on-error",
           "line": 512
+        },
+        {
+          "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
+          "line": 527
         }
       ]
     },
@@ -3892,10 +3896,10 @@
       "runner": "node:test (tsx)",
       "testCount": 1,
       "describeCount": 0,
-      "assertionCountEst": 9,
-      "sizeBytes": 2533,
-      "lineCount": 64,
-      "sha256": "f6222c2693399993b37b36839cdf7de92c5e74cacd430c907024ad50420e2879",
+      "assertionCountEst": 10,
+      "sizeBytes": 2803,
+      "lineCount": 70,
+      "sha256": "496b11c3e913b564cc8e7b658c21b932598f6c2d96ab30664ed1cabfc9d01804",
       "targetDomain": "Promoción Automatizada Segura",
       "targetArtifacts": [
         ".github/workflows/promote-auto-approve.yaml"
