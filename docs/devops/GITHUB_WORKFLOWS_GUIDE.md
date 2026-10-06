@@ -202,7 +202,8 @@ El workflow [`ci.yaml`](../../.github/workflows/ci.yaml) incorpora el gate de re
 
 ### 4.3. Renovate Bot con Cooldown y Gobernanza Automatizada
 
-- **Renovate Bot ([`renovate.json`](../../renovate.json)):** Centraliza la gestión unificada y programada de dependencias en todos los ecosistemas del proyecto (`npm`, `dockerfile`, `github-actions`, `helm` y `terraform/opentofu`).
+- **Renovate Bot ([`renovate.json`](../../renovate.json)):** Centraliza la gestión unificada y programada de dependencias en todos los ecosistemas del proyecto (`npm`, `dockerfile`, `docker-compose`, `github-actions`, `helm` y `terraform/opentofu`).
+- **Imágenes de `docker-compose`:** el gestor `docker-compose` mantiene los tags y digests de `docker-compose.yaml` y `docker-compose.dev.yaml`. `rclone/rclone` queda excluido porque se referencia solo por digest (sin tag) y se actualiza de forma manual, y los major de `postgres` y `redis` están bloqueados: PostgreSQL 16 y Redis 7 son parte del contrato documentado y un major de PostgreSQL exige migrar el volumen de datos.
 - **Cooldown de 7 Días (`minimumReleaseAge: "7 days"`):** Garantiza que cualquier versión nueva permanezca en observación comunitaria durante 7 días antes de abrir un PR, mitigando riesgos de supply chain poisoning.
 - **Ventana Programada:** Ejecución semanal los lunes antes de las 06:00 AM (ART).
 - **Auto-Merge Controlado:** Restringido **exclusivamente a parches (`patch`) de dependencias npm**. Las actualizaciones menores, mayores, imágenes Docker, OpenTofu y GitHub Actions requieren aprobación humana explícita (`manual-review-required`, `infra-supply-chain-review`).

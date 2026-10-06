@@ -17,6 +17,7 @@
     "minimumReleaseAge": null
   },
   "enabledManagers": [
+    "docker-compose",
     "dockerfile",
     "github-actions",
     "helm-values",
@@ -45,7 +46,7 @@
     },
     {
       "description": "Ecosistemas críticos de infraestructura y supply chain requieren revisión humana obligatoria",
-      "matchManagers": ["dockerfile", "github-actions", "helmv3", "helm-values", "terraform"],
+      "matchManagers": ["docker-compose", "dockerfile", "github-actions", "helmv3", "helm-values", "terraform"],
       "automerge": false,
       "labels": ["infra-supply-chain-review"]
     },
@@ -66,6 +67,25 @@
       "matchManagers": ["github-actions"],
       "commitMessagePrefix": "chore(ci):",
       "labels": ["dependencies", "ci-cd", "github-actions"]
+    },
+    {
+      "description": "Gestor docker-compose: imágenes de los stacks local y de desarrollo (tag y digest fijados), prefijo chore(docker) y etiquetas de contenedor",
+      "matchManagers": ["docker-compose"],
+      "commitMessagePrefix": "chore(docker):",
+      "labels": ["dependencies", "docker"]
+    },
+    {
+      "description": "docker-compose: rclone se referencia solo por digest (sin tag), por lo que Renovate saltaría al digest de latest sin versión. Se excluye hasta fijarle un tag; se actualiza de forma manual",
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["rclone/rclone"],
+      "enabled": false
+    },
+    {
+      "description": "docker-compose: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major y se mantienen los digests y parches",
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["postgres", "redis"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     },
     {
       "description": "Gestor Dockerfile: prefijo chore(docker) y etiquetas de contenedor",
