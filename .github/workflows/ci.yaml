@@ -535,6 +535,7 @@ jobs:
         if: matrix.component == 'api'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
         run: |
           # 1. Validar sintaxis y templates del Chart
           helm lint ${{ env.CHART_PATH }}
@@ -543,7 +544,7 @@ jobs:
           helm package ${{ env.CHART_PATH }} --destination /tmp
 
           # 3. Autenticación con OCI registry en GHCR y push
-          echo "$GITHUB_TOKEN" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          echo "$GITHUB_TOKEN" | helm registry login ${{ env.REGISTRY }} --username "$GH_ACTOR" --password-stdin
           CHART_OUTPUT=$(helm push /tmp/*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts 2>&1)
           echo "$CHART_OUTPUT"
           CHART_DIGEST=$(echo "$CHART_OUTPUT" | grep -i 'Digest:' | awk '{print $2}' | tr -d '\r\n')
@@ -561,8 +562,9 @@ jobs:
       - name: Iniciar sesión en Cosign para GHCR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
         run: |
-          echo "$GITHUB_TOKEN" | cosign login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          echo "$GITHUB_TOKEN" | cosign login ${{ env.REGISTRY }} --username "$GH_ACTOR" --password-stdin
 
       - name: Firmar imagen Docker con Cosign por Digest Inmutable (Keyless Sigstore OIDC)
         run: |

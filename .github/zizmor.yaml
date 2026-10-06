@@ -1,0 +1,22 @@
+# ==============================================================================
+# Configuración de zizmor (auditoría estática de GitHub Actions)
+# Invocado por .github/workflows/config-linters.yaml con --min-severity=medium.
+# Cada excepción debe tener una justificación revisable; no agregar ignores sin ella.
+# ==============================================================================
+rules:
+  dangerous-triggers:
+    ignore:
+      # pull_request_target: sin checkout del código del PR, el job filtra por repo
+      # propio y autor (head.repo + user.login) y el título/URL van por `env:`.
+      - promote-auto-approve.yaml
+      - renovate-linear-sync.yaml
+      # workflow_run: solo leen metadatos del run y de la API; no descargan ni ejecutan
+      # artefactos de ramas externas.
+      - ghcr-retention.yaml
+      - github-security-linear-sync.yaml
+      - sonar-linear-sync.yaml
+  artipacked:
+    ignore:
+      # release-tag.yaml necesita las credenciales persistidas: hace `git push` de
+      # tags firmados y de la rama de promoción (ver test CI-004).
+      - release-tag.yaml

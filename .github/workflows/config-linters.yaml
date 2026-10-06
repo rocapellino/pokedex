@@ -15,13 +15,16 @@
 # decir, sin senal real). Cobertura que se conserva:
 #   Actionlint  -> sintaxis y expresiones de .github/workflows (y ShellCheck sobre
 #                  los bloques `run:`, con severidad minima `warning`)
+#   Zizmor      -> auditoria de seguridad de los workflows (inyeccion de plantillas,
+#                  triggers peligrosos, credenciales persistidas), con severidad
+#                  minima `medium`. Excepciones justificadas en .github/zizmor.yaml
 #   ShellCheck  -> scripts *.sh versionados, con severidad minima `warning`
 # Cobertura que NO se replica por ser redundante con un control mas especifico:
 #   Hadolint    -> ya corre en security-code-scanning.yaml
 #   Yamllint    -> sin configuracion propia; la sintaxis YAML la valida pre-commit
 #                  (check-yaml), la extension lint:yaml:strict y, para Kubernetes,
 #                  Kubeconform, Kyverno CLI y Checkov en Infra CI
-name: ⚡ Config Linters - Actionlint & ShellCheck
+name: ⚡ Config Linters - Actionlint, Zizmor & ShellCheck
 
 on:
   workflow_call:
@@ -32,7 +35,7 @@ permissions:
 
 jobs:
   config-linters:
-    name: "⚡ Config Linters (Actionlint, ShellCheck)"
+    name: "⚡ Config Linters (Actionlint, Zizmor, ShellCheck)"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -53,7 +56,15 @@ jobs:
             rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 \
             -color
 
-      - name: 3. ShellCheck (scripts *.sh)
+      - name: 3. Zizmor (auditoria de seguridad de workflows)
+        # Modo --offline: no requiere token de GitHub y evita llamadas a la API; las
+        # auditorias que lo necesitan (p. ej. impostor-commit) quedan fuera a proposito.
+        # Imagen fijada por digest (supply chain, ADR-008). Para actualizarla:
+        # resolver el digest del nuevo tag en ghcr.io y sustituir tag y digest.
+        run: |
+          docker run --rm             -v "${GITHUB_WORKSPACE}:/repo" -w /repo             ghcr.io/zizmorcore/zizmor:1.30.1@sha256:a2eb396d886c053073405c7a980f2139ba2248ec172243cfa3841e57196e8101             --offline --no-progress --min-severity=medium .github/workflows
+
+      - name: 4. ShellCheck (scripts *.sh)
         run: |
           mapfile -t scripts < <(git ls-files '*.sh')
           if [ "${#scripts[@]}" -eq 0 ]; then
