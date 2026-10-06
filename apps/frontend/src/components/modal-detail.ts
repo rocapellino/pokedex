@@ -6,8 +6,10 @@
 import { sanitizeHtml, escapeText } from '../sanitizer.js';
 import type { Pokemon, PokemonStats } from '../types.js';
 import { normalizeStr } from '../shared/index.js';
+import { BASE_STAT_DEFS, isValidStat, statTier, statWidthStep } from '../shared/base-stats.js';
 
 import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
+import { renderMegaEvolutionSection } from './modal-mega.js';
 import {
   getTriggerIcon,
   renderTransitionConnector,
@@ -24,34 +26,6 @@ export {
   renderSingleEvolutionNode,
   renderEvolutionSystem,
 };
-
-/** Máximo teórico de una estadística base en los juegos principales. */
-const STAT_SCALE_MAX = 255;
-
-const BASE_STAT_DEFS = [
-  { key: 'hp', label: 'PS', name: 'PS' },
-  { key: 'attack', label: 'Ataque', name: 'Ataque' },
-  { key: 'defense', label: 'Defensa', name: 'Defensa' },
-  { key: 'sp_attack', label: 'At. Esp.', name: 'Ataque especial' },
-  { key: 'sp_defense', label: 'Def. Esp.', name: 'Defensa especial' },
-  { key: 'speed', label: 'Velocidad', name: 'Velocidad' },
-] as const;
-
-function statTier(value: number): 'low' | 'mid' | 'high' | 'top' {
-  if (value < 50) return 'low';
-  if (value < 80) return 'mid';
-  if (value < 110) return 'high';
-  return 'top';
-}
-
-/** Ancho de la barra en pasos de 5 % (clases `base-stat-fill--wN`); la CSP impide `style` inline. */
-function statWidthStep(value: number): number {
-  return Math.min(100, Math.max(0, Math.round((value / STAT_SCALE_MAX) * 20) * 5));
-}
-
-function isValidStat(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
-}
 
 export function renderBaseStats(stats?: PokemonStats): string {
   if (!stats || !BASE_STAT_DEFS.some((s) => isValidStat(stats[s.key]))) {
@@ -190,6 +164,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
     </div>
 
     ${evolutionsHtml}
+    ${renderMegaEvolutionSection(pokemon)}
   `;
 }
 

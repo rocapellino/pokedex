@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T00:42:11.984Z",
+  "generatedAt": "2026-10-06T12:15:41.928Z",
   "summary": {
-    "totalFiles": 78,
-    "testFiles": 73,
-    "helperFiles": 4,
+    "totalFiles": 85,
+    "testFiles": 79,
+    "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 610,
-    "totalLines": 17096,
-    "totalSizeBytes": 743459,
+    "totalTestCases": 669,
+    "totalLines": 18020,
+    "totalSizeBytes": 783385,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 14,
-      "testCases": 86,
+      "files": 19,
+      "testCases": 125,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 5,
-      "testCases": 54,
+      "files": 7,
+      "testCases": 69,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 2,
-      "testCases": 10,
+      "testCases": 15,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -682,12 +682,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 5,
+      "testCount": 10,
       "describeCount": 1,
-      "assertionCountEst": 12,
-      "sizeBytes": 3892,
-      "lineCount": 90,
-      "sha256": "7106514599fccf21acdb9ddf811f927e27ff75b987b2b75aadce85d52867cbb5",
+      "assertionCountEst": 36,
+      "sizeBytes": 7538,
+      "lineCount": 163,
+      "sha256": "87ad6740e8418bd2f634c8babbe977e67064d5bce1bd7051f4e94e7b4a6743e4",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -722,6 +722,26 @@
         {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
           "line": 67
+        },
+        {
+          "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
+          "line": 90
+        },
+        {
+          "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
+          "line": 110
+        },
+        {
+          "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
+          "line": 133
+        },
+        {
+          "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
+          "line": 140
+        },
+        {
+          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "line": 153
         }
       ]
     },
@@ -924,6 +944,113 @@
         {
           "name": "🧭 Catálogo: termina aunque el total cambie durante la descarga",
           "line": 65
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/mega_env.ts",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 591,
+      "lineCount": 18,
+      "sha256": "dd86819b31a4bcdc32fd80d5c0bb20ee68d16b702ad9d57825f0cb12f3e515e9",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: mega_env.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/mega_evolution.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 15,
+      "describeCount": 0,
+      "assertionCountEst": 51,
+      "sizeBytes": 8333,
+      "lineCount": 188,
+      "sha256": "5a5601517efc0a17175cd7a8504956f85fb6e7c7923ef1fa4fe9fbcb7dc662d7",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: mega_evolution.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 UI Mega: describeStatDelta indica subida, bajada, igualdad y ausencia de base",
+          "line": 56
+        },
+        {
+          "name": "🧬 UI Mega: renderMegaStats compara cada estadística y el total con la forma base",
+          "line": 63
+        },
+        {
+          "name": "🧬 UI Mega: sin estadísticas base no inventa diferencias",
+          "line": 73
+        },
+        {
+          "name": "🧬 UI Mega: un Pokémon sin megaevolución no renderiza la sección",
+          "line": 79
+        },
+        {
+          "name": "🧬 UI Mega: varias formas generan una pestaña por forma y solo la primera visible",
+          "line": 85
+        },
+        {
+          "name": "🧬 UI Mega: una sola forma no muestra pestañas y usa el título en singular",
+          "line": 96
+        },
+        {
+          "name": "🧬 UI Mega: el detalle del Pokémon base incluye la sección de megaevolución",
+          "line": 104
+        },
+        {
+          "name": "🧬 UI Mega: habilidades vacías se muestran como no publicadas",
+          "line": 111
+        },
+        {
+          "name": "🧬 UI Mega: el contenido escapa texto no confiable (XSS) en nombre y tipos",
+          "line": 117
+        },
+        {
+          "name": "🧬 UI Mega: el sanitizador conserva los atributos de las pestañas accesibles",
+          "line": 125
+        },
+        {
+          "name": "🧬 UI Mega: selectMegaTab alterna pestaña, aria-selected y panel visible",
+          "line": 136
+        },
+        {
+          "name": "🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y devuelve false",
+          "line": 157
+        },
+        {
+          "name": "🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución",
+          "line": 165
+        },
+        {
+          "name": "🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente",
+          "line": 170
+        },
+        {
+          "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
+          "line": 177
         }
       ]
     },
@@ -4375,6 +4502,302 @@
         {
           "name": "errorStatus: devuelve el código HTTP solo si el error lo expone como número",
           "line": 20
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/mega_evolution_catalog.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 5009,
+      "lineCount": 105,
+      "sha256": "da081ec99283f2bec872db757658303bd79946a3545859eccefe6895c3774408",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: mega_evolution_catalog.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 Catálogo: incluye las megaevoluciones de PokeAPI (clásicas y de Leyendas Z-A)",
+          "line": 15
+        },
+        {
+          "name": "🧬 Catálogo: las megaevoluciones no tienen número de Pokédex propio ni entradas independientes",
+          "line": 29
+        },
+        {
+          "name": "🧬 Catálogo: claves únicas, nombres Mega-* y pocas formas por especie",
+          "line": 43
+        },
+        {
+          "name": "🧬 Catálogo: cada megaevolución trae arte oficial, tipos conocidos y las seis estadísticas",
+          "line": 54
+        },
+        {
+          "name": "🧬 Catálogo: la megaevolución cambia algo respecto a la forma base (tipos, habilidades o estadísticas)",
+          "line": 66
+        },
+        {
+          "name": "🧬 Muestra: las megaevoluciones de la muestra de desarrollo coinciden con el catálogo completo",
+          "line": 76
+        },
+        {
+          "name": "🧬 Muestra: initialPokemons adjunta las megaevoluciones y deja el resto intacto",
+          "line": 90
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/mega_evolution_generator.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 22,
+      "sizeBytes": 8810,
+      "lineCount": 242,
+      "sha256": "8794ff897f18ae30c3a39765f91f21c08badb9d8d6d811f4701ba5186e6adbfa",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: mega_evolution_generator.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 Generador: isMegaFormName reconoce las formas mega y no confunde nombres de especie",
+          "line": 12
+        },
+        {
+          "name": "🧬 Generador: megaDisplayName compone el nombre oficial en español",
+          "line": 28
+        },
+        {
+          "name": "🧬 Generador: un calificativo desconocido cae a su slug legible y no rompe el nombre",
+          "line": 40
+        },
+        {
+          "name": "🧬 Generador: buildMegaEvolutions arma la forma completa y la ordena por ID de forma (X antes que Y)",
+          "line": 158
+        },
+        {
+          "name": "🧬 Generador: sin nombre oficial en español compone el nombre con la convención",
+          "line": 184
+        },
+        {
+          "name": "🧬 Generador: enrichCatalogWithMegas agrupa por especie, no toca el resto y quita megas obsoletas",
+          "line": 192
+        },
+        {
+          "name": "🧬 Generador: falla si hay megaevoluciones de una especie ausente del catálogo",
+          "line": 220
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/mega_evolution_mapper.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 7,
+      "sizeBytes": 2505,
+      "lineCount": 62,
+      "sha256": "85c9594d43911615b492cad534ebd2c0c7c216543ef0990f4a0989636b9ebca8",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: mega_evolution_mapper.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 Mega: editar un Pokémon conserva sus megaevoluciones (el PUT no las borra)",
+          "line": 30
+        },
+        {
+          "name": "🧬 Mega: las megaevoluciones son de solo lectura: un cuerpo del cliente no las reemplaza",
+          "line": 37
+        },
+        {
+          "name": "🧬 Mega: editar un Pokémon sin megaevoluciones no inventa el campo",
+          "line": 45
+        },
+        {
+          "name": "🧬 Mega: crear un Pokémon ignora megaevoluciones enviadas por el cliente",
+          "line": 52
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/mega_evolution_seed.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 9,
+      "describeCount": 0,
+      "assertionCountEst": 16,
+      "sizeBytes": 4490,
+      "lineCount": 110,
+      "sha256": "ff737d86643f97923f122db476068a6f8aeec173a2ab015f905c03b11f9f723d",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: mega_evolution_seed.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 Seed: canonicalJson no depende del orden de las claves (jsonb de PostgreSQL las reordena)",
+          "line": 33
+        },
+        {
+          "name": "🧬 Seed: planMegaEnrichment actualiza solo filas existentes a las que les faltan megaevoluciones",
+          "line": 39
+        },
+        {
+          "name": "🧬 Seed: no toca las filas que ya tienen las mismas megaevoluciones (idempotente)",
+          "line": 50
+        },
+        {
+          "name": "🧬 Seed: actualiza las filas cuyas megaevoluciones cambiaron en el catálogo",
+          "line": 60
+        },
+        {
+          "name": "🧬 Seed: ignora las entradas que no están persistidas (las inserta el seed completo)",
+          "line": 70
+        },
+        {
+          "name": "🧬 Seed: no borra megaevoluciones persistidas si el catálogo no trae ninguna",
+          "line": 76
+        },
+        {
+          "name": "🧬 Repositorio: setPokemonMegaEvolutions modifica solo ese campo y conserva las ediciones",
+          "line": 82
+        },
+        {
+          "name": "🧬 Repositorio: setPokemonMegaEvolutions devuelve false si la entrada no existe",
+          "line": 95
+        },
+        {
+          "name": "🧬 Repositorio: listPersistedMegaEvolutions devuelve solo las entradas que las tienen",
+          "line": 99
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/mega_evolution_validation.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 12,
+      "describeCount": 0,
+      "assertionCountEst": 36,
+      "sizeBytes": 6542,
+      "lineCount": 126,
+      "sha256": "56ea6587e84cc6c55d4b00428bdc37077aaad3e7c72b8b178b754ea0e86cdbeb",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: mega_evolution_validation.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧬 Mega: una megaevolución completa y bien formada es válida",
+          "line": 30
+        },
+        {
+          "name": "🧬 Mega: un Pokémon con megaevoluciones válidas supera el validador del payload",
+          "line": 34
+        },
+        {
+          "name": "🧬 Mega: un Pokémon sin megaevoluciones sigue siendo válido (campo opcional)",
+          "line": 39
+        },
+        {
+          "name": "🧬 Mega: rechaza claves fuera de la lista blanca (mass assignment), incluido un id propio",
+          "line": 44
+        },
+        {
+          "name": "🧬 Mega: rechaza campos obligatorios ausentes o con tipo incorrecto",
+          "line": 51
+        },
+        {
+          "name": "🧬 Mega: la clave solo admite el formato de slug",
+          "line": 73
+        },
+        {
+          "name": "🧬 Mega: nombre sin HTML ni scripts (prevención XSS) y con longitud acotada",
+          "line": 79
+        },
+        {
+          "name": "🧬 Mega: la imagen debe ser HTTPS o ruta relativa segura",
+          "line": 86
+        },
+        {
+          "name": "🧬 Mega: tipos entre 1 y 2, habilidades entre 0 y 3 (PokeAPI aún no publica algunas)",
+          "line": 92
+        },
+        {
+          "name": "🧬 Mega: las seis estadísticas son obligatorias y enteros entre 0 y 1000",
+          "line": 99
+        },
+        {
+          "name": "🧬 Mega: peso y altura positivos y acotados",
+          "line": 108
+        },
+        {
+          "name": "🧬 Mega: el payload rechaza más de 6 megaevoluciones, claves repetidas y no arreglos",
+          "line": 115
         }
       ]
     },

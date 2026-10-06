@@ -86,4 +86,77 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     expect(firstImgLoaded, 'La imagen de Pokémon fue bloqueada (COEP/CORS) o no cargó. naturalWidth = 0.').toBe(true);
   });
+
+  test('El filtro "Con megaevolución" deja solo los Pokémon que tienen alguna', async ({ page }) => {
+    await expect(page.locator('.pokemon-card').first()).toBeVisible({ timeout: 10000 });
+    const total = await page.locator('.pokemon-card').count();
+
+    await page.locator('#megaFilter').check();
+
+    const cards = page.locator('.pokemon-card');
+    await expect(cards.first()).toBeVisible();
+    const filtered = await cards.count();
+    expect(filtered).toBeGreaterThan(0);
+    expect(filtered).toBeLessThan(total);
+    // Cada tarjeta que queda muestra la insignia y Charizard sigue presente.
+    await expect(page.locator('.pokemon-card .mega-badge')).toHaveCount(filtered);
+    await expect(page.locator('.pokemon-card[data-pokemon-id="6"]')).toBeVisible();
+    await expect(page.locator('.pokemon-card[data-pokemon-id="25"]')).toHaveCount(0);
+
+    await page.locator('#megaFilter').uncheck();
+    await expect(cards).toHaveCount(total);
+  });
+
+  test('El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas', async ({ page }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+
+    const section = page.locator('.mega-section');
+    await expect(section).toBeVisible();
+    await expect(section.getByRole('tab')).toHaveCount(2);
+    await expect(section.getByRole('tab', { name: 'Mega-Charizard X' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#mega-panel-0')).toBeVisible();
+    await expect(page.locator('#mega-panel-1')).toBeHidden();
+
+    await section.getByRole('tab', { name: 'Mega-Charizard Y' }).click();
+
+    await expect(section.getByRole('tab', { name: 'Mega-Charizard Y' })).toHaveAttribute('aria-selected', 'true');
+    await expect(section.getByRole('tab', { name: 'Mega-Charizard X' })).toHaveAttribute('aria-selected', 'false');
+    await expect(page.locator('#mega-panel-1')).toBeVisible();
+    await expect(page.locator('#mega-panel-0')).toBeHidden();
+    await expect(page.locator('#mega-panel-1')).toContainText('Sequía');
+
+    // Con el cursor encima, la pestaña activa conserva el texto claro (el hover no debe pisar su color).
+    await section.getByRole('tab', { name: 'Mega-Charizard Y' }).hover();
+    await expect(section.getByRole('tab', { name: 'Mega-Charizard Y' })).toHaveCSS('color', 'rgb(255, 255, 255)');
+  });
+
+  test('Un Pokémon sin megaevolución no muestra la sección en su detalle', async ({ page }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="25"]').click();
+
+    await expect(page.locator('#detailContent')).toContainText(/Pikachu/i);
+    await expect(page.locator('.mega-section')).toHaveCount(0);
+  });
+
+  test('@a11y El detalle con megaevolución cumple WCAG (Axe-core)', async ({ page }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+    await expect(page.locator('.mega-section')).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .include('.mega-section')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    const seriousViolations = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    expect(seriousViolations).toEqual([]);
+  });
+
+  test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+    const img = page.locator('#mega-panel-0 img');
+    await expect(img).toBeVisible();
+
+    await expect
+      .poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))
+      .toBe(true);
+  });
 });
