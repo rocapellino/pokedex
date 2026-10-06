@@ -1715,13 +1715,7 @@ body {
   cursor: pointer;
 }
 
-/* Botón "Mega" entre el arte y los puntos de base; despliega la sección */
-.mega-disclosure {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
+/* Botón "Mega" bajo los puntos de base; despliega la sección a todo el ancho del detalle */
 .mega-toggle {
   display: flex;
   align-items: center;
@@ -1774,6 +1768,10 @@ body {
 
 .mega-disclosure-body[hidden] {
   display: none;
+}
+
+.mega-disclosure-body {
+  margin-bottom: 1.5rem;
 }
 
 .mega-section {
@@ -1854,9 +1852,15 @@ body {
 
 .mega-panel-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .mega-panel-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .mega-artwork-box {
