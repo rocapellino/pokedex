@@ -292,6 +292,23 @@ rules:
         iac: false
         supply_chain: false
 
+  dependency_management:
+    description: "Política de actualización de dependencias (Renovate): cooldown, automerge y gestores habilitados"
+    paths:
+      - "renovate.json"
+    triggers:
+      # Semgrep tiene reglas específicas de Renovate (p. ej. minimumReleaseAge) y es el único
+      # gate que valida este archivo; sin SAST un error de configuración llegaba a main sin revisar.
+      # La guía de CI documenta los gestores y las exclusiones, por lo que se valida su coherencia.
+      documentation: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
   tests:
     description: "Suites de pruebas automatizadas del monorepo"
     paths:
