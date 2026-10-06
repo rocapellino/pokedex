@@ -160,6 +160,7 @@ test('🐾 PokemonRepository [Unit]: savePokemon y deletePokemon fallan cerrado 
         fuerza: 40,
         descripcion: 'Pokemon de prueba fail closed',
       },
+      habilidades: [],
     };
 
     await assert.rejects(async () => {

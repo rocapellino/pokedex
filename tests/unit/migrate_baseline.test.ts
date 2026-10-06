@@ -27,7 +27,7 @@ function fakeClient(db: FakeDb) {
   const executed: Array<{ text: string; params?: unknown[] }> = [];
   return {
     executed,
-    async query(text: string, params?: unknown[]) {
+    async query(text: string, params?: unknown[]): Promise<{ rows: any[] }> {
       executed.push({ text, params });
       if (text.includes('to_regclass')) {
         return {

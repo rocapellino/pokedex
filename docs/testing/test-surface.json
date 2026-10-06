@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T13:18:14.843Z",
+  "generatedAt": "2026-10-06T13:51:42.044Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 670,
-    "totalLines": 18027,
-    "totalSizeBytes": 783850,
+    "totalLines": 18028,
+    "totalSizeBytes": 783999,
     "suitesCount": 10
   },
   "suites": [
@@ -636,9 +636,9 @@
       "testCount": 5,
       "describeCount": 1,
       "assertionCountEst": 28,
-      "sizeBytes": 4632,
+      "sizeBytes": 4636,
       "lineCount": 108,
-      "sha256": "f77b4394a4f9d44e7fb2774568ca576a0b0a883b8acb6fa6851fe4f71c24a867",
+      "sha256": "b1be1742551ee8b8984b6cc0fb4834e3f86af5aad6de03a6e9931af67dad9fc9",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -685,9 +685,9 @@
       "testCount": 10,
       "describeCount": 1,
       "assertionCountEst": 36,
-      "sizeBytes": 7538,
+      "sizeBytes": 7542,
       "lineCount": 163,
-      "sha256": "87ad6740e8418bd2f634c8babbe977e67064d5bce1bd7051f4e94e7b4a6743e4",
+      "sha256": "1857edefad3452196957c26da17fc8eb2c276c14fee1189f7a4ac4a119bca0f5",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -1063,9 +1063,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 96,
-      "sizeBytes": 12894,
+      "sizeBytes": 12918,
       "lineCount": 335,
-      "sha256": "079d2c1001a1b229fb77432934c493f24d5a7d895dd48d2c81001ab4eed23b27",
+      "sha256": "30a28cc3e3b8f752ca2369b1653974ebad0f1089a5799678ba9fa336669140a6",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -3220,9 +3220,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 18799,
+      "sizeBytes": 18825,
       "lineCount": 463,
-      "sha256": "e7a57a1e12e31300cfceb972377afe7742913f20993bacbb9523266ac9f1e499",
+      "sha256": "991f1f119b00675281f7d6f83ac7e440a9e2e923bcb4bdd6dc822fcb6d14f1e1",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -4814,9 +4814,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 4037,
+      "sizeBytes": 4063,
       "lineCount": 91,
-      "sha256": "a7caff651f252509ba2da0f9aecff80e8a496e6ac3be5f7e1cfb83484dc45ae5",
+      "sha256": "de6dbd3ab3a1e4cba512ccbf0cc4f6c5095b1cb6c1ad8f0b714ac7c0ffd68f20",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4938,9 +4938,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 66,
-      "sizeBytes": 8765,
+      "sizeBytes": 8807,
       "lineCount": 270,
-      "sha256": "d36a0af9d188c68a6cdb94f38c4183efb46b679d235ffcb398d2a4f20a1e3576",
+      "sha256": "a60ad57c45ccae18ea1e77b6f87a4a391d8b8102c26c3e1ec186deb6e7d115fc",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4990,9 +4990,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 30,
-      "sizeBytes": 6701,
-      "lineCount": 190,
-      "sha256": "0529890902aa97263c56ac6854b0ce3d7c8c02a68d3190101d1e0153ae6aa696",
+      "sizeBytes": 6724,
+      "lineCount": 191,
+      "sha256": "f61a28a91f555c96e5053c9eccacaa57c373d24a3de1624915a06b15da734310",
       "targetDomain": "Repositorio de Datos Pokémon",
       "targetArtifacts": [
         "apps/backend/src/services/pokemon.repository.ts"
@@ -5039,7 +5039,7 @@
         },
         {
           "name": "🐾 PokemonRepository [Unit]: getNextPokemonId genera IDs secuenciales continuos mayores a 1008",
-          "line": 181
+          "line": 182
         }
       ]
     },
