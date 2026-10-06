@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:35:14.188Z",
+  "generatedAt": "2026-10-06T18:48:24.422Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 696,
-    "totalLines": 18543,
-    "totalSizeBytes": 807383,
+    "totalTestCases": 698,
+    "totalLines": 18660,
+    "totalSizeBytes": 813186,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 226,
+      "testCases": 228,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -4031,12 +4031,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 3617,
-      "lineCount": 84,
-      "sha256": "d7b0481472930ec8d078a654a9129ae12c4f8a69b85d9b68cd037de4fb765e3e",
+      "assertionCountEst": 17,
+      "sizeBytes": 9420,
+      "lineCount": 201,
+      "sha256": "8de94ee9771ef962ba7b8ece278fc205bd827847677451a3012455753cc3fdae",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4053,15 +4053,23 @@
       "testCases": [
         {
           "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose y en helm-values",
-          "line": 27
+          "line": 28
         },
         {
           "name": "🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas",
-          "line": 53
+          "line": 54
         },
         {
           "name": "🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict",
-          "line": 65
+          "line": 66
+        },
+        {
+          "name": "🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values",
+          "line": 109
+        },
+        {
+          "name": "🛡️ RENOVATE-004: el gestor custom.regex del chart encuentra tag y digest de pgbouncer y está habilitado",
+          "line": 154
         }
       ]
     },
