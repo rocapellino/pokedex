@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:14:32.347Z",
+  "generatedAt": "2026-10-06T18:25:17.084Z",
   "summary": {
     "totalFiles": 87,
     "testFiles": 81,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 691,
-    "totalLines": 18439,
-    "totalSizeBytes": 803144,
+    "totalTestCases": 692,
+    "totalLines": 18500,
+    "totalSizeBytes": 806050,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 28,
-      "testCases": 221,
+      "testCases": 222,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3983,12 +3983,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 3617,
-      "lineCount": 84,
-      "sha256": "d7b0481472930ec8d078a654a9129ae12c4f8a69b85d9b68cd037de4fb765e3e",
+      "assertionCountEst": 8,
+      "sizeBytes": 6523,
+      "lineCount": 145,
+      "sha256": "d42e270f3dde04163c45165bd04570995ab37275b8d43d69f914758544f9b583",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4005,15 +4005,19 @@
       "testCases": [
         {
           "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose y en helm-values",
-          "line": 27
+          "line": 28
         },
         {
           "name": "🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas",
-          "line": 53
+          "line": 54
         },
         {
           "name": "🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict",
-          "line": 65
+          "line": 66
+        },
+        {
+          "name": "🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values",
+          "line": 109
         }
       ]
     },
