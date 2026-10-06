@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:54:42.947Z",
+  "generatedAt": "2026-10-06T19:10:30.597Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 698,
-    "totalLines": 18675,
-    "totalSizeBytes": 814195,
+    "totalLines": 18684,
+    "totalSizeBytes": 814602,
     "suitesCount": 10
   },
   "suites": [
@@ -4033,10 +4033,10 @@
       "runner": "node:test (tsx)",
       "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 17,
-      "sizeBytes": 9420,
-      "lineCount": 201,
-      "sha256": "8de94ee9771ef962ba7b8ece278fc205bd827847677451a3012455753cc3fdae",
+      "assertionCountEst": 14,
+      "sizeBytes": 9827,
+      "lineCount": 210,
+      "sha256": "5cfa132c868efbf1cc704e30b6dc17c9719df99a64fe3dcc99cef2be0060fc2c",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4052,24 +4052,24 @@
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose y en helm-values",
-          "line": 28
+          "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose, helm-values y custom.regex",
+          "line": 29
         },
         {
           "name": "🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas",
-          "line": 54
+          "line": 55
         },
         {
           "name": "🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict",
-          "line": 66
+          "line": 67
         },
         {
           "name": "🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values",
-          "line": 109
+          "line": 123
         },
         {
-          "name": "🛡️ RENOVATE-004: el gestor custom.regex del chart encuentra tag y digest de pgbouncer y está habilitado",
-          "line": 154
+          "name": "🛡️ RENOVATE-004: el gestor custom.regex encuentra tag y digest de cada imagen con digest del chart",
+          "line": 158
         }
       ]
     },
