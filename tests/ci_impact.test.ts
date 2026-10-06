@@ -241,6 +241,12 @@ test('🎯 CI-001: renovate.json está clasificado, activa SAST y documentación
   // Semgrep es el gate que valida la configuración de Renovate; la guía de CI la documenta.
   assert.equal(result.triggers.security_sast, true, 'CI-001: renovate.json debe activar SAST (Semgrep)');
   assert.equal(result.triggers.documentation, true, 'CI-001: renovate.json debe activar la coherencia documental');
+  // Config Linters ejecuta renovate-config-validator (RENOVATE-002): sin linting una opción inválida llegaba a main.
+  assert.equal(
+    result.triggers.linting,
+    true,
+    'CI-001: renovate.json debe activar Config Linters (validador de Renovate)',
+  );
   assert.equal(result.triggers.security_secrets, true, 'security_secrets siempre debe estar activo');
 
   const mustStayOff: Array<[keyof typeof result.triggers, string]> = [

@@ -42,3 +42,42 @@ test('🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en d
     }
   }
 });
+
+/**
+ * RENOVATE-002 — una opción inválida en `renovate.json` detiene a Renovate hospedado (no abre PRs de
+ * dependencias y publica un issue de configuración). Una clave de comentario como `//gitsign` lo
+ * provocaba, porque Renovate no admite claves arbitrarias. El validador oficial corre en Config
+ * Linters; este test fija su presencia y la ausencia de claves de comentario, que es la causa
+ * conocida, para que falle en local antes de llegar a CI.
+ */
+test('🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as Record<string, unknown>;
+  const commentKeys = Object.keys(config).filter((key) => key.startsWith('//'));
+
+  assert.deepEqual(
+    commentKeys,
+    [],
+    `RENOVATE-002: Renovate rechaza las claves de comentario (${commentKeys.join(', ')}) y deja de abrir PRs. ` +
+      'Documenta la excepción en docs/devops/GITHUB_WORKFLOWS_GUIDE.md o usa "description" en una packageRule.',
+  );
+});
+
+test('🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict', () => {
+  const linters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
+
+  assert.match(
+    linters,
+    /renovate-config-validator/,
+    'RENOVATE-002: Config Linters debe ejecutar renovate-config-validator',
+  );
+  assert.match(
+    linters,
+    /renovate\/renovate:[\w.-]+@sha256:[0-9a-f]{64}/,
+    'RENOVATE-002: la imagen de Renovate debe fijarse por tag y digest (supply chain, ADR-008)',
+  );
+  assert.match(
+    linters,
+    /renovate-config-validator[\s\S]*?--strict/,
+    'RENOVATE-002: el validador debe correr con --strict',
+  );
+});

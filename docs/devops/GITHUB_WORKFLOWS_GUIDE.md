@@ -37,7 +37,7 @@ Como este proyecto aloja backend (`apps/backend/`), frontend (`apps/frontend/`),
 - **Reusable Core CI ([`ci.yaml`](../../.github/workflows/ci.yaml)):** Invocado condicionalmente por el orquestador cuando se modifican backend, dependencias raíz, contratos de testing o rutas globales. Ejecuta tipado, tests, Semgrep SAST, escaneo Trivy y firmado Cosign en `main`.
 - **Reusable Frontend CI ([`web.yaml`](../../.github/workflows/web.yaml)):** Invocado condicionalmente cuando cambian `apps/frontend/**` o pruebas E2E.
 - **Reusable Infraestructura CI ([`infra.yaml`](../../.github/workflows/infra.yaml)):** Invocado condicionalmente cuando cambian `infra/**`, `gitops/**` o el `Taskfile.yaml`.
-- **Reusable Config Linters ([`config-linters.yaml`](../../.github/workflows/config-linters.yaml)):** Ejecuta Actionlint, Zizmor y ShellCheck sobre workflows y scripts en cambios globales o de linting.
+- **Reusable Config Linters ([`config-linters.yaml`](../../.github/workflows/config-linters.yaml)):** Ejecuta Actionlint, Zizmor, el validador de Renovate y ShellCheck sobre workflows, `renovate.json` y scripts en cambios globales o de linting.
 - **Reusable Security Scanning ([`security-code-scanning.yaml`](../../.github/workflows/security-code-scanning.yaml)):** Ejecuta análisis avanzado CodeQL y Semgrep en cambios relevantes o programados.
 - **Secret Scanning Incondicional ([`security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml)):** Se ejecuta de forma independiente y paralela en **cada commit y PR** como Required Check no negociable del ruleset de GitHub, sin depender de la clasificación de impacto.
 - **Quality Gate Unificado:** El job final `quality-gate` en `change-impact.yaml` agrega el estado de todos los workflows invocados (`success` o `skipped` justificado), operando como único required status check orquestado y evitando bloqueos artificiales por jobs condicionales.
@@ -62,7 +62,7 @@ flowchart TD
         ROUTER -->|backend / global / tests| WF_CI["🚀 ci.yaml (Reusable Core)\n• TypeScript & Tests\n• Semgrep SAST\n• Docker & Trivy"]
         ROUTER -->|infra / gitops / taskfile| WF_INFRA["⚙️ infra.yaml (Reusable Infra)\n• Helm, Kubeconform & Kyverno\n• OpenTofu, Ansible & Checkov\n• Test KinD"]
         ROUTER -->|apps/frontend/**| WF_WEB["🌐 web.yaml (Reusable Web)\n• Vite Build & Lint\n• Playwright E2E & Axe-core\n• Lighthouse CI"]
-        ROUTER -->|global / linting| WF_MEGA["🧹 config-linters.yaml (Reusable)\n• Actionlint, Zizmor y ShellCheck"]
+        ROUTER -->|global / linting| WF_MEGA["🧹 config-linters.yaml (Reusable)\n• Actionlint, Zizmor, Renovate y ShellCheck"]
         ROUTER -->|security / global| WF_SCAN["🔬 security-code-scanning.yaml\n• CodeQL SAST"]
         ROUTER -->|always: todo PR humano| JOB_PRGOV["📝 pr-governance (job)\n• npm run pr:validate --remote"]
 
@@ -144,7 +144,7 @@ flowchart TD
 
 - **Archivo:** [`config-linters.yaml`](../../.github/workflows/config-linters.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
-- **Pasos:** Actionlint (imagen fijada por digest, con ShellCheck embebido sobre los bloques `run:`) Zizmor (imagen fijada por digest, modo `--offline`, severidad mínima `medium`; las excepciones justificadas viven en [`zizmor.yaml`](../../.github/zizmor.yaml)) y ShellCheck sobre los `*.sh` versionados. Actionlint y ShellCheck usan severidad mínima `warning`. Sin `continue-on-error`: un fallo bloquea a través del Quality Gate.
+- **Pasos:** Actionlint (imagen fijada por digest, con ShellCheck embebido sobre los bloques `run:`), Zizmor (imagen fijada por digest, modo `--offline`, severidad mínima `medium`; las excepciones justificadas viven en [`zizmor.yaml`](../../.github/zizmor.yaml)) `renovate-config-validator --strict` sobre [`renovate.json`](../../renovate.json) (imagen de Renovate fijada por digest; una opción inválida detiene a Renovate hospedado sin que ningún otro gate lo note) y ShellCheck sobre los `*.sh` versionados. Actionlint y ShellCheck usan severidad mínima `warning`. Sin `continue-on-error`: un fallo bloquea a través del Quality Gate.
 
 ### 3.6. 🔬 `security-code-scanning.yaml` (Reusable SAST / CodeQL CI)
 
@@ -204,6 +204,7 @@ El workflow [`ci.yaml`](../../.github/workflows/ci.yaml) incorpora el gate de re
 
 - **Renovate Bot ([`renovate.json`](../../renovate.json)):** Centraliza la gestión unificada y programada de dependencias en todos los ecosistemas del proyecto (`npm`, `dockerfile`, `docker-compose`, `github-actions`, `helm` y `terraform/opentofu`).
 - **Imágenes de `docker-compose`:** el gestor `docker-compose` mantiene los tags y digests de `docker-compose.yaml` y `docker-compose.dev.yaml`. Todas llevan tag y digest (incluida `rclone/rclone:1.68.2@sha256:…`), para que Renovate conozca la versión de la que parte; `rclone` también está en el chart de Helm (`backup.gdrive.image.tag` y `digest` en `infra/helm/pokedex/values.yaml`, campos separados por INFRA-005): Renovate agrupa ambos en un solo PR (`renovate/rclone`) pero solo cambia el `tag` del chart, así que el `digest` se copia del compose en ese mismo PR; `tests/security/dr_backup_security.test.ts` falla mientras no coincidan.
+- **Gitsign sin gestión de Renovate:** Gitsign se actualiza de forma manual y deliberada. No existe datasource de Renovate para binarios de Sigstore y ningún regex manager puede calcular el SHA-256 de un release asset (vive en el campo `digest` de la API de GitHub y en `checksums.txt`); un bump automático dejaría los digests obsoletos y el release fallaría en modo fail-closed. Procedimiento en [`release-tag.yaml`](../../.github/workflows/release-tag.yaml): cambiar `GITSIGN_VERSION`, ejecutar el workflow con el input `gitsign_refresh` y pegar el bloque `env:` impreso; la coherencia versión-digests se valida en runtime (SEC-001). Esta explicación no puede vivir en `renovate.json` como clave `//gitsign`: es una opción inválida y detenía a Renovate hospedado.
 - **Bloqueo de major de PostgreSQL y Redis:** `postgres` y `redis` se declaran en `docker-compose` y en el chart de Helm (`helm-values`, `infra/helm/pokedex/values.yaml`), y el bloqueo de sus major cubre ambos gestores: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos. Siguen permitidos los digests, parches y minor. `tests/security/renovate_config_contract.test.ts` (RENOVATE-001) impide que la regla se estreche.
 - **Cooldown de 7 Días (`minimumReleaseAge: "7 days"`):** Garantiza que cualquier versión nueva permanezca en observación comunitaria durante 7 días antes de abrir un PR, mitigando riesgos de supply chain poisoning.
 - **Ventana Programada:** Ejecución semanal los lunes antes de las 06:00 AM (ART).
