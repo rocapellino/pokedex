@@ -29,8 +29,8 @@ Esta regla aplica a todos los agentes de IA, procesos automatizados y herramient
      - `docs/architecture/`
      - Código fuente y tests en `apps/`, `scripts/` y `tests/`
    - **Convención canónica de secretos en Vault:**
-     - Producción: `pokedex/prod`
-     - Pre-producción: `pokedex/preprod`
+     - Pre-producción (operativa en Proxmox): `pokedex/preprod`
+     - Producción: `pokedex/prod` queda reservada para el blueprint prod cloud inactivo (ADR-030); no se usa en Vault on-prem
 
 3. **Inmutabilidad de Auditorías Pasadas:**
    - Los archivos dentro de `docs/audits/` no deben modificarse retroactivamente para "actualizarlos" a convenciones nuevas, ya que representan registros de auditoría forense y cumplimiento histórico.
