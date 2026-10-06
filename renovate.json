@@ -83,8 +83,8 @@
       "minimumReleaseAge": "7 days"
     },
     {
-      "description": "docker-compose: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major y se mantienen los digests y parches",
-      "matchManagers": ["docker-compose"],
+      "description": "docker-compose y chart de Helm: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major en ambos gestores y se mantienen los digests y parches",
+      "matchManagers": ["docker-compose", "helm-values"],
       "matchPackageNames": ["postgres", "redis"],
       "matchUpdateTypes": ["major"],
       "enabled": false,
