@@ -55,6 +55,8 @@ spec:
                     secretKeyRef:
                       name: {{ .Values.secrets.existingSecret | default (printf "%s-secrets" (include "pokedex.fullname" .)) }}
                       key: BACKUP_ENCRYPTION_KEY
+                - name: BACKUP_HMAC_REQUIRED_FROM
+                  value: {{ .Values.backup.hmac.requiredFrom | quote }}
               command:
                 # bash: el script usa `pipefail`, que dash (/bin/sh en Debian) no soporta.
                 - /bin/bash
@@ -91,12 +93,38 @@ spec:
                     exit 1
                   fi
 
+                  # 2b. Autenticidad HMAC-SHA256 (Encrypt-then-MAC), ANTES de descifrar. El SHA-256 de arriba solo
+                  # detecta corrupción: quien altera el backup también puede recalcularlo. El HMAC exige la clave.
+                  : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria}"
+                  HMAC_FILE="${LATEST_BACKUP}.hmac"
+                  if [ -f "${HMAC_FILE}" ]; then
+                    echo "🔏 [DR Verify] Verificando autenticidad HMAC-SHA256 del backup..."
+                    MAC_KEY=$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${BACKUP_ENCRYPTION_KEY}" -r | cut -d' ' -f1)
+                    EXPECTED_HMAC=$(cut -d' ' -f1 "${HMAC_FILE}")
+                    ACTUAL_HMAC=$(openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${LATEST_BACKUP}" | cut -d' ' -f1)
+                    unset MAC_KEY
+                    if [ -z "${EXPECTED_HMAC}" ] || [ "${EXPECTED_HMAC}" != "${ACTUAL_HMAC}" ]; then
+                      echo "❌ [DR Verify] Error crítico: El HMAC no coincide (backup manipulado, .hmac inválido o clave incorrecta)."
+                      exit 1
+                    fi
+                    echo "✅ [DR Verify] Autenticidad HMAC-SHA256 verificada con éxito."
+                  else
+                    # Sin .hmac solo se acepta un backup anterior a la fecha de exigencia (nombre pokedex_YYYYMMDD_HHMMSS).
+                    # Un nombre que no se pueda leer cuenta como posterior: se rechaza.
+                    BACKUP_DATE=$(basename "${LATEST_BACKUP}" | cut -d_ -f2)
+                    if [ "${BACKUP_DATE}" -lt "${BACKUP_HMAC_REQUIRED_FROM}" ] 2>/dev/null; then
+                      echo "⚠️ [DR Verify] Backup anterior a ${BACKUP_HMAC_REQUIRED_FROM} sin .hmac: se acepta con aviso (se creó antes de la autenticación)."
+                    else
+                      echo "❌ [DR Verify] Error crítico: Falta ${HMAC_FILE} en un backup creado desde ${BACKUP_HMAC_REQUIRED_FROM}; posible degradación de la autenticación."
+                      exit 1
+                    fi
+                  fi
+
                   # 3. Descifrado de prueba con clave AES-256-CBC PBKDF2
                   DECRYPTED_GZ="${TMP_DIR}/test_restore.sql.gz"
                   DECRYPTED_SQL="${TMP_DIR}/test_restore.sql"
 
                   echo "🔓 [DR Verify] Probando descifrado con clave AES-256-CBC PBKDF2..."
-                  : "${BACKUP_ENCRYPTION_KEY:?Error: BACKUP_ENCRYPTION_KEY es obligatoria}"
                   openssl enc -d -aes-256-cbc -pbkdf2 -in "${LATEST_BACKUP}" -out "${DECRYPTED_GZ}" -k "${BACKUP_ENCRYPTION_KEY}" 2>/dev/null || {
                     echo "❌ [DR Verify] Error fatal: Clave de descifrado inválida o archivo corrupto."
                     exit 1

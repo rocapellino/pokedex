@@ -14,7 +14,8 @@ Describir el ciclo de vida operativo de las copias de seguridad locales de Postg
 ## 2. Parámetros Criptográficos y de Retención
 
 - **Algoritmo de cifrado**: AES-256-CBC con derivación PBKDF2 y salt criptográfico.
-- **Integridad**: Suma de comprobación SHA-256 generada simultáneamente (`.sha256`).
+- **Integridad**: Suma de comprobación SHA-256 generada simultáneamente (`.sha256`). Detecta corrupción, no manipulación: quien altera el backup también puede recalcularla.
+- **Autenticidad (Encrypt-then-MAC)**: cada `.enc` lleva un `.enc.hmac` con un HMAC-SHA256 del archivo completo, calculado con una clave derivada de `BACKUP_ENCRYPTION_KEY`. AES-256-CBC no autentica, así que sin él una clave incorrecta puede descifrar "bien" por azar (~0,4 %) y quien escriba en el almacenamiento puede alterar el volcado. La verificación lo comprueba ANTES de descifrar y falla ante manipulación o clave incorrecta. El `.enc` no cambia: sigue siendo legible con `openssl enc -d`.
 - **Retención local**: 30 días en volúmenes dedicados (`pokedex-backup-pvc`).
 - **Retención remota/offsite**: Replicación automatizada hacia Google Drive (formalizada en [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
 
@@ -41,11 +42,19 @@ bash scripts/dr_verify_restore.sh /ruta/al/backup/pokedex_2026-09-17.sql.gz.enc
 
 ### Restauración Manual de Emergencia
 
-1. Obtener el volcado cifrado y su archivo de checksum:
+1. Obtener el volcado cifrado y sus archivos de integridad (`.sha256` y `.hmac`) y verificarlos antes de descifrar:
 
    ```bash
    sha256sum -c pokedex_backup_2026-09-13.sql.gz.enc.sha256
+   BACKUP_FILE=pokedex_backup_2026-09-13.sql.gz.enc
+   # Clave del MAC derivada de la de cifrado (no se usa la misma clave en dos funciones)
+   MAC_KEY=$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${BACKUP_ENCRYPTION_KEY}" -r | cut -d' ' -f1)
+   ACTUAL=$(openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${BACKUP_FILE}" | cut -d' ' -f1)
+   EXPECTED=$(cut -d' ' -f1 "${BACKUP_FILE}.hmac")
+   [ "${ACTUAL}" = "${EXPECTED}" ] && echo "HMAC OK" || { echo "HMAC NO COINCIDE: no restaurar"; exit 1; }
    ```
+
+   Un `.hmac` que no coincide indica un backup manipulado o una clave incorrecta: no restaurar. Los backups anteriores a `backup.hmac.requiredFrom` (ver `values.yaml`) no tienen `.hmac` y se restauran sin este paso, con la cautela correspondiente.
 
 2. Descifrar el archivo con la clave simétrica autorizada:
 

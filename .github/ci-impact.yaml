@@ -160,6 +160,7 @@ rules:
       - "scripts/probe-egress-security.ts"
       - "scripts/dr-drill.ts"
       - "scripts/dev-backup-gdrive.ts"
+      - "scripts/lib/backup-integrity.ts"
       - "scripts/deploy-grafana-cloud.mjs"
       - "scripts/dr_verify_restore.sh"
       # Tareas de clúster, ArgoCD y validación de plataforma
