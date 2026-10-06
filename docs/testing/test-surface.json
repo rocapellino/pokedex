@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T20:07:50.047Z",
+  "generatedAt": "2026-10-06T20:17:30.134Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 705,
-    "totalLines": 18792,
-    "totalSizeBytes": 820968,
+    "totalLines": 18791,
+    "totalSizeBytes": 820907,
     "suitesCount": 10
   },
   "suites": [
@@ -1051,9 +1051,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 72,
-      "sizeBytes": 11288,
-      "lineCount": 249,
-      "sha256": "c0856f37d4d1cfc42224ff732e670efaa267df0bb6fc01e282a15e3c193dccb4",
+      "sizeBytes": 11227,
+      "lineCount": 248,
+      "sha256": "857382e556c53036830212ea66720b3f392c6ca50512eb8f7f4c7ff3288f408f",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1116,40 +1116,40 @@
           "line": 160
         },
         {
-          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base",
+          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de las debilidades",
           "line": 168
         },
         {
           "name": "🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🧬 UI Mega: sin megaevolución no hay botón ni despliegue",
-          "line": 194
+          "line": 193
         },
         {
           "name": "🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega",
-          "line": 200
+          "line": 199
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)",
-          "line": 205
+          "line": 204
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null",
-          "line": 222
+          "line": 221
         },
         {
           "name": "🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución",
-          "line": 226
+          "line": 225
         },
         {
           "name": "🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente",
-          "line": 231
+          "line": 230
         },
         {
           "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
-          "line": 238
+          "line": 237
         }
       ]
     },
