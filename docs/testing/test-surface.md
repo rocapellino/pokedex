@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 79 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **669** |
-| **Líneas de Código de Pruebas** | 18.020 |
-| **Tamaño Total de la Suite** | 765.0 KB |
+| **Total de Casos de Prueba Identificados** | **670** |
+| **Líneas de Código de Pruebas** | 18.027 |
+| **Tamaño Total de la Suite** | 765.5 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-06T12:15:41.928Z |
+| **Última Sincronización** | 2026-10-06T12:44:17.378Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 125 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 126 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 27 | 217 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
@@ -119,7 +119,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
-| [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **7** | 242 | Suite de pruebas unit: mega_evolution_generator.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **8** | 249 | Suite de pruebas unit: mega_evolution_generator.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_mapper.test.ts`](../../tests/unit/mega_evolution_mapper.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 62 | Suite de pruebas unit: mega_evolution_mapper.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_seed.test.ts`](../../tests/unit/mega_evolution_seed.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **9** | 110 | Suite de pruebas unit: mega_evolution_seed.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_validation.test.ts`](../../tests/unit/mega_evolution_validation.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **12** | 126 | Suite de pruebas unit: mega_evolution_validation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -140,7 +140,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 125
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 126
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -153,7 +153,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | *(General)* |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | *(General)* |
-| [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | **7** | 242 | Suite de pruebas unit: mega_evolution_generator.test.ts. | *(General)* |
+| [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | **8** | 249 | Suite de pruebas unit: mega_evolution_generator.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_mapper.test.ts`](../../tests/unit/mega_evolution_mapper.test.ts) | **4** | 62 | Suite de pruebas unit: mega_evolution_mapper.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_seed.test.ts`](../../tests/unit/mega_evolution_seed.test.ts) | **9** | 110 | Suite de pruebas unit: mega_evolution_seed.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_validation.test.ts`](../../tests/unit/mega_evolution_validation.test.ts) | **12** | 126 | Suite de pruebas unit: mega_evolution_validation.test.ts. | *(General)* |

@@ -41,6 +41,13 @@ test('🧬 Generador: un calificativo desconocido cae a su slug legible y no rom
   assert.equal(megaDisplayName('foo-nuevaforma-mega', 'foo', 'Foo'), 'Mega-Foo (Nuevaforma)');
 });
 
+test('🧬 Generador: el slug de la especie se trata como texto literal, no como expresión regular', () => {
+  // Con `new RegExp(slug)`, el `.` coincidiría con cualquier carácter y recortaría `axb-` por error.
+  assert.equal(megaDisplayName('a.b-mega-x', 'a.b', 'A.B'), 'Mega-A.B X');
+  assert.equal(megaDisplayName('axb-mega-x', 'a.b', 'A.B'), 'Mega-A.B X (Axb)');
+  assert.equal(megaDisplayName('mr-mime-mega', 'mr-mime', 'Mr. Mime'), 'Mega-Mr. Mime');
+});
+
 // ------------------------------------------------------------------------------
 // Doble de PokeAPI
 // ------------------------------------------------------------------------------

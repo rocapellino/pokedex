@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T12:15:41.928Z",
+  "generatedAt": "2026-10-06T12:44:17.378Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 669,
-    "totalLines": 18020,
-    "totalSizeBytes": 783385,
+    "totalTestCases": 670,
+    "totalLines": 18027,
+    "totalSizeBytes": 783850,
     "suitesCount": 10
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 19,
-      "testCases": 125,
+      "testCases": 126,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -4567,12 +4567,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 7,
+      "testCount": 8,
       "describeCount": 0,
-      "assertionCountEst": 22,
-      "sizeBytes": 8810,
-      "lineCount": 242,
-      "sha256": "8794ff897f18ae30c3a39765f91f21c08badb9d8d6d811f4701ba5186e6adbfa",
+      "assertionCountEst": 25,
+      "sizeBytes": 9275,
+      "lineCount": 249,
+      "sha256": "8ed4604ae19f489ba50a994778a798f3128f280b20e1518ef5a32c20b7cc1575",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4600,20 +4600,24 @@
           "line": 40
         },
         {
+          "name": "🧬 Generador: el slug de la especie se trata como texto literal, no como expresión regular",
+          "line": 44
+        },
+        {
           "name": "🧬 Generador: buildMegaEvolutions arma la forma completa y la ordena por ID de forma (X antes que Y)",
-          "line": 158
+          "line": 165
         },
         {
           "name": "🧬 Generador: sin nombre oficial en español compone el nombre con la convención",
-          "line": 184
+          "line": 191
         },
         {
           "name": "🧬 Generador: enrichCatalogWithMegas agrupa por especie, no toca el resto y quita megas obsoletas",
-          "line": 192
+          "line": 199
         },
         {
           "name": "🧬 Generador: falla si hay megaevoluciones de una especie ausente del catálogo",
-          "line": 220
+          "line": 227
         }
       ]
     },

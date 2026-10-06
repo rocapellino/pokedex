@@ -423,10 +423,9 @@ export const MEGA_QUALIFIERS_ES: Record<string, string> = {
  * especie + sufijo X/Y/Z o calificativo de forma entre paréntesis.
  */
 export function megaDisplayName(formName: string, speciesSlug: string, speciesNombre: string): string {
-  const rest = formName
-    .replace(new RegExp(`^${speciesSlug}-?`), '')
-    .split('-')
-    .filter((token) => token && token !== 'mega');
+  // Prefijo de especie quitado como texto literal (una regex dinámica trataría `.` y similares como metacaracteres).
+  const withoutSpecies = formName.startsWith(speciesSlug) ? formName.slice(speciesSlug.length) : formName;
+  const rest = withoutSpecies.split('-').filter((token) => token && token !== 'mega');
   const letter = rest.find((token) => /^[xyz]$/.test(token));
   const qualifiers = rest.filter((token) => token !== letter).map((t) => MEGA_QUALIFIERS_ES[t] ?? titleCaseSlug(t));
 
