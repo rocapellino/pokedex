@@ -51,7 +51,7 @@ Antes de dar por preparado o aprobado un PR, valida los controles del Readiness 
   - `FAIL`: Comprobación ejecutada con fallos no resueltos.
   - `NOT_APPLICABLE`: Comprobación no aplicable según la matriz de impacto.
   - `NOT_EXECUTED`: Comprobación aplicable que no fue ejecutada. **Nunca equivale a PASS**.
-  - `CI_REQUIRED`: Herramienta no disponible localmente; delegada obligatoriamente a CI.
+  - `CI_REQUIRED`: Herramienta no disponible localmente ni ejecutable en contenedor (ver [Dependencias Ausentes](../_shared/skill-contract.md#dependencias-ausentes-ejecutar-en-contenedor)); delegada obligatoriamente a CI.
 
 > [!IMPORTANT]
 > **Regla de Integridad de Gates:** Queda terminantemente prohibido convertir `CI_REQUIRED` o `NOT_EXECUTED` en `PASS`.
