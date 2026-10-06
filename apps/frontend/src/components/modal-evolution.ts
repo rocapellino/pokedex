@@ -70,9 +70,9 @@ export function renderSingleEvolutionNode(
       : '';
 
   return `
-    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}" title="${
-      isCurrent ? `Estás viendo a ${safeNombre}` : `Ver ficha de ${safeNombre}`
-    }">
+    <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}"${
+      isCurrent ? ' aria-current="true"' : ' role="button" tabindex="0"'
+    } title="${isCurrent ? `Estás viendo a ${safeNombre}` : `Ver ficha de ${safeNombre}`}">
       <div class="evolution-circle-frame">
         <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
       </div>

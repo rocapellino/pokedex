@@ -56,8 +56,8 @@ export function renderPokemonCard(p: Pokemon): string {
         <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="pokemon-img" loading="lazy" crossorigin="anonymous">
       </div>
 
-      <h2 class="pokemon-name">${escapeText(p.nombre)}</h2>
-      
+      <h2 class="pokemon-name"><button type="button" class="card-open">${escapeText(p.nombre)}</button></h2>
+
       <div class="text-center mb-2">
         <span class="type-badge" data-type="${escapeText(normType)}">
           ${escapeText(p.tipo)}
@@ -83,7 +83,7 @@ export function renderPokemonCard(p: Pokemon): string {
         </div>
       </div>
 
-      <div class="card-hint">
+      <div class="card-hint" aria-hidden="true">
         <span>Toca para ver detalles completos</span>
       </div>
     </article>

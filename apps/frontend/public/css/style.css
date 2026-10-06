@@ -582,6 +582,24 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* Acción principal de la tarjeta: botón nativo cuyo ::after cubre toda la tarjeta (Enter, Espacio y clic). */
+.card-open {
+  all: unset;
+  cursor: pointer;
+}
+
+.card-open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* La tarjeta recorta con overflow: hidden, por eso el contorno de foco va hacia dentro. */
+.pokemon-card:has(.card-open:focus-visible) {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: -3px;
+}
+
 .type-badge {
   display: inline-flex;
   align-items: center;
@@ -1308,6 +1326,12 @@ body {
 
 .evolution-node-item:hover {
   transform: translateY(-4px);
+}
+
+.evolution-node-item:focus-visible {
+  outline: 3px solid #30a7d7;
+  outline-offset: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .evolution-circle-frame {

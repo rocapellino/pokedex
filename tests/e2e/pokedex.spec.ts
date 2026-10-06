@@ -210,6 +210,55 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(dialog).not.toHaveAttribute('open');
   });
 
+  test('@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco', async ({ page }) => {
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    await page.locator('#searchInput').focus();
+
+    // Tab debe alcanzar el botón de una tarjeta.
+    let reached = false;
+    for (let i = 0; i < 25 && !reached; i++) {
+      await page.keyboard.press('Tab');
+      reached = await page.evaluate(() => document.activeElement?.matches('.pokemon-card .card-open') ?? false);
+    }
+    expect(reached).toBe(true);
+
+    const button = page.locator('.pokemon-card .card-open:focus');
+    const name = (await button.textContent())?.trim() ?? '';
+    expect(name).not.toBe('');
+    const dialog = page.locator('dialog#detailModal');
+
+    await page.keyboard.press('Enter');
+    await expect(dialog).toHaveAttribute('open', '');
+    await expect(dialog).toContainText(name);
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveAttribute('open');
+    await expect(button).toBeFocused();
+
+    await page.keyboard.press('Space');
+    await expect(dialog).toHaveAttribute('open', '');
+    await page.keyboard.press('Escape');
+    await expect(button).toBeFocused();
+  });
+
+  test('@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha', async ({
+    page,
+  }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"] .card-open').focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.locator('dialog#detailModal');
+    await expect(dialog).toHaveAttribute('open', '');
+
+    const title = dialog.locator('h2.pokedex-notched-title');
+    const before = await title.textContent();
+    const node = dialog.locator('.evolution-node-item[role="button"]').first();
+    await node.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(title).not.toHaveText(before ?? '');
+    await expect(title).toBeFocused();
+    await expect(dialog.locator('.evolution-node-item[aria-current="true"]')).toHaveCount(1);
+  });
+
   test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
     await page.locator('.mega-toggle').click();
