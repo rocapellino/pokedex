@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:48:24.422Z",
+  "generatedAt": "2026-10-06T18:54:42.947Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 698,
-    "totalLines": 18660,
-    "totalSizeBytes": 813186,
+    "totalLines": 18675,
+    "totalSizeBytes": 814195,
     "suitesCount": 10
   },
   "suites": [
@@ -3012,10 +3012,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 35,
-      "sizeBytes": 7670,
-      "lineCount": 182,
-      "sha256": "c5f1029cd35235b99d988c3080c3c5b64349c5ca7b8ac5b3a67f9a66da878b1c",
+      "assertionCountEst": 36,
+      "sizeBytes": 8679,
+      "lineCount": 197,
+      "sha256": "4ba6ea244a7e024454953cce64c2fdceeb499f4fb8ea36b4203af36b120a647c",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -3042,19 +3042,19 @@
         },
         {
           "name": "🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksum SHA-256 en descarga remota",
-          "line": 86
+          "line": 101
         },
         {
           "name": "🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo",
-          "line": 103
+          "line": 118
         },
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
-          "line": 152
+          "line": 167
         },
         {
           "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
-          "line": 168
+          "line": 183
         }
       ]
     },
