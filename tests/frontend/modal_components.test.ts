@@ -242,7 +242,7 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallback
   assert.ok(multiArrayHtml.includes('evolution-transition-connector'));
 
   // 3. Objeto sin árbol (fallback)
-  const fallbackHtml = renderEvolutionSystem(null, 25, catalog);
+  const fallbackHtml = renderEvolutionSystem(null as unknown as undefined, 25, catalog);
   assert.ok(fallbackHtml.includes('official-artwork/25.png'));
 
   // 4. Árbol con raíz sin evoluciones

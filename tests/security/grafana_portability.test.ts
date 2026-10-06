@@ -39,7 +39,7 @@ const MJS_PATH = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');
 const VSCODE_TASKS_PATH = path.join(ROOT_DIR, '.vscode/tasks.json');
 
 /** Ejecuta un comando devolviendo stdout, o cadena vacia si falla. */
-function execFileSyncSafe(command, args) {
+function execFileSyncSafe(command: string, args: string[]) {
   try {
     return execFileSync(command, args, { encoding: 'utf-8' }).trim();
   } catch {
@@ -53,7 +53,7 @@ function execFileSyncSafe(command, args) {
  * Se comparan solo los NOMBRES de flag, no sus valores: los valores varian por
  * ambiente (token, cluster, URL) y son precisamente lo que el script parametriza.
  */
-function extractHelmFlags(source) {
+function extractHelmFlags(source: string) {
   const start = source.indexOf('upgrade');
   assert.ok(start > -1, 'No se encontro la invocacion de `helm upgrade`');
 
