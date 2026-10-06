@@ -149,28 +149,35 @@ export function renderMegaEvolutionSection(pokemon: Pokemon): string {
     </section>`;
 }
 
-/** Identificadores del despliegue (botón "Mega" y su contenedor). */
+/** Id del contenedor desplegable, referenciado por `aria-controls` del botón. */
 const MEGA_DISCLOSURE_ID = 'mega-disclosure';
 
 /**
  * Botón "Mega" que despliega la sección de megaevoluciones (contraída por defecto).
- * Va entre el arte del Pokémon y sus estadísticas. Devuelve cadena vacía si no tiene ninguna.
+ * Va en la columna izquierda, debajo de los puntos de base. Cadena vacía si no hay megaevolución.
  */
-export function renderMegaDisclosure(pokemon: Pokemon): string {
+export function renderMegaToggle(pokemon: Pokemon): string {
   if (!hasMegaEvolution(pokemon)) return '';
   const count = (pokemon.megaevoluciones as MegaEvolution[]).length;
   const label = count > 1 ? `Ver ${count} megaevoluciones` : 'Ver megaevolución';
 
   return `
-    <div class="mega-disclosure">
-      <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="${MEGA_DISCLOSURE_ID}" aria-label="${label}">
-        <span class="mega-title-mark" aria-hidden="true">M</span>
-        <span class="mega-toggle-text">Mega</span>
-        <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-      <div class="mega-disclosure-body" id="${MEGA_DISCLOSURE_ID}" hidden>
-        ${renderMegaEvolutionSection(pokemon)}
-      </div>
+    <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="${MEGA_DISCLOSURE_ID}" aria-label="${label}">
+      <span class="mega-title-mark" aria-hidden="true">M</span>
+      <span class="mega-toggle-text">Mega</span>
+      <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>`;
+}
+
+/**
+ * Contenedor desplegable con las megaevoluciones, a todo el ancho del detalle (como Evoluciones).
+ * Nace oculto y lo controla el botón de `renderMegaToggle`. Cadena vacía si no hay megaevolución.
+ */
+export function renderMegaDisclosureBody(pokemon: Pokemon): string {
+  if (!hasMegaEvolution(pokemon)) return '';
+  return `
+    <div class="mega-disclosure-body" id="${MEGA_DISCLOSURE_ID}" hidden>
+      ${renderMegaEvolutionSection(pokemon)}
     </div>`;
 }
 
