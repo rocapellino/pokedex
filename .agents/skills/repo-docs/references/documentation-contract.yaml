@@ -11,6 +11,7 @@ governance:
 
 budget:
   root:
+    # La Tabla de Contenidos no cuenta como sección.
     README.md:
       max_sections: 12
       max_lines: 260
@@ -73,6 +74,7 @@ documents:
       - vulnerability_response_process
       - coordinated_disclosure_policy
       - links_to_technical_security_docs
+      - public_exposure_posture_and_reference_topology
     forbidden:
       - detailed_internal_architecture
       - historical_audit_results

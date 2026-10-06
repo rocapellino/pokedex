@@ -40,7 +40,7 @@ Para evitar el crecimiento descontrolado y mantener alta legibilidad:
 | Métrica | Límite Máximo | Justificación |
 | :--- | :---: | :--- |
 | **Líneas Totales** | **260 líneas** | Garantiza lectura completa en menos de 3 minutos. |
-| **Secciones Principales (`##`)** | **12 secciones** | Evita la dispersión temática y la fatiga visual. |
+| **Secciones Principales (`##`)** | **12 secciones** (sin contar la Tabla de Contenidos) | Evita la dispersión temática y la fatiga visual. |
 | **Diagramas Mermaid** | **1 diagrama** | Un único diagrama arquitectónico conceptual de alto nivel. |
 | **Comandos de Terminal** | **≤ 10 bloques** | Solo comandos de onboarding y validación inmediata. |
 
