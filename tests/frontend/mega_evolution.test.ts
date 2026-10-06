@@ -3,7 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   describeStatDelta,
-  renderMegaDisclosure,
+  renderMegaDisclosureBody,
+  renderMegaToggle,
   renderMegaEvolutionSection,
   renderMegaStats,
   selectMegaTab,
@@ -164,29 +165,45 @@ test('🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y de
   assert.equal(root.querySelectorAll('.mega-panel[hidden]').length, 1);
 });
 
-test('🧬 UI Mega: el botón Mega nace contraído y va entre el arte y los puntos de base', () => {
+test('🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base', () => {
   const html = renderDetailModalContent(charizard);
 
   assert.match(html, /class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure"/);
   assert.match(html, /id="mega-disclosure" hidden>/);
   const art = html.indexOf('pokedex-artwork-box');
-  const toggle = html.indexOf('mega-toggle');
   const stats = html.indexOf('pokedex-stats-panel');
-  assert.ok(art < toggle && toggle < stats, 'orden: arte, botón Mega, puntos de base');
+  const toggle = html.indexOf('mega-toggle');
+  assert.ok(art < stats && stats < toggle, 'orden: arte, puntos de base, botón Mega');
+});
+
+test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones', () => {
+  const root = mount(renderDetailModalContent(charizard, [charizard]));
+
+  const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
+  assert.equal(body.closest('.pokedex-entry-grid'), null, 'no está dentro de la rejilla de dos columnas');
+  assert.equal(body.parentElement, root, 'es hijo directo del detalle, igual que Evoluciones');
+  const toggle = root.querySelector('.pokedex-left-col .mega-toggle');
+  assert.ok(toggle, 'el botón sí está en la columna izquierda');
+  assert.ok(
+    body.compareDocumentPosition(root.querySelector('.evolutions-panel-header') as HTMLElement) &
+      dom.window.Node.DOCUMENT_POSITION_FOLLOWING,
+    'el cuerpo va antes del bloque de evoluciones',
+  );
 });
 
 test('🧬 UI Mega: sin megaevolución no hay botón ni despliegue', () => {
-  assert.equal(renderMegaDisclosure(pikachu), '');
+  assert.equal(renderMegaToggle(pikachu), '');
+  assert.equal(renderMegaDisclosureBody(pikachu), '');
   assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-toggle|mega-disclosure/);
 });
 
 test('🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega', () => {
-  assert.match(renderMegaDisclosure(charizard), /aria-label="Ver 2 megaevoluciones"/);
-  assert.match(renderMegaDisclosure({ ...charizard, megaevoluciones: [megaX] }), /aria-label="Ver megaevolución"/);
+  assert.match(renderMegaToggle(charizard), /aria-label="Ver 2 megaevoluciones"/);
+  assert.match(renderMegaToggle({ ...charizard, megaevoluciones: [megaX] }), /aria-label="Ver megaevolución"/);
 });
 
 test('🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)', () => {
-  const root = mount(renderMegaDisclosure(charizard));
+  const root = mount(renderMegaToggle(charizard) + renderMegaDisclosureBody(charizard));
   const toggle = root.querySelector('.mega-toggle') as HTMLElement;
   const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
 
