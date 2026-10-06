@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:25:17.084Z",
+  "generatedAt": "2026-10-06T18:35:35.491Z",
   "summary": {
     "totalFiles": 87,
     "testFiles": 81,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 692,
-    "totalLines": 18500,
-    "totalSizeBytes": 806050,
+    "totalTestCases": 693,
+    "totalLines": 18554,
+    "totalSizeBytes": 808756,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 28,
-      "testCases": 222,
+      "testCases": 223,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -3983,12 +3983,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 8,
-      "sizeBytes": 6523,
-      "lineCount": 145,
-      "sha256": "d42e270f3dde04163c45165bd04570995ab37275b8d43d69f914758544f9b583",
+      "assertionCountEst": 17,
+      "sizeBytes": 9229,
+      "lineCount": 199,
+      "sha256": "071c45f4e70966ac1f7eacdcef85c2a04a43021c40fca13d6a533c81fc301be1",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4018,6 +4018,10 @@
         {
           "name": "🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values",
           "line": 109
+        },
+        {
+          "name": "🛡️ RENOVATE-004: el gestor custom.regex del chart encuentra tag y digest de pgbouncer y está habilitado",
+          "line": 154
         }
       ]
     },

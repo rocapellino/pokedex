@@ -23,7 +23,19 @@
     "helm-values",
     "helmv3",
     "npm",
-    "terraform"
+    "terraform",
+    "custom.regex"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "pgbouncer del chart: el digest vive en un campo `digest` aparte del `tag` (INFRA-005) y el gestor helm-values solo ve el tag. Este gestor lee tag y digest juntos para que Renovate cambie ambos en el mismo PR. Piloto: si funciona, se extiende a postgres, redis y rclone",
+      "managerFilePatterns": ["/^infra/helm/pokedex/values\\.yaml$/"],
+      "matchStrings": [
+        "repository: (?<depName>pgbouncer/pgbouncer)\\s+tag: \"(?<currentValue>[^\"]+)\"\\s+(?:#[^\\n]*\\s+)*digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\""
+      ],
+      "datasourceTemplate": "docker"
+    }
   ],
   "packageRules": [
     {
@@ -90,7 +102,7 @@
       "minimumReleaseAge": "7 days"
     },
     {
-      "description": "Chart de Helm: postgres, pgbouncer y redis fijan el digest en un campo aparte del tag (INFRA-005) y el gestor helm-values solo ve el tag, así que un PR cambiaría la etiqueta y dejaría el digest anterior: el despliegue seguiría usando la imagen vieja con una etiqueta que no la refleja. Se actualizan a mano, tag y digest juntos. rclone queda fuera porque lo cubre el agrupamiento con el compose y su test de paridad",
+      "description": "Chart de Helm: postgres, pgbouncer y redis fijan el digest en un campo aparte del tag (INFRA-005) y el gestor helm-values solo ve el tag, así que un PR cambiaría la etiqueta y dejaría el digest anterior: el despliegue seguiría usando la imagen vieja con una etiqueta que no la refleja. postgres y redis se actualizan a mano, tag y digest juntos; pgbouncer lo cubre el gestor custom.regex (tag y digest en el mismo PR), por eso sigue excluido aquí para no duplicar propuestas. rclone queda fuera porque lo cubre el agrupamiento con el compose y su test de paridad",
       "matchManagers": ["helm-values"],
       "matchPackageNames": ["postgres", "pgbouncer/pgbouncer", "redis"],
       "enabled": false,

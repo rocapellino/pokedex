@@ -142,3 +142,57 @@ test('🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin regi
     );
   }
 });
+
+/**
+ * RENOVATE-004 — `pgbouncer` se actualiza con un gestor `custom.regex` que lee `tag` y `digest` del chart
+ * en un solo bloque, porque `helm-values` solo ve el `tag` (RENOVATE-003). Ese gestor depende de un regex
+ * sobre el texto de `values.yaml`: si alguien reformatea el bloque (comillas, orden, nuevas claves), deja de
+ * coincidir y Renovate deja de proponer la imagen sin ningún error. Este test fija que el regex sigue
+ * encontrando el bloque, que lo que captura coincide con el YAML y que el gestor está habilitado
+ * (`enabledManagers` es una lista cerrada: sin `custom.regex` el gestor se ignora en silencio).
+ */
+test('🛡️ RENOVATE-004: el gestor custom.regex del chart encuentra tag y digest de pgbouncer y está habilitado', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    enabledManagers: string[];
+    customManagers?: Array<{
+      customType: string;
+      managerFilePatterns: string[];
+      matchStrings: string[];
+      datasourceTemplate?: string;
+    }>;
+  };
+  assert.ok(
+    config.enabledManagers.includes('custom.regex'),
+    "RENOVATE-004: 'custom.regex' debe estar en enabledManagers; sin él Renovate ignora el gestor sin avisar",
+  );
+
+  const valuesPath = 'infra/helm/pokedex/values.yaml';
+  const content = fs.readFileSync(path.join(ROOT_DIR, valuesPath), 'utf-8');
+  const values = yaml.load(content) as { pgbouncer: { image: { repository: string; tag: string; digest: string } } };
+  const image = values.pgbouncer.image;
+
+  const manager = config.customManagers?.find((candidate) =>
+    candidate.matchStrings.some((pattern) => pattern.includes('pgbouncer/pgbouncer')),
+  );
+  assert.ok(manager, 'RENOVATE-004: falta el gestor custom.regex de pgbouncer en renovate.json');
+  assert.equal(manager.customType, 'regex');
+  assert.equal(manager.datasourceTemplate, 'docker');
+  assert.ok(
+    manager.managerFilePatterns.some((pattern) => new RegExp(pattern.replace(/^\/|\/$/g, '')).test(valuesPath)),
+    `RENOVATE-004: managerFilePatterns no incluye ${valuesPath}`,
+  );
+
+  const match = new RegExp(manager.matchStrings[0]).exec(content);
+  assert.ok(
+    match?.groups,
+    'RENOVATE-004: el regex ya no encuentra el bloque de pgbouncer en values.yaml (¿se reformateó?). ' +
+      'Renovate dejaría de proponer la imagen sin ningún error; ajusta el regex o el bloque.',
+  );
+  assert.equal(match.groups.depName, image.repository);
+  assert.equal(match.groups.currentValue, image.tag, 'RENOVATE-004: el tag capturado no coincide con values.yaml');
+  assert.equal(
+    match.groups.currentDigest,
+    image.digest,
+    'RENOVATE-004: el digest capturado no coincide con values.yaml',
+  );
+});
