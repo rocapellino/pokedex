@@ -143,6 +143,21 @@ test('🤖 Change Impact: validador y tests AAS activan el dominio canónico', (
   assert.equal(contract.triggers.tests, true, 'el test AAS conserva además la regla general de tests');
 });
 
+test('🤖 Change Impact: SKILL.md local activa gobierno de agentes sin fuga a aplicación o infraestructura', () => {
+  const skill = analyzeChangeImpact({ files: ['.agents/skills/repo-docs/SKILL.md'], configPath: CONFIG_PATH });
+  const reference = analyzeChangeImpact({
+    files: ['.agents/skills/repo-docs/references/readme-policy.md'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(skill.triggers.agent_governance, true, 'borrar o renombrar una skill local debe activar el job AAS');
+  assert.equal(skill.triggers.documentation, true);
+  assert.equal(skill.triggers.backend, false);
+  assert.equal(skill.triggers.kubernetes, false);
+  assert.equal(reference.triggers.agent_governance, false, 'las referencias de una skill no activan el job AAS');
+  assert.equal(reference.triggers.documentation, true);
+});
+
 /**
  * CI-001 — `Taskfile.yaml` debe estar CLASIFICADO en el motor de impacto.
  *

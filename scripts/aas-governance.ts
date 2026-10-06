@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -124,6 +124,10 @@ export function validateAasGovernance(root = process.cwd()): string[] {
     if (decision.risk !== expected.risk) errors.push(`El riesgo declarado para ${id} no coincide con la allowlist.`);
     if (!Array.isArray(decision.governedBy) || !sameSet(decision.governedBy, expected.governedBy))
       errors.push(`Los responsables locales de ${id} no coinciden con la allowlist.`);
+    for (const owner of expected.governedBy) {
+      if (!existsSync(resolve(root, '.agents/skills', owner, 'SKILL.md')))
+        errors.push(`La skill local ${owner}, responsable de ${id}, no existe en .agents/skills/.`);
+    }
     if (typeof decision.reason !== 'string' || decision.reason.trim().length === 0)
       errors.push(`${id} requiere una razón de aprobación no vacía.`);
   }
