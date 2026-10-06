@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T15:23:04.303Z",
+  "generatedAt": "2026-10-06T15:27:35.777Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 677,
     "totalLines": 18126,
-    "totalSizeBytes": 788638,
+    "totalSizeBytes": 788660,
     "suitesCount": 10
   },
   "suites": [
@@ -2477,9 +2477,9 @@
       "testCount": 18,
       "describeCount": 0,
       "assertionCountEst": 189,
-      "sizeBytes": 39407,
+      "sizeBytes": 39418,
       "lineCount": 814,
-      "sha256": "92665c67138565a4b6e1226ce8735e3c7d239c81a861e2b6b894a0837c2440ab",
+      "sha256": "b45633baa8e42c9694b47dbbc6994938cb41cdd2fbc832acc655588d3481f792",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -3354,9 +3354,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 76,
-      "sizeBytes": 17772,
+      "sizeBytes": 17783,
       "lineCount": 386,
-      "sha256": "69fe2e6171f69df18b0471cbf04ceebe769b5b139c3006054c86573523cea021",
+      "sha256": "32d51624049830454a0321a3111693c91a448a99ac952ded2f448f3b3b2d4435",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",
