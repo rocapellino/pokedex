@@ -16,6 +16,8 @@ const LATEST_ALLOWED = new Set(['ghcr.io/devcontainers/features/docker-outside-o
 
 interface DevcontainerConfig {
   image: string;
+  workspaceMount: string;
+  workspaceFolder: string;
   features: Record<string, { version?: string; helm?: string }>;
 }
 
@@ -81,4 +83,13 @@ test('🛡️ DEVCONTAINER-004: kubectl y helm del devcontainer coinciden con .t
   const feature = config.features['ghcr.io/devcontainers/features/kubectl-helm-minikube:1'];
   assert.equal(feature.version, toolVersion('kubectl'), 'kubectl del devcontainer != .tool-versions');
   assert.equal(feature.helm, toolVersion('helm'), 'helm del devcontainer != .tool-versions');
+});
+
+test('🛡️ DEVCONTAINER-005: el workspace se monta en la misma ruta que en el host (docker-outside-of-docker)', () => {
+  assert.match(
+    config.workspaceMount,
+    /target=\$\{localWorkspaceFolder\}(,|$)/,
+    'DEVCONTAINER-005: el destino del montaje debe ser ${localWorkspaceFolder}; con otra ruta, los bind mounts relativos de docker-compose.dev.yaml llegan vacíos',
+  );
+  assert.equal(config.workspaceFolder, '${localWorkspaceFolder}', 'workspaceFolder debe coincidir con la ruta del host');
 });

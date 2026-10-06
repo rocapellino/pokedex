@@ -1,7 +1,10 @@
 {
   "name": "Pokédex Platform DevContainer",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/${localWorkspaceFolderBasename},type=bind",
-  "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
+  // El workspace se monta en la MISMA ruta que en el host: con docker-outside-of-docker el daemon es el del host y
+  // resuelve los bind mounts relativos de docker-compose.dev.yaml (./apps/frontend/dist, config de Alloy) contra esa ruta;
+  // con otra ruta de destino llegan vacíos. Requiere abrir el repo desde una ruta Linux (WSL2, macOS o Linux), no desde C:\.
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
+  "workspaceFolder": "${localWorkspaceFolder}",
 
   // Imagen base oficial alineada con Node.js 22 LTS.
   // Política de actualización: tag LTS activo fijado por digest SHA-256 (igual que los Dockerfiles de apps/);

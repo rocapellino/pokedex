@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T18:22:00.422Z",
+  "generatedAt": "2026-10-06T18:30:17.572Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 695,
-    "totalLines": 18524,
-    "totalSizeBytes": 806779,
+    "totalTestCases": 696,
+    "totalLines": 18535,
+    "totalSizeBytes": 807341,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 225,
+      "testCases": 226,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -2809,12 +2809,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 10,
-      "sizeBytes": 3635,
-      "lineCount": 85,
-      "sha256": "13f04acdb76b189de0b5ea064bf827a289f899a28472e9493d7026a37ee970b9",
+      "assertionCountEst": 12,
+      "sizeBytes": 4197,
+      "lineCount": 96,
+      "sha256": "3be6ccf4092dc3e169d090e5c5795aa91e37d10d89dfe2010b388853006faeb9",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2831,19 +2831,23 @@
       "testCases": [
         {
           "name": "🛡️ DEVCONTAINER-001: Renovate vigila el devcontainer (imagen, features y lock)",
-          "line": 43
+          "line": 45
         },
         {
           "name": "🛡️ DEVCONTAINER-002: la imagen base está fijada por digest SHA-256",
-          "line": 53
+          "line": 55
         },
         {
           "name": "🛡️ DEVCONTAINER-003: toda feature tiene entrada en el lock y versiones fijadas",
-          "line": 61
+          "line": 63
         },
         {
           "name": "🛡️ DEVCONTAINER-004: kubectl y helm del devcontainer coinciden con .tool-versions",
-          "line": 80
+          "line": 82
+        },
+        {
+          "name": "🛡️ DEVCONTAINER-005: el workspace se monta en la misma ruta que en el host (docker-outside-of-docker)",
+          "line": 88
         }
       ]
     },
