@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T21:57:10.369Z",
+  "generatedAt": "2026-10-06T22:15:42.199Z",
   "summary": {
-    "totalFiles": 89,
-    "testFiles": 83,
+    "totalFiles": 90,
+    "testFiles": 84,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 713,
-    "totalLines": 18965,
-    "totalSizeBytes": 828488,
+    "totalTestCases": 717,
+    "totalLines": 19032,
+    "totalSizeBytes": 831559,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 9,
-      "testCases": 84,
+      "files": 10,
+      "testCases": 88,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1027,6 +1027,49 @@
         {
           "name": "🎨 Caché CSS: las dos páginas del frontend enlazan el CSS sin una versión fija escrita a mano",
           "line": 40
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/fonts_selfhosted.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 9,
+      "sizeBytes": 3100,
+      "lineCount": 67,
+      "sha256": "9a68778cae4bd779d92465480e3c2eb53fe4644eeaa2b78e3f7fa62debfc453b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: fonts_selfhosted.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔤 Fuentes: ninguna página ni hoja de estilo depende de Google Fonts",
+          "line": 27
+        },
+        {
+          "name": "🔤 Fuentes: los .woff2 declarados en @font-face existen y son archivos WOFF2 válidos",
+          "line": 34
+        },
+        {
+          "name": "🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-face",
+          "line": 47
+        },
+        {
+          "name": "🔤 CSP: style-src y font-src son solo \\",
+          "line": 54
         }
       ]
     },
@@ -3824,9 +3867,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 20971,
+      "sizeBytes": 20942,
       "lineCount": 441,
-      "sha256": "9bdd8ee78141da68d5bcc1f56b3709a55a04ab3ed2e01050c0efcf717ef9532d",
+      "sha256": "d577dae933e219f6a5ced8a7e1daba28488ad644c828a9a1f28a21208ab53575",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",

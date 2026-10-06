@@ -236,7 +236,7 @@ ingress:
       more_set_headers "Cross-Origin-Opener-Policy: same-origin";
       more_set_headers "Cross-Origin-Resource-Policy: same-origin";
       more_set_headers "Cross-Origin-Embedder-Policy: require-corp";
-      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; img-src 'self' https://raw.githubusercontent.com data: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
     # --- Bloqueo de endpoints internos desde el exterior (ADR-016) ---
     nginx.ingress.kubernetes.io/server-snippet: |
       location /metrics {

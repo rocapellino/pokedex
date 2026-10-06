@@ -39,6 +39,7 @@ apps/frontend/
     ├── css/            # Estilos modernos con variables CSS y glassmorphism
     │   ├── style.css
     │   └── backoffice.css
+    ├── fonts/          # Fuentes autoalojadas (.woff2, subset latino; ver sección Tipografía)
     └── favicon.*       # Iconografía y branding
 ```
 
@@ -62,6 +63,22 @@ apps/frontend/
    - `Content-Security-Policy`: Protección contra inyecciones XSS restringiendo orígenes de scripts, estilos y conexiones.
 3. **Contenedor no privilegiado:** Nginx se ejecuta con el usuario no-root `nginx` (UID/GID 101) garantizando el principio de menor privilegio.
 4. **Healthcheck Nativo:** Monitoreo periódico a `/healthz`.
+5. **Sin terceros en runtime (fuentes):** la tipografía se sirve desde el mismo origen, por lo que `style-src` y `font-src` de la CSP son solo `'self'`.
+
+---
+
+## 🔤 Tipografía autoalojada
+
+| Familia | Archivo | Pesos | Uso |
+| :--- | :--- | :---: | :--- |
+| Outfit | `public/fonts/outfit-latin.woff2` | 300 a 800 (variable) | Texto base |
+| Space Grotesk | `public/fonts/space-grotesk-latin.woff2` | 500 a 700 (variable) | Títulos y cifras |
+
+- **Licencia:** SIL Open Font License 1.1 (ambas familias), que permite redistribuirlas.
+- **Origen:** Google Fonts (subset `latin`, versiones `v15` de Outfit y `v22` de Space Grotesk, descargadas el 2026-10-06). El subset cubre el español.
+- **Declaración:** `@font-face` con `font-display: swap` al inicio de `public/css/style.css`; `index.html` y `backoffice.html` precargan solo Outfit.
+- **Cambiar una fuente:** reemplazar el archivo con **otro nombre** (nginx sirve `public/` con `max-age` de 1 día y sin hash) y actualizar el `@font-face`.
+- **Gate:** `tests/frontend/fonts_selfhosted.test.ts` falla si alguna página vuelve a depender de Google Fonts.
 
 ---
 
