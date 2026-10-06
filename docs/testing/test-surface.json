@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T21:50:02.822Z",
+  "generatedAt": "2026-10-06T21:57:10.369Z",
   "summary": {
     "totalFiles": 89,
     "testFiles": 83,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 713,
     "totalLines": 18965,
-    "totalSizeBytes": 828487,
+    "totalSizeBytes": 828488,
     "suitesCount": 10
   },
   "suites": [
@@ -721,9 +721,9 @@
       "testCount": 11,
       "describeCount": 1,
       "assertionCountEst": 47,
-      "sizeBytes": 10220,
+      "sizeBytes": 10221,
       "lineCount": 224,
-      "sha256": "2f53db34424fd8d426ba8bb1fbe249d54baa9d0f888617e0188a23df1fd2365f",
+      "sha256": "ff0d167e5748da57cdaeaf371bcfb94ee658a4ddcaf786e79371f08a0bfede9f",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",

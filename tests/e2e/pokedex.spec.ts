@@ -193,7 +193,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     const dialog = page.locator('dialog#detailModal');
     await expect(dialog).toHaveAttribute('open', '');
     await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByRole('dialog')).toHaveAccessibleName(/S/);
+    await expect(page.getByRole('dialog')).toHaveAccessibleName(/\S/);
 
     // Tab nunca debe enfocar la página de fondo: queda inerte (el foco solo puede estar en el
     // diálogo o, al salir del documento, en el body/UI del navegador).
