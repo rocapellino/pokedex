@@ -110,6 +110,13 @@ test.describe('Pokédex Web Application E2E Suite', () => {
   test('El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas', async ({ page }) => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
 
+    // Contraída por defecto: solo se ve el botón "Mega", entre el arte y los puntos de base.
+    const toggle = page.getByRole('button', { name: 'Ver 2 megaevoluciones' });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('.mega-section')).toBeHidden();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const section = page.locator('.mega-section');
     await expect(section).toBeVisible();
     await expect(section.getByRole('tab')).toHaveCount(2);
@@ -125,6 +132,12 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(page.locator('#mega-panel-0')).toBeHidden();
     await expect(page.locator('#mega-panel-1')).toContainText('Sequía');
 
+    // El botón vuelve a contraer la sección.
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(section).toBeHidden();
+    await toggle.click();
+
     // Con el cursor encima, la pestaña activa conserva el texto claro (el hover no debe pisar su color).
     await section.getByRole('tab', { name: 'Mega-Charizard Y' }).hover();
     await expect(section.getByRole('tab', { name: 'Mega-Charizard Y' })).toHaveCSS('color', 'rgb(255, 255, 255)');
@@ -135,10 +148,12 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     await expect(page.locator('#detailContent')).toContainText(/Pikachu/i);
     await expect(page.locator('.mega-section')).toHaveCount(0);
+    await expect(page.locator('.mega-toggle')).toHaveCount(0);
   });
 
   test('@a11y El detalle con megaevolución cumple WCAG (Axe-core)', async ({ page }) => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+    await page.locator('.mega-toggle').click();
     await expect(page.locator('.mega-section')).toBeVisible();
 
     const results = await new AxeBuilder({ page })
@@ -152,6 +167,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
   test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+    await page.locator('.mega-toggle').click();
     const img = page.locator('#mega-panel-0 img');
     await expect(img).toBeVisible();
 

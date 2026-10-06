@@ -149,6 +149,43 @@ export function renderMegaEvolutionSection(pokemon: Pokemon): string {
     </section>`;
 }
 
+/** Identificadores del despliegue (botón "Mega" y su contenedor). */
+const MEGA_DISCLOSURE_ID = 'mega-disclosure';
+
+/**
+ * Botón "Mega" que despliega la sección de megaevoluciones (contraída por defecto).
+ * Va entre el arte del Pokémon y sus estadísticas. Devuelve cadena vacía si no tiene ninguna.
+ */
+export function renderMegaDisclosure(pokemon: Pokemon): string {
+  if (!hasMegaEvolution(pokemon)) return '';
+  const count = (pokemon.megaevoluciones as MegaEvolution[]).length;
+  const label = count > 1 ? `Ver ${count} megaevoluciones` : 'Ver megaevolución';
+
+  return `
+    <div class="mega-disclosure">
+      <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="${MEGA_DISCLOSURE_ID}" aria-label="${label}">
+        <span class="mega-title-mark" aria-hidden="true">M</span>
+        <span class="mega-toggle-text">Mega</span>
+        <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="mega-disclosure-body" id="${MEGA_DISCLOSURE_ID}" hidden>
+        ${renderMegaEvolutionSection(pokemon)}
+      </div>
+    </div>`;
+}
+
+/** Despliega o contrae la sección de megaevoluciones. Devuelve el nuevo estado, o `null` si no hay botón. */
+export function toggleMegaDisclosure(root: ParentNode): boolean | null {
+  const toggle = root.querySelector<HTMLElement>('.mega-toggle');
+  const body = root.querySelector<HTMLElement>('.mega-disclosure-body');
+  if (!toggle || !body) return null;
+
+  const expand = toggle.getAttribute('aria-expanded') !== 'true';
+  toggle.setAttribute('aria-expanded', String(expand));
+  body.toggleAttribute('hidden', !expand);
+  return expand;
+}
+
 /**
  * Activa la pestaña `index` dentro de `root`: marca la pestaña seleccionada y muestra solo su panel.
  * Devuelve `false` si el índice no corresponde a ninguna pestaña.
