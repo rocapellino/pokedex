@@ -41,7 +41,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rocapellino/pokedex.git
-    targetRevision: v1.96.2
+    targetRevision: v1.96.3
     path: infra/helm/pokedex
     helm:
       releaseName: pokedex-cloud
