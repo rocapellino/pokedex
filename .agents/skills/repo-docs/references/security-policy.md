@@ -16,7 +16,7 @@ El archivo `SECURITY.md` debe ser una **política pública clara y accionable** 
 
 ## 2. Estructura Canónica Recomendada
 
-El archivo `SECURITY.md` debe estructurarse en las siguientes secciones (máximo 8 secciones principales):
+El archivo `SECURITY.md` debe estructurarse en las siguientes secciones (máximo 8 secciones principales, sin contar la Tabla de Contenidos). Un repositorio público puede dedicar una de ellas a la postura de exposición de la información (hoy §6 de `SECURITY.md`), que declara la topología de referencia deliberadamente pública y lo que nunca se publica:
 
 1. **Compromiso de Seguridad:** Declaración del enfoque de seguridad por diseño del proyecto.
 2. **Procedimiento de Reporte de Vulnerabilidades:** Canal privado de contacto (correo o GitHub Security Advisories) y datos requeridos en el reporte.
@@ -34,8 +34,8 @@ El archivo `SECURITY.md` debe estructurarse en las siguientes secciones (máximo
 | Métrica | Límite Máximo | Justificación |
 | :--- | :---: | :--- |
 | **Líneas Totales** | **180 líneas** | Mantiene el documento conciso, directo y fácil de procesar. |
-| **Secciones Principales (`##`)** | **8 secciones** | Evita la inclusión de inventarios o guías operativas. |
-| **Tablas** | **1 tabla** | Únicamente la matriz de versiones soportadas. |
+| **Secciones Principales (`##`)** | **8 secciones** (sin contar la Tabla de Contenidos) | Evita la inclusión de inventarios o guías operativas. |
+| **Tablas** | **3 tablas** | La matriz de versiones soportadas, la de SLA de respuesta y, mientras el repositorio sea público, la de topología de referencia de §6.1. |
 | **Diagramas** | **0 diagramas** | No se requieren diagramas en una política de reporte público. |
 
 ---

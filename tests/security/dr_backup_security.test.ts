@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync, execFileSync } from 'node:child_process';
+import yaml from 'js-yaml';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
 const ROOT_DIR = path.resolve();
@@ -418,5 +419,43 @@ test('🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (s
   assert.ok(
     content.includes('dr_verify_restore.sh\n') || content.includes('dr_verify_restore.sh\r\n'),
     'dr:verify debe invocar dr_verify_restore.sh sin dry-run para certificación real',
+  );
+});
+
+/**
+ * La imagen de rclone se declara en dos lugares que no pueden compartir archivo: el compose de
+ * desarrollo y el chart de Helm. Renovate los agrupa en un solo PR, pero este contrato es lo que
+ * impide que diverjan si alguien edita solo uno.
+ *
+ * El chart declara `tag` y `digest` en campos separados (INFRA-005 prohíbe `tag@digest`) y Renovate
+ * solo reconoce el `tag` de `values.yaml`: una actualización sube la versión pero deja el `digest`
+ * anterior, que la plantilla del CronJob prioriza, de modo que la etiqueta diría una versión y la
+ * imagen real sería otra. Este test convierte esa divergencia silenciosa en un fallo explícito.
+ */
+test('🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y digest) en docker-compose y en el chart de Helm', () => {
+  const compose = fs.readFileSync(path.join(ROOT_DIR, 'docker-compose.dev.yaml'), 'utf-8');
+  const composeMatch = compose.match(/image:\s*rclone\/rclone:([\w.-]+)@(sha256:[a-f0-9]{64})/);
+  assert.ok(
+    composeMatch,
+    'docker-compose.dev.yaml debe declarar rclone como rclone/rclone:<tag>@sha256:<digest> (tag y digest)',
+  );
+  const [, composeTag, composeDigest] = composeMatch;
+
+  const values = yaml.load(fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml'), 'utf-8')) as {
+    backup: { gdrive: { image: { repository?: string; tag?: string; digest?: string } } };
+  };
+  const image = values.backup.gdrive.image;
+
+  assert.equal(image.repository, 'rclone/rclone', 'El chart debe usar la imagen oficial rclone/rclone');
+  assert.equal(
+    image.tag,
+    composeTag,
+    `backup.gdrive.image.tag del chart (${image.tag}) debe coincidir con la versión de docker-compose.dev.yaml (${composeTag})`,
+  );
+  assert.equal(
+    image.digest,
+    composeDigest,
+    `backup.gdrive.image.digest del chart no coincide con el de docker-compose.dev.yaml para rclone ${composeTag}: ` +
+      `actualícelo a ${composeDigest} (Renovate cambia solo el tag; el digest se copia del compose en el mismo PR)`,
   );
 });

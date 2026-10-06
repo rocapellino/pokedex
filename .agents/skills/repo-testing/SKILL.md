@@ -15,9 +15,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
   - **Unitarias de Aplicación:** Lógica de negocio, validaciones y transformaciones (`tests/contracts.test.ts`, `tests/frontend/modal_components.test.ts`).
   - **Integración de Servicios:** Endpoints Express, almacenamiento Drizzle/Postgres, middleware y caché Redis con fallback (`tests/integration/api-limits.test.ts`, `tests/integration/concurrency.test.ts`, `tests/integration/storage.test.ts`, `tests/integration/version.test.ts`).
   - **Policy-as-Test & Gobernanza:** Verificación de contratos declarativos de infraestructura, OpenTofu, Ansible, Helm, Vault, Kyverno y GitOps (`tests/security/*`, `tests/gitops/*`, `tests/doc_governance.test.ts`). Deben tratarse como tests de arquitectura y configuración, no como cobertura de código de backend.
-  - **Fuzz Testing Diferenciado:**
-    - *Nivel PR (Smoke Fuzz):* Iteraciones acotadas sobre parsing de payloads y tokens (`tests/fuzzing.test.ts`).
-    - *Nivel Nightly / Scheduled (Deep Mutation Fuzz):* Mutación profunda y payloads caóticos de mayor duración.
+  - **Fuzz Testing (Smoke Fuzz):** Iteraciones acotadas sobre parsing de payloads y tokens (`tests/fuzzing.test.ts`), ejecutadas en CI con `npm run test:fuzz`. No existe fuzz programado ni de mutación profunda; si se necesitara, sería una propuesta nueva con su workflow y un parámetro de iteraciones.
   - **E2E & Accesibilidad:** Navegación en navegador mediante Playwright (`tests/e2e/*.spec.ts`) y validación WCAG 2.1 AA (`@axe-core/playwright`).
   - **Rendimiento & Carga:** Pruebas k6 (`tests/performance/k6_stress_test.js`) y auditorías Lighthouse CI (`lhci`).
 - **Modelo de Análisis Sistemático de Tests:**
@@ -53,15 +51,8 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
   - **Ciclo de Reconciliación Automatizado:**
     `DISCOVER` (escaneo de `tests/`) → `NORMALIZE` (clasificación y extracción) → `COMPARE` (cálculo de drift contra `test-surface.json`) → `RECONCILE` (detección de altas/bajas/cambios) → `DOCUMENT` (actualización de catálogos) → `VALIDATE` (paridad estricta y Markdown Quality Gate).
   - **Taxonomía de Estados de Reconciliación:**
-    - `NEW`: Archivo o suite nueva detectada en disco.
-    - `REMOVED`: Archivo o suite eliminada del repositorio pendiente de purga en catálogo.
-    - `RENAMED`: Archivo reubicado o renombrado entre suites.
-    - `MODIFIED`: Modificación en el hash SHA-256 del archivo.
-    - `COUNT_CHANGED`: Variación en la cantidad de casos de prueba o asertos detectados.
-    - `DESCRIPTION_DRIFT`: Desalineación entre el propósito semántico documentado y las aserciones reales del código.
-    - `ORPHAN`: Archivo de test presente en disco pero no incluido en `npm test`, `npm run test:all` ni scripts especializados.
-    - `UNEXECUTED`: Test no integrado en ningún workflow de GitHub Actions.
-    - `STALE_REFERENCE`: Referencia en documentación a un archivo o caso de prueba inexistente.
+    - *Detectados por `npm run test:surface:check` y documentados en `docs/testing/test-surface.md`:* `NEW_TEST_FILE` (archivo de test no registrado), `REMOVED_TEST_FILE` (archivo eliminado que aún figura en el catálogo), `COUNT_CHANGED` (variación en la cantidad de casos), `MODIFIED` (cambio en el hash SHA-256) y `ORPHAN` (test en disco no cubierto por ningún script ni workflow).
+    - *Clasificaciones manuales del agente (no las emite el script):* `RENAMED` (archivo reubicado entre suites), `DESCRIPTION_DRIFT` (desalineación entre el propósito documentado y las aserciones reales), `UNEXECUTED` (test presente en scripts npm pero no integrado en ningún workflow) y `STALE_REFERENCE` (referencia en documentación a un archivo o caso inexistente).
   - **Prevención de Drift en CI:** Ejecución obligatoria de `npm run test:surface:check` como Policy-as-Test contractual en `tests/contracts.test.ts` y script `validate`.
 - **Validación Canónica en Kind:** Uso de clústeres Kind en CI (`infra.yaml`) para verificar despliegues reales de Helm antes de promover a GitOps.
 
