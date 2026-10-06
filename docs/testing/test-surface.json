@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T15:48:57.159Z",
+  "generatedAt": "2026-10-06T15:58:00.554Z",
   "summary": {
     "totalFiles": 85,
     "testFiles": 79,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 680,
     "totalLines": 18166,
-    "totalSizeBytes": 790644,
+    "totalSizeBytes": 790657,
     "suitesCount": 10
   },
   "suites": [
@@ -2835,9 +2835,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 127,
-      "sizeBytes": 22339,
+      "sizeBytes": 22352,
       "lineCount": 423,
-      "sha256": "d1693071c4650434a74ecd4fc3ea7c6048422cb340c11b0a7504974e4603f5c9",
+      "sha256": "2485c2dd3da62cd36ede85cd56eb734d61684721fe9a48b17f36af48550a112c",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
