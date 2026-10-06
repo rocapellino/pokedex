@@ -41,7 +41,7 @@ Para cada funcionalidad relevante del repositorio, se evalúa su estado real a t
    - El digest declarado en GitOps debe coincidir con la imagen compilada y firmada en el release.
    - En producción, debe cumplirse la paridad 1:1 entre entornos (`AWS == Proxmox == Helm Prod`).
 3. **Contratos de Secretos y Configuración:**
-   - La clave de Vault o SecretStore apuntada en GitOps (`pokedex/prod`) debe existir en la infraestructura y ser compatible con la versión de la aplicación desplegada.
+   - La clave de Vault o SecretStore apuntada en GitOps (`pokedex/preprod` en el entorno operativo; `pokedex/prod` solo en el blueprint prod cloud inactivo, ADR-030) debe existir en la infraestructura y ser compatible con la versión de la aplicación desplegada.
 
 ### 3.1. Desglose Atómico de Supply Chain en RELEASE
 
