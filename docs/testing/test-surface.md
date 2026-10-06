@@ -19,7 +19,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Líneas de Código de Pruebas** | 18.088 |
 | **Tamaño Total de la Suite** | 768.4 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-06T14:20:03.503Z |
+| **Última Sincronización** | 2026-10-06T15:13:12.101Z |
 
 ---
 

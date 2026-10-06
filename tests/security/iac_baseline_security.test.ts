@@ -353,7 +353,7 @@ test('🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verif
     'deploy_proxmox.sh',
     'deploy_app.sh',
   ];
-  const excludedDirs = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini', '.agents']);
+  const excludedDirs = new Set(['node_modules', '.git', 'dist', 'coverage', '.turbo', '.gemini', '.agents', '.claude']);
 
   function findShellScripts(dir: string, baseDir: string = dir): string[] {
     let results: string[] = [];
