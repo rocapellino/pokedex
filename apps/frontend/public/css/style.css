@@ -1183,8 +1183,8 @@ body {
 
 .blue-card-label {
   font-size: 0.95rem;
-  color: #ffffff;
-  opacity: 0.9;
+  color: #0b2a38; /* contraste AA (≥4.5:1) sobre #30a7d7; el blanco daba 2.5:1 */
+  opacity: 1;
   font-weight: 500;
 }
 
