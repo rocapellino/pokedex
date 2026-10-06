@@ -177,9 +177,11 @@ test('🛡️ RENOVATE-004: el gestor custom.regex del chart encuentra tag y dig
   assert.ok(manager, 'RENOVATE-004: falta el gestor custom.regex de pgbouncer en renovate.json');
   assert.equal(manager.customType, 'regex');
   assert.equal(manager.datasourceTemplate, 'docker');
+  // Comparación literal: Renovate interpreta el patrón como regex, pero compilar aquí un patrón leído
+  // del JSON sería un RegExp no literal (ReDoS, regla de Semgrep) y basta con fijar el valor esperado.
   assert.ok(
-    manager.managerFilePatterns.some((pattern) => new RegExp(pattern.replace(/^\/|\/$/g, '')).test(valuesPath)),
-    `RENOVATE-004: managerFilePatterns no incluye ${valuesPath}`,
+    manager.managerFilePatterns.includes('/^infra/helm/pokedex/values\\.yaml$/'),
+    `RENOVATE-004: managerFilePatterns debe apuntar solo a ${valuesPath}`,
   );
 
   const match = new RegExp(manager.matchStrings[0]).exec(content);
