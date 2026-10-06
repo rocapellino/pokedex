@@ -452,18 +452,29 @@ test('🛡️ Supply Chain Security: Publish job implementa firma Cosign, atesta
   // Firma y Atestación por Digest Inmutable
   assert.match(
     ciWorkflow,
-    /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/,
+    /cosign sign --yes .*@\$\{IMAGE_DIGEST\}/,
     'Publish debe firmar la imagen por digest inmutable',
   );
   assert.match(
     ciWorkflow,
-    /cosign attach sbom --sbom .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/,
+    /cosign attach sbom --sbom .*@\$\{IMAGE_DIGEST\}/,
     'Publish debe adjuntar el SBOM por digest inmutable',
   );
   assert.match(
     ciWorkflow,
-    /cosign attest --yes --predicate .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/,
+    /cosign attest --yes --predicate .*@\$\{IMAGE_DIGEST\}/,
     'Publish debe atestar el SBOM por digest inmutable',
+  );
+  // IMAGE_DIGEST se enlaza por env (no por expansión directa en `run:`) al output validado del paso image-digest
+  assert.match(
+    ciWorkflow,
+    /IMAGE_DIGEST:\s*\${{\s*steps\.image-digest\.outputs\.digest\s*}}/,
+    'Los pasos de Cosign deben recibir el digest validado por env (IMAGE_DIGEST)',
+  );
+  assert.match(
+    ciWorkflow,
+    /\[\[ "\$DIGEST" =~ \^sha256:\[a-f0-9\]\{64\}\$ \]\]/,
+    'El paso image-digest debe validar el formato sha256:<64 hex> antes de publicarlo como output',
   );
 
   // Verificación Criptográfica Explícita en CI
@@ -636,7 +647,7 @@ test('🛡️ Supply Chain Security: CI Workflow valida consistencia de digests 
   );
   assert.match(
     ciWorkflow,
-    /cosign sign --yes .*@\${{\s*steps\.image-digest\.outputs\.digest\s*}}/,
+    /cosign sign --yes .*@\$\{IMAGE_DIGEST\}/,
     'Cosign debe firmar exactamente el digest validado',
   );
 });

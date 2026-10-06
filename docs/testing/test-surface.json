@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:54:25.421Z",
+  "generatedAt": "2026-10-06T18:02:21.275Z",
   "summary": {
     "totalFiles": 86,
     "testFiles": 80,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 687,
-    "totalLines": 18381,
-    "totalSizeBytes": 800733,
+    "totalLines": 18392,
+    "totalSizeBytes": 801116,
     "suitesCount": 10
   },
   "suites": [
@@ -3982,10 +3982,10 @@
       "runner": "node:test (tsx)",
       "testCount": 21,
       "describeCount": 0,
-      "assertionCountEst": 112,
-      "sizeBytes": 33271,
-      "lineCount": 774,
-      "sha256": "6f87a40fe7b87f65e999545fd38edf41e980095faae276cc0cdf45d270dec63b",
+      "assertionCountEst": 114,
+      "sizeBytes": 33654,
+      "lineCount": 785,
+      "sha256": "080f08f7713388195abfa7d203272b9d50bb83118afad862517864db8a9c6a5e",
       "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
       "targetArtifacts": [
         "package.json",
@@ -4054,39 +4054,39 @@
         },
         {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 486
+          "line": 497
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 507
+          "line": 518
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 527
+          "line": 538
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 624
+          "line": 635
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 644
+          "line": 655
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 668
+          "line": 679
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 682
+          "line": 693
         },
         {
           "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 727
+          "line": 738
         },
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 756
+          "line": 767
         }
       ]
     },
