@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T20:33:59.190Z",
+  "generatedAt": "2026-10-06T21:19:55.612Z",
   "summary": {
     "totalFiles": 88,
     "testFiles": 82,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 706,
-    "totalLines": 18811,
-    "totalSizeBytes": 822127,
+    "totalLines": 18815,
+    "totalSizeBytes": 822382,
     "suitesCount": 10
   },
   "suites": [
@@ -1369,9 +1369,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 56,
-      "sizeBytes": 11100,
-      "lineCount": 244,
-      "sha256": "c79dd7a428286d70d03b0345eedb61c10f7ac7054377379fa9a95693bb1abbe8",
+      "sizeBytes": 11355,
+      "lineCount": 248,
+      "sha256": "a54072ea585241158a568fbc3a8d762266c8517d2631d01317198f1e951c29ae",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -1407,15 +1407,15 @@
         },
         {
           "name": "🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción",
-          "line": 98
+          "line": 102
         },
         {
           "name": "🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run",
-          "line": 196
+          "line": 200
         },
         {
           "name": "🔒 ADR-003: la Application raíz sigue main para que los promotes lleguen solos al clúster",
-          "line": 237
+          "line": 241
         }
       ]
     },
