@@ -286,8 +286,16 @@ jobs:
         # CI-006: se valida el árbol documental completo en lugar de una lista fija de
         # rutas. Una lista fija podía incluir documentos ya podados y dejar el gate
         # validando silenciosamente menos archivos.
+        # CI-008: el árbol incluye AGENTS.md y .agents/, que `ci-impact.yaml` clasifica
+        # como documentación y que antes ningún job lintaba.
         # `scripts/lint-markdown.ts` ahora falla si se le pasa una ruta inexistente.
-        run: npm run lint:md -- README.md SECURITY.md docs/
+        run: npm run lint:md -- README.md SECURITY.md AGENTS.md docs/ .agents/
+
+      - name: 5. Validar Gobernanza Documental
+        # CI-008: `docs:validate` (enlaces relativos, esquemas de archivo local e
+        # indexación en docs/README.md) solo corría dentro de `npm test`, que un PR
+        # puramente documental omite. Aquí se ejecuta siempre que cambia documentación.
+        run: npm run docs:validate
 
   # =======================================================
   # 2. BUILD DOCKER (Solo si se requiere y Quality Gates pasan)

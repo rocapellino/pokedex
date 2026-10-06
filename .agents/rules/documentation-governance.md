@@ -51,6 +51,6 @@ npm run lint:md -- <archivos-modificados>
 ```
 
 - **Tolerancia cero:** No se considera terminada ninguna tarea ni se aprueba ningún Pull Request que introduzca violaciones `MDxxx`.
-- **Enforcement en CI:** el job `docs-gate` de `.github/workflows/ci.yaml` ejecuta `npm run lint:md -- README.md SECURITY.md docs/` de forma fail-closed. No lintea `.agents/` ni `AGENTS.md`.
-- **Gobernanza de enlaces:** `npm run docs:validate` (enlaces relativos, ausencia de esquemas de archivo local e indexación en `docs/README.md`) se ejecuta en CI a través de `tests/security/docs_governance_gate.test.ts`, dentro de `npm test`. Un PR puramente documental omite `npm test`, por lo que en ese caso debe ejecutarse en local.
+- **Enforcement en CI:** el job `docs-gate` de `.github/workflows/ci.yaml` ejecuta `npm run lint:md -- README.md SECURITY.md AGENTS.md docs/ .agents/` de forma fail-closed.
+- **Gobernanza de enlaces:** el mismo job ejecuta `npm run docs:validate` (enlaces relativos, ausencia de esquemas de archivo local e indexación en `docs/README.md`). `tests/security/docs_governance_gate.test.ts` lo cubre además dentro de `npm test`, y el test CI-008 de `tests/ci_workflow_governance.test.ts` impide que `docs-gate` deje de cubrir ambos.
 - **Presupuestos:** los límites de la sección 2 (líneas, secciones, tablas y diagramas) y `documentation-contract.yaml` los verifica `repo-docs`; ningún gate de CI los impone hoy. La Tabla de Contenidos no cuenta como sección.

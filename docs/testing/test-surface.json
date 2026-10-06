@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T17:30:34.112Z",
+  "generatedAt": "2026-10-06T17:45:34.458Z",
   "summary": {
-    "totalFiles": 85,
-    "testFiles": 79,
+    "totalFiles": 86,
+    "testFiles": 80,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 683,
-    "totalLines": 18283,
-    "totalSizeBytes": 796224,
+    "totalTestCases": 685,
+    "totalLines": 18347,
+    "totalSizeBytes": 799093,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 27,
-      "testCases": 218,
+      "files": 28,
+      "testCases": 219,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 168,
+      "testCases": 169,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -421,12 +421,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 22,
+      "testCount": 23,
       "describeCount": 0,
-      "assertionCountEst": 78,
-      "sizeBytes": 25448,
-      "lineCount": 544,
-      "sha256": "fd360068b6ec68d4790e18640540819fdec135c8d99bebfb84267a17040bad9e",
+      "assertionCountEst": 81,
+      "sizeBytes": 26462,
+      "lineCount": 563,
+      "sha256": "4982d06ebc7a14031eaf454cee91aa1999212c923f1d6c03e90695250c3bce65",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -525,8 +525,12 @@
           "line": 512
         },
         {
-          "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
+          "name": "📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate",
           "line": 527
+        },
+        {
+          "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
+          "line": 546
         }
       ]
     },
@@ -3927,6 +3931,38 @@
         {
           "name": "🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks para PRs de release",
           "line": 11
+        }
+      ]
+    },
+    {
+      "path": "tests/security/renovate_config_contract.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 1,
+      "sizeBytes": 1855,
+      "lineCount": 45,
+      "sha256": "0f52edc05a34127077d9e4d11785fba84aef9f3e995aeb7b07844afbca0e300d",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: renovate_config_contract.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose y en helm-values",
+          "line": 27
         }
       ]
     },

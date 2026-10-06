@@ -524,6 +524,25 @@ test('🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y
   );
 });
 
+test('📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate', () => {
+  // `docs:validate` y el lint de `.agents/` solo se ejercían a través de `npm test`
+  // y de rutas fijas, así que un PR puramente documental (que omite `npm test`)
+  // podía pasar CI sin que nadie los ejecutara.
+  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
+  const doc = yamlSafeLoad(ci) as { jobs?: Record<string, { steps?: { run?: string }[] }> };
+  const runs = (doc.jobs?.['docs-gate']?.steps ?? []).map((step) => step.run ?? '');
+
+  const lint = runs.find((run) => run.includes('lint:md'));
+  assert.ok(lint, 'docs-gate debe ejecutar el Markdown Quality Gate');
+  for (const target of ['README.md', 'SECURITY.md', 'AGENTS.md', 'docs/', '.agents/']) {
+    assert.ok(lint.includes(target), `docs-gate debe lintear ${target}`);
+  }
+  assert.ok(
+    runs.some((run) => run.includes('npm run docs:validate')),
+    'docs-gate debe ejecutar npm run docs:validate',
+  );
+});
+
 test('🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN', () => {
   // pull_request_target corre con secretos en el contexto del repo base. El token de
   // administracion solo se admite en workflows disparados por push/schedule/dispatch.
