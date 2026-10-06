@@ -15,7 +15,7 @@ Cada documento del repositorio atraviesa los siguientes estados:
        │ Arquitectura o configuración evoluciona
        ▼
   ┌──────────┐
-  │  STALE   │ ◄── Contiene discrepancias o versiones superadas
+  │ OUTDATED │ ◄── Contiene discrepancias o versiones superadas
   └────┬─────┘
        │ Se actualiza la documentación viva
        ▼

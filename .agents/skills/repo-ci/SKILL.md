@@ -45,9 +45,9 @@ Auditar y gobernar la **topología integral de CI/CD** en GitHub Actions, asegur
 - **Mapeo de Flujos Activos:** Supervisar los workflows del repositorio:
   - `ci.yaml`: Quality Gates de código, SAST, SCA, build de contenedor y release OCI.
   - `infra.yaml`: Validación granular de Helm, OpenTofu, Ansible, Checkov y prueba de integración canónica en Kind.
-  - `security-gitleaks.yaml`: Detección obligatoria de secretos en git diff con paths-ignore documental.
+  - `security-gitleaks.yaml`: Detección obligatoria de secretos en git diff. Por diseño no declara `paths` ni `paths-ignore`: es un Required Status Check que debe reportarse en todo PR, incluidos los documentales.
   - `security-trivy.yaml`: Escaneo periódico y condicional de vulnerabilidades de contenedor y dependencias.
-  - `config-linters.yaml`: linters de configuración condicionales: Actionlint (con ShellCheck embebido) sobre `.github/workflows` y ShellCheck sobre los `*.sh` versionados. Bloqueante a través del Quality Gate.
+  - `config-linters.yaml`: linters de configuración condicionales: Actionlint (con ShellCheck embebido) sobre `.github/workflows`, Zizmor (auditoría de seguridad de workflows, severidad mínima `medium`, excepciones justificadas en `.github/zizmor.yaml`) y ShellCheck sobre los `*.sh` versionados. Bloqueante a través del Quality Gate.
   - `security-dast-zap.yaml`, `performance-k6.yaml`, `dr-simulation.yaml`: Flujos programados y de eventos específicos.
 - **Extensión Canónica de Workflows:** todo workflow nuevo debe crearse en `.github/workflows/` con extensión **`.yaml`**. Está prohibido crear workflows con extensión `.yml`. Hoy no hay excepciones vigentes de nombre de archivo de configuración.
 - **Filtrado Eficiente de Triggers:** Mantener filtros de `paths:` y `paths-ignore:` sincronizados con el contrato declarativo de impacto para evitar arranque innecesario de máquinas virtuales.

@@ -34,7 +34,7 @@ Toda modificación en el repositorio activa la auditoría condicional de los doc
 
 | Archivo / Área Modificada | Pregunta Clave de Auditoría | Documentos a Auditar |
 | :--- | :--- | :--- |
-| `package.json`, `bun.lock` | ¿Se modificó el runtime, dependencias base o scripts? | `README.md`, `docs/architecture/` |
+| `package.json`, `package-lock.json` | ¿Se modificó el runtime, dependencias base o scripts? | `README.md`, `docs/architecture/` |
 | `infra/helm/`, `gitops/` | ¿Cambió la arquitectura, puertos o recursos K8s? | `README.md`, `docs/architecture/`, `docs/operations/` |
 | `infra/opentofu/`, `infra/ansible/` | ¿Se alteró el aprovisionamiento de nodos o red? | `docs/operations/`, `docs/runbooks/` |
 | `.github/workflows/` | ¿Se modificaron linters, scanners o pipelines de build? | `README.md`, `docs/devops/`, `SECURITY.md` |

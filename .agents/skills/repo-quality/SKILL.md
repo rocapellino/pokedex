@@ -37,7 +37,7 @@ Evaluar y elevar la mantenibilidad, legibilidad, robustez y adherencia a estánd
   - Clasificación fáctica del resultado: `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_CONFIGURED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
   - Principio de complementariedad: `pre-commit` es un control previo local que complementa y no sustituye los pipelines integrales de CI/CD.
 - **Compuerta de Diagnósticos de IDE y Análisis Estático Local (Zero Problems Gate):**
-  - Todo archivo nuevo o modificado en el diff debe estar libre de advertencias y errores reportados en el panel *Problems* del IDE (diagnósticos de TypeScript, ESLint, SonarLint/SonarQube).
+  - Todo archivo nuevo o modificado en el diff debe estar libre de advertencias y errores reportados en el panel *Problems* del IDE (diagnósticos de TypeScript, Biome, SonarLint/SonarQube).
   - Reglas SonarQube críticas a verificar proactivamente antes de commit:
     - `typescript:S8786`: Simplificar expresiones regulares para evitar complejidad super-lineal (ReDoS). Favorecer análisis de cadenas secuenciales (`startsWith`, `slice`, `indexOf`) frente a regex con cuantificadores abiertos sobre clases solapadas.
     - `typescript:S4036`: Sanitizar la variable `PATH` y llamadas a procesos del sistema operativo: fijar binarios explícitos (`gh.exe`/`gh`), evitar inyección por shell (`shell: false`) y aislar argumentos.

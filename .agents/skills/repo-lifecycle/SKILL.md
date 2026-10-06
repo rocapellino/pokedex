@@ -141,7 +141,7 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
 2. **`repo-quality` (Quality Gates Técnicos y Formato):**
    - Ejecuta y audita linters (`npm run lint`, `typecheck`), formateo y la inspección/ejecución de [`.pre-commit-config.yaml`](../../../.pre-commit-config.yaml).
    - Valida la sintaxis y formateo de archivos de configuración cuando corresponda.
-   - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
+   - Genera evidencias estructuradas diferenciando `EXECUTED_SUCCESS`, `EXECUTED_FAILED`, `NOT_AVAILABLE_LOCAL / CI_REQUIRED`, `NOT_APPLICABLE` o `NOT_EXECUTED`.
 3. **`repo-security` (Superficie de Seguridad y DevSecOps):**
    - Analiza implicancias de seguridad de las exclusiones (riesgo de enmascarar secretos o código no auditado).
    - Audita a fondo las excepciones de `.gitleaksignore` y `.trivyignore` bajo principios Zero-Trust.
@@ -196,7 +196,7 @@ exento de builds, tests de aplicación y contenedores.
 `repo-lifecycle` gobierna el contrato declarativo [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml) y ejecuta el motor determinista [`scripts/detect-change-impact.ts`](../../../scripts/detect-change-impact.ts):
 
 1. **Nivel Always:** Controles no negociables (escaneo de secretos y gobernanza de PR) que corren en todo Pull Request, incluidos los puramente documentales. Se implementan en `applyAlwaysTriggers()` y se aplican en los cuatro caminos de retorno del motor.
-2. **Nivel Global:** Alteraciones en archivos transversales activan validación integral de todos los dominios. El conjunto canónico de rutas globales es el bloque `global.paths` de [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml), que a fecha de hoy incluye `package.json`, `package-lock.json`, `tsconfig.json`, `.pre-commit-config.yaml`, `.github/workflows/**`, `scripts/detect-change-impact.ts` y `scripts/declarations.d.ts`.
+2. **Nivel Global:** Alteraciones en archivos transversales activan validación integral de todos los dominios. El conjunto canónico de rutas globales es el bloque `global.paths` de [`.github/ci-impact.yaml`](../../../.github/ci-impact.yaml). La lista se consulta en ese archivo; no se replica aquí para que no diverja.
    > [!IMPORTANT]
    > `scripts/**` **no** es global en bloque: los scripts se clasifican de forma **individual** por dominio. La entrada de los `*.ignore` como "Nivel Global" en [change-impact-matrix.md](../_shared/change-impact-matrix.md) describe los *gates y skills a ejecutar*, no el disparador del motor. Esta clasificación granular es deliberada y más eficiente; ante un script no clasificado aplica la política fail-closed.
 3. **Nivel Condicional:** Modificaciones acotadas disparan únicamente los Quality Gates y pipelines afectados (Fast Track documental, suites de backend, empaquetado Helm, etc.).

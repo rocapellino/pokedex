@@ -23,9 +23,9 @@ Un *God File* es un archivo que asume excesivas responsabilidades y se convierte
   - Ejecutaba queries directas con PostgreSQL y Redis.
   - Implementaba rate limiting en memoria y algoritmos de sesión.
   - Resultado: Fragilidad extrema; cualquier cambio corría riesgo de romper el servidor entero.
-- **`server.ts` Actual (~280 LOC) [ESTRUCTURA SALUDABLE]:**
+- **`server.ts` Actual [ESTRUCTURA SALUDABLE]** (tamaño vigente con `wc -l apps/backend/server.ts`, frente al umbral de §6):
   - Actúa estrictamente como ensamblador de la aplicación (*composition root*).
-  - Configura middlewares globales (`requestTracer`, `cors`, `helmet`/security headers).
+  - Configura middlewares globales (`requestTracer`, `cors` y cabeceras de seguridad propias).
   - Monta enrutadores modulares (`authRouter`, `pokemonsRouter`, `aiRouter`, `healthRouter`).
   - Gestiona graceful shutdown delegando en `src/utils/lifecycle.js`.
 

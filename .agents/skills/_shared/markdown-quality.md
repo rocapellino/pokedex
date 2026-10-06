@@ -55,7 +55,7 @@ git status -s | grep -E '\.md$'
 
 Los artefactos sujetos a este gate incluyen, entre otros:
 
-- `baseline_inventario.md` y `baseline_diagnostico.md`
+- `docs/audits/<fecha>/baseline.md`
 - Reportes técnicos (`report-template.md`)
 - Planes de cambio (`change-plan.md`)
 - Decisiones arquitectónicas (ADRs bajo `docs/decisions/`)
@@ -92,8 +92,8 @@ incluyendo pero no limitándose a:
   (numeración ordenada).
 - **Espacios en Blanco:** `MD009` (espacios en blanco al final de línea), `MD010`
   (prohibición de tabs por espacios).
-- **Longitud de Línea:** `MD013` (máximo 120 caracteres para prosa, exceptuando
-  bloques de código, tablas y encabezados).
+- **Longitud de Línea:** `MD013` está deshabilitada en `.markdownlint.json`; no se
+  aplica un límite de caracteres por línea.
 - **Bloques y Código:** `MD014` (sin símbolos `$` precediendo comandos sin output),
   `MD040` (especificar lenguaje en bloques de código cercados), `MD046` (bloques
   cercados con backticks), `MD048` (backtick para cercas de código).
