@@ -73,13 +73,28 @@ test('🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc manti
     'El texto descifrado debe ser idéntico al original',
   );
 
-  // Clave incorrecta debe fallar
+  // Clave incorrecta: AES-256-CBC no autentica, así que descifrar con otra clave NO siempre lanza.
+  // El último bloque sale como basura y solo falla si su relleno PKCS#7 es inválido; con una sal
+  // aleatoria el relleno resulta válido por azar en ~0,4 % de los casos (medido: 71 de 20 000) y
+  // `decryptAes256Cbc` devuelve basura sin error. Exigir una excepción hacía el test intermitente.
+  // Lo que sí es invariable es que una clave incorrecta nunca recupera el texto original. En el
+  // simulacro real la basura falla después en `gunzipSync` (cabecera gzip inválida).
+  let recovered: Buffer | null = null;
+  try {
+    recovered = decryptAes256Cbc(encrypted, 'wrong_key');
+  } catch {
+    // Camino habitual: relleno inválido.
+  }
+  assert.ok(
+    recovered === null || !recovered.equals(originalData),
+    'Una clave incorrecta nunca debe recuperar el texto original',
+  );
+
+  // Contrato determinista: un payload truncado nunca tiene una longitud de bloque válida y siempre lanza.
   assert.throws(
-    () => {
-      decryptAes256Cbc(encrypted, 'wrong_key');
-    },
-    /bad decrypt|error/i,
-    'Descifrado con clave incorrecta debe lanzar excepción',
+    () => decryptAes256Cbc(encrypted.subarray(0, encrypted.length - 1), secretKey),
+    /wrong final block length|bad decrypt|error/i,
+    'Un payload cifrado truncado debe lanzar excepción',
   );
 });
 
