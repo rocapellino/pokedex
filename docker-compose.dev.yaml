@@ -31,7 +31,7 @@ services:
   # 5. Agente de Telemetría Grafana Alloy (Envío de Métricas a Grafana Cloud)
   # ============================================================================
   alloy:
-    image: grafana/alloy:v1.7.1
+    image: grafana/alloy:v1.7.1@sha256:da938bc7dc6a96be31d3c93badc445aed115ca39357734de7a338f78fa342cf7 # alloy v1.7.1
     container_name: pokemon-alloy
     restart: unless-stopped
     command:
@@ -71,7 +71,7 @@ services:
   # forma nativa en :10250 sin contenedor satélite.
   # ============================================================================
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.49.1@sha256:3cde6faf0791ebf7b41d6f8ae7145466fed712ea6f252c935294d2608b1af388 # cadvisor v0.49.1
     container_name: pokemon-cadvisor
     restart: unless-stopped
     volumes:
