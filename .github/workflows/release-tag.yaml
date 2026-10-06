@@ -441,6 +441,12 @@ jobs:
             exit 0
           fi
           git commit -m "chore(release): promote ${NEW_TAG} [skip-release]"
+          # REL-004: la rama es del bot y se regenera desde GITHUB_SHA, pero este paso corre minutos después del
+          # checkout (el paso 8b espera a las imágenes firmadas). Si alguien la actualizó entretanto (p. ej. con
+          # "Update branch" en el PR), --force-with-lease compararía contra una referencia vieja y fallaría con
+          # "stale info". Se refresca la referencia remota justo antes de empujar; si la rama aún no existe, no hay nada
+          # que refrescar.
+          git fetch --no-tags origin "$BRANCH" || true
           git push -u --force-with-lease origin "$BRANCH"
 
           # Determinar token con permisos efectivos sobre PRs (fallback si RULESET_ADMIN_TOKEN no tiene scope public_repo)

@@ -67,3 +67,23 @@ test('🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks 
     'release-tag.yaml debe invocar el endpoint de auto-aprobación tras la apertura/actualización del PR',
   );
 });
+
+test('🚀 Release Promote: la rama de promoción refresca su referencia remota antes de forzar el push (REL-004)', () => {
+  const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf-8');
+
+  // El paso 8 espera minutos a que las imágenes estén firmadas (8b). Si alguien actualiza la rama
+  // mientras tanto (p. ej. "Update branch" en el PR), `--force-with-lease` compara contra una referencia
+  // vieja y rechaza el push con "stale info", dejando la release sin PR de promoción.
+  const fetchIdx = releaseWf.search(/git fetch[^\n]*origin[^\n]*"\$BRANCH"/);
+  const pushIdx = releaseWf.search(/git push -u --force-with-lease origin "\$BRANCH"/);
+
+  assert.ok(pushIdx > 0, 'el push de la rama de promoción debe seguir usando --force-with-lease');
+  assert.ok(fetchIdx > 0, 'debe haber un `git fetch origin "$BRANCH"` que refresque la referencia remota');
+  assert.ok(fetchIdx < pushIdx, 'el fetch debe ejecutarse antes del push con lease');
+
+  const between = releaseWf.slice(fetchIdx, pushIdx);
+  assert.ok(
+    !/git checkout -B/.test(between),
+    'no debe recrearse la rama local entre el fetch y el push: el lease se evaluaría contra la referencia anterior',
+  );
+});
