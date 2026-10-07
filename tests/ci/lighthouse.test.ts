@@ -129,6 +129,22 @@ test('📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servid
   assert.equal(ci.upload.target, 'filesystem');
 });
 
+test('📈 Lighthouse: los presupuestos de rendimiento bloquean y respetan la línea base de CI', () => {
+  const { ci } = JSON.parse(read('lighthouserc.json')) as {
+    ci: { assert: { assertions: Record<string, [string, Record<string, number>]> } };
+  };
+  const a = ci.assert.assertions;
+
+  // Línea base medida en el runner tras el gzip (mediana de 5, peor ejecución entre paréntesis):
+  // Performance 97 (95); FCP 1,27 s (1,35); LCP 1,80 s (2,32); CLS 0,002; TBT 183 ms (227).
+  assert.deepEqual(a['categories:performance'], ['error', { minScore: 0.9 }], 'mínimo 0,90 sobre un peor caso de 0,95');
+  assert.deepEqual(a['largest-contentful-paint'], ['error', { maxNumericValue: 2500 }]);
+  assert.deepEqual(a['first-contentful-paint'], ['error', { maxNumericValue: 2000 }]);
+  assert.deepEqual(a['cumulative-layout-shift'], ['error', { maxNumericValue: 0.25 }]);
+  // El TBT depende de la CPU del runner (su índice de rendimiento varió de 1.800 a 2.500): solo se vigila.
+  assert.equal(a['total-blocking-time']?.[0], 'warn');
+});
+
 test('📈 Lighthouse: el workflow publica el resumen y los informes como artefacto', () => {
   const workflow = read('.github/workflows/web.yaml');
   assert.match(workflow, /scripts\/lighthouse-summary\.ts/);
