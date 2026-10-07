@@ -1027,6 +1027,11 @@ body {
   font-weight: 600;
 }
 
+.sort-direction {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .stat-min-input {
   width: 6rem;
 }
