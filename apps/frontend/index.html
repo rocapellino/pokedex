@@ -114,25 +114,32 @@
 
     <!-- Type Pills Filter Bar -->
     <div class="type-filter-bar" id="typePillsContainer">
-      <button class="type-pill active" data-type="all">Todos</button>
-      <button class="type-pill" data-type="Planta">🌿 Planta</button>
-      <button class="type-pill" data-type="Fuego">🔥 Fuego</button>
-      <button class="type-pill" data-type="Agua">💧 Agua</button>
-      <button class="type-pill" data-type="Eléctrico">⚡ Eléctrico</button>
-      <button class="type-pill" data-type="Psíquico">🔮 Psíquico</button>
-      <button class="type-pill" data-type="Roca">🪨 Roca</button>
-      <button class="type-pill" data-type="Tierra">🏜️ Tierra</button>
-      <button class="type-pill" data-type="Hielo">❄️ Hielo</button>
-      <button class="type-pill" data-type="Dragón">🐉 Dragón</button>
-      <button class="type-pill" data-type="Fantasma">👻 Fantasma</button>
-      <button class="type-pill" data-type="Veneno">☠️ Veneno</button>
-      <button class="type-pill" data-type="Bicho">🐛 Bicho</button>
-      <button class="type-pill" data-type="Volador">🦅 Volador</button>
-      <button class="type-pill" data-type="Lucha">🥊 Lucha</button>
-      <button class="type-pill" data-type="Acero">⚙️ Acero</button>
-      <button class="type-pill" data-type="Siniestro">🌑 Siniestro</button>
-      <button class="type-pill" data-type="Hada">✨ Hada</button>
-      <button class="type-pill" data-type="Normal">⚪ Normal</button>
+      <button type="button" class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
+      <button type="button" class="type-pill" data-type="Planta" aria-pressed="false">🌿 Planta</button>
+      <button type="button" class="type-pill" data-type="Fuego" aria-pressed="false">🔥 Fuego</button>
+      <button type="button" class="type-pill" data-type="Agua" aria-pressed="false">💧 Agua</button>
+      <button type="button" class="type-pill" data-type="Eléctrico" aria-pressed="false">⚡ Eléctrico</button>
+      <button type="button" class="type-pill" data-type="Psíquico" aria-pressed="false">🔮 Psíquico</button>
+      <button type="button" class="type-pill" data-type="Roca" aria-pressed="false">🪨 Roca</button>
+      <button type="button" class="type-pill" data-type="Tierra" aria-pressed="false">🏜️ Tierra</button>
+      <button type="button" class="type-pill" data-type="Hielo" aria-pressed="false">❄️ Hielo</button>
+      <button type="button" class="type-pill" data-type="Dragón" aria-pressed="false">🐉 Dragón</button>
+      <button type="button" class="type-pill" data-type="Fantasma" aria-pressed="false">👻 Fantasma</button>
+      <button type="button" class="type-pill" data-type="Veneno" aria-pressed="false">☠️ Veneno</button>
+      <button type="button" class="type-pill" data-type="Bicho" aria-pressed="false">🐛 Bicho</button>
+      <button type="button" class="type-pill" data-type="Volador" aria-pressed="false">🦅 Volador</button>
+      <button type="button" class="type-pill" data-type="Lucha" aria-pressed="false">🥊 Lucha</button>
+      <button type="button" class="type-pill" data-type="Acero" aria-pressed="false">⚙️ Acero</button>
+      <button type="button" class="type-pill" data-type="Siniestro" aria-pressed="false">🌑 Siniestro</button>
+      <button type="button" class="type-pill" data-type="Hada" aria-pressed="false">✨ Hada</button>
+      <button type="button" class="type-pill" data-type="Normal" aria-pressed="false">⚪ Normal</button>
+    </div>
+
+    <!-- Active filters summary -->
+    <div class="active-filters" id="activeFilters">
+      <p class="results-summary" id="resultsSummary" role="status" aria-live="polite"></p>
+      <ul class="filter-chips" id="activeFilterChips" aria-label="Filtros activos"></ul>
+      <button type="button" class="btn-clear-filters" id="btnClearFilters" hidden>Limpiar filtros</button>
     </div>
 
     <!-- Stats Summary Matrix -->
