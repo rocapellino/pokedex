@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T17:09:57.084Z",
+  "generatedAt": "2026-10-07T17:34:14.963Z",
   "summary": {
-    "totalFiles": 161,
-    "testFiles": 104,
+    "totalFiles": 163,
+    "testFiles": 106,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 874,
-    "totalLines": 24084,
-    "totalSizeBytes": 1047383,
+    "totalTestCases": 885,
+    "totalLines": 24319,
+    "totalSizeBytes": 1057416,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 79,
-      "testCases": 222,
+      "files": 81,
+      "testCases": 232,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 2,
-      "testCases": 19,
+      "testCases": 20,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -781,12 +781,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 13,
+      "testCount": 14,
       "describeCount": 1,
-      "assertionCountEst": 59,
-      "sizeBytes": 12408,
-      "lineCount": 274,
-      "sha256": "3b128045801dc6742ad921ccb35ee7b99dfa68ca0a015799e17c8bf5e6b578c5",
+      "assertionCountEst": 71,
+      "sizeBytes": 14034,
+      "lineCount": 309,
+      "sha256": "7141a2f72de6724580e8a9c77d9cc8216be45a6189be5448b970e32e17803b73",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -847,12 +847,16 @@
           "line": 213
         },
         {
-          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
+          "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
           "line": 244
         },
         {
+          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
+          "line": 279
+        },
+        {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 263
+          "line": 298
         }
       ]
     },
@@ -3463,6 +3467,100 @@
         {
           "name": "🗜️ Compresión (${path.basename(file)}): gzip activo para texto y desactivado en /api/ y /metrics",
           "line": 35
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/skip_link_contrast.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 8,
+      "sizeBytes": 2929,
+      "lineCount": 69,
+      "sha256": "99e0312b8f4efb673ee1db48fbc83a50666883957740ff337884808a85c466a8",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: skip_link_contrast.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎨 Enlace de salto: el texto supera 4,5:1 sobre su fondo",
+          "line": 47
+        },
+        {
+          "name": "🎨 Enlace de salto: el enlace se distingue (3:1) del fondo de la página en ambos temas",
+          "line": 52
+        },
+        {
+          "name": "♿ Enlace de salto: respeta el atributo hidden y mide al menos 24 px de alto (WCAG 2.5.8)",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/skip_pagination.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 23,
+      "sizeBytes": 5478,
+      "lineCount": 131,
+      "sha256": "f3d07753707f83d15c324e9d6d5f4583a92a91745cb9f77e332bb5519fd63959",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: skip_pagination.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "♿ Estructura: el enlace precede al catálogo y la barra es una navegación con nombre",
+          "line": 59
+        },
+        {
+          "name": "♿ Con varias páginas el enlace es visible y el clic lleva el foco a \"Siguiente\" en la primera",
+          "line": 75
+        },
+        {
+          "name": "♿ En la última página el foco cae en \"Anterior\"",
+          "line": 83
+        },
+        {
+          "name": "♿ El clic no deja rastro en la URL",
+          "line": 91
+        },
+        {
+          "name": "♿ El enlace sobrevive a un nuevo render del catálogo (está fuera del contenedor que se reemplaza)",
+          "line": 98
+        },
+        {
+          "name": "♿ Con una sola página o sin resultados el enlace queda oculto",
+          "line": 105
+        },
+        {
+          "name": "♿ focusFirstEnabledControl: ignora controles deshabilitados y no falla sin barra",
+          "line": 120
         }
       ]
     },
