@@ -244,6 +244,27 @@ test.describe('Pokédex Web Application E2E Suite', () => {
   test('@a11y "Saltar a la paginación" aparece con el teclado, lleva el foco a "Siguiente" y no toca la URL', async ({
     page,
   }) => {
+    // El enlace solo existe con varias páginas, y la base de datos del CI no garantiza más de 48
+    // Pokémon: el catálogo se sustituye por uno de 96 (dos páginas) con la paginación del backend.
+    const catalog = Array.from({ length: 96 }, (_, i) => ({
+      id: i + 1,
+      nombre: `Pokémon ${i + 1}`,
+      tipo: 'Normal',
+      tipos: ['Normal'],
+      fuerza: 50,
+      imagen: '/favicon.png',
+      caracteristicas: { peso: 1, altura: 1, habitat: 'Pradera' },
+    }));
+    await page.route(/\/pokemons\?/, async (route) => {
+      const params = new URL(route.request().url()).searchParams;
+      const offset = Number(params.get('offset') ?? 0);
+      const limit = Number(params.get('limit') ?? catalog.length);
+      await route.fulfill({
+        json: catalog.slice(offset, offset + limit),
+        headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
+      });
+    });
+    await page.reload();
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
     const skip = page.locator('#skipToPagination');
     await expect(skip).toBeAttached();
