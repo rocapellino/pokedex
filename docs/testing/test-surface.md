@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **116** |
-| **Archivos de Test Automatizados** | 98 |
+| **Total de Archivos en `tests/`** | **152** |
+| **Archivos de Test Automatizados** | 100 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
-| **Archivos de Soporte / Entorno (Fixtures)** | 17 |
-| **Total de Casos de Prueba Identificados** | **827** |
-| **Líneas de Código de Pruebas** | 21.354 |
-| **Tamaño Total de la Suite** | 905.0 KB |
+| **Archivos de Soporte / Entorno (Fixtures)** | 51 |
+| **Total de Casos de Prueba Identificados** | **834** |
+| **Líneas de Código de Pruebas** | 23.518 |
+| **Tamaño Total de la Suite** | 1001.5 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T14:38:57.026Z |
+| **Última Sincronización** | 2026-10-07T14:48:38.975Z |
 
 ---
 
@@ -31,7 +31,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 34 | 172 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 70 | 179 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -76,16 +76,52 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(Helper)* |
 | [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(Helper)* |
 | [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-full.html`](../../tests/frontend/golden/modal-base-stats-full.html) | `frontend` | Helper | `none` | **0** | 36 | Suite de pruebas frontend: modal-base-stats-full.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-none.html`](../../tests/frontend/golden/modal-base-stats-none.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-base-stats-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-partial.html`](../../tests/frontend/golden/modal-base-stats-partial.html) | `frontend` | Helper | `none` | **0** | 32 | Suite de pruebas frontend: modal-base-stats-partial.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-method.html`](../../tests/frontend/golden/modal-connector-method.html) | `frontend` | Helper | `none` | **0** | 9 | Suite de pruebas frontend: modal-connector-method.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-plain.html`](../../tests/frontend/golden/modal-connector-plain.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-connector-plain.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-undefined.html`](../../tests/frontend/golden/modal-connector-undefined.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-connector-undefined.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-charizard-mega.html`](../../tests/frontend/golden/modal-detail-charizard-mega.html) | `frontend` | Helper | `none` | **0** | 339 | Suite de pruebas frontend: modal-detail-charizard-mega.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-eevee.html`](../../tests/frontend/golden/modal-detail-eevee.html) | `frontend` | Helper | `none` | **0** | 168 | Suite de pruebas frontend: modal-detail-eevee.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-pikachu.html`](../../tests/frontend/golden/modal-detail-pikachu.html) | `frontend` | Helper | `none` | **0** | 162 | Suite de pruebas frontend: modal-detail-pikachu.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-sparse.html`](../../tests/frontend/golden/modal-detail-sparse.html) | `frontend` | Helper | `none` | **0** | 86 | Suite de pruebas frontend: modal-detail-sparse.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-branched-leaves.html`](../../tests/frontend/golden/modal-evolution-branched-leaves.html) | `frontend` | Helper | `none` | **0** | 69 | Suite de pruebas frontend: modal-evolution-branched-leaves.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-branched-prefix.html`](../../tests/frontend/golden/modal-evolution-branched-prefix.html) | `frontend` | Helper | `none` | **0** | 79 | Suite de pruebas frontend: modal-evolution-branched-prefix.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-flat-1.html`](../../tests/frontend/golden/modal-evolution-flat-1.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-flat-1.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-flat-3.html`](../../tests/frontend/golden/modal-evolution-flat-3.html) | `frontend` | Helper | `none` | **0** | 63 | Suite de pruebas frontend: modal-evolution-flat-3.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-linear-tree.html`](../../tests/frontend/golden/modal-evolution-linear-tree.html) | `frontend` | Helper | `none` | **0** | 63 | Suite de pruebas frontend: modal-evolution-linear-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-no-tree.html`](../../tests/frontend/golden/modal-evolution-no-tree.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-no-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-single-tree.html`](../../tests/frontend/golden/modal-evolution-single-tree.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-single-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-undefined.html`](../../tests/frontend/golden/modal-evolution-undefined.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-undefined.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-body-none.html`](../../tests/frontend/golden/modal-mega-body-none.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: modal-mega-body-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-body-two.html`](../../tests/frontend/golden/modal-mega-body-two.html) | `frontend` | Helper | `none` | **0** | 174 | Suite de pruebas frontend: modal-mega-body-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-section-one.html`](../../tests/frontend/golden/modal-mega-section-one.html) | `frontend` | Helper | `none` | **0** | 89 | Suite de pruebas frontend: modal-mega-section-one.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-section-two.html`](../../tests/frontend/golden/modal-mega-section-two.html) | `frontend` | Helper | `none` | **0** | 171 | Suite de pruebas frontend: modal-mega-section-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-stats-no-base.html`](../../tests/frontend/golden/modal-mega-stats-no-base.html) | `frontend` | Helper | `none` | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-no-base.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-stats-with-base.html`](../../tests/frontend/golden/modal-mega-stats-with-base.html) | `frontend` | Helper | `none` | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-with-base.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-none.html`](../../tests/frontend/golden/modal-mega-toggle-none.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: modal-mega-toggle-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-one.html`](../../tests/frontend/golden/modal-mega-toggle-one.html) | `frontend` | Helper | `none` | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-one.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-two.html`](../../tests/frontend/golden/modal-mega-toggle-two.html) | `frontend` | Helper | `none` | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-bare.html`](../../tests/frontend/golden/modal-node-bare.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-bare.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-catalog-types.html`](../../tests/frontend/golden/modal-node-catalog-types.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-catalog-types.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-current.html`](../../tests/frontend/golden/modal-node-current.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-current.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-other-method.html`](../../tests/frontend/golden/modal-node-other-method.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-other-method.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | `frontend` | Helper | `none` | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(Helper)* |
-| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 107 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | `frontend` | Helper | `none` | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(Helper)* |
+| [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | `frontend` | Helper | `none` | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(Helper)* |
+| [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
 | [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -262,7 +298,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 172
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 179
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -287,16 +323,52 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(General)* |
 | [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(General)* |
 | [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-full.html`](../../tests/frontend/golden/modal-base-stats-full.html) | **0** | 36 | Suite de pruebas frontend: modal-base-stats-full.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-none.html`](../../tests/frontend/golden/modal-base-stats-none.html) | **0** | 2 | Suite de pruebas frontend: modal-base-stats-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-partial.html`](../../tests/frontend/golden/modal-base-stats-partial.html) | **0** | 32 | Suite de pruebas frontend: modal-base-stats-partial.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-method.html`](../../tests/frontend/golden/modal-connector-method.html) | **0** | 9 | Suite de pruebas frontend: modal-connector-method.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-plain.html`](../../tests/frontend/golden/modal-connector-plain.html) | **0** | 2 | Suite de pruebas frontend: modal-connector-plain.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-undefined.html`](../../tests/frontend/golden/modal-connector-undefined.html) | **0** | 2 | Suite de pruebas frontend: modal-connector-undefined.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-charizard-mega.html`](../../tests/frontend/golden/modal-detail-charizard-mega.html) | **0** | 339 | Suite de pruebas frontend: modal-detail-charizard-mega.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-eevee.html`](../../tests/frontend/golden/modal-detail-eevee.html) | **0** | 168 | Suite de pruebas frontend: modal-detail-eevee.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-pikachu.html`](../../tests/frontend/golden/modal-detail-pikachu.html) | **0** | 162 | Suite de pruebas frontend: modal-detail-pikachu.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-sparse.html`](../../tests/frontend/golden/modal-detail-sparse.html) | **0** | 86 | Suite de pruebas frontend: modal-detail-sparse.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-branched-leaves.html`](../../tests/frontend/golden/modal-evolution-branched-leaves.html) | **0** | 69 | Suite de pruebas frontend: modal-evolution-branched-leaves.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-branched-prefix.html`](../../tests/frontend/golden/modal-evolution-branched-prefix.html) | **0** | 79 | Suite de pruebas frontend: modal-evolution-branched-prefix.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-flat-1.html`](../../tests/frontend/golden/modal-evolution-flat-1.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-flat-1.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-flat-3.html`](../../tests/frontend/golden/modal-evolution-flat-3.html) | **0** | 63 | Suite de pruebas frontend: modal-evolution-flat-3.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-linear-tree.html`](../../tests/frontend/golden/modal-evolution-linear-tree.html) | **0** | 63 | Suite de pruebas frontend: modal-evolution-linear-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-no-tree.html`](../../tests/frontend/golden/modal-evolution-no-tree.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-no-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-single-tree.html`](../../tests/frontend/golden/modal-evolution-single-tree.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-single-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-undefined.html`](../../tests/frontend/golden/modal-evolution-undefined.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-undefined.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-body-none.html`](../../tests/frontend/golden/modal-mega-body-none.html) | **0** | 1 | Suite de pruebas frontend: modal-mega-body-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-body-two.html`](../../tests/frontend/golden/modal-mega-body-two.html) | **0** | 174 | Suite de pruebas frontend: modal-mega-body-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-section-one.html`](../../tests/frontend/golden/modal-mega-section-one.html) | **0** | 89 | Suite de pruebas frontend: modal-mega-section-one.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-section-two.html`](../../tests/frontend/golden/modal-mega-section-two.html) | **0** | 171 | Suite de pruebas frontend: modal-mega-section-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-stats-no-base.html`](../../tests/frontend/golden/modal-mega-stats-no-base.html) | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-no-base.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-stats-with-base.html`](../../tests/frontend/golden/modal-mega-stats-with-base.html) | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-with-base.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-none.html`](../../tests/frontend/golden/modal-mega-toggle-none.html) | **0** | 1 | Suite de pruebas frontend: modal-mega-toggle-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-one.html`](../../tests/frontend/golden/modal-mega-toggle-one.html) | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-one.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-two.html`](../../tests/frontend/golden/modal-mega-toggle-two.html) | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-bare.html`](../../tests/frontend/golden/modal-node-bare.html) | **0** | 14 | Suite de pruebas frontend: modal-node-bare.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-catalog-types.html`](../../tests/frontend/golden/modal-node-catalog-types.html) | **0** | 14 | Suite de pruebas frontend: modal-node-catalog-types.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-current.html`](../../tests/frontend/golden/modal-node-current.html) | **0** | 14 | Suite de pruebas frontend: modal-node-current.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-other-method.html`](../../tests/frontend/golden/modal-node-other-method.html) | **0** | 14 | Suite de pruebas frontend: modal-node-other-method.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(General)* |
-| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **4** | 78 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
-| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 107 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
+| [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(General)* |
+| [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(General)* |
+| [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | *(General)* |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
+| [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | *(General)* |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | *(General)* |
-| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
+| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | *(General)* |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
 | [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
-| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
+| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | *(General)* |
