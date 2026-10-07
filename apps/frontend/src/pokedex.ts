@@ -17,6 +17,7 @@ import {
   errorMessage,
 } from './shared/index.js';
 import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
+import { parseFilterParams, serializeFilterParams } from './shared/filter-url.js';
 import {
   openDetailModal as openDetailModalComponent,
   closeDetailModal,
@@ -50,6 +51,7 @@ export async function loadPokemons(): Promise<void> {
     allPokemons = await fetchAllPokemons();
     allPokemons.sort((a, b) => a.id - b.id);
 
+    restoreFiltersFromUrl();
     applyFilters();
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
   } catch (err) {
@@ -66,18 +68,42 @@ export async function loadPokemons(): Promise<void> {
 }
 
 export function applyFilters(): void {
-  const filters: CatalogFilters = {
-    searchQuery,
-    types: selectedTypes,
-    generation: currentGeneration,
-    onlyWithMega,
-  };
+  const filters: CatalogFilters = currentFilterState();
   filteredPokemons = allPokemons.filter((p) => matchesCatalogFilters(p, filters));
 
   currentPage = 1;
   renderPokemons();
   updateStats(filteredPokemons);
   renderActiveFilters();
+  syncFiltersToUrl();
+}
+
+function currentFilterState() {
+  return { searchQuery, types: selectedTypes, generation: currentGeneration, onlyWithMega };
+}
+
+/** Refleja los filtros activos en la URL sin crear entradas de historial. */
+function syncFiltersToUrl(): void {
+  const next = serializeFilterParams(currentFilterState());
+  if (next === window.location.search) return;
+  window.history.replaceState(null, '', `${window.location.pathname}${next}${window.location.hash}`);
+}
+
+/** Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga). */
+export function restoreFiltersFromUrl(): void {
+  const state = parseFilterParams(window.location.search);
+  searchQuery = state.searchQuery;
+  selectedTypes = state.types;
+  currentGeneration = state.generation;
+  onlyWithMega = state.onlyWithMega;
+
+  const input = document.getElementById('searchInput') as HTMLInputElement | null;
+  if (input) input.value = searchQuery;
+  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+  if (select) select.value = currentGeneration;
+  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+  if (checkbox) checkbox.checked = onlyWithMega;
+  syncTypePills();
 }
 
 export function handleSearch(): void {

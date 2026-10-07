@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T01:54:06.347Z",
+  "generatedAt": "2026-10-07T10:47:06.312Z",
   "summary": {
-    "totalFiles": 96,
-    "testFiles": 90,
+    "totalFiles": 97,
+    "testFiles": 91,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 757,
-    "totalLines": 19813,
-    "totalSizeBytes": 865281,
+    "totalTestCases": 767,
+    "totalLines": 19906,
+    "totalSizeBytes": 869169,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 15,
-      "testCases": 117,
+      "files": 16,
+      "testCases": 127,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1064,12 +1064,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 9,
+      "testCount": 12,
       "describeCount": 0,
-      "assertionCountEst": 46,
-      "sizeBytes": 8376,
-      "lineCount": 224,
-      "sha256": "85ee2b38254de88fee550012c35cd026464ae621aaf0fc89d3eeebcba9c749f8",
+      "assertionCountEst": 60,
+      "sizeBytes": 10059,
+      "lineCount": 265,
+      "sha256": "d64e778f78b09370b10dd0269e1f8bcd8ef360b7284030d866fa393f61160586",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1118,6 +1118,18 @@
         {
           "name": "🔎 Controlador: la búsqueda escrita se aplica con debounce y un solo evento input",
           "line": 209
+        },
+        {
+          "name": "🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas de historial",
+          "line": 227
+        },
+        {
+          "name": "🔗 Controlador: una URL con filtros se restaura al cargar el catálogo",
+          "line": 244
+        },
+        {
+          "name": "🔗 Controlador: una URL manipulada se sanea y no rompe el catálogo",
+          "line": 257
         }
       ]
     },
@@ -1212,6 +1224,61 @@
         {
           "name": "🎨 Caché CSS: las dos páginas del frontend enlazan el CSS sin una versión fija escrita a mano",
           "line": 40
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/filter_url.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 2205,
+      "lineCount": 52,
+      "sha256": "6476df76bf8124e25b7b3ce946e8cd1f932d22be476bf889ae94e48330157c7b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: filter_url.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔗 URL: sin parámetros devuelve el estado vacío",
+          "line": 9
+        },
+        {
+          "name": "🔗 URL: lee búsqueda, tipos, generación y megaevolución",
+          "line": 14
+        },
+        {
+          "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
+          "line": 23
+        },
+        {
+          "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
+          "line": 27
+        },
+        {
+          "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
+          "line": 36
+        },
+        {
+          "name": "🔗 URL: serializar y volver a leer conserva el estado",
+          "line": 41
+        },
+        {
+          "name": "🔗 URL: solo serializa los filtros activos",
+          "line": 48
         }
       ]
     },
