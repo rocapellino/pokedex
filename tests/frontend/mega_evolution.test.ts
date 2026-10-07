@@ -223,8 +223,8 @@ test('🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null', () => {
 });
 
 test('🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución', () => {
-  assert.match(renderPokemonCard(charizard), /class="mega-badge"/);
-  assert.doesNotMatch(renderPokemonCard(pikachu), /mega-badge/);
+  assert.match(String(renderPokemonCard(charizard)), /class="mega-badge"/);
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /mega-badge/);
 });
 
 test('🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente', () => {
@@ -248,18 +248,18 @@ test('🧬 UI Mega: el filtro "con megaevolución" se combina con búsqueda, tip
 
 test('🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos', () => {
   assert.match(
-    renderPokemonCard({ ...pikachu, clasificacion: 'legendario' }),
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'legendario' })),
     /class-badge class-badge--legendario"[^>]*>Legendario</,
   );
   assert.match(
-    renderPokemonCard({ ...pikachu, clasificacion: 'mitico' }),
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'mitico' })),
     /class-badge class-badge--mitico"[^>]*>Mítico</,
   );
-  assert.doesNotMatch(renderPokemonCard(pikachu), /class-badge/);
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /class-badge/);
 
   // Un valor forjado no genera insignia ni inyecta marcado: se inspecciona el DOM, no el texto.
   const holder = dom.window.document.createElement('div');
-  holder.innerHTML = renderPokemonCard({ ...pikachu, clasificacion: 'x"><SCRIPT>' } as unknown as Pokemon);
+  holder.innerHTML = String(renderPokemonCard({ ...pikachu, clasificacion: 'x"><SCRIPT>' } as unknown as Pokemon));
   assert.equal(holder.querySelector('.class-badge'), null);
   assert.equal(holder.querySelector('script'), null);
 });

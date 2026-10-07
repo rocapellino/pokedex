@@ -28,7 +28,7 @@ function parse(html: string): Document {
 }
 
 test('⌨️ Tarjeta: el nombre es un botón nativo dentro del encabezado, no el article', () => {
-  const doc = parse(sanitizeHtml(renderPokemonCard(pikachu)));
+  const doc = parse(sanitizeHtml(String(renderPokemonCard(pikachu))));
   const card = doc.querySelector('article.pokemon-card');
   assert.ok(card, 'la tarjeta sigue siendo un <article>');
   assert.equal(card.getAttribute('role'), null, 'el article no debe ser role=button (aplanaría su contenido)');
@@ -41,12 +41,12 @@ test('⌨️ Tarjeta: el nombre es un botón nativo dentro del encabezado, no el
 });
 
 test('⌨️ Tarjeta: la pista táctil es decorativa para no duplicar el nombre accesible', () => {
-  const doc = parse(sanitizeHtml(renderPokemonCard(pikachu)));
+  const doc = parse(sanitizeHtml(String(renderPokemonCard(pikachu))));
   assert.equal(doc.querySelector('.card-hint')?.getAttribute('aria-hidden'), 'true');
 });
 
 test('⌨️ Tarjeta: el nombre del Pokémon se escapa dentro del botón', () => {
-  const doc = parse(sanitizeHtml(renderPokemonCard({ ...pikachu, nombre: '<img src=x onerror=alert(1)>' })));
+  const doc = parse(sanitizeHtml(String(renderPokemonCard({ ...pikachu, nombre: '<img src=x onerror=alert(1)>' }))));
   assert.equal(doc.querySelector('img[onerror]'), null);
   assert.ok(doc.querySelector('button.card-open')?.textContent?.includes('<img'));
 });

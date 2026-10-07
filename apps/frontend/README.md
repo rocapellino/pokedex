@@ -84,6 +84,22 @@ apps/frontend/
 
 ---
 
+## 🧱 Plantillas HTML con escapado automático
+
+Las vistas se generan con la plantilla etiquetada `html` de `src/shared/html.ts`, que **escapa por defecto todo valor interpolado** (texto, números, atributos entre comillas). Solo pasan intactos los fragmentos `SafeHtml`: el resultado de otro `html` o de `trustedHtml()`, que se reserva para constantes del propio código y nunca para datos de la API.
+
+```ts
+html`<li data-id="${p.id}">${p.nombre}</li>`;                 // `id` y `nombre` se escapan
+html`<ul>${pokemons.map((p) => html`<li>${p.nombre}</li>`)}</ul>`; // un arreglo de fragmentos se une
+```
+
+- **Por qué:** antes cada campo debía pasar por `escapeText()` a mano, y los campos con tipo `number` no se escapaban, pese a que el tipo no se comprueba en ejecución. Con datos hostiles en `id`, `fuerza`, `peso` o `altura`, la cadena generada contenía un `<script>`, un `<img>` y manejadores `onerror` y `onmouseover` antes de llegar a `DOMPurify`; `tests/frontend/html_injection.test.ts` lo fija.
+- **Reglas:** los atributos van siempre entre comillas (`escapeText` neutraliza `"`, `'` y el acento grave, pero no protege un valor sin comillas) y no se llama a `escapeText()` dentro de una plantilla `html` (se escaparía dos veces).
+- **Estado de la migración:** `pokemon-card`, `admin-table` y `shared/ui` ya usan `html`; los módulos de los modales y los puntos de inserción (`innerHTML`) siguen con `escapeText` y `sanitizeHtml` hasta los siguientes PR.
+- **Paridad:** `tests/frontend/html_parity.test.ts` compara la salida de cada `render*` migrado con la generada por el código anterior (`tests/frontend/golden/`); `UPDATE_GOLDEN=1` los regenera de forma deliberada.
+
+---
+
 ## 📈 Medición de rendimiento (Lighthouse CI)
 
 `npm run perf:lighthouse` (`task perf:lighthouse`) mide la aplicación **con datos reales**, no un servidor estático:
