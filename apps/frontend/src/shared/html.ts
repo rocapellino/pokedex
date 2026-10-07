@@ -17,7 +17,7 @@
  * `false` sin convertir el atributo quedaría vacío.
  */
 
-import { escapeText } from '../sanitizer.js';
+import { escapeText, sanitizeHtml } from '../sanitizer.js';
 
 /**
  * Fragmento HTML ya seguro. Es una clase (y no una cadena marcada) porque en ejecución una cadena
@@ -56,4 +56,16 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]): SafeH
     out += render(values[i]) + (strings[i + 1] ?? '');
   }
   return new SafeHtml(out);
+}
+
+/**
+ * Único punto de inserción de HTML en el DOM. Solo acepta `SafeHtml` (una `string` no compila) y,
+ * aun así, vuelve a sanear el resultado con DOMPurify: `trustedHtml` no garantiza que el contenido
+ * sea inocuo, y esta segunda barrera evita que un uso erróneo llegue al DOM.
+ */
+export function setHtml(target: Element, content: SafeHtml): void {
+  if (!(content instanceof SafeHtml)) {
+    throw new TypeError('setHtml solo acepta SafeHtml: use html`...` o trustedHtml()');
+  }
+  target.innerHTML = sanitizeHtml(content.toString());
 }
