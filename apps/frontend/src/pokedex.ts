@@ -3,7 +3,6 @@
  * Controlador de Vista Principal Modularizado (< 300 LOC)
  */
 
-import { sanitizeHtml } from './sanitizer.js';
 import type { Pokemon } from './types.js';
 import {
   TYPE_COLORS,
@@ -15,7 +14,8 @@ import {
   renderEmptyState,
   fetchAllPokemons,
   errorMessage,
-  trustedHtml,
+  html,
+  setHtml,
   type SafeHtml,
 } from './shared/index.js';
 import {
@@ -83,13 +83,16 @@ export async function loadPokemons(): Promise<void> {
   } catch (err) {
     console.error('Error al cargar datos:', err);
     showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
-    container.innerHTML = renderEmptyState({
-      icon: '⚠️',
-      title: 'Error al conectar con el backend',
-      description: errorMessage(err),
-      retryBtnId: 'btnRetryConnection',
-      retryBtnText: 'Reintentar Conexión',
-    }).toString();
+    setHtml(
+      container,
+      renderEmptyState({
+        icon: '⚠️',
+        title: 'Error al conectar con el backend',
+        description: errorMessage(err),
+        retryBtnId: 'btnRetryConnection',
+        retryBtnText: 'Reintentar Conexión',
+      }),
+    );
   }
 }
 
@@ -388,14 +391,14 @@ export function handleGenerationChange(): void {
 
 /** Estado del catálogo cuando ningún Pokémon cumple los filtros activos. */
 export function renderNoResults(): SafeHtml {
-  return trustedHtml(`
+  return html`
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">No se encontraron Pokémon</h3>
         <p class="empty-subtitle">Prueba con otro término o quita alguno de los filtros activos.</p>
         <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
       </div>
-    `);
+    `;
 }
 
 export function renderPokemons(): void {
@@ -404,7 +407,7 @@ export function renderPokemons(): void {
   if (!container || !paginationBar) return;
 
   if (filteredPokemons.length === 0) {
-    container.innerHTML = sanitizeHtml(renderNoResults().toString());
+    setHtml(container, renderNoResults());
     paginationBar.classList.add('hidden');
     return;
   }
@@ -414,8 +417,7 @@ export function renderPokemons(): void {
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredPokemons.length);
   const currentBatch = filteredPokemons.slice(startIndex, endIndex);
 
-  const rawHtml = currentBatch.map(renderPokemonCard).join('');
-  container.innerHTML = sanitizeHtml(rawHtml);
+  setHtml(container, html`${currentBatch.map(renderPokemonCard)}`);
 
   if (totalPages > 1) {
     paginationBar.classList.remove('hidden');

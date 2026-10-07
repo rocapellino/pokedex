@@ -2,10 +2,9 @@
  * Gestor de Estado, Filtros y Paginación para Pokédex Backoffice
  */
 
-import { sanitizeHtml, escapeText } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { errorMessage, fetchPokemonsWithCount, showToast, trustedHtml, type SafeHtml } from '../shared/index.js';
-import { renderAdminTable, renderKPIs } from './admin-table.js';
+import { errorMessage, fetchPokemonsWithCount, showToast, setHtml } from '../shared/index.js';
+import { renderAdminTable, renderKPIs, renderLoadErrorRow, renderLoadingRow } from './admin-table.js';
 
 let currentPokemons: Pokemon[] = [];
 let totalRecords = 0;
@@ -72,36 +71,11 @@ export function updateKPIs(): void {
   renderKPIs(currentPokemons, totalRecords);
 }
 
-/** Fila de la tabla mientras se espera la respuesta de la API. */
-export function renderLoadingRow(): SafeHtml {
-  return trustedHtml(`
-      <tr>
-        <td colspan="8" class="table-loading">
-          <div class="spinner"></div>
-          <span>Cargando registros desde PostgreSQL...</span>
-        </td>
-      </tr>
-    `);
-}
-
-/** Fila de la tabla cuando la API no responde; `message` es texto de un error y se escapa. */
-export function renderLoadErrorRow(message: string): SafeHtml {
-  return trustedHtml(`
-        <tr>
-          <td colspan="8" class="table-empty">
-            <div class="text-danger text-2xl mb-2">⚠️</div>
-            <strong>Error de conexión con la API</strong>
-            <p class="text-muted">${escapeText(message)}</p>
-          </td>
-        </tr>
-      `);
-}
-
 export async function loadAdminData(): Promise<void> {
   const tbody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   if (!tbody) return;
   try {
-    tbody.innerHTML = sanitizeHtml(renderLoadingRow().toString());
+    setHtml(tbody, renderLoadingRow());
 
     const offset = (currentPage - 1) * pageSize;
     const { pokemons, total } = await fetchPokemonsWithCount({
@@ -120,7 +94,7 @@ export async function loadAdminData(): Promise<void> {
     console.error('Error al conectar con la API:', err);
     showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
     if (tbody) {
-      tbody.innerHTML = sanitizeHtml(renderLoadErrorRow(errorMessage(err)).toString());
+      setHtml(tbody, renderLoadErrorRow(errorMessage(err)));
     }
   }
 }

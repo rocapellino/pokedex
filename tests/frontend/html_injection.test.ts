@@ -1,7 +1,13 @@
 import { dom } from './mega_env.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderTableRows } from '../../apps/frontend/src/components/admin-table.js';
+import {
+  renderEmptyTableRow,
+  renderLoadErrorRow,
+  renderLoadingRow,
+  renderTableRows,
+} from '../../apps/frontend/src/components/admin-table.js';
+import { renderNoResults } from '../../apps/frontend/src/pokedex.js';
 import { renderPokemonCard } from '../../apps/frontend/src/components/pokemon-card.js';
 import { renderEmptyState, renderTypeBadge, renderTypeBadges } from '../../apps/frontend/src/shared/ui.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
@@ -53,4 +59,17 @@ test('🛡️ Render: los datos legítimos con caracteres especiales se muestran
   );
   assert.ok(out.includes('Farfetch&#039;d &amp; Co'), 'el nombre se escapa una sola vez');
   assert.ok(!out.includes('&amp;amp;') && !out.includes('&amp;#039;'), 'sin doble escapado');
+});
+
+test('🛡️ Render: el mensaje de error de la carga se muestra como texto, sin generar elementos', () => {
+  const out = String(renderLoadErrorRow(`${IMG}${SCRIPT}`));
+  assertNeutralized(out, 'fila de error');
+  assert.ok(out.includes('&lt;img'), 'el mensaje hostil queda como texto escapado');
+  assert.ok(!out.includes('&amp;lt;'), 'sin doble escapado');
+});
+
+test('🛡️ Render: los estados fijos no contienen elementos ejecutables', () => {
+  assertNeutralized(String(renderNoResults()), 'sin resultados');
+  assertNeutralized(String(renderEmptyTableRow()), 'tabla vacía');
+  assertNeutralized(String(renderLoadingRow()), 'cargando');
 });

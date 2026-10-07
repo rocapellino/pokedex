@@ -4,8 +4,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderEmptyTableRow } from '../../apps/frontend/src/components/admin-table.js';
-import { renderLoadErrorRow, renderLoadingRow } from '../../apps/frontend/src/components/backoffice-state.js';
+import {
+  renderEmptyTableRow,
+  renderLoadErrorRow,
+  renderLoadingRow,
+} from '../../apps/frontend/src/components/admin-table.js';
 import { renderNoResults } from '../../apps/frontend/src/pokedex.js';
 
 /**
