@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **112** |
-| **Archivos de Test Automatizados** | 96 |
+| **Total de Archivos en `tests/`** | **116** |
+| **Archivos de Test Automatizados** | 98 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
-| **Archivos de Soporte / Entorno (Fixtures)** | 15 |
-| **Total de Casos de Prueba Identificados** | **800** |
-| **Líneas de Código de Pruebas** | 20.814 |
-| **Tamaño Total de la Suite** | 883.6 KB |
+| **Archivos de Soporte / Entorno (Fixtures)** | 17 |
+| **Total de Casos de Prueba Identificados** | **824** |
+| **Líneas de Código de Pruebas** | 21.295 |
+| **Tamaño Total de la Suite** | 902.6 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T13:42:03.522Z |
+| **Última Sincronización** | 2026-10-07T13:54:33.499Z |
 
 ---
 
@@ -27,11 +27,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 126 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 20 | 140 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 31 | 159 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 34 | 169 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -55,33 +55,36 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **13** | 273 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **13** | 274 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 138 | Suite de pruebas frontend: catalog_class_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **19** | 370 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 63 | Suite de pruebas frontend: catalog_filters.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **8** | 91 | Suite de pruebas frontend: catalog_filters.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 99 | Suite de pruebas frontend: catalog_sort.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 78 | Suite de pruebas frontend: filter_url.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 91 | Suite de pruebas frontend: filter_url.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(Helper)* |
 | [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(Helper)* |
 | [`tests/frontend/golden/badges-multi.html`](../../tests/frontend/golden/badges-multi.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badges-multi.html. | *(Helper)* |
-| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | `frontend` | Helper | `none` | **0** | 47 | Suite de pruebas frontend: card-charizard.html. | *(Helper)* |
-| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | `frontend` | Helper | `none` | **0** | 47 | Suite de pruebas frontend: card-pikachu.html. | *(Helper)* |
-| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | `frontend` | Helper | `none` | **0** | 47 | Suite de pruebas frontend: card-sparse.html. | *(Helper)* |
+| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-charizard.html. | *(Helper)* |
+| [`tests/frontend/golden/card-legendario.html`](../../tests/frontend/golden/card-legendario.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-legendario.html. | *(Helper)* |
+| [`tests/frontend/golden/card-mitico.html`](../../tests/frontend/golden/card-mitico.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-mitico.html. | *(Helper)* |
+| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-pikachu.html. | *(Helper)* |
+| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(Helper)* |
 | [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(Helper)* |
 | [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | `frontend` | Helper | `none` | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(Helper)* |
 | [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 105 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 107 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **21** | 248 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -143,6 +146,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 240 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -167,7 +171,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 126
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 140
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -177,6 +181,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | **9** | 240 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `apps/backend/src/services/auth.ts` |
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | *(General)* |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
+| [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | *(General)* |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | *(General)* |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | *(General)* |
@@ -257,37 +262,40 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 159
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 169
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | **6** | 138 | Suite de pruebas frontend: catalog_class_controller.test.ts. | *(General)* |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | *(General)* |
 | [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | **19** | 370 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | *(General)* |
-| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | **6** | 63 | Suite de pruebas frontend: catalog_filters.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | **8** | 91 | Suite de pruebas frontend: catalog_filters.test.ts. | *(General)* |
 | [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | **6** | 99 | Suite de pruebas frontend: catalog_sort.test.ts. | *(General)* |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | *(General)* |
-| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | **9** | 78 | Suite de pruebas frontend: filter_url.test.ts. | *(General)* |
+| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | **10** | 91 | Suite de pruebas frontend: filter_url.test.ts. | *(General)* |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | *(General)* |
 | [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(General)* |
 | [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(General)* |
 | [`tests/frontend/golden/badges-multi.html`](../../tests/frontend/golden/badges-multi.html) | **0** | 2 | Suite de pruebas frontend: badges-multi.html. | *(General)* |
-| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | **0** | 47 | Suite de pruebas frontend: card-charizard.html. | *(General)* |
-| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | **0** | 47 | Suite de pruebas frontend: card-pikachu.html. | *(General)* |
-| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | **0** | 47 | Suite de pruebas frontend: card-sparse.html. | *(General)* |
+| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | **0** | 48 | Suite de pruebas frontend: card-charizard.html. | *(General)* |
+| [`tests/frontend/golden/card-legendario.html`](../../tests/frontend/golden/card-legendario.html) | **0** | 48 | Suite de pruebas frontend: card-legendario.html. | *(General)* |
+| [`tests/frontend/golden/card-mitico.html`](../../tests/frontend/golden/card-mitico.html) | **0** | 48 | Suite de pruebas frontend: card-mitico.html. | *(General)* |
+| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | **0** | 48 | Suite de pruebas frontend: card-pikachu.html. | *(General)* |
+| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(General)* |
 | [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(General)* |
 | [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(General)* |
 | [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **4** | 78 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
-| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 105 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 107 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | *(General)* |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **21** | 248 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
@@ -302,7 +310,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **13** | 273 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **13** | 274 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
 

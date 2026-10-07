@@ -3,7 +3,15 @@
  */
 
 import type { Pokemon, EvolutionNode } from '../types.js';
-import { normalizeStr, getGeneration, hasMegaEvolution, html, type SafeHtml } from '../shared/index.js';
+import {
+  CLASSIFICATION_LABELS,
+  getClassification,
+  getGeneration,
+  hasMegaEvolution,
+  html,
+  normalizeStr,
+  type SafeHtml,
+} from '../shared/index.js';
 
 export function renderPokemonCard(p: Pokemon): SafeHtml {
   const car = p.caracteristicas || {};
@@ -37,6 +45,11 @@ export function renderPokemonCard(p: Pokemon): SafeHtml {
     ? html`<span class="mega-badge" title="Tiene megaevolución">Mega</span>`
     : html``;
 
+  const clase = getClassification(p);
+  const classBadge = clase
+    ? html`<span class="class-badge class-badge--${clase}" title="Pokémon ${CLASSIFICATION_LABELS[clase].toLowerCase()}">${CLASSIFICATION_LABELS[clase]}</span>`
+    : html``;
+
   const normType = normalizeStr(p.tipo || 'normal');
   const safeImg = p.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
 
@@ -47,6 +60,7 @@ export function renderPokemonCard(p: Pokemon): SafeHtml {
         <div class="flex-center-gap">
           ${stageBadge}
           ${megaBadge}
+          ${classBadge}
           <span class="gen-badge">Gen ${getGeneration(p.id)}</span>
         </div>
       </div>

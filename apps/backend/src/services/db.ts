@@ -93,6 +93,8 @@ export {
   listPersistedPokemonIds,
   listPersistedMegaEvolutions,
   setPokemonMegaEvolutions,
+  listPersistedClassifications,
+  setPokemonClassification,
 } from './pokemon.repository.js';
 
 export {

@@ -281,6 +281,21 @@ rules:
         iac: false
         supply_chain: false
 
+  catalog_tooling:
+    description: "Generador del catálogo nacional de Pokémon (PokeAPI a JSON versionado del backend)"
+    paths:
+      - "scripts/generate-pokemon-catalog.ts"
+    triggers:
+      backend: true
+      tests: true
+      security:
+        secrets: true
+        sast: true
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
   sync_tooling:
     description: "Scripts de sincronización y telemetría externa (Linear, SonarQube)"
     paths:

@@ -214,9 +214,10 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
     await page.locator('#searchInput').focus();
 
-    // Tab debe alcanzar el botón de una tarjeta.
+    // Tab debe alcanzar el botón de una tarjeta. El tope es holgado a propósito: entre el buscador y la
+    // primera tarjeta hay todos los controles de filtro (y crecerán), no se cuenta una cifra exacta.
     let reached = false;
-    for (let i = 0; i < 25 && !reached; i++) {
+    for (let i = 0; i < 80 && !reached; i++) {
       await page.keyboard.press('Tab');
       reached = await page.evaluate(() => document.activeElement?.matches('.pokemon-card .card-open') ?? false);
     }

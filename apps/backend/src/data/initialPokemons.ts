@@ -620,6 +620,7 @@ export const sampleBasePokemons: Pokemon[] = [
   },
   {
     id: 150,
+    clasificacion: 'legendario',
     nombre: 'Mewtwo',
     imagen: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png',
     tipo: 'Psíquico',
@@ -796,6 +797,7 @@ export const sampleBasePokemons: Pokemon[] = [
   },
   {
     id: 384,
+    clasificacion: 'legendario',
     nombre: 'Rayquaza',
     imagen: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png',
     tipo: 'Dragón',
@@ -1055,6 +1057,7 @@ export const sampleBasePokemons: Pokemon[] = [
   },
   {
     id: 1007,
+    clasificacion: 'legendario',
     nombre: 'Koraidon',
     imagen: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1007.png',
     tipo: 'Lucha',
@@ -1076,6 +1079,7 @@ export const sampleBasePokemons: Pokemon[] = [
   },
   {
     id: 1008,
+    clasificacion: 'legendario',
     nombre: 'Miraidon',
     imagen: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1008.png',
     tipo: 'Eléctrico',

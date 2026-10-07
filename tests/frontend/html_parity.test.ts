@@ -74,6 +74,8 @@ const CASES: Record<string, () => unknown> = {
   'card-pikachu': () => renderPokemonCard(pikachu),
   'card-charizard': () => renderPokemonCard(charizard),
   'card-sparse': () => renderPokemonCard(sparse),
+  'card-legendario': () => renderPokemonCard({ ...pikachu, clasificacion: 'legendario' } as unknown as Pokemon),
+  'card-mitico': () => renderPokemonCard({ ...pikachu, clasificacion: 'mitico' } as unknown as Pokemon),
   'rows-admin': () => renderTableRows([pikachu, charizard, sparse]),
   'rows-admin-empty': () => renderTableRows([]),
   'badge-single': () => renderTypeBadge('Eléctrico'),

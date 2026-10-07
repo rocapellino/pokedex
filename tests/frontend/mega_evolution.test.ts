@@ -245,3 +245,21 @@ test('🧬 UI Mega: el filtro "con megaevolución" se combina con búsqueda, tip
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, types: ['Volador'] }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, generation: '2' }), false);
 });
+
+test('🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos', () => {
+  assert.match(
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'legendario' })),
+    /class-badge class-badge--legendario"[^>]*>Legendario</,
+  );
+  assert.match(
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'mitico' })),
+    /class-badge class-badge--mitico"[^>]*>Mítico</,
+  );
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /class-badge/);
+
+  // Un valor forjado no genera insignia ni inyecta marcado: se inspecciona el DOM, no el texto.
+  const holder = dom.window.document.createElement('div');
+  holder.innerHTML = String(renderPokemonCard({ ...pikachu, clasificacion: 'x"><SCRIPT>' } as unknown as Pokemon));
+  assert.equal(holder.querySelector('.class-badge'), null);
+  assert.equal(holder.querySelector('script'), null);
+});

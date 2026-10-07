@@ -7,7 +7,7 @@
 //
 // Solo el seed job importa este módulo: el JSON completo se empaqueta en
 // `dist/seed.cjs` y no en `dist/server.cjs`.
-import type { MegaEvolution, Pokemon } from '../types.js';
+import type { MegaEvolution, Pokemon, PokemonClassification } from '../types.js';
 import { initialPokemons } from './initialPokemons.js';
 import fullCatalog from './pokemon-catalog.full.json' with { type: 'json' };
 
@@ -108,6 +108,31 @@ export function planMegaEnrichment(
     const current = persistedMegas.get(entry.id);
     if (current && canonicalJson(current) === canonicalJson(megas)) continue;
     plan.push({ id: entry.id, megaevoluciones: megas });
+  }
+  return plan;
+}
+
+export interface ClassificationEnrichment {
+  id: number;
+  clasificacion: PokemonClassification;
+}
+
+/**
+ * Decide qué filas YA persistidas deben recibir (o corregir) la clasificación legendario/mítico
+ * del catálogo. Igual que con las megaevoluciones, el seed solo inserta IDs ausentes, así que las
+ * filas existentes necesitan este plan; solo toca ese campo y es idempotente. Nunca borra una
+ * clasificación persistida cuando el catálogo no trae ninguna.
+ */
+export function planClassificationEnrichment(
+  catalog: Pokemon[],
+  persisted: ReadonlyMap<number, PokemonClassification | undefined>,
+  existingIds: ReadonlySet<number>,
+): ClassificationEnrichment[] {
+  const plan: ClassificationEnrichment[] = [];
+  for (const entry of catalog) {
+    if (!entry.clasificacion || !existingIds.has(entry.id)) continue;
+    if (persisted.get(entry.id) === entry.clasificacion) continue;
+    plan.push({ id: entry.id, clasificacion: entry.clasificacion });
   }
   return plan;
 }

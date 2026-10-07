@@ -43,3 +43,14 @@ export function calculateWeaknesses(types: string[]): string[] {
 export function hasMegaEvolution(pokemon: { megaevoluciones?: unknown[] }): boolean {
   return Array.isArray(pokemon.megaevoluciones) && pokemon.megaevoluciones.length > 0;
 }
+
+/** Etiqueta en español de cada clasificación, para insignias y chips. */
+export const CLASSIFICATION_LABELS = { legendario: 'Legendario', mitico: 'Mítico' } as const;
+
+/** Clasificación válida del Pokémon (`legendario` o `mitico`) o `undefined` si es una especie común. */
+export function getClassification(pokemon: {
+  clasificacion?: unknown;
+}): keyof typeof CLASSIFICATION_LABELS | undefined {
+  const value = pokemon.clasificacion;
+  return value === 'legendario' || value === 'mitico' ? value : undefined;
+}
