@@ -77,8 +77,8 @@
       </div>
     </header>
 
-    <!-- Controls & Filters Bar -->
-    <section class="controls-bar">
+    <!-- Search, Sort and Filters Toggle -->
+    <section class="controls-bar" aria-label="Búsqueda y orden">
       <div class="search-box">
         <label for="searchInput" class="sr-only">Buscar Pokémon por nombre, tipo, habilidad o hábitat</label>
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -90,32 +90,7 @@
           placeholder="Buscar por nombre, tipo, habilidad o hábitat..." aria-label="Buscar Pokémon por nombre, tipo, habilidad o hábitat">
       </div>
 
-      <div class="filter-group">
-        <label for="generationFilter" class="sr-only">Filtrar por generación de Pokémon</label>
-        <select id="generationFilter" class="select-filter" aria-label="Filtrar por generación de Pokémon">
-          <option value="all">🌐 Todas las Generaciones (I a IX)</option>
-          <option value="1">Gen I: Kanto (1-151)</option>
-          <option value="2">Gen II: Johto (152-251)</option>
-          <option value="3">Gen III: Hoenn (252-386)</option>
-          <option value="4">Gen IV: Sinnoh (387-493)</option>
-          <option value="5">Gen V: Teselia (494-649)</option>
-          <option value="6">Gen VI: Kalos (650-721)</option>
-          <option value="7">Gen VII: Alola (722-809)</option>
-          <option value="8">Gen VIII: Galar (810-905)</option>
-          <option value="9">Gen IX: Paldea (906-1025)</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="mega-filter" for="megaFilter">
-          <input type="checkbox" id="megaFilter" class="mega-filter-input">
-          <span>Con megaevolución</span>
-        </label>
-      </div>
-    </section>
-
-    <!-- Sort and Advanced Filters -->
-    <section class="refine-bar" aria-label="Orden y filtros avanzados">
-      <div class="filter-group">
+      <div class="sort-controls">
         <label for="sortFilter" class="refine-label">Ordenar por</label>
         <select id="sortFilter" class="select-filter">
           <option value="id">Número de Pokédex</option>
@@ -131,29 +106,51 @@
         <button type="button" id="sortDirection" class="select-filter sort-direction" title="Invertir el sentido del orden"
           aria-label="Sentido del orden: ascendente. Pulsar para invertirlo">↑ Ascendente</button>
       </div>
-      <details class="more-filters" id="moreFilters">
-        <summary class="more-filters-toggle">
-          <span>Más filtros</span>
-          <span class="more-filters-count" id="moreFiltersCount" hidden></span>
-        </summary>
-        <div class="more-filters-body">
-          <div class="filter-group">
-            <label for="classFilter" class="refine-label">Clasificación</label>
-            <select id="classFilter" class="select-filter">
-              <option value="">Todas</option>
-              <option value="legendario">Legendarios</option>
-              <option value="mitico">Míticos</option>
-              <option value="especial">Legendarios y míticos</option>
-            </select>
-          </div>
-          <div class="filter-group ability-filter">
-            <label for="abilityFilter" class="refine-label">Habilidad</label>
-            <input type="text" id="abilityFilter" class="select-filter ability-input" list="abilityOptions"
-              placeholder="Elige una habilidad" autocomplete="off" spellcheck="false" maxlength="60">
-            <datalist id="abilityOptions"></datalist>
-          </div>
-          <div class="filter-group stat-filter">
-            <label for="statFilter" class="refine-label">Estadística mínima</label>
+
+      <button type="button" id="filtersToggle" class="select-filter filters-toggle" aria-expanded="false"
+        aria-controls="moreFilters">
+        <span class="filters-toggle-icon" aria-hidden="true">+</span>
+        <span>Filtros</span>
+        <span class="more-filters-count" id="moreFiltersCount" hidden></span>
+      </button>
+    </section>
+
+    <!-- Filters panel -->
+    <section class="filters-panel" id="moreFilters" aria-label="Filtros" hidden>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="generationFilter" class="refine-label">Generación</label>
+          <select id="generationFilter" class="select-filter">
+            <option value="all">Todas las generaciones</option>
+            <option value="1">Gen I: Kanto (1-151)</option>
+            <option value="2">Gen II: Johto (152-251)</option>
+            <option value="3">Gen III: Hoenn (252-386)</option>
+            <option value="4">Gen IV: Sinnoh (387-493)</option>
+            <option value="5">Gen V: Teselia (494-649)</option>
+            <option value="6">Gen VI: Kalos (650-721)</option>
+            <option value="7">Gen VII: Alola (722-809)</option>
+            <option value="8">Gen VIII: Galar (810-905)</option>
+            <option value="9">Gen IX: Paldea (906-1025)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="classFilter" class="refine-label">Clasificación</label>
+          <select id="classFilter" class="select-filter">
+            <option value="">Todas</option>
+            <option value="legendario">Legendarios</option>
+            <option value="mitico">Míticos</option>
+            <option value="especial">Legendarios y míticos</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="abilityFilter" class="refine-label">Habilidad</label>
+          <input type="text" id="abilityFilter" class="select-filter ability-input" list="abilityOptions"
+            placeholder="Elige una habilidad" autocomplete="off" spellcheck="false" maxlength="60">
+          <datalist id="abilityOptions"></datalist>
+        </div>
+        <div class="filter-group">
+          <label for="statFilter" class="refine-label">Estadística mínima</label>
+          <div class="stat-filter-row">
             <select id="statFilter" class="select-filter">
               <option value="">Sin filtro</option>
               <option value="total">Total</option>
@@ -169,31 +166,43 @@
               inputmode="numeric" placeholder="Mín.">
           </div>
         </div>
-      </details>
+        <div class="filter-group">
+          <span class="refine-label">Megaevolución</span>
+          <label class="mega-filter" for="megaFilter">
+            <input type="checkbox" id="megaFilter" class="mega-filter-input">
+            <span>Solo con megaevolución</span>
+          </label>
+        </div>
+        <div class="filter-group type-filter" id="typeFilterField">
+          <span class="refine-label" id="typeFilterLabel">Tipos <span class="refine-hint">· debe tener todos los elegidos</span></span>
+          <button type="button" id="typeFilterToggle" class="select-filter type-filter-toggle" aria-expanded="false"
+            aria-controls="typeFilterList" aria-labelledby="typeFilterLabel typeFilterSummary">
+            <span id="typeFilterSummary">Cualquier tipo</span>
+            <span aria-hidden="true">▾</span>
+          </button>
+          <div class="type-filter-list" id="typeFilterList" role="group" aria-labelledby="typeFilterLabel" hidden>
+            <label class="type-option"><input type="checkbox" value="Planta"><span class="type-dot" data-type="planta" aria-hidden="true"></span>Planta</label>
+            <label class="type-option"><input type="checkbox" value="Fuego"><span class="type-dot" data-type="fuego" aria-hidden="true"></span>Fuego</label>
+            <label class="type-option"><input type="checkbox" value="Agua"><span class="type-dot" data-type="agua" aria-hidden="true"></span>Agua</label>
+            <label class="type-option"><input type="checkbox" value="Eléctrico"><span class="type-dot" data-type="electrico" aria-hidden="true"></span>Eléctrico</label>
+            <label class="type-option"><input type="checkbox" value="Psíquico"><span class="type-dot" data-type="psiquico" aria-hidden="true"></span>Psíquico</label>
+            <label class="type-option"><input type="checkbox" value="Roca"><span class="type-dot" data-type="roca" aria-hidden="true"></span>Roca</label>
+            <label class="type-option"><input type="checkbox" value="Tierra"><span class="type-dot" data-type="tierra" aria-hidden="true"></span>Tierra</label>
+            <label class="type-option"><input type="checkbox" value="Hielo"><span class="type-dot" data-type="hielo" aria-hidden="true"></span>Hielo</label>
+            <label class="type-option"><input type="checkbox" value="Dragón"><span class="type-dot" data-type="dragon" aria-hidden="true"></span>Dragón</label>
+            <label class="type-option"><input type="checkbox" value="Fantasma"><span class="type-dot" data-type="fantasma" aria-hidden="true"></span>Fantasma</label>
+            <label class="type-option"><input type="checkbox" value="Veneno"><span class="type-dot" data-type="veneno" aria-hidden="true"></span>Veneno</label>
+            <label class="type-option"><input type="checkbox" value="Bicho"><span class="type-dot" data-type="bicho" aria-hidden="true"></span>Bicho</label>
+            <label class="type-option"><input type="checkbox" value="Volador"><span class="type-dot" data-type="volador" aria-hidden="true"></span>Volador</label>
+            <label class="type-option"><input type="checkbox" value="Lucha"><span class="type-dot" data-type="lucha" aria-hidden="true"></span>Lucha</label>
+            <label class="type-option"><input type="checkbox" value="Acero"><span class="type-dot" data-type="acero" aria-hidden="true"></span>Acero</label>
+            <label class="type-option"><input type="checkbox" value="Siniestro"><span class="type-dot" data-type="siniestro" aria-hidden="true"></span>Siniestro</label>
+            <label class="type-option"><input type="checkbox" value="Hada"><span class="type-dot" data-type="hada" aria-hidden="true"></span>Hada</label>
+            <label class="type-option"><input type="checkbox" value="Normal"><span class="type-dot" data-type="normal" aria-hidden="true"></span>Normal</label>
+          </div>
+        </div>
+      </div>
     </section>
-
-    <!-- Type Pills Filter Bar -->
-    <div class="type-filter-bar" id="typePillsContainer">
-      <button type="button" class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
-      <button type="button" class="type-pill" data-type="Planta" aria-pressed="false">🌿 Planta</button>
-      <button type="button" class="type-pill" data-type="Fuego" aria-pressed="false">🔥 Fuego</button>
-      <button type="button" class="type-pill" data-type="Agua" aria-pressed="false">💧 Agua</button>
-      <button type="button" class="type-pill" data-type="Eléctrico" aria-pressed="false">⚡ Eléctrico</button>
-      <button type="button" class="type-pill" data-type="Psíquico" aria-pressed="false">🔮 Psíquico</button>
-      <button type="button" class="type-pill" data-type="Roca" aria-pressed="false">🪨 Roca</button>
-      <button type="button" class="type-pill" data-type="Tierra" aria-pressed="false">🏜️ Tierra</button>
-      <button type="button" class="type-pill" data-type="Hielo" aria-pressed="false">❄️ Hielo</button>
-      <button type="button" class="type-pill" data-type="Dragón" aria-pressed="false">🐉 Dragón</button>
-      <button type="button" class="type-pill" data-type="Fantasma" aria-pressed="false">👻 Fantasma</button>
-      <button type="button" class="type-pill" data-type="Veneno" aria-pressed="false">☠️ Veneno</button>
-      <button type="button" class="type-pill" data-type="Bicho" aria-pressed="false">🐛 Bicho</button>
-      <button type="button" class="type-pill" data-type="Volador" aria-pressed="false">🦅 Volador</button>
-      <button type="button" class="type-pill" data-type="Lucha" aria-pressed="false">🥊 Lucha</button>
-      <button type="button" class="type-pill" data-type="Acero" aria-pressed="false">⚙️ Acero</button>
-      <button type="button" class="type-pill" data-type="Siniestro" aria-pressed="false">🌑 Siniestro</button>
-      <button type="button" class="type-pill" data-type="Hada" aria-pressed="false">✨ Hada</button>
-      <button type="button" class="type-pill" data-type="Normal" aria-pressed="false">⚪ Normal</button>
-    </div>
 
     <!-- Active filters summary -->
     <div class="active-filters" id="activeFilters">

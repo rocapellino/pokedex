@@ -38,7 +38,7 @@ const names = () => [...doc.querySelectorAll('.pokemon-card')].map((c) => c.getA
 const chips = () => [...doc.querySelectorAll('#activeFilterChips .filter-chip')].map((c) => c.textContent);
 const input = () => doc.getElementById('abilityFilter') as HTMLInputElement;
 const options = () => [...doc.querySelectorAll('#abilityOptions option')].map((o) => (o as HTMLOptionElement).value);
-const panel = () => doc.getElementById('moreFilters') as HTMLDetailsElement;
+const panel = () => doc.getElementById('moreFilters') as HTMLElement;
 const count = () => doc.getElementById('moreFiltersCount') as HTMLElement;
 const search = () => dom.window.location.search;
 
@@ -55,11 +55,11 @@ before(async () => {
     <select id="generationFilter"><option value="all">Todas</option></select>
     <input type="checkbox" id="megaFilter">
     <select id="sortFilter"><option value="id">Número</option></select>
-    <details id="moreFilters">
-      <summary><span>Más filtros</span><span id="moreFiltersCount" hidden></span></summary>
+    <button type="button" id="filtersToggle" aria-expanded="false"><span class="filters-toggle-icon">+</span><span>Filtros</span><span id="moreFiltersCount" hidden></span></button>
+    <div id="moreFilters" hidden>
       <input type="text" id="abilityFilter" list="abilityOptions">
       <datalist id="abilityOptions"></datalist>
-    </details>
+    </div>
     <div id="typePillsContainer">
       <button class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
       <button class="type-pill" data-type="Fuego" aria-pressed="false">Fuego</button>
@@ -79,7 +79,7 @@ before(async () => {
 
 beforeEach(() => {
   clearAllFilters();
-  panel().open = false;
+  panel().hidden = true;
 });
 
 after(() => {
@@ -168,7 +168,7 @@ test('🧪 Habilidad: cuenta como filtro avanzado en el panel', () => {
   type('Presión');
   assert.equal(count().hidden, false);
   assert.equal(count().textContent, '1');
-  assert.equal(doc.querySelector('#moreFilters > summary')?.getAttribute('aria-label'), 'Más filtros, 1 activos');
+  assert.equal(doc.getElementById('filtersToggle')?.getAttribute('aria-label'), 'Filtros, 1 activos');
 });
 
 test('🧪 Habilidad: se restaura desde la URL (abre el panel) y una habilidad desconocida se ignora', async () => {
@@ -176,15 +176,15 @@ test('🧪 Habilidad: se restaura desde la URL (abre el panel) y una habilidad d
   await loadPokemons();
   assert.deepEqual(names(), ['4', '6']);
   assert.equal(input().value, 'Poder Solar');
-  assert.equal(panel().open, true, 'un filtro oculto debe verse');
+  assert.equal(!panel().hidden, true, 'un filtro oculto debe verse');
   assert.deepEqual(chips(), ['Habilidad: Poder Solar✕']);
 
-  panel().open = false;
+  panel().hidden = true;
   dom.window.history.replaceState(null, '', '/?hab=__proto__');
   await loadPokemons();
   assert.equal(names().length, catalog.length);
   assert.equal(input().value, '');
-  assert.equal(panel().open, false);
+  assert.equal(!panel().hidden, false);
   assert.equal(search(), '');
 });
 

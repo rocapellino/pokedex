@@ -47,6 +47,12 @@ import {
   selectMegaTab,
   toggleMegaDisclosure,
 } from './components/index.js';
+import {
+  initFiltersControls,
+  renderFiltersCount,
+  setFiltersPanelOpen,
+  syncTypeDropdown,
+} from './components/filters-panel.js';
 
 export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
 
@@ -168,29 +174,25 @@ export function restoreFiltersFromUrl(): void {
   syncAbilityControl();
   const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
   if (sortSelect) sortSelect.value = currentSort;
-  syncTypePills();
-  // Un filtro avanzado activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
-  if (countAdvancedFilters() > 0) {
-    const panel = document.getElementById('moreFilters') as HTMLDetailsElement | null;
-    if (panel) panel.open = true;
-  }
+  syncTypeControl();
+  // Un filtro del panel activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
+  if (countAdvancedFilters() > 0) setFiltersPanelOpen(true);
 }
 
-/** Filtros que viven dentro del panel "Más filtros" (los demás están siempre visibles). */
+/** Filtros que viven dentro del panel "Filtros" (buscador y orden están siempre visibles). Los tipos cuentan como uno. */
 function countAdvancedFilters(): number {
-  return (classification ? 1 : 0) + (minStat ? 1 : 0) + (ability ? 1 : 0);
+  return (
+    (currentGeneration !== 'all' ? 1 : 0) +
+    (onlyWithMega ? 1 : 0) +
+    (selectedTypes.length > 0 ? 1 : 0) +
+    (classification ? 1 : 0) +
+    (minStat ? 1 : 0) +
+    (ability ? 1 : 0)
+  );
 }
 
 function renderAdvancedFiltersCount(): void {
-  const count = countAdvancedFilters();
-  const badge = document.getElementById('moreFiltersCount');
-  if (badge) {
-    badge.textContent = String(count);
-    badge.hidden = count === 0;
-  }
-  document
-    .querySelector('#moreFilters > summary')
-    ?.setAttribute('aria-label', count > 0 ? `Más filtros, ${count} activos` : 'Más filtros');
+  renderFiltersCount(countAdvancedFilters());
 }
 
 /** Rellena el autocompletado con las habilidades del catálogo y reconstruye el índice de nombres. */
@@ -299,14 +301,8 @@ function handleSearchDebounced(): void {
   searchTimer = setTimeout(handleSearch, SEARCH_DEBOUNCE_MS);
 }
 
-function syncTypePills(): void {
-  const selected = new Set(selectedTypes.map(normalizeStr));
-  document.querySelectorAll('.type-pill').forEach((btn) => {
-    const btnType = btn.getAttribute('data-type') ?? '';
-    const isActive = btnType === 'all' ? selected.size === 0 : selected.has(normalizeStr(btnType));
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-pressed', String(isActive));
-  });
+function syncTypeControl(): void {
+  syncTypeDropdown(selectedTypes);
 }
 
 /** Alterna un tipo en la selección; `all` limpia la selección de tipos. */
@@ -318,7 +314,7 @@ export function toggleTypeFilter(type: string): void {
     const exists = selectedTypes.some((t) => normalizeStr(t) === target);
     selectedTypes = exists ? selectedTypes.filter((t) => normalizeStr(t) !== target) : [...selectedTypes, type];
   }
-  syncTypePills();
+  syncTypeControl();
   applyFilters();
 }
 
@@ -355,7 +351,7 @@ export function clearAllFilters(): void {
   syncClassControl();
   syncAbilityControl();
 
-  syncTypePills();
+  syncTypeControl();
   applyFilters();
 }
 
@@ -603,18 +599,7 @@ export function initInteractiveListeners(): void {
     generationFilter.addEventListener('change', handleGenerationChange);
   }
 
-  const typePillsContainer = document.getElementById('typePillsContainer');
-  if (typePillsContainer) {
-    typePillsContainer.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      const pill = target?.closest('.type-pill');
-      if (pill) {
-        e.preventDefault();
-        const type = pill.getAttribute('data-type');
-        if (type) toggleTypeFilter(type);
-      }
-    });
-  }
+  initFiltersControls(toggleTypeFilter);
 
   const pokemonGrid = document.getElementById('pokemonGrid');
   if (pokemonGrid) {
