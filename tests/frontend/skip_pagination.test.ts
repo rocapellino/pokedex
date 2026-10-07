@@ -50,6 +50,9 @@ before(async () => {
   serve(catalogOf(96));
   await loadPokemons();
   initInteractiveListeners();
+  // `changePage` lleva la vista al catálogo con `scrollIntoView`, que jsdom no implementa.
+  (doc.getElementById('pokemonGrid') as HTMLElement).scrollIntoView = (() =>
+    undefined) as HTMLElement['scrollIntoView'];
 });
 
 after(() => {
