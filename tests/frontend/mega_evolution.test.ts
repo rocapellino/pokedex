@@ -50,9 +50,9 @@ const charizard: Pokemon = {
 };
 const pikachu: Pokemon = { ...charizard, id: 25, nombre: 'Pikachu', megaevoluciones: undefined };
 
-function mount(html: string): HTMLElement {
+function mount(html: { toString(): string }): HTMLElement {
   const root = dom.window.document.getElementById('detailContent') as HTMLElement;
-  root.innerHTML = sanitizeHtml(html);
+  root.innerHTML = sanitizeHtml(String(html));
   return root;
 }
 
@@ -80,8 +80,8 @@ test('🧬 UI Mega: sin estadísticas base no inventa diferencias', () => {
 });
 
 test('🧬 UI Mega: un Pokémon sin megaevolución no renderiza la sección', () => {
-  assert.equal(renderMegaEvolutionSection(pikachu), '');
-  assert.equal(renderMegaEvolutionSection({ ...pikachu, megaevoluciones: [] }), '');
+  assert.equal(String(renderMegaEvolutionSection(pikachu)), '');
+  assert.equal(String(renderMegaEvolutionSection({ ...pikachu, megaevoluciones: [] })), '');
   assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-section/);
 });
 
@@ -191,18 +191,18 @@ test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y a
 });
 
 test('🧬 UI Mega: sin megaevolución no hay botón ni despliegue', () => {
-  assert.equal(renderMegaToggle(pikachu), '');
-  assert.equal(renderMegaDisclosureBody(pikachu), '');
+  assert.equal(String(renderMegaToggle(pikachu)), '');
+  assert.equal(String(renderMegaDisclosureBody(pikachu)), '');
   assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-toggle|mega-disclosure/);
 });
 
 test('🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega', () => {
-  assert.match(renderMegaToggle(charizard), /aria-label="Ver 2 megaevoluciones"/);
-  assert.match(renderMegaToggle({ ...charizard, megaevoluciones: [megaX] }), /aria-label="Ver megaevolución"/);
+  assert.match(String(renderMegaToggle(charizard)), /aria-label="Ver 2 megaevoluciones"/);
+  assert.match(String(renderMegaToggle({ ...charizard, megaevoluciones: [megaX] })), /aria-label="Ver megaevolución"/);
 });
 
 test('🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)', () => {
-  const root = mount(renderMegaToggle(charizard) + renderMegaDisclosureBody(charizard));
+  const root = mount(`${renderMegaToggle(charizard)}${renderMegaDisclosureBody(charizard)}`);
   const toggle = root.querySelector('.mega-toggle') as HTMLElement;
   const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
 

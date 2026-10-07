@@ -11,6 +11,10 @@
  *
  * Los atributos deben ir SIEMPRE entre comillas: `escapeText` neutraliza `"`, `'` y el acento grave,
  * pero no protege un valor en un atributo sin comillas.
+ *
+ * `null`, `undefined` y `false` no pintan nada (así `${cond && html`...`}` funciona). Por eso un atributo
+ * booleano de texto, como `aria-selected="true|false"`, debe interpolarse con `String(valor)`: con un
+ * `false` sin convertir el atributo quedaría vacío.
  */
 
 import { escapeText } from '../sanitizer.js';
