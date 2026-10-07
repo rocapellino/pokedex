@@ -371,7 +371,7 @@ export function renderPokemons(): void {
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">No se encontraron Pokémon</h3>
-        <p class="empty-subtitle">Intenta buscar con otro término, tipo o cambia de generación.</p>
+        <p class="empty-subtitle">Prueba con otro término o quita alguno de los filtros activos.</p>
         <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
       </div>
     `);

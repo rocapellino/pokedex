@@ -534,6 +534,20 @@ body {
   margin-bottom: 1rem;
 }
 
+.card-header .flex-center-gap {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.card-header .pokemon-id {
+  flex-shrink: 0;
+}
+
+.card-header .flex-center-gap > span {
+  white-space: nowrap;
+}
+
 .pokemon-id {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
@@ -934,8 +948,14 @@ body {
 
 .refine-bar .filter-group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
+}
+
+.refine-bar .select-filter {
+  max-width: 100%;
 }
 
 .refine-label {
