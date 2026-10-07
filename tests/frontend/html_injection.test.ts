@@ -5,13 +5,9 @@ import { renderTableRows } from '../../apps/frontend/src/components/admin-table.
 import { renderPokemonCard } from '../../apps/frontend/src/components/pokemon-card.js';
 import { renderEmptyState, renderTypeBadge, renderTypeBadges } from '../../apps/frontend/src/shared/ui.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
+import { BREAKOUT, IMG, SCRIPT, assertNeutralized } from './html_assertions.js';
 
 void dom;
-
-const SCRIPT = '<script>alert(1)</script>';
-const IMG = '<img src=x onerror=alert(1)>';
-const BREAKOUT = '" onmouseover="alert(1)" x="';
-const EXECUTABLE_TAGS = new Set(['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED']);
 
 /**
  * Pokémon cuyos campos numéricos (`fuerza`, `peso`, `altura`, `id`) llegan como texto hostil: el tipo
@@ -28,23 +24,6 @@ function hostile(overrides: Record<string, unknown> = {}): Pokemon {
     caracteristicas: { peso: SCRIPT, altura: IMG, habitat: BREAKOUT },
     ...overrides,
   } as unknown as Pokemon;
-}
-
-/**
- * Se analiza el DOM resultante en lugar de buscar texto: el dato hostil sigue apareciendo como TEXTO
- * escapado (`&lt;img ... onerror=...&gt;`), y eso es correcto; lo que no puede ocurrir es que genere
- * elementos o atributos.
- */
-function assertNeutralized(output: string, label: string): void {
-  const doc = new dom.window.DOMParser().parseFromString(`<table><tbody>${output}</tbody></table>`, 'text/html');
-  const elements = [...doc.querySelectorAll('*')];
-  const executable = elements.filter((el) => EXECUTABLE_TAGS.has(el.tagName)).map((el) => el.tagName);
-  assert.deepEqual(executable, [], `${label}: elementos ejecutables inyectados`);
-  assert.equal(doc.querySelectorAll('img[src="x"]').length, 0, `${label}: <img> inyectada`);
-  for (const el of elements) {
-    const handlers = el.getAttributeNames().filter((name) => name.startsWith('on'));
-    assert.deepEqual(handlers, [], `${label}: <${el.tagName.toLowerCase()}> con manejadores ${handlers.join(', ')}`);
-  }
 }
 
 test('🛡️ Render: la tarjeta neutraliza campos hostiles, incluidos los numéricos', () => {

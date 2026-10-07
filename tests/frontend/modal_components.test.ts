@@ -73,7 +73,7 @@ test('🧩 Modal Detail: calculateWeaknesses calcula debilidades elementales cor
 });
 
 test('🧩 Modal Detail: renderBaseStats muestra valor numérico por stat y total', () => {
-  const html = renderBaseStats(mockBulbasaur.stats);
+  const html = String(renderBaseStats(mockBulbasaur.stats));
   for (const label of ['PS', 'Ataque', 'Defensa', 'At. Esp.', 'Def. Esp.', 'Velocidad']) {
     assert.ok(html.includes(`>${label}<`), `falta la etiqueta ${label}`);
   }
@@ -83,12 +83,12 @@ test('🧩 Modal Detail: renderBaseStats muestra valor numérico por stat y tota
 });
 
 test('🧩 Modal Detail: renderBaseStats no usa <br>, que DOMPurify elimina y concatena las etiquetas', () => {
-  const html = renderBaseStats(mockBulbasaur.stats);
+  const html = String(renderBaseStats(mockBulbasaur.stats));
   assert.ok(!/<br\s*\/?>/i.test(html));
 });
 
 test('🧩 Modal Detail: renderBaseStats escala la barra sobre 255 en pasos de 5 % y asigna tramo de color', () => {
-  const html = renderBaseStats({ hp: 255, attack: 0, defense: 100, sp_attack: 65, sp_defense: 80, speed: 120 });
+  const html = String(renderBaseStats({ hp: 255, attack: 0, defense: 100, sp_attack: 65, sp_defense: 80, speed: 120 }));
   assert.ok(html.includes('base-stat-fill--w100 base-stat-tier--top'));
   assert.ok(html.includes('base-stat-fill--w0 base-stat-tier--low'));
   assert.ok(html.includes('base-stat-fill--w40 base-stat-tier--high'));
@@ -96,18 +96,18 @@ test('🧩 Modal Detail: renderBaseStats escala la barra sobre 255 en pasos de 5
 });
 
 test('🧩 Modal Detail: renderBaseStats sin stats no inventa valores', () => {
-  const html = renderBaseStats(undefined);
+  const html = String(renderBaseStats(undefined));
   assert.ok(html.includes('Sin estadísticas registradas'));
   assert.ok(!html.includes('base-stat-fill'));
 
-  const partial = renderBaseStats({ hp: 60 });
+  const partial = String(renderBaseStats({ hp: 60 }));
   assert.ok(partial.includes('aria-label="Ataque: sin datos"'));
   assert.ok(!partial.includes('base-stat-total'), 'el total no debe calcularse con stats incompletas');
 });
 
 test('🧩 Modal Detail: renderDetailModalContent no rellena con datos ficticios de Bulbasaur', () => {
   const sparse: Pokemon = { id: 25, nombre: 'Pikachu', tipo: 'Eléctrico' };
-  const html = renderDetailModalContent(sparse, [sparse]);
+  const html = String(renderDetailModalContent(sparse, [sparse]));
 
   assert.ok(!html.includes('0,7 m'));
   assert.ok(!html.includes('6,9 kg'));
@@ -118,7 +118,7 @@ test('🧩 Modal Detail: renderDetailModalContent no rellena con datos ficticios
 });
 
 test('🧩 Modal Detail: renderDetailModalContent lista todas las habilidades', () => {
-  const html = renderDetailModalContent(mockBulbasaur, [mockBulbasaur]);
+  const html = String(renderDetailModalContent(mockBulbasaur, [mockBulbasaur]));
   assert.ok(html.includes('Espesura, Clorofila'));
 });
 
@@ -132,7 +132,7 @@ test('🧩 Modal Detail: getTriggerIcon devuelve iconos representativos según m
 
 test('🧩 Modal Detail: renderDetailModalContent genera markup semántico y sanitizado', () => {
   const catalog = [mockBulbasaur, mockCharmander];
-  const html = renderDetailModalContent(mockBulbasaur, catalog);
+  const html = String(renderDetailModalContent(mockBulbasaur, catalog));
 
   assert.ok(html.includes('Bulbasaur'));
   assert.ok(html.includes('N.º 0001'));
@@ -194,11 +194,11 @@ test('🧩 Modal Evolution: getTriggerIcon cubre todas las ramas de métodos evo
 });
 
 test('🧩 Modal Evolution: renderTransitionConnector genera chevrons y badges según contexto', () => {
-  const withoutMethod = renderTransitionConnector();
+  const withoutMethod = String(renderTransitionConnector());
   assert.ok(withoutMethod.includes('evolution-chevron-arrow'));
   assert.ok(!withoutMethod.includes('evolution-trigger-badge'));
 
-  const withMethod = renderTransitionConnector({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' });
+  const withMethod = String(renderTransitionConnector({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' }));
   assert.ok(withMethod.includes('evolution-trigger-badge'));
   assert.ok(withMethod.includes('Nivel 16'));
   assert.ok(withMethod.includes('📈'));
@@ -208,13 +208,15 @@ test('🧩 Modal Evolution: renderSingleEvolutionNode maneja nodos actuales, alt
   const catalog = [mockBulbasaur, mockCharmander];
 
   // Nodo actual
-  const currentNodeHtml = renderSingleEvolutionNode({ id: 1, nombre: 'Bulbasaur' }, 1, false, catalog);
+  const currentNodeHtml = String(renderSingleEvolutionNode({ id: 1, nombre: 'Bulbasaur' }, 1, false, catalog));
   assert.ok(currentNodeHtml.includes('active-current'));
   assert.ok(currentNodeHtml.includes('Estás viendo a Bulbasaur'));
   assert.ok(currentNodeHtml.includes('evolution-type-mini'));
 
   // Nodo diferente con método visible
-  const nextNodeHtml = renderSingleEvolutionNode({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' }, 1, true, catalog);
+  const nextNodeHtml = String(
+    renderSingleEvolutionNode({ id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' }, 1, true, catalog),
+  );
   assert.ok(!nextNodeHtml.includes('active-current'));
   assert.ok(nextNodeHtml.includes('Ver ficha de Ivysaur'));
   assert.ok(nextNodeHtml.includes('evolution-method-tag'));
@@ -225,28 +227,32 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallback
   const catalog = [mockBulbasaur];
 
   // 1. Array vacío o de un elemento
-  const singleHtml = renderEvolutionSystem([{ id: 1, nombre: 'Bulbasaur' }], 1, catalog);
+  const singleHtml = String(renderEvolutionSystem([{ id: 1, nombre: 'Bulbasaur' }], 1, catalog));
   assert.ok(singleHtml.includes('pokedex-evolutions-official-panel'));
   assert.ok(!singleHtml.includes('evolution-transition-connector'));
 
   // 2. Array lineal de múltiples elementos
-  const multiArrayHtml = renderEvolutionSystem(
-    [
-      { id: 1, nombre: 'Bulbasaur' },
-      { id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' },
-      { id: 3, nombre: 'Venusaur', metodo: 'Nivel 32' },
-    ],
-    1,
-    catalog,
+  const multiArrayHtml = String(
+    renderEvolutionSystem(
+      [
+        { id: 1, nombre: 'Bulbasaur' },
+        { id: 2, nombre: 'Ivysaur', metodo: 'Nivel 16' },
+        { id: 3, nombre: 'Venusaur', metodo: 'Nivel 32' },
+      ],
+      1,
+      catalog,
+    ),
   );
   assert.ok(multiArrayHtml.includes('evolution-transition-connector'));
 
   // 3. Objeto sin árbol (fallback)
-  const fallbackHtml = renderEvolutionSystem(null as unknown as undefined, 25, catalog);
+  const fallbackHtml = String(renderEvolutionSystem(null as unknown as undefined, 25, catalog));
   assert.ok(fallbackHtml.includes('official-artwork/25.png'));
 
   // 4. Árbol con raíz sin evoluciones
-  const rootOnlyHtml = renderEvolutionSystem({ arbol: { id: 132, nombre: 'Ditto', evolves_to: [] } }, 132, catalog);
+  const rootOnlyHtml = String(
+    renderEvolutionSystem({ arbol: { id: 132, nombre: 'Ditto', evolves_to: [] } }, 132, catalog),
+  );
   assert.ok(rootOnlyHtml.includes('Ditto'));
   assert.ok(!rootOnlyHtml.includes('branched-evolution-container'));
 });
@@ -267,7 +273,7 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y l
       ],
     },
   };
-  const eeveeHtml = renderEvolutionSystem(eeveeTree, 133, catalog);
+  const eeveeHtml = String(renderEvolutionSystem(eeveeTree, 133, catalog));
   assert.ok(eeveeHtml.includes('branched-fork-indicator'));
   assert.ok(eeveeHtml.includes('branched-children-grid'));
   assert.ok(eeveeHtml.includes('Vaporeon'));
@@ -289,7 +295,7 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y l
       ],
     },
   };
-  const linearTreeHtml = renderEvolutionSystem(linearTree, 1, catalog);
+  const linearTreeHtml = String(renderEvolutionSystem(linearTree, 1, catalog));
   assert.ok(linearTreeHtml.includes('evolution-transition-connector'));
   assert.ok(linearTreeHtml.includes('Ivysaur'));
   assert.ok(linearTreeHtml.includes('Venusaur'));
@@ -313,7 +319,7 @@ test('🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y l
       ],
     },
   };
-  const gloomBranchHtml = renderEvolutionSystem(gloomBranchTree, 44, catalog);
+  const gloomBranchHtml = String(renderEvolutionSystem(gloomBranchTree, 44, catalog));
   assert.ok(gloomBranchHtml.includes('Evoluciones alternativas'));
   assert.ok(gloomBranchHtml.includes('Vileplume'));
   assert.ok(gloomBranchHtml.includes('Bellossom'));
