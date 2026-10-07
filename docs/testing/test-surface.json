@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T13:11:23.084Z",
+  "generatedAt": "2026-10-07T13:42:03.522Z",
   "summary": {
-    "totalFiles": 99,
-    "testFiles": 93,
-    "helperFiles": 5,
+    "totalFiles": 112,
+    "testFiles": 96,
+    "helperFiles": 15,
     "performanceScripts": 1,
-    "totalTestCases": 788,
-    "totalLines": 20261,
-    "totalSizeBytes": 883018,
+    "totalTestCases": 800,
+    "totalLines": 20814,
+    "totalSizeBytes": 904763,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 18,
-      "testCases": 147,
+      "files": 31,
+      "testCases": 159,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1417,6 +1417,335 @@
       ]
     },
     {
+      "path": "tests/frontend/golden/badge-single.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 65,
+      "lineCount": 2,
+      "sha256": "b7743918a84187db6fe90b363ea3a1eaaccb669dab3a6917f5483e7f566ef3a5",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badge-single.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/badges-fallback.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 54,
+      "lineCount": 2,
+      "sha256": "ad0d5bfa5196958fd8e1771c3f57f644382f205986e55c9bac13bac34ed6c357",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badges-fallback.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/badges-multi.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 115,
+      "lineCount": 2,
+      "sha256": "d636e34de92389fdbd7d474927efef2609e37789f6fbc00a652b36c194d29c74",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badges-multi.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-charizard.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1592,
+      "lineCount": 47,
+      "sha256": "449b269f1853c29dfd10ba2721561e54e219eb3c06241fa2b852d4ca689a6032",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-charizard.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-pikachu.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1526,
+      "lineCount": 47,
+      "sha256": "fd167f4f703e921c38b5404152a4ba1afe82a4c6a49aa7f2c9099fb2d1913411",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-pikachu.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-sparse.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1555,
+      "lineCount": 47,
+      "sha256": "e35a3fae0afa360097c426a95c70f9554fa8385591c243781d069c238563172b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-sparse.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/empty-state-plain.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 187,
+      "lineCount": 8,
+      "sha256": "267efef2bb9c0815b096fd0ab7e25d153f046eaa7b1e07f6ee892b35aa826759",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: empty-state-plain.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/empty-state-retry.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 276,
+      "lineCount": 8,
+      "sha256": "ccca6985ac313a0d250a66faaa39592f6f167e7f8b8e4fab56b74d5b685c435a",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: empty-state-retry.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/rows-admin-empty.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 0,
+      "lineCount": 1,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: rows-admin-empty.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/rows-admin.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 5655,
+      "lineCount": 151,
+      "sha256": "60cd9e21e9a6db8f1221697354d06b29156cdfbe9e7f27b06e8ea1740c7543f0",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: rows-admin.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/html_injection.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 6,
+      "sizeBytes": 3552,
+      "lineCount": 78,
+      "sha256": "b0c502b4760423c11ed265e7de2ff9c77ad446b35e4e37d218ec746ad50a8cd5",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_injection.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Render: la tarjeta neutraliza campos hostiles, incluidos los numéricos",
+          "line": 50
+        },
+        {
+          "name": "🛡️ Render: la tabla del backoffice neutraliza campos hostiles, incluidos id, fuerza, peso y altura",
+          "line": 54
+        },
+        {
+          "name": "🛡️ Render: las insignias y el estado vacío neutralizan el texto recibido",
+          "line": 60
+        },
+        {
+          "name": "🛡️ Render: los datos legítimos con caracteres especiales se muestran sin doble escapado",
+          "line": 71
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_parity.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 2,
+      "sizeBytes": 4129,
+      "lineCount": 105,
+      "sha256": "7301dcd87fc8bdb4056ed858bc6b2fc6233e97763affc62ac729bf03cd7882fb",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_parity.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧪 Paridad de render: ${name} produce la misma salida que la versión anterior",
+          "line": 94
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_template.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 22,
+      "sizeBytes": 2983,
+      "lineCount": 55,
+      "sha256": "8c62f5ffd762d6ac2fc23561718570f74749b10614c94eb4fa4981b2e99e0626",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_template.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧱 html: escapa por defecto el texto interpolado, también en atributos entre comillas",
+          "line": 5
+        },
+        {
+          "name": "🧱 html: números, vacíos y valores nulos",
+          "line": 16
+        },
+        {
+          "name": "🧱 html: un campo con tipo numérico pero valor hostil se escapa igual (el tipo no se comprueba en ejecución)",
+          "line": 22
+        },
+        {
+          "name": "🧱 html: los fragmentos SafeHtml pasan intactos y no se escapan dos veces",
+          "line": 27
+        },
+        {
+          "name": "🧱 html: los arreglos se concatenan; cada elemento sigue su propia regla",
+          "line": 33
+        },
+        {
+          "name": "🧱 trustedHtml: marca de forma explícita un fragmento de confianza y solo ese",
+          "line": 41
+        },
+        {
+          "name": "🧱 SafeHtml: se comporta como texto al concatenar, comparar y unir",
+          "line": 48
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/keyboard_access.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1425,9 +1754,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 24,
-      "sizeBytes": 4654,
+      "sizeBytes": 4678,
       "lineCount": 94,
-      "sha256": "fa30a6cc351fac0abe7356ccac59cf358e2b641cc9463466c9ed86bfab643a76",
+      "sha256": "b1d7eb877413c30d8f3563f495eb612003780632e078bf81e71e5a4a97dac9e7",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1543,9 +1872,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 72,
-      "sizeBytes": 11228,
+      "sizeBytes": 11244,
       "lineCount": 248,
-      "sha256": "86b9b005f56e3280389839c52d5e2f5c40e8e8b9688fdebb73b0a93cddf8b282",
+      "sha256": "de6b578129bcf56a7be4b5ff3dded9937c888cb63a5cbb9612485fb159330b29",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1654,9 +1983,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 96,
-      "sizeBytes": 12918,
+      "sizeBytes": 12934,
       "lineCount": 335,
-      "sha256": "30a28cc3e3b8f752ca2369b1653974ebad0f1089a5799678ba9fa336669140a6",
+      "sha256": "b26e687a6facb068d9f3b6636f2893e4ddb31a7d829ea48cfff31e0fc2f0053d",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",

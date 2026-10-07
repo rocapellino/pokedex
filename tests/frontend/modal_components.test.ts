@@ -144,7 +144,7 @@ test('🧩 Modal Detail: renderDetailModalContent genera markup semántico y san
 });
 
 test('🧩 Pokemon Card: renderPokemonCard genera article semántico con identificadores seguros', () => {
-  const cardHtml = renderPokemonCard(mockBulbasaur);
+  const cardHtml = String(renderPokemonCard(mockBulbasaur));
 
   assert.ok(cardHtml.includes('article class="pokemon-card"'));
   assert.ok(cardHtml.includes('data-pokemon-id="1"'));
@@ -155,7 +155,7 @@ test('🧩 Pokemon Card: renderPokemonCard genera article semántico con identif
 });
 
 test('🧩 Admin Table: renderTableRows genera celdas y botones de acción data-attributes', () => {
-  const rowsHtml = renderTableRows([mockBulbasaur, mockCharmander]);
+  const rowsHtml = String(renderTableRows([mockBulbasaur, mockCharmander]));
 
   assert.ok(rowsHtml.includes('data-edit-id="1"'));
   assert.ok(rowsHtml.includes('data-delete-id="1"'));

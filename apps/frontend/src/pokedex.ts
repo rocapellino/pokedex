@@ -75,7 +75,7 @@ export async function loadPokemons(): Promise<void> {
       description: errorMessage(err),
       retryBtnId: 'btnRetryConnection',
       retryBtnText: 'Reintentar Conexión',
-    });
+    }).toString();
   }
 }
 

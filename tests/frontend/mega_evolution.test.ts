@@ -223,8 +223,8 @@ test('🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null', () => {
 });
 
 test('🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución', () => {
-  assert.match(renderPokemonCard(charizard), /class="mega-badge"/);
-  assert.doesNotMatch(renderPokemonCard(pikachu), /mega-badge/);
+  assert.match(String(renderPokemonCard(charizard)), /class="mega-badge"/);
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /mega-badge/);
 });
 
 test('🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente', () => {

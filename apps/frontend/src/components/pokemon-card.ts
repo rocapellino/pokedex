@@ -2,20 +2,19 @@
  * Componente Tarjeta de Pokémon para el Catálogo Público
  */
 
-import { escapeText } from '../sanitizer.js';
 import type { Pokemon, EvolutionNode } from '../types.js';
-import { normalizeStr, getGeneration, hasMegaEvolution } from '../shared/index.js';
+import { normalizeStr, getGeneration, hasMegaEvolution, html, type SafeHtml } from '../shared/index.js';
 
-export function renderPokemonCard(p: Pokemon): string {
+export function renderPokemonCard(p: Pokemon): SafeHtml {
   const car = p.caracteristicas || {};
   const formattedId = String(p.id).padStart(3, '0');
 
-  let stageBadge = '';
+  let stageBadge = html``;
   if (p.evoluciones) {
     if (Array.isArray(p.evoluciones) && p.evoluciones.length > 0) {
       const myNode = p.evoluciones.find((x) => x.id === p.id);
       if (myNode?.etapa) {
-        stageBadge = `<span class="stage-badge">${escapeText(myNode.etapa)}</span>`;
+        stageBadge = html`<span class="stage-badge">${myNode.etapa}</span>`;
       }
     } else if ((p.evoluciones as { arbol?: EvolutionNode }).arbol) {
       const findStageInTree = (n?: EvolutionNode): string | null => {
@@ -29,20 +28,20 @@ export function renderPokemonCard(p: Pokemon): string {
       };
       const stage = findStageInTree((p.evoluciones as { arbol?: EvolutionNode }).arbol);
       if (stage) {
-        stageBadge = `<span class="stage-badge">${escapeText(stage)}</span>`;
+        stageBadge = html`<span class="stage-badge">${stage}</span>`;
       }
     }
   }
 
-  const megaBadge = hasMegaEvolution(p) ? '<span class="mega-badge" title="Tiene megaevolución">Mega</span>' : '';
+  const megaBadge = hasMegaEvolution(p)
+    ? html`<span class="mega-badge" title="Tiene megaevolución">Mega</span>`
+    : html``;
 
   const normType = normalizeStr(p.tipo || 'normal');
-  const safeImg = p.imagen
-    ? escapeText(p.imagen)
-    : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+  const safeImg = p.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
 
-  return `
-    <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${escapeText(normType)}">
+  return html`
+    <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${normType}">
       <div class="card-header">
         <span class="pokemon-id">#${formattedId}</span>
         <div class="flex-center-gap">
@@ -53,14 +52,14 @@ export function renderPokemonCard(p: Pokemon): string {
       </div>
 
       <div class="image-container">
-        <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+        <img src="${safeImg}" alt="${p.nombre}" class="pokemon-img" loading="lazy" crossorigin="anonymous">
       </div>
 
-      <h2 class="pokemon-name"><button type="button" class="card-open">${escapeText(p.nombre)}</button></h2>
+      <h2 class="pokemon-name"><button type="button" class="card-open">${p.nombre}</button></h2>
 
       <div class="text-center mb-2">
-        <span class="type-badge" data-type="${escapeText(normType)}">
-          ${escapeText(p.tipo)}
+        <span class="type-badge" data-type="${normType}">
+          ${p.tipo}
         </span>
       </div>
 
@@ -79,7 +78,7 @@ export function renderPokemonCard(p: Pokemon): string {
         </div>
         <div class="stat-item">
           <span class="stat-item-label">Región</span>
-          <span class="stat-item-val">${escapeText(car.habitat || 'Kanto')}</span>
+          <span class="stat-item-val">${car.habitat || 'Kanto'}</span>
         </div>
       </div>
 

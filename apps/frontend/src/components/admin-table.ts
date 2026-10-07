@@ -2,39 +2,36 @@
  * Componente Tabla Administrativa y KPIs para Backoffice
  */
 
-import { sanitizeHtml, escapeText } from '../sanitizer.js';
+import { sanitizeHtml } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { normalizeStr } from '../shared/index.js';
+import { normalizeStr, html, type SafeHtml } from '../shared/index.js';
 
-export function renderTableRows(pokemons: Pokemon[]): string {
-  return pokemons
-    .map((p) => {
-      const car = p.caracteristicas || {};
-      const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
-      const safeImg = p.imagen
-        ? escapeText(p.imagen)
-        : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
-      const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || 'Ninguna';
+export function renderTableRows(pokemons: Pokemon[]): SafeHtml {
+  return html`${pokemons.map((p) => {
+    const car = p.caracteristicas || {};
+    const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
+    const safeImg = p.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+    const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || 'Ninguna';
 
-      return `
+    return html`
       <tr>
         <td>
           <span class="id-tag">#${String(p.id).padStart(3, '0')}</span>
         </td>
         <td>
           <div class="avatar-cell">
-            <img src="${safeImg}" alt="${escapeText(p.nombre)}" class="table-avatar">
+            <img src="${safeImg}" alt="${p.nombre}" class="table-avatar">
           </div>
         </td>
         <td>
           <div class="name-cell">
-            <strong class="pokemon-table-name">${escapeText(p.nombre)}</strong>
-            <span class="habilidades-preview">${escapeText(safeHab)}</span>
+            <strong class="pokemon-table-name">${p.nombre}</strong>
+            <span class="habilidades-preview">${safeHab}</span>
           </div>
         </td>
         <td>
-          <span class="type-badge" data-type="${escapeText(normalizeStr(p.tipo))}">
-            ${escapeText(p.tipo)}
+          <span class="type-badge" data-type="${normalizeStr(p.tipo)}">
+            ${p.tipo}
           </span>
         </td>
         <td>
@@ -52,7 +49,7 @@ export function renderTableRows(pokemons: Pokemon[]): string {
           </div>
         </td>
         <td>
-          <span class="habitat-tag">${escapeText(car.habitat || 'Kanto')}</span>
+          <span class="habitat-tag">${car.habitat || 'Kanto'}</span>
         </td>
         <td class="text-center">
           <div class="actions-group">
@@ -67,8 +64,7 @@ export function renderTableRows(pokemons: Pokemon[]): string {
         </td>
       </tr>
     `;
-    })
-    .join('');
+  })}`;
 }
 
 export function computeKPIs(
@@ -113,7 +109,7 @@ export function renderAdminTable(
     return;
   }
 
-  tbody.innerHTML = sanitizeHtml(renderTableRows(pokemons));
+  tbody.innerHTML = sanitizeHtml(renderTableRows(pokemons).toString());
 
   tbody.querySelectorAll('.force-bar[data-width]').forEach((el) => {
     const bar = el as HTMLElement;
