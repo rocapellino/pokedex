@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T12:50:02.392Z",
+  "generatedAt": "2026-10-07T13:11:23.084Z",
   "summary": {
-    "totalFiles": 98,
-    "testFiles": 92,
+    "totalFiles": 99,
+    "testFiles": 93,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 783,
-    "totalLines": 20152,
-    "totalSizeBytes": 878600,
+    "totalTestCases": 788,
+    "totalLines": 20261,
+    "totalSizeBytes": 883018,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 17,
-      "testCases": 142,
+      "files": 18,
+      "testCases": 147,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -735,9 +735,9 @@
       "testCount": 6,
       "describeCount": 1,
       "assertionCountEst": 32,
-      "sizeBytes": 5224,
+      "sizeBytes": 5295,
       "lineCount": 123,
-      "sha256": "9cb01f9d9ec2e642a76d66bf2aea13154ff6c18b9b219a00c94b11ee638bd208",
+      "sha256": "42330edbec0380ea4cb46c0573fe58bb127fbe0be2b054a1c1479c87a9539cc0",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -1877,6 +1877,53 @@
         {
           "name": "🗜️ Compresión (${path.basename(file)}): gzip activo para texto y desactivado en /api/ y /metrics",
           "line": 35
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/type_badge_contrast.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 10,
+      "sizeBytes": 4347,
+      "lineCount": 109,
+      "sha256": "2204f387f15b4683f9faeb03e576739dd0603307619f538e83782b2f42fa0771",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: type_badge_contrast.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎨 Contraste: existen las 18 reglas de tipo, cada una con sus cuatro colores declarados",
+          "line": 56
+        },
+        {
+          "name": "🎨 Contraste: la insignia \"${r.type}\" cumple WCAG AA con su texto (type-color y type-official)",
+          "line": 67
+        },
+        {
+          "name": "🎨 Contraste: las insignias usan el color de texto por tipo en lugar de blanco fijo",
+          "line": 81
+        },
+        {
+          "name": "🎨 Contraste: el degradado de la insignia Mega cumple WCAG AA con texto blanco en ambos extremos",
+          "line": 93
+        },
+        {
+          "name": "🎨 Contraste: el escaneo E2E del backoffice ya no desactiva la regla color-contrast",
+          "line": 105
         }
       ]
     },
