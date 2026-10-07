@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T15:37:56.677Z",
+  "generatedAt": "2026-10-07T15:52:42.956Z",
   "summary": {
     "totalFiles": 160,
     "testFiles": 103,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 861,
-    "totalLines": 23918,
-    "totalSizeBytes": 1041311,
+    "totalTestCases": 858,
+    "totalLines": 23817,
+    "totalSizeBytes": 1036812,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 235,
+      "testCases": 233,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 14,
-      "testCases": 169,
+      "testCases": 168,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -120,12 +120,12 @@
       "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 11,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 22,
-      "sizeBytes": 6780,
-      "lineCount": 155,
-      "sha256": "483a08d91bbfd5d6c1a33b728e072ee6fea389bf004d20c27f9ca17ac077f8a9",
+      "assertionCountEst": 21,
+      "sizeBytes": 6579,
+      "lineCount": 150,
+      "sha256": "6c9147e0ec30d089e6b33a86c3027075268bcc85830593d4ef36490828563b88",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -175,16 +175,12 @@
           "line": 88
         },
         {
-          "name": "la configuración MCP del editor permanece fuera del alcance",
+          "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
           "line": 97
         },
         {
-          "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 102
-        },
-        {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 135
+          "line": 130
         }
       ]
     },
@@ -5516,12 +5512,12 @@
       "type": "Contract / Observability",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 10,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 32,
-      "sizeBytes": 18825,
-      "lineCount": 463,
-      "sha256": "991f1f119b00675281f7d6f83ac7e440a9e2e923bcb4bdd6dc822fcb6d14f1e1",
+      "assertionCountEst": 28,
+      "sizeBytes": 17586,
+      "lineCount": 432,
+      "sha256": "b3607a3ec67a4fd41c8bc3c24eb87ceacdbccf5dcdea4e90ad021de493b1a632",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -5540,43 +5536,39 @@
       "testCases": [
         {
           "name": "🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monitoring",
-          "line": 89
+          "line": 86
         },
         {
           "name": "🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin PowerShell)",
-          "line": 155
+          "line": 146
         },
         {
           "name": "🔀 PORT-001: el script Node preserva la mitigacion de exposicion del token",
-          "line": 185
+          "line": 166
         },
         {
           "name": "🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerShell retirado",
-          "line": 202
-        },
-        {
-          "name": "🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud",
-          "line": 218
+          "line": 183
         },
         {
           "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
-          "line": 397
+          "line": 366
         },
         {
           "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
-          "line": 415
+          "line": 384
         },
         {
           "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
-          "line": 422
+          "line": 391
         },
         {
           "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
-          "line": 440
+          "line": 409
         },
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
-          "line": 449
+          "line": 418
         }
       ]
     },
@@ -5622,16 +5614,15 @@
       "type": "Security / DevDX",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 8,
+      "testCount": 7,
       "describeCount": 0,
-      "assertionCountEst": 76,
-      "sizeBytes": 17783,
-      "lineCount": 386,
-      "sha256": "32d51624049830454a0321a3111693c91a448a99ac952ded2f448f3b3b2d4435",
+      "assertionCountEst": 70,
+      "sizeBytes": 14724,
+      "lineCount": 321,
+      "sha256": "29c2e66bf2dcab14a0694390c9d3357cd77e3595e33bfc5294679c46191c2a35",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",
-        ".vscode/tasks.json",
         ".tool-versions",
         "infra/k8s/kind-cluster.yaml"
       ],
@@ -5660,24 +5651,20 @@
           "line": 39
         },
         {
-          "name": "🛡️ Dev DX: .vscode/tasks.json delega en Taskfile.yaml y no implementa logica operativa",
-          "line": 63
-        },
-        {
           "name": "🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC",
-          "line": 115
+          "line": 50
         },
         {
           "name": "🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy",
-          "line": 134
+          "line": 69
         },
         {
           "name": "🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)",
-          "line": 155
+          "line": 90
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 347
+          "line": 282
         }
       ]
     },

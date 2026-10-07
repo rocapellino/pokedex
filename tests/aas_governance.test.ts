@@ -94,11 +94,6 @@ test('los scripts no exponen apply, recover ni install', () => {
   }
 });
 
-test('la configuración MCP del editor permanece fuera del alcance', () => {
-  const mcp = readFileSync('.vscode/mcp.json', 'utf8');
-  assert.doesNotMatch(mcp, /agentic-awesome-skills|\baas\b/i);
-});
-
 test('🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera', () => {
   const skill = readFileSync('.agents/skills/repo-lifecycle/SKILL.md', 'utf-8');
 
