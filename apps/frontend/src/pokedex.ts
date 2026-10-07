@@ -31,10 +31,13 @@ let allPokemons: Pokemon[] = [];
 let filteredPokemons: Pokemon[] = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 48;
-let currentType = 'all';
+let selectedTypes: string[] = [];
 let currentGeneration = 'all';
 let onlyWithMega = false;
 let searchQuery = '';
+
+const SEARCH_DEBOUNCE_MS = 150;
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function openDetailModal(id: number): void {
   openDetailModalComponent(id, allPokemons);
@@ -65,7 +68,7 @@ export async function loadPokemons(): Promise<void> {
 export function applyFilters(): void {
   const filters: CatalogFilters = {
     searchQuery,
-    type: currentType,
+    types: selectedTypes,
     generation: currentGeneration,
     onlyWithMega,
   };
@@ -74,23 +77,138 @@ export function applyFilters(): void {
   currentPage = 1;
   renderPokemons();
   updateStats(filteredPokemons);
+  renderActiveFilters();
 }
 
 export function handleSearch(): void {
+  clearTimeout(searchTimer);
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   searchQuery = input ? input.value : '';
   applyFilters();
 }
 
-export function selectTypeFilter(type: string): void {
-  currentType = type;
-  const targetTypeNorm = normalizeStr(type);
+function handleSearchDebounced(): void {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(handleSearch, SEARCH_DEBOUNCE_MS);
+}
+
+function syncTypePills(): void {
+  const selected = new Set(selectedTypes.map(normalizeStr));
   document.querySelectorAll('.type-pill').forEach((btn) => {
-    const btnType = btn.getAttribute('data-type');
-    const isActive = (type === 'all' && btnType === 'all') || normalizeStr(btnType) === targetTypeNorm;
+    const btnType = btn.getAttribute('data-type') ?? '';
+    const isActive = btnType === 'all' ? selected.size === 0 : selected.has(normalizeStr(btnType));
     btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
   });
+}
+
+/** Alterna un tipo en la selección; `all` limpia la selección de tipos. */
+export function toggleTypeFilter(type: string): void {
+  if (type === 'all') {
+    selectedTypes = [];
+  } else {
+    const target = normalizeStr(type);
+    const exists = selectedTypes.some((t) => normalizeStr(t) === target);
+    selectedTypes = exists ? selectedTypes.filter((t) => normalizeStr(t) !== target) : [...selectedTypes, type];
+  }
+  syncTypePills();
   applyFilters();
+}
+
+export function hasActiveFilters(): boolean {
+  return Boolean(searchQuery.trim()) || selectedTypes.length > 0 || currentGeneration !== 'all' || onlyWithMega;
+}
+
+export function clearAllFilters(): void {
+  clearTimeout(searchTimer);
+  searchQuery = '';
+  selectedTypes = [];
+  currentGeneration = 'all';
+  onlyWithMega = false;
+
+  const input = document.getElementById('searchInput') as HTMLInputElement | null;
+  if (input) input.value = '';
+  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+  if (select) select.value = 'all';
+  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+  if (checkbox) checkbox.checked = false;
+
+  syncTypePills();
+  applyFilters();
+}
+
+interface FilterChip {
+  label: string;
+  remove: () => void;
+}
+
+function collectActiveChips(): FilterChip[] {
+  const chips: FilterChip[] = [];
+  const query = searchQuery.trim();
+  if (query) {
+    chips.push({
+      label: `Búsqueda: “${query}”`,
+      remove: () => {
+        const input = document.getElementById('searchInput') as HTMLInputElement | null;
+        if (input) input.value = '';
+        handleSearch();
+      },
+    });
+  }
+  for (const type of selectedTypes) chips.push({ label: type, remove: () => toggleTypeFilter(type) });
+  if (currentGeneration !== 'all') {
+    const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+    const label = select?.selectedOptions[0]?.textContent?.trim() || `Gen ${currentGeneration}`;
+    chips.push({
+      label,
+      remove: () => {
+        if (select) select.value = 'all';
+        handleGenerationChange();
+      },
+    });
+  }
+  if (onlyWithMega) {
+    chips.push({
+      label: 'Con megaevolución',
+      remove: () => {
+        const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+        if (checkbox) checkbox.checked = false;
+        handleMegaFilterChange();
+      },
+    });
+  }
+  return chips;
+}
+
+/** Actualiza el contador de resultados, los chips de filtros activos y el botón de limpiar. */
+export function renderActiveFilters(): void {
+  const summary = document.getElementById('resultsSummary');
+  const chipList = document.getElementById('activeFilterChips');
+  const clearBtn = document.getElementById('btnClearFilters');
+
+  if (summary) {
+    const n = filteredPokemons.length;
+    summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${allPokemons.length} Pokémon`;
+  }
+  if (clearBtn) clearBtn.hidden = !hasActiveFilters();
+  if (!chipList) return;
+
+  chipList.replaceChildren(
+    ...collectActiveChips().map(({ label, remove }) => {
+      const li = document.createElement('li');
+      li.className = 'filter-chip';
+      const text = document.createElement('span');
+      text.textContent = label;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'filter-chip-remove';
+      btn.textContent = '✕';
+      btn.setAttribute('aria-label', `Quitar filtro ${label}`);
+      btn.addEventListener('click', remove);
+      li.append(text, btn);
+      return li;
+    }),
+  );
 }
 
 export function handleMegaFilterChange(): void {
@@ -116,6 +234,7 @@ export function renderPokemons(): void {
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">No se encontraron Pokémon</h3>
         <p class="empty-subtitle">Intenta buscar con otro término, tipo o cambia de generación.</p>
+        <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
       </div>
     `);
     paginationBar.classList.add('hidden');
@@ -200,10 +319,10 @@ window.addEventListener(
 export function initInteractiveListeners(): void {
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', handleSearch);
-    searchInput.addEventListener('keyup', handleSearch);
-    searchInput.addEventListener('search', handleSearch);
+    searchInput.addEventListener('input', handleSearchDebounced);
   }
+
+  document.getElementById('btnClearFilters')?.addEventListener('click', clearAllFilters);
 
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
 
@@ -220,7 +339,7 @@ export function initInteractiveListeners(): void {
       if (pill) {
         e.preventDefault();
         const type = pill.getAttribute('data-type');
-        if (type) selectTypeFilter(type);
+        if (type) toggleTypeFilter(type);
       }
     });
   }
@@ -232,6 +351,10 @@ export function initInteractiveListeners(): void {
       const retryBtn = target?.closest('#btnRetryConnection');
       if (retryBtn) {
         void loadPokemons();
+        return;
+      }
+      if (target?.closest('#btnClearFiltersEmpty')) {
+        clearAllFilters();
         return;
       }
       const card = target?.closest('.pokemon-card');
