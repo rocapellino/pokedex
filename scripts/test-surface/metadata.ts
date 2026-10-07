@@ -269,7 +269,7 @@ export const FILE_METADATA_CATALOG: Record<
   'tests/security/iac_baseline_security.test.ts': {
     type: 'Security / DevDX',
     targetDomain: 'Gobernanza de Scripts, Tooling y Dev DX',
-    targetArtifacts: ['Taskfile.yaml', '.vscode/tasks.json', '.tool-versions', 'infra/k8s/kind-cluster.yaml'],
+    targetArtifacts: ['Taskfile.yaml', '.tool-versions', 'infra/k8s/kind-cluster.yaml'],
     description:
       'Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables.',
   },
