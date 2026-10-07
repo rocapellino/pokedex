@@ -17,7 +17,16 @@ import {
   errorMessage,
 } from './shared/index.js';
 import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
-import { parseFilterParams, serializeFilterParams } from './shared/filter-url.js';
+import { parseFilterParams, serializeFilterParams, type FilterState } from './shared/filter-url.js';
+import {
+  isSortKey,
+  isStatKey,
+  MAX_STAT_MIN,
+  sortPokemons,
+  STAT_LABELS,
+  type MinStat,
+  type SortKey,
+} from './shared/catalog-sort.js';
 import {
   openDetailModal as openDetailModalComponent,
   closeDetailModal,
@@ -36,9 +45,12 @@ let selectedTypes: string[] = [];
 let currentGeneration = 'all';
 let onlyWithMega = false;
 let searchQuery = '';
+let minStat: MinStat | null = null;
+let currentSort: SortKey = 'id';
 
 const SEARCH_DEBOUNCE_MS = 150;
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
+let statTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function openDetailModal(id: number): void {
   openDetailModalComponent(id, allPokemons);
@@ -69,7 +81,10 @@ export async function loadPokemons(): Promise<void> {
 
 export function applyFilters(): void {
   const filters: CatalogFilters = currentFilterState();
-  filteredPokemons = allPokemons.filter((p) => matchesCatalogFilters(p, filters));
+  filteredPokemons = sortPokemons(
+    allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
+    currentSort,
+  );
 
   currentPage = 1;
   renderPokemons();
@@ -78,8 +93,8 @@ export function applyFilters(): void {
   syncFiltersToUrl();
 }
 
-function currentFilterState() {
-  return { searchQuery, types: selectedTypes, generation: currentGeneration, onlyWithMega };
+function currentFilterState(): FilterState {
+  return { searchQuery, types: selectedTypes, generation: currentGeneration, onlyWithMega, minStat, sort: currentSort };
 }
 
 /** Refleja los filtros activos en la URL sin crear entradas de historial. */
@@ -96,6 +111,8 @@ export function restoreFiltersFromUrl(): void {
   selectedTypes = state.types;
   currentGeneration = state.generation;
   onlyWithMega = state.onlyWithMega;
+  minStat = state.minStat;
+  currentSort = state.sort;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = searchQuery;
@@ -103,7 +120,37 @@ export function restoreFiltersFromUrl(): void {
   if (select) select.value = currentGeneration;
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
   if (checkbox) checkbox.checked = onlyWithMega;
+  syncStatControls();
+  const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
+  if (sortSelect) sortSelect.value = currentSort;
   syncTypePills();
+}
+
+function syncStatControls(): void {
+  const key = document.getElementById('statFilter') as HTMLSelectElement | null;
+  if (key) key.value = minStat?.key ?? '';
+  const min = document.getElementById('statMin') as HTMLInputElement | null;
+  if (min) min.value = minStat ? String(minStat.min) : '';
+}
+
+export function handleSortChange(): void {
+  const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
+  currentSort = isSortKey(select?.value) ? select.value : 'id';
+  applyFilters();
+}
+
+/** Lee la estadística y el mínimo de los controles; sin ambos (o con mínimo 0) el filtro queda desactivado. */
+export function handleStatFilterChange(): void {
+  clearTimeout(statTimer);
+  const key = (document.getElementById('statFilter') as HTMLSelectElement | null)?.value;
+  const min = Number.parseInt((document.getElementById('statMin') as HTMLInputElement | null)?.value ?? '', 10);
+  minStat = isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null;
+  applyFilters();
+}
+
+function handleStatMinDebounced(): void {
+  clearTimeout(statTimer);
+  statTimer = setTimeout(handleStatFilterChange, SEARCH_DEBOUNCE_MS);
 }
 
 export function handleSearch(): void {
@@ -142,15 +189,23 @@ export function toggleTypeFilter(type: string): void {
 }
 
 export function hasActiveFilters(): boolean {
-  return Boolean(searchQuery.trim()) || selectedTypes.length > 0 || currentGeneration !== 'all' || onlyWithMega;
+  return (
+    Boolean(searchQuery.trim()) ||
+    selectedTypes.length > 0 ||
+    currentGeneration !== 'all' ||
+    onlyWithMega ||
+    minStat !== null
+  );
 }
 
 export function clearAllFilters(): void {
   clearTimeout(searchTimer);
+  clearTimeout(statTimer);
   searchQuery = '';
   selectedTypes = [];
   currentGeneration = 'all';
   onlyWithMega = false;
+  minStat = null;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = '';
@@ -158,6 +213,7 @@ export function clearAllFilters(): void {
   if (select) select.value = 'all';
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
   if (checkbox) checkbox.checked = false;
+  syncStatControls();
 
   syncTypePills();
   applyFilters();
@@ -200,6 +256,16 @@ function collectActiveChips(): FilterChip[] {
         const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
         if (checkbox) checkbox.checked = false;
         handleMegaFilterChange();
+      },
+    });
+  }
+  if (minStat) {
+    chips.push({
+      label: `${STAT_LABELS[minStat.key]} ≥ ${minStat.min}`,
+      remove: () => {
+        minStat = null;
+        syncStatControls();
+        applyFilters();
       },
     });
   }
@@ -351,6 +417,9 @@ export function initInteractiveListeners(): void {
   document.getElementById('btnClearFilters')?.addEventListener('click', clearAllFilters);
 
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
+  document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
+  document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);
+  document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);
 
   const generationFilter = document.getElementById('generationFilter');
   if (generationFilter) {

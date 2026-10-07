@@ -113,6 +113,40 @@
       </div>
     </section>
 
+    <!-- Sort & Stat Filters -->
+    <section class="refine-bar" aria-label="Orden y filtro de estadísticas">
+      <div class="filter-group">
+        <label for="sortFilter" class="refine-label">Ordenar por</label>
+        <select id="sortFilter" class="select-filter">
+          <option value="id">Número de Pokédex</option>
+          <option value="name">Nombre (A-Z)</option>
+          <option value="total">Estadísticas totales (mayor)</option>
+          <option value="hp">PS (mayor)</option>
+          <option value="attack">Ataque (mayor)</option>
+          <option value="defense">Defensa (mayor)</option>
+          <option value="sp_attack">Ataque especial (mayor)</option>
+          <option value="sp_defense">Defensa especial (mayor)</option>
+          <option value="speed">Velocidad (mayor)</option>
+        </select>
+      </div>
+      <div class="filter-group stat-filter">
+        <label for="statFilter" class="refine-label">Estadística mínima</label>
+        <select id="statFilter" class="select-filter">
+          <option value="">Sin filtro</option>
+          <option value="total">Total</option>
+          <option value="hp">PS</option>
+          <option value="attack">Ataque</option>
+          <option value="defense">Defensa</option>
+          <option value="sp_attack">Ataque especial</option>
+          <option value="sp_defense">Defensa especial</option>
+          <option value="speed">Velocidad</option>
+        </select>
+        <label for="statMin" class="sr-only">Valor mínimo de la estadística</label>
+        <input type="number" id="statMin" class="select-filter stat-min-input" min="0" max="780" step="5"
+          inputmode="numeric" placeholder="Mín.">
+      </div>
+    </section>
+
     <!-- Type Pills Filter Bar -->
     <div class="type-filter-bar" id="typePillsContainer">
       <button type="button" class="type-pill active" data-type="all" aria-pressed="true">Todos</button>

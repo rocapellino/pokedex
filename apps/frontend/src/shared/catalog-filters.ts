@@ -5,6 +5,7 @@
 
 import type { Pokemon } from '../types.js';
 import { getGeneration, normalizeStr } from './formatters.js';
+import { getStatValue, type MinStat } from './catalog-sort.js';
 import { hasMegaEvolution } from './pokemon-types.js';
 
 export interface CatalogFilters {
@@ -16,6 +17,8 @@ export interface CatalogFilters {
   generation: string;
   /** Si es `true`, solo Pokémon con al menos una megaevolución. */
   onlyWithMega: boolean;
+  /** Estadística mínima exigida; `null` o ausente no filtra. Los Pokémon sin ese dato quedan fuera. */
+  minStat?: MinStat | null;
 }
 
 interface NormalizedEntry {
@@ -64,5 +67,8 @@ export function matchesCatalogFilters(p: Pokemon, filters: CatalogFilters): bool
 
   const matchesMega = !filters.onlyWithMega || hasMegaEvolution(p);
 
-  return matchesSearch && matchesTypes && matchesGen && matchesMega;
+  const stat = filters.minStat ? getStatValue(p, filters.minStat.key) : undefined;
+  const matchesStat = !filters.minStat || (stat !== undefined && stat >= filters.minStat.min);
+
+  return matchesSearch && matchesTypes && matchesGen && matchesMega && matchesStat;
 }

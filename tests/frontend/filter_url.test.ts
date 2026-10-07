@@ -17,6 +17,8 @@ test('🔗 URL: lee búsqueda, tipos, generación y megaevolución', () => {
     types: ['Fuego', 'Volador'],
     generation: '1',
     onlyWithMega: true,
+    minStat: null,
+    sort: 'id',
   });
 });
 
@@ -39,7 +41,14 @@ test('🔗 URL: acota la longitud de la búsqueda y recorta espacios', () => {
 });
 
 test('🔗 URL: serializar y volver a leer conserva el estado', () => {
-  const state = { searchQuery: 'dragón azul', types: ['Eléctrico', 'Dragón'], generation: '3', onlyWithMega: true };
+  const state = {
+    searchQuery: 'dragón azul',
+    types: ['Eléctrico', 'Dragón'],
+    generation: '3',
+    onlyWithMega: true,
+    minStat: null,
+    sort: 'id' as const,
+  };
   const search = serializeFilterParams(state);
   assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1');
   assert.deepEqual(parseFilterParams(search), state);
@@ -48,4 +57,21 @@ test('🔗 URL: serializar y volver a leer conserva el estado', () => {
 test('🔗 URL: solo serializa los filtros activos', () => {
   assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], generation: '2' }), '?gen=2');
   assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], searchQuery: '   ' }), '');
+});
+
+test('🔗 URL: lee y serializa la estadística mínima y el orden', () => {
+  const state = parseFilterParams('?stat=speed&min=100&orden=total');
+  assert.deepEqual(state.minStat, { key: 'speed', min: 100 });
+  assert.equal(state.sort, 'total');
+  assert.equal(serializeFilterParams(state), '?stat=speed&min=100&orden=total');
+});
+
+test('🔗 URL: descarta estadísticas, mínimos y órdenes inválidos', () => {
+  assert.equal(parseFilterParams('?stat=poder&min=100').minStat, null);
+  assert.equal(parseFilterParams('?stat=speed').minStat, null);
+  assert.equal(parseFilterParams('?stat=speed&min=0').minStat, null);
+  assert.equal(parseFilterParams('?stat=speed&min=9999').minStat, null);
+  assert.equal(parseFilterParams('?stat=speed&min=abc').minStat, null);
+  assert.equal(parseFilterParams('?orden=__proto__').sort, 'id');
+  assert.equal(parseFilterParams('?orden=desc').sort, 'id');
 });

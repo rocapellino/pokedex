@@ -1,10 +1,11 @@
 /**
- * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=`).
+ * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&orden=`).
  * Son funciones puras: el controlador decide cuándo leer y cuándo escribir la URL.
  * Lo que llega de la URL es entrada no confiable, así que se valida contra los valores conocidos.
  */
 
 import { TYPE_COLORS } from './constants.js';
+import { isSortKey, isStatKey, MAX_STAT_MIN, type MinStat, type SortKey } from './catalog-sort.js';
 import { normalizeStr } from './formatters.js';
 
 export interface FilterState {
@@ -14,6 +15,8 @@ export interface FilterState {
   /** Generación como texto (`1` a `9`) o `all`. */
   generation: string;
   onlyWithMega: boolean;
+  minStat: MinStat | null;
+  sort: SortKey;
 }
 
 export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
@@ -21,6 +24,8 @@ export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
   types: [],
   generation: 'all',
   onlyWithMega: false,
+  minStat: null,
+  sort: 'id',
 };
 
 const MAX_QUERY_LENGTH = 80;
@@ -43,7 +48,21 @@ export function parseFilterParams(search: string): FilterState {
   const gen = Number.parseInt(params.get('gen') ?? '', 10);
   const generation = gen >= 1 && gen <= MAX_GENERATION ? String(gen) : 'all';
 
-  return { searchQuery, types, generation, onlyWithMega: params.get('mega') === '1' };
+  const statKey = params.get('stat');
+  const statMin = Number.parseInt(params.get('min') ?? '', 10);
+  const minStat: MinStat | null =
+    isStatKey(statKey) && statMin >= 1 && statMin <= MAX_STAT_MIN ? { key: statKey, min: statMin } : null;
+
+  const sort = params.get('orden');
+
+  return {
+    searchQuery,
+    types,
+    generation,
+    onlyWithMega: params.get('mega') === '1',
+    minStat,
+    sort: isSortKey(sort) ? sort : 'id',
+  };
 }
 
 /** Devuelve la query string (con `?` inicial) o una cadena vacía si no hay filtros activos. */
@@ -54,6 +73,11 @@ export function serializeFilterParams(state: FilterState): string {
   if (state.types.length > 0) params.set('tipo', state.types.map(normalizeStr).join(','));
   if (state.generation !== 'all') params.set('gen', state.generation);
   if (state.onlyWithMega) params.set('mega', '1');
+  if (state.minStat) {
+    params.set('stat', state.minStat.key);
+    params.set('min', String(state.minStat.min));
+  }
+  if (state.sort !== 'id') params.set('orden', state.sort);
 
   const text = params.toString();
   return text ? `?${text}` : '';
