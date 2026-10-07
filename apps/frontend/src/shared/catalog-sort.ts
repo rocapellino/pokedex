@@ -49,11 +49,32 @@ export function getStatValue(p: Pokemon, key: StatKey): number | undefined {
   return sum;
 }
 
-/** Devuelve una copia ordenada: número y nombre ascendentes, estadísticas de mayor a menor. */
-export function sortPokemons(list: readonly Pokemon[], key: SortKey): Pokemon[] {
+export type SortDirection = 'asc' | 'desc';
+
+export function isSortDirection(value: unknown): value is SortDirection {
+  return value === 'asc' || value === 'desc';
+}
+
+/** Sentido natural de cada orden: número y nombre ascendentes, estadísticas de mayor a menor. */
+export function defaultSortDirection(key: SortKey): SortDirection {
+  return key === 'id' || key === 'name' ? 'asc' : 'desc';
+}
+
+/**
+ * Devuelve una copia ordenada. Los empates se resuelven por número ascendente y quien no tiene el
+ * dato de la estadística queda siempre al final, sea cual sea el sentido.
+ */
+export function sortPokemons(
+  list: readonly Pokemon[],
+  key: SortKey,
+  direction: SortDirection = defaultSortDirection(key),
+): Pokemon[] {
+  const sign = direction === 'asc' ? 1 : -1;
   const sorted = [...list];
-  if (key === 'id') return sorted.sort((a, b) => a.id - b.id);
-  if (key === 'name') return sorted.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es') || a.id - b.id);
+  if (key === 'id') return sorted.sort((a, b) => (a.id - b.id) * sign);
+  if (key === 'name') {
+    return sorted.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es') * sign || a.id - b.id);
+  }
 
   return sorted.sort((a, b) => {
     const va = getStatValue(a, key);
@@ -61,6 +82,6 @@ export function sortPokemons(list: readonly Pokemon[], key: SortKey): Pokemon[] 
     if (va === undefined && vb === undefined) return a.id - b.id;
     if (va === undefined) return 1;
     if (vb === undefined) return -1;
-    return vb - va || a.id - b.id;
+    return (va - vb) * sign || a.id - b.id;
   });
 }

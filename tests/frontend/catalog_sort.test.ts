@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getStatValue, isSortKey, isStatKey, sortPokemons } from '../../apps/frontend/src/shared/catalog-sort.js';
+import {
+  defaultSortDirection,
+  getStatValue,
+  isSortDirection,
+  isSortKey,
+  isStatKey,
+  sortPokemons,
+} from '../../apps/frontend/src/shared/catalog-sort.js';
 import { matchesCatalogFilters, type CatalogFilters } from '../../apps/frontend/src/shared/catalog-filters.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
 
@@ -95,4 +102,68 @@ test('📊 Filtro: la estadística mínima excluye a quien no llega o no tiene d
   assert.equal(matchesCatalogFilters(noStats, speed90), false);
   assert.equal(matchesCatalogFilters(noStats, { ...base, minStat: null }), true);
   assert.equal(matchesCatalogFilters(slow, { ...base, minStat: { key: 'total', min: 300 } }), true);
+});
+
+test('↕️ Orden: el sentido natural es ascendente para número y nombre y descendente para estadísticas', () => {
+  assert.equal(defaultSortDirection('id'), 'asc');
+  assert.equal(defaultSortDirection('name'), 'asc');
+  for (const key of ['total', 'hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed'] as const) {
+    assert.equal(defaultSortDirection(key), 'desc', key);
+  }
+  assert.equal(isSortDirection('asc'), true);
+  assert.equal(isSortDirection('desc'), true);
+  assert.equal(isSortDirection('up'), false);
+});
+
+test('↕️ Orden: sin sentido explícito usa el natural (no cambia el comportamiento anterior)', () => {
+  assert.deepEqual(
+    sortPokemons(list, 'speed').map((p) => p.id),
+    sortPokemons(list, 'speed', 'desc').map((p) => p.id),
+  );
+  assert.deepEqual(
+    sortPokemons(list, 'name').map((p) => p.id),
+    sortPokemons(list, 'name', 'asc').map((p) => p.id),
+  );
+});
+
+test('↕️ Orden: invertir número y nombre', () => {
+  assert.deepEqual(
+    sortPokemons(list, 'id', 'desc').map((p) => p.id),
+    [4, 3, 2, 1],
+  );
+  assert.deepEqual(
+    sortPokemons(list, 'name', 'desc').map((p) => p.nombre),
+    ['Zubat', 'Missingno', 'Meowth', 'Ábaco'],
+  );
+});
+
+test('↕️ Orden: invertir una estadística la deja de menor a mayor y el dato ausente sigue al final', () => {
+  assert.deepEqual(
+    sortPokemons(list, 'speed', 'asc').map((p) => p.id),
+    [3, 2, 1, 4],
+  );
+  assert.deepEqual(
+    sortPokemons(list, 'hp', 'asc').map((p) => p.id),
+    [1, 2, 3, 4],
+  );
+  assert.equal(sortPokemons(list, 'total', 'asc').at(-1)?.id, 4);
+  assert.equal(sortPokemons(list, 'total', 'desc').at(-1)?.id, 4);
+});
+
+test('↕️ Orden: los empates se desempatan por número ascendente en cualquier sentido', () => {
+  const a = mk(9, 'A', six(50, 50));
+  const b = mk(7, 'B', six(50, 50));
+  assert.deepEqual(
+    sortPokemons([a, b], 'hp', 'asc').map((p) => p.id),
+    [7, 9],
+  );
+  assert.deepEqual(
+    sortPokemons([a, b], 'hp', 'desc').map((p) => p.id),
+    [7, 9],
+  );
+  const sameName = [mk(9, 'Igual'), mk(7, 'Igual')];
+  assert.deepEqual(
+    sortPokemons(sameName, 'name', 'desc').map((p) => p.id),
+    [7, 9],
+  );
 });
