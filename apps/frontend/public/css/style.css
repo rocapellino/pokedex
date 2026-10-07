@@ -125,6 +125,43 @@
   padding: 0;
 }
 
+/* Enlace de salto (a la paginación): fuera de pantalla hasta recibir foco con el teclado. Colores
+   fijos y contorno blanco: se ven igual sobre el tema claro y el oscuro (ver skip_link_contrast.test.ts). */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.skip-link:focus-visible {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  margin: 0 0 1rem;
+  padding: 0.5rem 1rem;
+  overflow: visible;
+  clip: auto;
+  color: #ffffff;
+  background: #111827;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: underline;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #111827;
+}
+
+.skip-link[hidden] {
+  display: none;
+}
+
 /* Accessibility: Visually hidden content for screen readers */
 .sr-only {
   position: absolute;

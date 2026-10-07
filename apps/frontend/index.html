@@ -222,6 +222,9 @@
       </div>
     </div>
 
+    <!-- Enlace de salto: aparece al recibir foco y solo cuando hay varias páginas (lo gestiona pokedex.ts) -->
+    <a class="skip-link" id="skipToPagination" href="#paginationBar" hidden>Saltar a la paginación</a>
+
     <!-- Pokémon Grid Container -->
     <main class="pokemon-grid" id="pokemonGrid">
       <div class="loading-state">
@@ -231,11 +234,11 @@
     </main>
 
     <!-- Pagination Controls -->
-    <div class="pagination-container hidden" id="paginationBar">
+    <nav class="pagination-container hidden" id="paginationBar" aria-label="Paginación del catálogo">
       <button class="btn btn-secondary" id="btnPrevPage">← Anterior</button>
       <span class="page-info" id="pageInfo">Página 1 de 1</span>
       <button class="btn btn-secondary" id="btnNextPage">Siguiente →</button>
-    </div>
+    </nav>
   </div>
 
   <!-- Modal Ficha de Detalle de Pokémon -->

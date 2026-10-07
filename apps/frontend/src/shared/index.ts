@@ -13,3 +13,4 @@ export * from './catalog-filters.js';
 export * from './filter-url.js';
 export * from './catalog-sort.js';
 export * from './html.js';
+export * from './skip-link.js';

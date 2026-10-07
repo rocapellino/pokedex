@@ -104,6 +104,16 @@ html`<ul>${pokemons.map((p) => html`<li>${p.nombre}</li>`)}</ul>`; // un arreglo
 
 ---
 
+## ⌨️ Navegación con teclado
+
+- **Tarjetas:** cada tarjeta es una sola parada de tabulador (botón extendido dentro del `h2`), de modo que una página de 48 recorre 48 paradas.
+- **Saltar a la paginación:** `#skipToPagination` es el primer elemento enfocable justo antes del catálogo. Queda fuera de pantalla hasta recibir foco con el teclado y `renderPokemons` lo oculta (`hidden`) cuando hay una sola página o ningún resultado. Al activarlo, el foco pasa al primer botón habilitado de `#paginationBar` ("Siguiente" en la primera página, "Anterior" en la última).
+- **Por qué no usa el ancla:** `pokedex.ts` conserva `location.hash` al guardar los filtros en la URL; navegar a `#paginationBar` dejaría ese hash en la dirección compartida y al recargarla saltaría a la paginación. Un controlador hace `preventDefault()` y mueve el foco con JavaScript (`shared/skip-link.ts`).
+- **Barra de paginación:** es un `nav` con `aria-label="Paginación del catálogo"`.
+- **Pruebas:** `tests/frontend/skip_pagination.test.ts` (estructura, foco, URL y visibilidad), `skip_link_contrast.test.ts` (contraste calculado en ambos temas, porque Axe no analiza un elemento fuera de pantalla) y un E2E en `tests/e2e/pokedex.spec.ts`.
+
+---
+
 ## 📈 Medición de rendimiento (Lighthouse CI)
 
 `npm run perf:lighthouse` (`task perf:lighthouse`) mide la aplicación **con datos reales**, no un servidor estático:

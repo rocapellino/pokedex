@@ -14,6 +14,7 @@ import {
   renderEmptyState,
   fetchAllPokemons,
   errorMessage,
+  focusFirstEnabledControl,
   html,
   setHtml,
   type SafeHtml,
@@ -488,11 +489,13 @@ export function renderNoResults(): SafeHtml {
 export function renderPokemons(): void {
   const container = document.getElementById('pokemonGrid');
   const paginationBar = document.getElementById('paginationBar');
+  const skipLink = document.getElementById('skipToPagination');
   if (!container || !paginationBar) return;
 
   if (filteredPokemons.length === 0) {
     setHtml(container, renderNoResults());
     paginationBar.classList.add('hidden');
+    if (skipLink) skipLink.hidden = true;
     return;
   }
 
@@ -503,6 +506,7 @@ export function renderPokemons(): void {
 
   setHtml(container, html`${currentBatch.map(renderPokemonCard)}`);
 
+  if (skipLink) skipLink.hidden = totalPages <= 1;
   if (totalPages > 1) {
     paginationBar.classList.remove('hidden');
     const pageInfo = document.getElementById('pageInfo');
@@ -666,6 +670,12 @@ export function initInteractiveListeners(): void {
       if (evolId) openDetailModal(evolId);
     });
   }
+
+  // El salto mueve el foco con JavaScript y no navega al ancla: `replaceState` conserva el hash.
+  document.getElementById('skipToPagination')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    focusFirstEnabledControl(document.getElementById('paginationBar'));
+  });
 
   const btnPrev = document.getElementById('btnPrevPage');
   if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
