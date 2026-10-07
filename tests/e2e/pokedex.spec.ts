@@ -184,6 +184,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(page.locator('.pokemon-card').first()).toBeVisible({ timeout: 10000 });
     const total = await page.locator('.pokemon-card').count();
 
+    await page.getByRole('button', { name: 'Filtros' }).click();
     await page.locator('#megaFilter').check();
 
     const cards = page.locator('.pokemon-card');
@@ -198,6 +199,31 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     await page.locator('#megaFilter').uncheck();
     await expect(cards).toHaveCount(total);
+  });
+
+  test('El panel de filtros agrupa varios tipos en su desplegable y se cierra con Escape', async ({ page }) => {
+    await expect(page.locator('.pokemon-card').first()).toBeVisible({ timeout: 10000 });
+
+    const toggle = page.getByRole('button', { name: 'Filtros' });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#moreFilters')).toBeHidden();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    await page.locator('#typeFilterToggle').click();
+    await page.locator('#typeFilterList input[value="Fuego"]').check();
+    await page.locator('#typeFilterList input[value="Volador"]').check();
+
+    // Charizard es Fuego y Volador; Charmander solo Fuego: deben tenerse todos los tipos elegidos.
+    await expect(page.locator('.pokemon-card[data-pokemon-id="6"]')).toBeVisible();
+    await expect(page.locator('.pokemon-card[data-pokemon-id="4"]')).toHaveCount(0);
+    await expect(page).toHaveURL(/tipo=fuego%2Cvolador/);
+    await expect(page.locator('#typeFilterSummary')).toHaveText('Fuego, Volador');
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#typeFilterList')).toBeHidden();
+    await expect(page.locator('#typeFilterToggle')).toBeFocused();
+    await expect(page.locator('#moreFilters')).toBeVisible();
   });
 
   test('El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas', async ({ page }) => {
