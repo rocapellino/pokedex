@@ -3,9 +3,8 @@
  * Renderiza el sistema de evoluciones oficial, lineal y ramificado.
  */
 
-import { escapeText } from '../sanitizer.js';
 import type { Pokemon, EvolutionNode } from '../types.js';
-import { normalizeStr } from '../shared/index.js';
+import { normalizeStr, html, type SafeHtml } from '../shared/index.js';
 
 export function getTriggerIcon(metodo?: string | null): string {
   if (!metodo) return '⬆️';
@@ -31,16 +30,15 @@ export function getTriggerIcon(metodo?: string | null): string {
   return '⚡';
 }
 
-export function renderTransitionConnector(node?: EvolutionNode): string {
+export function renderTransitionConnector(node?: EvolutionNode): SafeHtml {
   if (!node?.metodo) {
-    return `<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
+    return html`<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>`;
   }
-  const safeMetodo = escapeText(node.metodo);
-  return `
+  return html`
     <div class="evolution-transition-connector">
-      <div class="evolution-trigger-badge" title="${safeMetodo}">
+      <div class="evolution-trigger-badge" title="${node.metodo}">
         <span>${getTriggerIcon(node.metodo)}</span>
-        <span>${safeMetodo}</span>
+        <span>${node.metodo}</span>
       </div>
       <div class="evolution-chevron-arrow">&gt;</div>
     </div>
@@ -52,41 +50,33 @@ export function renderSingleEvolutionNode(
   currentId: number,
   showMethod = false,
   catalog: Pokemon[] = [],
-): string {
+): SafeHtml {
   const nodeId = Number(node.id) || 0;
   const isCurrent = nodeId === currentId;
   const formattedId = String(nodeId).padStart(4, '0');
   const targetPk = catalog.find((x) => x.id === nodeId);
   const nodeTypes = targetPk?.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
-  const safeNombre = escapeText(node.nombre || 'Pokémon');
-  const safeImagen = escapeText(
-    node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
-  );
-  const safeMetodo = node.metodo ? escapeText(node.metodo) : '';
+  const nombre = node.nombre || 'Pokémon';
+  const imagen = node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
 
   const methodBadge =
     showMethod && node.metodo
-      ? `<div class="evolution-method-tag" title="${safeMetodo}">${getTriggerIcon(node.metodo)} ${safeMetodo}</div>`
-      : '';
+      ? html`<div class="evolution-method-tag" title="${node.metodo}">${getTriggerIcon(node.metodo)} ${node.metodo}</div>`
+      : html``;
 
-  return `
+  return html`
     <div class="evolution-node-item ${isCurrent ? 'active-current' : ''}" data-evol-id="${nodeId}"${
-      isCurrent ? ' aria-current="true"' : ' role="button" tabindex="0"'
-    } title="${isCurrent ? `Estás viendo a ${safeNombre}` : `Ver ficha de ${safeNombre}`}">
+      isCurrent ? html` aria-current="true"` : html` role="button" tabindex="0"`
+    } title="${isCurrent ? `Estás viendo a ${nombre}` : `Ver ficha de ${nombre}`}">
       <div class="evolution-circle-frame">
-        <img src="${safeImagen}" alt="${safeNombre}" class="evolution-circle-img" crossorigin="anonymous">
+        <img src="${imagen}" alt="${nombre}" class="evolution-circle-img" crossorigin="anonymous">
       </div>
       <div class="evolution-name-tag">
-        ${safeNombre} <span class="evolution-number-sub">N.º ${escapeText(formattedId)}</span>
+        ${nombre} <span class="evolution-number-sub">N.º ${formattedId}</span>
       </div>
       ${methodBadge}
       <div class="evolution-types-row">
-        ${nodeTypes
-          .map(
-            (t) =>
-              `<span class="evolution-type-mini" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`,
-          )
-          .join('')}
+        ${nodeTypes.map((t) => html`<span class="evolution-type-mini" data-type="${normalizeStr(t)}">${t}</span>`)}
       </div>
     </div>
   `;
@@ -96,28 +86,26 @@ export function renderEvolutionSystem(
   evolData: Pokemon['evoluciones'],
   currentId: number,
   catalog: Pokemon[] = [],
-): string {
+): SafeHtml {
   if (Array.isArray(evolData)) {
     if (evolData.length <= 1) {
-      return `
+      return html`
         <div class="pokedex-evolutions-official-panel">
           <div class="evolutions-panel-header">Evoluciones</div>
           <div class="evolutions-nodes-track">
-            ${evolData.map((node) => renderSingleEvolutionNode(node, currentId, true, catalog)).join('')}
+            ${evolData.map((node) => renderSingleEvolutionNode(node, currentId, true, catalog))}
           </div>
         </div>
       `;
     }
-    return `
+    return html`
       <div class="pokedex-evolutions-official-panel">
         <div class="evolutions-panel-header">Evoluciones</div>
         <div class="evolutions-nodes-track">
-          ${evolData
-            .map((node, idx) => {
-              const arrow = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${arrow}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
+          ${evolData.map((node, idx) => {
+            const arrow = idx > 0 ? renderTransitionConnector(node) : html``;
+            return html`${arrow}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
+          })}
         </div>
       </div>
     `;
@@ -129,7 +117,7 @@ export function renderEvolutionSystem(
       nombre: 'Pokémon',
       imagen: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentId}.png`,
     };
-    return `
+    return html`
       <div class="pokedex-evolutions-official-panel">
         <div class="evolutions-panel-header">Evoluciones</div>
         <div class="evolutions-nodes-track">
@@ -143,7 +131,7 @@ export function renderEvolutionSystem(
   const isBranched = evolData.es_ramificada;
 
   if (!root.evolves_to || root.evolves_to.length === 0) {
-    return `
+    return html`
       <div class="pokedex-evolutions-official-panel">
         <div class="evolutions-panel-header">Evoluciones</div>
         <div class="evolutions-nodes-track">
@@ -154,7 +142,7 @@ export function renderEvolutionSystem(
   }
 
   if (root.evolves_to.length > 1 && (!root.evolves_to[0].evolves_to || root.evolves_to[0].evolves_to.length === 0)) {
-    return `
+    return html`
       <div class="pokedex-evolutions-official-panel">
         <div class="evolutions-panel-header">Evoluciones</div>
         <div class="branched-evolution-container">
@@ -166,7 +154,7 @@ export function renderEvolutionSystem(
             <span>Evoluciones según atributo, piedra o método utilizado</span>
           </div>
           <div class="branched-children-grid">
-            ${root.evolves_to.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog)).join('')}
+            ${root.evolves_to.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog))}
           </div>
         </div>
       </div>
@@ -181,16 +169,14 @@ export function renderEvolutionSystem(
       cur = cur.evolves_to && cur.evolves_to.length > 0 ? cur.evolves_to[0] : null;
     }
 
-    return `
+    return html`
       <div class="pokedex-evolutions-official-panel">
         <div class="evolutions-panel-header">Evoluciones</div>
         <div class="evolutions-nodes-track">
-          ${linearList
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
+          ${linearList.map((node, idx) => {
+            const connector = idx > 0 ? renderTransitionConnector(node) : html``;
+            return html`${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
+          })}
         </div>
       </div>
     `;
@@ -206,30 +192,28 @@ export function renderEvolutionSystem(
 
   const branches = cur ? cur.evolves_to || [] : [];
 
-  return `
+  return html`
     <div class="pokedex-evolutions-official-panel">
       <div class="evolutions-panel-header">Evoluciones</div>
       <div class="branched-evolution-container">
         <div class="evolutions-nodes-track">
-          ${linearPrefix
-            .map((node, idx) => {
-              const connector = idx > 0 ? renderTransitionConnector(node) : '';
-              return `${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
-            })
-            .join('')}
+          ${linearPrefix.map((node, idx) => {
+            const connector = idx > 0 ? renderTransitionConnector(node) : html``;
+            return html`${connector}${renderSingleEvolutionNode(node, currentId, false, catalog)}`;
+          })}
         </div>
         ${
           branches.length > 0
-            ? `
+            ? html`
           <div class="branched-fork-indicator">
             <span class="fork-arrow-down">⬇️</span>
             <span>Evoluciones alternativas</span>
           </div>
           <div class="branched-children-grid">
-            ${branches.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog)).join('')}
+            ${branches.map((child) => renderSingleEvolutionNode(child, currentId, true, catalog))}
           </div>
         `
-            : ''
+            : html``
         }
       </div>
     </div>
