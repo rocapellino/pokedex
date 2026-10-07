@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T14:48:38.975Z",
+  "generatedAt": "2026-10-07T15:17:16.138Z",
   "summary": {
-    "totalFiles": 152,
-    "testFiles": 100,
-    "helperFiles": 51,
+    "totalFiles": 160,
+    "testFiles": 103,
+    "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 834,
-    "totalLines": 23518,
-    "totalSizeBytes": 1025569,
+    "totalTestCases": 848,
+    "totalLines": 23741,
+    "totalSizeBytes": 1034663,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 70,
-      "testCases": 179,
+      "files": 78,
+      "testCases": 193,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -2372,6 +2372,106 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/golden/state-no-results.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 365,
+      "lineCount": 8,
+      "sha256": "98e5e600dee8646a36d0fea966ee673852fae46aa1f861f8ab5756d6de2fe0bb",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: state-no-results.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/state-table-empty.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 157,
+      "lineCount": 7,
+      "sha256": "11ace7672bc81f91c872c5b03e865631b0c419c720049ea376d0afa6085b16a1",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: state-table-empty.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/state-table-error-special.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 305,
+      "lineCount": 9,
+      "sha256": "7be2e189b8577823337aaf930c540da39615d2cdc0c8b4a8a9c600559bb5e129",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: state-table-error-special.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/state-table-error.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 263,
+      "lineCount": 9,
+      "sha256": "93ee389e9c345c8ec3bf12e0915474996a2c102ff1bb991cbe670b4b46cee841",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: state-table-error.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/state-table-loading.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 185,
+      "lineCount": 8,
+      "sha256": "3c75129458c80399e97d0acdefcb06cbd5bb2e711941cd89781289ff0d791786",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: state-table-loading.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
       "path": "tests/frontend/html_assertions.ts",
       "suite": "frontend",
       "type": "Helper",
@@ -2410,6 +2510,53 @@
       "description": "Suite de pruebas frontend: html_fixtures.ts.",
       "status": "HELPER",
       "testCases": []
+    },
+    {
+      "path": "tests/frontend/html_guard.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 7,
+      "sizeBytes": 2930,
+      "lineCount": 67,
+      "sha256": "5e6f6422c0dbcbedd8f670248def5749bb1d5b2aa195369eee51cb6173405b22",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_guard.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Guarda: solo shared/html.ts asigna HTML al DOM",
+          "line": 36
+        },
+        {
+          "name": "🛡️ Guarda: escapeText solo se usa dentro de html.ts y sanitizer.ts",
+          "line": 41
+        },
+        {
+          "name": "🛡️ Guarda: sanitizeHtml solo se importa en html.ts y sanitizer.ts",
+          "line": 45
+        },
+        {
+          "name": "🛡️ Guarda: trustedHtml solo lo usan html.ts y shared/ui.ts",
+          "line": 49
+        },
+        {
+          "name": "🛡️ Guarda: la detección encuentra las vías antiguas (la prueba no es un falso verde)",
+          "line": 53
+        }
+      ]
     },
     {
       "path": "tests/frontend/html_injection_modals.test.ts",
@@ -2468,12 +2615,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 3,
-      "sizeBytes": 2433,
-      "lineCount": 57,
-      "sha256": "a10a03b37395671fdd3bc92d41218a4608d4efc25a2463da6594e19747fb78d1",
+      "assertionCountEst": 5,
+      "sizeBytes": 3221,
+      "lineCount": 76,
+      "sha256": "c3f5b33d10d86bac7339f821a5f813a7316c03f8937a654ea24e667067ef59e2",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2489,19 +2636,27 @@
       "testCases": [
         {
           "name": "🛡️ Render: la tarjeta neutraliza campos hostiles, incluidos los numéricos",
-          "line": 29
+          "line": 35
         },
         {
           "name": "🛡️ Render: la tabla del backoffice neutraliza campos hostiles, incluidos id, fuerza, peso y altura",
-          "line": 33
-        },
-        {
-          "name": "🛡️ Render: las insignias y el estado vacío neutralizan el texto recibido",
           "line": 39
         },
         {
+          "name": "🛡️ Render: las insignias y el estado vacío neutralizan el texto recibido",
+          "line": 45
+        },
+        {
           "name": "🛡️ Render: los datos legítimos con caracteres especiales se muestran sin doble escapado",
-          "line": 50
+          "line": 56
+        },
+        {
+          "name": "🛡️ Render: el mensaje de error de la carga se muestra como texto, sin generar elementos",
+          "line": 64
+        },
+        {
+          "name": "🛡️ Render: los estados fijos no contienen elementos ejecutables",
+          "line": 71
         }
       ]
     },
@@ -2537,6 +2692,37 @@
       ]
     },
     {
+      "path": "tests/frontend/html_parity_states.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 2,
+      "sizeBytes": 1842,
+      "lineCount": 42,
+      "sha256": "fb2773dc246e34bd9f35d08a4381ccdcf3934a4749333daafb9f7eba5d7f39fa",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_parity_states.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧪 Paridad de estados: ${name} produce la misma salida que la versión anterior",
+          "line": 34
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/html_parity.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -2564,6 +2750,57 @@
         {
           "name": "🧪 Paridad de render: ${name} produce la misma salida que la versión anterior",
           "line": 51
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_set.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 13,
+      "sizeBytes": 2259,
+      "lineCount": 54,
+      "sha256": "4581eec22d58220dabea5b1d1588f62edc36187f7ecfedc4bdd3e65dadb21b0d",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_set.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧱 setHtml inserta un fragmento legítimo conservando su estructura",
+          "line": 11
+        },
+        {
+          "name": "🛡️ setHtml sanea aunque el fragmento se marque como confiable por error",
+          "line": 17
+        },
+        {
+          "name": "🛡️ setHtml escapa los datos interpolados y los deja como texto",
+          "line": 27
+        },
+        {
+          "name": "🛡️ setHtml reemplaza el contenido anterior",
+          "line": 34
+        },
+        {
+          "name": "🧱 setHtml no acepta una cadena sin marcar (comprobado por el compilador)",
+          "line": 42
+        },
+        {
+          "name": "🛡️ setHtml rechaza en ejecución lo que no sea SafeHtml (llamadas sin tipos)",
+          "line": 49
         }
       ]
     },
