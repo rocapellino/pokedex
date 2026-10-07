@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T17:09:57.084Z",
+  "generatedAt": "2026-10-07T18:40:27.877Z",
   "summary": {
     "totalFiles": 161,
     "testFiles": 104,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 874,
-    "totalLines": 24084,
-    "totalSizeBytes": 1047383,
+    "totalTestCases": 875,
+    "totalLines": 24103,
+    "totalSizeBytes": 1048219,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 233,
+      "testCases": 234,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -4756,12 +4756,12 @@
       "type": "Contract / Architecture",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 18,
+      "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 189,
-      "sizeBytes": 39418,
-      "lineCount": 814,
-      "sha256": "b45633baa8e42c9694b47dbbc6994938cb41cdd2fbc832acc655588d3481f792",
+      "assertionCountEst": 192,
+      "sizeBytes": 40254,
+      "lineCount": 833,
+      "sha256": "a2ea670041b5b4cb04d0a9b05638ca7b999fb8ed126fed6038af3be1d9700ad0",
       "targetDomain": "Conformidad con ADRs de Arquitectura",
       "targetArtifacts": [
         "docs/decisions/"
@@ -4827,28 +4827,32 @@
           "line": 309
         },
         {
-          "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
+          "name": "🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)",
           "line": 362
         },
         {
+          "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
+          "line": 381
+        },
+        {
           "name": "🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md",
-          "line": 403
+          "line": 422
         },
         {
           "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 446
+          "line": 465
         },
         {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no quedan restos de la herramienta",
-          "line": 555
+          "line": 574
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 599
+          "line": 618
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 711
+          "line": 730
         }
       ]
     },
