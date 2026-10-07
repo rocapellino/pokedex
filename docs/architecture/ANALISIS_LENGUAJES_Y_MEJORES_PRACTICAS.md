@@ -25,15 +25,15 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 
 | Capa / Dominio | Tecnología Seleccionada | Versión / Especificación | Propósito Principal |
 | :--- | :--- | :--- | :--- |
-| **Runtime & Servidor** | Node.js (con soporte Bun) | 22 LTS | Servidor HTTP unificado, API REST y servicios auxiliares |
+| **Runtime & Servidor** | Node.js | 22 LTS | Servidor HTTP unificado, API REST y servicios auxiliares |
 | **Lenguaje Core** | TypeScript | 7.x (NodeNext / ES2022) | Seguridad de tipos estática extremo a extremo |
-| **Framework HTTP** | Express | 4.x | Ruteo declarativo, middlewares de seguridad y telemetría |
+| **Framework HTTP** | Express | 5.x | Ruteo declarativo, middlewares de seguridad y telemetría |
 | **Frontend Web** | HTML5 Semántico + Vanilla TypeScript / CSS | Modern Web APIs | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
 | **Bundler / Tooling** | esbuild / tsx / Vite | Modern ESM | Compilación ultrarrápida y recarga instantánea en desarrollo |
 | **Persistencia Principal** | PostgreSQL | 16 | Almacenamiento relacional duradero con soporte JSONB |
 | **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de JWT |
 | **Integración IA** | Google GenAI SDK | `@google/genai` (Gemini 2.5 Flash) | Generación dinámica de diagramas y asistencia contextual |
-| **Contenerización** | Docker Multi-Stage | `node:22-alpine` | Contenedores ultraligeros con usuario no root (`appuser`) |
+| **Contenerización** | Docker Multi-Stage | `node:22-alpine` | Contenedores ultraligeros con usuario no root (`USER` numérico por imagen) |
 | **Orquestación** | Kubernetes & Helm | Helm 3 | Despliegue declarativo y gestión de configuración por entornos |
 
 ---
@@ -41,11 +41,11 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 ## 2. Decisiones Arquitectónicas Activas
 
 1. **Backend y API Unificada:** Un único proceso de servidor en Node.js/TypeScript atiende la API REST, sirve los activos estáticos del frontend, expone los endpoints de telemetría y ejecuta las integraciones externas.
-2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`src/pokemonData.ts`), compartidas entre controladores, servicios y validadores.
+2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`apps/backend/src/types.ts`), compartidas entre controladores, servicios y validadores.
 3. **Persistencia Híbrida Relacional + JSONB:**
    - PostgreSQL 16 actúa como la única fuente de verdad transaccional (ACID).
    - Columnas relacionales indexadas (`id`, `nombre`, `tipo`) para filtros de alta cardinalidad.
-   - Columna binaria `data JSONB` indexada con GIN para flexibilidad total de atributos sin migraciones DDL disruptivas.
+   - Columna binaria `data JSONB` para flexibilidad total de atributos sin migraciones DDL disruptivas.
 4. **Contenedor Único Multi-Stage:** Compilación limpia en etapa de build con `esbuild` y empaquetado final mínimo en `node:22-alpine`, ejecutado bajo un usuario de mínimos privilegios (`node`).
 
 ---
@@ -58,10 +58,14 @@ El código del servidor se organiza siguiendo principios de separación de respo
 
 ```text
 src/
-├── domain/            # Modelos de dominio e interfaces puras
+├── config/            # Verificación de entorno al arranque
+├── controllers/       # Mapeo entre contratos HTTP y dominio
+├── db/                # Esquema Drizzle y migraciones
 ├── services/          # Lógica de negocio (DB, caché, IA, transformaciones)
 ├── middleware/        # Seguridad, autenticación, rate limiting y telemetría
-└── routes/            # Definición declarativa de endpoints REST
+├── routes/            # Definición declarativa de endpoints REST
+├── validation/        # Esquemas Zod y validaciones de seguridad
+└── utils/             # Utilidades transversales
 ```
 
 ### 3.2. Tipado Estricto y Validación de Esquemas
@@ -71,8 +75,8 @@ src/
 
 ### 3.3. Resiliencia, Caché y Persistencia Híbrida
 
-- **Patrón Cache-Aside con Redis:** Consultas de catálogo (`GET /pokemons`) se resuelven en memoria con TTL de 300 segundos. Toda mutación administrativa invalida proactivamente las claves asociadas en Redis.
-- **Cabeceras HTTP de Caché:** Emisión de `ETag` y cabeceras `Cache-Control` (`public, max-age=300, stale-while-revalidate=60`) para maximizar el rendimiento en clientes y proxies intermedios.
+- **Patrón Cache-Aside con Redis:** Consultas de catálogo (`GET /pokemons`) se resuelven en memoria con TTL de 60 segundos (el detalle por ID usa 300). Toda mutación administrativa invalida proactivamente las claves asociadas en Redis.
+- **Cabeceras HTTP de Caché:** Emisión de `ETag` y cabeceras `Cache-Control` (`public, max-age=60, stale-while-revalidate=300`) para maximizar el rendimiento en clientes y proxies intermedios.
 
 ### 3.4. Seguridad Integral (Defense-in-Depth)
 
