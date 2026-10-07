@@ -93,4 +93,19 @@ jobs:
         run: npm run test:e2e
 
       - name: 9. Auditoría de Core Web Vitals con Lighthouse CI
+        # `lighthouserc.json` levanta (startServerCommand) el entorno medido: la imagen de nginx de
+        # producción más una API simulada con el catálogo completo (scripts/lighthouse-stack.ts).
         run: npm run perf:lighthouse
+
+      - name: 10. Resumen de Lighthouse
+        if: always()
+        run: npx tsx scripts/lighthouse-summary.ts >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: 11. Publicar informes de Lighthouse
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci
+          retention-days: 14
+          if-no-files-found: ignore

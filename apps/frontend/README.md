@@ -82,6 +82,33 @@ apps/frontend/
 
 ---
 
+## 📈 Medición de rendimiento (Lighthouse CI)
+
+`npm run perf:lighthouse` (`task perf:lighthouse`) mide la aplicación **con datos reales**, no un servidor estático:
+
+- **Entorno medido:** `lighthouserc.json` ejecuta `scripts/lighthouse-stack.ts` (`startServerCommand`), que levanta la imagen de nginx de producción (el digest del `Dockerfile`) con `nginx.conf` y sus cabeceras reales (CSP, COEP, CORP) y una API simulada con el catálogo nacional completo (1.025 Pokémon), con la paginación del backend (máximo 100, `X-Total-Count`).
+- **Imágenes locales:** la API simulada sirve las imágenes desde `/favicon.png`, así que la puntuación mide el coste propio de la aplicación y no la latencia de `raw.githubusercontent.com`.
+- **URL medidas:** `/` y `/backoffice`, con la mediana de 5 ejecuciones (móvil, *throttling* simulado).
+- **Salida:** los informes quedan en `.lighthouseci/` (artefacto `lighthouse-reports` del job, 14 días) y el resumen con puntuaciones y métricas por URL se escribe en el *summary* del job (`scripts/lighthouse-summary.ts`). Ya no se suben a un almacenamiento público.
+
+| Aserción | Nivel | Motivo |
+| :--- | :---: | :--- |
+| `errors-in-console` | `error` | Un error de consola con la API simulada es una regresión funcional. |
+| Accesibilidad ≥ 0,90 y buenas prácticas ≥ 0,90 | `error` | Puntuaciones deterministas. |
+| Rendimiento ≥ 0,80 y SEO ≥ 0,85 | `warn` | La medición con el catálogo cargado reveló un rendimiento muy inferior al que mostraba el servidor estático (que nunca renderizaba tarjetas); pasan a `error` cuando las mejoras las cumplan. |
+| FCP, LCP, CLS y TBT | `warn` | Se vigilan sin bloquear mientras se estabiliza la línea base en CI. |
+
+**Reproducir en local** (requiere Docker y Chromium; en Windows indicar `CHROME_PATH`):
+
+```bash
+npm run build:frontend
+npx lhci autorun --collect.numberOfRuns=1 --collect.settings.chromeFlags="--no-sandbox --headless=new"
+```
+
+Si una ejecución anterior no cerró (puerto `3000` ocupado o contenedor `lighthouse-nginx` vivo), detenerla con `docker rm -f lighthouse-nginx`. Las cifras locales dependen del equipo: comparar solo contra mediciones del mismo entorno.
+
+---
+
 ## 🚀 Ejecución
 
 El frontend se levanta automáticamente como parte del stack de Docker Compose o del Chart de Helm:
