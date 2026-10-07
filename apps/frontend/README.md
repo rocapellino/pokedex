@@ -98,8 +98,10 @@ apps/frontend/
 | `errors-in-console` | `error` | Un error de consola con la API simulada es una regresión funcional. |
 | Accesibilidad ≥ 0,90, buenas prácticas ≥ 0,90 y SEO ≥ 0,90 | `error` | Puntuaciones deterministas. |
 | `uses-text-compression` | `error` | Protege la compresión `gzip` de nginx (CSS, JS y `/pokemons`) frente a una retirada accidental. |
-| Rendimiento ≥ 0,80 | `warn` | Depende de la CPU del runner; solo consta que cumple el mínimo. |
-| FCP, LCP, CLS y TBT | `warn` | Se vigilan sin bloquear mientras se estabiliza la línea base en CI. |
+| Rendimiento ≥ 0,90, FCP ≤ 2,0 s, LCP ≤ 2,5 s y CLS ≤ 0,25 | `error` | Fijados sobre la línea base medida en el runner tras el `gzip` (mediana de 5; entre paréntesis la peor ejecución): rendimiento 97 (95), FCP 1,27 s (1,35), LCP 1,80 s (2,32), CLS 0,002. Todos conservan margen, y bloquean una regresión real. |
+| TBT ≤ 300 ms | `warn` | Depende de la CPU del runner (su índice de rendimiento varió de 1.800 a 2.500 entre ejecuciones): 183 ms de mediana y 227 ms en el peor caso, solo se vigila. |
+
+Al revisar un cambio que empeore estas cifras, comparar siempre contra el resumen del job de CI (el artefacto `lighthouse-reports` trae los informes completos), no contra mediciones locales.
 
 **Reproducir en local** (requiere Docker y Chromium; en Windows indicar `CHROME_PATH`):
 

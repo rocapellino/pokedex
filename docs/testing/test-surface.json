@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T12:34:22.399Z",
+  "generatedAt": "2026-10-07T12:50:02.392Z",
   "summary": {
     "totalFiles": 98,
     "testFiles": 92,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 782,
-    "totalLines": 20136,
-    "totalSizeBytes": 877558,
+    "totalTestCases": 783,
+    "totalLines": 20152,
+    "totalSizeBytes": 878600,
     "suitesCount": 10
   },
   "suites": [
@@ -89,7 +89,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 2,
-      "testCases": 13,
+      "testCases": 14,
       "description": "Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions."
     },
     {
@@ -540,12 +540,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 9,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 46,
-      "sizeBytes": 8506,
-      "lineCount": 178,
-      "sha256": "b6483c9257418945bee723a37d2d2dcfe4ee240532aac2753c416a802e064f57",
+      "assertionCountEst": 52,
+      "sizeBytes": 9548,
+      "lineCount": 194,
+      "sha256": "2d57cb5cf1287dc7cbf074768b4f57cebd52a8640e7530b025fcc11d0f5df179",
       "targetDomain": "Suite ci",
       "targetArtifacts": [],
       "npmCommands": [
@@ -584,16 +584,20 @@
           "line": 98
         },
         {
-          "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
+          "name": "📈 Lighthouse: los presupuestos de rendimiento bloquean y respetan la línea base de CI",
           "line": 132
         },
         {
+          "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
+          "line": 148
+        },
+        {
           "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
-          "line": 146
+          "line": 162
         },
         {
           "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
-          "line": 155
+          "line": 171
         }
       ]
     },
