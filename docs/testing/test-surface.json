@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T13:30:05.428Z",
+  "generatedAt": "2026-10-07T13:36:18.687Z",
   "summary": {
     "totalFiles": 101,
     "testFiles": 95,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 812,
-    "totalLines": 20640,
-    "totalSizeBytes": 898801,
+    "totalLines": 20641,
+    "totalSizeBytes": 898960,
     "suitesCount": 10
   },
   "suites": [
@@ -788,9 +788,9 @@
       "testCount": 13,
       "describeCount": 1,
       "assertionCountEst": 59,
-      "sizeBytes": 12249,
-      "lineCount": 273,
-      "sha256": "4ecae91a925e3f866f6843eeae9d522df3c30f1a181dcca001ca94c23958bafd",
+      "sizeBytes": 12408,
+      "lineCount": 274,
+      "sha256": "3b128045801dc6742ad921ccb35ee7b99dfa68ca0a015799e17c8bf5e6b578c5",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -852,11 +852,11 @@
         },
         {
           "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 243
+          "line": 244
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 262
+          "line": 263
         }
       ]
     },
