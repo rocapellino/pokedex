@@ -122,7 +122,7 @@ pokedex/
 
 ### `apps/backend/` (API RESTful Node.js & TypeScript)
 
-- **`server.ts`**: Servidor HTTP de alto rendimiento con **Express 4.21** y compilación previa con **esbuild**.
+- **`server.ts`**: Servidor HTTP de alto rendimiento con **Express 5** y compilación previa con **esbuild**.
   - Middlewares de seguridad: cabeceras de hardening (`nosniff`, `SAMEORIGIN`), supresión de `X-Powered-By`, validación CORS fail-closed y body parser limitado a 250 KB.
   - Middlewares de **Rate Limiting** híbridos (scripts atómicos Lua en Redis con fallback local).
   - Autenticación timing-safe mediante `crypto.timingSafeEqual` sobre digests SHA-256.
