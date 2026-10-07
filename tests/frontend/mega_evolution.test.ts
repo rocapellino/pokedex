@@ -235,13 +235,13 @@ test('🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente', () =
 });
 
 test('🧬 UI Mega: el filtro "con megaevolución" se combina con búsqueda, tipo y generación', () => {
-  const base: CatalogFilters = { searchQuery: '', type: 'all', generation: 'all', onlyWithMega: false };
+  const base: CatalogFilters = { searchQuery: '', types: [], generation: 'all', onlyWithMega: false };
 
   assert.equal(matchesCatalogFilters(pikachu, base), true);
   assert.equal(matchesCatalogFilters(pikachu, { ...base, onlyWithMega: true }), false);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, searchQuery: 'chari' }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, searchQuery: 'pika' }), false);
-  assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, type: 'Volador' }), true);
+  assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, types: ['Volador'] }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, generation: '2' }), false);
 });
