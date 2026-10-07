@@ -29,6 +29,8 @@ export interface CatalogFilters {
   minStat?: MinStat | null;
   /** Solo legendarios, solo míticos o ambos (`especial`); `null` o ausente no filtra. */
   clasificacion?: ClassificationFilter | null;
+  /** Habilidad exacta (se compara sin tildes ni mayúsculas); `null` o ausente no filtra. */
+  habilidad?: string | null;
 }
 
 interface NormalizedEntry {
@@ -36,10 +38,37 @@ interface NormalizedEntry {
   haystack: string[];
   /** Tipos normalizados del Pokémon. */
   types: Set<string>;
+  /** Habilidades normalizadas del Pokémon (coincidencia exacta del filtro por habilidad). */
+  abilities: Set<string>;
   id: string;
 }
 
 const entryCache = new WeakMap<Pokemon, NormalizedEntry>();
+
+/** Nombres de las habilidades del Pokémon; tolera la lista habitual y un texto separado por comas. */
+export function listAbilities(p: Pokemon): string[] {
+  const raw = Array.isArray(p.habilidades)
+    ? p.habilidades
+    : typeof p.habilidades === 'string'
+      ? p.habilidades.split(',')
+      : [];
+  return raw.map((h) => String(h).trim()).filter(Boolean);
+}
+
+/**
+ * Habilidades distintas del catálogo, ordenadas en español. Si una misma habilidad aparece escrita de
+ * dos formas (tildes o mayúsculas), se conserva la primera. Alimenta el autocompletado del filtro.
+ */
+export function collectAbilities(pokemons: readonly Pokemon[]): string[] {
+  const byKey = new Map<string, string>();
+  for (const p of pokemons) {
+    for (const name of listAbilities(p)) {
+      const key = normalizeStr(name);
+      if (!byKey.has(key)) byKey.set(key, name);
+    }
+  }
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b, 'es'));
+}
 
 function buildEntry(p: Pokemon): NormalizedEntry {
   const types = new Set<string>();
@@ -52,7 +81,7 @@ function buildEntry(p: Pokemon): NormalizedEntry {
   if (p.caracteristicas?.habitat) haystack.push(normalizeStr(p.caracteristicas.habitat));
   if (typeof p.habitat === 'string') haystack.push(normalizeStr(p.habitat));
 
-  return { haystack, types, id: String(p.id) };
+  return { haystack, types, abilities: new Set(listAbilities(p).map(normalizeStr)), id: String(p.id) };
 }
 
 /** Devuelve el índice normalizado del Pokémon, calculándolo una sola vez por objeto. */
@@ -85,5 +114,7 @@ export function matchesCatalogFilters(p: Pokemon, filters: CatalogFilters): bool
     !filters.clasificacion ||
     (clase !== undefined && (filters.clasificacion === 'especial' || filters.clasificacion === clase));
 
-  return matchesSearch && matchesTypes && matchesGen && matchesMega && matchesStat && matchesClass;
+  const matchesAbility = !filters.habilidad || entry.abilities.has(normalizeStr(filters.habilidad));
+
+  return matchesSearch && matchesTypes && matchesGen && matchesMega && matchesStat && matchesClass && matchesAbility;
 }
