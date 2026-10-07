@@ -15,6 +15,8 @@ import {
   renderEmptyState,
   fetchAllPokemons,
   errorMessage,
+  trustedHtml,
+  type SafeHtml,
 } from './shared/index.js';
 import {
   isClassificationFilter,
@@ -384,13 +386,9 @@ export function handleGenerationChange(): void {
   applyFilters();
 }
 
-export function renderPokemons(): void {
-  const container = document.getElementById('pokemonGrid');
-  const paginationBar = document.getElementById('paginationBar');
-  if (!container || !paginationBar) return;
-
-  if (filteredPokemons.length === 0) {
-    container.innerHTML = sanitizeHtml(`
+/** Estado del catálogo cuando ningún Pokémon cumple los filtros activos. */
+export function renderNoResults(): SafeHtml {
+  return trustedHtml(`
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">No se encontraron Pokémon</h3>
@@ -398,6 +396,15 @@ export function renderPokemons(): void {
         <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
       </div>
     `);
+}
+
+export function renderPokemons(): void {
+  const container = document.getElementById('pokemonGrid');
+  const paginationBar = document.getElementById('paginationBar');
+  if (!container || !paginationBar) return;
+
+  if (filteredPokemons.length === 0) {
+    container.innerHTML = sanitizeHtml(renderNoResults().toString());
     paginationBar.classList.add('hidden');
     return;
   }

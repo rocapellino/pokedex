@@ -4,7 +4,18 @@
 
 import { sanitizeHtml } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { normalizeStr, html, type SafeHtml } from '../shared/index.js';
+import { normalizeStr, html, trustedHtml, type SafeHtml } from '../shared/index.js';
+
+/** Fila que ocupa la tabla cuando ningún registro coincide con los filtros. */
+export function renderEmptyTableRow(): SafeHtml {
+  return trustedHtml(`
+      <tr>
+        <td colspan="8" class="table-empty">
+          🔍 No se encontraron registros con los filtros seleccionados.
+        </td>
+      </tr>
+    `);
+}
 
 export function renderTableRows(pokemons: Pokemon[]): SafeHtml {
   return html`${pokemons.map((p) => {
@@ -98,13 +109,7 @@ export function renderAdminTable(
   currentPage: number,
 ): void {
   if (pokemons.length === 0) {
-    tbody.innerHTML = sanitizeHtml(`
-      <tr>
-        <td colspan="8" class="table-empty">
-          🔍 No se encontraron registros con los filtros seleccionados.
-        </td>
-      </tr>
-    `);
+    tbody.innerHTML = sanitizeHtml(renderEmptyTableRow().toString());
     if (pagination) pagination.style.display = 'none';
     return;
   }
