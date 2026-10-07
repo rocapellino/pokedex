@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T18:15:20.081Z",
+  "generatedAt": "2026-10-07T18:25:40.935Z",
   "summary": {
     "totalFiles": 163,
     "testFiles": 106,
     "helperFiles": 56,
     "performanceScripts": 1,
     "totalTestCases": 885,
-    "totalLines": 24348,
-    "totalSizeBytes": 1058877,
+    "totalLines": 24349,
+    "totalSizeBytes": 1058936,
     "suitesCount": 10
   },
   "suites": [
@@ -784,9 +784,9 @@
       "testCount": 14,
       "describeCount": 2,
       "assertionCountEst": 71,
-      "sizeBytes": 15495,
-      "lineCount": 338,
-      "sha256": "923df36e8ce36c6945946d0f88028eee091f7c2800cecd5855024b5c60b2d116",
+      "sizeBytes": 15554,
+      "lineCount": 339,
+      "sha256": "7416a538be43d26b32d9bcd8965b9b4593e8fade37964b47f835ad284a274a49",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -803,60 +803,60 @@
       "status": "SPECIALIZED",
       "testCases": [
         {
+          "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
+          "line": 31
+        },
+        {
           "name": "La interfaz principal carga con branding y catálogo de Pokémon",
-          "line": 28
+          "line": 93
         },
         {
           "name": "El buscador en tiempo real filtra los Pokémon por nombre",
-          "line": 43
+          "line": 108
         },
         {
           "name": "El alternador de tema modifica data-theme en el documento",
-          "line": 59
+          "line": 124
         },
         {
           "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
-          "line": 69
+          "line": 134
         },
         {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
-          "line": 87
+          "line": 152
         },
         {
           "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
-          "line": 110
+          "line": 175
         },
         {
           "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
-          "line": 130
+          "line": 195
         },
         {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 166
+          "line": 231
         },
         {
           "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
-          "line": 174
+          "line": 239
         },
         {
           "name": "@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape",
-          "line": 189
+          "line": 254
         },
         {
           "name": "@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco",
-          "line": 213
+          "line": 278
         },
         {
           "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 244
+          "line": 309
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 263
-        },
-        {
-          "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
-          "line": 282
+          "line": 328
         }
       ]
     },

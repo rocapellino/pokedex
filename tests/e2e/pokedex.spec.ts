@@ -20,6 +20,71 @@ async function waitForSettledAnimations(page: Page): Promise<void> {
   );
 }
 
+/**
+ * Fuera del `describe` de la suite principal a propósito: su `beforeEach` navega a `/` y este test
+ * necesita registrar la ruta ANTES de la primera carga, sin recargar. Va el primero del archivo: el
+ * backend del E2E limita a 300 peticiones por minuto desde una misma IP (también los archivos
+ * estáticos) y, en CI, los últimos tests de `mobile-chrome` se quedaban sin página. Es una hipótesis
+ * sin medir; ejecutarlo pronto evita que un test nuevo herede ese problema.
+ */
+test.describe('Enlace de salto a la paginación', () => {
+  test('@a11y "Saltar a la paginación" aparece con el teclado, lleva el foco a "Siguiente" y no toca la URL', async ({
+    page,
+  }) => {
+    // El enlace solo existe con varias páginas, y la base de datos del CI no garantiza más de 48
+    // Pokémon: el catálogo se sustituye por uno de 96 (dos páginas) con la paginación del backend.
+    const catalog = Array.from({ length: 96 }, (_, i) => ({
+      id: i + 1,
+      nombre: `Pokémon ${i + 1}`,
+      tipo: 'Normal',
+      tipos: ['Normal'],
+      fuerza: 50,
+      imagen: '/favicon.png',
+      caracteristicas: { peso: 1, altura: 1, habitat: 'Pradera' },
+    }));
+    await page.route(/\/pokemons\?/, async (route) => {
+      const params = new URL(route.request().url()).searchParams;
+      const offset = Number(params.get('offset') ?? 0);
+      const limit = Number(params.get('limit') ?? catalog.length);
+      await route.fulfill({
+        json: catalog.slice(offset, offset + limit),
+        headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
+      });
+    });
+    await page.goto('/');
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    const skip = page.locator('#skipToPagination');
+    await expect(skip).toBeAttached();
+
+    // Fuera de foco no se ve; con Shift+Tab desde la primera tarjeta es lo primero que se alcanza.
+    await expect(skip).not.toBeInViewport();
+    await page.locator('.pokemon-card .card-open').first().focus();
+    await page.keyboard.press('Shift+Tab');
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    expect((await skip.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(24);
+
+    await waitForSettledAnimations(page);
+    const results = await new AxeBuilder({ page })
+      .include('#skipToPagination')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([]);
+
+    const urlBefore = page.url();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#btnNextPage')).toBeFocused();
+    await expect(page.locator('#btnNextPage')).toBeInViewport();
+    expect(page.url()).toBe(urlBefore);
+    expect(new URL(page.url()).hash).toBe('');
+
+    // La barra es una navegación con nombre, y "Siguiente" cambia de página.
+    await expect(page.getByRole('navigation', { name: 'Paginación del catálogo' })).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#pageInfo')).toContainText('Página 2');
+  });
+});
+
 test.describe('Pokédex Web Application E2E Suite', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -269,69 +334,5 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect
       .poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))
       .toBe(true);
-  });
-});
-
-/**
- * Fuera del `describe` anterior a propósito: su `beforeEach` navega a `/` y este test necesita
- * registrar la ruta ANTES de la primera carga. Recargar duplicaba las peticiones de la página, y el
- * backend del E2E limita a 300 por minuto desde una misma IP (también los archivos estáticos); con
- * ~80 cargas por ejecución, cada petición extra puede dejar sin página a los últimos tests (hipótesis, no medida).
- */
-test.describe('Enlace de salto a la paginación', () => {
-  test('@a11y "Saltar a la paginación" aparece con el teclado, lleva el foco a "Siguiente" y no toca la URL', async ({
-    page,
-  }) => {
-    // El enlace solo existe con varias páginas, y la base de datos del CI no garantiza más de 48
-    // Pokémon: el catálogo se sustituye por uno de 96 (dos páginas) con la paginación del backend.
-    const catalog = Array.from({ length: 96 }, (_, i) => ({
-      id: i + 1,
-      nombre: `Pokémon ${i + 1}`,
-      tipo: 'Normal',
-      tipos: ['Normal'],
-      fuerza: 50,
-      imagen: '/favicon.png',
-      caracteristicas: { peso: 1, altura: 1, habitat: 'Pradera' },
-    }));
-    await page.route(/\/pokemons\?/, async (route) => {
-      const params = new URL(route.request().url()).searchParams;
-      const offset = Number(params.get('offset') ?? 0);
-      const limit = Number(params.get('limit') ?? catalog.length);
-      await route.fulfill({
-        json: catalog.slice(offset, offset + limit),
-        headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
-      });
-    });
-    await page.goto('/');
-    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
-    const skip = page.locator('#skipToPagination');
-    await expect(skip).toBeAttached();
-
-    // Fuera de foco no se ve; con Shift+Tab desde la primera tarjeta es lo primero que se alcanza.
-    await expect(skip).not.toBeInViewport();
-    await page.locator('.pokemon-card .card-open').first().focus();
-    await page.keyboard.press('Shift+Tab');
-    await expect(skip).toBeFocused();
-    await expect(skip).toBeInViewport();
-    expect((await skip.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(24);
-
-    await waitForSettledAnimations(page);
-    const results = await new AxeBuilder({ page })
-      .include('#skipToPagination')
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze();
-    expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([]);
-
-    const urlBefore = page.url();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('#btnNextPage')).toBeFocused();
-    await expect(page.locator('#btnNextPage')).toBeInViewport();
-    expect(page.url()).toBe(urlBefore);
-    expect(new URL(page.url()).hash).toBe('');
-
-    // La barra es una navegación con nombre, y "Siguiente" cambia de página.
-    await expect(page.getByRole('navigation', { name: 'Paginación del catálogo' })).toBeVisible();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('#pageInfo')).toContainText('Página 2');
   });
 });

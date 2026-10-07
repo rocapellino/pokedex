@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 56 |
 | **Total de Casos de Prueba Identificados** | **885** |
-| **Líneas de Código de Pruebas** | 24.348 |
+| **Líneas de Código de Pruebas** | 24.349 |
 | **Tamaño Total de la Suite** | 1034.1 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T18:15:20.081Z |
+| **Última Sincronización** | 2026-10-07T18:25:40.935Z |
 
 ---
 
@@ -55,7 +55,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **14** | 338 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **14** | 339 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/catalog_ability_controller.test.ts`](../../tests/frontend/catalog_ability_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 199 | Suite de pruebas frontend: catalog_ability_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -404,7 +404,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **14** | 338 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **14** | 339 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
 
