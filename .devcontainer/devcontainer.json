@@ -46,6 +46,7 @@
       },
       "extensions": [
         "SonarSource.sonarlint-vscode",
+        "task.vscode-task",
         "biomejs.biome",
         "ms-azuretools.vscode-docker",
         "ms-playwright.playwright",

@@ -36,8 +36,6 @@ pokedex/
 │   ├── workflows/                # Pipelines de build, test, SAST, SBOM, Cosign y release
 │   ├── CODEOWNERS                # Asignación obligatoria de revisores por dominio
 │   └── pull_request_template.md  # Plantilla estándar para Pull Requests
-├── .vscode/                      # Configuración del editor y tareas automatizadas
-│   └── tasks.json                # Capa de presentación: wrappers `task ...` sobre Taskfile.yaml
 ├── apps/                         # Workspaces de Aplicaciones
 │   ├── backend/                  # API RESTful TypeScript (@pokedex/backend)
 │   │   ├── package.json          # Manifiesto y scripts del paquete backend
@@ -185,7 +183,7 @@ El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.ya
 | Wave | Alcance | Estado | Riesgo principal |
 | --- | --- | --- | --- |
 | 0 | Gobernanza (gate, tests, contrato de impacto) | Completada (PR #352) | Nulo |
-| 1 | `infra/ansible/**`, `infra/monitoring/alerts.yaml`, `docker-compose*.yaml` | Completada (PR #354) | Globs y flags `-f` explícitos en `Taskfile` y `.vscode/tasks.json` |
+| 1 | `infra/ansible/**`, `infra/monitoring/alerts.yaml`, `docker-compose*.yaml` | Completada (PR #354) | Globs y flags `-f` explícitos en `Taskfile` |
 | 2 | `Taskfile.yaml` | Completada (PR #355) | Numerosas referencias documentales |
 | 3 | `.github/workflows/**` (16 workflows) | Completada | Rutas `uses:`, `subject` de Kyverno, required status checks y badge |
 
@@ -196,24 +194,9 @@ Ninguna: la configuración de MegaLinter se retiró junto con la herramienta.
 ### 4.5. SSOT de Comandos Operativos: `Taskfile.yaml`
 
 `Taskfile.yaml` es la **única fuente de verdad operativa** de comandos del
-repositorio. La CLI, VS Code y la documentación consumen esa misma definición.
-
-`.vscode/tasks.json` es una **capa de presentación**: expone tareas frecuentes
-como wrappers `task <nombre>` y no debe implementar lógica de orquestación
-propia. Antes de esta decisión, el archivo reproducía comandos `helm`/`kubectl`
-directos que ya existían en el Taskfile, lo que producía dos fuentes de verdad
-con divergencia silenciosa (por ejemplo, la tarea "Test Endpoints" consultaba un
-único deployment mientras `task k8s:test` valida API y frontend).
-
-El contrato se blinda en `tests/security/iac_baseline_security.test.ts` (Dev DX),
-que falla si se reintroduce un comando de orquestación o si un wrapper apunta a
-una tarea inexistente del Taskfile.
-
-> [!NOTE]
-> Excepción deliberada: las tareas de `docker compose` de VS Code conservan sus
-> flags `-f` (perfil dev con hot-reload) porque `task dev:compose` no los
-> replica. Unificar ese perfil es una decisión de producto pendiente, no un
-> refactor mecánico.
+repositorio. La CLI y la documentación consumen esa misma definición; VS Code las
+expone mediante la extensión `task.vscode-task` (recomendada en el DevContainer), sin
+`.vscode/tasks.json` propio.
 
 ### Identidades de firma actualizadas en la Wave 3
 

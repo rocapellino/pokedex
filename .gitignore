@@ -99,11 +99,7 @@ backups/
 # ==============================================================================
 # Configuración de IDEs y Editores
 # ==============================================================================
-.vscode/*
-!.vscode/tasks.json
-!.vscode/settings.json
-!.vscode/launch.json
-!.vscode/mcp.json
+.vscode/
 .idea/
 *.swp
 *.swo
