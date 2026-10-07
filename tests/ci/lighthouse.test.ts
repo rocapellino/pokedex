@@ -119,6 +119,12 @@ test('📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servid
     'un error de consola es una regresión funcional',
   );
   assert.equal(ci.assert.assertions['categories:accessibility']?.[0], 'error');
+  assert.equal(ci.assert.assertions['categories:seo']?.[0], 'error', 'el SEO es determinista y debe bloquear');
+  assert.equal(
+    ci.assert.assertions['uses-text-compression']?.[0],
+    'error',
+    'protege contra retirar el gzip de nginx sin darse cuenta',
+  );
   assert.notEqual(ci.upload.target, 'temporary-public-storage', 'los informes no se publican en un servicio externo');
   assert.equal(ci.upload.target, 'filesystem');
 });

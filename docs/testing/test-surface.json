@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T00:30:46.261Z",
+  "generatedAt": "2026-10-07T01:21:28.112Z",
   "summary": {
-    "totalFiles": 93,
-    "testFiles": 87,
+    "totalFiles": 94,
+    "testFiles": 88,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 739,
-    "totalLines": 19456,
-    "totalSizeBytes": 850139,
+    "totalTestCases": 742,
+    "totalLines": 19520,
+    "totalSizeBytes": 853400,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 12,
-      "testCases": 99,
+      "files": 13,
+      "testCases": 102,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -542,10 +542,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 41,
-      "sizeBytes": 7752,
-      "lineCount": 166,
-      "sha256": "0e5948aa224602b2f1097c97d9d6621a2dd6d1683151111a597d6a0a72c25aec",
+      "assertionCountEst": 44,
+      "sizeBytes": 8018,
+      "lineCount": 172,
+      "sha256": "9afe16b7da42776219d350a7189da3d32b65f36a544f133395d19698804cd3f8",
       "targetDomain": "Suite ci",
       "targetArtifacts": [],
       "npmCommands": [
@@ -585,15 +585,15 @@
         },
         {
           "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
-          "line": 126
+          "line": 132
         },
         {
           "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
-          "line": 134
+          "line": 140
         },
         {
           "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
-          "line": 143
+          "line": 149
         }
       ]
     },
@@ -1566,6 +1566,45 @@
         {
           "name": "🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada",
           "line": 178
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/seo_compression.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 14,
+      "sizeBytes": 2995,
+      "lineCount": 58,
+      "sha256": "66cc1a79ff55c81483834d093955b6447de65e3b4bc3912d773c67e021b73ed3",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: seo_compression.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔎 SEO: index.html declara una meta description descriptiva y de longitud razonable",
+          "line": 18
+        },
+        {
+          "name": "🔎 SEO: robots.txt existe en public/, es válido y no bloquea ninguna ruta",
+          "line": 25
+        },
+        {
+          "name": "🗜️ Compresión (${path.basename(file)}): gzip activo para texto y desactivado en /api/ y /metrics",
+          "line": 35
         }
       ]
     },

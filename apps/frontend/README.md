@@ -64,6 +64,8 @@ apps/frontend/
 3. **Contenedor no privilegiado:** Nginx se ejecuta con el usuario no-root `nginx` (UID/GID 101) garantizando el principio de menor privilegio.
 4. **Healthcheck Nativo:** Monitoreo periódico a `/healthz`.
 5. **Sin terceros en runtime (fuentes):** la tipografía se sirve desde el mismo origen, por lo que `style-src` y `font-src` de la CSP son solo `'self'`.
+6. **Compresión `gzip`:** nginx comprime CSS, JS, JSON y SVG (`gzip_types`, mínimo 1 KiB, `Vary: Accept-Encoding`); medido, `style.css` pasa de 44,8 a 9,0 KB y cada página de `/pokemons` de 78 a 14 KB. `/api/` y `/metrics` van sin comprimir (`gzip off`, mitigación de BREACH). `lighthouserc.json` lo vigila con `uses-text-compression`.
+7. **SEO básico:** `index.html` declara `meta description` y `public/robots.txt` es válido; no se añade `Disallow: /backoffice`, porque Lighthouse marcaría esa página como no rastreable y su acceso ya está restringido por IP.
 
 ---
 
@@ -94,8 +96,9 @@ apps/frontend/
 | Aserción | Nivel | Motivo |
 | :--- | :---: | :--- |
 | `errors-in-console` | `error` | Un error de consola con la API simulada es una regresión funcional. |
-| Accesibilidad ≥ 0,90 y buenas prácticas ≥ 0,90 | `error` | Puntuaciones deterministas. |
-| Rendimiento ≥ 0,80 y SEO ≥ 0,85 | `warn` | La medición con el catálogo cargado reveló un rendimiento muy inferior al que mostraba el servidor estático (que nunca renderizaba tarjetas); pasan a `error` cuando las mejoras las cumplan. |
+| Accesibilidad ≥ 0,90, buenas prácticas ≥ 0,90 y SEO ≥ 0,90 | `error` | Puntuaciones deterministas. |
+| `uses-text-compression` | `error` | Protege la compresión `gzip` de nginx (CSS, JS y `/pokemons`) frente a una retirada accidental. |
+| Rendimiento ≥ 0,80 | `warn` | Depende de la CPU del runner; solo consta que cumple el mínimo. |
 | FCP, LCP, CLS y TBT | `warn` | Se vigilan sin bloquear mientras se estabiliza la línea base en CI. |
 
 **Reproducir en local** (requiere Docker y Chromium; en Windows indicar `CHROME_PATH`):
