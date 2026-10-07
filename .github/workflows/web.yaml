@@ -107,5 +107,7 @@ jobs:
         with:
           name: lighthouse-reports
           path: .lighthouseci
+          # `.lighthouseci` es un directorio oculto: sin esto upload-artifact lo excluye y no sube nada.
+          include-hidden-files: true
           retention-days: 14
-          if-no-files-found: ignore
+          if-no-files-found: warn

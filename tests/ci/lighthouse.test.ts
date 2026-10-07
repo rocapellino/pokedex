@@ -135,6 +135,12 @@ test('📈 Lighthouse: el workflow publica el resumen y los informes como artefa
   assert.match(workflow, /GITHUB_STEP_SUMMARY/);
   assert.match(workflow, /actions\/upload-artifact@[a-f0-9]{40}/, 'la acción se fija por SHA completo');
   assert.match(workflow, /path: \.lighthouseci/);
+
+  // `.lighthouseci` es un directorio oculto: upload-artifact lo excluye salvo con include-hidden-files,
+  // y con `ignore` el paso terminaba en verde sin subir nada (verificado en el log del PR #616).
+  const upload = workflow.slice(workflow.indexOf('actions/upload-artifact@'));
+  assert.match(upload, /include-hidden-files: true/, 'sin esto el artefacto queda vacío');
+  assert.match(upload, /if-no-files-found: (warn|error)/, 'la ausencia de informes no puede pasar en silencio');
 });
 
 test('📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed', () => {
