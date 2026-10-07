@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **98** |
-| **Archivos de Test Automatizados** | 92 |
+| **Total de Archivos en `tests/`** | **99** |
+| **Archivos de Test Automatizados** | 93 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **783** |
-| **Líneas de Código de Pruebas** | 20.152 |
-| **Tamaño Total de la Suite** | 858.0 KB |
+| **Total de Casos de Prueba Identificados** | **788** |
+| **Líneas de Código de Pruebas** | 20.261 |
+| **Tamaño Total de la Suite** | 862.3 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T12:50:02.392Z |
+| **Última Sincronización** | 2026-10-07T13:11:23.084Z |
 
 ---
 
@@ -31,7 +31,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 17 | 142 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 18 | 147 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -73,6 +73,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 218 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 157 | Suite de pruebas gitops: environment_http_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
@@ -243,7 +244,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 142
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 147
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -265,6 +266,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | *(General)* |
+| [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | *(General)* |
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
 

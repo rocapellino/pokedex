@@ -108,9 +108,9 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
   test('@a11y Auditoría de accesibilidad WCAG en Backoffice', async ({ page }) => {
     await page.waitForSelector('.pokemon-table-name', { timeout: 15000 });
 
+    // color-contrast permanece activo: desactivarlo ocultó que 13 de 18 insignias de tipo incumplían 4,5:1.
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .disableRules(['color-contrast'])
       .analyze();
 
     const seriousViolations = accessibilityScanResults.violations.filter(
