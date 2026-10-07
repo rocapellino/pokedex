@@ -146,6 +146,28 @@ export function restoreFiltersFromUrl(): void {
   const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
   if (sortSelect) sortSelect.value = currentSort;
   syncTypePills();
+  // Un filtro avanzado activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
+  if (countAdvancedFilters() > 0) {
+    const panel = document.getElementById('moreFilters') as HTMLDetailsElement | null;
+    if (panel) panel.open = true;
+  }
+}
+
+/** Filtros que viven dentro del panel "Más filtros" (los demás están siempre visibles). */
+function countAdvancedFilters(): number {
+  return (classification ? 1 : 0) + (minStat ? 1 : 0);
+}
+
+function renderAdvancedFiltersCount(): void {
+  const count = countAdvancedFilters();
+  const badge = document.getElementById('moreFiltersCount');
+  if (badge) {
+    badge.textContent = String(count);
+    badge.hidden = count === 0;
+  }
+  document
+    .querySelector('#moreFilters > summary')
+    ?.setAttribute('aria-label', count > 0 ? `Más filtros, ${count} activos` : 'Más filtros');
 }
 
 function syncClassControl(): void {
@@ -329,6 +351,7 @@ export function renderActiveFilters(): void {
     summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${allPokemons.length} Pokémon`;
   }
   if (clearBtn) clearBtn.hidden = !hasActiveFilters();
+  renderAdvancedFiltersCount();
   if (!chipList) return;
 
   chipList.replaceChildren(

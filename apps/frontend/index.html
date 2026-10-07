@@ -113,8 +113,8 @@
       </div>
     </section>
 
-    <!-- Sort & Stat Filters -->
-    <section class="refine-bar" aria-label="Orden y filtro de estadísticas">
+    <!-- Sort and Advanced Filters -->
+    <section class="refine-bar" aria-label="Orden y filtros avanzados">
       <div class="filter-group">
         <label for="sortFilter" class="refine-label">Ordenar por</label>
         <select id="sortFilter" class="select-filter">
@@ -129,31 +129,39 @@
           <option value="speed">Velocidad (mayor)</option>
         </select>
       </div>
-      <div class="filter-group">
-        <label for="classFilter" class="refine-label">Clasificación</label>
-        <select id="classFilter" class="select-filter">
-          <option value="">Todas</option>
-          <option value="legendario">Legendarios</option>
-          <option value="mitico">Míticos</option>
-          <option value="especial">Legendarios y míticos</option>
-        </select>
-      </div>
-      <div class="filter-group stat-filter">
-        <label for="statFilter" class="refine-label">Estadística mínima</label>
-        <select id="statFilter" class="select-filter">
-          <option value="">Sin filtro</option>
-          <option value="total">Total</option>
-          <option value="hp">PS</option>
-          <option value="attack">Ataque</option>
-          <option value="defense">Defensa</option>
-          <option value="sp_attack">Ataque especial</option>
-          <option value="sp_defense">Defensa especial</option>
-          <option value="speed">Velocidad</option>
-        </select>
-        <label for="statMin" class="sr-only">Valor mínimo de la estadística</label>
-        <input type="number" id="statMin" class="select-filter stat-min-input" min="0" max="780" step="5"
-          inputmode="numeric" placeholder="Mín.">
-      </div>
+      <details class="more-filters" id="moreFilters">
+        <summary class="more-filters-toggle">
+          <span>Más filtros</span>
+          <span class="more-filters-count" id="moreFiltersCount" hidden></span>
+        </summary>
+        <div class="more-filters-body">
+          <div class="filter-group">
+            <label for="classFilter" class="refine-label">Clasificación</label>
+            <select id="classFilter" class="select-filter">
+              <option value="">Todas</option>
+              <option value="legendario">Legendarios</option>
+              <option value="mitico">Míticos</option>
+              <option value="especial">Legendarios y míticos</option>
+            </select>
+          </div>
+          <div class="filter-group stat-filter">
+            <label for="statFilter" class="refine-label">Estadística mínima</label>
+            <select id="statFilter" class="select-filter">
+              <option value="">Sin filtro</option>
+              <option value="total">Total</option>
+              <option value="hp">PS</option>
+              <option value="attack">Ataque</option>
+              <option value="defense">Defensa</option>
+              <option value="sp_attack">Ataque especial</option>
+              <option value="sp_defense">Defensa especial</option>
+              <option value="speed">Velocidad</option>
+            </select>
+            <label for="statMin" class="sr-only">Valor mínimo de la estadística</label>
+            <input type="number" id="statMin" class="select-filter stat-min-input" min="0" max="780" step="5"
+              inputmode="numeric" placeholder="Mín.">
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- Type Pills Filter Bar -->

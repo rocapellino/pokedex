@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T13:54:33.499Z",
+  "generatedAt": "2026-10-07T14:38:57.026Z",
   "summary": {
     "totalFiles": 116,
     "testFiles": 98,
     "helperFiles": 17,
     "performanceScripts": 1,
-    "totalTestCases": 824,
-    "totalLines": 21295,
-    "totalSizeBytes": 924212,
+    "totalTestCases": 827,
+    "totalLines": 21354,
+    "totalSizeBytes": 926684,
     "suitesCount": 10
   },
   "suites": [
@@ -59,7 +59,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 34,
-      "testCases": 169,
+      "testCases": 172,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1029,12 +1029,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 6,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 21,
-      "sizeBytes": 4773,
-      "lineCount": 138,
-      "sha256": "2d97546b01174cbf9ac1e56c2b82e8e72ebf0ada750e6445c7d6b0a729751ec0",
+      "assertionCountEst": 37,
+      "sizeBytes": 7245,
+      "lineCount": 197,
+      "sha256": "9ee65ac047809771975b0640b899e6638426defc0e1f20cd7379b84519d4f201",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1050,27 +1050,39 @@
       "testCases": [
         {
           "name": "🌟 Controlador: sin clasificación se muestra todo el catálogo",
-          "line": 78
+          "line": 85
         },
         {
           "name": "🌟 Controlador: filtra por legendarios, míticos o ambos",
-          "line": 83
+          "line": 90
         },
         {
           "name": "🌟 Controlador: la clasificación crea un chip y viaja en la URL",
-          "line": 97
+          "line": 104
         },
         {
           "name": "🌟 Controlador: el chip y \"Limpiar filtros\" restablecen el selector",
-          "line": 107
+          "line": 114
         },
         {
           "name": "🌟 Controlador: la clasificación se restaura desde la URL y un valor inválido se ignora",
-          "line": 120
+          "line": 127
         },
         {
           "name": "🌟 Controlador: las tarjetas de especies especiales muestran su insignia",
-          "line": 133
+          "line": 140
+        },
+        {
+          "name": "📂 Panel: el contador y el nombre accesible reflejan los filtros avanzados activos",
+          "line": 150
+        },
+        {
+          "name": "📂 Panel: un filtro avanzado en la URL abre el panel y sin filtros avanzados no se fuerza",
+          "line": 170
+        },
+        {
+          "name": "📂 Panel: cambiar un filtro no abre ni cierra el panel por su cuenta",
+          "line": 188
         }
       ]
     },
