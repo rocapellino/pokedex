@@ -135,6 +135,9 @@ rules:
     paths:
       - "apps/frontend/**"
       - "scripts/generate-nginx-conf.mjs"
+      - "scripts/lighthouse-stack.ts"
+      - "scripts/lighthouse-summary.ts"
+      - "lighthouserc.json"
     triggers:
       frontend: true
       tests: true
