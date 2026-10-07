@@ -20,13 +20,14 @@ Este documento describe la arquitectura visual, estructura de componentes, esque
 
 ### 1.1. Catálogo Principal Pokédex
 
-El catálogo público ofrece exploración fluida, búsqueda en tiempo real, filtros por tipo elemental, selector de generaciones y métricas agregadas del universo Pokémon.
+El catálogo público ofrece exploración fluida, búsqueda en tiempo real, orden configurable, un panel de filtros (tipos, generación, megaevolución, clasificación, habilidad y estadística mínima) y métricas agregadas del universo Pokémon.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ 🔴 Pokédex Platform              [ 🔍 Buscar por nombre o tipo... ] ⚙️ │
+│ 🔴 Pokédex Platform                                                    │
 ├────────────────────────────────────────────────────────────────────────┤
-│ [ Todos ] [ Fuego ] [ Agua ] [ Planta ] [ Eléctrico ] [ Psíquico ] ... │
+│ [ 🔍 Buscar... ] Ordenar por [ Número ▾ ] [ ↑ Ascendente ] [ + Filtros ]│
+│ 12 resultados de 1025 Pokémon · Fuego ✕ · Volador ✕ · Limpiar filtros   │
 ├────────────────────────────────────────────────────────────────────────┤
 │ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌──────────────┐ │
 │ │ #001 Bulbasaur│ │ #004 Charmande│ │ #007 Squirtle │ │ #025 Pikachu │ │
@@ -37,8 +38,10 @@ El catálogo público ofrece exploración fluida, búsqueda en tiempo real, filt
 ```
 
 - **Barra de Navegación Unificada:** Identidad visual con Pokébola estilizada, selector de modo de tema (Claro / Oscuro / Sistema) y acceso directo al panel administrativo.
-- **Barra de Búsqueda & Filtros Dinámicos:** Entrada debounce de texto para filtrado instantáneo por nombre, tipo o habilidad, junto con selector multigenacional (Generaciones I a IX).
-- **Píldoras Elementales con Código Cromático:** Identificación inmediata de los 18 tipos elementales con colores armonizados y alto contraste.
+- **Barra de Búsqueda y Orden:** Entrada debounce de texto para filtrado instantáneo por nombre, tipo, habilidad o hábitat, selector de criterio de orden (número, nombre o estadísticas) y botón para invertir su sentido. El botón "+ Filtros" comparte línea con el buscador; en pantallas estrechas pasa junto al buscador y el orden baja a una segunda línea.
+- **Panel de Filtros:** Se despliega con el botón "+ Filtros", que muestra cuántos filtros hay activos. Agrupa generación, megaevolución, clasificación (legendarios y míticos), habilidad (con autocompletado), estadística mínima y tipos. Si la URL trae algún filtro del panel, este se abre solo.
+- **Desplegable de Tipos con Código Cromático:** Lista de casillas con un punto de color por cada uno de los 18 tipos elementales; permite elegir varios y exige tener todos los elegidos. Se cierra con Escape, al salir del foco o al pulsar fuera.
+- **Filtros Activos Visibles:** Bajo la barra se muestran siempre el recuento de resultados y un chip por cada filtro activo, con su ✕ y el botón "Limpiar filtros", aunque el panel esté cerrado.
 - **Bento de Métricas Globales:** Tarjetas de datos rápidos que calculan al vuelo el total de especímenes, fuerza máxima registrada, peso medio del ecosistema y cobertura de tipos.
 - **Tarjetas de Pokémon:** Jerarquía limpia con número de Pokédex oficial (#001), arte oficial en alta definición, badges de tipos, barras proporcionales de estadísticas y botón de interacción.
 

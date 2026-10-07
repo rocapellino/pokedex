@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **163** |
-| **Archivos de Test Automatizados** | 106 |
+| **Total de Archivos en `tests/`** | **164** |
+| **Archivos de Test Automatizados** | 107 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 56 |
-| **Total de Casos de Prueba Identificados** | **886** |
-| **Líneas de Código de Pruebas** | 24.368 |
-| **Tamaño Total de la Suite** | 1034.9 KB |
+| **Total de Casos de Prueba Identificados** | **898** |
+| **Líneas de Código de Pruebas** | 24.585 |
+| **Tamaño Total de la Suite** | 1043.6 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T18:43:27.548Z |
+| **Última Sincronización** | 2026-10-07T19:44:15.450Z |
 
 ---
 
@@ -31,8 +31,8 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 234 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 81 | 232 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
-| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 20 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 82 | 243 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 21 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
@@ -55,17 +55,18 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **14** | 339 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **15** | 365 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/catalog_ability_controller.test.ts`](../../tests/frontend/catalog_ability_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 199 | Suite de pruebas frontend: catalog_ability_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 197 | Suite de pruebas frontend: catalog_class_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 214 | Suite de pruebas frontend: catalog_class_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **24** | 447 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **24** | 452 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **12** | 141 | Suite de pruebas frontend: catalog_filters.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **11** | 170 | Suite de pruebas frontend: catalog_sort.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **15** | 138 | Suite de pruebas frontend: filter_url.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/filters_panel.test.ts`](../../tests/frontend/filters_panel.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 169 | Suite de pruebas frontend: filters_panel.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(Helper)* |
 | [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(Helper)* |
@@ -309,7 +310,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 232
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 243
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -317,13 +318,14 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/catalog_ability_controller.test.ts`](../../tests/frontend/catalog_ability_controller.test.ts) | **10** | 199 | Suite de pruebas frontend: catalog_ability_controller.test.ts. | *(General)* |
-| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | **9** | 197 | Suite de pruebas frontend: catalog_class_controller.test.ts. | *(General)* |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | **10** | 214 | Suite de pruebas frontend: catalog_class_controller.test.ts. | *(General)* |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | *(General)* |
-| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | **24** | 447 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | **24** | 452 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | *(General)* |
 | [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | **12** | 141 | Suite de pruebas frontend: catalog_filters.test.ts. | *(General)* |
 | [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | **11** | 170 | Suite de pruebas frontend: catalog_sort.test.ts. | *(General)* |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | *(General)* |
 | [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | **15** | 138 | Suite de pruebas frontend: filter_url.test.ts. | *(General)* |
+| [`tests/frontend/filters_panel.test.ts`](../../tests/frontend/filters_panel.test.ts) | **10** | 169 | Suite de pruebas frontend: filters_panel.test.ts. | *(General)* |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | *(General)* |
 | [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(General)* |
 | [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(General)* |
@@ -398,13 +400,13 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
 
-- **Runner:** `playwright` | **Comando:** `npm run test:e2e` | **Total Casos:** 20
+- **Runner:** `playwright` | **Comando:** `npm run test:e2e` | **Total Casos:** 21
 - **Propósito:** Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **14** | 339 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **15** | 365 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
 

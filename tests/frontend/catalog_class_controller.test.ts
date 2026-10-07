@@ -51,8 +51,8 @@ before(async () => {
     <select id="generationFilter"><option value="all">Todas</option></select>
     <input type="checkbox" id="megaFilter">
     <select id="sortFilter"><option value="id">Número</option></select>
-    <details id="moreFilters">
-      <summary><span>Más filtros</span><span id="moreFiltersCount" hidden></span></summary>
+    <button type="button" id="filtersToggle" aria-expanded="false"><span class="filters-toggle-icon">+</span><span>Filtros</span><span id="moreFiltersCount" hidden></span></button>
+    <div id="moreFilters" hidden>
       <select id="classFilter">
         <option value="">Todas</option>
         <option value="legendario">Legendarios</option>
@@ -61,7 +61,7 @@ before(async () => {
       </select>
       <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option></select>
       <input type="number" id="statMin">
-    </details>
+    </div>
     <div id="typePillsContainer"><button class="type-pill active" data-type="all" aria-pressed="true">Todos</button></div>
     <div id="activeFilters">
       <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
@@ -143,54 +143,71 @@ test('🌟 Controlador: las tarjetas de especies especiales muestran su insignia
   assert.deepEqual(badges, ['Legendario', 'Legendario', 'Mítico']);
 });
 
-const panel = () => doc.getElementById('moreFilters') as HTMLDetailsElement;
+const panel = () => doc.getElementById('moreFilters') as HTMLElement;
 const count = () => doc.getElementById('moreFiltersCount') as HTMLElement;
-const summary = () => doc.querySelector('#moreFilters > summary') as HTMLElement;
+const summary = () => doc.getElementById('filtersToggle') as HTMLElement;
 
 test('📂 Panel: el contador y el nombre accesible reflejan los filtros avanzados activos', () => {
   assert.equal(count().hidden, true);
-  assert.equal(summary().getAttribute('aria-label'), 'Más filtros');
+  assert.equal(summary().getAttribute('aria-label'), 'Filtros');
 
   choose('legendario');
   assert.equal(count().hidden, false);
   assert.equal(count().textContent, '1');
-  assert.equal(summary().getAttribute('aria-label'), 'Más filtros, 1 activos');
+  assert.equal(summary().getAttribute('aria-label'), 'Filtros, 1 activos');
 
   (doc.getElementById('statFilter') as HTMLSelectElement).value = 'speed';
   (doc.getElementById('statMin') as HTMLInputElement).value = '90';
   handleStatFilterChange();
   assert.equal(count().textContent, '2');
-  assert.equal(summary().getAttribute('aria-label'), 'Más filtros, 2 activos');
+  assert.equal(summary().getAttribute('aria-label'), 'Filtros, 2 activos');
 
   clearAllFilters();
   assert.equal(count().hidden, true);
-  assert.equal(summary().getAttribute('aria-label'), 'Más filtros');
+  assert.equal(summary().getAttribute('aria-label'), 'Filtros');
 });
 
 test('📂 Panel: un filtro avanzado en la URL abre el panel y sin filtros avanzados no se fuerza', async () => {
-  panel().open = false;
-  dom.window.history.replaceState(null, '', '/?tipo=psiquico');
+  panel().hidden = true;
+  dom.window.history.replaceState(null, '', '/?q=pika');
   await loadPokemons();
-  assert.equal(panel().open, false, 'filtros visibles no abren el panel');
+  assert.equal(!panel().hidden, false, 'la búsqueda está fuera del panel y no lo abre');
   assert.equal(count().hidden, true);
 
   dom.window.history.replaceState(null, '', '/?clase=mitico');
   await loadPokemons();
-  assert.equal(panel().open, true, 'un filtro oculto debe verse');
+  assert.equal(!panel().hidden, true, 'un filtro oculto debe verse');
   assert.equal(count().textContent, '1');
 
-  panel().open = false;
+  panel().hidden = true;
   dom.window.history.replaceState(null, '', '/?stat=speed&min=90');
   await loadPokemons();
-  assert.equal(panel().open, true);
+  assert.equal(!panel().hidden, true);
 });
 
 test('📂 Panel: cambiar un filtro no abre ni cierra el panel por su cuenta', () => {
-  panel().open = false;
+  panel().hidden = true;
   choose('especial');
-  assert.equal(panel().open, false);
+  assert.equal(!panel().hidden, false);
 
-  panel().open = true;
+  panel().hidden = false;
   clearAllFilters();
-  assert.equal(panel().open, true, 'limpiar filtros respeta la elección de la persona');
+  assert.equal(!panel().hidden, true, 'limpiar filtros respeta la elección de la persona');
+});
+
+test('📂 Panel: generación, megaevolución y tipos también cuentan y abren el panel al venir de la URL', async () => {
+  for (const [query, expected] of [
+    ['?gen=1', '1'],
+    ['?mega=1', '1'],
+    ['?tipo=fuego', '1'],
+    ['?tipo=fuego,volador', '1'],
+    ['?gen=2&mega=1&tipo=fuego,volador&clase=mitico', '4'],
+  ] as const) {
+    panel().hidden = true;
+    dom.window.history.replaceState(null, '', `/${query}`);
+    await loadPokemons();
+    assert.equal(!panel().hidden, true, `${query} debe abrir el panel`);
+    assert.equal(count().textContent, expected, query);
+    assert.equal(summary().getAttribute('aria-label'), `Filtros, ${expected} activos`);
+  }
 });

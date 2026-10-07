@@ -54,8 +54,8 @@ const catalog: Pokemon[] = [
 
 const originalFetch = globalThis.fetch;
 
-const pills = () => [...doc.querySelectorAll<HTMLElement>('.type-pill')];
-const pill = (type: string) => pills().find((p) => p.getAttribute('data-type') === type) as HTMLElement;
+const box = (type: string) => doc.querySelector(`#typeFilterList input[value="${type}"]`) as HTMLInputElement;
+const typeSummary = () => doc.getElementById('typeFilterSummary')?.textContent;
 const names = () => [...doc.querySelectorAll('.pokemon-card')].map((c) => c.getAttribute('data-pokemon-id'));
 const chips = () => [...doc.querySelectorAll('#activeFilterChips .filter-chip')].map((c) => c.textContent);
 const summary = () => doc.getElementById('resultsSummary')?.textContent;
@@ -78,11 +78,13 @@ before(async () => {
     <button type="button" id="sortDirection">↑ Ascendente</button>
     <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option><option value="total">Total</option></select>
     <input type="number" id="statMin">
-    <div id="typePillsContainer">
-      <button class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
-      <button class="type-pill" data-type="Fuego" aria-pressed="false">Fuego</button>
-      <button class="type-pill" data-type="Volador" aria-pressed="false">Volador</button>
-      <button class="type-pill" data-type="Planta" aria-pressed="false">Planta</button>
+    <div id="typeFilterField">
+      <button type="button" id="typeFilterToggle" aria-expanded="false"><span id="typeFilterSummary">Cualquier tipo</span></button>
+      <div id="typeFilterList" hidden>
+        <label><input type="checkbox" value="Fuego">Fuego</label>
+        <label><input type="checkbox" value="Volador">Volador</label>
+        <label><input type="checkbox" value="Planta">Planta</label>
+      </div>
     </div>
     <div id="activeFilters">
       <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
@@ -125,11 +127,12 @@ test('🔎 Controlador: sin filtros muestra todo el catálogo y oculta "Limpiar 
   assert.deepEqual(chips(), []);
 });
 
-test('🔎 Controlador: seleccionar varios tipos exige tenerlos todos y actualiza aria-pressed', () => {
+test('🔎 Controlador: seleccionar varios tipos exige tenerlos todos y refleja la selección en el desplegable', () => {
   toggleTypeFilter('Fuego');
   assert.deepEqual(names(), ['4', '6']);
-  assert.equal(pill('Fuego').getAttribute('aria-pressed'), 'true');
-  assert.equal(pill('all').getAttribute('aria-pressed'), 'false');
+  assert.equal(box('Fuego').checked, true);
+  assert.equal(box('Volador').checked, false);
+  assert.equal(typeSummary(), 'Fuego');
 
   toggleTypeFilter('Volador');
   assert.deepEqual(names(), ['6']);
@@ -137,18 +140,20 @@ test('🔎 Controlador: seleccionar varios tipos exige tenerlos todos y actualiz
   assert.equal(clearBtn().hidden, false);
   assert.equal(hasActiveFilters(), true);
   assert.deepEqual(chips(), ['Fuego✕', 'Volador✕']);
+  assert.equal(typeSummary(), 'Fuego, Volador');
 });
 
-test('🔎 Controlador: volver a pulsar un tipo lo quita y "Todos" limpia la selección', () => {
+test('🔎 Controlador: volver a elegir un tipo lo quita y "all" limpia la selección', () => {
   toggleTypeFilter('Fuego');
   toggleTypeFilter('fuego');
   assert.equal(names().length, catalog.length);
-  assert.equal(pill('all').getAttribute('aria-pressed'), 'true');
+  assert.equal(box('Fuego').checked, false);
+  assert.equal(typeSummary(), 'Cualquier tipo');
 
   toggleTypeFilter('Planta');
   toggleTypeFilter('all');
   assert.equal(names().length, catalog.length);
-  assert.equal(pill('Planta').classList.contains('active'), false);
+  assert.equal(box('Planta').checked, false);
 });
 
 test('🔎 Controlador: el chip de un tipo lo quita al pulsar su ✕', () => {
@@ -274,8 +279,8 @@ test('🔗 Controlador: una URL con filtros se restaura al cargar el catálogo',
   assert.equal(input().value, 'char');
   assert.equal((doc.getElementById('generationFilter') as HTMLSelectElement).value, '1');
   assert.equal((doc.getElementById('megaFilter') as HTMLInputElement).checked, true);
-  assert.equal(pill('Fuego').getAttribute('aria-pressed'), 'true');
-  assert.equal(pill('all').getAttribute('aria-pressed'), 'false');
+  assert.equal(box('Fuego').checked, true);
+  assert.equal(typeSummary(), 'Fuego');
   assert.equal(clearBtn().hidden, false);
 });
 
