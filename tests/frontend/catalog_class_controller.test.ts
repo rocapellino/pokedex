@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   clearAllFilters,
   handleClassFilterChange,
+  handleStatFilterChange,
   hasActiveFilters,
   initInteractiveListeners,
   loadPokemons,
@@ -49,12 +50,18 @@ before(async () => {
     <input id="searchInput">
     <select id="generationFilter"><option value="all">Todas</option></select>
     <input type="checkbox" id="megaFilter">
-    <select id="classFilter">
-      <option value="">Todas</option>
-      <option value="legendario">Legendarios</option>
-      <option value="mitico">Míticos</option>
-      <option value="especial">Legendarios y míticos</option>
-    </select>
+    <select id="sortFilter"><option value="id">Número</option></select>
+    <details id="moreFilters">
+      <summary><span>Más filtros</span><span id="moreFiltersCount" hidden></span></summary>
+      <select id="classFilter">
+        <option value="">Todas</option>
+        <option value="legendario">Legendarios</option>
+        <option value="mitico">Míticos</option>
+        <option value="especial">Legendarios y míticos</option>
+      </select>
+      <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option></select>
+      <input type="number" id="statMin">
+    </details>
     <div id="typePillsContainer"><button class="type-pill active" data-type="all" aria-pressed="true">Todos</button></div>
     <div id="activeFilters">
       <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
@@ -134,4 +141,56 @@ test('🌟 Controlador: las tarjetas de especies especiales muestran su insignia
   choose('especial');
   const badges = [...doc.querySelectorAll('.pokemon-card .class-badge')].map((b) => b.textContent);
   assert.deepEqual(badges, ['Legendario', 'Legendario', 'Mítico']);
+});
+
+const panel = () => doc.getElementById('moreFilters') as HTMLDetailsElement;
+const count = () => doc.getElementById('moreFiltersCount') as HTMLElement;
+const summary = () => doc.querySelector('#moreFilters > summary') as HTMLElement;
+
+test('📂 Panel: el contador y el nombre accesible reflejan los filtros avanzados activos', () => {
+  assert.equal(count().hidden, true);
+  assert.equal(summary().getAttribute('aria-label'), 'Más filtros');
+
+  choose('legendario');
+  assert.equal(count().hidden, false);
+  assert.equal(count().textContent, '1');
+  assert.equal(summary().getAttribute('aria-label'), 'Más filtros, 1 activos');
+
+  (doc.getElementById('statFilter') as HTMLSelectElement).value = 'speed';
+  (doc.getElementById('statMin') as HTMLInputElement).value = '90';
+  handleStatFilterChange();
+  assert.equal(count().textContent, '2');
+  assert.equal(summary().getAttribute('aria-label'), 'Más filtros, 2 activos');
+
+  clearAllFilters();
+  assert.equal(count().hidden, true);
+  assert.equal(summary().getAttribute('aria-label'), 'Más filtros');
+});
+
+test('📂 Panel: un filtro avanzado en la URL abre el panel y sin filtros avanzados no se fuerza', async () => {
+  panel().open = false;
+  dom.window.history.replaceState(null, '', '/?tipo=psiquico');
+  await loadPokemons();
+  assert.equal(panel().open, false, 'filtros visibles no abren el panel');
+  assert.equal(count().hidden, true);
+
+  dom.window.history.replaceState(null, '', '/?clase=mitico');
+  await loadPokemons();
+  assert.equal(panel().open, true, 'un filtro oculto debe verse');
+  assert.equal(count().textContent, '1');
+
+  panel().open = false;
+  dom.window.history.replaceState(null, '', '/?stat=speed&min=90');
+  await loadPokemons();
+  assert.equal(panel().open, true);
+});
+
+test('📂 Panel: cambiar un filtro no abre ni cierra el panel por su cuenta', () => {
+  panel().open = false;
+  choose('especial');
+  assert.equal(panel().open, false);
+
+  panel().open = true;
+  clearAllFilters();
+  assert.equal(panel().open, true, 'limpiar filtros respeta la elección de la persona');
 });
