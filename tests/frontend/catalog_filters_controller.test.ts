@@ -6,6 +6,7 @@ import {
   handleGenerationChange,
   handleMegaFilterChange,
   handleSortChange,
+  handleSortDirectionToggle,
   handleStatFilterChange,
   handleSearch,
   hasActiveFilters,
@@ -74,6 +75,7 @@ before(async () => {
     </select>
     <input type="checkbox" id="megaFilter">
     <select id="sortFilter"><option value="id">Número</option><option value="name">Nombre</option><option value="speed">Velocidad</option></select>
+    <button type="button" id="sortDirection">↑ Ascendente</button>
     <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option><option value="total">Total</option></select>
     <input type="number" id="statMin">
     <div id="typePillsContainer">
@@ -366,4 +368,79 @@ test('📊 Controlador: orden y estadística se restauran desde la URL y una URL
   assert.equal(names().length, catalog.length);
   assert.equal(sortSelect().value, 'id');
   assert.equal(search(), '');
+});
+
+const dirButton = () => doc.getElementById('sortDirection') as HTMLButtonElement;
+
+test('↕️ Controlador: el botón invierte el sentido, actualiza su texto y se refleja en la URL', () => {
+  assert.equal(dirButton().textContent, '↑ Ascendente');
+
+  dirButton().click();
+  assert.deepEqual(names(), ['152', '25', '16', '6', '4']);
+  assert.equal(dirButton().textContent, '↓ Descendente');
+  assert.match(dirButton().getAttribute('aria-label') ?? '', /descendente/);
+  assert.equal(search(), '?dir=desc');
+
+  dirButton().click();
+  assert.deepEqual(names(), ['4', '6', '16', '25', '152']);
+  assert.equal(dirButton().textContent, '↑ Ascendente');
+  assert.equal(search(), '');
+});
+
+test('↕️ Controlador: una estadística nace de mayor a menor y se puede invertir', () => {
+  sortSelect().value = 'speed';
+  handleSortChange();
+  assert.deepEqual(names(), ['6', '25', '4', '16', '152']);
+  assert.equal(dirButton().textContent, '↓ Descendente');
+  assert.equal(search(), '?orden=speed');
+
+  handleSortDirectionToggle();
+  assert.deepEqual(names(), ['152', '16', '4', '25', '6']);
+  assert.equal(dirButton().textContent, '↑ Ascendente');
+  assert.equal(search(), '?orden=speed&dir=asc');
+});
+
+test('↕️ Controlador: cambiar de criterio vuelve al sentido natural del nuevo criterio', () => {
+  sortSelect().value = 'speed';
+  handleSortChange();
+  handleSortDirectionToggle();
+  assert.equal(dirButton().textContent, '↑ Ascendente');
+
+  sortSelect().value = 'name';
+  handleSortChange();
+  assert.equal(dirButton().textContent, '↑ Ascendente', 'el nombre es ascendente por defecto');
+  assert.deepEqual(names(), ['6', '4', '152', '16', '25']);
+  assert.equal(search(), '?orden=name');
+
+  handleSortDirectionToggle();
+  sortSelect().value = 'speed';
+  handleSortChange();
+  assert.equal(dirButton().textContent, '↓ Descendente');
+});
+
+test('↕️ Controlador: "Limpiar filtros" conserva el criterio y el sentido elegidos', () => {
+  sortSelect().value = 'name';
+  handleSortChange();
+  handleSortDirectionToggle();
+  toggleTypeFilter('Fuego');
+
+  clearAllFilters();
+  assert.equal(sortSelect().value, 'name');
+  assert.equal(dirButton().textContent, '↓ Descendente');
+  assert.deepEqual(names(), ['25', '16', '152', '4', '6']);
+  assert.equal(search(), '?orden=name&dir=desc');
+});
+
+test('↕️ Controlador: criterio y sentido se restauran desde la URL y un sentido inválido se ignora', async () => {
+  dom.window.history.replaceState(null, '', '/?orden=speed&dir=asc');
+  await loadPokemons();
+  assert.equal(sortSelect().value, 'speed');
+  assert.equal(dirButton().textContent, '↑ Ascendente');
+  assert.deepEqual(names(), ['152', '16', '4', '25', '6']);
+
+  dom.window.history.replaceState(null, '', '/?orden=speed&dir=sideways');
+  await loadPokemons();
+  assert.equal(dirButton().textContent, '↓ Descendente');
+  assert.deepEqual(names(), ['6', '25', '4', '16', '152']);
+  assert.equal(search(), '?orden=speed');
 });

@@ -24,12 +24,14 @@ import {
 } from './shared/catalog-filters.js';
 import { parseFilterParams, serializeFilterParams, type FilterState } from './shared/filter-url.js';
 import {
+  defaultSortDirection,
   isSortKey,
   isStatKey,
   MAX_STAT_MIN,
   sortPokemons,
   STAT_LABELS,
   type MinStat,
+  type SortDirection,
   type SortKey,
 } from './shared/catalog-sort.js';
 import {
@@ -53,6 +55,7 @@ let searchQuery = '';
 let minStat: MinStat | null = null;
 let classification: ClassificationFilter | null = null;
 let currentSort: SortKey = 'id';
+let currentSortDir: SortDirection = 'asc';
 
 const CLASSIFICATION_CHIP_LABELS: Record<ClassificationFilter, string> = {
   legendario: 'Legendarios',
@@ -96,12 +99,14 @@ export function applyFilters(): void {
   filteredPokemons = sortPokemons(
     allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
     currentSort,
+    currentSortDir,
   );
 
   currentPage = 1;
   renderPokemons();
   updateStats(filteredPokemons);
   renderActiveFilters();
+  renderSortDirection();
   syncFiltersToUrl();
 }
 
@@ -114,6 +119,7 @@ function currentFilterState(): FilterState {
     minStat,
     clasificacion: classification,
     sort: currentSort,
+    dir: currentSortDir,
   };
 }
 
@@ -134,6 +140,7 @@ export function restoreFiltersFromUrl(): void {
   minStat = state.minStat;
   classification = state.clasificacion;
   currentSort = state.sort;
+  currentSortDir = state.dir;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = searchQuery;
@@ -188,10 +195,25 @@ function syncStatControls(): void {
   if (min) min.value = minStat ? String(minStat.min) : '';
 }
 
+/** Al cambiar de criterio se vuelve a su sentido natural; invertirlo es una decisión posterior. */
 export function handleSortChange(): void {
   const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
   currentSort = isSortKey(select?.value) ? select.value : 'id';
+  currentSortDir = defaultSortDirection(currentSort);
   applyFilters();
+}
+
+export function handleSortDirectionToggle(): void {
+  currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+  applyFilters();
+}
+
+function renderSortDirection(): void {
+  const button = document.getElementById('sortDirection');
+  if (!button) return;
+  const text = currentSortDir === 'asc' ? 'Ascendente' : 'Descendente';
+  button.textContent = `${currentSortDir === 'asc' ? '↑' : '↓'} ${text}`;
+  button.setAttribute('aria-label', `Sentido del orden: ${text.toLowerCase()}. Pulsar para invertirlo`);
 }
 
 /** Lee la estadística y el mínimo de los controles; sin ambos (o con mínimo 0) el filtro queda desactivado. */
@@ -488,6 +510,7 @@ export function initInteractiveListeners(): void {
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
   document.getElementById('classFilter')?.addEventListener('change', handleClassFilterChange);
   document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
+  document.getElementById('sortDirection')?.addEventListener('click', handleSortDirectionToggle);
   document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);
   document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);
 
