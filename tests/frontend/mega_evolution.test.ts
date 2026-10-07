@@ -82,7 +82,7 @@ test('🧬 UI Mega: sin estadísticas base no inventa diferencias', () => {
 test('🧬 UI Mega: un Pokémon sin megaevolución no renderiza la sección', () => {
   assert.equal(String(renderMegaEvolutionSection(pikachu)), '');
   assert.equal(String(renderMegaEvolutionSection({ ...pikachu, megaevoluciones: [] })), '');
-  assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-section/);
+  assert.doesNotMatch(String(renderDetailModalContent(pikachu)), /mega-section/);
 });
 
 test('🧬 UI Mega: varias formas generan una pestaña por forma y solo la primera visible', () => {
@@ -193,7 +193,7 @@ test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y a
 test('🧬 UI Mega: sin megaevolución no hay botón ni despliegue', () => {
   assert.equal(String(renderMegaToggle(pikachu)), '');
   assert.equal(String(renderMegaDisclosureBody(pikachu)), '');
-  assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-toggle|mega-disclosure/);
+  assert.doesNotMatch(String(renderDetailModalContent(pikachu)), /mega-toggle|mega-disclosure/);
 });
 
 test('🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega', () => {

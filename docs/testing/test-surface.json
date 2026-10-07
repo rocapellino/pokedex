@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T14:17:53.625Z",
+  "generatedAt": "2026-10-07T14:30:34.069Z",
   "summary": {
-    "totalFiles": 150,
-    "testFiles": 99,
-    "helperFiles": 50,
+    "totalFiles": 152,
+    "testFiles": 100,
+    "helperFiles": 51,
     "performanceScripts": 1,
-    "totalTestCases": 825,
-    "totalLines": 23318,
-    "totalSizeBytes": 1017530,
+    "totalTestCases": 831,
+    "totalLines": 23459,
+    "totalSizeBytes": 1023097,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 68,
-      "testCases": 170,
+      "files": 70,
+      "testCases": 176,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -2360,6 +2360,26 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/html_assertions.ts",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1389,
+      "lineCount": 27,
+      "sha256": "7a85edacba8343e10d7813c91da93af3fcbb24784c535b0cfce421de6283c263",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: html_assertions.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
       "path": "tests/frontend/html_fixtures.ts",
       "suite": "frontend",
       "type": "Helper",
@@ -2380,6 +2400,57 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/html_injection_modals.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 3,
+      "sizeBytes": 4903,
+      "lineCount": 125,
+      "sha256": "f1e62b9a92dc66324036120e64c2bd94fab378c123d53b076fc4e5a3aabb7158",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_injection_modals.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Modales: el modal de detalle completo neutraliza todos los campos hostiles",
+          "line": 60
+        },
+        {
+          "name": "🛡️ Modales: los nodos y conectores de evolución neutralizan nombre, método, imagen e id",
+          "line": 64
+        },
+        {
+          "name": "🛡️ Modales: todas las variantes de la cadena evolutiva neutralizan los nodos hostiles",
+          "line": 70
+        },
+        {
+          "name": "🛡️ Modales: las megaevoluciones neutralizan nombre, imagen, tipos, habilidades y estadísticas",
+          "line": 100
+        },
+        {
+          "name": "🛡️ Modales: las estadísticas base con valores no numéricos no inyectan marcado",
+          "line": 111
+        },
+        {
+          "name": "🛡️ Modales: los datos legítimos con caracteres especiales no se escapan dos veces",
+          "line": 115
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/html_injection.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -2387,10 +2458,10 @@
       "runner": "node:test (tsx)",
       "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 6,
-      "sizeBytes": 3552,
-      "lineCount": 78,
-      "sha256": "b0c502b4760423c11ed265e7de2ff9c77ad446b35e4e37d218ec746ad50a8cd5",
+      "assertionCountEst": 3,
+      "sizeBytes": 2433,
+      "lineCount": 57,
+      "sha256": "a10a03b37395671fdd3bc92d41218a4608d4efc25a2463da6594e19747fb78d1",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2406,19 +2477,19 @@
       "testCases": [
         {
           "name": "🛡️ Render: la tarjeta neutraliza campos hostiles, incluidos los numéricos",
-          "line": 50
+          "line": 29
         },
         {
           "name": "🛡️ Render: la tabla del backoffice neutraliza campos hostiles, incluidos id, fuerza, peso y altura",
-          "line": 54
+          "line": 33
         },
         {
           "name": "🛡️ Render: las insignias y el estado vacío neutralizan el texto recibido",
-          "line": 60
+          "line": 39
         },
         {
           "name": "🛡️ Render: los datos legítimos con caracteres especiales se muestran sin doble escapado",
-          "line": 71
+          "line": 50
         }
       ]
     },
@@ -2548,9 +2619,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 24,
-      "sizeBytes": 4678,
-      "lineCount": 94,
-      "sha256": "b1d7eb877413c30d8f3563f495eb612003780632e078bf81e71e5a4a97dac9e7",
+      "sizeBytes": 4720,
+      "lineCount": 98,
+      "sha256": "74fa9c41a989b8838a930140d0a3f63ca8caaf4d472f9a59557ad1ae18b77965",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2582,15 +2653,15 @@
         },
         {
           "name": "⌨️ Ficha: el título recibe el foco al cargar otra ficha (tabindex=\"-1\")",
-          "line": 69
+          "line": 73
         },
         {
           "name": "⌨️ Sanitizador: conserva tabindex, aria-current y aria-hidden pero sigue eliminando manejadores y style",
-          "line": 74
+          "line": 78
         },
         {
           "name": "⌨️ CSS: la tarjeta entera es clicable y el foco es visible",
-          "line": 88
+          "line": 92
         }
       ]
     },
@@ -2666,9 +2737,9 @@
       "testCount": 22,
       "describeCount": 0,
       "assertionCountEst": 77,
-      "sizeBytes": 12119,
+      "sizeBytes": 12276,
       "lineCount": 266,
-      "sha256": "8a9bb7319cbb1367abc1c1f2773beb39fd165627d5dcc5a70eb41cce8e046fa1",
+      "sha256": "bd3838dc778b0a891c883a495693937e6d0309be63563130e0ce7dab62dd8581",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -2781,9 +2852,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 96,
-      "sizeBytes": 12934,
-      "lineCount": 335,
-      "sha256": "b26e687a6facb068d9f3b6636f2893e4ddb31a7d829ea48cfff31e0fc2f0053d",
+      "sizeBytes": 13129,
+      "lineCount": 341,
+      "sha256": "4b835c7a74db1d39c49788b5fb04c0eb90499855eb0e3f0446fb7a91f0014552",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -2866,15 +2937,15 @@
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks",
-          "line": 224
+          "line": 226
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales",
-          "line": 254
+          "line": 260
         },
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
-          "line": 322
+          "line": 328
         }
       ]
     },

@@ -71,7 +71,7 @@ test('⌨️ Nodo de evolución: es operable con teclado y el actual solo se mar
 });
 
 test('⌨️ Ficha: el título recibe el foco al cargar otra ficha (tabindex="-1")', () => {
-  const doc = parse(sanitizeHtml(renderDetailModalContent(pikachu, [pikachu])));
+  const doc = parse(sanitizeHtml(String(renderDetailModalContent(pikachu, [pikachu]))));
   assert.equal(doc.querySelector('h2.pokedex-notched-title')?.getAttribute('tabindex'), '-1');
 });
 
