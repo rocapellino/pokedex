@@ -6,7 +6,15 @@
 import type { Pokemon } from '../types.js';
 import { getGeneration, normalizeStr } from './formatters.js';
 import { getStatValue, type MinStat } from './catalog-sort.js';
-import { hasMegaEvolution } from './pokemon-types.js';
+import { getClassification, hasMegaEvolution } from './pokemon-types.js';
+
+/** Filtro de clasificación: una clase concreta o `especial` (legendarios y míticos). */
+export const CLASSIFICATION_FILTERS = ['legendario', 'mitico', 'especial'] as const;
+export type ClassificationFilter = (typeof CLASSIFICATION_FILTERS)[number];
+
+export function isClassificationFilter(value: unknown): value is ClassificationFilter {
+  return (CLASSIFICATION_FILTERS as readonly unknown[]).includes(value);
+}
 
 export interface CatalogFilters {
   /** Texto de búsqueda sin normalizar. */
@@ -19,6 +27,8 @@ export interface CatalogFilters {
   onlyWithMega: boolean;
   /** Estadística mínima exigida; `null` o ausente no filtra. Los Pokémon sin ese dato quedan fuera. */
   minStat?: MinStat | null;
+  /** Solo legendarios, solo míticos o ambos (`especial`); `null` o ausente no filtra. */
+  clasificacion?: ClassificationFilter | null;
 }
 
 interface NormalizedEntry {
@@ -70,5 +80,10 @@ export function matchesCatalogFilters(p: Pokemon, filters: CatalogFilters): bool
   const stat = filters.minStat ? getStatValue(p, filters.minStat.key) : undefined;
   const matchesStat = !filters.minStat || (stat !== undefined && stat >= filters.minStat.min);
 
-  return matchesSearch && matchesTypes && matchesGen && matchesMega && matchesStat;
+  const clase = filters.clasificacion ? getClassification(p) : undefined;
+  const matchesClass =
+    !filters.clasificacion ||
+    (clase !== undefined && (filters.clasificacion === 'especial' || filters.clasificacion === clase));
+
+  return matchesSearch && matchesTypes && matchesGen && matchesMega && matchesStat && matchesClass;
 }

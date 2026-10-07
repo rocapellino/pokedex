@@ -49,6 +49,11 @@ export interface MegaEvolution {
   altura: number;
 }
 
+/** Clasificación especial de una especie, tal como la publica PokeAPI (`is_legendary` / `is_mythical`). */
+export type PokemonClassification = 'legendario' | 'mitico';
+
+export const POKEMON_CLASSIFICATIONS: readonly PokemonClassification[] = ['legendario', 'mitico'];
+
 export interface Pokemon {
   id: number;
   nombre: string;
@@ -66,5 +71,7 @@ export interface Pokemon {
   evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode; es_ramificada?: boolean };
   /** Solo lectura: se carga desde el catálogo y la API no permite editarla. */
   megaevoluciones?: MegaEvolution[];
+  /** Solo lectura: `legendario` o `mitico` según PokeAPI; ausente en el resto de especies. */
+  clasificacion?: PokemonClassification;
   [key: string]: unknown;
 }

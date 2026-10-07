@@ -1851,6 +1851,24 @@ body {
   letter-spacing: 0.04em;
 }
 
+.class-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.class-badge--legendario {
+  background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+}
+
+.class-badge--mitico {
+  background: linear-gradient(135deg, #be185d 0%, #9d174d 100%);
+}
+
 .mega-filter {
   display: inline-flex;
   align-items: center;

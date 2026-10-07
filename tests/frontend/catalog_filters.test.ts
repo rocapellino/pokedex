@@ -60,3 +60,31 @@ test('🔎 Filtros: el índice normalizado en caché no vuelve obsoleto el resul
   assert.equal(matchesCatalogFilters(charizard, { ...base, searchQuery: 'pidg' }), false);
   assert.equal(matchesCatalogFilters(charizard, { ...base, searchQuery: 'char' }), true);
 });
+
+test('🌟 Filtros: la clasificación distingue legendarios, míticos y ambos', () => {
+  const legendary: Pokemon = { ...charizard, id: 150, nombre: 'Mewtwo', clasificacion: 'legendario' };
+  const mythical: Pokemon = { ...charizard, id: 151, nombre: 'Mew', clasificacion: 'mitico' };
+  const common = charizard;
+
+  const only = (clasificacion: CatalogFilters['clasificacion']) => ({ ...base, clasificacion });
+
+  assert.deepEqual(
+    [legendary, mythical, common].map((p) => matchesCatalogFilters(p, only('legendario'))),
+    [true, false, false],
+  );
+  assert.deepEqual(
+    [legendary, mythical, common].map((p) => matchesCatalogFilters(p, only('mitico'))),
+    [false, true, false],
+  );
+  assert.deepEqual(
+    [legendary, mythical, common].map((p) => matchesCatalogFilters(p, only('especial'))),
+    [true, true, false],
+  );
+  assert.equal(matchesCatalogFilters(common, only(null)), true);
+  assert.equal(matchesCatalogFilters(common, base), true);
+});
+
+test('🌟 Filtros: un valor de clasificación inválido en los datos no cuenta como legendario', () => {
+  const forged = { ...charizard, clasificacion: 'raro' } as unknown as Pokemon;
+  assert.equal(matchesCatalogFilters(forged, { ...base, clasificacion: 'especial' }), false);
+});

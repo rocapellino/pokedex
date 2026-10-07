@@ -245,3 +245,19 @@ test('🧬 UI Mega: el filtro "con megaevolución" se combina con búsqueda, tip
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, types: ['Volador'] }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, generation: '2' }), false);
 });
+
+test('🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos', () => {
+  assert.match(
+    renderPokemonCard({ ...pikachu, clasificacion: 'legendario' }),
+    /class-badge class-badge--legendario"[^>]*>Legendario</,
+  );
+  assert.match(
+    renderPokemonCard({ ...pikachu, clasificacion: 'mitico' }),
+    /class-badge class-badge--mitico"[^>]*>Mítico</,
+  );
+  assert.doesNotMatch(renderPokemonCard(pikachu), /class-badge/);
+  assert.doesNotMatch(
+    renderPokemonCard({ ...pikachu, clasificacion: 'x"><script>' } as unknown as Pokemon),
+    /class-badge|<script>/,
+  );
+});

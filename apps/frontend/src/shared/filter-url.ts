@@ -1,10 +1,11 @@
 /**
- * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&orden=`).
+ * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&orden=`).
  * Son funciones puras: el controlador decide cuándo leer y cuándo escribir la URL.
  * Lo que llega de la URL es entrada no confiable, así que se valida contra los valores conocidos.
  */
 
 import { TYPE_COLORS } from './constants.js';
+import { isClassificationFilter, type ClassificationFilter } from './catalog-filters.js';
 import { isSortKey, isStatKey, MAX_STAT_MIN, type MinStat, type SortKey } from './catalog-sort.js';
 import { normalizeStr } from './formatters.js';
 
@@ -16,6 +17,7 @@ export interface FilterState {
   generation: string;
   onlyWithMega: boolean;
   minStat: MinStat | null;
+  clasificacion: ClassificationFilter | null;
   sort: SortKey;
 }
 
@@ -25,6 +27,7 @@ export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
   generation: 'all',
   onlyWithMega: false,
   minStat: null,
+  clasificacion: null,
   sort: 'id',
 };
 
@@ -54,6 +57,7 @@ export function parseFilterParams(search: string): FilterState {
     isStatKey(statKey) && statMin >= 1 && statMin <= MAX_STAT_MIN ? { key: statKey, min: statMin } : null;
 
   const sort = params.get('orden');
+  const clase = params.get('clase');
 
   return {
     searchQuery,
@@ -61,6 +65,7 @@ export function parseFilterParams(search: string): FilterState {
     generation,
     onlyWithMega: params.get('mega') === '1',
     minStat,
+    clasificacion: isClassificationFilter(clase) ? clase : null,
     sort: isSortKey(sort) ? sort : 'id',
   };
 }
@@ -77,6 +82,7 @@ export function serializeFilterParams(state: FilterState): string {
     params.set('stat', state.minStat.key);
     params.set('min', String(state.minStat.min));
   }
+  if (state.clasificacion) params.set('clase', state.clasificacion);
   if (state.sort !== 'id') params.set('orden', state.sort);
 
   const text = params.toString();

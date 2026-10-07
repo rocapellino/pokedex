@@ -170,7 +170,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 
 - **Ruta:** `GET /pokemons/:id`
 - **Parámetros de Ruta:** `:id` (Entero positivo, ej: `25`).
-- **Respuesta Exitosa (`200 OK`):** Objeto Pokémon completo. Si la especie tiene megaevoluciones, incluye `megaevoluciones` (ver [sección 9](#9-esquema-de-datos-de-pokémon-typescript-interfaces)); es un campo de solo lectura.
+- **Respuesta Exitosa (`200 OK`):** Objeto Pokémon completo. Si la especie tiene megaevoluciones, incluye `megaevoluciones`, y si es legendaria o mítica, `clasificacion` (ver [sección 9](#9-esquema-de-datos-de-pokémon-typescript-interfaces)); ambos son campos de solo lectura.
 - **Respuesta de Error (`404 Not Found`):**
 
   ```json
@@ -229,7 +229,7 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
 - **Rate Limit:** 30 solicitudes/minuto.
 - **Descripción:** Actualiza de forma parcial o total las propiedades de un Pokémon, persiste los cambios en PostgreSQL e invalida inmediatamente las claves de caché de Redis (`pokedex:list:*`).
 - **Respuesta Exitosa (`200 OK`):** Objeto Pokémon actualizado.
-- **Campo de solo lectura:** `megaevoluciones` proviene del catálogo y no se puede crear, editar ni borrar desde la API: se ignora en `POST` y se conserva sin cambios en `PUT`.
+- **Campos de solo lectura:** `megaevoluciones` y `clasificacion` provienen del catálogo y no se pueden crear, editar ni borrar desde la API: se ignoran en `POST` y se conservan sin cambios en `PUT`.
 
 ---
 
@@ -394,6 +394,7 @@ export interface Pokemon {
   stats?: PokemonStats;
   evoluciones?: any;
   megaevoluciones?: MegaEvolution[]; // Hasta 6, solo lectura
+  clasificacion?: 'legendario' | 'mitico'; // Según PokeAPI; ausente en el resto de especies, solo lectura
 }
 ```
 

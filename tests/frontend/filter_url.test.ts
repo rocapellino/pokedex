@@ -18,6 +18,7 @@ test('🔗 URL: lee búsqueda, tipos, generación y megaevolución', () => {
     generation: '1',
     onlyWithMega: true,
     minStat: null,
+    clasificacion: null,
     sort: 'id',
   });
 });
@@ -47,10 +48,11 @@ test('🔗 URL: serializar y volver a leer conserva el estado', () => {
     generation: '3',
     onlyWithMega: true,
     minStat: null,
+    clasificacion: 'mitico' as const,
     sort: 'id' as const,
   };
   const search = serializeFilterParams(state);
-  assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1');
+  assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1&clase=mitico');
   assert.deepEqual(parseFilterParams(search), state);
 });
 
@@ -74,4 +76,15 @@ test('🔗 URL: descarta estadísticas, mínimos y órdenes inválidos', () => {
   assert.equal(parseFilterParams('?stat=speed&min=abc').minStat, null);
   assert.equal(parseFilterParams('?orden=__proto__').sort, 'id');
   assert.equal(parseFilterParams('?orden=desc').sort, 'id');
+});
+
+test('🔗 URL: lee y serializa la clasificación y descarta valores inválidos', () => {
+  for (const clase of ['legendario', 'mitico', 'especial'] as const) {
+    const state = parseFilterParams(`?clase=${clase}`);
+    assert.equal(state.clasificacion, clase);
+    assert.equal(serializeFilterParams(state), `?clase=${clase}`);
+  }
+  assert.equal(parseFilterParams('?clase=raro').clasificacion, null);
+  assert.equal(parseFilterParams('?clase=__proto__').clasificacion, null);
+  assert.equal(parseFilterParams('?clase=').clasificacion, null);
 });
