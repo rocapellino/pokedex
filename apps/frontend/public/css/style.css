@@ -923,6 +923,86 @@ body {
   box-shadow: 0 0 12px var(--accent-red-glow);
 }
 
+/* Resumen de resultados y chips de filtros activos */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: -1rem 0 1.5rem;
+}
+
+.results-summary {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.3rem 0.2rem 0.75rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.filter-chip-remove,
+.btn-clear-filters {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.filter-chip-remove {
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.filter-chip-remove:hover,
+.filter-chip-remove:focus-visible {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+.btn-clear-filters {
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--accent-blue);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-clear-filters:hover,
+.btn-clear-filters:focus-visible {
+  background: var(--bg-glass-hover);
+}
+
+.btn-clear-filters[hidden] {
+  display: none;
+}
+
 /* Badges & Card Enhancements */
 .gen-badge {
   font-size: 0.75rem;

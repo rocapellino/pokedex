@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **94** |
-| **Archivos de Test Automatizados** | 88 |
+| **Total de Archivos en `tests/`** | **96** |
+| **Archivos de Test Automatizados** | 90 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **742** |
-| **Líneas de Código de Pruebas** | 19.520 |
-| **Tamaño Total de la Suite** | 833.4 KB |
+| **Total de Casos de Prueba Identificados** | **757** |
+| **Líneas de Código de Pruebas** | 19.807 |
+| **Tamaño Total de la Suite** | 844.5 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T01:21:28.112Z |
+| **Última Sincronización** | 2026-10-07T01:42:01.050Z |
 
 ---
 
@@ -31,7 +31,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 13 | 102 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 15 | 117 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 13 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -59,6 +59,8 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 224 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 63 | Suite de pruebas frontend: catalog_filters.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -239,7 +241,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 102
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 117
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -247,6 +249,8 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | **9** | 224 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | **6** | 63 | Suite de pruebas frontend: catalog_filters.test.ts. | *(General)* |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | *(General)* |
 | [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |

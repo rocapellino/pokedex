@@ -1,5 +1,5 @@
 /**
- * Predicado de filtrado del catálogo público (búsqueda, tipo, generación y megaevolución).
+ * Predicado de filtrado del catálogo público (búsqueda, tipos, generación y megaevolución).
  * Es una función pura: el controlador solo conserva el estado de los filtros.
  */
 
@@ -10,37 +10,59 @@ import { hasMegaEvolution } from './pokemon-types.js';
 export interface CatalogFilters {
   /** Texto de búsqueda sin normalizar. */
   searchQuery: string;
-  /** Tipo seleccionado o `all`. */
-  type: string;
+  /** Tipos seleccionados; el Pokémon debe tenerlos todos. Vacío equivale a no filtrar. */
+  types: readonly string[];
   /** Generación seleccionada (número como texto) o `all`. */
   generation: string;
   /** Si es `true`, solo Pokémon con al menos una megaevolución. */
   onlyWithMega: boolean;
 }
 
+interface NormalizedEntry {
+  /** Campos buscables ya normalizados (nombre, tipos, habilidades, hábitat). */
+  haystack: string[];
+  /** Tipos normalizados del Pokémon. */
+  types: Set<string>;
+  id: string;
+}
+
+const entryCache = new WeakMap<Pokemon, NormalizedEntry>();
+
+function buildEntry(p: Pokemon): NormalizedEntry {
+  const types = new Set<string>();
+  if (p.tipo) types.add(normalizeStr(p.tipo));
+  if (Array.isArray(p.tipos)) for (const t of p.tipos) types.add(normalizeStr(t));
+
+  const haystack = [normalizeStr(p.nombre), ...types];
+  if (Array.isArray(p.habilidades)) for (const h of p.habilidades) haystack.push(normalizeStr(h));
+  else if (typeof p.habilidades === 'string') haystack.push(normalizeStr(p.habilidades));
+  if (p.caracteristicas?.habitat) haystack.push(normalizeStr(p.caracteristicas.habitat));
+  if (typeof p.habitat === 'string') haystack.push(normalizeStr(p.habitat));
+
+  return { haystack, types, id: String(p.id) };
+}
+
+/** Devuelve el índice normalizado del Pokémon, calculándolo una sola vez por objeto. */
+function getEntry(p: Pokemon): NormalizedEntry {
+  let entry = entryCache.get(p);
+  if (!entry) {
+    entry = buildEntry(p);
+    entryCache.set(p, entry);
+  }
+  return entry;
+}
+
 export function matchesCatalogFilters(p: Pokemon, filters: CatalogFilters): boolean {
+  const entry = getEntry(p);
   const term = normalizeStr(filters.searchQuery);
-  const targetType = normalizeStr(filters.type);
 
-  const matchesSearch =
-    !term ||
-    normalizeStr(p.nombre).includes(term) ||
-    normalizeStr(p.tipo).includes(term) ||
-    (Array.isArray(p.tipos) && p.tipos.some((t) => normalizeStr(t).includes(term))) ||
-    (Array.isArray(p.habilidades) && p.habilidades.some((h) => normalizeStr(h).includes(term))) ||
-    (typeof p.habilidades === 'string' && normalizeStr(p.habilidades).includes(term)) ||
-    (p.caracteristicas?.habitat && normalizeStr(p.caracteristicas.habitat).includes(term)) ||
-    (typeof p.habitat === 'string' && normalizeStr(p.habitat).includes(term)) ||
-    String(p.id).includes(term);
+  const matchesSearch = !term || entry.id.includes(term) || entry.haystack.some((field) => field.includes(term));
 
-  const matchesType =
-    filters.type === 'all' ||
-    normalizeStr(p.tipo) === targetType ||
-    (Array.isArray(p.tipos) && p.tipos.some((t) => normalizeStr(t) === targetType));
+  const matchesTypes = filters.types.every((t) => entry.types.has(normalizeStr(t)));
 
   const matchesGen = filters.generation === 'all' || getGeneration(p.id) === Number.parseInt(filters.generation, 10);
 
   const matchesMega = !filters.onlyWithMega || hasMegaEvolution(p);
 
-  return Boolean(matchesSearch) && matchesType && matchesGen && matchesMega;
+  return matchesSearch && matchesTypes && matchesGen && matchesMega;
 }
