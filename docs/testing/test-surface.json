@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T13:11:23.084Z",
+  "generatedAt": "2026-10-07T13:36:18.687Z",
   "summary": {
-    "totalFiles": 99,
-    "testFiles": 93,
+    "totalFiles": 101,
+    "testFiles": 95,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 788,
-    "totalLines": 20261,
-    "totalSizeBytes": 883018,
+    "totalTestCases": 812,
+    "totalLines": 20641,
+    "totalSizeBytes": 898960,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 19,
-      "testCases": 126,
+      "files": 20,
+      "testCases": 140,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 18,
-      "testCases": 147,
+      "files": 19,
+      "testCases": 157,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -788,9 +788,9 @@
       "testCount": 13,
       "describeCount": 1,
       "assertionCountEst": 59,
-      "sizeBytes": 12249,
-      "lineCount": 273,
-      "sha256": "4ecae91a925e3f866f6843eeae9d522df3c30f1a181dcca001ca94c23958bafd",
+      "sizeBytes": 12408,
+      "lineCount": 274,
+      "sha256": "3b128045801dc6742ad921ccb35ee7b99dfa68ca0a015799e17c8bf5e6b578c5",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -852,11 +852,11 @@
         },
         {
           "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 243
+          "line": 244
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 262
+          "line": 263
         }
       ]
     },
@@ -1024,6 +1024,57 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/catalog_class_controller.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 21,
+      "sizeBytes": 4773,
+      "lineCount": 138,
+      "sha256": "2d97546b01174cbf9ac1e56c2b82e8e72ebf0ada750e6445c7d6b0a729751ec0",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_class_controller.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌟 Controlador: sin clasificación se muestra todo el catálogo",
+          "line": 78
+        },
+        {
+          "name": "🌟 Controlador: filtra por legendarios, míticos o ambos",
+          "line": 83
+        },
+        {
+          "name": "🌟 Controlador: la clasificación crea un chip y viaja en la URL",
+          "line": 97
+        },
+        {
+          "name": "🌟 Controlador: el chip y \"Limpiar filtros\" restablecen el selector",
+          "line": 107
+        },
+        {
+          "name": "🌟 Controlador: la clasificación se restaura desde la URL y un valor inválido se ignora",
+          "line": 120
+        },
+        {
+          "name": "🌟 Controlador: las tarjetas de especies especiales muestran su insignia",
+          "line": 133
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/catalog_fetch.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1171,12 +1222,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 6,
+      "testCount": 8,
       "describeCount": 0,
-      "assertionCountEst": 18,
-      "sizeBytes": 3016,
-      "lineCount": 63,
-      "sha256": "0265fb0ce974606c87f630ccdad575f050d2e274959daca7c213c25a7518a0bb",
+      "assertionCountEst": 24,
+      "sizeBytes": 4265,
+      "lineCount": 91,
+      "sha256": "1be8f114c419bec45086cd6873351a44b74dc0850661a1e978235783d9a24a4e",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1213,6 +1264,14 @@
         {
           "name": "🔎 Filtros: el índice normalizado en caché no vuelve obsoleto el resultado entre llamadas",
           "line": 58
+        },
+        {
+          "name": "🌟 Filtros: la clasificación distingue legendarios, míticos y ambos",
+          "line": 64
+        },
+        {
+          "name": "🌟 Filtros: un valor de clasificación inválido en los datos no cuenta como legendario",
+          "line": 87
         }
       ]
     },
@@ -1316,12 +1375,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 9,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 25,
-      "sizeBytes": 3200,
-      "lineCount": 78,
-      "sha256": "03d520daaca91a9e69336a449e9e51eb94367666a7adb21e392373dd612854d4",
+      "assertionCountEst": 30,
+      "sizeBytes": 3826,
+      "lineCount": 91,
+      "sha256": "8de989e4e93c7ec2858c34f5038a15dbea6f170e29c6a0d400e18d13177edebe",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1345,31 +1404,35 @@
         },
         {
           "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
-          "line": 25
+          "line": 26
         },
         {
           "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
-          "line": 29
+          "line": 30
         },
         {
           "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
-          "line": 38
+          "line": 39
         },
         {
           "name": "🔗 URL: serializar y volver a leer conserva el estado",
-          "line": 43
+          "line": 44
         },
         {
           "name": "🔗 URL: solo serializa los filtros activos",
-          "line": 57
+          "line": 59
         },
         {
           "name": "🔗 URL: lee y serializa la estadística mínima y el orden",
-          "line": 62
+          "line": 64
         },
         {
           "name": "🔗 URL: descarta estadísticas, mínimos y órdenes inválidos",
-          "line": 69
+          "line": 71
+        },
+        {
+          "name": "🔗 URL: lee y serializa la clasificación y descarta valores inválidos",
+          "line": 81
         }
       ]
     },
@@ -1540,12 +1603,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 21,
+      "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 72,
-      "sizeBytes": 11228,
-      "lineCount": 248,
-      "sha256": "86b9b005f56e3280389839c52d5e2f5c40e8e8b9688fdebb73b0a93cddf8b282",
+      "assertionCountEst": 77,
+      "sizeBytes": 12071,
+      "lineCount": 266,
+      "sha256": "bb017c53e158658bddd635852108408a58b38490f9a11653e39beef07f1ea885",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1642,6 +1705,10 @@
         {
           "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
           "line": 237
+        },
+        {
+          "name": "🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos",
+          "line": 249
         }
       ]
     },
@@ -5282,6 +5349,90 @@
         {
           "name": "⚡ CacheService [Unit]: closeRedis es idempotente y seguro ante invocaciones repetidas",
           "line": 72
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/classification_legendary.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 14,
+      "describeCount": 0,
+      "assertionCountEst": 38,
+      "sizeBytes": 8292,
+      "lineCount": 182,
+      "sha256": "fe60c256ffd72e14923d7400eacca337bac2c6ca29075e0f1e576d9d59d3ef5e",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: classification_legendary.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌟 Generador: classificationOf distingue legendario, mítico y ninguno (el mítico prevalece)",
+          "line": 34
+        },
+        {
+          "name": "🌟 Generador: enrichCatalogWithClassification añade el campo solo a quien aplica y corrige valores previos",
+          "line": 42
+        },
+        {
+          "name": "🌟 Generador: assertCatalogValid rechaza una clasificación desconocida",
+          "line": 69
+        },
+        {
+          "name": "🌟 Catálogo: clasifica a los legendarios y míticos conocidos y no a los demás",
+          "line": 79
+        },
+        {
+          "name": "🌟 Catálogo: solo usa valores válidos y reparte un número razonable de cada clase",
+          "line": 93
+        },
+        {
+          "name": "🌟 Catálogo: la muestra de desarrollo coincide con el catálogo completo",
+          "line": 101
+        },
+        {
+          "name": "🌟 Seed: planClassificationEnrichment actualiza solo filas existentes que no la tienen",
+          "line": 111
+        },
+        {
+          "name": "🌟 Seed: es idempotente, corrige valores distintos e ignora entradas no persistidas",
+          "line": 121
+        },
+        {
+          "name": "🌟 Seed: no borra una clasificación persistida si el catálogo no trae ninguna",
+          "line": 131
+        },
+        {
+          "name": "🌟 Repositorio: setPokemonClassification modifica solo ese campo y conserva las ediciones",
+          "line": 137
+        },
+        {
+          "name": "🌟 Repositorio: setPokemonClassification devuelve false si la entrada no existe",
+          "line": 149
+        },
+        {
+          "name": "🌟 Repositorio: listPersistedClassifications devuelve solo las entradas clasificadas",
+          "line": 153
+        },
+        {
+          "name": "🌟 API: editar un Pokémon conserva su clasificación y el cliente no puede cambiarla",
+          "line": 165
+        },
+        {
+          "name": "🌟 API: crear un Pokémon ignora una clasificación enviada por el cliente",
+          "line": 173
         }
       ]
     },

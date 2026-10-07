@@ -16,7 +16,12 @@ import {
   fetchAllPokemons,
   errorMessage,
 } from './shared/index.js';
-import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
+import {
+  isClassificationFilter,
+  matchesCatalogFilters,
+  type CatalogFilters,
+  type ClassificationFilter,
+} from './shared/catalog-filters.js';
 import { parseFilterParams, serializeFilterParams, type FilterState } from './shared/filter-url.js';
 import {
   isSortKey,
@@ -46,7 +51,14 @@ let currentGeneration = 'all';
 let onlyWithMega = false;
 let searchQuery = '';
 let minStat: MinStat | null = null;
+let classification: ClassificationFilter | null = null;
 let currentSort: SortKey = 'id';
+
+const CLASSIFICATION_CHIP_LABELS: Record<ClassificationFilter, string> = {
+  legendario: 'Legendarios',
+  mitico: 'Míticos',
+  especial: 'Legendarios y míticos',
+};
 
 const SEARCH_DEBOUNCE_MS = 150;
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -94,7 +106,15 @@ export function applyFilters(): void {
 }
 
 function currentFilterState(): FilterState {
-  return { searchQuery, types: selectedTypes, generation: currentGeneration, onlyWithMega, minStat, sort: currentSort };
+  return {
+    searchQuery,
+    types: selectedTypes,
+    generation: currentGeneration,
+    onlyWithMega,
+    minStat,
+    clasificacion: classification,
+    sort: currentSort,
+  };
 }
 
 /** Refleja los filtros activos en la URL sin crear entradas de historial. */
@@ -112,6 +132,7 @@ export function restoreFiltersFromUrl(): void {
   currentGeneration = state.generation;
   onlyWithMega = state.onlyWithMega;
   minStat = state.minStat;
+  classification = state.clasificacion;
   currentSort = state.sort;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
@@ -121,9 +142,21 @@ export function restoreFiltersFromUrl(): void {
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
   if (checkbox) checkbox.checked = onlyWithMega;
   syncStatControls();
+  syncClassControl();
   const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
   if (sortSelect) sortSelect.value = currentSort;
   syncTypePills();
+}
+
+function syncClassControl(): void {
+  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
+  if (select) select.value = classification ?? '';
+}
+
+export function handleClassFilterChange(): void {
+  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
+  classification = isClassificationFilter(select?.value) ? select.value : null;
+  applyFilters();
 }
 
 function syncStatControls(): void {
@@ -194,7 +227,8 @@ export function hasActiveFilters(): boolean {
     selectedTypes.length > 0 ||
     currentGeneration !== 'all' ||
     onlyWithMega ||
-    minStat !== null
+    minStat !== null ||
+    classification !== null
   );
 }
 
@@ -206,6 +240,7 @@ export function clearAllFilters(): void {
   currentGeneration = 'all';
   onlyWithMega = false;
   minStat = null;
+  classification = null;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = '';
@@ -214,6 +249,7 @@ export function clearAllFilters(): void {
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
   if (checkbox) checkbox.checked = false;
   syncStatControls();
+  syncClassControl();
 
   syncTypePills();
   applyFilters();
@@ -256,6 +292,16 @@ function collectActiveChips(): FilterChip[] {
         const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
         if (checkbox) checkbox.checked = false;
         handleMegaFilterChange();
+      },
+    });
+  }
+  if (classification) {
+    chips.push({
+      label: CLASSIFICATION_CHIP_LABELS[classification],
+      remove: () => {
+        classification = null;
+        syncClassControl();
+        applyFilters();
       },
     });
   }
@@ -417,6 +463,7 @@ export function initInteractiveListeners(): void {
   document.getElementById('btnClearFilters')?.addEventListener('click', clearAllFilters);
 
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
+  document.getElementById('classFilter')?.addEventListener('change', handleClassFilterChange);
   document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
   document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);
   document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);

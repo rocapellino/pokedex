@@ -20,6 +20,7 @@
  *   npx tsx scripts/generate-pokemon-catalog.ts
  *   npx tsx scripts/generate-pokemon-catalog.ts --enrich-megas   # solo añade megaevoluciones al catálogo versionado
  *   npx tsx scripts/generate-pokemon-catalog.ts --sync-sample-megas   # regenera el JSON de megas de la muestra (sin red)
+ *   npx tsx scripts/generate-pokemon-catalog.ts --enrich-classification   # solo añade legendario/mítico al catálogo versionado
  *   npx tsx scripts/generate-pokemon-catalog.ts --limit=151 --out=tmp/catalog.json
  *   npx tsx scripts/generate-pokemon-catalog.ts --no-cache
  * ==============================================================================
@@ -32,7 +33,14 @@ import { fileURLToPath } from 'node:url';
 import { validatePokemonPayload } from '../apps/backend/src/validation/pokemon.js';
 import { sampleBasePokemons } from '../apps/backend/src/data/initialPokemons.js';
 import { validateEvolutionNodeZod } from '../apps/backend/src/validation/schemas.js';
-import type { EvolutionNode, MegaEvolution, Pokemon, PokemonStats } from '../apps/backend/src/types.js';
+import {
+  POKEMON_CLASSIFICATIONS,
+  type EvolutionNode,
+  type MegaEvolution,
+  type Pokemon,
+  type PokemonClassification,
+  type PokemonStats,
+} from '../apps/backend/src/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = path.resolve(path.dirname(__filename), '..');
@@ -126,6 +134,8 @@ interface GeneratorOptions {
   cacheDir: string | null;
   /** Solo añade `megaevoluciones` al catálogo versionado, sin regenerar las 1025 especies. */
   enrichMegas?: boolean;
+  /** Solo añade `clasificacion` (legendario/mítico) al catálogo versionado, sin regenerar las 1025 especies. */
+  enrichClassification?: boolean;
   /** Regenera `sample-megaevoluciones.json` desde el catálogo completo (sin red). */
   syncSampleMegas?: boolean;
 }
@@ -356,6 +366,8 @@ interface SpeciesData {
   genera: Array<{ genus: string; language: NamedResource }>;
   flavor_text_entries: Array<{ flavor_text: string; language: NamedResource }>;
   habitat: NamedResource | null;
+  is_legendary?: boolean;
+  is_mythical?: boolean;
   evolution_chain: { url: string } | null;
   varieties: Array<{ is_default: boolean; pokemon: NamedResource }>;
 }
@@ -470,6 +482,15 @@ export async function buildMegaEvolutions(
   return forms.sort((a, b) => a.order - b.order || a.mega.clave.localeCompare(b.mega.clave)).map((f) => f.mega);
 }
 
+/** `legendario` o `mitico` según los indicadores de la especie en PokeAPI; `undefined` si no aplica. */
+export function classificationOf(
+  species: Pick<SpeciesData, 'is_legendary' | 'is_mythical'>,
+): PokemonClassification | undefined {
+  if (species.is_mythical) return 'mitico';
+  if (species.is_legendary) return 'legendario';
+  return undefined;
+}
+
 async function buildEntry(
   species: SpeciesData,
   api: PokeApiClient,
@@ -525,6 +546,8 @@ async function buildEntry(
         )
       : undefined;
 
+  const clasificacion = classificationOf(species);
+
   return {
     id: species.id,
     nombre,
@@ -538,6 +561,7 @@ async function buildEntry(
     stats,
     evoluciones,
     ...(megaevoluciones ? { megaevoluciones } : {}),
+    ...(clasificacion ? { clasificacion } : {}),
   };
 }
 
@@ -548,6 +572,9 @@ export function assertCatalogValid(catalog: Pokemon[]): void {
     if (entry.id !== index + 1) errors.push(`#${index + 1}: ID fuera de secuencia (${entry.id})`);
     const result = validatePokemonPayload(entry);
     if (!result.valid) errors.push(`#${entry.id} ${entry.nombre}: ${result.error}`);
+    if (entry.clasificacion !== undefined && !POKEMON_CLASSIFICATIONS.includes(entry.clasificacion)) {
+      errors.push(`#${entry.id} ${entry.nombre}: clasificación inválida (${String(entry.clasificacion)})`);
+    }
     for (const node of (entry.evoluciones as EvolutionNode[]) ?? []) {
       const nodeResult = validateEvolutionNodeZod(node);
       if (!nodeResult.valid) errors.push(`#${entry.id} ${entry.nombre} (evolución): ${nodeResult.error}`);
@@ -622,6 +649,20 @@ export async function enrichCatalogWithMegas(
   });
 }
 
+/**
+ * Añade (o corrige) `clasificacion` en un catálogo ya generado consultando solo las especies, en
+ * lugar de regenerar las 1025 entradas. El resto de cada entrada no se toca; las entradas que no
+ * son legendarias ni míticas salen sin el campo.
+ */
+export async function enrichCatalogWithClassification(catalog: Pokemon[], api: PokeApiLike): Promise<Pokemon[]> {
+  const species = await mapLimit(catalog, CONCURRENCY, (entry) => api.get<SpeciesData>(`pokemon-species/${entry.id}`));
+  return catalog.map((entry, index) => {
+    const { clasificacion: _previous, ...rest } = entry;
+    const clasificacion = classificationOf(species[index]);
+    return clasificacion ? { ...rest, clasificacion } : rest;
+  });
+}
+
 export async function generateCatalog(
   options: GeneratorOptions,
 ): Promise<{ catalog: Pokemon[]; degraded: DegradedEntry[] }> {
@@ -664,6 +705,7 @@ function parseArgs(argv: string[]): GeneratorOptions {
     else if (arg.startsWith('--out=')) options.outFile = arg.slice('--out='.length);
     else if (arg === '--no-cache') options.cacheDir = null;
     else if (arg === '--enrich-megas') options.enrichMegas = true;
+    else if (arg === '--enrich-classification') options.enrichClassification = true;
     else if (arg === '--sync-sample-megas') options.syncSampleMegas = true;
     else throw new Error(`Argumento no reconocido: ${arg}`);
   }
@@ -709,6 +751,21 @@ async function main(): Promise<void> {
         `⚠️ Megaevoluciones sin habilidades publicadas por PokeAPI: ${sinHabilidades.length} (${sinHabilidades.map((m) => m.clave).join(', ')}).`,
       );
     }
+    return;
+  }
+
+  if (options.enrichClassification) {
+    const file = path.resolve(ROOT_DIR, options.outFile);
+    const api = new PokeApiClient(cacheDir);
+    const current = JSON.parse(fs.readFileSync(file, 'utf-8')) as Pokemon[];
+    const enriched = await enrichCatalogWithClassification(current, api);
+    assertCatalogValid(enriched);
+    fs.writeFileSync(`${file}.tmp`, serializeCatalog(enriched));
+    fs.renameSync(`${file}.tmp`, file);
+    const count = (kind: PokemonClassification) => enriched.filter((e) => e.clasificacion === kind).length;
+    console.log(
+      `✅ Clasificación añadida a ${path.relative(ROOT_DIR, file)}: ${count('legendario')} legendarios y ${count('mitico')} míticos.`,
+    );
     return;
   }
 

@@ -4,7 +4,13 @@
 
 import { escapeText } from '../sanitizer.js';
 import type { Pokemon, EvolutionNode } from '../types.js';
-import { normalizeStr, getGeneration, hasMegaEvolution } from '../shared/index.js';
+import {
+  CLASSIFICATION_LABELS,
+  normalizeStr,
+  getClassification,
+  getGeneration,
+  hasMegaEvolution,
+} from '../shared/index.js';
 
 export function renderPokemonCard(p: Pokemon): string {
   const car = p.caracteristicas || {};
@@ -36,6 +42,11 @@ export function renderPokemonCard(p: Pokemon): string {
 
   const megaBadge = hasMegaEvolution(p) ? '<span class="mega-badge" title="Tiene megaevolución">Mega</span>' : '';
 
+  const clase = getClassification(p);
+  const classBadge = clase
+    ? `<span class="class-badge class-badge--${clase}" title="Pokémon ${CLASSIFICATION_LABELS[clase].toLowerCase()}">${CLASSIFICATION_LABELS[clase]}</span>`
+    : '';
+
   const normType = normalizeStr(p.tipo || 'normal');
   const safeImg = p.imagen
     ? escapeText(p.imagen)
@@ -48,6 +59,7 @@ export function renderPokemonCard(p: Pokemon): string {
         <div class="flex-center-gap">
           ${stageBadge}
           ${megaBadge}
+          ${classBadge}
           <span class="gen-badge">Gen ${getGeneration(p.id)}</span>
         </div>
       </div>
