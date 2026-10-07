@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **153** |
-| **Archivos de Test Automatizados** | 101 |
+| **Total de Archivos en `tests/`** | **161** |
+| **Archivos de Test Automatizados** | 104 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
-| **Archivos de Soporte / Entorno (Fixtures)** | 51 |
-| **Total de Casos de Prueba Identificados** | **863** |
-| **Líneas de Código de Pruebas** | 23.962 |
-| **Tamaño Total de la Suite** | 1018.3 KB |
+| **Archivos de Soporte / Entorno (Fixtures)** | 56 |
+| **Total de Casos de Prueba Identificados** | **874** |
+| **Líneas de Código de Pruebas** | 24.084 |
+| **Tamaño Total de la Suite** | 1022.8 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T15:59:11.791Z |
+| **Última Sincronización** | 2026-10-07T17:09:57.084Z |
 
 ---
 
@@ -29,14 +29,14 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 20 | 140 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 235 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 233 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 71 | 208 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 79 | 222 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
-| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 14 | 169 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
+| **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 14 | 168 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
 ---
 
@@ -46,7 +46,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 
 | Archivo | Suite | Tipo | Runner | Casos | Líneas | Dominio / Qué Verifica | Comandos |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **11** | 155 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **10** | 150 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **36** | 853 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **23** | 563 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -111,12 +111,20 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(Helper)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | `frontend` | Helper | `none` | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(Helper)* |
+| [`tests/frontend/golden/state-no-results.html`](../../tests/frontend/golden/state-no-results.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: state-no-results.html. | *(Helper)* |
+| [`tests/frontend/golden/state-table-empty.html`](../../tests/frontend/golden/state-table-empty.html) | `frontend` | Helper | `none` | **0** | 7 | Suite de pruebas frontend: state-table-empty.html. | *(Helper)* |
+| [`tests/frontend/golden/state-table-error-special.html`](../../tests/frontend/golden/state-table-error-special.html) | `frontend` | Helper | `none` | **0** | 9 | Suite de pruebas frontend: state-table-error-special.html. | *(Helper)* |
+| [`tests/frontend/golden/state-table-error.html`](../../tests/frontend/golden/state-table-error.html) | `frontend` | Helper | `none` | **0** | 9 | Suite de pruebas frontend: state-table-error.html. | *(Helper)* |
+| [`tests/frontend/golden/state-table-loading.html`](../../tests/frontend/golden/state-table-loading.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: state-table-loading.html. | *(Helper)* |
 | [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | `frontend` | Helper | `none` | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(Helper)* |
 | [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | `frontend` | Helper | `none` | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(Helper)* |
+| [`tests/frontend/html_guard.test.ts`](../../tests/frontend/html_guard.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 67 | Suite de pruebas frontend: html_guard.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 76 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity_states.test.ts`](../../tests/frontend/html_parity_states.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 42 | Suite de pruebas frontend: html_parity_states.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_set.test.ts`](../../tests/frontend/html_set.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 54 | Suite de pruebas frontend: html_set.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -162,9 +170,9 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | `security` | Contract / SecOps | `node:test (tsx)` | **12** | 318 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | `security` | Contract / GitOps | `node:test (tsx)` | **10** | 196 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/grafana_cloud_collection.test.ts`](../../tests/security/grafana_cloud_collection.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **4** | 172 | Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **10** | 463 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | `security` | Contract / Observability | `node:test (tsx)` | **9** | 432 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/http_hardening.test.ts`](../../tests/security/http_hardening.test.ts) | `security` | Automated Test | `node:test (tsx)` | **2** | 58 | Suite de pruebas security: http_hardening.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / DevDX | `node:test (tsx)` | **8** | 386 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | `security` | Security / DevDX | `node:test (tsx)` | **7** | 321 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 219 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **14** | 581 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -248,7 +256,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 235
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 233
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -267,9 +275,9 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | **12** | 318 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml` |
 | [`tests/security/gitops_image_parity.test.ts`](../../tests/security/gitops_image_parity.test.ts) | **10** | 196 | Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod. | `scripts/verify-image-digest-parity.ts`, `gitops/` |
 | [`tests/security/grafana_cloud_collection.test.ts`](../../tests/security/grafana_cloud_collection.test.ts) | **4** | 172 | Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API. | `infra/monitoring/grafana-cloud-values.yaml`, `scripts/deploy-grafana-cloud.mjs` |
-| [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **10** | 463 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
+| [`tests/security/grafana_portability.test.ts`](../../tests/security/grafana_portability.test.ts) | **9** | 432 | Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos. | `infra/monitoring/dashboards/` |
 | [`tests/security/http_hardening.test.ts`](../../tests/security/http_hardening.test.ts) | **2** | 58 | Suite de pruebas security: http_hardening.test.ts. | *(General)* |
-| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **8** | 386 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `Taskfile.yaml`, `.vscode/tasks.json`, `.tool-versions`, `infra/k8s/kind-cluster.yaml` |
+| [`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) | **7** | 321 | Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables. | `Taskfile.yaml`, `.tool-versions`, `infra/k8s/kind-cluster.yaml` |
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 219 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | *(General)* |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | **14** | 581 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `infra/k8s/`, `infra/helm/pokedex/templates/` |
@@ -299,7 +307,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 208
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 222
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -359,12 +367,20 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(General)* |
 | [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(General)* |
+| [`tests/frontend/golden/state-no-results.html`](../../tests/frontend/golden/state-no-results.html) | **0** | 8 | Suite de pruebas frontend: state-no-results.html. | *(General)* |
+| [`tests/frontend/golden/state-table-empty.html`](../../tests/frontend/golden/state-table-empty.html) | **0** | 7 | Suite de pruebas frontend: state-table-empty.html. | *(General)* |
+| [`tests/frontend/golden/state-table-error-special.html`](../../tests/frontend/golden/state-table-error-special.html) | **0** | 9 | Suite de pruebas frontend: state-table-error-special.html. | *(General)* |
+| [`tests/frontend/golden/state-table-error.html`](../../tests/frontend/golden/state-table-error.html) | **0** | 9 | Suite de pruebas frontend: state-table-error.html. | *(General)* |
+| [`tests/frontend/golden/state-table-loading.html`](../../tests/frontend/golden/state-table-loading.html) | **0** | 8 | Suite de pruebas frontend: state-table-loading.html. | *(General)* |
 | [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(General)* |
 | [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(General)* |
+| [`tests/frontend/html_guard.test.ts`](../../tests/frontend/html_guard.test.ts) | **5** | 67 | Suite de pruebas frontend: html_guard.test.ts. | *(General)* |
 | [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | *(General)* |
-| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **6** | 76 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
 | [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | *(General)* |
+| [`tests/frontend/html_parity_states.test.ts`](../../tests/frontend/html_parity_states.test.ts) | **1** | 42 | Suite de pruebas frontend: html_parity_states.test.ts. | *(General)* |
 | [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
+| [`tests/frontend/html_set.test.ts`](../../tests/frontend/html_set.test.ts) | **6** | 54 | Suite de pruebas frontend: html_set.test.ts. | *(General)* |
 | [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | *(General)* |
@@ -416,12 +432,12 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Gobernanza y Contratos de Plataforma (Root) (`governance`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 169
+- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 168
 - **Propósito:** Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **11** | 155 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
+| [`tests/aas_governance.test.ts`](../../tests/aas_governance.test.ts) | **10** | 150 | Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas. | `.agents/aas/aas-stack.json` |
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `docs/audits/` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | **36** | 853 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `scripts/detect-change-impact.ts`, `.agents/skills/_shared/change-impact-matrix.md` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **23** | 563 | Suite de pruebas governance: ci_workflow_governance.test.ts. | *(General)* |

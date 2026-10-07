@@ -56,7 +56,7 @@ runtime en Windows no se completó. Los cachés probados, incluido un directorio
 fuera del repositorio, fueron rechazados con `AAS_CACHE_MODE_UNSAFE`; intentos anteriores
 también agotaron el tiempo de espera. La última ejecución se detuvo antes de aprobar o
 escribir configuración. No se debilitaron ACL y no se crearon ni modificaron
-`.codex/config.toml`, `~/.codex/config.toml` o `.vscode/mcp.json`.
+`.codex/config.toml` ni `~/.codex/config.toml`.
 
 La activación futura requiere resolver primero el contrato de permisos del caché,
 validarlo mediante `catalog update/status` y repetir la previsualización con la misma

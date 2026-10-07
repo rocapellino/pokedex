@@ -44,7 +44,7 @@ allowlist descarta una métrica que usan las alertas o si desaparece el endpoint
 > El script [`deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) sustituyó a un
 > `.ps1` que ataba el despliegue a Windows. El contrato está blindado por
 > `tests/security/grafana_portability.test.ts` (PORT-001), que falla si alguien reintroduce
-> PowerShell o rompe la cadena `Taskfile → .vscode/tasks.json → script`.
+> PowerShell o rompe la cadena `Taskfile → script`.
 
 ## Registro de retiradas
 

@@ -15,7 +15,7 @@
  *      (por ejemplo, sin `--create-namespace`) fallaria en el cluster real, no en
  *      la suite.
  *
- *   2. NO REGRESION A POWERSHELL: ningun consumidor (Taskfile, VS Code,
+ *   2. NO REGRESION A POWERSHELL: ningun consumidor (Taskfile,
  *      documentacion) debe volver a invocar el .ps1 ni a `powershell`, porque la
  *      perdida de portabilidad es silenciosa: el script seguiria "funcionando"
  *      en la maquina de quien lo desarrollo y fallando en todos lados mas.
@@ -36,7 +36,6 @@ const ROOT_DIR = path.resolve(__dirname, '../../');
 
 const PS1_PATH = path.join(ROOT_DIR, 'infra/monitoring/deploy-grafana-cloud.ps1');
 const MJS_PATH = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');
-const VSCODE_TASKS_PATH = path.join(ROOT_DIR, '.vscode/tasks.json');
 
 /** Ejecuta un comando devolviendo stdout, o cadena vacia si falla. */
 function execFileSyncSafe(command: string, args: string[]) {
@@ -73,11 +72,9 @@ function extractHelmFlags(source: string) {
  * INFRA-006 — `alloy-proxmox-values.yaml` no debe reaparecer.
  *
  * Ese archivo era un values de Grafana Alloy para el clúster de Proxmox que
- * **no tenía ningún consumidor**: ni `Taskfile`, ni `.vscode/tasks.json`, ni
- * workflows, ni tests, ni documentación. La configuración equivalente y vigente
+ * **no tenía ningún consumidor**: ni `Taskfile`, ni workflows, ni tests, ni documentación. La configuración equivalente y vigente
  * vive en `infra/monitoring/grafana-cloud-values.yaml`, que sí consume
- * `scripts/deploy-grafana-cloud.mjs` (invocado por `task monitoring:grafana-cloud:install`
- * y por el task de VS Code).
+ * `scripts/deploy-grafana-cloud.mjs` (invocado por `task monitoring:grafana-cloud:install`).
  *
  * Un values huérfano es peor que un values ausente: sugiere que el despliegue de
  * telemetría está parametrizado por ese archivo cuando no lo está, e invita a
@@ -113,19 +110,13 @@ test('🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monito
     'INFRA-006: scripts/deploy-grafana-cloud.mjs debe referenciar grafana-cloud-values.yaml',
   );
 
-  // 3. La cadena operativa completa debe seguir cableada: Taskfile y VS Code.
+  // 3. La cadena operativa completa debe seguir cableada en el Taskfile.
   const taskfile = getCompleteTaskfileContent(ROOT_DIR);
-  const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
-  for (const [label, source] of [
-    ['Taskfile.yaml', taskfile],
-    ['.vscode/tasks.json', vscodeTasks],
-  ] as const) {
-    assert.match(
-      source,
-      /scripts\/deploy-grafana-cloud\.mjs/,
-      `INFRA-006: ${label} debe seguir invocando el desplegador de Grafana Cloud`,
-    );
-  }
+  assert.match(
+    taskfile,
+    /scripts\/deploy-grafana-cloud\.mjs/,
+    'INFRA-006: Taskfile.yaml debe seguir invocando el desplegador de Grafana Cloud',
+  );
 
   // 4. Ningun otro values de Grafana Alloy puede quedar sin consumidor. Se
   //    listan los *.yaml de nivel superior y se exige que cada uno este en la
@@ -167,16 +158,6 @@ test('🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin Powe
     'Taskfile.yaml debe delegar en el script Node multiplataforma',
   );
 
-  const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
-  assert.ok(
-    !/deploy-grafana-cloud\.ps1/.test(vscodeTasks),
-    '.vscode/tasks.json no debe invocar el script PowerShell de Grafana Cloud',
-  );
-  assert.ok(
-    !/\bpowershell\b/i.test(vscodeTasks),
-    '.vscode/tasks.json no debe depender de powershell: ataria las tareas a Windows',
-  );
-
   // 2. No debe quedar ningun .ps1 versionado en el repositorio.
   const ps1Files = execFileSyncSafe('git', ['ls-files', '*.ps1']);
   assert.equal(ps1Files, '', `Persisten scripts PowerShell, que atan la operacion a Windows: ${ps1Files}`);
@@ -212,18 +193,6 @@ test('🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerSh
     'Los flags de `helm upgrade` deben ser identicos a los del script PowerShell. ' +
       'Un flag divergente (por ejemplo, sin --create-namespace) solo fallaria en el ' +
       'cluster real, no en la suite.',
-  );
-});
-
-test('🔀 PORT-001: Taskfile y VS Code invocan el mismo script de Grafana Cloud', () => {
-  const taskfile = getCompleteTaskfileContent(ROOT_DIR);
-  const vscodeTasks = fs.readFileSync(VSCODE_TASKS_PATH, 'utf-8').replace(/^\s*\/\/.*$/gm, '');
-
-  assert.match(taskfile, /node scripts\/deploy-grafana-cloud\.mjs/);
-  assert.match(
-    vscodeTasks,
-    /node scripts\/deploy-grafana-cloud\.mjs/,
-    '.vscode/tasks.json debe invocar el mismo script Node que el Taskfile',
   );
 });
 
