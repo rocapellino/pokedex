@@ -95,8 +95,10 @@ html`<ul>${pokemons.map((p) => html`<li>${p.nombre}</li>`)}</ul>`; // un arreglo
 
 - **Por qué:** antes cada campo debía pasar por `escapeText()` a mano, y los campos con tipo `number` no se escapaban, pese a que el tipo no se comprueba en ejecución. Con datos hostiles en `id`, `fuerza`, `peso` o `altura`, la cadena generada contenía un `<script>`, un `<img>` y manejadores `onerror` y `onmouseover` antes de llegar a `DOMPurify`; `tests/frontend/html_injection.test.ts` lo fija.
 - **Reglas:** los atributos van siempre entre comillas (`escapeText` neutraliza `"`, `'` y el acento grave, pero no protege un valor sin comillas) y no se llama a `escapeText()` dentro de una plantilla `html` (se escaparía dos veces).
-- **Estado de la migración:** `pokemon-card`, `admin-table` y `shared/ui` ya usan `html`; los módulos de los modales y los puntos de inserción (`innerHTML`) siguen con `escapeText` y `sanitizeHtml` hasta los siguientes PR.
-- **Paridad:** `tests/frontend/html_parity.test.ts` compara la salida de cada `render*` migrado con la generada por el código anterior (`tests/frontend/golden/`); `UPDATE_GOLDEN=1` los regenera de forma deliberada.
+- **Booleanos:** `false`, `null` y `undefined` no pintan nada, así que un atributo de texto booleano (`aria-selected="true|false"`) se interpola con `String(valor)`.
+- **Estado de la migración:** `pokemon-card`, `admin-table`, `shared/ui` y los tres módulos del modal de detalle (`modal-detail`, `modal-evolution`, `modal-mega`) ya usan `html`. Quedan los puntos de inserción (`innerHTML`, con `sanitizeHtml`) y la plantilla de errores de `backoffice-state.ts`, que siguen con `escapeText` hasta el último PR.
+- **Paridad:** `tests/frontend/html_parity.test.ts` (tarjetas, tabla y utilidades) y `html_parity_modals.test.ts` (el modal de detalle) comparan la salida de cada `render*` migrado con la generada por el código anterior (`tests/frontend/golden/`); los datos de ejemplo están en `html_fixtures.ts` y `UPDATE_GOLDEN=1` regenera los goldens de forma deliberada.
+- **Inyección:** `html_injection.test.ts` y `html_injection_modals.test.ts` pasan marcado hostil por cada campo de cada plantilla y analizan el DOM resultante.
 
 ---
 

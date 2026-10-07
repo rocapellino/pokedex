@@ -53,13 +53,17 @@ test('⌨️ Tarjeta: el nombre del Pokémon se escapa dentro del botón', () =>
 
 test('⌨️ Nodo de evolución: es operable con teclado y el actual solo se marca con aria-current', () => {
   const catalog = [pikachu];
-  const other = parse(sanitizeHtml(renderSingleEvolutionNode({ id: 25, nombre: 'Pikachu' }, 26, false, catalog)));
+  const other = parse(
+    sanitizeHtml(String(renderSingleEvolutionNode({ id: 25, nombre: 'Pikachu' }, 26, false, catalog))),
+  );
   const node = other.querySelector('.evolution-node-item');
   assert.equal(node?.getAttribute('role'), 'button');
   assert.equal(node?.getAttribute('tabindex'), '0');
   assert.equal(node?.getAttribute('aria-current'), null);
 
-  const current = parse(sanitizeHtml(renderSingleEvolutionNode({ id: 25, nombre: 'Pikachu' }, 25, false, catalog)));
+  const current = parse(
+    sanitizeHtml(String(renderSingleEvolutionNode({ id: 25, nombre: 'Pikachu' }, 25, false, catalog))),
+  );
   const currentNode = current.querySelector('.evolution-node-item');
   assert.equal(currentNode?.getAttribute('aria-current'), 'true');
   assert.equal(currentNode?.getAttribute('role'), null, 'el nodo actual no navega a ninguna parte');
@@ -67,7 +71,7 @@ test('⌨️ Nodo de evolución: es operable con teclado y el actual solo se mar
 });
 
 test('⌨️ Ficha: el título recibe el foco al cargar otra ficha (tabindex="-1")', () => {
-  const doc = parse(sanitizeHtml(renderDetailModalContent(pikachu, [pikachu])));
+  const doc = parse(sanitizeHtml(String(renderDetailModalContent(pikachu, [pikachu]))));
   assert.equal(doc.querySelector('h2.pokedex-notched-title')?.getAttribute('tabindex'), '-1');
 });
 
