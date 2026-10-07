@@ -1032,6 +1032,14 @@ body {
   white-space: nowrap;
 }
 
+.ability-input {
+  width: 14rem;
+}
+
+.ability-input[aria-invalid='true'] {
+  border-color: #b91c1c;
+}
+
 .stat-min-input {
   width: 6rem;
 }
