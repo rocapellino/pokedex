@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T13:23:43.366Z",
+  "generatedAt": "2026-10-07T13:30:05.428Z",
   "summary": {
     "totalFiles": 101,
     "testFiles": 95,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 812,
-    "totalLines": 20638,
-    "totalSizeBytes": 898569,
+    "totalLines": 20640,
+    "totalSizeBytes": 898801,
     "suitesCount": 10
   },
   "suites": [
@@ -1605,10 +1605,10 @@
       "runner": "node:test (tsx)",
       "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 76,
-      "sizeBytes": 11839,
-      "lineCount": 264,
-      "sha256": "fd3c371a2e0ecabd2735e146d60f82775ae1282cfd8598105f6774e55054633f",
+      "assertionCountEst": 77,
+      "sizeBytes": 12071,
+      "lineCount": 266,
+      "sha256": "bb017c53e158658bddd635852108408a58b38490f9a11653e39beef07f1ea885",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [

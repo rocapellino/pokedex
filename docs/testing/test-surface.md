@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
 | **Total de Casos de Prueba Identificados** | **812** |
-| **Líneas de Código de Pruebas** | 20.638 |
-| **Tamaño Total de la Suite** | 877.5 KB |
+| **Líneas de Código de Pruebas** | 20.640 |
+| **Tamaño Total de la Suite** | 877.7 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T13:23:43.366Z |
+| **Última Sincronización** | 2026-10-07T13:30:05.428Z |
 
 ---
 
@@ -69,7 +69,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 264 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -265,7 +265,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 94 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
 | [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | *(General)* |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 264 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
