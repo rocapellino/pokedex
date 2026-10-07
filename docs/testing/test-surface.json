@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T01:21:28.112Z",
+  "generatedAt": "2026-10-07T01:37:56.812Z",
   "summary": {
     "totalFiles": 94,
     "testFiles": 88,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 742,
-    "totalLines": 19520,
-    "totalSizeBytes": 853400,
+    "totalLines": 19526,
+    "totalSizeBytes": 853888,
     "suitesCount": 10
   },
   "suites": [
@@ -542,10 +542,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 44,
-      "sizeBytes": 8018,
-      "lineCount": 172,
-      "sha256": "9afe16b7da42776219d350a7189da3d32b65f36a544f133395d19698804cd3f8",
+      "assertionCountEst": 46,
+      "sizeBytes": 8506,
+      "lineCount": 178,
+      "sha256": "b6483c9257418945bee723a37d2d2dcfe4ee240532aac2753c416a802e064f57",
       "targetDomain": "Suite ci",
       "targetArtifacts": [],
       "npmCommands": [
@@ -589,11 +589,11 @@
         },
         {
           "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
-          "line": 140
+          "line": 146
         },
         {
           "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
-          "line": 149
+          "line": 155
         }
       ]
     },
