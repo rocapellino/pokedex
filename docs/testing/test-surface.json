@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T19:44:15.450Z",
+  "generatedAt": "2026-10-07T19:54:19.608Z",
   "summary": {
-    "totalFiles": 164,
-    "testFiles": 107,
+    "totalFiles": 165,
+    "testFiles": 108,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 898,
-    "totalLines": 24585,
-    "totalSizeBytes": 1068678,
+    "totalTestCases": 907,
+    "totalLines": 24751,
+    "totalSizeBytes": 1075869,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 82,
-      "testCases": 243,
+      "files": 83,
+      "testCases": 252,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -783,10 +783,10 @@
       "runner": "playwright",
       "testCount": 15,
       "describeCount": 2,
-      "assertionCountEst": 82,
-      "sizeBytes": 16963,
-      "lineCount": 365,
-      "sha256": "e52feea48360f05346686cbb584e9ddf55b92c5f8aecece1cabcb2a4e8c60ae6",
+      "assertionCountEst": 86,
+      "sizeBytes": 17559,
+      "lineCount": 373,
+      "sha256": "b58c18a4de5b9a85148dc8624055f83899f3513ec5406fedfdf5a1f3adeac165",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -808,59 +808,59 @@
         },
         {
           "name": "La interfaz principal carga con branding y catálogo de Pokémon",
-          "line": 93
+          "line": 101
         },
         {
           "name": "El buscador en tiempo real filtra los Pokémon por nombre",
-          "line": 108
+          "line": 116
         },
         {
           "name": "El alternador de tema modifica data-theme en el documento",
-          "line": 124
+          "line": 132
         },
         {
           "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
-          "line": 134
+          "line": 142
         },
         {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
-          "line": 152
+          "line": 160
         },
         {
           "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
-          "line": 175
+          "line": 183
         },
         {
           "name": "El panel de filtros agrupa varios tipos en su desplegable y se cierra con Escape",
-          "line": 196
+          "line": 204
         },
         {
           "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
-          "line": 221
+          "line": 229
         },
         {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 257
-        },
-        {
-          "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
           "line": 265
         },
         {
+          "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
+          "line": 273
+        },
+        {
           "name": "@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape",
-          "line": 280
+          "line": 288
         },
         {
           "name": "@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco",
-          "line": 304
+          "line": 312
         },
         {
           "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 335
+          "line": 343
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 354
+          "line": 362
         }
       ]
     },
@@ -3507,6 +3507,69 @@
       ]
     },
     {
+      "path": "tests/frontend/page_focus.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 9,
+      "describeCount": 0,
+      "assertionCountEst": 26,
+      "sizeBytes": 6376,
+      "lineCount": 155,
+      "sha256": "b1da7c8ef609df78cc35275d590ffb5cedc21b3f9b83a5c4ef0ad86ef05aa6b5",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: page_focus.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "♿ Estructura: el catálogo se puede enfocar por programa y el anunciador es una región viva oculta",
+          "line": 72
+        },
+        {
+          "name": "♿ Texto del anuncio: página, total y Pokémon mostrados",
+          "line": 82
+        },
+        {
+          "name": "♿ Al avanzar de página el foco pasa al catálogo y se anuncia la página",
+          "line": 87
+        },
+        {
+          "name": "♿ En la última página el foco no cae en BODY aunque \"Siguiente\" quede deshabilitado",
+          "line": 94
+        },
+        {
+          "name": "♿ Al volver a la primera página el foco tampoco se pierde",
+          "line": 103
+        },
+        {
+          "name": "♿ La vista va al propio catálogo, no a una cifra fija de píxeles",
+          "line": 112
+        },
+        {
+          "name": "♿ El desplazamiento es suave salvo que el usuario pida movimiento reducido",
+          "line": 120
+        },
+        {
+          "name": "♿ Un cambio de página imposible (antes de la primera) no mueve el foco ni anuncia nada",
+          "line": 129
+        },
+        {
+          "name": "♿ Refiltrar no mueve el foco ni toca el anuncio de página",
+          "line": 145
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/seo_compression.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -3593,9 +3656,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 23,
-      "sizeBytes": 5478,
-      "lineCount": 131,
-      "sha256": "f3d07753707f83d15c324e9d6d5f4583a92a91745cb9f77e332bb5519fd63959",
+      "sizeBytes": 5697,
+      "lineCount": 134,
+      "sha256": "7cf1875bd96faa44b592ad7b643b7a054344d2670354fc902907f6d71045dde5",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3611,31 +3674,31 @@
       "testCases": [
         {
           "name": "♿ Estructura: el enlace precede al catálogo y la barra es una navegación con nombre",
-          "line": 59
+          "line": 62
         },
         {
           "name": "♿ Con varias páginas el enlace es visible y el clic lleva el foco a \"Siguiente\" en la primera",
-          "line": 75
+          "line": 78
         },
         {
           "name": "♿ En la última página el foco cae en \"Anterior\"",
-          "line": 83
+          "line": 86
         },
         {
           "name": "♿ El clic no deja rastro en la URL",
-          "line": 91
+          "line": 94
         },
         {
           "name": "♿ El enlace sobrevive a un nuevo render del catálogo (está fuera del contenedor que se reemplaza)",
-          "line": 98
+          "line": 101
         },
         {
           "name": "♿ Con una sola página o sin resultados el enlace queda oculto",
-          "line": 105
+          "line": 108
         },
         {
           "name": "♿ focusFirstEnabledControl: ignora controles deshabilitados y no falla sin barra",
-          "line": 120
+          "line": 123
         }
       ]
     },

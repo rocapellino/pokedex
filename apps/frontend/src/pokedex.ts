@@ -15,6 +15,8 @@ import {
   fetchAllPokemons,
   errorMessage,
   focusFirstEnabledControl,
+  pageAnnouncement,
+  revealResults,
   html,
   setHtml,
   type SafeHtml,
@@ -524,7 +526,13 @@ export function changePage(delta: number): void {
   if (newPage >= 1 && newPage <= totalPages) {
     currentPage = newPage;
     renderPokemons();
-    window.scrollTo({ top: 350, behavior: 'smooth' });
+    const grid = document.getElementById('pokemonGrid');
+    if (grid) revealResults(grid);
+    const announcer = document.getElementById('pageAnnouncer');
+    if (announcer) {
+      const shown = Math.min(ITEMS_PER_PAGE, filteredPokemons.length - (currentPage - 1) * ITEMS_PER_PAGE);
+      announcer.textContent = pageAnnouncement(currentPage, totalPages, shown);
+    }
   }
 }
 

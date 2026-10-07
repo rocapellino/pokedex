@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **164** |
-| **Archivos de Test Automatizados** | 107 |
+| **Total de Archivos en `tests/`** | **165** |
+| **Archivos de Test Automatizados** | 108 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 56 |
-| **Total de Casos de Prueba Identificados** | **898** |
-| **Líneas de Código de Pruebas** | 24.585 |
-| **Tamaño Total de la Suite** | 1043.6 KB |
+| **Total de Casos de Prueba Identificados** | **907** |
+| **Líneas de Código de Pruebas** | 24.751 |
+| **Tamaño Total de la Suite** | 1050.7 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T19:44:15.450Z |
+| **Última Sincronización** | 2026-10-07T19:54:19.608Z |
 
 ---
 
@@ -31,7 +31,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 234 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 82 | 243 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 83 | 252 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 21 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -55,7 +55,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **15** | 365 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **15** | 373 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
 | [`tests/frontend/catalog_ability_controller.test.ts`](../../tests/frontend/catalog_ability_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **10** | 199 | Suite de pruebas frontend: catalog_ability_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -134,9 +134,10 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/page_focus.test.ts`](../../tests/frontend/page_focus.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 155 | Suite de pruebas frontend: page_focus.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/skip_link_contrast.test.ts`](../../tests/frontend/skip_link_contrast.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 69 | Suite de pruebas frontend: skip_link_contrast.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/skip_pagination.test.ts`](../../tests/frontend/skip_pagination.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 131 | Suite de pruebas frontend: skip_pagination.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/skip_pagination.test.ts`](../../tests/frontend/skip_pagination.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 134 | Suite de pruebas frontend: skip_pagination.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 218 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
 | [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
@@ -310,7 +311,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 243
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 252
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -393,9 +394,10 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
 | [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
+| [`tests/frontend/page_focus.test.ts`](../../tests/frontend/page_focus.test.ts) | **9** | 155 | Suite de pruebas frontend: page_focus.test.ts. | *(General)* |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | *(General)* |
 | [`tests/frontend/skip_link_contrast.test.ts`](../../tests/frontend/skip_link_contrast.test.ts) | **3** | 69 | Suite de pruebas frontend: skip_link_contrast.test.ts. | *(General)* |
-| [`tests/frontend/skip_pagination.test.ts`](../../tests/frontend/skip_pagination.test.ts) | **7** | 131 | Suite de pruebas frontend: skip_pagination.test.ts. | *(General)* |
+| [`tests/frontend/skip_pagination.test.ts`](../../tests/frontend/skip_pagination.test.ts) | **7** | 134 | Suite de pruebas frontend: skip_pagination.test.ts. | *(General)* |
 | [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | *(General)* |
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
@@ -406,7 +408,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **15** | 365 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **15** | 373 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
 

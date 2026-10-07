@@ -235,7 +235,7 @@
     <a class="skip-link" id="skipToPagination" href="#paginationBar" hidden>Saltar a la paginación</a>
 
     <!-- Pokémon Grid Container -->
-    <main class="pokemon-grid" id="pokemonGrid">
+    <main class="pokemon-grid" id="pokemonGrid" tabindex="-1" aria-label="Catálogo de Pokémon">
       <div class="loading-state">
         <div class="spinner"></div>
         <p>Cargando catálogo Pokédex desde el clúster...</p>
@@ -243,6 +243,9 @@
     </main>
 
     <!-- Pagination Controls -->
+    <!-- Anuncia la página nueva a los lectores de pantalla; solo lo escribe changePage, no el refiltrado -->
+    <p class="sr-only" id="pageAnnouncer" role="status" aria-live="polite"></p>
+
     <nav class="pagination-container hidden" id="paginationBar" aria-label="Paginación del catálogo">
       <button class="btn btn-secondary" id="btnPrevPage">← Anterior</button>
       <span class="page-info" id="pageInfo">Página 1 de 1</span>

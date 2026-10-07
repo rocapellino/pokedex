@@ -530,6 +530,14 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  /* Al cambiar de página la vista se alinea con el catálogo (page-focus.ts), con un pequeño margen. */
+  scroll-margin-top: 1rem;
+}
+
+/* El catálogo recibe el foco por programa tras cambiar de página; no es interactivo, así que no lleva
+   contorno (las tarjetas y los botones conservan el suyo). */
+.pokemon-grid:focus {
+  outline: none;
 }
 
 .pokemon-card {
