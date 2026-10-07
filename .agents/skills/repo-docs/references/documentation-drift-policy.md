@@ -17,7 +17,7 @@ Para analizar el grado de volatilidad y riesgo de desactualización, cada afirma
 | Categoría | Definición | Ejemplo | Riesgo de Drift |
 | :--- | :--- | :--- | :---: |
 | **`STABLE`** | Conceptos fundacionales de dominio y propósitos centrales. | "Pokédex es un catálogo interactivo de especímenes." | Muy Bajo |
-| **`DYNAMIC`** | Runtimes, dependencias principales y versiones semánticas. | "Node.js 22 LTS", "TypeScript 7.x" | Medio |
+| **`DYNAMIC`** | Runtimes, dependencias principales y versiones semánticas. | "Node.js 24 LTS", "TypeScript 7.x" | Medio |
 | **`TECHNICAL`** | Patrones de código, schemas de base de datos o contratos API. | "Validación de esquema con Zod en endpoints POST." | Medio |
 | **`OPERATIONAL`** | Comandos de despliegue, scripts de migración o variables de entorno. | "npm run dev", "docker compose up" | Medio-Alto |
 | **`SECURITY`** | Protocolos de reporte, controles de acceso y gestión de secretos. | "Secretos inyectados dinámicamente con Vault y ESO." | Alto |

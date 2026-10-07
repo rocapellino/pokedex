@@ -1,6 +1,6 @@
 # 📡 Especificación de Contratos y Endpoints de la API REST
 
-Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 22 LTS + Express 4.22 + TypeScript 7.x).
+Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 24 LTS + Express 4.22 + TypeScript 7.x).
 
 ---
 
@@ -24,7 +24,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 
 - **Base URL Local:** `http://localhost:3000` (Backend API) / `http://localhost:8080` (vía Nginx Ingress Proxy).
 - **Formato de Comunicación:** `application/json; charset=utf-8`.
-- **Runtime:** Node.js 22 LTS compilado con esbuild sobre contenedor Alpine endurecido (UID no-root: `1001`).
+- **Runtime:** Node.js 24 LTS compilado con esbuild sobre contenedor Alpine endurecido (UID no-root: `1001`).
 - **Límite de Payload:** Máximo de 250 KB (`express.json({ limit: '250kb' })`) para prevenir ataques DoS por saturación de memoria.
 - **Cabeceras de Seguridad:** Inyección automática de `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
 - **Políticas CORS:** Configuración en modo *fail-closed*. En producción exige definición explícita de `CORS_ORIGINS`; en desarrollo restringe estrictamente a loopback (`localhost:3000`, `localhost:8080`, `127.0.0.1`).

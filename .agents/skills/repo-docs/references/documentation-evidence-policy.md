@@ -46,7 +46,7 @@ Ante cualquier contradicción entre artefactos del repositorio, la verdad técni
 | :--- | :--- | :--- | :--- |
 | El documento indica que se requiere AWS EKS, pero Helm soporta cualquier K8s y Proxmox corre K3s. | `infra/helm/pokedex/values.yaml` y `gitops/` | `README.md` | Corregir el documento para presentar la arquitectura como Kubernetes portable. |
 | El documento describe Sealed Secrets, pero los manifiestos usan Vault y ExternalSecrets. | `infra/k8s/eso/` y `gitops/` | `README.md` y `SECURITY.md` | Actualizar a Vault CE + ESO. |
-| El documento indica soporte para versiones de Node.js no declaradas. | `package.json` (`engines`) y `Dockerfile` | `README.md` | Alinear con `node:22-alpine` y `Node 22 LTS`. |
+| El documento indica soporte para versiones de Node.js no declaradas. | `package.json` (`engines`) y `Dockerfile` | `README.md` | Alinear con `node:24-alpine` y `Node 24 LTS`. |
 | El documento promete un tiempo de despliegue sin respaldo empírico. | Tests de integración o benchmarks reales | `README.md` | Remover la afirmación no respaldada (*unsupported claim*). |
 
 ---

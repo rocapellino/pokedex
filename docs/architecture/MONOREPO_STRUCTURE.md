@@ -85,7 +85,7 @@ pokedex/
 │       └── public/               # Assets estáticos servidos al navegador (CSS, favicon)
 │           ├── css/              # Estilos visuales con variables CSS y glassmorphism
 │           └── favicon.*         # Iconografía y branding
-├── Dockerfile                    # Construcción multi-stage de producción (Node.js 22 Alpine, UID 1001)
+├── Dockerfile                    # Construcción multi-stage de producción (Node.js 24 Alpine, UID 1001)
 ├── docker-compose.yaml            # Orquestación multicontenedor local (API, Web, Postgres, Redis)
 ├── package.json                  # Manifiesto, dependencias y scripts de ejecución
 ├── package-lock.json             # Lockfile determinista de npm

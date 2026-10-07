@@ -36,7 +36,7 @@ flowchart LR
     end
 
     subgraph CODE["2. Code & Test"]
-        TS["🟦 TypeScript 7.x\nNode.js 22 LTS"]
+        TS["🟦 TypeScript 7.x\nNode.js 24 LTS"]
         ESBUILD["⚡ esbuild"]
         TASK["⚙️ Taskfile\n(go-task)"]
         TESTS["🧪 Node Test Runner\n(300 Tests + 7 Fuzz Tests)"]
@@ -123,7 +123,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node Test Runner (`node:test`)** | Nativo Node 22 | Suite de 300 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
+| **Node Test Runner (`node:test`)** | Nativo Node 24 | Suite de 300 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
 | **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
 | **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |

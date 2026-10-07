@@ -22,7 +22,7 @@ El archivo `README.md` debe estructurarse estrictamente en las siguientes seccio
 2. **Propósito y Visión General:** Qué es Pokédex, a quién sirve y qué problemas de arquitectura resuelve.
 3. **Características Destacadas:** Catálogo interactivo, backoffice, capacidades generativas con Gemini e ingeniería Cloud-Native.
 4. **Arquitectura del Sistema (Resumen):** Diagrama conceptual de alto nivel (Frontend, Backend unificado, PostgreSQL, Redis) y mención de portabilidad K8s.
-5. **Stack Tecnológico:** Tabla sintética con las tecnologías core (Node.js 22, TypeScript, Express, PostgreSQL 16, Redis 7, Helm).
+5. **Stack Tecnológico:** Tabla sintética con las tecnologías core (Node.js 24, TypeScript, Express, PostgreSQL 16, Redis 7, Helm).
 6. **Requisitos Previos:** Requisitos mínimos de sistema (Node.js LTS, Docker Engine).
 7. **Puesta en Marcha Local (Quickstart):** Comandos paso a paso (`npm install`, `npm run dev`, `docker compose up`).
 8. **Estrategia y Ejecución de Pruebas:** Comandos para suites unitarias, de integración, linters y Markdown.

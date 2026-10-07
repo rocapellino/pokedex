@@ -48,7 +48,7 @@ flowchart TD
     end
 
     subgraph APP_ZONE["⚙️ CAPA 2: ZONA DE APLICACIÓN (pokedex-backend-net)"]
-        WEB -->|HTTP interno :3000\nProxy /api/*, /pokemons| API["⚙️ pokemon-api (Node.js 22 + Express)\n• Escucha en puerto 3000\n• Validador XSS y anti-DoS\n• Rate limiting Lua y timing-safe auth\n• Usuario no-root UID 1001"]
+        WEB -->|HTTP interno :3000\nProxy /api/*, /pokemons| API["⚙️ pokemon-api (Node.js 24 + Express)\n• Escucha en puerto 3000\n• Validador XSS y anti-DoS\n• Rate limiting Lua y timing-safe auth\n• Usuario no-root UID 1001"]
     end
 
     subgraph DATA_ZONE["🗄️ CAPA 3: ZONA DE DATOS AISLADA (internal: true)"]

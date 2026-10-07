@@ -13,7 +13,7 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 
 | Componente | Tipo de Recurso | Puerto(s) | Descripción |
 | :--- | :--- | :--- | :--- |
-| **API Backend** | `Deployment`, `Service`, `HPA` | `3000` | Node.js 22 LTS / Express 4.21, TypeScript, Prometheus metrics y probes `/healthz`, `/readyz`. |
+| **API Backend** | `Deployment`, `Service`, `HPA` | `3000` | Node.js 24 LTS / Express 4.21, TypeScript, Prometheus metrics y probes `/healthz`, `/readyz`. |
 | **Frontend Web** | `Deployment`, `Service` | `80`, `8080` | Nginx SPA con reverse proxy hardening, compresión gzip y probes de salud. |
 | **PostgreSQL** | `StatefulSet`, `Service` Headless | `5432` | Base de datos relacional con migraciones Drizzle ORM versionadas y persistencia PVC. |
 | **PgBouncer** | `Deployment`, `Service` | `5432` | Connection pooler transaccional obligatorio en producción para mitigar saturación de sockets de base de datos. |

@@ -137,8 +137,8 @@ test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canóni
   const backendContent = fs.readFileSync(backendDockerPath, 'utf-8');
   assert.match(
     backendContent,
-    /FROM node:22-alpine/,
-    'apps/backend/Dockerfile debe usar la imagen base node:22-alpine',
+    /FROM node:24-alpine/,
+    'apps/backend/Dockerfile debe usar la imagen base node:24-alpine',
   );
   assert.match(
     backendContent,

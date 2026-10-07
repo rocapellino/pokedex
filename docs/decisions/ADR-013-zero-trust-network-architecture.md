@@ -22,7 +22,7 @@ Se adopta una arquitectura de red **Zero-Trust de Defensa en Profundidad** basad
 
 1. **Topología de Red Microsegmentada en 4 Capas**:
    - **Capa 1: Zona DMZ / Pública (`pokedex-frontend-net`)**: Aloja el pod `pokemon-web` (Nginx). Única capa que expone puerto público (`8080`). Su tráfico de salida está restringido exclusivamente a CoreDNS (`:53`) y al puerto interno de la API (`:3000`).
-   - **Capa 2: Zona de Aplicación (`pokedex-backend-net`)**: Aloja el pod `pokemon-api` (Node.js 22). Solo acepta tráfico entrante en `:3000` procedente de `pokemon-web` o del scraper de Prometheus en `monitoring-net`.
+   - **Capa 2: Zona de Aplicación (`pokedex-backend-net`)**: Aloja el pod `pokemon-api` (Node.js 24). Solo acepta tráfico entrante en `:3000` procedente de `pokemon-web` o del scraper de Prometheus en `monitoring-net`.
    - **Capa 3: Zona de Datos Aislada (`internal: true`)**: Aloja `pokemon-postgres`, `pgbouncer` y `pokemon-redis`. Sin salida a Internet ni exposición de puertos perimetrales. En producción, PostgreSQL únicamente acepta tráfico entrante procedente del pooler PgBouncer o del contenedor seeder.
    - **Capa 4: Zona de Observabilidad (`monitoring-net`)**: Conexión aislada punto a punto entre Prometheus y el endpoint `/metrics` de la API, sin visibilidad ni acceso a la zona de datos.
 

@@ -22,7 +22,7 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 
 El proyecto utiliza dos contenedores especializados:
 
-- **Backend API (`apps/backend/Dockerfile`)**: Runtime Node.js 22 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
+- **Backend API (`apps/backend/Dockerfile`)**: Runtime Node.js 24 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
 - **Frontend Web (`apps/frontend/Dockerfile`)**: Servidor web Nginx 1.31 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, TypeScriptVanilla).
 
 ---
@@ -88,7 +88,7 @@ Thumbs.db
 
 Para garantizar un resultado limpio en auditorías de SCA y escaneos de **Trivy**:
 
-- Fijar imágenes base con digest SHA-256 (`node:22-alpine@sha256:...`).
+- Fijar imágenes base con digest SHA-256 (`node:24-alpine@sha256:...`).
 - Ejecutar `RUN apk upgrade --no-cache` en la etapa final de producción para actualizar parches de seguridad críticos de librerías base como `musl`, `zlib`, `nghttp2-libs` y `libxml2`.
 
 ---
@@ -108,7 +108,7 @@ Permiten a Docker y Kubernetes orquestar reinicios automáticos y evitar enviar 
 
 ```dockerfile
 # Etapa 1: Builder
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./
 COPY apps/backend/package.json ./apps/backend/
@@ -119,7 +119,7 @@ COPY apps/frontend/public/ ./apps/frontend/public/
 RUN npm run lint && npm run build
 
 # Etapa 2: Runner
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runner
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runner
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 RUN apk upgrade --no-cache
@@ -142,8 +142,8 @@ CMD ["node", "apps/backend/dist/server.cjs"]
 ## 8. Dockerfile de Referencia: Frontend Web Nginx
 
 ```dockerfile
-# Etapa 1: Builder (Vite + Node 22 LTS — alineado con runtime de producción del backend)
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
+# Etapa 1: Builder (Vite + Node 24 LTS — alineado con runtime de producción del backend)
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY apps/frontend/package*.json ./apps/frontend/

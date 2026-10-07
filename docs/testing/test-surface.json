@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T19:26:51.146Z",
+  "generatedAt": "2026-10-07T19:54:55.157Z",
   "summary": {
     "totalFiles": 164,
     "testFiles": 107,
@@ -6051,7 +6051,7 @@
       "assertionCountEst": 139,
       "sizeBytes": 29397,
       "lineCount": 581,
-      "sha256": "818e11a73456300f3d9a83c6e3bff9fe33510220530b792bc0293b513f1cce45",
+      "sha256": "fafd44b13bfb4c5d30cf9f2d95e97679f693973399ce34fb3e705414513f565b",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",

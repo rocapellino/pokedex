@@ -45,7 +45,7 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 ## 2. Características Principales
 
 - **Catálogo Completo y Reactivo:** Exploración, filtrado multigenacional (Gen I a IX) y búsqueda en tiempo real de los 1.025 Pokémon oficiales.
-- **Backend Unificado y Tipado:** Servidor en Node.js 22 LTS y Express con validación de esquemas y tipado de extremo a extremo en TypeScript.
+- **Backend Unificado y Tipado:** Servidor en Node.js 24 LTS y Express con validación de esquemas y tipado de extremo a extremo en TypeScript.
 - **Persistencia Híbrida y Caché:** Almacenamiento relacional duradero en PostgreSQL 16 con Drizzle ORM (modelo relacional + `JSONB` indexado con GIN), pooling nativo con `pg.Pool` (con soporte opcional de PgBouncer) y aceleración en memoria con Redis 7.
 - **Inteligencia Artificial Contextual:** Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación de diagramas y asistencia técnica con circuit breaker y fallback local.
 - **Backoffice Administrativo:** Consola web para la gestión de especímenes, monitoreo de métricas en vivo y operaciones seguras.
@@ -59,7 +59,7 @@ La solución implementa una arquitectura desacoplada y orientada a contenedores 
 ```mermaid
 flowchart TD
     Client(["👤 Usuario / Cliente"]) -->|HTTP 8080| Web["🌐 Frontend SPA (Vite + Nginx)"]
-    Web -->|API Proxy /pokemons| API["⚙️ API REST (Node.js 22 + Express)"]
+    Web -->|API Proxy /pokemons| API["⚙️ API REST (Node.js 24 + Express)"]
     API -->|SQL :5432| DB[("🗄️ PostgreSQL 16\npokedex_entries")]
     API -->|RESP :6379| Cache[("⚡ Redis 7\nCaché & Rate Limit")]
     API -->|HTTPS| AI["🤖 Google Gemini 2.5 Flash\nServicios Generativos"]
@@ -79,7 +79,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 
 | Capa | Tecnología | Rol Técnico |
 | :--- | :--- | :--- |
-| **Runtime & Lenguaje** | Node.js 22 LTS / TypeScript 7.x | Servidor de API, lógica de negocio y tipado estático |
+| **Runtime & Lenguaje** | Node.js 24 LTS / TypeScript 7.x | Servidor de API, lógica de negocio y tipado estático |
 | **Frontend** | HTML5, CSS Moderno, TypeScript, Vite | Interfaz reactiva, Bento Grid y Backoffice administrativo |
 | **Base de Datos** | PostgreSQL 16 (Drizzle ORM) + Redis 7 | Persistencia ACID relacional + JSONB, pooling y caché distribuida |
 | **Tooling & Build** | esbuild, Taskfile, npm workspaces | Compilación ultrarrápida y orquestación de tareas |

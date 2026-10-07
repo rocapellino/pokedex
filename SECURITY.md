@@ -21,8 +21,8 @@ La seguridad de la plataforma **Pokédex** y la protección de los datos de nues
 
 | Versión / Rama | Estado de Soporte | Runtime Base |
 | :--- | :--- | :--- |
-| **`main` (Latest)** | ✅ Con soporte activo | Node.js 22 LTS / Docker Alpine |
-| **`v1.x` Releases Activos** | ✅ Con soporte activo | Node.js 22 LTS / Kubernetes 1.30+ |
+| **`main` (Latest)** | ✅ Con soporte activo | Node.js 24 LTS / Docker Alpine |
+| **`v1.x` Releases Activos** | ✅ Con soporte activo | Node.js 24 LTS / Kubernetes 1.30+ |
 | **`< v1.75.0`** | ❌ Fin de ciclo de vida (EOL) | Versiones anteriores no soportadas |
 
 ---
