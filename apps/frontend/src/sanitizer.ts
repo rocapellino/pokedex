@@ -107,6 +107,10 @@ const SANITIZE_CONFIG: Config = {
     'aria-selected',
     'aria-controls',
     'aria-expanded',
+    // Operabilidad con teclado: tarjetas, nodos de evolución y foco programático (atributos inertes)
+    'aria-current',
+    'aria-hidden',
+    'tabindex',
     'hidden',
   ],
   ALLOW_DATA_ATTR: true,

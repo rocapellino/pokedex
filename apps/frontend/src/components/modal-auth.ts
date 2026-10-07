@@ -3,7 +3,15 @@
  * Gestiona ciclo de vida de la sesión (cookie HttpOnly), UI de estado y diálogo de login.
  */
 
-import { errorMessage, getSessionStatus, loginWithApiKey, logoutSession, showToast } from '../shared/index.js';
+import {
+  closeModal,
+  errorMessage,
+  getSessionStatus,
+  loginWithApiKey,
+  logoutSession,
+  openModal,
+  showToast,
+} from '../shared/index.js';
 
 let isAdminActive = false;
 let adminSessionExpiresAt: number | null = null;
@@ -73,15 +81,12 @@ export function updateAuthUI(): void {
 
 export function openAuthModal(): void {
   updateAuthUI();
-  document.getElementById('authModal')?.classList.add('active');
-  const input = document.getElementById('adminApiKeyInput');
-  if (input) {
-    setTimeout(() => input.focus(), 100);
-  }
+  openModal('authModal');
+  document.getElementById('adminApiKeyInput')?.focus();
 }
 
 export function closeAuthModal(): void {
-  document.getElementById('authModal')?.classList.remove('active');
+  closeModal('authModal');
 }
 
 export function getAuthInputApiKey(): string {

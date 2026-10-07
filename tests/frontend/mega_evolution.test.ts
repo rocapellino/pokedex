@@ -50,9 +50,9 @@ const charizard: Pokemon = {
 };
 const pikachu: Pokemon = { ...charizard, id: 25, nombre: 'Pikachu', megaevoluciones: undefined };
 
-function mount(html: string): HTMLElement {
+function mount(html: { toString(): string }): HTMLElement {
   const root = dom.window.document.getElementById('detailContent') as HTMLElement;
-  root.innerHTML = sanitizeHtml(html);
+  root.innerHTML = sanitizeHtml(String(html));
   return root;
 }
 
@@ -64,7 +64,7 @@ test('🧬 UI Mega: describeStatDelta indica subida, bajada, igualdad y ausencia
 });
 
 test('🧬 UI Mega: renderMegaStats compara cada estadística y el total con la forma base', () => {
-  const html = renderMegaStats(megaX.stats, charizard.stats);
+  const html = String(renderMegaStats(megaX.stats, charizard.stats));
 
   assert.match(html, /base-stat-delta--up">\+46</, 'Ataque 130 frente a 84');
   assert.match(html, /base-stat-delta--same">=</, 'PS iguales');
@@ -74,19 +74,19 @@ test('🧬 UI Mega: renderMegaStats compara cada estadística y el total con la 
 });
 
 test('🧬 UI Mega: sin estadísticas base no inventa diferencias', () => {
-  const html = renderMegaStats(megaX.stats, undefined);
+  const html = String(renderMegaStats(megaX.stats, undefined));
 
   assert.doesNotMatch(html, /base-stat-delta--(up|down)/);
 });
 
 test('🧬 UI Mega: un Pokémon sin megaevolución no renderiza la sección', () => {
-  assert.equal(renderMegaEvolutionSection(pikachu), '');
-  assert.equal(renderMegaEvolutionSection({ ...pikachu, megaevoluciones: [] }), '');
-  assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-section/);
+  assert.equal(String(renderMegaEvolutionSection(pikachu)), '');
+  assert.equal(String(renderMegaEvolutionSection({ ...pikachu, megaevoluciones: [] })), '');
+  assert.doesNotMatch(String(renderDetailModalContent(pikachu)), /mega-section/);
 });
 
 test('🧬 UI Mega: varias formas generan una pestaña por forma y solo la primera visible', () => {
-  const html = renderMegaEvolutionSection(charizard);
+  const html = String(renderMegaEvolutionSection(charizard));
 
   assert.match(html, /Megaevoluciones/);
   assert.equal((html.match(/role="tab"/g) ?? []).length, 2);
@@ -97,7 +97,7 @@ test('🧬 UI Mega: varias formas generan una pestaña por forma y solo la prime
 });
 
 test('🧬 UI Mega: una sola forma no muestra pestañas y usa el título en singular', () => {
-  const html = renderMegaEvolutionSection({ ...charizard, megaevoluciones: [megaX] });
+  const html = String(renderMegaEvolutionSection({ ...charizard, megaevoluciones: [megaX] }));
 
   assert.match(html, /Megaevolución/);
   assert.doesNotMatch(html, /role="tablist"/);
@@ -105,21 +105,21 @@ test('🧬 UI Mega: una sola forma no muestra pestañas y usa el título en sing
 });
 
 test('🧬 UI Mega: el detalle del Pokémon base incluye la sección de megaevolución', () => {
-  const html = renderDetailModalContent(charizard);
+  const html = String(renderDetailModalContent(charizard));
 
   assert.match(html, /mega-section/);
   assert.match(html, /Mega-Charizard X/);
 });
 
 test('🧬 UI Mega: habilidades vacías se muestran como no publicadas', () => {
-  const html = renderMegaEvolutionSection({ ...charizard, megaevoluciones: [{ ...megaX, habilidades: [] }] });
+  const html = String(renderMegaEvolutionSection({ ...charizard, megaevoluciones: [{ ...megaX, habilidades: [] }] }));
 
   assert.match(html, /No publicada/);
 });
 
 test('🧬 UI Mega: el contenido escapa texto no confiable (XSS) en nombre y tipos', () => {
   const evil: MegaEvolution = { ...megaX, nombre: '<img src=x onerror=alert(1)>', tipos: ['<script>x</script>'] };
-  const html = renderMegaEvolutionSection({ ...charizard, megaevoluciones: [evil] });
+  const html = String(renderMegaEvolutionSection({ ...charizard, megaevoluciones: [evil] }));
 
   assert.doesNotMatch(html, /<img src=x/);
   assert.doesNotMatch(html, /<script/i);
@@ -165,15 +165,14 @@ test('🧬 UI Mega: selectMegaTab con un índice inexistente no cambia nada y de
   assert.equal(root.querySelectorAll('.mega-panel[hidden]').length, 1);
 });
 
-test('🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base', () => {
-  const html = renderDetailModalContent(charizard);
+test('🧬 UI Mega: el botón Mega nace contraído y va debajo de las debilidades', () => {
+  const html = String(renderDetailModalContent(charizard));
 
   assert.match(html, /class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure"/);
   assert.match(html, /id="mega-disclosure" hidden>/);
-  const art = html.indexOf('pokedex-artwork-box');
-  const stats = html.indexOf('pokedex-stats-panel');
+  const weaknesses = html.indexOf('Debilidad');
   const toggle = html.indexOf('mega-toggle');
-  assert.ok(art < stats && stats < toggle, 'orden: arte, puntos de base, botón Mega');
+  assert.ok(weaknesses > 0 && weaknesses < toggle, 'orden: debilidades, botón Mega');
 });
 
 test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones', () => {
@@ -182,8 +181,8 @@ test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y a
   const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
   assert.equal(body.closest('.pokedex-entry-grid'), null, 'no está dentro de la rejilla de dos columnas');
   assert.equal(body.parentElement, root, 'es hijo directo del detalle, igual que Evoluciones');
-  const toggle = root.querySelector('.pokedex-left-col .mega-toggle');
-  assert.ok(toggle, 'el botón sí está en la columna izquierda');
+  const toggle = root.querySelector('.pokedex-right-col .mega-toggle');
+  assert.ok(toggle, 'el botón sí está en la columna derecha');
   assert.ok(
     body.compareDocumentPosition(root.querySelector('.evolutions-panel-header') as HTMLElement) &
       dom.window.Node.DOCUMENT_POSITION_FOLLOWING,
@@ -192,18 +191,18 @@ test('🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y a
 });
 
 test('🧬 UI Mega: sin megaevolución no hay botón ni despliegue', () => {
-  assert.equal(renderMegaToggle(pikachu), '');
-  assert.equal(renderMegaDisclosureBody(pikachu), '');
-  assert.doesNotMatch(renderDetailModalContent(pikachu), /mega-toggle|mega-disclosure/);
+  assert.equal(String(renderMegaToggle(pikachu)), '');
+  assert.equal(String(renderMegaDisclosureBody(pikachu)), '');
+  assert.doesNotMatch(String(renderDetailModalContent(pikachu)), /mega-toggle|mega-disclosure/);
 });
 
 test('🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega', () => {
-  assert.match(renderMegaToggle(charizard), /aria-label="Ver 2 megaevoluciones"/);
-  assert.match(renderMegaToggle({ ...charizard, megaevoluciones: [megaX] }), /aria-label="Ver megaevolución"/);
+  assert.match(String(renderMegaToggle(charizard)), /aria-label="Ver 2 megaevoluciones"/);
+  assert.match(String(renderMegaToggle({ ...charizard, megaevoluciones: [megaX] })), /aria-label="Ver megaevolución"/);
 });
 
 test('🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)', () => {
-  const root = mount(renderMegaToggle(charizard) + renderMegaDisclosureBody(charizard));
+  const root = mount(`${renderMegaToggle(charizard)}${renderMegaDisclosureBody(charizard)}`);
   const toggle = root.querySelector('.mega-toggle') as HTMLElement;
   const body = root.querySelector('.mega-disclosure-body') as HTMLElement;
 
@@ -224,8 +223,8 @@ test('🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null', () => {
 });
 
 test('🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución', () => {
-  assert.match(renderPokemonCard(charizard), /class="mega-badge"/);
-  assert.doesNotMatch(renderPokemonCard(pikachu), /mega-badge/);
+  assert.match(String(renderPokemonCard(charizard)), /class="mega-badge"/);
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /mega-badge/);
 });
 
 test('🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente', () => {
@@ -236,13 +235,31 @@ test('🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente', () =
 });
 
 test('🧬 UI Mega: el filtro "con megaevolución" se combina con búsqueda, tipo y generación', () => {
-  const base: CatalogFilters = { searchQuery: '', type: 'all', generation: 'all', onlyWithMega: false };
+  const base: CatalogFilters = { searchQuery: '', types: [], generation: 'all', onlyWithMega: false };
 
   assert.equal(matchesCatalogFilters(pikachu, base), true);
   assert.equal(matchesCatalogFilters(pikachu, { ...base, onlyWithMega: true }), false);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, searchQuery: 'chari' }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, searchQuery: 'pika' }), false);
-  assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, type: 'Volador' }), true);
+  assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, types: ['Volador'] }), true);
   assert.equal(matchesCatalogFilters(charizard, { ...base, onlyWithMega: true, generation: '2' }), false);
+});
+
+test('🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos', () => {
+  assert.match(
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'legendario' })),
+    /class-badge class-badge--legendario"[^>]*>Legendario</,
+  );
+  assert.match(
+    String(renderPokemonCard({ ...pikachu, clasificacion: 'mitico' })),
+    /class-badge class-badge--mitico"[^>]*>Mítico</,
+  );
+  assert.doesNotMatch(String(renderPokemonCard(pikachu)), /class-badge/);
+
+  // Un valor forjado no genera insignia ni inyecta marcado: se inspecciona el DOM, no el texto.
+  const holder = dom.window.document.createElement('div');
+  holder.innerHTML = String(renderPokemonCard({ ...pikachu, clasificacion: 'x"><SCRIPT>' } as unknown as Pokemon));
+  assert.equal(holder.querySelector('.class-badge'), null);
+  assert.equal(holder.querySelector('script'), null);
 });

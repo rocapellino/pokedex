@@ -1,13 +1,21 @@
 // ==============================================================================
 // Script CLI de Siembra Masiva del Catálogo Pokédex (K8s Job / DevOps Tooling)
 // ==============================================================================
-import { loadSeedCatalog, planMegaEnrichment, planSeed, resolveSeedDataset } from './data/seed-catalog.js';
+import {
+  loadSeedCatalog,
+  planClassificationEnrichment,
+  planMegaEnrichment,
+  planSeed,
+  resolveSeedDataset,
+} from './data/seed-catalog.js';
 import {
   initStorage,
   savePokemon,
   getStorageHealth,
+  listPersistedClassifications,
   listPersistedMegaEvolutions,
   listPersistedPokemonIds,
+  setPokemonClassification,
   setPokemonMegaEvolutions,
   syncPokedexIdSequence,
 } from './services/db.js';
@@ -47,12 +55,16 @@ async function main() {
       );
     }
 
-    // 3. Enriquecer filas existentes con megaevoluciones: solo ese campo, sin pisar ediciones.
-    // Con force-sync el catálogo completo (megaevoluciones incluidas) se reescribe en el paso 4.
+    // 3. Enriquecer filas existentes con megaevoluciones y clasificación (legendario/mítico): solo esos
+    // campos, sin pisar ediciones. Con force-sync el catálogo completo se reescribe en el paso 4.
     const enrichment =
       plan.mode === 'force-sync' ? [] : planMegaEnrichment(catalog, await listPersistedMegaEvolutions(), existingIds);
+    const classification =
+      plan.mode === 'force-sync'
+        ? []
+        : planClassificationEnrichment(catalog, await listPersistedClassifications(), existingIds);
 
-    if (plan.toSeed.length === 0 && enrichment.length === 0) {
+    if (plan.toSeed.length === 0 && enrichment.length === 0 && classification.length === 0) {
       console.log('✅ [Seed Job] El catálogo ya se encuentra completo. No se requieren cambios.');
       process.exit(0);
     }
@@ -83,11 +95,22 @@ async function main() {
       );
     }
 
+    // 5b. Aplicar la clasificación sobre las filas existentes
+    let classified = 0;
+    for (const item of classification) {
+      if (await setPokemonClassification(item.id, item.clasificacion)) classified++;
+    }
+    if (classification.length > 0) {
+      console.log(
+        `🌟 [Seed Job] Clasificación legendario/mítico aplicada a ${classified} de ${classification.length} Pokémon existentes (ediciones conservadas).`,
+      );
+    }
+
     // 6. Alinear la secuencia de IDs con los IDs explícitos recién sembrados
     await syncPokedexIdSequence();
 
     console.log(
-      `🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}; enriquecidos con megaevoluciones: ${enriched}.`,
+      `🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}; enriquecidos con megaevoluciones: ${enriched}; clasificados: ${classified}.`,
     );
     process.exit(0);
   } catch (err) {

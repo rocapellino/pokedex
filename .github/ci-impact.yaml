@@ -135,6 +135,9 @@ rules:
     paths:
       - "apps/frontend/**"
       - "scripts/generate-nginx-conf.mjs"
+      - "scripts/lighthouse-stack.ts"
+      - "scripts/lighthouse-summary.ts"
+      - "lighthouserc.json"
     triggers:
       frontend: true
       tests: true
@@ -160,6 +163,7 @@ rules:
       - "scripts/probe-egress-security.ts"
       - "scripts/dr-drill.ts"
       - "scripts/dev-backup-gdrive.ts"
+      - "scripts/lib/backup-integrity.ts"
       - "scripts/deploy-grafana-cloud.mjs"
       - "scripts/dr_verify_restore.sh"
       # Tareas de clúster, ArgoCD y validación de plataforma
@@ -272,6 +276,21 @@ rules:
       security:
         secrets: true
         sast: false
+        dependencies: false
+        container: false
+        iac: false
+        supply_chain: false
+
+  catalog_tooling:
+    description: "Generador del catálogo nacional de Pokémon (PokeAPI a JSON versionado del backend)"
+    paths:
+      - "scripts/generate-pokemon-catalog.ts"
+    triggers:
+      backend: true
+      tests: true
+      security:
+        secrets: true
+        sast: true
         dependencies: false
         container: false
         iac: false

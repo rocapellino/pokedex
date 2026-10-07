@@ -16,6 +16,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { execSync } from 'node:child_process';
+import { BACKUP_HMAC_SUFFIX, computeBackupHmac, formatHmacSidecar } from './lib/backup-integrity.ts';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -132,10 +133,16 @@ console.log('🔍 [DR Dev] Calculando firma criptográfica SHA-256...');
 const sha256 = crypto.createHash('sha256').update(fullEncryptedPayload).digest('hex');
 fs.writeFileSync(checksumFilePath, `${sha256}  ${encFileName}\n`);
 
+// 7b. HMAC-SHA256 de autenticidad (Encrypt-then-MAC): el SHA-256 solo detecta corrupción; el HMAC exige la clave.
+console.log('🔏 [DR Dev] Autenticando el backup con HMAC-SHA256...');
+const hmac = computeBackupHmac(fullEncryptedPayload, encryptionKey);
+fs.writeFileSync(`${encFilePath}${BACKUP_HMAC_SUFFIX}`, formatHmacSidecar(hmac, encFileName));
+
 const fileSizeMB = (fullEncryptedPayload.length / (1024 * 1024)).toFixed(2);
 console.log(`✅ [DR Dev] Volcado cifrado generado exitosamente:`);
 console.log(`   - Archivo: ${encFilePath} (${fileSizeMB} MB)`);
-console.log(`   - SHA-256: ${sha256}\n`);
+console.log(`   - SHA-256: ${sha256}`);
+console.log(`   - HMAC-SHA256: ${hmac}\n`);
 
 // 8. Sincronización a Google Drive con Rclone (Docker Compose)
 if (isSkipUpload) {

@@ -2,8 +2,9 @@
  * Utilidades de UI y Rendering Compartidas para Frontend Pokédex
  */
 
-import { escapeText, sanitizeHtml } from '../sanitizer.js';
+import { sanitizeHtml } from '../sanitizer.js';
 import { normalizeStr } from './formatters.js';
+import { html, trustedHtml, type SafeHtml } from './html.js';
 
 /**
  * Muestra una notificación flotante estilo Toast en el contenedor #toastContainer.
@@ -34,18 +35,16 @@ export function showToast(message: string, isError = false, durationMs = 4000): 
 /**
  * Renderiza el HTML higienizado de una insignia de tipo Pokémon.
  */
-export function renderTypeBadge(tipo: string): string {
-  const safeTipo = escapeText(tipo);
-  const normType = escapeText(normalizeStr(tipo));
-  return `<span class="type-badge" data-type="${normType}">${safeTipo}</span>`;
+export function renderTypeBadge(tipo: string): SafeHtml {
+  return html`<span class="type-badge" data-type="${normalizeStr(tipo)}">${tipo}</span>`;
 }
 
 /**
  * Renderiza el conjunto de insignias de tipos para un Pokémon.
  */
-export function renderTypeBadges(tipo: string, tipos?: string[]): string {
+export function renderTypeBadges(tipo: string, tipos?: string[]): SafeHtml {
   if (Array.isArray(tipos) && tipos.length > 0) {
-    return tipos.map((t) => renderTypeBadge(t)).join('');
+    return html`${tipos.map((t) => renderTypeBadge(t))}`;
   }
   return renderTypeBadge(tipo);
 }
@@ -59,18 +58,42 @@ export function renderEmptyState(options: {
   description: string;
   retryBtnId?: string;
   retryBtnText?: string;
-}): string {
+}): SafeHtml {
   const icon = options.icon || '⚠️';
   const retryBtn = options.retryBtnId
-    ? `<button class="btn btn-primary mt-4" id="${escapeText(options.retryBtnId)}">${escapeText(options.retryBtnText || 'Reintentar')}</button>`
-    : '';
+    ? html`<button class="btn btn-primary mt-4" id="${options.retryBtnId}">${options.retryBtnText || 'Reintentar'}</button>`
+    : html``;
 
-  return sanitizeHtml(`
+  // Se conserva `sanitizeHtml` como segunda barrera: lo ya saneado es seguro por construcción.
+  return trustedHtml(
+    sanitizeHtml(
+      html`
     <div class="empty-state">
-      <div class="empty-icon">${escapeText(icon)}</div>
-      <h3 class="empty-title">${escapeText(options.title)}</h3>
-      <p class="error-detail">${escapeText(options.description)}</p>
+      <div class="empty-icon">${icon}</div>
+      <h3 class="empty-title">${options.title}</h3>
+      <p class="error-detail">${options.description}</p>
       ${retryBtn}
     </div>
-  `);
+  `.toString(),
+    ),
+  );
+}
+
+/**
+ * Abre un modal declarado como `<dialog>`: `showModal()` aporta foco, Escape, capa superior e
+ * `inert` del resto de la página. Si el elemento no implementa la API (p. ej. jsdom) degrada a
+ * marcar `[open]`.
+ */
+export function openModal(id: string): void {
+  const el = document.getElementById(id) as HTMLDialogElement | null;
+  if (!el || el.hasAttribute('open')) return;
+  if (typeof el.showModal === 'function') el.showModal();
+  else el.setAttribute('open', '');
+}
+
+export function closeModal(id: string): void {
+  const el = document.getElementById(id) as HTMLDialogElement | null;
+  if (!el?.hasAttribute('open')) return;
+  if (typeof el.close === 'function') el.close();
+  else el.removeAttribute('open');
 }

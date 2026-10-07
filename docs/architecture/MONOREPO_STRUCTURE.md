@@ -194,9 +194,8 @@ Ninguna: la configuración de MegaLinter se retiró junto con la herramienta.
 ### 4.5. SSOT de Comandos Operativos: `Taskfile.yaml`
 
 `Taskfile.yaml` es la **única fuente de verdad operativa** de comandos del
-repositorio. La CLI y la documentación consumen esa misma definición; VS Code las
-expone mediante la extensión `task.vscode-task` (recomendada en el DevContainer), sin
-`.vscode/tasks.json` propio.
+repositorio. La CLI y la documentación consumen esa misma definición; el repositorio
+no versiona configuración de editor (`.vscode/` está ignorado).
 
 ### Identidades de firma actualizadas en la Wave 3
 

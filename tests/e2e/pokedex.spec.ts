@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
+import type { Page } from '@playwright/test';
+
+/**
+ * Axe calcula el contraste con los colores computados en ese instante: con una transición CSS en curso
+ * (hover del toggle o de la tarjeta, fondos semitransparentes) el resultado fluctúa y produce falsos
+ * positivos intermitentes (~2-3% de las ejecuciones). Se analiza el estado estable, esperando a que
+ * terminen las animaciones finitas; las infinitas (p. ej. el pulso del indicador de estado) se excluyen
+ * porque nunca terminan.
+ */
+async function waitForSettledAnimations(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => Number.isFinite(animation.effect?.getComputedTiming().endTime))
+        .map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  );
+}
 
 test.describe('Pokédex Web Application E2E Suite', () => {
   test.beforeEach(async ({ page }) => {
@@ -50,6 +69,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
   test('@a11y Auditoría de accesibilidad WCAG con Axe-core', async ({ page }) => {
     // Esperar que la interfaz esté completamente lista
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    await waitForSettledAnimations(page);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -155,6 +175,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
     await page.locator('.mega-toggle').click();
     await expect(page.locator('.mega-section')).toBeVisible();
+    await waitForSettledAnimations(page);
 
     const results = await new AxeBuilder({ page })
       .include('.mega-section')
@@ -163,6 +184,80 @@ test.describe('Pokédex Web Application E2E Suite', () => {
 
     const seriousViolations = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
     expect(seriousViolations).toEqual([]);
+  });
+
+  test('@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape', async ({ page }) => {
+    const card = page.locator('.pokemon-card[data-pokemon-id="25"]');
+    await card.click();
+
+    const dialog = page.locator('dialog#detailModal');
+    await expect(dialog).toHaveAttribute('open', '');
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveAccessibleName(/\S/);
+
+    // Tab nunca debe enfocar la página de fondo: queda inerte (el foco solo puede estar en el
+    // diálogo o, al salir del documento, en el body/UI del navegador).
+    for (let i = 0; i < 12; i++) {
+      await page.keyboard.press('Tab');
+      const escaped = await page.evaluate(() => {
+        const el = document.activeElement;
+        return el !== document.body && !el?.closest('#detailModal');
+      });
+      expect(escaped).toBe(false);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveAttribute('open');
+  });
+
+  test('@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco', async ({ page }) => {
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    await page.locator('#searchInput').focus();
+
+    // Tab debe alcanzar el botón de una tarjeta. El tope es holgado a propósito: entre el buscador y la
+    // primera tarjeta hay todos los controles de filtro (y crecerán), no se cuenta una cifra exacta.
+    let reached = false;
+    for (let i = 0; i < 80 && !reached; i++) {
+      await page.keyboard.press('Tab');
+      reached = await page.evaluate(() => document.activeElement?.matches('.pokemon-card .card-open') ?? false);
+    }
+    expect(reached).toBe(true);
+
+    const button = page.locator('.pokemon-card .card-open:focus');
+    const name = (await button.textContent())?.trim() ?? '';
+    expect(name).not.toBe('');
+    const dialog = page.locator('dialog#detailModal');
+
+    await page.keyboard.press('Enter');
+    await expect(dialog).toHaveAttribute('open', '');
+    await expect(dialog).toContainText(name);
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toHaveAttribute('open');
+    await expect(button).toBeFocused();
+
+    await page.keyboard.press('Space');
+    await expect(dialog).toHaveAttribute('open', '');
+    await page.keyboard.press('Escape');
+    await expect(button).toBeFocused();
+  });
+
+  test('@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha', async ({
+    page,
+  }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"] .card-open').focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.locator('dialog#detailModal');
+    await expect(dialog).toHaveAttribute('open', '');
+
+    const title = dialog.locator('h2.pokedex-notched-title');
+    const before = await title.textContent();
+    const node = dialog.locator('.evolution-node-item[role="button"]').first();
+    await node.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(title).not.toHaveText(before ?? '');
+    await expect(title).toBeFocused();
+    await expect(dialog.locator('.evolution-node-item[aria-current="true"]')).toHaveCount(1);
   });
 
   test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {

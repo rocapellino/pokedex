@@ -79,20 +79,24 @@ test('🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 
 });
 
 test('🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRun', () => {
+  // Tag inalcanzable por un release real: con uno fijo y verosímil el test caía cuando la promoción subía
+  // justo a esa versión, porque comprueba que el disco NO quedó en el tag aplicado.
+  const unreachableTag = 'v999.999.999';
+
   const result = applyGitOpsPin({
-    tag: 'v1.99.0',
+    tag: unreachableTag,
     dryRun: true,
     targetFiles: DEFAULT_GITOPS_APP_FILES,
     baseDir: ROOT_DIR,
   });
 
   assert.equal(result.success, true);
-  assert.equal(result.newTag, 'v1.99.0');
+  assert.equal(result.newTag, unreachableTag);
   assert.equal(result.updatedFiles.length, 2, 'pre-prod y el blueprint cloud; la raíz sigue main (ADR-003)');
 
   // Asegurar que en dryRun los archivos en disco NO cambiaron
   const parity = checkGitOpsPinParity(DEFAULT_GITOPS_APP_FILES, ROOT_DIR);
-  assert.notEqual(parity.canonicalVersion, 'v1.99.0', 'Los archivos en disco no deben haber cambiado');
+  assert.notEqual(parity.canonicalVersion, unreachableTag, 'Los archivos en disco no deben haber cambiado');
 });
 
 test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción', () => {

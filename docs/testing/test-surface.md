@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **88** |
-| **Archivos de Test Automatizados** | 82 |
+| **Total de Archivos en `tests/`** | **152** |
+| **Archivos de Test Automatizados** | 100 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
-| **Archivos de Soporte / Entorno (Fixtures)** | 5 |
-| **Total de Casos de Prueba Identificados** | **696** |
-| **Líneas de Código de Pruebas** | 18.600 |
-| **Tamaño Total de la Suite** | 792.0 KB |
+| **Archivos de Soporte / Entorno (Fixtures)** | 51 |
+| **Total de Casos de Prueba Identificados** | **844** |
+| **Líneas de Código de Pruebas** | 23.594 |
+| **Tamaño Total de la Suite** | 1003.6 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T15:19:24.639Z |
+| **Última Sincronización** | 2026-10-07T15:37:35.420Z |
 
 ---
 
@@ -27,14 +27,14 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 19 | 126 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 20 | 140 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 226 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 29 | 233 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 6 | 41 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 8 | 79 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
-| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 15 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 70 | 192 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 2 | 19 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
-| **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 1 | 4 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
+| **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
 | **`governance`** | Gobernanza y Contratos de Plataforma (Root) | `node:test (tsx)` | `npm test` | 14 | 168 | Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI. |
 
@@ -50,21 +50,84 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **36** | 853 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **23** | 563 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | `ci` | Automated Test | `node:test (tsx)` | **10** | 194 | Suite de pruebas ci: lighthouse.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **5** | 108 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **10** | 179 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **13** | 274 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 197 | Suite de pruebas frontend: catalog_class_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **24** | 447 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **8** | 91 | Suite de pruebas frontend: catalog_filters.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **11** | 170 | Suite de pruebas frontend: catalog_sort.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **13** | 120 | Suite de pruebas frontend: filter_url.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(Helper)* |
+| [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(Helper)* |
+| [`tests/frontend/golden/badges-multi.html`](../../tests/frontend/golden/badges-multi.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: badges-multi.html. | *(Helper)* |
+| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-charizard.html. | *(Helper)* |
+| [`tests/frontend/golden/card-legendario.html`](../../tests/frontend/golden/card-legendario.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-legendario.html. | *(Helper)* |
+| [`tests/frontend/golden/card-mitico.html`](../../tests/frontend/golden/card-mitico.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-mitico.html. | *(Helper)* |
+| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-pikachu.html. | *(Helper)* |
+| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | `frontend` | Helper | `none` | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(Helper)* |
+| [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(Helper)* |
+| [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | `frontend` | Helper | `none` | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-full.html`](../../tests/frontend/golden/modal-base-stats-full.html) | `frontend` | Helper | `none` | **0** | 36 | Suite de pruebas frontend: modal-base-stats-full.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-none.html`](../../tests/frontend/golden/modal-base-stats-none.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-base-stats-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-base-stats-partial.html`](../../tests/frontend/golden/modal-base-stats-partial.html) | `frontend` | Helper | `none` | **0** | 32 | Suite de pruebas frontend: modal-base-stats-partial.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-method.html`](../../tests/frontend/golden/modal-connector-method.html) | `frontend` | Helper | `none` | **0** | 9 | Suite de pruebas frontend: modal-connector-method.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-plain.html`](../../tests/frontend/golden/modal-connector-plain.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-connector-plain.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-connector-undefined.html`](../../tests/frontend/golden/modal-connector-undefined.html) | `frontend` | Helper | `none` | **0** | 2 | Suite de pruebas frontend: modal-connector-undefined.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-charizard-mega.html`](../../tests/frontend/golden/modal-detail-charizard-mega.html) | `frontend` | Helper | `none` | **0** | 339 | Suite de pruebas frontend: modal-detail-charizard-mega.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-eevee.html`](../../tests/frontend/golden/modal-detail-eevee.html) | `frontend` | Helper | `none` | **0** | 168 | Suite de pruebas frontend: modal-detail-eevee.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-pikachu.html`](../../tests/frontend/golden/modal-detail-pikachu.html) | `frontend` | Helper | `none` | **0** | 162 | Suite de pruebas frontend: modal-detail-pikachu.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-detail-sparse.html`](../../tests/frontend/golden/modal-detail-sparse.html) | `frontend` | Helper | `none` | **0** | 86 | Suite de pruebas frontend: modal-detail-sparse.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-branched-leaves.html`](../../tests/frontend/golden/modal-evolution-branched-leaves.html) | `frontend` | Helper | `none` | **0** | 69 | Suite de pruebas frontend: modal-evolution-branched-leaves.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-branched-prefix.html`](../../tests/frontend/golden/modal-evolution-branched-prefix.html) | `frontend` | Helper | `none` | **0** | 79 | Suite de pruebas frontend: modal-evolution-branched-prefix.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-flat-1.html`](../../tests/frontend/golden/modal-evolution-flat-1.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-flat-1.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-flat-3.html`](../../tests/frontend/golden/modal-evolution-flat-3.html) | `frontend` | Helper | `none` | **0** | 63 | Suite de pruebas frontend: modal-evolution-flat-3.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-linear-tree.html`](../../tests/frontend/golden/modal-evolution-linear-tree.html) | `frontend` | Helper | `none` | **0** | 63 | Suite de pruebas frontend: modal-evolution-linear-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-no-tree.html`](../../tests/frontend/golden/modal-evolution-no-tree.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-no-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-single-tree.html`](../../tests/frontend/golden/modal-evolution-single-tree.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-single-tree.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-evolution-undefined.html`](../../tests/frontend/golden/modal-evolution-undefined.html) | `frontend` | Helper | `none` | **0** | 21 | Suite de pruebas frontend: modal-evolution-undefined.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-body-none.html`](../../tests/frontend/golden/modal-mega-body-none.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: modal-mega-body-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-body-two.html`](../../tests/frontend/golden/modal-mega-body-two.html) | `frontend` | Helper | `none` | **0** | 174 | Suite de pruebas frontend: modal-mega-body-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-section-one.html`](../../tests/frontend/golden/modal-mega-section-one.html) | `frontend` | Helper | `none` | **0** | 89 | Suite de pruebas frontend: modal-mega-section-one.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-section-two.html`](../../tests/frontend/golden/modal-mega-section-two.html) | `frontend` | Helper | `none` | **0** | 171 | Suite de pruebas frontend: modal-mega-section-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-stats-no-base.html`](../../tests/frontend/golden/modal-mega-stats-no-base.html) | `frontend` | Helper | `none` | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-no-base.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-stats-with-base.html`](../../tests/frontend/golden/modal-mega-stats-with-base.html) | `frontend` | Helper | `none` | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-with-base.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-none.html`](../../tests/frontend/golden/modal-mega-toggle-none.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: modal-mega-toggle-none.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-one.html`](../../tests/frontend/golden/modal-mega-toggle-one.html) | `frontend` | Helper | `none` | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-one.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-mega-toggle-two.html`](../../tests/frontend/golden/modal-mega-toggle-two.html) | `frontend` | Helper | `none` | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-two.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-bare.html`](../../tests/frontend/golden/modal-node-bare.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-bare.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-catalog-types.html`](../../tests/frontend/golden/modal-node-catalog-types.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-catalog-types.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-current.html`](../../tests/frontend/golden/modal-node-current.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-current.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-other-method.html`](../../tests/frontend/golden/modal-node-other-method.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-other-method.html. | *(Helper)* |
+| [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | `frontend` | Helper | `none` | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(Helper)* |
+| [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | `frontend` | Helper | `none` | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(Helper)* |
+| [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | `frontend` | Helper | `none` | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(Helper)* |
+| [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | `frontend` | Helper | `none` | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(Helper)* |
+| [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | `frontend` | Helper | `none` | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(Helper)* |
+| [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **21** | 249 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) | `fuzz` | Fuzz | `node:test (tsx)` | **7** | 218 | Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST. | `npm run test:fuzz`, `npm run test:all` |
-| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **7** | 244 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
+| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 157 | Suite de pruebas gitops: environment_http_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **6** | 551 | Suite de pruebas gitops: gitops_architecture.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **7** | 138 | Suite de pruebas gitops: image_digest_promotion.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
@@ -86,13 +149,13 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security.test.ts`](../../tests/security.test.ts) | `governance` | Security / Application | `node:test (tsx)` | **28** | 444 | Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | `security` | Contract / Architecture | `node:test (tsx)` | **18** | 814 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | `security` | Security / Ansible | `node:test (tsx)` | **12** | 424 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/backup_hmac.test.ts`](../../tests/security/backup_hmac.test.ts) | `security` | Automated Test | `node:test (tsx)` | **11** | 193 | Suite de pruebas security: backup_hmac.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | `security` | Automated Test | `node:test (tsx)` | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | `security` | Automated Test | `node:test (tsx)` | **7** | 99 | Suite de pruebas security: csrf_origin.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/devcontainer_supply_chain.test.ts`](../../tests/security/devcontainer_supply_chain.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 104 | Suite de pruebas security: devcontainer_supply_chain.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | `security` | Automated Test | `node:test (tsx)` | **2** | 56 | Suite de pruebas security: docs_governance_gate.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | `security` | Contract / Docs | `node:test (tsx)` | **3** | 146 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | `security` | Security / Backup | `node:test (tsx)` | **11** | 462 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | `security` | Security / DR | `node:test (tsx)` | **6** | 197 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | `security` | Security / DR | `node:test (tsx)` | **6** | 199 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | `security` | Security / Network | `node:test (tsx)` | **4** | 246 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security`, `npm run test:security:egress` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | `security` | Contract / OCI | `node:test (tsx)` | **6** | 252 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | `security` | Contract / SecOps | `node:test (tsx)` | **12** | 318 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -104,11 +167,11 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | `security` | Contract / Hygiene | `node:test (tsx)` | **10** | 219 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | `security` | Security / Kubernetes | `node:test (tsx)` | **14** | 581 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 441 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | `security` | Security / Network | `node:test (tsx)` | **14** | 438 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/nginx_effective_headers.test.ts`](../../tests/security/nginx_effective_headers.test.ts) | `security` | Automated Test | `node:test (tsx)` | **3** | 142 | Suite de pruebas security: nginx_effective_headers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/opentofu_baseline_security.test.ts`](../../tests/security/opentofu_baseline_security.test.ts) | `security` | Security / OpenTofu | `node:test (tsx)` | **9** | 345 | Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | `security` | Security / DR Benchmarks | `node:test (tsx)` | **9** | 137 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
-| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **1** | 70 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
@@ -119,6 +182,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 240 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -143,7 +207,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 126
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 140
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -153,6 +217,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/auth_service.test.ts`](../../tests/unit/auth_service.test.ts) | **9** | 240 | Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos. | `apps/backend/src/services/auth.ts` |
 | [`tests/unit/backend_lifecycle.test.ts`](../../tests/unit/backend_lifecycle.test.ts) | **1** | 41 | Suite de pruebas unit: backend_lifecycle.test.ts. | *(General)* |
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
+| [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | *(General)* |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | **1** | 39 | Suite de pruebas unit: compose_postgres_tls.test.ts. | *(General)* |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | **7** | 105 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | *(General)* |
@@ -182,20 +247,20 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 226
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 233
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/security/adr_compliance_contracts.test.ts`](../../tests/security/adr_compliance_contracts.test.ts) | **18** | 814 | Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets). | `docs/decisions/` |
 | [`tests/security/ansible_baseline_security.test.ts`](../../tests/security/ansible_baseline_security.test.ts) | **12** | 424 | Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas. | `infra/ansible/` |
+| [`tests/security/backup_hmac.test.ts`](../../tests/security/backup_hmac.test.ts) | **11** | 193 | Suite de pruebas security: backup_hmac.test.ts. | *(General)* |
 | [`tests/security/cors_rejection.test.ts`](../../tests/security/cors_rejection.test.ts) | **1** | 34 | Suite de pruebas security: cors_rejection.test.ts. | *(General)* |
 | [`tests/security/csrf_origin.test.ts`](../../tests/security/csrf_origin.test.ts) | **7** | 99 | Suite de pruebas security: csrf_origin.test.ts. | *(General)* |
-| [`tests/security/devcontainer_supply_chain.test.ts`](../../tests/security/devcontainer_supply_chain.test.ts) | **5** | 104 | Suite de pruebas security: devcontainer_supply_chain.test.ts. | *(General)* |
 | [`tests/security/docs_governance_gate.test.ts`](../../tests/security/docs_governance_gate.test.ts) | **2** | 56 | Suite de pruebas security: docs_governance_gate.test.ts. | *(General)* |
 | [`tests/security/docs_portal_integrity.test.ts`](../../tests/security/docs_portal_integrity.test.ts) | **3** | 146 | Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental. | `docs/` |
 | [`tests/security/dr_backup_security.test.ts`](../../tests/security/dr_backup_security.test.ts) | **11** | 462 | Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves. | `scripts/dr-drill.ts`, `scripts/dev-backup-gdrive.ts` |
-| [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | **6** | 197 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `scripts/dr-drill.ts` |
+| [`tests/security/dr_e2e_drill.test.ts`](../../tests/security/dr_e2e_drill.test.ts) | **6** | 199 | Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO. | `scripts/dr-drill.ts` |
 | [`tests/security/egress_anti_ssrf.test.ts`](../../tests/security/egress_anti_ssrf.test.ts) | **4** | 246 | Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta. | `infra/helm/pokedex/templates/cilium-network-policies.yaml`, `scripts/probe-egress-security.ts` |
 | [`tests/security/ghcr_retention.test.ts`](../../tests/security/ghcr_retention.test.ts) | **6** | 252 | Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas. | `scripts/ghcr-retention.ts`, `.github/workflows/ghcr-retention.yaml` |
 | [`tests/security/github_security_linear_sync.test.ts`](../../tests/security/github_security_linear_sync.test.ts) | **12** | 318 | Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear. | `scripts/github-security-linear-sync.ts`, `.github/workflows/github-security-linear-sync.yaml` |
@@ -207,11 +272,11 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/ignore_hygiene.test.ts`](../../tests/security/ignore_hygiene.test.ts) | **10** | 219 | Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos. | `scripts/check-ignore-hygiene.ts`, `.gitignore`, `.dockerignore` |
 | [`tests/security/image_publication_contract.test.ts`](../../tests/security/image_publication_contract.test.ts) | **4** | 99 | Suite de pruebas security: image_publication_contract.test.ts. | *(General)* |
 | [`tests/security/k8s_workload_hardening.test.ts`](../../tests/security/k8s_workload_hardening.test.ts) | **14** | 581 | Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud. | `infra/k8s/`, `infra/helm/pokedex/templates/` |
-| [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | **14** | 441 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml` |
+| [`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) | **14** | 438 | Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados. | `infra/helm/pokedex/templates/network-policies.yaml`, `infra/helm/pokedex/templates/cilium-network-policies.yaml` |
 | [`tests/security/nginx_effective_headers.test.ts`](../../tests/security/nginx_effective_headers.test.ts) | **3** | 142 | Suite de pruebas security: nginx_effective_headers.test.ts. | *(General)* |
 | [`tests/security/opentofu_baseline_security.test.ts`](../../tests/security/opentofu_baseline_security.test.ts) | **9** | 345 | Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud. | `infra/opentofu/` |
 | [`tests/security/operation_dr_benchmarks.test.ts`](../../tests/security/operation_dr_benchmarks.test.ts) | **9** | 137 | Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales. | `scripts/dr-drill.ts` |
-| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **1** | 70 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
+| [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | *(General)* |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `scripts/k8s-rollout-restart.ts` |
@@ -224,7 +289,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | **7** | 244 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts` |
+| [`tests/gitops/argocd_pinning.test.ts`](../../tests/gitops/argocd_pinning.test.ts) | **7** | 248 | Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod. | `gitops/values-*.yaml`, `scripts/verify-image-digest-parity.ts` |
 | [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) | **6** | 157 | Suite de pruebas gitops: environment_http_contract.test.ts. | *(General)* |
 | [`tests/gitops/gitops_architecture.test.ts`](../../tests/gitops/gitops_architecture.test.ts) | **6** | 551 | Suite de pruebas gitops: gitops_architecture.test.ts. | *(General)* |
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | **7** | 138 | Suite de pruebas gitops: image_digest_promotion.test.ts. | *(General)* |
@@ -233,29 +298,91 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 79
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 192
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `apps/frontend/src/backoffice.ts` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | `apps/frontend/src/backoffice.ts` |
+| [`tests/frontend/catalog_class_controller.test.ts`](../../tests/frontend/catalog_class_controller.test.ts) | **9** | 197 | Suite de pruebas frontend: catalog_class_controller.test.ts. | *(General)* |
 | [`tests/frontend/catalog_fetch.test.ts`](../../tests/frontend/catalog_fetch.test.ts) | **3** | 74 | Suite de pruebas frontend: catalog_fetch.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters_controller.test.ts`](../../tests/frontend/catalog_filters_controller.test.ts) | **24** | 447 | Suite de pruebas frontend: catalog_filters_controller.test.ts. | *(General)* |
+| [`tests/frontend/catalog_filters.test.ts`](../../tests/frontend/catalog_filters.test.ts) | **8** | 91 | Suite de pruebas frontend: catalog_filters.test.ts. | *(General)* |
+| [`tests/frontend/catalog_sort.test.ts`](../../tests/frontend/catalog_sort.test.ts) | **11** | 170 | Suite de pruebas frontend: catalog_sort.test.ts. | *(General)* |
 | [`tests/frontend/css_cache_busting.test.ts`](../../tests/frontend/css_cache_busting.test.ts) | **4** | 47 | Suite de pruebas frontend: css_cache_busting.test.ts. | *(General)* |
+| [`tests/frontend/filter_url.test.ts`](../../tests/frontend/filter_url.test.ts) | **13** | 120 | Suite de pruebas frontend: filter_url.test.ts. | *(General)* |
+| [`tests/frontend/fonts_selfhosted.test.ts`](../../tests/frontend/fonts_selfhosted.test.ts) | **4** | 78 | Suite de pruebas frontend: fonts_selfhosted.test.ts. | *(General)* |
+| [`tests/frontend/golden/badge-single.html`](../../tests/frontend/golden/badge-single.html) | **0** | 2 | Suite de pruebas frontend: badge-single.html. | *(General)* |
+| [`tests/frontend/golden/badges-fallback.html`](../../tests/frontend/golden/badges-fallback.html) | **0** | 2 | Suite de pruebas frontend: badges-fallback.html. | *(General)* |
+| [`tests/frontend/golden/badges-multi.html`](../../tests/frontend/golden/badges-multi.html) | **0** | 2 | Suite de pruebas frontend: badges-multi.html. | *(General)* |
+| [`tests/frontend/golden/card-charizard.html`](../../tests/frontend/golden/card-charizard.html) | **0** | 48 | Suite de pruebas frontend: card-charizard.html. | *(General)* |
+| [`tests/frontend/golden/card-legendario.html`](../../tests/frontend/golden/card-legendario.html) | **0** | 48 | Suite de pruebas frontend: card-legendario.html. | *(General)* |
+| [`tests/frontend/golden/card-mitico.html`](../../tests/frontend/golden/card-mitico.html) | **0** | 48 | Suite de pruebas frontend: card-mitico.html. | *(General)* |
+| [`tests/frontend/golden/card-pikachu.html`](../../tests/frontend/golden/card-pikachu.html) | **0** | 48 | Suite de pruebas frontend: card-pikachu.html. | *(General)* |
+| [`tests/frontend/golden/card-sparse.html`](../../tests/frontend/golden/card-sparse.html) | **0** | 48 | Suite de pruebas frontend: card-sparse.html. | *(General)* |
+| [`tests/frontend/golden/empty-state-plain.html`](../../tests/frontend/golden/empty-state-plain.html) | **0** | 8 | Suite de pruebas frontend: empty-state-plain.html. | *(General)* |
+| [`tests/frontend/golden/empty-state-retry.html`](../../tests/frontend/golden/empty-state-retry.html) | **0** | 8 | Suite de pruebas frontend: empty-state-retry.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-full.html`](../../tests/frontend/golden/modal-base-stats-full.html) | **0** | 36 | Suite de pruebas frontend: modal-base-stats-full.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-none.html`](../../tests/frontend/golden/modal-base-stats-none.html) | **0** | 2 | Suite de pruebas frontend: modal-base-stats-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-base-stats-partial.html`](../../tests/frontend/golden/modal-base-stats-partial.html) | **0** | 32 | Suite de pruebas frontend: modal-base-stats-partial.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-method.html`](../../tests/frontend/golden/modal-connector-method.html) | **0** | 9 | Suite de pruebas frontend: modal-connector-method.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-plain.html`](../../tests/frontend/golden/modal-connector-plain.html) | **0** | 2 | Suite de pruebas frontend: modal-connector-plain.html. | *(General)* |
+| [`tests/frontend/golden/modal-connector-undefined.html`](../../tests/frontend/golden/modal-connector-undefined.html) | **0** | 2 | Suite de pruebas frontend: modal-connector-undefined.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-charizard-mega.html`](../../tests/frontend/golden/modal-detail-charizard-mega.html) | **0** | 339 | Suite de pruebas frontend: modal-detail-charizard-mega.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-eevee.html`](../../tests/frontend/golden/modal-detail-eevee.html) | **0** | 168 | Suite de pruebas frontend: modal-detail-eevee.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-pikachu.html`](../../tests/frontend/golden/modal-detail-pikachu.html) | **0** | 162 | Suite de pruebas frontend: modal-detail-pikachu.html. | *(General)* |
+| [`tests/frontend/golden/modal-detail-sparse.html`](../../tests/frontend/golden/modal-detail-sparse.html) | **0** | 86 | Suite de pruebas frontend: modal-detail-sparse.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-branched-leaves.html`](../../tests/frontend/golden/modal-evolution-branched-leaves.html) | **0** | 69 | Suite de pruebas frontend: modal-evolution-branched-leaves.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-branched-prefix.html`](../../tests/frontend/golden/modal-evolution-branched-prefix.html) | **0** | 79 | Suite de pruebas frontend: modal-evolution-branched-prefix.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-flat-1.html`](../../tests/frontend/golden/modal-evolution-flat-1.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-flat-1.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-flat-3.html`](../../tests/frontend/golden/modal-evolution-flat-3.html) | **0** | 63 | Suite de pruebas frontend: modal-evolution-flat-3.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-linear-tree.html`](../../tests/frontend/golden/modal-evolution-linear-tree.html) | **0** | 63 | Suite de pruebas frontend: modal-evolution-linear-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-no-tree.html`](../../tests/frontend/golden/modal-evolution-no-tree.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-no-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-single-tree.html`](../../tests/frontend/golden/modal-evolution-single-tree.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-single-tree.html. | *(General)* |
+| [`tests/frontend/golden/modal-evolution-undefined.html`](../../tests/frontend/golden/modal-evolution-undefined.html) | **0** | 21 | Suite de pruebas frontend: modal-evolution-undefined.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-body-none.html`](../../tests/frontend/golden/modal-mega-body-none.html) | **0** | 1 | Suite de pruebas frontend: modal-mega-body-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-body-two.html`](../../tests/frontend/golden/modal-mega-body-two.html) | **0** | 174 | Suite de pruebas frontend: modal-mega-body-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-section-one.html`](../../tests/frontend/golden/modal-mega-section-one.html) | **0** | 89 | Suite de pruebas frontend: modal-mega-section-one.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-section-two.html`](../../tests/frontend/golden/modal-mega-section-two.html) | **0** | 171 | Suite de pruebas frontend: modal-mega-section-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-stats-no-base.html`](../../tests/frontend/golden/modal-mega-stats-no-base.html) | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-no-base.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-stats-with-base.html`](../../tests/frontend/golden/modal-mega-stats-with-base.html) | **0** | 44 | Suite de pruebas frontend: modal-mega-stats-with-base.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-none.html`](../../tests/frontend/golden/modal-mega-toggle-none.html) | **0** | 1 | Suite de pruebas frontend: modal-mega-toggle-none.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-one.html`](../../tests/frontend/golden/modal-mega-toggle-one.html) | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-one.html. | *(General)* |
+| [`tests/frontend/golden/modal-mega-toggle-two.html`](../../tests/frontend/golden/modal-mega-toggle-two.html) | **0** | 7 | Suite de pruebas frontend: modal-mega-toggle-two.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-bare.html`](../../tests/frontend/golden/modal-node-bare.html) | **0** | 14 | Suite de pruebas frontend: modal-node-bare.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-catalog-types.html`](../../tests/frontend/golden/modal-node-catalog-types.html) | **0** | 14 | Suite de pruebas frontend: modal-node-catalog-types.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-current.html`](../../tests/frontend/golden/modal-node-current.html) | **0** | 14 | Suite de pruebas frontend: modal-node-current.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-other-method.html`](../../tests/frontend/golden/modal-node-other-method.html) | **0** | 14 | Suite de pruebas frontend: modal-node-other-method.html. | *(General)* |
+| [`tests/frontend/golden/modal-node-special-chars.html`](../../tests/frontend/golden/modal-node-special-chars.html) | **0** | 14 | Suite de pruebas frontend: modal-node-special-chars.html. | *(General)* |
+| [`tests/frontend/golden/rows-admin-empty.html`](../../tests/frontend/golden/rows-admin-empty.html) | **0** | 1 | Suite de pruebas frontend: rows-admin-empty.html. | *(General)* |
+| [`tests/frontend/golden/rows-admin.html`](../../tests/frontend/golden/rows-admin.html) | **0** | 151 | Suite de pruebas frontend: rows-admin.html. | *(General)* |
+| [`tests/frontend/html_assertions.ts`](../../tests/frontend/html_assertions.ts) | **0** | 27 | Suite de pruebas frontend: html_assertions.ts. | *(General)* |
+| [`tests/frontend/html_fixtures.ts`](../../tests/frontend/html_fixtures.ts) | **0** | 164 | Suite de pruebas frontend: html_fixtures.ts. | *(General)* |
+| [`tests/frontend/html_injection_modals.test.ts`](../../tests/frontend/html_injection_modals.test.ts) | **6** | 125 | Suite de pruebas frontend: html_injection_modals.test.ts. | *(General)* |
+| [`tests/frontend/html_injection.test.ts`](../../tests/frontend/html_injection.test.ts) | **4** | 57 | Suite de pruebas frontend: html_injection.test.ts. | *(General)* |
+| [`tests/frontend/html_parity_modals.test.ts`](../../tests/frontend/html_parity_modals.test.ts) | **1** | 100 | Suite de pruebas frontend: html_parity_modals.test.ts. | *(General)* |
+| [`tests/frontend/html_parity.test.ts`](../../tests/frontend/html_parity.test.ts) | **1** | 62 | Suite de pruebas frontend: html_parity.test.ts. | *(General)* |
+| [`tests/frontend/html_template.test.ts`](../../tests/frontend/html_template.test.ts) | **7** | 55 | Suite de pruebas frontend: html_template.test.ts. | *(General)* |
+| [`tests/frontend/keyboard_access.test.ts`](../../tests/frontend/keyboard_access.test.ts) | **7** | 98 | Suite de pruebas frontend: keyboard_access.test.ts. | *(General)* |
+| [`tests/frontend/keyboard_navigation.test.ts`](../../tests/frontend/keyboard_navigation.test.ts) | **4** | 107 | Suite de pruebas frontend: keyboard_navigation.test.ts. | *(General)* |
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
-| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **21** | 249 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
-| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 335 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
+| [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
+| [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
+| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
+| [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | *(General)* |
+| [`tests/frontend/type_badge_contrast.test.ts`](../../tests/frontend/type_badge_contrast.test.ts) | **5** | 109 | Suite de pruebas frontend: type_badge_contrast.test.ts. | *(General)* |
 
 ### Suite: Pruebas End-to-End y Accesibilidad (`e2e`)
 
-- **Runner:** `playwright` | **Comando:** `npm run test:e2e` | **Total Casos:** 15
+- **Runner:** `playwright` | **Comando:** `npm run test:e2e` | **Total Casos:** 19
 - **Propósito:** Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **5** | 108 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **10** | 179 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
+| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
+| [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **13** | 274 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
 
@@ -268,11 +395,12 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Paridad y Gobernanza de CI/CD (`ci`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 4
+- **Runner:** `node:test (tsx)` | **Comando:** `npm test` | **Total Casos:** 14
 - **Propósito:** Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
+| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | **10** | 194 | Suite de pruebas ci: lighthouse.test.ts. | *(General)* |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `.github/workflows/*.yaml` |
 
 ### Suite: API Fuzzing y Pruebas Adversariales (`fuzz`)

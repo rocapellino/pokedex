@@ -51,14 +51,14 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
 
     const crudModal = page.locator('#crudModal');
     await expect(crudModal).toBeVisible();
-    await expect(crudModal).toHaveClass(/active/);
+    await expect(crudModal).toHaveAttribute('open', '');
     await expect(page.locator('#crudModalTitle')).toHaveText(/Registrar Nuevo Pokémon/i);
 
     // Validar visibilidad del botón de cierre y cerrar modal vía interacción de teclado (Escape / A11y)
     const closeBtn = page.locator('#crudModal [data-close-crud]').first();
     await expect(closeBtn).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(crudModal).not.toHaveClass(/active/);
+    await expect(crudModal).not.toHaveAttribute('open');
   });
 
   test('El flujo de autenticación administrativa valida credenciales y actualiza la UI', async ({ page }) => {
@@ -67,7 +67,7 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     await authBtn.click({ force: true });
 
     const authModal = page.locator('#authModal');
-    await expect(authModal).toHaveClass(/active/);
+    await expect(authModal).toHaveAttribute('open', '');
 
     const apiKeyInput = page.locator('#adminApiKeyInput');
     await expect(apiKeyInput).toBeVisible();
@@ -78,24 +78,39 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     await page.waitForTimeout(500);
 
     // El modal debe permanecer abierto tras fallo de autenticación
-    await expect(authModal).toHaveClass(/active/);
+    await expect(authModal).toHaveAttribute('open', '');
 
     // Intento con clave válida de test
     await apiKeyInput.fill(TEST_ADMIN_KEY);
     await page.locator('#btnSaveKey').click({ force: true });
 
     // Modal debe cerrarse y el estado debe reflejarse en la UI
-    await expect(authModal).not.toHaveClass(/active/, { timeout: 10000 });
+    await expect(authModal).not.toHaveAttribute('open', { timeout: 10000 });
     await expect(page.locator('#authStatusText')).toHaveText('Admin Activo');
     await expect(authBtn).toHaveClass(/btn-auth-active/);
+  });
+
+  test('@a11y El modal de autenticación enfoca la clave y devuelve el foco al cerrarse con Escape', async ({
+    page,
+  }) => {
+    const authBtn = page.locator('#btnAdminAuth');
+    await authBtn.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(page.getByRole('dialog', { name: /Autenticación/ })).toBeVisible();
+    await expect(page.locator('#adminApiKeyInput')).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#authModal')).not.toHaveAttribute('open');
+    await expect(authBtn).toBeFocused();
   });
 
   test('@a11y Auditoría de accesibilidad WCAG en Backoffice', async ({ page }) => {
     await page.waitForSelector('.pokemon-table-name', { timeout: 15000 });
 
+    // color-contrast permanece activo: desactivarlo ocultó que 13 de 18 insignias de tipo incumplían 4,5:1.
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .disableRules(['color-contrast'])
       .analyze();
 
     const seriousViolations = accessibilityScanResults.violations.filter(

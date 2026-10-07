@@ -4,7 +4,7 @@
  */
 
 import type { Pokemon } from '../types.js';
-import { formatPokemonId } from '../shared/index.js';
+import { formatPokemonId, openModal, closeModal } from '../shared/index.js';
 
 let pendingDeleteId: number | null = null;
 
@@ -24,7 +24,7 @@ export function openCreateModal(): void {
   if (idInput) idInput.value = '';
   const form = document.getElementById('crudForm') as HTMLFormElement | null;
   if (form) form.reset();
-  document.getElementById('crudModal')?.classList.add('active');
+  openModal('crudModal');
 }
 
 export function openEditModal(id: number, catalog: Pokemon[]): Pokemon | null {
@@ -65,14 +65,14 @@ export function openEditModal(id: number, catalog: Pokemon[]): Pokemon | null {
       habilidades.value = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || '';
     }
 
-    document.getElementById('crudModal')?.classList.add('active');
+    openModal('crudModal');
   }
   return p;
 }
 
 export function closeCrudModal(): void {
   if (typeof document !== 'undefined') {
-    document.getElementById('crudModal')?.classList.remove('active');
+    closeModal('crudModal');
   }
 }
 
@@ -87,14 +87,14 @@ export function openDeleteModal(id: number, catalog: Pokemon[]): Pokemon | null 
     if (nameEl) nameEl.innerText = p.nombre;
     if (idEl) idEl.innerText = formatPokemonId(p.id);
 
-    document.getElementById('deleteModal')?.classList.add('active');
+    openModal('deleteModal');
   }
   return p;
 }
 
 export function closeDeleteModal(): void {
   if (typeof document !== 'undefined') {
-    document.getElementById('deleteModal')?.classList.remove('active');
+    closeModal('deleteModal');
   }
   pendingDeleteId = null;
 }

@@ -48,7 +48,7 @@ flowchart LR
 4. **Cifrado Criptográfico Estricto**:
    - Algoritmo: `AES-256-CBC` con derivación de clave `PBKDF2` y salting criptográfico aleatorio.
    - La clave se inyecta de forma segura mediante variable de entorno `BACKUP_ENCRYPTION_KEY` proveniente de Kubernetes Secret / External Secrets Operator. Sin fallback hardcodeado.
-5. **Verificación de Integridad**: Cada volcado genera un archivo anexo `.sha256` para validar que el archivo no fue manipulado ni se corrompió durante la transferencia o almacenamiento.
+5. **Verificación de Integridad y Autenticidad**: Cada volcado genera un archivo anexo `.sha256` que detecta corrupción durante la transferencia o el almacenamiento, y un `.hmac` (Encrypt-then-MAC: HMAC-SHA256 con una clave derivada de `BACKUP_ENCRYPTION_KEY`) que detecta manipulación y clave incorrecta de forma determinista, porque AES-256-CBC no autentica. El `.enc` no cambia y sigue siendo legible con `openssl enc -d`.
 
 ### 2.2. Estado de Implementación: Respaldo Local Activo vs. Esqueletos Off-Site Inactivos
 
@@ -111,7 +111,17 @@ flowchart LR
 
 3. **Restaurar directamente en la base de datos PostgreSQL activa:**
 
-   Una vez descargado o transmitido el volcado cifrado, inyectarlo mediante pipe seguro hacia el StatefulSet de PostgreSQL (`pod/pokedex-postgres-0`):
+   Una vez descargado el volcado cifrado, verificar su autenticidad ANTES de inyectarlo: un volcado alterado se ejecutaría tal cual contra la base de datos.
+
+   ```bash
+   # Clave del MAC derivada de la de cifrado (no se usa la misma clave en dos funciones)
+   MAC_KEY=$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "${BACKUP_ENCRYPTION_KEY}" -r | cut -d' ' -f1)
+   ACTUAL=$(openssl dgst -sha256 -mac HMAC -macopt "hexkey:${MAC_KEY}" -r "${LOCAL_BACKUP_FILE}" | cut -d' ' -f1)
+   EXPECTED=$(cut -d' ' -f1 "${LOCAL_BACKUP_FILE}.hmac")
+   [ "${ACTUAL}" = "${EXPECTED}" ] && echo "HMAC OK" || { echo "HMAC NO COINCIDE: no restaurar"; exit 1; }
+   ```
+
+   Con el HMAC verificado, inyectarlo mediante pipe seguro hacia el StatefulSet de PostgreSQL (`pod/pokedex-postgres-0`). Los backups anteriores a `backup.hmac.requiredFrom` no tienen `.hmac`:
 
    ```bash
    openssl enc -d -aes-256-cbc -pbkdf2 -in "${LOCAL_BACKUP_FILE}" -k "${BACKUP_ENCRYPTION_KEY}" | \
@@ -171,7 +181,7 @@ bash scripts/dr_verify_restore.sh
 El protocolo automatizado valida:
 
 - Generación de clave efímera dinámica con `openssl rand -hex 32` en modo simulación (en modo real exige `BACKUP_ENCRYPTION_KEY` obligatoria).
-- Verificación criptográfica SHA-256 (`.sha256`), descifrado AES-256-CBC con PBKDF2 y descompresión gzip.
+- Verificación criptográfica SHA-256 (`.sha256`) y de autenticidad HMAC-SHA256 (`.hmac`, antes de descifrar; se exige en los backups creados desde `backup.hmac.requiredFrom`), descifrado AES-256-CBC con PBKDF2 y descompresión gzip.
 - Prueba de restauración real en base de datos PostgreSQL efímera (vía Docker) o remota (`DR_POSTGRES_URL`), validando existencia de la tabla `pokedex_entries`, conteo de filas, lectura representativa e integridad de índices.
 - Salvaguarda fail-closed que impide restauraciones accidentales contra bases de datos que contengan 'prod' o 'production' sin confirmación explícita (`ALLOW_PROD_RESTORE=true`).
 - Medición del tiempo transcurrido contra el objetivo oficial de RTO (< 2 horas).

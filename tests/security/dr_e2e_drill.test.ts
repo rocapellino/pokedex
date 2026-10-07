@@ -55,6 +55,7 @@ test('🛡️ DR End-to-End Drill: Ejecuta la cadena operacional completa y cert
 
   // Resultado global
   assert.equal(metrics.drillPassed, true, 'El simulacro global de DR debe ser exitoso');
+  assert.equal(metrics.hmacVerified, true, 'El simulacro debe verificar el HMAC-SHA256 del backup antes de descifrar');
   assert.equal(metrics.detallesRestauracion.tabla, 'pokedex_entries');
 });
 
@@ -73,12 +74,13 @@ test('🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc manti
     'El texto descifrado debe ser idéntico al original',
   );
 
-  // Clave incorrecta: AES-256-CBC no autentica, así que descifrar con otra clave NO siempre lanza.
+  // Clave incorrecta (a nivel de cifrado): AES-256-CBC no autentica, así que descifrar con otra clave NO siempre lanza.
   // El último bloque sale como basura y solo falla si su relleno PKCS#7 es inválido; con una sal
   // aleatoria el relleno resulta válido por azar en ~0,4 % de los casos (medido: 71 de 20 000) y
   // `decryptAes256Cbc` devuelve basura sin error. Exigir una excepción hacía el test intermitente.
   // Lo que sí es invariable es que una clave incorrecta nunca recupera el texto original. En el
-  // simulacro real la basura falla después en `gunzipSync` (cabecera gzip inválida).
+  // simulacro real el HMAC-SHA256 (backup_hmac.test.ts) rechaza la clave incorrecta ANTES de descifrar, de forma
+  // determinista; si no existiera, la basura fallaría después en `gunzipSync` (cabecera gzip inválida).
   let recovered: Buffer | null = null;
   try {
     recovered = decryptAes256Cbc(encrypted, 'wrong_key');

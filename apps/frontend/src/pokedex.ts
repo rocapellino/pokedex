@@ -16,7 +16,24 @@ import {
   fetchAllPokemons,
   errorMessage,
 } from './shared/index.js';
-import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
+import {
+  isClassificationFilter,
+  matchesCatalogFilters,
+  type CatalogFilters,
+  type ClassificationFilter,
+} from './shared/catalog-filters.js';
+import { parseFilterParams, serializeFilterParams, type FilterState } from './shared/filter-url.js';
+import {
+  defaultSortDirection,
+  isSortKey,
+  isStatKey,
+  MAX_STAT_MIN,
+  sortPokemons,
+  STAT_LABELS,
+  type MinStat,
+  type SortDirection,
+  type SortKey,
+} from './shared/catalog-sort.js';
 import {
   openDetailModal as openDetailModalComponent,
   closeDetailModal,
@@ -31,10 +48,24 @@ let allPokemons: Pokemon[] = [];
 let filteredPokemons: Pokemon[] = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 48;
-let currentType = 'all';
+let selectedTypes: string[] = [];
 let currentGeneration = 'all';
 let onlyWithMega = false;
 let searchQuery = '';
+let minStat: MinStat | null = null;
+let classification: ClassificationFilter | null = null;
+let currentSort: SortKey = 'id';
+let currentSortDir: SortDirection = 'asc';
+
+const CLASSIFICATION_CHIP_LABELS: Record<ClassificationFilter, string> = {
+  legendario: 'Legendarios',
+  mitico: 'Míticos',
+  especial: 'Legendarios y míticos',
+};
+
+const SEARCH_DEBOUNCE_MS = 150;
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+let statTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function openDetailModal(id: number): void {
   openDetailModalComponent(id, allPokemons);
@@ -47,6 +78,7 @@ export async function loadPokemons(): Promise<void> {
     allPokemons = await fetchAllPokemons();
     allPokemons.sort((a, b) => a.id - b.id);
 
+    restoreFiltersFromUrl();
     applyFilters();
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
   } catch (err) {
@@ -58,39 +90,308 @@ export async function loadPokemons(): Promise<void> {
       description: errorMessage(err),
       retryBtnId: 'btnRetryConnection',
       retryBtnText: 'Reintentar Conexión',
-    });
+    }).toString();
   }
 }
 
 export function applyFilters(): void {
-  const filters: CatalogFilters = {
-    searchQuery,
-    type: currentType,
-    generation: currentGeneration,
-    onlyWithMega,
-  };
-  filteredPokemons = allPokemons.filter((p) => matchesCatalogFilters(p, filters));
+  const filters: CatalogFilters = currentFilterState();
+  filteredPokemons = sortPokemons(
+    allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
+    currentSort,
+    currentSortDir,
+  );
 
   currentPage = 1;
   renderPokemons();
   updateStats(filteredPokemons);
+  renderActiveFilters();
+  renderSortDirection();
+  syncFiltersToUrl();
+}
+
+function currentFilterState(): FilterState {
+  return {
+    searchQuery,
+    types: selectedTypes,
+    generation: currentGeneration,
+    onlyWithMega,
+    minStat,
+    clasificacion: classification,
+    sort: currentSort,
+    dir: currentSortDir,
+  };
+}
+
+/** Refleja los filtros activos en la URL sin crear entradas de historial. */
+function syncFiltersToUrl(): void {
+  const next = serializeFilterParams(currentFilterState());
+  if (next === window.location.search) return;
+  window.history.replaceState(null, '', `${window.location.pathname}${next}${window.location.hash}`);
+}
+
+/** Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga). */
+export function restoreFiltersFromUrl(): void {
+  const state = parseFilterParams(window.location.search);
+  searchQuery = state.searchQuery;
+  selectedTypes = state.types;
+  currentGeneration = state.generation;
+  onlyWithMega = state.onlyWithMega;
+  minStat = state.minStat;
+  classification = state.clasificacion;
+  currentSort = state.sort;
+  currentSortDir = state.dir;
+
+  const input = document.getElementById('searchInput') as HTMLInputElement | null;
+  if (input) input.value = searchQuery;
+  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+  if (select) select.value = currentGeneration;
+  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+  if (checkbox) checkbox.checked = onlyWithMega;
+  syncStatControls();
+  syncClassControl();
+  const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
+  if (sortSelect) sortSelect.value = currentSort;
+  syncTypePills();
+  // Un filtro avanzado activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
+  if (countAdvancedFilters() > 0) {
+    const panel = document.getElementById('moreFilters') as HTMLDetailsElement | null;
+    if (panel) panel.open = true;
+  }
+}
+
+/** Filtros que viven dentro del panel "Más filtros" (los demás están siempre visibles). */
+function countAdvancedFilters(): number {
+  return (classification ? 1 : 0) + (minStat ? 1 : 0);
+}
+
+function renderAdvancedFiltersCount(): void {
+  const count = countAdvancedFilters();
+  const badge = document.getElementById('moreFiltersCount');
+  if (badge) {
+    badge.textContent = String(count);
+    badge.hidden = count === 0;
+  }
+  document
+    .querySelector('#moreFilters > summary')
+    ?.setAttribute('aria-label', count > 0 ? `Más filtros, ${count} activos` : 'Más filtros');
+}
+
+function syncClassControl(): void {
+  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
+  if (select) select.value = classification ?? '';
+}
+
+export function handleClassFilterChange(): void {
+  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
+  classification = isClassificationFilter(select?.value) ? select.value : null;
+  applyFilters();
+}
+
+function syncStatControls(): void {
+  const key = document.getElementById('statFilter') as HTMLSelectElement | null;
+  if (key) key.value = minStat?.key ?? '';
+  const min = document.getElementById('statMin') as HTMLInputElement | null;
+  if (min) min.value = minStat ? String(minStat.min) : '';
+}
+
+/** Al cambiar de criterio se vuelve a su sentido natural; invertirlo es una decisión posterior. */
+export function handleSortChange(): void {
+  const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
+  currentSort = isSortKey(select?.value) ? select.value : 'id';
+  currentSortDir = defaultSortDirection(currentSort);
+  applyFilters();
+}
+
+export function handleSortDirectionToggle(): void {
+  currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+  applyFilters();
+}
+
+function renderSortDirection(): void {
+  const button = document.getElementById('sortDirection');
+  if (!button) return;
+  const text = currentSortDir === 'asc' ? 'Ascendente' : 'Descendente';
+  button.textContent = `${currentSortDir === 'asc' ? '↑' : '↓'} ${text}`;
+  button.setAttribute('aria-label', `Sentido del orden: ${text.toLowerCase()}. Pulsar para invertirlo`);
+}
+
+/** Lee la estadística y el mínimo de los controles; sin ambos (o con mínimo 0) el filtro queda desactivado. */
+export function handleStatFilterChange(): void {
+  clearTimeout(statTimer);
+  const key = (document.getElementById('statFilter') as HTMLSelectElement | null)?.value;
+  const min = Number.parseInt((document.getElementById('statMin') as HTMLInputElement | null)?.value ?? '', 10);
+  minStat = isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null;
+  applyFilters();
+}
+
+function handleStatMinDebounced(): void {
+  clearTimeout(statTimer);
+  statTimer = setTimeout(handleStatFilterChange, SEARCH_DEBOUNCE_MS);
 }
 
 export function handleSearch(): void {
+  clearTimeout(searchTimer);
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   searchQuery = input ? input.value : '';
   applyFilters();
 }
 
-export function selectTypeFilter(type: string): void {
-  currentType = type;
-  const targetTypeNorm = normalizeStr(type);
+function handleSearchDebounced(): void {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(handleSearch, SEARCH_DEBOUNCE_MS);
+}
+
+function syncTypePills(): void {
+  const selected = new Set(selectedTypes.map(normalizeStr));
   document.querySelectorAll('.type-pill').forEach((btn) => {
-    const btnType = btn.getAttribute('data-type');
-    const isActive = (type === 'all' && btnType === 'all') || normalizeStr(btnType) === targetTypeNorm;
+    const btnType = btn.getAttribute('data-type') ?? '';
+    const isActive = btnType === 'all' ? selected.size === 0 : selected.has(normalizeStr(btnType));
     btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
   });
+}
+
+/** Alterna un tipo en la selección; `all` limpia la selección de tipos. */
+export function toggleTypeFilter(type: string): void {
+  if (type === 'all') {
+    selectedTypes = [];
+  } else {
+    const target = normalizeStr(type);
+    const exists = selectedTypes.some((t) => normalizeStr(t) === target);
+    selectedTypes = exists ? selectedTypes.filter((t) => normalizeStr(t) !== target) : [...selectedTypes, type];
+  }
+  syncTypePills();
   applyFilters();
+}
+
+export function hasActiveFilters(): boolean {
+  return (
+    Boolean(searchQuery.trim()) ||
+    selectedTypes.length > 0 ||
+    currentGeneration !== 'all' ||
+    onlyWithMega ||
+    minStat !== null ||
+    classification !== null
+  );
+}
+
+export function clearAllFilters(): void {
+  clearTimeout(searchTimer);
+  clearTimeout(statTimer);
+  searchQuery = '';
+  selectedTypes = [];
+  currentGeneration = 'all';
+  onlyWithMega = false;
+  minStat = null;
+  classification = null;
+
+  const input = document.getElementById('searchInput') as HTMLInputElement | null;
+  if (input) input.value = '';
+  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+  if (select) select.value = 'all';
+  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+  if (checkbox) checkbox.checked = false;
+  syncStatControls();
+  syncClassControl();
+
+  syncTypePills();
+  applyFilters();
+}
+
+interface FilterChip {
+  label: string;
+  remove: () => void;
+}
+
+function collectActiveChips(): FilterChip[] {
+  const chips: FilterChip[] = [];
+  const query = searchQuery.trim();
+  if (query) {
+    chips.push({
+      label: `Búsqueda: “${query}”`,
+      remove: () => {
+        const input = document.getElementById('searchInput') as HTMLInputElement | null;
+        if (input) input.value = '';
+        handleSearch();
+      },
+    });
+  }
+  for (const type of selectedTypes) chips.push({ label: type, remove: () => toggleTypeFilter(type) });
+  if (currentGeneration !== 'all') {
+    const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
+    const label = select?.selectedOptions[0]?.textContent?.trim() || `Gen ${currentGeneration}`;
+    chips.push({
+      label,
+      remove: () => {
+        if (select) select.value = 'all';
+        handleGenerationChange();
+      },
+    });
+  }
+  if (onlyWithMega) {
+    chips.push({
+      label: 'Con megaevolución',
+      remove: () => {
+        const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
+        if (checkbox) checkbox.checked = false;
+        handleMegaFilterChange();
+      },
+    });
+  }
+  if (classification) {
+    chips.push({
+      label: CLASSIFICATION_CHIP_LABELS[classification],
+      remove: () => {
+        classification = null;
+        syncClassControl();
+        applyFilters();
+      },
+    });
+  }
+  if (minStat) {
+    chips.push({
+      label: `${STAT_LABELS[minStat.key]} ≥ ${minStat.min}`,
+      remove: () => {
+        minStat = null;
+        syncStatControls();
+        applyFilters();
+      },
+    });
+  }
+  return chips;
+}
+
+/** Actualiza el contador de resultados, los chips de filtros activos y el botón de limpiar. */
+export function renderActiveFilters(): void {
+  const summary = document.getElementById('resultsSummary');
+  const chipList = document.getElementById('activeFilterChips');
+  const clearBtn = document.getElementById('btnClearFilters');
+
+  if (summary) {
+    const n = filteredPokemons.length;
+    summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${allPokemons.length} Pokémon`;
+  }
+  if (clearBtn) clearBtn.hidden = !hasActiveFilters();
+  renderAdvancedFiltersCount();
+  if (!chipList) return;
+
+  chipList.replaceChildren(
+    ...collectActiveChips().map(({ label, remove }) => {
+      const li = document.createElement('li');
+      li.className = 'filter-chip';
+      const text = document.createElement('span');
+      text.textContent = label;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'filter-chip-remove';
+      btn.textContent = '✕';
+      btn.setAttribute('aria-label', `Quitar filtro ${label}`);
+      btn.addEventListener('click', remove);
+      li.append(text, btn);
+      return li;
+    }),
+  );
 }
 
 export function handleMegaFilterChange(): void {
@@ -115,7 +416,8 @@ export function renderPokemons(): void {
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3 class="empty-title">No se encontraron Pokémon</h3>
-        <p class="empty-subtitle">Intenta buscar con otro término, tipo o cambia de generación.</p>
+        <p class="empty-subtitle">Prueba con otro término o quita alguno de los filtros activos.</p>
+        <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
       </div>
     `);
     paginationBar.classList.add('hidden');
@@ -200,12 +502,17 @@ window.addEventListener(
 export function initInteractiveListeners(): void {
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', handleSearch);
-    searchInput.addEventListener('keyup', handleSearch);
-    searchInput.addEventListener('search', handleSearch);
+    searchInput.addEventListener('input', handleSearchDebounced);
   }
 
+  document.getElementById('btnClearFilters')?.addEventListener('click', clearAllFilters);
+
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
+  document.getElementById('classFilter')?.addEventListener('change', handleClassFilterChange);
+  document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
+  document.getElementById('sortDirection')?.addEventListener('click', handleSortDirectionToggle);
+  document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);
+  document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);
 
   const generationFilter = document.getElementById('generationFilter');
   if (generationFilter) {
@@ -220,7 +527,7 @@ export function initInteractiveListeners(): void {
       if (pill) {
         e.preventDefault();
         const type = pill.getAttribute('data-type');
-        if (type) selectTypeFilter(type);
+        if (type) toggleTypeFilter(type);
       }
     });
   }
@@ -232,6 +539,10 @@ export function initInteractiveListeners(): void {
       const retryBtn = target?.closest('#btnRetryConnection');
       if (retryBtn) {
         void loadPokemons();
+        return;
+      }
+      if (target?.closest('#btnClearFiltersEmpty')) {
+        clearAllFilters();
         return;
       }
       const card = target?.closest('.pokemon-card');
@@ -273,14 +584,21 @@ export function initInteractiveListeners(): void {
     });
   }
 
+  if (detailContent) {
+    detailContent.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const node = (e.target as HTMLElement | null)?.closest('.evolution-node-item[role="button"]');
+      if (!node) return;
+      e.preventDefault();
+      const evolId = Number(node.getAttribute('data-evol-id'));
+      if (evolId) openDetailModal(evolId);
+    });
+  }
+
   const btnPrev = document.getElementById('btnPrevPage');
   if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
   const btnNext = document.getElementById('btnNextPage');
   if (btnNext) btnNext.addEventListener('click', () => changePage(1));
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeDetailModal();
-  });
 }
 
 // Inicialización

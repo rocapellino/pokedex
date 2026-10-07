@@ -39,6 +39,7 @@ apps/frontend/
     ├── css/            # Estilos modernos con variables CSS y glassmorphism
     │   ├── style.css
     │   └── backoffice.css
+    ├── fonts/          # Fuentes autoalojadas (.woff2, subset latino; ver sección Tipografía)
     └── favicon.*       # Iconografía y branding
 ```
 
@@ -62,6 +63,72 @@ apps/frontend/
    - `Content-Security-Policy`: Protección contra inyecciones XSS restringiendo orígenes de scripts, estilos y conexiones.
 3. **Contenedor no privilegiado:** Nginx se ejecuta con el usuario no-root `nginx` (UID/GID 101) garantizando el principio de menor privilegio.
 4. **Healthcheck Nativo:** Monitoreo periódico a `/healthz`.
+5. **Sin terceros en runtime (fuentes):** la tipografía se sirve desde el mismo origen, por lo que `style-src` y `font-src` de la CSP son solo `'self'`.
+6. **Compresión `gzip`:** nginx comprime CSS, JS, JSON y SVG (`gzip_types`, mínimo 1 KiB, `Vary: Accept-Encoding`); medido, `style.css` pasa de 44,8 a 9,0 KB y cada página de `/pokemons` de 78 a 14 KB. `/api/` y `/metrics` van sin comprimir (`gzip off`, mitigación de BREACH). `lighthouserc.json` lo vigila con `uses-text-compression`.
+7. **SEO básico:** `index.html` declara `meta description` y `public/robots.txt` es válido; no se añade `Disallow: /backoffice`, porque Lighthouse marcaría esa página como no rastreable y su acceso ya está restringido por IP.
+
+---
+
+## 🔤 Tipografía autoalojada
+
+| Familia | Archivo | Pesos | Uso |
+| :--- | :--- | :---: | :--- |
+| Outfit | `public/fonts/outfit-latin.woff2` | 300 a 800 (variable) | Texto base |
+| Space Grotesk | `public/fonts/space-grotesk-latin.woff2` | 500 a 700 (variable) | Títulos y cifras |
+
+- **Licencia:** SIL Open Font License 1.1 (ambas familias), que permite redistribuirlas.
+- **Origen:** Google Fonts (subset `latin`, versiones `v15` de Outfit y `v22` de Space Grotesk, descargadas el 2026-10-06). El subset cubre el español.
+- **Declaración:** `@font-face` con `font-display: swap` al inicio de `public/css/style.css`; `index.html` y `backoffice.html` precargan solo Outfit.
+- **Cambiar una fuente:** reemplazar el archivo con **otro nombre** (nginx sirve `public/` con `max-age` de 1 día y sin hash) y actualizar el `@font-face`.
+- **Gate:** `tests/frontend/fonts_selfhosted.test.ts` falla si alguna página vuelve a depender de Google Fonts.
+
+---
+
+## 🧱 Plantillas HTML con escapado automático
+
+Las vistas se generan con la plantilla etiquetada `html` de `src/shared/html.ts`, que **escapa por defecto todo valor interpolado** (texto, números, atributos entre comillas). Solo pasan intactos los fragmentos `SafeHtml`: el resultado de otro `html` o de `trustedHtml()`, que se reserva para constantes del propio código y nunca para datos de la API.
+
+```ts
+html`<li data-id="${p.id}">${p.nombre}</li>`;                 // `id` y `nombre` se escapan
+html`<ul>${pokemons.map((p) => html`<li>${p.nombre}</li>`)}</ul>`; // un arreglo de fragmentos se une
+```
+
+- **Por qué:** antes cada campo debía pasar por `escapeText()` a mano, y los campos con tipo `number` no se escapaban, pese a que el tipo no se comprueba en ejecución. Con datos hostiles en `id`, `fuerza`, `peso` o `altura`, la cadena generada contenía un `<script>`, un `<img>` y manejadores `onerror` y `onmouseover` antes de llegar a `DOMPurify`; `tests/frontend/html_injection.test.ts` lo fija.
+- **Reglas:** los atributos van siempre entre comillas (`escapeText` neutraliza `"`, `'` y el acento grave, pero no protege un valor sin comillas) y no se llama a `escapeText()` dentro de una plantilla `html` (se escaparía dos veces).
+- **Booleanos:** `false`, `null` y `undefined` no pintan nada, así que un atributo de texto booleano (`aria-selected="true|false"`) se interpola con `String(valor)`.
+- **Estado de la migración:** `pokemon-card`, `admin-table`, `shared/ui` y los tres módulos del modal de detalle (`modal-detail`, `modal-evolution`, `modal-mega`) ya usan `html`. Quedan los puntos de inserción (`innerHTML`, con `sanitizeHtml`) y la plantilla de errores de `backoffice-state.ts`, que siguen con `escapeText` hasta el último PR.
+- **Paridad:** `tests/frontend/html_parity.test.ts` (tarjetas, tabla y utilidades) y `html_parity_modals.test.ts` (el modal de detalle) comparan la salida de cada `render*` migrado con la generada por el código anterior (`tests/frontend/golden/`); los datos de ejemplo están en `html_fixtures.ts` y `UPDATE_GOLDEN=1` regenera los goldens de forma deliberada.
+- **Inyección:** `html_injection.test.ts` y `html_injection_modals.test.ts` pasan marcado hostil por cada campo de cada plantilla y analizan el DOM resultante.
+
+---
+
+## 📈 Medición de rendimiento (Lighthouse CI)
+
+`npm run perf:lighthouse` (`task perf:lighthouse`) mide la aplicación **con datos reales**, no un servidor estático:
+
+- **Entorno medido:** `lighthouserc.json` ejecuta `scripts/lighthouse-stack.ts` (`startServerCommand`), que levanta la imagen de nginx de producción (el digest del `Dockerfile`) con `nginx.conf` y sus cabeceras reales (CSP, COEP, CORP) y una API simulada con el catálogo nacional completo (1.025 Pokémon), con la paginación del backend (máximo 100, `X-Total-Count`).
+- **Imágenes locales:** la API simulada sirve las imágenes desde `/favicon.png`, así que la puntuación mide el coste propio de la aplicación y no la latencia de `raw.githubusercontent.com`.
+- **URL medidas:** `/` y `/backoffice`, con la mediana de 5 ejecuciones (móvil, *throttling* simulado).
+- **Salida:** los informes quedan en `.lighthouseci/` (artefacto `lighthouse-reports` del job, 14 días) y el resumen con puntuaciones y métricas por URL se escribe en el *summary* del job (`scripts/lighthouse-summary.ts`). Ya no se suben a un almacenamiento público.
+
+| Aserción | Nivel | Motivo |
+| :--- | :---: | :--- |
+| `errors-in-console` | `error` | Un error de consola con la API simulada es una regresión funcional. |
+| Accesibilidad ≥ 0,90, buenas prácticas ≥ 0,90 y SEO ≥ 0,90 | `error` | Puntuaciones deterministas. |
+| `uses-text-compression` | `error` | Protege la compresión `gzip` de nginx (CSS, JS y `/pokemons`) frente a una retirada accidental. |
+| Rendimiento ≥ 0,90, FCP ≤ 2,0 s, LCP ≤ 2,5 s y CLS ≤ 0,25 | `error` | Fijados sobre la línea base medida en el runner tras el `gzip` (mediana de 5; entre paréntesis la peor ejecución): rendimiento 97 (95), FCP 1,27 s (1,35), LCP 1,80 s (2,32), CLS 0,002. Todos conservan margen, y bloquean una regresión real. |
+| TBT ≤ 300 ms | `warn` | Depende de la CPU del runner (su índice de rendimiento varió de 1.800 a 2.500 entre ejecuciones): 183 ms de mediana y 227 ms en el peor caso, solo se vigila. |
+
+Al revisar un cambio que empeore estas cifras, comparar siempre contra el resumen del job de CI (el artefacto `lighthouse-reports` trae los informes completos), no contra mediciones locales.
+
+**Reproducir en local** (requiere Docker y Chromium; en Windows indicar `CHROME_PATH`):
+
+```bash
+npm run build:frontend
+npx lhci autorun --collect.numberOfRuns=1 --collect.settings.chromeFlags="--no-sandbox --headless=new"
+```
+
+Si una ejecución anterior no cerró (puerto `3000` ocupado o contenedor `lighthouse-nginx` vivo), detenerla con `docker rm -f lighthouse-nginx`. Las cifras locales dependen del equipo: comparar solo contra mediciones del mismo entorno.
 
 ---
 

@@ -3,9 +3,9 @@
  * Renderiza atributos avanzados, debilidades, estadísticas base y árbol de evoluciones.
  */
 
-import { sanitizeHtml, escapeText } from '../sanitizer.js';
+import { sanitizeHtml } from '../sanitizer.js';
 import type { Pokemon, PokemonStats } from '../types.js';
-import { normalizeStr } from '../shared/index.js';
+import { normalizeStr, openModal, closeModal, html, type SafeHtml } from '../shared/index.js';
 import { BASE_STAT_DEFS, isValidStat, statTier, statWidthStep } from '../shared/base-stats.js';
 
 import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
@@ -27,9 +27,9 @@ export {
   renderEvolutionSystem,
 };
 
-export function renderBaseStats(stats?: PokemonStats): string {
+export function renderBaseStats(stats?: PokemonStats): SafeHtml {
   if (!stats || !BASE_STAT_DEFS.some((s) => isValidStat(stats[s.key]))) {
-    return '<p class="stats-empty">Sin estadísticas registradas</p>';
+    return html`<p class="stats-empty">Sin estadísticas registradas</p>`;
   }
 
   let total = 0;
@@ -39,7 +39,7 @@ export function renderBaseStats(stats?: PokemonStats): string {
     const raw = stats[s.key];
     if (!isValidStat(raw)) {
       complete = false;
-      return `
+      return html`
       <div class="base-stat-row" aria-label="${s.name}: sin datos">
         <span class="base-stat-name">${s.label}</span>
         <span class="base-stat-value">—</span>
@@ -49,23 +49,23 @@ export function renderBaseStats(stats?: PokemonStats): string {
 
     const value = Math.round(raw);
     total += value;
-    return `
+    return html`
       <div class="base-stat-row" aria-label="${s.name}: ${value}">
         <span class="base-stat-name">${s.label}</span>
         <span class="base-stat-value">${value}</span>
         <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w${statWidthStep(value)} base-stat-tier--${statTier(value)}"></div></div>
       </div>`;
-  }).join('');
+  });
 
   const totalRow = complete
-    ? `
+    ? html`
       <div class="base-stat-row base-stat-total" aria-label="Total: ${total}">
         <span class="base-stat-name">Total</span>
         <span class="base-stat-value">${total}</span>
       </div>`
-    : '';
+    : html``;
 
-  return `<div class="stats-list">${rows}${totalRow}</div>`;
+  return html`<div class="stats-list">${rows}${totalRow}</div>`;
 }
 
 const UNKNOWN = '—';
@@ -74,7 +74,7 @@ function formatMeasure(value: unknown, unit: string): string {
   return isValidStat(value) && value > 0 ? `${String(value).replace('.', ',')} ${unit}` : UNKNOWN;
 }
 
-export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = []): string {
+export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = []): SafeHtml {
   const car = pokemon.caracteristicas || {};
   const tipos = Array.isArray(pokemon.tipos) && pokemon.tipos.length > 0 ? pokemon.tipos : [pokemon.tipo || 'Normal'];
   const habilidades = (Array.isArray(pokemon.habilidades) ? pokemon.habilidades : [pokemon.habilidades])
@@ -91,10 +91,10 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
 
   const evolutionsHtml = renderEvolutionSystem(evoluciones, pokemon.id, catalog);
 
-  return `
+  return html`
     <div class="pokedex-notched-header">
-      <h2 class="pokedex-notched-title">
-        ${escapeText(pokemon.nombre)} <span class="pokedex-notched-number">N.º ${escapeText(formattedId)}</span>
+      <h2 class="pokedex-notched-title" tabindex="-1">
+        ${pokemon.nombre} <span class="pokedex-notched-number">N.º ${formattedId}</span>
       </h2>
       <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -104,7 +104,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
     <div class="pokedex-entry-grid">
       <div class="pokedex-left-col">
         <div class="pokedex-artwork-box">
-          <img src="${escapeText(pokemon.imagen || '')}" alt="${escapeText(pokemon.nombre)}" class="pokedex-artwork-img">
+          <img src="${pokemon.imagen || ''}" alt="${pokemon.nombre}" class="pokedex-artwork-img">
         </div>
 
         <div class="pokedex-stats-panel">
@@ -113,12 +113,10 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
             ${renderBaseStats(pokemon.stats)}
           </div>
         </div>
-
-        ${renderMegaToggle(pokemon)}
       </div>
 
       <div class="pokedex-right-col">
-        <p class="pokedex-description-text">${escapeText(desc)}</p>
+        <p class="pokedex-description-text">${desc}</p>
 
         <div class="pokedex-blue-card">
           <div class="blue-card-item">
@@ -127,7 +125,7 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Categoría</span>
-            <span class="blue-card-value">${escapeText(car.categoria || car.habitat || UNKNOWN)}</span>
+            <span class="blue-card-value">${car.categoria || car.habitat || UNKNOWN}</span>
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">Peso</span>
@@ -135,33 +133,25 @@ export function renderDetailModalContent(pokemon: Pokemon, catalog: Pokemon[] = 
           </div>
           <div class="blue-card-item">
             <span class="blue-card-label">${habilidades.length > 1 ? 'Habilidades' : 'Habilidad'}</span>
-            <span class="blue-card-value">${escapeText(habilidades.length > 0 ? habilidades.join(', ') : UNKNOWN)}</span>
+            <span class="blue-card-value">${habilidades.length > 0 ? habilidades.join(', ') : UNKNOWN}</span>
           </div>
         </div>
 
         <div class="type-section-group">
           <h4 class="type-group-title">Tipo</h4>
           <div class="type-pill-badges-row">
-            ${tipos
-              .map(
-                (t) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(t))}">${escapeText(t)}</span>`,
-              )
-              .join('')}
+            ${tipos.map((t) => html`<span class="official-type-pill" data-type="${normalizeStr(t)}">${t}</span>`)}
           </div>
         </div>
 
         <div class="type-section-group">
           <h4 class="type-group-title">Debilidad</h4>
           <div class="type-pill-badges-row">
-            ${weaknesses
-              .map(
-                (w) =>
-                  `<span class="official-type-pill" data-type="${escapeText(normalizeStr(w))}">${escapeText(w)}</span>`,
-              )
-              .join('')}
+            ${weaknesses.map((w) => html`<span class="official-type-pill" data-type="${normalizeStr(w)}">${w}</span>`)}
           </div>
         </div>
+
+        ${renderMegaToggle(pokemon)}
       </div>
     </div>
 
@@ -182,11 +172,15 @@ export function openDetailModal(id: number, catalog: Pokemon[]): void {
   const detailContent = document.getElementById('detailContent');
   if (!detailContent) return;
 
-  const rawHtml = renderDetailModalContent(p, catalog);
+  // Si ya estaba abierto (navegación desde un nodo de evolución) el contenido se reemplaza y el
+  // foco se pierde: se lleva al título de la nueva ficha para que el lector de pantalla lo anuncie.
+  const wasOpen = document.getElementById('detailModal')?.hasAttribute('open') ?? false;
+  const rawHtml = renderDetailModalContent(p, catalog).toString();
   detailContent.innerHTML = sanitizeHtml(rawHtml);
-  document.getElementById('detailModal')?.classList.add('active');
+  openModal('detailModal');
+  if (wasOpen) detailContent.querySelector<HTMLElement>('.pokedex-notched-title')?.focus();
 }
 
 export function closeDetailModal(): void {
-  document.getElementById('detailModal')?.classList.remove('active');
+  closeModal('detailModal');
 }

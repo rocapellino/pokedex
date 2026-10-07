@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T15:19:24.639Z",
+  "generatedAt": "2026-10-07T15:37:35.420Z",
   "summary": {
-    "totalFiles": 88,
-    "testFiles": 82,
-    "helperFiles": 5,
+    "totalFiles": 152,
+    "testFiles": 100,
+    "helperFiles": 51,
     "performanceScripts": 1,
-    "totalTestCases": 696,
-    "totalLines": 18600,
-    "totalSizeBytes": 811022,
+    "totalTestCases": 844,
+    "totalLines": 23594,
+    "totalSizeBytes": 1027718,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 19,
-      "testCases": 126,
+      "files": 20,
+      "testCases": 140,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 29,
-      "testCases": 226,
+      "testCases": 233,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 8,
-      "testCases": 79,
+      "files": 70,
+      "testCases": 192,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 2,
-      "testCases": 15,
+      "testCases": 19,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -88,8 +88,8 @@
       "path": "tests/ci",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 1,
-      "testCases": 4,
+      "files": 2,
+      "testCases": 14,
       "description": "Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions."
     },
     {
@@ -531,6 +531,73 @@
       ]
     },
     {
+      "path": "tests/ci/lighthouse.test.ts",
+      "suite": "ci",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 10,
+      "describeCount": 0,
+      "assertionCountEst": 52,
+      "sizeBytes": 9548,
+      "lineCount": 194,
+      "sha256": "2d57cb5cf1287dc7cbf074768b4f57cebd52a8640e7530b025fcc11d0f5df179",
+      "targetDomain": "Suite ci",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas ci: lighthouse.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📈 Lighthouse: la API simulada pagina como el backend (máximo 100, X-Total-Count)",
+          "line": 39
+        },
+        {
+          "name": "📈 Lighthouse: la API simulada responde lo que la página consulta al cargar",
+          "line": 52
+        },
+        {
+          "name": "📈 Lighthouse: el catálogo completo carga de extremo a extremo (regresión: antes devolvía 404)",
+          "line": 62
+        },
+        {
+          "name": "📈 Lighthouse: las imágenes de la medición son locales, sin depender de GitHub",
+          "line": 72
+        },
+        {
+          "name": "📈 Lighthouse: nginx se resuelve desde el digest del Dockerfile y se monta en solo lectura",
+          "line": 86
+        },
+        {
+          "name": "📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servidor estático",
+          "line": 98
+        },
+        {
+          "name": "📈 Lighthouse: los presupuestos de rendimiento bloquean y respetan la línea base de CI",
+          "line": 132
+        },
+        {
+          "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
+          "line": 148
+        },
+        {
+          "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
+          "line": 162
+        },
+        {
+          "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
+          "line": 171
+        }
+      ]
+    },
+    {
       "path": "tests/ci/workflow_run_parity.test.ts",
       "suite": "ci",
       "type": "Contract / CI",
@@ -661,12 +728,12 @@
       "type": "E2E",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 5,
+      "testCount": 6,
       "describeCount": 1,
-      "assertionCountEst": 28,
-      "sizeBytes": 4636,
-      "lineCount": 108,
-      "sha256": "b1be1742551ee8b8984b6cc0fb4834e3f86af5aad6de03a6e9931af67dad9fc9",
+      "assertionCountEst": 32,
+      "sizeBytes": 5295,
+      "lineCount": 123,
+      "sha256": "42330edbec0380ea4cb46c0573fe58bb127fbe0be2b054a1c1479c87a9539cc0",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -699,8 +766,12 @@
           "line": 64
         },
         {
-          "name": "@a11y Auditoría de accesibilidad WCAG en Backoffice",
+          "name": "@a11y El modal de autenticación enfoca la clave y devuelve el foco al cerrarse con Escape",
           "line": 93
+        },
+        {
+          "name": "@a11y Auditoría de accesibilidad WCAG en Backoffice",
+          "line": 108
         }
       ]
     },
@@ -710,12 +781,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 10,
+      "testCount": 13,
       "describeCount": 1,
-      "assertionCountEst": 42,
-      "sizeBytes": 8310,
-      "lineCount": 179,
-      "sha256": "795191302be969759601d899bbb287c8b67447a7c28855f0a88d2e0b2fdc93e2",
+      "assertionCountEst": 59,
+      "sizeBytes": 12408,
+      "lineCount": 274,
+      "sha256": "3b128045801dc6742ad921ccb35ee7b99dfa68ca0a015799e17c8bf5e6b578c5",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -733,43 +804,55 @@
       "testCases": [
         {
           "name": "La interfaz principal carga con branding y catálogo de Pokémon",
-          "line": 9
+          "line": 28
         },
         {
           "name": "El buscador en tiempo real filtra los Pokémon por nombre",
-          "line": 24
+          "line": 43
         },
         {
           "name": "El alternador de tema modifica data-theme en el documento",
-          "line": 40
+          "line": 59
         },
         {
           "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
-          "line": 50
+          "line": 69
         },
         {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
-          "line": 67
+          "line": 87
         },
         {
           "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
-          "line": 90
-        },
-        {
-          "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
           "line": 110
         },
         {
+          "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
+          "line": 130
+        },
+        {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 146
+          "line": 166
         },
         {
           "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
-          "line": 154
+          "line": 174
+        },
+        {
+          "name": "@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape",
+          "line": 189
+        },
+        {
+          "name": "@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco",
+          "line": 213
+        },
+        {
+          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
+          "line": 244
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 168
+          "line": 263
         }
       ]
     },
@@ -937,6 +1020,69 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/catalog_class_controller.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 9,
+      "describeCount": 0,
+      "assertionCountEst": 37,
+      "sizeBytes": 7245,
+      "lineCount": 197,
+      "sha256": "9ee65ac047809771975b0640b899e6638426defc0e1f20cd7379b84519d4f201",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_class_controller.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌟 Controlador: sin clasificación se muestra todo el catálogo",
+          "line": 85
+        },
+        {
+          "name": "🌟 Controlador: filtra por legendarios, míticos o ambos",
+          "line": 90
+        },
+        {
+          "name": "🌟 Controlador: la clasificación crea un chip y viaja en la URL",
+          "line": 104
+        },
+        {
+          "name": "🌟 Controlador: el chip y \"Limpiar filtros\" restablecen el selector",
+          "line": 114
+        },
+        {
+          "name": "🌟 Controlador: la clasificación se restaura desde la URL y un valor inválido se ignora",
+          "line": 127
+        },
+        {
+          "name": "🌟 Controlador: las tarjetas de especies especiales muestran su insignia",
+          "line": 140
+        },
+        {
+          "name": "📂 Panel: el contador y el nombre accesible reflejan los filtros avanzados activos",
+          "line": 150
+        },
+        {
+          "name": "📂 Panel: un filtro avanzado en la URL abre el panel y sin filtros avanzados no se fuerza",
+          "line": 170
+        },
+        {
+          "name": "📂 Panel: cambiar un filtro no abre ni cierra el panel por su cuenta",
+          "line": 188
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/catalog_fetch.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -972,6 +1118,259 @@
         {
           "name": "🧭 Catálogo: termina aunque el total cambie durante la descarga",
           "line": 65
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/catalog_filters_controller.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 24,
+      "describeCount": 0,
+      "assertionCountEst": 121,
+      "sizeBytes": 17092,
+      "lineCount": 447,
+      "sha256": "480b80680dae8996cf058121c3f0c2a2decbfa8902e8462a19891812e3d73642",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_filters_controller.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔎 Controlador: sin filtros muestra todo el catálogo y oculta \"Limpiar filtros\"",
+          "line": 120
+        },
+        {
+          "name": "🔎 Controlador: seleccionar varios tipos exige tenerlos todos y actualiza aria-pressed",
+          "line": 128
+        },
+        {
+          "name": "🔎 Controlador: volver a pulsar un tipo lo quita y \"Todos\" limpia la selección",
+          "line": 142
+        },
+        {
+          "name": "🔎 Controlador: el chip de un tipo lo quita al pulsar su ✕",
+          "line": 154
+        },
+        {
+          "name": "🔎 Controlador: búsqueda, generación y megaevolución generan chips y se quitan desde ellos",
+          "line": 165
+        },
+        {
+          "name": "🔎 Controlador: el chip de generación restablece el selector",
+          "line": 195
+        },
+        {
+          "name": "🔎 Controlador: \"Limpiar filtros\" restablece todos los controles",
+          "line": 207
+        },
+        {
+          "name": "🔎 Controlador: el estado vacío ofrece limpiar los filtros",
+          "line": 223
+        },
+        {
+          "name": "🔎 Controlador: la búsqueda escrita se aplica con debounce y un solo evento input",
+          "line": 234
+        },
+        {
+          "name": "🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas de historial",
+          "line": 252
+        },
+        {
+          "name": "🔗 Controlador: una URL con filtros se restaura al cargar el catálogo",
+          "line": 269
+        },
+        {
+          "name": "🔗 Controlador: una URL manipulada se sanea y no rompe el catálogo",
+          "line": 282
+        },
+        {
+          "name": "📊 Controlador: ordenar reordena la grilla y se refleja en la URL",
+          "line": 291
+        },
+        {
+          "name": "📊 Controlador: la estadística mínima filtra, crea un chip y se refleja en la URL",
+          "line": 306
+        },
+        {
+          "name": "📊 Controlador: sin estadística o con mínimo 0 o inválido no se filtra",
+          "line": 318
+        },
+        {
+          "name": "📊 Controlador: un mínimo enorme se acota al máximo permitido",
+          "line": 328
+        },
+        {
+          "name": "📊 Controlador: quitar el chip o limpiar restablece la estadística",
+          "line": 334
+        },
+        {
+          "name": "📊 Controlador: escribir el mínimo se aplica con debounce",
+          "line": 348
+        },
+        {
+          "name": "📊 Controlador: orden y estadística se restauran desde la URL y una URL inválida se ignora",
+          "line": 357
+        },
+        {
+          "name": "↕️ Controlador: el botón invierte el sentido, actualiza su texto y se refleja en la URL",
+          "line": 375
+        },
+        {
+          "name": "↕️ Controlador: una estadística nace de mayor a menor y se puede invertir",
+          "line": 390
+        },
+        {
+          "name": "↕️ Controlador: cambiar de criterio vuelve al sentido natural del nuevo criterio",
+          "line": 403
+        },
+        {
+          "name": "↕️ Controlador: \"Limpiar filtros\" conserva el criterio y el sentido elegidos",
+          "line": 421
+        },
+        {
+          "name": "↕️ Controlador: criterio y sentido se restauran desde la URL y un sentido inválido se ignora",
+          "line": 434
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/catalog_filters.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 8,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 4265,
+      "lineCount": 91,
+      "sha256": "1be8f114c419bec45086cd6873351a44b74dc0850661a1e978235783d9a24a4e",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_filters.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔎 Filtros: sin tipos seleccionados no se restringe por tipo",
+          "line": 26
+        },
+        {
+          "name": "🔎 Filtros: varios tipos exigen que el Pokémon los tenga todos",
+          "line": 30
+        },
+        {
+          "name": "🔎 Filtros: el tipo ignora tildes y mayúsculas y reconoce el tipo secundario",
+          "line": 37
+        },
+        {
+          "name": "🔎 Filtros: la búsqueda cubre nombre, habilidad, hábitat e ID sin distinguir tildes",
+          "line": 43
+        },
+        {
+          "name": "🔎 Filtros: tipos, búsqueda y generación se combinan",
+          "line": 51
+        },
+        {
+          "name": "🔎 Filtros: el índice normalizado en caché no vuelve obsoleto el resultado entre llamadas",
+          "line": 58
+        },
+        {
+          "name": "🌟 Filtros: la clasificación distingue legendarios, míticos y ambos",
+          "line": 64
+        },
+        {
+          "name": "🌟 Filtros: un valor de clasificación inválido en los datos no cuenta como legendario",
+          "line": 87
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/catalog_sort.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 41,
+      "sizeBytes": 5629,
+      "lineCount": 170,
+      "sha256": "c81cfbd15640363a7b0308c3ca35a1693e9b5d139762a177bfab84193d779cc1",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_sort.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📊 Orden: getStatValue devuelve la estadística o el total, y undefined si faltan datos",
+          "line": 36
+        },
+        {
+          "name": "📊 Orden: por número y por nombre (con tildes, sin mutar la entrada)",
+          "line": 44
+        },
+        {
+          "name": "📊 Orden: por estadística va de mayor a menor y deja al final a quien no tiene datos",
+          "line": 59
+        },
+        {
+          "name": "📊 Orden: los empates se desempatan por número",
+          "line": 74
+        },
+        {
+          "name": "📊 Orden: reconoce solo claves válidas",
+          "line": 87
+        },
+        {
+          "name": "📊 Filtro: la estadística mínima excluye a quien no llega o no tiene datos",
+          "line": 95
+        },
+        {
+          "name": "↕️ Orden: el sentido natural es ascendente para número y nombre y descendente para estadísticas",
+          "line": 107
+        },
+        {
+          "name": "↕️ Orden: sin sentido explícito usa el natural (no cambia el comportamiento anterior)",
+          "line": 118
+        },
+        {
+          "name": "↕️ Orden: invertir número y nombre",
+          "line": 129
+        },
+        {
+          "name": "↕️ Orden: invertir una estadística la deja de menor a mayor y el dato ausente sigue al final",
+          "line": 140
+        },
+        {
+          "name": "↕️ Orden: los empates se desempatan por número ascendente en cualquier sentido",
+          "line": 153
         }
       ]
     },
@@ -1019,6 +1418,1357 @@
       ]
     },
     {
+      "path": "tests/frontend/filter_url.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 13,
+      "describeCount": 0,
+      "assertionCountEst": 41,
+      "sizeBytes": 5206,
+      "lineCount": 120,
+      "sha256": "ed0eaf20fa2f61de114b7532bbed90dc36be9d03c9a280ff7bec9b0cffea09f1",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: filter_url.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔗 URL: sin parámetros devuelve el estado vacío",
+          "line": 9
+        },
+        {
+          "name": "🔗 URL: lee búsqueda, tipos, generación y megaevolución",
+          "line": 14
+        },
+        {
+          "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
+          "line": 27
+        },
+        {
+          "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
+          "line": 31
+        },
+        {
+          "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
+          "line": 40
+        },
+        {
+          "name": "🔗 URL: serializar y volver a leer conserva el estado",
+          "line": 45
+        },
+        {
+          "name": "🔗 URL: solo serializa los filtros activos",
+          "line": 61
+        },
+        {
+          "name": "🔗 URL: lee y serializa la estadística mínima y el orden",
+          "line": 66
+        },
+        {
+          "name": "🔗 URL: descarta estadísticas, mínimos y órdenes inválidos",
+          "line": 73
+        },
+        {
+          "name": "🔗 URL: lee y serializa la clasificación y descarta valores inválidos",
+          "line": 83
+        },
+        {
+          "name": "🔗 URL: el sentido del orden solo se serializa cuando difiere del natural del criterio",
+          "line": 94
+        },
+        {
+          "name": "🔗 URL: lee el sentido y, si falta o es inválido, usa el natural del criterio",
+          "line": 107
+        },
+        {
+          "name": "🔗 URL: serializar y volver a leer conserva un sentido invertido",
+          "line": 116
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/fonts_selfhosted.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 9,
+      "sizeBytes": 3388,
+      "lineCount": 78,
+      "sha256": "6c70f827016c3aa92e17fd5015d5505280fa53cc3fa182405a5f5e42360b6257",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: fonts_selfhosted.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔤 Fuentes: ninguna página ni hoja de estilo depende de Google Fonts",
+          "line": 34
+        },
+        {
+          "name": "🔤 Fuentes: los .woff2 declarados en @font-face existen y son archivos WOFF2 válidos",
+          "line": 41
+        },
+        {
+          "name": "🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-face",
+          "line": 54
+        },
+        {
+          "name": "🔤 CSP: style-src y font-src son solo 'self' en todas las fuentes de la política",
+          "line": 61
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/golden/badge-single.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 65,
+      "lineCount": 2,
+      "sha256": "b7743918a84187db6fe90b363ea3a1eaaccb669dab3a6917f5483e7f566ef3a5",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badge-single.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/badges-fallback.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 54,
+      "lineCount": 2,
+      "sha256": "ad0d5bfa5196958fd8e1771c3f57f644382f205986e55c9bac13bac34ed6c357",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badges-fallback.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/badges-multi.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 115,
+      "lineCount": 2,
+      "sha256": "d636e34de92389fdbd7d474927efef2609e37789f6fbc00a652b36c194d29c74",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: badges-multi.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-charizard.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1593,
+      "lineCount": 48,
+      "sha256": "9f285beb4f0319d51d8f195554ebba18df5642721eee593a09f8402b85ba630d",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-charizard.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-legendario.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1632,
+      "lineCount": 48,
+      "sha256": "acbec4249e7ce53d2884662a1aadd93fe66db1786809022999fcc3981ba958cb",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-legendario.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-mitico.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1622,
+      "lineCount": 48,
+      "sha256": "ded2f184225c8f475c8250123b51086ab97e3c48f3f0c75e6fdbb6047453c59d",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-mitico.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-pikachu.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1527,
+      "lineCount": 48,
+      "sha256": "d95c4df3508c1660124945348c576bf3d6ca16bf1723630f147eaac1e13a1009",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-pikachu.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/card-sparse.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1556,
+      "lineCount": 48,
+      "sha256": "529dd4ac7b553becea060aaafde37c76778d81b4cc944a9a62ea26bbbaecf956",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: card-sparse.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/empty-state-plain.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 187,
+      "lineCount": 8,
+      "sha256": "267efef2bb9c0815b096fd0ab7e25d153f046eaa7b1e07f6ee892b35aa826759",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: empty-state-plain.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/empty-state-retry.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 276,
+      "lineCount": 8,
+      "sha256": "ccca6985ac313a0d250a66faaa39592f6f167e7f8b8e4fab56b74d5b685c435a",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: empty-state-retry.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-base-stats-full.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1970,
+      "lineCount": 36,
+      "sha256": "ae487dddf6d7cbfe4a7b72cdedb22861717a562ad55dcb4c6cae7417b5f391f8",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-base-stats-full.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-base-stats-none.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 57,
+      "lineCount": 2,
+      "sha256": "e6878e6704092b342f2b5e706850d0dcd5ef82220fcf0a1989ef61e5896a3ba9",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-base-stats-none.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-base-stats-partial.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1519,
+      "lineCount": 32,
+      "sha256": "a30fac01fdca23f16702f5c6a5a7366f940fb36e2ec13e6d226564a4d8eb97bc",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-base-stats-partial.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-connector-method.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 255,
+      "lineCount": 9,
+      "sha256": "67b90af8283969ecada99ef15fc5346429d248f611d44b9ecc4b18283e1cae8b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-connector-method.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-connector-plain.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 98,
+      "lineCount": 2,
+      "sha256": "7251cd231bc4e6440400fc5c6e5e445d3eb9dbbba6964848f09b401a4a5ee1f4",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-connector-plain.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-connector-undefined.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 98,
+      "lineCount": 2,
+      "sha256": "7251cd231bc4e6440400fc5c6e5e445d3eb9dbbba6964848f09b401a4a5ee1f4",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-connector-undefined.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-detail-charizard-mega.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 16694,
+      "lineCount": 339,
+      "sha256": "49caa21c4bf15fb7418a0c1c6e49da66f7d8d21f7c5ed0cdacf9720dca573985",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-detail-charizard-mega.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-detail-eevee.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 7251,
+      "lineCount": 168,
+      "sha256": "4ad7502031f794be9d0534eb7a5325ce1f0e93c7133842c2e023da1c1e4c927c",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-detail-eevee.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-detail-pikachu.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 6814,
+      "lineCount": 162,
+      "sha256": "03a5ad8988ef06103e690719fc5f9050a33689f078c4bd0be4bca923f32a1c45",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-detail-pikachu.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-detail-sparse.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 3261,
+      "lineCount": 86,
+      "sha256": "0d928e1b4f9382219cf2b9ad9cbca247a9c36a4bea72c8ac57101555e38d3d92",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-detail-sparse.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-branched-leaves.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2988,
+      "lineCount": 69,
+      "sha256": "fb541702c4a664102ac724d4d2972c4c1b9e85220b4189fa8af7efefb69df72c",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-branched-leaves.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-branched-prefix.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 3166,
+      "lineCount": 79,
+      "sha256": "82005d194548272c9ed92615d88370a5e2d1da912dd5e0bfcf3481a2e2b2abd7",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-branched-prefix.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-flat-1.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 809,
+      "lineCount": 21,
+      "sha256": "32ef528fc98efb4a97ddbaa9bde0904fd26d431a81b3215b777d7da251fd51d9",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-flat-1.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-flat-3.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2505,
+      "lineCount": 63,
+      "sha256": "ba164ac219b5f35d803062d14da41a779a34bb4273e91f5b12296d9964441437",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-flat-3.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-linear-tree.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2416,
+      "lineCount": 63,
+      "sha256": "af355ba6c7f43a729a07cc0fee5fb8a1c9256ebc98fcc07f6860a605305bc6db",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-linear-tree.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-no-tree.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 825,
+      "lineCount": 21,
+      "sha256": "c2f541c61d1e5073afa69162ab56284a1680e2249510d0c08945e90eb2c76fe7",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-no-tree.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-single-tree.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 746,
+      "lineCount": 21,
+      "sha256": "0bea843514ff266a520132eb42f30b54441be1e66ebd20f0c6a1e7a283a323e9",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-single-tree.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-evolution-undefined.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 825,
+      "lineCount": 21,
+      "sha256": "eb32848796fc3fc0b9199ca4d044401258efde1068ca5cd32688bb3fe136962f",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-evolution-undefined.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-body-none.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 0,
+      "lineCount": 1,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-body-none.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-body-two.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 9185,
+      "lineCount": 174,
+      "sha256": "b84011bfb76f3ffe9b7cc74b8d7b98f2b115730f7e115433c5478c9fd5755614",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-body-two.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-section-one.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 4493,
+      "lineCount": 89,
+      "sha256": "287e244f7c3195e2198ba577ea72f1057333fcf2eae5ddd499a660f1ae77079e",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-section-one.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-section-two.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 9106,
+      "lineCount": 171,
+      "sha256": "e8ecf35dee241714c70bb7b4d1442687460322cd45143386d5a8c673c6667081",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-section-two.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-stats-no-base.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2578,
+      "lineCount": 44,
+      "sha256": "d62c2243915a2b022c8ff932de728608e166e48ea06dc3ec0942c7f2cfc3e69e",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-stats-no-base.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-stats-with-base.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2632,
+      "lineCount": 44,
+      "sha256": "f3bb3dfc884b7ae3945ad3e594f2623cd5b73761c81aeda5f0d5fd818ca03a5c",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-stats-with-base.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-toggle-none.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 0,
+      "lineCount": 1,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-toggle-none.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-toggle-one.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 446,
+      "lineCount": 7,
+      "sha256": "23b83fc2ae11b465e5d327ebbc5ee45bd16f1058cccbf92cf780b37278941764",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-toggle-one.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-mega-toggle-two.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 449,
+      "lineCount": 7,
+      "sha256": "ea03ba16e0109c9276b09d64864e67be3dcfce2e25cd109a7eee0bd0f498104f",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-mega-toggle-two.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-node-bare.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 606,
+      "lineCount": 14,
+      "sha256": "bf67208b273b6a73d74a54be467d902fe752411fb18efa0d9edc244c6cd53cd0",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-node-bare.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-node-catalog-types.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 674,
+      "lineCount": 14,
+      "sha256": "6f02f2258af1503090e9003c5e333d8fdc975f575d7866380788c63abeb4cdc9",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-node-catalog-types.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-node-current.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 619,
+      "lineCount": 14,
+      "sha256": "0760d6f0199dc5eee3fdd5122b1bce0509abf2a418b205d2db1c6b4a79637f7e",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-node-current.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-node-other-method.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 685,
+      "lineCount": 14,
+      "sha256": "49d1e957cb6b81644d739d2e89b30368c26310f1f3d593cd67e639ffa77ed853",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-node-other-method.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/modal-node-special-chars.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 791,
+      "lineCount": 14,
+      "sha256": "986321c6c98c1b3d846e90602344d235b293159f59ca1c5a851c9eff79c7f164",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: modal-node-special-chars.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/rows-admin-empty.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 0,
+      "lineCount": 1,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: rows-admin-empty.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/golden/rows-admin.html",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 5655,
+      "lineCount": 151,
+      "sha256": "60cd9e21e9a6db8f1221697354d06b29156cdfbe9e7f27b06e8ea1740c7543f0",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: rows-admin.html.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/html_assertions.ts",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1389,
+      "lineCount": 27,
+      "sha256": "7a85edacba8343e10d7813c91da93af3fcbb24784c535b0cfce421de6283c263",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: html_assertions.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/html_fixtures.ts",
+      "suite": "frontend",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 5507,
+      "lineCount": 164,
+      "sha256": "9992be3321bd6f4b68eabdf0cf015a18f29c270cdfc0315c9410152bccae3130",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas frontend: html_fixtures.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/frontend/html_injection_modals.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 3,
+      "sizeBytes": 4903,
+      "lineCount": 125,
+      "sha256": "f1e62b9a92dc66324036120e64c2bd94fab378c123d53b076fc4e5a3aabb7158",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_injection_modals.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Modales: el modal de detalle completo neutraliza todos los campos hostiles",
+          "line": 60
+        },
+        {
+          "name": "🛡️ Modales: los nodos y conectores de evolución neutralizan nombre, método, imagen e id",
+          "line": 64
+        },
+        {
+          "name": "🛡️ Modales: todas las variantes de la cadena evolutiva neutralizan los nodos hostiles",
+          "line": 70
+        },
+        {
+          "name": "🛡️ Modales: las megaevoluciones neutralizan nombre, imagen, tipos, habilidades y estadísticas",
+          "line": 100
+        },
+        {
+          "name": "🛡️ Modales: las estadísticas base con valores no numéricos no inyectan marcado",
+          "line": 111
+        },
+        {
+          "name": "🛡️ Modales: los datos legítimos con caracteres especiales no se escapan dos veces",
+          "line": 115
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_injection.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 3,
+      "sizeBytes": 2433,
+      "lineCount": 57,
+      "sha256": "a10a03b37395671fdd3bc92d41218a4608d4efc25a2463da6594e19747fb78d1",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_injection.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Render: la tarjeta neutraliza campos hostiles, incluidos los numéricos",
+          "line": 29
+        },
+        {
+          "name": "🛡️ Render: la tabla del backoffice neutraliza campos hostiles, incluidos id, fuerza, peso y altura",
+          "line": 33
+        },
+        {
+          "name": "🛡️ Render: las insignias y el estado vacío neutralizan el texto recibido",
+          "line": 39
+        },
+        {
+          "name": "🛡️ Render: los datos legítimos con caracteres especiales se muestran sin doble escapado",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_parity_modals.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 2,
+      "sizeBytes": 4586,
+      "lineCount": 100,
+      "sha256": "438dfa81745f6dfed733c0632fba892f70dab93c49bd7d7212f57af36d491c81",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_parity_modals.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧪 Paridad de render (modal): ${name} produce la misma salida que la versión anterior",
+          "line": 89
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_parity.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 2,
+      "sizeBytes": 3011,
+      "lineCount": 62,
+      "sha256": "1d316c36c42d495706ad92b5dea8f9dd55cdd936d0d6eef6ebbd445c60bb9425",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_parity.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧪 Paridad de render: ${name} produce la misma salida que la versión anterior",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/html_template.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 22,
+      "sizeBytes": 2983,
+      "lineCount": 55,
+      "sha256": "8c62f5ffd762d6ac2fc23561718570f74749b10614c94eb4fa4981b2e99e0626",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: html_template.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧱 html: escapa por defecto el texto interpolado, también en atributos entre comillas",
+          "line": 5
+        },
+        {
+          "name": "🧱 html: números, vacíos y valores nulos",
+          "line": 16
+        },
+        {
+          "name": "🧱 html: un campo con tipo numérico pero valor hostil se escapa igual (el tipo no se comprueba en ejecución)",
+          "line": 22
+        },
+        {
+          "name": "🧱 html: los fragmentos SafeHtml pasan intactos y no se escapan dos veces",
+          "line": 27
+        },
+        {
+          "name": "🧱 html: los arreglos se concatenan; cada elemento sigue su propia regla",
+          "line": 33
+        },
+        {
+          "name": "🧱 trustedHtml: marca de forma explícita un fragmento de confianza y solo ese",
+          "line": 41
+        },
+        {
+          "name": "🧱 SafeHtml: se comporta como texto al concatenar, comparar y unir",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/keyboard_access.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 4720,
+      "lineCount": 98,
+      "sha256": "74fa9c41a989b8838a930140d0a3f63ca8caaf4d472f9a59557ad1ae18b77965",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: keyboard_access.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "⌨️ Tarjeta: el nombre es un botón nativo dentro del encabezado, no el article",
+          "line": 30
+        },
+        {
+          "name": "⌨️ Tarjeta: la pista táctil es decorativa para no duplicar el nombre accesible",
+          "line": 43
+        },
+        {
+          "name": "⌨️ Tarjeta: el nombre del Pokémon se escapa dentro del botón",
+          "line": 48
+        },
+        {
+          "name": "⌨️ Nodo de evolución: es operable con teclado y el actual solo se marca con aria-current",
+          "line": 54
+        },
+        {
+          "name": "⌨️ Ficha: el título recibe el foco al cargar otra ficha (tabindex=\"-1\")",
+          "line": 73
+        },
+        {
+          "name": "⌨️ Sanitizador: conserva tabindex, aria-current y aria-hidden pero sigue eliminando manejadores y style",
+          "line": 78
+        },
+        {
+          "name": "⌨️ CSS: la tarjeta entera es clicable y el foco es visible",
+          "line": 92
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/keyboard_navigation.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 17,
+      "sizeBytes": 3877,
+      "lineCount": 107,
+      "sha256": "c5b507f25e29f0aee7c3c385944f97cde2f73dacd83e088c62c7a60343023d47",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: keyboard_navigation.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "⌨️ Ficha: la primera apertura no roba el foco al título",
+          "line": 62
+        },
+        {
+          "name": "⌨️ Nodo de evolución: Enter abre la otra ficha y el foco pasa a su título",
+          "line": 69
+        },
+        {
+          "name": "⌨️ Nodo de evolución: la barra espaciadora también abre la otra ficha",
+          "line": 81
+        },
+        {
+          "name": "⌨️ Nodo de evolución: otras teclas y el nodo actual no navegan",
+          "line": 92
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/mega_env.ts",
       "suite": "frontend",
       "type": "Helper",
@@ -1044,12 +2794,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 21,
+      "testCount": 22,
       "describeCount": 0,
-      "assertionCountEst": 72,
-      "sizeBytes": 11288,
-      "lineCount": 249,
-      "sha256": "c0856f37d4d1cfc42224ff732e670efaa267df0bb6fc01e282a15e3c193dccb4",
+      "assertionCountEst": 77,
+      "sizeBytes": 12276,
+      "lineCount": 266,
+      "sha256": "bd3838dc778b0a891c883a495693937e6d0309be63563130e0ce7dab62dd8581",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1112,40 +2862,44 @@
           "line": 160
         },
         {
-          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de los puntos de base",
+          "name": "🧬 UI Mega: el botón Mega nace contraído y va debajo de las debilidades",
           "line": 168
         },
         {
           "name": "🧬 UI Mega: el desplegable va a todo el ancho, fuera de las columnas y antes de Evoluciones",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🧬 UI Mega: sin megaevolución no hay botón ni despliegue",
-          "line": 194
+          "line": 193
         },
         {
           "name": "🧬 UI Mega: el botón nombra cuántas megaevoluciones despliega",
-          "line": 200
+          "line": 199
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure alterna aria-expanded y la visibilidad del cuerpo (sobrevive al saneado)",
-          "line": 205
+          "line": 204
         },
         {
           "name": "🧬 UI Mega: toggleMegaDisclosure sin botón devuelve null",
-          "line": 222
+          "line": 221
         },
         {
           "name": "🧬 UI Mega: la tarjeta muestra la insignia Mega solo si hay megaevolución",
-          "line": 226
+          "line": 225
         },
         {
           "name": "🧬 UI Mega: hasMegaEvolution distingue ausente, vacío y presente",
-          "line": 231
+          "line": 230
         },
         {
           "name": "🧬 UI Mega: el filtro \"con megaevolución\" se combina con búsqueda, tipo y generación",
-          "line": 238
+          "line": 237
+        },
+        {
+          "name": "🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendarios y míticos",
+          "line": 249
         }
       ]
     },
@@ -1158,9 +2912,9 @@
       "testCount": 19,
       "describeCount": 0,
       "assertionCountEst": 96,
-      "sizeBytes": 12918,
-      "lineCount": 335,
-      "sha256": "30a28cc3e3b8f752ca2369b1653974ebad0f1089a5799678ba9fa336669140a6",
+      "sizeBytes": 13129,
+      "lineCount": 341,
+      "sha256": "4b835c7a74db1d39c49788b5fb04c0eb90499855eb0e3f0446fb7a91f0014552",
       "targetDomain": "Componentes Modales y Accesibilidad",
       "targetArtifacts": [
         "apps/frontend/src/components/modal-detail.ts",
@@ -1243,15 +2997,62 @@
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre arrays planos y fallbacks",
-          "line": 224
+          "line": 226
         },
         {
           "name": "🧩 Modal Evolution: renderEvolutionSystem cubre árboles ramificados y lineales",
-          "line": 254
+          "line": 260
         },
         {
           "name": "🧩 Pokemon Types: calculateWeaknesses cubre tipos desconocidos y matrices compuestas",
-          "line": 322
+          "line": 328
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/modal_dialog.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 15,
+      "sizeBytes": 3607,
+      "lineCount": 90,
+      "sha256": "6a1a394d119370d721cfa3ed5c42e45135759d5f304aea3ea950715966ca8b1b",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: modal_dialog.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "♿ Modal ${id} (${page}): es un <dialog> con nombre accesible",
+          "line": 23
+        },
+        {
+          "name": "♿ Modal detalle: el botón de cierre tiene nombre accesible",
+          "line": 38
+        },
+        {
+          "name": "♿ Modales: ya no se abren con la clase .active",
+          "line": 43
+        },
+        {
+          "name": "♿ Modales: openModal/closeModal usan showModal() y close() cuando existen",
+          "line": 49
+        },
+        {
+          "name": "♿ Modales: openModal/closeModal degradan a [open] si el entorno no implementa <dialog>",
+          "line": 76
         }
       ]
     },
@@ -1295,6 +3096,92 @@
         {
           "name": "🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada",
           "line": 178
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/seo_compression.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 14,
+      "sizeBytes": 2995,
+      "lineCount": 58,
+      "sha256": "66cc1a79ff55c81483834d093955b6447de65e3b4bc3912d773c67e021b73ed3",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: seo_compression.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔎 SEO: index.html declara una meta description descriptiva y de longitud razonable",
+          "line": 18
+        },
+        {
+          "name": "🔎 SEO: robots.txt existe en public/, es válido y no bloquea ninguna ruta",
+          "line": 25
+        },
+        {
+          "name": "🗜️ Compresión (${path.basename(file)}): gzip activo para texto y desactivado en /api/ y /metrics",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/type_badge_contrast.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 10,
+      "sizeBytes": 4347,
+      "lineCount": 109,
+      "sha256": "2204f387f15b4683f9faeb03e576739dd0603307619f538e83782b2f42fa0771",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: type_badge_contrast.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎨 Contraste: existen las 18 reglas de tipo, cada una con sus cuatro colores declarados",
+          "line": 56
+        },
+        {
+          "name": "🎨 Contraste: la insignia \"${r.type}\" cumple WCAG AA con su texto (type-color y type-official)",
+          "line": 67
+        },
+        {
+          "name": "🎨 Contraste: las insignias usan el color de texto por tipo en lugar de blanco fijo",
+          "line": 81
+        },
+        {
+          "name": "🎨 Contraste: el degradado de la insignia Mega cumple WCAG AA con texto blanco en ambos extremos",
+          "line": 93
+        },
+        {
+          "name": "🎨 Contraste: el escaneo E2E del backoffice ya no desactiva la regla color-contrast",
+          "line": 105
         }
       ]
     },
@@ -1365,9 +3252,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 56,
-      "sizeBytes": 11100,
-      "lineCount": 244,
-      "sha256": "c79dd7a428286d70d03b0345eedb61c10f7ac7054377379fa9a95693bb1abbe8",
+      "sizeBytes": 11355,
+      "lineCount": 248,
+      "sha256": "a54072ea585241158a568fbc3a8d762266c8517d2631d01317198f1e951c29ae",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -1403,15 +3290,15 @@
         },
         {
           "name": "🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción",
-          "line": 98
+          "line": 102
         },
         {
           "name": "🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run",
-          "line": 196
+          "line": 200
         },
         {
           "name": "🔒 ADR-003: la Application raíz sigue main para que los promotes lleguen solos al clúster",
-          "line": 237
+          "line": 241
         }
       ]
     },
@@ -2716,6 +4603,78 @@
       ]
     },
     {
+      "path": "tests/security/backup_hmac.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 34,
+      "sizeBytes": 9411,
+      "lineCount": 193,
+      "sha256": "e2deb2601836731664faed39ad2d36b29a587730fa60ad6fabb2f451543ef31f",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: backup_hmac.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔏 BACKUP-HMAC-001: el HMAC detecta clave incorrecta y manipulación de forma determinista",
+          "line": 26
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: con una clave incorrecta el HMAC nunca verifica, frente a 2 000 payloads aleatorios",
+          "line": 47
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: la clave del MAC se deriva y no coincide con la de cifrado",
+          "line": 62
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el sidecar .hmac se escribe y se lee con el formato de sha256sum",
+          "line": 69
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el HMAC de Node coincide con el que calcula el CLI de openssl (interoperabilidad)",
+          "line": 82
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-001: el .enc sigue siendo descifrable con `openssl enc -d` sin conocer el HMAC (compatibilidad)",
+          "line": 105
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: el CronJob de backup genera el .hmac y lo sube off-site",
+          "line": 125
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la verificación exige el HMAC antes de descifrar, con el corte configurable",
+          "line": 137
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la fecha de corte de values.yaml coincide con el valor por defecto de dr_verify_restore.sh",
+          "line": 164
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: la réplica a Google Drive incluye el .hmac",
+          "line": 173
+        },
+        {
+          "name": "🔏 BACKUP-HMAC-002: los scripts de Node escriben el .hmac con el módulo común",
+          "line": 182
+        }
+      ]
+    },
+    {
       "path": "tests/security/cors_rejection.test.ts",
       "suite": "security",
       "type": "Automated Test",
@@ -2800,54 +4759,6 @@
         {
           "name": "🛡️ AUD-SEC-CSRF-001: las lecturas por cookie no exigen Origin",
           "line": 95
-        }
-      ]
-    },
-    {
-      "path": "tests/security/devcontainer_supply_chain.test.ts",
-      "suite": "security",
-      "type": "Automated Test",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 5,
-      "describeCount": 0,
-      "assertionCountEst": 12,
-      "sizeBytes": 4239,
-      "lineCount": 104,
-      "sha256": "dc7818f709c809ca1da8b95e3440f2b3634d1e3f89a4c4e4bd8e87921f48566f",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Suite de pruebas security: devcontainer_supply_chain.test.ts.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ DEVCONTAINER-001: Renovate vigila el devcontainer (imagen, features y lock)",
-          "line": 45
-        },
-        {
-          "name": "🛡️ DEVCONTAINER-002: la imagen base está fijada por digest SHA-256",
-          "line": 55
-        },
-        {
-          "name": "🛡️ DEVCONTAINER-003: toda feature tiene entrada en el lock y versiones fijadas",
-          "line": 63
-        },
-        {
-          "name": "🛡️ DEVCONTAINER-004: kubectl y helm del devcontainer coinciden con .tool-versions",
-          "line": 86
-        },
-        {
-          "name": "🛡️ DEVCONTAINER-005: el workspace se monta en la misma ruta que en el host (docker-outside-of-docker)",
-          "line": 92
         }
       ]
     },
@@ -3012,10 +4923,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 36,
-      "sizeBytes": 8679,
-      "lineCount": 197,
-      "sha256": "4ba6ea244a7e024454953cce64c2fdceeb499f4fb8ea36b4203af36b120a647c",
+      "assertionCountEst": 37,
+      "sizeBytes": 8954,
+      "lineCount": 199,
+      "sha256": "54634a385cda0b752a02bbbb712138c7a76973b850a65a195bb9739fc3607709",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -3038,23 +4949,23 @@
         },
         {
           "name": "🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc mantienen interoperabilidad OpenSSL PBKDF2",
-          "line": 61
+          "line": 62
         },
         {
           "name": "🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksum SHA-256 en descarga remota",
-          "line": 101
+          "line": 103
         },
         {
           "name": "🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo",
-          "line": 118
+          "line": 120
         },
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
-          "line": 167
+          "line": 169
         },
         {
           "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
-          "line": 183
+          "line": 185
         }
       ]
     },
@@ -3732,9 +5643,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 82,
-      "sizeBytes": 20971,
-      "lineCount": 441,
-      "sha256": "9bdd8ee78141da68d5bcc1f56b3709a55a04ab3ed2e01050c0efcf717ef9532d",
+      "sizeBytes": 20923,
+      "lineCount": 438,
+      "sha256": "1e264a0e7a227f2728b4b138f047708fd171cc16646d7275fe3d8962d6260bf8",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -3766,47 +5677,47 @@
         },
         {
           "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 80
+          "line": 77
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 105
+          "line": 102
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
-          "line": 130
+          "line": 127
         },
         {
           "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 164
+          "line": 161
         },
         {
           "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
-          "line": 178
+          "line": 175
         },
         {
           "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
-          "line": 204
+          "line": 201
         },
         {
           "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
-          "line": 236
+          "line": 233
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 258
+          "line": 255
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 274
+          "line": 271
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 328
+          "line": 325
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 376
+          "line": 373
         }
       ]
     },
@@ -3988,12 +5899,12 @@
       "type": "Contract / CI-CD",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 1,
+      "testCount": 2,
       "describeCount": 0,
-      "assertionCountEst": 10,
-      "sizeBytes": 2803,
-      "lineCount": 70,
-      "sha256": "496b11c3e913b564cc8e7b658c21b932598f6c2d96ab30664ed1cabfc9d01804",
+      "assertionCountEst": 14,
+      "sizeBytes": 4023,
+      "lineCount": 90,
+      "sha256": "e365640d329ced3847f6cd7d30fcc58bd059a7347d14770159993612b68c16bd",
       "targetDomain": "Promoción Automatizada Segura",
       "targetArtifacts": [
         ".github/workflows/promote-auto-approve.yaml"
@@ -4013,6 +5924,10 @@
         {
           "name": "🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks para PRs de release",
           "line": 11
+        },
+        {
+          "name": "🚀 Release Promote: la rama de promoción refresca su referencia remota antes de forzar el push (REL-004)",
+          "line": 71
         }
       ]
     },
@@ -4616,6 +6531,90 @@
         {
           "name": "⚡ CacheService [Unit]: closeRedis es idempotente y seguro ante invocaciones repetidas",
           "line": 72
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/classification_legendary.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 14,
+      "describeCount": 0,
+      "assertionCountEst": 38,
+      "sizeBytes": 8292,
+      "lineCount": 182,
+      "sha256": "fe60c256ffd72e14923d7400eacca337bac2c6ca29075e0f1e576d9d59d3ef5e",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: classification_legendary.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌟 Generador: classificationOf distingue legendario, mítico y ninguno (el mítico prevalece)",
+          "line": 34
+        },
+        {
+          "name": "🌟 Generador: enrichCatalogWithClassification añade el campo solo a quien aplica y corrige valores previos",
+          "line": 42
+        },
+        {
+          "name": "🌟 Generador: assertCatalogValid rechaza una clasificación desconocida",
+          "line": 69
+        },
+        {
+          "name": "🌟 Catálogo: clasifica a los legendarios y míticos conocidos y no a los demás",
+          "line": 79
+        },
+        {
+          "name": "🌟 Catálogo: solo usa valores válidos y reparte un número razonable de cada clase",
+          "line": 93
+        },
+        {
+          "name": "🌟 Catálogo: la muestra de desarrollo coincide con el catálogo completo",
+          "line": 101
+        },
+        {
+          "name": "🌟 Seed: planClassificationEnrichment actualiza solo filas existentes que no la tienen",
+          "line": 111
+        },
+        {
+          "name": "🌟 Seed: es idempotente, corrige valores distintos e ignora entradas no persistidas",
+          "line": 121
+        },
+        {
+          "name": "🌟 Seed: no borra una clasificación persistida si el catálogo no trae ninguna",
+          "line": 131
+        },
+        {
+          "name": "🌟 Repositorio: setPokemonClassification modifica solo ese campo y conserva las ediciones",
+          "line": 137
+        },
+        {
+          "name": "🌟 Repositorio: setPokemonClassification devuelve false si la entrada no existe",
+          "line": 149
+        },
+        {
+          "name": "🌟 Repositorio: listPersistedClassifications devuelve solo las entradas clasificadas",
+          "line": 153
+        },
+        {
+          "name": "🌟 API: editar un Pokémon conserva su clasificación y el cliente no puede cambiarla",
+          "line": 165
+        },
+        {
+          "name": "🌟 API: crear un Pokémon ignora una clasificación enviada por el cliente",
+          "line": 173
         }
       ]
     },
