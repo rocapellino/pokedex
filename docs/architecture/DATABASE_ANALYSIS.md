@@ -112,7 +112,7 @@ flowchart TD
 
 ## 6. Esquema DDL y Secuencia Atómica
 
-Implementado en [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts):
+Definido en [`apps/backend/src/db/schema.ts`](../../apps/backend/src/db/schema.ts) y aplicado por las migraciones versionadas de `apps/backend/src/db/migrations/`:
 
 ### Definición DDL de Tabla
 
@@ -122,12 +122,11 @@ CREATE TABLE IF NOT EXISTS pokedex_entries (
     nombre VARCHAR(100) NOT NULL,
     tipo VARCHAR(50) NOT NULL,
     data JSONB NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_pokedex_tipo ON pokedex_entries(tipo);
 CREATE INDEX IF NOT EXISTS idx_pokedex_nombre ON pokedex_entries(nombre);
-CREATE INDEX IF NOT EXISTS idx_pokedex_data ON pokedex_entries USING GIN (data);
 ```
 
 ### Inicialización Dinámica de Secuencia Atómica
