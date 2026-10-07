@@ -241,6 +241,41 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(button).toBeFocused();
   });
 
+  test('@a11y "Saltar a la paginación" aparece con el teclado, lleva el foco a "Siguiente" y no toca la URL', async ({
+    page,
+  }) => {
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+    const skip = page.locator('#skipToPagination');
+    await expect(skip).toBeAttached();
+
+    // Fuera de foco no se ve; con Shift+Tab desde la primera tarjeta es lo primero que se alcanza.
+    await expect(skip).not.toBeInViewport();
+    await page.locator('.pokemon-card .card-open').first().focus();
+    await page.keyboard.press('Shift+Tab');
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    expect((await skip.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(24);
+
+    await waitForSettledAnimations(page);
+    const results = await new AxeBuilder({ page })
+      .include('#skipToPagination')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    expect(results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious')).toEqual([]);
+
+    const urlBefore = page.url();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#btnNextPage')).toBeFocused();
+    await expect(page.locator('#btnNextPage')).toBeInViewport();
+    expect(page.url()).toBe(urlBefore);
+    expect(new URL(page.url()).hash).toBe('');
+
+    // La barra es una navegación con nombre, y "Siguiente" cambia de página.
+    await expect(page.getByRole('navigation', { name: 'Paginación del catálogo' })).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#pageInfo')).toContainText('Página 2');
+  });
+
   test('@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha', async ({
     page,
   }) => {
