@@ -5,6 +5,8 @@ import {
   clearAllFilters,
   handleGenerationChange,
   handleMegaFilterChange,
+  handleSortChange,
+  handleStatFilterChange,
   handleSearch,
   hasActiveFilters,
   initInteractiveListeners,
@@ -37,12 +39,16 @@ const mk = (id: number, nombre: string, tipos: string[], extra: Partial<Pokemon>
   ...extra,
 });
 
+const stats = (hp: number, speed: number) => ({
+  stats: { hp, attack: 50, defense: 50, sp_attack: 50, sp_defense: 50, speed },
+});
+
 const catalog: Pokemon[] = [
-  mk(4, 'Charmander', ['Fuego']),
-  mk(6, 'Charizard', ['Fuego', 'Volador'], { megaevoluciones: [mega] }),
-  mk(16, 'Pidgey', ['Normal', 'Volador']),
-  mk(25, 'Pikachu', ['Eléctrico']),
-  mk(152, 'Chikorita', ['Planta']),
+  mk(4, 'Charmander', ['Fuego'], stats(39, 65)),
+  mk(6, 'Charizard', ['Fuego', 'Volador'], { megaevoluciones: [mega], ...stats(78, 100) }),
+  mk(16, 'Pidgey', ['Normal', 'Volador'], stats(40, 56)),
+  mk(25, 'Pikachu', ['Eléctrico'], stats(35, 90)),
+  mk(152, 'Chikorita', ['Planta'], stats(45, 45)),
 ];
 
 const originalFetch = globalThis.fetch;
@@ -67,6 +73,9 @@ before(async () => {
       <option value="2">Gen II</option>
     </select>
     <input type="checkbox" id="megaFilter">
+    <select id="sortFilter"><option value="id">Número</option><option value="name">Nombre</option><option value="speed">Velocidad</option></select>
+    <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option><option value="total">Total</option></select>
+    <input type="number" id="statMin">
     <div id="typePillsContainer">
       <button class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
       <button class="type-pill" data-type="Fuego" aria-pressed="false">Fuego</button>
@@ -86,7 +95,21 @@ before(async () => {
   initInteractiveListeners();
 });
 
-beforeEach(() => clearAllFilters());
+const sortSelect = () => doc.getElementById('sortFilter') as HTMLSelectElement;
+const statKey = () => doc.getElementById('statFilter') as HTMLSelectElement;
+const statMin = () => doc.getElementById('statMin') as HTMLInputElement;
+
+function setStat(key: string, min: string): void {
+  statKey().value = key;
+  statMin().value = min;
+  handleStatFilterChange();
+}
+
+beforeEach(() => {
+  clearAllFilters();
+  sortSelect().value = 'id';
+  handleSortChange();
+});
 
 after(() => {
   globalThis.fetch = originalFetch;
@@ -261,4 +284,86 @@ test('🔗 Controlador: una URL manipulada se sanea y no rompe el catálogo', as
   assert.deepEqual(chips(), ['Búsqueda: “<script>”✕', 'Fuego✕']);
   assert.equal(doc.querySelector('#activeFilterChips script'), null);
   assert.equal(search(), '?q=%3Cscript%3E&tipo=fuego');
+});
+
+test('📊 Controlador: ordenar reordena la grilla y se refleja en la URL', () => {
+  sortSelect().value = 'speed';
+  handleSortChange();
+  assert.deepEqual(names(), ['6', '25', '4', '16', '152']);
+  assert.equal(search(), '?orden=speed');
+
+  sortSelect().value = 'name';
+  handleSortChange();
+  assert.deepEqual(names(), ['6', '4', '152', '16', '25']);
+
+  sortSelect().value = 'id';
+  handleSortChange();
+  assert.equal(search(), '');
+});
+
+test('📊 Controlador: la estadística mínima filtra, crea un chip y se refleja en la URL', () => {
+  setStat('speed', '90');
+  assert.deepEqual(names(), ['6', '25']);
+  assert.deepEqual(chips(), ['Velocidad ≥ 90✕']);
+  assert.equal(search(), '?stat=speed&min=90');
+  assert.equal(hasActiveFilters(), true);
+  assert.equal(clearBtn().hidden, false);
+
+  toggleTypeFilter('Volador');
+  assert.deepEqual(names(), ['6']);
+});
+
+test('📊 Controlador: sin estadística o con mínimo 0 o inválido no se filtra', () => {
+  setStat('speed', '0');
+  assert.equal(names().length, catalog.length);
+  setStat('', '90');
+  assert.equal(names().length, catalog.length);
+  setStat('speed', 'abc');
+  assert.equal(names().length, catalog.length);
+  assert.equal(hasActiveFilters(), false);
+});
+
+test('📊 Controlador: un mínimo enorme se acota al máximo permitido', () => {
+  setStat('total', '99999');
+  assert.deepEqual(names(), []);
+  assert.match(chips()[0] ?? '', /Total ≥ 780/);
+});
+
+test('📊 Controlador: quitar el chip o limpiar restablece la estadística', () => {
+  setStat('speed', '90');
+  doc.querySelector<HTMLButtonElement>('#activeFilterChips .filter-chip-remove')?.click();
+  assert.equal(names().length, catalog.length);
+  assert.equal(statKey().value, '');
+  assert.equal(statMin().value, '');
+
+  setStat('speed', '90');
+  clearBtn().click();
+  assert.equal(statMin().value, '');
+  assert.equal(names().length, catalog.length);
+  assert.equal(search(), '');
+});
+
+test('📊 Controlador: escribir el mínimo se aplica con debounce', async () => {
+  statKey().value = 'speed';
+  statMin().value = '90';
+  statMin().dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  assert.equal(names().length, catalog.length, 'aún no filtra antes del debounce');
+  await wait(250);
+  assert.deepEqual(names(), ['6', '25']);
+});
+
+test('📊 Controlador: orden y estadística se restauran desde la URL y una URL inválida se ignora', async () => {
+  dom.window.history.replaceState(null, '', '/?stat=speed&min=60&orden=name');
+  await loadPokemons();
+  assert.deepEqual(names(), ['6', '4', '25']);
+  assert.equal(sortSelect().value, 'name');
+  assert.equal(statKey().value, 'speed');
+  assert.equal(statMin().value, '60');
+  assert.deepEqual(chips(), ['Velocidad ≥ 60✕']);
+
+  dom.window.history.replaceState(null, '', '/?stat=poder&min=60&orden=__proto__');
+  await loadPokemons();
+  assert.equal(names().length, catalog.length);
+  assert.equal(sortSelect().value, 'id');
+  assert.equal(search(), '');
 });

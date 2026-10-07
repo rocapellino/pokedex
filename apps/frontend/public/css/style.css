@@ -923,6 +923,31 @@ body {
   box-shadow: 0 0 12px var(--accent-red-glow);
 }
 
+/* Orden y filtro de estadística mínima */
+.refine-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin: -1rem 0 1.25rem;
+}
+
+.refine-bar .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refine-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stat-min-input {
+  width: 6rem;
+}
+
 /* Resumen de resultados y chips de filtros activos */
 .active-filters {
   display: flex;

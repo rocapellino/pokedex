@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T12:31:01.784Z",
+  "generatedAt": "2026-10-07T12:50:02.392Z",
   "summary": {
-    "totalFiles": 97,
-    "testFiles": 91,
+    "totalFiles": 98,
+    "testFiles": 92,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 768,
-    "totalLines": 19922,
-    "totalSizeBytes": 870211,
+    "totalTestCases": 783,
+    "totalLines": 20152,
+    "totalSizeBytes": 878600,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 16,
-      "testCases": 127,
+      "files": 17,
+      "testCases": 142,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1068,12 +1068,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 12,
+      "testCount": 19,
       "describeCount": 0,
-      "assertionCountEst": 60,
-      "sizeBytes": 10059,
-      "lineCount": 265,
-      "sha256": "d64e778f78b09370b10dd0269e1f8bcd8ef360b7284030d866fa393f61160586",
+      "assertionCountEst": 92,
+      "sizeBytes": 14043,
+      "lineCount": 370,
+      "sha256": "00998aadb165f7326e3f3b25be9b151a8af9eb4539bfc8d44e4d6ee776421375",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1089,51 +1089,79 @@
       "testCases": [
         {
           "name": "🔎 Controlador: sin filtros muestra todo el catálogo y oculta \"Limpiar filtros\"",
-          "line": 95
+          "line": 118
         },
         {
           "name": "🔎 Controlador: seleccionar varios tipos exige tenerlos todos y actualiza aria-pressed",
-          "line": 103
+          "line": 126
         },
         {
           "name": "🔎 Controlador: volver a pulsar un tipo lo quita y \"Todos\" limpia la selección",
-          "line": 117
-        },
-        {
-          "name": "🔎 Controlador: el chip de un tipo lo quita al pulsar su ✕",
-          "line": 129
-        },
-        {
-          "name": "🔎 Controlador: búsqueda, generación y megaevolución generan chips y se quitan desde ellos",
           "line": 140
         },
         {
+          "name": "🔎 Controlador: el chip de un tipo lo quita al pulsar su ✕",
+          "line": 152
+        },
+        {
+          "name": "🔎 Controlador: búsqueda, generación y megaevolución generan chips y se quitan desde ellos",
+          "line": 163
+        },
+        {
           "name": "🔎 Controlador: el chip de generación restablece el selector",
-          "line": 170
+          "line": 193
         },
         {
           "name": "🔎 Controlador: \"Limpiar filtros\" restablece todos los controles",
-          "line": 182
+          "line": 205
         },
         {
           "name": "🔎 Controlador: el estado vacío ofrece limpiar los filtros",
-          "line": 198
+          "line": 221
         },
         {
           "name": "🔎 Controlador: la búsqueda escrita se aplica con debounce y un solo evento input",
-          "line": 209
+          "line": 232
         },
         {
           "name": "🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas de historial",
-          "line": 227
+          "line": 250
         },
         {
           "name": "🔗 Controlador: una URL con filtros se restaura al cargar el catálogo",
-          "line": 244
+          "line": 267
         },
         {
           "name": "🔗 Controlador: una URL manipulada se sanea y no rompe el catálogo",
-          "line": 257
+          "line": 280
+        },
+        {
+          "name": "📊 Controlador: ordenar reordena la grilla y se refleja en la URL",
+          "line": 289
+        },
+        {
+          "name": "📊 Controlador: la estadística mínima filtra, crea un chip y se refleja en la URL",
+          "line": 304
+        },
+        {
+          "name": "📊 Controlador: sin estadística o con mínimo 0 o inválido no se filtra",
+          "line": 316
+        },
+        {
+          "name": "📊 Controlador: un mínimo enorme se acota al máximo permitido",
+          "line": 326
+        },
+        {
+          "name": "📊 Controlador: quitar el chip o limpiar restablece la estadística",
+          "line": 332
+        },
+        {
+          "name": "📊 Controlador: escribir el mínimo se aplica con debounce",
+          "line": 346
+        },
+        {
+          "name": "📊 Controlador: orden y estadística se restauran desde la URL y una URL inválida se ignora",
+          "line": 355
         }
       ]
     },
@@ -1189,6 +1217,57 @@
       ]
     },
     {
+      "path": "tests/frontend/catalog_sort.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 24,
+      "sizeBytes": 3410,
+      "lineCount": 99,
+      "sha256": "f8344adce52a4c585937b787053009198dd53052eabf998789aa6db733ae9cd3",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_sort.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📊 Orden: getStatValue devuelve la estadística o el total, y undefined si faltan datos",
+          "line": 29
+        },
+        {
+          "name": "📊 Orden: por número y por nombre (con tildes, sin mutar la entrada)",
+          "line": 37
+        },
+        {
+          "name": "📊 Orden: por estadística va de mayor a menor y deja al final a quien no tiene datos",
+          "line": 52
+        },
+        {
+          "name": "📊 Orden: los empates se desempatan por número",
+          "line": 67
+        },
+        {
+          "name": "📊 Orden: reconoce solo claves válidas",
+          "line": 80
+        },
+        {
+          "name": "📊 Filtro: la estadística mínima excluye a quien no llega o no tiene datos",
+          "line": 88
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/css_cache_busting.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1237,12 +1316,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 7,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 15,
-      "sizeBytes": 2205,
-      "lineCount": 52,
-      "sha256": "6476df76bf8124e25b7b3ce946e8cd1f932d22be476bf889ae94e48330157c7b",
+      "assertionCountEst": 25,
+      "sizeBytes": 3200,
+      "lineCount": 78,
+      "sha256": "03d520daaca91a9e69336a449e9e51eb94367666a7adb21e392373dd612854d4",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1266,23 +1345,31 @@
         },
         {
           "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
-          "line": 23
+          "line": 25
         },
         {
           "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
-          "line": 27
+          "line": 29
         },
         {
           "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
-          "line": 36
+          "line": 38
         },
         {
           "name": "🔗 URL: serializar y volver a leer conserva el estado",
-          "line": 41
+          "line": 43
         },
         {
           "name": "🔗 URL: solo serializa los filtros activos",
-          "line": 48
+          "line": 57
+        },
+        {
+          "name": "🔗 URL: lee y serializa la estadística mínima y el orden",
+          "line": 62
+        },
+        {
+          "name": "🔗 URL: descarta estadísticas, mínimos y órdenes inválidos",
+          "line": 69
         }
       ]
     },
