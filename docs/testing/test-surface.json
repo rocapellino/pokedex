@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T00:19:18.763Z",
+  "generatedAt": "2026-10-07T00:30:46.261Z",
   "summary": {
     "totalFiles": 93,
     "testFiles": 87,
     "helperFiles": 5,
     "performanceScripts": 1,
     "totalTestCases": 739,
-    "totalLines": 19453,
-    "totalSizeBytes": 850011,
+    "totalLines": 19456,
+    "totalSizeBytes": 850139,
     "suitesCount": 10
   },
   "suites": [
@@ -543,9 +543,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 41,
-      "sizeBytes": 7624,
-      "lineCount": 163,
-      "sha256": "8ab7419cf534a10fad8740b9c464f4f0a44ec7ac792cb5f6e3fdd177e263d23c",
+      "sizeBytes": 7752,
+      "lineCount": 166,
+      "sha256": "0e5948aa224602b2f1097c97d9d6621a2dd6d1683151111a597d6a0a72c25aec",
       "targetDomain": "Suite ci",
       "targetArtifacts": [],
       "npmCommands": [
@@ -577,23 +577,23 @@
         },
         {
           "name": "📈 Lighthouse: nginx se resuelve desde el digest del Dockerfile y se monta en solo lectura",
-          "line": 83
+          "line": 86
         },
         {
           "name": "📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servidor estático",
-          "line": 95
+          "line": 98
         },
         {
           "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
-          "line": 123
+          "line": 126
         },
         {
           "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
-          "line": 131
+          "line": 134
         },
         {
           "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
-          "line": 140
+          "line": 143
         }
       ]
     },

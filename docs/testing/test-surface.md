@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 5 |
 | **Total de Casos de Prueba Identificados** | **739** |
-| **Líneas de Código de Pruebas** | 19.453 |
-| **Tamaño Total de la Suite** | 830.1 KB |
+| **Líneas de Código de Pruebas** | 19.456 |
+| **Tamaño Total de la Suite** | 830.2 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-07T00:19:18.763Z |
+| **Última Sincronización** | 2026-10-07T00:30:46.261Z |
 
 ---
 
@@ -50,7 +50,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/audit_freshness.test.ts`](../../tests/audit_freshness.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 91 | Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact.test.ts`](../../tests/ci_impact.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **36** | 853 | Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **23** | 563 | Suite de pruebas governance: ci_workflow_governance.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | `ci` | Automated Test | `node:test (tsx)` | **9** | 163 | Suite de pruebas ci: lighthouse.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | `ci` | Automated Test | `node:test (tsx)` | **9** | 166 | Suite de pruebas ci: lighthouse.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -282,7 +282,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | **9** | 163 | Suite de pruebas ci: lighthouse.test.ts. | *(General)* |
+| [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | **9** | 166 | Suite de pruebas ci: lighthouse.test.ts. | *(General)* |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `.github/workflows/*.yaml` |
 
 ### Suite: API Fuzzing y Pruebas Adversariales (`fuzz`)

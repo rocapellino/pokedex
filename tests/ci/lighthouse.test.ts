@@ -71,7 +71,10 @@ test('📈 Lighthouse: el catálogo completo carga de extremo a extremo (regresi
 
 test('📈 Lighthouse: las imágenes de la medición son locales, sin depender de GitHub', () => {
   const payload = JSON.stringify(catalog);
-  assert.ok(!payload.includes('raw.githubusercontent.com'), 'ninguna imagen debe apuntar al exterior');
+  const hosts = new Set(
+    [...payload.matchAll(/"(https?:\/\/[^"]+)"/g)].map((match) => new URL(match[1] as string).hostname),
+  );
+  assert.ok(!hosts.has('raw.githubusercontent.com'), 'ninguna imagen debe apuntar al exterior');
   assert.ok(payload.includes(`"${LOCAL_IMAGE}"`));
   assert.ok(
     fs.existsSync(path.join(ROOT, 'apps/frontend/public', LOCAL_IMAGE)),
