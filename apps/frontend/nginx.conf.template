@@ -11,6 +11,16 @@ server {
     root /usr/share/nginx/html;
     index index.html index.htm;
 
+    # Compresión de texto (CSS, JS, JSON y SVG). Los .woff2 y las imágenes ya van comprimidos.
+    # Sin esto el catálogo (/pokemons, ~77 KiB por página) y style.css se servían en crudo.
+    # BREACH: no se comprime /api/ (sesión y autenticación) ni /metrics; ver cada location.
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
     # Cabeceras de seguridad globales
     # IMPORTANTE (herencia de add_header): nginx hereda las cabeceras de este nivel SOLO en las
     # location que no declaran ninguno. Toda location con su propio add_header debe repetir el
@@ -90,6 +100,7 @@ server {
 
     # 3. Proxy inverso hacia el backend API Node.js / Express (/api/)
     location /api/ {
+        gzip off;  # BREACH: respuestas de autenticación y sesión sin comprimir
         proxy_pass http://api:3000;
         # El backend emite las mismas cabeceras: se ocultan las suyas para no duplicarlas
         # (nginx conserva su copia, heredada del server).
@@ -139,6 +150,7 @@ server {
     #    CIDR configurado vía variable de entorno (envsubst al arrancar el contenedor).
     #    No expuesto públicamente a través del LB/Ingress.
     location /metrics {
+        gzip off;
         allow 127.0.0.1;
         allow ::1;
         allow 172.28.0.0/16;              # Red monitoring-net dedicada de Docker Compose
