@@ -2,10 +2,9 @@
  * Gestor de Estado, Filtros y Paginación para Pokédex Backoffice
  */
 
-import { sanitizeHtml, escapeText } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { errorMessage, fetchPokemonsWithCount, showToast } from '../shared/index.js';
-import { renderAdminTable, renderKPIs } from './admin-table.js';
+import { errorMessage, fetchPokemonsWithCount, showToast, setHtml } from '../shared/index.js';
+import { renderAdminTable, renderKPIs, renderLoadErrorRow, renderLoadingRow } from './admin-table.js';
 
 let currentPokemons: Pokemon[] = [];
 let totalRecords = 0;
@@ -76,14 +75,7 @@ export async function loadAdminData(): Promise<void> {
   const tbody = document.getElementById('adminTableBody') || document.getElementById('tableBody');
   if (!tbody) return;
   try {
-    tbody.innerHTML = sanitizeHtml(`
-      <tr>
-        <td colspan="8" class="table-loading">
-          <div class="spinner"></div>
-          <span>Cargando registros desde PostgreSQL...</span>
-        </td>
-      </tr>
-    `);
+    setHtml(tbody, renderLoadingRow());
 
     const offset = (currentPage - 1) * pageSize;
     const { pokemons, total } = await fetchPokemonsWithCount({
@@ -102,15 +94,7 @@ export async function loadAdminData(): Promise<void> {
     console.error('Error al conectar con la API:', err);
     showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
     if (tbody) {
-      tbody.innerHTML = sanitizeHtml(`
-        <tr>
-          <td colspan="8" class="table-empty">
-            <div class="text-danger text-2xl mb-2">⚠️</div>
-            <strong>Error de conexión con la API</strong>
-            <p class="text-muted">${escapeText(errorMessage(err))}</p>
-          </td>
-        </tr>
-      `);
+      setHtml(tbody, renderLoadErrorRow(errorMessage(err)));
     }
   }
 }

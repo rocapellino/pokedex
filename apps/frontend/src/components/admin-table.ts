@@ -2,9 +2,44 @@
  * Componente Tabla Administrativa y KPIs para Backoffice
  */
 
-import { sanitizeHtml } from '../sanitizer.js';
 import type { Pokemon } from '../types.js';
-import { normalizeStr, html, type SafeHtml } from '../shared/index.js';
+import { normalizeStr, html, setHtml, type SafeHtml } from '../shared/index.js';
+
+/** Fila que ocupa la tabla cuando ningún registro coincide con los filtros. */
+export function renderEmptyTableRow(): SafeHtml {
+  return html`
+      <tr>
+        <td colspan="8" class="table-empty">
+          🔍 No se encontraron registros con los filtros seleccionados.
+        </td>
+      </tr>
+    `;
+}
+
+/** Fila de la tabla mientras se espera la respuesta de la API. */
+export function renderLoadingRow(): SafeHtml {
+  return html`
+      <tr>
+        <td colspan="8" class="table-loading">
+          <div class="spinner"></div>
+          <span>Cargando registros desde PostgreSQL...</span>
+        </td>
+      </tr>
+    `;
+}
+
+/** Fila de la tabla cuando la API no responde; `message` es texto de un error y se escapa. */
+export function renderLoadErrorRow(message: string): SafeHtml {
+  return html`
+        <tr>
+          <td colspan="8" class="table-empty">
+            <div class="text-danger text-2xl mb-2">⚠️</div>
+            <strong>Error de conexión con la API</strong>
+            <p class="text-muted">${message}</p>
+          </td>
+        </tr>
+      `;
+}
 
 export function renderTableRows(pokemons: Pokemon[]): SafeHtml {
   return html`${pokemons.map((p) => {
@@ -98,18 +133,12 @@ export function renderAdminTable(
   currentPage: number,
 ): void {
   if (pokemons.length === 0) {
-    tbody.innerHTML = sanitizeHtml(`
-      <tr>
-        <td colspan="8" class="table-empty">
-          🔍 No se encontraron registros con los filtros seleccionados.
-        </td>
-      </tr>
-    `);
+    setHtml(tbody, renderEmptyTableRow());
     if (pagination) pagination.style.display = 'none';
     return;
   }
 
-  tbody.innerHTML = sanitizeHtml(renderTableRows(pokemons).toString());
+  setHtml(tbody, renderTableRows(pokemons));
 
   tbody.querySelectorAll('.force-bar[data-width]').forEach((el) => {
     const bar = el as HTMLElement;

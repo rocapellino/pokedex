@@ -3,9 +3,8 @@
  * Renderiza atributos avanzados, debilidades, estadísticas base y árbol de evoluciones.
  */
 
-import { sanitizeHtml } from '../sanitizer.js';
 import type { Pokemon, PokemonStats } from '../types.js';
-import { normalizeStr, openModal, closeModal, html, type SafeHtml } from '../shared/index.js';
+import { normalizeStr, openModal, closeModal, html, setHtml, type SafeHtml } from '../shared/index.js';
 import { BASE_STAT_DEFS, isValidStat, statTier, statWidthStep } from '../shared/base-stats.js';
 
 import { TYPE_WEAKNESSES, calculateWeaknesses } from '../shared/pokemon-types.js';
@@ -175,8 +174,7 @@ export function openDetailModal(id: number, catalog: Pokemon[]): void {
   // Si ya estaba abierto (navegación desde un nodo de evolución) el contenido se reemplaza y el
   // foco se pierde: se lleva al título de la nueva ficha para que el lector de pantalla lo anuncie.
   const wasOpen = document.getElementById('detailModal')?.hasAttribute('open') ?? false;
-  const rawHtml = renderDetailModalContent(p, catalog).toString();
-  detailContent.innerHTML = sanitizeHtml(rawHtml);
+  setHtml(detailContent, renderDetailModalContent(p, catalog));
   openModal('detailModal');
   if (wasOpen) detailContent.querySelector<HTMLElement>('.pokedex-notched-title')?.focus();
 }
