@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T23:21:52.835Z",
+  "generatedAt": "2026-10-07T01:33:33.647Z",
   "summary": {
-    "totalFiles": 92,
-    "testFiles": 86,
+    "totalFiles": 93,
+    "testFiles": 87,
     "helperFiles": 5,
     "performanceScripts": 1,
-    "totalTestCases": 730,
-    "totalLines": 19290,
-    "totalSizeBytes": 842387,
+    "totalTestCases": 736,
+    "totalLines": 19353,
+    "totalSizeBytes": 845404,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 12,
-      "testCases": 99,
+      "files": 13,
+      "testCases": 105,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -996,6 +996,57 @@
       ]
     },
     {
+      "path": "tests/frontend/catalog_filters.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 18,
+      "sizeBytes": 3016,
+      "lineCount": 63,
+      "sha256": "0265fb0ce974606c87f630ccdad575f050d2e274959daca7c213c25a7518a0bb",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_filters.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔎 Filtros: sin tipos seleccionados no se restringe por tipo",
+          "line": 26
+        },
+        {
+          "name": "🔎 Filtros: varios tipos exigen que el Pokémon los tenga todos",
+          "line": 30
+        },
+        {
+          "name": "🔎 Filtros: el tipo ignora tildes y mayúsculas y reconoce el tipo secundario",
+          "line": 37
+        },
+        {
+          "name": "🔎 Filtros: la búsqueda cubre nombre, habilidad, hábitat e ID sin distinguir tildes",
+          "line": 43
+        },
+        {
+          "name": "🔎 Filtros: tipos, búsqueda y generación se combinan",
+          "line": 51
+        },
+        {
+          "name": "🔎 Filtros: el índice normalizado en caché no vuelve obsoleto el resultado entre llamadas",
+          "line": 58
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/css_cache_busting.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1208,9 +1259,9 @@
       "testCount": 21,
       "describeCount": 0,
       "assertionCountEst": 72,
-      "sizeBytes": 11227,
+      "sizeBytes": 11228,
       "lineCount": 248,
-      "sha256": "857382e556c53036830212ea66720b3f392c6ca50512eb8f7f4c7ff3288f408f",
+      "sha256": "86b9b005f56e3280389839c52d5e2f5c40e8e8b9688fdebb73b0a93cddf8b282",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
