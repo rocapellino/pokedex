@@ -42,7 +42,7 @@ Su objetivo es responder con precisión:
     enabled: false
   ```
 
-- **Razón Arquitectónica:** Conforme al ADR-030 (perfil Lean de pre-prod), desplegar dos réplicas de PgBouncer consume ~128MB de RAM y añade un salto de red innecesario para un clúster con 2 réplicas de API. El pool interno de Node.js (`pg.Pool` con `max: 20` por pod = 40 conexiones totales) es más que suficiente para PostgreSQL mononodo.
+- **Razón Arquitectónica:** Conforme al ADR-030 (perfil Lean de pre-prod), desplegar dos réplicas de PgBouncer consume ~128MB de RAM y añade un salto de red innecesario para un clúster con una réplica de API (`api.replicaCount: 1`). El pool interno de Node.js (`pg.Pool` con `max: 10` por pod = 10 conexiones totales) es más que suficiente para PostgreSQL mononodo.
 - **Conclusión:** El template `pgbouncer-deployment.yaml` **no es código muerto**, sino código preparado para cuando el tráfico exceda 50 conexiones simultáneas.
 
 ---

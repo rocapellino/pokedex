@@ -34,7 +34,7 @@ El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Gene
 | **Garantías ACID** | Completas con claves foráneas estrictas | Eventuales por colección | **Completas en PostgreSQL con transacciones ACID** |
 | **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL frecuentes | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas relacionales indexadas (`id`, `nombre`, `tipo`) + campo `data JSONB`** |
 | **Rendimiento de Lectura** | Requiere múltiples JOINs para construir la entidad | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
-| **Gestión de Conexiones** | Saturación si no se gestiona el pool del cliente | Conexiones internas del driver | **`pg.Pool` nativo en Node.js configurado por pod (20 sockets máx)** |
+| **Gestión de Conexiones** | Saturación si no se gestiona el pool del cliente | Conexiones internas del driver | **`pg.Pool` nativo en Node.js configurado por pod (10 sockets máx)** |
 | **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` inicializada sobre el valor máximo existente** |
 | **Coordinación Distribuida** | No aplicable para rate limiting / sesiones | No optimizado para llaves volátiles | **Redis atómico con scripts Lua y TTL exactos para tokens y cuotas** |
 
@@ -49,7 +49,7 @@ La arquitectura en producción activa (incluyendo el perfil Proxmox VE) implemen
    - Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
    - Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
 2. **`pg.Pool` Nativo en la Aplicación (`src/services/db.ts`):**
-   - El servicio de base de datos inicializa un pool de conexiones `pg.Pool` ajustado a las necesidades del entorno (máximo 20 conexiones concurrentes por réplica).
+   - El servicio de base de datos inicializa un pool de conexiones `pg.Pool` ajustado a las necesidades del entorno (máximo 10 conexiones concurrentes por réplica).
    - Gestiona reconexiones automáticas, timeouts y liberación de sockets tras cada consulta.
    - Elimina la sobrecarga de capas intermedias en despliegues con topología de recursos acotados (diseño lean de Proxmox).
 3. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**

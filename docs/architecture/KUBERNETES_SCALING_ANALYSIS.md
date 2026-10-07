@@ -102,7 +102,7 @@ flowchart TD
 1. **Pods 100% Stateless:** El proceso en Node.js no almacena estado en el sistema de archivos local del contenedor. Si un pod se destruye o se reduce por HPA, no se compromete ningún dato de la aplicación.
 2. **Fuente Única de Verdad (SSOT):** Todas las réplicas convergen hacia la misma instancia primaria de PostgreSQL mediante una URL centralizada (`DATABASE_URL`).
 3. **Gestión Concurrente de Conexiones:**
-   - En **Proxmox (diseño lean)**: cada pod maneja su propio `pg.Pool` con un límite acotado (máximo 20 conexiones).
+   - En **Proxmox (diseño lean)**: cada pod maneja su propio `pg.Pool` con un límite acotado (máximo 10 conexiones).
    - En **Cloud de Alta Escala**: se habilita opcionalmente **PgBouncer** para multiplexar conexiones transaccionales.
 4. **Almacenamiento de Multimedia Desacoplado:** Los sprites y assets de Pokémon no residen en la base de datos ni en volúmenes locales; se consumen como URLs externas optimizadas servidas por CDN global.
 

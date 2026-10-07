@@ -2,7 +2,7 @@
 
 ## Estado
 
-Aceptado (Activo — Consolida y absorbe ADR-029)
+Aceptado (Activo — Consolida y absorbe ADR-029; enmendado el 2026-10-07: tamaño del pool, ver la sección de Enmienda)
 
 ## Contexto
 
@@ -42,7 +42,7 @@ Tabla canónica `pokedex_entries`:
 ### 4. Multiplexación de Conexiones con PgBouncer (Perfil Enterprise vs. Lean)
 
 - **Plantilla Canónica en Helm**: El chart (`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`) provee la plantilla de PgBouncer con `pool_mode = transaction` y aislamiento de red listo para alta concurrencia.
-- **Perfil On-Premise Lean (Proxmox VE - ADR-030)**: Para optimizar memoria (< 150MB) en el clúster K3s mononodo, PgBouncer se mantiene como capacidad preparada pero **desactivada** (`pgbouncer.enabled: false`). La API utiliza el pool nativo de Node.js (`pg.Pool` con `max: 20` conexiones por pod = 40 totales), satisfaciendo plenamente la carga de producción actual sin sobrecosto de pods intermediarios.
+- **Perfil On-Premise Lean (Proxmox VE - ADR-030)**: Para optimizar memoria (< 150MB) en el clúster K3s mononodo, PgBouncer se mantiene como capacidad preparada pero **desactivada** (`pgbouncer.enabled: false`). La API utiliza el pool nativo de Node.js (`pg.Pool` con `max: 10` conexiones por pod; con la réplica única de pre-prod, 10 conexiones totales), satisfaciendo plenamente la carga actual sin sobrecosto de pods intermediarios.
 - **Perfil Cloud-Ready (AWS EKS)**: Se activa bajo demanda para gestionar picos elásticos con HPA sin agotar conexiones en Amazon RDS.
 
 ### 5. Drizzle ORM como SSOT Exclusivo y Retiro Definitivo de `init.sql`
@@ -72,6 +72,26 @@ Tabla canónica `pokedex_entries`:
 
 - El uso de PgBouncer en modo transacción (`pool_mode = transaction`) restringe el uso de sentencias preparadas a nivel de sesión (`PREPARE` persistente entre transacciones) y variables de configuración de sesión (`SET SESSION`), requiriendo que todas las consultas sean transaccionalmente autocontenidas.
 - La sincronización dual (PostgreSQL + Fallback en memoria) exige mantener la coherencia de la secuencia en ambos almacenes durante el ciclo de vida del proceso.
+
+---
+
+## Enmienda 2026-10-07: tamaño del pool nativo (AUD-ARCH-ADR-001)
+
+El ADR declaraba `max: 20` por pod, pero el código fija `max: 10` en
+`apps/backend/src/services/postgres.ts`. El historial de git no muestra un `max: 20` en código de la
+aplicación: el valor de 10 está desde la primera implementación de persistencia, de modo que el 20
+solo existió en la documentación.
+
+Decisión: **se mantiene `max: 10`** y se corrige el ADR, sin modificar el código.
+
+- Pre-prod: una réplica de API sin autoscaling (`api.replicaCount: 1`), es decir, 10 conexiones totales.
+- Perfil por defecto del chart: HPA hasta 5 réplicas, es decir, 50 conexiones como máximo, por debajo del
+  `max_connections` por defecto de PostgreSQL (100), que ningún values del repositorio sobrescribe.
+- Perfil de producción cloud (blueprint): HPA hasta 10 réplicas con PgBouncer activo, que multiplexa las conexiones.
+- Con `max: 20`, el máximo del HPA por defecto (5 réplicas) ya agotaría las 100 conexiones.
+
+El contrato lo fija el test `AUD-ARCH-ADR-001` en `tests/security/adr_compliance_contracts.test.ts`: el
+`max` declarado en este ADR debe coincidir con el del código.
 
 ---
 

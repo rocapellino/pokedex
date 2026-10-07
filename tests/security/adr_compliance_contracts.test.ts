@@ -359,6 +359,25 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
   }
 });
 
+test('🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)', () => {
+  const adr = fs.readFileSync(
+    path.join(ROOT_DIR, 'docs/decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md'),
+    'utf-8',
+  );
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/src/services/postgres.ts'), 'utf-8');
+
+  const codeMax = /new Pool\(\{[\s\S]*?\bmax:\s*(\d+)/.exec(source)?.[1];
+  const adrMax = /`pg\.Pool` con `max: (\d+)`/.exec(adr)?.[1];
+
+  assert.ok(codeMax, 'postgres.ts debe fijar max en new Pool({...})');
+  assert.ok(adrMax, 'ADR-011 debe declarar el max del pg.Pool en la forma `pg.Pool` con `max: N`');
+  assert.equal(
+    adrMax,
+    codeMax,
+    'El max del pool declarado en ADR-011 debe coincidir con apps/backend/src/services/postgres.ts',
+  );
+});
+
 test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas', () => {
   const adrPath = path.join(ROOT_DIR, 'docs/decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md');
   const readmePath = path.join(ROOT_DIR, 'README.md');
