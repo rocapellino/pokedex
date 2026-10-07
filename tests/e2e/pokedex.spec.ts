@@ -82,6 +82,14 @@ test.describe('Enlace de salto a la paginación', () => {
     await expect(page.getByRole('navigation', { name: 'Paginación del catálogo' })).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(page.locator('#pageInfo')).toContainText('Página 2');
+
+    // Tras cambiar de página (aquí, la última): el foco sigue al contenido y no se pierde en BODY aunque
+    // "Siguiente" quede deshabilitado, la primera fila de tarjetas está a la vista (en móvil el
+    // `scrollTo` fijo de 350 px dejaba la vista a ~1.000 px de ellas) y se anuncia la página.
+    await expect(page.locator('#btnNextPage')).toBeDisabled();
+    await expect(page.locator('#pokemonGrid')).toBeFocused();
+    await expect(page.locator('.pokemon-card').first()).toBeInViewport();
+    await expect(page.locator('#pageAnnouncer')).toHaveText('Página 2 de 2, 48 Pokémon');
   });
 });
 
