@@ -1385,7 +1385,7 @@ body {
   color: #ffffff;
   font-weight: 700;
   font-size: 0.9rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: var(--official-shadow, 0 1px 2px rgba(0, 0, 0, 0.4));
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   display: inline-block;
   min-width: 90px;
@@ -1502,7 +1502,7 @@ body {
   font-size: 0.72rem;
   font-weight: 700;
   color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+  text-shadow: var(--official-shadow, 0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .evolution-transition-connector {
@@ -1759,38 +1759,52 @@ body {
  * ============================================================================== */
 
 /* Variables de Color por Tipo Pokémon */
-[data-type="normal"] { --type-color: #9ca3af; --type-official: #a8a878; }
-[data-type="fuego"] { --type-color: #ef4444; --type-official: #f08030; }
-[data-type="agua"] { --type-color: #3b82f6; --type-official: #6890f0; }
-[data-type="planta"] { --type-color: #22c55e; --type-official: #78c850; }
-[data-type="electrico"] { --type-color: #eab308; --type-official: #f8d030; }
-[data-type="hielo"] { --type-color: #06b6d4; --type-official: #98d8d8; }
-[data-type="lucha"] { --type-color: #dc2626; --type-official: #c03028; }
-[data-type="veneno"] { --type-color: #a855f7; --type-official: #a040a0; }
-[data-type="tierra"] { --type-color: #d97706; --type-official: #e0c068; }
-[data-type="volador"] { --type-color: #0ea5e9; --type-official: #a890f0; }
-[data-type="psiquico"] { --type-color: #f43f5e; --type-official: #f85888; }
-[data-type="bicho"] { --type-color: #84cc16; --type-official: #a8b820; }
-[data-type="roca"] { --type-color: #78716c; --type-official: #b8a038; }
-[data-type="fantasma"] { --type-color: #6366f1; --type-official: #705898; }
-[data-type="dragon"] { --type-color: #4f46e5; --type-official: #7038f8; }
-[data-type="acero"] { --type-color: #64748b; --type-official: #b8b8d0; }
-[data-type="siniestro"] { --type-color: #1e293b; --type-official: #705848; }
-[data-type="hada"] { --type-color: #ec4899; --type-official: #ee99ac; }
+[data-type="normal"] { --type-color: #9ca3af; --type-fg: #111827; --type-official: #a8a878; --official-fg: #111827; }
+[data-type="fuego"] { --type-color: #ef4444; --type-fg: #111827; --type-official: #f08030; --official-fg: #111827; }
+[data-type="agua"] { --type-color: #3b82f6; --type-fg: #111827; --type-official: #6890f0; --official-fg: #111827; }
+[data-type="planta"] { --type-color: #22c55e; --type-fg: #111827; --type-official: #78c850; --official-fg: #111827; }
+[data-type="electrico"] { --type-color: #eab308; --type-fg: #111827; --type-official: #f8d030; --official-fg: #111827; }
+[data-type="hielo"] { --type-color: #06b6d4; --type-fg: #111827; --type-official: #98d8d8; --official-fg: #111827; }
+[data-type="lucha"] { --type-color: #dc2626; --type-fg: #ffffff; --type-official: #c03028; --official-fg: #ffffff; }
+[data-type="veneno"] { --type-color: #9840ee; --type-fg: #ffffff; --type-official: #a040a0; --official-fg: #ffffff; }
+[data-type="tierra"] { --type-color: #d97706; --type-fg: #111827; --type-official: #e0c068; --official-fg: #111827; }
+[data-type="volador"] { --type-color: #0ea5e9; --type-fg: #111827; --type-official: #a890f0; --official-fg: #111827; }
+[data-type="psiquico"] { --type-color: #f43f5e; --type-fg: #111827; --type-official: #f85888; --official-fg: #111827; }
+[data-type="bicho"] { --type-color: #84cc16; --type-fg: #111827; --type-official: #a8b820; --official-fg: #111827; }
+[data-type="roca"] { --type-color: #78716c; --type-fg: #ffffff; --type-official: #b8a038; --official-fg: #111827; }
+[data-type="fantasma"] { --type-color: #7a54ec; --type-fg: #ffffff; --type-official: #705898; --official-fg: #ffffff; }
+[data-type="dragon"] { --type-color: #4f46e5; --type-fg: #ffffff; --type-official: #7038f8; --official-fg: #ffffff; }
+[data-type="acero"] { --type-color: #64748b; --type-fg: #ffffff; --type-official: #b8b8d0; --official-fg: #111827; }
+[data-type="siniestro"] { --type-color: #1e293b; --type-fg: #ffffff; --type-official: #705848; --official-fg: #ffffff; }
+[data-type="hada"] { --type-color: #ec4899; --type-fg: #111827; --type-official: #ee99ac; --official-fg: #111827; }
+
+[data-type="normal"],
+[data-type="fuego"],
+[data-type="agua"],
+[data-type="planta"],
+[data-type="electrico"],
+[data-type="hielo"],
+[data-type="tierra"],
+[data-type="volador"],
+[data-type="psiquico"],
+[data-type="bicho"],
+[data-type="roca"],
+[data-type="acero"],
+[data-type="hada"] { --official-shadow: none; }
 
 .type-badge {
   background-color: var(--type-color, #6b7280);
-  color: #ffffff;
+  color: var(--type-fg, #ffffff);
 }
 
 .official-type-pill {
   background-color: var(--type-official, #6b7280);
-  color: #ffffff;
+  color: var(--official-fg, #ffffff);
 }
 
 .evolution-type-mini {
   background-color: var(--type-official, #6b7280);
-  color: #ffffff;
+  color: var(--official-fg, #ffffff);
 }
 
 .pokemon-card {
@@ -1844,7 +1858,7 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.15rem 0.5rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: #ffffff;
   border-radius: var(--radius-full);
   text-transform: uppercase;
