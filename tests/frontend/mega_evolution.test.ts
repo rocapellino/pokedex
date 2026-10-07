@@ -256,8 +256,10 @@ test('🌟 UI Clasificación: la tarjeta muestra la insignia solo para legendari
     /class-badge class-badge--mitico"[^>]*>Mítico</,
   );
   assert.doesNotMatch(renderPokemonCard(pikachu), /class-badge/);
-  assert.doesNotMatch(
-    renderPokemonCard({ ...pikachu, clasificacion: 'x"><script>' } as unknown as Pokemon),
-    /class-badge|<script>/,
-  );
+
+  // Un valor forjado no genera insignia ni inyecta marcado: se inspecciona el DOM, no el texto.
+  const holder = dom.window.document.createElement('div');
+  holder.innerHTML = renderPokemonCard({ ...pikachu, clasificacion: 'x"><SCRIPT>' } as unknown as Pokemon);
+  assert.equal(holder.querySelector('.class-badge'), null);
+  assert.equal(holder.querySelector('script'), null);
 });
