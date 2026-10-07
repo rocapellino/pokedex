@@ -241,6 +241,44 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(button).toBeFocused();
   });
 
+  test('@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha', async ({
+    page,
+  }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"] .card-open').focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.locator('dialog#detailModal');
+    await expect(dialog).toHaveAttribute('open', '');
+
+    const title = dialog.locator('h2.pokedex-notched-title');
+    const before = await title.textContent();
+    const node = dialog.locator('.evolution-node-item[role="button"]').first();
+    await node.focus();
+    await page.keyboard.press('Enter');
+
+    await expect(title).not.toHaveText(before ?? '');
+    await expect(title).toBeFocused();
+    await expect(dialog.locator('.evolution-node-item[aria-current="true"]')).toHaveCount(1);
+  });
+
+  test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
+    await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
+    await page.locator('.mega-toggle').click();
+    const img = page.locator('#mega-panel-0 img');
+    await expect(img).toBeVisible();
+
+    await expect
+      .poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))
+      .toBe(true);
+  });
+});
+
+/**
+ * Fuera del `describe` anterior a propósito: su `beforeEach` navega a `/` y este test necesita
+ * registrar la ruta ANTES de la primera carga. Recargar duplicaba las peticiones de la página, y el
+ * backend del E2E limita a 300 por minuto desde una misma IP (también los archivos estáticos); con
+ * ~80 cargas por ejecución, cada petición extra puede dejar sin página a los últimos tests (hipótesis, no medida).
+ */
+test.describe('Enlace de salto a la paginación', () => {
   test('@a11y "Saltar a la paginación" aparece con el teclado, lleva el foco a "Siguiente" y no toca la URL', async ({
     page,
   }) => {
@@ -264,7 +302,7 @@ test.describe('Pokédex Web Application E2E Suite', () => {
         headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
       });
     });
-    await page.reload();
+    await page.goto('/');
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
     const skip = page.locator('#skipToPagination');
     await expect(skip).toBeAttached();
@@ -295,35 +333,5 @@ test.describe('Pokédex Web Application E2E Suite', () => {
     await expect(page.getByRole('navigation', { name: 'Paginación del catálogo' })).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(page.locator('#pageInfo')).toContainText('Página 2');
-  });
-
-  test('@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha', async ({
-    page,
-  }) => {
-    await page.locator('.pokemon-card[data-pokemon-id="6"] .card-open').focus();
-    await page.keyboard.press('Enter');
-    const dialog = page.locator('dialog#detailModal');
-    await expect(dialog).toHaveAttribute('open', '');
-
-    const title = dialog.locator('h2.pokedex-notched-title');
-    const before = await title.textContent();
-    const node = dialog.locator('.evolution-node-item[role="button"]').first();
-    await node.focus();
-    await page.keyboard.press('Enter');
-
-    await expect(title).not.toHaveText(before ?? '');
-    await expect(title).toBeFocused();
-    await expect(dialog.locator('.evolution-node-item[aria-current="true"]')).toHaveCount(1);
-  });
-
-  test('@coep El arte de la megaevolución carga efectivamente (COEP require-corp)', async ({ page }) => {
-    await page.locator('.pokemon-card[data-pokemon-id="6"]').click();
-    await page.locator('.mega-toggle').click();
-    const img = page.locator('#mega-panel-0 img');
-    await expect(img).toBeVisible();
-
-    await expect
-      .poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0))
-      .toBe(true);
   });
 });

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T17:58:48.976Z",
+  "generatedAt": "2026-10-07T18:15:20.081Z",
   "summary": {
     "totalFiles": 163,
     "testFiles": 106,
     "helperFiles": 56,
     "performanceScripts": 1,
     "totalTestCases": 885,
-    "totalLines": 24340,
-    "totalSizeBytes": 1058384,
+    "totalLines": 24348,
+    "totalSizeBytes": 1058877,
     "suitesCount": 10
   },
   "suites": [
@@ -782,11 +782,11 @@
       "role": "TEST_FILE",
       "runner": "playwright",
       "testCount": 14,
-      "describeCount": 1,
+      "describeCount": 2,
       "assertionCountEst": 71,
-      "sizeBytes": 15002,
-      "lineCount": 330,
-      "sha256": "ea20385042a6758a7d234ec17bb92f4a65976f6bdf2d3402a753a20e6be35bb4",
+      "sizeBytes": 15495,
+      "lineCount": 338,
+      "sha256": "923df36e8ce36c6945946d0f88028eee091f7c2800cecd5855024b5c60b2d116",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -847,16 +847,16 @@
           "line": 213
         },
         {
-          "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
+          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
           "line": 244
         },
         {
-          "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 300
+          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
+          "line": 263
         },
         {
-          "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 319
+          "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
+          "line": 282
         }
       ]
     },
