@@ -221,3 +221,44 @@ test('🔎 Controlador: la búsqueda escrita se aplica con debounce y un solo ev
   await wait(250);
   assert.deepEqual(names(), ['6']);
 });
+
+const search = () => dom.window.location.search;
+
+test('🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas de historial', () => {
+  const before = dom.window.history.length;
+  toggleTypeFilter('Fuego');
+  toggleTypeFilter('Volador');
+  assert.equal(search(), '?tipo=fuego%2Cvolador');
+
+  input().value = 'char';
+  handleSearch();
+  (doc.getElementById('megaFilter') as HTMLInputElement).checked = true;
+  handleMegaFilterChange();
+  assert.equal(search(), '?q=char&tipo=fuego%2Cvolador&mega=1');
+  assert.equal(dom.window.history.length, before);
+
+  clearAllFilters();
+  assert.equal(search(), '');
+});
+
+test('🔗 Controlador: una URL con filtros se restaura al cargar el catálogo', async () => {
+  dom.window.history.replaceState(null, '', '/?q=char&tipo=fuego&gen=1&mega=1');
+  await loadPokemons();
+
+  assert.deepEqual(names(), ['6']);
+  assert.equal(input().value, 'char');
+  assert.equal((doc.getElementById('generationFilter') as HTMLSelectElement).value, '1');
+  assert.equal((doc.getElementById('megaFilter') as HTMLInputElement).checked, true);
+  assert.equal(pill('Fuego').getAttribute('aria-pressed'), 'true');
+  assert.equal(pill('all').getAttribute('aria-pressed'), 'false');
+  assert.equal(clearBtn().hidden, false);
+});
+
+test('🔗 Controlador: una URL manipulada se sanea y no rompe el catálogo', async () => {
+  dom.window.history.replaceState(null, '', '/?q=%3Cscript%3E&tipo=__proto__,fuego&gen=99&mega=2');
+  await loadPokemons();
+
+  assert.deepEqual(chips(), ['Búsqueda: “<script>”✕', 'Fuego✕']);
+  assert.equal(doc.querySelector('#activeFilterChips script'), null);
+  assert.equal(search(), '?q=%3Cscript%3E&tipo=fuego');
+});

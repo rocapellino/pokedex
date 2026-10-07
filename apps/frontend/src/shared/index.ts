@@ -10,3 +10,4 @@ export * from './errors.js';
 export * from './pokemon-types.js';
 export * from './base-stats.js';
 export * from './catalog-filters.js';
+export * from './filter-url.js';
