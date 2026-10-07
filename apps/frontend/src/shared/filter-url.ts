@@ -1,12 +1,21 @@
 /**
- * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&orden=`).
+ * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&orden=&dir=`).
  * Son funciones puras: el controlador decide cuándo leer y cuándo escribir la URL.
  * Lo que llega de la URL es entrada no confiable, así que se valida contra los valores conocidos.
  */
 
 import { TYPE_COLORS } from './constants.js';
 import { isClassificationFilter, type ClassificationFilter } from './catalog-filters.js';
-import { isSortKey, isStatKey, MAX_STAT_MIN, type MinStat, type SortKey } from './catalog-sort.js';
+import {
+  defaultSortDirection,
+  isSortDirection,
+  isSortKey,
+  isStatKey,
+  MAX_STAT_MIN,
+  type MinStat,
+  type SortDirection,
+  type SortKey,
+} from './catalog-sort.js';
 import { normalizeStr } from './formatters.js';
 
 export interface FilterState {
@@ -19,6 +28,8 @@ export interface FilterState {
   minStat: MinStat | null;
   clasificacion: ClassificationFilter | null;
   sort: SortKey;
+  /** Sentido efectivo del orden (el de por defecto de `sort` si la URL no lo indica). */
+  dir: SortDirection;
 }
 
 export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
@@ -29,6 +40,7 @@ export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
   minStat: null,
   clasificacion: null,
   sort: 'id',
+  dir: 'asc',
 };
 
 const MAX_QUERY_LENGTH = 80;
@@ -56,7 +68,9 @@ export function parseFilterParams(search: string): FilterState {
   const minStat: MinStat | null =
     isStatKey(statKey) && statMin >= 1 && statMin <= MAX_STAT_MIN ? { key: statKey, min: statMin } : null;
 
-  const sort = params.get('orden');
+  const orden = params.get('orden');
+  const sort: SortKey = isSortKey(orden) ? orden : 'id';
+  const dir = params.get('dir');
   const clase = params.get('clase');
 
   return {
@@ -66,7 +80,8 @@ export function parseFilterParams(search: string): FilterState {
     onlyWithMega: params.get('mega') === '1',
     minStat,
     clasificacion: isClassificationFilter(clase) ? clase : null,
-    sort: isSortKey(sort) ? sort : 'id',
+    sort,
+    dir: isSortDirection(dir) ? dir : defaultSortDirection(sort),
   };
 }
 
@@ -84,6 +99,7 @@ export function serializeFilterParams(state: FilterState): string {
   }
   if (state.clasificacion) params.set('clase', state.clasificacion);
   if (state.sort !== 'id') params.set('orden', state.sort);
+  if (state.dir !== defaultSortDirection(state.sort)) params.set('dir', state.dir);
 
   const text = params.toString();
   return text ? `?${text}` : '';

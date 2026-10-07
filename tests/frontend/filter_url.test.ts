@@ -20,6 +20,7 @@ test('🔗 URL: lee búsqueda, tipos, generación y megaevolución', () => {
     minStat: null,
     clasificacion: null,
     sort: 'id',
+    dir: 'asc',
   });
 });
 
@@ -50,6 +51,7 @@ test('🔗 URL: serializar y volver a leer conserva el estado', () => {
     minStat: null,
     clasificacion: 'mitico' as const,
     sort: 'id' as const,
+    dir: 'asc' as const,
   };
   const search = serializeFilterParams(state);
   assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1&clase=mitico');
@@ -87,4 +89,31 @@ test('🔗 URL: lee y serializa la clasificación y descarta valores inválidos'
   assert.equal(parseFilterParams('?clase=raro').clasificacion, null);
   assert.equal(parseFilterParams('?clase=__proto__').clasificacion, null);
   assert.equal(parseFilterParams('?clase=').clasificacion, null);
+});
+
+test('🔗 URL: el sentido del orden solo se serializa cuando difiere del natural del criterio', () => {
+  assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], dir: 'desc' }), '?dir=desc');
+  assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], sort: 'speed', dir: 'desc' }), '?orden=speed');
+  assert.equal(
+    serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], sort: 'speed', dir: 'asc' }),
+    '?orden=speed&dir=asc',
+  );
+  assert.equal(
+    serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], sort: 'name', dir: 'desc' }),
+    '?orden=name&dir=desc',
+  );
+});
+
+test('🔗 URL: lee el sentido y, si falta o es inválido, usa el natural del criterio', () => {
+  assert.equal(parseFilterParams('?orden=speed&dir=asc').dir, 'asc');
+  assert.equal(parseFilterParams('?orden=name&dir=desc').dir, 'desc');
+  assert.equal(parseFilterParams('').dir, 'asc');
+  assert.equal(parseFilterParams('?orden=speed').dir, 'desc');
+  assert.equal(parseFilterParams('?orden=speed&dir=sideways').dir, 'desc');
+  assert.equal(parseFilterParams('?dir=__proto__').dir, 'asc');
+});
+
+test('🔗 URL: serializar y volver a leer conserva un sentido invertido', () => {
+  const state = { ...parseFilterParams('?orden=hp&dir=asc') };
+  assert.deepEqual(parseFilterParams(serializeFilterParams(state)), state);
 });

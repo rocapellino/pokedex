@@ -119,15 +119,17 @@
         <label for="sortFilter" class="refine-label">Ordenar por</label>
         <select id="sortFilter" class="select-filter">
           <option value="id">Número de Pokédex</option>
-          <option value="name">Nombre (A-Z)</option>
-          <option value="total">Estadísticas totales (mayor)</option>
-          <option value="hp">PS (mayor)</option>
-          <option value="attack">Ataque (mayor)</option>
-          <option value="defense">Defensa (mayor)</option>
-          <option value="sp_attack">Ataque especial (mayor)</option>
-          <option value="sp_defense">Defensa especial (mayor)</option>
-          <option value="speed">Velocidad (mayor)</option>
+          <option value="name">Nombre</option>
+          <option value="total">Estadísticas totales</option>
+          <option value="hp">PS</option>
+          <option value="attack">Ataque</option>
+          <option value="defense">Defensa</option>
+          <option value="sp_attack">Ataque especial</option>
+          <option value="sp_defense">Defensa especial</option>
+          <option value="speed">Velocidad</option>
         </select>
+        <button type="button" id="sortDirection" class="select-filter sort-direction" title="Invertir el sentido del orden"
+          aria-label="Sentido del orden: ascendente. Pulsar para invertirlo">↑ Ascendente</button>
       </div>
       <details class="more-filters" id="moreFilters">
         <summary class="more-filters-toggle">
