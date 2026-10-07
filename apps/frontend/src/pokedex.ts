@@ -19,6 +19,7 @@ import {
   type SafeHtml,
 } from './shared/index.js';
 import {
+  collectAbilities,
   isClassificationFilter,
   matchesCatalogFilters,
   type CatalogFilters,
@@ -56,6 +57,9 @@ let onlyWithMega = false;
 let searchQuery = '';
 let minStat: MinStat | null = null;
 let classification: ClassificationFilter | null = null;
+let ability: string | null = null;
+/** Habilidad normalizada (sin tildes ni mayúsculas) a su nombre real; alimenta el autocompletado. */
+let abilityIndex = new Map<string, string>();
 let currentSort: SortKey = 'id';
 let currentSortDir: SortDirection = 'asc';
 
@@ -80,6 +84,7 @@ export async function loadPokemons(): Promise<void> {
     allPokemons = await fetchAllPokemons();
     allPokemons.sort((a, b) => a.id - b.id);
 
+    renderAbilityOptions();
     restoreFiltersFromUrl();
     applyFilters();
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
@@ -123,6 +128,7 @@ function currentFilterState(): FilterState {
     onlyWithMega,
     minStat,
     clasificacion: classification,
+    habilidad: ability,
     sort: currentSort,
     dir: currentSortDir,
   };
@@ -144,6 +150,7 @@ export function restoreFiltersFromUrl(): void {
   onlyWithMega = state.onlyWithMega;
   minStat = state.minStat;
   classification = state.clasificacion;
+  ability = state.habilidad ? (abilityIndex.get(state.habilidad) ?? null) : null;
   currentSort = state.sort;
   currentSortDir = state.dir;
 
@@ -155,6 +162,7 @@ export function restoreFiltersFromUrl(): void {
   if (checkbox) checkbox.checked = onlyWithMega;
   syncStatControls();
   syncClassControl();
+  syncAbilityControl();
   const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
   if (sortSelect) sortSelect.value = currentSort;
   syncTypePills();
@@ -167,7 +175,7 @@ export function restoreFiltersFromUrl(): void {
 
 /** Filtros que viven dentro del panel "Más filtros" (los demás están siempre visibles). */
 function countAdvancedFilters(): number {
-  return (classification ? 1 : 0) + (minStat ? 1 : 0);
+  return (classification ? 1 : 0) + (minStat ? 1 : 0) + (ability ? 1 : 0);
 }
 
 function renderAdvancedFiltersCount(): void {
@@ -180,6 +188,47 @@ function renderAdvancedFiltersCount(): void {
   document
     .querySelector('#moreFilters > summary')
     ?.setAttribute('aria-label', count > 0 ? `Más filtros, ${count} activos` : 'Más filtros');
+}
+
+/** Rellena el autocompletado con las habilidades del catálogo y reconstruye el índice de nombres. */
+function renderAbilityOptions(): void {
+  const names = collectAbilities(allPokemons);
+  abilityIndex = new Map(names.map((name) => [normalizeStr(name), name]));
+  const list = document.getElementById('abilityOptions');
+  if (!list) return;
+  list.replaceChildren(
+    ...names.map((name) => {
+      const option = document.createElement('option');
+      option.value = name;
+      return option;
+    }),
+  );
+}
+
+function syncAbilityControl(): void {
+  const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
+  if (!input) return;
+  input.value = ability ?? '';
+  input.removeAttribute('aria-invalid');
+}
+
+/**
+ * El filtro solo se aplica cuando lo escrito coincide con una habilidad del catálogo (se elige de la
+ * lista o se escribe completa, sin importar tildes ni mayúsculas); mientras tanto no filtra y el campo
+ * se marca como no válido. La búsqueda de texto ya cubre las coincidencias parciales.
+ */
+export function handleAbilityChange(): void {
+  const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
+  const typed = input?.value.trim() ?? '';
+  const match = abilityIndex.get(normalizeStr(typed)) ?? null;
+  const changed = match !== ability;
+  ability = match;
+  if (input) {
+    if (match && input.value !== match) input.value = match;
+    if (typed && !match) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+  }
+  if (changed) applyFilters();
 }
 
 function syncClassControl(): void {
@@ -277,7 +326,8 @@ export function hasActiveFilters(): boolean {
     currentGeneration !== 'all' ||
     onlyWithMega ||
     minStat !== null ||
-    classification !== null
+    classification !== null ||
+    ability !== null
   );
 }
 
@@ -290,6 +340,7 @@ export function clearAllFilters(): void {
   onlyWithMega = false;
   minStat = null;
   classification = null;
+  ability = null;
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = '';
@@ -299,6 +350,7 @@ export function clearAllFilters(): void {
   if (checkbox) checkbox.checked = false;
   syncStatControls();
   syncClassControl();
+  syncAbilityControl();
 
   syncTypePills();
   applyFilters();
@@ -341,6 +393,16 @@ function collectActiveChips(): FilterChip[] {
         const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
         if (checkbox) checkbox.checked = false;
         handleMegaFilterChange();
+      },
+    });
+  }
+  if (ability) {
+    chips.push({
+      label: `Habilidad: ${ability}`,
+      remove: () => {
+        ability = null;
+        syncAbilityControl();
+        applyFilters();
       },
     });
   }
@@ -518,6 +580,7 @@ export function initInteractiveListeners(): void {
 
   document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
   document.getElementById('classFilter')?.addEventListener('change', handleClassFilterChange);
+  document.getElementById('abilityFilter')?.addEventListener('input', handleAbilityChange);
   document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
   document.getElementById('sortDirection')?.addEventListener('click', handleSortDirectionToggle);
   document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);

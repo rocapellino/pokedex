@@ -1,5 +1,5 @@
 /**
- * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&orden=&dir=`).
+ * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&hab=&orden=&dir=`).
  * Son funciones puras: el controlador decide cuándo leer y cuándo escribir la URL.
  * Lo que llega de la URL es entrada no confiable, así que se valida contra los valores conocidos.
  */
@@ -27,6 +27,8 @@ export interface FilterState {
   onlyWithMega: boolean;
   minStat: MinStat | null;
   clasificacion: ClassificationFilter | null;
+  /** Habilidad exacta; al leer la URL llega normalizada (sin tildes) y el controlador la resuelve al nombre real. */
+  habilidad: string | null;
   sort: SortKey;
   /** Sentido efectivo del orden (el de por defecto de `sort` si la URL no lo indica). */
   dir: SortDirection;
@@ -39,11 +41,13 @@ export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
   onlyWithMega: false,
   minStat: null,
   clasificacion: null,
+  habilidad: null,
   sort: 'id',
   dir: 'asc',
 };
 
 const MAX_QUERY_LENGTH = 80;
+const MAX_ABILITY_LENGTH = 60;
 const MAX_GENERATION = 9;
 
 const CANONICAL_TYPES = new Map(Object.keys(TYPE_COLORS).map((name) => [normalizeStr(name), name]));
@@ -68,6 +72,7 @@ export function parseFilterParams(search: string): FilterState {
   const minStat: MinStat | null =
     isStatKey(statKey) && statMin >= 1 && statMin <= MAX_STAT_MIN ? { key: statKey, min: statMin } : null;
 
+  const habilidad = normalizeStr((params.get('hab') ?? '').slice(0, MAX_ABILITY_LENGTH));
   const orden = params.get('orden');
   const sort: SortKey = isSortKey(orden) ? orden : 'id';
   const dir = params.get('dir');
@@ -80,6 +85,7 @@ export function parseFilterParams(search: string): FilterState {
     onlyWithMega: params.get('mega') === '1',
     minStat,
     clasificacion: isClassificationFilter(clase) ? clase : null,
+    habilidad: habilidad || null,
     sort,
     dir: isSortDirection(dir) ? dir : defaultSortDirection(sort),
   };
@@ -98,6 +104,7 @@ export function serializeFilterParams(state: FilterState): string {
     params.set('min', String(state.minStat.min));
   }
   if (state.clasificacion) params.set('clase', state.clasificacion);
+  if (state.habilidad) params.set('hab', normalizeStr(state.habilidad));
   if (state.sort !== 'id') params.set('orden', state.sort);
   if (state.dir !== defaultSortDirection(state.sort)) params.set('dir', state.dir);
 

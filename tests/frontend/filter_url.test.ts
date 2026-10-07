@@ -19,6 +19,7 @@ test('🔗 URL: lee búsqueda, tipos, generación y megaevolución', () => {
     onlyWithMega: true,
     minStat: null,
     clasificacion: null,
+    habilidad: null,
     sort: 'id',
     dir: 'asc',
   });
@@ -50,6 +51,7 @@ test('🔗 URL: serializar y volver a leer conserva el estado', () => {
     onlyWithMega: true,
     minStat: null,
     clasificacion: 'mitico' as const,
+    habilidad: null,
     sort: 'id' as const,
     dir: 'asc' as const,
   };
@@ -116,4 +118,20 @@ test('🔗 URL: lee el sentido y, si falta o es inválido, usa el natural del cr
 test('🔗 URL: serializar y volver a leer conserva un sentido invertido', () => {
   const state = { ...parseFilterParams('?orden=hp&dir=asc') };
   assert.deepEqual(parseFilterParams(serializeFilterParams(state)), state);
+});
+
+test('🧪 URL: lee y serializa la habilidad normalizada', () => {
+  assert.equal(parseFilterParams('?hab=Nado%20R%C3%A1pido').habilidad, 'nado rapido');
+  assert.equal(parseFilterParams('?hab=INTIMIDACI%C3%93N').habilidad, 'intimidacion');
+  assert.equal(parseFilterParams('').habilidad, null);
+  assert.equal(parseFilterParams('?hab=').habilidad, null);
+  assert.equal(parseFilterParams('?hab=%20%20').habilidad, null);
+
+  const search = serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], habilidad: 'Nado Rápido' });
+  assert.equal(search, '?hab=nado+rapido');
+  assert.equal(parseFilterParams(search).habilidad, 'nado rapido');
+});
+
+test('🧪 URL: acota la longitud de la habilidad', () => {
+  assert.equal(parseFilterParams(`?hab=${'a'.repeat(500)}`).habilidad?.length, 60);
 });

@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { matchesCatalogFilters, type CatalogFilters } from '../../apps/frontend/src/shared/catalog-filters.js';
+import {
+  collectAbilities,
+  listAbilities,
+  matchesCatalogFilters,
+  type CatalogFilters,
+} from '../../apps/frontend/src/shared/catalog-filters.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
 
 const base: CatalogFilters = { searchQuery: '', types: [], generation: 'all', onlyWithMega: false };
@@ -87,4 +92,49 @@ test('🌟 Filtros: la clasificación distingue legendarios, míticos y ambos', 
 test('🌟 Filtros: un valor de clasificación inválido en los datos no cuenta como legendario', () => {
   const forged = { ...charizard, clasificacion: 'raro' } as unknown as Pokemon;
   assert.equal(matchesCatalogFilters(forged, { ...base, clasificacion: 'especial' }), false);
+});
+
+test('🧪 Habilidades: listAbilities lee listas, textos separados por comas y datos ausentes', () => {
+  assert.deepEqual(listAbilities({ ...charizard, habilidades: ['Mar Llamas', ' Poder Solar '] }), [
+    'Mar Llamas',
+    'Poder Solar',
+  ]);
+  assert.deepEqual(listAbilities({ ...charizard, habilidades: 'Mar Llamas, Poder Solar,, ' }), [
+    'Mar Llamas',
+    'Poder Solar',
+  ]);
+  assert.deepEqual(listAbilities({ ...charizard, habilidades: undefined }), []);
+  assert.deepEqual(listAbilities({ ...charizard, habilidades: [] }), []);
+});
+
+test('🧪 Habilidades: collectAbilities devuelve las distintas, sin duplicados por tildes o mayúsculas y ordenadas', () => {
+  const list: Pokemon[] = [
+    { ...charizard, id: 1, habilidades: ['Presión', 'Ímpetu'] },
+    { ...charizard, id: 2, habilidades: ['presion', 'Absorbe Agua'] },
+    { ...charizard, id: 3, habilidades: 'Ímpetu, Zafarrancho' },
+    { ...charizard, id: 4, habilidades: undefined },
+  ];
+  assert.deepEqual(collectAbilities(list), ['Absorbe Agua', 'Ímpetu', 'Presión', 'Zafarrancho']);
+  assert.deepEqual(collectAbilities([]), []);
+});
+
+test('🧪 Habilidades: el filtro exige la habilidad exacta, sin tildes ni mayúsculas', () => {
+  const only = (habilidad: string | null) => ({ ...base, habilidad });
+
+  assert.equal(matchesCatalogFilters(charizard, only('Mar Llamas')), true);
+  assert.equal(matchesCatalogFilters(charizard, only('mar llamas')), true);
+  assert.equal(matchesCatalogFilters(charizard, only('MAR LLAMAS')), true);
+  assert.equal(matchesCatalogFilters(charizard, only('Mar')), false, 'una parte no es la habilidad');
+  assert.equal(matchesCatalogFilters(charmander, only('Mar Llamas')), false);
+  assert.equal(matchesCatalogFilters(charmander, only('Poder Solar')), true);
+  assert.equal(matchesCatalogFilters(charizard, only(null)), true);
+  assert.equal(matchesCatalogFilters(charizard, base), true);
+  assert.equal(matchesCatalogFilters({ ...charizard, habilidades: undefined }, only('Mar Llamas')), false);
+});
+
+test('🧪 Habilidades: funciona con habilidades en texto y se combina con otros filtros', () => {
+  const asText: Pokemon = { ...charizard, habilidades: 'Mar Llamas, Poder Solar' };
+  assert.equal(matchesCatalogFilters(asText, { ...base, habilidad: 'Poder Solar' }), true);
+  assert.equal(matchesCatalogFilters(asText, { ...base, habilidad: 'Poder Solar', types: ['Volador'] }), true);
+  assert.equal(matchesCatalogFilters(asText, { ...base, habilidad: 'Poder Solar', types: ['Planta'] }), false);
 });

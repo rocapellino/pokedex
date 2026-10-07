@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T15:52:42.956Z",
+  "generatedAt": "2026-10-07T17:09:57.084Z",
   "summary": {
-    "totalFiles": 160,
-    "testFiles": 103,
+    "totalFiles": 161,
+    "testFiles": 104,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 858,
-    "totalLines": 23817,
-    "totalSizeBytes": 1036812,
+    "totalTestCases": 874,
+    "totalLines": 24084,
+    "totalSizeBytes": 1047383,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 78,
-      "testCases": 206,
+      "files": 79,
+      "testCases": 222,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -1020,6 +1020,73 @@
       "testCases": []
     },
     {
+      "path": "tests/frontend/catalog_ability_controller.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 10,
+      "describeCount": 0,
+      "assertionCountEst": 41,
+      "sizeBytes": 7176,
+      "lineCount": 199,
+      "sha256": "d8d5fa40e9bae580b2ed1b3fbcac976e5751334f4e99960d946f0a67fb024fdb",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_ability_controller.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧪 Habilidad: el autocompletado lista cada habilidad del catálogo una vez y ordenadas",
+          "line": 89
+        },
+        {
+          "name": "🧪 Habilidad: escribir o elegir una habilidad completa filtra, crea un chip y viaja en la URL",
+          "line": 101
+        },
+        {
+          "name": "🧪 Habilidad: ignora tildes y mayúsculas y normaliza el campo al nombre real",
+          "line": 109
+        },
+        {
+          "name": "🧪 Habilidad: un texto parcial o desconocido no filtra y marca el campo como no válido",
+          "line": 119
+        },
+        {
+          "name": "🧪 Habilidad: vaciar el campo quita el filtro y no lo marca como inválido",
+          "line": 135
+        },
+        {
+          "name": "🧪 Habilidad: se combina con otros filtros",
+          "line": 145
+        },
+        {
+          "name": "🧪 Habilidad: el chip y \"Limpiar filtros\" restablecen el campo",
+          "line": 153
+        },
+        {
+          "name": "🧪 Habilidad: cuenta como filtro avanzado en el panel",
+          "line": 166
+        },
+        {
+          "name": "🧪 Habilidad: se restaura desde la URL (abre el panel) y una habilidad desconocida se ignora",
+          "line": 174
+        },
+        {
+          "name": "🧪 Habilidad: escribir sin cambiar el resultado no vuelve a pintar la grilla",
+          "line": 191
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/catalog_class_controller.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1250,12 +1317,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 8,
+      "testCount": 12,
       "describeCount": 0,
-      "assertionCountEst": 24,
-      "sizeBytes": 4265,
-      "lineCount": 91,
-      "sha256": "1be8f114c419bec45086cd6873351a44b74dc0850661a1e978235783d9a24a4e",
+      "assertionCountEst": 42,
+      "sizeBytes": 6824,
+      "lineCount": 141,
+      "sha256": "724a99d7b80a5f577953576299078e4709053f5e06fd17d70f4a6ef50984a24a",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1271,35 +1338,51 @@
       "testCases": [
         {
           "name": "🔎 Filtros: sin tipos seleccionados no se restringe por tipo",
-          "line": 26
+          "line": 31
         },
         {
           "name": "🔎 Filtros: varios tipos exigen que el Pokémon los tenga todos",
-          "line": 30
+          "line": 35
         },
         {
           "name": "🔎 Filtros: el tipo ignora tildes y mayúsculas y reconoce el tipo secundario",
-          "line": 37
+          "line": 42
         },
         {
           "name": "🔎 Filtros: la búsqueda cubre nombre, habilidad, hábitat e ID sin distinguir tildes",
-          "line": 43
+          "line": 48
         },
         {
           "name": "🔎 Filtros: tipos, búsqueda y generación se combinan",
-          "line": 51
+          "line": 56
         },
         {
           "name": "🔎 Filtros: el índice normalizado en caché no vuelve obsoleto el resultado entre llamadas",
-          "line": 58
+          "line": 63
         },
         {
           "name": "🌟 Filtros: la clasificación distingue legendarios, míticos y ambos",
-          "line": 64
+          "line": 69
         },
         {
           "name": "🌟 Filtros: un valor de clasificación inválido en los datos no cuenta como legendario",
-          "line": 87
+          "line": 92
+        },
+        {
+          "name": "🧪 Habilidades: listAbilities lee listas, textos separados por comas y datos ausentes",
+          "line": 97
+        },
+        {
+          "name": "🧪 Habilidades: collectAbilities devuelve las distintas, sin duplicados por tildes o mayúsculas y ordenadas",
+          "line": 110
+        },
+        {
+          "name": "🧪 Habilidades: el filtro exige la habilidad exacta, sin tildes ni mayúsculas",
+          "line": 121
+        },
+        {
+          "name": "🧪 Habilidades: funciona con habilidades en texto y se combina con otros filtros",
+          "line": 135
         }
       ]
     },
@@ -1423,12 +1506,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 13,
+      "testCount": 15,
       "describeCount": 0,
-      "assertionCountEst": 41,
-      "sizeBytes": 5206,
-      "lineCount": 120,
-      "sha256": "ed0eaf20fa2f61de114b7532bbed90dc36be9d03c9a280ff7bec9b0cffea09f1",
+      "assertionCountEst": 49,
+      "sizeBytes": 6042,
+      "lineCount": 138,
+      "sha256": "862033b30da16b46c623f0729eb1c7bd6ba4f730db4de66e9388e90c1b46f0a4",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1452,47 +1535,55 @@
         },
         {
           "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
-          "line": 27
+          "line": 28
         },
         {
           "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
-          "line": 31
+          "line": 32
         },
         {
           "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
-          "line": 40
+          "line": 41
         },
         {
           "name": "🔗 URL: serializar y volver a leer conserva el estado",
-          "line": 45
+          "line": 46
         },
         {
           "name": "🔗 URL: solo serializa los filtros activos",
-          "line": 61
+          "line": 63
         },
         {
           "name": "🔗 URL: lee y serializa la estadística mínima y el orden",
-          "line": 66
+          "line": 68
         },
         {
           "name": "🔗 URL: descarta estadísticas, mínimos y órdenes inválidos",
-          "line": 73
+          "line": 75
         },
         {
           "name": "🔗 URL: lee y serializa la clasificación y descarta valores inválidos",
-          "line": 83
+          "line": 85
         },
         {
           "name": "🔗 URL: el sentido del orden solo se serializa cuando difiere del natural del criterio",
-          "line": 94
+          "line": 96
         },
         {
           "name": "🔗 URL: lee el sentido y, si falta o es inválido, usa el natural del criterio",
-          "line": 107
+          "line": 109
         },
         {
           "name": "🔗 URL: serializar y volver a leer conserva un sentido invertido",
-          "line": 116
+          "line": 118
+        },
+        {
+          "name": "🧪 URL: lee y serializa la habilidad normalizada",
+          "line": 123
+        },
+        {
+          "name": "🧪 URL: acota la longitud de la habilidad",
+          "line": 135
         }
       ]
     },
