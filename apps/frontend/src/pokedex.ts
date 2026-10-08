@@ -95,8 +95,7 @@ export async function loadPokemons(): Promise<void> {
     allPokemons.sort((a, b) => a.id - b.id);
 
     renderAbilityOptions();
-    restoreFiltersFromUrl();
-    applyFilters('replace');
+    applyFilters('replace', restoreFiltersFromUrl());
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
   } catch (err) {
     console.error('Error al cargar datos:', err);
@@ -114,8 +113,12 @@ export async function loadPokemons(): Promise<void> {
   }
 }
 
-/** `history` decide si el cambio crea una entrada («atrás» lo deshace) o reescribe la actual. */
-export function applyFilters(history: HistoryMode = 'push'): void {
+/**
+ * `history` decide si el cambio crea una entrada («atrás» lo deshace) o reescribe la actual. Un cambio de
+ * filtros vuelve a la primera página; solo la restauración desde la URL indica otra (`page`), que se
+ * ajusta al total de páginas que dejan los filtros.
+ */
+export function applyFilters(history: HistoryMode = 'push', page = 1): void {
   const filters: CatalogFilters = currentFilterState();
   filteredPokemons = sortPokemons(
     allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
@@ -123,7 +126,7 @@ export function applyFilters(history: HistoryMode = 'push'): void {
     currentSortDir,
   );
 
-  currentPage = 1;
+  currentPage = Math.min(page, Math.max(1, Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE)));
   renderPokemons();
   updateStats(filteredPokemons);
   renderActiveFilters();
@@ -142,11 +145,15 @@ function currentFilterState(): FilterState {
     habilidad: ability,
     sort: currentSort,
     dir: currentSortDir,
+    page: currentPage,
   };
 }
 
-/** Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga). */
-export function restoreFiltersFromUrl(): void {
+/**
+ * Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga).
+ * Devuelve la página pedida, que `applyFilters` ajusta cuando ya hay catálogo filtrado.
+ */
+export function restoreFiltersFromUrl(): number {
   const state = parseFilterParams(window.location.search);
   searchQuery = state.searchQuery;
   selectedTypes = state.types;
@@ -171,6 +178,7 @@ export function restoreFiltersFromUrl(): void {
   syncTypeControl();
   // Un filtro del panel activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
   if (countAdvancedFilters() > 0) setFiltersPanelOpen(true);
+  return state.page;
 }
 
 /** Filtros que viven dentro del panel "Filtros" (buscador y orden están siempre visibles). Los tipos cuentan como uno. */
@@ -543,6 +551,7 @@ export function changePage(delta: number): void {
   if (newPage >= 1 && newPage <= totalPages) {
     currentPage = newPage;
     renderPokemons();
+    commitFiltersToUrl(currentFilterState(), 'push');
     const grid = document.getElementById('pokemonGrid');
     if (grid) revealResults(grid);
     const announcer = document.getElementById('pageAnnouncer');
@@ -603,8 +612,7 @@ function handleHistoryNavigation(): void {
   if (allPokemons.length === 0 || urlMatchesFilters(currentFilterState())) return;
   clearTimeout(searchTimer);
   clearTimeout(statTimer);
-  restoreFiltersFromUrl();
-  applyFilters('replace');
+  applyFilters('replace', restoreFiltersFromUrl());
 }
 
 export function initInteractiveListeners(): void {

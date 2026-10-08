@@ -21,6 +21,31 @@ async function waitForSettledAnimations(page: Page): Promise<void> {
 }
 
 /**
+ * Sustituye el catálogo por uno de `total` Pokémon con la paginación del backend (`offset`, `limit` y
+ * `X-Total-Count`): la base de datos del CI no garantiza más de 48, que es una sola página.
+ */
+async function stubCatalog(page: Page, total: number): Promise<void> {
+  const catalog = Array.from({ length: total }, (_, i) => ({
+    id: i + 1,
+    nombre: `Pokémon ${i + 1}`,
+    tipo: 'Normal',
+    tipos: ['Normal'],
+    fuerza: 50,
+    imagen: '/favicon.png',
+    caracteristicas: { peso: 1, altura: 1, habitat: 'Pradera' },
+  }));
+  await page.route(/\/pokemons\?/, async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const offset = Number(params.get('offset') ?? 0);
+    const limit = Number(params.get('limit') ?? catalog.length);
+    await route.fulfill({
+      json: catalog.slice(offset, offset + limit),
+      headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
+    });
+  });
+}
+
+/**
  * Fuera del `describe` de la suite principal a propósito: su `beforeEach` navega a `/` y este test
  * necesita registrar la ruta ANTES de la primera carga, sin recargar. Va el primero del archivo: el
  * backend del E2E limita a 300 peticiones por minuto desde una misma IP (también los archivos
@@ -33,24 +58,7 @@ test.describe('Enlace de salto a la paginación', () => {
   }) => {
     // El enlace solo existe con varias páginas, y la base de datos del CI no garantiza más de 48
     // Pokémon: el catálogo se sustituye por uno de 96 (dos páginas) con la paginación del backend.
-    const catalog = Array.from({ length: 96 }, (_, i) => ({
-      id: i + 1,
-      nombre: `Pokémon ${i + 1}`,
-      tipo: 'Normal',
-      tipos: ['Normal'],
-      fuerza: 50,
-      imagen: '/favicon.png',
-      caracteristicas: { peso: 1, altura: 1, habitat: 'Pradera' },
-    }));
-    await page.route(/\/pokemons\?/, async (route) => {
-      const params = new URL(route.request().url()).searchParams;
-      const offset = Number(params.get('offset') ?? 0);
-      const limit = Number(params.get('limit') ?? catalog.length);
-      await route.fulfill({
-        json: catalog.slice(offset, offset + limit),
-        headers: { 'X-Total-Count': String(catalog.length), 'Access-Control-Expose-Headers': 'X-Total-Count' },
-      });
-    });
+    await stubCatalog(page, 96);
     await page.goto('/');
     await page.waitForSelector('.pokemon-card', { timeout: 10000 });
     const skip = page.locator('#skipToPagination');
@@ -90,6 +98,24 @@ test.describe('Enlace de salto a la paginación', () => {
     await expect(page.locator('#pokemonGrid')).toBeFocused();
     await expect(page.locator('.pokemon-card').first()).toBeInViewport();
     await expect(page.locator('#pageAnnouncer')).toHaveText('Página 2 de 2, 48 Pokémon');
+  });
+
+  test('La página va en la URL: recargar la conserva y "Atrás" vuelve a la anterior', async ({ page }) => {
+    await stubCatalog(page, 96);
+    await page.goto('/');
+    await page.waitForSelector('.pokemon-card', { timeout: 10000 });
+
+    await page.locator('#btnNextPage').click();
+    await expect(page.locator('#pageInfo')).toContainText('Página 2');
+    await expect(page).toHaveURL(/\?pagina=2$/);
+
+    await page.reload();
+    await expect(page.locator('#pageInfo')).toContainText('Página 2');
+    await expect(page.locator('.pokemon-card').first()).toHaveAttribute('data-pokemon-id', '49');
+
+    await page.goBack();
+    await expect(page.locator('#pageInfo')).toContainText('Página 1');
+    expect(new URL(page.url()).search).toBe('');
   });
 });
 
