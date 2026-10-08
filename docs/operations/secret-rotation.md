@@ -12,6 +12,7 @@ Establecer el protocolo para la rotación periódica y de emergencia de claves c
 | **`REDIS_PASSWORD`** | ExternalSecret (Vault / backend cloud) | 90 días | Reinicio de conexiones del pool Redis |
 | **`ADMIN_API_KEY`** | ExternalSecret (Vault / backend cloud) | 60 días | Exige actualizar clientes de administración |
 | **`ADMIN_SESSION_SECRET`** | ExternalSecret (Vault / backend cloud) | 60 días | Invalida sesiones activas en curso |
+| **`METRICS_BEARER_TOKEN`** | ExternalSecret (Vault / backend cloud), opt-in con `externalSecrets.metricsToken` | 90 días | Actualizar a la vez el scraper (Alloy); entre ambos cambios se pierde la métrica |
 | **`BACKUP_ENCRYPTION_KEY`** | Secret de Kubernetes / CI | 180 días | Cifra volcados futuros (no altera pasados) |
 
 ## 3. Procedimiento de Rotación

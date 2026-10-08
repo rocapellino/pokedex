@@ -50,7 +50,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
    ```bash
    curl -s http://<API_URL>/version | jq .
    curl -s http://<API_URL>/version | jq -r '.version, .git_sha'
-   curl -s http://<API_URL>/metrics | grep pokedex_storage_status
+   curl -s -H "Authorization: Bearer ${METRICS_BEARER_TOKEN}" http://<API_URL>/metrics | grep pokedex_storage_status
    ```
 
    > [!NOTE]
@@ -85,7 +85,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 1. **Identificación de Endpoints Afectados**:
 
    ```bash
-   curl -s http://<API_URL>/metrics | grep 'http_requests_total{.*status="5'
+   curl -s -H "Authorization: Bearer ${METRICS_BEARER_TOKEN}" http://<API_URL>/metrics | grep 'http_requests_total{.*status="5'
    ```
 
 2. **Triage de Logs con Correlation ID**:
@@ -102,7 +102,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 1. **Análisis de Buckets de Duración**:
 
    ```bash
-   curl -s http://<API_URL>/metrics | grep 'http_request_duration_seconds'
+   curl -s -H "Authorization: Bearer ${METRICS_BEARER_TOKEN}" http://<API_URL>/metrics | grep 'http_request_duration_seconds'
    ```
 
 2. **Inspección de Recursos de CPU y Memoria**:
@@ -144,7 +144,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 1. **Inspección de Métricas y Estado del Disyuntor**:
 
    ```bash
-   curl -s http://<API_URL>/metrics | grep pokedex_ai_circuit_breaker
+   curl -s -H "Authorization: Bearer ${METRICS_BEARER_TOKEN}" http://<API_URL>/metrics | grep pokedex_ai_circuit_breaker
    ```
 
 2. **Revisión de Logs del Servicio de IA**:
