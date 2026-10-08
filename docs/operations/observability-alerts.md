@@ -26,6 +26,9 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 | **PokedexPvcStorageFillingUp** | `warning` | `(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * 100 > 85` | Volumen persistente (PVC) próximo al límite (> 85%). |
 | **PokedexDbBackupFailed** | `critical` | `kube_job_status_failed{job_name=~".*backup.*"} > 0` | Fallo de ejecución de Job de respaldo automatizado de PostgreSQL. |
 | **PokedexDbBackupStale** | `critical` | `(time() - kube_cronjob_status_last_successful_time) > 93600` | Copia de seguridad desactualizada (> 26 horas). |
+| **PokedexGdriveSyncFailed** | `critical` | `kube_job_status_failed{job_name=~".*gdrive-sync.*"} > 0` | Fallo de la copia off-site a Google Drive; los respaldos quedan solo en el PVC local. |
+| **PokedexGdriveSyncStale** | `critical` | `(time() - kube_cronjob_status_last_successful_time{cronjob=~".*gdrive-sync.*"}) > 93600` | Sin sincronización exitosa a Google Drive en más de 26 horas. |
+| **PokedexJobStuck** | `warning` | `kube_job_status_active > 0 and (time() - kube_job_status_start_time) > 3600` | Job de `pokemon-app` activo más de 1 hora; los respaldos duran segundos, suele ser un pod atascado. |
 | **DatabaseRestoreDrillFailed** | `critical` | `kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0` | Fallo en la certificación periódica de restauración del backup real (`dr:verify`); posible corrupción de respaldos, ausencia de snapshot o clave errónea. |
 | **TlsCertExpiringSoon** | `warning` | `(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 15` | Certificado TLS próximo a expirar (< 15 días). |
 | **ArgoCDAppOutOfSync** | `warning` | `argocd_app_info{sync_status!="Synced"} == 1` | Aplicación GitOps desincronizada con el repositorio. |
@@ -228,6 +231,51 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
    - Para probar el mecanismo del tooling: `task dr:drill` (Smoke Test con muestra efímera).
    - Para certificar el backup real localmente: `task dr:verify` (requiere `BACKUP_ENCRYPTION_KEY` y volcado real).
    - Si el volcado almacenado en el PVC está dañado o ausente, generar inmediatamente un nuevo volcado forzado con `kubectl create job --from=cronjob/pokedex-db-backup dr-backup-manual -n pokemon-app`.
+
+### 3.13. PokedexGdriveSyncFailed, PokedexGdriveSyncStale y PokedexJobStuck
+
+1. **Estado del Job y del pod**:
+
+   ```bash
+   kubectl -n pokemon-app get cronjob,job
+   kubectl -n pokemon-app get pods -l app.kubernetes.io/component=backup-offsite
+   kubectl -n pokemon-app describe pod -l app.kubernetes.io/component=backup-offsite | tail -20
+   ```
+
+   `CreateContainerConfigError` indica que falta la clave `GDRIVE_TOKEN` en el Secret `pokemon-secrets`: la
+   referencia no es opcional y el pod no arranca, de modo que el Job queda activo hasta agotar el reintento.
+
+2. **Causa raíz según el log**:
+
+   ```bash
+   kubectl -n pokemon-app logs job/<JOB> --tail=40
+   ```
+
+   - `invalid character '{' after top-level value`: `GDRIVE_TOKEN` en Vault contiene más de un objeto JSON
+     (típico al pegar dos veces la salida de `rclone authorize`). Debe haber exactamente uno.
+   - `invalid_grant` o `401`: el token se revocó o caducó; generar uno nuevo con `rclone authorize "drive"`.
+   - Sin errores y sin archivos: el CronJob de base de datos no dejó volcados en `/backups`.
+
+3. **Comprobar el token sin imprimirlo**:
+
+   ```bash
+   kubectl -n pokemon-app get secret pokemon-secrets -o jsonpath='{.data.GDRIVE_TOKEN}' | base64 -d | jq -c -s 'length'   # debe dar 1
+   kubectl -n pokemon-app get secret pokemon-secrets -o jsonpath='{.data.GDRIVE_TOKEN}' | base64 -d | jq -c 'keys'
+   ```
+
+4. **Remediación**: corregir el valor en Vault con el usuario `operador`
+   ([`VAULT_OPERATOR_ACCESS.md`](../runbooks/VAULT_OPERATOR_ACCESS.md)), cargándolo desde archivo
+   (`vault kv patch -mount=secret pokedex/preprod GDRIVE_TOKEN=@archivo.json`), forzar la sincronización de ESO
+   (`kubectl -n pokemon-app annotate externalsecret <NOMBRE> force-sync=$(date +%s) --overwrite`) y relanzar:
+
+   ```bash
+   kubectl -n pokemon-app delete job <JOB_ATASCADO>
+   kubectl -n pokemon-app create job --from=cronjob/pokedex-preprod-gdrive-sync manual-gdrive-sync
+   kubectl -n pokemon-app logs -f job/manual-gdrive-sync
+   ```
+
+   Un Job fallido ocupa uno de los 3 cupos de historial y mantiene `PokedexGdriveSyncFailed` activa hasta que se
+   elimina o lo desplaza una ejecución posterior.
 
 ---
 

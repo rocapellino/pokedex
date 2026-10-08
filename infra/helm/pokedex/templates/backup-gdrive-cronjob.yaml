@@ -39,6 +39,10 @@ spec:
               env:
                 - name: RCLONE_CONFIG_GDRIVE_TYPE
                   value: "drive"
+                # rclone persiste aquí el access token que renueva; con la raíz de solo lectura el
+                # destino por defecto (/.rclone.conf) falla y añade ~10 s de reintentos por ejecución.
+                - name: RCLONE_CONFIG
+                  value: "/tmp/rclone.conf"
                 - name: GDRIVE_FOLDER
                   value: "{{ .Values.backup.gdrive.folder | default "PokedexBackups/proxmox" }}"
                 - name: RCLONE_CONFIG_GDRIVE_TOKEN

@@ -189,6 +189,39 @@ groups:
           summary: "Copia de seguridad desactualizada (> 26 horas)"
           description: "No se registra ninguna ejecución exitosa del CronJob de backup en las últimas 26 horas."
 
+      - alert: PokedexGdriveSyncFailed
+        expr: kube_job_status_failed{job_name=~".*gdrive-sync.*"} > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pokedex-backup
+        annotations:
+          summary: "Fallo en la copia off-site de backups a Google Drive"
+          description: "El Job {{ $labels.job_name }} falló; los respaldos siguen solo en el PVC local. Revisar el token de Drive (GDRIVE_TOKEN) y los logs del Job."
+
+      - alert: PokedexGdriveSyncStale
+        expr: (time() - kube_cronjob_status_last_successful_time{cronjob=~".*gdrive-sync.*"}) > 93600
+        for: 15m
+        labels:
+          severity: critical
+          service: pokedex-backup
+        annotations:
+          summary: "Copia off-site a Google Drive desactualizada (> 26 horas)"
+          description: "No se registra ninguna sincronización exitosa a Google Drive en las últimas 26 horas."
+
+      - alert: PokedexJobStuck
+        expr: |
+          (kube_job_status_active{namespace="pokemon-app"} > 0)
+          and on (namespace, job_name)
+          ((time() - kube_job_status_start_time{namespace="pokemon-app"}) > 3600)
+        for: 10m
+        labels:
+          severity: warning
+          service: pokedex-backup
+        annotations:
+          summary: "Job de pokemon-app sin terminar tras más de 1 hora"
+          description: "El Job {{ $labels.job_name }} sigue activo desde hace más de una hora. Los respaldos duran segundos, por lo que suele indicar un pod atascado (p. ej. CreateContainerConfigError por un Secret ausente)."
+
       - alert: DatabaseRestoreDrillFailed
         expr: kube_job_status_failed{job_name=~".*dr-restore-verify.*"} > 0
         for: 5m
