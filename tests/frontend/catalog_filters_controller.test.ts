@@ -254,7 +254,7 @@ test('🔎 Controlador: la búsqueda escrita se aplica con debounce y un solo ev
 
 const search = () => dom.window.location.search;
 
-test('🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas de historial', () => {
+test('🔗 Controlador: los filtros se reflejan en la URL y cada cambio discreto añade una entrada de historial', () => {
   const before = dom.window.history.length;
   toggleTypeFilter('Fuego');
   toggleTypeFilter('Volador');
@@ -265,7 +265,8 @@ test('🔗 Controlador: los filtros se reflejan en la URL sin añadir entradas d
   (doc.getElementById('megaFilter') as HTMLInputElement).checked = true;
   handleMegaFilterChange();
   assert.equal(search(), '?q=char&tipo=fuego%2Cvolador&mega=1');
-  assert.equal(dom.window.history.length, before);
+  // Dos tipos, la búsqueda (aplicada directamente, no escrita) y la megaevolución: «atrás» deshace cada uno.
+  assert.equal(dom.window.history.length, before + 4);
 
   clearAllFilters();
   assert.equal(search(), '');
