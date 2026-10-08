@@ -172,8 +172,7 @@ export function restoreFiltersFromUrl(): void {
   syncStatControls();
   syncClassControl();
   syncAbilityControl();
-  const sortSelect = document.getElementById('sortFilter') as HTMLSelectElement | null;
-  if (sortSelect) sortSelect.value = currentSort;
+  syncSortControl();
   syncTypeControl();
   // Un filtro del panel activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
   if (countAdvancedFilters() > 0) setFiltersPanelOpen(true);
@@ -265,6 +264,16 @@ export function handleSortChange(): void {
 export function handleSortDirectionToggle(): void {
   currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
   applyFilters();
+}
+
+function syncSortControl(): void {
+  const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
+  if (select) select.value = currentSort;
+}
+
+/** El orden natural es por número y ascendente; cualquier otro (criterio o sentido) se ofrece como chip. */
+function hasCustomSort(): boolean {
+  return currentSort !== 'id' || currentSortDir !== defaultSortDirection('id');
 }
 
 function renderSortDirection(): void {
@@ -421,6 +430,19 @@ function collectActiveChips(): FilterChip[] {
       remove: () => {
         minStat = null;
         syncStatControls();
+        applyFilters();
+      },
+    });
+  }
+  if (hasCustomSort()) {
+    const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
+    const criterion = select?.selectedOptions[0]?.textContent?.trim() || currentSort;
+    chips.push({
+      label: `Orden: ${criterion} ${currentSortDir === 'asc' ? '↑' : '↓'}`,
+      remove: () => {
+        currentSort = 'id';
+        currentSortDir = defaultSortDirection('id');
+        syncSortControl();
         applyFilters();
       },
     });
