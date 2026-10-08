@@ -23,7 +23,7 @@ Este documento condensa los resultados de la auditoría de seguridad integral, a
 
 | Capa / Subsistema | Ruta en Repositorio | Stack Tecnológico | Rol Operativo & Superficie Expuesta |
 | :--- | :--- | :--- | :--- |
-| **Núcleo de API REST** | [`apps/backend`](../../apps/backend) | Node.js 22 LTS, TypeScript, PostgreSQL, Redis | Ingesta, validación, lógica de negocio y persistencia relacional. |
+| **Núcleo de API REST** | [`apps/backend`](../../apps/backend) | Node.js 24 LTS, TypeScript, PostgreSQL, Redis | Ingesta, validación, lógica de negocio y persistencia relacional. |
 | **Capa de Presentación** | [`apps/frontend`](../../apps/frontend) | Vanilla TypeScript, HTML5/CSS3, Nginx Proxy | Interfaz gráfica pública y backoffice administrativo ligero. |
 | **Automatización de Nodos** | [`infra/ansible`](../../infra/ansible) | Ansible Core, SSH, Cloud-Init | Hardening de SO, cortafuegos UFW y configuración base. |
 | **Orquestación Kubernetes** | [`infra/helm/pokedex`](../../infra/helm/pokedex) | Helm Charts v3, K8s Manifests | Despliegue, HPA, PDB, Ingress y Network Policies Zero-Trust. |

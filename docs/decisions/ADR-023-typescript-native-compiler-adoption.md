@@ -1,11 +1,11 @@
 # ADR-023: Adopción del Compilador Nativo TypeScript 7.x
 
-| Campo       | Valor                        |
-|-------------|------------------------------|
-| **Estado**  | Aceptado                     |
-| **Fecha**   | 2026-09-14                   |
-| **Autores** | Rodrigo Capellino            |
-| **Tags**    | build, toolchain, typescript |
+| Campo       | Valor                                               |
+|-------------|-----------------------------------------------------|
+| **Estado**  | Aceptado (enmendado el 2026-10-07: runtime Node 24) |
+| **Fecha**   | 2026-09-14                                          |
+| **Autores** | Rodrigo Capellino                                   |
+| **Tags**    | build, toolchain, typescript                        |
 
 ---
 
@@ -54,7 +54,7 @@ La versión se pina en `package.json` raíz y en `apps/backend/package.json`:
 
 - **Pinning estricto con `~`**: Solo se aceptan actualizaciones de patch (`~7.0.x`), no de minor o major.
 - **CI obligatorio**: `npm run lint` incluye `tsc --noEmit` en cada PR. Cualquier regresión de tipos es un error de CI.
-- **`@types/node` alineado con runtime**: Se usa `@types/node: "^22.x"` (runtime real del backend Node 22 LTS) para evitar divergencia de tipos vs. runtime de producción.
+- **`@types/node` alineado con runtime**: Se usa `@types/node: "^24.x"` (runtime real del backend Node 24 LTS; ver la Enmienda 2026-10-07) para evitar divergencia de tipos vs. runtime de producción.
 
 ---
 
@@ -75,6 +75,13 @@ Si se detectan regresiones de tipos no aceptables con `~7.0.x`:
 - **Dependencias**: Herramientas que dependen de `typescript` como peer dependency deben verificar compatibilidad con la serie 7.x.
 
 ---
+
+## Enmienda 2026-10-07: runtime Node 24 (AUD-DEP-NODE-001)
+
+El runtime del backend y del stage de build del frontend pasa de Node 22 a Node 24 LTS. La salvaguarda
+de alineación se mantiene: `@types/node` sigue la versión mayor del runtime, por lo que pasa de `^22.x` a
+`^24.x`. El compilador nativo TypeScript 7.x y su política de pinning con `~` no cambian. El plan y la
+evidencia están en `docs/audits/2026-10-07/remediation-plan.md`.
 
 ## Referencias
 

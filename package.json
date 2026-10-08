@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "npm@11.17.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "workspaces": [
     "apps/backend",
@@ -107,7 +107,7 @@
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^30.0.0",
-    "@types/node": "^22.13.0",
+    "@types/node": "^24.19.1",
     "@types/pg": "^8.23.1",
     "esbuild": "^0.28.2",
     "js-yaml": "^4.3.2",

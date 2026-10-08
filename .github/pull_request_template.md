@@ -31,7 +31,7 @@
 
 ## 📦 Componentes Afectados
 
-- [ ] `apps/backend` (API Express & Node.js 22 LTS / Gemini AI SDK / PostgreSQL / Redis)
+- [ ] `apps/backend` (API Express & Node.js 24 LTS / Gemini AI SDK / PostgreSQL / Redis)
 - [ ] `apps/frontend` (MPA TypeScript + Vite: catálogo público y consola backoffice / Nginx Alpine)
 - [ ] `infra` (Helm Chart / OpenTofu Proxmox Pre-prod LXC 800 / Cloud Blueprint Inactivo / K8s K3s / Vault CE & ESO / ArgoCD)
 - [ ] `scripts` (Scripts de sincronización Linear/Sonar, auditoría o seeders)

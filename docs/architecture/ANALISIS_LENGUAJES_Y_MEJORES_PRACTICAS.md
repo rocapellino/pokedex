@@ -33,7 +33,7 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 | **Persistencia Principal** | PostgreSQL | 16 | Almacenamiento relacional duradero con soporte JSONB |
 | **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de JWT |
 | **Integración IA** | Google GenAI SDK | `@google/genai` (Gemini 2.5 Flash) | Generación dinámica de diagramas y asistencia contextual |
-| **Contenerización** | Docker Multi-Stage | `node:22-alpine` | Contenedores ultraligeros con usuario no root (`USER` numérico por imagen) |
+| **Contenerización** | Docker Multi-Stage | `node:24-alpine` | Contenedores ultraligeros con usuario no root (`USER` numérico por imagen) |
 | **Orquestación** | Kubernetes & Helm | Helm 3 | Despliegue declarativo y gestión de configuración por entornos |
 
 ---
@@ -46,7 +46,7 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
    - PostgreSQL 16 actúa como la única fuente de verdad transaccional (ACID).
    - Columnas relacionales indexadas (`id`, `nombre`, `tipo`) para filtros de alta cardinalidad.
    - Columna binaria `data JSONB` para flexibilidad total de atributos sin migraciones DDL disruptivas.
-4. **Contenedor Único Multi-Stage:** Compilación limpia en etapa de build con `esbuild` y empaquetado final mínimo en `node:22-alpine`, ejecutado bajo un usuario de mínimos privilegios (`node`).
+4. **Contenedor Único Multi-Stage:** Compilación limpia en etapa de build con `esbuild` y empaquetado final mínimo en `node:24-alpine`, ejecutado bajo un usuario de mínimos privilegios (`node`).
 
 ---
 

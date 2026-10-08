@@ -70,7 +70,7 @@ Para evitar confusiones en agentes autónomos y análisis automatizados:
 Toda skill de análisis debe asumir como punto de partida el stack real y la topología operativa del repositorio:
 
 - **Estructura:** Monorepo con workspaces npm (`apps/backend` y `apps/frontend`).
-- **Runtime & Lenguajes:** Node.js 22 (LTS), npm 11+, TypeScript estricto. Fuentes de verdad de las versiones: `.tool-versions` (Node.js y herramientas de plataforma), `packageManager` en `package.json` (npm) y las imágenes base de `apps/*/Dockerfile`. Ante discrepancia prevalecen esas fuentes, no este resumen.
+- **Runtime & Lenguajes:** Node.js 24 (LTS), npm 11+, TypeScript estricto. Fuentes de verdad de las versiones: `.tool-versions` (Node.js y herramientas de plataforma), `packageManager` en `package.json` (npm) y las imágenes base de `apps/*/Dockerfile`. Ante discrepancia prevalecen esas fuentes, no este resumen.
 - **Backend:** Express, Drizzle ORM, PostgreSQL (con pool nativo y soporte PgBouncer), Redis distribuido (rate limiting / caché).
 - **Frontend:** Vanilla TypeScript puro empaquetado con Vite, saneamiento estricto con DOMPurify, servido mediante contenedor Nginx Alpine. *(No utiliza React ni JSX)*.
 - **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yaml`) con persistencia local y soporte de backup.

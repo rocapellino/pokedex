@@ -1,5 +1,5 @@
 # ==============================================================================
-# Dockerfile Multi-Stage: Pokédex Backend API Service (Node.js 22 LTS)
+# Dockerfile Multi-Stage: Pokédex Backend API Service (Node.js 24 LTS)
 # ==============================================================================
 # Definición canónica y SSOT para el backend (docker-compose, CI/CD, Helm y Kubernetes).
 # Compila con TypeScript y ejecuta sobre Alpine con usuario no privilegiado (node).
@@ -8,7 +8,7 @@
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación con esbuild)
 # ------------------------------------------------------------------------------
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@poke
 # ------------------------------------------------------------------------------
 # Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
 # ------------------------------------------------------------------------------
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runner
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runner
 
 # VER-002/OCI-001: los metadatos OCI de version y revision se inyectan desde CI
 # como build-args. El `version="2.0.0"` generico anterior era ficticio y no
