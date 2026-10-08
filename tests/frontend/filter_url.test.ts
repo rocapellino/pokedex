@@ -22,7 +22,25 @@ test('🔗 URL: lee búsqueda, tipos, generación y megaevolución', () => {
     habilidad: null,
     sort: 'id',
     dir: 'asc',
+    page: 1,
   });
+});
+
+test('🔗 URL: la página se lee de `pagina` y se omite en la primera', () => {
+  assert.equal(parseFilterParams('?pagina=5').page, 5);
+  assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], page: 5 }), '?pagina=5');
+  assert.equal(serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], page: 1 }), '');
+  assert.equal(
+    serializeFilterParams({ ...EMPTY_FILTER_STATE, types: [], generation: '2', page: 3 }),
+    '?gen=2&pagina=3',
+  );
+});
+
+test('🔗 URL: descarta páginas inválidas o fuera de rango', () => {
+  for (const value of ['0', '-2', 'abc', '', '1.5x', '10001', '99999999999999999999']) {
+    assert.equal(parseFilterParams(`?pagina=${value}`).page, 1, value);
+  }
+  assert.equal(parseFilterParams('?pagina=2.7').page, 2);
 });
 
 test('🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados', () => {
@@ -54,9 +72,10 @@ test('🔗 URL: serializar y volver a leer conserva el estado', () => {
     habilidad: null,
     sort: 'id' as const,
     dir: 'asc' as const,
+    page: 4,
   };
   const search = serializeFilterParams(state);
-  assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1&clase=mitico');
+  assert.equal(search, '?q=drag%C3%B3n+azul&tipo=electrico%2Cdragon&gen=3&mega=1&clase=mitico&pagina=4');
   assert.deepEqual(parseFilterParams(search), state);
 });
 

@@ -1,5 +1,5 @@
 /**
- * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&hab=&orden=&dir=`).
+ * Serialización de los filtros del catálogo en la query string (`?q=&tipo=&gen=&mega=&stat=&min=&clase=&hab=&orden=&dir=&pagina=`).
  * Son funciones puras: el controlador decide cuándo leer y cuándo escribir la URL.
  * Lo que llega de la URL es entrada no confiable, así que se valida contra los valores conocidos.
  */
@@ -32,6 +32,8 @@ export interface FilterState {
   sort: SortKey;
   /** Sentido efectivo del orden (el de por defecto de `sort` si la URL no lo indica). */
   dir: SortDirection;
+  /** Página del catálogo (desde 1). El controlador la ajusta al total de páginas que dejan los filtros. */
+  page: number;
 }
 
 export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
@@ -44,11 +46,13 @@ export const EMPTY_FILTER_STATE: Readonly<FilterState> = {
   habilidad: null,
   sort: 'id',
   dir: 'asc',
+  page: 1,
 };
 
 const MAX_QUERY_LENGTH = 80;
 const MAX_ABILITY_LENGTH = 60;
 const MAX_GENERATION = 9;
+const MAX_PAGE = 10_000;
 
 const CANONICAL_TYPES = new Map(Object.keys(TYPE_COLORS).map((name) => [normalizeStr(name), name]));
 
@@ -77,6 +81,7 @@ export function parseFilterParams(search: string): FilterState {
   const sort: SortKey = isSortKey(orden) ? orden : 'id';
   const dir = params.get('dir');
   const clase = params.get('clase');
+  const page = Number.parseInt(params.get('pagina') ?? '', 10);
 
   return {
     searchQuery,
@@ -88,6 +93,7 @@ export function parseFilterParams(search: string): FilterState {
     habilidad: habilidad || null,
     sort,
     dir: isSortDirection(dir) ? dir : defaultSortDirection(sort),
+    page: page >= 1 && page <= MAX_PAGE ? page : 1,
   };
 }
 
@@ -107,6 +113,7 @@ export function serializeFilterParams(state: FilterState): string {
   if (state.habilidad) params.set('hab', normalizeStr(state.habilidad));
   if (state.sort !== 'id') params.set('orden', state.sort);
   if (state.dir !== defaultSortDirection(state.sort)) params.set('dir', state.dir);
+  if (state.page > 1) params.set('pagina', String(state.page));
 
   const text = params.toString();
   return text ? `?${text}` : '';

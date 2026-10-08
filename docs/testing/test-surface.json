@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T15:17:23.567Z",
+  "generatedAt": "2026-10-08T15:33:48.578Z",
   "summary": {
-    "totalFiles": 171,
-    "testFiles": 112,
+    "totalFiles": 172,
+    "testFiles": 113,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 951,
-    "totalLines": 25875,
-    "totalSizeBytes": 1118949,
+    "totalTestCases": 959,
+    "totalLines": 26055,
+    "totalSizeBytes": 1125603,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 85,
-      "testCases": 270,
+      "files": 86,
+      "testCases": 277,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -69,7 +69,7 @@
       "runner": "playwright",
       "command": "npm run test:e2e",
       "files": 4,
-      "testCases": 21,
+      "testCases": 22,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
     {
@@ -821,12 +821,12 @@
       "type": "E2E / a11y",
       "role": "TEST_FILE",
       "runner": "playwright",
-      "testCount": 15,
+      "testCount": 16,
       "describeCount": 2,
-      "assertionCountEst": 86,
-      "sizeBytes": 17556,
-      "lineCount": 373,
-      "sha256": "a391748aa70db30d5b0512b1ee7abbda8d9f029eaa621637df5d11926b84c854",
+      "assertionCountEst": 92,
+      "sizeBytes": 18597,
+      "lineCount": 399,
+      "sha256": "ba80c3cd5a9438c4eda9da2836e1eebf92d896cbadcd6aed0ae3c8e99c3def5f",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
@@ -844,63 +844,67 @@
       "testCases": [
         {
           "name": "@a11y \"Saltar a la paginación\" aparece con el teclado, lleva el foco a \"Siguiente\" y no toca la URL",
-          "line": 31
+          "line": 56
+        },
+        {
+          "name": "La página va en la URL: recargar la conserva y \"Atrás\" vuelve a la anterior",
+          "line": 103
         },
         {
           "name": "La interfaz principal carga con branding y catálogo de Pokémon",
-          "line": 101
+          "line": 127
         },
         {
           "name": "El buscador en tiempo real filtra los Pokémon por nombre",
-          "line": 116
-        },
-        {
-          "name": "El alternador de tema modifica data-theme en el documento",
-          "line": 132
-        },
-        {
-          "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
           "line": 142
         },
         {
+          "name": "El alternador de tema modifica data-theme en el documento",
+          "line": 158
+        },
+        {
+          "name": "@a11y Auditoría de accesibilidad WCAG con Axe-core",
+          "line": 168
+        },
+        {
           "name": "@coep Las imágenes de Pokémon cargan efectivamente (COEP require-corp)",
-          "line": 160
+          "line": 186
         },
         {
           "name": "El filtro \"Con megaevolución\" deja solo los Pokémon que tienen alguna",
-          "line": 183
+          "line": 209
         },
         {
           "name": "El panel de filtros agrupa varios tipos en su desplegable y se cierra con Escape",
-          "line": 204
+          "line": 230
         },
         {
           "name": "El detalle de Charizard muestra sus megaevoluciones y permite cambiar entre ellas",
-          "line": 229
+          "line": 255
         },
         {
           "name": "Un Pokémon sin megaevolución no muestra la sección en su detalle",
-          "line": 265
+          "line": 291
         },
         {
           "name": "@a11y El detalle con megaevolución cumple WCAG (Axe-core)",
-          "line": 273
+          "line": 299
         },
         {
           "name": "@a11y El modal de detalle es un diálogo modal: foco atrapado y Escape",
-          "line": 288
+          "line": 314
         },
         {
           "name": "@a11y Las tarjetas se operan con teclado: Tab, Enter, Espacio y retorno del foco",
-          "line": 312
+          "line": 338
         },
         {
           "name": "@a11y Un nodo de evolución se abre con teclado y el foco pasa al título de la nueva ficha",
-          "line": 343
+          "line": 369
         },
         {
           "name": "@coep El arte de la megaevolución carga efectivamente (COEP require-corp)",
-          "line": 362
+          "line": 388
         }
       ]
     },
@@ -1510,6 +1514,53 @@
       ]
     },
     {
+      "path": "tests/frontend/catalog_page_url.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 18,
+      "sizeBytes": 4812,
+      "lineCount": 135,
+      "sha256": "0c6be720790cdae8041db8e4752a88cfcd82e08278c688f212e8f5eb827f2b65",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_page_url.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📄 Página en la URL: abrir con ?pagina=2 muestra la segunda página",
+          "line": 86
+        },
+        {
+          "name": "📄 Página en la URL: una página inexistente se ajusta a la última y normaliza la URL",
+          "line": 93
+        },
+        {
+          "name": "📄 Página en la URL: un valor inválido vuelve a la primera y limpia la URL",
+          "line": 99
+        },
+        {
+          "name": "📄 Página en la URL: cambiar de página crea una entrada y «atrás» y «adelante» la recorren",
+          "line": 105
+        },
+        {
+          "name": "📄 Página en la URL: cambiar un filtro vuelve a la primera página y quita el parámetro",
+          "line": 129
+        }
+      ]
+    },
+    {
       "path": "tests/frontend/catalog_sort_chip_controller.test.ts",
       "suite": "frontend",
       "type": "Automated Test",
@@ -1684,12 +1735,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 15,
+      "testCount": 17,
       "describeCount": 0,
-      "assertionCountEst": 49,
-      "sizeBytes": 6042,
-      "lineCount": 138,
-      "sha256": "862033b30da16b46c623f0729eb1c7bd6ba4f730db4de66e9388e90c1b46f0a4",
+      "assertionCountEst": 55,
+      "sizeBytes": 6843,
+      "lineCount": 157,
+      "sha256": "b0e21a00f3303213ad61561e0a5fb4611c3e1ba1d303cf758c14e8937a330ecf",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1712,56 +1763,64 @@
           "line": 14
         },
         {
+          "name": "🔗 URL: la página se lee de `pagina` y se omite en la primera",
+          "line": 29
+        },
+        {
+          "name": "🔗 URL: descarta páginas inválidas o fuera de rango",
+          "line": 39
+        },
+        {
           "name": "🔗 URL: los tipos se resuelven sin tildes ni mayúsculas y sin duplicados",
-          "line": 28
-        },
-        {
-          "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
-          "line": 32
-        },
-        {
-          "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
-          "line": 41
-        },
-        {
-          "name": "🔗 URL: serializar y volver a leer conserva el estado",
           "line": 46
         },
         {
+          "name": "🔗 URL: descarta valores desconocidos o fuera de rango",
+          "line": 50
+        },
+        {
+          "name": "🔗 URL: acota la longitud de la búsqueda y recorta espacios",
+          "line": 59
+        },
+        {
+          "name": "🔗 URL: serializar y volver a leer conserva el estado",
+          "line": 64
+        },
+        {
           "name": "🔗 URL: solo serializa los filtros activos",
-          "line": 63
+          "line": 82
         },
         {
           "name": "🔗 URL: lee y serializa la estadística mínima y el orden",
-          "line": 68
+          "line": 87
         },
         {
           "name": "🔗 URL: descarta estadísticas, mínimos y órdenes inválidos",
-          "line": 75
+          "line": 94
         },
         {
           "name": "🔗 URL: lee y serializa la clasificación y descarta valores inválidos",
-          "line": 85
+          "line": 104
         },
         {
           "name": "🔗 URL: el sentido del orden solo se serializa cuando difiere del natural del criterio",
-          "line": 96
+          "line": 115
         },
         {
           "name": "🔗 URL: lee el sentido y, si falta o es inválido, usa el natural del criterio",
-          "line": 109
+          "line": 128
         },
         {
           "name": "🔗 URL: serializar y volver a leer conserva un sentido invertido",
-          "line": 118
+          "line": 137
         },
         {
           "name": "🧪 URL: lee y serializa la habilidad normalizada",
-          "line": 123
+          "line": 142
         },
         {
           "name": "🧪 URL: acota la longitud de la habilidad",
-          "line": 135
+          "line": 154
         }
       ]
     },
