@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T01:44:06.959Z",
+  "generatedAt": "2026-10-08T11:39:21.385Z",
   "summary": {
     "totalFiles": 166,
     "testFiles": 109,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 921,
-    "totalLines": 25068,
-    "totalSizeBytes": 1088175,
+    "totalTestCases": 925,
+    "totalLines": 25130,
+    "totalSizeBytes": 1090630,
     "suitesCount": 10
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 21,
-      "testCases": 154,
+      "testCases": 158,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -7869,12 +7869,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 14,
+      "testCount": 18,
       "describeCount": 0,
-      "assertionCountEst": 63,
-      "sizeBytes": 12306,
-      "lineCount": 317,
-      "sha256": "b64aa9d9e5020ef14492088cc96deca2e927a5857f71ed76c77f3b937e6c760a",
+      "assertionCountEst": 75,
+      "sizeBytes": 14761,
+      "lineCount": 379,
+      "sha256": "7d707f9446a472706186470e60c8361e9cf1ee916964613d1d0eb656d156368c",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7891,59 +7891,75 @@
       "testCases": [
         {
           "name": "📦 repo-tool-exec: parseCatalogYaml parsea correctamente la especificación declarativa",
-          "line": 45
+          "line": 48
         },
         {
           "name": "🔢 repo-tool-exec: satisfiesVersion valida comparaciones semver",
-          "line": 56
+          "line": 59
         },
         {
           "name": "🖥️ repo-tool-exec: detección local cuando el binario existe y cumple versión",
-          "line": 68
+          "line": 71
         },
         {
           "name": "🔒 repo-tool-exec: rechaza version_regex con cuantificadores anidados o demasiado largo",
-          "line": 90
+          "line": 93
         },
         {
           "name": "🖥️ repo-tool-exec: fallback cuando la versión local es incompatible",
-          "line": 105
+          "line": 108
         },
         {
           "name": "🐳 repo-tool-exec: detección dinámica de runtimes (docker > podman > nerdctl)",
-          "line": 126
+          "line": 129
         },
         {
           "name": "🔒 repo-tool-exec: buildContainerCommand aplica aislamiento y rechaza parámetros inseguros",
-          "line": 171
+          "line": 174
         },
         {
           "name": "🔒 repo-tool-exec: rechaza el uso de imágenes con tag :latest",
-          "line": 200
+          "line": 203
         },
         {
           "name": "🚀 repo-tool-exec: flujo completo ejecuta en local cuando está disponible",
-          "line": 211
+          "line": 214
         },
         {
           "name": "🚀 repo-tool-exec: flujo completo ejecuta en contenedor cuando binario local falta",
-          "line": 234
+          "line": 237
         },
         {
           "name": "⚠️ repo-tool-exec: propaga exit code != 0 como FAIL y nunca como PASS",
-          "line": 257
+          "line": 260
         },
         {
           "name": "🚫 repo-tool-exec: devuelve UNAVAILABLE cuando binario local falta y runtime tampoco existe",
-          "line": 279
+          "line": 282
         },
         {
           "name": "🚫 repo-tool-exec: devuelve UNAVAILABLE cuando binario local falta y herramienta no tiene imagen en catálogo",
-          "line": 292
+          "line": 295
+        },
+        {
+          "name": "🔒 repo-tool-exec: el fallback a contenedor respeta --version-req",
+          "line": 308
+        },
+        {
+          "name": "🔒 repo-tool-exec: version_regex inseguro en el catálogo devuelve NOT_CONFIGURED sin lanzar",
+          "line": 324
+        },
+        {
+          "name": "🔒 repo-tool-exec: contenedor sin red, sin privilegios nuevos y con cap-drop en montaje ro",
+          "line": 343
+        },
+        {
+          "name": "🔒 repo-tool-exec: findRepoRoot falla si no hay raíz de repositorio",
+          "line": 362
         },
         {
           "name": "🚫 repo-tool-exec: devuelve NOT_CONFIGURED cuando la herramienta no existe en el catálogo",
-          "line": 305
+          "line": 367
         }
       ]
     },
