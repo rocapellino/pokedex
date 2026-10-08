@@ -73,6 +73,7 @@
     "aas:governance": "tsx scripts/aas-governance.ts",
     "aas:validate": "npm exec --yes --ignore-scripts --package=agentic-awesome-skills@18.6.0 -- aas stack validate --manifest .agents/aas/aas-stack.json",
     "aas:verify": "npm run aas:governance && npm run aas:validate",
+    "tool:exec": "node --experimental-strip-types .agents/skills/repo-tool-exec/scripts/tool-exec.ts",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"
