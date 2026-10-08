@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { AxeBuilder } from '@axe-core/playwright';
 
 const TEST_ADMIN_KEY = process.env.ADMIN_API_KEY ?? 'test-admin-e2e-token-secret-1234567890';
