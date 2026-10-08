@@ -10,8 +10,9 @@ cluster:
 
 # ------------------------------------------------------------------------------
 # Destinos declarados en el repo (SSOT). Los pipelines remotos de Fleet Management
-# (scrape de /metrics de la API, logs de pods y receptor OTLP) siguen activos
-# hasta migrarlos a este archivo.
+# (logs de pods y receptor OTLP) siguen activos hasta migrarlos a este archivo. El scrape de
+# /metrics de la API ya vive aquí (`collectors.alloy.extraConfig`, AUD-SEC-OBS-001): hay que
+# borrar su pipeline en Fleet Management para no duplicar las series.
 # ------------------------------------------------------------------------------
 destinations:
   grafana-cloud-metrics:
@@ -74,8 +75,36 @@ collectors:
       - service-discovery
       - filesystem-log-reader
       - daemonset
+    # Scrape de /metrics de la API de Pokédex. La API exige un token Bearer cuando define
+    # METRICS_BEARER_TOKEN (AUD-SEC-OBS-001); el Alloy lo toma de un Secret de este namespace.
+    # El job resultante sigue siendo `prometheus.scrape.pokemon_api`: dashboards y alertas no cambian.
+    extraConfig: |
+      prometheus.scrape "pokemon_api" {
+        targets = [
+          {
+            "__address__"      = "pokemon-api-svc.pokemon-app.svc.cluster.local:3000",
+            "__metrics_path__" = "/metrics",
+            "app"              = "pokemon-api",
+            "instance"         = "pokedex-k8s-node",
+            "environment"      = "onprem-proxmox",
+            "cluster"          = "pokedex-k8s-cluster",
+          },
+        ]
+        authorization {
+          type        = "Bearer"
+          credentials = sys.env("METRICS_BEARER_TOKEN")
+        }
+        forward_to      = [prometheus.remote_write.grafana_cloud_metrics.receiver]
+        scrape_interval = "15s"
+      }
     alloy:
       alloy:
+        extraEnv:
+          - name: METRICS_BEARER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: alloy-metrics-token
+                key: METRICS_BEARER_TOKEN
         # Puertos del receptor OTLP que hoy configura Fleet Management.
         extraPorts:
           - name: otlp-grpc
@@ -98,3 +127,32 @@ telemetryServices:
     deploy: true
     k8sCache:
       replicas: 1
+
+# ------------------------------------------------------------------------------
+# Token de /metrics (AUD-SEC-OBS-001). El Secret `pokemon-secrets` vive en `pokemon-app` y un pod no
+# lee Secrets de otro namespace, así que se sincroniza otra copia en `monitoring` desde la misma
+# propiedad de Vault. Crear la propiedad ANTES de instalar (`vault kv patch secret/pokedex/preprod
+# METRICS_BEARER_TOKEN=...`): sin ella el ExternalSecret falla y el Alloy no arranca con la variable.
+# ------------------------------------------------------------------------------
+extraObjects:
+  - apiVersion: external-secrets.io/v1
+    kind: ExternalSecret
+    metadata:
+      name: alloy-metrics-token
+      namespace: monitoring
+      labels:
+        app.kubernetes.io/part-of: pokedex-platform
+        app.kubernetes.io/component: observability
+    spec:
+      refreshInterval: "1h"
+      secretStoreRef:
+        name: vault-backend-preprod
+        kind: ClusterSecretStore
+      target:
+        name: alloy-metrics-token
+        creationPolicy: Owner
+      data:
+        - secretKey: METRICS_BEARER_TOKEN
+          remoteRef:
+            key: pokedex/preprod
+            property: METRICS_BEARER_TOKEN

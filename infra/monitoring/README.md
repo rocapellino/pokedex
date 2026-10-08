@@ -39,7 +39,27 @@ allowlist descarta una métrica que usan las alertas o si desaparece el endpoint
 | Fuente | Dónde se declara |
 | :--- | :--- |
 | Métricas de clúster y de host (cAdvisor, kubelet, kube-state-metrics, node-exporter) | `grafana-cloud-values.yaml` |
-| Scrape de `/metrics` de la API, logs de pods y receptor OTLP | Pipelines remotos de Fleet Management (pendientes de migrar a este repo) |
+| Scrape de `/metrics` de la API (con token Bearer) | `grafana-cloud-values.yaml` (`collectors.alloy.extraConfig`, `AUD-SEC-OBS-001`) |
+| Logs de pods y receptor OTLP | Pipelines remotos de Fleet Management (pendientes de migrar a este repo) |
+
+### Token de `/metrics` (`AUD-SEC-OBS-001`)
+
+La API exige `Authorization: Bearer <token>` en `/metrics` cuando define `METRICS_BEARER_TOKEN`.
+El Alloy lo recibe como variable de entorno desde el Secret `alloy-metrics-token` del namespace
+`monitoring`. Un pod no lee Secrets de otro namespace, así que el release crea (`extraObjects`) un
+`ExternalSecret` propio que lee la misma propiedad de Vault que usa la API (`pokedex/preprod`).
+
+Orden de activación en pre-prod:
+
+1. Crear la propiedad en Vault: `vault kv patch secret/pokedex/preprod METRICS_BEARER_TOKEN=...`.
+   Sin ella el `ExternalSecret` falla y el Alloy no arranca con la variable.
+2. Borrar el pipeline de scrape de `/metrics` en Fleet Management, para no duplicar las series.
+3. `task monitoring:grafana-cloud:install`: despliega el scrape con token y el `ExternalSecret`.
+4. Activar `externalSecrets.metricsToken: true` en los values de pre-prod: desde ese momento la API
+   exige el token. Hacerlo antes del paso 3 corta la métrica hasta que el Alloy lo envíe.
+5. Comprobar que `pokedex_uptime_seconds` sigue llegando y que `/metrics` sin token responde `401`.
+
+El job de las series sigue siendo `prometheus.scrape.pokemon_api`, así que dashboards y alertas no cambian.
 
 > El script [`deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) sustituyó a un
 > `.ps1` que ataba el despliegue a Windows. El contrato está blindado por
