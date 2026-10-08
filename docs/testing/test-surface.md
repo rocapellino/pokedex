@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **174** |
-| **Archivos de Test Automatizados** | 115 |
+| **Total de Archivos en `tests/`** | **175** |
+| **Archivos de Test Automatizados** | 116 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 58 |
-| **Total de Casos de Prueba Identificados** | **963** |
-| **Líneas de Código de Pruebas** | 26.192 |
-| **Tamaño Total de la Suite** | 1105.7 KB |
+| **Total de Casos de Prueba Identificados** | **968** |
+| **Líneas de Código de Pruebas** | 26.283 |
+| **Tamaño Total de la Suite** | 1110.0 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-08T17:58:58.014Z |
+| **Última Sincronización** | 2026-10-08T18:38:07.611Z |
 
 ---
 
@@ -29,7 +29,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 22 | 160 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
-| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 30 | 242 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
+| **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 31 | 247 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 7 | 42 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 278 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 4 | 22 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
@@ -194,6 +194,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | `security` | Contract / CI-CD | `node:test (tsx)` | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | `security` | Security / Supply Chain | `node:test (tsx)` | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
+| [`tests/security/vault_operator_policy.test.ts`](../../tests/security/vault_operator_policy.test.ts) | `security` | Automated Test | `node:test (tsx)` | **5** | 91 | Suite de pruebas security: vault_operator_policy.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | `security` | Security / Secrets | `node:test (tsx)` | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | `security` | Contract / Governance | `node:test (tsx)` | **5** | 124 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:security` |
 | [`tests/skills_frontmatter.test.ts`](../../tests/skills_frontmatter.test.ts) | `governance` | Automated Test | `node:test (tsx)` | **2** | 39 | Suite de pruebas governance: skills_frontmatter.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -271,7 +272,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 242
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:security` | **Total Casos:** 247
 - **Propósito:** Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -304,6 +305,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/security/promote_auto_approve_contracts.test.ts`](../../tests/security/promote_auto_approve_contracts.test.ts) | **2** | 90 | Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias. | `.github/workflows/promote-auto-approve.yaml` |
 | [`tests/security/renovate_config_contract.test.ts`](../../tests/security/renovate_config_contract.test.ts) | **5** | 210 | Suite de pruebas security: renovate_config_contract.test.ts. | *(General)* |
 | [`tests/security/supply_chain_security.test.ts`](../../tests/security/supply_chain_security.test.ts) | **21** | 785 | Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes. | `package.json`, `package-lock.json`, `.github/workflows/ci.yaml` |
+| [`tests/security/vault_operator_policy.test.ts`](../../tests/security/vault_operator_policy.test.ts) | **5** | 91 | Suite de pruebas security: vault_operator_policy.test.ts. | *(General)* |
 | [`tests/security/vault_redeploy_contract.test.ts`](../../tests/security/vault_redeploy_contract.test.ts) | **12** | 298 | Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault. | `scripts/k8s-rollout-restart.ts` |
 | [`tests/security/yaml_extension_governance.test.ts`](../../tests/security/yaml_extension_governance.test.ts) | **5** | 124 | Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio. | `scripts/check-yaml-extension.ts` |
 

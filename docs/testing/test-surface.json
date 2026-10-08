@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T17:58:58.014Z",
+  "generatedAt": "2026-10-08T18:38:07.611Z",
   "summary": {
-    "totalFiles": 174,
-    "testFiles": 115,
+    "totalFiles": 175,
+    "testFiles": 116,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 963,
-    "totalLines": 26192,
-    "totalSizeBytes": 1132262,
+    "totalTestCases": 968,
+    "totalLines": 26283,
+    "totalSizeBytes": 1136624,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 30,
-      "testCases": 242,
+      "files": 31,
+      "testCases": 247,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -6981,6 +6981,54 @@
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
           "line": 767
+        }
+      ]
+    },
+    {
+      "path": "tests/security/vault_operator_policy.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 11,
+      "sizeBytes": 4362,
+      "lineCount": 91,
+      "sha256": "43eed7247b7bda5158ca84582c243cee63630adef2771fe3abcd73d00d60e7b1",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: vault_operator_policy.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 Vault operador: toda regla queda dentro de las rutas de secretos de pre-prod",
+          "line": 42
+        },
+        {
+          "name": "🔐 Vault operador: sin sudo, sin borrado ni destrucción de secretos",
+          "line": 53
+        },
+        {
+          "name": "🔐 Vault operador: puede crear y actualizar datos, pero los metadatos son de solo lectura",
+          "line": 59
+        },
+        {
+          "name": "🔐 Vault operador: la política de ESO sigue siendo de solo lectura y distinta de la del operador",
+          "line": 72
+        },
+        {
+          "name": "🔐 Vault operador: el runbook incorpora exactamente la política versionada y un usuario de vida corta",
+          "line": 78
         }
       ]
     },
