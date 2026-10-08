@@ -1,0 +1,191 @@
+# ==============================================================================
+# Catálogo Declarativo de Herramientas Canónicas (.agents/skills/repo-tool-exec)
+# ==============================================================================
+# Define las herramientas externas autorizadas para su ejecución en el monorepo,
+# abstrayendo el binario local del contenedor reproducible de fallback.
+#
+# Principios de seguridad y reproducibilidad:
+# 1. Versiones fijadas explícitas (prohibido 'latest').
+# 2. Preferencia de digest SHA256 inmutable en imágenes.
+# 3. Montaje del repositorio en solo lectura (:ro) por defecto.
+# 4. Prohibición estricta de contenedores privilegiados (--privileged) y socket docker.
+# ==============================================================================
+
+version: "1.0.0"
+
+tools:
+  actionlint:
+    description: "Linter estático para workflows de GitHub Actions con ShellCheck embebido"
+    local:
+      executable: "actionlint"
+      version_args: ["-version"]
+      version_regex: 'v?(\d+\.\d+\.\d+)'
+    container:
+      image: "rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
+      mount_mode: "ro"
+      workdir: "/repo"
+      env:
+        SHELLCHECK_OPTS: "--severity=warning"
+      default_args: []
+
+  shellcheck:
+    description: "Linter estático para scripts de Shell / Bash (*.sh)"
+    local:
+      executable: "shellcheck"
+      version_args: ["--version"]
+      version_regex: 'version:\s*(\d+\.\d+\.\d+)'
+    container:
+      image: "koalaman/shellcheck:v0.11.0"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  zizmor:
+    description: "Auditoría de seguridad estática de workflows de GitHub Actions"
+    local:
+      executable: "zizmor"
+      version_args: ["--version"]
+      version_regex: 'zizmor\s+(\d+\.\d+\.\d+)'
+    container:
+      image: "ghcr.io/zizmorcore/zizmor:1.30.1@sha256:a2eb396d886c053073405c7a980f2139ba2248ec172243cfa3841e57196e8101"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  gitleaks:
+    description: "Detección estricta de secretos, claves y credenciales en git"
+    local:
+      executable: "gitleaks"
+      version_args: ["version"]
+      version_regex: '(\d+\.\d+\.\d+)'
+    container:
+      image: "zricethezav/gitleaks:v8.24.2"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  trivy:
+    description: "Escaneo de vulnerabilidades, dependencias y configuraciones erróneas"
+    local:
+      executable: "trivy"
+      version_args: ["--version"]
+      version_regex: 'Version:\s*(\d+\.\d+\.\d+)'
+    container:
+      image: "aquasec/trivy:0.60.0"
+      network: "bridge" # descarga la base de datos de vulnerabilidades
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  checkov:
+    description: "Auditoría de seguridad y cumplimiento para infraestructura como código (IaC)"
+    local:
+      executable: "checkov"
+      version_args: ["-v"]
+      version_regex: '(\d+\.\d+\.\d+)'
+    container:
+      image: "bridgecrew/checkov:3.2.399"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  opentofu:
+    description: "Infraestructura como Código OpenTofu (CLI canónico tofu)"
+    local:
+      executable: "tofu"
+      version_args: ["version"]
+      version_regex: 'OpenTofu v(\d+\.\d+\.\d+)'
+    container:
+      image: "ghcr.io/opentofu/opentofu:1.8.8"
+      network: "bridge" # descarga providers en init
+      mount_mode: "rw"
+      workdir: "/repo"
+      default_args: []
+
+  terraform:
+    description: "Infraestructura como Código Terraform"
+    local:
+      executable: "terraform"
+      version_args: ["version"]
+      version_regex: 'Terraform v(\d+\.\d+\.\d+)'
+    container:
+      image: "hashicorp/terraform:1.11.0"
+      network: "bridge" # descarga providers en init
+      mount_mode: "rw"
+      workdir: "/repo"
+      default_args: []
+
+  helm:
+    description: "Gestor de paquetes de Kubernetes para despliegue de Charts"
+    local:
+      executable: "helm"
+      version_args: ["version", "--short"]
+      version_regex: 'v(\d+\.\d+\.\d+)'
+    container:
+      image: "alpine/helm:3.17.0"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  kubeconform:
+    description: "Validador estricto de esquemas OpenAPI para Kubernetes"
+    local:
+      executable: "kubeconform"
+      version_args: ["-v"]
+      version_regex: 'v(\d+\.\d+\.\d+)'
+    container:
+      image: "ghcr.io/yannh/kubeconform:v0.6.7"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  kube-linter:
+    description: "Linter de buenas prácticas y seguridad en manifiestos y Helm de Kubernetes"
+    local:
+      executable: "kube-linter"
+      version_args: ["version"]
+      version_regex: 'v(\d+\.\d+\.\d+)'
+    container:
+      image: "stackrox/kube-linter:v0.7.2"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  kyverno:
+    description: "CLI de validación y test de políticas de admisión Kyverno"
+    local:
+      executable: "kyverno"
+      version_args: ["version"]
+      version_regex: 'Version:\s*(\d+\.\d+\.\d+)'
+    container:
+      image: "ghcr.io/kyverno/kyverno-cli:v1.12.5"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: []
+
+  renovate-config-validator:
+    description: "Validador estricto del archivo de configuración renovate.json"
+    local:
+      executable: "renovate-config-validator"
+      version_args: ["--version"]
+      version_regex: '(\d+\.\d+\.\d+)'
+    container:
+      image: "renovate/renovate:44.140.0@sha256:7c1f8ef90ac394f44368e1ab65e014ea51b76acab7d55a28f9c79740cf8da0dc"
+      entrypoint: "renovate-config-validator"
+      mount_mode: "ro"
+      workdir: "/repo"
+      default_args: ["--strict"]
+
+  pre-commit:
+    description: "Gestor de hooks de calidad y pre-commit"
+    local:
+      executable: "pre-commit"
+      version_args: ["--version"]
+      version_regex: 'pre-commit\s+(\d+\.\d+\.\d+)'
+    container:
+      image: "ghcr.io/pre-commit-ci/runner-image:2024.11.19"
+      network: "bridge" # instala los entornos de los hooks
+      mount_mode: "rw"
+      workdir: "/repo"
+      default_args: []
+

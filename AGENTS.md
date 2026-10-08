@@ -45,7 +45,7 @@ No se considerará terminada ninguna tarea que deje errores `MDxxx` pendientes d
 Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho condicional** según la matriz de impacto ([`_shared/change-impact-matrix.md`](.agents/skills/_shared/change-impact-matrix.md)):
 
 - **Core & Lifecycle:** `repo-context`, `repo-lifecycle`, `repo-impact`, `repo-audit` (coordinador).
-- **Engineering:** `repo-quality` (calidad de código, modularidad y prevención de God Files), `repo-architecture` (sistema, plataforma y GitOps), `repo-testing` (pirámide de pruebas), `repo-dependencies` (árbol de paquetes npm y librerías huérfanas).
+- **Engineering:** `repo-quality` (calidad de código, modularidad y prevención de God Files), `repo-architecture` (sistema, plataforma y GitOps), `repo-testing` (pirámide de pruebas), `repo-dependencies` (árbol de paquetes npm y librerías huérfanas), `repo-tool-exec` (resolución y ejecución reproducible de herramientas externas locales o en contenedores efímeros).
 - **Delivery & Security:** `repo-security` (DevSecOps, secretos, Cilium L7 y supply chain), `repo-ci` (pipelines de GitHub Actions), `repo-pr` (preparación, validación y revisión de PRs), `repo-release` (corte y readiness de versión).
 - **Governance & Maintenance:** `repo-docs` (ciclo de vida documental integral, contratos, límites y claims verification), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-fix` (ejecución de correcciones con test de regresión previo y trazabilidad `AUD-*`), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
 
