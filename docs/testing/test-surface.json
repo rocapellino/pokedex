@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T23:20:12.050Z",
+  "generatedAt": "2026-10-08T23:23:55.154Z",
   "summary": {
     "totalFiles": 175,
     "testFiles": 117,
     "helperFiles": 57,
     "performanceScripts": 1,
     "totalTestCases": 971,
-    "totalLines": 26294,
-    "totalSizeBytes": 1138203,
+    "totalLines": 26301,
+    "totalSizeBytes": 1138233,
     "suitesCount": 10
   },
   "suites": [
@@ -5690,9 +5690,9 @@
       "testCount": 13,
       "describeCount": 0,
       "assertionCountEst": 143,
-      "sizeBytes": 26682,
-      "lineCount": 499,
-      "sha256": "55c60ff75dfb1197c4e5cc6e2a7920e9db64eddc4b4c6583f432fff28e1e69aa",
+      "sizeBytes": 26712,
+      "lineCount": 506,
+      "sha256": "13a592c33b5689d835725ea438c6f1720fb643e4b35d6c0fb10a21623b02a7f7",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -5760,7 +5760,7 @@
         },
         {
           "name": "🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados",
-          "line": 476
+          "line": 479
         }
       ]
     },
