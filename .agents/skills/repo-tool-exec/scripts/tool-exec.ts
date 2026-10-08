@@ -355,6 +355,12 @@ export function detectLocalTool(
 
   let detectedVersion: string | undefined;
   if (localConfig?.version_regex) {
+    // El patrón proviene del catálogo versionado (no de entrada de usuario); aun así se acota
+    // su tamaño y se rechazan cuantificadores anidados para evitar ReDoS por un catálogo alterado.
+    if (localConfig.version_regex.length > 200 || /[)\]][+*{]/.test(localConfig.version_regex)) {
+      throw new Error(`version_regex inseguro para '${toolKey}'`);
+    }
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
     const rx = new RegExp(localConfig.version_regex);
     const m = rawOutput.match(rx);
     if (m && m[1]) detectedVersion = m[1];

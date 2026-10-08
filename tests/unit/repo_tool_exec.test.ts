@@ -87,6 +87,21 @@ test('🖥️ repo-tool-exec: detección local cuando el binario existe y cumple
   assert.equal(detected.executablePath, '/usr/bin/mock-tool');
 });
 
+test('🔒 repo-tool-exec: rechaza version_regex con cuantificadores anidados o demasiado largo', () => {
+  const deps: SystemDependencies = {
+    lookPathFn: () => '/usr/bin/mock-tool',
+    execSyncFn: () => ({ status: 0, stdout: 'aaaa', stderr: '' }),
+    fsReadFn: () => '',
+  };
+  const build = (version_regex: string): ToolCatalogEntry => ({
+    ...parseCatalogYaml(mockCatalogYaml).tools['mock-tool'],
+    local: { executable: 'mock-tool', version_regex },
+  });
+
+  assert.throws(() => detectLocalTool('mock-tool', build('(a+)+$'), '>=1.0.0', deps), /inseguro/);
+  assert.throws(() => detectLocalTool('mock-tool', build(`(${'a'.repeat(250)})`), '>=1.0.0', deps), /inseguro/);
+});
+
 test('🖥️ repo-tool-exec: fallback cuando la versión local es incompatible', () => {
   const catalog = parseCatalogYaml(mockCatalogYaml);
   const entry = catalog.tools['mock-tool'];

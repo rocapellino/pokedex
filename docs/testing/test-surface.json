@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T01:37:54.513Z",
+  "generatedAt": "2026-10-08T01:44:06.959Z",
   "summary": {
     "totalFiles": 166,
     "testFiles": 109,
     "helperFiles": 56,
     "performanceScripts": 1,
-    "totalTestCases": 920,
-    "totalLines": 25053,
-    "totalSizeBytes": 1087488,
+    "totalTestCases": 921,
+    "totalLines": 25068,
+    "totalSizeBytes": 1088175,
     "suitesCount": 10
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 21,
-      "testCases": 153,
+      "testCases": 154,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -7869,12 +7869,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 13,
+      "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 61,
-      "sizeBytes": 11619,
-      "lineCount": 302,
-      "sha256": "dc1fc5874854e9dabc3f0c4786b272de1d149d4a0c79c8825512f4bc56712408",
+      "assertionCountEst": 63,
+      "sizeBytes": 12306,
+      "lineCount": 317,
+      "sha256": "b64aa9d9e5020ef14492088cc96deca2e927a5857f71ed76c77f3b937e6c760a",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7902,44 +7902,48 @@
           "line": 68
         },
         {
-          "name": "🖥️ repo-tool-exec: fallback cuando la versión local es incompatible",
+          "name": "🔒 repo-tool-exec: rechaza version_regex con cuantificadores anidados o demasiado largo",
           "line": 90
         },
         {
+          "name": "🖥️ repo-tool-exec: fallback cuando la versión local es incompatible",
+          "line": 105
+        },
+        {
           "name": "🐳 repo-tool-exec: detección dinámica de runtimes (docker > podman > nerdctl)",
-          "line": 111
+          "line": 126
         },
         {
           "name": "🔒 repo-tool-exec: buildContainerCommand aplica aislamiento y rechaza parámetros inseguros",
-          "line": 156
+          "line": 171
         },
         {
           "name": "🔒 repo-tool-exec: rechaza el uso de imágenes con tag :latest",
-          "line": 185
+          "line": 200
         },
         {
           "name": "🚀 repo-tool-exec: flujo completo ejecuta en local cuando está disponible",
-          "line": 196
+          "line": 211
         },
         {
           "name": "🚀 repo-tool-exec: flujo completo ejecuta en contenedor cuando binario local falta",
-          "line": 219
+          "line": 234
         },
         {
           "name": "⚠️ repo-tool-exec: propaga exit code != 0 como FAIL y nunca como PASS",
-          "line": 242
+          "line": 257
         },
         {
           "name": "🚫 repo-tool-exec: devuelve UNAVAILABLE cuando binario local falta y runtime tampoco existe",
-          "line": 264
+          "line": 279
         },
         {
           "name": "🚫 repo-tool-exec: devuelve UNAVAILABLE cuando binario local falta y herramienta no tiene imagen en catálogo",
-          "line": 277
+          "line": 292
         },
         {
           "name": "🚫 repo-tool-exec: devuelve NOT_CONFIGURED cuando la herramienta no existe en el catálogo",
-          "line": 290
+          "line": 305
         }
       ]
     },
