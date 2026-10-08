@@ -72,17 +72,37 @@ test.describe('Pokédex Backoffice E2E & Admin Suite ([TST-001])', () => {
     const apiKeyInput = page.locator('#adminApiKeyInput');
     await expect(apiKeyInput).toBeVisible();
 
+    // La verificación es lenta cuando el servidor está cargado (los dos proyectos corren a la vez): se
+    // retrasa el primer intento para que el test no dependa de que sea más rápido que un plazo fijo.
+    let firstAttempt = true;
+    await page.route('**/api/v1/auth/session', async (route) => {
+      if (firstAttempt) {
+        firstAttempt = false;
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+      }
+      await route.continue();
+    });
+
     // Intento con clave inválida
+    const saveBtn = page.locator('#btnSaveKey');
+    const rejected = page.waitForResponse(
+      (response) => response.url().includes('/api/v1/auth/session') && response.request().method() === 'POST',
+    );
     await apiKeyInput.fill('clave-invalida-para-test');
-    await page.locator('#btnSaveKey').click({ force: true });
-    await page.waitForTimeout(500);
+    // `force`: en el viewport móvil el diálogo no cabe en pantalla (se corta por la derecha) y Playwright
+    // no considera el botón accesible. Es un defecto de diseño responsivo del backoffice, no de este test.
+    await saveBtn.click({ force: true });
+    expect((await rejected).status()).toBe(401);
+
+    // El botón se deshabilita mientras se verifica: hasta que vuelve a estar activo, un segundo clic se pierde.
+    await expect(saveBtn).toBeEnabled();
 
     // El modal debe permanecer abierto tras fallo de autenticación
     await expect(authModal).toHaveAttribute('open', '');
 
     // Intento con clave válida de test
     await apiKeyInput.fill(TEST_ADMIN_KEY);
-    await page.locator('#btnSaveKey').click({ force: true });
+    await saveBtn.click({ force: true });
 
     // Modal debe cerrarse y el estado debe reflejarse en la UI
     await expect(authModal).not.toHaveAttribute('open', { timeout: 10000 });

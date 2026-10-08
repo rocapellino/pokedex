@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T18:40:33.349Z",
+  "generatedAt": "2026-10-08T19:11:47.566Z",
   "summary": {
-    "totalFiles": 176,
+    "totalFiles": 175,
     "testFiles": 117,
-    "helperFiles": 58,
+    "helperFiles": 57,
     "performanceScripts": 1,
     "totalTestCases": 969,
-    "totalLines": 26365,
-    "totalSizeBytes": 1140069,
+    "totalLines": 26257,
+    "totalSizeBytes": 1135924,
     "suitesCount": 10
   },
   "suites": [
@@ -68,7 +68,7 @@
       "path": "tests/e2e",
       "runner": "playwright",
       "command": "npm run test:e2e",
-      "files": 4,
+      "files": 3,
       "testCases": 22,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
@@ -730,10 +730,10 @@
       "runner": "playwright",
       "testCount": 6,
       "describeCount": 1,
-      "assertionCountEst": 32,
-      "sizeBytes": 5292,
-      "lineCount": 123,
-      "sha256": "3a9b40e6f313653e6de61d8568a0a03da57d77a2ae929af4f7535abe2408763b",
+      "assertionCountEst": 34,
+      "sizeBytes": 6325,
+      "lineCount": 143,
+      "sha256": "d6e369c159b2b02a3945ca0c58641a8fb76632bf719b8d629d67889b549269d8",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -767,11 +767,11 @@
         },
         {
           "name": "@a11y El modal de autenticación enfoca la clave y devuelve el foco al cerrarse con Escape",
-          "line": 93
+          "line": 113
         },
         {
           "name": "@a11y Auditoría de accesibilidad WCAG en Backoffice",
-          "line": 108
+          "line": 128
         }
       ]
     },
@@ -784,34 +784,14 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 5088,
-      "lineCount": 135,
-      "sha256": "9a19f89ad93cbde660c453cd0ad95b75914debb216550d30d069209cf7f1cbaa",
+      "sizeBytes": 1340,
+      "lineCount": 33,
+      "sha256": "2619201ac1248b96927a2392fd81630db9042b82712a846c6423d7c2675843b1",
       "targetDomain": "Suite e2e",
       "targetArtifacts": [],
       "npmCommands": [],
       "ciWorkflows": [],
       "description": "Suite de pruebas e2e: fixtures.ts.",
-      "status": "HELPER",
-      "testCases": []
-    },
-    {
-      "path": "tests/e2e/global-teardown.ts",
-      "suite": "e2e",
-      "type": "Helper",
-      "role": "HELPER_OR_FIXTURE",
-      "runner": "none",
-      "testCount": 0,
-      "describeCount": 0,
-      "assertionCountEst": 0,
-      "sizeBytes": 1430,
-      "lineCount": 26,
-      "sha256": "ec6c24b2c34e12ec8be124e2e49d849e191b54865afa81e912afa0e86dd2db57",
-      "targetDomain": "Suite e2e",
-      "targetArtifacts": [],
-      "npmCommands": [],
-      "ciWorkflows": [],
-      "description": "Suite de pruebas e2e: global-teardown.ts.",
       "status": "HELPER",
       "testCases": []
     },
