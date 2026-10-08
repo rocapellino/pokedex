@@ -161,6 +161,9 @@ externalSecrets:
   # AUD-SEC-OBS-001: la API exige este token en /metrics. La propiedad existe en Vault y el Alloy ya
   # lo envía (release grafana-cloud, revisión 2); activarlo antes cortaría la métrica.
   metricsToken: true
+  # El CronJob de copia a Google Drive exige GDRIVE_TOKEN. Sin esta entrada el pod quedaba en
+  # CreateContainerConfigError y, con concurrencyPolicy: Forbid, bloqueaba las ejecuciones siguientes.
+  gdriveToken: true
 
 # Aislamiento de Red en LXC 800 (ADR-013, enmienda 2026-10-04).
 # El K3s real corre Flannel: el CRD CiliumNetworkPolicy no existe y su render haría

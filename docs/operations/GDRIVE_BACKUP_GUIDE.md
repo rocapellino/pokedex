@@ -110,7 +110,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
    - **Horario:** Diario a las 03:00 UTC (1 hora posterior al snapshot local de K8s a las 02:00).
    - **Imagen:** `rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b` (Rclone 1.68.2 fijado por digest SHA-256 inmutable).
    - **Volumen:** `claimName: pokedex-backup-pvc` montado en `/backups` con **`readOnly: true`** (garantiza inmutabilidad física del almacenamiento de copias).
-   - **Credenciales:** Inyectadas de forma segura desde el Secret de K8s (`GDRIVE_TOKEN` de `pokemon-secrets` o Vault).
+   - **Credenciales:** `GDRIVE_TOKEN` se lee del Secret `pokemon-secrets` (`optional: false`). En entornos con External Secrets Operator solo llega ahí si `externalSecrets.gdriveToken: true` y la propiedad existe en Vault (véase "Activación del token en Vault").
    - **Aislamiento de Red (Zero-Trust L7):** CiliumNetworkPolicy dedicada (`pokedex-gdrive-sync-cilium-l7-policy`) con eBPF y FQDN Allowlist (`*.googleapis.com`, `accounts.google.com`) sobre TCP 443 y resolución interna DNS en `kube-dns` (puerto 53), eliminando la salida permisiva a destinos HTTPS arbitrarios. En clústeres sin Cilium, se aplica fallback de NetworkPolicy con Anti-SSRF (bloqueo estricto de IMDS `169.254.169.254/32` y RFC1918).
    - **Hardening:** `automountServiceAccountToken: false`, `runAsNonRoot: true`, `readOnlyRootFilesystem: true`, `drop: [ALL]`.
 
@@ -126,7 +126,35 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
        folder: "PokedexBackups/preprod"
    ```
 
-3. **Ejecución y Verificación en Kubernetes:**
+3. **Activación del token en Vault (ESO):** el JSON del paso 2 se guarda en la misma ruta que el resto de
+   secretos del entorno y se activa la sincronización. El orden importa: activar el flag antes de crear la
+   propiedad hace fallar la sincronización de **todo** el Secret.
+
+   ```bash
+   # En el Bastion, con la sesión de Vault iniciada. `read -rs` evita que el token quede en pantalla o en el historial.
+   read -rs GD && vault kv patch secret/pokedex/preprod GDRIVE_TOKEN="$GD"; unset GD
+   ```
+
+   ```yaml
+   # gitops/environments/proxmox-preprod/values.yaml
+   externalSecrets:
+     gdriveToken: true
+   ```
+
+   Tras sincronizar ArgoCD, comprobar que el Secret tiene la clave y desbloquear el CronJob si tenía un Job atascado:
+
+   ```bash
+   kubectl -n pokemon-app get secret pokemon-secrets -o jsonpath='{.data.GDRIVE_TOKEN}' | base64 -d | head -c 20; echo
+   kubectl -n pokemon-app get job | grep gdrive-sync
+   kubectl -n pokemon-app delete job <job-atascado>
+   ```
+
+   > [!WARNING]
+   > Con `concurrencyPolicy: Forbid`, un Job que no termina bloquea todas las ejecuciones siguientes del
+   > CronJob. Un pod en `CreateContainerConfigError` (por ejemplo, por una clave ausente en el Secret)
+   > puede dejar la copia externa parada durante días sin generar ninguna alerta.
+
+4. **Ejecución y Verificación en Kubernetes:**
 
    ```bash
    # Comprobar existencia del CronJob
