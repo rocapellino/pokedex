@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T16:20:14.738Z",
+  "generatedAt": "2026-10-08T16:29:18.410Z",
   "summary": {
-    "totalFiles": 172,
-    "testFiles": 113,
+    "totalFiles": 173,
+    "testFiles": 114,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 960,
-    "totalLines": 26074,
-    "totalSizeBytes": 1126675,
+    "totalTestCases": 961,
+    "totalLines": 26127,
+    "totalSizeBytes": 1129045,
     "suitesCount": 10
   },
   "suites": [
@@ -48,8 +48,8 @@
       "path": "tests/gitops",
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
-      "files": 6,
-      "testCases": 41,
+      "files": 7,
+      "testCases": 42,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -4252,6 +4252,38 @@
         {
           "name": "🧬 Promoción: el script corre en release-tag sin npm ci (solo módulos nativos)",
           "line": 130
+        }
+      ]
+    },
+    {
+      "path": "tests/gitops/metrics_token_contract.test.ts",
+      "suite": "gitops",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 4,
+      "sizeBytes": 2370,
+      "lineCount": 53,
+      "sha256": "ec1d9e0435b0d7ca3985b5582a982a184438376b8191f06bfdd8c74713d60ddf",
+      "targetDomain": "Suite gitops",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas gitops: metrics_token_contract.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 AUD-SEC-OBS-001: pre-prod sincroniza METRICS_BEARER_TOKEN desde Vault al Secret de la API",
+          "line": 44
         }
       ]
     },
