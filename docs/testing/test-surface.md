@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **175** |
-| **Archivos de Test Automatizados** | 116 |
+| **Total de Archivos en `tests/`** | **176** |
+| **Archivos de Test Automatizados** | 117 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 58 |
-| **Total de Casos de Prueba Identificados** | **968** |
-| **Líneas de Código de Pruebas** | 26.283 |
-| **Tamaño Total de la Suite** | 1110.0 KB |
+| **Total de Casos de Prueba Identificados** | **969** |
+| **Líneas de Código de Pruebas** | 26.365 |
+| **Tamaño Total de la Suite** | 1113.3 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-08T18:38:07.611Z |
+| **Última Sincronización** | 2026-10-08T18:40:33.349Z |
 
 ---
 
@@ -30,7 +30,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 22 | 160 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 31 | 247 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
-| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 7 | 42 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
+| **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 8 | 43 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 278 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 4 | 22 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
@@ -151,6 +151,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **7** | 138 | Suite de pruebas gitops: image_digest_promotion.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/metrics_token_contract.test.ts`](../../tests/gitops/metrics_token_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **1** | 53 | Suite de pruebas gitops: metrics_token_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/platform_bootstrap_contract.test.ts`](../../tests/gitops/platform_bootstrap_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **12** | 278 | Suite de pruebas gitops: platform_bootstrap_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
+| [`tests/gitops/secret_key_refs_contract.test.ts`](../../tests/gitops/secret_key_refs_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **1** | 82 | Suite de pruebas gitops: secret_key_refs_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/gitops/seed_job_contract.test.ts`](../../tests/gitops/seed_job_contract.test.ts) | `gitops` | Automated Test | `node:test (tsx)` | **3** | 76 | Suite de pruebas gitops: seed_job_contract.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/helpers/argocd.ts`](../../tests/helpers/argocd.ts) | `helpers` | Helper | `none` | **0** | 18 | Suite de pruebas helpers: argocd.ts. | *(Helper)* |
 | [`tests/helpers/docs-portal.ts`](../../tests/helpers/docs-portal.ts) | `helpers` | Helper | `none` | **0** | 25 | Suite de pruebas helpers: docs-portal.ts. | *(Helper)* |
@@ -311,7 +312,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Contratos de GitOps y Despliegue (`gitops`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 42
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:gitops` | **Total Casos:** 43
 - **Propósito:** Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -322,6 +323,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/gitops/image_digest_promotion.test.ts`](../../tests/gitops/image_digest_promotion.test.ts) | **7** | 138 | Suite de pruebas gitops: image_digest_promotion.test.ts. | *(General)* |
 | [`tests/gitops/metrics_token_contract.test.ts`](../../tests/gitops/metrics_token_contract.test.ts) | **1** | 53 | Suite de pruebas gitops: metrics_token_contract.test.ts. | *(General)* |
 | [`tests/gitops/platform_bootstrap_contract.test.ts`](../../tests/gitops/platform_bootstrap_contract.test.ts) | **12** | 278 | Suite de pruebas gitops: platform_bootstrap_contract.test.ts. | *(General)* |
+| [`tests/gitops/secret_key_refs_contract.test.ts`](../../tests/gitops/secret_key_refs_contract.test.ts) | **1** | 82 | Suite de pruebas gitops: secret_key_refs_contract.test.ts. | *(General)* |
 | [`tests/gitops/seed_job_contract.test.ts`](../../tests/gitops/seed_job_contract.test.ts) | **3** | 76 | Suite de pruebas gitops: seed_job_contract.test.ts. | *(General)* |
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T18:38:07.611Z",
+  "generatedAt": "2026-10-08T18:40:33.349Z",
   "summary": {
-    "totalFiles": 175,
-    "testFiles": 116,
+    "totalFiles": 176,
+    "testFiles": 117,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 968,
-    "totalLines": 26283,
-    "totalSizeBytes": 1136624,
+    "totalTestCases": 969,
+    "totalLines": 26365,
+    "totalSizeBytes": 1140069,
     "suitesCount": 10
   },
   "suites": [
@@ -48,8 +48,8 @@
       "path": "tests/gitops",
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
-      "files": 7,
-      "testCases": 42,
+      "files": 8,
+      "testCases": 43,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
     {
@@ -4360,6 +4360,38 @@
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail",
           "line": 245
+        }
+      ]
+    },
+    {
+      "path": "tests/gitops/secret_key_refs_contract.test.ts",
+      "suite": "gitops",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 1,
+      "describeCount": 0,
+      "assertionCountEst": 2,
+      "sizeBytes": 3445,
+      "lineCount": 82,
+      "sha256": "cee1f0ba84a05b6781d0ce221d12b2fecd34413c0640fe3c82717a1dbc36db86",
+      "targetDomain": "Suite gitops",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas gitops: secret_key_refs_contract.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 Secretos: en ${environment} el ExternalSecret sincroniza cada clave obligatoria que exigen los workloads",
+          "line": 60
         }
       ]
     },

@@ -321,6 +321,9 @@ externalSecrets:
   # Sincroniza METRICS_BEARER_TOKEN desde remoteRef.key (AUD-SEC-OBS-001). Activar solo cuando
   # la propiedad ya exista en el almacén; si no, ESO falla y todo el Secret deja de sincronizar.
   metricsToken: false
+  # Sincroniza GDRIVE_TOKEN (token OAuth de rclone) desde remoteRef.key. Activar solo con
+  # backup.gdrive.enabled y cuando la propiedad ya exista en el almacén.
+  gdriveToken: false
   # Convención de Nomenclatura según Proveedor:
   # - Prod cloud (blueprint, ADR-030): key: "pokedex/prod" (sin prefijo secret/data)
   # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/prod" (prefijo API requerido por Vault KV engine v2)
