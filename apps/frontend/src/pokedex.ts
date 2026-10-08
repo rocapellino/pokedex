@@ -28,7 +28,8 @@ import {
   type CatalogFilters,
   type ClassificationFilter,
 } from './shared/catalog-filters.js';
-import { parseFilterParams, serializeFilterParams, type FilterState } from './shared/filter-url.js';
+import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
+import { parseFilterParams, type FilterState } from './shared/filter-url.js';
 import {
   defaultSortDirection,
   isSortKey,
@@ -95,7 +96,7 @@ export async function loadPokemons(): Promise<void> {
 
     renderAbilityOptions();
     restoreFiltersFromUrl();
-    applyFilters();
+    applyFilters('replace');
     showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
   } catch (err) {
     console.error('Error al cargar datos:', err);
@@ -113,7 +114,8 @@ export async function loadPokemons(): Promise<void> {
   }
 }
 
-export function applyFilters(): void {
+/** `history` decide si el cambio crea una entrada («atrás» lo deshace) o reescribe la actual. */
+export function applyFilters(history: HistoryMode = 'push'): void {
   const filters: CatalogFilters = currentFilterState();
   filteredPokemons = sortPokemons(
     allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
@@ -126,7 +128,7 @@ export function applyFilters(): void {
   updateStats(filteredPokemons);
   renderActiveFilters();
   renderSortDirection();
-  syncFiltersToUrl();
+  commitFiltersToUrl(currentFilterState(), history);
 }
 
 function currentFilterState(): FilterState {
@@ -141,13 +143,6 @@ function currentFilterState(): FilterState {
     sort: currentSort,
     dir: currentSortDir,
   };
-}
-
-/** Refleja los filtros activos en la URL sin crear entradas de historial. */
-function syncFiltersToUrl(): void {
-  const next = serializeFilterParams(currentFilterState());
-  if (next === window.location.search) return;
-  window.history.replaceState(null, '', `${window.location.pathname}${next}${window.location.hash}`);
 }
 
 /** Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga). */
@@ -285,29 +280,29 @@ function renderSortDirection(): void {
 }
 
 /** Lee la estadística y el mínimo de los controles; sin ambos (o con mínimo 0) el filtro queda desactivado. */
-export function handleStatFilterChange(): void {
+export function handleStatFilterChange(history: HistoryMode = 'push'): void {
   clearTimeout(statTimer);
   const key = (document.getElementById('statFilter') as HTMLSelectElement | null)?.value;
   const min = Number.parseInt((document.getElementById('statMin') as HTMLInputElement | null)?.value ?? '', 10);
   minStat = isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null;
-  applyFilters();
+  applyFilters(history);
 }
 
 function handleStatMinDebounced(): void {
   clearTimeout(statTimer);
-  statTimer = setTimeout(handleStatFilterChange, SEARCH_DEBOUNCE_MS);
+  statTimer = setTimeout(() => handleStatFilterChange('replace'), SEARCH_DEBOUNCE_MS);
 }
 
-export function handleSearch(): void {
+export function handleSearch(history: HistoryMode = 'push'): void {
   clearTimeout(searchTimer);
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   searchQuery = input ? input.value : '';
-  applyFilters();
+  applyFilters(history);
 }
 
 function handleSearchDebounced(): void {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(handleSearch, SEARCH_DEBOUNCE_MS);
+  searchTimer = setTimeout(() => handleSearch('replace'), SEARCH_DEBOUNCE_MS);
 }
 
 function syncTypeControl(): void {
@@ -600,7 +595,22 @@ window.addEventListener(
   true,
 );
 
+/**
+ * «Atrás» y «adelante» restauran los filtros de la entrada de historial. Se ignora si la URL ya los
+ * describe (un cambio de ancla) y se cancelan las escrituras pendientes para que no las reapliquen.
+ */
+function handleHistoryNavigation(): void {
+  if (allPokemons.length === 0 || urlMatchesFilters(currentFilterState())) return;
+  clearTimeout(searchTimer);
+  clearTimeout(statTimer);
+  restoreFiltersFromUrl();
+  applyFilters('replace');
+}
+
 export function initInteractiveListeners(): void {
+  // La misma referencia: registrar los listeners más de una vez no duplica el manejador.
+  window.addEventListener('popstate', handleHistoryNavigation);
+
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
     searchInput.addEventListener('input', handleSearchDebounced);
@@ -613,7 +623,7 @@ export function initInteractiveListeners(): void {
   document.getElementById('abilityFilter')?.addEventListener('input', handleAbilityChange);
   document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
   document.getElementById('sortDirection')?.addEventListener('click', handleSortDirectionToggle);
-  document.getElementById('statFilter')?.addEventListener('change', handleStatFilterChange);
+  document.getElementById('statFilter')?.addEventListener('change', () => handleStatFilterChange());
   document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);
 
   const generationFilter = document.getElementById('generationFilter');

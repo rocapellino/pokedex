@@ -11,6 +11,7 @@ export * from './pokemon-types.js';
 export * from './base-stats.js';
 export * from './catalog-filters.js';
 export * from './filter-url.js';
+export * from './filter-history.js';
 export * from './catalog-sort.js';
 export * from './html.js';
 export * from './skip-link.js';
