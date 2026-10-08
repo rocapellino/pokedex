@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T11:39:21.385Z",
+  "generatedAt": "2026-10-08T11:44:32.007Z",
   "summary": {
-    "totalFiles": 166,
+    "totalFiles": 167,
     "testFiles": 109,
-    "helperFiles": 56,
+    "helperFiles": 57,
     "performanceScripts": 1,
     "totalTestCases": 925,
-    "totalLines": 25130,
-    "totalSizeBytes": 1090630,
+    "totalLines": 25163,
+    "totalSizeBytes": 1091964,
     "suitesCount": 10
   },
   "suites": [
@@ -68,7 +68,7 @@
       "path": "tests/e2e",
       "runner": "playwright",
       "command": "npm run test:e2e",
-      "files": 2,
+      "files": 3,
       "testCases": 21,
       "description": "Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core."
     },
@@ -731,9 +731,9 @@
       "testCount": 6,
       "describeCount": 1,
       "assertionCountEst": 32,
-      "sizeBytes": 5295,
+      "sizeBytes": 5292,
       "lineCount": 123,
-      "sha256": "42330edbec0380ea4cb46c0573fe58bb127fbe0be2b054a1c1479c87a9539cc0",
+      "sha256": "3a9b40e6f313653e6de61d8568a0a03da57d77a2ae929af4f7535abe2408763b",
       "targetDomain": "E2E Backoffice Administrativo",
       "targetArtifacts": [
         "apps/frontend/src/backoffice.ts",
@@ -776,6 +776,26 @@
       ]
     },
     {
+      "path": "tests/e2e/fixtures.ts",
+      "suite": "e2e",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1340,
+      "lineCount": 33,
+      "sha256": "2619201ac1248b96927a2392fd81630db9042b82712a846c6423d7c2675843b1",
+      "targetDomain": "Suite e2e",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas e2e: fixtures.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
       "path": "tests/e2e/pokedex.spec.ts",
       "suite": "e2e",
       "type": "E2E / a11y",
@@ -784,9 +804,9 @@
       "testCount": 15,
       "describeCount": 2,
       "assertionCountEst": 86,
-      "sizeBytes": 17559,
+      "sizeBytes": 17556,
       "lineCount": 373,
-      "sha256": "b58c18a4de5b9a85148dc8624055f83899f3513ec5406fedfdf5a1f3adeac165",
+      "sha256": "a391748aa70db30d5b0512b1ee7abbda8d9f029eaa621637df5d11926b84c854",
       "targetDomain": "E2E Aplicación Pública y Accesibilidad WCAG",
       "targetArtifacts": [
         "apps/frontend/src/pokedex.ts",
