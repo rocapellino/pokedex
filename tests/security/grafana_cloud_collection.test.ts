@@ -169,3 +169,58 @@ test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colec
   const ports = [...alloyCr.matchAll(/^\s+port: (\d+)$/gm)].map(([, p]) => p);
   assert.ok(ports.includes(port), `El colector debe exponer el puerto OTLP ${port}`);
 });
+
+/** Documento YAML renderizado (separado por `---`) que contiene todas las cadenas dadas. */
+function renderedDocument(rendered: string, ...needles: string[]): string | undefined {
+  return rendered.split(/^---$/m).find((doc) => needles.every((needle) => doc.includes(needle)));
+}
+
+test('🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
+  const rendered = renderCollection();
+  const config = renderedDocument(rendered, 'prometheus.scrape "pokemon_api"');
+  assert.ok(config, 'El scrape pokemon_api debe declararse en los values (ya no solo en Fleet Management)');
+
+  const block = config.slice(config.indexOf('prometheus.scrape "pokemon_api"'));
+  assert.match(block, /pokemon-api-svc\.pokemon-app\.svc\.cluster\.local:3000/);
+  assert.match(block, /"__metrics_path__"\s*=\s*"\/metrics"/);
+  assert.match(
+    block,
+    /authorization\s*\{[^}]*type\s*=\s*"Bearer"[^}]*credentials\s*=\s*sys\.env\("METRICS_BEARER_TOKEN"\)/,
+    'El scrape debe presentar el token que la API exige en /metrics',
+  );
+  assert.match(
+    block,
+    /forward_to\s*=\s*\[prometheus\.remote_write\.grafana_cloud_metrics\.receiver\]/,
+    'Las series deben llegar al mismo destino que el resto de métricas',
+  );
+});
+
+test('🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
+  const rendered = renderCollection();
+  const namespace = deployDefault('namespace');
+
+  // Un pod no lee Secrets de otro namespace: el de `pokemon-app` no le sirve al Alloy.
+  const externalSecret = renderedDocument(rendered, 'kind: ExternalSecret', 'METRICS_BEARER_TOKEN');
+  assert.ok(externalSecret, `Debe existir un ExternalSecret de METRICS_BEARER_TOKEN en ${namespace}`);
+  assert.match(externalSecret, new RegExp(`^  namespace: ${namespace}$`, 'm'));
+  assert.match(externalSecret, /name: vault-backend-preprod/);
+  assert.match(externalSecret, /key: pokedex\/preprod/);
+  assert.match(externalSecret, /property: METRICS_BEARER_TOKEN/);
+
+  const alloyCr = renderedDocument(rendered, 'kind: Alloy', 'name: grafana-cloud-alloy');
+  assert.ok(alloyCr, 'El colector grafana-cloud-alloy debe renderizarse');
+  // Helm ordena las claves alfabéticamente (`key` antes que `name`): no se asume el orden.
+  const envVar = alloyCr.match(/- name: METRICS_BEARER_TOKEN\s+valueFrom:\s+secretKeyRef:([\s\S]*?)\n\s*extraPorts:/);
+  assert.ok(envVar, 'El Alloy debe declarar la variable METRICS_BEARER_TOKEN desde un secretKeyRef');
+  assert.match(envVar[1], /key: METRICS_BEARER_TOKEN/);
+  assert.match(
+    envVar[1],
+    /name: alloy-metrics-token/,
+    'Debe leer el Secret que crea el ExternalSecret de este namespace',
+  );
+  assert.match(externalSecret, /name: alloy-metrics-token/);
+});

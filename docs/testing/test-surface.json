@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T15:00:52.659Z",
+  "generatedAt": "2026-10-08T15:17:23.567Z",
   "summary": {
     "totalFiles": 171,
     "testFiles": 112,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 949,
-    "totalLines": 25820,
-    "totalSizeBytes": 1116081,
+    "totalTestCases": 951,
+    "totalLines": 25875,
+    "totalSizeBytes": 1118949,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 30,
-      "testCases": 240,
+      "testCases": 242,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -5962,12 +5962,12 @@
       "type": "Contract / Observability",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 10,
-      "sizeBytes": 7621,
-      "lineCount": 172,
-      "sha256": "834f97e96767c33756af40dc0d2f297bc0169c57c45ffbc9fa1275c2d72d5dac",
+      "assertionCountEst": 25,
+      "sizeBytes": 10489,
+      "lineCount": 227,
+      "sha256": "6b1d8581506cc2317cb9c42fc44d5f1c3791a717fd449e0b85a4978806b1d6d5",
       "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
       "targetArtifacts": [
         "infra/monitoring/grafana-cloud-values.yaml",
@@ -6000,6 +6000,14 @@
         {
           "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
           "line": 151
+        },
+        {
+          "name": "🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer",
+          "line": 178
+        },
+        {
+          "name": "🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault",
+          "line": 200
         }
       ]
     },
