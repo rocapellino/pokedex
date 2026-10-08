@@ -32,6 +32,9 @@ Este documento describe la arquitectura, herramientas y estándares implementado
   - `DATABASE_URL` / `POSTGRES_PASSWORD`: Credenciales de persistencia PostgreSQL.
   - `REDIS_PASSWORD` / `REDIS_URL`: Credenciales de acceso a la caché y rate limiter.
   - `BACKUP_ENCRYPTION_KEY`: Frase de paso para cifrado AES-256-CBC de respaldos.
+- **Variable Opcional de Observabilidad:** `METRICS_BEARER_TOKEN` protege `/metrics` con un token Bearer
+  (`AUD-SEC-OBS-001`, [ADR-016](../decisions/ADR-016-ingress-tls-and-http-hardening.md)). Si falta, el
+  endpoint queda abierto y la API lo advierte al arrancar en producción. Generarlo con `openssl rand -hex 32`.
 - **Protección en `.gitignore`:** Reglas estrictas ignoran `.env`, `.env.*`, claves privadas (`*.pem`, `*.key`) y certificados.
 
 ---
