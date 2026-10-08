@@ -16,7 +16,10 @@ Toda herramienta ejecutada mediante contenedor debe operar con los mínimos priv
 4. **Montaje de Solo Lectura por Defecto (`:ro`):** Salvo que la herramienta deba estrictamente modificar o generar archivos (por ejemplo `pre-commit` o herramientas que persisten en caché temporal), el repositorio se monta como `-v "<repoRoot>:/repo:ro"`.
 5. **Aislamiento de Variables de Entorno:** No se heredan automáticamente todas las variables de entorno del host. Solo se inyectan variables de configuración técnica expresamente declaradas en el catálogo (por ejemplo `SHELLCHECK_OPTS`). Nunca se propagan secretos o tokens salvo que la herramienta lo requiera bajo justificación documentada.
 6. **Limpieza Automática (`--rm`):** Todo contenedor debe ejecutarse con `--rm` para garantizar que no permanezca en disco tras finalizar.
-7. **Usuario No-Root cuando esté Soportado:** Se alienta el uso de usuarios numéricos no privilegiados o la configuración del catálogo cuando la imagen lo soporte.
+7. **Usuario No-Root cuando esté Soportado:** Se alienta el uso de usuarios numéricos no privilegiados o la configuración del catálogo cuando la imagen lo soporte. Con montaje `rw` y sin `user` en el catálogo, se usa el uid:gid del host para no dejar archivos propiedad de root.
+8. **Sin Red por Defecto:** Todo contenedor corre con `--network none`. Solo las herramientas que descargan datos (`trivy`, `opentofu`, `terraform`, `pre-commit`) declaran `network: "bridge"` en el catálogo.
+9. **Endurecimiento del Runtime:** Siempre `--security-opt no-new-privileges`; con montaje `ro` además `--cap-drop ALL`. Los filtros sobre `--privileged` y `docker.sock` en los argumentos son una defensa adicional y no sustituyen estas restricciones.
+10. **Raíz del Repositorio Verificada:** Si no se encuentra `.git` ni `package.json`, la ejecución falla en lugar de montar el directorio actual.
 
 ---
 

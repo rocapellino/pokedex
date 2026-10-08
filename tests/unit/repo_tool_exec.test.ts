@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import {
+  findRepoRoot,
   parseCatalogYaml,
   satisfiesVersion,
   detectLocalTool,
@@ -300,6 +303,65 @@ test('🚫 repo-tool-exec: devuelve UNAVAILABLE cuando binario local falta y her
   assert.equal(result.status, 'UNAVAILABLE');
   assert.notEqual(result.exit_code, 0);
   assert.equal(result.execution.mode, 'none');
+});
+
+test('🔒 repo-tool-exec: el fallback a contenedor respeta --version-req', () => {
+  const deps: SystemDependencies = {
+    lookPathFn: (cmd) => (cmd === 'docker' ? '/bin/docker' : null),
+    execSyncFn: () => ({ status: 0, stdout: 'ok', stderr: '' }),
+    fsReadFn: () => mockCatalogYaml,
+  };
+  // mock-tool usa mock/image:1.2.3
+  const bad = executeTool('mock-tool', [], { versionReq: '>=2.0.0' }, deps);
+  assert.equal(bad.status, 'UNAVAILABLE');
+  assert.equal(bad.version.resolved, '1.2.3');
+
+  const good = executeTool('mock-tool', [], { versionReq: '>=1.2.0' }, deps);
+  assert.equal(good.status, 'PASS');
+  assert.equal(good.execution.mode, 'container');
+});
+
+test('🔒 repo-tool-exec: version_regex inseguro en el catálogo devuelve NOT_CONFIGURED sin lanzar', () => {
+  const unsafe = `
+version: "1.0.0"
+tools:
+  bad-tool:
+    local:
+      executable: "bad-tool"
+      version_regex: '(a+)+$'
+`;
+  const deps: SystemDependencies = {
+    lookPathFn: () => '/usr/bin/bad-tool',
+    execSyncFn: () => ({ status: 0, stdout: 'aaaa', stderr: '' }),
+    fsReadFn: () => unsafe,
+  };
+  const result = executeTool('bad-tool', [], { versionReq: '>=1.0.0' }, deps);
+  assert.equal(result.status, 'NOT_CONFIGURED');
+  assert.match(result.stderr, /inseguro/);
+});
+
+test('🔒 repo-tool-exec: contenedor sin red, sin privilegios nuevos y con cap-drop en montaje ro', () => {
+  const catalog = parseCatalogYaml(`${mockCatalogYaml}
+  mock-net-tool:
+    container:
+      image: "mock/net:1.0.0"
+      network: "bridge"
+`);
+  const ro = buildContainerCommand('/bin/docker', 'mock-tool', catalog.tools['mock-tool'], '/repo', []);
+  assert.equal(ro.args[ro.args.indexOf('--network') + 1], 'none');
+  assert.ok(ro.args.includes('no-new-privileges'));
+  assert.equal(ro.args[ro.args.indexOf('--cap-drop') + 1], 'ALL');
+
+  const rw = buildContainerCommand('/bin/docker', 'mock-rw-tool', catalog.tools['mock-rw-tool'], '/repo', []);
+  assert.ok(!rw.args.includes('--cap-drop'));
+
+  const net = buildContainerCommand('/bin/docker', 'mock-net-tool', catalog.tools['mock-net-tool'], '/repo', []);
+  assert.equal(net.args[net.args.indexOf('--network') + 1], 'bridge');
+});
+
+test('🔒 repo-tool-exec: findRepoRoot falla si no hay raíz de repositorio', () => {
+  const root = path.parse(os.tmpdir()).root;
+  assert.throws(() => findRepoRoot(root), /No se encontró la raíz del repositorio/);
 });
 
 test('🚫 repo-tool-exec: devuelve NOT_CONFIGURED cuando la herramienta no existe en el catálogo', () => {

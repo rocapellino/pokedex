@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ export interface ToolLocalConfig {
 export interface ToolContainerConfig {
   image: string;
   mount_mode?: MountMode;
+  network?: 'none' | 'bridge';
   workdir?: string;
   env?: Record<string, string>;
   entrypoint?: string;
@@ -83,7 +84,7 @@ export function findRepoRoot(startDir = process.cwd()): string {
     }
     curr = path.dirname(curr);
   }
-  return path.resolve(startDir);
+  throw new Error(`No se encontró la raíz del repositorio (.git o package.json) desde ${startDir}`);
 }
 
 /**
@@ -158,6 +159,9 @@ export function parseCatalogYaml(content: string): ToolCatalog {
 
       const mountMatch = line.match(/^\s{6}mount_mode:\s*["']?(ro|rw)["']?/);
       if (mountMatch) entry.container.mount_mode = mountMatch[1] as MountMode;
+
+      const networkMatch = line.match(/^\s{6}network:\s*["']?(none|bridge)["']?/);
+      if (networkMatch) entry.container.network = networkMatch[1] as 'none' | 'bridge';
 
       const workdirMatch = line.match(/^\s{6}workdir:\s*["']?([^"'\s]+)["']?/);
       if (workdirMatch) entry.container.workdir = workdirMatch[1];
@@ -448,7 +452,17 @@ export function buildContainerCommand(
     `${repoRoot}:${workdir}:${mountMode}`,
     '-w',
     workdir,
+    '--network',
+    container.network || 'none',
+    '--security-opt',
+    'no-new-privileges',
   ];
+
+  // Con montaje ro la herramienta no necesita capabilities; con rw se conservan las
+  // por defecto para no perder DAC_OVERRIDE sobre los archivos del montaje.
+  if (mountMode === 'ro') {
+    args.push('--cap-drop', 'ALL');
+  }
 
   if (container.entrypoint) {
     args.push('--entrypoint', container.entrypoint);
@@ -456,6 +470,9 @@ export function buildContainerCommand(
 
   if (container.user) {
     args.push('--user', container.user);
+  } else if (mountMode === 'rw' && typeof process.getuid === 'function' && typeof process.getgid === 'function') {
+    // Evita archivos propiedad de root en el repositorio al escribir desde el contenedor.
+    args.push('--user', `${process.getuid()}:${process.getgid()}`);
   }
 
   for (const [k, v] of Object.entries(container.env || {})) {
@@ -506,7 +523,23 @@ export function executeTool(
 
   // 1. Detección Local (salvo si se fuerza contenedor)
   if (!options.preferContainer) {
-    const local = detectLocalTool(toolKey, entry, options.versionReq, deps);
+    let local: ReturnType<typeof detectLocalTool>;
+    try {
+      local = detectLocalTool(toolKey, entry, options.versionReq, deps);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      return {
+        tool: toolKey,
+        command: `${toolKey} ${userArgs.join(' ')}`.trim(),
+        status: 'NOT_CONFIGURED',
+        exit_code: 1,
+        stdout: '',
+        stderr: reason,
+        execution: { mode: 'none' },
+        version: { requested: options.versionReq },
+        message: `Configuración inválida en el catálogo para '${toolKey}': ${reason}`,
+      };
+    }
     if (local.available && local.satisfies && local.executablePath) {
       const fullCmd = `${local.executablePath} ${userArgs.join(' ')}`.trim();
       const runRes = deps.execSyncFn(local.executablePath, userArgs, {
@@ -547,6 +580,22 @@ export function executeTool(
       execution: { mode: 'none' },
       version: { requested: options.versionReq },
       message: `Herramienta '${toolKey}' no disponible en host ni contenedor.`,
+    };
+  }
+
+  // El fallback a contenedor también debe respetar el requisito de versión.
+  const imageTag = entry.container.image.match(/:([a-zA-Z0-9._-]+)(?:@|$)/)?.[1];
+  if (options.versionReq && !(imageTag && satisfiesVersion(imageTag, options.versionReq))) {
+    return {
+      tool: toolKey,
+      command: `${toolKey} ${userArgs.join(' ')}`.trim(),
+      status: 'UNAVAILABLE',
+      exit_code: 1,
+      stdout: '',
+      stderr: `La imagen '${entry.container.image}' no satisface el requisito de versión '${options.versionReq}' y la herramienta local no lo cumple.`,
+      execution: { mode: 'none' },
+      version: { requested: options.versionReq, resolved: imageTag },
+      message: `Ni el binario local ni la imagen del catálogo satisfacen '${options.versionReq}'.`,
     };
   }
 
@@ -647,7 +696,14 @@ Ejemplos:
     return;
   }
 
-  const repoRoot = findRepoRoot();
+  let repoRoot: string;
+  try {
+    repoRoot = findRepoRoot();
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
+  }
 
   if (subCommand === 'catalog') {
     const catalog = loadCatalog(repoRoot);

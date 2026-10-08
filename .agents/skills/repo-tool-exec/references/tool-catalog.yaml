@@ -72,6 +72,7 @@ tools:
       version_regex: 'Version:\s*(\d+\.\d+\.\d+)'
     container:
       image: "aquasec/trivy:0.60.0"
+      network: "bridge" # descarga la base de datos de vulnerabilidades
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -96,6 +97,7 @@ tools:
       version_regex: 'OpenTofu v(\d+\.\d+\.\d+)'
     container:
       image: "ghcr.io/opentofu/opentofu:1.8.8"
+      network: "bridge" # descarga providers en init
       mount_mode: "rw"
       workdir: "/repo"
       default_args: []
@@ -108,6 +110,7 @@ tools:
       version_regex: 'Terraform v(\d+\.\d+\.\d+)'
     container:
       image: "hashicorp/terraform:1.11.0"
+      network: "bridge" # descarga providers en init
       mount_mode: "rw"
       workdir: "/repo"
       default_args: []
@@ -181,6 +184,7 @@ tools:
       version_regex: 'pre-commit\s+(\d+\.\d+\.\d+)'
     container:
       image: "ghcr.io/pre-commit-ci/runner-image:2024.11.19"
+      network: "bridge" # instala los entornos de los hooks
       mount_mode: "rw"
       workdir: "/repo"
       default_args: []
