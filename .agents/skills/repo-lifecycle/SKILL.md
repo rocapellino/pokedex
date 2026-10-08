@@ -167,6 +167,9 @@ Para evitar duplicaciones y mantener límites arquitectónicos claros:
     - Contrasta los nombres de skills contra los directorios reales de `.agents/skills/` y contra los comandos documentados, para detectar referencias huérfanas.
     - Declara el vocabulario de estado empleado según el registro canónico de [`state-model.md`](../_shared/state-model.md) §3.
     - Como referencia metodológica externa se admite `project-skill-audit` del catálogo AAS, aprobado solo como `APPROVED_REFERENCE` y gobernado por `repo-lifecycle` (`scripts/aas-governance.ts`). No se materializa ni se ejecuta código upstream.
+10. **`repo-tool-exec` (Resolución y Ejecución Reproducible de Herramientas):**
+    - Resuelve y ejecuta de forma reproducible herramientas externas (binario local verificado o contenedor efímero de fallback en docker, podman o nerdctl) conforme a [`tool-catalog.yaml`](../repo-tool-exec/references/tool-catalog.yaml).
+    - No realiza orquestación del ciclo ni impone flujos; opera exclusivamente como resolvedor y ejecutor agnóstico de herramientas bajo demanda.
 
 ---
 

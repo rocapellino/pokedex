@@ -26,13 +26,13 @@ Una skill **no copia** datos que cambian con el código: versiones, UIDs, nombre
 
 Motivo: el análisis del 2026-10-03 encontró en las skills un UID, una ruta (`infra/tofu/`) y una afirmación de OpenTelemetry que ya no correspondían al código. Un dato copiado se desactualiza sin que ningún gate lo detecte; un enlace roto sí lo detecta `docs:validate`.
 
-## Dependencias Ausentes: Ejecutar en Contenedor
+## Dependencias Ausentes: Ejecución Reproducible con `repo-tool-exec`
 
-Si una skill necesita una herramienta que no existe en el entorno local (por ejemplo `actionlint`, `zizmor`, `shellcheck`, `hadolint` o una CLI de infraestructura), **no omite la verificación ni la delega a CI sin intentarlo antes**: la ejecuta en un contenedor Docker efímero.
+Si una skill necesita una herramienta que no existe en el entorno local o cuya versión instalada no satisface los requisitos mínimos (por ejemplo `actionlint`, `zizmor`, `shellcheck`, `gitleaks`, `trivy`, `checkov` o CLIs de infraestructura), **no omite la verificación ni la delega a CI sin intentarlo antes**: delega su resolución en la skill canónica [`repo-tool-exec`](../repo-tool-exec/SKILL.md).
 
-1. **Misma herramienta que CI:** usar la imagen y las opciones con las que el workflow correspondiente de `.github/workflows/` ejecuta esa herramienta, con la imagen fijada por digest. Si CI no la ejecuta, usar la imagen oficial del proyecto upstream y fijar su versión.
-2. **Sin instalar en el host:** no instalar paquetes globales ni modificar el entorno local; el contenedor se ejecuta con `--rm` y monta el repositorio (`-v "$PWD":/repo`), en solo lectura cuando la herramienta no escribe.
-3. **Git Bash en Windows:** anteponer `MSYS_NO_PATHCONV=1` para que las rutas de los volúmenes no se reescriban.
-4. **Artefactos temporales:** cualquier archivo que la herramienta genere va bajo `tmp/` ([repository-hygiene.md](../../rules/repository-hygiene.md)); no se instalan dependencias en el repositorio para una verificación puntual.
-5. **Evidencia:** el resultado cuenta como `EXECUTED_SUCCESS` o `EXECUTED_FAILED` y se reporta con el comando y la imagen usados.
-6. **Cuándo declarar la herramienta no disponible:** solo si Docker no está disponible o no existe una imagen utilizable, y debe constar el intento. En ese caso se aplican los estados `NOT_AVAILABLE_LOCAL` o `CI_REQUIRED` de la skill, que nunca equivalen a `PASS`.
+1. **Catálogo Declarativo:** Consultar la definición autorizada en [`tool-catalog.yaml`](../repo-tool-exec/references/tool-catalog.yaml). Prohibido usar etiquetas mutables como `latest`; se emplean tags inmutables y digests SHA256.
+2. **Cero Instalaciones Globales:** No instalar paquetes globales (`apt`, `brew`, `npm -g`, `pip`, `go install`) ni modificar el host; la ejecución recurre a un contenedor efímero con `--rm`.
+3. **Detección Dinámica de Runtimes:** Soporte agnóstico para `docker`, `podman` o `nerdctl` verificado dinámicamente.
+4. **Seguridad y Menor Privilegio:** Montaje del repositorio en solo lectura (`:ro`) por defecto, sin `--privileged`, sin socket de Docker y con aislamiento en Windows (`MSYS_NO_PATHCONV=1`).
+5. **Artefactos Temporales:** Todo log o salida transitoria debe dirigirse exclusivamente a `tmp/` ([repository-hygiene.md](../../rules/repository-hygiene.md)).
+6. **Evidencia Estructurada:** El resultado reporta `PASS`, `FAIL`, `UNAVAILABLE`, `NOT_CONFIGURED` o `NOT_APPLICABLE` junto al modo (`local` o `container`), comando e imagen utilizada. `UNAVAILABLE` nunca equivale a `PASS`.

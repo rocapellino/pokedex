@@ -53,6 +53,7 @@ El repositorio establece políticas normativas obligatorias para todos los agent
 | | [`repo-architecture`](skills/repo-architecture/SKILL.md) | Coherencia de sistema, plataforma y GitOps |
 | | [`repo-testing`](skills/repo-testing/SKILL.md) | Pirámide de pruebas, cobertura y valor |
 | | [`repo-dependencies`](skills/repo-dependencies/SKILL.md) | Árbol npm, lockfile, CVEs y librerías huérfanas |
+| | [`repo-tool-exec`](skills/repo-tool-exec/SKILL.md) | Resolución y ejecución reproducible de herramientas externas (local o contenedor efímero) |
 | **Delivery & Security** | [`repo-security`](skills/repo-security/SKILL.md) | DevSecOps, secretos, Cilium L7 y supply chain |
 | | [`repo-ci`](skills/repo-ci/SKILL.md) | Topología integral de CI/CD (PR ➔ Job ➔ Tool) |
 | | [`repo-pr`](skills/repo-pr/SKILL.md) | Preparación, validación y revisión de Pull Requests |
