@@ -61,6 +61,20 @@ Orden de activación en pre-prod:
 
 El job de las series sigue siendo `prometheus.scrape.pokemon_api`, así que dashboards y alertas no cambian.
 
+Estado real del Alloy en pre-prod:
+
+> [!WARNING]
+> **Deriva entre el repo y el clúster (2026-10-08).** El Alloy de pre-prod no se instaló con el chart
+> `k8s-monitoring` de estos values, sino con el chart simple `alloy` (release `grafana-cloud`, `alloy-1.12.1`),
+> con la configuración dentro del ConfigMap `grafana-cloud-alloy`. Allí viven el scrape de la API, el receptor
+> OTLP y la recolección de logs de pods; no hay pipelines propios en Fleet Management. Para poner el token en
+> producción se aplicó el mismo cambio en el sitio (`helm upgrade --reuse-values`, revisión 2): un
+> `ExternalSecret` en `monitoring`, la variable `METRICS_BEARER_TOKEN` en `alloy.extraEnv` y el bloque
+> `authorization` en el scrape. Ejecutar `task monitoring:grafana-cloud:install` sobre ese release
+> chocaría con sus recursos y, además, perdería el OTLP y los logs, porque estos values aún no los replican.
+> Reconciliar ambos es trabajo pendiente: o los values cubren OTLP, logs y sus destinos y se reemplaza el
+> release, o el repo pasa a describir el chart que realmente corre.
+
 > El script [`deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) sustituyó a un
 > `.ps1` que ataba el despliegue a Windows. El contrato está blindado por
 > `tests/security/grafana_portability.test.ts` (PORT-001), que falla si alguien reintroduce
