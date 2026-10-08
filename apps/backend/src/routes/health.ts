@@ -3,6 +3,7 @@ import { getStorageHealth, getPostgresVersion } from '../services/db.js';
 import { getLifecycleStatus } from '../utils/lifecycle.js';
 import { startTime, generatePrometheusMetrics } from '../middleware/metrics.js';
 import { asyncHandler } from '../utils/async-handler.js';
+import { requireMetricsToken } from '../middleware/metrics-auth.js';
 
 export const healthRouter = express.Router();
 
@@ -74,7 +75,7 @@ healthRouter.get(
   }),
 );
 
-healthRouter.get('/metrics', (_req: Request, res: Response) => {
+healthRouter.get('/metrics', requireMetricsToken, (_req: Request, res: Response) => {
   const metricsOutput = generatePrometheusMetrics();
   res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
   return res.status(200).send(metricsOutput);

@@ -307,6 +307,8 @@ secrets:
   minioRootUser: ""
   minioRootPassword: ""
   backupEncryptionKey: ""
+  # Token Bearer que exige /metrics (AUD-SEC-OBS-001). Opcional: vacío deja /metrics abierto.
+  metricsBearerToken: ""
 
 # ------------------------------------------------------------------------------
 # 7b. External Secrets Operator (ESO - Sincronización automática con Vault o el backend cloud)
@@ -316,6 +318,9 @@ externalSecrets:
   refreshInterval: "1h"
   targetSecretName: "pokemon-secrets"
   annotations: {}
+  # Sincroniza METRICS_BEARER_TOKEN desde remoteRef.key (AUD-SEC-OBS-001). Activar solo cuando
+  # la propiedad ya exista en el almacén; si no, ESO falla y todo el Secret deja de sincronizar.
+  metricsToken: false
   # Convención de Nomenclatura según Proveedor:
   # - Prod cloud (blueprint, ADR-030): key: "pokedex/prod" (sin prefijo secret/data)
   # - HashiCorp Vault (KV v2): key: "secret/data/pokedex/prod" (prefijo API requerido por Vault KV engine v2)

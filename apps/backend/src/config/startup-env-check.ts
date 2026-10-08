@@ -50,6 +50,11 @@ export const MONITORED_ENV_VARS: EnvVarSpec[] = [
     requiredInProduction: false,
   },
   {
+    name: 'METRICS_BEARER_TOKEN',
+    hint: 'Token Bearer que Prometheus/Alloy debe enviar al consultar /metrics (AUD-SEC-OBS-001). Si falta, /metrics queda abierto para cualquiera que alcance la API.',
+    requiredInProduction: false,
+  },
+  {
     name: 'GEMINI_API_KEY',
     hint: 'API Key para Google Gemini AI. Si falta, los endpoints de diagramas y mockups operarán en modo fallback sintético.',
     requiredInProduction: false,
@@ -99,6 +104,10 @@ export function inspectEnvironment(): EnvCheckResult {
         warnings.push(
           `REDIS_URL / REDIS_* no configurado: rate limiter distribuido inactivo (fallback en memoria local activo)`,
         );
+      } else if (spec.name === 'METRICS_BEARER_TOKEN') {
+        if (isProduction) {
+          warnings.push(`METRICS_BEARER_TOKEN no configurado: /metrics responde sin autenticación`);
+        }
       } else if (spec.name === 'GEMINI_API_KEY') {
         warnings.push(`GEMINI_API_KEY no configurado: servicios de IA en modo fallback generativo local`);
       }

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T13:47:17.224Z",
+  "generatedAt": "2026-10-08T15:00:52.659Z",
   "summary": {
-    "totalFiles": 170,
-    "testFiles": 111,
+    "totalFiles": 171,
+    "testFiles": 112,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 943,
-    "totalLines": 25678,
-    "totalSizeBytes": 1109934,
+    "totalTestCases": 949,
+    "totalLines": 25820,
+    "totalSizeBytes": 1116081,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 29,
-      "testCases": 234,
+      "files": 30,
+      "testCases": 240,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -784,9 +784,9 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 3660,
-      "lineCount": 99,
-      "sha256": "e9802e3ed60dbe66ba0bdbc4ede6886a40794c53f682ba5f9470e7164c6d2239",
+      "sizeBytes": 5088,
+      "lineCount": 135,
+      "sha256": "9a19f89ad93cbde660c453cd0ad95b75914debb216550d30d069209cf7f1cbaa",
       "targetDomain": "Suite e2e",
       "targetArtifacts": [],
       "npmCommands": [],
@@ -6365,6 +6365,58 @@
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
           "line": 481
+        }
+      ]
+    },
+    {
+      "path": "tests/security/metrics_auth.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 11,
+      "sizeBytes": 4719,
+      "lineCount": 106,
+      "sha256": "0565b32d667a1ddec82ab4e5cca6447f0e40cdc08882f5c432918b326c66ffaf",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: metrics_auth.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 Metrics Auth: con token configurado, /metrics sin credenciales responde 401 con WWW-Authenticate",
+          "line": 38
+        },
+        {
+          "name": "🔐 Metrics Auth: un token incorrecto o con otro esquema se rechaza",
+          "line": 48
+        },
+        {
+          "name": "🔐 Metrics Auth: el token correcto devuelve las métricas en formato Prometheus",
+          "line": 58
+        },
+        {
+          "name": "🔐 Metrics Auth: el token no se exige en /healthz ni /readyz (sondas de Kubernetes)",
+          "line": 69
+        },
+        {
+          "name": "🔐 Metrics Auth: sin token configurado /metrics sigue abierto (despliegue gradual)",
+          "line": 77
+        },
+        {
+          "name": "🔐 Metrics Auth: en producción sin token el arranque advierte que /metrics está abierto",
+          "line": 85
         }
       ]
     },
