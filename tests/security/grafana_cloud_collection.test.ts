@@ -87,6 +87,8 @@ function renderCollection(): string {
       'collectorCommon.alloy.remoteConfig.auth.password=ci-dummy-token',
       '--set-string',
       'destinations.grafana-cloud-metrics.auth.password=ci-dummy-token',
+      '--set-string',
+      'destinations.grafana-cloud-logs.auth.password=ci-dummy-token',
     ],
     { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] },
   );
@@ -223,4 +225,52 @@ test('🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su names
     'Debe leer el Secret que crea el ExternalSecret de este namespace',
   );
   assert.match(externalSecret, /name: alloy-metrics-token/);
+});
+
+test('📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki desde el repo', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
+  const rendered = renderCollection();
+  const lokiWrite = renderedDocument(rendered, 'loki.write "grafana_cloud_logs"');
+  assert.ok(lokiWrite, 'Debe existir el destino de logs: sin él el receptor OTLP no puede reenviar logs');
+  assert.match(lokiWrite, /url = "https:\/\/logs-prod-024\.grafana\.net\/loki\/api\/v1\/push"/);
+  assert.match(lokiWrite, /loki\.source\.file "pod_logs"/, 'Los logs de pods deben recolectarse');
+  for (const namespace of ['pokemon-app', 'monitoring']) {
+    assert.match(lokiWrite, new RegExp(`"${namespace}"`), `Debe recolectar los logs del namespace ${namespace}`);
+  }
+});
+
+test('📡 OBS-003: el receptor OTLP reenvía métricas a Prometheus y logs a Loki sin tocar los nombres de serie', {
+  skip: !HELM_AVAILABLE && 'helm no disponible',
+}, () => {
+  const rendered = renderCollection();
+  const config = renderedDocument(rendered, 'otelcol.receiver.otlp "pokedex_otlp"');
+  assert.ok(config, 'El receptor OTLP debe declararse en los values (ya no solo en el chart simple de Alloy)');
+  assert.match(config, /endpoint = "0\.0\.0\.0:4317"/);
+  assert.match(config, /endpoint = "0\.0\.0\.0:4318"/);
+  assert.match(config, /metrics = \[otelcol\.exporter\.prometheus\.pokedex_otlp\.input\]/);
+  assert.match(config, /logs\s+= \[otelcol\.exporter\.loki\.pokedex_otlp\.input\]/);
+  assert.match(
+    config,
+    /otelcol\.exporter\.prometheus "pokedex_otlp" \{\s*forward_to = \[prometheus\.remote_write\.grafana_cloud_metrics\.receiver\]/,
+  );
+  assert.match(
+    config,
+    /otelcol\.exporter\.loki "pokedex_otlp" \{\s*forward_to = \[loki\.write\.grafana_cloud_logs\.receiver\]/,
+  );
+});
+
+test('📡 OBS-003: Beyla queda apagado y el script inyecta el token del destino de logs', () => {
+  const values = fs.readFileSync(VALUES_PATH, 'utf-8');
+  assert.match(
+    values,
+    /beyla:\s*\r?\n\s*deploy:\s*false/,
+    'El nodo de pre-prod es un LXC sin privilegios de host: eBPF no está garantizado',
+  );
+  const script = fs.readFileSync(path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs'), 'utf-8');
+  assert.match(
+    script,
+    /destinations\.grafana-cloud-logs\.auth\.password=/,
+    'El script debe inyectar la contraseña del destino de logs con --set-file',
+  );
 });

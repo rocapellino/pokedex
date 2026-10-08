@@ -40,7 +40,7 @@ allowlist descarta una métrica que usan las alertas o si desaparece el endpoint
 | :--- | :--- |
 | Métricas de clúster y de host (cAdvisor, kubelet, kube-state-metrics, node-exporter) | `grafana-cloud-values.yaml` |
 | Scrape de `/metrics` de la API (con token Bearer) | `grafana-cloud-values.yaml` (`collectors.alloy.extraConfig`, `AUD-SEC-OBS-001`) |
-| Logs de pods y receptor OTLP | Pipelines remotos de Fleet Management (pendientes de migrar a este repo) |
+| Logs de pods (`podLogsViaLoki`) y receptor OTLP (`extraConfig`) | `grafana-cloud-values.yaml` |
 
 ### Token de `/metrics` (`AUD-SEC-OBS-001`)
 
@@ -64,16 +64,14 @@ El job de las series sigue siendo `prometheus.scrape.pokemon_api`, así que dash
 Estado real del Alloy en pre-prod:
 
 > [!WARNING]
-> **Deriva entre el repo y el clúster (2026-10-08).** El Alloy de pre-prod no se instaló con el chart
-> `k8s-monitoring` de estos values, sino con el chart simple `alloy` (release `grafana-cloud`, `alloy-1.12.1`),
-> con la configuración dentro del ConfigMap `grafana-cloud-alloy`. Allí viven el scrape de la API, el receptor
-> OTLP y la recolección de logs de pods; no hay pipelines propios en Fleet Management. Para poner el token en
-> producción se aplicó el mismo cambio en el sitio (`helm upgrade --reuse-values`, revisión 2): un
-> `ExternalSecret` en `monitoring`, la variable `METRICS_BEARER_TOKEN` en `alloy.extraEnv` y el bloque
-> `authorization` en el scrape. Ejecutar `task monitoring:grafana-cloud:install` sobre ese release
-> chocaría con sus recursos y, además, perdería el OTLP y los logs, porque estos values aún no los replican.
-> Reconciliar ambos es trabajo pendiente: o los values cubren OTLP, logs y sus destinos y se reemplaza el
-> release, o el repo pasa a describir el chart que realmente corre.
+> **Deriva entre el repo y el clúster (2026-10-08).** Estos values describen el chart `k8s-monitoring`, pero el
+> Alloy de pre-prod corre con el chart simple `alloy` (release `grafana-cloud`, `alloy-1.12.1`), con la
+> configuración en el ConfigMap `grafana-cloud-alloy`. Ese Alloy no recolecta kube-state-metrics, cAdvisor ni
+> kubelet, por lo que las alertas de Kubernetes de [`alerts.yaml`](alerts.yaml) no tienen datos. Los values ya
+> replican el scrape de la API, el receptor OTLP y los logs de pods del Alloy actual. Hasta ejecutar la
+> migración, no correr `task monitoring:grafana-cloud:install` sobre pre-prod: choca con los recursos del release
+> existente. El procedimiento, con respaldo y reversión, está en
+> [`ALLOY_K8S_MONITORING_MIGRATION.md`](../../docs/runbooks/ALLOY_K8S_MONITORING_MIGRATION.md).
 
 Sobre el script de despliegue:
 
