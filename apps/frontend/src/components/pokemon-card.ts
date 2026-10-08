@@ -4,6 +4,7 @@
 
 import type { Pokemon, EvolutionNode } from '../types.js';
 import {
+  FALLBACK_IMAGE,
   CLASSIFICATION_LABELS,
   getClassification,
   getGeneration,
@@ -51,7 +52,7 @@ export function renderPokemonCard(p: Pokemon): SafeHtml {
     : html``;
 
   const normType = normalizeStr(p.tipo || 'normal');
-  const safeImg = p.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+  const safeImg = p.imagen || FALLBACK_IMAGE;
 
   return html`
     <article class="pokemon-card" data-pokemon-id="${p.id}" data-type="${normType}">

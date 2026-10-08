@@ -2,9 +2,8 @@
  * Utilidades de UI y Rendering Compartidas para Frontend Pokédex
  */
 
-import { sanitizeHtml } from '../sanitizer.js';
 import { normalizeStr } from './formatters.js';
-import { html, trustedHtml, type SafeHtml } from './html.js';
+import { html, type SafeHtml } from './html.js';
 
 /**
  * Muestra una notificación flotante estilo Toast en el contenedor #toastContainer.
@@ -64,19 +63,15 @@ export function renderEmptyState(options: {
     ? html`<button class="btn btn-primary mt-4" id="${options.retryBtnId}">${options.retryBtnText || 'Reintentar'}</button>`
     : html``;
 
-  // Se conserva `sanitizeHtml` como segunda barrera: lo ya saneado es seguro por construcción.
-  return trustedHtml(
-    sanitizeHtml(
-      html`
+  // `html` escapa cada dato y `setHtml` (el único punto de inserción en el DOM) sanea el resultado.
+  return html`
     <div class="empty-state">
       <div class="empty-icon">${icon}</div>
       <h3 class="empty-title">${options.title}</h3>
       <p class="error-detail">${options.description}</p>
       ${retryBtn}
     </div>
-  `.toString(),
-    ),
-  );
+  `;
 }
 
 /**

@@ -5,6 +5,7 @@
 
 import type { Pokemon } from './types.js';
 import {
+  FALLBACK_IMAGE,
   TYPE_COLORS,
   normalizeStr,
   getTypeColor,
@@ -594,7 +595,7 @@ window.addEventListener(
   (event) => {
     const target = event.target as HTMLElement | null;
     if (target && target.tagName === 'IMG') {
-      const fallback = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+      const fallback = FALLBACK_IMAGE;
       const img = target as HTMLImageElement;
       if (img.src !== fallback) {
         img.src = fallback;
