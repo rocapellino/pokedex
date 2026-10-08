@@ -3,7 +3,7 @@
  * Controlador de Vista de Administración Modularizado (< 200 LOC)
  */
 
-import { TYPE_COLORS, normalizeStr, getTypeColor, formatPokemonId, showToast } from './shared/index.js';
+import { FALLBACK_IMAGE, TYPE_COLORS, normalizeStr, getTypeColor, formatPokemonId, showToast } from './shared/index.js';
 import {
   openCreateModal as openCreateModalComponent,
   openEditModal as openEditModalComponent,
@@ -93,7 +93,7 @@ window.addEventListener(
   (event) => {
     const target = event.target as HTMLElement | null;
     if (target && target.tagName === 'IMG') {
-      const fallback = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+      const fallback = FALLBACK_IMAGE;
       const img = target as HTMLImageElement;
       if (img.src !== fallback) {
         img.src = fallback;

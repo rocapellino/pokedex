@@ -3,7 +3,7 @@
  */
 
 import type { Pokemon } from '../types.js';
-import { normalizeStr, html, setHtml, type SafeHtml } from '../shared/index.js';
+import { FALLBACK_IMAGE, normalizeStr, html, setHtml, type SafeHtml } from '../shared/index.js';
 
 /** Fila que ocupa la tabla cuando ningún registro coincide con los filtros. */
 export function renderEmptyTableRow(): SafeHtml {
@@ -45,7 +45,7 @@ export function renderTableRows(pokemons: Pokemon[]): SafeHtml {
   return html`${pokemons.map((p) => {
     const car = p.caracteristicas || {};
     const maxBarWidth = Math.min(100, Math.round(((p.fuerza || 0) / 160) * 100));
-    const safeImg = p.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+    const safeImg = p.imagen || FALLBACK_IMAGE;
     const safeHab = Array.isArray(p.habilidades) ? p.habilidades.join(', ') : p.habilidades || 'Ninguna';
 
     return html`

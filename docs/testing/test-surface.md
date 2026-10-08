@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 114 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 58 |
-| **Total de Casos de Prueba Identificados** | **960** |
-| **Líneas de Código de Pruebas** | 26.108 |
-| **Tamaño Total de la Suite** | 1101.5 KB |
+| **Total de Casos de Prueba Identificados** | **961** |
+| **Líneas de Código de Pruebas** | 26.127 |
+| **Tamaño Total de la Suite** | 1102.6 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-08T16:17:10.251Z |
+| **Última Sincronización** | 2026-10-08T16:29:18.410Z |
 
 ---
 
@@ -31,7 +31,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 30 | 242 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 7 | 42 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
-| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 277 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
+| **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 278 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
 | **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 4 | 22 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
@@ -137,7 +137,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | `frontend` | Helper | `none` | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(Helper)* |
 | [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **6** | 109 | Suite de pruebas frontend: modal_dialog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/page_focus.test.ts`](../../tests/frontend/page_focus.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **9** | 155 | Suite de pruebas frontend: page_focus.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | `frontend` | Automated Test | `node:test (tsx)` | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -322,7 +322,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Componentes y Controladores Frontend (`frontend`)
 
-- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 277
+- **Runner:** `node:test + JSDOM` | **Comando:** `npm test` | **Total Casos:** 278
 - **Propósito:** Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -406,7 +406,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/frontend/mega_env.ts`](../../tests/frontend/mega_env.ts) | **0** | 18 | Suite de pruebas frontend: mega_env.ts. | *(General)* |
 | [`tests/frontend/mega_evolution.test.ts`](../../tests/frontend/mega_evolution.test.ts) | **22** | 266 | Suite de pruebas frontend: mega_evolution.test.ts. | *(General)* |
 | [`tests/frontend/modal_components.test.ts`](../../tests/frontend/modal_components.test.ts) | **19** | 341 | Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop. | `apps/frontend/src/components/modal-detail.ts`, `apps/frontend/src/components/modal-crud.ts` |
-| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **5** | 90 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
+| [`tests/frontend/modal_dialog.test.ts`](../../tests/frontend/modal_dialog.test.ts) | **6** | 109 | Suite de pruebas frontend: modal_dialog.test.ts. | *(General)* |
 | [`tests/frontend/nginx_config.test.ts`](../../tests/frontend/nginx_config.test.ts) | **4** | 217 | Suite de pruebas frontend: nginx_config.test.ts. | *(General)* |
 | [`tests/frontend/page_focus.test.ts`](../../tests/frontend/page_focus.test.ts) | **9** | 155 | Suite de pruebas frontend: page_focus.test.ts. | *(General)* |
 | [`tests/frontend/seo_compression.test.ts`](../../tests/frontend/seo_compression.test.ts) | **3** | 58 | Suite de pruebas frontend: seo_compression.test.ts. | *(General)* |

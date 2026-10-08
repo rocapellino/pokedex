@@ -2,6 +2,9 @@
  * Constantes Compartidas del Frontend Pokédex
  */
 
+/** Imagen que sustituye a la de un Pokémon cuando falta o no carga. */
+export const FALLBACK_IMAGE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+
 export const TYPE_COLORS: Record<string, string> = {
   Eléctrico: '#f59e0b',
   Fuego: '#ef4444',

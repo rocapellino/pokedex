@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T16:17:10.251Z",
+  "generatedAt": "2026-10-08T16:29:18.410Z",
   "summary": {
     "totalFiles": 173,
     "testFiles": 114,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 960,
-    "totalLines": 26108,
-    "totalSizeBytes": 1127973,
+    "totalTestCases": 961,
+    "totalLines": 26127,
+    "totalSizeBytes": 1129045,
     "suitesCount": 10
   },
   "suites": [
@@ -59,7 +59,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 86,
-      "testCases": 277,
+      "testCases": 278,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -3647,12 +3647,12 @@
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 5,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 15,
-      "sizeBytes": 3607,
-      "lineCount": 90,
-      "sha256": "6a1a394d119370d721cfa3ed5c42e45135759d5f304aea3ea950715966ca8b1b",
+      "assertionCountEst": 19,
+      "sizeBytes": 4679,
+      "lineCount": 109,
+      "sha256": "22c9a6786499b3d7c15336717a3a645be8c629c1e78339f00f87aab982f69481",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3671,20 +3671,24 @@
           "line": 23
         },
         {
-          "name": "♿ Modal detalle: el botón de cierre tiene nombre accesible",
+          "name": "♿ Modal detalle: el nombre del diálogo es un título solo para lectores y no hay cabecera estática",
           "line": 38
         },
         {
+          "name": "♿ Modal detalle: el botón de cierre que renderiza la ficha tiene nombre accesible",
+          "line": 47
+        },
+        {
           "name": "♿ Modales: ya no se abren con la clase .active",
-          "line": 43
+          "line": 62
         },
         {
           "name": "♿ Modales: openModal/closeModal usan showModal() y close() cuando existen",
-          "line": 49
+          "line": 68
         },
         {
           "name": "♿ Modales: openModal/closeModal degradan a [open] si el entorno no implementa <dialog>",
-          "line": 76
+          "line": 95
         }
       ]
     },
