@@ -1060,7 +1060,10 @@ body {
   flex: 0 0 auto;
   width: 0.65rem;
   height: 0.65rem;
+  box-sizing: border-box;
   background: var(--type-color, #6b7280);
+  /* Anillo con contraste propio: algunos colores de tipo (Siniestro, Eléctrico…) se pierden sobre el fondo. */
+  border: 1px solid var(--text-secondary);
   border-radius: 50%;
 }
 
@@ -1134,8 +1137,8 @@ body {
 }
 
 .filter-chip-remove {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.5rem;
+  height: 1.5rem;
   padding: 0;
   background: transparent;
   border: 0;
