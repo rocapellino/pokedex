@@ -127,3 +127,25 @@ Con el modelo de [ADR-030](./ADR-030-environment-model-local-dev-proxmox-preprod
   - El rate limiting a nivel de Ingress opera por IP de cliente; detrás de un NAT compartido
     puede afectar a múltiples usuarios. Se recomienda complementar con rate limiting en Express
     para mayor granularidad (ya implementado en `ADR-010`).
+
+## Enmienda 2026-10-08: Autenticación de `/metrics` en la API (`AUD-SEC-OBS-001`)
+
+Verificado en pre-prod: `GET /metrics` a través de Traefik respondía `200`. La allowlist del nginx
+del frontend no protege el endpoint, porque nginx ve la IP del pod de Traefik y esa IP cae dentro de
+`METRICS_ALLOWED_CIDR` (`10.42.0.0/24` es toda la red de pods de un clúster de un solo nodo). Además,
+la `NetworkPolicy` del API admite ingreso desde `0.0.0.0/0` cuando el Ingress está habilitado.
+
+**Decisión:** la API exige `Authorization: Bearer <token>` en `/metrics` cuando `METRICS_BEARER_TOKEN`
+está definido (`apps/backend/src/middleware/metrics-auth.ts`), con comparación en tiempo constante.
+El control no depende de la IP de origen. La allowlist de nginx se conserva como capa adicional.
+
+**Despliegue gradual:** sin `METRICS_BEARER_TOKEN` el endpoint sigue abierto y la API avisa al arrancar
+en producción. El orden de activación es:
+
+1. Crear la propiedad `METRICS_BEARER_TOKEN` en el almacén de secretos (`pokedex/preprod`).
+2. Activar `externalSecrets.metricsToken: true` en los values del entorno.
+3. Configurar el scraper (Grafana Alloy del namespace `monitoring`) para enviar el mismo token.
+4. Comprobar que `pokedex_uptime_seconds` sigue llegando y que `/metrics` sin token responde `401`.
+
+Activar el paso 2 antes del 1 rompe la sincronización de todo el Secret; el paso 3 debe preceder a la
+verificación del 4 o se pierde la métrica.
