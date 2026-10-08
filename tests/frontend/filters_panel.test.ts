@@ -120,6 +120,9 @@ test('🏷️ Tipos: marcar una casilla avisa con el valor del tipo', () => {
 });
 
 test('🏷️ Tipos: Escape cierra la lista y devuelve el foco al botón, y con la lista cerrada sigue su camino', () => {
+  // jsdom 30.1.2 ya no enfoca elementos dentro de un ancestro `hidden`, como un navegador real: el
+  // panel debe estar abierto para que el foco llegue a la casilla y de vuelta al botón.
+  setFiltersPanelOpen(true);
   setTypeListOpen(true);
   box('Fuego').focus();
   box('Fuego').dispatchEvent(
