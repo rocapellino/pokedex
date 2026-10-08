@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **176** |
+| **Total de Archivos en `tests/`** | **175** |
 | **Archivos de Test Automatizados** | 117 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
-| **Archivos de Soporte / Entorno (Fixtures)** | 58 |
+| **Archivos de Soporte / Entorno (Fixtures)** | 57 |
 | **Total de Casos de Prueba Identificados** | **969** |
-| **Líneas de Código de Pruebas** | 26.365 |
-| **Tamaño Total de la Suite** | 1113.3 KB |
+| **Líneas de Código de Pruebas** | 26.257 |
+| **Tamaño Total de la Suite** | 1109.3 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-08T18:40:33.349Z |
+| **Última Sincronización** | 2026-10-08T19:11:47.566Z |
 
 ---
 
@@ -32,7 +32,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 31 | 247 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 8 | 43 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 278 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
-| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 4 | 22 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
+| **`e2e`** | Pruebas End-to-End y Accesibilidad | `playwright` | `npm run test:e2e` | 3 | 22 | Simulación completa de flujos de usuario en Chromium y auditorías de accesibilidad WCAG 2.1 AA con Axe-core. |
 | **`performance`** | Rendimiento y Carga (k6) | `k6` | `k6 run tests/performance/k6_stress_test.js` | 1 | 4 | Pruebas de estrés y límites de latencia HTTP bajo concurrencia continua respetando presupuestos de rate limit. |
 | **`ci`** | Paridad y Gobernanza de CI/CD | `node:test (tsx)` | `npm test` | 2 | 14 | Verificación estructural de consistencia, timeouts y parámetros de ejecución en pipelines de GitHub Actions. |
 | **`fuzz`** | API Fuzzing y Pruebas Adversariales | `node:test (tsx)` | `npm run test:fuzz` | 1 | 7 | Generación caótica y mutacional de payloads HTTP, validación de boundaries y resiliencia ante inputs malformados. |
@@ -54,9 +54,8 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 188 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **3** | 100 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **2** | 131 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
-| [`tests/e2e/fixtures.ts`](../../tests/e2e/fixtures.ts) | `e2e` | Helper | `none` | **0** | 135 | Suite de pruebas e2e: fixtures.ts. | *(Helper)* |
-| [`tests/e2e/global-teardown.ts`](../../tests/e2e/global-teardown.ts) | `e2e` | Helper | `none` | **0** | 26 | Suite de pruebas e2e: global-teardown.ts. | *(Helper)* |
+| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | `e2e` | E2E | `playwright` | **6** | 143 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `npm run test:e2e`, `npm run test:a11y` |
+| [`tests/e2e/fixtures.ts`](../../tests/e2e/fixtures.ts) | `e2e` | Helper | `none` | **0** | 33 | Suite de pruebas e2e: fixtures.ts. | *(Helper)* |
 | [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | `e2e` | E2E / a11y | `playwright` | **16** | 399 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `npm run test:e2e`, `npm run test:a11y` |
 | [`tests/frontend/backoffice_controller.test.ts`](../../tests/frontend/backoffice_controller.test.ts) | `frontend` | Component / Unit | `node:test (tsx)` | **28** | 521 | Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/frontend/backoffice_env.ts`](../../tests/frontend/backoffice_env.ts) | `frontend` | Helper / Environment | `none` | **0** | 99 | Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend. | *(Helper)* |
@@ -427,9 +426,8 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 123 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
-| [`tests/e2e/fixtures.ts`](../../tests/e2e/fixtures.ts) | **0** | 135 | Suite de pruebas e2e: fixtures.ts. | *(General)* |
-| [`tests/e2e/global-teardown.ts`](../../tests/e2e/global-teardown.ts) | **0** | 26 | Suite de pruebas e2e: global-teardown.ts. | *(General)* |
+| [`tests/e2e/backoffice.spec.ts`](../../tests/e2e/backoffice.spec.ts) | **6** | 143 | Flujos completos de administración en navegador: login con token, CRUD de Pokémon, paginación y modal de confirmación. | `apps/frontend/src/backoffice.ts`, `apps/frontend/backoffice.html` |
+| [`tests/e2e/fixtures.ts`](../../tests/e2e/fixtures.ts) | **0** | 33 | Suite de pruebas e2e: fixtures.ts. | *(General)* |
 | [`tests/e2e/pokedex.spec.ts`](../../tests/e2e/pokedex.spec.ts) | **16** | 399 | Flujos de usuario en navegador: carga de catálogo, filtro con debounce, conmutador de tema oscuro y auditoría Axe-core WCAG 2.1 AA. | `apps/frontend/src/pokedex.ts`, `apps/frontend/index.html` |
 
 ### Suite: Rendimiento y Carga (k6) (`performance`)
