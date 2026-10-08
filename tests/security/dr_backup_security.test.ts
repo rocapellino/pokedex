@@ -459,3 +459,47 @@ test('🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y dig
       `actualícelo a ${composeDigest} (Renovate cambia solo el tag; el digest se copia del compose en el mismo PR)`,
   );
 });
+
+test('🛡️ Disaster Recovery: el CronJob de Drive guarda la config de rclone en un volumen escribible', () => {
+  // Con readOnlyRootFilesystem rclone no puede persistir el access token renovado en /.rclone.conf:
+  // cada ejecución pierde ~10 s en reintentos y registra un ERROR espurio.
+  const template = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml'),
+    'utf-8',
+  );
+  assert.match(
+    template,
+    /name:\s*RCLONE_CONFIG\s*\r?\n\s*value:\s*"?\/tmp\/rclone\.conf"?/,
+    'RCLONE_CONFIG debe apuntar a /tmp/rclone.conf, que es el emptyDir montado',
+  );
+  assert.match(template, /mountPath:\s*\/tmp\b/, 'El volumen escribible debe montarse en /tmp');
+  assert.match(template, /readOnlyRootFilesystem:\s*true/, 'La raíz del contenedor debe seguir siendo de solo lectura');
+});
+
+test('🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados', () => {
+  // PokedexDbBackupFailed/Stale filtran por ".*backup.*" y el job de Drive se llama "...-gdrive-sync":
+  // un fallo de la copia off-site pasó días sin ninguna alerta.
+  const doc = yaml.load(fs.readFileSync(path.join(ROOT_DIR, 'infra/monitoring/alerts.yaml'), 'utf-8')) as {
+    groups: { rules: { alert: string; expr: string; labels?: Record<string, string> }[] }[];
+  };
+  const rules = new Map(doc.groups.flatMap((g) => g.rules).map((r) => [r.alert, r]));
+
+  const failed = rules.get('PokedexGdriveSyncFailed');
+  assert.ok(failed, 'Debe existir la alerta PokedexGdriveSyncFailed');
+  assert.match(failed.expr, /kube_job_status_failed\{[^}]*gdrive-sync[^}]*\}\s*>\s*0/);
+
+  const stale = rules.get('PokedexGdriveSyncStale');
+  assert.ok(stale, 'Debe existir la alerta PokedexGdriveSyncStale');
+  assert.match(stale.expr, /kube_cronjob_status_last_successful_time\{[^}]*gdrive-sync[^}]*\}/);
+  assert.match(
+    stale.expr,
+    />\s*93600/,
+    'La copia off-site se considera vencida tras 26 horas, igual que la de base de datos',
+  );
+
+  const stuck = rules.get('PokedexJobStuck');
+  assert.ok(stuck, 'Debe existir la alerta genérica PokedexJobStuck');
+  assert.match(stuck.expr, /kube_job_status_active/);
+  assert.match(stuck.expr, /kube_job_status_start_time/);
+  assert.match(stuck.expr, /pokemon-app/, 'Debe acotarse al namespace de la aplicación');
+});

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T19:11:47.566Z",
+  "generatedAt": "2026-10-08T23:20:12.050Z",
   "summary": {
     "totalFiles": 175,
     "testFiles": 117,
     "helperFiles": 57,
     "performanceScripts": 1,
-    "totalTestCases": 969,
-    "totalLines": 26257,
-    "totalSizeBytes": 1135924,
+    "totalTestCases": 971,
+    "totalLines": 26294,
+    "totalSizeBytes": 1138203,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 31,
-      "testCases": 247,
+      "testCases": 249,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -5687,12 +5687,12 @@
       "type": "Security / Backup",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 11,
+      "testCount": 13,
       "describeCount": 0,
-      "assertionCountEst": 131,
-      "sizeBytes": 24403,
-      "lineCount": 462,
-      "sha256": "df415648e5b5eea810276cfbdadeb66ae5bbc373d6a9019eb56fdf0618f055a3",
+      "assertionCountEst": 143,
+      "sizeBytes": 26682,
+      "lineCount": 499,
+      "sha256": "55c60ff75dfb1197c4e5cc6e2a7920e9db64eddc4b4c6583f432fff28e1e69aa",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -5753,6 +5753,14 @@
         {
           "name": "🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y digest) en docker-compose y en el chart de Helm",
           "line": 435
+        },
+        {
+          "name": "🛡️ Disaster Recovery: el CronJob de Drive guarda la config de rclone en un volumen escribible",
+          "line": 463
+        },
+        {
+          "name": "🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados",
+          "line": 476
         }
       ]
     },
