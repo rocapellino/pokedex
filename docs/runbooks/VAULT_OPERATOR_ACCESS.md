@@ -22,25 +22,56 @@ secretos ni tocar el resto de Vault.
 Requiere un token root temporal. Se genera con las llaves Shamir (3 de 5) en lugar de reutilizar el de la
 inicialización.
 
+> [!WARNING]
+> **Vault 2.0 o superior (CVE-2026-5807):** `sys/generate-root` exige un token válido además de las llaves. Si no
+> queda ningún token con privilegios (por ejemplo, tras revocar el root sin haber creado antes al `operador`),
+> el flujo falla con `403 permission denied` aunque las llaves sean correctas. Comprobarlo con
+> `curl -sk -i "$VAULT_ADDR/v1/sys/generate-root/attempt"`: un `403` indica que el endpoint está cerrado y hay
+> que aplicar el paso 2.1. Con un token válido se omite.
+
+### 2.1 Abrir `generate-root` temporalmente (solo si el endpoint devuelve 403)
+
+En el LXC de Vault, añadir al nivel superior de `/etc/vault.d/vault.hcl` el parámetro oficial
+`enable_unauthenticated_access` y recargar con `SIGHUP` (no reinicia ni sella Vault):
+
+```bash
+ssh root@10.10.13.110
+cp -p /etc/vault.d/vault.hcl /root/vault.hcl.bak
+echo 'enable_unauthenticated_access = ["generate-root"]' >> /etc/vault.d/vault.hcl
+systemctl kill -s HUP vault
+```
+
+Habilitar solo `generate-root`, nunca `rekey`. Mientras esté activo, cualquiera con acceso de red puede iniciar y
+bloquear la generación del token root (el DoS que corrige la 2.0), por lo que se retira en el paso 2.4.
+Ejecutar el bloque una sola vez: una segunda ejecución sobrescribe el respaldo con el archivo ya modificado.
+
+### 2.2 Generar el token root temporal
+
 ```bash
 export VAULT_ADDR=https://10.10.13.110:8200
+unset VAULT_TOKEN
 vault operator generate-root -init
 ```
 
-Anotar el `Nonce` y el `OTP` que imprime. Repetir tres veces con una llave de desellado distinta cada vez; el
-prompt es oculto:
+Anotar el `Nonce` y el `OTP` que imprime. Aportar tres llaves de desellado distintas, una por ejecución. Con el
+prompt oculto basta `vault operator generate-root`. Para no pegar la llave a mano se lee del archivo de
+inicialización por entrada estándar; en ese modo el nonce es obligatorio:
 
 ```bash
-vault operator generate-root
+for i in 0 1 2; do
+  jq -r ".unseal_keys_b64[$i]" /root/vault-init-vault-01.json | vault operator generate-root -nonce=<NONCE> -
+done
 ```
 
 La tercera ejecución imprime el `Encoded Token`. Decodificarlo y entrar sin mostrar el token por pantalla:
 
 ```bash
-vault operator generate-root -decode=<ENCODED_TOKEN> -otp=<OTP> | vault login -
+vault operator generate-root -decode=<ENCODED_TOKEN> -otp=<OTP> | vault login -no-print -
 ```
 
-Crear la política y el usuario:
+No pegar el `Encoded Token` junto con el `OTP` en chats, tickets ni capturas: juntos reconstruyen el token root.
+
+### 2.3 Crear la política y el usuario
 
 ```bash
 vault policy write pokedex-preprod-operator - <<'EOF'
@@ -61,23 +92,42 @@ vault auth enable userpass
 read -rs PW && vault write auth/userpass/users/operador password="$PW" policies=pokedex-preprod-operator token_ttl=1h token_max_ttl=4h; unset PW
 ```
 
-Revocar el token root temporal inmediatamente:
+Si `userpass` ya estaba habilitado, `vault auth enable` responde `path is already in use` y se puede continuar.
 
-```bash
-vault token revoke -self
-rm -f ~/.vault-token
-```
+### 2.4 Cerrar el acceso temporal, probar al operador y revocar el root
+
+Orden obligatorio: el root solo se revoca cuando el `operador` ya está probado; si no, vuelve a quedar sin ningún
+token con privilegios.
+
+1. Si se aplicó el paso 2.1, quitar el parámetro (borrar la línea en lugar de restaurar un respaldo que pudo
+   copiarse ya modificado) y recargar:
+
+   ```bash
+   sed -i '/^enable_unauthenticated_access/d' /etc/vault.d/vault.hcl
+   systemctl kill -s HUP vault
+   rm -f /root/vault.hcl.bak
+   ```
+
+   Desde el Bastion, `curl -sk -i "$VAULT_ADDR/v1/sys/generate-root/attempt"` debe volver a dar `403`.
+
+2. Probar al `operador` en una segunda sesión (sección 4) sin cerrar la del root.
+3. Revocar el token root temporal:
+
+   ```bash
+   vault token revoke -self
+   rm -f ~/.vault-token
+   ```
 
 ## 3. Uso diario
 
 ```bash
 export VAULT_ADDR=https://10.10.13.110:8200
-vault login -method=userpass username=operador
+vault login -no-print -method=userpass username=operador
 vault kv patch secret/pokedex/preprod NOMBRE="valor"
 vault token revoke -self
 ```
 
-El token dura una hora. No se usa `vault token lookup` sin filtrar: imprime el valor del token. Para
+El token dura una hora. `-no-print` evita que `vault login` imprima el token. No se usa `vault token lookup` sin filtrar: imprime el valor del token. Para
 inspeccionarlo sin exponerlo: `vault token lookup -format=json | jq 'del(.data.id)'`.
 
 ## 4. Verificación
