@@ -75,6 +75,8 @@ Estado real del Alloy en pre-prod:
 > Reconciliar ambos es trabajo pendiente: o los values cubren OTLP, logs y sus destinos y se reemplaza el
 > release, o el repo pasa a describir el chart que realmente corre.
 
+Sobre el script de despliegue:
+
 > El script [`deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) sustituyó a un
 > `.ps1` que ataba el despliegue a Windows. El contrato está blindado por
 > `tests/security/grafana_portability.test.ts` (PORT-001), que falla si alguien reintroduce
