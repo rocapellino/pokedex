@@ -54,3 +54,21 @@ Se adopta una arquitectura de resiliencia y contratos estructurados de siete cap
 
 - **Compensaciones**:
   - Durante el período en que el circuito permanezca abierto, las respuestas generadas son representaciones locales estructuradas en lugar de inferencias dinámicas de Gemini.
+
+## Enmienda 2026-10-08: Revisión del modelo por defecto (`AUD-MOD-AI-001`)
+
+Se revisó el ciclo de vida de `gemini-2.5-flash` contra la
+[página de deprecaciones de Gemini](https://ai.google.dev/gemini-api/docs/deprecations)
+(actualizada el 2026-10-07): el modelo figura como estable y **sin fecha de retiro anunciada**; Google
+recomienda las familias 3.x solo para proyectos nuevos y no marca la 2.5 como obsoleta.
+
+**Decisión:** se mantiene `gemini-2.5-flash` como valor por defecto. No hay un retiro que obligue a migrar
+y cambiarlo sin medir calidad en los dos usos reales (diagramas Mermaid y mockups) sería una migración
+por novedad. El modelo ya es configurable con `GEMINI_MODEL`, de modo que un retiro anunciado se atiende
+con una variable de entorno y sin despliegue de código.
+
+**Revalidar** cuando Google anuncie una fecha de retiro para `gemini-2.5-flash` o cuando una familia
+posterior ofrezca una ventaja medible de costo o calidad en esos dos usos.
+
+El SDK `@google/genai` pasa de `2.21.0` a `2.28.0`. La suite de pruebas del subsistema de IA, que simula
+el SDK, pasa sin cambios.

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T16:29:18.410Z",
+  "generatedAt": "2026-10-08T17:58:58.014Z",
   "summary": {
-    "totalFiles": 173,
-    "testFiles": 114,
+    "totalFiles": 174,
+    "testFiles": 115,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 961,
-    "totalLines": 26127,
-    "totalSizeBytes": 1129045,
+    "totalTestCases": 963,
+    "totalLines": 26192,
+    "totalSizeBytes": 1132262,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 21,
-      "testCases": 158,
+      "files": 22,
+      "testCases": 160,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -1833,9 +1833,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 6608,
-      "lineCount": 169,
-      "sha256": "fc625f43f69b86ac01cf6678c7fc00a5c5fbeb8008253b46e68a9bc4edbc3e6a",
+      "sizeBytes": 6827,
+      "lineCount": 172,
+      "sha256": "73216e78d9d3307c86c099e94a2fa3ac3df2cef26ea3b93c855358286bdf8f63",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1883,11 +1883,11 @@
         },
         {
           "name": "🏷️ Tipos: pulsar fuera o sacar el foco cierra la lista, pero pulsar dentro no",
-          "line": 141
+          "line": 144
         },
         {
           "name": "📂 Panel: sin los elementos en el DOM las funciones no fallan",
-          "line": 158
+          "line": 161
         }
       ]
     },
@@ -8373,6 +8373,42 @@
         {
           "name": "🌱 Generator: normaliza el flavor text y las categorías",
           "line": 148
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/zod_resolution.test.ts",
+      "suite": "unit",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 3,
+      "sizeBytes": 2998,
+      "lineCount": 62,
+      "sha256": "112ab10968ac05f519150439a7b2261c3cd79f1cab9a269238d7a7883b934a4f",
+      "targetDomain": "Suite unit",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas unit: zod_resolution.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "📦 AUD-DEP-ZOD-001: el backend resuelve zod 4, la versión que declara",
+          "line": 37
+        },
+        {
+          "name": "📦 AUD-DEP-ZOD-001: solo el backend importa zod; fuera de él resolvería la copia hoisteada",
+          "line": 48
         }
       ]
     },
