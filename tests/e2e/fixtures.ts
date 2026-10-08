@@ -37,6 +37,41 @@ async function cardsPerPage(pages: Page[]): Promise<number[]> {
   );
 }
 
+interface AnimationSnapshot {
+  target: string;
+  kind: string;
+  property: string;
+  state: string;
+  progress: number | null;
+}
+
+/**
+ * Animaciones y transiciones vivas en el instante del fallo. Axe mide el contraste con el color
+ * computado en ese momento: si un fallo de contraste coincide con una transición sin terminar, este
+ * volcado lo demuestra (y dice sobre qué elemento y propiedad) en lugar de dejarlo como hipótesis.
+ */
+async function liveAnimations(pages: Page[]): Promise<AnimationSnapshot[][]> {
+  return Promise.all(
+    pages.map((page) =>
+      page
+        .evaluate(() =>
+          document.getAnimations().map((animation) => {
+            const target = animation.effect instanceof KeyframeEffect ? animation.effect.target : null;
+            const classes = target instanceof Element ? [...target.classList].join('.') : '';
+            return {
+              target: target instanceof Element ? `${target.tagName.toLowerCase()}${classes ? `.${classes}` : ''}` : '',
+              kind: animation.constructor.name,
+              property: 'transitionProperty' in animation ? String(animation.transitionProperty) : animation.id || '',
+              state: animation.playState,
+              progress: animation.effect?.getComputedTiming().progress ?? null,
+            };
+          }),
+        )
+        .catch(() => []),
+    ),
+  );
+}
+
 export const test = base.extend<{ e2eDiagnostics: undefined }>({
   context: async ({ context, baseURL }, use, testInfo) => {
     const clientIp = CLIENT_IP_BY_PROJECT[testInfo.project.name];
@@ -85,6 +120,7 @@ export const test = base.extend<{ e2eDiagnostics: undefined }>({
         workerIndex: testInfo.workerIndex,
         durationMs: Date.now() - startedAt,
         cardsPerPage: await cardsPerPage(context.pages()),
+        liveAnimations: await liveAnimations(context.pages()),
         events,
       };
       const body = JSON.stringify(report, null, 2);

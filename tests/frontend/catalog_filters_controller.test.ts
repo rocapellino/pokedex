@@ -366,7 +366,7 @@ test('📊 Controlador: orden y estadística se restauran desde la URL y una URL
   assert.equal(sortSelect().value, 'name');
   assert.equal(statKey().value, 'speed');
   assert.equal(statMin().value, '60');
-  assert.deepEqual(chips(), ['Velocidad ≥ 60✕']);
+  assert.deepEqual(chips(), ['Velocidad ≥ 60✕', 'Orden: Nombre ↑✕']);
 
   dom.window.history.replaceState(null, '', '/?stat=poder&min=60&orden=__proto__');
   await loadPokemons();

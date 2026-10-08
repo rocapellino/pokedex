@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T13:40:22.717Z",
+  "generatedAt": "2026-10-08T13:49:57.159Z",
   "summary": {
-    "totalFiles": 169,
-    "testFiles": 110,
+    "totalFiles": 170,
+    "testFiles": 111,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 931,
-    "totalLines": 25361,
-    "totalSizeBytes": 1100433,
+    "totalTestCases": 938,
+    "totalLines": 25546,
+    "totalSizeBytes": 1106938,
     "suitesCount": 10
   },
   "suites": [
@@ -58,8 +58,8 @@
       "path": "tests/frontend",
       "runner": "node:test + JSDOM",
       "command": "npm test",
-      "files": 83,
-      "testCases": 252,
+      "files": 84,
+      "testCases": 259,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -784,9 +784,9 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 3660,
-      "lineCount": 99,
-      "sha256": "e9802e3ed60dbe66ba0bdbc4ede6886a40794c53f682ba5f9470e7164c6d2239",
+      "sizeBytes": 5088,
+      "lineCount": 135,
+      "sha256": "9a19f89ad93cbde660c453cd0ad95b75914debb216550d30d069209cf7f1cbaa",
       "targetDomain": "Suite e2e",
       "targetArtifacts": [],
       "npmCommands": [],
@@ -1249,9 +1249,9 @@
       "testCount": 24,
       "describeCount": 0,
       "assertionCountEst": 124,
-      "sizeBytes": 17150,
+      "sizeBytes": 17174,
       "lineCount": 452,
-      "sha256": "3a65d65552eae7194ac6759d8c6d9e0f2a878d2ca6c5fc90ecc51e16416c220b",
+      "sha256": "143f37a8a015324c15a471324e78fcec85fed7f2d2c0f4957b21ccd4e67ba0de",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1435,6 +1435,61 @@
         {
           "name": "🧪 Habilidades: funciona con habilidades en texto y se combina con otros filtros",
           "line": 135
+        }
+      ]
+    },
+    {
+      "path": "tests/frontend/catalog_sort_chip_controller.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 7,
+      "describeCount": 0,
+      "assertionCountEst": 20,
+      "sizeBytes": 5053,
+      "lineCount": 149,
+      "sha256": "3c388bb1641a799c84168dd96c8baafd367d5a18a2a32c6d7627163f98ef4946",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: catalog_sort_chip_controller.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔀 Chip de orden: el orden natural no muestra chip",
+          "line": 88
+        },
+        {
+          "name": "🔀 Chip de orden: cambiar de criterio muestra «Orden: criterio ↓» con el sentido natural de la estadística",
+          "line": 93
+        },
+        {
+          "name": "🔀 Chip de orden: invertir el sentido del orden natural también lo muestra",
+          "line": 100
+        },
+        {
+          "name": "🔀 Chip de orden: la flecha sigue al sentido y se oculta al volver al natural del criterio",
+          "line": 107
+        },
+        {
+          "name": "🔀 Chip de orden: su ✕ restablece criterio, sentido, control, grilla y URL",
+          "line": 116
+        },
+        {
+          "name": "🔀 Chip de orden: «Limpiar filtros» conserva el orden y su chip, y no cuenta como filtro",
+          "line": 129
+        },
+        {
+          "name": "🔀 Chip de orden: se restaura desde la URL y convive con los chips de filtros",
+          "line": 142
         }
       ]
     },
