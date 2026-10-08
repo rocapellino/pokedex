@@ -4,7 +4,7 @@
  */
 
 import type { Pokemon, EvolutionNode } from '../types.js';
-import { normalizeStr, html, type SafeHtml } from '../shared/index.js';
+import { FALLBACK_IMAGE, normalizeStr, html, type SafeHtml } from '../shared/index.js';
 
 export function getTriggerIcon(metodo?: string | null): string {
   if (!metodo) return '⬆️';
@@ -57,7 +57,7 @@ export function renderSingleEvolutionNode(
   const targetPk = catalog.find((x) => x.id === nodeId);
   const nodeTypes = targetPk?.tipos ? targetPk.tipos : targetPk ? [targetPk.tipo] : ['Normal'];
   const nombre = node.nombre || 'Pokémon';
-  const imagen = node.imagen || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+  const imagen = node.imagen || FALLBACK_IMAGE;
 
   const methodBadge =
     showMethod && node.metodo

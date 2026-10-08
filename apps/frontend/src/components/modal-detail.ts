@@ -163,11 +163,6 @@ export function openDetailModal(id: number, catalog: Pokemon[]): void {
   const p = catalog.find((x) => x.id === id);
   if (!p) return;
 
-  const detailTitle = document.getElementById('detailTitle');
-  if (detailTitle?.parentElement) {
-    detailTitle.parentElement.style.display = 'none';
-  }
-
   const detailContent = document.getElementById('detailContent');
   if (!detailContent) return;
 

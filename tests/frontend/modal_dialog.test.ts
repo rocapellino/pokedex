@@ -35,9 +35,28 @@ for (const { page, ids } of MODALS) {
   }
 }
 
-test('♿ Modal detalle: el botón de cierre tiene nombre accesible', () => {
-  const closeBtn = loadPage('index.html').querySelector('#detailModal .btn-icon');
-  assert.ok(closeBtn?.getAttribute('aria-label'), 'el botón de solo icono necesita aria-label');
+test('♿ Modal detalle: el nombre del diálogo es un título solo para lectores y no hay cabecera estática', () => {
+  const page = loadPage('index.html');
+  const title = page.querySelector('#detailTitle');
+  assert.ok(title?.classList.contains('sr-only'), 'el título estático solo da nombre al diálogo');
+  assert.ok(title?.textContent?.trim());
+  assert.equal(page.querySelector('#detailModal .modal-header'), null, 'la cabecera estática estaba oculta por JS');
+  assert.equal(page.querySelector('#detailModal .btn-icon'), null, 'el botón de cierre real lo renderiza la ficha');
+});
+
+test('♿ Modal detalle: el botón de cierre que renderiza la ficha tiene nombre accesible', async () => {
+  const dom = new JSDOM('<body></body>');
+  (globalThis as Record<string, unknown>).document = dom.window.document;
+  const { renderDetailModalContent } = await import('../../apps/frontend/src/components/modal-detail.js');
+  const pokemon = { id: 1, nombre: 'Bulbasaur', tipo: 'Planta', fuerza: 49 } as Parameters<
+    typeof renderDetailModalContent
+  >[0];
+  const host = dom.window.document.createElement('div');
+  host.innerHTML = String(renderDetailModalContent(pokemon, [pokemon]));
+  assert.ok(
+    host.querySelector('.modal-close-btn')?.getAttribute('aria-label'),
+    'el botón de solo icono necesita aria-label',
+  );
 });
 
 test('♿ Modales: ya no se abren con la clase .active', () => {
