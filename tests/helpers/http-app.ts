@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { app } from '../../apps/backend/server.js';
 
@@ -32,6 +33,14 @@ export async function startApp(): Promise<RunningApp> {
     baseUrl: `http://127.0.0.1:${port}`,
     close: () => new Promise<void>((resolve) => server.close(() => resolve())),
   };
+}
+
+/**
+ * Credencial de prueba generada en cada ejecución: evita literales con forma de clave en el código fuente
+ * (que el escáner de secretos señala) sin necesidad de ampliar su lista de excepciones.
+ */
+export function randomSecret(label: string): string {
+  return `${label}-${randomBytes(16).toString('hex')}`;
 }
 
 let ipCounter = 0;

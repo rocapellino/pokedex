@@ -1,8 +1,8 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { api, nextClientIp, startApp, type RunningApp } from '../helpers/http-app.js';
+import { api, nextClientIp, randomSecret, startApp, type RunningApp } from '../helpers/http-app.js';
 
-const ADMIN_KEY = 'test-admin-key-routes-auth-1234567890';
+const ADMIN_KEY = randomSecret('admin');
 
 let server: RunningApp;
 let previousKey: string | undefined;

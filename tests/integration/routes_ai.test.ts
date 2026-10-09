@@ -1,9 +1,9 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { api, nextClientIp, startApp, type RunningApp } from '../helpers/http-app.js';
+import { api, nextClientIp, randomSecret, startApp, type RunningApp } from '../helpers/http-app.js';
 
-const AI_KEY = 'test-ai-key-routes-ai-1234567890';
-const ADMIN_KEY = 'test-admin-key-routes-ai-1234567890';
+const AI_KEY = randomSecret('ai');
+const ADMIN_KEY = randomSecret('admin');
 const ENDPOINTS = ['/api/v1/ai/diagram', '/api/v1/ai/mock', '/api/v1/ai/image'] as const;
 
 let server: RunningApp;

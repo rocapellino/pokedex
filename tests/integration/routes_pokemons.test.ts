@@ -1,8 +1,8 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { api, nextClientIp, startApp, type RunningApp } from '../helpers/http-app.js';
+import { api, nextClientIp, randomSecret, startApp, type RunningApp } from '../helpers/http-app.js';
 
-const ADMIN_KEY = 'test-admin-key-routes-pokemons-1234567890';
+const ADMIN_KEY = randomSecret('admin');
 const IMAGE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png';
 const auth = { 'x-api-key': ADMIN_KEY };
 
