@@ -9,7 +9,7 @@ export const ADR_INDEX_NODE_LABEL = 'Índice de ADRs (decisions/README.md)';
  *
  * Un rango ("ADR-001 a ADR-022") deriva cada vez que se agrega, consolida o
  * retira un ADR (AUD-GOV-DOC-002); la cobertura individual de cada ADR activo
- * la verifica el contrato del índice en `tests/gitops/gitops_architecture.test.ts`.
+ * la verifica el contrato del registro en `tests/security/adr_registry_contract.test.ts`.
  */
 export function assertDocsPortalLinksAdrIndex(docsReadmeContent: string): void {
   assert.ok(

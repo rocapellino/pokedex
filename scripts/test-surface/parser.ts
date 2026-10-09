@@ -151,12 +151,23 @@ export function parseTestFile(fullPath: string): TestFileRecord {
     ciWorkflows.push('.github/workflows/governance-ruleset-parity.yaml');
   }
 
-  const meta = FILE_METADATA_CATALOG[relativePath] || {
-    type: role === 'TEST_FILE' ? 'Automated Test' : 'Helper',
-    targetDomain: `Suite ${suite}`,
-    targetArtifacts: [],
-    description: `Suite de pruebas ${suite}: ${path.basename(relativePath)}.`,
-  };
+  const goldenName = path.basename(relativePath, '.html');
+  const goldenMeta = relativePath.startsWith('tests/frontend/golden/')
+    ? {
+        type: 'Golden Fixture',
+        targetDomain: 'Paridad de Render HTML',
+        targetArtifacts: ['apps/frontend/src/components/'],
+        description: `Salida HTML esperada («${goldenName}») que las pruebas html_parity*.test.ts comparan con el render actual.`,
+      }
+    : undefined;
+
+  const meta = FILE_METADATA_CATALOG[relativePath] ||
+    goldenMeta || {
+      type: role === 'TEST_FILE' ? 'Automated Test' : 'Helper',
+      targetDomain: `Suite ${suite}`,
+      targetArtifacts: [],
+      description: `Suite de pruebas ${suite}: ${path.basename(relativePath)}.`,
+    };
 
   return {
     path: relativePath,

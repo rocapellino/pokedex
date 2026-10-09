@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T14:13:04.672Z",
+  "generatedAt": "2026-10-09T14:21:32.578Z",
   "summary": {
     "totalFiles": 191,
     "testFiles": 132,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 976,
-    "totalLines": 26223,
-    "totalSizeBytes": 1134003,
+    "totalTestCases": 977,
+    "totalLines": 26235,
+    "totalSizeBytes": 1134429,
     "suitesCount": 10
   },
   "suites": [
@@ -109,7 +109,7 @@
       "runner": "node:test (tsx)",
       "command": "npm test",
       "files": 15,
-      "testCases": 112,
+      "testCases": 113,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -505,7 +505,7 @@
     {
       "path": "tests/ci_workflow_governance.test.ts",
       "suite": "governance",
-      "type": "Automated Test",
+      "type": "Contract / CI",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 23,
@@ -514,8 +514,12 @@
       "sizeBytes": 26322,
       "lineCount": 559,
       "sha256": "e4af3edcf15554d978c7261ab66eb6831321fa8ea5fc45c907ad4fa6f0474287",
-      "targetDomain": "Suite governance",
-      "targetArtifacts": [],
+      "targetDomain": "Topología de CI / Workflows",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        ".github/workflows/change-impact.yaml",
+        ".github/ci-impact.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -524,7 +528,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas governance: ci_workflow_governance.test.ts.",
+      "description": "Verifica la topología de CI: workflows condicionales gobernados por change-impact.yaml, reusable workflows sin concurrency, serialización por PR y gate de resultados.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -624,7 +628,7 @@
     {
       "path": "tests/ci/lighthouse.test.ts",
       "suite": "ci",
-      "type": "Automated Test",
+      "type": "Contract / CI",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 10,
@@ -633,8 +637,12 @@
       "sizeBytes": 9479,
       "lineCount": 193,
       "sha256": "943993b4b981a3686987ea74033d5e9f46d4a7f6e00d9aefc051ce4bd637b005",
-      "targetDomain": "Suite ci",
-      "targetArtifacts": [],
+      "targetDomain": "Lighthouse / Pila de Medición",
+      "targetArtifacts": [
+        "scripts/lighthouse-stack.ts",
+        "scripts/lighthouse-summary.ts",
+        "lighthouserc.json"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -643,7 +651,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas ci: lighthouse.test.ts.",
+      "description": "Verifica la API simulada de Lighthouse (paginación como el backend, X-Total-Count, imágenes locales) y la carga de extremo a extremo del catálogo.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -739,12 +747,12 @@
       "type": "Contract / Types",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 14,
-      "sizeBytes": 4187,
-      "lineCount": 101,
-      "sha256": "18aa859746d729be21957b82ed03b7f51a048cdd58c7fe4ef6019991ef3a253d",
+      "assertionCountEst": 15,
+      "sizeBytes": 4608,
+      "lineCount": 113,
+      "sha256": "82cdcf6cb13f4f40096517eb734555aabd90b143583fc4d2852ddf91a3a092eb",
       "targetDomain": "Interoperabilidad Backend-Frontend",
       "targetArtifacts": [
         "apps/backend/src/types.ts",
@@ -770,8 +778,12 @@
           "line": 43
         },
         {
-          "name": "🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos",
+          "name": "🛡️ Contrato de Superficie de Pruebas: todo archivo de tests/ tiene una descripción propia y no la genérica",
           "line": 66
+        },
+        {
+          "name": "🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos",
+          "line": 78
         }
       ]
     },
@@ -878,11 +890,13 @@
       "sizeBytes": 1340,
       "lineCount": 33,
       "sha256": "2619201ac1248b96927a2392fd81630db9042b82712a846c6423d7c2675843b1",
-      "targetDomain": "Suite e2e",
-      "targetArtifacts": [],
+      "targetDomain": "Playwright / IP por Proyecto",
+      "targetArtifacts": [
+        "apps/backend/src/middleware/rate-limiter.ts"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas e2e: fixtures.ts.",
+      "description": "Fixture de Playwright que identifica a cada proyecto con una IP de documentación distinta (X-Forwarded-For) para no agotar el límite de 300 peticiones por minuto del backend.",
       "status": "HELPER",
       "testCases": []
     },
@@ -1145,7 +1159,7 @@
     {
       "path": "tests/frontend/catalog_ability_controller.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 10,
@@ -1154,8 +1168,11 @@
       "sizeBytes": 7251,
       "lineCount": 199,
       "sha256": "23d7618253c29e51d1e9e8859b944b48da015872f23164db659f0411291e63b0",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Filtro por Habilidad",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/shared/catalog-filters.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1164,7 +1181,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_ability_controller.test.ts.",
+      "description": "Valida con JSDOM el autocompletado de habilidades: lista única ordenada, filtro, chip, URL, normalización de tildes y campo no válido.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1212,7 +1229,7 @@
     {
       "path": "tests/frontend/catalog_class_controller.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 10,
@@ -1221,8 +1238,11 @@
       "sizeBytes": 8001,
       "lineCount": 214,
       "sha256": "344a31f9d0094d63ddcc51e44af35d609a5346fc4d5aa9a470cacce18b4f1c0d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Filtro por Clasificación",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/shared/catalog-filters.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1231,7 +1251,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_class_controller.test.ts.",
+      "description": "Valida con JSDOM el filtro de legendarios y míticos: selector, chip, URL y restablecimiento con «Limpiar filtros».",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1279,7 +1299,7 @@
     {
       "path": "tests/frontend/catalog_fetch.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -1288,8 +1308,10 @@
       "sizeBytes": 2459,
       "lineCount": 74,
       "sha256": "4aadefaebb3d9295b5f0dfadf2a9807bc83439e43a33d66c84f77fc2038bd1ab",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Descarga Paginada",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/api.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1298,7 +1320,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_fetch.test.ts.",
+      "description": "Regresión del catálogo nacional: fetchAllPokemons descarga todas las páginas hasta X-Total-Count y termina aunque el total cambie.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1318,7 +1340,7 @@
     {
       "path": "tests/frontend/catalog_filters_controller.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 24,
@@ -1327,8 +1349,11 @@
       "sizeBytes": 17314,
       "lineCount": 453,
       "sha256": "1ecd71f96ba3990c0f98168120d700687b496f4ea15ac84025970b2c62b87c24",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Controlador de Filtros",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/components/filters-panel.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1337,7 +1362,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_filters_controller.test.ts.",
+      "description": "Valida con JSDOM el controlador de filtros: tipos múltiples, búsqueda, generación, megaevolución, chips y botón «Limpiar filtros».",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1441,7 +1466,7 @@
     {
       "path": "tests/frontend/catalog_filters.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 12,
@@ -1450,8 +1475,10 @@
       "sizeBytes": 6824,
       "lineCount": 141,
       "sha256": "724a99d7b80a5f577953576299078e4709053f5e06fd17d70f4a6ef50984a24a",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Lógica de Filtros",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/catalog-filters.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1460,7 +1487,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_filters.test.ts.",
+      "description": "Verifica el filtrado puro del catálogo: tipos combinados, búsqueda sin tildes por nombre, habilidad, hábitat e ID, generación y megaevolución.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1516,7 +1543,7 @@
     {
       "path": "tests/frontend/catalog_history_controller.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 11,
@@ -1525,8 +1552,11 @@
       "sizeBytes": 9003,
       "lineCount": 273,
       "sha256": "cc270d261338aef63fda9a09920ac9fcb1554ba4ca1f132eae667589b4dfd341",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Historial del Navegador",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/shared/filter-history.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1535,7 +1565,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_history_controller.test.ts.",
+      "description": "Valida que cada cambio de filtro cree una entrada de historial, que escribir reescriba la actual y que atrás/adelante restauren el estado.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1587,7 +1617,7 @@
     {
       "path": "tests/frontend/catalog_page_url.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -1596,8 +1626,11 @@
       "sizeBytes": 4743,
       "lineCount": 134,
       "sha256": "daa1c1ecaba273f514cc7f131391fed109cef6d5ab65eb3e634082b2681d989d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Página en la URL",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/shared/filter-url.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1606,7 +1639,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_page_url.test.ts.",
+      "description": "Valida el parámetro ?pagina: apertura directa, ajuste de páginas fuera de rango, valores inválidos y navegación atrás/adelante.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1634,7 +1667,7 @@
     {
       "path": "tests/frontend/catalog_sort_chip_controller.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -1643,8 +1676,11 @@
       "sizeBytes": 5053,
       "lineCount": 149,
       "sha256": "3c388bb1641a799c84168dd96c8baafd367d5a18a2a32c6d7627163f98ef4946",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Chip de Orden",
+      "targetArtifacts": [
+        "apps/frontend/src/pokedex.ts",
+        "apps/frontend/src/shared/catalog-sort.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1653,7 +1689,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_sort_chip_controller.test.ts.",
+      "description": "Valida el chip «Orden: criterio» con JSDOM: aparición al cambiar de criterio, flecha de sentido y ocultamiento al volver al orden natural.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1689,7 +1725,7 @@
     {
       "path": "tests/frontend/catalog_sort.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 11,
@@ -1698,8 +1734,10 @@
       "sizeBytes": 5629,
       "lineCount": 170,
       "sha256": "c81cfbd15640363a7b0308c3ca35a1693e9b5d139762a177bfab84193d779cc1",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Lógica de Orden",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/catalog-sort.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1708,7 +1746,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: catalog_sort.test.ts.",
+      "description": "Verifica el orden por número, nombre y estadística: tildes, empates por número, datos ausentes al final y entrada sin mutar.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1760,7 +1798,7 @@
     {
       "path": "tests/frontend/css_cache_busting.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -1769,8 +1807,12 @@
       "sizeBytes": 2028,
       "lineCount": 47,
       "sha256": "71bbd7cc9ed0aa4a1d4ed554351ed85e3f048c6d60153d56fde193afab0d505d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Caché de CSS",
+      "targetArtifacts": [
+        "apps/frontend/css-version.ts",
+        "apps/frontend/index.html",
+        "apps/frontend/backoffice.html"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1779,7 +1821,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: css_cache_busting.test.ts.",
+      "description": "Comprueba que la versión del enlace al CSS derive de su contenido, que no se toquen otros enlaces y que las páginas no la fijen a mano.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1803,7 +1845,7 @@
     {
       "path": "tests/frontend/filter_url.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 17,
@@ -1812,8 +1854,10 @@
       "sizeBytes": 6843,
       "lineCount": 157,
       "sha256": "b0e21a00f3303213ad61561e0a5fb4611c3e1ba1d303cf758c14e8937a330ecf",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Estado de Filtros en la URL",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/filter-url.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1822,7 +1866,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: filter_url.test.ts.",
+      "description": "Verifica la lectura y escritura del estado de filtros en la URL: búsqueda, tipos, generación, megaevolución, página y descarte de valores inválidos.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1898,7 +1942,7 @@
     {
       "path": "tests/frontend/filters_panel.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 10,
@@ -1907,8 +1951,10 @@
       "sizeBytes": 6827,
       "lineCount": 172,
       "sha256": "73216e78d9d3307c86c099e94a2fa3ac3df2cef26ea3b93c855358286bdf8f63",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Panel de Filtros",
+      "targetArtifacts": [
+        "apps/frontend/src/components/filters-panel.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1917,7 +1963,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: filters_panel.test.ts.",
+      "description": "Valida el panel de filtros: apertura y cierre accesibles, contador de filtros activos y resumen del desplegable de tipos.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -1965,7 +2011,7 @@
     {
       "path": "tests/frontend/fonts_selfhosted.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -1974,8 +2020,11 @@
       "sizeBytes": 3319,
       "lineCount": 77,
       "sha256": "5aedddc7ea5fc85bc65a016be2d3f379c590f0d774e648e88f7b49901d0899ca",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Fuentes Autoalojadas y CSP",
+      "targetArtifacts": [
+        "apps/frontend/index.html",
+        "apps/frontend/nginx.conf.template"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1984,7 +2033,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: fonts_selfhosted.test.ts.",
+      "description": "Comprueba que no se dependa de Google Fonts, que los .woff2 declarados existan y sean válidos, y que style-src y font-src sean solo self.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -2008,7 +2057,7 @@
     {
       "path": "tests/frontend/golden/badge-single.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2017,18 +2066,20 @@
       "sizeBytes": 65,
       "lineCount": 2,
       "sha256": "b7743918a84187db6fe90b363ea3a1eaaccb669dab3a6917f5483e7f566ef3a5",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: badge-single.html.",
+      "description": "Salida HTML esperada («badge-single») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/badges-fallback.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2037,18 +2088,20 @@
       "sizeBytes": 54,
       "lineCount": 2,
       "sha256": "ad0d5bfa5196958fd8e1771c3f57f644382f205986e55c9bac13bac34ed6c357",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: badges-fallback.html.",
+      "description": "Salida HTML esperada («badges-fallback») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/badges-multi.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2057,18 +2110,20 @@
       "sizeBytes": 115,
       "lineCount": 2,
       "sha256": "d636e34de92389fdbd7d474927efef2609e37789f6fbc00a652b36c194d29c74",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: badges-multi.html.",
+      "description": "Salida HTML esperada («badges-multi») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/card-charizard.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2077,18 +2132,20 @@
       "sizeBytes": 1593,
       "lineCount": 48,
       "sha256": "9f285beb4f0319d51d8f195554ebba18df5642721eee593a09f8402b85ba630d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: card-charizard.html.",
+      "description": "Salida HTML esperada («card-charizard») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/card-legendario.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2097,18 +2154,20 @@
       "sizeBytes": 1632,
       "lineCount": 48,
       "sha256": "acbec4249e7ce53d2884662a1aadd93fe66db1786809022999fcc3981ba958cb",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: card-legendario.html.",
+      "description": "Salida HTML esperada («card-legendario») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/card-mitico.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2117,18 +2176,20 @@
       "sizeBytes": 1622,
       "lineCount": 48,
       "sha256": "ded2f184225c8f475c8250123b51086ab97e3c48f3f0c75e6fdbb6047453c59d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: card-mitico.html.",
+      "description": "Salida HTML esperada («card-mitico») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/card-pikachu.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2137,18 +2198,20 @@
       "sizeBytes": 1527,
       "lineCount": 48,
       "sha256": "d95c4df3508c1660124945348c576bf3d6ca16bf1723630f147eaac1e13a1009",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: card-pikachu.html.",
+      "description": "Salida HTML esperada («card-pikachu») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/card-sparse.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2157,18 +2220,20 @@
       "sizeBytes": 1556,
       "lineCount": 48,
       "sha256": "529dd4ac7b553becea060aaafde37c76778d81b4cc944a9a62ea26bbbaecf956",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: card-sparse.html.",
+      "description": "Salida HTML esperada («card-sparse») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/empty-state-plain.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2177,18 +2242,20 @@
       "sizeBytes": 187,
       "lineCount": 8,
       "sha256": "267efef2bb9c0815b096fd0ab7e25d153f046eaa7b1e07f6ee892b35aa826759",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: empty-state-plain.html.",
+      "description": "Salida HTML esperada («empty-state-plain») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/empty-state-retry.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2197,18 +2264,20 @@
       "sizeBytes": 276,
       "lineCount": 8,
       "sha256": "ccca6985ac313a0d250a66faaa39592f6f167e7f8b8e4fab56b74d5b685c435a",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: empty-state-retry.html.",
+      "description": "Salida HTML esperada («empty-state-retry») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-base-stats-full.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2217,18 +2286,20 @@
       "sizeBytes": 1970,
       "lineCount": 36,
       "sha256": "ae487dddf6d7cbfe4a7b72cdedb22861717a562ad55dcb4c6cae7417b5f391f8",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-base-stats-full.html.",
+      "description": "Salida HTML esperada («modal-base-stats-full») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-base-stats-none.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2237,18 +2308,20 @@
       "sizeBytes": 57,
       "lineCount": 2,
       "sha256": "e6878e6704092b342f2b5e706850d0dcd5ef82220fcf0a1989ef61e5896a3ba9",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-base-stats-none.html.",
+      "description": "Salida HTML esperada («modal-base-stats-none») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-base-stats-partial.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2257,18 +2330,20 @@
       "sizeBytes": 1519,
       "lineCount": 32,
       "sha256": "a30fac01fdca23f16702f5c6a5a7366f940fb36e2ec13e6d226564a4d8eb97bc",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-base-stats-partial.html.",
+      "description": "Salida HTML esperada («modal-base-stats-partial») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-connector-method.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2277,18 +2352,20 @@
       "sizeBytes": 255,
       "lineCount": 9,
       "sha256": "67b90af8283969ecada99ef15fc5346429d248f611d44b9ecc4b18283e1cae8b",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-connector-method.html.",
+      "description": "Salida HTML esperada («modal-connector-method») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-connector-plain.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2297,18 +2374,20 @@
       "sizeBytes": 98,
       "lineCount": 2,
       "sha256": "7251cd231bc4e6440400fc5c6e5e445d3eb9dbbba6964848f09b401a4a5ee1f4",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-connector-plain.html.",
+      "description": "Salida HTML esperada («modal-connector-plain») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-connector-undefined.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2317,18 +2396,20 @@
       "sizeBytes": 98,
       "lineCount": 2,
       "sha256": "7251cd231bc4e6440400fc5c6e5e445d3eb9dbbba6964848f09b401a4a5ee1f4",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-connector-undefined.html.",
+      "description": "Salida HTML esperada («modal-connector-undefined») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-detail-charizard-mega.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2337,18 +2418,20 @@
       "sizeBytes": 16694,
       "lineCount": 339,
       "sha256": "49caa21c4bf15fb7418a0c1c6e49da66f7d8d21f7c5ed0cdacf9720dca573985",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-detail-charizard-mega.html.",
+      "description": "Salida HTML esperada («modal-detail-charizard-mega») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-detail-eevee.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2357,18 +2440,20 @@
       "sizeBytes": 7251,
       "lineCount": 168,
       "sha256": "4ad7502031f794be9d0534eb7a5325ce1f0e93c7133842c2e023da1c1e4c927c",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-detail-eevee.html.",
+      "description": "Salida HTML esperada («modal-detail-eevee») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-detail-pikachu.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2377,18 +2462,20 @@
       "sizeBytes": 6814,
       "lineCount": 162,
       "sha256": "03a5ad8988ef06103e690719fc5f9050a33689f078c4bd0be4bca923f32a1c45",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-detail-pikachu.html.",
+      "description": "Salida HTML esperada («modal-detail-pikachu») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-detail-sparse.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2397,18 +2484,20 @@
       "sizeBytes": 3261,
       "lineCount": 86,
       "sha256": "0d928e1b4f9382219cf2b9ad9cbca247a9c36a4bea72c8ac57101555e38d3d92",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-detail-sparse.html.",
+      "description": "Salida HTML esperada («modal-detail-sparse») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-branched-leaves.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2417,18 +2506,20 @@
       "sizeBytes": 2988,
       "lineCount": 69,
       "sha256": "fb541702c4a664102ac724d4d2972c4c1b9e85220b4189fa8af7efefb69df72c",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-branched-leaves.html.",
+      "description": "Salida HTML esperada («modal-evolution-branched-leaves») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-branched-prefix.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2437,18 +2528,20 @@
       "sizeBytes": 3166,
       "lineCount": 79,
       "sha256": "82005d194548272c9ed92615d88370a5e2d1da912dd5e0bfcf3481a2e2b2abd7",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-branched-prefix.html.",
+      "description": "Salida HTML esperada («modal-evolution-branched-prefix») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-flat-1.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2457,18 +2550,20 @@
       "sizeBytes": 809,
       "lineCount": 21,
       "sha256": "32ef528fc98efb4a97ddbaa9bde0904fd26d431a81b3215b777d7da251fd51d9",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-flat-1.html.",
+      "description": "Salida HTML esperada («modal-evolution-flat-1») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-flat-3.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2477,18 +2572,20 @@
       "sizeBytes": 2505,
       "lineCount": 63,
       "sha256": "ba164ac219b5f35d803062d14da41a779a34bb4273e91f5b12296d9964441437",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-flat-3.html.",
+      "description": "Salida HTML esperada («modal-evolution-flat-3») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-linear-tree.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2497,18 +2594,20 @@
       "sizeBytes": 2416,
       "lineCount": 63,
       "sha256": "af355ba6c7f43a729a07cc0fee5fb8a1c9256ebc98fcc07f6860a605305bc6db",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-linear-tree.html.",
+      "description": "Salida HTML esperada («modal-evolution-linear-tree») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-no-tree.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2517,18 +2616,20 @@
       "sizeBytes": 825,
       "lineCount": 21,
       "sha256": "c2f541c61d1e5073afa69162ab56284a1680e2249510d0c08945e90eb2c76fe7",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-no-tree.html.",
+      "description": "Salida HTML esperada («modal-evolution-no-tree») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-single-tree.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2537,18 +2638,20 @@
       "sizeBytes": 746,
       "lineCount": 21,
       "sha256": "0bea843514ff266a520132eb42f30b54441be1e66ebd20f0c6a1e7a283a323e9",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-single-tree.html.",
+      "description": "Salida HTML esperada («modal-evolution-single-tree») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-evolution-undefined.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2557,18 +2660,20 @@
       "sizeBytes": 825,
       "lineCount": 21,
       "sha256": "eb32848796fc3fc0b9199ca4d044401258efde1068ca5cd32688bb3fe136962f",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-evolution-undefined.html.",
+      "description": "Salida HTML esperada («modal-evolution-undefined») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-body-none.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2577,18 +2682,20 @@
       "sizeBytes": 0,
       "lineCount": 1,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-body-none.html.",
+      "description": "Salida HTML esperada («modal-mega-body-none») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-body-two.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2597,18 +2704,20 @@
       "sizeBytes": 9185,
       "lineCount": 174,
       "sha256": "b84011bfb76f3ffe9b7cc74b8d7b98f2b115730f7e115433c5478c9fd5755614",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-body-two.html.",
+      "description": "Salida HTML esperada («modal-mega-body-two») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-section-one.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2617,18 +2726,20 @@
       "sizeBytes": 4493,
       "lineCount": 89,
       "sha256": "287e244f7c3195e2198ba577ea72f1057333fcf2eae5ddd499a660f1ae77079e",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-section-one.html.",
+      "description": "Salida HTML esperada («modal-mega-section-one») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-section-two.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2637,18 +2748,20 @@
       "sizeBytes": 9106,
       "lineCount": 171,
       "sha256": "e8ecf35dee241714c70bb7b4d1442687460322cd45143386d5a8c673c6667081",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-section-two.html.",
+      "description": "Salida HTML esperada («modal-mega-section-two») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-stats-no-base.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2657,18 +2770,20 @@
       "sizeBytes": 2578,
       "lineCount": 44,
       "sha256": "d62c2243915a2b022c8ff932de728608e166e48ea06dc3ec0942c7f2cfc3e69e",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-stats-no-base.html.",
+      "description": "Salida HTML esperada («modal-mega-stats-no-base») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-stats-with-base.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2677,18 +2792,20 @@
       "sizeBytes": 2632,
       "lineCount": 44,
       "sha256": "f3bb3dfc884b7ae3945ad3e594f2623cd5b73761c81aeda5f0d5fd818ca03a5c",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-stats-with-base.html.",
+      "description": "Salida HTML esperada («modal-mega-stats-with-base») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-toggle-none.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2697,18 +2814,20 @@
       "sizeBytes": 0,
       "lineCount": 1,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-toggle-none.html.",
+      "description": "Salida HTML esperada («modal-mega-toggle-none») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-toggle-one.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2717,18 +2836,20 @@
       "sizeBytes": 446,
       "lineCount": 7,
       "sha256": "23b83fc2ae11b465e5d327ebbc5ee45bd16f1058cccbf92cf780b37278941764",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-toggle-one.html.",
+      "description": "Salida HTML esperada («modal-mega-toggle-one») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-mega-toggle-two.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2737,18 +2858,20 @@
       "sizeBytes": 449,
       "lineCount": 7,
       "sha256": "ea03ba16e0109c9276b09d64864e67be3dcfce2e25cd109a7eee0bd0f498104f",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-mega-toggle-two.html.",
+      "description": "Salida HTML esperada («modal-mega-toggle-two») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-node-bare.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2757,18 +2880,20 @@
       "sizeBytes": 606,
       "lineCount": 14,
       "sha256": "bf67208b273b6a73d74a54be467d902fe752411fb18efa0d9edc244c6cd53cd0",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-node-bare.html.",
+      "description": "Salida HTML esperada («modal-node-bare») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-node-catalog-types.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2777,18 +2902,20 @@
       "sizeBytes": 674,
       "lineCount": 14,
       "sha256": "6f02f2258af1503090e9003c5e333d8fdc975f575d7866380788c63abeb4cdc9",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-node-catalog-types.html.",
+      "description": "Salida HTML esperada («modal-node-catalog-types») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-node-current.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2797,18 +2924,20 @@
       "sizeBytes": 619,
       "lineCount": 14,
       "sha256": "0760d6f0199dc5eee3fdd5122b1bce0509abf2a418b205d2db1c6b4a79637f7e",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-node-current.html.",
+      "description": "Salida HTML esperada («modal-node-current») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-node-other-method.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2817,18 +2946,20 @@
       "sizeBytes": 685,
       "lineCount": 14,
       "sha256": "49d1e957cb6b81644d739d2e89b30368c26310f1f3d593cd67e639ffa77ed853",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-node-other-method.html.",
+      "description": "Salida HTML esperada («modal-node-other-method») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/modal-node-special-chars.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2837,18 +2968,20 @@
       "sizeBytes": 791,
       "lineCount": 14,
       "sha256": "986321c6c98c1b3d846e90602344d235b293159f59ca1c5a851c9eff79c7f164",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: modal-node-special-chars.html.",
+      "description": "Salida HTML esperada («modal-node-special-chars») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/rows-admin-empty.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2857,18 +2990,20 @@
       "sizeBytes": 0,
       "lineCount": 1,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: rows-admin-empty.html.",
+      "description": "Salida HTML esperada («rows-admin-empty») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/rows-admin.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2877,18 +3012,20 @@
       "sizeBytes": 5655,
       "lineCount": 151,
       "sha256": "60cd9e21e9a6db8f1221697354d06b29156cdfbe9e7f27b06e8ea1740c7543f0",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: rows-admin.html.",
+      "description": "Salida HTML esperada («rows-admin») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/state-no-results.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2897,18 +3034,20 @@
       "sizeBytes": 365,
       "lineCount": 8,
       "sha256": "98e5e600dee8646a36d0fea966ee673852fae46aa1f861f8ab5756d6de2fe0bb",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: state-no-results.html.",
+      "description": "Salida HTML esperada («state-no-results») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/state-table-empty.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2917,18 +3056,20 @@
       "sizeBytes": 157,
       "lineCount": 7,
       "sha256": "11ace7672bc81f91c872c5b03e865631b0c419c720049ea376d0afa6085b16a1",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: state-table-empty.html.",
+      "description": "Salida HTML esperada («state-table-empty») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/state-table-error-special.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2937,18 +3078,20 @@
       "sizeBytes": 305,
       "lineCount": 9,
       "sha256": "7be2e189b8577823337aaf930c540da39615d2cdc0c8b4a8a9c600559bb5e129",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: state-table-error-special.html.",
+      "description": "Salida HTML esperada («state-table-error-special») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/state-table-error.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2957,18 +3100,20 @@
       "sizeBytes": 263,
       "lineCount": 9,
       "sha256": "93ee389e9c345c8ec3bf12e0915474996a2c102ff1bb991cbe670b4b46cee841",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: state-table-error.html.",
+      "description": "Salida HTML esperada («state-table-error») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/golden/state-table-loading.html",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Golden Fixture",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -2977,11 +3122,13 @@
       "sizeBytes": 185,
       "lineCount": 8,
       "sha256": "3c75129458c80399e97d0acdefcb06cbd5bb2e711941cd89781289ff0d791786",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: state-table-loading.html.",
+      "description": "Salida HTML esperada («state-table-loading») que las pruebas html_parity*.test.ts comparan con el render actual.",
       "status": "HELPER",
       "testCases": []
     },
@@ -2997,11 +3144,13 @@
       "sizeBytes": 1389,
       "lineCount": 27,
       "sha256": "7a85edacba8343e10d7813c91da93af3fcbb24784c535b0cfce421de6283c263",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Inyección HTML / Datos Hostiles",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/html.ts"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: html_assertions.ts.",
+      "description": "Datos hostiles y aserción assertNeutralized reutilizados por las pruebas de inyección del render HTML.",
       "status": "HELPER",
       "testCases": []
     },
@@ -3017,18 +3166,20 @@
       "sizeBytes": 5507,
       "lineCount": 164,
       "sha256": "9992be3321bd6f4b68eabdf0cf015a18f29c270cdfc0315c9410152bccae3130",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Render HTML / Datos de Ejemplo",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: html_fixtures.ts.",
+      "description": "Datos de ejemplo compartidos por las pruebas de paridad y de inyección; cubren las ramas de cada plantilla (valores ausentes, cadenas evolutivas, megaevoluciones).",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/html_guard.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -3037,8 +3188,11 @@
       "sizeBytes": 2930,
       "lineCount": 67,
       "sha256": "5e6f6422c0dbcbedd8f670248def5749bb1d5b2aa195369eee51cb6173405b22",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Punto Único de Inserción de HTML",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/html.ts",
+        "apps/frontend/src/sanitizer.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3047,7 +3201,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_guard.test.ts.",
+      "description": "Guarda textual de que solo shared/html.ts asigne HTML al DOM y de que escapeText, sanitizeHtml y trustedHtml se usen únicamente donde corresponde.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3075,7 +3229,7 @@
     {
       "path": "tests/frontend/html_injection_modals.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Security / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -3084,8 +3238,12 @@
       "sizeBytes": 4903,
       "lineCount": 125,
       "sha256": "f1e62b9a92dc66324036120e64c2bd94fab378c123d53b076fc4e5a3aabb7158",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Inyección HTML en Modales",
+      "targetArtifacts": [
+        "apps/frontend/src/components/modal-detail.ts",
+        "apps/frontend/src/components/modal-evolution.ts",
+        "apps/frontend/src/components/modal-mega.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3094,7 +3252,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_injection_modals.test.ts.",
+      "description": "Verifica que los modales de detalle, evolución y megaevolución neutralicen campos hostiles en nombre, método, imagen, tipos y estadísticas.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3126,7 +3284,7 @@
     {
       "path": "tests/frontend/html_injection.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Security / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -3135,8 +3293,11 @@
       "sizeBytes": 3221,
       "lineCount": 76,
       "sha256": "c3f5b33d10d86bac7339f821a5f813a7316c03f8937a654ea24e667067ef59e2",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Inyección HTML en el Render",
+      "targetArtifacts": [
+        "apps/frontend/src/components/pokemon-card.ts",
+        "apps/frontend/src/components/admin-table.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3145,7 +3306,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_injection.test.ts.",
+      "description": "Verifica que tarjetas, tabla del backoffice, insignias y estados vacíos neutralicen campos hostiles sin doble escapado de datos legítimos.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3177,7 +3338,7 @@
     {
       "path": "tests/frontend/html_parity_modals.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Golden Parity",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -3186,8 +3347,10 @@
       "sizeBytes": 4586,
       "lineCount": 100,
       "sha256": "438dfa81745f6dfed733c0632fba892f70dab93c49bd7d7212f57af36d491c81",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render / Modales",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3196,7 +3359,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_parity_modals.test.ts.",
+      "description": "Compara el HTML de los modales con los archivos golden generados con la versión anterior del render.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3208,7 +3371,7 @@
     {
       "path": "tests/frontend/html_parity_states.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Golden Parity",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -3217,8 +3380,10 @@
       "sizeBytes": 1842,
       "lineCount": 42,
       "sha256": "fb2773dc246e34bd9f35d08a4381ccdcf3934a4749333daafb9f7eba5d7f39fa",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render / Estados",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3227,7 +3392,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_parity_states.test.ts.",
+      "description": "Compara el HTML de los estados (vacío, error, carga, sin resultados) con los archivos golden de la versión anterior.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3239,7 +3404,7 @@
     {
       "path": "tests/frontend/html_parity.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Golden Parity",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -3248,8 +3413,10 @@
       "sizeBytes": 3011,
       "lineCount": 62,
       "sha256": "1d316c36c42d495706ad92b5dea8f9dd55cdd936d0d6eef6ebbd445c60bb9425",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Paridad de Render / Componentes",
+      "targetArtifacts": [
+        "apps/frontend/src/components/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3258,7 +3425,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_parity.test.ts.",
+      "description": "Compara el HTML de tarjetas, insignias y filas con los archivos golden generados con la versión anterior del render.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3270,7 +3437,7 @@
     {
       "path": "tests/frontend/html_set.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -3279,8 +3446,10 @@
       "sizeBytes": 2259,
       "lineCount": 54,
       "sha256": "4581eec22d58220dabea5b1d1588f62edc36187f7ecfedc4bdd3e65dadb21b0d",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Inserción de HTML (setHtml)",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/html.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3289,7 +3458,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_set.test.ts.",
+      "description": "Verifica que setHtml inserte fragmentos legítimos, sanee los marcados como confiables por error, escape datos interpolados y reemplace el contenido.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3321,7 +3490,7 @@
     {
       "path": "tests/frontend/html_template.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -3330,8 +3499,10 @@
       "sizeBytes": 2983,
       "lineCount": 55,
       "sha256": "8c62f5ffd762d6ac2fc23561718570f74749b10614c94eb4fa4981b2e99e0626",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Plantilla html``",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/html.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3340,7 +3511,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: html_template.test.ts.",
+      "description": "Verifica la etiqueta html: escape por defecto (también en atributos), valores nulos y numéricos, y fragmentos SafeHtml sin doble escape.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3376,7 +3547,7 @@
     {
       "path": "tests/frontend/keyboard_access.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -3385,8 +3556,11 @@
       "sizeBytes": 4720,
       "lineCount": 98,
       "sha256": "74fa9c41a989b8838a930140d0a3f63ca8caaf4d472f9a59557ad1ae18b77965",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Accesibilidad por Teclado / Render",
+      "targetArtifacts": [
+        "apps/frontend/src/components/pokemon-card.ts",
+        "apps/frontend/src/components/modal-evolution.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3395,7 +3569,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: keyboard_access.test.ts.",
+      "description": "Verifica que el nombre de la tarjeta sea un botón nativo, la pista táctil decorativa y los nodos de evolución operables con teclado y aria-current.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3431,7 +3605,7 @@
     {
       "path": "tests/frontend/keyboard_navigation.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -3440,8 +3614,11 @@
       "sizeBytes": 3877,
       "lineCount": 107,
       "sha256": "c5b507f25e29f0aee7c3c385944f97cde2f73dacd83e088c62c7a60343023d47",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Accesibilidad por Teclado / Foco",
+      "targetArtifacts": [
+        "apps/frontend/src/components/modal-detail.ts",
+        "apps/frontend/src/components/modal-evolution.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3450,7 +3627,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: keyboard_navigation.test.ts.",
+      "description": "Valida el foco del modal de detalle y la navegación entre evoluciones con Enter y barra espaciadora.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3474,7 +3651,7 @@
     {
       "path": "tests/frontend/mega_env.ts",
       "suite": "frontend",
-      "type": "Helper",
+      "type": "Helper / Environment",
       "role": "HELPER_OR_FIXTURE",
       "runner": "none",
       "testCount": 0,
@@ -3483,18 +3660,20 @@
       "sizeBytes": 591,
       "lineCount": 18,
       "sha256": "dd86819b31a4bcdc32fd80d5c0bb20ee68d16b702ad9d57825f0cb12f3e515e9",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Entorno JSDOM para el Frontend",
+      "targetArtifacts": [
+        "apps/frontend/src/sanitizer.ts"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas frontend: mega_env.ts.",
+      "description": "Entorno de navegador mínimo (JSDOM) que debe importarse antes que los módulos del frontend, porque DOMPurify necesita window al cargarse.",
       "status": "HELPER",
       "testCases": []
     },
     {
       "path": "tests/frontend/mega_evolution.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Component / DOM",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 22,
@@ -3503,8 +3682,11 @@
       "sizeBytes": 12276,
       "lineCount": 266,
       "sha256": "bd3838dc778b0a891c883a495693937e6d0309be63563130e0ce7dab62dd8581",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Interfaz",
+      "targetArtifacts": [
+        "apps/frontend/src/components/modal-mega.ts",
+        "apps/frontend/src/shared/base-stats.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3513,7 +3695,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: mega_evolution.test.ts.",
+      "description": "Valida la sección de megaevoluciones del modal: comparación de estadísticas con la forma base, alternancia entre formas y ausencia de sección.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3715,7 +3897,7 @@
     {
       "path": "tests/frontend/modal_dialog.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -3724,8 +3906,12 @@
       "sizeBytes": 4679,
       "lineCount": 109,
       "sha256": "22c9a6786499b3d7c15336717a3a645be8c629c1e78339f00f87aab982f69481",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Modales / Elemento dialog",
+      "targetArtifacts": [
+        "apps/frontend/index.html",
+        "apps/frontend/backoffice.html",
+        "apps/frontend/src/components/modal-detail.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3734,7 +3920,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: modal_dialog.test.ts.",
+      "description": "Comprueba que los modales sean dialog con nombre accesible, botón de cierre con nombre y que no dependan de la clase .active.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3766,7 +3952,7 @@
     {
       "path": "tests/frontend/nginx_config.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -3775,8 +3961,12 @@
       "sizeBytes": 9026,
       "lineCount": 213,
       "sha256": "1ddbf66b4cba46e3ad842de9d4744c1f6f7ca82c7582e4c3ec552ea5e189faf1",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Nginx / SSOT y Rutas de API",
+      "targetArtifacts": [
+        "apps/frontend/nginx.conf.template",
+        "scripts/generate-nginx-conf.mjs",
+        "apps/frontend/Dockerfile"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3785,7 +3975,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: nginx_config.test.ts.",
+      "description": "Comprueba el generador de nginx.conf desde la plantilla, los labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3809,7 +3999,7 @@
     {
       "path": "tests/frontend/page_focus.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 9,
@@ -3818,8 +4008,10 @@
       "sizeBytes": 6307,
       "lineCount": 154,
       "sha256": "418f68519da8dc2e8b4f4dba61c19fbdaf15f102c1e087cf917e2bca8ceb07e3",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Foco y Anuncio de Página",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/page-focus.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3828,7 +4020,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: page_focus.test.ts.",
+      "description": "Valida el anunciador de región viva y que el foco pase al catálogo al cambiar de página, sin caer en BODY en la última.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3872,7 +4064,7 @@
     {
       "path": "tests/frontend/seo_compression.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -3881,8 +4073,11 @@
       "sizeBytes": 2926,
       "lineCount": 57,
       "sha256": "7c4c989b2c323ab108d590255606a5ef071c4169fa0a9c6b3d21496d495ff79f",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "SEO y Compresión",
+      "targetArtifacts": [
+        "apps/frontend/index.html",
+        "apps/frontend/nginx.conf"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3891,7 +4086,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: seo_compression.test.ts.",
+      "description": "Comprueba la meta description, un robots.txt válido y que gzip esté activo para texto y desactivado en /api/ y /metrics.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3911,7 +4106,7 @@
     {
       "path": "tests/frontend/skip_link_contrast.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -3920,8 +4115,10 @@
       "sizeBytes": 2860,
       "lineCount": 68,
       "sha256": "4d524d7523896739442d5470db37e942786864fec9998ccdb19f2787685f2344",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Contraste del Enlace de Salto",
+      "targetArtifacts": [
+        "apps/frontend/index.html"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3930,7 +4127,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: skip_link_contrast.test.ts.",
+      "description": "Calcula el contraste del enlace de salto con los colores de la hoja de estilos (4,5:1 de texto y 3:1 frente al fondo) y su tamaño mínimo WCAG 2.5.8.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3950,7 +4147,7 @@
     {
       "path": "tests/frontend/skip_pagination.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -3959,8 +4156,10 @@
       "sizeBytes": 5628,
       "lineCount": 133,
       "sha256": "5baea6f4e878e6205a9c70f643958618589c4b10a4a11fd0733a885082fb5cfc",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Enlace de Salto a la Paginación",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/skip-link.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -3969,7 +4168,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: skip_pagination.test.ts.",
+      "description": "Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4005,7 +4204,7 @@
     {
       "path": "tests/frontend/type_badge_contrast.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Accessibility",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -4014,8 +4213,10 @@
       "sizeBytes": 4278,
       "lineCount": 108,
       "sha256": "d0a4d61019cd721bf5e4d6f23bc822bb63bb458c76f570daa4bcb07d9897ee18",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Contraste de Insignias de Tipo",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/pokemon-types.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4024,7 +4225,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: type_badge_contrast.test.ts.",
+      "description": "Comprueba las 18 reglas de tipo con sus cuatro colores y el cumplimiento WCAG AA de cada insignia y del degradado Mega.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4169,7 +4370,7 @@
     {
       "path": "tests/gitops/environment_http_contract.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -4178,8 +4379,12 @@
       "sizeBytes": 7243,
       "lineCount": 160,
       "sha256": "87a19234023ab1a53a1787b1d5063aa2e4873cd5203c12fef76ffaa59309ed33",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "GitOps / Contrato HTTP por Entorno",
+      "targetArtifacts": [
+        "gitops/apps/",
+        "gitops/environments/",
+        "infra/helm/pokedex/templates/ingress.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4189,7 +4394,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: environment_http_contract.test.ts.",
+      "description": "Comprueba por entorno activo que los orígenes CORS no sean de ejemplo y coincidan con el ingress, que se sirva por TLS con cookie Secure y que el certificado tenga fuente declarada.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4221,7 +4426,7 @@
     {
       "path": "tests/gitops/gitops_adr_contracts.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / Architecture",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 2,
@@ -4230,8 +4435,11 @@
       "sizeBytes": 14479,
       "lineCount": 274,
       "sha256": "b9cf972fce55d421c5cbc81985d3386b60693eee2bf181e78704b523c1e77566",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "GitOps / ADR-003 y ADR-005",
+      "targetArtifacts": [
+        "docs/decisions/",
+        "infra/helm/pokedex/values.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4241,7 +4449,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: gitops_adr_contracts.test.ts.",
+      "description": "Comprueba ADR-003 (Sync Waves, hooks de siembra, health checks, App-of-Apps) y ADR-005 (Stakater Reloader, refreshInterval acotado, auditoría).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4257,7 +4465,7 @@
     {
       "path": "tests/gitops/gitops_architecture.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -4266,8 +4474,11 @@
       "sizeBytes": 11813,
       "lineCount": 249,
       "sha256": "a0690634b8ed99e536643f0bdb3a01dc048d0d131bbc8430549d3efaa91c1654",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "GitOps / Árbol y Entornos",
+      "targetArtifacts": [
+        "gitops/",
+        "docs/architecture/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4277,7 +4488,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: gitops_architecture.test.ts.",
+      "description": "Comprueba que el árbol GitOps esté documentado, que cada entorno activo se renderice en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4301,7 +4512,7 @@
     {
       "path": "tests/gitops/image_digest_promotion.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -4310,8 +4521,11 @@
       "sizeBytes": 6542,
       "lineCount": 139,
       "sha256": "946520ae57112252592fc57d88affe9dcddb0256ed29d281d197cc1836000261",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "GitOps / Promoción de Digests",
+      "targetArtifacts": [
+        "scripts/update-image-digests.ts",
+        ".github/workflows/release-tag.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4321,7 +4535,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: image_digest_promotion.test.ts.",
+      "description": "Verifica la promoción de digests: reemplaza solo el del componente, conserva CRLF, rechaza digests mutables y fija los verificados con Cosign en el PR de promoción.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4357,7 +4571,7 @@
     {
       "path": "tests/gitops/metrics_token_contract.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -4366,8 +4580,11 @@
       "sizeBytes": 2215,
       "lineCount": 47,
       "sha256": "a1bae4b037ab9aa3a67d122a667f760cbe888c0e85ce67d62d8a2a207a636447",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "Pre-prod / Token de /metrics",
+      "targetArtifacts": [
+        "gitops/environments/proxmox-preprod/values.yaml",
+        "infra/helm/pokedex/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4377,7 +4594,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: metrics_token_contract.test.ts.",
+      "description": "Comprueba que pre-prod sincronice METRICS_BEARER_TOKEN desde Vault al Secret de la API (AUD-SEC-OBS-001).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4389,7 +4606,7 @@
     {
       "path": "tests/gitops/platform_bootstrap_contract.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 12,
@@ -4398,8 +4615,12 @@
       "sizeBytes": 13131,
       "lineCount": 280,
       "sha256": "aeba6aeb25c9ecc300597bfbb7dd963e039f106e173b647491f9dd91feb7ad6c",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "Pre-prod / Bootstrap de Plataforma",
+      "targetArtifacts": [
+        "gitops/apps/",
+        "infra/ansible/playbooks/setup_k3s.yaml",
+        "infra/ansible/playbooks/setup_vault.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4409,7 +4630,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: platform_bootstrap_contract.test.ts.",
+      "description": "Comprueba el bootstrap de pre-prod (ADR-030): ESO y ArgoCD con versiones fijadas, ClusterSecretStore, auth de Vault, health checks y pasaje de CronJobs de backup.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4465,7 +4686,7 @@
     {
       "path": "tests/gitops/secret_key_refs_contract.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -4474,8 +4695,11 @@
       "sizeBytes": 3290,
       "lineCount": 76,
       "sha256": "a7a139aafa059095000d4ed7651f5d5e8c86efe3563583bbd92b0e0866b6e4aa",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "GitOps / Claves de Secret Sincronizadas",
+      "targetArtifacts": [
+        "infra/helm/pokedex/templates/",
+        "gitops/environments/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4485,7 +4709,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: secret_key_refs_contract.test.ts.",
+      "description": "Comprueba que cada clave de Secret exigida por un workload esté sincronizada por el ExternalSecret en proxmox-preprod.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4497,7 +4721,7 @@
     {
       "path": "tests/gitops/seed_job_contract.test.ts",
       "suite": "gitops",
-      "type": "Automated Test",
+      "type": "Contract / GitOps",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -4506,8 +4730,11 @@
       "sizeBytes": 3582,
       "lineCount": 70,
       "sha256": "ccac4f49ffea74237ee4e35df04e335444104f702808eb7b0abee655b4db121d",
-      "targetDomain": "Suite gitops",
-      "targetArtifacts": [],
+      "targetDomain": "Pre-prod / Seed Job del Catálogo",
+      "targetArtifacts": [
+        "infra/helm/pokedex/templates/seed-job.yaml",
+        "gitops/environments/proxmox-preprod/values.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4517,7 +4744,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas gitops: seed_job_contract.test.ts.",
+      "description": "Comprueba que pre-prod siembre el catálogo completo con la imagen de la API, después de la sincronización, y que los demás entornos no siembren por defecto.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -4546,11 +4773,13 @@
       "sizeBytes": 941,
       "lineCount": 18,
       "sha256": "c91fa6279d8d1064b71d5af414eb21dcbcc1bff61a81343a82e805838c94b33f",
-      "targetDomain": "Suite helpers",
-      "targetArtifacts": [],
+      "targetDomain": "ArgoCD / Exclusiones de Directorio",
+      "targetArtifacts": [
+        "gitops/apps/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas helpers: argocd.ts.",
+      "description": "Helper parseDirectoryExclude para leer las exclusiones de directorio de una Application de ArgoCD.",
       "status": "HELPER",
       "testCases": []
     },
@@ -4563,14 +4792,16 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 992,
+      "sizeBytes": 997,
       "lineCount": 25,
-      "sha256": "f18f6e70e61ac7718200a0f3e969ee52237aaccd956e5aa92cb2c9d7fa537df9",
-      "targetDomain": "Suite helpers",
-      "targetArtifacts": [],
+      "sha256": "de4735881cde2e2d0699bc42fb74f9381fc6fbdc331985108fe13e59661533f6",
+      "targetDomain": "Portal de Documentación / Índice de ADRs",
+      "targetArtifacts": [
+        "docs/README.md"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas helpers: docs-portal.ts.",
+      "description": "Helper assertDocsPortalLinksAdrIndex: exige que el portal enlace el índice docs/decisions/README.md en lugar de citar rangos numéricos de ADRs.",
       "status": "HELPER",
       "testCases": []
     },
@@ -4586,11 +4817,11 @@
       "sizeBytes": 280,
       "lineCount": 8,
       "sha256": "91778fc1d0b1176af8e45307e940f8918c1a51e08affce656a9753000ae91722",
-      "targetDomain": "Suite helpers",
+      "targetDomain": "Raíz del Repositorio",
       "targetArtifacts": [],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas helpers: repo.ts.",
+      "description": "Exporta ROOT_DIR resuelto desde la ubicación del helper, para que las suites no dependan del directorio de trabajo.",
       "status": "HELPER",
       "testCases": []
     },
@@ -4606,11 +4837,14 @@
       "sizeBytes": 1075,
       "lineCount": 30,
       "sha256": "86fb7250b983e7f38406b684cf829efedb24fa0080a59f4e18e9395dfd7126a5",
-      "targetDomain": "Suite helpers",
-      "targetArtifacts": [],
+      "targetDomain": "Taskfile / Contenido Efectivo",
+      "targetArtifacts": [
+        "Taskfile.yaml",
+        "taskfiles/"
+      ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Suite de pruebas helpers: taskfile.ts.",
+      "description": "Helper getCompleteTaskfileContent: concatena el Taskfile raíz y los submódulos de taskfiles/ de forma determinista.",
       "status": "HELPER",
       "testCases": []
     },
@@ -5369,7 +5603,7 @@
     {
       "path": "tests/security/app/backup_hmac.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 11,
@@ -5378,8 +5612,11 @@
       "sizeBytes": 9403,
       "lineCount": 193,
       "sha256": "248feb13f668fe568e866971a12e30045018722181864400dbce25807f793324",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Copias de Seguridad / Integridad HMAC",
+      "targetArtifacts": [
+        "scripts/lib/backup-integrity.ts",
+        "scripts/dr-drill.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5389,7 +5626,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: backup_hmac.test.ts.",
+      "description": "Verifica el HMAC de los backups: detección de clave incorrecta y manipulación, derivación de clave, formato sha256sum e interoperabilidad con openssl.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5441,7 +5678,7 @@
     {
       "path": "tests/security/app/cors_rejection.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -5450,8 +5687,10 @@
       "sizeBytes": 1417,
       "lineCount": 34,
       "sha256": "12360cd463de372eb6ac8448be28250d03123afebd9518f2a502ee31d54534a8",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "API / Rechazo de Origen CORS",
+      "targetArtifacts": [
+        "apps/backend/server.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5461,7 +5700,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: cors_rejection.test.ts.",
+      "description": "Verifica que un origen no autorizado reciba 403 con código propio y no un error genérico (AUD-SEC-CORS-002).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5473,7 +5712,7 @@
     {
       "path": "tests/security/app/csrf_origin.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -5482,8 +5721,10 @@
       "sizeBytes": 3821,
       "lineCount": 99,
       "sha256": "58ad75bdc81440fd835cfaa73e63487484e7d1a1e212dac39f052675e8f49e42",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "API / CSRF en Mutaciones de Admin",
+      "targetArtifacts": [
+        "apps/backend/src/middleware/auth.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5493,7 +5734,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: csrf_origin.test.ts.",
+      "description": "Verifica la validación de Origin y Referer en mutaciones autenticadas por cookie: rechaza subcadenas y ausencia de ambos, acepta el mismo host (AUD-SEC-CSRF-001).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5529,7 +5770,7 @@
     {
       "path": "tests/security/app/http_hardening.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 2,
@@ -5538,8 +5779,10 @@
       "sizeBytes": 2345,
       "lineCount": 58,
       "sha256": "b152ad89eee013fe9c18553c7b6cc6d1e3bad95ff19d7b3b6bcb925337f39c74",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "API / Endurecimiento HTTP",
+      "targetArtifacts": [
+        "apps/backend/server.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5549,7 +5792,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: http_hardening.test.ts.",
+      "description": "Verifica X-XSS-Protection desactivado con CSP presente y que el fallback SPA consuma un solo cupo del limitador global.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5565,7 +5808,7 @@
     {
       "path": "tests/security/app/metrics_auth.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -5574,8 +5817,11 @@
       "sizeBytes": 4725,
       "lineCount": 106,
       "sha256": "bed345f72bf881e2c10db993a04d0c41efc28f60609d9bf0f49d3796d3195723",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "API / Autenticación de /metrics",
+      "targetArtifacts": [
+        "apps/backend/src/middleware/metrics-auth.ts",
+        "apps/backend/src/config/startup-env-check.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5585,7 +5831,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: metrics_auth.test.ts.",
+      "description": "Verifica que /metrics exija el token Bearer (401 sin credenciales o con token incorrecto), lo acepte si es correcto y no afecte a /healthz ni /readyz (AUD-SEC-OBS-001).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5617,7 +5863,7 @@
     {
       "path": "tests/security/app/nginx_effective_headers.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -5626,8 +5872,11 @@
       "sizeBytes": 5638,
       "lineCount": 140,
       "sha256": "1083731720b11f5bae2e49419b33aba1c43dcb2dd80c0920b68694b3ecbf31a1",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Nginx / Cabeceras Efectivas",
+      "targetArtifacts": [
+        "apps/frontend/nginx.conf.template",
+        "apps/frontend/nginx.conf"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5637,7 +5886,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: nginx_effective_headers.test.ts.",
+      "description": "Comprueba las cabeceras de seguridad efectivas de nginx: nivel server, herencia de add_header en cada location y ocultamiento de cabeceras del upstream.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5943,7 +6192,7 @@
     {
       "path": "tests/security/docs_governance_gate.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 2,
@@ -5952,8 +6201,11 @@
       "sizeBytes": 2474,
       "lineCount": 56,
       "sha256": "6c00f16df2539dc8f8d17ca3ac3447aa7b8caab1d325966e39bb8c374a4ec55c",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Gobernanza Documental / Gate de Enlaces",
+      "targetArtifacts": [
+        "scripts/validate-docs-governance.ts",
+        "docs/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -5963,7 +6215,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: docs_governance_gate.test.ts.",
+      "description": "Comprueba que el gate de gobernanza documental detecte enlaces rotos en .agents/ y AGENTS.md y que la documentación vigente no tenga enlaces rotos ni drift.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -6676,7 +6928,7 @@
     {
       "path": "tests/security/image_publication_contract.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Contract / Supply Chain",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -6685,8 +6937,12 @@
       "sizeBytes": 4333,
       "lineCount": 99,
       "sha256": "34a48e7bbfdd39d0bc8290e1cee777e17dfc2e970ac5ddf3a76626a07e4a7c22",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Publicación de Imágenes",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        "gitops/environments/proxmox-preprod/values.yaml",
+        "infra/helm/pokedex/values.prod.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -6696,7 +6952,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: image_publication_contract.test.ts.",
+      "description": "Comprueba que CI publique todas las imágenes que GitOps despliega (api y web), con el SHA completo del commit, y el Chart una sola vez.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7064,7 +7320,7 @@
     {
       "path": "tests/security/renovate_config_contract.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Contract / Dependencies",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -7073,8 +7329,12 @@
       "sizeBytes": 9682,
       "lineCount": 206,
       "sha256": "ea2f98b586a45871061053a18a17ad1c3983c82501c9d2d4236898493fe69dea",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Renovate / Configuración",
+      "targetArtifacts": [
+        "renovate.json",
+        ".github/workflows/config-linters.yaml",
+        "infra/helm/pokedex/values.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7084,7 +7344,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: renovate_config_contract.test.ts.",
+      "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7321,7 +7581,7 @@
     {
       "path": "tests/security/vault_operator_policy.test.ts",
       "suite": "security",
-      "type": "Automated Test",
+      "type": "Security / Secrets",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -7330,8 +7590,11 @@
       "sizeBytes": 4281,
       "lineCount": 90,
       "sha256": "99e9951623b40573d44b50dc32cbc8712edb040286372000c47714b1df5d8c3f",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
+      "targetDomain": "Vault / Política de Operador",
+      "targetArtifacts": [
+        "infra/vault/policies/pokedex-preprod-operator.hcl",
+        "docs/runbooks/VAULT_OPERATOR_ACCESS.md"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7341,7 +7604,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas security: vault_operator_policy.test.ts.",
+      "description": "Comprueba el mínimo privilegio del operador de Vault: solo rutas de pre-prod, sin sudo ni borrado, metadatos de solo lectura y política de ESO distinta.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7497,7 +7760,7 @@
     {
       "path": "tests/skills_frontmatter.test.ts",
       "suite": "governance",
-      "type": "Automated Test",
+      "type": "Contract / Governance",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 2,
@@ -7506,8 +7769,10 @@
       "sizeBytes": 1766,
       "lineCount": 40,
       "sha256": "3880c898196cc82c0c18897807e2421d5c831642af65ad71ac72da3390236cfc",
-      "targetDomain": "Suite governance",
-      "targetArtifacts": [],
+      "targetDomain": "Skills / Frontmatter",
+      "targetArtifacts": [
+        ".agents/skills/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7516,7 +7781,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas governance: skills_frontmatter.test.ts.",
+      "description": "Comprueba que cada SKILL.md de .agents/skills/ tenga frontmatter YAML válido con name y description.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7532,7 +7797,7 @@
     {
       "path": "tests/unit/admin_ip_allowlist.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -7541,8 +7806,10 @@
       "sizeBytes": 3537,
       "lineCount": 76,
       "sha256": "b15d6c3407f4b6cfdcd4f89966ab19b8d0e0aedd593d992c1d903bca87d38c34",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Backend / Lista Blanca de IP de Admin",
+      "targetArtifacts": [
+        "apps/backend/src/middleware/auth.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7552,7 +7819,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: admin_ip_allowlist.test.ts.",
+      "description": "Verifica la lista blanca de IP de administración: coincidencia exacta y por CIDR (IPv4 e IPv6), normalización de IPv4 mapeada y loopback siempre permitido.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7588,7 +7855,7 @@
     {
       "path": "tests/unit/ai_security.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 11,
@@ -7597,8 +7864,11 @@
       "sizeBytes": 5968,
       "lineCount": 149,
       "sha256": "df7a2338349911b12ce5f20445cc88e5f4614f966c22d2d2ba01abc214bc6515",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Backend / Seguridad de IA",
+      "targetArtifacts": [
+        "apps/backend/src/validation/ai-security.ts",
+        "apps/backend/src/services/ai-circuit-breaker.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7608,7 +7878,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: ai_security.test.ts.",
+      "description": "Verifica la sanitización del HTML generado por IA (scripts, iframes, pseudo-protocolos) y el comportamiento del circuit breaker.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7726,7 +7996,7 @@
     {
       "path": "tests/unit/backend_lifecycle.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -7735,8 +8005,11 @@
       "sizeBytes": 1654,
       "lineCount": 37,
       "sha256": "3cbbe3ece5edc2dcd4592ee60a39a141b53601acf8537ce9549837b6f0db00c8",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Backend / Apagado Grácil",
+      "targetArtifacts": [
+        "apps/backend/src/utils/lifecycle.ts",
+        "apps/backend/src/services/db.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7746,7 +8019,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: backend_lifecycle.test.ts.",
+      "description": "Verifica que closeStorage y setShuttingDownForTest gestionen el estado de apagado grácil.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7808,7 +8081,7 @@
     {
       "path": "tests/unit/classification_legendary.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 14,
@@ -7817,8 +8090,12 @@
       "sizeBytes": 8292,
       "lineCount": 182,
       "sha256": "fe60c256ffd72e14923d7400eacca337bac2c6ca29075e0f1e576d9d59d3ef5e",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Clasificación Legendario y Mítico",
+      "targetArtifacts": [
+        "scripts/generate-pokemon-catalog.ts",
+        "apps/backend/src/data/seed-catalog.ts",
+        "apps/backend/src/controllers/pokemon-mapper.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7828,7 +8105,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: classification_legendary.test.ts.",
+      "description": "Verifica el generador y el catálogo: classificationOf (el mítico prevalece), enriquecimiento del catálogo, validación y propagación del campo al backend.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7892,7 +8169,7 @@
     {
       "path": "tests/unit/compose_postgres_tls.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Contract / Persistence",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -7901,8 +8178,11 @@
       "sizeBytes": 1672,
       "lineCount": 40,
       "sha256": "66feed692646bf25227e55b2dfac7d04899824dda254447fbd5e6ee277c10933",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Docker Compose / TLS de PostgreSQL",
+      "targetArtifacts": [
+        "docker-compose.yaml",
+        "apps/backend/src/services/postgres.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7912,7 +8192,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: compose_postgres_tls.test.ts.",
+      "description": "Regresión: el API en Compose no debe exigir TLS a un PostgreSQL local que no lo ofrece.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -7967,7 +8247,7 @@
     {
       "path": "tests/unit/error_helpers.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 3,
@@ -7976,8 +8256,11 @@
       "sizeBytes": 1482,
       "lineCount": 29,
       "sha256": "80e700e503fb4f6194b8028ae92e11e28e7c4b2076f5f662d836c0c5dade72b2",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Utilidades / Mensajes y Estados de Error",
+      "targetArtifacts": [
+        "apps/backend/src/utils/errors.ts",
+        "apps/frontend/src/shared/errors.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -7987,7 +8270,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: error_helpers.test.ts.",
+      "description": "Verifica errorMessage (backend y frontend) y errorStatus, que extrae el código HTTP solo si el error lo expone como número.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8007,7 +8290,7 @@
     {
       "path": "tests/unit/mega_evolution_catalog.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 7,
@@ -8016,8 +8299,11 @@
       "sizeBytes": 4928,
       "lineCount": 104,
       "sha256": "c52dd571a3135092c4451347b2cdc423460c994c78d817dd089cf59408a37c4c",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Catálogo",
+      "targetArtifacts": [
+        "apps/backend/src/data/seed-catalog.ts",
+        "apps/backend/src/data/pokemon-catalog.full.json"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8027,7 +8313,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: mega_evolution_catalog.test.ts.",
+      "description": "Comprueba el catálogo de megaevoluciones: cobertura de PokeAPI, sin número de Pokédex propio, claves únicas y datos completos (arte, tipos, estadísticas).",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8063,7 +8349,7 @@
     {
       "path": "tests/unit/mega_evolution_generator.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 8,
@@ -8072,8 +8358,10 @@
       "sizeBytes": 9275,
       "lineCount": 249,
       "sha256": "8ed4604ae19f489ba50a994778a798f3128f280b20e1518ef5a32c20b7cc1575",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Generador",
+      "targetArtifacts": [
+        "scripts/generate-pokemon-catalog.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8083,7 +8371,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: mega_evolution_generator.test.ts.",
+      "description": "Verifica el generador: reconocimiento de formas mega, nombres oficiales en español, calificativos desconocidos y slugs tratados como texto literal.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8123,7 +8411,7 @@
     {
       "path": "tests/unit/mega_evolution_mapper.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -8132,8 +8420,10 @@
       "sizeBytes": 2505,
       "lineCount": 62,
       "sha256": "85c9594d43911615b492cad534ebd2c0c7c216543ef0990f4a0989636b9ebca8",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Mapper del Backend",
+      "targetArtifacts": [
+        "apps/backend/src/controllers/pokemon-mapper.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8143,7 +8433,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: mega_evolution_mapper.test.ts.",
+      "description": "Verifica que las megaevoluciones sean de solo lectura: editar un Pokémon las conserva y un cuerpo del cliente no las crea ni las reemplaza.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8167,7 +8457,7 @@
     {
       "path": "tests/unit/mega_evolution_seed.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 9,
@@ -8176,8 +8466,11 @@
       "sizeBytes": 4490,
       "lineCount": 110,
       "sha256": "ff737d86643f97923f122db476068a6f8aeec173a2ab015f905c03b11f9f723d",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Siembra",
+      "targetArtifacts": [
+        "apps/backend/src/services/pokemon.repository.ts",
+        "apps/backend/src/data/seed-catalog.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8187,7 +8480,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: mega_evolution_seed.test.ts.",
+      "description": "Verifica canonicalJson y planMegaEnrichment: solo actualiza filas existentes sin megaevoluciones o con datos cambiados, de forma idempotente.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8231,7 +8524,7 @@
     {
       "path": "tests/unit/mega_evolution_validation.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 12,
@@ -8240,8 +8533,11 @@
       "sizeBytes": 6542,
       "lineCount": 126,
       "sha256": "56ea6587e84cc6c55d4b00428bdc37077aaad3e7c72b8b178b754ea0e86cdbeb",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Megaevoluciones / Validación de Payload",
+      "targetArtifacts": [
+        "apps/backend/src/validation/pokemon.ts",
+        "apps/backend/src/validation/schemas.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8251,7 +8547,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: mega_evolution_validation.test.ts.",
+      "description": "Verifica la validación de megaevoluciones: forma válida, campo opcional, lista blanca de claves (mass assignment) y rechazo de datos mal formados.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8307,7 +8603,7 @@
     {
       "path": "tests/unit/migrate_baseline.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 5,
@@ -8316,8 +8612,10 @@
       "sizeBytes": 3982,
       "lineCount": 90,
       "sha256": "a125085de4ce7eabf1a70ae2c21d78e458e2faf0956c3bb5daa2f3e7a7b3c634",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Persistencia / Línea Base de Migraciones",
+      "targetArtifacts": [
+        "apps/backend/src/db/migrate.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8327,7 +8625,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: migrate_baseline.test.ts.",
+      "description": "Verifica la línea base de migraciones: no toca bases vacías o con journal, registra la migración inicial en esquemas heredados y falla sin escribir si el esquema difiere.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8355,7 +8653,7 @@
     {
       "path": "tests/unit/monolith_guardrails.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 4,
@@ -8364,8 +8662,10 @@
       "sizeBytes": 7471,
       "lineCount": 206,
       "sha256": "52e73be74f39023bbb408208a54527aa7a3ca232f4c7b67cbe225399513f4aab",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Backend / Guardas de Monolito y Red",
+      "targetArtifacts": [
+        "apps/backend/src/validation/network-security.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8375,7 +8675,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: monolith_guardrails.test.ts.",
+      "description": "Comprueba umbrales de LOC e imports de archivos clave (APPS-008), el desacople de network-security y las reglas anti-SSRF de IP e imágenes.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8399,7 +8699,7 @@
     {
       "path": "tests/unit/node_version_consistency.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Contract / Release",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 1,
@@ -8408,8 +8708,12 @@
       "sizeBytes": 1586,
       "lineCount": 36,
       "sha256": "a5aea90d4cc82cd3c7900f771be0607eab62e82e5df5e1489798ba985045442b",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Versión de Node",
+      "targetArtifacts": [
+        ".nvmrc",
+        "package.json",
+        "apps/backend/Dockerfile"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8419,7 +8723,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: node_version_consistency.test.ts.",
+      "description": "Comprueba que .nvmrc, engines, Dockerfiles y workflows usen la misma versión mayor de Node.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8473,7 +8777,7 @@
     {
       "path": "tests/unit/pokemon_mapper.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 6,
@@ -8482,8 +8786,12 @@
       "sizeBytes": 8807,
       "lineCount": 270,
       "sha256": "a60ad57c45ccae18ea1e77b6f87a4a391d8b8102c26c3e1ec186deb6e7d115fc",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Backend / Mapper y Utilidades",
+      "targetArtifacts": [
+        "apps/backend/src/controllers/pokemon-mapper.ts",
+        "apps/backend/src/utils/etag.ts",
+        "apps/backend/src/utils/logger.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8493,7 +8801,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: pokemon_mapper.test.ts.",
+      "description": "Verifica calculateETag, sanitizeLogString contra log injection y los mappers buildPokemonFromPayload y applyPokemonUpdates.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8654,7 +8962,7 @@
     {
       "path": "tests/unit/repo_tool_exec.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 18,
@@ -8663,8 +8971,11 @@
       "sizeBytes": 14761,
       "lineCount": 379,
       "sha256": "7d707f9446a472706186470e60c8361e9cf1ee916964613d1d0eb656d156368c",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Skills / Ejecución de Herramientas",
+      "targetArtifacts": [
+        ".agents/skills/repo-tool-exec/scripts/tool-exec.ts",
+        ".agents/skills/repo-tool-exec/references/tool-catalog.yaml"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8674,7 +8985,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: repo_tool_exec.test.ts.",
+      "description": "Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8754,7 +9065,7 @@
     {
       "path": "tests/unit/seed_catalog.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Unit",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 16,
@@ -8763,8 +9074,11 @@
       "sizeBytes": 6827,
       "lineCount": 152,
       "sha256": "b64d483583432589ad8b260b9ecfd3dd0795019379f74d104e2544a859e4a44f",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Catálogo / Selección de Dataset de Siembra",
+      "targetArtifacts": [
+        "apps/backend/src/data/seed-catalog.ts",
+        "apps/backend/src/data/initialPokemons.ts"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8774,7 +9088,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: seed_catalog.test.ts.",
+      "description": "Verifica SEED_DATASET (muestra o catálogo completo, valor desconocido falla) y que el catálogo completo tenga IDs contiguos y supere el validador del backend.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -8943,7 +9257,7 @@
     {
       "path": "tests/unit/zod_resolution.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Contract / Dependencies",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "testCount": 2,
@@ -8952,8 +9266,11 @@
       "sizeBytes": 2917,
       "lineCount": 61,
       "sha256": "aac7e2e2b7f1f80b12506ca54377cf06ae3e4eac460efeb3c84bc33c47e8f93a",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Resolución de zod en el Monorepo",
+      "targetArtifacts": [
+        "apps/backend/package.json",
+        "package.json"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -8963,7 +9280,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: zod_resolution.test.ts.",
+      "description": "Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001).",
       "status": "ACTIVE",
       "testCases": [
         {
