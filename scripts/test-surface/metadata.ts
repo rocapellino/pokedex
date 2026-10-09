@@ -507,9 +507,14 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/security/vault_redeploy_contract.test.ts': {
     type: 'Security / Secrets',
     targetDomain: 'Gestión y Rotación de Secretos (Vault)',
-    targetArtifacts: ['scripts/k8s-rollout-restart.ts'],
+    targetArtifacts: [
+      'scripts/k8s-rollout-restart.ts',
+      'infra/k8s/eso/cluster-secret-store.yaml',
+      'infra/ansible/playbooks/setup_vault.yaml',
+      'infra/ansible/playbooks/setup_bastion.yaml',
+    ],
     description:
-      'Valida el reinicio controlado de workloads y el refresco de secretos inyectados tras rotaciones en HashiCorp Vault.',
+      'Verifica sobre los YAML y las tareas de Ansible parseados que el store de ESO, los values de pre-prod, la política y el rol de Vault, la custodia de las credenciales de init y la auditoría del Bastion mantienen su contrato, y la documentación de DR y break-glass como texto.',
   },
   'tests/security/yaml_extension_governance.test.ts': {
     type: 'Contract / Governance',

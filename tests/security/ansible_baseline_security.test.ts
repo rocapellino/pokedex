@@ -14,38 +14,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { playbookTasks, roleTasks, type Task } from '../helpers/ansible.js';
 import { readYaml, workflowScripts } from '../helpers/yaml.js';
 
 const ANSIBLE = 'infra/ansible';
 const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
-
-type Task = Record<string, any>;
-
-/** Aplana tareas anidadas en `block` / `rescue` / `always`. */
-function flattenTasks(tasks: Task[] = []): Task[] {
-  return tasks.flatMap((task) => [
-    task,
-    ...flattenTasks(task.block),
-    ...flattenTasks(task.rescue),
-    ...flattenTasks(task.always),
-  ]);
-}
-
-/** Tareas de un rol (`roles/<rol>/tasks/main.yaml`). */
-const roleTasks = (role: string): Task[] => flattenTasks(readYaml<Task[]>(`${ANSIBLE}/roles/${role}/tasks/main.yaml`));
-
-/** Tareas de un playbook (incluye `pre_tasks`, `tasks`, `post_tasks` y `handlers` de cada play). */
-function playbookTasks(file: string): Task[] {
-  const plays = readYaml<Task[]>(`${ANSIBLE}/playbooks/${file}`);
-  return plays.flatMap((play) =>
-    flattenTasks([
-      ...(play.pre_tasks ?? []),
-      ...(play.tasks ?? []),
-      ...(play.post_tasks ?? []),
-      ...(play.handlers ?? []),
-    ]),
-  );
-}
 
 /** Playbooks y roles que forman el baseline del host (host_baseline.yaml + security_hardening.yaml y sus roles). */
 function baselineTasks(): Array<{ file: string; tasks: Task[] }> {
