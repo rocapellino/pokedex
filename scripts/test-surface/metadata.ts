@@ -158,7 +158,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'API / Endpoints de IA',
     targetArtifacts: ['apps/backend/src/routes/ai.ts', 'apps/backend/src/services/ai.ts'],
     description:
-      'Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen y el límite de 10 peticiones por minuto. Incluye un hallazgo marcado como todo.',
+      'Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen, el escape del prompt en la plantilla local de maqueta (AUD-SEC-AI-001) y el límite de 10 peticiones por minuto.',
   },
   'tests/integration/routes_health.test.ts': {
     type: 'Integration',

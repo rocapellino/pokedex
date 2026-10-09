@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
 import { getRedisClient } from './db.js';
-import { AIMockupResponseSchema, sanitizeAIHtml, sanitizePrompt } from '../validation/ai-security.js';
+import { AIMockupResponseSchema, escapeHtml, sanitizeAIHtml, sanitizePrompt } from '../validation/ai-security.js';
 import type { CircuitState, CircuitBreakerConfig } from './ai-circuit-breaker.js';
 import { AI_TIMEOUT_MS, AICircuitBreaker, aiCircuitBreaker, withTimeout } from './ai-circuit-breaker.js';
 import { errorMessage } from '../utils/errors.js';
@@ -166,7 +166,7 @@ export async function generateMockup(prompt: string, framework: string = 'html/c
     success: true,
     framework: safeFramework,
     html_code: `<div class="pokemon-card" style="border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1rem; background: #1f2937; text-align: center;">
-  <h3 style="color: #f9fafb; margin-bottom: 0.5rem;">${sanitizedPrompt || 'Componente'}</h3>
+  <h3 style="color: #f9fafb; margin-bottom: 0.5rem;">${escapeHtml(sanitizedPrompt) || 'Componente'}</h3>
   <span class="type-badge" style="background: #ef4444; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem;">Fuego</span>
   <p style="color: #9ca3af; font-size: 0.875rem; margin-top: 0.5rem;">Componente estilizado generado para el ecosistema Pokédex.</p>
 </div>`,

@@ -1,5 +1,6 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
 import { api, nextClientIp, randomSecret, startApp, type RunningApp } from '../helpers/http-app.js';
 
 const AI_KEY = randomSecret('ai');
@@ -99,15 +100,40 @@ test('🤖 POST /ai/mock: devuelve la plantilla local con el prompt y normaliza 
   assert.match(res.body.html_code, /Tarjeta de Pikachu/);
 });
 
-// Hallazgo: la rama de IA sanea la salida con sanitizeAIHtml, pero la plantilla local (fallback, usada sin clave de
-// Gemini o con el circuit breaker abierto) interpola el prompt sin escapar ni sanear. Marcado como `todo` hasta que se
-// corrija; al hacerlo, quitar la opción `todo` para que sea un test de regresión.
-test('🤖 POST /ai/mock: el HTML de la plantilla local no contiene etiquetas script del prompt', {
-  todo: 'Hallazgo AUD-SEC-AI-001: el fallback de generateMockup no sanea el prompt',
-}, async () => {
-  const res = await post('/api/v1/ai/mock', { prompt: 'Tarjeta <script>alert(1)</script>' });
-  assert.equal(res.status, 200);
-  assert.doesNotMatch(res.body.html_code, /<script/i, 'el prompt no debe inyectar etiquetas script');
+// AUD-SEC-AI-001: la rama de IA sanea la salida con sanitizeAIHtml, pero la plantilla local (fallback, usada sin clave de
+// Gemini o con el circuit breaker abierto) interpolaba el prompt como HTML sin escapar. El prompt es texto, no marcado.
+test('🤖 POST /ai/mock: el prompt se inserta como texto escapado en la plantilla local (AUD-SEC-AI-001)', async () => {
+  const payloads = [
+    'Tarjeta <script>alert(1)</script>',
+    'Tarjeta <img src=x onerror=alert(1)>',
+    'Tarjeta </h3><iframe src="https://example.com"></iframe>',
+    `Tarjeta " onmouseover="alert(1)`,
+  ];
+  for (const prompt of payloads) {
+    const res = await post('/api/v1/ai/mock', { prompt });
+    assert.equal(res.status, 200, prompt);
+
+    // Se inspecciona el DOM resultante: el prompt debe quedar como texto del <h3> y no crear elementos ni atributos.
+    const fragment = new JSDOM(res.body.html_code).window.document;
+    const dangerous = fragment.querySelectorAll('script, img, iframe, object, embed');
+    assert.equal(dangerous.length, 0, `el prompt no debe inyectar elementos: ${prompt}`);
+    const withHandlers = [...fragment.querySelectorAll('*')].filter((el) =>
+      el.getAttributeNames().some((name) => name.startsWith('on')),
+    );
+    assert.equal(withHandlers.length, 0, `el prompt no debe inyectar manejadores de eventos: ${prompt}`);
+
+    const title = fragment.querySelector('h3');
+    assert.equal(title?.children.length, 0, 'el título solo contiene texto');
+    assert.match(title?.textContent ?? '', /Tarjeta/, 'el texto legítimo del prompt se conserva');
+  }
+});
+
+test('🤖 POST /ai/mock: la plantilla local conserva la estructura propia y escapa los caracteres especiales del prompt', async () => {
+  const res = await post('/api/v1/ai/mock', { prompt: `Rock & <Roll> "x" 'y'` });
+  const html: string = res.body.html_code;
+  assert.ok(html.includes('Rock &amp; &lt;Roll&gt; &quot;x&quot; &#39;y&#39;'), `prompt escapado en el <h3>: ${html}`);
+  assert.match(html, /^<div class="pokemon-card"/, 'la plantilla propia no se altera');
+  assert.equal((html.match(/<h3/g) ?? []).length, 1, 'el prompt no puede abrir ni cerrar elementos');
 });
 
 test('🤖 POST /ai/image: devuelve la imagen de fallback con la proporción pedida', async () => {
