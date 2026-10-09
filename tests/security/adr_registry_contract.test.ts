@@ -30,7 +30,7 @@ test('🗂️ Registro de ADRs: existen los ADRs activos contiguos 001 a 020 (sa
   assert.ok(files.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
 });
 
-test('🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico está indexado en docs/decisions/README.md', () => {
+test('🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico y está indexado en docs/decisions/README.md', () => {
   const index = fs.readFileSync(path.join(DECISIONS_DIR, 'README.md'), 'utf-8');
   for (const file of adrFiles()) {
     assert.match(file, /^ADR-\d{3}-[a-z0-9-]+\.md$/, `${file} debe tener formato canónico ADR-XXX-slug.md`);
