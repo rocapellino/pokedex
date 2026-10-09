@@ -250,7 +250,6 @@ test('🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, 
   assert.ok(fs.existsSync(adrPath), 'ADR-013 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-013 debe estar aceptado');
   assert.ok(adrContent.includes('Zero-Trust'), 'ADR-013 debe documentar arquitectura Zero-Trust');
   assert.ok(
     adrContent.includes('Default-Deny') || adrContent.includes('default-deny'),
@@ -289,10 +288,6 @@ test('🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminaci�
 
   assert.ok(fs.existsSync(adrPath), 'ADR-016 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-016 debe estar en estado Aceptado',
-  );
 
   assert.ok(
     adrContent.includes('TLS') || adrContent.includes('cert-manager'),
