@@ -394,9 +394,9 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/security/k8s_workload_hardening.test.ts': {
     type: 'Security / Kubernetes',
     targetDomain: 'Hardening de Workloads Kubernetes',
-    targetArtifacts: ['infra/k8s/', 'infra/helm/pokedex/templates/'],
+    targetArtifacts: ['infra/k8s/', 'infra/helm/pokedex/', '.github/workflows/infra.yaml'],
     description:
-      'Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud.',
+      'Verifica sobre el chart renderizado con Helm y sobre YAML parseado el hardening de los workloads (readOnlyRootFilesystem con emptyDir, token de ServiceAccount, ephemeral-storage, topología, sin :latest), las políticas Kyverno y los gates de CI; y los ADR-014, 015 y 017.',
   },
   'tests/security/network_policies_security.test.ts': {
     type: 'Security / Network',
