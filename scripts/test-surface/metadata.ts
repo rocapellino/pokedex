@@ -324,9 +324,15 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/security/dr_backup_security.test.ts': {
     type: 'Security / Backup',
     targetDomain: 'Seguridad y Cifrado de Backups',
-    targetArtifacts: ['scripts/dr-drill.ts', 'scripts/dev-backup-gdrive.ts'],
+    targetArtifacts: [
+      'infra/helm/pokedex/templates/backup-cronjob.yaml',
+      'infra/helm/pokedex/templates/backup-restore-verify-cronjob.yaml',
+      'infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml',
+      'scripts/dr_verify_restore.sh',
+      'scripts/dev-backup-gdrive.ts',
+    ],
     description:
-      'Valida cifrado AES-256-GCM en reposo de snapshots de base de datos, permisos de archivos y aislamiento de claves.',
+      'Verifica sobre el chart renderizado (default, prod y pre-prod) los CronJob de backup, verificación de restauración y sync a Drive: cifrado AES-256-CBC con PBKDF2, clave obligatoria, hardening del pod, PVC real, rclone fijado por digest y red Zero-Trust; y el script de verificación, el runbook DR, las alertas y los blueprints off-site.',
   },
   'tests/security/dr_e2e_drill.test.ts': {
     type: 'Security / DR',
