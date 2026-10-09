@@ -466,9 +466,17 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/security/operation_dr_benchmarks.test.ts': {
     type: 'Security / DR Benchmarks',
     targetDomain: 'Benchmarks de Recuperación ante Desastres',
-    targetArtifacts: ['scripts/dr-drill.ts'],
+    targetArtifacts: [
+      'infra/k8s/kind-cluster.yaml',
+      '.github/workflows/infra.yaml',
+      '.github/workflows/security-dast-zap.yaml',
+      '.github/workflows/performance-k6.yaml',
+      '.github/workflows/dr-simulation.yaml',
+      'scripts/dr_verify_restore.sh',
+      'tests/performance/k6_stress_test.js',
+    ],
     description:
-      'Valida umbrales cuantitativos de tiempo de backup, compresión y consistencia de restauración contra SLAs operacionales.',
+      'Verifica sobre el clúster Kind y los workflows parseados la integración con Kind, el escaneo ZAP, los umbrales de k6 por métrica y el simulacro semanal de DR; el script de restauración y los documentos de DR se comprueban como texto.',
   },
   'tests/security/promote_auto_approve_contracts.test.ts': {
     type: 'Contract / CI-CD',
