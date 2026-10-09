@@ -163,4 +163,3 @@ Paridad total entre los `.dockerignore` de servicios individuales y el raíz. Si
 - [x] **Paridad GitOps:** `npm run gitops:verify-parity` en verde.
 - [x] **Superficie de Pruebas:** `npm run test:surface:check` sincronizado sin drift.
 - [x] **Auditoría de Dependencias:** `npm audit --omit=dev` sin vulnerabilidades.
-
