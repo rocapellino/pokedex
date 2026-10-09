@@ -416,7 +416,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Recolección de Métricas del Clúster hacia Grafana Cloud',
     targetArtifacts: ['infra/monitoring/grafana-cloud-values.yaml', 'scripts/deploy-grafana-cloud.mjs'],
     description:
-      'Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API.',
+      'Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados.',
   },
   'tests/security/grafana_portability.test.ts': {
     type: 'Contract / Observability',

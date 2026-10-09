@@ -2558,7 +2558,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Renderiza k8s-monitoring con la versión y flags del script: scrapes de clúster, allowlists de las alertas y endpoint OTLP de la API."
+      "description": "Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados."
     },
     {
       "path": "tests/security/grafana_portability.test.ts",
