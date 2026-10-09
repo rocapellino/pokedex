@@ -177,6 +177,6 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'Nginx / Cabeceras Efectivas',
     targetArtifacts: ['apps/frontend/nginx.conf.template', 'apps/frontend/nginx.conf'],
     description:
-      'Comprueba las cabeceras de seguridad efectivas de nginx: nivel server, herencia de add_header en cada location y ocultamiento de cabeceras del upstream.',
+      'Comprueba la seguridad de nginx: cabeceras efectivas (nivel server, herencia de add_header por location, ocultamiento del upstream), valores de COOP y CORP, CSP sin unsafe-inline en style-src y sin allowlists RFC 1918 masivas.',
   },
 };
