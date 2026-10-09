@@ -1,0 +1,1869 @@
+exports[`🧪 Paridad de render (modal): base-stats-full produce la misma salida que la versión anterior 1`] = `
+<div class="stats-list">
+      <div class="base-stat-row" aria-label="PS: 35">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">35</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w15 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque: 55">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">55</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa: 40">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">40</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w15 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque especial: 50">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">50</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa especial: 50">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">50</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Velocidad: 90">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">90</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row base-stat-total" aria-label="Total: 320">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">320</span>
+      </div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): base-stats-none produce la misma salida que la versión anterior 1`] = `
+<p class="stats-empty">Sin estadísticas registradas</p>
+`;
+
+exports[`🧪 Paridad de render (modal): base-stats-partial produce la misma salida que la versión anterior 1`] = `
+<div class="stats-list">
+      <div class="base-stat-row" aria-label="PS: 45">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">45</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque: 49">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">49</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa: sin datos">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">—</span>
+        <div class="base-stat-track"></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque especial: sin datos">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">—</span>
+        <div class="base-stat-track"></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa especial: sin datos">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">—</span>
+        <div class="base-stat-track"></div>
+      </div>
+      <div class="base-stat-row" aria-label="Velocidad: sin datos">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">—</span>
+        <div class="base-stat-track"></div>
+      </div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): connector-method produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Piedra trueno">
+        <span>💎</span>
+        <span>Piedra trueno</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): connector-plain produce la misma salida que la versión anterior 1`] = `
+<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): connector-undefined produce la misma salida que la versión anterior 1`] = `
+<div class="evolution-transition-connector"><div class="evolution-chevron-arrow">&gt;</div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): detail-charizard-mega produce la misma salida que la versión anterior 1`] = `
+
+    <div class="pokedex-notched-header">
+      <h2 class="pokedex-notched-title" tabindex="-1">
+        Charizard <span class="pokedex-notched-number">N.º 0006</span>
+      </h2>
+      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="pokedex-entry-grid">
+      <div class="pokedex-left-col">
+        <div class="pokedex-artwork-box">
+          <img src="https://img.example.com/6.png" alt="Charizard" class="pokedex-artwork-img">
+        </div>
+
+        <div class="pokedex-stats-panel">
+          <div class="stats-panel-title">Puntos de base</div>
+          <div class="stats-panel-body">
+            <div class="stats-list">
+      <div class="base-stat-row" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque: 84">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">84</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa: 78">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque especial: 109">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">109</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row base-stat-total" aria-label="Total: 534">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">534</span>
+      </div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-right-col">
+        <p class="pokedex-description-text">Escupe fuego abrasador.</p>
+
+        <div class="pokedex-blue-card">
+          <div class="blue-card-item">
+            <span class="blue-card-label">Altura</span>
+            <span class="blue-card-value">1,7 m</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Categoría</span>
+            <span class="blue-card-value">Montañas</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Peso</span>
+            <span class="blue-card-value">90,5 kg</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Habilidad</span>
+            <span class="blue-card-value">Mar Llamas</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Tipo</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="volador">Volador</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Debilidad</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="agua">Agua</span><span class="official-type-pill" data-type="tierra">Tierra</span><span class="official-type-pill" data-type="roca">Roca</span><span class="official-type-pill" data-type="electrico">Eléctrico</span><span class="official-type-pill" data-type="hielo">Hielo</span>
+          </div>
+        </div>
+
+
+    <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure" aria-label="Ver 2 megaevoluciones">
+      <span class="mega-title-mark" aria-hidden="true">M</span>
+      <span class="mega-toggle-text">Mega</span>
+      <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+      </div>
+    </div>
+
+
+    <div class="mega-disclosure-body" id="mega-disclosure" hidden>
+
+    <section class="mega-section" aria-label="Megaevoluciones">
+      <h3 class="mega-section-title">
+        <span class="mega-title-mark" aria-hidden="true">M</span> Megaevoluciones
+      </h3>
+      <div class="mega-tabs" role="tablist" aria-label="Megaevoluciones de Charizard">
+          <button type="button" class="mega-tab mega-tab--active" role="tab" id="mega-tab-0" aria-selected="true" aria-controls="mega-panel-0" data-mega-index="0">Mega-Charizard X</button><button type="button" class="mega-tab" role="tab" id="mega-tab-1" aria-selected="false" aria-controls="mega-panel-1" data-mega-index="1">Mega-Charizard Y</button>
+        </div>
+
+    <div class="mega-panel mega-panel--active" role="tabpanel" id="mega-panel-0" aria-label="Mega-Charizard X" data-mega-index="0">
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard X" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Garra Dura</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="dragon">Dragón</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+46</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+33</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+21</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mega-panel" role="tabpanel" id="mega-panel-1" aria-label="Mega-Charizard Y" data-mega-index="1" hidden>
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard Y" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Sequía</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="volador">Volador</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 104">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">104</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+20</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 78">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 159">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">159</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w60 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+50</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 115">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">115</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+30</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    </section>
+    </div>
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item " data-evol-id="4" role="button" tabindex="0" title="Ver ficha de Charmander">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/4.png" alt="Charmander" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charmander <span class="evolution-number-sub">N.º 0004</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Nivel 16">
+        <span>📈</span>
+        <span>Nivel 16</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="5" role="button" tabindex="0" title="Ver ficha de Charmeleon">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Charmeleon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charmeleon <span class="evolution-number-sub">N.º 0005</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Nivel 36">
+        <span>📈</span>
+        <span>Nivel 36</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item active-current" data-evol-id="6" aria-current="true" title="Estás viendo a Charizard">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Charizard" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charizard <span class="evolution-number-sub">N.º 0006</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span><span class="evolution-type-mini" data-type="volador">Volador</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): detail-eevee produce la misma salida que la versión anterior 1`] = `
+
+    <div class="pokedex-notched-header">
+      <h2 class="pokedex-notched-title" tabindex="-1">
+        Eevee <span class="pokedex-notched-number">N.º 0133</span>
+      </h2>
+      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="pokedex-entry-grid">
+      <div class="pokedex-left-col">
+        <div class="pokedex-artwork-box">
+          <img src="https://img.example.com/133.png" alt="Eevee" class="pokedex-artwork-img">
+        </div>
+
+        <div class="pokedex-stats-panel">
+          <div class="stats-panel-title">Puntos de base</div>
+          <div class="stats-panel-body">
+            <div class="stats-list">
+      <div class="base-stat-row" aria-label="PS: 55">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">55</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque: 55">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">55</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa: 50">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">50</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque especial: 45">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">45</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa especial: 65">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">65</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w25 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Velocidad: 55">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">55</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row base-stat-total" aria-label="Total: 325">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">325</span>
+      </div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-right-col">
+        <p class="pokedex-description-text">Eevee es una especie de tipo Normal registrada en la Pokédex. Su hábitat es Urbano.</p>
+
+        <div class="pokedex-blue-card">
+          <div class="blue-card-item">
+            <span class="blue-card-label">Altura</span>
+            <span class="blue-card-value">0,3 m</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Categoría</span>
+            <span class="blue-card-value">Urbano</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Peso</span>
+            <span class="blue-card-value">6,5 kg</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Habilidades</span>
+            <span class="blue-card-value">Fuga, Adaptable</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Tipo</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="normal">Normal</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Debilidad</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="lucha">Lucha</span>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="branched-evolution-container">
+          <div class="branched-parent-row">
+
+    <div class="evolution-node-item active-current" data-evol-id="133" aria-current="true" title="Estás viendo a Eevee">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/133.png" alt="Eevee" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Eevee <span class="evolution-number-sub">N.º 0133</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+          <div class="branched-fork-indicator">
+            <span class="fork-arrow-down">⬇️</span>
+            <span>Evoluciones según atributo, piedra o método utilizado</span>
+          </div>
+          <div class="branched-children-grid">
+
+    <div class="evolution-node-item " data-evol-id="134" role="button" tabindex="0" title="Ver ficha de Vaporeon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/134.png" alt="Vaporeon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Vaporeon <span class="evolution-number-sub">N.º 0134</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra agua">💎 Piedra agua</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="agua">Agua</span>
+      </div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="135" role="button" tabindex="0" title="Ver ficha de Jolteon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/135.png" alt="Jolteon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Jolteon <span class="evolution-number-sub">N.º 0135</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra trueno">💎 Piedra trueno</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="electrico">Eléctrico</span>
+      </div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="136" role="button" tabindex="0" title="Ver ficha de Flareon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/136.png" alt="Flareon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Flareon <span class="evolution-number-sub">N.º 0136</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra fuego">💎 Piedra fuego</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): detail-pikachu produce la misma salida que la versión anterior 1`] = `
+
+    <div class="pokedex-notched-header">
+      <h2 class="pokedex-notched-title" tabindex="-1">
+        Pikachu <span class="pokedex-notched-number">N.º 0025</span>
+      </h2>
+      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="pokedex-entry-grid">
+      <div class="pokedex-left-col">
+        <div class="pokedex-artwork-box">
+          <img src="https://img.example.com/pikachu.png" alt="Pikachu" class="pokedex-artwork-img">
+        </div>
+
+        <div class="pokedex-stats-panel">
+          <div class="stats-panel-title">Puntos de base</div>
+          <div class="stats-panel-body">
+            <div class="stats-list">
+      <div class="base-stat-row" aria-label="PS: 35">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">35</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w15 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque: 55">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">55</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa: 40">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">40</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w15 base-stat-tier--low"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Ataque especial: 50">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">50</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Defensa especial: 50">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">50</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w20 base-stat-tier--mid"></div></div>
+      </div>
+      <div class="base-stat-row" aria-label="Velocidad: 90">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">90</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+      </div>
+      <div class="base-stat-row base-stat-total" aria-label="Total: 320">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">320</span>
+      </div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-right-col">
+        <p class="pokedex-description-text">Pikachu es una especie de tipo Eléctrico registrada en la Pokédex. Su hábitat es Bosque Verde.</p>
+
+        <div class="pokedex-blue-card">
+          <div class="blue-card-item">
+            <span class="blue-card-label">Altura</span>
+            <span class="blue-card-value">0,4 m</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Categoría</span>
+            <span class="blue-card-value">Bosque Verde</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Peso</span>
+            <span class="blue-card-value">6 kg</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Habilidades</span>
+            <span class="blue-card-value">Elec. estática, Pararrayos</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Tipo</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="electrico">Eléctrico</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Debilidad</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="tierra">Tierra</span>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item " data-evol-id="172" role="button" tabindex="0" title="Ver ficha de Pichu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pichu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pichu <span class="evolution-number-sub">N.º 0172</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Amistad">
+        <span>💖</span>
+        <span>Amistad</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item active-current" data-evol-id="25" aria-current="true" title="Estás viendo a Pikachu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pikachu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pikachu <span class="evolution-number-sub">N.º 0025</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="electrico">Eléctrico</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Piedra trueno">
+        <span>💎</span>
+        <span>Piedra trueno</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="26" role="button" tabindex="0" title="Ver ficha de Raichu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Raichu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Raichu <span class="evolution-number-sub">N.º 0026</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): detail-sparse produce la misma salida que la versión anterior 1`] = `
+
+    <div class="pokedex-notched-header">
+      <h2 class="pokedex-notched-title" tabindex="-1">
+        Nidoran&lt;&amp;&quot;&#039;&gt; <span class="pokedex-notched-number">N.º 0001</span>
+      </h2>
+      <button class="btn-icon modal-close-btn" aria-label="Cerrar modal">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="pokedex-entry-grid">
+      <div class="pokedex-left-col">
+        <div class="pokedex-artwork-box">
+          <img src="" alt="Nidoran&lt;&amp;&quot;&#039;&gt;" class="pokedex-artwork-img">
+        </div>
+
+        <div class="pokedex-stats-panel">
+          <div class="stats-panel-title">Puntos de base</div>
+          <div class="stats-panel-body">
+            <p class="stats-empty">Sin estadísticas registradas</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-right-col">
+        <p class="pokedex-description-text">Nidoran&lt;&amp;&quot;&#039;&gt; es una especie de tipo Veneno registrada en la Pokédex.</p>
+
+        <div class="pokedex-blue-card">
+          <div class="blue-card-item">
+            <span class="blue-card-label">Altura</span>
+            <span class="blue-card-value">—</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Categoría</span>
+            <span class="blue-card-value">—</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Peso</span>
+            <span class="blue-card-value">—</span>
+          </div>
+          <div class="blue-card-item">
+            <span class="blue-card-label">Habilidad</span>
+            <span class="blue-card-value">Punto tóxico</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Tipo</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="veneno">Veneno</span>
+          </div>
+        </div>
+
+        <div class="type-section-group">
+          <h4 class="type-group-title">Debilidad</h4>
+          <div class="type-pill-badges-row">
+            <span class="official-type-pill" data-type="tierra">Tierra</span><span class="official-type-pill" data-type="psiquico">Psíquico</span>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item active-current" data-evol-id="1" aria-current="true" title="Estás viendo a Pokémon">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" alt="Pokémon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pokémon <span class="evolution-number-sub">N.º 0001</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-branched-leaves produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="branched-evolution-container">
+          <div class="branched-parent-row">
+
+    <div class="evolution-node-item active-current" data-evol-id="133" aria-current="true" title="Estás viendo a Eevee">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/133.png" alt="Eevee" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Eevee <span class="evolution-number-sub">N.º 0133</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+          <div class="branched-fork-indicator">
+            <span class="fork-arrow-down">⬇️</span>
+            <span>Evoluciones según atributo, piedra o método utilizado</span>
+          </div>
+          <div class="branched-children-grid">
+
+    <div class="evolution-node-item " data-evol-id="134" role="button" tabindex="0" title="Ver ficha de Vaporeon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/134.png" alt="Vaporeon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Vaporeon <span class="evolution-number-sub">N.º 0134</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra agua">💎 Piedra agua</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="agua">Agua</span>
+      </div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="135" role="button" tabindex="0" title="Ver ficha de Jolteon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/135.png" alt="Jolteon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Jolteon <span class="evolution-number-sub">N.º 0135</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra trueno">💎 Piedra trueno</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="electrico">Eléctrico</span>
+      </div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="136" role="button" tabindex="0" title="Ver ficha de Flareon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/136.png" alt="Flareon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Flareon <span class="evolution-number-sub">N.º 0136</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra fuego">💎 Piedra fuego</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-branched-prefix produce la misma salida que la versión anterior 1`] = `
+
+    <div class="pokedex-evolutions-official-panel">
+      <div class="evolutions-panel-header">Evoluciones</div>
+      <div class="branched-evolution-container">
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item " data-evol-id="43" role="button" tabindex="0" title="Ver ficha de Oddish">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/43.png" alt="Oddish" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Oddish <span class="evolution-number-sub">N.º 0043</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Nivel 21">
+        <span>📈</span>
+        <span>Nivel 21</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item active-current" data-evol-id="44" aria-current="true" title="Estás viendo a Gloom">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/44.png" alt="Gloom" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Gloom <span class="evolution-number-sub">N.º 0044</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+
+          <div class="branched-fork-indicator">
+            <span class="fork-arrow-down">⬇️</span>
+            <span>Evoluciones alternativas</span>
+          </div>
+          <div class="branched-children-grid">
+
+    <div class="evolution-node-item " data-evol-id="45" role="button" tabindex="0" title="Ver ficha de Vileplume">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/45.png" alt="Vileplume" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Vileplume <span class="evolution-number-sub">N.º 0045</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra hoja">💎 Piedra hoja</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="planta">Planta</span><span class="evolution-type-mini" data-type="veneno">Veneno</span>
+      </div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="182" role="button" tabindex="0" title="Ver ficha de Bellossom">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/182.png" alt="Bellossom" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Bellossom <span class="evolution-number-sub">N.º 0182</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra sol">💎 Piedra sol</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+
+      </div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-flat-1 produce la misma salida que la versión anterior 1`] = `
+
+        <div class="pokedex-evolutions-official-panel">
+          <div class="evolutions-panel-header">Evoluciones</div>
+          <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item active-current" data-evol-id="132" aria-current="true" title="Estás viendo a Ditto">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Ditto" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Ditto <span class="evolution-number-sub">N.º 0132</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+          </div>
+        </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-flat-3 produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item " data-evol-id="172" role="button" tabindex="0" title="Ver ficha de Pichu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pichu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pichu <span class="evolution-number-sub">N.º 0172</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Amistad">
+        <span>💖</span>
+        <span>Amistad</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item active-current" data-evol-id="25" aria-current="true" title="Estás viendo a Pikachu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pikachu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pikachu <span class="evolution-number-sub">N.º 0025</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="electrico">Eléctrico</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Piedra trueno">
+        <span>💎</span>
+        <span>Piedra trueno</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="26" role="button" tabindex="0" title="Ver ficha de Raichu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Raichu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Raichu <span class="evolution-number-sub">N.º 0026</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-linear-tree produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item " data-evol-id="4" role="button" tabindex="0" title="Ver ficha de Charmander">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/4.png" alt="Charmander" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charmander <span class="evolution-number-sub">N.º 0004</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Nivel 16">
+        <span>📈</span>
+        <span>Nivel 16</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item active-current" data-evol-id="5" aria-current="true" title="Estás viendo a Charmeleon">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/5.png" alt="Charmeleon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charmeleon <span class="evolution-number-sub">N.º 0005</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span>
+      </div>
+    </div>
+
+    <div class="evolution-transition-connector">
+      <div class="evolution-trigger-badge" title="Nivel 36">
+        <span>📈</span>
+        <span>Nivel 36</span>
+      </div>
+      <div class="evolution-chevron-arrow">&gt;</div>
+    </div>
+
+    <div class="evolution-node-item " data-evol-id="6" role="button" tabindex="0" title="Ver ficha de Charizard">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/6.png" alt="Charizard" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Charizard <span class="evolution-number-sub">N.º 0006</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="fuego">Fuego</span><span class="evolution-type-mini" data-type="volador">Volador</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-no-tree produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item active-current" data-evol-id="77" aria-current="true" title="Estás viendo a Pokémon">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/77.png" alt="Pokémon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pokémon <span class="evolution-number-sub">N.º 0077</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-single-tree produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item active-current" data-evol-id="132" aria-current="true" title="Estás viendo a Ditto">
+      <div class="evolution-circle-frame">
+        <img src="https://img.example.com/132.png" alt="Ditto" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Ditto <span class="evolution-number-sub">N.º 0132</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): evolution-undefined produce la misma salida que la versión anterior 1`] = `
+
+      <div class="pokedex-evolutions-official-panel">
+        <div class="evolutions-panel-header">Evoluciones</div>
+        <div class="evolutions-nodes-track">
+
+    <div class="evolution-node-item active-current" data-evol-id="78" aria-current="true" title="Estás viendo a Pokémon">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/78.png" alt="Pokémon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pokémon <span class="evolution-number-sub">N.º 0078</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+
+        </div>
+      </div>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-body-none produce la misma salida que la versión anterior 1`] = `
+
+`;
+
+exports[`🧪 Paridad de render (modal): mega-body-two produce la misma salida que la versión anterior 1`] = `
+
+    <div class="mega-disclosure-body" id="mega-disclosure" hidden>
+
+    <section class="mega-section" aria-label="Megaevoluciones">
+      <h3 class="mega-section-title">
+        <span class="mega-title-mark" aria-hidden="true">M</span> Megaevoluciones
+      </h3>
+      <div class="mega-tabs" role="tablist" aria-label="Megaevoluciones de Charizard">
+          <button type="button" class="mega-tab mega-tab--active" role="tab" id="mega-tab-0" aria-selected="true" aria-controls="mega-panel-0" data-mega-index="0">Mega-Charizard X</button><button type="button" class="mega-tab" role="tab" id="mega-tab-1" aria-selected="false" aria-controls="mega-panel-1" data-mega-index="1">Mega-Charizard Y</button>
+        </div>
+
+    <div class="mega-panel mega-panel--active" role="tabpanel" id="mega-panel-0" aria-label="Mega-Charizard X" data-mega-index="0">
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard X" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Garra Dura</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="dragon">Dragón</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+46</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+33</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+21</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mega-panel" role="tabpanel" id="mega-panel-1" aria-label="Mega-Charizard Y" data-mega-index="1" hidden>
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard Y" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Sequía</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="volador">Volador</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 104">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">104</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+20</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 78">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 159">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">159</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w60 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+50</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 115">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">115</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+30</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    </section>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-section-one produce la misma salida que la versión anterior 1`] = `
+
+    <section class="mega-section" aria-label="Megaevolución">
+      <h3 class="mega-section-title">
+        <span class="mega-title-mark" aria-hidden="true">M</span> Megaevolución
+      </h3>
+      <p class="mega-single-name">Mega-Charizard X</p>
+
+    <div class="mega-panel mega-panel--active" role="tabpanel" id="mega-panel-0" aria-label="Mega-Charizard X" data-mega-index="0">
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard X" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Garra Dura</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="dragon">Dragón</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+46</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+33</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+21</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    </section>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-section-two produce la misma salida que la versión anterior 1`] = `
+
+    <section class="mega-section" aria-label="Megaevoluciones">
+      <h3 class="mega-section-title">
+        <span class="mega-title-mark" aria-hidden="true">M</span> Megaevoluciones
+      </h3>
+      <div class="mega-tabs" role="tablist" aria-label="Megaevoluciones de Charizard">
+          <button type="button" class="mega-tab mega-tab--active" role="tab" id="mega-tab-0" aria-selected="true" aria-controls="mega-panel-0" data-mega-index="0">Mega-Charizard X</button><button type="button" class="mega-tab" role="tab" id="mega-tab-1" aria-selected="false" aria-controls="mega-panel-1" data-mega-index="1">Mega-Charizard Y</button>
+        </div>
+
+    <div class="mega-panel mega-panel--active" role="tabpanel" id="mega-panel-0" aria-label="Mega-Charizard X" data-mega-index="0">
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard X" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Garra Dura</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="dragon">Dragón</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+46</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+33</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+21</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mega-panel" role="tabpanel" id="mega-panel-1" aria-label="Mega-Charizard Y" data-mega-index="1" hidden>
+      <div class="mega-panel-grid">
+        <div class="mega-artwork-box">
+          <img src="https://img.example.com/10034.png" alt="Mega-Charizard Y" class="pokedex-artwork-img" loading="lazy" crossorigin="anonymous">
+        </div>
+
+        <div class="mega-panel-info">
+          <div class="pokedex-blue-card">
+            <div class="blue-card-item">
+              <span class="blue-card-label">Altura</span>
+              <span class="blue-card-value">1,7 m</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Peso</span>
+              <span class="blue-card-value">110,5 kg</span>
+            </div>
+            <div class="blue-card-item">
+              <span class="blue-card-label">Habilidad</span>
+              <span class="blue-card-value">Sequía</span>
+            </div>
+          </div>
+
+          <div class="type-section-group">
+            <h4 class="type-group-title">Tipo</h4>
+            <div class="type-pill-badges-row">
+              <span class="official-type-pill" data-type="fuego">Fuego</span><span class="official-type-pill" data-type="volador">Volador</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokedex-stats-panel">
+        <div class="stats-panel-title">Puntos de base <span class="mega-stats-hint">frente a Charizard</span></div>
+        <div class="stats-panel-body">
+          <div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 104">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">104</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+20</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 78">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 159">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">159</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w60 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+50</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 115">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">115</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+30</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+        </div>
+      </div>
+    </div>
+    </section>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-stats-no-base produce la misma salida que la versión anterior 1`] = `
+<div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same"></span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span></span>
+      </div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-stats-with-base produce la misma salida que la versión anterior 1`] = `
+<div class="stats-list">
+      <div class="base-stat-row base-stat-row--delta" aria-label="PS: 78">
+        <span class="base-stat-name">PS</span>
+        <span class="base-stat-value">78</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w30 base-stat-tier--mid"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque: 130">
+        <span class="base-stat-name">Ataque</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+46</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa: 111">
+        <span class="base-stat-name">Defensa</span>
+        <span class="base-stat-value">111</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w45 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+33</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Ataque especial: 130">
+        <span class="base-stat-name">At. Esp.</span>
+        <span class="base-stat-value">130</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w50 base-stat-tier--top"></div></div>
+        <span class="base-stat-delta base-stat-delta--up">+21</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Defensa especial: 85">
+        <span class="base-stat-name">Def. Esp.</span>
+        <span class="base-stat-value">85</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w35 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta" aria-label="Velocidad: 100">
+        <span class="base-stat-name">Velocidad</span>
+        <span class="base-stat-value">100</span>
+        <div class="base-stat-track"><div class="base-stat-fill base-stat-fill--w40 base-stat-tier--high"></div></div>
+        <span class="base-stat-delta base-stat-delta--same">=</span>
+      </div>
+      <div class="base-stat-row base-stat-row--delta base-stat-total" aria-label="Total: 634">
+        <span class="base-stat-name">Total</span>
+        <span class="base-stat-value">634</span>
+        <span></span>
+        <span class="base-stat-delta base-stat-delta--up">+100</span>
+      </div></div>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-toggle-none produce la misma salida que la versión anterior 1`] = `
+
+`;
+
+exports[`🧪 Paridad de render (modal): mega-toggle-one produce la misma salida que la versión anterior 1`] = `
+
+    <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure" aria-label="Ver megaevolución">
+      <span class="mega-title-mark" aria-hidden="true">M</span>
+      <span class="mega-toggle-text">Mega</span>
+      <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+`;
+
+exports[`🧪 Paridad de render (modal): mega-toggle-two produce la misma salida que la versión anterior 1`] = `
+
+    <button type="button" class="mega-toggle" aria-expanded="false" aria-controls="mega-disclosure" aria-label="Ver 2 megaevoluciones">
+      <span class="mega-title-mark" aria-hidden="true">M</span>
+      <span class="mega-toggle-text">Mega</span>
+      <svg class="mega-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+`;
+
+exports[`🧪 Paridad de render (modal): node-bare produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-node-item " data-evol-id="999" role="button" tabindex="0" title="Ver ficha de Pokémon">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokémon" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pokémon <span class="evolution-number-sub">N.º 0999</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): node-catalog-types produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-node-item " data-evol-id="45" role="button" tabindex="0" title="Ver ficha de Vileplume">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Vileplume" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Vileplume <span class="evolution-number-sub">N.º 0045</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="planta">Planta</span><span class="evolution-type-mini" data-type="veneno">Veneno</span>
+      </div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): node-current produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-node-item active-current" data-evol-id="25" aria-current="true" title="Estás viendo a Pikachu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pikachu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Pikachu <span class="evolution-number-sub">N.º 0025</span>
+      </div>
+
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="electrico">Eléctrico</span>
+      </div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): node-other-method produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-node-item " data-evol-id="26" role="button" tabindex="0" title="Ver ficha de Raichu">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Raichu" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Raichu <span class="evolution-number-sub">N.º 0026</span>
+      </div>
+      <div class="evolution-method-tag" title="Piedra trueno">💎 Piedra trueno</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+`;
+
+exports[`🧪 Paridad de render (modal): node-special-chars produce la misma salida que la versión anterior 1`] = `
+
+    <div class="evolution-node-item " data-evol-id="7" role="button" tabindex="0" title="Ver ficha de Mr. &lt;Mime&gt; &amp; &quot;Co&quot;">
+      <div class="evolution-circle-frame">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Mr. &lt;Mime&gt; &amp; &quot;Co&quot;" class="evolution-circle-img" crossorigin="anonymous">
+      </div>
+      <div class="evolution-name-tag">
+        Mr. &lt;Mime&gt; &amp; &quot;Co&quot; <span class="evolution-number-sub">N.º 0007</span>
+      </div>
+      <div class="evolution-method-tag" title="Nivel &quot;16&quot;">📈 Nivel &quot;16&quot;</div>
+      <div class="evolution-types-row">
+        <span class="evolution-type-mini" data-type="normal">Normal</span>
+      </div>
+    </div>
+`;

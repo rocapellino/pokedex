@@ -1,9 +1,6 @@
 import { dom } from './mega_env.js';
+import { assertHtmlSnapshot } from './html_snapshot.js';
 import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { renderTableRows } from '../../apps/frontend/src/components/admin-table.js';
 import { renderPokemonCard } from '../../apps/frontend/src/components/pokemon-card.js';
 import { renderEmptyState, renderTypeBadge, renderTypeBadges } from '../../apps/frontend/src/shared/ui.js';
@@ -12,18 +9,11 @@ import { charizard, pikachu, sparse } from './html_fixtures.js';
 
 /**
  * Paridad de salida (refactor del render HTML): cada `render*` migrado a la plantilla `html` debe
- * producir EXACTAMENTE la misma cadena que antes. Los archivos de `golden/` se generaron con el
- * código previo a la migración. Para regenerarlos de forma deliberada:
- *   UPDATE_GOLDEN=1 npx tsx --test tests/frontend/html_parity.test.ts
+ * producir EXACTAMENTE la misma cadena que antes. Las instantáneas (`html_parity.test.ts.snapshot`) se generaron
+ * a partir de los archivos golden capturados con el código previo a la migración. Para regenerarlas de forma
+ * deliberada: `npm run test:snapshots:update`.
  */
 void dom;
-
-/**
- * Los hooks de pre-commit recortan los espacios finales y fijan el salto de línea final de los
- * archivos; la comparación los ignora para que el golden sea estable (no cambia el HTML).
- */
-const normalize = (html: string): string => html.replace(/[ \t]+$/gm, '').replace(/\n+$/, '');
-const GOLDEN_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'golden');
 
 const CASES: Record<string, () => unknown> = {
   'card-pikachu': () => renderPokemonCard(pikachu),
@@ -48,14 +38,7 @@ const CASES: Record<string, () => unknown> = {
 };
 
 for (const [name, render] of Object.entries(CASES)) {
-  test(`🧪 Paridad de render: ${name} produce la misma salida que la versión anterior`, () => {
-    const actual = normalize(String(render()));
-    const file = path.join(GOLDEN_DIR, `${name}.html`);
-    if (process.env.UPDATE_GOLDEN === '1') {
-      fs.mkdirSync(GOLDEN_DIR, { recursive: true });
-      fs.writeFileSync(file, `${actual}\n`, 'utf-8');
-    }
-    assert.ok(fs.existsSync(file), `falta el golden ${name}.html: generarlo con UPDATE_GOLDEN=1`);
-    assert.equal(actual, normalize(fs.readFileSync(file, 'utf-8')));
+  test(`🧪 Paridad de render: ${name} produce la misma salida que la versión anterior`, (t) => {
+    assertHtmlSnapshot(t, render());
   });
 }
