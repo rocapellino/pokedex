@@ -2842,7 +2842,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba Gitsign verificado, hooks fijados por SHA y exclusiones justificadas de Terraform y Semgrep."
+      "description": "Comprueba sobre los pasos parseados de release-tag.yaml que Gitsign se verifica (firma, digests, orden y guardas del modo refresco) antes de instalarse, que los hooks de pre-commit se fijan por SHA y que las exclusiones de Terraform y Semgrep están justificadas."
     },
     {
       "path": "tests/security/supply_chain_trivy_scan.test.ts",
