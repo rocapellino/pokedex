@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T14:21:32.578Z",
+  "generatedAt": "2026-10-09T14:25:52.192Z",
   "summary": {
     "totalFiles": 191,
     "testFiles": 132,
     "helperFiles": 58,
     "performanceScripts": 1,
     "totalTestCases": 977,
-    "totalLines": 26235,
-    "totalSizeBytes": 1134429,
+    "totalLines": 26234,
+    "totalSizeBytes": 1134375,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 40,
-      "testCases": 310,
+      "testCases": 309,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -59,7 +59,7 @@
       "runner": "node:test + JSDOM",
       "command": "npm test",
       "files": 86,
-      "testCases": 278,
+      "testCases": 279,
       "description": "Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles."
     },
     {
@@ -3955,12 +3955,12 @@
       "type": "Contract / Frontend",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 4,
+      "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 25,
-      "sizeBytes": 9026,
-      "lineCount": 213,
-      "sha256": "1ddbf66b4cba46e3ad842de9d4744c1f6f7ca82c7582e4c3ec552ea5e189faf1",
+      "assertionCountEst": 26,
+      "sizeBytes": 10331,
+      "lineCount": 243,
+      "sha256": "4ecb12d6e33abc5f6f9620408cba2582c6ad20a2f19406142161d511bb398882",
       "targetDomain": "Nginx / SSOT y Rutas de API",
       "targetArtifacts": [
         "apps/frontend/nginx.conf.template",
@@ -3975,7 +3975,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba el generador de nginx.conf desde la plantilla, los labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend.",
+      "description": "Comprueba el SSOT de nginx: nginx.conf sincronizado con la plantilla (APPS-001), generador unificado, labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -3993,6 +3993,10 @@
         {
           "name": "🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada",
           "line": 174
+        },
+        {
+          "name": "🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)",
+          "line": 229
         }
       ]
     },
@@ -5866,12 +5870,12 @@
       "type": "Security / Application",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 5638,
-      "lineCount": 140,
-      "sha256": "1083731720b11f5bae2e49419b33aba1c43dcb2dd80c0920b68694b3ecbf31a1",
+      "assertionCountEst": 17,
+      "sizeBytes": 8070,
+      "lineCount": 186,
+      "sha256": "f7bb3c18e76df0c283fb10a599869c7c50ffb5ee3867ec8197913f1df373820e",
       "targetDomain": "Nginx / Cabeceras Efectivas",
       "targetArtifacts": [
         "apps/frontend/nginx.conf.template",
@@ -5886,7 +5890,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba las cabeceras de seguridad efectivas de nginx: nivel server, herencia de add_header en cada location y ocultamiento de cabeceras del upstream.",
+      "description": "Comprueba la seguridad de nginx: cabeceras efectivas (nivel server, herencia de add_header por location, ocultamiento del upstream), valores de COOP y CORP, CSP sin unsafe-inline en style-src y sin allowlists RFC 1918 masivas.",
       "status": "ACTIVE",
       "testCases": [
         {
@@ -5900,6 +5904,18 @@
         {
           "name": "🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del upstream para no duplicarlas",
           "line": 118
+        },
+        {
+          "name": "🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin",
+          "line": 141
+        },
+        {
+          "name": "🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src",
+          "line": 152
+        },
+        {
+          "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
+          "line": 169
         }
       ]
     },
@@ -7066,12 +7082,12 @@
       "type": "Security / Network",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 14,
+      "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 80,
-      "sizeBytes": 20117,
-      "lineCount": 419,
-      "sha256": "1ed63a2307fdbfa1a3f427e65b3f1d52b55e79c7fb9f2eb3fcca9e43f15912c9",
+      "assertionCountEst": 67,
+      "sizeBytes": 16326,
+      "lineCount": 342,
+      "sha256": "fa179f366bd155e32beade97dffc1fb67dfc45ce10fcfbe8bc592f39a4968cf7",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -7086,64 +7102,48 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados.",
+      "description": "Verifica NetworkPolicies de PostgreSQL y Redis (default-deny), Cilium L7 FQDN, egress L4 anti-SSRF, aislamiento del blueprint prod, Ingress sin host y los contratos ADR-013 y ADR-016.",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)",
-          "line": 30
-        },
-        {
-          "name": "🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin",
-          "line": 45
-        },
-        {
-          "name": "🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src",
-          "line": 56
-        },
-        {
           "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 73
+          "line": 14
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 98
+          "line": 39
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
-          "line": 123
+          "line": 64
         },
         {
           "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 157
-        },
-        {
-          "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
-          "line": 171
+          "line": 98
         },
         {
           "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
-          "line": 197
+          "line": 120
         },
         {
           "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
-          "line": 229
+          "line": 152
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 251
+          "line": 174
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 267
+          "line": 190
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 321
+          "line": 244
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 361
+          "line": 284
         }
       ]
     },

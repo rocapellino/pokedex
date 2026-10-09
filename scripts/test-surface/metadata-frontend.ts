@@ -214,7 +214,7 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
       'apps/frontend/Dockerfile',
     ],
     description:
-      'Comprueba el generador de nginx.conf desde la plantilla, los labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend.',
+      'Comprueba el SSOT de nginx: nginx.conf sincronizado con la plantilla (APPS-001), generador unificado, labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend.',
   },
   'tests/frontend/page_focus.test.ts': {
     type: 'Accessibility',

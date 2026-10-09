@@ -379,7 +379,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
       'infra/helm/pokedex/templates/cilium-network-policies.yaml',
     ],
     description:
-      'Verifica aislamiento estricto entre pods de frontend, backend, Redis y PostgreSQL impidiendo accesos laterales no autorizados.',
+      'Verifica NetworkPolicies de PostgreSQL y Redis (default-deny), Cilium L7 FQDN, egress L4 anti-SSRF, aislamiento del blueprint prod, Ingress sin host y los contratos ADR-013 y ADR-016.',
   },
   'tests/security/opentofu_baseline_security.test.ts': {
     type: 'Security / OpenTofu',
