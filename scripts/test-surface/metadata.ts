@@ -504,7 +504,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Fijación de Tooling',
     targetArtifacts: ['.pre-commit-config.yaml', '.github/workflows/'],
     description:
-      'Comprueba Gitsign verificado, hooks fijados por SHA y exclusiones justificadas de Terraform y Semgrep.',
+      'Comprueba sobre los pasos parseados de release-tag.yaml que Gitsign se verifica (firma, digests, orden y guardas del modo refresco) antes de instalarse, que los hooks de pre-commit se fijan por SHA y que las exclusiones de Terraform y Semgrep están justificadas.',
   },
   'tests/security/supply_chain_trivy_scan.test.ts': {
     type: 'Security / Supply Chain',
