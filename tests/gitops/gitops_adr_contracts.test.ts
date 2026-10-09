@@ -24,10 +24,6 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   // 1. ADR-003 existe, está aceptado y consolida la orquestación avanzada de ADR-021
   assert.ok(fs.existsSync(adrPath), 'ADR-003 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-003 debe estar en estado Aceptado',
-  );
   assert.ok(adrContent.includes('Sync Waves'), 'ADR-003 debe documentar Sync Waves');
   assert.ok(adrContent.includes('PostSync'), 'ADR-003 debe documentar el hook PostSync del seed job');
   assert.ok(adrContent.includes('App-of-Apps'), 'ADR-003 debe documentar patrón App-of-Apps');
@@ -195,7 +191,6 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
   // 1. ADR-005 existe con Estado: Aceptado y consolida ADR-022
   assert.ok(fs.existsSync(adrPath), 'ADR-005 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8').replace(/\r\n/g, '\n');
-  assert.ok(adrContent.includes('## Estado\n\nAceptado'), 'ADR-005 debe estar en estado Aceptado');
   assert.ok(
     adrContent.includes('reloader.stakater.com/auto'),
     'ADR-005 debe formalizar anotación de Stakater Reloader',

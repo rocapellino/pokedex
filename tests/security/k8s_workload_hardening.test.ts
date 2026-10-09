@@ -216,7 +216,6 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
   assert.ok(fs.existsSync(adrPath), 'ADR-014 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-014 debe estar aceptado');
   assert.ok(adrContent.includes('autoscaling/v2'), 'ADR-014 debe documentar HPA autoscaling/v2');
   assert.ok(adrContent.includes('PodDisruptionBudget'), 'ADR-014 debe documentar PodDisruptionBudget');
   assert.ok(
@@ -256,7 +255,6 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
   assert.ok(fs.existsSync(adrPath), 'ADR-015 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-015 debe estar aceptado');
   assert.ok(
     adrContent.includes('SIGTERM') && adrContent.includes('SIGINT'),
     'ADR-015 debe documentar señales SIGTERM y SIGINT',
@@ -309,10 +307,6 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
   // 1. ADR-017 existe y está aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-017 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-017 debe estar en estado Aceptado',
-  );
 
   // 2. ADR-017 documenta las tres capas de control de admisión
   assert.ok(

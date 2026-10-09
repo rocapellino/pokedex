@@ -51,7 +51,6 @@ test('🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Key
   assert.ok(fs.existsSync(adrPath), 'ADR-008 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-008 debe estar aceptado');
   assert.ok(adrContent.includes('Digest Pinning'), 'ADR-008 debe definir Digest Pinning');
   assert.ok(adrContent.includes('CycloneDX'), 'ADR-008 debe definir CycloneDX SBOM');
   assert.ok(adrContent.includes('Cosign'), 'ADR-008 debe definir Cosign Keyless');
@@ -153,10 +152,6 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
   // 1. ADR-020 existe y está aceptado
   assert.ok(fs.existsSync(adrPath), 'ADR-020 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
-  assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-020 debe estar en estado Aceptado',
-  );
   assert.ok(adrContent.includes('Taskfile.yaml'), 'ADR-020 debe documentar Taskfile.yaml como interfaz canónica');
   assert.ok(adrContent.includes('dr_verify_restore.sh'), 'ADR-020 debe inventariar dr_verify_restore.sh');
   assert.ok(adrContent.includes('governance:audit-scripts'), 'ADR-020 debe documentar governance:audit-scripts');
@@ -254,10 +249,6 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   // 1. Documentos arquitectónicos existen y están en estado Aceptado
   assert.ok(fs.existsSync(adr27Path), 'ADR-027 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adr27Path, 'utf-8');
-  assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-027 debe estar en estado Aceptado',
-  );
   assert.ok(
     adrContent.includes('Fail-Closed (Seguridad & Integridad)'),
     'ADR-027 debe documentar políticas Fail-Closed',

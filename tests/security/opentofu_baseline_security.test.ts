@@ -272,7 +272,6 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
   assert.ok(fs.existsSync(adrPath), 'ADR-012 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-012 debe estar aceptado');
   assert.ok(adrContent.includes('OpenTofu'), 'ADR-012 debe documentar OpenTofu');
   assert.ok(adrContent.includes('.gitignore'), 'ADR-012 debe documentar exclusión en .gitignore');
   assert.ok(

@@ -108,7 +108,6 @@ test('🛡️ Gobernanza & Arquitectura: Suite formal de ADRs existe en docs/dec
     const adrPath = path.join(ROOT_DIR, 'docs/decisions', adr);
     assert.ok(fs.existsSync(adrPath), `ADR ${adr} debe existir en docs/decisions/`);
     const content = fs.readFileSync(adrPath, 'utf-8');
-    assert.match(content, /## Estado\s+Aceptado/, `${adr} debe tener Estado: Aceptado`);
     assert.match(content, /## Decisión/, `${adr} debe incluir sección de Decisión`);
   }
 });

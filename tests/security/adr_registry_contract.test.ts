@@ -1,6 +1,6 @@
 /**
- * Contrato único del registro de ADRs: existencia de los ADRs requeridos e indexación
- * en `docs/decisions/README.md`. Las suites `adr_*_contracts`, `k8s_workload_hardening`,
+ * Contrato único del registro de ADRs: existencia de los ADRs requeridos, estado Aceptado e
+ * indexación en `docs/decisions/README.md`. Las suites `adr_*_contracts`, `k8s_workload_hardening`,
  * `network_policies_security`, `opentofu_baseline_security`, `iac_baseline_security` y
  * `gitops_adr_contracts` verifican el contenido de cada ADR y no repiten estas comprobaciones.
  */
@@ -35,5 +35,14 @@ test('🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico está ind
   for (const file of adrFiles()) {
     assert.match(file, /^ADR-\d{3}-[a-z0-9-]+\.md$/, `${file} debe tener formato canónico ADR-XXX-slug.md`);
     assert.ok(index.includes(file), `docs/decisions/README.md debe indexar el ADR activo ${file}`);
+  }
+});
+
+test('🗂️ Registro de ADRs: todo ADR activo declara el estado Aceptado', () => {
+  // Dos formatos vigentes: encabezado `## Estado` seguido del valor, o fila de tabla `| **Estado** | ... |`.
+  const accepted = /^## Estado\s+Aceptado|\|\s*\*\*Estado\*\*\s*\|\s*Aceptado/m;
+  for (const file of adrFiles()) {
+    const content = fs.readFileSync(path.join(DECISIONS_DIR, file), 'utf-8').replaceAll('\r\n', '\n');
+    assert.match(content, accepted, `${file} debe declarar el estado Aceptado`);
   }
 });
