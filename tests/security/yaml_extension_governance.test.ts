@@ -5,8 +5,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 
 import { LEGACY_YML_ALLOWLIST } from '../../scripts/check-yaml-extension.ts';
-
-const ROOT_DIR = path.resolve();
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('📐 Extension Governance: check-yaml-extension.ts existe y está registrado en package.json', () => {
   const scriptPath = path.join(ROOT_DIR, 'scripts/check-yaml-extension.ts');

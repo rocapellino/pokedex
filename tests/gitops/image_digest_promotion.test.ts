@@ -17,6 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import { IMAGE_VALUES_FILES, applyImageDigests, replaceComponentDigest } from '../../scripts/update-image-digests.ts';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 const API = `sha256:${'a'.repeat(64)}`;
 const WEB = `sha256:${'b'.repeat(64)}`;
@@ -83,7 +84,7 @@ test('🧬 Promoción: applyImageDigests actualiza api y web en todos los values
 
 test('🧬 Promoción: los values reales tienen un digest api y uno web reemplazables', () => {
   for (const file of IMAGE_VALUES_FILES) {
-    const content = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    const content = fs.readFileSync(path.join(ROOT_DIR, file), 'utf8');
     for (const component of ['api', 'web'] as const) {
       assert.doesNotThrow(() => replaceComponentDigest(content, component, API), `${file}: ${component}`);
     }
@@ -91,7 +92,7 @@ test('🧬 Promoción: los values reales tienen un digest api y uno web reemplaz
 });
 
 test('🧬 Promoción: release-tag fija digests verificados con Cosign en el PR de promoción', () => {
-  const workflowText = fs.readFileSync(path.join(process.cwd(), '.github/workflows/release-tag.yaml'), 'utf8');
+  const workflowText = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf8');
   const workflow = yaml.load(workflowText) as {
     permissions: Record<string, string>;
     jobs: Record<string, { steps: Array<Record<string, any>> }>;
@@ -128,7 +129,7 @@ test('🧬 Promoción: release-tag fija digests verificados con Cosign en el PR 
 });
 
 test('🧬 Promoción: el script corre en release-tag sin npm ci (solo módulos nativos)', () => {
-  const source = fs.readFileSync(path.join(process.cwd(), 'scripts/update-image-digests.ts'), 'utf8');
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'scripts/update-image-digests.ts'), 'utf8');
   const imports = [...source.matchAll(/^import .* from '([^']+)';/gm)].map((m) => m[1]);
   assert.ok(imports.length > 0);
   for (const specifier of imports) {

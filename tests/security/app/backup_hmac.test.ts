@@ -14,6 +14,7 @@ import {
   verifyBackupHmac,
 } from '../../../scripts/lib/backup-integrity.ts';
 import { encryptAes256Cbc } from '../../../scripts/dr-drill.ts';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const KEY = 'super_secure_dr_key_2026_super_secure_dr_key_2026';
 const PAYLOAD = Buffer.from('CREATE TABLE t (id INT); INSERT INTO t VALUES (1);', 'utf-8');
@@ -119,7 +120,6 @@ test('🔏 BACKUP-HMAC-001: el .enc sigue siendo descifrable con `openssl enc -d
  * `dr_verify_restore.sh` y los scripts de Node). Si uno pierde el paso, o la etiqueta de derivación o la fecha de
  * corte divergen, los backups que genera uno no los verifica el otro, o la verificación se degrada sin avisar.
  */
-const ROOT_DIR = path.resolve(import.meta.dirname, '..', '..', '..');
 const read = (relative: string) => fs.readFileSync(path.join(ROOT_DIR, relative), 'utf-8');
 
 test('🔏 BACKUP-HMAC-002: el CronJob de backup genera el .hmac y lo sube off-site', () => {

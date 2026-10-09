@@ -27,12 +27,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 const PS1_PATH = path.join(ROOT_DIR, 'infra/monitoring/deploy-grafana-cloud.ps1');
 const MJS_PATH = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');

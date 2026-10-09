@@ -13,10 +13,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
 
 const ESO_MANIFESTS = [
@@ -143,6 +141,7 @@ test('🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD
 // ------------------------------------------------------------------------------
 
 import { runHelm } from '../../scripts/lib/helm.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 let cachedPreprodRender: string | null = null;
 function getRenderedPreprodChart(): string {

@@ -12,9 +12,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const POLICY_PATH = path.join(ROOT_DIR, 'infra/vault/policies/pokedex-preprod-operator.hcl');
 const RUNBOOK_PATH = path.join(ROOT_DIR, 'docs/runbooks/VAULT_OPERATOR_ACCESS.md');
 const ESO_POLICY_NAME = 'pokedex-preprod-policy';

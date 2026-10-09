@@ -2,14 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 const yamlSafeLoad = (yaml as unknown as { load: typeof yaml.load }).load ?? yaml.load;
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../..');
 
 test('🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse', () => {
   const releaseWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf-8');

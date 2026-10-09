@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   extractRenderedApiImage,
   extractRenderedImage,
@@ -10,10 +9,7 @@ import {
   verifyImageDigestParity,
   clearRenderCache,
 } from '../../scripts/verify-image-digest-parity.ts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../..');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante Helm y extrae la imagen del contenedor api', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');

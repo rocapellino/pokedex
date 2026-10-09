@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ROOT_DIR } from './helpers/repo.js';
 
 /**
  * AUD-GOV-ID-001 — Los identificadores de hallazgo deben llevar namespace.
@@ -15,7 +16,7 @@ import path from 'node:path';
  * (methodology.md y finding.md) no se desincronicen entre sí.
  */
 test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está declarada y es coherente', () => {
-  const sharedDir = path.join(process.cwd(), '.agents', 'skills', '_shared');
+  const sharedDir = path.join(ROOT_DIR, '.agents', 'skills', '_shared');
   const methodology = fs.readFileSync(path.join(sharedDir, 'methodology.md'), 'utf-8');
   const finding = fs.readFileSync(path.join(sharedDir, 'finding.md'), 'utf-8');
 
@@ -55,7 +56,7 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
   //    El patrón exige que el ID NO esté precedido por letra, dígito ni guion:
   //    así `README-SEC-001` (identificador de CONTRATO documental, namespace
   //    propio y legítimo) no se confunde con un ID de hallazgo plano.
-  const skillDir = path.join(process.cwd(), '.agents', 'skills');
+  const skillDir = path.join(ROOT_DIR, '.agents', 'skills');
   const offenders: string[] = [];
   for (const name of fs.readdirSync(skillDir)) {
     const skillFile = path.join(skillDir, name, 'SKILL.md');
@@ -77,7 +78,7 @@ test('🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está de
 });
 
 test('📚 Gobernanza Documental: validación contractual de la regla transversal y políticas normativas en repo-docs', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const ruleFile = path.join(rootDir, '.agents', 'rules', 'documentation-governance.md');
   const docsDir = path.join(rootDir, '.agents', 'skills', 'repo-docs');
   const contractFile = path.join(docsDir, 'references', 'documentation-contract.yaml');

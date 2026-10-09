@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { baselineLegacySchema } from '../../apps/backend/src/db/migrate.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const MIGRATIONS = path.join(ROOT_DIR, 'apps/backend/src/db/migrations');
 const journal = JSON.parse(fs.readFileSync(path.join(MIGRATIONS, 'meta/_journal.json'), 'utf-8'));
 const INITIAL = journal.entries[0];

@@ -11,8 +11,7 @@ import {
   getStorageHealth,
 } from '../../apps/backend/src/services/db.js';
 import type { Pokemon } from '../../apps/backend/src/types.js';
-
-const ROOT_DIR = path.resolve();
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('📦 Storage Layer: getStorageHealth reporta estado por defecto', () => {
   const health = getStorageHealth();
@@ -94,7 +93,7 @@ test('📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correcta
 test('📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en disco', async () => {
   const fs = await import('node:fs');
   const path = await import('node:path');
-  const migrationsDir = path.resolve('apps/backend/src/db/migrations');
+  const migrationsDir = path.join(ROOT_DIR, 'apps/backend/src/db/migrations');
 
   assert.ok(fs.existsSync(migrationsDir), 'El directorio de migraciones debe existir');
   const files = fs.readdirSync(migrationsDir);
@@ -111,7 +110,7 @@ test('📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en dis
 test('📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en producción', async () => {
   const fs = await import('node:fs');
   const path = await import('node:path');
-  const configPath = path.resolve('apps/backend/drizzle.config.ts');
+  const configPath = path.join(ROOT_DIR, 'apps/backend/drizzle.config.ts');
 
   assert.ok(fs.existsSync(configPath), 'drizzle.config.ts debe existir');
   const content = fs.readFileSync(configPath, 'utf-8');

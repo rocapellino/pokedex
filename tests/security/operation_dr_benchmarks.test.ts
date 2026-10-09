@@ -2,11 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../..');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🛡️ Operación: Kind clúster declarativo existe y define puertos e ingress-ready', () => {
   const kindConfigPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');

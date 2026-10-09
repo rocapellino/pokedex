@@ -1,12 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { lintMarkdown, parseIgnorePatterns, findMarkdownFiles } from '../scripts/lint-markdown.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '..');
+import { ROOT_DIR } from './helpers/repo.js';
 
 test('📚 Markdown Gate: una ruta explícita inexistente debe fallar (fail-closed, CI-006)', async () => {
   // Regresión: `lint:md` filtraba silenciosamente las rutas inexistentes con

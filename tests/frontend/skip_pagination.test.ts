@@ -3,17 +3,16 @@ import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { changePage, initInteractiveListeners, loadPokemons, renderPokemons } from '../../apps/frontend/src/pokedex.js';
 import { focusFirstEnabledControl } from '../../apps/frontend/src/shared/skip-link.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
+import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * Enlace "Saltar a la paginación": con 48 tarjetas por página, llegar a "Siguiente" con el teclado
  * costaba hasta 48 pulsaciones de Tab. El enlace mueve el foco a la barra sin tocar la URL (la
  * aplicación conserva `location.hash` al guardar los filtros, así que un ancla real lo contaminaría).
  */
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const INDEX = fs.readFileSync(path.join(ROOT, 'apps/frontend/index.html'), 'utf-8');
 const doc = dom.window.document;
 const indexDoc = new dom.window.DOMParser().parseFromString(INDEX, 'text/html');

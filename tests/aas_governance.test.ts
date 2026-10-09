@@ -5,6 +5,7 @@ import { join, relative } from 'node:path';
 import { test } from 'node:test';
 
 import { AAS_INTEGRITY, AAS_VERSION, validateAasGovernance } from '../scripts/aas-governance.js';
+import { ROOT_DIR } from './helpers/repo.js';
 
 function withFixture(
   mutate: (stack: Record<string, any>, review: Record<string, any>, root: string) => void,
@@ -86,7 +87,7 @@ test('reporta JSON inválido como error gobernado', () => {
 });
 
 test('los scripts no exponen apply, recover ni install', () => {
-  const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
+  const pkg = JSON.parse(readFileSync(join(ROOT_DIR, 'package.json'), 'utf8')) as { scripts: Record<string, string> };
   const aasScripts = Object.entries(pkg.scripts).filter(([name]) => name.startsWith('aas:'));
   assert.ok(aasScripts.length > 0);
   for (const [name, command] of aasScripts) {
@@ -95,7 +96,7 @@ test('los scripts no exponen apply, recover ni install', () => {
 });
 
 test('🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera', () => {
-  const skill = readFileSync('.agents/skills/repo-lifecycle/SKILL.md', 'utf-8');
+  const skill = readFileSync(join(ROOT_DIR, '.agents/skills/repo-lifecycle/SKILL.md'), 'utf-8');
 
   // Hay dos diagramas en la skill: uno de 6 fases (ciclo de vida) y otro de 16
   // (flujo canónico de full-audit). Este último es el que debe coincidir con las

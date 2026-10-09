@@ -4,11 +4,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import yaml from 'js-yaml';
 const yamlSafeLoad = (yaml as unknown as { load: typeof yaml.load }).load ?? yaml.load;
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '..');
+import { ROOT_DIR } from './helpers/repo.js';
 
 // ==============================================================================
 // Topología de CI / Orquestación Reutilizable

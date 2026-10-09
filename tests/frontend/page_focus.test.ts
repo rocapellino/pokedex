@@ -3,10 +3,10 @@ import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { applyFilters, changePage, initInteractiveListeners, loadPokemons } from '../../apps/frontend/src/pokedex.js';
 import { pageAnnouncement } from '../../apps/frontend/src/shared/page-focus.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
+import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * Tras cambiar de página, el foco, la vista y el anuncio deben seguir al contenido nuevo. Antes el
@@ -14,7 +14,6 @@ import type { Pokemon } from '../../apps/frontend/src/types.js';
  * desplazamiento era un `scrollTo` fijo de 350 px (a ~1.000 px de las tarjetas en pantallas estrechas)
  * y un lector de pantalla no recibía ninguna señal de que el catálogo había cambiado.
  */
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const INDEX = fs.readFileSync(path.join(ROOT, 'apps/frontend/index.html'), 'utf-8');
 const doc = dom.window.document;
 const indexDoc = new dom.window.DOMParser().parseFromString(INDEX, 'text/html');

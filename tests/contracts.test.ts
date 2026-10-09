@@ -5,6 +5,7 @@ import path from 'node:path';
 import { buildCatalog, checkDrift } from '../scripts/test-surface.js';
 import type { Pokemon as BackendPokemon } from '../apps/backend/src/types.js';
 import type { Pokemon as FrontendPokemon } from '../apps/frontend/src/types.js';
+import { ROOT_DIR } from './helpers/repo.js';
 
 test('🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad entre Backend y Frontend', () => {
   const sampleBackendPokemon: BackendPokemon = {
@@ -40,7 +41,7 @@ test('🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad
 });
 
 test('🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json y test-surface.md están sincronizados sin drift', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const jsonPath = path.join(rootDir, 'docs', 'testing', 'test-surface.json');
   const mdPath = path.join(rootDir, 'docs', 'testing', 'test-surface.md');
 
@@ -63,7 +64,7 @@ test('🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json
 });
 
 test('🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const commitlintPath = path.join(rootDir, 'commitlint.config.js');
   const preCommitPath = path.join(rootDir, '.pre-commit-config.yaml');
 

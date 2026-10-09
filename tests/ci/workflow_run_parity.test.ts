@@ -17,8 +17,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const WORKFLOWS_DIR = path.join(process.cwd(), '.github/workflows');
+const WORKFLOWS_DIR = path.join(ROOT_DIR, '.github/workflows');
 
 /** Workflows gestionados por GitHub que no residen en el repositorio. */
 const EXTERNAL_WORKFLOW_NAMES: readonly string[] = Object.freeze(['CodeQL']);

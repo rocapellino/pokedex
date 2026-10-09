@@ -12,10 +12,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { runHelm } from '../../scripts/lib/helm.js';
-import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHART = path.join(ROOT_DIR, 'infra/helm/pokedex');
 const CI_SECRETS = [
   'postgresql.auth.password=ci',

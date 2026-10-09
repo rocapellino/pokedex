@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T13:47:02.878Z",
+  "generatedAt": "2026-10-09T14:02:44.437Z",
   "summary": {
-    "totalFiles": 186,
+    "totalFiles": 187,
     "testFiles": 128,
-    "helperFiles": 57,
+    "helperFiles": 58,
     "performanceScripts": 1,
     "totalTestCases": 976,
-    "totalLines": 26366,
-    "totalSizeBytes": 1139472,
+    "totalLines": 26207,
+    "totalSizeBytes": 1133550,
     "suitesCount": 10
   },
   "suites": [
@@ -123,9 +123,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 6579,
-      "lineCount": 150,
-      "sha256": "6c9147e0ec30d089e6b33a86c3027075268bcc85830593d4ef36490828563b88",
+      "sizeBytes": 6657,
+      "lineCount": 151,
+      "sha256": "bd007cec0cd1c0fa85c969347cac7500f0964dd3b52886548d123fd7eab11e04",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -144,43 +144,43 @@
       "testCases": [
         {
           "name": "la selección AAS cumple el contrato local",
-          "line": 32
+          "line": 33
         },
         {
           "name": "AAS está fijado por versión y digest",
-          "line": 36
+          "line": 37
         },
         {
           "name": "rechaza sustituir coordinadamente una skill en manifest y revisión",
-          "line": 41
+          "line": 42
         },
         {
           "name": "rechaza una skill AAS cuyo responsable local no existe",
-          "line": 49
+          "line": 50
         },
         {
           "name": "rechaza riesgo, responsables y razón divergentes",
-          "line": 58
+          "line": 59
         },
         {
           "name": "rechaza una novena skill y metadata ausente",
-          "line": 69
+          "line": 70
         },
         {
           "name": "reporta JSON inválido como error gobernado",
-          "line": 80
+          "line": 81
         },
         {
           "name": "los scripts no exponen apply, recover ni install",
-          "line": 88
+          "line": 89
         },
         {
           "name": "🧭 SKILL-001: repo-lifecycle declara tantas etapas como enumera",
-          "line": 97
+          "line": 98
         },
         {
           "name": "📚 SKILL-001: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 130
+          "line": 131
         }
       ]
     },
@@ -246,9 +246,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 59,
-      "sizeBytes": 9491,
-      "lineCount": 212,
-      "sha256": "4f59722ec1f8f302975f478a1991ad7eb7045f78b6fee8c01dc2a59552db548c",
+      "sizeBytes": 9351,
+      "lineCount": 208,
+      "sha256": "c514d3dfc8dc6d7140e32a1e88be3186852bea52ce9646cf3cc7e9f5f0a33f4d",
       "targetDomain": "Pipeline CI / Controles Always y Matriz",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -267,31 +267,31 @@
       "testCases": [
         {
           "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 19
+          "line": 15
         },
         {
           "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 46
+          "line": 42
         },
         {
           "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 68
+          "line": 64
         },
         {
           "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 111
+          "line": 107
         },
         {
           "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 127
+          "line": 123
         },
         {
           "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 165
+          "line": 161
         },
         {
           "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 192
+          "line": 188
         }
       ]
     },
@@ -304,9 +304,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 23,
-      "sizeBytes": 5046,
-      "lineCount": 123,
-      "sha256": "7a0c8ad235ca0c5a2590b804738bfaf5fdfe6fb78203f3b591e2e9af7e47d3e7",
+      "sizeBytes": 4906,
+      "lineCount": 119,
+      "sha256": "a08a9a8a025c62fffa0de8e442ce9bd6cebb6929de9576d09e1f50d9bd5e7a5b",
       "targetDomain": "Pipeline CI / Contrato de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -325,23 +325,23 @@
       "testCases": [
         {
           "name": "🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente",
-          "line": 24
+          "line": 20
         },
         {
           "name": "🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml",
-          "line": 66
+          "line": 62
         },
         {
           "name": "🎯 Change Impact: Contrato declarativo ci-impact.yaml existe y es válido",
-          "line": 79
+          "line": 75
         },
         {
           "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 98
+          "line": 94
         },
         {
           "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 111
+          "line": 107
         }
       ]
     },
@@ -354,9 +354,9 @@
       "testCount": 18,
       "describeCount": 0,
       "assertionCountEst": 134,
-      "sizeBytes": 20208,
-      "lineCount": 441,
-      "sha256": "ed97a12ae0dc30950671f4faadfb5927338bbf854543ed2257bd81590ed10309",
+      "sizeBytes": 20068,
+      "lineCount": 437,
+      "sha256": "be8f93f974be5b2895909eed857523461e1a7bdd701c52df51b51be5be8a1022",
       "targetDomain": "Pipeline CI / Dominios de Impacto",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -376,75 +376,75 @@
       "testCases": [
         {
           "name": "🎯 Change Impact: Cambio puramente documental activa solo Fast Track de docs",
-          "line": 14
+          "line": 10
         },
         {
           "name": "🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 34
+          "line": 30
         },
         {
           "name": "🤖 Change Impact: validador y tests AAS activan el dominio canónico",
-          "line": 47
+          "line": 43
         },
         {
           "name": "🤖 Change Impact: SKILL.md local activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 57
+          "line": 53
         },
         {
           "name": "🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed",
-          "line": 87
+          "line": 83
         },
         {
           "name": "🎯 CI-001: renovate.json está clasificado, activa SAST y documentación y no dispara fail-closed",
-          "line": 141
+          "line": 137
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 189
+          "line": 185
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud",
-          "line": 206
+          "line": 202
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 226
+          "line": 222
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 249
+          "line": 245
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 268
+          "line": 264
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 286
+          "line": 282
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 303
+          "line": 299
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 318
+          "line": 314
         },
         {
           "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
-          "line": 344
+          "line": 340
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 356
+          "line": 352
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 373
+          "line": 369
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 389
+          "line": 385
         }
       ]
     },
@@ -457,9 +457,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 49,
-      "sizeBytes": 5351,
-      "lineCount": 109,
-      "sha256": "53f571bcf4303200e383d64ca1f21db71774f5096aef12c122e51be50b1209a7",
+      "sizeBytes": 5211,
+      "lineCount": 105,
+      "sha256": "1a41496c8235236c2068d710bf365279364ea6fb8e66cba56040a07dc0a4c392",
       "targetDomain": "Pipeline CI / Impacto en tests y fail-closed",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
@@ -478,27 +478,27 @@
       "testCases": [
         {
           "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 13
+          "line": 9
         },
         {
           "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 29
+          "line": 25
         },
         {
           "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 44
+          "line": 40
         },
         {
           "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 60
+          "line": 56
         },
         {
           "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 75
+          "line": 71
         },
         {
           "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 90
+          "line": 86
         }
       ]
     },
@@ -511,9 +511,9 @@
       "testCount": 23,
       "describeCount": 0,
       "assertionCountEst": 81,
-      "sizeBytes": 26462,
-      "lineCount": 563,
-      "sha256": "4982d06ebc7a14031eaf454cee91aa1999212c923f1d6c03e90695250c3bce65",
+      "sizeBytes": 26322,
+      "lineCount": 559,
+      "sha256": "e4af3edcf15554d978c7261ab66eb6831321fa8ea5fc45c907ad4fa6f0474287",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -529,95 +529,95 @@
       "testCases": [
         {
           "name": "🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml",
-          "line": 17
+          "line": 13
         },
         {
           "name": "⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency",
-          "line": 27
+          "line": 23
         },
         {
           "name": "⚙️ CI topology: el orquestador conserva la serialización por PR",
-          "line": 47
+          "line": 43
         },
         {
           "name": "🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado",
-          "line": 53
+          "line": 49
         },
         {
           "name": "⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea",
-          "line": 66
+          "line": 62
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 97
+          "line": 93
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 138
+          "line": 134
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 183
+          "line": 179
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 194
+          "line": 190
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 204
+          "line": 200
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 275
+          "line": 271
         },
         {
           "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 286
+          "line": 282
         },
         {
           "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 312
+          "line": 308
         },
         {
           "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
-          "line": 340
+          "line": 336
         },
         {
           "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 356
+          "line": 352
         },
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 376
+          "line": 372
         },
         {
           "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
-          "line": 397
+          "line": 393
         },
         {
           "name": "⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency",
-          "line": 444
+          "line": 440
         },
         {
           "name": "🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git",
-          "line": 474
+          "line": 470
         },
         {
           "name": "📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows",
-          "line": 497
+          "line": 493
         },
         {
           "name": "🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y sin continue-on-error",
-          "line": 512
+          "line": 508
         },
         {
           "name": "📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate",
-          "line": 527
+          "line": 523
         },
         {
           "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
-          "line": 546
+          "line": 542
         }
       ]
     },
@@ -630,9 +630,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 52,
-      "sizeBytes": 9548,
-      "lineCount": 194,
-      "sha256": "2d57cb5cf1287dc7cbf074768b4f57cebd52a8640e7530b025fcc11d0f5df179",
+      "sizeBytes": 9479,
+      "lineCount": 193,
+      "sha256": "943993b4b981a3686987ea74033d5e9f46d4a7f6e00d9aefc051ce4bd637b005",
       "targetDomain": "Suite ci",
       "targetArtifacts": [],
       "npmCommands": [
@@ -648,43 +648,43 @@
       "testCases": [
         {
           "name": "📈 Lighthouse: la API simulada pagina como el backend (máximo 100, X-Total-Count)",
-          "line": 39
+          "line": 38
         },
         {
           "name": "📈 Lighthouse: la API simulada responde lo que la página consulta al cargar",
-          "line": 52
+          "line": 51
         },
         {
           "name": "📈 Lighthouse: el catálogo completo carga de extremo a extremo (regresión: antes devolvía 404)",
-          "line": 62
+          "line": 61
         },
         {
           "name": "📈 Lighthouse: las imágenes de la medición son locales, sin depender de GitHub",
-          "line": 72
+          "line": 71
         },
         {
           "name": "📈 Lighthouse: nginx se resuelve desde el digest del Dockerfile y se monta en solo lectura",
-          "line": 86
+          "line": 85
         },
         {
           "name": "📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servidor estático",
-          "line": 98
+          "line": 97
         },
         {
           "name": "📈 Lighthouse: los presupuestos de rendimiento bloquean y respetan la línea base de CI",
-          "line": 132
+          "line": 131
         },
         {
           "name": "📈 Lighthouse: el workflow publica el resumen y los informes como artefacto",
-          "line": 148
+          "line": 147
         },
         {
           "name": "📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed",
-          "line": 162
+          "line": 161
         },
         {
           "name": "📈 Lighthouse: el resumen calcula la mediana por URL y tolera la ausencia de informes",
-          "line": 171
+          "line": 170
         }
       ]
     },
@@ -697,9 +697,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 5,
-      "sizeBytes": 7713,
-      "lineCount": 188,
-      "sha256": "f1a9a5945d3c95550fcad8ebdd0507cfed49387ff24a0ad304c4b7bfb1f9f260",
+      "sizeBytes": 7755,
+      "lineCount": 189,
+      "sha256": "3eb66b3d31d956a3ba2c6c96228a9dfecfab248f1e6abcc3b0b7e8e6b58fd652",
       "targetDomain": "Paridad Estructural de Workflows de CI",
       "targetArtifacts": [
         ".github/workflows/*.yaml"
@@ -717,19 +717,19 @@
       "testCases": [
         {
           "name": "🚨 WF-004: ningun producer de workflow_run es un reusable sin ejecucion propia",
-          "line": 106
+          "line": 107
         },
         {
           "name": "🚨 WF-002: ningun trigger workflow_run referencia un workflow inexistente",
-          "line": 138
+          "line": 139
         },
         {
           "name": "🚨 WF-002: la paridad cubre mas de un workflow (evita regresion de alcance)",
-          "line": 157
+          "line": 158
         },
         {
           "name": "🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad",
-          "line": 168
+          "line": 169
         }
       ]
     },
@@ -742,9 +742,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 4151,
-      "lineCount": 100,
-      "sha256": "c1b7abee264610e77a45547bbeb54cb0a1fe80ad4844a5e5901400e4c1edeb01",
+      "sizeBytes": 4187,
+      "lineCount": 101,
+      "sha256": "18aa859746d729be21957b82ed03b7f51a048cdd58c7fe4ef6019991ef3a253d",
       "targetDomain": "Interoperabilidad Backend-Frontend",
       "targetArtifacts": [
         "apps/backend/src/types.ts",
@@ -763,15 +763,15 @@
       "testCases": [
         {
           "name": "🛡️ Contratos de Tipos: compatibilidad estructural e interoperabilidad entre Backend y Frontend",
-          "line": 9
+          "line": 10
         },
         {
           "name": "🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json y test-surface.md están sincronizados sin drift",
-          "line": 42
+          "line": 43
         },
         {
           "name": "🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos",
-          "line": 65
+          "line": 66
         }
       ]
     },
@@ -784,9 +784,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 19,
-      "sizeBytes": 6113,
-      "lineCount": 131,
-      "sha256": "3c432d9ef124670fb4b4bd23107fa4eec98921981edf99b57cb22e29e9001dc5",
+      "sizeBytes": 6144,
+      "lineCount": 132,
+      "sha256": "13f2d57d027f9d7423dd9f3f128ee3a497f7f43bf1539c4fe6a4401fd6998a09",
       "targetDomain": "Gobernanza Documental / ADRs",
       "targetArtifacts": [
         "docs/decisions/",
@@ -805,11 +805,11 @@
       "testCases": [
         {
           "name": "🔖 Gobernanza de Hallazgos: la convención de IDs con namespace está declarada y es coherente",
-          "line": 17
+          "line": 18
         },
         {
           "name": "📚 Gobernanza Documental: validación contractual de la regla transversal y políticas normativas en repo-docs",
-          "line": 79
+          "line": 80
         }
       ]
     },
@@ -1593,9 +1593,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 4812,
-      "lineCount": 135,
-      "sha256": "0c6be720790cdae8041db8e4752a88cfcd82e08278c688f212e8f5eb827f2b65",
+      "sizeBytes": 4743,
+      "lineCount": 134,
+      "sha256": "daa1c1ecaba273f514cc7f131391fed109cef6d5ab65eb3e634082b2681d989d",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1611,23 +1611,23 @@
       "testCases": [
         {
           "name": "📄 Página en la URL: abrir con ?pagina=2 muestra la segunda página",
-          "line": 86
+          "line": 85
         },
         {
           "name": "📄 Página en la URL: una página inexistente se ajusta a la última y normaliza la URL",
-          "line": 93
+          "line": 92
         },
         {
           "name": "📄 Página en la URL: un valor inválido vuelve a la primera y limpia la URL",
-          "line": 99
+          "line": 98
         },
         {
           "name": "📄 Página en la URL: cambiar de página crea una entrada y «atrás» y «adelante» la recorren",
-          "line": 105
+          "line": 104
         },
         {
           "name": "📄 Página en la URL: cambiar un filtro vuelve a la primera página y quita el parámetro",
-          "line": 129
+          "line": 128
         }
       ]
     },
@@ -1971,9 +1971,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 9,
-      "sizeBytes": 3388,
-      "lineCount": 78,
-      "sha256": "6c70f827016c3aa92e17fd5015d5505280fa53cc3fa182405a5f5e42360b6257",
+      "sizeBytes": 3319,
+      "lineCount": 77,
+      "sha256": "5aedddc7ea5fc85bc65a016be2d3f379c590f0d774e648e88f7b49901d0899ca",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -1989,19 +1989,19 @@
       "testCases": [
         {
           "name": "🔤 Fuentes: ninguna página ni hoja de estilo depende de Google Fonts",
-          "line": 34
+          "line": 33
         },
         {
           "name": "🔤 Fuentes: los .woff2 declarados en @font-face existen y son archivos WOFF2 válidos",
-          "line": 41
+          "line": 40
         },
         {
           "name": "🔤 Fuentes: las familias usadas por el CSS están declaradas con @font-face",
-          "line": 54
+          "line": 53
         },
         {
           "name": "🔤 CSP: style-src y font-src son solo 'self' en todas las fuentes de la política",
-          "line": 61
+          "line": 60
         }
       ]
     },
@@ -3772,9 +3772,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 25,
-      "sizeBytes": 9168,
-      "lineCount": 217,
-      "sha256": "756b5b51157d861af91b131c174eaecf887cf7ac98d5dcb1e969fc42d8444a80",
+      "sizeBytes": 9026,
+      "lineCount": 213,
+      "sha256": "1ddbf66b4cba46e3ad842de9d4744c1f6f7ca82c7582e4c3ec552ea5e189faf1",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3790,19 +3790,19 @@
       "testCases": [
         {
           "name": "🌐 Nginx SSOT (DOC-003/CI-004): CI valida contra la imagen del Dockerfile, sin version hardcodeada",
-          "line": 12
+          "line": 8
         },
         {
           "name": "🌐 Nginx SSOT: el generador unificado sustituye las variables y falla si faltan en modo --render",
-          "line": 80
+          "line": 76
         },
         {
           "name": "📦 OCI-001: los labels de imagen usan la version y revision reales",
-          "line": 133
+          "line": 129
         },
         {
           "name": "🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta registrada",
-          "line": 178
+          "line": 174
         }
       ]
     },
@@ -3815,9 +3815,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 26,
-      "sizeBytes": 6376,
-      "lineCount": 155,
-      "sha256": "b1da7c8ef609df78cc35275d590ffb5cedc21b3f9b83a5c4ef0ad86ef05aa6b5",
+      "sizeBytes": 6307,
+      "lineCount": 154,
+      "sha256": "418f68519da8dc2e8b4f4dba61c19fbdaf15f102c1e087cf917e2bca8ceb07e3",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3833,39 +3833,39 @@
       "testCases": [
         {
           "name": "♿ Estructura: el catálogo se puede enfocar por programa y el anunciador es una región viva oculta",
-          "line": 72
+          "line": 71
         },
         {
           "name": "♿ Texto del anuncio: página, total y Pokémon mostrados",
-          "line": 82
+          "line": 81
         },
         {
           "name": "♿ Al avanzar de página el foco pasa al catálogo y se anuncia la página",
-          "line": 87
+          "line": 86
         },
         {
           "name": "♿ En la última página el foco no cae en BODY aunque \"Siguiente\" quede deshabilitado",
-          "line": 94
+          "line": 93
         },
         {
           "name": "♿ Al volver a la primera página el foco tampoco se pierde",
-          "line": 103
+          "line": 102
         },
         {
           "name": "♿ La vista va al propio catálogo, no a una cifra fija de píxeles",
-          "line": 112
+          "line": 111
         },
         {
           "name": "♿ El desplazamiento es suave salvo que el usuario pida movimiento reducido",
-          "line": 120
+          "line": 119
         },
         {
           "name": "♿ Un cambio de página imposible (antes de la primera) no mueve el foco ni anuncia nada",
-          "line": 129
+          "line": 128
         },
         {
           "name": "♿ Refiltrar no mueve el foco ni toca el anuncio de página",
-          "line": 145
+          "line": 144
         }
       ]
     },
@@ -3878,9 +3878,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 2995,
-      "lineCount": 58,
-      "sha256": "66cc1a79ff55c81483834d093955b6447de65e3b4bc3912d773c67e021b73ed3",
+      "sizeBytes": 2926,
+      "lineCount": 57,
+      "sha256": "7c4c989b2c323ab108d590255606a5ef071c4169fa0a9c6b3d21496d495ff79f",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3896,15 +3896,15 @@
       "testCases": [
         {
           "name": "🔎 SEO: index.html declara una meta description descriptiva y de longitud razonable",
-          "line": 18
+          "line": 17
         },
         {
           "name": "🔎 SEO: robots.txt existe en public/, es válido y no bloquea ninguna ruta",
-          "line": 25
+          "line": 24
         },
         {
           "name": "🗜️ Compresión (${path.basename(file)}): gzip activo para texto y desactivado en /api/ y /metrics",
-          "line": 35
+          "line": 34
         }
       ]
     },
@@ -3917,9 +3917,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 8,
-      "sizeBytes": 2929,
-      "lineCount": 69,
-      "sha256": "99e0312b8f4efb673ee1db48fbc83a50666883957740ff337884808a85c466a8",
+      "sizeBytes": 2860,
+      "lineCount": 68,
+      "sha256": "4d524d7523896739442d5470db37e942786864fec9998ccdb19f2787685f2344",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3935,15 +3935,15 @@
       "testCases": [
         {
           "name": "🎨 Enlace de salto: el texto supera 4,5:1 sobre su fondo",
-          "line": 47
+          "line": 46
         },
         {
           "name": "🎨 Enlace de salto: el enlace se distingue (3:1) del fondo de la página en ambos temas",
-          "line": 52
+          "line": 51
         },
         {
           "name": "♿ Enlace de salto: respeta el atributo hidden y mide al menos 24 px de alto (WCAG 2.5.8)",
-          "line": 65
+          "line": 64
         }
       ]
     },
@@ -3956,9 +3956,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 23,
-      "sizeBytes": 5697,
-      "lineCount": 134,
-      "sha256": "7cf1875bd96faa44b592ad7b643b7a054344d2670354fc902907f6d71045dde5",
+      "sizeBytes": 5628,
+      "lineCount": 133,
+      "sha256": "5baea6f4e878e6205a9c70f643958618589c4b10a4a11fd0733a885082fb5cfc",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -3974,31 +3974,31 @@
       "testCases": [
         {
           "name": "♿ Estructura: el enlace precede al catálogo y la barra es una navegación con nombre",
-          "line": 62
+          "line": 61
         },
         {
           "name": "♿ Con varias páginas el enlace es visible y el clic lleva el foco a \"Siguiente\" en la primera",
-          "line": 78
+          "line": 77
         },
         {
           "name": "♿ En la última página el foco cae en \"Anterior\"",
-          "line": 86
+          "line": 85
         },
         {
           "name": "♿ El clic no deja rastro en la URL",
-          "line": 94
+          "line": 93
         },
         {
           "name": "♿ El enlace sobrevive a un nuevo render del catálogo (está fuera del contenedor que se reemplaza)",
-          "line": 101
+          "line": 100
         },
         {
           "name": "♿ Con una sola página o sin resultados el enlace queda oculto",
-          "line": 108
+          "line": 107
         },
         {
           "name": "♿ focusFirstEnabledControl: ignora controles deshabilitados y no falla sin barra",
-          "line": 123
+          "line": 122
         }
       ]
     },
@@ -4011,9 +4011,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 10,
-      "sizeBytes": 4347,
-      "lineCount": 109,
-      "sha256": "2204f387f15b4683f9faeb03e576739dd0603307619f538e83782b2f42fa0771",
+      "sizeBytes": 4278,
+      "lineCount": 108,
+      "sha256": "d0a4d61019cd721bf5e4d6f23bc822bb63bb458c76f570daa4bcb07d9897ee18",
       "targetDomain": "Suite frontend",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4029,23 +4029,23 @@
       "testCases": [
         {
           "name": "🎨 Contraste: existen las 18 reglas de tipo, cada una con sus cuatro colores declarados",
-          "line": 56
+          "line": 55
         },
         {
           "name": "🎨 Contraste: la insignia \"${r.type}\" cumple WCAG AA con su texto (type-color y type-official)",
-          "line": 67
+          "line": 66
         },
         {
           "name": "🎨 Contraste: las insignias usan el color de texto por tipo en lugar de blanco fijo",
-          "line": 81
+          "line": 80
         },
         {
           "name": "🎨 Contraste: el degradado de la insignia Mega cumple WCAG AA con texto blanco en ambos extremos",
-          "line": 93
+          "line": 92
         },
         {
           "name": "🎨 Contraste: el escaneo E2E del backoffice ya no desactiva la regla color-contrast",
-          "line": 105
+          "line": 104
         }
       ]
     },
@@ -4116,9 +4116,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 56,
-      "sizeBytes": 11355,
-      "lineCount": 248,
-      "sha256": "a54072ea585241158a568fbc3a8d762266c8517d2631d01317198f1e951c29ae",
+      "sizeBytes": 11212,
+      "lineCount": 244,
+      "sha256": "a91d07e513bb4577de51e2ae55c4dfe35ed060ea3aa6e0b2251770279225444f",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
         "gitops/values-*.yaml",
@@ -4138,31 +4138,31 @@
       "testCases": [
         {
           "name": "🔒 ArgoCD Pinning: validateSemVerTag valida estrictamente tags semánticos inmutables",
-          "line": 22
+          "line": 18
         },
         {
           "name": "🔒 ArgoCD Pinning: extractTargetRevision y replaceTargetRevision manipulan YAML limpiamente",
-          "line": 35
+          "line": 31
         },
         {
           "name": "🔒 ArgoCD Pinning: Manifiestos de GitOps mantienen paridad estricta 1:1 en targetRevision",
-          "line": 60
+          "line": 56
         },
         {
           "name": "🔒 ArgoCD Pinning: applyGitOpsPin ejecuta de forma determinista en dryRun",
-          "line": 81
+          "line": 77
         },
         {
           "name": "🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y Taskfile.yaml configuran el pipeline de promoción",
-          "line": 102
+          "line": 98
         },
         {
           "name": "🔒 Release Tagging (REL-003): el changelog corresponde al tag publicado, no al dry-run",
-          "line": 200
+          "line": 196
         },
         {
           "name": "🔒 ADR-003: la Application raíz sigue main para que los promotes lleguen solos al clúster",
-          "line": 241
+          "line": 237
         }
       ]
     },
@@ -4175,9 +4175,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 7228,
+      "sizeBytes": 7243,
       "lineCount": 160,
-      "sha256": "f5b0256653f6cca36e3f9c4db4d626741186a8a7dfbbd58c761a9dd381433ef2",
+      "sha256": "87a19234023ab1a53a1787b1d5063aa2e4873cd5203c12fef76ffaa59309ed33",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4227,9 +4227,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 63,
-      "sizeBytes": 14623,
-      "lineCount": 279,
-      "sha256": "98a076da0bc834fbd316733a5746c3ad44581cadbedc5fbb519f9ba5a591f401",
+      "sizeBytes": 14479,
+      "lineCount": 274,
+      "sha256": "b9cf972fce55d421c5cbc81985d3386b60693eee2bf181e78704b523c1e77566",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4246,11 +4246,11 @@
       "testCases": [
         {
           "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)",
-          "line": 14
+          "line": 9
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 188
+          "line": 183
         }
       ]
     },
@@ -4263,9 +4263,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 34,
-      "sizeBytes": 11957,
-      "lineCount": 254,
-      "sha256": "e768e1d34eab96392bb1248e3a8dc88a19d8dade98e26e307c1f661fe7baae28",
+      "sizeBytes": 11813,
+      "lineCount": 249,
+      "sha256": "a0690634b8ed99e536643f0bdb3a01dc048d0d131bbc8430549d3efaa91c1654",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4282,19 +4282,19 @@
       "testCases": [
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 26
+          "line": 21
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 82
+          "line": 77
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 145
+          "line": 140
         },
         {
           "name": "🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un proveedor",
-          "line": 203
+          "line": 198
         }
       ]
     },
@@ -4307,9 +4307,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 27,
-      "sizeBytes": 6510,
-      "lineCount": 138,
-      "sha256": "828cf79b22df4cc7c1f27470c8570a2f9d58c0ffe51f9c7bd22a2d30e48a7743",
+      "sizeBytes": 6542,
+      "lineCount": 139,
+      "sha256": "946520ae57112252592fc57d88affe9dcddb0256ed29d281d197cc1836000261",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4326,31 +4326,31 @@
       "testCases": [
         {
           "name": "🧬 Promoción: reemplaza solo el digest del componente y conserva comentario y otros bloques",
-          "line": 43
+          "line": 44
         },
         {
           "name": "🧬 Promoción: conserva finales de línea CRLF",
-          "line": 51
+          "line": 52
         },
         {
           "name": "🧬 Promoción: rechaza digests mutables o mal formados y bloques ausentes",
-          "line": 58
+          "line": 59
         },
         {
           "name": "🧬 Promoción: applyImageDigests actualiza api y web en todos los values de despliegue",
-          "line": 64
+          "line": 65
         },
         {
           "name": "🧬 Promoción: los values reales tienen un digest api y uno web reemplazables",
-          "line": 84
+          "line": 85
         },
         {
           "name": "🧬 Promoción: release-tag fija digests verificados con Cosign en el PR de promoción",
-          "line": 93
+          "line": 94
         },
         {
           "name": "🧬 Promoción: el script corre en release-tag sin npm ci (solo módulos nativos)",
-          "line": 130
+          "line": 131
         }
       ]
     },
@@ -4363,9 +4363,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 4,
-      "sizeBytes": 2296,
-      "lineCount": 48,
-      "sha256": "9e3cf0a541fa499618227f4bbc2e255881a16b6013d9faac96cc0021cc1ec4b2",
+      "sizeBytes": 2215,
+      "lineCount": 47,
+      "sha256": "a1bae4b037ab9aa3a67d122a667f760cbe888c0e85ce67d62d8a2a207a636447",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4382,7 +4382,7 @@
       "testCases": [
         {
           "name": "🔐 AUD-SEC-OBS-001: pre-prod sincroniza METRICS_BEARER_TOKEN desde Vault al Secret de la API",
-          "line": 39
+          "line": 38
         }
       ]
     },
@@ -4395,9 +4395,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 13212,
-      "lineCount": 281,
-      "sha256": "49f2901221765d9f13698d5d28efc1dceb588a7c54e4b91417df67a6c9fbc1ba",
+      "sizeBytes": 13131,
+      "lineCount": 280,
+      "sha256": "aeba6aeb25c9ecc300597bfbb7dd963e039f106e173b647491f9dd91feb7ad6c",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4414,51 +4414,51 @@
       "testCases": [
         {
           "name": "🔐 Bootstrap: los manifiestos de ESO usan external-secrets.io/v1 (v1beta1 ya no se sirve)",
-          "line": 35
+          "line": 33
         },
         {
           "name": "🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas y verificación criptográfica",
-          "line": 47
+          "line": 45
         },
         {
           "name": "🔐 Bootstrap & Tooling: Taskfile fija imagen de Helm con digest sha256 inmutable",
-          "line": 76
+          "line": 74
         },
         {
           "name": "🔐 Bootstrap: la ServiceAccount de ESO coincide con la del ClusterSecretStore y puede hacer TokenReview",
-          "line": 91
+          "line": 89
         },
         {
           "name": "🔐 Bootstrap: Vault configura el auth kubernetes contra el API server de pre-prod",
-          "line": 110
+          "line": 108
         },
         {
           "name": "🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD, health checks y App-of-Apps",
-          "line": 131
+          "line": 129
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea",
-          "line": 161
+          "line": 160
         },
         {
           "name": "🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)",
-          "line": 183
+          "line": 182
         },
         {
           "name": "🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates",
-          "line": 195
+          "line": 194
         },
         {
           "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
-          "line": 213
+          "line": 212
         },
         {
           "name": "🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación",
-          "line": 223
+          "line": 222
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail",
-          "line": 248
+          "line": 247
         }
       ]
     },
@@ -4471,9 +4471,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 2,
-      "sizeBytes": 3371,
-      "lineCount": 77,
-      "sha256": "07c3658e450827d0ae4bf69f3433d424ce5959d282f6d6dc147006ffa485689c",
+      "sizeBytes": 3290,
+      "lineCount": 76,
+      "sha256": "a7a139aafa059095000d4ed7651f5d5e8c86efe3563583bbd92b0e0866b6e4aa",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4490,7 +4490,7 @@
       "testCases": [
         {
           "name": "🔐 Secretos: en ${environment} el ExternalSecret sincroniza cada clave obligatoria que exigen los workloads",
-          "line": 55
+          "line": 54
         }
       ]
     },
@@ -4503,9 +4503,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 3663,
-      "lineCount": 71,
-      "sha256": "9c806c6158ef2dfd1e4a5b83b1cfd459b6c89a16e139cebdbe7f5d9ca252001c",
+      "sizeBytes": 3582,
+      "lineCount": 70,
+      "sha256": "ccac4f49ffea74237ee4e35df04e335444104f702808eb7b0abee655b4db121d",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4522,15 +4522,15 @@
       "testCases": [
         {
           "name": "🌱 Seed Job: pre-prod siembra el catálogo completo con la imagen y el entorno de la API",
-          "line": 39
+          "line": 38
         },
         {
           "name": "🌱 Seed Job: corre después de la sincronización, no antes de crear la base de datos",
-          "line": 58
+          "line": 57
         },
         {
           "name": "🌱 Seed Job: los demás entornos no siembran por defecto",
-          "line": 66
+          "line": 65
         }
       ]
     },
@@ -4571,6 +4571,26 @@
       "npmCommands": [],
       "ciWorkflows": [],
       "description": "Suite de pruebas helpers: docs-portal.ts.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/helpers/repo.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 280,
+      "lineCount": 8,
+      "sha256": "91778fc1d0b1176af8e45307e940f8918c1a51e08affce656a9753000ae91722",
+      "targetDomain": "Suite helpers",
+      "targetArtifacts": [],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Suite de pruebas helpers: repo.ts.",
       "status": "HELPER",
       "testCases": []
     },
@@ -4680,9 +4700,9 @@
       "testCount": 8,
       "describeCount": 0,
       "assertionCountEst": 32,
-      "sizeBytes": 4614,
-      "lineCount": 124,
-      "sha256": "2ca0c3da24d6c97e579c013693fbd4dfec3f6db8b006572c9a4a6834fcf6ab56",
+      "sizeBytes": 4641,
+      "lineCount": 123,
+      "sha256": "ae0709dd5a0552aa48835d2442af39301fce32d83aec475338204a3c77a68821",
       "targetDomain": "Capa de Persistencia y Caché",
       "targetArtifacts": [
         "apps/backend/src/services/db.ts",
@@ -4702,35 +4722,35 @@
       "testCases": [
         {
           "name": "📦 Storage Layer: getStorageHealth reporta estado por defecto",
-          "line": 17
+          "line": 16
         },
         {
           "name": "📦 Storage Layer: getAllPokemons pagina y filtra correctamente",
-          "line": 25
+          "line": 24
         },
         {
           "name": "📦 Storage Layer: getPokemonById retorna pokemon existente y null para inexistente",
-          "line": 36
+          "line": 35
         },
         {
           "name": "📦 Storage Layer: savePokemon guarda y actualiza un registro",
-          "line": 45
+          "line": 44
         },
         {
           "name": "📦 Storage Layer: getNextPokemonId genera IDs continuos",
-          "line": 72
+          "line": 71
         },
         {
           "name": "📦 Drizzle ORM: Esquema pokedexEntries y pokedexIdSeq definidos correctamente",
-          "line": 77
+          "line": 76
         },
         {
           "name": "📦 Drizzle ORM: Migraciones declarativas generadas y consistentes en disco",
-          "line": 94
+          "line": 93
         },
         {
           "name": "📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en producción",
-          "line": 111
+          "line": 110
         }
       ]
     },
@@ -4743,9 +4763,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 64,
-      "sizeBytes": 16590,
-      "lineCount": 404,
-      "sha256": "ab4bb1753bd9aeec1f03cfb9b0e809ca96f39aaca58841773d58f36001b1bfcd",
+      "sizeBytes": 16448,
+      "lineCount": 401,
+      "sha256": "d17d14900099c2b29e1d287b24a47e5ca589e1548b147274b012339a6b6c25a7",
       "targetDomain": "Endpoint de Telemetría /version",
       "targetArtifacts": [
         "apps/backend/server.ts"
@@ -4764,59 +4784,59 @@
       "testCases": [
         {
           "name": "🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva la causa",
-          "line": 15
+          "line": 12
         },
         {
           "name": "🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a memoria",
-          "line": 36
+          "line": 33
         },
         {
           "name": "🛡️ APPS-002: el arranque aborta el proceso si initStorage falla",
-          "line": 69
+          "line": 66
         },
         {
           "name": "🛡️ APPS-008: produccion exige PostgreSQL y acepta la alternativa POSTGRES_*",
-          "line": 84
+          "line": 81
         },
         {
           "name": "📦 Endpoint /version expone metadata segura de la aplicación y base de datos",
-          "line": 186
+          "line": 183
         },
         {
           "name": "🏷️ VER-002: /version expone la versión semántica real de la SSOT, no un SHA",
-          "line": 216
+          "line": 213
         },
         {
           "name": "🏷️ VER-002: /version degrada a \"unknown\" en lugar de anunciar una versión ficticia",
-          "line": 255
+          "line": 252
         },
         {
           "name": "🛡️ Startup Env Check: bypass transparente en entorno de tests",
-          "line": 284
+          "line": 281
         },
         {
           "name": "🛡️ Startup Env Check: detecta variables requeridas faltantes en producción",
-          "line": 290
+          "line": 287
         },
         {
           "name": "🛡️ Startup Env Check: pasa exitosamente en producción si variables críticas existen",
-          "line": 310
+          "line": 307
         },
         {
           "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true NO bypasses validación en producción",
-          "line": 327
+          "line": 324
         },
         {
           "name": "🛡️ Startup Env Check: SKIP_ENV_CHECK=true sí permite bypass en entornos no productivos",
-          "line": 342
+          "line": 339
         },
         {
           "name": "🛡️ Seguridad Express: Middleware inyecta cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy",
-          "line": 359
+          "line": 356
         },
         {
           "name": "🔍 Observabilidad: requestTracer genera y propaga X-Request-Id para correlación de trazas",
-          "line": 381
+          "line": 378
         }
       ]
     },
@@ -4829,9 +4849,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 3656,
-      "lineCount": 77,
-      "sha256": "eb7dd5f51670b8899b7a201aa4c0744084da58941412c9267107f30209bbecfe",
+      "sizeBytes": 3516,
+      "lineCount": 73,
+      "sha256": "8fb553dcfe76bb14cc5e0d3ae18b61709f34144ae56cc3b387388a6f253abe2c",
       "targetDomain": "Markdown Quality Gate",
       "targetArtifacts": [
         "scripts/lint-markdown.ts",
@@ -4850,31 +4870,31 @@
       "testCases": [
         {
           "name": "📚 Markdown Gate: una ruta explícita inexistente debe fallar (fail-closed, CI-006)",
-          "line": 11
+          "line": 7
         },
         {
           "name": "📚 Markdown Gate: falla aunque solo una de varias rutas sea inexistente",
-          "line": 22
+          "line": 18
         },
         {
           "name": "📚 Markdown Gate: valida un archivo existente real y reporta 0 errores",
-          "line": 30
+          "line": 26
         },
         {
           "name": "📚 Markdown Gate: un directorio existente se expande recursivamente",
-          "line": 38
+          "line": 34
         },
         {
           "name": "📚 Markdown Gate: sin archivos explícitos valida el repositorio completo",
-          "line": 46
+          "line": 42
         },
         {
           "name": "📚 Markdown Gate: parseIgnorePatterns ignora comentarios y líneas vacías",
-          "line": 54
+          "line": 50
         },
         {
           "name": "📚 Markdown Gate: findMarkdownFiles respeta el directorio .markdownlintignore",
-          "line": 63
+          "line": 59
         }
       ]
     },
@@ -4931,9 +4951,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 8704,
-      "lineCount": 247,
-      "sha256": "50e27df9cdd4b32b0f7cf6dc795e390517ab6473d054bdbb3c556302b3fd8e0f",
+      "sizeBytes": 8720,
+      "lineCount": 248,
+      "sha256": "12aa91e1327e7ef1c6de5a386579161bc59cfd858ed32be0967f2dfbe47e1f52",
       "targetDomain": "Gobernanza de Pull Request Template",
       "targetArtifacts": [
         ".github/pull_request_template.md",
@@ -4952,27 +4972,27 @@
       "testCases": [
         {
           "name": "🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y contiene secciones obligatorias",
-          "line": 20
+          "line": 21
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body aprueba un PR body completo y fiel al template",
-          "line": 47
+          "line": 48
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body RECHAZA la estructura no conforme observada en PR #438",
-          "line": 119
+          "line": 120
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body detecta tablas de CI Impact no resueltas o incompletas",
-          "line": 151
+          "line": 152
         },
         {
           "name": "🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake",
-          "line": 189
+          "line": 190
         },
         {
           "name": "🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador",
-          "line": 226
+          "line": 227
         }
       ]
     },
@@ -4985,9 +5005,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 4336,
-      "lineCount": 98,
-      "sha256": "c93d2bb828430b2a3a2221637da18d9ec5330f26281549b4649f9d257ef77a5c",
+      "sizeBytes": 4196,
+      "lineCount": 94,
+      "sha256": "62cd5a368a194598a107e67cbcc09514cee4fa0070d22c7c25da02b3d7e36140",
       "targetDomain": "Gobernanza de GitHub Rulesets",
       "targetArtifacts": [
         ".github/rulesets/main-protection.json"
@@ -5005,15 +5025,15 @@
       "testCases": [
         {
           "name": "🔤 RULESET-001: los required checks del ruleset no deben estar corruptos",
-          "line": 65
+          "line": 61
         },
         {
           "name": "🔤 RULESET-001: los contexts del ruleset coinciden con los checks reales",
-          "line": 75
+          "line": 71
         },
         {
           "name": "🔤 RULESET-001: el archivo de reglas se serializa en UTF-8 real",
-          "line": 88
+          "line": 84
         }
       ]
     },
@@ -5026,9 +5046,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 31,
-      "sizeBytes": 10798,
-      "lineCount": 240,
-      "sha256": "7092fbffc83e848b613d306101e43645c6336a4ff246f8c25c14b7144f669ab9",
+      "sizeBytes": 10659,
+      "lineCount": 237,
+      "sha256": "ac7329e8e43937590ea5552b24f4cfd3950e92e8d8e9a8e15e9496a741c280d7",
       "targetDomain": "Paridad Declarativa de Rulesets",
       "targetArtifacts": [
         ".github/rulesets/main-protection.json",
@@ -5048,47 +5068,47 @@
       "testCases": [
         {
           "name": "🔒 RULESET-001: el mapeo de actor_id de RepositoryRole esta blindado",
-          "line": 47
+          "line": 44
         },
         {
           "name": "🔒 RULESET-001: los bypass_mode conocidos excluyen el valor legacy",
-          "line": 62
+          "line": 59
         },
         {
           "name": "🔒 RULESET-001: la politica de aprobaciones refleja el estado de maintainer unico",
-          "line": 88
+          "line": 85
         },
         {
           "name": "🔒 RULESET-001: el modo maintainer unico NO relaja el resto de las protecciones",
-          "line": 102
+          "line": 99
         },
         {
           "name": "🚨 RULESET-001: detecta un bypass actor anadido en live sin declarar",
-          "line": 124
+          "line": 121
         },
         {
           "name": "🚨 RULESET-001: detecta la relajacion de thread resolution y de aprobaciones",
-          "line": 138
+          "line": 135
         },
         {
           "name": "🧪 RULESET-001: el motor de drift detecta drift de contexts y de enforcement",
-          "line": 157
+          "line": 154
         },
         {
           "name": "🧪 RULESET-001: no hay drift cuando el live solo agrega metadatos de solo lectura",
-          "line": 170
+          "line": 167
         },
         {
           "name": "🧪 RULESET-001: el orden de claves y de listas no genera drift",
-          "line": 191
+          "line": 188
         },
         {
           "name": "🔗 RULESET-001: el contrato declarativo coincide con el ruleset aplicado en GitHub",
-          "line": 210
+          "line": 207
         },
         {
           "name": "🔌 RULESET-001: el gate esta cableado en package.json y en un workflow programado",
-          "line": 228
+          "line": 225
         }
       ]
     },
@@ -5101,9 +5121,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 39,
-      "sizeBytes": 7559,
-      "lineCount": 157,
-      "sha256": "c21de5d99d8eb10f10fb34577472c2fe83ff34acc97007b5eb39aef9844183d2",
+      "sizeBytes": 7415,
+      "lineCount": 152,
+      "sha256": "914eb6b6e88f0694d48fc0f425bd1fa272465a2003b4488f87ae1778bd64c38f",
       "targetDomain": "Conformidad ADR / Aplicación",
       "targetArtifacts": [
         "apps/backend/src/",
@@ -5123,23 +5143,23 @@
       "testCases": [
         {
           "name": "🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini",
-          "line": 13
+          "line": 8
         },
         {
           "name": "🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista",
-          "line": 26
+          "line": 21
         },
         {
           "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
-          "line": 61
+          "line": 56
         },
         {
           "name": "🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)",
-          "line": 106
+          "line": 101
         },
         {
           "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
-          "line": 125
+          "line": 120
         }
       ]
     },
@@ -5152,9 +5172,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 3880,
-      "lineCount": 83,
-      "sha256": "2669e30253f1af7350c50219897c95fa0f4b9dead47569c5f0445ad3810646af",
+      "sizeBytes": 3736,
+      "lineCount": 78,
+      "sha256": "88addcfb03fff407dc06f520af1c80c383798c835836df8c35354d6428253621",
       "targetDomain": "Conformidad ADR / CI y Tooling",
       "targetArtifacts": [
         ".github/workflows/",
@@ -5174,19 +5194,19 @@
       "testCases": [
         {
           "name": "🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)",
-          "line": 12
+          "line": 7
         },
         {
           "name": "🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)",
-          "line": 23
+          "line": 18
         },
         {
           "name": "🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals",
-          "line": 28
+          "line": 23
         },
         {
           "name": "🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta de versión de Helm en todos sus jobs",
-          "line": 42
+          "line": 37
         }
       ]
     },
@@ -5199,9 +5219,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 87,
-      "sizeBytes": 17598,
-      "lineCount": 357,
-      "sha256": "adb0b9c55e756080d5eefbfec3bb6e21c869d772aa531dcb07c9f816cbc675c7",
+      "sizeBytes": 17454,
+      "lineCount": 352,
+      "sha256": "96ef3a7682663009ffd6d259d337f4800e4c32a3922ac16275eb03532002c180",
       "targetDomain": "Conformidad ADR / Gobernanza",
       "targetArtifacts": [
         "docs/decisions/",
@@ -5221,27 +5241,27 @@
       "testCases": [
         {
           "name": "🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs",
-          "line": 14
+          "line": 9
         },
         {
           "name": "🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Keyless, SLSA L3 y Kyverno",
-          "line": 51
+          "line": 46
         },
         {
           "name": "🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md",
-          "line": 74
+          "line": 69
         },
         {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no quedan restos de la herramienta",
-          "line": 117
+          "line": 112
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 151
+          "line": 146
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 254
+          "line": 249
         }
       ]
     },
@@ -5254,9 +5274,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 44,
-      "sizeBytes": 9815,
-      "lineCount": 215,
-      "sha256": "5f9e67bee2afab7cf8421946614f59044e3504a835c1062b30b866610a28e607",
+      "sizeBytes": 9671,
+      "lineCount": 210,
+      "sha256": "6be3be893bb502a5673f1573eb80e01cf393811f53444fd8a40bcf7eb671e200",
       "targetDomain": "Conformidad ADR / Observabilidad",
       "targetArtifacts": [
         "infra/monitoring/",
@@ -5276,19 +5296,19 @@
       "testCases": [
         {
           "name": "🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml",
-          "line": 13
+          "line": 8
         },
         {
           "name": "🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad",
-          "line": 66
+          "line": 61
         },
         {
           "name": "🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml",
-          "line": 93
+          "line": 88
         },
         {
           "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 115
+          "line": 110
         }
       ]
     },
@@ -5339,9 +5359,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 80,
-      "sizeBytes": 20123,
-      "lineCount": 424,
-      "sha256": "35fe562d93abe6a0c0fac0cfb653522974bfd38974fabab138b923369ff38263",
+      "sizeBytes": 19980,
+      "lineCount": 420,
+      "sha256": "bfef26289419b816fd014967b40d72022a4701244ae7888b0f883d5f2d2c759c",
       "targetDomain": "Hardening de Host, Redes y Ansible Baseline",
       "targetArtifacts": [
         "infra/ansible/"
@@ -5360,51 +5380,51 @@
       "testCases": [
         {
           "name": "🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*",
-          "line": 18
+          "line": 14
         },
         {
           "name": "🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados",
-          "line": 26
+          "line": 22
         },
         {
           "name": "🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción",
-          "line": 65
+          "line": 61
         },
         {
           "name": "🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernetes, GitOps y Ansible baseline",
-          "line": 82
+          "line": 78
         },
         {
           "name": "🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)",
-          "line": 93
+          "line": 89
         },
         {
           "name": "🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion",
-          "line": 124
+          "line": 120
         },
         {
           "name": "🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias",
-          "line": 172
+          "line": 168
         },
         {
           "name": "🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host",
-          "line": 199
+          "line": 195
         },
         {
           "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
-          "line": 247
+          "line": 243
         },
         {
           "name": "🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta",
-          "line": 287
+          "line": 283
         },
         {
           "name": "🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos",
-          "line": 333
+          "line": 329
         },
         {
           "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
-          "line": 346
+          "line": 342
         }
       ]
     },
@@ -5417,9 +5437,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 34,
-      "sizeBytes": 9423,
+      "sizeBytes": 9403,
       "lineCount": 193,
-      "sha256": "8ccf364e76047c11ae0762b1b639f4291cd368494a1bb485966f3009cb0671e5",
+      "sha256": "248feb13f668fe568e866971a12e30045018722181864400dbce25807f793324",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -5436,27 +5456,27 @@
       "testCases": [
         {
           "name": "🔏 BACKUP-HMAC-001: el HMAC detecta clave incorrecta y manipulación de forma determinista",
-          "line": 26
+          "line": 27
         },
         {
           "name": "🔏 BACKUP-HMAC-001: con una clave incorrecta el HMAC nunca verifica, frente a 2 000 payloads aleatorios",
-          "line": 47
+          "line": 48
         },
         {
           "name": "🔏 BACKUP-HMAC-001: la clave del MAC se deriva y no coincide con la de cifrado",
-          "line": 62
+          "line": 63
         },
         {
           "name": "🔏 BACKUP-HMAC-001: el sidecar .hmac se escribe y se lee con el formato de sha256sum",
-          "line": 69
+          "line": 70
         },
         {
           "name": "🔏 BACKUP-HMAC-001: el HMAC de Node coincide con el que calcula el CLI de openssl (interoperabilidad)",
-          "line": 82
+          "line": 83
         },
         {
           "name": "🔏 BACKUP-HMAC-001: el .enc sigue siendo descifrable con `openssl enc -d` sin conocer el HMAC (compatibilidad)",
-          "line": 105
+          "line": 106
         },
         {
           "name": "🔏 BACKUP-HMAC-002: el CronJob de backup genera el .hmac y lo sube off-site",
@@ -5665,9 +5685,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 5,
-      "sizeBytes": 5720,
-      "lineCount": 142,
-      "sha256": "55636ac4a89dfc33e6412f72803274b4eb484d5bed6196f0fd3a42a618d03189",
+      "sizeBytes": 5638,
+      "lineCount": 140,
+      "sha256": "1083731720b11f5bae2e49419b33aba1c43dcb2dd80c0920b68694b3ecbf31a1",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -5684,15 +5704,15 @@
       "testCases": [
         {
           "name": "🛡️ Nginx efectivo: el nivel server declara todas las cabeceras de seguridad requeridas",
-          "line": 97
+          "line": 95
         },
         {
           "name": "🛡️ Nginx efectivo: toda location que sirve contenido envía TODAS las cabeceras (herencia de add_header)",
-          "line": 103
+          "line": 101
         },
         {
           "name": "🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del upstream para no duplicarlas",
-          "line": 120
+          "line": 118
         }
       ]
     },
@@ -5705,9 +5725,9 @@
       "testCount": 28,
       "describeCount": 0,
       "assertionCountEst": 101,
-      "sizeBytes": 26027,
-      "lineCount": 642,
-      "sha256": "16b7b3d4b06495759fd854fc67da3b9b6170946acddc6d227a08557cb0c50c63",
+      "sizeBytes": 26072,
+      "lineCount": 643,
+      "sha256": "d343e272cbc55943532010878a24c52b65f727e939dba982057075cf646870d1",
       "targetDomain": "Pruebas de Penetración de API",
       "targetArtifacts": [
         "apps/backend/server.ts",
@@ -5727,115 +5747,115 @@
       "testCases": [
         {
           "name": "🔥 Pentest [Auth]: Falsificación de firma HMAC (Forged Signature Bypass)",
-          "line": 42
+          "line": 43
         },
         {
           "name": "🔥 Pentest [Auth]: Ataque de Algoritmo None / Firma Vacía",
-          "line": 57
+          "line": 58
         },
         {
           "name": "🔥 Pentest [Auth]: Escalación de privilegios modificando payload (Privilege Escalation)",
-          "line": 67
+          "line": 68
         },
         {
           "name": "🔥 Pentest [Auth]: Replay Attack con Token Revocado",
-          "line": 86
+          "line": 87
         },
         {
           "name": "🔥 Pentest [Auth]: Fail-Closed de Autenticación ante Caída de Redis",
-          "line": 101
+          "line": 102
         },
         {
           "name": "🔥 Pentest [Auth]: Fail-Closed de Logout cuando Redis está inaccesible",
-          "line": 120
+          "line": 121
         },
         {
           "name": "🔥 Pentest [Auth]: Logout rechaza tokens con firmas HMAC apócrifas y previene polución en Redis",
-          "line": 140
+          "line": 141
         },
         {
           "name": "🔥 Pentest [Auth]: Logout con token expirado no produce I/O innecesario en Redis",
-          "line": 165
+          "line": 166
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Endpoints de IA fallan cerrado con 503 ante caída de Redis en multi-pod",
-          "line": 178
+          "line": 179
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Endpoints públicos mantienen fallback resiliente a memoria local si Redis está offline",
-          "line": 216
+          "line": 217
         },
         {
           "name": "🔥 Pentest [RateLimiting]: Cuota diaria de IA bloquea con 429 tras superar el umbral diario por IP",
-          "line": 245
+          "line": 246
         },
         {
           "name": "🔥 Pentest [AI Resiliency]: withTimeout aborta llamadas lentas de IA y activa fallback seguro",
-          "line": 283
+          "line": 284
         },
         {
           "name": "🔥 Pentest [AI Resiliency]: AICircuitBreaker entra en estado OPEN tras fallos reiterados y se recupera con éxito",
-          "line": 298
+          "line": 299
         },
         {
           "name": "🔥 Pentest [AI Security]: sanitizePrompt neutraliza jailbreaks, roles falsificados y delimita longitud",
-          "line": 320
+          "line": 321
         },
         {
           "name": "⚡ Cache Semántico [AI]: getSemanticCacheKey normaliza espacios, mayúsculas y produce hash determinista",
-          "line": 337
+          "line": 338
         },
         {
           "name": "🧩 Functional [Result]: ok, err, tryCatch y transformaciones algebraicas",
-          "line": 347
+          "line": 348
         },
         {
           "name": "🔥 Pentest [Input]: Intento de Prototype Pollution vía JSON en Pokémon",
-          "line": 381
+          "line": 382
         },
         {
           "name": "🔥 Pentest [Input]: Mass Assignment intentando inyectar roles en características",
-          "line": 408
+          "line": 409
         },
         {
           "name": "🔥 Pentest [XSS]: Payloads políglotas complejos en campos de texto",
-          "line": 429
+          "line": 430
         },
         {
           "name": "🔥 Pentest [SSRF/XSS]: Evasiones de protocolo y caracteres nulos en imágenes",
-          "line": 448
+          "line": 449
         },
         {
           "name": "🔥 Pentest [SSRF]: Localhost HTTP bloqueado estrictamente en entorno de producción",
-          "line": 463
+          "line": 464
         },
         {
           "name": "🔥 Pentest [DoS]: Árbol de evolución recursivo con profundidad extrema (>5)",
-          "line": 484
+          "line": 485
         },
         {
           "name": "🔥 Pentest [DoS]: Flood masivo de nodos en evoluciones (>20 nodos totales)",
-          "line": 502
+          "line": 503
         },
         {
           "name": "🔥 Pentest [DoS]: Abuso de paginación masiva con valores descomunales",
-          "line": 519
+          "line": 520
         },
         {
           "name": "🔥 Pentest [Resilience]: Mutaciones fallan cerrado cuando PostgreSQL está configurado pero offline",
-          "line": 533
+          "line": 534
         },
         {
           "name": "🔥 Pentest [Observability]: Métricas desglosan PostgreSQL y Memoria sin ambigüedad",
-          "line": 577
+          "line": 578
         },
         {
           "name": "🔥 Pentest [Attack Surface]: Endpoint de descarga de repositorio retirado permanentemente (SEC-002)",
-          "line": 586
+          "line": 587
         },
         {
           "name": "🔥 Pentest [Redis Resilience]: Revocación en memoria persiste en proceso actual tras FLUSHALL simulado",
-          "line": 598
+          "line": 599
         }
       ]
     },
@@ -6027,9 +6047,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 5999,
-      "lineCount": 146,
-      "sha256": "c2b17eec78480ea08d66b4724539f55de80797c8d7c49f2fa77680f74ae778ef",
+      "sizeBytes": 5857,
+      "lineCount": 143,
+      "sha256": "47577125220651c01e75b292fd9006ff087084ad653c179f7c5d34718c78b20c",
       "targetDomain": "Integridad del Portal de Documentación",
       "targetArtifacts": [
         "docs/"
@@ -6048,15 +6068,15 @@
       "testCases": [
         {
           "name": "📚 DOC-011: todo documento de las categorias indexadas esta enlazado en docs/README.md",
-          "line": 74
+          "line": 71
         },
         {
           "name": "📚 DOC-011: las categorias del portal coinciden con las carpetas reales de docs/",
-          "line": 105
+          "line": 102
         },
         {
           "name": "📚 DOC-011: toda ruta docs/... citada por la politica existe en disco",
-          "line": 124
+          "line": 121
         }
       ]
     },
@@ -6069,9 +6089,9 @@
       "testCount": 13,
       "describeCount": 0,
       "assertionCountEst": 143,
-      "sizeBytes": 26774,
-      "lineCount": 526,
-      "sha256": "109b0da134555121d15d5c61b147efd77291b5644d5eb5a5bf9632a9decfec0b",
+      "sizeBytes": 26787,
+      "lineCount": 525,
+      "sha256": "f25066fed23101c9c9150d678b1ceb878dc417059911b3e26ee115f772f4f1dc",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -6091,55 +6111,55 @@
       "testCases": [
         {
           "name": "🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256, checksum y hardening de pod",
-          "line": 12
+          "line": 11
         },
         {
           "name": "🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo automatizado, clave efímera dinámica y restauración real",
-          "line": 54
+          "line": 53
         },
         {
           "name": "🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h",
-          "line": 101
+          "line": 100
         },
         {
           "name": "🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa verificación periódica de restauración en K8s",
-          "line": 119
+          "line": 118
         },
         {
           "name": "🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible agnóstico y PBS Remote Sync) formalizados como inactivos",
-          "line": 134
+          "line": 133
         },
         {
           "name": "🛡️ Disaster Recovery: Backup y Restore Verification renderizan PersistentVolumeClaim real y evitan almacenamiento efímero (Anti-emptyDir)",
-          "line": 182
+          "line": 181
         },
         {
           "name": "🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)",
-          "line": 239
+          "line": 238
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC",
-          "line": 283
+          "line": 282
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (fail-closed) si GDRIVE_TOKEN está ausente o vacío",
-          "line": 393
+          "line": 392
         },
         {
           "name": "🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)",
-          "line": 434
+          "line": 433
         },
         {
           "name": "🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y digest) en docker-compose y en el chart de Helm",
-          "line": 455
+          "line": 454
         },
         {
           "name": "🛡️ Disaster Recovery: el CronJob de Drive guarda la config de rclone en un volumen escribible",
-          "line": 483
+          "line": 482
         },
         {
           "name": "🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados",
-          "line": 499
+          "line": 498
         }
       ]
     },
@@ -6152,9 +6172,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 37,
-      "sizeBytes": 8954,
-      "lineCount": 199,
-      "sha256": "54634a385cda0b752a02bbbb712138c7a76973b850a65a195bb9739fc3607709",
+      "sizeBytes": 8996,
+      "lineCount": 200,
+      "sha256": "cc8679bf58d18b161cb89a160bad5e821c9afdf2e05581b26e3d34c086e690eb",
       "targetDomain": "Simulacro de Recuperación ante Desastres (DR)",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -6173,27 +6193,27 @@
       "testCases": [
         {
           "name": "🛡️ DR End-to-End Drill: Ejecuta la cadena operacional completa y certifica las 11 métricas contractuales",
-          "line": 5
+          "line": 6
         },
         {
           "name": "🛡️ DR Cryptographic Engine: encryptAes256Cbc y decryptAes256Cbc mantienen interoperabilidad OpenSSL PBKDF2",
-          "line": 62
+          "line": 63
         },
         {
           "name": "🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksum SHA-256 en descarga remota",
-          "line": 103
+          "line": 104
         },
         {
           "name": "🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo",
-          "line": 120
+          "line": 121
         },
         {
           "name": "🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente (< 32 caracteres)",
-          "line": 169
+          "line": 170
         },
         {
           "name": "🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/",
-          "line": 185
+          "line": 186
         }
       ]
     },
@@ -6206,9 +6226,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 8859,
-      "lineCount": 254,
-      "sha256": "50d6ff4692338924783aaf7691ea98fc7a6ee7ab166d352511fa344062b4f2bb",
+      "sizeBytes": 8844,
+      "lineCount": 253,
+      "sha256": "f84d0b63424726a8c5c78d1c35a643e85138dd65aa380b161898c674120b3aa0",
       "targetDomain": "Control de Egress y Prevención SSRF",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/cilium-network-policies.yaml",
@@ -6229,19 +6249,19 @@
       "testCases": [
         {
           "name": "🛡️ Egress Matrix: Verificación formal de los 6 destinos requeridos bajo Cilium L7 vs Flannel L4",
-          "line": 132
+          "line": 131
         },
         {
           "name": "🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eBPF en producción y Proxmox",
-          "line": 168
+          "line": 167
         },
         {
           "name": "🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti-SSRF sin renderizar CRDs de Cilium (ADR-013)",
-          "line": 215
+          "line": 214
         },
         {
           "name": "🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7",
-          "line": 246
+          "line": 245
         }
       ]
     },
@@ -6254,9 +6274,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 40,
-      "sizeBytes": 10626,
-      "lineCount": 252,
-      "sha256": "e84ee0ca9b6ed4ae8a2bdb92f94250dd58ece98baff81e70a491a6beb01cddb9",
+      "sizeBytes": 10478,
+      "lineCount": 248,
+      "sha256": "9eb3d97a6aa9aa2d718ef062fd0ef698b1761419c2a0c3b54551c1f01fae395e",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
@@ -6276,27 +6296,27 @@
       "testCases": [
         {
           "name": "📦 GHCR Retention: calculateVersionsToPrune conserva estrictamente los últimos N y marca el resto para purga",
-          "line": 35
+          "line": 31
         },
         {
           "name": "📦 GHCR Retention: applyGhcrRetention ejecuta correctamente en modo simulación",
-          "line": 108
+          "line": 104
         },
         {
           "name": "🔒 GHCR Retention Workflow: Configuración de seguridad, permisos y parámetros de retención",
-          "line": 140
+          "line": 136
         },
         {
           "name": "📦 GHCR Retention: firmas, SBOM y versiones sin tag no desplazan ni purgan imágenes",
-          "line": 201
+          "line": 197
         },
         {
           "name": "📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede fuera del top N",
-          "line": 227
+          "line": 223
         },
         {
           "name": "📦 GHCR Retention: protege los digests api y web declarados en GitOps y gestiona ambos paquetes",
-          "line": 242
+          "line": 238
         }
       ]
     },
@@ -6309,9 +6329,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 51,
-      "sizeBytes": 11922,
-      "lineCount": 318,
-      "sha256": "5732bab59aed8e457405a2f2815ea23a949a54b8d78dd570d2d7c5237a27e64f",
+      "sizeBytes": 11954,
+      "lineCount": 319,
+      "sha256": "f03c11c4c21cb47bad5a8ae944e93cb365b24c0ced942074521c092c19d88bf3",
       "targetDomain": "Sincronización de Seguridad GitHub-Linear",
       "targetArtifacts": [
         "scripts/github-security-linear-sync.ts",
@@ -6331,51 +6351,51 @@
       "testCases": [
         {
           "name": "🛡️ GitHub Security Linear Sync: mapSeverityToPriority mapea severidades a prioridades de Linear",
-          "line": 20
+          "line": 21
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: formatCodeScanningTitle genera título descriptivo y consistente",
-          "line": 38
+          "line": 39
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: formatDependabotTitle formatea paquete, advisory y resumen",
-          "line": 59
+          "line": 60
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: formatSecretScanningTitle formatea el tipo de secreto expuesto",
-          "line": 86
+          "line": 87
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: extractAlertKeyFromTitle extrae herramienta y número de alerta",
-          "line": 100
+          "line": 101
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: sanitize neutraliza saltos de línea y limita longitud",
-          "line": 132
+          "line": 133
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: syncAlertLifecycle maneja ciclo de vida en DRY-RUN sin errores",
-          "line": 141
+          "line": 142
         },
         {
           "name": "🚨 WF-002: los triggers workflow_run referencian workflows que existen",
-          "line": 239
+          "line": 240
         },
         {
           "name": "🚨 WF-002: se cubren los productores de alertas de seguridad",
-          "line": 256
+          "line": 257
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: workflow YAML existe y define permisos de menor privilegio",
-          "line": 277
+          "line": 278
         },
         {
           "name": "🛡️ GitHub Security Linear Sync: syncGitHubSecurityToLinear se degrada elegantemente sin LINEAR_API_KEY",
-          "line": 291
+          "line": 292
         },
         {
           "name": "🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Trivy IaC existe y está configurado",
-          "line": 305
+          "line": 306
         }
       ]
     },
@@ -6388,9 +6408,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 8591,
-      "lineCount": 196,
-      "sha256": "912ef01815fe2e2ae62326d17add33c0fdf4c02883c66d57df557ab9ded61b23",
+      "sizeBytes": 8449,
+      "lineCount": 192,
+      "sha256": "9a083b227afb6c8502d021332f306a6851e41a8f9639800fdb34789539c31daf",
       "targetDomain": "Paridad de Imágenes en GitOps",
       "targetArtifacts": [
         "scripts/verify-image-digest-parity.ts",
@@ -6410,43 +6430,43 @@
       "testCases": [
         {
           "name": "🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante Helm y extrae la imagen del contenedor api",
-          "line": 18
+          "line": 14
         },
         {
           "name": "🔒 GitOps Parity: parseImmutableDigest valida formato SHA256 y rechaza etiquetas mutables",
-          "line": 39
+          "line": 35
         },
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity certifica paridad 1:1 entre Cloud, Preprod y Helm Prod",
-          "line": 61
+          "line": 57
         },
         {
           "name": "🔒 GitOps Parity: el gate estricto incluye Proxmox Pre-prod en el conjunto de paridad",
-          "line": 72
+          "line": 68
         },
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity detecta discrepancias con digest publicado esperado",
-          "line": 86
+          "line": 82
         },
         {
           "name": "🔒 Supply Chain: .github/workflows/ci.yaml utiliza validación determinista por Helm AST en lugar de grep/awk",
-          "line": 96
+          "line": 92
         },
         {
           "name": "🔒 Supply Chain: extractRenderedApiImage en modo estricto (strict: true) falla sin fallback ante errores de Helm",
-          "line": 113
+          "line": 109
         },
         {
           "name": "🔒 GitOps Parity: la caché de renderizado evita re-ejecutar helm e invalida con clearRenderCache",
-          "line": 128
+          "line": 124
         },
         {
           "name": "🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web renderizado",
-          "line": 163
+          "line": 159
         },
         {
           "name": "🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos",
-          "line": 170
+          "line": 166
         }
       ]
     },
@@ -6459,9 +6479,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 38,
-      "sizeBytes": 12617,
-      "lineCount": 267,
-      "sha256": "9b84bbf9bd2f76f59c9dab02f3a40b4b32b8d9ec83fcba0ada2caa7f7611a976",
+      "sizeBytes": 12505,
+      "lineCount": 264,
+      "sha256": "e3f61d099d0f2851114ba5a2630b6f25c4c0a25ef9febece1fa79803784870d4",
       "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
       "targetArtifacts": [
         "infra/monitoring/grafana-cloud-values.yaml",
@@ -6481,39 +6501,39 @@
       "testCases": [
         {
           "name": "📡 OBS-002: el chart que instala el script renderiza con los values del repo",
-          "line": 96
+          "line": 93
         },
         {
           "name": "📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud",
-          "line": 105
+          "line": 102
         },
         {
           "name": "📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists",
-          "line": 124
+          "line": 121
         },
         {
           "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
-          "line": 143
+          "line": 140
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer",
-          "line": 170
+          "line": 167
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault",
-          "line": 192
+          "line": 189
         },
         {
           "name": "📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki desde el repo",
-          "line": 220
+          "line": 217
         },
         {
           "name": "📡 OBS-003: el receptor OTLP reenvía métricas a Prometheus y logs a Loki sin tocar los nombres de serie",
-          "line": 233
+          "line": 230
         },
         {
           "name": "📡 OBS-003: Beyla queda apagado y el script inyecta el token del destino de logs",
-          "line": 253
+          "line": 250
         }
       ]
     },
@@ -6526,9 +6546,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 28,
-      "sizeBytes": 17586,
-      "lineCount": 432,
-      "sha256": "b3607a3ec67a4fd41c8bc3c24eb87ceacdbccf5dcdea4e90ad021de493b1a632",
+      "sizeBytes": 17443,
+      "lineCount": 428,
+      "sha256": "462d0f348db08add8585b421d4ec1b2a7990cadaef37e897a186509f96488616",
       "targetDomain": "Portabilidad de Dashboards Grafana",
       "targetArtifacts": [
         "infra/monitoring/dashboards/"
@@ -6547,39 +6567,39 @@
       "testCases": [
         {
           "name": "🧹 INFRA-006: no debe haber values de Grafana huérfanos en infra/monitoring",
-          "line": 86
+          "line": 82
         },
         {
           "name": "🔀 PORT-001: el despliegue de Grafana Cloud es multiplataforma (sin PowerShell)",
-          "line": 146
+          "line": 142
         },
         {
           "name": "🔀 PORT-001: el script Node preserva la mitigacion de exposicion del token",
-          "line": 166
+          "line": 162
         },
         {
           "name": "🔀 PORT-001: los flags de Helm son equivalentes a los del script PowerShell retirado",
-          "line": 183
+          "line": 179
         },
         {
           "name": "📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API emite",
-          "line": 366
+          "line": 362
         },
         {
           "name": "📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio",
-          "line": 384
+          "line": 380
         },
         {
           "name": "📈 OBS-001: trafico y latencia excluyen probes y series sinteticas",
-          "line": 391
+          "line": 387
         },
         {
           "name": "🚨 OBS-001: PokedexAPIDown selecciona el target real de scraping de la API",
-          "line": 409
+          "line": 405
         },
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
-          "line": 418
+          "line": 414
         }
       ]
     },
@@ -6592,9 +6612,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 67,
-      "sizeBytes": 14082,
-      "lineCount": 307,
-      "sha256": "ca8dc7868fc5bde67b4f6615c19921a316b19ca271141c0693d9c5101661d778",
+      "sizeBytes": 13939,
+      "lineCount": 303,
+      "sha256": "dac97ee7388ad9eb6d14e45bbee8111df954c93016457c4c9541cd9e67259b23",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",
@@ -6615,31 +6635,31 @@
       "testCases": [
         {
           "name": "🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa",
-          "line": 18
+          "line": 14
         },
         {
           "name": "🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente",
-          "line": 27
+          "line": 23
         },
         {
           "name": "🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)",
-          "line": 39
+          "line": 35
         },
         {
           "name": "🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC",
-          "line": 50
+          "line": 46
         },
         {
           "name": "🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy",
-          "line": 69
+          "line": 65
         },
         {
           "name": "🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)",
-          "line": 90
+          "line": 86
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 268
+          "line": 264
         }
       ]
     },
@@ -6652,9 +6672,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 40,
-      "sizeBytes": 10440,
-      "lineCount": 219,
-      "sha256": "05a10a5a142e0718d7d19eab2e9b41529ff7edafe3ae5183fa73c13057407185",
+      "sizeBytes": 10453,
+      "lineCount": 218,
+      "sha256": "fd5bb162c1ce01810f4e27154c29778b5e835be8a21ac1237b1a50f2135a6551",
       "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
       "targetArtifacts": [
         "scripts/check-ignore-hygiene.ts",
@@ -6675,43 +6695,43 @@
       "testCases": [
         {
           "name": "🧹 Configuration Hygiene: check-ignore-hygiene.ts existe y está registrado en package.json",
-          "line": 9
+          "line": 8
         },
         {
           "name": "🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta de todos los archivos .ignore",
-          "line": 20
+          "line": 19
         },
         {
           "name": "📐 Extension Governance: la regla de extensión YAML está incorporada en la suite de skills",
-          "line": 63
+          "line": 62
         },
         {
           "name": "📐 Extension Governance: las skills no citan workflows con la extensión .yml obsoleta",
-          "line": 89
+          "line": 88
         },
         {
           "name": "📚 YAML Reference Integrity (DOC-002): no hay referencias a archivos .yml obsoletas",
-          "line": 131
+          "line": 130
         },
         {
           "name": "📚 YAML Reference Integrity: el scanner esta registrado y declara sus excepciones",
-          "line": 145
+          "line": 144
         },
         {
           "name": "🛡️ Configuration Hygiene: workflow de CI integra el paso de auditoría de archivos .ignore",
-          "line": 162
+          "line": 161
         },
         {
           "name": "🧹 Repository Hygiene: regla /tmp/ presente en .gitignore y patrón no sobre-extensivo",
-          "line": 170
+          "line": 169
         },
         {
           "name": "🧹 Repository Hygiene: la regla /tmp/ ignora efectivamente archivos en tmp/ y no fuera de tmp/",
-          "line": 179
+          "line": 178
         },
         {
           "name": "🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe y rige AGENTS.md y skills",
-          "line": 198
+          "line": 197
         }
       ]
     },
@@ -6724,9 +6744,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 4318,
+      "sizeBytes": 4333,
       "lineCount": 99,
-      "sha256": "0906725b205a9c99cbf631fea4d73248bbd12e263b0cae88a15d47e6266f7124",
+      "sha256": "34a48e7bbfdd39d0bc8290e1cee777e17dfc2e970ac5ddf3a76626a07e4a7c22",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -6768,9 +6788,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 136,
-      "sizeBytes": 28323,
-      "lineCount": 557,
-      "sha256": "fcbb0965c3c16b8042eb63a448179c89380cc8d852ec5c3123244f0e9bf8ad5a",
+      "sizeBytes": 28180,
+      "lineCount": 553,
+      "sha256": "1bc5cc1d78f0f2d941832b11d0e048df1a46e6f774684f721cb2ac53de78153e",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -6790,59 +6810,59 @@
       "testCases": [
         {
           "name": "🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFilesystem y montajes emptyDir",
-          "line": 18
+          "line": 14
         },
         {
           "name": "🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)",
-          "line": 35
+          "line": 31
         },
         {
           "name": "🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage",
-          "line": 57
+          "line": 53
         },
         {
           "name": "🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints",
-          "line": 65
+          "line": 61
         },
         {
           "name": "🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test",
-          "line": 90
+          "line": 86
         },
         {
           "name": "🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión",
-          "line": 110
+          "line": 106
         },
         {
           "name": "🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe",
-          "line": 127
+          "line": 123
         },
         {
           "name": "🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator",
-          "line": 164
+          "line": 160
         },
         {
           "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange",
-          "line": 185
+          "line": 181
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 215
+          "line": 211
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 253
+          "line": 249
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 303
+          "line": 299
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 391
+          "line": 387
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 457
+          "line": 453
         }
       ]
     },
@@ -6855,9 +6875,9 @@
       "testCount": 14,
       "describeCount": 0,
       "assertionCountEst": 80,
-      "sizeBytes": 20260,
-      "lineCount": 423,
-      "sha256": "673f0f280e1d7aa1cc17a0b376381e0e64721741bd3d61983b3161046c858e4a",
+      "sizeBytes": 20117,
+      "lineCount": 419,
+      "sha256": "1ed63a2307fdbfa1a3f427e65b3f1d52b55e79c7fb9f2eb3fcca9e43f15912c9",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -6877,59 +6897,59 @@
       "testCases": [
         {
           "name": "🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)",
-          "line": 34
+          "line": 30
         },
         {
           "name": "🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin",
-          "line": 49
+          "line": 45
         },
         {
           "name": "🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src",
-          "line": 60
+          "line": 56
         },
         {
           "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 77
+          "line": 73
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 102
+          "line": 98
         },
         {
           "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
-          "line": 127
+          "line": 123
         },
         {
           "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 161
+          "line": 157
         },
         {
           "name": "🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy",
-          "line": 175
+          "line": 171
         },
         {
           "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
-          "line": 201
+          "line": 197
         },
         {
           "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
-          "line": 233
+          "line": 229
         },
         {
           "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 255
+          "line": 251
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 271
+          "line": 267
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 325
+          "line": 321
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 365
+          "line": 361
         }
       ]
     },
@@ -6942,9 +6962,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 65,
-      "sizeBytes": 16023,
-      "lineCount": 338,
-      "sha256": "436a5c68decee86547d4afafd57f45e5c015c1ffe1df920fa2da6c4e940524cc",
+      "sizeBytes": 15880,
+      "lineCount": 334,
+      "sha256": "c0c4f990b1e57716bd8034b51a7d8be4602e8f68e4ca0f3edeacb28132d60add",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -6963,39 +6983,39 @@
       "testCases": [
         {
           "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
-          "line": 61
+          "line": 57
         },
         {
           "name": "🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)",
-          "line": 73
+          "line": 69
         },
         {
           "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 89
+          "line": 85
         },
         {
           "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
-          "line": 107
+          "line": 103
         },
         {
           "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 155
+          "line": 151
         },
         {
           "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 195
+          "line": 191
         },
         {
           "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 224
+          "line": 220
         },
         {
           "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 270
+          "line": 266
         },
         {
           "name": "🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)",
-          "line": 317
+          "line": 313
         }
       ]
     },
@@ -7008,9 +7028,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 7380,
-      "lineCount": 137,
-      "sha256": "d818fdd570ce92b1f9336fb74c5ae5c514d8b63f737c0ff7a26ac48ae51c12ef",
+      "sizeBytes": 7238,
+      "lineCount": 133,
+      "sha256": "14e53d774ee679e13464a7bf903638bd2b246034ad1476bd1f067cd00950169e",
       "targetDomain": "Benchmarks de Recuperación ante Desastres",
       "targetArtifacts": [
         "scripts/dr-drill.ts"
@@ -7029,39 +7049,39 @@
       "testCases": [
         {
           "name": "🛡️ Operación: Kind clúster declarativo existe y define puertos e ingress-ready",
-          "line": 11
+          "line": 7
         },
         {
           "name": "🛡️ Operación: infra.yaml integra Kind como prueba canónica de integración",
-          "line": 27
+          "line": 23
         },
         {
           "name": "🛡️ Operación: security-dast-zap.yaml configura escaneo dinámico con OWASP ZAP",
-          "line": 37
+          "line": 33
         },
         {
           "name": "🛡️ Operación: k6_stress_test.js y performance-k6.yaml definen y validan umbrales de SLA",
-          "line": 50
+          "line": 46
         },
         {
           "name": "🛡️ Operación: DISASTER_RECOVERY_PLAN.md documenta RPO y RTO medidos experimentalmente",
-          "line": 61
+          "line": 57
         },
         {
           "name": "🛡️ Operación: dr-simulation.yaml automatiza simulacros periódicos de recuperación ante desastres",
-          "line": 74
+          "line": 70
         },
         {
           "name": "🛡️ Disaster Recovery: dr_verify_restore.sh implementa validación estricta de checksum y aislamiento de BD",
-          "line": 84
+          "line": 80
         },
         {
           "name": "🛡️ Gobernanza & Arquitectura: Suite formal de ADRs existe en docs/decisions/",
-          "line": 101
+          "line": 97
         },
         {
           "name": "🛡️ Excelencia Operacional: Runbooks formales estructurados en docs/operations/",
-          "line": 120
+          "line": 116
         }
       ]
     },
@@ -7074,9 +7094,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 4023,
-      "lineCount": 90,
-      "sha256": "e365640d329ced3847f6cd7d30fcc58bd059a7347d14770159993612b68c16bd",
+      "sizeBytes": 3880,
+      "lineCount": 86,
+      "sha256": "6b488eabc25f4b352c81da9fbbdc242a57c6ed0f4c510444338b415dda8c3b4d",
       "targetDomain": "Promoción Automatizada Segura",
       "targetArtifacts": [
         ".github/workflows/promote-auto-approve.yaml"
@@ -7095,11 +7115,11 @@
       "testCases": [
         {
           "name": "🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks para PRs de release",
-          "line": 11
+          "line": 7
         },
         {
           "name": "🚀 Release Promote: la rama de promoción refresca su referencia remota antes de forzar el push (REL-004)",
-          "line": 71
+          "line": 67
         }
       ]
     },
@@ -7112,9 +7132,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 9827,
-      "lineCount": 210,
-      "sha256": "5cfa132c868efbf1cc704e30b6dc17c9719df99a64fe3dcc99cef2be0060fc2c",
+      "sizeBytes": 9682,
+      "lineCount": 206,
+      "sha256": "ea2f98b586a45871061053a18a17ad1c3983c82501c9d2d4236898493fe69dea",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7131,23 +7151,23 @@
       "testCases": [
         {
           "name": "🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose, helm-values y custom.regex",
-          "line": 29
+          "line": 25
         },
         {
           "name": "🛡️ RENOVATE-002: renovate.json no contiene claves de comentario inválidas",
-          "line": 55
+          "line": 51
         },
         {
           "name": "🛡️ RENOVATE-002: Config Linters valida renovate.json con el validador oficial, fijado por digest y en modo strict",
-          "line": 67
+          "line": 63
         },
         {
           "name": "🛡️ RENOVATE-003: las imágenes del chart con digest aparte o sin registro público se excluyen de helm-values",
-          "line": 123
+          "line": 119
         },
         {
           "name": "🛡️ RENOVATE-004: el gestor custom.regex encuentra tag y digest de cada imagen con digest del chart",
-          "line": 158
+          "line": 154
         }
       ]
     },
@@ -7160,9 +7180,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 57,
-      "sizeBytes": 14455,
-      "lineCount": 359,
-      "sha256": "c84af67943c4409c266cbc9d9833619e83a2ae537a31a627dd8c86c761db8261",
+      "sizeBytes": 14312,
+      "lineCount": 354,
+      "sha256": "a4b815a8044e515424ff60edc3b1f2bda2480ed14c5d3c77f35ee964fdafb71a",
       "targetDomain": "Imágenes, SBOM y Firma",
       "targetArtifacts": [
         "apps/backend/Dockerfile",
@@ -7183,39 +7203,39 @@
       "testCases": [
         {
           "name": "🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build",
-          "line": 12
+          "line": 7
         },
         {
           "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
-          "line": 52
+          "line": 47
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
-          "line": 80
+          "line": 75
         },
         {
           "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 118
+          "line": 113
         },
         {
           "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
-          "line": 131
+          "line": 126
         },
         {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 202
+          "line": 197
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 223
+          "line": 218
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 243
+          "line": 238
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 340
+          "line": 335
         }
       ]
     },
@@ -7228,9 +7248,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 36,
-      "sizeBytes": 9624,
-      "lineCount": 222,
-      "sha256": "5f5615076ede0216387ec014380138958f09c4b3822d87f77aeda4d260cc04af",
+      "sizeBytes": 9482,
+      "lineCount": 218,
+      "sha256": "62bcdce89b11cad09d1ce0b3989f83ddf79374df865c3af8e85df8b248a19dba",
       "targetDomain": "Fijación de Tooling",
       "targetArtifacts": [
         ".pre-commit-config.yaml",
@@ -7250,19 +7270,19 @@
       "testCases": [
         {
           "name": "🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse",
-          "line": 14
+          "line": 10
         },
         {
           "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 172
+          "line": 168
         },
         {
           "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 196
+          "line": 192
         },
         {
           "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 210
+          "line": 206
         }
       ]
     },
@@ -7275,9 +7295,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 3714,
-      "lineCount": 91,
-      "sha256": "9ec8f9c3b8a8df9cc7aba7b862be8310af57fceff4b159f951c8931bc0761e79",
+      "sizeBytes": 3571,
+      "lineCount": 86,
+      "sha256": "609ddb2b26cf9431b6eae8fecb301f339e0d4f73e933838044f66cd20378ac21",
       "targetDomain": "Cobertura del Scan de Trivy",
       "targetArtifacts": [
         ".github/workflows/security-trivy.yaml",
@@ -7297,11 +7317,11 @@
       "testCases": [
         {
           "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 44
+          "line": 39
         },
         {
           "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 73
+          "line": 68
         }
       ]
     },
@@ -7314,9 +7334,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 14,
-      "sizeBytes": 6803,
-      "lineCount": 146,
-      "sha256": "f56ade1b7017053fbb6973e7083c37ae656c3bb479258bbdc4ac0bf0469ff39e",
+      "sizeBytes": 6661,
+      "lineCount": 142,
+      "sha256": "49e0bdd09caee3bab9c48f017fcde399e5761b7927f9f36eef4a26d3170b64fd",
       "targetDomain": "Higiene de Workflows",
       "targetArtifacts": [
         ".github/workflows/",
@@ -7336,27 +7356,27 @@
       "testCases": [
         {
           "name": "🔒 Supply Chain: las actions del release no usan runtimes de Node retirados",
-          "line": 20
+          "line": 16
         },
         {
           "name": "🏷️ Release Tag: el header de la API de GitHub tiene el quoting balanceado",
-          "line": 51
+          "line": 47
         },
         {
           "name": "🔤 Workflows: los archivos usan fin de línea LF (relacionado con REL-002)",
-          "line": 65
+          "line": 61
         },
         {
           "name": "🔤 Workflows: .gitattributes fuerza LF en los workflows",
-          "line": 78
+          "line": 74
         },
         {
           "name": "🔒 INFRA-005: toda imagen del Chart debe soportar fijacion por digest",
-          "line": 85
+          "line": 81
         },
         {
           "name": "🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta",
-          "line": 137
+          "line": 133
         }
       ]
     },
@@ -7369,9 +7389,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 4362,
-      "lineCount": 91,
-      "sha256": "43eed7247b7bda5158ca84582c243cee63630adef2771fe3abcd73d00d60e7b1",
+      "sizeBytes": 4281,
+      "lineCount": 90,
+      "sha256": "99e9951623b40573d44b50dc32cbc8712edb040286372000c47714b1df5d8c3f",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7388,23 +7408,23 @@
       "testCases": [
         {
           "name": "🔐 Vault operador: toda regla queda dentro de las rutas de secretos de pre-prod",
-          "line": 42
+          "line": 41
         },
         {
           "name": "🔐 Vault operador: sin sudo, sin borrado ni destrucción de secretos",
-          "line": 53
+          "line": 52
         },
         {
           "name": "🔐 Vault operador: puede crear y actualizar datos, pero los metadatos son de solo lectura",
-          "line": 59
+          "line": 58
         },
         {
           "name": "🔐 Vault operador: la política de ESO sigue siendo de solo lectura y distinta de la del operador",
-          "line": 72
+          "line": 71
         },
         {
           "name": "🔐 Vault operador: el runbook incorpora exactamente la política versionada y un usuario de vida corta",
-          "line": 78
+          "line": 77
         }
       ]
     },
@@ -7417,9 +7437,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 86,
-      "sizeBytes": 15564,
-      "lineCount": 298,
-      "sha256": "ca37e76ad56be885aeb245c1060a5753345eeacdd5f68b8db2e62de9fe2119c5",
+      "sizeBytes": 15549,
+      "lineCount": 297,
+      "sha256": "17fe27ef30531e5262fb8ab94f3d43042f8b1bdaea59e3c5e8c4944a0178b0fa",
       "targetDomain": "Gestión y Rotación de Secretos (Vault)",
       "targetArtifacts": [
         "scripts/k8s-rollout-restart.ts"
@@ -7438,51 +7458,51 @@
       "testCases": [
         {
           "name": "🔒 Proxmox Secret Architecture: Validación contractual de Vault CE, ESO y ausencia de Reloader",
-          "line": 9
+          "line": 8
         },
         {
           "name": "🔒 ESO Security: manifiestos activos prohíben SecretStore fake y credenciales placeholder",
-          "line": 17
+          "line": 16
         },
         {
           "name": "🔒 ADR-030: prod Proxmox retirado; pokedex/prod queda reservada para el blueprint cloud",
-          "line": 41
+          "line": 40
         },
         {
           "name": "🔒 Proxmox Pre-prod GitOps Values: ExternalSecrets apunta a vault-backend-preprod y clave pokedex/preprod",
-          "line": 50
+          "line": 49
         },
         {
           "name": "🔒 Vault ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox sin el rol de la prod retirada",
-          "line": 65
+          "line": 64
         },
         {
           "name": "🔒 Vault Pre-prod ClusterSecretStore: Apunta a endpoint HTTPS del LXC Proxmox y rol pokedex-preprod-role",
-          "line": 97
+          "line": 96
         },
         {
           "name": "🔒 Redeploy Invariant: Mutaciones en Secretos de ESO requieren rollout restart en ausencia de Reloader",
-          "line": 119
+          "line": 118
         },
         {
           "name": "🔒 Vault Multi-Env Separation: Políticas y roles segregados para Pre-prod y Prod (Zero-Trust Least Privilege)",
-          "line": 134
+          "line": 133
         },
         {
           "name": "🛡️ Bastion Break-Glass & Audit: Captura obligatoria de comandos y políticas operativas",
-          "line": 167
+          "line": 166
         },
         {
           "name": "📊 DR & SLA Canonical Contract: Unificación de SLA (99.5%), RPO (< 24h) y RTO (< 2h) en SSOT arquitectural",
-          "line": 223
+          "line": 222
         },
         {
           "name": "🔒 Vault Init: las credenciales se entregan al operador fuera del LXC y nunca quedan en el contenedor",
-          "line": 248
+          "line": 247
         },
         {
           "name": "🔒 Vault Storage: disable_mlock = true con Raft integrado en LXC sin privilegios",
-          "line": 288
+          "line": 287
         }
       ]
     },
@@ -7495,9 +7515,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 16,
-      "sizeBytes": 5185,
-      "lineCount": 124,
-      "sha256": "bdd02668fac3134414feb957d6b9433c644968e2561949380f45655c03edc30b",
+      "sizeBytes": 5198,
+      "lineCount": 123,
+      "sha256": "e30b55daf54502215969a4276ac7088b61be7fb2fc62c86d98dd152336d52d80",
       "targetDomain": "Gobernanza de Extensiones YAML",
       "targetArtifacts": [
         "scripts/check-yaml-extension.ts"
@@ -7516,23 +7536,23 @@
       "testCases": [
         {
           "name": "📐 Extension Governance: check-yaml-extension.ts existe y está registrado en package.json",
-          "line": 11
+          "line": 10
         },
         {
           "name": "📐 Extension Governance: el gate pasa en modo normal y estricto sin violaciones",
-          "line": 21
+          "line": 20
         },
         {
           "name": "📐 Extension Governance: toda la deuda .yml del repositorio está declarada y esSubset del disco",
-          "line": 41
+          "line": 40
         },
         {
           "name": "📐 Extension Governance: el gate es fail-closed ante un .yml trackeado no declarado",
-          "line": 75
+          "line": 74
         },
         {
           "name": "📐 Extension Governance: CI y el contrato de impacto integran el gate de extensión",
-          "line": 112
+          "line": 111
         }
       ]
     },
@@ -7545,9 +7565,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 6,
-      "sizeBytes": 1725,
-      "lineCount": 39,
-      "sha256": "b6176752d705f6cb6f151f425398348c5d5435ba1034cad360e665b9b5d25608",
+      "sizeBytes": 1766,
+      "lineCount": 40,
+      "sha256": "3880c898196cc82c0c18897807e2421d5c831642af65ad71ac72da3390236cfc",
       "targetDomain": "Suite governance",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7563,11 +7583,11 @@
       "testCases": [
         {
           "name": "🧭 Skills: el catálogo contiene skills",
-          "line": 18
+          "line": 19
         },
         {
           "name": "🧭 Skills: ${dir}/SKILL.md tiene frontmatter YAML válido con name y description",
-          "line": 23
+          "line": 24
         }
       ]
     },
@@ -7774,9 +7794,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 7,
-      "sizeBytes": 1797,
-      "lineCount": 41,
-      "sha256": "00ae03ad4b7b6f8d4d0bf02b211e1dc0e8e3723dea181456d78576092ce4b326",
+      "sizeBytes": 1654,
+      "lineCount": 37,
+      "sha256": "3cbbe3ece5edc2dcd4592ee60a39a141b53601acf8537ce9549837b6f0db00c8",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7793,7 +7813,7 @@
       "testCases": [
         {
           "name": "🛡️ Backend Lifecycle: closeStorage y setShuttingDownForTest gestionan el estado de apagado grácil",
-          "line": 11
+          "line": 7
         }
       ]
     },
@@ -7940,9 +7960,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 1,
-      "sizeBytes": 1630,
-      "lineCount": 39,
-      "sha256": "87dc6e5e8f4d6669161dfdfbfb7bc60050af94b7fa9003faf5d0187d9c0d27f4",
+      "sizeBytes": 1672,
+      "lineCount": 40,
+      "sha256": "66feed692646bf25227e55b2dfac7d04899824dda254447fbd5e6ee277c10933",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -7959,7 +7979,7 @@
       "testCases": [
         {
           "name": "🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece",
-          "line": 23
+          "line": 24
         }
       ]
     },
@@ -8012,9 +8032,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 24,
-      "sizeBytes": 5009,
-      "lineCount": 105,
-      "sha256": "da081ec99283f2bec872db757658303bd79946a3545859eccefe6895c3774408",
+      "sizeBytes": 4928,
+      "lineCount": 104,
+      "sha256": "c52dd571a3135092c4451347b2cdc423460c994c78d817dd089cf59408a37c4c",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8031,31 +8051,31 @@
       "testCases": [
         {
           "name": "🧬 Catálogo: incluye las megaevoluciones de PokeAPI (clásicas y de Leyendas Z-A)",
-          "line": 15
+          "line": 14
         },
         {
           "name": "🧬 Catálogo: las megaevoluciones no tienen número de Pokédex propio ni entradas independientes",
-          "line": 29
+          "line": 28
         },
         {
           "name": "🧬 Catálogo: claves únicas, nombres Mega-* y pocas formas por especie",
-          "line": 43
+          "line": 42
         },
         {
           "name": "🧬 Catálogo: cada megaevolución trae arte oficial, tipos conocidos y las seis estadísticas",
-          "line": 54
+          "line": 53
         },
         {
           "name": "🧬 Catálogo: la megaevolución cambia algo respecto a la forma base (tipos, habilidades o estadísticas)",
-          "line": 66
+          "line": 65
         },
         {
           "name": "🧬 Muestra: las megaevoluciones de la muestra de desarrollo coinciden con el catálogo completo",
-          "line": 76
+          "line": 75
         },
         {
           "name": "🧬 Muestra: initialPokemons adjunta las megaevoluciones y deja el resto intacto",
-          "line": 90
+          "line": 89
         }
       ]
     },
@@ -8312,9 +8332,9 @@
       "testCount": 5,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 4063,
-      "lineCount": 91,
-      "sha256": "de6dbd3ab3a1e4cba512ccbf0cc4f6c5095b1cb6c1ad8f0b714ac7c0ffd68f20",
+      "sizeBytes": 3982,
+      "lineCount": 90,
+      "sha256": "a125085de4ce7eabf1a70ae2c21d78e458e2faf0956c3bb5daa2f3e7a7b3c634",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8331,23 +8351,23 @@
       "testCases": [
         {
           "name": "🗄️ Migrations: una base vacía no se toca (la migración inicial la crea)",
-          "line": 53
+          "line": 52
         },
         {
           "name": "🗄️ Migrations: una base con journal no se toca",
-          "line": 59
+          "line": 58
         },
         {
           "name": "🗄️ Migrations: un esquema heredado sin journal registra la migración inicial como aplicada",
-          "line": 65
+          "line": 64
         },
         {
           "name": "🗄️ Migrations: un journal existente pero vacío también se completa",
-          "line": 81
+          "line": 80
         },
         {
           "name": "🗄️ Migrations: un esquema heredado distinto falla sin escribir (fail-closed)",
-          "line": 86
+          "line": 85
         }
       ]
     },
@@ -8360,9 +8380,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 37,
-      "sizeBytes": 7616,
-      "lineCount": 210,
-      "sha256": "6bbc913f5dc8446487cbb0f0f2b494ca47e1361d563e163642472a420de95f9a",
+      "sizeBytes": 7471,
+      "lineCount": 206,
+      "sha256": "52e73be74f39023bbb408208a54527aa7a3ca232f4c7b67cbe225399513f4aab",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8379,19 +8399,19 @@
       "testCases": [
         {
           "name": "🛡️ Monolith Watch: Archivos clave respetan los umbrales de LOC e imports (APPS-008)",
-          "line": 118
+          "line": 114
         },
         {
           "name": "🛡️ Monolith Watch: network-security.ts está completamente desacoplado de Express, DB y servicios",
-          "line": 143
+          "line": 139
         },
         {
           "name": "🛡️ Network Security [Unit]: isPrivateOrRestrictedIp rechaza rangos restringidos y metadatos de nube",
-          "line": 155
+          "line": 151
         },
         {
           "name": "🛡️ Network Security [Unit]: validateImageUrl valida protocolo y previene SSRF",
-          "line": 182
+          "line": 178
         }
       ]
     },
@@ -8404,9 +8424,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 5,
-      "sizeBytes": 1667,
-      "lineCount": 37,
-      "sha256": "1a5a3ec01920d5161ed10cf3654b961df3bbb315f89f7c5d3e4da59b350112cc",
+      "sizeBytes": 1586,
+      "lineCount": 36,
+      "sha256": "a5aea90d4cc82cd3c7900f771be0607eab62e82e5df5e1489798ba985045442b",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8423,7 +8443,7 @@
       "testCases": [
         {
           "name": "🧩 Node: .nvmrc, engines, Dockerfiles y workflows usan la misma versión mayor",
-          "line": 10
+          "line": 9
         }
       ]
     },
@@ -8717,9 +8737,9 @@
       "testCount": 16,
       "describeCount": 0,
       "assertionCountEst": 30,
-      "sizeBytes": 6908,
-      "lineCount": 153,
-      "sha256": "e994c8ef0d2ee674563f952e84569b65395fe3382abbdb25a00b564215225f2a",
+      "sizeBytes": 6827,
+      "lineCount": 152,
+      "sha256": "b64d483583432589ad8b260b9ecfd3dd0795019379f74d104e2544a859e4a44f",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8736,67 +8756,67 @@
       "testCases": [
         {
           "name": "🌱 SeedCatalog: SEED_DATASET vacío usa la muestra y acepta full sin distinguir mayúsculas",
-          "line": 32
+          "line": 31
         },
         {
           "name": "🌱 SeedCatalog: un SEED_DATASET desconocido falla en lugar de degradar a otro dataset",
-          "line": 39
+          "line": 38
         },
         {
           "name": "🌱 SeedCatalog: sample es la muestra curada y full el catálogo nacional",
-          "line": 43
+          "line": 42
         },
         {
           "name": "🌱 SeedCatalog: el catálogo completo tiene IDs contiguos y supera el validador del backend",
-          "line": 52
+          "line": 51
         },
         {
           "name": "🌱 SeedCatalog: todos los tipos del catálogo tienen color en el frontend",
-          "line": 56
+          "line": 55
         },
         {
           "name": "🌱 SeedCatalog: las evoluciones referencian especies del propio catálogo e incluyen a la entrada",
-          "line": 64
+          "line": 63
         },
         {
           "name": "🌱 SeedCatalog: las imágenes apuntan al artwork oficial de PokeAPI por HTTPS",
-          "line": 79
+          "line": 78
         },
         {
           "name": "🌱 SeedCatalog: el archivo versionado coincide con la serialización canónica (una entrada por línea)",
-          "line": 85
+          "line": 84
         },
         {
           "name": "🌱 SeedPlan: sin FORCE_SEED solo inserta los IDs ausentes",
-          "line": 96
+          "line": 95
         },
         {
           "name": "🌱 SeedPlan: con el catálogo completo persistido no hay nada que sembrar",
-          "line": 105
+          "line": 104
         },
         {
           "name": "🌱 SeedPlan: FORCE_SEED=true reescribe todo fuera de producción",
-          "line": 110
+          "line": 109
         },
         {
           "name": "🌱 SeedPlan: en producción FORCE_SEED=true queda bloqueado y solo inserta faltantes",
-          "line": 116
+          "line": 115
         },
         {
           "name": "🌱 SeedPlan: en producción el token de confirmación habilita la reescritura",
-          "line": 123
+          "line": 122
         },
         {
           "name": "🌱 SeedJob: sincroniza pokedex_id_seq después de insertar IDs explícitos",
-          "line": 133
+          "line": 132
         },
         {
           "name": "🌱 SeedJob: syncPokedexIdSequence es un no-op sin PostgreSQL conectado",
-          "line": 140
+          "line": 139
         },
         {
           "name": "🌱 Generator: normaliza el flavor text y las categorías",
-          "line": 148
+          "line": 147
         }
       ]
     },
@@ -8809,9 +8829,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 3,
-      "sizeBytes": 2998,
-      "lineCount": 62,
-      "sha256": "112ab10968ac05f519150439a7b2261c3cd79f1cab9a269238d7a7883b934a4f",
+      "sizeBytes": 2917,
+      "lineCount": 61,
+      "sha256": "aac7e2e2b7f1f80b12506ca54377cf06ae3e4eac460efeb3c84bc33c47e8f93a",
       "targetDomain": "Suite unit",
       "targetArtifacts": [],
       "npmCommands": [
@@ -8828,11 +8848,11 @@
       "testCases": [
         {
           "name": "📦 AUD-DEP-ZOD-001: el backend resuelve zod 4, la versión que declara",
-          "line": 37
+          "line": 36
         },
         {
           "name": "📦 AUD-DEP-ZOD-001: solo el backend importa zod; fuera de él resolvería la copia hoisteada",
-          "line": 48
+          "line": 47
         }
       ]
     },
@@ -8845,9 +8865,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 15,
-      "sizeBytes": 4749,
-      "lineCount": 110,
-      "sha256": "092684a5dc6f0c457a720f6d12e5236dc578b4817b1203085254fda7257be193",
+      "sizeBytes": 4608,
+      "lineCount": 106,
+      "sha256": "18ef572279cfece66b264470cf73c8ef9ee0c710d24deb5164c8038d3b6b0700",
       "targetDomain": "Consistencia de Versiones SemVer",
       "targetArtifacts": [
         "package.json",
@@ -8868,15 +8888,15 @@
       "testCases": [
         {
           "name": "VER-001 🔒 Contrato de versión: package.json == package-lock.json == Chart.yaml == GitOps",
-          "line": 23
+          "line": 19
         },
         {
           "name": "VER-002 🔒 /version expone versión y commit como metadatos independientes",
-          "line": 65
+          "line": 61
         },
         {
           "name": "VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto a package.json",
-          "line": 89
+          "line": 85
         }
       ]
     }

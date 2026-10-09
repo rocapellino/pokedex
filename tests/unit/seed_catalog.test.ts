@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   loadSeedCatalog,
   planSeed,
@@ -21,8 +20,8 @@ import {
   stripGenusSuffixEn,
   TYPE_NAMES_ES,
 } from '../../scripts/generate-pokemon-catalog.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const fullCatalog = loadSeedCatalog('full');
 
 // ------------------------------------------------------------------------------

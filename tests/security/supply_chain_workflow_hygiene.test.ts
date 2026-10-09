@@ -2,12 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ROOT_DIR = path.resolve(__dirname, '../..');
 const WORKFLOWS_DIR = path.join(ROOT_DIR, '.github', 'workflows');
 
 function listWorkflows(): string[] {
