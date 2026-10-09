@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T18:07:15.972Z",
+  "generatedAt": "2026-10-09T18:14:56.790Z",
   "summary": {
     "totalFiles": 154,
     "testFiles": 136,
     "helperFiles": 17,
     "performanceScripts": 1,
     "totalTestCases": 1012,
-    "totalLines": 26885,
-    "totalSizeBytes": 1158008,
+    "totalLines": 26901,
+    "totalSizeBytes": 1159400,
     "suitesCount": 10
   },
   "suites": [
@@ -6449,10 +6449,10 @@
       "runner": "node:test (tsx)",
       "testCount": 10,
       "describeCount": 0,
-      "assertionCountEst": 65,
-      "sizeBytes": 16077,
-      "lineCount": 337,
-      "sha256": "3499b820c47635988ee928fb88bec02aee1eaf979ae474622d6383ae1d2fd9ba",
+      "assertionCountEst": 66,
+      "sizeBytes": 17469,
+      "lineCount": 353,
+      "sha256": "cb9df8f3b16ddb2a25b09a51909e7180f422f2c0c0cccdf7300d36e7ea4adbec",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -6467,48 +6467,48 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica NetworkPolicies de PostgreSQL y Redis (default-deny), Cilium L7 FQDN, egress L4 anti-SSRF, aislamiento del blueprint prod, Ingress sin host y los contratos ADR-013 y ADR-016.",
+      "description": "Verifica sobre el chart renderizado (default, prod y pre-prod) el default-deny, el egress aislado de PostgreSQL y Redis, la allowlist FQDN de Cilium L7 y el egress anti-SSRF; sobre YAML parseado, el aislamiento del blueprint prod y los Ingress sin host; y los contratos ADR-013 y ADR-016.",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)",
-          "line": 14
+          "name": "🛡️ Helm Security: default-deny de Ingress y NetworkPolicies de PostgreSQL y Redis con Egress aislado (egress: [])",
+          "line": 38
         },
         {
-          "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta",
-          "line": 39
-        },
-        {
-          "name": "🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)",
+          "name": "🛡️ Helm Security: la API resuelve DNS y ninguna política depende de egress-gateway",
           "line": 64
         },
         {
-          "name": "🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto",
-          "line": 98
+          "name": "🛡️ Helm Security: todo egress abierto a 0.0.0.0/0 excluye IMDS, RFC1918 y loopback (Anti-SSRF)",
+          "line": 79
+        },
+        {
+          "name": "🛡️ Helm Security: CiliumNetworkPolicy aísla la API en L7 con una allowlist FQDN estricta (Gemini, PokeAPI, GitHub)",
+          "line": 117
         },
         {
           "name": "🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml",
-          "line": 120
+          "line": 153
         },
         {
           "name": "🗂️ INFRA-011: la cabecera declara que es la base del blueprint inactivo",
-          "line": 152
+          "line": 186
         },
         {
-          "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo",
-          "line": 174
+          "name": "🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN) sin fallback permisivo",
+          "line": 208
         },
         {
           "name": "🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host",
-          "line": 190
+          "line": 222
         },
         {
           "name": "🛡️ Zero-Trust Network: ADR-013 formaliza microsegmentación 4 capas, default-deny y anti-SSRF",
-          "line": 244
+          "line": 260
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 283
+          "line": 299
         }
       ]
     },
