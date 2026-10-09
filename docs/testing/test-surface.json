@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T23:46:38.504Z",
+  "generatedAt": "2026-10-09T12:54:51.694Z",
   "summary": {
     "totalFiles": 175,
     "testFiles": 117,
     "helperFiles": 57,
     "performanceScripts": 1,
     "totalTestCases": 974,
-    "totalLines": 26351,
-    "totalSizeBytes": 1140696,
+    "totalLines": 26360,
+    "totalSizeBytes": 1140226,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 31,
-      "testCases": 252,
+      "files": 33,
+      "testCases": 308,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -95,7 +95,7 @@
     {
       "id": "fuzz",
       "name": "API Fuzzing y Pruebas Adversariales",
-      "path": "tests/fuzzing.test.ts",
+      "path": "tests/fuzz",
       "runner": "node:test (tsx)",
       "command": "npm run test:fuzz",
       "files": 1,
@@ -108,8 +108,8 @@
       "path": "tests/",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 14,
-      "testCases": 168,
+      "files": 12,
+      "testCases": 112,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
   ],
@@ -3959,7 +3959,7 @@
       ]
     },
     {
-      "path": "tests/fuzzing.test.ts",
+      "path": "tests/fuzz/fuzzing.test.ts",
       "suite": "fuzz",
       "type": "Fuzz",
       "role": "TEST_FILE",
@@ -3967,9 +3967,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 20,
-      "sizeBytes": 7486,
+      "sizeBytes": 7495,
       "lineCount": 218,
-      "sha256": "ae411f9a5d3ed8f4bf440d9e2b7fa47a9e35f6dacbf63cd6136126b44ae54f9e",
+      "sha256": "5ab209ecc6071e70cc06bf736385e8fe1370d95b690eb2adff13c53e2c5e69f9",
       "targetDomain": "Fuzz Testing / Seguridad de Payloads",
       "targetArtifacts": [
         "apps/backend/src/routes/pokemons.ts",
@@ -4084,9 +4084,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 7249,
-      "lineCount": 157,
-      "sha256": "38cf87036832ff32b0b14df1b744bb4b9ccba1603018ebe1c962be7d890dafdc",
+      "sizeBytes": 7228,
+      "lineCount": 160,
+      "sha256": "f5b0256653f6cca36e3f9c4db4d626741186a8a7dfbbd58c761a9dd381433ef2",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4103,27 +4103,27 @@
       "testCases": [
         {
           "name": "🌐 AUD-SEC-CORS-001: existen entornos activos en el App-of-Apps",
-          "line": 94
+          "line": 97
         },
         {
           "name": "🌐 AUD-SEC-CORS-001: ${app} no hereda orígenes CORS de ejemplo",
-          "line": 99
+          "line": 102
         },
         {
           "name": "🔐 AUD-SEC-TLS-001: ${app} sirve por TLS todo host cuando la cookie de sesión es Secure",
-          "line": 110
+          "line": 113
         },
         {
           "name": "🔐 AUD-SEC-TLS-001: ${app} no renderiza anotaciones de un controlador distinto",
-          "line": 128
+          "line": 131
         },
         {
           "name": "🔐 AUD-SEC-TLS-001: ${app} obtiene el certificado TLS de una fuente declarada",
-          "line": 136
+          "line": 139
         },
         {
           "name": "🌐 AUD-SEC-CORS-001: ${app} autoriza el origen de cada host del ingress con su esquema real",
-          "line": 146
+          "line": 149
         }
       ]
     },
@@ -4244,9 +4244,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 4,
-      "sizeBytes": 2370,
-      "lineCount": 53,
-      "sha256": "ec1d9e0435b0d7ca3985b5582a982a184438376b8191f06bfdd8c74713d60ddf",
+      "sizeBytes": 2296,
+      "lineCount": 48,
+      "sha256": "9e3cf0a541fa499618227f4bbc2e255881a16b6013d9faac96cc0021cc1ec4b2",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4263,7 +4263,7 @@
       "testCases": [
         {
           "name": "🔐 AUD-SEC-OBS-001: pre-prod sincroniza METRICS_BEARER_TOKEN desde Vault al Secret de la API",
-          "line": 44
+          "line": 39
         }
       ]
     },
@@ -4276,9 +4276,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 42,
-      "sizeBytes": 13246,
-      "lineCount": 278,
-      "sha256": "695690cad11d3ae37e073cb258c70dd1865363d41f4265476d77eb4780ba38c8",
+      "sizeBytes": 13212,
+      "lineCount": 281,
+      "sha256": "49f2901221765d9f13698d5d28efc1dceb588a7c54e4b91417df67a6c9fbc1ba",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4319,27 +4319,27 @@
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup apuntan a un Service que el chart realmente crea",
-          "line": 158
+          "line": 161
         },
         {
           "name": "🔐 Pasaje GitOps: ArgoCD considera sano un PVC Pending (StorageClass WaitForFirstConsumer)",
-          "line": 180
+          "line": 183
         },
         {
           "name": "🔐 Pasaje GitOps: las Applications ignoran los defaults de volumeClaimTemplates",
-          "line": 192
+          "line": 195
         },
         {
           "name": "🔐 Pasaje GitOps: la redirección HTTP→HTTPS usa la clave del chart de Traefik vigente",
-          "line": 210
+          "line": 213
         },
         {
           "name": "🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de backup y de verificación",
-          "line": 220
+          "line": 223
         },
         {
           "name": "🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail",
-          "line": 245
+          "line": 248
         }
       ]
     },
@@ -4352,9 +4352,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 2,
-      "sizeBytes": 3445,
-      "lineCount": 82,
-      "sha256": "cee1f0ba84a05b6781d0ce221d12b2fecd34413c0640fe3c82717a1dbc36db86",
+      "sizeBytes": 3371,
+      "lineCount": 77,
+      "sha256": "07c3658e450827d0ae4bf69f3433d424ce5959d282f6d6dc147006ffa485689c",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4371,7 +4371,7 @@
       "testCases": [
         {
           "name": "🔐 Secretos: en ${environment} el ExternalSecret sincroniza cada clave obligatoria que exigen los workloads",
-          "line": 60
+          "line": 55
         }
       ]
     },
@@ -4384,9 +4384,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 3743,
-      "lineCount": 76,
-      "sha256": "a94dcbd0cc9897aebd6782c07242c03ca07c3de6c058441315c571db991c9e92",
+      "sizeBytes": 3663,
+      "lineCount": 71,
+      "sha256": "9c806c6158ef2dfd1e4a5b83b1cfd459b6c89a16e139cebdbe7f5d9ca252001c",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4403,15 +4403,15 @@
       "testCases": [
         {
           "name": "🌱 Seed Job: pre-prod siembra el catálogo completo con la imagen y el entorno de la API",
-          "line": 44
+          "line": 39
         },
         {
           "name": "🌱 Seed Job: corre después de la sincronización, no antes de crear la base de datos",
-          "line": 63
+          "line": 58
         },
         {
           "name": "🌱 Seed Job: los demás entornos no siembran por defecto",
-          "line": 71
+          "line": 66
         }
       ]
     },
@@ -4760,149 +4760,6 @@
       ]
     },
     {
-      "path": "tests/pentest.test.ts",
-      "suite": "governance",
-      "type": "Security / Pentest",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 28,
-      "describeCount": 0,
-      "assertionCountEst": 101,
-      "sizeBytes": 25979,
-      "lineCount": 642,
-      "sha256": "0f79295873a346efb552a6d34416405fc879fe1a529033ed00dc7176fe620221",
-      "targetDomain": "Pruebas de Penetración de API",
-      "targetArtifacts": [
-        "apps/backend/server.ts",
-        "apps/backend/src/routes/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🔥 Pentest [Auth]: Falsificación de firma HMAC (Forged Signature Bypass)",
-          "line": 42
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Ataque de Algoritmo None / Firma Vacía",
-          "line": 57
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Escalación de privilegios modificando payload (Privilege Escalation)",
-          "line": 67
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Replay Attack con Token Revocado",
-          "line": 86
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Fail-Closed de Autenticación ante Caída de Redis",
-          "line": 101
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Fail-Closed de Logout cuando Redis está inaccesible",
-          "line": 120
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Logout rechaza tokens con firmas HMAC apócrifas y previene polución en Redis",
-          "line": 140
-        },
-        {
-          "name": "🔥 Pentest [Auth]: Logout con token expirado no produce I/O innecesario en Redis",
-          "line": 165
-        },
-        {
-          "name": "🔥 Pentest [RateLimiting]: Endpoints de IA fallan cerrado con 503 ante caída de Redis en multi-pod",
-          "line": 178
-        },
-        {
-          "name": "🔥 Pentest [RateLimiting]: Endpoints públicos mantienen fallback resiliente a memoria local si Redis está offline",
-          "line": 216
-        },
-        {
-          "name": "🔥 Pentest [RateLimiting]: Cuota diaria de IA bloquea con 429 tras superar el umbral diario por IP",
-          "line": 245
-        },
-        {
-          "name": "🔥 Pentest [AI Resiliency]: withTimeout aborta llamadas lentas de IA y activa fallback seguro",
-          "line": 283
-        },
-        {
-          "name": "🔥 Pentest [AI Resiliency]: AICircuitBreaker entra en estado OPEN tras fallos reiterados y se recupera con éxito",
-          "line": 298
-        },
-        {
-          "name": "🔥 Pentest [AI Security]: sanitizePrompt neutraliza jailbreaks, roles falsificados y delimita longitud",
-          "line": 320
-        },
-        {
-          "name": "⚡ Cache Semántico [AI]: getSemanticCacheKey normaliza espacios, mayúsculas y produce hash determinista",
-          "line": 337
-        },
-        {
-          "name": "🧩 Functional [Result]: ok, err, tryCatch y transformaciones algebraicas",
-          "line": 347
-        },
-        {
-          "name": "🔥 Pentest [Input]: Intento de Prototype Pollution vía JSON en Pokémon",
-          "line": 381
-        },
-        {
-          "name": "🔥 Pentest [Input]: Mass Assignment intentando inyectar roles en características",
-          "line": 408
-        },
-        {
-          "name": "🔥 Pentest [XSS]: Payloads políglotas complejos en campos de texto",
-          "line": 429
-        },
-        {
-          "name": "🔥 Pentest [SSRF/XSS]: Evasiones de protocolo y caracteres nulos en imágenes",
-          "line": 448
-        },
-        {
-          "name": "🔥 Pentest [SSRF]: Localhost HTTP bloqueado estrictamente en entorno de producción",
-          "line": 463
-        },
-        {
-          "name": "🔥 Pentest [DoS]: Árbol de evolución recursivo con profundidad extrema (>5)",
-          "line": 484
-        },
-        {
-          "name": "🔥 Pentest [DoS]: Flood masivo de nodos en evoluciones (>20 nodos totales)",
-          "line": 502
-        },
-        {
-          "name": "🔥 Pentest [DoS]: Abuso de paginación masiva con valores descomunales",
-          "line": 519
-        },
-        {
-          "name": "🔥 Pentest [Resilience]: Mutaciones fallan cerrado cuando PostgreSQL está configurado pero offline",
-          "line": 533
-        },
-        {
-          "name": "🔥 Pentest [Observability]: Métricas desglosan PostgreSQL y Memoria sin ambigüedad",
-          "line": 577
-        },
-        {
-          "name": "🔥 Pentest [Attack Surface]: Endpoint de descarga de repositorio retirado permanentemente (SEC-002)",
-          "line": 586
-        },
-        {
-          "name": "🔥 Pentest [Redis Resilience]: Revocación en memoria persiste en proceso actual tras FLUSHALL simulado",
-          "line": 598
-        }
-      ]
-    },
-    {
       "path": "tests/performance/k6_stress_test.js",
       "suite": "performance",
       "type": "Load / Stress",
@@ -5117,149 +4974,6 @@
       ]
     },
     {
-      "path": "tests/security.test.ts",
-      "suite": "governance",
-      "type": "Security / Application",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 28,
-      "describeCount": 0,
-      "assertionCountEst": 98,
-      "sizeBytes": 17715,
-      "lineCount": 444,
-      "sha256": "59148a357b4af8ce8dc695df30c24e35be2f4c5384b9ec52ee0b6b150e4822b4",
-      "targetDomain": "Seguridad Integral de Aplicación y Headers",
-      "targetArtifacts": [
-        "apps/backend/server.ts",
-        "apps/backend/src/middleware/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre",
-          "line": 14
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS con onerror en descripción",
-          "line": 23
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza javascript: pseudo-protocolo en tipos",
-          "line": 35
-        },
-        {
-          "name": "🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protocolos",
-          "line": 45
-        },
-        {
-          "name": "🛡️ Seguridad: validateImageUrl rechaza IPs privadas RFC 1918, IMDS e IPv6 restringidas (Anti-SSRF)",
-          "line": 75
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto",
-          "line": 91
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza URL maliciosa en campo imagen",
-          "line": 110
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza campos desconocidos en stats (anti-inyección/mass assignment)",
-          "line": 120
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload rechaza campos desconocidos en caracteristicas (anti mass-assignment)",
-          "line": 138
-        },
-        {
-          "name": "🛡️ Validación: rechaza payloads no válidos (null, strings, arrays)",
-          "line": 153
-        },
-        {
-          "name": "🛡️ Validación: rechaza pesos y alturas físicas desmedidas o negativas",
-          "line": 159
-        },
-        {
-          "name": "🛡️ Validación: rechaza stats fuera del rango 0-1000",
-          "line": 175
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload acepta payloads legítimos completos",
-          "line": 185
-        },
-        {
-          "name": "⚡ Escalabilidad: cálculo de nextId con reduce soporta grandes colecciones sin stack overflow",
-          "line": 204
-        },
-        {
-          "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
-          "line": 210
-        },
-        {
-          "name": "🔐 Auth Session: buildSessionCookie emite cookie segura con flags HttpOnly, Secure y SameSite",
-          "line": 220
-        },
-        {
-          "name": "🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado",
-          "line": 235
-        },
-        {
-          "name": "🔐 Auth Session: verifySessionToken rechaza tokens expirados",
-          "line": 243
-        },
-        {
-          "name": "🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados",
-          "line": 250
-        },
-        {
-          "name": "🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos o nulos",
-          "line": 265
-        },
-        {
-          "name": "🔐 Auth Session: verifyTokenSignature rechaza límites y tipos anómalos en payload (exp, jti, role)",
-          "line": 273
-        },
-        {
-          "name": "🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados",
-          "line": 320
-        },
-        {
-          "name": "🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SECRET y no acepta ADMIN_API_KEY como fallback",
-          "line": 340
-        },
-        {
-          "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
-          "line": 360
-        },
-        {
-          "name": "🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test",
-          "line": 370
-        },
-        {
-          "name": "🔐 Auth Session: revokeSessionToken revoca el token por jti y verifySessionToken lo rechaza inmediatamente",
-          "line": 394
-        },
-        {
-          "name": "🔐 Auth Session: revokeSessionToken con token de corta duración expira y se autolimpia",
-          "line": 403
-        },
-        {
-          "name": "🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones",
-          "line": 417
-        }
-      ]
-    },
-    {
       "path": "tests/security/adr_compliance_contracts.test.ts",
       "suite": "security",
       "type": "Contract / Architecture",
@@ -5444,7 +5158,7 @@
       ]
     },
     {
-      "path": "tests/security/backup_hmac.test.ts",
+      "path": "tests/security/app/backup_hmac.test.ts",
       "suite": "security",
       "type": "Automated Test",
       "role": "TEST_FILE",
@@ -5452,9 +5166,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 34,
-      "sizeBytes": 9411,
+      "sizeBytes": 9423,
       "lineCount": 193,
-      "sha256": "e2deb2601836731664faed39ad2d36b29a587730fa60ad6fabb2f451543ef31f",
+      "sha256": "8ccf364e76047c11ae0762b1b639f4291cd368494a1bb485966f3009cb0671e5",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -5516,7 +5230,7 @@
       ]
     },
     {
-      "path": "tests/security/cors_rejection.test.ts",
+      "path": "tests/security/app/cors_rejection.test.ts",
       "suite": "security",
       "type": "Automated Test",
       "role": "TEST_FILE",
@@ -5524,9 +5238,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 3,
-      "sizeBytes": 1414,
+      "sizeBytes": 1417,
       "lineCount": 34,
-      "sha256": "b98ebd01ad322ea1f8dee0e959bdadf42cda1a3a67b73338925f57d42c012b2f",
+      "sha256": "12360cd463de372eb6ac8448be28250d03123afebd9518f2a502ee31d54534a8",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -5548,7 +5262,7 @@
       ]
     },
     {
-      "path": "tests/security/csrf_origin.test.ts",
+      "path": "tests/security/app/csrf_origin.test.ts",
       "suite": "security",
       "type": "Automated Test",
       "role": "TEST_FILE",
@@ -5556,9 +5270,9 @@
       "testCount": 7,
       "describeCount": 0,
       "assertionCountEst": 9,
-      "sizeBytes": 3815,
+      "sizeBytes": 3821,
       "lineCount": 99,
-      "sha256": "3686182757eb6efb1e878d7cdca833ba3de08f8be7ca87df1e78dd5e0eb9eb0c",
+      "sha256": "58ad75bdc81440fd835cfaa73e63487484e7d1a1e212dac39f052675e8f49e42",
       "targetDomain": "Suite security",
       "targetArtifacts": [],
       "npmCommands": [
@@ -5600,6 +5314,420 @@
         {
           "name": "🛡️ AUD-SEC-CSRF-001: las lecturas por cookie no exigen Origin",
           "line": 95
+        }
+      ]
+    },
+    {
+      "path": "tests/security/app/http_hardening.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 4,
+      "sizeBytes": 2345,
+      "lineCount": 58,
+      "sha256": "b152ad89eee013fe9c18553c7b6cc6d1e3bad95ff19d7b3b6bcb925337f39c74",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: http_hardening.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ HTTP Hardening: X-XSS-Protection desactiva el auditor heredado y la CSP sigue presente",
+          "line": 30
+        },
+        {
+          "name": "🛡️ HTTP Hardening: una petición al fallback SPA consume un solo cupo del limitador global",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "path": "tests/security/app/metrics_auth.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 11,
+      "sizeBytes": 4725,
+      "lineCount": 106,
+      "sha256": "bed345f72bf881e2c10db993a04d0c41efc28f60609d9bf0f49d3796d3195723",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: metrics_auth.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔐 Metrics Auth: con token configurado, /metrics sin credenciales responde 401 con WWW-Authenticate",
+          "line": 38
+        },
+        {
+          "name": "🔐 Metrics Auth: un token incorrecto o con otro esquema se rechaza",
+          "line": 48
+        },
+        {
+          "name": "🔐 Metrics Auth: el token correcto devuelve las métricas en formato Prometheus",
+          "line": 58
+        },
+        {
+          "name": "🔐 Metrics Auth: el token no se exige en /healthz ni /readyz (sondas de Kubernetes)",
+          "line": 69
+        },
+        {
+          "name": "🔐 Metrics Auth: sin token configurado /metrics sigue abierto (despliegue gradual)",
+          "line": 77
+        },
+        {
+          "name": "🔐 Metrics Auth: en producción sin token el arranque advierte que /metrics está abierto",
+          "line": 85
+        }
+      ]
+    },
+    {
+      "path": "tests/security/app/nginx_effective_headers.test.ts",
+      "suite": "security",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 5,
+      "sizeBytes": 5720,
+      "lineCount": 142,
+      "sha256": "55636ac4a89dfc33e6412f72803274b4eb484d5bed6196f0fd3a42a618d03189",
+      "targetDomain": "Suite security",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas security: nginx_effective_headers.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Nginx efectivo: el nivel server declara todas las cabeceras de seguridad requeridas",
+          "line": 97
+        },
+        {
+          "name": "🛡️ Nginx efectivo: toda location que sirve contenido envía TODAS las cabeceras (herencia de add_header)",
+          "line": 103
+        },
+        {
+          "name": "🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del upstream para no duplicarlas",
+          "line": 120
+        }
+      ]
+    },
+    {
+      "path": "tests/security/app/pentest.test.ts",
+      "suite": "security",
+      "type": "Security / Pentest",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 28,
+      "describeCount": 0,
+      "assertionCountEst": 101,
+      "sizeBytes": 26027,
+      "lineCount": 642,
+      "sha256": "16b7b3d4b06495759fd854fc67da3b9b6170946acddc6d227a08557cb0c50c63",
+      "targetDomain": "Pruebas de Penetración de API",
+      "targetArtifacts": [
+        "apps/backend/server.ts",
+        "apps/backend/src/routes/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔥 Pentest [Auth]: Falsificación de firma HMAC (Forged Signature Bypass)",
+          "line": 42
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Ataque de Algoritmo None / Firma Vacía",
+          "line": 57
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Escalación de privilegios modificando payload (Privilege Escalation)",
+          "line": 67
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Replay Attack con Token Revocado",
+          "line": 86
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Fail-Closed de Autenticación ante Caída de Redis",
+          "line": 101
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Fail-Closed de Logout cuando Redis está inaccesible",
+          "line": 120
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Logout rechaza tokens con firmas HMAC apócrifas y previene polución en Redis",
+          "line": 140
+        },
+        {
+          "name": "🔥 Pentest [Auth]: Logout con token expirado no produce I/O innecesario en Redis",
+          "line": 165
+        },
+        {
+          "name": "🔥 Pentest [RateLimiting]: Endpoints de IA fallan cerrado con 503 ante caída de Redis en multi-pod",
+          "line": 178
+        },
+        {
+          "name": "🔥 Pentest [RateLimiting]: Endpoints públicos mantienen fallback resiliente a memoria local si Redis está offline",
+          "line": 216
+        },
+        {
+          "name": "🔥 Pentest [RateLimiting]: Cuota diaria de IA bloquea con 429 tras superar el umbral diario por IP",
+          "line": 245
+        },
+        {
+          "name": "🔥 Pentest [AI Resiliency]: withTimeout aborta llamadas lentas de IA y activa fallback seguro",
+          "line": 283
+        },
+        {
+          "name": "🔥 Pentest [AI Resiliency]: AICircuitBreaker entra en estado OPEN tras fallos reiterados y se recupera con éxito",
+          "line": 298
+        },
+        {
+          "name": "🔥 Pentest [AI Security]: sanitizePrompt neutraliza jailbreaks, roles falsificados y delimita longitud",
+          "line": 320
+        },
+        {
+          "name": "⚡ Cache Semántico [AI]: getSemanticCacheKey normaliza espacios, mayúsculas y produce hash determinista",
+          "line": 337
+        },
+        {
+          "name": "🧩 Functional [Result]: ok, err, tryCatch y transformaciones algebraicas",
+          "line": 347
+        },
+        {
+          "name": "🔥 Pentest [Input]: Intento de Prototype Pollution vía JSON en Pokémon",
+          "line": 381
+        },
+        {
+          "name": "🔥 Pentest [Input]: Mass Assignment intentando inyectar roles en características",
+          "line": 408
+        },
+        {
+          "name": "🔥 Pentest [XSS]: Payloads políglotas complejos en campos de texto",
+          "line": 429
+        },
+        {
+          "name": "🔥 Pentest [SSRF/XSS]: Evasiones de protocolo y caracteres nulos en imágenes",
+          "line": 448
+        },
+        {
+          "name": "🔥 Pentest [SSRF]: Localhost HTTP bloqueado estrictamente en entorno de producción",
+          "line": 463
+        },
+        {
+          "name": "🔥 Pentest [DoS]: Árbol de evolución recursivo con profundidad extrema (>5)",
+          "line": 484
+        },
+        {
+          "name": "🔥 Pentest [DoS]: Flood masivo de nodos en evoluciones (>20 nodos totales)",
+          "line": 502
+        },
+        {
+          "name": "🔥 Pentest [DoS]: Abuso de paginación masiva con valores descomunales",
+          "line": 519
+        },
+        {
+          "name": "🔥 Pentest [Resilience]: Mutaciones fallan cerrado cuando PostgreSQL está configurado pero offline",
+          "line": 533
+        },
+        {
+          "name": "🔥 Pentest [Observability]: Métricas desglosan PostgreSQL y Memoria sin ambigüedad",
+          "line": 577
+        },
+        {
+          "name": "🔥 Pentest [Attack Surface]: Endpoint de descarga de repositorio retirado permanentemente (SEC-002)",
+          "line": 586
+        },
+        {
+          "name": "🔥 Pentest [Redis Resilience]: Revocación en memoria persiste en proceso actual tras FLUSHALL simulado",
+          "line": 598
+        }
+      ]
+    },
+    {
+      "path": "tests/security/app/security.test.ts",
+      "suite": "security",
+      "type": "Security / Application",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 28,
+      "describeCount": 0,
+      "assertionCountEst": 98,
+      "sizeBytes": 17733,
+      "lineCount": 444,
+      "sha256": "65836a5677b1db5b9486a7f042d8242103df7830fa753d261f7ed21b1d1b09c9",
+      "targetDomain": "Seguridad Integral de Aplicación y Headers",
+      "targetArtifacts": [
+        "apps/backend/server.ts",
+        "apps/backend/src/middleware/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre",
+          "line": 14
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS con onerror en descripción",
+          "line": 23
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza javascript: pseudo-protocolo en tipos",
+          "line": 35
+        },
+        {
+          "name": "🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protocolos",
+          "line": 45
+        },
+        {
+          "name": "🛡️ Seguridad: validateImageUrl rechaza IPs privadas RFC 1918, IMDS e IPv6 restringidas (Anti-SSRF)",
+          "line": 75
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto",
+          "line": 91
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza URL maliciosa en campo imagen",
+          "line": 110
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza campos desconocidos en stats (anti-inyección/mass assignment)",
+          "line": 120
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload rechaza campos desconocidos en caracteristicas (anti mass-assignment)",
+          "line": 138
+        },
+        {
+          "name": "🛡️ Validación: rechaza payloads no válidos (null, strings, arrays)",
+          "line": 153
+        },
+        {
+          "name": "🛡️ Validación: rechaza pesos y alturas físicas desmedidas o negativas",
+          "line": 159
+        },
+        {
+          "name": "🛡️ Validación: rechaza stats fuera del rango 0-1000",
+          "line": 175
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload acepta payloads legítimos completos",
+          "line": 185
+        },
+        {
+          "name": "⚡ Escalabilidad: cálculo de nextId con reduce soporta grandes colecciones sin stack overflow",
+          "line": 204
+        },
+        {
+          "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
+          "line": 210
+        },
+        {
+          "name": "🔐 Auth Session: buildSessionCookie emite cookie segura con flags HttpOnly, Secure y SameSite",
+          "line": 220
+        },
+        {
+          "name": "🔐 Auth Session: generateSessionToken genera token HMAC válido y estructurado",
+          "line": 235
+        },
+        {
+          "name": "🔐 Auth Session: verifySessionToken rechaza tokens expirados",
+          "line": 243
+        },
+        {
+          "name": "🔐 Auth Session: verifySessionToken rechaza firmas alteradas o datos modificados",
+          "line": 250
+        },
+        {
+          "name": "🔐 Auth Session: verifySessionToken rechaza tokens malformados, vacíos o nulos",
+          "line": 265
+        },
+        {
+          "name": "🔐 Auth Session: verifyTokenSignature rechaza límites y tipos anómalos en payload (exp, jti, role)",
+          "line": 273
+        },
+        {
+          "name": "🔐 Auth Session: getSessionSecret falla cerrado en producción si no hay secretos configurados",
+          "line": 320
+        },
+        {
+          "name": "🔐 Auth Session: getSessionSecret en producción exige ADMIN_SESSION_SECRET y no acepta ADMIN_API_KEY como fallback",
+          "line": 340
+        },
+        {
+          "name": "🔐 Auth Session: extractSessionTokenFromRequest lee token de cookie HttpOnly",
+          "line": 360
+        },
+        {
+          "name": "🔐 Auth Session: getSessionSecret genera clave efímera segura en modo desarrollo/test",
+          "line": 370
+        },
+        {
+          "name": "🔐 Auth Session: revokeSessionToken revoca el token por jti y verifySessionToken lo rechaza inmediatamente",
+          "line": 394
+        },
+        {
+          "name": "🔐 Auth Session: revokeSessionToken con token de corta duración expira y se autolimpia",
+          "line": 403
+        },
+        {
+          "name": "🛡️ Seguridad: validatePokemonPayload valida estructura y límites en evoluciones",
+          "line": 417
         }
       ]
     },
@@ -5690,9 +5818,9 @@
       "testCount": 13,
       "describeCount": 0,
       "assertionCountEst": 143,
-      "sizeBytes": 26712,
-      "lineCount": 506,
-      "sha256": "13a592c33b5689d835725ea438c6f1720fb643e4b35d6c0fb10a21623b02a7f7",
+      "sizeBytes": 26774,
+      "lineCount": 526,
+      "sha256": "109b0da134555121d15d5c61b147efd77291b5644d5eb5a5bf9632a9decfec0b",
       "targetDomain": "Seguridad y Cifrado de Backups",
       "targetArtifacts": [
         "scripts/dr-drill.ts",
@@ -5712,55 +5840,55 @@
       "testCases": [
         {
           "name": "🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256, checksum y hardening de pod",
-          "line": 11
+          "line": 12
         },
         {
           "name": "🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo automatizado, clave efímera dinámica y restauración real",
-          "line": 53
+          "line": 54
         },
         {
           "name": "🛡️ Disaster Recovery: values.yaml y Runbook oficial definen arquitectura 3-2-1 y SLAs RPO < 24h / RTO < 2h",
-          "line": 100
+          "line": 101
         },
         {
           "name": "🛡️ Disaster Recovery: backup-restore-verify-cronjob.yaml implementa verificación periódica de restauración en K8s",
-          "line": 118
+          "line": 119
         },
         {
           "name": "🛡️ Disaster Recovery Blueprints: Esqueletos Off-site (S3-compatible agnóstico y PBS Remote Sync) formalizados como inactivos",
-          "line": 133
+          "line": 134
         },
         {
           "name": "🛡️ Disaster Recovery: Backup y Restore Verification renderizan PersistentVolumeClaim real y evitan almacenamiento efímero (Anti-emptyDir)",
-          "line": 181
+          "line": 182
         },
         {
           "name": "🛡️ Disaster Recovery: Google Drive Off-site (Alternativa A Docker Compose & Alternativa B Proxmox VE)",
-          "line": 231
+          "line": 239
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8s-Native a Google Drive con Rclone y readOnly PVC",
-          "line": 275
+          "line": 283
         },
         {
           "name": "🛡️ Disaster Recovery: backup-gdrive-cronjob falla de forma estricta (fail-closed) si GDRIVE_TOKEN está ausente o vacío",
-          "line": 373
+          "line": 393
         },
         {
           "name": "🛡️ Disaster Recovery Tooling: Taskfile.yaml define tareas dr:drill (simulación/mecanismo) y dr:verify (certificación real)",
-          "line": 414
+          "line": 434
         },
         {
           "name": "🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y digest) en docker-compose y en el chart de Helm",
-          "line": 435
+          "line": 455
         },
         {
           "name": "🛡️ Disaster Recovery: el CronJob de Drive guarda la config de rclone en un volumen escribible",
-          "line": 463
+          "line": 483
         },
         {
           "name": "🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados",
-          "line": 479
+          "line": 499
         }
       ]
     },
@@ -5827,9 +5955,9 @@
       "testCount": 4,
       "describeCount": 0,
       "assertionCountEst": 18,
-      "sizeBytes": 8881,
-      "lineCount": 246,
-      "sha256": "2eae607551775f8c85c8d114e0d0554c9c31a8faf1809aa858110e99a4b3174a",
+      "sizeBytes": 8859,
+      "lineCount": 254,
+      "sha256": "50d6ff4692338924783aaf7691ea98fc7a6ee7ab166d352511fa344062b4f2bb",
       "targetDomain": "Control de Egress y Prevención SSRF",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/cilium-network-policies.yaml",
@@ -5850,19 +5978,19 @@
       "testCases": [
         {
           "name": "🛡️ Egress Matrix: Verificación formal de los 6 destinos requeridos bajo Cilium L7 vs Flannel L4",
-          "line": 131
+          "line": 132
         },
         {
           "name": "🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eBPF en producción y Proxmox",
-          "line": 167
+          "line": 168
         },
         {
           "name": "🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti-SSRF sin renderizar CRDs de Cilium (ADR-013)",
-          "line": 204
+          "line": 215
         },
         {
           "name": "🛡️ Security Probe Egress: probe-egress-security.ts en modo --simulate certifica perfil Cilium L7",
-          "line": 238
+          "line": 246
         }
       ]
     },
@@ -6080,9 +6208,9 @@
       "testCount": 9,
       "describeCount": 0,
       "assertionCountEst": 38,
-      "sizeBytes": 12952,
-      "lineCount": 277,
-      "sha256": "b829814fa743cf9d5b3422c92de9f000140d76fa1cd0da7147caffe4eb1d44e1",
+      "sizeBytes": 12617,
+      "lineCount": 267,
+      "sha256": "9b84bbf9bd2f76f59c9dab02f3a40b4b32b8d9ec83fcba0ada2caa7f7611a976",
       "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
       "targetArtifacts": [
         "infra/monitoring/grafana-cloud-values.yaml",
@@ -6102,39 +6230,39 @@
       "testCases": [
         {
           "name": "📡 OBS-002: el chart que instala el script renderiza con los values del repo",
-          "line": 106
+          "line": 96
         },
         {
           "name": "📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud",
-          "line": 115
+          "line": 105
         },
         {
           "name": "📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists",
-          "line": 134
+          "line": 124
         },
         {
           "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
-          "line": 153
+          "line": 143
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer",
-          "line": 180
+          "line": 170
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault",
-          "line": 202
+          "line": 192
         },
         {
           "name": "📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki desde el repo",
-          "line": 230
+          "line": 220
         },
         {
           "name": "📡 OBS-003: el receptor OTLP reenvía métricas a Prometheus y logs a Loki sin tocar los nombres de serie",
-          "line": 243
+          "line": 233
         },
         {
           "name": "📡 OBS-003: Beyla queda apagado y el script inyecta el token del destino de logs",
-          "line": 263
+          "line": 253
         }
       ]
     },
@@ -6201,42 +6329,6 @@
         {
           "name": "🚨 OBS-001: ContainerHighMemoryUsage usa etiquetas de Kubernetes, no de Docker",
           "line": 418
-        }
-      ]
-    },
-    {
-      "path": "tests/security/http_hardening.test.ts",
-      "suite": "security",
-      "type": "Automated Test",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 2,
-      "describeCount": 0,
-      "assertionCountEst": 4,
-      "sizeBytes": 2342,
-      "lineCount": 58,
-      "sha256": "99892b6b6c4876640e20cfe9af3ee0805dd881306fe5825420d5e2933b2b29fe",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Suite de pruebas security: http_hardening.test.ts.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ HTTP Hardening: X-XSS-Protection desactiva el auditor heredado y la CSP sigue presente",
-          "line": 30
-        },
-        {
-          "name": "🛡️ HTTP Hardening: una petición al fallback SPA consume un solo cupo del limitador global",
-          "line": 40
         }
       ]
     },
@@ -6504,58 +6596,6 @@
       ]
     },
     {
-      "path": "tests/security/metrics_auth.test.ts",
-      "suite": "security",
-      "type": "Automated Test",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 6,
-      "describeCount": 0,
-      "assertionCountEst": 11,
-      "sizeBytes": 4719,
-      "lineCount": 106,
-      "sha256": "0565b32d667a1ddec82ab4e5cca6447f0e40cdc08882f5c432918b326c66ffaf",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Suite de pruebas security: metrics_auth.test.ts.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🔐 Metrics Auth: con token configurado, /metrics sin credenciales responde 401 con WWW-Authenticate",
-          "line": 38
-        },
-        {
-          "name": "🔐 Metrics Auth: un token incorrecto o con otro esquema se rechaza",
-          "line": 48
-        },
-        {
-          "name": "🔐 Metrics Auth: el token correcto devuelve las métricas en formato Prometheus",
-          "line": 58
-        },
-        {
-          "name": "🔐 Metrics Auth: el token no se exige en /healthz ni /readyz (sondas de Kubernetes)",
-          "line": 69
-        },
-        {
-          "name": "🔐 Metrics Auth: sin token configurado /metrics sigue abierto (despliegue gradual)",
-          "line": 77
-        },
-        {
-          "name": "🔐 Metrics Auth: en producción sin token el arranque advierte que /metrics está abierto",
-          "line": 85
-        }
-      ]
-    },
-    {
       "path": "tests/security/network_policies_security.test.ts",
       "suite": "security",
       "type": "Security / Network",
@@ -6639,46 +6679,6 @@
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
           "line": 373
-        }
-      ]
-    },
-    {
-      "path": "tests/security/nginx_effective_headers.test.ts",
-      "suite": "security",
-      "type": "Automated Test",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "testCount": 3,
-      "describeCount": 0,
-      "assertionCountEst": 5,
-      "sizeBytes": 5717,
-      "lineCount": 142,
-      "sha256": "26d2a1d6f4dc54d49b7bef40fe40138cb341e091f699d389334fe7c6e7fc9563",
-      "targetDomain": "Suite security",
-      "targetArtifacts": [],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Suite de pruebas security: nginx_effective_headers.test.ts.",
-      "status": "ACTIVE",
-      "testCases": [
-        {
-          "name": "🛡️ Nginx efectivo: el nivel server declara todas las cabeceras de seguridad requeridas",
-          "line": 97
-        },
-        {
-          "name": "🛡️ Nginx efectivo: toda location que sirve contenido envía TODAS las cabeceras (herencia de add_header)",
-          "line": 103
-        },
-        {
-          "name": "🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del upstream para no duplicarlas",
-          "line": 120
         }
       ]
     },

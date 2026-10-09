@@ -13,8 +13,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Request, Response } from 'express';
-import { verifyAdmin } from '../../apps/backend/src/middleware/auth.js';
-import { generateSessionToken } from '../../apps/backend/src/services/auth.js';
+import { verifyAdmin } from '../../../apps/backend/src/middleware/auth.js';
+import { generateSessionToken } from '../../../apps/backend/src/services/auth.js';
 
 process.env.ADMIN_API_KEY = 'test-admin-api-key-csrf-0123456789abcdef';
 delete process.env.REDIS_URL;

@@ -124,7 +124,7 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **Node Test Runner (`node:test`)** | Nativo Node 24 | Suite de 300 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
-| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzzing.test.ts`](../../tests/fuzzing.test.ts) |
+| **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/fuzzing.test.ts`](../../tests/fuzz/fuzzing.test.ts) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
 | **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
 

@@ -101,7 +101,7 @@ export function parseTestFile(fullPath: string): TestFileRecord {
   // Comandos npm asociados
   const npmCommands: string[] = [];
   if (role === 'TEST_FILE') {
-    if (relativePath === 'tests/fuzzing.test.ts') {
+    if (relativePath === 'tests/fuzz/fuzzing.test.ts') {
       npmCommands.push('npm run test:fuzz', 'npm run test:all');
     } else if (runner === 'playwright') {
       npmCommands.push('npm run test:e2e');
@@ -116,11 +116,7 @@ export function parseTestFile(fullPath: string): TestFileRecord {
       if (relativePath.startsWith('tests/integration/')) {
         npmCommands.push('npm run test:integration');
       }
-      if (
-        relativePath.startsWith('tests/security/') ||
-        relativePath === 'tests/security.test.ts' ||
-        relativePath === 'tests/pentest.test.ts'
-      ) {
+      if (relativePath.startsWith('tests/security/')) {
         npmCommands.push('npm run test:security');
         if (relativePath === 'tests/security/egress_anti_ssrf.test.ts') {
           npmCommands.push('npm run test:security:egress');

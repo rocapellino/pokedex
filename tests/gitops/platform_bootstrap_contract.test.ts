@@ -142,15 +142,18 @@ test('🔐 Bootstrap: la tarea completa encadena ESO, ClusterSecretStore, ArgoCD
 // Contratos aprendidos en el pasaje a GitOps de pre-prod (2026-10-04)
 // ------------------------------------------------------------------------------
 
-import { execSync } from 'node:child_process';
+import { runHelm } from '../../scripts/lib/helm.js';
 
 let cachedPreprodRender: string | null = null;
 function getRenderedPreprodChart(): string {
   if (!cachedPreprodRender) {
-    cachedPreprodRender = execSync(
-      `helm template pokedex-preprod "${path.join(ROOT_DIR, 'infra/helm/pokedex')}" -f "${path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml')}"`,
-      { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024 },
-    );
+    cachedPreprodRender = runHelm([
+      'template',
+      'pokedex-preprod',
+      path.join(ROOT_DIR, 'infra/helm/pokedex'),
+      '-f',
+      path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml'),
+    ]);
   }
   return cachedPreprodRender;
 }

@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
-import { app } from '../../apps/backend/server.js';
+import { app } from '../../../apps/backend/server.js';
 
 test('🛡️ AUD-SEC-CORS-002: un origen no autorizado recibe 403 con código propio', async () => {
   const server = app.listen(0, '127.0.0.1');

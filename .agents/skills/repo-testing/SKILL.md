@@ -15,7 +15,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
   - **Unitarias de Aplicación:** Lógica de negocio, validaciones y transformaciones (`tests/contracts.test.ts`, `tests/frontend/modal_components.test.ts`).
   - **Integración de Servicios:** Endpoints Express, almacenamiento Drizzle/Postgres, middleware y caché Redis con fallback (`tests/integration/api-limits.test.ts`, `tests/integration/concurrency.test.ts`, `tests/integration/storage.test.ts`, `tests/integration/version.test.ts`).
   - **Policy-as-Test & Gobernanza:** Verificación de contratos declarativos de infraestructura, OpenTofu, Ansible, Helm, Vault, Kyverno y GitOps (`tests/security/*`, `tests/gitops/*`, `tests/doc_governance.test.ts`). Deben tratarse como tests de arquitectura y configuración, no como cobertura de código de backend.
-  - **Fuzz Testing (Smoke Fuzz):** Iteraciones acotadas sobre parsing de payloads y tokens (`tests/fuzzing.test.ts`), ejecutadas en CI con `npm run test:fuzz`. No existe fuzz programado ni de mutación profunda; si se necesitara, sería una propuesta nueva con su workflow y un parámetro de iteraciones.
+  - **Fuzz Testing (Smoke Fuzz):** Iteraciones acotadas sobre parsing de payloads y tokens (`tests/fuzz/fuzzing.test.ts`), ejecutadas en CI con `npm run test:fuzz`. No existe fuzz programado ni de mutación profunda; si se necesitara, sería una propuesta nueva con su workflow y un parámetro de iteraciones.
   - **E2E & Accesibilidad:** Navegación en navegador mediante Playwright (`tests/e2e/*.spec.ts`) y validación WCAG 2.1 AA (`@axe-core/playwright`).
   - **Rendimiento & Carga:** Pruebas k6 (`tests/performance/k6_stress_test.js`) y auditorías Lighthouse CI (`lhci`).
 - **Modelo de Análisis Sistemático de Tests:**

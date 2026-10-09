@@ -13,8 +13,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
-import { app } from '../../apps/backend/server.js';
-import { inspectEnvironment } from '../../apps/backend/src/config/startup-env-check.js';
+import { app } from '../../../apps/backend/server.js';
+import { inspectEnvironment } from '../../../apps/backend/src/config/startup-env-check.js';
 
 const TOKEN = 'metrics-token-de-prueba-con-longitud-suficiente-0123456789';
 

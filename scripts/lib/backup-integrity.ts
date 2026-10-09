@@ -13,7 +13,7 @@
  * El mismo cálculo existe en shell para los CronJobs y `dr_verify_restore.sh`:
  *   MAC_KEY=$(printf '%s' "pokedex-backup-mac-v1" | openssl dgst -sha256 -hmac "$KEY" -r | cut -d' ' -f1)
  *   openssl dgst -sha256 -mac HMAC -macopt "hexkey:$MAC_KEY" -r "$ENC_FILE" | cut -d' ' -f1
- * `tests/security/backup_hmac.test.ts` comprueba que ambos producen el mismo valor.
+ * `tests/security/app/backup_hmac.test.ts` comprueba que ambos producen el mismo valor.
  */
 import crypto from 'node:crypto';
 

@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
-import { app } from '../../apps/backend/server.js';
+import { app } from '../../../apps/backend/server.js';
 
 async function withServer(run: (baseUrl: string) => Promise<void>): Promise<void> {
   const server = app.listen(0, '127.0.0.1');
