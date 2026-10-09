@@ -9,115 +9,167 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
+import { PROFILES, podSpecOf, podWorkloads, renderChart } from '../helpers/helm-render.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml, workflowScripts } from '../helpers/yaml.js';
 
-test('🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFilesystem y montajes emptyDir', () => {
-  const pgPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/postgres-statefulset.yaml');
-  const pgbouncerPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/pgbouncer-deployment.yaml');
-
-  assert.ok(fs.existsSync(pgPath), 'postgres-statefulset.yaml debe existir');
-  assert.ok(fs.existsSync(pgbouncerPath), 'pgbouncer-deployment.yaml debe existir');
-
-  const pgContent = fs.readFileSync(pgPath, 'utf-8');
-  assert.ok(pgContent.includes('readOnlyRootFilesystem: true'), 'PostgreSQL debe tener readOnlyRootFilesystem: true');
-  assert.ok(pgContent.includes('mountPath: /tmp'), 'PostgreSQL debe montar /tmp');
-  assert.ok(pgContent.includes('mountPath: /var/run/postgresql'), 'PostgreSQL debe montar /var/run/postgresql');
-
-  const pgbContent = fs.readFileSync(pgbouncerPath, 'utf-8');
-  assert.ok(pgbContent.includes('readOnlyRootFilesystem: true'), 'PgBouncer debe tener readOnlyRootFilesystem: true');
-  assert.ok(pgbContent.includes('mountPath: /tmp'), 'PgBouncer debe montar /tmp');
-});
-
-test('🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)', () => {
-  const workloads = [
-    'infra/helm/pokedex/templates/seed-job.yaml',
-    'infra/helm/pokedex/templates/backup-cronjob.yaml',
-    'infra/helm/pokedex/templates/api-deployment.yaml',
-    'infra/helm/pokedex/templates/web-deployment.yaml',
-    'infra/helm/pokedex/templates/postgres-statefulset.yaml',
-    'infra/helm/pokedex/templates/redis-deployment.yaml',
-    'infra/helm/pokedex/templates/pgbouncer-deployment.yaml',
+test('🛡️ Helm Security: PostgreSQL y PgBouncer renderizan readOnlyRootFilesystem y montajes emptyDir', () => {
+  const docs = renderChart(PROFILES.prod);
+  const cases = [
+    { kind: 'StatefulSet', name: 'postgres', mounts: ['/tmp', '/var/run/postgresql'] },
+    { kind: 'Deployment', name: 'pgbouncer', mounts: ['/tmp'] },
   ];
 
-  for (const relPath of workloads) {
-    const fullPath = path.join(ROOT_DIR, relPath);
-    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
-    const content = fs.readFileSync(fullPath, 'utf-8');
+  for (const { kind, name, mounts } of cases) {
+    const doc = docs.find((d) => d.kind === kind && d.metadata.name === name);
+    assert.ok(doc, `${kind}/${name} debe renderizarse con el perfil prod`);
+    const spec = podSpecOf(doc);
+
+    for (const container of spec.containers) {
+      assert.equal(
+        container.securityContext?.readOnlyRootFilesystem,
+        true,
+        `${kind}/${name}: el contenedor ${container.name} debe tener readOnlyRootFilesystem: true`,
+      );
+    }
+
+    // Con el sistema de archivos raíz de solo lectura, cada ruta escribible debe montarse sobre un emptyDir.
+    const volumeMounts = spec.containers.flatMap((c: any) => c.volumeMounts ?? []);
+    for (const mountPath of mounts) {
+      const mount = volumeMounts.find((m: any) => m.mountPath === mountPath);
+      assert.ok(mount, `${kind}/${name} debe montar ${mountPath}`);
+      const volume = (spec.volumes ?? []).find((v: any) => v.name === mount.name);
+      assert.ok(volume?.emptyDir, `${kind}/${name}: ${mountPath} debe estar respaldado por un emptyDir`);
+    }
+  }
+});
+
+test('🛡️ Helm Security: todo workload renderizado deshabilita automountServiceAccountToken (Least Privilege)', () => {
+  const expected = [
+    'Deployment/pokemon-api',
+    'Deployment/pokedex-web',
+    'Deployment/redis',
+    'Deployment/pgbouncer',
+    'StatefulSet/postgres',
+    'CronJob/pokedex-db-backup',
+    'CronJob/pokedex-gdrive-sync',
+    'CronJob/pokedex-dr-restore-verify',
+    'Job/pokedex-db-seed',
+  ];
+
+  // Ningún perfil activa todos los workloads (pgbouncer solo en prod, la siembra solo en pre-prod): se unen los tres.
+  const seen = new Set<string>();
+  for (const [profile, files] of Object.entries(PROFILES)) {
+    for (const { name, spec } of podWorkloads(renderChart(files))) {
+      seen.add(name);
+      assert.equal(
+        spec.automountServiceAccountToken,
+        false,
+        `${name} (perfil ${profile}) debe declarar automountServiceAccountToken: false`,
+      );
+    }
+  }
+  for (const workload of expected) {
     assert.ok(
-      content.includes('automountServiceAccountToken: false'),
-      `${relPath} debe declarar explícitamente automountServiceAccountToken: false`,
+      seen.has(workload),
+      `${workload} debe renderizarse en algún perfil (el test no debe pasar sin evaluarlo)`,
     );
   }
 });
 
-test('🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage', () => {
-  const seedPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/seed-job.yaml');
-  assert.ok(fs.existsSync(seedPath), 'seed-job.yaml debe existir');
-  const content = fs.readFileSync(seedPath, 'utf-8');
-  assert.ok(content.includes('ephemeral-storage: 50Mi'), 'seed-job debe declarar request de ephemeral-storage');
-  assert.ok(content.includes('ephemeral-storage: 256Mi'), 'seed-job debe declarar limit de ephemeral-storage');
+test('🛡️ Helm Security: el Job de siembra renderizado declara requests y limits de ephemeral-storage', () => {
+  const seed = renderChart(PROFILES.preprod).find((d) => d.kind === 'Job' && d.metadata.name === 'pokedex-db-seed');
+  assert.ok(seed, 'el Job pokedex-db-seed debe renderizarse con el perfil pre-prod');
+
+  for (const container of podSpecOf(seed).containers) {
+    assert.equal(
+      container.resources?.requests?.['ephemeral-storage'],
+      '50Mi',
+      `${container.name}: request de ephemeral-storage`,
+    );
+    assert.equal(
+      container.resources?.limits?.['ephemeral-storage'],
+      '256Mi',
+      `${container.name}: limit de ephemeral-storage`,
+    );
+  }
 });
 
-test('🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints', () => {
-  const deployments = [
-    'infra/helm/pokedex/templates/api-deployment.yaml',
-    'infra/helm/pokedex/templates/web-deployment.yaml',
-  ];
+test('🛡️ K8s Quality & High Availability: api y web renderizan topologySpreadConstraints y ninguna imagen usa :latest', () => {
+  const docs = renderChart(PROFILES.prod);
 
-  for (const relPath of deployments) {
-    const fullPath = path.join(ROOT_DIR, relPath);
-    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
-    const content = fs.readFileSync(fullPath, 'utf-8');
+  for (const name of ['pokemon-api', 'pokedex-web']) {
+    const deployment = docs.find((d) => d.kind === 'Deployment' && d.metadata.name === name);
+    assert.ok(deployment, `Deployment/${name} debe renderizarse con el perfil prod`);
+    const constraints = podSpecOf(deployment).topologySpreadConstraints ?? [];
     assert.ok(
-      content.includes('topologySpreadConstraints:'),
-      `${relPath} debe soportar topologySpreadConstraints para alta disponibilidad`,
+      constraints.length > 0,
+      `Deployment/${name} debe renderizar topologySpreadConstraints para alta disponibilidad`,
     );
   }
 
-  const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
-  const prodContent = fs.readFileSync(prodValuesPath, 'utf-8');
-  assert.ok(
-    prodContent.includes('topologySpreadConstraints:'),
-    'values.prod.yaml debe configurar topologySpreadConstraints',
+  for (const { name, spec } of podWorkloads(docs)) {
+    for (const container of [...(spec.initContainers ?? []), ...spec.containers]) {
+      assert.doesNotMatch(
+        container.image,
+        /:latest$/,
+        `${name}: ${container.name} no debe usar el tag :latest en prod`,
+      );
+    }
+  }
+});
+
+test('🛡️ K8s Quality Gates: infra.yaml ejecuta kubeconform, kube-linter y kyverno test', () => {
+  const scripts = workflowScripts('.github/workflows/infra.yaml').join('\n');
+
+  assert.match(scripts, /\/tmp\/kubeconform -strict/, 'infra.yaml debe ejecutar kubeconform para esquemas K8s');
+  assert.match(
+    scripts,
+    /\/tmp\/kube-linter lint .*--config \.kube-linter\.yaml/,
+    'infra.yaml debe ejecutar kube-linter con su configuración',
   );
-  assert.ok(!prodContent.includes('tag: "latest"'), 'values.prod.yaml no debe utilizar el tag :latest en producción');
-});
+  assert.match(
+    scripts,
+    /\/tmp\/kyverno test infra\/k8s\/kyverno-test\//,
+    'infra.yaml debe ejecutar kyverno test sobre las políticas',
+  );
+  assert.ok(scripts.includes('image:.*:latest'), 'infra.yaml debe validar y prohibir :latest en producción');
 
-test('🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test', () => {
-  const workflowPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
-  assert.ok(fs.existsSync(workflowPath), 'infra.yaml debe existir');
-  const content = fs.readFileSync(workflowPath, 'utf-8');
-
-  assert.ok(content.includes('kubeconform'), 'infra.yaml debe ejecutar kubeconform para esquemas K8s');
-  assert.ok(content.includes('kube-linter'), 'infra.yaml debe ejecutar kube-linter para mejores prácticas');
-  assert.ok(content.includes('kyverno test'), 'infra.yaml debe ejecutar kyverno test para políticas de admisión');
-  assert.ok(content.includes('image:.*:latest'), 'infra.yaml debe validar y prohibir :latest en producción');
-
-  const kubeLinterConfig = path.join(ROOT_DIR, '.kube-linter.yaml');
-  assert.ok(fs.existsSync(kubeLinterConfig), '.kube-linter.yaml debe existir');
-
-  const kyvernoPolicy = path.join(ROOT_DIR, 'infra/k8s/policies/disallow-latest-tag.yaml');
-  assert.ok(fs.existsSync(kyvernoPolicy), 'disallow-latest-tag.yaml debe existir');
-
-  const kyvernoTest = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/kyverno-test.yaml');
-  assert.ok(fs.existsSync(kyvernoTest), 'kyverno-test.yaml debe existir');
+  for (const file of [
+    '.kube-linter.yaml',
+    'infra/k8s/policies/disallow-latest-tag.yaml',
+    'infra/k8s/kyverno-test/kyverno-test.yaml',
+  ]) {
+    assert.ok(fs.existsSync(path.join(ROOT_DIR, file)), `${file} debe existir`);
+  }
 });
 
 test('🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión', () => {
-  const policyPath = path.join(ROOT_DIR, 'infra/k8s/policies/pod-security-standards.yaml');
-  assert.ok(fs.existsSync(policyPath), 'pod-security-standards.yaml debe existir');
-  const content = fs.readFileSync(policyPath, 'utf-8');
+  const policy = readYaml('infra/k8s/policies/pod-security-standards.yaml');
+  assert.equal(policy.kind, 'ClusterPolicy');
+  assert.equal(
+    policy.spec.validationFailureAction,
+    'Enforce',
+    'la política debe bloquear en admisión, no solo auditar',
+  );
 
-  assert.ok(content.includes('require-run-as-non-root'), 'Debe exigir runAsNonRoot');
-  assert.ok(content.includes('disallow-privileged-containers'), 'Debe prohibir contenedores privilegiados');
-  assert.ok(content.includes('require-readonly-rootfs'), 'Debe exigir readOnlyRootFilesystem');
-  assert.ok(content.includes('disallow-privilege-escalation'), 'Debe prohibir escalada de privilegios');
-  assert.ok(content.includes('require-drop-all-capabilities'), 'Debe exigir drop: [ALL]');
+  const rules = policy.spec.rules.map((r: { name: string }) => r.name);
+  for (const rule of [
+    'require-run-as-non-root',
+    'disallow-privileged-containers',
+    'require-readonly-rootfs',
+    'disallow-privilege-escalation',
+    'require-drop-all-capabilities',
+  ]) {
+    assert.ok(rules.includes(rule), `la política debe declarar la regla ${rule}`);
+  }
 
-  const testSuitePath = path.join(ROOT_DIR, 'infra/k8s/kyverno-test/pod-security-standards/kyverno-test.yaml');
-  assert.ok(fs.existsSync(testSuitePath), 'kyverno-test.yaml de PSS debe existir');
-  const testContent = fs.readFileSync(testSuitePath, 'utf-8');
-  assert.ok(testContent.includes('pod-security-standards'), 'Debe testear la política pod-security-standards');
+  const suite = readYaml('infra/k8s/kyverno-test/pod-security-standards/kyverno-test.yaml');
+  const policies = JSON.stringify(suite.policies ?? suite);
+  assert.ok(
+    policies.includes('pod-security-standards'),
+    'la suite de Kyverno debe testear la política pod-security-standards',
+  );
 });
 
 test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe', () => {
@@ -158,54 +210,36 @@ test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canóni
 });
 
 test('🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator', () => {
-  const esoDir = path.join(ROOT_DIR, 'infra/k8s/eso');
-  assert.ok(fs.existsSync(esoDir), 'Directorio de ESO debe existir');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/k8s/eso/README.md')), 'README.md de ESO debe existir');
 
-  const storePath = path.join(esoDir, 'cluster-secret-store.yaml');
-  const secretPath = path.join(esoDir, 'external-secret-pokedex.yaml');
-  const readmePath = path.join(esoDir, 'README.md');
+  const store = readYaml('infra/k8s/eso/cluster-secret-store.yaml');
+  assert.equal(store.kind, 'ClusterSecretStore', 'Debe definir ClusterSecretStore');
 
-  assert.ok(fs.existsSync(storePath), 'cluster-secret-store.yaml debe existir');
-  assert.ok(fs.existsSync(secretPath), 'external-secret-pokedex.yaml debe existir');
-  assert.ok(fs.existsSync(readmePath), 'README.md de ESO debe existir');
+  const secret = readYaml('infra/k8s/eso/external-secret-pokedex.yaml');
+  assert.equal(secret.kind, 'ExternalSecret', 'Debe definir ExternalSecret');
+  assert.equal(
+    secret.spec.secretStoreRef.kind,
+    'ClusterSecretStore',
+    'El ExternalSecret debe apuntar a un ClusterSecretStore',
+  );
 
-  const storeContent = fs.readFileSync(storePath, 'utf-8');
-  assert.ok(storeContent.includes('kind: ClusterSecretStore'), 'Debe definir ClusterSecretStore');
-
-  const secretContent = fs.readFileSync(secretPath, 'utf-8');
-  assert.ok(secretContent.includes('kind: ExternalSecret'), 'Debe definir ExternalSecret');
-  assert.ok(secretContent.includes('POSTGRES_PASSWORD'), 'Debe mapear POSTGRES_PASSWORD');
-  assert.ok(secretContent.includes('GEMINI_API_KEY'), 'Debe mapear GEMINI_API_KEY');
+  const keys = secret.spec.data.map((entry: { secretKey: string }) => entry.secretKey);
+  assert.ok(keys.includes('POSTGRES_PASSWORD'), 'Debe mapear POSTGRES_PASSWORD');
+  assert.ok(keys.includes('GEMINI_API_KEY'), 'Debe mapear GEMINI_API_KEY');
 });
 
-test('🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange', () => {
-  // INFRA-011: `values.prod.yaml` es la base del blueprint prod cloud, inactivo
-  // (ADR-030). Este test verifica la CONFIGURACION del perfil, no una garantia
-  // operativa de un entorno desplegado.
-  const valuesProdPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
-  const pdbPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/pdb.yaml');
-  const quotaPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/resourcequota.yaml');
-  const limitRangePath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/limitrange.yaml');
-  const infraCiPath = path.join(ROOT_DIR, '.github/workflows/infra.yaml');
+test('🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia renderiza PDB, ResourceQuota y LimitRange y CI los exige', () => {
+  // INFRA-011: `values.prod.yaml` es la base del blueprint prod cloud, inactivo (ADR-030). Este test verifica la
+  // CONFIGURACION del perfil, no una garantia operativa de un entorno desplegado.
+  const kinds = new Set(renderChart(PROFILES.prod).map((d) => d.kind));
+  for (const kind of ['PodDisruptionBudget', 'ResourceQuota', 'LimitRange']) {
+    assert.ok(kinds.has(kind), `el perfil prod debe renderizar ${kind}`);
+  }
 
-  assert.ok(fs.existsSync(valuesProdPath), 'values.prod.yaml debe existir');
-  assert.ok(fs.existsSync(pdbPath), 'pdb.yaml debe existir');
-  assert.ok(fs.existsSync(quotaPath), 'resourcequota.yaml debe existir');
-  assert.ok(fs.existsSync(limitRangePath), 'limitrange.yaml debe existir');
-  assert.ok(fs.existsSync(infraCiPath), 'infra.yaml debe existir');
-
-  const valuesProdContent = fs.readFileSync(valuesProdPath, 'utf-8');
-  assert.ok(valuesProdContent.includes('podDisruptionBudget:'), 'values.prod.yaml debe configurar podDisruptionBudget');
-  assert.ok(valuesProdContent.includes('resourceQuota:'), 'values.prod.yaml debe configurar resourceQuota');
-  assert.ok(valuesProdContent.includes('limitRange:'), 'values.prod.yaml debe configurar limitRange');
-
-  const infraCiContent = fs.readFileSync(infraCiPath, 'utf-8');
-  assert.ok(
-    infraCiContent.includes('kind: PodDisruptionBudget'),
-    'infra.yaml debe validar PodDisruptionBudget en prod',
-  );
-  assert.ok(infraCiContent.includes('kind: ResourceQuota'), 'infra.yaml debe validar ResourceQuota en prod');
-  assert.ok(infraCiContent.includes('kind: LimitRange'), 'infra.yaml debe validar LimitRange en prod');
+  const scripts = workflowScripts('.github/workflows/infra.yaml').join('\n');
+  for (const kind of ['PodDisruptionBudget', 'ResourceQuota', 'LimitRange']) {
+    assert.ok(scripts.includes(`kind: ${kind}`), `infra.yaml debe validar ${kind} en prod`);
+  }
 });
 
 test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints', () => {
@@ -379,61 +413,43 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
 });
 
 test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo', () => {
-  const valuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
-  const valuesDevPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.dev.yaml');
   const helmGuidePath = path.join(ROOT_DIR, 'docs/runbooks/HELM_DEPLOYMENT_GUIDE.md');
   const infraReadmePath = path.join(ROOT_DIR, 'infra/README.md');
 
-  // 1. Ambos archivos de configuración existen físicamente
-  assert.ok(fs.existsSync(valuesPath), 'values.yaml debe existir en infra/helm/pokedex/');
-  assert.ok(fs.existsSync(valuesDevPath), 'values.dev.yaml debe existir en infra/helm/pokedex/');
-
-  const valuesContent = fs.readFileSync(valuesPath, 'utf-8');
-  const valuesDevContent = fs.readFileSync(valuesDevPath, 'utf-8');
-
-  // 2. values.yaml implementa Secure by Default: producción, HTTPS obligatorio, TLS, Cilium L7 y Reloader deshabilitado
-  assert.ok(
-    valuesContent.includes('nodeEnv: "production"'),
-    'values.yaml debe configurar nodeEnv: "production" por defecto',
-  );
-  assert.ok(
-    valuesContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "true"'),
+  // 1. values.yaml implementa Secure by Default: producción, HTTPS obligatorio, TLS, Cilium L7 y Reloader deshabilitado
+  const values = readYaml('infra/helm/pokedex/values.yaml');
+  assert.equal(values.api.env.nodeEnv, 'production', 'values.yaml debe configurar nodeEnv: "production" por defecto');
+  assert.equal(
+    values.ingress.annotations['nginx.ingress.kubernetes.io/ssl-redirect'],
+    'true',
     'values.yaml debe forzar ssl-redirect: "true" por defecto',
   );
-  assert.ok(
-    valuesContent.includes('cert-manager.io/cluster-issuer: "letsencrypt-prod"'),
+  assert.equal(
+    values.ingress.annotations['cert-manager.io/cluster-issuer'],
+    'letsencrypt-prod',
     'values.yaml debe definir cluster-issuer letsencrypt-prod',
   );
-  assert.ok(
-    valuesContent.includes('secretName: pokedex-tls-cert'),
-    'values.yaml debe tener bloque tls configurado con secretName',
+  assert.equal(
+    values.ingress.tls[0].secretName,
+    'pokedex-tls-cert',
+    'values.yaml debe tener bloque tls con secretName',
   );
-  assert.ok(
-    /ciliumNetworkPolicy:\s+enabled:\s*true/.test(valuesContent),
-    'values.yaml debe activar ciliumNetworkPolicy.enabled: true',
-  );
-  assert.ok(/reloader:\s+enabled:\s*false/.test(valuesContent), 'values.yaml debe configurar reloader.enabled: false');
+  assert.equal(values.ciliumNetworkPolicy.enabled, true, 'values.yaml debe activar ciliumNetworkPolicy.enabled');
+  assert.equal(values.reloader.enabled, false, 'values.yaml debe configurar reloader.enabled: false');
 
-  // 3. values.dev.yaml proporciona overrides permisivos para desarrollo local (Kind/Minikube)
-  assert.ok(
-    valuesDevContent.includes('nodeEnv: "development"'),
-    'values.dev.yaml debe configurar nodeEnv: "development"',
-  );
-  assert.ok(
-    valuesDevContent.includes('nginx.ingress.kubernetes.io/ssl-redirect: "false"'),
+  // 2. values.dev.yaml proporciona overrides permisivos para desarrollo local (Kind/Minikube)
+  const dev = readYaml('infra/helm/pokedex/values.dev.yaml');
+  assert.equal(dev.api.env.nodeEnv, 'development', 'values.dev.yaml debe configurar nodeEnv: "development"');
+  assert.equal(
+    dev.ingress.annotations['nginx.ingress.kubernetes.io/ssl-redirect'],
+    'false',
     'values.dev.yaml debe permitir ssl-redirect: "false"',
   );
-  assert.ok(/tls:\s*\[\]/.test(valuesDevContent), 'values.dev.yaml debe permitir tls: [] vacío para desarrollo HTTP');
-  assert.ok(
-    /ciliumNetworkPolicy:\s+enabled:\s*false/.test(valuesDevContent),
-    'values.dev.yaml debe desactivar ciliumNetworkPolicy para entornos locales',
-  );
-  assert.ok(
-    /reloader:\s+enabled:\s*false/.test(valuesDevContent),
-    'values.dev.yaml debe mantener reloader desactivado en desarrollo',
-  );
+  assert.deepEqual(dev.ingress.tls, [], 'values.dev.yaml debe permitir tls: [] vacío para desarrollo HTTP');
+  assert.equal(dev.ciliumNetworkPolicy.enabled, false, 'values.dev.yaml debe desactivar ciliumNetworkPolicy en local');
+  assert.equal(dev.reloader.enabled, false, 'values.dev.yaml debe mantener reloader desactivado en desarrollo');
 
-  // 4. Documentación formaliza la separación conceptual
+  // 3. Documentación formaliza la separación conceptual
   const helmGuideContent = fs.readFileSync(helmGuidePath, 'utf-8');
   const infraReadmeContent = fs.readFileSync(infraReadmePath, 'utf-8');
   assert.ok(helmGuideContent.includes('values.dev.yaml'), 'HELM_DEPLOYMENT_GUIDE.md debe documentar values.dev.yaml');

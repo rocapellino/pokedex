@@ -10,19 +10,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { runHelm } from '../../scripts/lib/helm.js';
-import yaml from 'js-yaml';
-import { ROOT_DIR } from '../helpers/repo.js';
-
-const CHART = path.join(ROOT_DIR, 'infra/helm/pokedex');
-const CI_SECRETS = [
-  'postgresql.auth.password=ci',
-  'secrets.adminApiKey=ci',
-  'secrets.adminSessionSecret=ci',
-  'redis.auth.password=ci',
-  'secrets.backupEncryptionKey=ci',
-].flatMap((s) => ['--set', s]);
+import { PROFILES, renderChart } from '../helpers/helm-render.js';
 
 interface ExternalSecretDoc {
   kind: string;
@@ -30,9 +18,7 @@ interface ExternalSecretDoc {
 }
 
 function renderPreprod(): ExternalSecretDoc[] {
-  const values = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
-  const out = runHelm(['template', 'pokedex', CHART, '-f', values, ...CI_SECRETS]);
-  return (yaml.loadAll(out) as ExternalSecretDoc[]).filter(Boolean);
+  return renderChart(PROFILES.preprod) as unknown as ExternalSecretDoc[];
 }
 
 test('🔐 AUD-SEC-OBS-001: pre-prod sincroniza METRICS_BEARER_TOKEN desde Vault al Secret de la API', () => {

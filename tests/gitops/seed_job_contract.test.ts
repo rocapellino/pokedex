@@ -11,27 +11,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { runHelm } from '../../scripts/lib/helm.js';
-import yaml from 'js-yaml';
-import { ROOT_DIR } from '../helpers/repo.js';
-
-const CHART = path.join(ROOT_DIR, 'infra/helm/pokedex');
-const CI_SECRETS = [
-  'postgresql.auth.password=ci',
-  'secrets.adminApiKey=ci',
-  'secrets.adminSessionSecret=ci',
-  'redis.auth.password=ci',
-  'secrets.backupEncryptionKey=ci',
-].flatMap((s) => ['--set', s]);
-
-type K8sDoc = { kind: string; metadata: { name: string; annotations?: Record<string, string> }; spec: any };
-
-function render(valueFiles: string[]): K8sDoc[] {
-  const files = valueFiles.flatMap((f) => ['-f', path.join(ROOT_DIR, f)]);
-  const out = runHelm(['template', 'pokedex', CHART, ...files, ...CI_SECRETS]);
-  return (yaml.loadAll(out) as K8sDoc[]).filter(Boolean);
-}
+import { type K8sDoc, renderChart as render } from '../helpers/helm-render.js';
 
 const seedJobOf = (docs: K8sDoc[]) => docs.find((d) => d.kind === 'Job' && d.metadata.name.endsWith('-db-seed'));
 

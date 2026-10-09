@@ -11,19 +11,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import path from 'node:path';
-import { runHelm } from '../../scripts/lib/helm.js';
-import yaml from 'js-yaml';
-import { ROOT_DIR } from '../helpers/repo.js';
-
-const CHART = path.join(ROOT_DIR, 'infra/helm/pokedex');
-const CI_SECRETS = [
-  'postgresql.auth.password=ci',
-  'secrets.adminApiKey=ci',
-  'secrets.adminSessionSecret=ci',
-  'redis.auth.password=ci',
-  'secrets.backupEncryptionKey=ci',
-].flatMap((s) => ['--set', s]);
+import { renderChart } from '../helpers/helm-render.js';
 
 type Doc = { kind: string; metadata: { name: string }; spec?: unknown };
 interface SecretKeyRef {
@@ -33,8 +21,7 @@ interface SecretKeyRef {
 }
 
 function render(valueFile: string): Doc[] {
-  const out = runHelm(['template', 'pokedex', CHART, '-f', path.join(ROOT_DIR, valueFile), ...CI_SECRETS]);
-  return (yaml.loadAll(out) as Doc[]).filter(Boolean);
+  return renderChart([valueFile]) as unknown as Doc[];
 }
 
 /** Recorre el documento y devuelve todos los `secretKeyRef` (env y envFrom explícitos). */

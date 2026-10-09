@@ -106,6 +106,20 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Levanta la app Express en un puerto efímero y ofrece api() con IP de cliente simulada para que cada test tenga su propio cupo en los limitadores de tasa.',
   },
+  'tests/helpers/helm-render.ts': {
+    type: 'Helper',
+    targetDomain: 'Render del Chart de Helm',
+    targetArtifacts: ['infra/helm/pokedex/'],
+    description:
+      'Renderiza el chart con helm template (local o en contenedor) para los perfiles default, prod y pre-prod, con caché, y expone los documentos y los workloads con su especificación de pod.',
+  },
+  'tests/helpers/yaml.ts': {
+    type: 'Helper',
+    targetDomain: 'Lectura de YAML del Repositorio',
+    targetArtifacts: ['.github/workflows/'],
+    description:
+      'Lee y parsea YAML del repo y extrae los scripts run: de un workflow sin las líneas de shell comentadas, para comprobar estructura y no texto.',
+  },
   'tests/helpers/repo.ts': {
     type: 'Helper',
     targetDomain: 'Raíz del Repositorio',
