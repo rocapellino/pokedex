@@ -132,6 +132,13 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Activa las suites de base de datos solo si existen POKEDEX_TEST_DATABASE_URL y POKEDEX_TEST_REDIS_URL, crea y elimina una base PostgreSQL aleatoria por suite y reserva una base lógica de Redis por suite.',
   },
+  'tests/helpers/ansible.ts': {
+    type: 'Helper',
+    targetDomain: 'Lectura de Playbooks y Roles de Ansible',
+    targetArtifacts: ['infra/ansible/'],
+    description:
+      'Aplana las tareas de playbooks y roles (incluidos block, rescue y always), localiza una tarea por nombre y expone los argumentos de su módulo, para comprobar la configuración que Ansible ejecuta y no el texto del archivo.',
+  },
   'tests/helpers/hcl.ts': {
     type: 'Helper',
     targetDomain: 'Lectura de HCL de OpenTofu',
