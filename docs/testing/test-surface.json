@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T14:40:58.989Z",
+  "generatedAt": "2026-10-09T14:56:13.210Z",
   "summary": {
     "totalFiles": 191,
     "testFiles": 132,
     "helperFiles": 58,
     "performanceScripts": 1,
     "totalTestCases": 975,
-    "totalLines": 26186,
-    "totalSizeBytes": 1131967,
+    "totalLines": 26191,
+    "totalSizeBytes": 1132218,
     "suitesCount": 10
   },
   "suites": [
@@ -123,9 +123,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 21,
-      "sizeBytes": 6657,
+      "sizeBytes": 6734,
       "lineCount": 151,
-      "sha256": "bd007cec0cd1c0fa85c969347cac7500f0964dd3b52886548d123fd7eab11e04",
+      "sha256": "7e5a0d2e108e10e73d2f5fddb082a7bf30f65f8b91ecdedc8a5f9e6d25737fab",
       "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
       "targetArtifacts": [
         ".agents/aas/aas-stack.json"
@@ -193,9 +193,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 13,
-      "sizeBytes": 3696,
-      "lineCount": 91,
-      "sha256": "92ea74403395fa2e1825fbcc3fbf079d8d66a73e567638e189c2b0e9979f079b",
+      "sizeBytes": 3807,
+      "lineCount": 95,
+      "sha256": "6b97e2a4a75fc19822881f2021b8512ab63016b5df56a5f01681bdc22bb7209f",
       "targetDomain": "Gobernanza Documental / Auditorías Históricas",
       "targetArtifacts": [
         "docs/audits/"
@@ -213,27 +213,27 @@
       "testCases": [
         {
           "name": "Audit lifecycle: baseline idéntico al repositorio queda CURRENT",
-          "line": 31
+          "line": 32
         },
         {
           "name": "Audit lifecycle: commit divergente produce AUDIT_STALE no bloqueante",
-          "line": 45
+          "line": 46
         },
         {
           "name": "Audit lifecycle: metadatos ausentes se reportan explícitamente",
-          "line": 52
+          "line": 53
         },
         {
           "name": "Audit lifecycle: eleva evidencia por versión, Chart y GitOps divergentes",
-          "line": 63
+          "line": 64
         },
         {
           "name": "Audit lifecycle: el baseline vigente expone commit, versión, Chart y revisión GitOps",
-          "line": 74
+          "line": 75
         },
         {
           "name": "Audit lifecycle: el script se ejecuta como CLI y emite JSON no bloqueante",
-          "line": 84
+          "line": 88
         }
       ]
     },
@@ -6214,9 +6214,9 @@
       "testCount": 2,
       "describeCount": 0,
       "assertionCountEst": 2,
-      "sizeBytes": 2474,
-      "lineCount": 56,
-      "sha256": "6c00f16df2539dc8f8d17ca3ac3447aa7b8caab1d325966e39bb8c374a4ec55c",
+      "sizeBytes": 2529,
+      "lineCount": 57,
+      "sha256": "99a58a1f6ebcb9ff04b03ad96f3197e8835b0ddc4f8a70ddbb5d06ae56430a90",
       "targetDomain": "Gobernanza Documental / Gate de Enlaces",
       "targetArtifacts": [
         "scripts/validate-docs-governance.ts",
@@ -6236,11 +6236,11 @@
       "testCases": [
         {
           "name": "📚 Gobernanza Documental: el gate detecta enlaces rotos dentro de .agents/ y AGENTS.md",
-          "line": 21
+          "line": 22
         },
         {
           "name": "📚 Gobernanza Documental: validateDocsGovernance() no reporta enlaces rotos, esquemas locales ni drift",
-          "line": 46
+          "line": 47
         }
       ]
     },
@@ -6480,9 +6480,9 @@
       "testCount": 6,
       "describeCount": 0,
       "assertionCountEst": 40,
-      "sizeBytes": 10478,
+      "sizeBytes": 10486,
       "lineCount": 248,
-      "sha256": "9eb3d97a6aa9aa2d718ef062fd0ef698b1761419c2a0c3b54551c1f01fae395e",
+      "sha256": "77371264b265fdf5258c0704fcf5d2eb93f2dfefb3d3c23a3cf119d7188020f9",
       "targetDomain": "Retención y Ciclo de Vida en GHCR",
       "targetArtifacts": [
         "scripts/ghcr-retention.ts",
