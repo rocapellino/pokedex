@@ -1642,7 +1642,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen y el límite de 10 peticiones por minuto. Incluye un hallazgo marcado como todo."
+      "description": "Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen, el escape del prompt en la plantilla local de maqueta (AUD-SEC-AI-001) y el límite de 10 peticiones por minuto."
     },
     {
       "path": "tests/integration/routes_auth.test.ts",

@@ -43,6 +43,19 @@ export function sanitizeAIHtml(rawHtml: string): string {
 }
 
 /**
+ * Escapa texto para insertarlo como contenido de un elemento HTML o como valor de atributo entre comillas.
+ * El prompt del usuario es texto, no marcado: debe mostrarse tal cual y nunca abrir ni cerrar elementos.
+ */
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Sanitiza y neutraliza vectores comunes de Prompt Injection e intentos de manipulación de contexto.
  */
 export function sanitizePrompt(rawPrompt: string, maxLength = 500): string {

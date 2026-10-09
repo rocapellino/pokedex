@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   AIMockupResponseSchema,
+  escapeHtml,
   sanitizeAIHtml,
   sanitizePrompt,
 } from '../../apps/backend/src/validation/ai-security.js';
@@ -145,4 +146,14 @@ test('🛡️ AI Resiliencia [Unit]: withTimeout resuelve antes de expiración o
   await assert.rejects(async () => {
     await withTimeout(slowPromise, 50);
   }, /Timeout de servicio IA/);
+});
+
+test('🛡️ escapeHtml: neutraliza los cinco caracteres con significado en HTML y conserva el resto', () => {
+  assert.equal(
+    escapeHtml(`<a href="x" onclick='y'>&</a>`),
+    '&lt;a href=&quot;x&quot; onclick=&#39;y&#39;&gt;&amp;&lt;/a&gt;',
+  );
+  assert.equal(escapeHtml('Pikachu eléctrico 25'), 'Pikachu eléctrico 25');
+  // El orden importa: escapar `&` primero evita que las entidades generadas se vuelvan a escapar.
+  assert.equal(escapeHtml('&lt;'), '&amp;lt;');
 });
