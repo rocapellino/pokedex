@@ -48,6 +48,7 @@
     "test:surface": "tsx scripts/test-surface.ts",
     "test:surface:check": "tsx scripts/test-surface.ts --check",
     "test:surface:update": "tsx scripts/test-surface.ts --update",
+    "test:snapshots:update": "tsx --test --test-update-snapshots tests/frontend/html_parity.test.ts tests/frontend/html_parity_modals.test.ts tests/frontend/html_parity_states.test.ts",
     "dr:drill:e2e": "tsx scripts/dr-drill.ts",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test -g @a11y",

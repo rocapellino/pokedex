@@ -1,9 +1,6 @@
 import { dom } from './mega_env.js';
+import { assertHtmlSnapshot } from './html_snapshot.js';
 import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   renderBaseStats,
   renderDetailModalContent,
@@ -31,15 +28,11 @@ import {
 
 /**
  * Paridad de salida de los renderizadores del modal de detalle: cada función migrada a la plantilla
- * `html` debe producir EXACTAMENTE la misma cadena que antes. Los archivos `golden/modal-*.html` se
- * generaron con el código previo a la migración. Para regenerarlos de forma deliberada:
- *   UPDATE_GOLDEN=1 npx tsx --test tests/frontend/html_parity_modals.test.ts
+ * `html` debe producir EXACTAMENTE la misma cadena que antes. Las instantáneas (`html_parity_modals.test.ts.snapshot`)
+ * se generaron a partir de los archivos golden capturados con el código previo a la migración. Para regenerarlas de
+ * forma deliberada: `npm run test:snapshots:update`.
  */
 void dom;
-
-/** Los hooks de pre-commit recortan espacios finales y fijan el salto de línea final: no cambia el HTML. */
-const normalize = (html: string): string => html.replace(/[ \t]+$/gm, '').replace(/\n+$/, '');
-const GOLDEN_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'golden');
 
 const evolution = (key: string, currentId: number) => () => renderEvolutionSystem(EVOLUTIONS[key], currentId, CATALOG);
 
@@ -86,14 +79,7 @@ const CASES: Record<string, () => unknown> = {
 };
 
 for (const [name, render] of Object.entries(CASES)) {
-  test(`🧪 Paridad de render (modal): ${name} produce la misma salida que la versión anterior`, () => {
-    const actual = normalize(String(render()));
-    const file = path.join(GOLDEN_DIR, `modal-${name}.html`);
-    if (process.env.UPDATE_GOLDEN === '1') {
-      fs.mkdirSync(GOLDEN_DIR, { recursive: true });
-      fs.writeFileSync(file, `${actual}\n`, 'utf-8');
-    }
-    assert.ok(fs.existsSync(file), `falta el golden modal-${name}.html: generarlo con UPDATE_GOLDEN=1`);
-    assert.equal(actual, normalize(fs.readFileSync(file, 'utf-8')));
+  test(`🧪 Paridad de render (modal): ${name} produce la misma salida que la versión anterior`, (t) => {
+    assertHtmlSnapshot(t, render());
   });
 }

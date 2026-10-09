@@ -145,24 +145,32 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
       'Verifica que tarjetas, tabla del backoffice, insignias y estados vacíos neutralicen campos hostiles sin doble escapado de datos legítimos.',
   },
   'tests/frontend/html_parity_modals.test.ts': {
-    type: 'Golden Parity',
+    type: 'Snapshot Parity',
     targetDomain: 'Paridad de Render / Modales',
     targetArtifacts: [`${SRC}/components/`],
-    description: 'Compara el HTML de los modales con los archivos golden generados con la versión anterior del render.',
+    description:
+      'Compara el HTML de los modales (detalle, evolución, megaevolución) con su instantánea nativa, capturada con la versión anterior del render.',
   },
   'tests/frontend/html_parity_states.test.ts': {
-    type: 'Golden Parity',
+    type: 'Snapshot Parity',
     targetDomain: 'Paridad de Render / Estados',
     targetArtifacts: [`${SRC}/components/`],
     description:
-      'Compara el HTML de los estados (vacío, error, carga, sin resultados) con los archivos golden de la versión anterior.',
+      'Compara el HTML de los estados (vacío, error, carga, sin resultados) con su instantánea nativa, capturada con la versión anterior.',
   },
   'tests/frontend/html_parity.test.ts': {
-    type: 'Golden Parity',
+    type: 'Snapshot Parity',
     targetDomain: 'Paridad de Render / Componentes',
     targetArtifacts: [`${SRC}/components/`],
     description:
-      'Compara el HTML de tarjetas, insignias y filas con los archivos golden generados con la versión anterior del render.',
+      'Compara el HTML de tarjetas, insignias y filas con su instantánea nativa, capturada con la versión anterior del render.',
+  },
+  'tests/frontend/html_snapshot.ts': {
+    type: 'Helper',
+    targetDomain: 'Instantáneas de HTML',
+    targetArtifacts: [`${SRC}/shared/html.ts`],
+    description:
+      'Normaliza el HTML (espacios finales y saltos de línea) y lo compara con la instantánea nativa de node:test serializada como texto plano.',
   },
   'tests/frontend/html_set.test.ts': {
     type: 'Unit',

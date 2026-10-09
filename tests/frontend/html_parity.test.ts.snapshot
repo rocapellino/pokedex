@@ -1,0 +1,438 @@
+exports[`🧪 Paridad de render: badge-single produce la misma salida que la versión anterior 1`] = `
+<span class="type-badge" data-type="electrico">Eléctrico</span>
+`;
+
+exports[`🧪 Paridad de render: badges-fallback produce la misma salida que la versión anterior 1`] = `
+<span class="type-badge" data-type="agua">Agua</span>
+`;
+
+exports[`🧪 Paridad de render: badges-multi produce la misma salida que la versión anterior 1`] = `
+<span class="type-badge" data-type="fuego">Fuego</span><span class="type-badge" data-type="volador">Volador</span>
+`;
+
+exports[`🧪 Paridad de render: card-charizard produce la misma salida que la versión anterior 1`] = `
+
+    <article class="pokemon-card" data-pokemon-id="6" data-type="fuego">
+      <div class="card-header">
+        <span class="pokemon-id">#006</span>
+        <div class="flex-center-gap">
+          <span class="stage-badge">Fase 2</span>
+          <span class="mega-badge" title="Tiene megaevolución">Mega</span>
+
+          <span class="gen-badge">Gen 1</span>
+        </div>
+      </div>
+
+      <div class="image-container">
+        <img src="https://img.example.com/charizard.png" alt="Charizard" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+      </div>
+
+      <h2 class="pokemon-name"><button type="button" class="card-open">Charizard</button></h2>
+
+      <div class="text-center mb-2">
+        <span class="type-badge" data-type="fuego">
+          Fuego
+        </span>
+      </div>
+
+      <div class="stats-matrix">
+        <div class="stat-item">
+          <span class="stat-item-label">Peso</span>
+          <span class="stat-item-val">90.5 kg</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Altura</span>
+          <span class="stat-item-val">1.7 m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Fuerza</span>
+          <span class="stat-item-val">84</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Región</span>
+          <span class="stat-item-val">Montaña</span>
+        </div>
+      </div>
+
+      <div class="card-hint" aria-hidden="true">
+        <span>Toca para ver detalles completos</span>
+      </div>
+    </article>
+`;
+
+exports[`🧪 Paridad de render: card-legendario produce la misma salida que la versión anterior 1`] = `
+
+    <article class="pokemon-card" data-pokemon-id="25" data-type="electrico">
+      <div class="card-header">
+        <span class="pokemon-id">#025</span>
+        <div class="flex-center-gap">
+          <span class="stage-badge">Fase 1</span>
+
+          <span class="class-badge class-badge--legendario" title="Pokémon legendario">Legendario</span>
+          <span class="gen-badge">Gen 1</span>
+        </div>
+      </div>
+
+      <div class="image-container">
+        <img src="https://img.example.com/pikachu.png" alt="Pikachu" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+      </div>
+
+      <h2 class="pokemon-name"><button type="button" class="card-open">Pikachu</button></h2>
+
+      <div class="text-center mb-2">
+        <span class="type-badge" data-type="electrico">
+          Eléctrico
+        </span>
+      </div>
+
+      <div class="stats-matrix">
+        <div class="stat-item">
+          <span class="stat-item-label">Peso</span>
+          <span class="stat-item-val">6 kg</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Altura</span>
+          <span class="stat-item-val">0.4 m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Fuerza</span>
+          <span class="stat-item-val">55</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Región</span>
+          <span class="stat-item-val">Bosque Verde</span>
+        </div>
+      </div>
+
+      <div class="card-hint" aria-hidden="true">
+        <span>Toca para ver detalles completos</span>
+      </div>
+    </article>
+`;
+
+exports[`🧪 Paridad de render: card-mitico produce la misma salida que la versión anterior 1`] = `
+
+    <article class="pokemon-card" data-pokemon-id="25" data-type="electrico">
+      <div class="card-header">
+        <span class="pokemon-id">#025</span>
+        <div class="flex-center-gap">
+          <span class="stage-badge">Fase 1</span>
+
+          <span class="class-badge class-badge--mitico" title="Pokémon mítico">Mítico</span>
+          <span class="gen-badge">Gen 1</span>
+        </div>
+      </div>
+
+      <div class="image-container">
+        <img src="https://img.example.com/pikachu.png" alt="Pikachu" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+      </div>
+
+      <h2 class="pokemon-name"><button type="button" class="card-open">Pikachu</button></h2>
+
+      <div class="text-center mb-2">
+        <span class="type-badge" data-type="electrico">
+          Eléctrico
+        </span>
+      </div>
+
+      <div class="stats-matrix">
+        <div class="stat-item">
+          <span class="stat-item-label">Peso</span>
+          <span class="stat-item-val">6 kg</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Altura</span>
+          <span class="stat-item-val">0.4 m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Fuerza</span>
+          <span class="stat-item-val">55</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Región</span>
+          <span class="stat-item-val">Bosque Verde</span>
+        </div>
+      </div>
+
+      <div class="card-hint" aria-hidden="true">
+        <span>Toca para ver detalles completos</span>
+      </div>
+    </article>
+`;
+
+exports[`🧪 Paridad de render: card-pikachu produce la misma salida que la versión anterior 1`] = `
+
+    <article class="pokemon-card" data-pokemon-id="25" data-type="electrico">
+      <div class="card-header">
+        <span class="pokemon-id">#025</span>
+        <div class="flex-center-gap">
+          <span class="stage-badge">Fase 1</span>
+
+
+          <span class="gen-badge">Gen 1</span>
+        </div>
+      </div>
+
+      <div class="image-container">
+        <img src="https://img.example.com/pikachu.png" alt="Pikachu" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+      </div>
+
+      <h2 class="pokemon-name"><button type="button" class="card-open">Pikachu</button></h2>
+
+      <div class="text-center mb-2">
+        <span class="type-badge" data-type="electrico">
+          Eléctrico
+        </span>
+      </div>
+
+      <div class="stats-matrix">
+        <div class="stat-item">
+          <span class="stat-item-label">Peso</span>
+          <span class="stat-item-val">6 kg</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Altura</span>
+          <span class="stat-item-val">0.4 m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Fuerza</span>
+          <span class="stat-item-val">55</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Región</span>
+          <span class="stat-item-val">Bosque Verde</span>
+        </div>
+      </div>
+
+      <div class="card-hint" aria-hidden="true">
+        <span>Toca para ver detalles completos</span>
+      </div>
+    </article>
+`;
+
+exports[`🧪 Paridad de render: card-sparse produce la misma salida que la versión anterior 1`] = `
+
+    <article class="pokemon-card" data-pokemon-id="1" data-type="veneno">
+      <div class="card-header">
+        <span class="pokemon-id">#001</span>
+        <div class="flex-center-gap">
+
+
+
+          <span class="gen-badge">Gen 1</span>
+        </div>
+      </div>
+
+      <div class="image-container">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Nidoran&lt;&amp;&quot;&#039;&gt;" class="pokemon-img" loading="lazy" crossorigin="anonymous">
+      </div>
+
+      <h2 class="pokemon-name"><button type="button" class="card-open">Nidoran&lt;&amp;&quot;&#039;&gt;</button></h2>
+
+      <div class="text-center mb-2">
+        <span class="type-badge" data-type="veneno">
+          Veneno
+        </span>
+      </div>
+
+      <div class="stats-matrix">
+        <div class="stat-item">
+          <span class="stat-item-label">Peso</span>
+          <span class="stat-item-val">0 kg</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Altura</span>
+          <span class="stat-item-val">0 m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Fuerza</span>
+          <span class="stat-item-val">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-item-label">Región</span>
+          <span class="stat-item-val">Kanto</span>
+        </div>
+      </div>
+
+      <div class="card-hint" aria-hidden="true">
+        <span>Toca para ver detalles completos</span>
+      </div>
+    </article>
+`;
+
+exports[`🧪 Paridad de render: empty-state-plain produce la misma salida que la versión anterior 1`] = `
+
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3 class="empty-title">Sin resultados</h3>
+      <p class="error-detail">Prueba otro filtro</p>
+
+    </div>
+`;
+
+exports[`🧪 Paridad de render: empty-state-retry produce la misma salida que la versión anterior 1`] = `
+
+    <div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <h3 class="empty-title">Sin conexión</h3>
+      <p class="error-detail">No se pudo &lt;cargar&gt;</p>
+      <button class="btn btn-primary mt-4" id="btnReintentar">Reintentar</button>
+    </div>
+`;
+
+exports[`🧪 Paridad de render: rows-admin produce la misma salida que la versión anterior 1`] = `
+
+      <tr>
+        <td>
+          <span class="id-tag">#025</span>
+        </td>
+        <td>
+          <div class="avatar-cell">
+            <img src="https://img.example.com/pikachu.png" alt="Pikachu" class="table-avatar">
+          </div>
+        </td>
+        <td>
+          <div class="name-cell">
+            <strong class="pokemon-table-name">Pikachu</strong>
+            <span class="habilidades-preview">Elec. estática, Pararrayos</span>
+          </div>
+        </td>
+        <td>
+          <span class="type-badge" data-type="electrico">
+            Eléctrico
+          </span>
+        </td>
+        <td>
+          <div class="force-meter">
+            <div class="force-bar-wrapper">
+              <div class="force-bar" data-width="34"></div>
+            </div>
+            <span class="force-value">55</span>
+          </div>
+        </td>
+        <td>
+          <div class="weight-height-cell">
+            <span>⚖️ 6 kg</span>
+            <span>📏 0.4 m</span>
+          </div>
+        </td>
+        <td>
+          <span class="habitat-tag">Bosque Verde</span>
+        </td>
+        <td class="text-center">
+          <div class="actions-group">
+            <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="25">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              Editar
+            </button>
+            <button class="btn-action btn-delete" title="Eliminar Pokémon" data-delete-id="25">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <span class="id-tag">#006</span>
+        </td>
+        <td>
+          <div class="avatar-cell">
+            <img src="https://img.example.com/charizard.png" alt="Charizard" class="table-avatar">
+          </div>
+        </td>
+        <td>
+          <div class="name-cell">
+            <strong class="pokemon-table-name">Charizard</strong>
+            <span class="habilidades-preview">Mar llamas</span>
+          </div>
+        </td>
+        <td>
+          <span class="type-badge" data-type="fuego">
+            Fuego
+          </span>
+        </td>
+        <td>
+          <div class="force-meter">
+            <div class="force-bar-wrapper">
+              <div class="force-bar" data-width="53"></div>
+            </div>
+            <span class="force-value">84</span>
+          </div>
+        </td>
+        <td>
+          <div class="weight-height-cell">
+            <span>⚖️ 90.5 kg</span>
+            <span>📏 1.7 m</span>
+          </div>
+        </td>
+        <td>
+          <span class="habitat-tag">Montaña</span>
+        </td>
+        <td class="text-center">
+          <div class="actions-group">
+            <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="6">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              Editar
+            </button>
+            <button class="btn-action btn-delete" title="Eliminar Pokémon" data-delete-id="6">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <span class="id-tag">#001</span>
+        </td>
+        <td>
+          <div class="avatar-cell">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Nidoran&lt;&amp;&quot;&#039;&gt;" class="table-avatar">
+          </div>
+        </td>
+        <td>
+          <div class="name-cell">
+            <strong class="pokemon-table-name">Nidoran&lt;&amp;&quot;&#039;&gt;</strong>
+            <span class="habilidades-preview">Punto tóxico</span>
+          </div>
+        </td>
+        <td>
+          <span class="type-badge" data-type="veneno">
+            Veneno
+          </span>
+        </td>
+        <td>
+          <div class="force-meter">
+            <div class="force-bar-wrapper">
+              <div class="force-bar" data-width="0"></div>
+            </div>
+            <span class="force-value">0</span>
+          </div>
+        </td>
+        <td>
+          <div class="weight-height-cell">
+            <span>⚖️ 0 kg</span>
+            <span>📏 0 m</span>
+          </div>
+        </td>
+        <td>
+          <span class="habitat-tag">Kanto</span>
+        </td>
+        <td class="text-center">
+          <div class="actions-group">
+            <button class="btn-action btn-edit" title="Editar Pokémon" data-edit-id="1">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              Editar
+            </button>
+            <button class="btn-action btn-delete" title="Eliminar Pokémon" data-delete-id="1">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+`;
+
+exports[`🧪 Paridad de render: rows-admin-empty produce la misma salida que la versión anterior 1`] = `
+
+`;
