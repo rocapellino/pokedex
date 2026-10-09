@@ -41,6 +41,7 @@
     "test:all": "tsx --test \"tests/**/*.test.ts\"",
     "test:unit": "tsx --test \"tests/unit/**/*.test.ts\"",
     "test:integration": "tsx --test \"tests/integration/**/*.test.ts\"",
+    "test:integration:db": "tsx --test \"tests/integration/db/**/*.test.ts\"",
     "test:security": "tsx --test \"tests/security/**/*.test.ts\"",
     "test:gitops": "tsx --test \"tests/gitops/**/*.test.ts\"",
     "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \"tests/**/!(*fuzzing*).test.ts\"",

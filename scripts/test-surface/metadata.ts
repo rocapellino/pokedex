@@ -146,6 +146,34 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida sobre la app Express real la lectura paginada con filtros y ETag, la autenticación de las mutaciones (clave y sesión con CSRF) y el alta, edición y baja de Pokémon.',
   },
+  'tests/integration/db/postgres_migrations.test.ts': {
+    type: 'Integration',
+    targetDomain: 'Persistencia / Migraciones Drizzle',
+    targetArtifacts: ['apps/backend/src/db/migrate.ts', 'apps/backend/src/db/migrations/'],
+    description:
+      'Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base y rechazo del esquema incompleto.',
+  },
+  'tests/integration/db/pokemon_repository_postgres.test.ts': {
+    type: 'Integration',
+    targetDomain: 'Persistencia / Repositorio de Pokémon',
+    targetArtifacts: ['apps/backend/src/services/pokemon.repository.ts', 'apps/backend/src/services/postgres.ts'],
+    description:
+      'Ejecuta contra un PostgreSQL real la siembra, el listado paginado con filtros, el upsert, el borrado, la secuencia de IDs, jsonb_set de megaevoluciones y clasificación, y el fail-closed sin conexión.',
+  },
+  'tests/integration/db/redis_cache.test.ts': {
+    type: 'Integration',
+    targetDomain: 'Caché / Coordinación con Redis',
+    targetArtifacts: ['apps/backend/src/services/cache.ts'],
+    description:
+      'Ejecuta contra un Redis real la revocación de jti con TTL, el limitador distribuido atómico, la invalidación de caché por versión y la degradación sin conexión.',
+  },
+  'tests/integration/db/repository_cache.test.ts': {
+    type: 'Integration',
+    targetDomain: 'Persistencia / Caché de Lectura',
+    targetArtifacts: ['apps/backend/src/services/pokemon.repository.ts', 'apps/backend/src/services/cache.ts'],
+    description:
+      'Comprueba con PostgreSQL y Redis reales que listados e ítems se sirven de la caché, que guardar o borrar la invalida y que, sin Redis, el repositorio sigue leyendo de PostgreSQL.',
+  },
   'tests/integration/routes_auth.test.ts': {
     type: 'Integration',
     targetDomain: 'API / Sesión de Administración',
@@ -225,6 +253,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetArtifacts: ['apps/backend/server.ts'],
     description:
       'Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002).',
+  },
+  'tests/ci/db_integration_services.test.ts': {
+    type: 'Contract / CI',
+    targetDomain: 'Servicios de las Pruebas de Base de Datos en CI',
+    targetArtifacts: ['.github/workflows/ci.yaml', 'docker-compose.yaml'],
+    description:
+      'Verifica que los jobs que ejecutan la suite definan POKEDEX_TEST_*, levanten PostgreSQL y Redis con healthcheck y usen las imágenes por digest del compose, para que las suites de base de datos no se omitan en silencio.',
   },
   'tests/ci/workflow_run_parity.test.ts': {
     type: 'Contract / CI',
