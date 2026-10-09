@@ -19,7 +19,7 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'Backend / Seguridad de IA',
     targetArtifacts: [`${BE}/validation/ai-security.ts`, `${BE}/services/ai-circuit-breaker.ts`],
     description:
-      'Verifica la sanitización del HTML generado por IA (scripts, iframes, pseudo-protocolos) y el comportamiento del circuit breaker.',
+      'Verifica la sanitización del HTML y del prompt de IA, y el circuit breaker y el timeout con reloj simulado.',
   },
   'tests/unit/backend_lifecycle.test.ts': {
     type: 'Unit',

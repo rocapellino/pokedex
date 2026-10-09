@@ -107,9 +107,9 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/security/app/pentest.test.ts': {
     type: 'Security / Pentest',
     targetDomain: 'Pruebas de Penetración de API',
-    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/routes/'],
+    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/services/auth.ts', 'apps/backend/src/routes/'],
     description:
-      'Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad.',
+      'Reproduce escenarios de ataque: falsificación y replay de sesiones, fail-closed ante caída de Redis, rate limiting, prototype pollution, mass assignment, XSS, SSRF y DoS por entrada.',
   },
   'tests/pr_template_governance.test.ts': {
     type: 'Contract / Governance',
@@ -134,10 +134,10 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   },
   'tests/security/app/security.test.ts': {
     type: 'Security / Application',
-    targetDomain: 'Seguridad Integral de Aplicación y Headers',
-    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/'],
+    targetDomain: 'Validación de Entrada de la API',
+    targetArtifacts: ['apps/backend/src/validation/pokemon.ts'],
     description:
-      'Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.',
+      'Verifica que validatePokemonPayload y validateImageUrl rechacen XSS, pseudo-protocolos, IPs privadas (anti-SSRF), campos desconocidos y valores fuera de rango.',
   },
   'tests/integration/routes_pokemons.test.ts': {
     type: 'Integration',
@@ -488,7 +488,26 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Servicio de Autenticación y Sesiones',
     targetArtifacts: ['apps/backend/src/services/auth.ts'],
     description:
-      'Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos.',
+      'Valida ciclo de vida de tokens HMAC-SHA256, expiración con reloj simulado, verificación de firma y límites del payload, revocación y fail-closed de secretos.',
+  },
+  'tests/unit/session_cookie.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Cookie de Sesión de Administración',
+    targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/auth.ts'],
+    description:
+      'Verifica la extracción del token desde la cookie y que la cookie emitida lleve HttpOnly, Secure, SameSite y Max-Age.',
+  },
+  'tests/unit/result.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Tipo Result Funcional',
+    targetArtifacts: ['apps/backend/src/utils/result.ts'],
+    description: 'Valida ok, err, tryCatch y fromPromise: desenvoltura, valor por defecto y transformación con map.',
+  },
+  'tests/unit/ai_cache_key.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Caché Semántica de IA',
+    targetArtifacts: ['apps/backend/src/services/ai.ts'],
+    description: 'Comprueba que getSemanticCacheKey normalice espacios y mayúsculas y distinga prompts distintos.',
   },
   'tests/unit/cache_service.test.ts': {
     type: 'Unit',

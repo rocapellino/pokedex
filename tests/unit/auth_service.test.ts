@@ -137,12 +137,15 @@ test('🔐 AuthService [Unit]: generateSessionToken genera tokens válidos con j
   assert.match(verification.payload?.jti || '', /^[a-f0-9]{32}$/);
 });
 
-test('🔐 AuthService [Unit]: verifySessionToken detecta expiración cronológica', async () => {
+test('🔐 AuthService [Unit]: verifySessionToken detecta expiración cronológica', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+
   // Token generado con TTL mínimo (10 milisegundos)
   const fastExpiring = generateSessionToken(10);
+  assert.equal(await verifySessionToken(fastExpiring.token), true, 'antes de expirar el token es válido');
 
-  // Esperar a que supere los 10ms
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  // Avanzar el reloj más allá de los 10ms
+  t.mock.timers.tick(20);
 
   const result = await verifySessionTokenDetailed(fastExpiring.token);
   assert.equal(result.valid, false);
@@ -189,7 +192,9 @@ test('🔐 AuthService [Unit]: ciclo completo de revocación local de sesión', 
   }
 });
 
-test('🔐 AuthService [Unit]: revokeSessionToken rechaza tokens apócrifos y optimiza tokens ya expirados', async () => {
+test('🔐 AuthService [Unit]: revokeSessionToken rechaza tokens apócrifos y optimiza tokens ya expirados', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+
   // 1. Token apócrifo
   const badRevoke = await revokeSessionTokenDetailed('token.falso');
   assert.equal(badRevoke.success, false);
@@ -199,7 +204,7 @@ test('🔐 AuthService [Unit]: revokeSessionToken rechaza tokens apócrifos y op
 
   // 2. Token ya expirado cronológicamente retorna success: true inmediatamente
   const expiredSession = generateSessionToken(5);
-  await new Promise((resolve) => setTimeout(resolve, 15));
+  t.mock.timers.tick(15);
 
   const expiredRevoke = await revokeSessionTokenDetailed(expiredSession.token);
   assert.deepEqual(expiredRevoke, { success: true });
@@ -235,5 +240,88 @@ test('🔐 AuthService [Unit]: Fail-Closed ante REDIS_URL configurado pero Redis
     } else {
       delete process.env.REDIS_URL;
     }
+  }
+});
+
+test('🔐 AuthService [Unit]: verifySessionToken rechaza un payload modificado que conserva la firma original', async () => {
+  const session = generateSessionToken();
+  const [, signature] = session.token.split('.');
+  const tamperedPayload = Buffer.from(
+    JSON.stringify({ role: 'admin', exp: Date.now() + 100000, jti: '0123456789abcdef' }),
+  ).toString('base64url');
+
+  assert.deepEqual(verifyTokenSignature(`${tamperedPayload}.${signature}`), {
+    valid: false,
+    reason: 'invalid_signature',
+  });
+  assert.equal(await verifySessionToken(`${tamperedPayload}.${signature}`), false);
+});
+
+test('🔐 AuthService [Unit]: verifySessionToken rechaza entradas malformadas, vacías o nulas sin lanzar', async () => {
+  assert.equal(await verifySessionToken(''), false);
+  assert.equal(await verifySessionToken('not-a-token'), false);
+  assert.equal(await verifySessionToken('header.payload.signature'), false);
+  assert.equal(await verifySessionToken(null as any), false);
+  assert.equal(await verifySessionToken(undefined as any), false);
+});
+
+test('🔐 AuthService [Unit]: verifyTokenSignature rechaza exp no numérico y jti de longitud excesiva', async () => {
+  const secret = getSessionSecret();
+  const sign = (payload: object) => {
+    const b64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const sig = crypto.createHmac('sha256', secret).update(b64).digest('base64url');
+    return `${b64}.${sig}`;
+  };
+  const validJti = '0123456789abcdef0123456789abcdef';
+
+  // JSON.stringify(Infinity) produce null: el exp deja de ser numérico
+  const infiniteExp = sign({ role: 'admin', exp: Infinity, jti: validJti });
+  assert.deepEqual(verifyTokenSignature(infiniteExp), { valid: false, reason: 'invalid_signature' });
+  assert.equal(await verifySessionToken(infiniteExp), false);
+
+  // Control positivo: el mismo payload con un exp válido sí se acepta
+  assert.equal(verifyTokenSignature(sign({ role: 'admin', exp: Date.now() + 60000, jti: validJti })).valid, true);
+
+  const hugeJti = sign({ role: 'admin', exp: Date.now() + 60000, jti: 'a'.repeat(256) });
+  assert.deepEqual(verifyTokenSignature(hugeJti), { valid: false, reason: 'invalid_signature' });
+  assert.equal(await verifySessionToken(hugeJti), false);
+});
+
+test('🔐 AuthService [Unit]: en producción ADMIN_API_KEY no sustituye a ADMIN_SESSION_SECRET', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSecret = process.env.ADMIN_SESSION_SECRET;
+  const originalKey = process.env.ADMIN_API_KEY;
+
+  try {
+    delete process.env.ADMIN_SESSION_SECRET;
+    process.env.ADMIN_API_KEY = 'super-secret-api-key-only';
+    process.env.NODE_ENV = 'production';
+
+    assert.throws(() => getSessionSecret(), /Configuración de seguridad crítica faltante/);
+  } finally {
+    process.env.NODE_ENV = originalEnv;
+    if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
+    else delete process.env.ADMIN_SESSION_SECRET;
+    if (originalKey) process.env.ADMIN_API_KEY = originalKey;
+    else delete process.env.ADMIN_API_KEY;
+  }
+});
+
+test('🔐 AuthService [Unit]: sin secreto configurado la clave efímera es de 32 bytes hex y estable en el proceso', () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSecret = process.env.ADMIN_SESSION_SECRET;
+
+  try {
+    delete process.env.ADMIN_SESSION_SECRET;
+    process.env.NODE_ENV = 'development';
+
+    const first = getSessionSecret();
+    assert.match(first, /^[a-f0-9]{64}$/);
+    assert.equal(getSessionSecret(), first, 'el mismo secreto durante el ciclo de vida del proceso');
+    assert.notEqual(first, 'pokedex-internal-hmac-session-secret-entropy');
+  } finally {
+    process.env.NODE_ENV = originalEnv;
+    if (originalSecret) process.env.ADMIN_SESSION_SECRET = originalSecret;
+    else delete process.env.ADMIN_SESSION_SECRET;
   }
 });
