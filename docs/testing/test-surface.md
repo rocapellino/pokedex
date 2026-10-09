@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 59 |
 | **Total de Casos de Prueba Identificados** | **1012** |
-| **Líneas de Código de Pruebas** | 26.831 |
-| **Tamaño Total de la Suite** | 1131.0 KB |
+| **Líneas de Código de Pruebas** | 26.840 |
+| **Tamaño Total de la Suite** | 1131.4 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-09T16:16:19.189Z |
+| **Última Sincronización** | 2026-10-09T16:30:36.138Z |
 
 ---
 
@@ -158,7 +158,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/gitops/seed_job_contract.test.ts`](../../tests/gitops/seed_job_contract.test.ts) | `gitops` | Contract / GitOps | `node:test (tsx)` | **3** | 70 | Comprueba que pre-prod siembre el catálogo completo con la imagen de la API, después de la sincronización, y que los demás entornos no siembren por defecto. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:gitops` |
 | [`tests/helpers/argocd.ts`](../../tests/helpers/argocd.ts) | `helpers` | Helper | `none` | **0** | 18 | Helper parseDirectoryExclude para leer las exclusiones de directorio de una Application de ArgoCD. | *(Helper)* |
 | [`tests/helpers/docs-portal.ts`](../../tests/helpers/docs-portal.ts) | `helpers` | Helper | `none` | **0** | 25 | Helper assertDocsPortalLinksAdrIndex: exige que el portal enlace el índice docs/decisions/README.md en lugar de citar rangos numéricos de ADRs. | *(Helper)* |
-| [`tests/helpers/http-app.ts`](../../tests/helpers/http-app.ts) | `helpers` | Helper | `none` | **0** | 68 | Levanta la app Express en un puerto efímero y ofrece api() con IP de cliente simulada para que cada test tenga su propio cupo en los limitadores de tasa. | *(Helper)* |
+| [`tests/helpers/http-app.ts`](../../tests/helpers/http-app.ts) | `helpers` | Helper | `none` | **0** | 77 | Levanta la app Express en un puerto efímero y ofrece api() con IP de cliente simulada para que cada test tenga su propio cupo en los limitadores de tasa. | *(Helper)* |
 | [`tests/helpers/repo.ts`](../../tests/helpers/repo.ts) | `helpers` | Helper | `none` | **0** | 8 | Exporta ROOT_DIR resuelto desde la ubicación del helper, para que las suites no dependan del directorio de trabajo. | *(Helper)* |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 30 | Helper getCompleteTaskfileContent: concatena el Taskfile raíz y los submódulos de taskfiles/ de forma determinista. | *(Helper)* |
 | [`tests/integration/concurrency.test.ts`](../../tests/integration/concurrency.test.ts) | `integration` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |

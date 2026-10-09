@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T16:16:19.189Z",
+  "generatedAt": "2026-10-09T16:30:36.138Z",
   "summary": {
     "totalFiles": 196,
     "testFiles": 136,
     "helperFiles": 59,
     "performanceScripts": 1,
     "totalTestCases": 1012,
-    "totalLines": 26831,
-    "totalSizeBytes": 1158175,
+    "totalLines": 26840,
+    "totalSizeBytes": 1158509,
     "suitesCount": 10
   },
   "suites": [
@@ -4818,9 +4818,9 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 2222,
-      "lineCount": 68,
-      "sha256": "34cae605be0ee4e5f4752f37b4050daf55e7a2c58c16452d005835c826d61232",
+      "sizeBytes": 2586,
+      "lineCount": 77,
+      "sha256": "7021062fbff620ea73f36f72f43cbc802b17d2a040cd993b964d929ff9f1089e",
       "targetDomain": "Pruebas de Integración HTTP",
       "targetArtifacts": [
         "apps/backend/server.ts"
@@ -4955,9 +4955,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 29,
-      "sizeBytes": 6742,
+      "sizeBytes": 6724,
       "lineCount": 153,
-      "sha256": "d622ba02cde1c1232646e0600d68e0b98ff9308ae4df9b87f11e60dd79b4edce",
+      "sha256": "974abd388dd266f6e79428db7196e9c17c38b0d55114de519a98697c583bbcd4",
       "targetDomain": "API / Endpoints de IA",
       "targetArtifacts": [
         "apps/backend/src/routes/ai.ts",
@@ -5030,9 +5030,9 @@
       "testCount": 10,
       "describeCount": 0,
       "assertionCountEst": 35,
-      "sizeBytes": 6901,
+      "sizeBytes": 6897,
       "lineCount": 160,
-      "sha256": "dc738bc846303f0f7c201cf3c7b72677b9b1882f0befe6f86fb16a1969c70b74",
+      "sha256": "765fc449645569587876e8f97cc80a0dc54e92f0f37b526a39f76b8444a5f810",
       "targetDomain": "API / Sesión de Administración",
       "targetArtifacts": [
         "apps/backend/src/routes/auth.ts",
@@ -5148,9 +5148,9 @@
       "testCount": 11,
       "describeCount": 0,
       "assertionCountEst": 59,
-      "sizeBytes": 9759,
+      "sizeBytes": 9751,
       "lineCount": 235,
-      "sha256": "bbdb64cbc239338cdb5b6d70060bc0a4e84672c1194be3ba1cf7516077a2d4eb",
+      "sha256": "b3c17504d27657b0331108428ea60b25d4963bdac2587a15b43396e355252b9e",
       "targetDomain": "API / CRUD de Pokémon",
       "targetArtifacts": [
         "apps/backend/src/routes/pokemons.ts",
