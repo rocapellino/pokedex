@@ -98,7 +98,8 @@ test('🛡️ AI Security [Unit]: AIMockupResponseSchema valida esquemas conform
   assert.equal(failResult.success, false);
 });
 
-test('🛡️ AI Resiliencia [Unit]: AICircuitBreaker transiciona estados correctamente', async () => {
+test('🛡️ AI Resiliencia [Unit]: AICircuitBreaker transiciona estados correctamente', (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
   const breaker = new AICircuitBreaker({
     failureThreshold: 2,
     cooldownMs: 50,
@@ -118,8 +119,8 @@ test('🛡️ AI Resiliencia [Unit]: AICircuitBreaker transiciona estados correc
   assert.equal(breaker.isOpen(), true);
   assert.equal(breaker.canExecute(), false);
 
-  // Esperar cooldown para alcanzar HALF_OPEN
-  await new Promise((resolve) => setTimeout(resolve, 60));
+  // Avanzar el reloj más allá del cooldown para alcanzar HALF_OPEN
+  t.mock.timers.tick(60);
   assert.equal(breaker.getState(), 'HALF_OPEN');
   assert.equal(breaker.canExecute(), true);
 
@@ -135,17 +136,17 @@ test('🛡️ AI Resiliencia [Unit]: AICircuitBreaker transiciona estados correc
   assert.equal(breaker.getFailureCount(), 0);
 });
 
-test('🛡️ AI Resiliencia [Unit]: withTimeout resuelve antes de expiración o lanza error de timeout', async () => {
-  // Caso de resolución exitosa
-  const fastPromise = new Promise<string>((resolve) => setTimeout(() => resolve('ok'), 20));
-  const res = await withTimeout(fastPromise, 100);
-  assert.equal(res, 'ok');
+test('🛡️ AI Resiliencia [Unit]: withTimeout resuelve antes de expiración o lanza error de timeout', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
 
-  // Caso de timeout alcanzado
-  const slowPromise = new Promise<string>((resolve) => setTimeout(() => resolve('too-late'), 150));
-  await assert.rejects(async () => {
-    await withTimeout(slowPromise, 50);
-  }, /Timeout de servicio IA/);
+  // Caso de resolución exitosa: la promesa gana la carrera y no queda el temporizador pendiente
+  assert.equal(await withTimeout(Promise.resolve('ok'), 100), 'ok');
+
+  // Caso de timeout alcanzado: la promesa nunca resuelve y el reloj avanza hasta el límite
+  const never = new Promise<string>(() => {});
+  const pending = withTimeout(never, 50);
+  t.mock.timers.tick(50);
+  await assert.rejects(pending, /Timeout de servicio IA/);
 });
 
 test('🛡️ escapeHtml: neutraliza los cinco caracteres con significado en HTML y conserva el resto', () => {

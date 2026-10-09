@@ -2170,6 +2170,7 @@
       "targetDomain": "Pruebas de Penetración de API",
       "targetArtifacts": [
         "apps/backend/server.ts",
+        "apps/backend/src/services/auth.ts",
         "apps/backend/src/routes/"
       ],
       "npmCommands": [
@@ -2181,7 +2182,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Ejecuta batería exhaustiva de vectores de ataque: SQLi, NoSQLi, path traversal, XSS, HTTP parameter pollution y headers de seguridad."
+      "description": "Reproduce escenarios de ataque: falsificación y replay de sesiones, fail-closed ante caída de Redis, rate limiting, prototype pollution, mass assignment, XSS, SSRF y DoS por entrada."
     },
     {
       "path": "tests/security/app/security.test.ts",
@@ -2190,10 +2191,9 @@
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "status": "ACTIVE",
-      "targetDomain": "Seguridad Integral de Aplicación y Headers",
+      "targetDomain": "Validación de Entrada de la API",
       "targetArtifacts": [
-        "apps/backend/server.ts",
-        "apps/backend/src/middleware/"
+        "apps/backend/src/validation/pokemon.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -2204,7 +2204,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores."
+      "description": "Verifica que validatePokemonPayload y validateImageUrl rechacen XSS, pseudo-protocolos, IPs privadas (anti-SSRF), campos desconocidos y valores fuera de rango."
     },
     {
       "path": "tests/security/docs_governance_gate.test.ts",
@@ -2850,6 +2850,28 @@
       "description": "Verifica la lista blanca de IP de administración: coincidencia exacta y por CIDR (IPv4 e IPv6), normalización de IPv4 mapeada y loopback siempre permitido."
     },
     {
+      "path": "tests/unit/ai_cache_key.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Caché Semántica de IA",
+      "targetArtifacts": [
+        "apps/backend/src/services/ai.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba que getSemanticCacheKey normalice espacios y mayúsculas y distinga prompts distintos."
+    },
+    {
       "path": "tests/unit/ai_security.test.ts",
       "suite": "unit",
       "type": "Unit",
@@ -2870,7 +2892,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica la sanitización del HTML generado por IA (scripts, iframes, pseudo-protocolos) y el comportamiento del circuit breaker."
+      "description": "Verifica la sanitización del HTML y del prompt de IA, y el circuit breaker y el timeout con reloj simulado."
     },
     {
       "path": "tests/unit/auth_service.test.ts",
@@ -2892,7 +2914,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida ciclo de vida de tokens HMAC-SHA256, expiración, verificación de firma, revocación en memoria y fail-closed de secretos."
+      "description": "Valida ciclo de vida de tokens HMAC-SHA256, expiración con reloj simulado, verificación de firma y límites del payload, revocación y fail-closed de secretos."
     },
     {
       "path": "tests/unit/backend_lifecycle.test.ts",
@@ -3350,6 +3372,28 @@
       "description": "Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex."
     },
     {
+      "path": "tests/unit/result.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Tipo Result Funcional",
+      "targetArtifacts": [
+        "apps/backend/src/utils/result.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida ok, err, tryCatch y fromPromise: desenvoltura, valor por defecto y transformación con map."
+    },
+    {
       "path": "tests/unit/seed_catalog.test.ts",
       "suite": "unit",
       "type": "Unit",
@@ -3371,6 +3415,29 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Verifica SEED_DATASET (muestra o catálogo completo, valor desconocido falla) y que el catálogo completo tenga IDs contiguos y supere el validador del backend."
+    },
+    {
+      "path": "tests/unit/session_cookie.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Cookie de Sesión de Administración",
+      "targetArtifacts": [
+        "apps/backend/server.ts",
+        "apps/backend/src/middleware/auth.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica la extracción del token desde la cookie y que la cookie emitida lleve HttpOnly, Secure, SameSite y Max-Age."
     },
     {
       "path": "tests/unit/startup_env_check.test.ts",
