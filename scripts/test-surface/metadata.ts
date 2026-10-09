@@ -313,7 +313,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Hardening de Host, Redes y Ansible Baseline',
     targetArtifacts: ['infra/ansible/'],
     description:
-      'Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas.',
+      'Verifica sobre YAML parseado el baseline de Ansible: tareas y roles sin ignore_errors, UFW con deny por defecto y orígenes restringidos, red del clúster contenida en la de gestión, política SSH accept-new, ansible_user por host alineado con los LXC, inventario sin hosts fantasma ni IPs repetidas y colecciones fijadas a versión exacta.',
   },
   'tests/security/docs_portal_integrity.test.ts': {
     type: 'Contract / Docs',
