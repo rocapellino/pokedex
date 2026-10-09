@@ -248,14 +248,6 @@ test('🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptio
     'docs/README.md debe enlazar ADR-014',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // Validar que los 14 ADRs existen físicamente en disco
-  for (let i = 1; i <= 14; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz', () => {
@@ -306,14 +298,6 @@ test('🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, 
     helmValuesContent.includes('terminationGracePeriodSeconds: 30'),
     'values.yaml debe fijar terminationGracePeriodSeconds: 30',
   );
-
-  // Validar que los 15 ADRs existen físicamente en disco
-  for (let i = 1; i <= 15; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault', () => {
@@ -402,14 +386,6 @@ test('🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS 
     'docs/README.md debe enlazar ADR-017',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // 8. Los 17 ADRs existen físicamente en disco
-  for (let i = 1; i <= 17; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo', () => {

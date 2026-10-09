@@ -56,14 +56,6 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
     'docs/README.md debe enlazar ADR-009',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // Validar que los 9 ADRs existen físicamente en disco
-  for (let i = 1; i <= 9; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed', () => {
@@ -109,14 +101,6 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
     'docs/README.md debe enlazar ADR-010',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // Validar que los 10 ADRs existen físicamente en disco
-  for (let i = 1; i <= 10; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)', () => {
@@ -169,12 +153,4 @@ test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBounc
     'docs/README.md debe enlazar ADR-011',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // Validar que los 11 ADRs existen físicamente en disco
-  for (let i = 1; i <= 11; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });

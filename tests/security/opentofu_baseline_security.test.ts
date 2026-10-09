@@ -312,13 +312,6 @@ test('🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de c
     auditContent.includes('Implementado'),
     'DEVSECOPS_AUDIT.md debe marcar como Implementado la gestión de estados IaC',
   );
-
-  for (let i = 1; i <= 12; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)', () => {

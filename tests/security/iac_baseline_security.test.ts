@@ -263,20 +263,6 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
     decisionsReadmeContent.includes('ADR-026'),
     'docs/decisions/README.md debe registrar el histórico de ADR-026',
   );
-
-  // 9. Los ADRs activos en docs/decisions/ coinciden exactamente con el catálogo oficial
-  const decisionFiles = fs
-    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
-    .filter((f: string) => f.startsWith('ADR-'));
-  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
-  for (const adrFile of decisionFiles) {
-    const adrNumMatch = adrFile.match(/^ADR-(\d{3})/);
-    assert.ok(adrNumMatch, `${adrFile} debe tener formato canónico ADR-XXX`);
-    assert.ok(
-      decisionsReadmeContent.includes(adrFile),
-      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
-    );
-  }
 });
 
 test('🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)', () => {

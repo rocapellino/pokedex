@@ -221,6 +221,13 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows.',
   },
+  'tests/security/adr_registry_contract.test.ts': {
+    type: 'Contract / Architecture',
+    targetDomain: 'Conformidad ADR / Registro',
+    targetArtifacts: ['docs/decisions/'],
+    description:
+      'Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados) y que cada ADR está indexado en docs/decisions/README.md.',
+  },
   'tests/security/adr_observability_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / Observabilidad',
