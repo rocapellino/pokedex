@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { runHelm } from '../../scripts/lib/helm.js';
 import yaml from 'js-yaml';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 
@@ -199,10 +200,17 @@ test('🛡️ Disaster Recovery: Backup y Restore Verification renderizan Persis
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
 
   // 1. Validar renderizado de backup-cronjob.yaml y backup-restore-verify-cronjob.yaml
-  const rendered = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-cronjob.yaml -s templates/backup-restore-verify-cronjob.yaml`,
-    { encoding: 'utf-8' },
-  );
+  const rendered = runHelm([
+    'template',
+    'pokedex',
+    chartPath,
+    '-f',
+    valuesProdPath,
+    '-s',
+    'templates/backup-cronjob.yaml',
+    '-s',
+    'templates/backup-restore-verify-cronjob.yaml',
+  ]);
 
   assert.match(rendered, /kind:\s*PersistentVolumeClaim/, 'Debe generar el recurso PersistentVolumeClaim para backup');
   assert.match(rendered, /name:\s*pokedex-backup-pvc/, 'El PVC de backup debe llamarse pokedex-backup-pvc');
@@ -288,10 +296,15 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
 
   // Renderizar con Helm usando values.prod.yaml
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
-  const rendered = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/backup-gdrive-cronjob.yaml`,
-    { encoding: 'utf-8' },
-  );
+  const rendered = runHelm([
+    'template',
+    'pokedex',
+    chartPath,
+    '-f',
+    valuesProdPath,
+    '-s',
+    'templates/backup-gdrive-cronjob.yaml',
+  ]);
 
   // 1. Validar CronJob y Componentes
   assert.match(rendered, /kind:\s*CronJob/, 'Debe generar el recurso CronJob');
@@ -342,10 +355,17 @@ test('🛡️ Disaster Recovery: backup-gdrive-cronjob.yaml implementa puente K8
   assert.match(rendered, /accounts\.google\.com/, 'Debe permitir endpoint de auth accounts.google.com');
 
   // Validar fallback en clústeres sin Cilium (Flannel / Calico básico con Anti-SSRF)
-  const renderedNoCilium = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" --set ciliumNetworkPolicy.enabled=false -s templates/backup-gdrive-cronjob.yaml`,
-    { encoding: 'utf-8' },
-  );
+  const renderedNoCilium = runHelm([
+    'template',
+    'pokedex',
+    chartPath,
+    '-f',
+    valuesProdPath,
+    '--set',
+    'ciliumNetworkPolicy.enabled=false',
+    '-s',
+    'templates/backup-gdrive-cronjob.yaml',
+  ]);
   assert.ok(
     !renderedNoCilium.includes('kind: CiliumNetworkPolicy'),
     'No debe generar CiliumNetworkPolicy si ciliumNetworkPolicy.enabled=false',

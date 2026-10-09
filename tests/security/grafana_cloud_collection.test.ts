@@ -27,7 +27,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { isHelmAvailable, runHelm } from '../../scripts/lib/helm.js';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,14 +38,8 @@ const VALUES_PATH = path.join(ROOT_DIR, 'infra/monitoring/grafana-cloud-values.y
 const ALERTS_PATH = path.join(ROOT_DIR, 'infra/monitoring/alerts.yaml');
 const APP_VALUES_PATH = path.join(ROOT_DIR, 'infra/helm/pokedex/values.yaml');
 
-const HELM_AVAILABLE = (() => {
-  try {
-    execFileSync('helm', ['version', '--short'], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-})();
+// Fuera de CI, sin Helm ni Docker el render se omite; en CI no hay skip y runHelm falla de forma explicita.
+const HELM_SKIP = !isHelmAvailable() && process.env.CI !== 'true' && 'helm no disponible (ni local ni via Docker)';
 
 /** Valor de una clave del objeto DEFAULTS del script de despliegue. */
 function deployDefault(key: string): string {
@@ -60,38 +54,34 @@ let renderedCache: string | undefined;
 /** Renderiza el chart con la misma version y los mismos flags que el script. */
 function renderCollection(): string {
   if (renderedCache !== undefined) return renderedCache;
-  renderedCache = execFileSync(
-    'helm',
-    [
-      'template',
-      deployDefault('release'),
-      'k8s-monitoring',
-      '--repo',
-      'https://grafana.github.io/helm-charts',
-      '--version',
-      deployDefault('chartVersion'),
-      '--namespace',
-      deployDefault('namespace'),
-      '--values',
-      VALUES_PATH,
-      '--set',
-      'cluster.name=pokedex-k8s-cluster',
-      '--set',
-      'collectorCommon.alloy.remoteConfig.enabled=true',
-      '--set-string',
-      `collectorCommon.alloy.remoteConfig.url=${deployDefault('remoteConfig')}`,
-      '--set-string',
-      `collectorCommon.alloy.remoteConfig.auth.username=${deployDefault('username')}`,
-      // Credenciales ficticias: el render no las valida y el test no debe tocar secretos.
-      '--set-string',
-      'collectorCommon.alloy.remoteConfig.auth.password=ci-dummy-token',
-      '--set-string',
-      'destinations.grafana-cloud-metrics.auth.password=ci-dummy-token',
-      '--set-string',
-      'destinations.grafana-cloud-logs.auth.password=ci-dummy-token',
-    ],
-    { encoding: 'utf-8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] },
-  );
+  renderedCache = runHelm([
+    'template',
+    deployDefault('release'),
+    'k8s-monitoring',
+    '--repo',
+    'https://grafana.github.io/helm-charts',
+    '--version',
+    deployDefault('chartVersion'),
+    '--namespace',
+    deployDefault('namespace'),
+    '--values',
+    VALUES_PATH,
+    '--set',
+    'cluster.name=pokedex-k8s-cluster',
+    '--set',
+    'collectorCommon.alloy.remoteConfig.enabled=true',
+    '--set-string',
+    `collectorCommon.alloy.remoteConfig.url=${deployDefault('remoteConfig')}`,
+    '--set-string',
+    `collectorCommon.alloy.remoteConfig.auth.username=${deployDefault('username')}`,
+    // Credenciales ficticias: el render no las valida y el test no debe tocar secretos.
+    '--set-string',
+    'collectorCommon.alloy.remoteConfig.auth.password=ci-dummy-token',
+    '--set-string',
+    'destinations.grafana-cloud-metrics.auth.password=ci-dummy-token',
+    '--set-string',
+    'destinations.grafana-cloud-logs.auth.password=ci-dummy-token',
+  ]);
   return renderedCache;
 }
 
@@ -104,7 +94,7 @@ function alertKubernetesMetrics(): string[] {
 }
 
 test('📡 OBS-002: el chart que instala el script renderiza con los values del repo', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   assert.doesNotThrow(
     () => renderCollection(),
@@ -113,7 +103,7 @@ test('📡 OBS-002: el chart que instala el script renderiza con los values del 
 });
 
 test('📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   for (const job of [
@@ -132,7 +122,7 @@ test('📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exp
 });
 
 test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   // Las allowlists se renderizan como reglas `keep` con un regex de nombres de metrica.
@@ -151,7 +141,7 @@ test('📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las a
 });
 
 test('📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const appValues = fs.readFileSync(APP_VALUES_PATH, 'utf-8');
   const endpoint = appValues.match(/otelEndpoint:\s*"http:\/\/([a-z0-9-]+)\.([a-z0-9-]+)\.svc[^:]*:(\d+)"/);
@@ -178,7 +168,7 @@ function renderedDocument(rendered: string, ...needles: string[]): string | unde
 }
 
 test('🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   const config = renderedDocument(rendered, 'prometheus.scrape "pokemon_api"');
@@ -200,7 +190,7 @@ test('🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y en
 });
 
 test('🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   const namespace = deployDefault('namespace');
@@ -228,7 +218,7 @@ test('🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su names
 });
 
 test('📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki desde el repo', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   const lokiWrite = renderedDocument(rendered, 'loki.write "grafana_cloud_logs"');
@@ -241,7 +231,7 @@ test('📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki des
 });
 
 test('📡 OBS-003: el receptor OTLP reenvía métricas a Prometheus y logs a Loki sin tocar los nombres de serie', {
-  skip: !HELM_AVAILABLE && 'helm no disponible',
+  skip: HELM_SKIP,
 }, () => {
   const rendered = renderCollection();
   const config = renderedDocument(rendered, 'otelcol.receiver.otlp "pokedex_otlp"');

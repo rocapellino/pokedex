@@ -28,7 +28,7 @@
  * ==============================================================================
  */
 
-import { execSync } from 'node:child_process';
+import { runHelm } from './lib/helm.js';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import yaml from 'js-yaml';
@@ -168,11 +168,7 @@ export function extractRenderedImage(
   let helmExecError: Error | null = null;
 
   try {
-    const helmCmd = `helm template pokedex "${resolvedChart}" -f "${resolvedValues}" -s ${spec.template}`;
-    helmOutput = execSync(helmCmd, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    helmOutput = runHelm(['template', 'pokedex', resolvedChart, '-f', resolvedValues, '-s', spec.template]);
   } catch (err: unknown) {
     helmExecError = err as Error;
     if (isStrict) {

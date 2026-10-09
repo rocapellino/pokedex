@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { runHelm } from '../../scripts/lib/helm.js';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 
@@ -168,10 +169,15 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const valuesProdPath = path.join(chartPath, 'values.prod.yaml');
 
-  const renderedCilium = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/cilium-network-policies.yaml`,
-    { encoding: 'utf-8' },
-  );
+  const renderedCilium = runHelm([
+    'template',
+    'pokedex',
+    chartPath,
+    '-f',
+    valuesProdPath,
+    '-s',
+    'templates/cilium-network-policies.yaml',
+  ]);
 
   assert.match(renderedCilium, /kind:\s*CiliumNetworkPolicy/, 'Debe generar recurso CiliumNetworkPolicy');
   assert.match(renderedCilium, /toFQDNs:/, 'Debe contener sección toFQDNs');
@@ -189,10 +195,15 @@ test('🛡️ Helm Rendering: CiliumNetworkPolicy emite allowlist estricta L7 eB
   assert.doesNotMatch(renderedCilium, /example\.com/, 'NO debe permitir example.com');
 
   // Verificar que en producción, el L4 permisivo 0.0.0.0/0 en network-policies.yaml está desactivado
-  const renderedL4 = execSync(
-    `helm template pokedex "${chartPath}" -f "${valuesProdPath}" -s templates/network-policies.yaml`,
-    { encoding: 'utf-8' },
-  );
+  const renderedL4 = runHelm([
+    'template',
+    'pokedex',
+    chartPath,
+    '-f',
+    valuesProdPath,
+    '-s',
+    'templates/network-policies.yaml',
+  ]);
 
   assert.doesNotMatch(
     renderedL4,
@@ -207,10 +218,7 @@ test('🛡️ GitOps Configuration: pre-prod con Flannel usa el fallback L4 anti
   // CRD inexistente en el clúster, y el sync de ArgoCD falla por completo.
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
   const valuesPath = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
-  const rendered = execSync(`helm template pokedex "${chartPath}" -f "${valuesPath}"`, {
-    encoding: 'utf-8',
-    maxBuffer: 32 * 1024 * 1024,
-  });
+  const rendered = runHelm(['template', 'pokedex', chartPath, '-f', valuesPath]);
 
   assert.doesNotMatch(
     rendered,

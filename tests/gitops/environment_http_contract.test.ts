@@ -14,7 +14,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { runHelm } from '../../scripts/lib/helm.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
@@ -64,11 +64,14 @@ function activeEnvironments(): Array<{ app: string; values: Values; valueFiles: 
 
 /** Anotaciones del Ingress tal como las renderiza Helm para el entorno. */
 function renderedIngressAnnotations(valueFiles: string[]): Record<string, string> {
-  const rendered = execFileSync(
-    'helm',
-    ['template', 'pokedex', CHART_DIR, ...valueFiles.flatMap((file) => ['-f', file]), '-s', 'templates/ingress.yaml'],
-    { encoding: 'utf8' },
-  );
+  const rendered = runHelm([
+    'template',
+    'pokedex',
+    CHART_DIR,
+    ...valueFiles.flatMap((file) => ['-f', file]),
+    '-s',
+    'templates/ingress.yaml',
+  ]);
   const ingress = yaml.loadAll(rendered).find((doc: any) => doc?.kind === 'Ingress') as Values | undefined;
   return ingress?.metadata?.annotations ?? {};
 }

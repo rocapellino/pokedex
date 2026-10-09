@@ -11,7 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { runHelm } from '../../scripts/lib/helm.js';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
@@ -23,9 +23,7 @@ const CI_SECRETS = [
   'secrets.adminSessionSecret=ci',
   'redis.auth.password=ci',
   'secrets.backupEncryptionKey=ci',
-]
-  .map((s) => `--set ${s}`)
-  .join(' ');
+].flatMap((s) => ['--set', s]);
 
 interface ExternalSecretDoc {
   kind: string;
@@ -34,10 +32,7 @@ interface ExternalSecretDoc {
 
 function renderPreprod(): ExternalSecretDoc[] {
   const values = path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml');
-  const out = execSync(`helm template pokedex "${CHART}" -f "${values}" ${CI_SECRETS}`, {
-    encoding: 'utf-8',
-    maxBuffer: 32 * 1024 * 1024,
-  });
+  const out = runHelm(['template', 'pokedex', CHART, '-f', values, ...CI_SECRETS]);
   return (yaml.loadAll(out) as ExternalSecretDoc[]).filter(Boolean);
 }
 
