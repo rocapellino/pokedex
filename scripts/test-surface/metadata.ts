@@ -430,7 +430,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Gobernanza de Scripts, Tooling y Dev DX',
     targetArtifacts: ['Taskfile.yaml', '.tool-versions', 'infra/k8s/kind-cluster.yaml'],
     description:
-      'Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables.',
+      'Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto.',
   },
   'tests/security/ignore_hygiene.test.ts': {
     type: 'Contract / Hygiene',

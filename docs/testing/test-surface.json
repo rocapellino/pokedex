@@ -1614,7 +1614,7 @@
       ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Helper getCompleteTaskfileContent: concatena el Taskfile raíz y los submódulos de taskfiles/ de forma determinista."
+      "description": "Helpers del Taskfile efectivo: getCompleteTaskfileContent concatena la raíz y los submódulos de taskfiles/; readTaskfiles y taskCommands devuelven las tareas parseadas y sus comandos, sin comentarios."
     },
     {
       "path": "tests/helpers/yaml.ts",
@@ -2604,7 +2604,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Suite de gobernanza Dev DX: valida que scripts imperativos estén retirados (ADR-020), delegación en Taskfile y versiones inmutables."
+      "description": "Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto."
     },
     {
       "path": "tests/security/ignore_hygiene.test.ts",
