@@ -1,0 +1,50 @@
+exports[`🧪 Paridad de estados: state-no-results produce la misma salida que la versión anterior 1`] = `
+
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3 class="empty-title">No se encontraron Pokémon</h3>
+        <p class="empty-subtitle">Prueba con otro término o quita alguno de los filtros activos.</p>
+        <button type="button" class="btn btn-primary mt-4" id="btnClearFiltersEmpty">Limpiar filtros</button>
+      </div>
+`;
+
+exports[`🧪 Paridad de estados: state-table-empty produce la misma salida que la versión anterior 1`] = `
+
+      <tr>
+        <td colspan="8" class="table-empty">
+          🔍 No se encontraron registros con los filtros seleccionados.
+        </td>
+      </tr>
+`;
+
+exports[`🧪 Paridad de estados: state-table-error produce la misma salida que la versión anterior 1`] = `
+
+        <tr>
+          <td colspan="8" class="table-empty">
+            <div class="text-danger text-2xl mb-2">⚠️</div>
+            <strong>Error de conexión con la API</strong>
+            <p class="text-muted">API caída</p>
+          </td>
+        </tr>
+`;
+
+exports[`🧪 Paridad de estados: state-table-error-special produce la misma salida que la versión anterior 1`] = `
+
+        <tr>
+          <td colspan="8" class="table-empty">
+            <div class="text-danger text-2xl mb-2">⚠️</div>
+            <strong>Error de conexión con la API</strong>
+            <p class="text-muted">&lt;b&gt;&quot;x&quot; &amp; &#039;y&#039;&lt;/b&gt;</p>
+          </td>
+        </tr>
+`;
+
+exports[`🧪 Paridad de estados: state-table-loading produce la misma salida que la versión anterior 1`] = `
+
+      <tr>
+        <td colspan="8" class="table-loading">
+          <div class="spinner"></div>
+          <span>Cargando registros desde PostgreSQL...</span>
+        </td>
+      </tr>
+`;
