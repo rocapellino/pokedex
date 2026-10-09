@@ -1362,7 +1362,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba que el árbol GitOps esté documentado, que cada entorno activo se renderice en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030)."
+      "description": "Comprueba sobre los manifiestos de ArgoCD, los values y los comandos del workflow parseados que cada entorno activo se renderice y valide en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030); el README se verifica como texto."
     },
     {
       "path": "tests/gitops/image_digest_promotion.test.ts",
@@ -1508,7 +1508,7 @@
       ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Helper parseDirectoryExclude para leer las exclusiones de directorio de una Application de ArgoCD."
+      "description": "Helper parseDirectoryExclude: lee del YAML parseado la exclusión de directorio de una Application de ArgoCD y devuelve vacío si no es un glob de una línea."
     },
     {
       "path": "tests/helpers/docs-portal.ts",
