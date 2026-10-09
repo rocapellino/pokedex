@@ -113,6 +113,13 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Renderiza el chart con helm template (local o en contenedor) para los perfiles default, prod y pre-prod, con caché, y expone los documentos y los workloads con su especificación de pod.',
   },
+  'tests/helpers/hcl.ts': {
+    type: 'Helper',
+    targetDomain: 'Lectura de HCL de OpenTofu',
+    targetArtifacts: ['infra/opentofu/'],
+    description:
+      'Lee archivos .tf y .tfvars como bloques y atributos, sin comentarios y respetando llaves anidadas e interpolaciones, para comprobar la IaC sobre su estructura y no sobre el texto.',
+  },
   'tests/helpers/yaml.ts': {
     type: 'Helper',
     targetDomain: 'Lectura de YAML del Repositorio',
