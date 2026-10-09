@@ -2,6 +2,10 @@
  * ==============================================================================
  * Test de Seguridad y Arquitectura: Ansible Baseline, Host Hardening & Redes
  * ==============================================================================
+ *
+ * Los playbooks, roles, inventarios y `requirements.yaml` se verifican parseados (tareas, módulos, variables y
+ * hosts efectivos), no como texto: una tarea comentada o un valor dentro de un comentario siguen "apareciendo" en
+ * el archivo sin que Ansible los ejecute.
  */
 
 import { test } from 'node:test';
@@ -10,52 +14,151 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml, workflowScripts } from '../helpers/yaml.js';
+
+const ANSIBLE = 'infra/ansible';
+const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
+
+type Task = Record<string, any>;
+
+/** Aplana tareas anidadas en `block` / `rescue` / `always`. */
+function flattenTasks(tasks: Task[] = []): Task[] {
+  return tasks.flatMap((task) => [
+    task,
+    ...flattenTasks(task.block),
+    ...flattenTasks(task.rescue),
+    ...flattenTasks(task.always),
+  ]);
+}
+
+/** Tareas de un rol (`roles/<rol>/tasks/main.yaml`). */
+const roleTasks = (role: string): Task[] => flattenTasks(readYaml<Task[]>(`${ANSIBLE}/roles/${role}/tasks/main.yaml`));
+
+/** Tareas de un playbook (incluye `pre_tasks`, `tasks`, `post_tasks` y `handlers` de cada play). */
+function playbookTasks(file: string): Task[] {
+  const plays = readYaml<Task[]>(`${ANSIBLE}/playbooks/${file}`);
+  return plays.flatMap((play) =>
+    flattenTasks([
+      ...(play.pre_tasks ?? []),
+      ...(play.tasks ?? []),
+      ...(play.post_tasks ?? []),
+      ...(play.handlers ?? []),
+    ]),
+  );
+}
+
+/** Playbooks y roles que forman el baseline del host (host_baseline.yaml + security_hardening.yaml y sus roles). */
+function baselineTasks(): Array<{ file: string; tasks: Task[] }> {
+  const roles = ['base_os', 'container_runtime', 'hardening', 'firewall'];
+  return [
+    ...['host_baseline.yaml', 'security_hardening.yaml'].map((f) => ({
+      file: `playbooks/${f}`,
+      tasks: playbookTasks(f),
+    })),
+    ...roles.map((role) => ({ file: `roles/${role}`, tasks: roleTasks(role) })),
+  ];
+}
+
+interface Host {
+  name: string;
+  groups: string[];
+  vars: Record<string, any>;
+}
+
+/** Hosts efectivos de un inventario YAML: variables propias, `all.vars` y grupos (con herencia por `children`). */
+function inventoryHosts(env: string): { hosts: Host[]; allVars: Record<string, any> } {
+  const inventory = readYaml<any>(`${ANSIBLE}/inventories/${env}/hosts.yaml`);
+  const groups: Record<string, any> = inventory.all.children ?? {};
+  const hosts = new Map<string, Host>();
+
+  const memberGroups = (group: string): string[] => {
+    const parents = Object.entries(groups)
+      .filter(([, def]) => def?.children && group in def.children)
+      .map(([name]) => name);
+    return [group, ...parents.flatMap(memberGroups)];
+  };
+  for (const [group, def] of Object.entries(groups)) {
+    for (const [name, vars] of Object.entries<any>(def?.hosts ?? {})) {
+      hosts.set(name, { name, groups: memberGroups(group), vars: { ...(vars ?? {}) } });
+    }
+  }
+  return { hosts: [...hosts.values()], allVars: inventory.all.vars ?? {} };
+}
+
+/** Lee un INI de Ansible ignorando comentarios (`#`, `;`). */
+function parseIni(text: string): Record<string, Record<string, string>> {
+  const result: Record<string, Record<string, string>> = {};
+  let section = '';
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#') || line.startsWith(';')) continue;
+    const header = line.match(/^\[(.+)]$/);
+    if (header) {
+      section = header[1];
+      result[section] = {};
+      continue;
+    }
+    const eq = line.indexOf('=');
+    if (eq > 0 && section) result[section][line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
+  }
+  return result;
+}
+
+const ipToInt = (ip: string) => ip.split('.').reduce((acc, octet) => acc * 256 + Number(octet), 0);
+
+/** `inner` está contenida en `outer` (ambas en notación CIDR IPv4). */
+function cidrContains(outer: string, inner: string): boolean {
+  const [outerIp, outerBits] = outer.split('/');
+  const [innerIp, innerBits] = inner.split('/');
+  if (Number(innerBits) < Number(outerBits)) return false;
+  const size = 2 ** (32 - Number(outerBits));
+  return Math.floor(ipToInt(innerIp) / size) === Math.floor(ipToInt(outerIp) / size);
+}
 
 test('🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*', () => {
   const filePath = path.join(ROOT_DIR, 'infra/ansible/deploy_excludes.txt');
   assert.ok(fs.existsSync(filePath), 'El archivo infra/ansible/deploy_excludes.txt debe existir');
-  const content = fs.readFileSync(filePath, 'utf-8');
-  assert.ok(content.includes('.env'), 'deploy_excludes.txt debe excluir .env');
-  assert.ok(content.includes('.env.*'), 'deploy_excludes.txt debe excluir .env.*');
+  const patterns = fs
+    .readFileSync(filePath, 'utf-8')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'));
+  assert.ok(patterns.includes('.env'), 'deploy_excludes.txt debe excluir .env');
+  assert.ok(patterns.includes('.env.*'), 'deploy_excludes.txt debe excluir .env.*');
 });
 
-test('🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados', () => {
-  const baselinePath = path.join(ROOT_DIR, 'infra/ansible/playbooks/host_baseline.yaml');
-  assert.ok(fs.existsSync(baselinePath), 'host_baseline.yaml debe existir');
-  const baseContent = fs.readFileSync(baselinePath, 'utf-8');
-  const roleBaseOs = path.join(ROOT_DIR, 'infra/ansible/roles/base_os/tasks/main.yaml');
-  const roleRuntime = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yaml');
-  const combinedContent =
-    baseContent +
-    (fs.existsSync(roleBaseOs) ? fs.readFileSync(roleBaseOs, 'utf-8') : '') +
-    (fs.existsSync(roleRuntime) ? fs.readFileSync(roleRuntime, 'utf-8') : '');
+test('🛡️ Deploy Security: host_baseline.yaml aplica base_os, container_runtime (condicional) y hardening, sin errores ignorados', () => {
+  const plays = readYaml<Task[]>(`${ANSIBLE}/playbooks/host_baseline.yaml`);
+  const play = plays.find((p) => p.roles);
+  assert.ok(play, 'host_baseline.yaml debe declarar un play con roles');
+  assert.equal(play.become, true, 'el baseline debe elevar privilegios con become');
 
-  assert.ok(combinedContent.includes('ufw'), 'host_baseline y sus roles deben configurar firewall ufw');
-  assert.ok(
-    !combinedContent.includes('ignore_errors: true'),
-    'host_baseline y sus roles no deben ocultar fallos con ignore_errors: true',
+  const roles = play.roles.map((r: any) => (typeof r === 'string' ? { role: r } : r));
+  const names = roles.map((r: any) => path.basename(r.role));
+  assert.deepEqual(names, ['base_os', 'container_runtime', 'hardening'], 'roles y orden del baseline');
+  const runtime = roles.find((r: any) => r.role.endsWith('container_runtime'));
+  assert.match(
+    String(runtime.when),
+    /install_docker/,
+    'el runtime de contenedores debe poder condicionarse con install_docker',
   );
   assert.ok(
-    combinedContent.includes('docker info'),
-    'host_baseline y sus roles deben verificar el funcionamiento de Docker',
-  );
-  assert.ok(
-    combinedContent.includes('install_docker'),
-    'host_baseline y sus roles deben permitir condicionar el runtime de contenedores',
+    plays.some((p) => p.import_playbook === 'security_hardening.yaml'),
+    'el baseline debe importar security_hardening.yaml',
   );
 
-  const setupNodesPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_nodes.yaml');
-  if (fs.existsSync(setupNodesPath)) {
-    const setupContent = fs.readFileSync(setupNodesPath, 'utf-8');
-    assert.ok(
-      !setupContent.includes('ignore_errors: true'),
-      'setup_nodes.yml no debe ocultar fallos con ignore_errors: true',
-    );
-    assert.ok(
-      setupContent.includes('docker info') || combinedContent.includes('docker info'),
-      'setup_nodes.yml y roles deben verificar Docker',
-    );
-  }
+  // Docker se verifica de forma efectiva: `docker info` como comando que falla si rc != 0.
+  const dockerInfo = roleTasks('container_runtime').find((t) => t['ansible.builtin.command'] === 'docker info');
+  assert.ok(dockerInfo, 'container_runtime debe verificar el funcionamiento de Docker con `docker info`');
+  assert.match(String(dockerInfo.failed_when), /rc\s*!=\s*0/);
+
+  // Ninguna tarea del baseline (playbooks y los cuatro roles que aplica) puede ocultar fallos.
+  const hidden = baselineTasks().flatMap(({ file, tasks }) =>
+    tasks
+      .filter((t) => t.ignore_errors === true || t.ignore_errors === 'true' || t.ignore_errors === 'yes')
+      .map((t) => `${file}: ${t.name}`),
+  );
+  assert.deepEqual(hidden, [], 'ninguna tarea del baseline puede usar ignore_errors: true');
 });
 
 test('🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción', () => {
@@ -86,169 +189,152 @@ test('🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernete
   assert.ok(!content.includes('deploy_proxmox.yml'), 'No debe referenciar deploy_proxmox.yml');
 });
 
-test('🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)', () => {
-  const playbookPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/security_hardening.yaml');
-  assert.ok(fs.existsSync(playbookPath), 'security_hardening.yaml debe existir');
-  const roleFirewall = path.join(ROOT_DIR, 'infra/ansible/roles/firewall/tasks/main.yaml');
-  const content =
-    fs.readFileSync(playbookPath, 'utf-8') +
-    (fs.existsSync(roleFirewall) ? fs.readFileSync(roleFirewall, 'utf-8') : '');
+test('🛡️ Ansible Security: el firewall deniega por defecto y restringe SSH (22) y puertos K8s/etcd a su subred (src)', () => {
+  const ufw = roleTasks('firewall')
+    .filter((t) => t['community.general.ufw'])
+    .map((t) => ({ name: t.name, rule: t['community.general.ufw'], when: String(t.when ?? ''), loop: t.loop }));
 
-  // SSH no debe estar abierto a any sin src
+  const policy = (direction: string) => ufw.find((t) => t.rule.direction === direction)?.rule.policy;
+  assert.equal(policy('incoming'), 'deny', 'la política de entrada por defecto debe ser deny');
+  assert.equal(policy('outgoing'), 'allow');
   assert.ok(
-    content.includes('src: "{{ mgmt_network }}"'),
-    'Regla SSH (22) debe restringir el origen a la red de administración',
+    ufw.some((t) => t.rule.state === 'enabled'),
+    'el firewall debe quedar habilitado',
   );
 
-  // Puertos Kubernetes deben estar restringidos al CIDR del clúster
-  assert.ok(
-    content.includes('src: "{{ k8s_network }}"'),
-    'Puertos K8s y etcd deben restringir origen a la red del clúster',
-  );
-  assert.ok(content.includes('6443'), 'Debe incluir puerto 6443 (API Server)');
-  assert.ok(content.includes('10250'), 'Debe incluir puerto 10250 (Kubelet)');
-  assert.ok(content.includes('2379:2380'), 'Debe incluir puerto 2379:2380 (etcd)');
+  // SSH (22) y el proxy administrativo (8080): solo desde la red de administración.
+  for (const port of ['22', '8080']) {
+    const rule = ufw.find((t) => t.rule.rule === 'allow' && String(t.rule.port) === port);
+    assert.ok(rule, `debe existir la regla del puerto ${port}`);
+    assert.equal(rule.rule.src, '{{ mgmt_network }}', `el puerto ${port} debe restringirse a la red de administración`);
+  }
 
-  // hosts.yaml debe proveer los defaults de red
-  const hostsPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
-  assert.ok(fs.existsSync(hostsPath), 'hosts.yaml de proxmox debe existir en inventories/');
-  const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
-  assert.ok(hostsContent.includes('mgmt_cidr:'), 'hosts.yaml debe definir mgmt_cidr');
-  assert.ok(hostsContent.includes('k8s_nodes_cidr:'), 'hosts.yaml debe definir k8s_nodes_cidr');
+  // Kubernetes (API, Kubelet, etcd): solo desde la red del clúster y solo en nodos del grupo k8s_cluster.
+  const k8s = ufw.find((t) => Array.isArray(t.loop) && t.loop.some((i: any) => i.port === '6443'));
+  assert.ok(k8s, 'debe existir la regla de puertos de Kubernetes');
+  assert.equal(k8s.rule.src, '{{ k8s_network }}', 'los puertos de Kubernetes deben restringirse a la red del clúster');
+  assert.deepEqual(
+    k8s.loop.map((i: any) => i.port),
+    ['6443', '10250', '2379:2380'],
+    'API Server, Kubelet y etcd',
+  );
+  assert.match(k8s.when, /k8s_cluster/);
+
+  // Invariante: la única exposición pública permitida son 80 y 443; todo otro allow lleva origen.
+  const open = ufw.filter((t) => t.rule.rule === 'allow' && !t.rule.src);
+  assert.deepEqual(
+    open.flatMap((t) => (t.rule.loop ?? t.loop ?? [t.rule.port]).map(String)).sort(),
+    ['443', '80'],
+    'solo HTTP y HTTPS pueden abrirse sin restringir el origen',
+  );
+
+  // security_hardening.yaml aplica el rol, y cada inventario provee las variables de red que el rol consume.
+  const hardening = readYaml<Task[]>(`${ANSIBLE}/playbooks/security_hardening.yaml`)[0];
+  assert.ok(
+    hardening.roles.some((r: any) => path.basename(r.role ?? r) === 'firewall'),
+    'security_hardening.yaml debe aplicar el rol firewall',
+  );
+  assert.equal(hardening.hosts, 'all');
+  const { allVars } = inventoryHosts('proxmox');
+  assert.ok(allVars.mgmt_cidr, 'hosts.yaml debe definir mgmt_cidr');
+  assert.ok(allVars.k8s_nodes_cidr, 'hosts.yaml debe definir k8s_nodes_cidr');
 });
 
 test('🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion', () => {
-  const firewallVars = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/roles/firewall/vars/main.yaml'), 'utf-8');
-
+  const firewallVars = readYaml<Record<string, string>>(`${ANSIBLE}/roles/firewall/vars/main.yaml`);
   assert.match(
-    firewallVars,
-    /k8s_nodes_cidr/,
-    'INFRA-009: el rol firewall debe usar la variable canonica `k8s_nodes_cidr`',
-  );
-
-  assert.match(
-    firewallVars,
+    firewallVars.k8s_network,
     /k8s_nodes_cidr\s*\|\s*default\(k8s_cluster_cidr/,
-    'INFRA-009: debe leerse `k8s_nodes_cidr` con fallback a `k8s_cluster_cidr`',
+    'INFRA-009: `k8s_network` debe leer `k8s_nodes_cidr` con fallback a `k8s_cluster_cidr`',
   );
+  assert.match(firewallVars.mgmt_network, /mgmt_cidr/);
 
-  for (const [label, relPath] of [
-    ['proxmox', 'infra/ansible/inventories/proxmox/hosts.yaml'],
-    ['lab', 'infra/ansible/inventories/lab/hosts.yaml'],
-  ] as const) {
-    const inv = fs.readFileSync(path.join(ROOT_DIR, relPath), 'utf-8');
-
-    assert.ok(inv.includes('k8s_nodes_cidr:'), `INFRA-009: el inventario ${label} debe declarar k8s_nodes_cidr`);
-
-    assert.ok(
-      !/k8s_nodes_cidr:\s*"10\.244\./.test(inv),
-      `INFRA-009: el inventario ${label} no debe usar el CIDR de pods de k3s (10.244.0.0/16) ` +
-        'como red de nodos; el API de Kubernetes se consume desde IPs de nodo.',
-    );
-
-    const mgmt = inv.match(/mgmt_cidr:\s*"([\d.]+\/\d+)"/)?.[1];
-    const nodes = inv.match(/k8s_nodes_cidr:\s*"([\d.]+\/\d+)"/)?.[1];
+  for (const label of ['proxmox', 'lab']) {
+    const { allVars } = inventoryHosts(label);
+    const { mgmt_cidr: mgmt, k8s_nodes_cidr: nodes } = allVars;
     assert.ok(mgmt, `INFRA-009: el inventario ${label} debe declarar mgmt_cidr`);
     assert.ok(nodes, `INFRA-009: el inventario ${label} debe declarar k8s_nodes_cidr`);
-
-    const toPrefix = (cidr: string) => cidr.split('/')[0].split('.').map(Number);
-    const mgmtPrefix = toPrefix(mgmt);
-    const nodesPrefix = toPrefix(nodes);
-
-    const contained = nodesPrefix.every((octet, i) => octet === mgmtPrefix[i]);
     assert.ok(
-      contained,
-      `INFRA-009: k8s_nodes_cidr (${nodes}) debe estar contenida en mgmt_cidr (${mgmt}) ` +
-        `en el inventario ${label}; de lo contrario la regla SSH sobre el puerto 22 ` +
-        'bloquearia el acceso a los propios nodos.',
+      !String(nodes).startsWith('10.244.'),
+      `INFRA-009: el inventario ${label} no debe usar el CIDR de pods de k3s (10.244.0.0/16) como red de nodos; ` +
+        'el API de Kubernetes se consume desde IPs de nodo.',
+    );
+    assert.ok(
+      cidrContains(mgmt, nodes),
+      `INFRA-009: k8s_nodes_cidr (${nodes}) debe estar contenida en mgmt_cidr (${mgmt}) en el inventario ${label}; ` +
+        'de lo contrario la regla SSH sobre el puerto 22 bloquearia el acceso a los propios nodos.',
     );
   }
 });
 
 test('🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias', () => {
-  const cfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
-  assert.ok(fs.existsSync(cfgPath), 'ansible.cfg debe existir');
+  const cfgPath = `${ANSIBLE}/ansible.cfg`;
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, cfgPath)), 'ansible.cfg debe existir');
+  const raw = read(cfgPath);
+  const cfg = parseIni(raw);
 
-  const cfg = fs.readFileSync(cfgPath, 'utf-8');
-
+  const sshArgs = cfg.ssh_connection?.ssh_args ?? '';
   assert.match(
-    cfg,
+    sshArgs,
     /StrictHostKeyChecking=accept-new/,
     'INFRA-002: ssh_args debe declarar StrictHostKeyChecking=accept-new (politica adoptada)',
   );
-
-  assert.ok(
-    !/^\s*host_key_checking\s*=/m.test(cfg),
+  assert.match(sshArgs, /ControlPersist=\d+s/, 'ssh_args debe conservar ControlPersist para el multiplexing');
+  assert.equal(
+    cfg.defaults?.host_key_checking,
+    undefined,
     'INFRA-002: no debe declararse `host_key_checking`; su semantica queda anulada por ' +
       'StrictHostKeyChecking=accept-new en ssh_args. Una sola fuente de verdad.',
   );
 
+  // La justificación es un comentario: por eso se busca en el texto crudo y no en el INI parseado.
   assert.ok(
-    /#.*(efimer|recrea|efímer|decisi|politica|política)/i.test(cfg),
+    /#.*(efimer|recrea|efímer|decisi|politica|política)/i.test(raw),
     'INFRA-002: la politica accept-new debe justificarse en un comentario ' +
       '(clúster efímero con recreación frecuente de nodos)',
   );
-
-  assert.match(cfg, /ControlPersist=\d+s/, 'ssh_args debe conservar ControlPersist para el multiplexing');
 });
 
-test('🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host', () => {
-  const ansibleCfgPath = path.join(ROOT_DIR, 'infra/ansible/ansible.cfg');
-  const proxmoxMainPath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf');
-  const proxmoxInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
-  const labInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/lab/hosts.yaml');
-
-  assert.ok(fs.existsSync(ansibleCfgPath), 'ansible.cfg debe existir');
-  assert.ok(fs.existsSync(proxmoxMainPath), 'main.tf de proxmox debe existir');
-
-  const cfg = fs.readFileSync(ansibleCfgPath, 'utf-8');
-  const mainTf = fs.readFileSync(proxmoxMainPath, 'utf-8');
-
-  const remoteUser = cfg.match(/^\s*remote_user\s*=\s*(\S+)\s*$/m)?.[1];
+test('🛡️ INFRA-003: cada host declara su ansible_user, alineado con lo que OpenTofu aprovisiona', () => {
+  const cfg = parseIni(read(`${ANSIBLE}/ansible.cfg`));
+  const remoteUser = cfg.defaults?.remote_user;
   assert.ok(remoteUser, 'ansible.cfg debe declarar remote_user de forma explícita');
 
   // ADR-030: el entorno proxmox solo crea LXC (cuenta root por SSH key); la única VM
   // con usuario de cloud-init es la del entorno lab.
-  assert.ok(!/proxmox_virtual_environment_vm/.test(mainTf), 'El entorno proxmox no debe aprovisionar VMs (ADR-030)');
-  const labMainTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/lab/main.tf'), 'utf-8');
+  const proxmoxMainTf = read('infra/opentofu/environments/proxmox/main.tf');
+  assert.ok(
+    !/proxmox_virtual_environment_vm/.test(proxmoxMainTf),
+    'El entorno proxmox no debe aprovisionar VMs (ADR-030)',
+  );
+  const labMainTf = read('infra/opentofu/environments/lab/main.tf');
   const vmUser = labMainTf.match(/resource\s+"proxmox_virtual_environment_vm"[\s\S]*?username\s*=\s*"([^"]+)"/)?.[1];
   assert.ok(vmUser, 'La VM de lab debe declarar `username` en initialization.user_account');
 
-  const proxmoxInv = fs.readFileSync(proxmoxInvPath, 'utf-8');
-  const labInv = fs.readFileSync(labInvPath, 'utf-8');
-
-  for (const [label, inv] of [
-    ['proxmox', proxmoxInv],
-    ['lab', labInv],
-  ] as const) {
-    const blocks = inv.split(/\n(?=\s{6,8}\S)/);
-    const hostsWithoutUser = blocks
-      .filter((b) => /ansible_host:\s*\S+/.test(b) && !/ansible_user:\s*\S+/.test(b))
-      .map((b) => b.match(/^\s*([A-Za-z0-9_-]+):\s*$/m)?.[1]?.trim() ?? '?');
+  for (const label of ['proxmox', 'lab']) {
+    const { hosts } = inventoryHosts(label);
+    assert.ok(hosts.length > 0, `el inventario ${label} debe declarar hosts`);
+    const withoutUser = hosts.filter((h) => !h.vars.ansible_user).map((h) => h.name);
     assert.deepEqual(
-      hostsWithoutUser,
+      withoutUser,
       [],
-      `INFRA-003: el inventario ${label} declara host(es) sin 'ansible_user': ${hostsWithoutUser.join(', ')}. ` +
+      `INFRA-003: el inventario ${label} declara host(es) sin 'ansible_user': ${withoutUser.join(', ')}. ` +
         'Ansible usaria el remote_user global, que puede no existir en el host.',
     );
+    // Los hosts de Proxmox son LXC: solo admiten la cuenta root, y ansible.cfg coincide.
+    const mismatched = hosts
+      .filter((h) => h.vars.ansible_user !== 'root')
+      .map((h) => `${h.name}=${h.vars.ansible_user}`);
+    assert.deepEqual(mismatched, [], `INFRA-003: los LXC de ${label} solo admiten la cuenta root`);
   }
-
-  assert.ok(
-    !/name:\s*pokedex-prod-01[\s\S]*?ansible_user:\s*devops/.test(proxmoxInv) || remoteUser === 'devops',
-    `INFRA-003: el host de la VM declara 'devops' pero ansible.cfg fija remote_user='${remoteUser}'; ` +
-      'Ansible no podrá conectar. Declarar ansible_user por host o alinear remote_user.',
-  );
+  assert.equal(remoteUser, 'root', 'remote_user global debe coincidir con la cuenta de los LXC');
 });
 
 test('🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas', () => {
-  const proxmoxInvPath = path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml');
-  const mainTf = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf');
+  const varsTf = read('infra/opentofu/environments/proxmox/variables.tf');
+  const tf = `${read('infra/opentofu/environments/proxmox/main.tf')}\n${varsTf}`;
 
-  const inv = fs.readFileSync(proxmoxInvPath, 'utf-8');
-  const varsTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'), 'utf-8');
-  const tf = `${fs.readFileSync(mainTf, 'utf-8')}\n${varsTf}`;
-
-  const ips = [...inv.matchAll(/ansible_host:\s*(\S+)/g)].map((m) => m[1]);
+  const ips = inventoryHosts('proxmox').hosts.map((h) => String(h.vars.ansible_host));
   const duplicates = ips.filter((ip, i) => ips.indexOf(ip) !== i);
   assert.deepEqual(
     duplicates,
@@ -281,44 +367,31 @@ test('🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasm
 });
 
 test('🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta', () => {
-  const reqPath = path.join(ROOT_DIR, 'infra/ansible/requirements.yaml');
-  assert.ok(fs.existsSync(reqPath), 'requirements.yaml debe existir');
-
-  const content = fs.readFileSync(reqPath, 'utf-8');
-
-  const openRanges = [...content.matchAll(/version:\s*["']?\s*(>=|>|~=|\*)["']?/g)];
-  assert.deepEqual(
-    openRanges.map((m) => m[0].trim()),
-    [],
-    'INFRA-001: requirements.yaml no debe declarar rangos abiertos; use `==` para fijar la version exacta',
+  const { collections } = readYaml<{ collections: Array<{ name: string; version?: string }> }>(
+    `${ANSIBLE}/requirements.yaml`,
   );
+  assert.ok(collections.length >= 2, 'Deben declararse al menos las 2 colecciones requeridas');
 
-  const collectionBlocks = content.split(/\n\s*-\s*name:/).slice(1);
-  assert.ok(collectionBlocks.length >= 2, 'Deben declararse al menos las 2 colecciones requeridas');
-
-  for (const block of collectionBlocks) {
-    const name = block.match(/^\s*([\w.]+)/)?.[1];
-    const version = block.match(/version:\s*["']?([\w.>=~*]+)["']?/)?.[1];
-    assert.ok(name, 'Cada bloque de coleccion debe declarar su nombre');
+  for (const { name, version } of collections) {
     assert.ok(version, `INFRA-001: la coleccion ${name} debe declarar version`);
     assert.ok(
-      /^\d+\.\d+\.\d+$/.test(version),
+      /^\d+\.\d+\.\d+$/.test(String(version)),
       `INFRA-001: la version de ${name} debe ser una version exacta (x.y.z), no '${version}'`,
     );
   }
+  const names = collections.map((c) => c.name);
+  assert.ok(names.includes('ansible.posix'), 'Debe declararse la coleccion ansible.posix');
+  assert.ok(names.includes('community.general'), 'Debe declararse la coleccion community.general');
 
-  assert.ok(content.includes('ansible.posix'), 'Debe declararse la coleccion ansible.posix');
-  assert.ok(content.includes('community.general'), 'Debe declararse la coleccion community.general');
-
-  const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
-  const coreVersion = ciWorkflow.match(/ansible-core==([\d.]+)/)?.[1];
+  const coreVersion = workflowScripts('.github/workflows/infra.yaml')
+    .join('\n')
+    .match(/ansible-core==([\d.]+)/)?.[1];
   assert.ok(coreVersion, 'El CI debe fijar ansible-core explicitamente');
 
   const coreMajorMinor = `${coreVersion.split('.')[0]}.${coreVersion.split('.')[1]}`;
-  const generalBlock = collectionBlocks.find((b) => b.includes('community.general'));
-  const generalMajor = generalBlock?.match(/version:\s*["']?(\d+)\./)?.[1];
+  const generalMajor = String(collections.find((c) => c.name === 'community.general')?.version).split('.')[0];
 
-  if (coreMajorMinor === '2.17' && generalMajor && Number(generalMajor) >= 13) {
+  if (coreMajorMinor === '2.17' && Number(generalMajor) >= 13) {
     assert.fail(
       `INFRA-001: community.general ${generalMajor}.x requiere ansible-core >=2.18.0, ` +
         `pero el CI fija ansible-core==${coreVersion}. La fijacion no es instalable.`,
@@ -327,14 +400,15 @@ test('🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una ve
 });
 
 test('🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos', () => {
-  const runtimeTaskPath = path.join(ROOT_DIR, 'infra/ansible/roles/container_runtime/tasks/main.yaml');
-  assert.ok(fs.existsSync(runtimeTaskPath), 'container_runtime/tasks/main.yaml debe existir');
-  const content = fs.readFileSync(runtimeTaskPath, 'utf-8');
-
-  assert.ok(content.includes('service_facts:'), 'Debe recolectar hechos de servicios del sistema');
-  assert.ok(content.includes('ansible.builtin.assert:'), 'Debe realizar aserción formal del servicio');
+  const tasks = roleTasks('container_runtime');
+  const factsIndex = tasks.findIndex((t) => 'ansible.builtin.service_facts' in t);
+  const assertIndex = tasks.findIndex((t) => t['ansible.builtin.assert']);
+  assert.ok(factsIndex >= 0, 'Debe recolectar hechos de servicios del sistema');
+  assert.ok(assertIndex > factsIndex, 'La aserción debe ejecutarse después de recolectar los hechos');
   assert.ok(
-    content.includes("ansible_facts.services['docker.service'].state == 'running'"),
+    tasks[assertIndex]['ansible.builtin.assert'].that.includes(
+      "ansible_facts.services['docker.service'].state == 'running'",
+    ),
     'Debe validar que docker.service está running',
   );
 });
@@ -363,29 +437,30 @@ test('🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de
     !fs.existsSync(path.join(ROOT_DIR, 'infra/ansible/inventory')),
     'No debe existir carpeta duplicada infra/ansible/inventory',
   );
-  const hostsYml = fs.readFileSync(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml'), 'utf-8');
-  assert.ok(hostsYml.includes('10.10.13.100'), 'hosts.yaml debe asignar k8s-master-01 en 10.10.13.100');
-  assert.ok(hostsYml.includes('10.10.13.0/24'), 'hosts.yaml debe definir CIDR en 10.10.13.0/24');
-  assert.ok(!hostsYml.includes('docker_compose_version'), 'hosts.yaml no debe contener vestigios de docker-compose');
+  const { hosts, allVars } = inventoryHosts('proxmox');
+  const master = hosts.find((h) => h.name === 'k8s-master-01');
+  assert.equal(master?.vars.ansible_host, '10.10.13.100', 'hosts.yaml debe asignar k8s-master-01 en 10.10.13.100');
+  assert.equal(allVars.mgmt_cidr, '10.10.13.0/24', 'hosts.yaml debe definir CIDR en 10.10.13.0/24');
+  assert.deepEqual(
+    Object.keys(allVars).filter((key) => key.includes('docker_compose')),
+    [],
+    'hosts.yaml no debe contener vestigios de docker-compose',
+  );
 
-  const setupK3sPath = path.join(ROOT_DIR, 'infra/ansible/playbooks/setup_k3s.yaml');
-  assert.ok(fs.existsSync(setupK3sPath), 'setup_k3s.yaml debe existir para automatizar la provisión de K3s');
-  const setupK3sContent = fs.readFileSync(setupK3sPath, 'utf-8');
+  const setupK3s = JSON.stringify(readYaml(`${ANSIBLE}/playbooks/setup_k3s.yaml`));
   assert.ok(
-    setupK3sContent.includes('--flannel-backend=none'),
+    setupK3s.includes('--flannel-backend=none'),
     'setup_k3s.yaml debe desacoplar Flannel con --flannel-backend=none',
   );
-  assert.ok(setupK3sContent.includes('cilium'), 'setup_k3s.yml debe desplegar Cilium CNI');
+  assert.ok(setupK3s.includes('cilium'), 'setup_k3s.yaml debe desplegar Cilium CNI');
 
-  const proxmoxValues = fs.readFileSync(
-    path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml'),
-    'utf-8',
-  );
-  assert.ok(
-    !proxmoxValues.includes('nginx.ingress.kubernetes.io/configuration-snippet: null'),
+  const proxmoxValues = readYaml('gitops/environments/proxmox-preprod/values.yaml');
+  assert.equal(
+    proxmoxValues.ingress.annotations?.['nginx.ingress.kubernetes.io/configuration-snippet'],
+    undefined,
     'proxmox/values.yaml no debe contener anotaciones huérfanas de Nginx',
   );
-  assert.ok(proxmoxValues.includes('className: "traefik"'), 'proxmox/values.yaml debe especificar className traefik');
+  assert.equal(proxmoxValues.ingress.className, 'traefik', 'proxmox/values.yaml debe especificar className traefik');
 
   const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
   assert.ok(taskfileContent.includes('k3s:setup:proxmox:'), 'Taskfile.yaml debe exponer k3s:setup:proxmox');

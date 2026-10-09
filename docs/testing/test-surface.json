@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T18:25:00.731Z",
+  "generatedAt": "2026-10-09T18:34:28.585Z",
   "summary": {
     "totalFiles": 154,
     "testFiles": 136,
     "helperFiles": 17,
     "performanceScripts": 1,
     "totalTestCases": 1012,
-    "totalLines": 26870,
-    "totalSizeBytes": 1159171,
+    "totalLines": 26945,
+    "totalSizeBytes": 1162142,
     "suitesCount": 10
   },
   "suites": [
@@ -4899,9 +4899,9 @@
       "testCount": 12,
       "describeCount": 0,
       "assertionCountEst": 80,
-      "sizeBytes": 19980,
-      "lineCount": 420,
-      "sha256": "bfef26289419b816fd014967b40d72022a4701244ae7888b0f883d5f2d2c759c",
+      "sizeBytes": 22951,
+      "lineCount": 495,
+      "sha256": "db1e74098e104b63135d929e7302fce206ea7f71b693ae8064254775c9b74ec3",
       "targetDomain": "Hardening de Host, Redes y Ansible Baseline",
       "targetArtifacts": [
         "infra/ansible/"
@@ -4915,56 +4915,56 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida hardening de hosts (UFW, SSH accept-new, usuario devops), inventarios sin colisiones y colecciones fijadas.",
+      "description": "Verifica sobre YAML parseado el baseline de Ansible: tareas y roles sin ignore_errors, UFW con deny por defecto y orígenes restringidos, red del clúster contenida en la de gestión, política SSH accept-new, ansible_user por host alineado con los LXC, inventario sin hosts fantasma ni IPs repetidas y colecciones fijadas a versión exacta.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🛡️ Deploy Security: infra/ansible/deploy_excludes.txt existe y excluye .env y .env.*",
-          "line": 14
+          "line": 118
         },
         {
-          "name": "🛡️ Deploy Security: Ansible host_baseline.yaml existe y configura hardening de host sin errores ignorados",
-          "line": 22
+          "name": "🛡️ Deploy Security: host_baseline.yaml aplica base_os, container_runtime (condicional) y hardening, sin errores ignorados",
+          "line": 130
         },
         {
           "name": "🛡️ Deploy Security: Playbooks legacy de Compose y docker-compose.prod.yml retirados de producción",
-          "line": 61
+          "line": 164
         },
         {
           "name": "🛡️ Runbook Policy: PROXMOX_DEPLOYMENT_GUIDE.md alineado con Kubernetes, GitOps y Ansible baseline",
-          "line": 78
+          "line": 181
         },
         {
-          "name": "🛡️ Ansible Security: security_hardening.yaml restringe SSH (22) y puertos K8s/etcd con subredes (src)",
-          "line": 89
+          "name": "🛡️ Ansible Security: el firewall deniega por defecto y restringe SSH (22) y puertos K8s/etcd a su subred (src)",
+          "line": 192
         },
         {
           "name": "🛡️ INFRA-009: la red del cluster debe ser una variable explicita y distinta de la de gestion",
-          "line": 120
-        },
-        {
-          "name": "🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias",
-          "line": 168
-        },
-        {
-          "name": "🛡️ INFRA-003: el usuario SSH de Ansible debe coincidir con el que crea OpenTofu en cada host",
-          "line": 195
-        },
-        {
-          "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
           "line": 243
         },
         {
+          "name": "🛡️ INFRA-002: la politica SSH debe ser unica y explicita, sin directivas contradictorias",
+          "line": 270
+        },
+        {
+          "name": "🛡️ INFRA-003: cada host declara su ansible_user, alineado con lo que OpenTofu aprovisiona",
+          "line": 298
+        },
+        {
+          "name": "🛡️ INFRA-012: el inventario de proxmox no debe declarar hosts fantasma ni IPs colisionadas",
+          "line": 333
+        },
+        {
           "name": "🛡️ INFRA-001: las collections de Ansible deben estar fijadas a una version exacta",
-          "line": 283
+          "line": 369
         },
         {
           "name": "🛡️ Ansible Idempotencia: container_runtime valida el estado activo del servicio sin falsos positivos",
-          "line": 329
+          "line": 402
         },
         {
           "name": "🔍 Coherencia Operacional E2E: Auditoría de 8 eslabones, alineación de red 10.10.13.0/24 y setup_k3s.yaml",
-          "line": 342
+          "line": 416
         }
       ]
     },
