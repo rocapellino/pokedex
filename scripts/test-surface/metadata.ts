@@ -454,7 +454,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Imágenes, SBOM y Firma',
     targetArtifacts: ['apps/backend/Dockerfile', '.github/workflows/ci.yaml', 'gitops/'],
     description:
-      'Comprueba etiquetas OCI, build-args, SBOM CycloneDX, firma Cosign, política Kyverno y digest pinning en GitOps.',
+      'Verifica sobre los pasos parseados de ci.yaml y los recursos de Kyverno y values: etiquetas OCI y build-args, SBOM CycloneDX, firma, atestación y verificación de Cosign por digest, SLSA provenance, políticas de firma (Audit y Enforce) y digest pinning con paridad entre entornos.',
   },
   'tests/security/supply_chain_tooling_pinning.test.ts': {
     type: 'Security / Supply Chain',

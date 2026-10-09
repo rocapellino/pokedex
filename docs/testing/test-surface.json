@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T18:43:02.236Z",
+  "generatedAt": "2026-10-09T18:50:25.275Z",
   "summary": {
     "totalFiles": 156,
     "testFiles": 137,
     "helperFiles": 18,
     "performanceScripts": 1,
     "totalTestCases": 1015,
-    "totalLines": 27150,
-    "totalSizeBytes": 1169443,
+    "totalLines": 27178,
+    "totalSizeBytes": 1171995,
     "suitesCount": 10
   },
   "suites": [
@@ -3953,16 +3953,16 @@
       "testCount": 0,
       "describeCount": 0,
       "assertionCountEst": 0,
-      "sizeBytes": 1385,
-      "lineCount": 31,
-      "sha256": "11f53d1e5c36eaaf027b0b4edf5464d55018ba2f9f13907e9f68399b80a047b5",
+      "sizeBytes": 2207,
+      "lineCount": 66,
+      "sha256": "415c7288b87f2d5082700c80b96cfdc0840e7053fdacc608f38526d0d8443fa0",
       "targetDomain": "Lectura de YAML del Repositorio",
       "targetArtifacts": [
         ".github/workflows/"
       ],
       "npmCommands": [],
       "ciWorkflows": [],
-      "description": "Lee y parsea YAML del repo y extrae los scripts run: de un workflow sin las líneas de shell comentadas, para comprobar estructura y no texto.",
+      "description": "Lee y parsea YAML del repo; expone los jobs y pasos de un workflow con los scripts run: sin las líneas de shell comentadas, para comprobar estructura y no texto.",
       "status": "HELPER",
       "testCases": []
     },
@@ -6767,10 +6767,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 57,
-      "sizeBytes": 14312,
-      "lineCount": 354,
-      "sha256": "a4b815a8044e515424ff60edc3b1f2bda2480ed14c5d3c77f35ee964fdafb71a",
+      "assertionCountEst": 59,
+      "sizeBytes": 16042,
+      "lineCount": 347,
+      "sha256": "c21774397648540924f677cabfb1117aabc7f01528ebeb36c5baa3120009d253",
       "targetDomain": "Imágenes, SBOM y Firma",
       "targetArtifacts": [
         "apps/backend/Dockerfile",
@@ -6786,44 +6786,44 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba etiquetas OCI, build-args, SBOM CycloneDX, firma Cosign, política Kyverno y digest pinning en GitOps.",
+      "description": "Verifica sobre los pasos parseados de ci.yaml y los recursos de Kyverno y values: etiquetas OCI y build-args, SBOM CycloneDX, firma, atestación y verificación de Cosign por digest, SLSA provenance, políticas de firma (Audit y Enforce) y digest pinning con paridad entre entornos.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build",
-          "line": 7
+          "line": 43
         },
         {
           "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
-          "line": 47
-        },
-        {
-          "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
           "line": 75
         },
         {
-          "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 113
+          "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
+          "line": 102
         },
         {
-          "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
+          "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
           "line": 126
         },
         {
+          "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
+          "line": 154
+        },
+        {
           "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 197
+          "line": 233
         },
         {
           "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 218
+          "line": 292
         },
         {
           "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 238
+          "line": 305
         },
         {
           "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 335
+          "line": 336
         }
       ]
     },
