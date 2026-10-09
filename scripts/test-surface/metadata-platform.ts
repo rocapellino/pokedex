@@ -57,7 +57,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'GitOps / Árbol y Entornos',
     targetArtifacts: ['gitops/', 'docs/architecture/'],
     description:
-      'Comprueba que el árbol GitOps esté documentado, que cada entorno activo se renderice en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030).',
+      'Comprueba sobre los manifiestos de ArgoCD, los values y los comandos del workflow parseados que cada entorno activo se renderice y valide en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030); el README se verifica como texto.',
   },
   'tests/gitops/image_digest_promotion.test.ts': {
     type: 'Contract / GitOps',
@@ -102,7 +102,8 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     type: 'Helper',
     targetDomain: 'ArgoCD / Exclusiones de Directorio',
     targetArtifacts: ['gitops/apps/'],
-    description: 'Helper parseDirectoryExclude para leer las exclusiones de directorio de una Application de ArgoCD.',
+    description:
+      'Helper parseDirectoryExclude: lee del YAML parseado la exclusión de directorio de una Application de ArgoCD y devuelve vacío si no es un glob de una línea.',
   },
   'tests/helpers/docs-portal.ts': {
     type: 'Helper',
