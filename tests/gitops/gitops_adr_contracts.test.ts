@@ -183,18 +183,6 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
     decisionsReadmeContent.includes('ADR-021'),
     'docs/decisions/README.md debe registrar el histórico consolidado de ADR-021',
   );
-
-  // 9. Los ADRs activos catalogados existen físicamente en disco
-  const decisionFiles = fs
-    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
-    .filter((f: string) => f.startsWith('ADR-'));
-  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
-  for (const adrFile of decisionFiles) {
-    assert.ok(
-      decisionsReadmeContent.includes(adrFile),
-      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
-    );
-  }
 });
 
 test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)', async () => {
@@ -287,16 +275,4 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
     decisionsReadmeContent.includes('ADR-022'),
     'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022',
   );
-
-  // 8. Los ADRs activos catalogados existen físicamente en disco
-  const decisionFiles = fs
-    .readdirSync(path.join(ROOT_DIR, 'docs/decisions'))
-    .filter((f: string) => f.startsWith('ADR-'));
-  assert.ok(decisionFiles.length >= 20, 'Debe existir un conjunto sustancial de ADRs activos');
-  for (const adrFile of decisionFiles) {
-    assert.ok(
-      decisionsReadmeContent.includes(adrFile),
-      `docs/decisions/README.md debe indexar el ADR activo ${adrFile}`,
-    );
-  }
 });

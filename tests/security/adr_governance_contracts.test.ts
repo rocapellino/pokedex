@@ -146,16 +146,6 @@ test('🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no
     Array.isArray(packageJson.workspaces) && packageJson.workspaces.length > 0,
     'package.json debe declarar workspaces',
   );
-
-  // 4. Los ADR activos contiguos hasta ADR-018 siguen existiendo en disco
-  const files = fs.readdirSync(decisionsDir);
-  for (let i = 1; i <= 18; i++) {
-    const num = String(i).padStart(3, '0');
-    assert.ok(
-      files.some((f: string) => f.startsWith(`ADR-${num}`)),
-      `Debe existir archivo para ADR-${num} en docs/decisions/`,
-    );
-  }
 });
 
 test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca', async () => {
@@ -259,15 +249,6 @@ test('🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Task
     'docs/README.md debe enlazar ADR-020',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // 8. Los ADR activos hasta el 020 existen físicamente en disco (ADR-019 está retirado)
-  for (let i = 1; i <= 20; i++) {
-    if (i === 19) continue;
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });
 
 test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed', () => {

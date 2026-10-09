@@ -211,12 +211,4 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
     'docs/README.md debe enlazar ADR-018',
   );
   assertDocsPortalLinksAdrIndex(docsReadmeContent);
-
-  // 7. Los 18 ADRs existen físicamente en disco
-  for (let i = 1; i <= 18; i++) {
-    const num = String(i).padStart(3, '0');
-    const files = fs.readdirSync(path.join(ROOT_DIR, 'docs/decisions'));
-    const match = files.find((f: string) => f.startsWith(`ADR-${num}`));
-    assert.ok(match, `Debe existir archivo para ADR-${num} en docs/decisions/`);
-  }
 });

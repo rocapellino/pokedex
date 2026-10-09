@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T13:35:55.590Z",
+  "generatedAt": "2026-10-09T13:47:02.878Z",
   "summary": {
-    "totalFiles": 185,
-    "testFiles": 127,
+    "totalFiles": 186,
+    "testFiles": 128,
     "helperFiles": 57,
     "performanceScripts": 1,
-    "totalTestCases": 974,
-    "totalLines": 26461,
-    "totalSizeBytes": 1143403,
+    "totalTestCases": 976,
+    "totalLines": 26366,
+    "totalSizeBytes": 1139472,
     "suitesCount": 10
   },
   "suites": [
@@ -38,8 +38,8 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 39,
-      "testCases": 308,
+      "files": 40,
+      "testCases": 310,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -4226,10 +4226,10 @@
       "runner": "node:test (tsx)",
       "testCount": 2,
       "describeCount": 0,
-      "assertionCountEst": 67,
-      "sizeBytes": 15591,
-      "lineCount": 303,
-      "sha256": "15985bebc13beea6ab82136d2f464701169ef690cb1c9a45738e1fb2ae423665",
+      "assertionCountEst": 63,
+      "sizeBytes": 14623,
+      "lineCount": 279,
+      "sha256": "98a076da0bc834fbd316733a5746c3ad44581cadbedc5fbb519f9ba5a591f401",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4250,7 +4250,7 @@
         },
         {
           "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 200
+          "line": 188
         }
       ]
     },
@@ -5100,10 +5100,10 @@
       "runner": "node:test (tsx)",
       "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 42,
-      "sizeBytes": 8640,
-      "lineCount": 181,
-      "sha256": "893e8a0142fc27f90ea83b03bcba3a744c020296d988fd7665971668145ab6ea",
+      "assertionCountEst": 39,
+      "sizeBytes": 7559,
+      "lineCount": 157,
+      "sha256": "c21de5d99d8eb10f10fb34577472c2fe83ff34acc97007b5eb39aef9844183d2",
       "targetDomain": "Conformidad ADR / Aplicación",
       "targetArtifacts": [
         "apps/backend/src/",
@@ -5131,15 +5131,15 @@
         },
         {
           "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
-          "line": 69
+          "line": 61
         },
         {
           "name": "🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)",
-          "line": 122
+          "line": 106
         },
         {
           "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
-          "line": 141
+          "line": 125
         }
       ]
     },
@@ -5198,10 +5198,10 @@
       "runner": "node:test (tsx)",
       "testCount": 6,
       "describeCount": 0,
-      "assertionCountEst": 89,
-      "sizeBytes": 18380,
-      "lineCount": 376,
-      "sha256": "5686875af0a83c9b6024ae91c2b526c7f736341522a32e183cb89b923a8575c9",
+      "assertionCountEst": 87,
+      "sizeBytes": 17598,
+      "lineCount": 357,
+      "sha256": "adb0b9c55e756080d5eefbfec3bb6e21c869d772aa531dcb07c9f816cbc675c7",
       "targetDomain": "Conformidad ADR / Gobernanza",
       "targetArtifacts": [
         "docs/decisions/",
@@ -5237,11 +5237,11 @@
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 161
+          "line": 151
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 273
+          "line": 254
         }
       ]
     },
@@ -5253,10 +5253,10 @@
       "runner": "node:test (tsx)",
       "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 45,
-      "sizeBytes": 10175,
-      "lineCount": 223,
-      "sha256": "306ba75a2aea24c1a23022327c4161b080c87cbf2899c0acf78d6af088429f60",
+      "assertionCountEst": 44,
+      "sizeBytes": 9815,
+      "lineCount": 215,
+      "sha256": "5f9e67bee2afab7cf8421946614f59044e3504a835c1062b30b866610a28e607",
       "targetDomain": "Conformidad ADR / Observabilidad",
       "targetArtifacts": [
         "infra/monitoring/",
@@ -5289,6 +5289,44 @@
         {
           "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
           "line": 115
+        }
+      ]
+    },
+    {
+      "path": "tests/security/adr_registry_contract.test.ts",
+      "suite": "security",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 5,
+      "sizeBytes": 1941,
+      "lineCount": 40,
+      "sha256": "6b1c240e465718a21a6eaa38d58b59503fd38b709af0b410957f31d54cd3f170",
+      "targetDomain": "Conformidad ADR / Registro",
+      "targetArtifacts": [
+        "docs/decisions/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados) y que cada ADR está indexado en docs/decisions/README.md.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🗂️ Registro de ADRs: existen los ADRs activos contiguos 001 a 020 (salvo los retirados)",
+          "line": 19
+        },
+        {
+          "name": "🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico está indexado en docs/decisions/README.md",
+          "line": 33
         }
       ]
     },
@@ -6553,10 +6591,10 @@
       "runner": "node:test (tsx)",
       "testCount": 7,
       "describeCount": 0,
-      "assertionCountEst": 70,
-      "sizeBytes": 14724,
-      "lineCount": 321,
-      "sha256": "29c2e66bf2dcab14a0694390c9d3357cd77e3595e33bfc5294679c46191c2a35",
+      "assertionCountEst": 67,
+      "sizeBytes": 14082,
+      "lineCount": 307,
+      "sha256": "ca8dc7868fc5bde67b4f6615c19921a316b19ca271141c0693d9c5101661d778",
       "targetDomain": "Gobernanza de Scripts, Tooling y Dev DX",
       "targetArtifacts": [
         "Taskfile.yaml",
@@ -6601,7 +6639,7 @@
         },
         {
           "name": "🛡️ Tooling Governance: repositorio restringe scripts shell a dr_verify_restore.sh y rechaza imperativos (ADR-020)",
-          "line": 282
+          "line": 268
         }
       ]
     },
@@ -6729,10 +6767,10 @@
       "runner": "node:test (tsx)",
       "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 139,
-      "sizeBytes": 29397,
-      "lineCount": 581,
-      "sha256": "fafd44b13bfb4c5d30cf9f2d95e97679f693973399ce34fb3e705414513f565b",
+      "assertionCountEst": 136,
+      "sizeBytes": 28323,
+      "lineCount": 557,
+      "sha256": "fcbb0965c3c16b8042eb63a448179c89380cc8d852ec5c3123244f0e9bf8ad5a",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
@@ -6792,19 +6830,19 @@
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 261
+          "line": 253
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 319
+          "line": 303
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 415
+          "line": 391
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 481
+          "line": 457
         }
       ]
     },
@@ -6816,10 +6854,10 @@
       "runner": "node:test (tsx)",
       "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 82,
-      "sizeBytes": 20923,
-      "lineCount": 438,
-      "sha256": "1e264a0e7a227f2728b4b138f047708fd171cc16646d7275fe3d8962d6260bf8",
+      "assertionCountEst": 80,
+      "sizeBytes": 20260,
+      "lineCount": 423,
+      "sha256": "673f0f280e1d7aa1cc17a0b376381e0e64721741bd3d61983b3161046c858e4a",
       "targetDomain": "Aislamiento de Red Zero-Trust",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/network-policies.yaml",
@@ -6891,7 +6929,7 @@
         },
         {
           "name": "🛡️ Ingress L7 & TLS: ADR-016 formaliza Ingress Controller, Terminación TLS y Hardening de Cabeceras HTTP",
-          "line": 373
+          "line": 365
         }
       ]
     },
@@ -6903,10 +6941,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 66,
-      "sizeBytes": 16325,
-      "lineCount": 345,
-      "sha256": "c0fe26b26022bc4ad61dad7a565a1e0e62320342638d3eeef9e30ec306c568cf",
+      "assertionCountEst": 65,
+      "sizeBytes": 16023,
+      "lineCount": 338,
+      "sha256": "436a5c68decee86547d4afafd57f45e5c015c1ffe1df920fa2da6c4e940524cc",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -6957,7 +6995,7 @@
         },
         {
           "name": "🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)",
-          "line": 324
+          "line": 317
         }
       ]
     },
