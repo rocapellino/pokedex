@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T14:21:32.578Z",
+  "generatedAt": "2026-10-09T14:35:47.267Z",
   "summary": {
     "totalFiles": 191,
     "testFiles": 132,
     "helperFiles": 58,
     "performanceScripts": 1,
-    "totalTestCases": 977,
-    "totalLines": 26235,
-    "totalSizeBytes": 1134429,
+    "totalTestCases": 975,
+    "totalLines": 26187,
+    "totalSizeBytes": 1132021,
     "suitesCount": 10
   },
   "suites": [
@@ -19,7 +19,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
       "files": 26,
-      "testCases": 175,
+      "testCases": 173,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -9217,15 +9217,14 @@
       "type": "Contract / Persistence",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 3,
+      "testCount": 1,
       "describeCount": 0,
-      "assertionCountEst": 12,
-      "sizeBytes": 3347,
-      "lineCount": 75,
-      "sha256": "1f1b155cd43a87e5820f6670aeca3566dbd39afa67a97fe7e86f780653d9067f",
+      "assertionCountEst": 2,
+      "sizeBytes": 939,
+      "lineCount": 27,
+      "sha256": "6cf4e21b5b0ff7ecc41fa1a71ca751c9fccc6376a823ed213f9bcb22cfe3f457",
       "targetDomain": "Arranque Fail-Closed",
       "targetArtifacts": [
-        "apps/backend/src/services/postgres.ts",
         "apps/backend/server.ts"
       ],
       "npmCommands": [
@@ -9237,20 +9236,12 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002).",
+      "description": "Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002).",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ APPS-002: el sentinel MigrationFailedError se exporta y conserva la causa",
-          "line": 7
-        },
-        {
-          "name": "🛡️ APPS-002: produccion aborta ante fallo de migracion, no degrada a memoria",
-          "line": 28
-        },
-        {
           "name": "🛡️ APPS-002: el arranque aborta el proceso si initStorage falla",
-          "line": 61
+          "line": 13
         }
       ]
     },
