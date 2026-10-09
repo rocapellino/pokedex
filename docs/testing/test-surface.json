@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T18:50:25.275Z",
+  "generatedAt": "2026-10-09T18:57:04.284Z",
   "summary": {
     "totalFiles": 156,
     "testFiles": 137,
     "helperFiles": 18,
     "performanceScripts": 1,
     "totalTestCases": 1015,
-    "totalLines": 27178,
-    "totalSizeBytes": 1171995,
+    "totalLines": 27216,
+    "totalSizeBytes": 1173556,
     "suitesCount": 10
   },
   "suites": [
@@ -510,10 +510,10 @@
       "runner": "node:test (tsx)",
       "testCount": 23,
       "describeCount": 0,
-      "assertionCountEst": 81,
-      "sizeBytes": 26322,
-      "lineCount": 559,
-      "sha256": "e4af3edcf15554d978c7261ab66eb6831321fa8ea5fc45c907ad4fa6f0474287",
+      "assertionCountEst": 87,
+      "sizeBytes": 27883,
+      "lineCount": 597,
+      "sha256": "a028f267fc0b8a3d7c4ff79697c26e800568311088e11981877630dfd0a3b73a",
       "targetDomain": "Topología de CI / Workflows",
       "targetArtifacts": [
         ".github/workflows/ci.yaml",
@@ -528,100 +528,100 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica la topología de CI: workflows condicionales gobernados por change-impact.yaml, reusable workflows sin concurrency, serialización por PR y gate de resultados.",
+      "description": "Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml",
-          "line": 13
+          "line": 37
         },
         {
           "name": "⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar concurrency",
-          "line": 23
+          "line": 48
         },
         {
           "name": "⚙️ CI topology: el orquestador conserva la serialización por PR",
-          "line": 43
+          "line": 67
         },
         {
           "name": "🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado",
-          "line": 49
+          "line": 73
         },
         {
           "name": "⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea",
-          "line": 62
+          "line": 97
         },
         {
           "name": "🛡️ El ruleset declarativo debe registrar los tres required checks",
-          "line": 93
+          "line": 131
         },
         {
           "name": "🚦 Quality Gate: el agregador existe y es fail-closed con if: always()",
-          "line": 134
+          "line": 172
         },
         {
           "name": "🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset",
-          "line": 179
+          "line": 207
         },
         {
           "name": "⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación",
-          "line": 190
+          "line": 220
         },
         {
           "name": "📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real",
-          "line": 200
+          "line": 236
         },
         {
           "name": "🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros",
-          "line": 271
+          "line": 324
         },
         {
           "name": "🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all",
-          "line": 282
-        },
-        {
-          "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
-          "line": 308
-        },
-        {
-          "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
           "line": 336
         },
         {
+          "name": "🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)",
+          "line": 359
+        },
+        {
+          "name": "🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)",
+          "line": 382
+        },
+        {
           "name": "🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows",
-          "line": 352
+          "line": 397
         },
         {
           "name": "🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente",
-          "line": 372
+          "line": 413
         },
         {
           "name": "🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real",
-          "line": 393
+          "line": 431
         },
         {
           "name": "⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency",
-          "line": 440
+          "line": 478
         },
         {
           "name": "🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git",
-          "line": 470
+          "line": 502
         },
         {
           "name": "📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows",
-          "line": 493
+          "line": 521
         },
         {
           "name": "🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y sin continue-on-error",
-          "line": 508
+          "line": 547
         },
         {
           "name": "📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate",
-          "line": 523
+          "line": 566
         },
         {
           "name": "🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN",
-          "line": 542
+          "line": 583
         }
       ]
     },

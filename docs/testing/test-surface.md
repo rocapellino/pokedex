@@ -16,10 +16,10 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 18 |
 | **Total de Casos de Prueba Identificados** | **1015** |
-| **Líneas de Código de Pruebas** | 27.178 |
-| **Tamaño Total de la Suite** | 1144.5 KB |
+| **Líneas de Código de Pruebas** | 27.216 |
+| **Tamaño Total de la Suite** | 1146.1 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-09T18:50:25.275Z |
+| **Última Sincronización** | 2026-10-09T18:57:04.284Z |
 
 ---
 
@@ -52,7 +52,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/ci_impact_contract.test.ts`](../../tests/ci_impact_contract.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **5** | 119 | Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact_domains.test.ts`](../../tests/ci_impact_domains.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **18** | 437 | Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci_impact_test_paths.test.ts`](../../tests/ci_impact_test_paths.test.ts) | `governance` | Contract / CI Matrix | `node:test (tsx)` | **6** | 105 | Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos. | `npm test`, `npm run test:all`, `npm run test:coverage` |
-| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Contract / CI | `node:test (tsx)` | **23** | 559 | Verifica la topología de CI: workflows condicionales gobernados por change-impact.yaml, reusable workflows sin concurrency, serialización por PR y gate de resultados. | `npm test`, `npm run test:all`, `npm run test:coverage` |
+| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | `governance` | Contract / CI | `node:test (tsx)` | **23** | 597 | Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/lighthouse.test.ts`](../../tests/ci/lighthouse.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **10** | 193 | Verifica la API simulada de Lighthouse (paginación como el backend, X-Total-Count, imágenes locales) y la carga de extremo a extremo del catálogo. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/ci/workflow_run_parity.test.ts`](../../tests/ci/workflow_run_parity.test.ts) | `ci` | Contract / CI | `node:test (tsx)` | **4** | 189 | Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | `governance` | Contract / Types | `node:test (tsx)` | **4** | 113 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -427,7 +427,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/ci_impact_contract.test.ts`](../../tests/ci_impact_contract.test.ts) | **5** | 119 | Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados. | `scripts/detect-change-impact.ts`, `.github/ci-impact.yaml` |
 | [`tests/ci_impact_domains.test.ts`](../../tests/ci_impact_domains.test.ts) | **18** | 437 | Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI. | `scripts/detect-change-impact.ts`, `.github/ci-impact.yaml`, `.agents/skills/_shared/change-impact-matrix.md` |
 | [`tests/ci_impact_test_paths.test.ts`](../../tests/ci_impact_test_paths.test.ts) | **6** | 105 | Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos. | `scripts/detect-change-impact.ts`, `.github/ci-impact.yaml` |
-| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **23** | 559 | Verifica la topología de CI: workflows condicionales gobernados por change-impact.yaml, reusable workflows sin concurrency, serialización por PR y gate de resultados. | `.github/workflows/ci.yaml`, `.github/workflows/change-impact.yaml`, `.github/ci-impact.yaml` |
+| [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) | **23** | 597 | Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs. | `.github/workflows/ci.yaml`, `.github/workflows/change-impact.yaml`, `.github/ci-impact.yaml` |
 | [`tests/contracts.test.ts`](../../tests/contracts.test.ts) | **4** | 113 | Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend. | `apps/backend/src/types.ts`, `apps/frontend/src/types.ts` |
 | [`tests/doc_governance.test.ts`](../../tests/doc_governance.test.ts) | **2** | 132 | Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios. | `docs/decisions/`, `.agents/rules/documentation-governance.md` |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | **7** | 73 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `scripts/lint-markdown.ts`, `.markdownlint.json` |
