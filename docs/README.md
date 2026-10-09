@@ -126,6 +126,7 @@ flowchart TD
 - ⎈ [**HELM_DEPLOYMENT_GUIDE.md**](./runbooks/HELM_DEPLOYMENT_GUIDE.md): Manual de despliegue con Helm 3, parametrización de entornos (`values.yaml`, `values.prod.yaml`) y sincronización con ArgoCD.
 - 🚀 [**KUBERNETES_AUTOSCALING_GUIDE.md**](./runbooks/KUBERNETES_AUTOSCALING_GUIDE.md): Procedimiento de validación del autoescalado con métricas de CPU y siembra masiva de datos.
 - 🔑 [**VAULT_OPERATOR_ACCESS.md**](./runbooks/VAULT_OPERATOR_ACCESS.md): Acceso de operador a Vault con mínimo privilegio (política acotada a pre-prod, usuario de vida corta) y custodia del archivo de inicialización.
+- 📡 [**ALLOY_K8S_MONITORING_MIGRATION.md**](./runbooks/ALLOY_K8S_MONITORING_MIGRATION.md): Migración del Alloy de pre-prod al chart `k8s-monitoring` (métricas de clúster, logs y OTLP) con respaldo y reversión.
 - 🧪 [**STRESS_TESTING_GUIDE.md**](./runbooks/STRESS_TESTING_GUIDE.md): Guía para ejecución de pruebas de carga y estrés con k6 y generador concurrente de tráfico.
 - 🖥️ [**PROXMOX_DEPLOYMENT_GUIDE.md**](./runbooks/PROXMOX_DEPLOYMENT_GUIDE.md): Guía de despliegue y virtualización en clústeres locales Proxmox VE con contenedores LXC, Cloud-Init, Ansible y OpenTofu.
 - 📋 [**DISASTER_RECOVERY_PLAN.md**](./runbooks/DISASTER_RECOVERY_PLAN.md): Plan de contingencia, arquitectura 3-2-1 y protocolos de recuperación ante desastres.

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-08T23:23:55.154Z",
+  "generatedAt": "2026-10-08T23:46:38.504Z",
   "summary": {
     "totalFiles": 175,
     "testFiles": 117,
     "helperFiles": 57,
     "performanceScripts": 1,
-    "totalTestCases": 971,
-    "totalLines": 26301,
-    "totalSizeBytes": 1138233,
+    "totalTestCases": 974,
+    "totalLines": 26351,
+    "totalSizeBytes": 1140696,
     "suitesCount": 10
   },
   "suites": [
@@ -39,7 +39,7 @@
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
       "files": 31,
-      "testCases": 249,
+      "testCases": 252,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
@@ -6077,12 +6077,12 @@
       "type": "Contract / Observability",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 6,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 25,
-      "sizeBytes": 10489,
-      "lineCount": 227,
-      "sha256": "6b1d8581506cc2317cb9c42fc44d5f1c3791a717fd449e0b85a4978806b1d6d5",
+      "assertionCountEst": 38,
+      "sizeBytes": 12952,
+      "lineCount": 277,
+      "sha256": "b829814fa743cf9d5b3422c92de9f000140d76fa1cd0da7147caffe4eb1d44e1",
       "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
       "targetArtifacts": [
         "infra/monitoring/grafana-cloud-values.yaml",
@@ -6102,27 +6102,39 @@
       "testCases": [
         {
           "name": "📡 OBS-002: el chart que instala el script renderiza con los values del repo",
-          "line": 104
+          "line": 106
         },
         {
           "name": "📡 OBS-002: se scrapean cAdvisor, kubelet, kube-state-metrics y node-exporter hacia Grafana Cloud",
-          "line": 113
+          "line": 115
         },
         {
           "name": "📡 OBS-002: las metricas de Kubernetes de alerts.yaml sobreviven a las allowlists",
-          "line": 132
+          "line": 134
         },
         {
           "name": "📡 OBS-002: el endpoint OTLP que usa la API sigue existiendo en el colector",
-          "line": 151
+          "line": 153
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el scrape de /metrics de la API vive en el repo y envía el token Bearer",
-          "line": 178
+          "line": 180
         },
         {
           "name": "🔐 AUD-SEC-OBS-001: el Alloy recibe el token desde un Secret de su namespace sincronizado con Vault",
-          "line": 200
+          "line": 202
+        },
+        {
+          "name": "📡 OBS-003: los logs de pods de la app y del monitoreo llegan a Loki desde el repo",
+          "line": 230
+        },
+        {
+          "name": "📡 OBS-003: el receptor OTLP reenvía métricas a Prometheus y logs a Loki sin tocar los nombres de serie",
+          "line": 243
+        },
+        {
+          "name": "📡 OBS-003: Beyla queda apagado y el script inyecta el token del destino de logs",
+          "line": 263
         }
       ]
     },
