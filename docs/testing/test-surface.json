@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T17:07:32.750Z",
+  "generatedAt": "2026-10-09T18:07:15.972Z",
   "summary": {
-    "totalFiles": 152,
+    "totalFiles": 154,
     "testFiles": 136,
-    "helperFiles": 15,
+    "helperFiles": 17,
     "performanceScripts": 1,
     "totalTestCases": 1012,
-    "totalLines": 26823,
-    "totalSizeBytes": 1157693,
+    "totalLines": 26885,
+    "totalSizeBytes": 1158008,
     "suitesCount": 10
   },
   "suites": [
@@ -3607,9 +3607,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 4,
-      "sizeBytes": 2215,
-      "lineCount": 47,
-      "sha256": "a1bae4b037ab9aa3a67d122a667f760cbe888c0e85ce67d62d8a2a207a636447",
+      "sizeBytes": 1685,
+      "lineCount": 33,
+      "sha256": "681442cab14554e768ee37ccd1128c82285a30e4371af432a2312bcfa7a1e994",
       "targetDomain": "Pre-prod / Token de /metrics",
       "targetArtifacts": [
         "gitops/environments/proxmox-preprod/values.yaml",
@@ -3629,7 +3629,7 @@
       "testCases": [
         {
           "name": "🔐 AUD-SEC-OBS-001: pre-prod sincroniza METRICS_BEARER_TOKEN desde Vault al Secret de la API",
-          "line": 38
+          "line": 24
         }
       ]
     },
@@ -3722,9 +3722,9 @@
       "testCount": 1,
       "describeCount": 0,
       "assertionCountEst": 2,
-      "sizeBytes": 3290,
-      "lineCount": 76,
-      "sha256": "a7a139aafa059095000d4ed7651f5d5e8c86efe3563583bbd92b0e0866b6e4aa",
+      "sizeBytes": 2810,
+      "lineCount": 63,
+      "sha256": "ea2f6e2364f2998f342c61d4e69ed7bced3b9a258f3e95245c0cf22fe842504d",
       "targetDomain": "GitOps / Claves de Secret Sincronizadas",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/",
@@ -3744,7 +3744,7 @@
       "testCases": [
         {
           "name": "🔐 Secretos: en ${environment} el ExternalSecret sincroniza cada clave obligatoria que exigen los workloads",
-          "line": 54
+          "line": 41
         }
       ]
     },
@@ -3757,9 +3757,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 11,
-      "sizeBytes": 3582,
-      "lineCount": 70,
-      "sha256": "ccac4f49ffea74237ee4e35df04e335444104f702808eb7b0abee655b4db121d",
+      "sizeBytes": 2857,
+      "lineCount": 50,
+      "sha256": "da0fc2723e71384a34ad632c4b23b84ba4644ee1d5178e92c2ffcbf5434503d2",
       "targetDomain": "Pre-prod / Seed Job del Catálogo",
       "targetArtifacts": [
         "infra/helm/pokedex/templates/seed-job.yaml",
@@ -3779,15 +3779,15 @@
       "testCases": [
         {
           "name": "🌱 Seed Job: pre-prod siembra el catálogo completo con la imagen y el entorno de la API",
-          "line": 38
+          "line": 18
         },
         {
           "name": "🌱 Seed Job: corre después de la sincronización, no antes de crear la base de datos",
-          "line": 57
+          "line": 37
         },
         {
           "name": "🌱 Seed Job: los demás entornos no siembran por defecto",
-          "line": 65
+          "line": 45
         }
       ]
     },
@@ -3832,6 +3832,28 @@
       "npmCommands": [],
       "ciWorkflows": [],
       "description": "Helper assertDocsPortalLinksAdrIndex: exige que el portal enlace el índice docs/decisions/README.md en lugar de citar rangos numéricos de ADRs.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/helpers/helm-render.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2392,
+      "lineCount": 62,
+      "sha256": "1fa55695ba810d3d5c21285d9b370fbdddb397b2d35319a5277aeffc206f9e05",
+      "targetDomain": "Render del Chart de Helm",
+      "targetArtifacts": [
+        "infra/helm/pokedex/"
+      ],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Renderiza el chart con helm template (local o en contenedor) para los perfiles default, prod y pre-prod, con caché, y expone los documentos y los workloads con su especificación de pod.",
       "status": "HELPER",
       "testCases": []
     },
@@ -3897,6 +3919,28 @@
       "npmCommands": [],
       "ciWorkflows": [],
       "description": "Helper getCompleteTaskfileContent: concatena el Taskfile raíz y los submódulos de taskfiles/ de forma determinista.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
+      "path": "tests/helpers/yaml.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 1385,
+      "lineCount": 31,
+      "sha256": "11f53d1e5c36eaaf027b0b4edf5464d55018ba2f9f13907e9f68399b80a047b5",
+      "targetDomain": "Lectura de YAML del Repositorio",
+      "targetArtifacts": [
+        ".github/workflows/"
+      ],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Lee y parsea YAML del repo y extrae los scripts run: de un workflow sin las líneas de shell comentadas, para comprobar estructura y no texto.",
       "status": "HELPER",
       "testCases": []
     },
@@ -6317,14 +6361,15 @@
       "runner": "node:test (tsx)",
       "testCount": 14,
       "describeCount": 0,
-      "assertionCountEst": 133,
-      "sizeBytes": 27818,
-      "lineCount": 547,
-      "sha256": "af0dc75ffcfe042ce844108f9f00cf19649ca5cd87241ee5b822a90cc391af2a",
+      "assertionCountEst": 109,
+      "sizeBytes": 26091,
+      "lineCount": 563,
+      "sha256": "41340110dd06ea49ccab13bcb5aa7171a4765d81cfdc2cb58c435a4062e79374",
       "targetDomain": "Hardening de Workloads Kubernetes",
       "targetArtifacts": [
         "infra/k8s/",
-        "infra/helm/pokedex/templates/"
+        "infra/helm/pokedex/",
+        ".github/workflows/infra.yaml"
       ],
       "npmCommands": [
         "npm test",
@@ -6335,64 +6380,64 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica SecurityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL, seccomp), límites de recursos y probes de salud.",
+      "description": "Verifica sobre el chart renderizado con Helm y sobre YAML parseado el hardening de los workloads (readOnlyRootFilesystem con emptyDir, token de ServiceAccount, ephemeral-storage, topología, sin :latest), las políticas Kyverno y los gates de CI; y los ADR-014, 015 y 017.",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🛡️ Helm Security: PostgreSQL y PgBouncer configuran readOnlyRootFilesystem y montajes emptyDir",
-          "line": 14
+          "name": "🛡️ Helm Security: PostgreSQL y PgBouncer renderizan readOnlyRootFilesystem y montajes emptyDir",
+          "line": 16
         },
         {
-          "name": "🛡️ Helm Security: Workloads K8s deshabilitan automountServiceAccountToken (Least Privilege)",
-          "line": 31
+          "name": "🛡️ Helm Security: todo workload renderizado deshabilita automountServiceAccountToken (Least Privilege)",
+          "line": 47
         },
         {
-          "name": "🛡️ Helm Security: seed-job.yaml declara requests y limits de ephemeral-storage",
-          "line": 53
+          "name": "🛡️ Helm Security: el Job de siembra renderizado declara requests y limits de ephemeral-storage",
+          "line": 80
         },
         {
-          "name": "🛡️ K8s Quality & High Availability: api y web deployments implementan topologySpreadConstraints",
-          "line": 61
+          "name": "🛡️ K8s Quality & High Availability: api y web renderizan topologySpreadConstraints y ninguna imagen usa :latest",
+          "line": 98
         },
         {
-          "name": "🛡️ K8s Quality Gates: infra.yaml integra kubeconform, kube-linter y kyverno test",
-          "line": 86
+          "name": "🛡️ K8s Quality Gates: infra.yaml ejecuta kubeconform, kube-linter y kyverno test",
+          "line": 122
         },
         {
           "name": "🛡️ Kyverno Security: ClusterPolicy pod-security-standards define perfil Restricted en tiempo de admisión",
-          "line": 106
+          "line": 147
         },
         {
           "name": "🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canónica del backend y /Dockerfile no existe",
-          "line": 123
+          "line": 175
         },
         {
           "name": "🛡️ Cloud-Native Secrets: infra/k8s/eso define arquitectura declarativa de External Secrets Operator",
-          "line": 160
+          "line": 212
         },
         {
-          "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia y los templates configuran PDB, ResourceQuota y LimitRange",
-          "line": 181
+          "name": "🛡️ Helm Resiliencia & Gobernanza: el perfil de referencia renderiza PDB, ResourceQuota y LimitRange y CI los exige",
+          "line": 231
         },
         {
           "name": "🛡️ Autoescalado & Resiliencia: ADR-014 formaliza HPA v2, PodDisruptionBudget y TopologySpreadConstraints",
-          "line": 211
+          "line": 245
         },
         {
           "name": "🛡️ Ciclo de Vida & Resiliencia: ADR-015 formaliza Graceful Shutdown, closeStorage y sondas /healthz y /readyz",
-          "line": 248
+          "line": 282
         },
         {
           "name": "🛡️ Admission Control: ADR-017 formaliza Kyverno ClusterPolicies, PSS Restricted y seccomp RuntimeDefault",
-          "line": 297
+          "line": 331
         },
         {
           "name": "🛡️ Helm Chart: values.yaml es Secure by Default y values.dev.yaml proporciona overrides explícitos de desarrollo",
-          "line": 381
+          "line": 415
         },
         {
           "name": "🏷️ Kubernetes Taxonomy: Namespace único canónico pokemon-app y segregación formal de Vault",
-          "line": 447
+          "line": 463
         }
       ]
     },
