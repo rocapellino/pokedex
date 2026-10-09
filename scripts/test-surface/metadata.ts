@@ -2,16 +2,22 @@
  * Catálogo canónico de descripciones, dominios semánticos y suites (datos).
  */
 
+import { BACKEND_FILE_METADATA } from './metadata-backend.js';
+import { FRONTEND_FILE_METADATA } from './metadata-frontend.js';
+import { PLATFORM_FILE_METADATA } from './metadata-platform.js';
+
+export interface FileMetadata {
+  type: string;
+  targetDomain: string;
+  targetArtifacts: string[];
+  description: string;
+}
+
 // Catálogo canónico de descripciones y dominios semánticos
-export const FILE_METADATA_CATALOG: Record<
-  string,
-  {
-    type: string;
-    targetDomain: string;
-    targetArtifacts: string[];
-    description: string;
-  }
-> = {
+export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
+  ...FRONTEND_FILE_METADATA,
+  ...BACKEND_FILE_METADATA,
+  ...PLATFORM_FILE_METADATA,
   'tests/aas_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza AAS (Agentic Awesome Skills)',

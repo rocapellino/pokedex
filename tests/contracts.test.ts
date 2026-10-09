@@ -63,6 +63,18 @@ test('🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json
   );
 });
 
+test('🛡️ Contrato de Superficie de Pruebas: todo archivo de tests/ tiene una descripción propia y no la genérica', () => {
+  const generic = buildCatalog()
+    .files.filter((file) => file.description.startsWith('Suite de pruebas'))
+    .map((file) => file.path);
+
+  assert.deepStrictEqual(
+    generic,
+    [],
+    `Añadir una entrada en scripts/test-surface/metadata*.ts para: ${generic.join(', ')}`,
+  );
+});
+
 test('🛡️ Contrato de Commits: commitlint.config.js y .pre-commit-config.yaml mantienen paridad estricta en sus tipos', () => {
   const rootDir = ROOT_DIR;
   const commitlintPath = path.join(rootDir, 'commitlint.config.js');
