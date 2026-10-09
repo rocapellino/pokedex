@@ -16,6 +16,7 @@ import {
   type GitHubSecretScanningAlert,
   type LinearIssueNode,
 } from '../../scripts/github-security-linear-sync.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🛡️ GitHub Security Linear Sync: mapSeverityToPriority mapea severidades a prioridades de Linear', () => {
   assert.equal(mapSeverityToPriority('critical'), 1);
@@ -212,7 +213,7 @@ test('🛡️ GitHub Security Linear Sync: syncAlertLifecycle maneja ciclo de vi
 /** Workflows gestionados por GitHub que no residen en el repositorio. */
 const EXTERNAL_WORKFLOW_NAMES: readonly string[] = Object.freeze(['CodeQL']);
 
-const WORKFLOWS_DIR = path.join(process.cwd(), '.github/workflows');
+const WORKFLOWS_DIR = path.join(ROOT_DIR, '.github/workflows');
 
 /** Nombres declarados (`name:` de nivel superior) de los workflows del repo. */
 function repoWorkflowNames(): Set<string> {
@@ -275,7 +276,7 @@ test('🚨 WF-002: se cubren los productores de alertas de seguridad', () => {
 });
 
 test('🛡️ GitHub Security Linear Sync: workflow YAML existe y define permisos de menor privilegio', () => {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/github-security-linear-sync.yaml');
+  const workflowPath = path.join(ROOT_DIR, '.github/workflows/github-security-linear-sync.yaml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de sincronización de seguridad debe existir');
 
   const content = fs.readFileSync(workflowPath, 'utf8');
@@ -303,7 +304,7 @@ test('🛡️ GitHub Security Linear Sync: syncGitHubSecurityToLinear se degrada
 });
 
 test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Trivy IaC existe y está configurado', () => {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/security-code-scanning.yaml');
+  const workflowPath = path.join(ROOT_DIR, '.github/workflows/security-code-scanning.yaml');
   assert.equal(fs.existsSync(workflowPath), true, 'El workflow YAML de SAST debe existir');
 
   const content = fs.readFileSync(workflowPath, 'utf8');

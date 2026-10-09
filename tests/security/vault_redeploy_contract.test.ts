@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { validateProxmoxSecretArchitecture } from '../../scripts/k8s-rollout-restart.ts';
-
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🔒 Proxmox Secret Architecture: Validación contractual de Vault CE, ESO y ausencia de Reloader', () => {
   const result = validateProxmoxSecretArchitecture(ROOT_DIR);

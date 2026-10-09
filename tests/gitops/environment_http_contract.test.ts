@@ -19,8 +19,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import { parseDirectoryExclude } from '../helpers/argocd.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = process.cwd();
 const CHART_DIR = path.join(ROOT_DIR, 'infra/helm/pokedex');
 
 type Values = Record<string, any>;

@@ -2,13 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml', () => {
   const metricsPath = path.join(ROOT_DIR, 'apps/backend/src/middleware/metrics.ts');

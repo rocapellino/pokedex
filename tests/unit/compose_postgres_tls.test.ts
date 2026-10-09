@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import { shouldUsePgSsl } from '../../apps/backend/src/services/postgres.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 type Service = { environment?: Record<string, string>; command?: string };
 
@@ -21,7 +22,7 @@ function resolveDefaults(value: string): string {
 }
 
 test('🐘 Compose: el API no exige TLS a un PostgreSQL local que no lo ofrece', () => {
-  const compose = yaml.load(fs.readFileSync(path.join(process.cwd(), 'docker-compose.yaml'), 'utf8')) as {
+  const compose = yaml.load(fs.readFileSync(path.join(ROOT_DIR, 'docker-compose.yaml'), 'utf8')) as {
     services: Record<string, Service>;
   };
   const api = compose.services.api.environment ?? {};

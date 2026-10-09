@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runDrDrill, encryptAes256Cbc, decryptAes256Cbc } from '../../scripts/dr-drill.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🛡️ DR End-to-End Drill: Ejecuta la cadena operacional completa y certifica las 11 métricas contractuales', async () => {
   const metrics = await runDrDrill({
@@ -185,7 +186,7 @@ test('🛡️ DR Security: runDrDrill rechaza claves con entropía insuficiente 
 test('🧹 DR Drill: los caminos de error no dejan directorios dr_drill_* en tmp/', async () => {
   const fs = await import('node:fs');
   const path = await import('node:path');
-  const tmpDir = path.join(process.cwd(), 'tmp');
+  const tmpDir = path.join(ROOT_DIR, 'tmp');
   const drillDirs = () =>
     fs.existsSync(tmpDir) ? fs.readdirSync(tmpDir).filter((entry) => entry.startsWith('dr_drill_')) : [];
 

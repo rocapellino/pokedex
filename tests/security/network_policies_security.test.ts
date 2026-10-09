@@ -9,12 +9,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 /**
  * APPS-001 — `apps/frontend/nginx.conf` es un ARTEFACTO GENERADO.

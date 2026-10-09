@@ -2,9 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
 
 test('🧩 Node: .nvmrc, engines, Dockerfiles y workflows usan la misma versión mayor', () => {

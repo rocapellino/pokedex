@@ -2,14 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * Axe no analiza el contraste del enlace de salto mientras está fuera de pantalla, así que se calcula
  * aquí con los colores declarados en la hoja de estilos: texto normal (4,5:1) y el enlace frente al
  * fondo de la página en ambos temas (3:1 para componentes de interfaz).
  */
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CSS = fs.readFileSync(path.join(ROOT, 'apps/frontend/public/css/style.css'), 'utf-8');
 
 function luminance(hex: string): number {

@@ -28,10 +28,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { isHelmAvailable, runHelm } from '../../scripts/lib/helm.js';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 const DEPLOY_SCRIPT = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');
 const VALUES_PATH = path.join(ROOT_DIR, 'infra/monitoring/grafana-cloud-values.yaml');

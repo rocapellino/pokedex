@@ -20,9 +20,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const REQUIRED_HEADERS = [
   'X-Content-Type-Options',

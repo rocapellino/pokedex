@@ -6,8 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { runHelm } from '../../scripts/lib/helm.js';
 import yaml from 'js-yaml';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
-
-const ROOT_DIR = path.resolve();
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🛡️ Disaster Recovery: backup-cronjob.yaml implementa cifrado AES-256, checksum y hardening de pod', () => {
   const cronjobPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/backup-cronjob.yaml');

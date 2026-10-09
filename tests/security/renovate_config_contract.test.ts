@@ -3,11 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import yaml from 'js-yaml';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '..', '..');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 interface PackageRule {
   matchManagers?: string[];

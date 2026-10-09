@@ -4,8 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { runHelm } from '../../scripts/lib/helm.js';
-
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 interface EgressTarget {
   name: string;

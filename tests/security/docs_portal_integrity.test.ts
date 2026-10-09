@@ -37,11 +37,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../../');
 const DOCS_DIR = path.join(ROOT_DIR, 'docs');
 const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
 const IMPACT_MATRIX_PATH = path.join(ROOT_DIR, '.agents/skills/_shared/documentation-impact-matrix.md');

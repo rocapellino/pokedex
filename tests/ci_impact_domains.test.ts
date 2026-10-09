@@ -3,12 +3,8 @@ import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { analyzeChangeImpact } from '../scripts/detect-change-impact.js';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR } from './helpers/repo.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const ROOT_DIR = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
 
 test('🎯 Change Impact: Cambio puramente documental activa solo Fast Track de docs', () => {

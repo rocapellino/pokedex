@@ -3,12 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import yaml from 'js-yaml';
+import { ROOT_DIR } from './helpers/repo.js';
 
 // AUD-GOV-SKL-011: el despacho condicional de skills (AGENTS.md §3) depende de la
 // `description` del frontmatter. Un `description:` sin comillas que contiene ": "
 // es YAML inválido y los agentes con parser estricto pierden la descripción.
 
-const SKILLS_DIR = path.join(process.cwd(), '.agents', 'skills');
+const SKILLS_DIR = path.join(ROOT_DIR, '.agents', 'skills');
 
 const skillDirs = fs
   .readdirSync(SKILLS_DIR, { withFileTypes: true })

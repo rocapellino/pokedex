@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import {
   calculateVersionsToPrune,
@@ -12,10 +11,7 @@ import {
   DEFAULT_PACKAGES,
   type PackageVersion,
 } from '../../scripts/ghcr-retention.ts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 /**
  * Elimina las líneas de comentario de un YAML.
@@ -242,7 +238,7 @@ test('📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede f
 test('📦 GHCR Retention: protege los digests api y web declarados en GitOps y gestiona ambos paquetes', () => {
   const pinned = collectPinnedDigests();
   for (const file of ['gitops/environments/proxmox-preprod/values.yaml']) {
-    const values = fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+    const values = fs.readFileSync(path.join(ROOT_DIR, file), 'utf8');
     for (const digest of values.match(/sha256:[a-f0-9]{64}/g) ?? []) {
       assert.ok(pinned.has(digest), `${digest} de ${file} debe estar protegido`);
     }

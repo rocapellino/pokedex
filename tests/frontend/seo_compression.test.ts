@@ -2,9 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 /** Extrae el bloque `location <selector> { ... }` de la configuración de nginx. */

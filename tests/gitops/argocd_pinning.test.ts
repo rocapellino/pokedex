@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import {
   validateSemVerTag,
@@ -14,10 +13,7 @@ import {
   checkRootTracksMain,
   ROOT_APP_FILE,
 } from '../../scripts/update-gitops-pin.ts';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT_DIR = path.resolve(__dirname, '../../');
+import { ROOT_DIR } from '../helpers/repo.js';
 
 test('🔒 ArgoCD Pinning: validateSemVerTag valida estrictamente tags semánticos inmutables', () => {
   assert.equal(validateSemVerTag('v1.75.10'), true, 'v1.75.10 debe ser válido');

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { MAX_PAGE_SIZE } from '../../apps/backend/src/utils/pagination.js';
 import { analyzeChangeImpact } from '../../scripts/detect-change-impact.js';
 import {
@@ -16,8 +15,8 @@ import {
 } from '../../scripts/lighthouse-stack.js';
 import { median, summarize, type Lhr } from '../../scripts/lighthouse-summary.js';
 import { fetchAllPokemons } from '../../apps/frontend/src/shared/api.js';
+import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
 const catalog = localizeImages(JSON.parse(read('apps/backend/src/data/pokemon-catalog.full.json'))) as unknown[];

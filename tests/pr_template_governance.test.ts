@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { discoverPrTemplate, extractHeadings, validatePrBody } from '../scripts/validate-pr-body.js';
+import { ROOT_DIR } from './helpers/repo.js';
 
 /**
  * ==============================================================================
@@ -18,7 +19,7 @@ import { discoverPrTemplate, extractHeadings, validatePrBody } from '../scripts/
  */
 
 test('🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y contiene secciones obligatorias', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const templatePath = discoverPrTemplate(rootDir);
 
   assert.ok(fs.existsSync(templatePath), `El template físico debe existir: ${templatePath}`);
@@ -45,7 +46,7 @@ test('🛡️ Contrato de PR Template: el archivo físico existe en ruta SSOT y 
 });
 
 test('🛡️ Contrato de PR Template: validate-pr-body aprueba un PR body completo y fiel al template', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const templatePath = discoverPrTemplate(rootDir);
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
@@ -117,7 +118,7 @@ Se consolida la gobernanza contractual del PR Template mediante validación dete
 });
 
 test('🛡️ Contrato de PR Template: validate-pr-body RECHAZA la estructura no conforme observada en PR #438', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const templatePath = discoverPrTemplate(rootDir);
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
@@ -149,7 +150,7 @@ Este Pull Request implementa la **Fase B** del plan de saneamiento:
 });
 
 test('🛡️ Contrato de PR Template: validate-pr-body detecta tablas de CI Impact no resueltas o incompletas', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const templatePath = discoverPrTemplate(rootDir);
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
@@ -187,7 +188,7 @@ Texto de resumen
 });
 
 test('🛡️ Contrato de PR Template: validate-pr-body detecta corrupción UTF-8 y mojibake', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const templatePath = discoverPrTemplate(rootDir);
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
 
@@ -224,7 +225,7 @@ VerificaciÃ³n de cÃ³digo
 });
 
 test('🛡️ Contrato de Gobernanza en Skills: repo-pr y repo-lifecycle no albergan templates sintéticos y declaran el validador', () => {
-  const rootDir = process.cwd();
+  const rootDir = ROOT_DIR;
   const repoPrSkill = path.join(rootDir, '.agents', 'skills', 'repo-pr', 'SKILL.md');
   const templatePolicy = path.join(rootDir, '.agents', 'skills', 'repo-pr', 'references', 'pr-template-policy.md');
   const repoLifecycleSkill = path.join(rootDir, '.agents', 'skills', 'repo-lifecycle', 'SKILL.md');

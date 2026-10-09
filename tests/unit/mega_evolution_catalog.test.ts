@@ -2,13 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { initialPokemons, sampleBasePokemons } from '../../apps/backend/src/data/initialPokemons.js';
 import { loadSeedCatalog } from '../../apps/backend/src/data/seed-catalog.js';
 import { buildSampleMegas, SAMPLE_MEGAS_OUTPUT, serializeSampleMegas } from '../../scripts/generate-pokemon-catalog.js';
 import { TYPE_COLORS } from '../../apps/frontend/src/shared/constants.js';
+import { ROOT_DIR } from '../helpers/repo.js';
 
-const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const full = loadSeedCatalog('full');
 const allMegas = full.flatMap((entry) => (entry.megaevoluciones ?? []).map((mega) => ({ entry, mega })));
 
