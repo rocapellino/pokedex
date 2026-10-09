@@ -54,12 +54,41 @@ test('🛡️ Contrato de Superficie de Pruebas: el inventario test-surface.json
   assert.strictEqual(
     drift.hasDrift,
     false,
-    `No debe existir drift en la superficie de testing. Nuevos: ${drift.newFiles.length}, Eliminados: ${drift.removedFiles.length}, Conteo modificado: ${drift.countChangedFiles.length}, Modificados: ${drift.modifiedFiles.length}`,
+    `No debe existir drift en la superficie de testing (ejecutar npm run test:surface:update). Nuevos: ${drift.newFiles.join(', ') || '-'}; eliminados: ${drift.removedFiles.join(', ') || '-'}; con metadatos distintos: ${drift.changedFiles.join(', ') || '-'}; documentos desactualizados: ${drift.staleDocuments.join(', ') || '-'}`,
   );
   assert.strictEqual(
     drift.orphanFiles.length,
     0,
     `No debe haber tests huérfanos sin comandos asignados: ${drift.orphanFiles.join(', ')}`,
+  );
+});
+
+test('🛡️ Contrato de Superficie de Pruebas: el catálogo versionado no contiene datos volátiles (editar un test no lo modifica)', () => {
+  // AUD-TST-SRF-001: con hashes, líneas y conteos por archivo, cada edición de un test cambiaba docs/testing/ y los
+  // PRs concurrentes chocaban entre sí. El catálogo versionado solo guarda lo que cambia al añadir, mover o borrar
+  // un archivo, o al editar su descripción.
+  const json = fs.readFileSync(path.join(ROOT_DIR, 'docs', 'testing', 'test-surface.json'), 'utf-8');
+  const volatile = [
+    'sha256',
+    'lineCount',
+    'sizeBytes',
+    'testCount',
+    'testCases',
+    'generatedAt',
+    'summary',
+    'totalTestCases',
+  ];
+  assert.deepStrictEqual(
+    volatile.filter((key) => json.includes(`"${key}"`)),
+    [],
+    'test-surface.json no debe versionar hashes, líneas, tamaños, conteos ni fecha de generación',
+  );
+
+  const markdown = fs.readFileSync(path.join(ROOT_DIR, 'docs', 'testing', 'test-surface.md'), 'utf-8');
+  assert.doesNotMatch(
+    markdown,
+    /Última Sincronización|Líneas de Código|Total de Casos/,
+    'test-surface.md no debe versionar métricas',
   );
 });
 

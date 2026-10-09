@@ -9,9 +9,9 @@
  *   - Clasifica suites, tipos de runner (node:test, playwright, k6), roles y dominios.
  *   - Extrae granularmente casos de prueba individuales (`test`, `it`, `group`).
  *   - Asocia comandos npm (`package.json`) y workflows de GitHub Actions.
- *   - Calcula hashes SHA-256 para control estricto de drift e inmutabilidad.
- *   - Genera la SSOT machine-readable `docs/testing/test-surface.json`.
- *   - Genera la vista humana y navegable `docs/testing/test-surface.md`.
+ *   - Genera la SSOT machine-readable `docs/testing/test-surface.json` y la vista humana `test-surface.md`,
+ *     solo con datos estables (sin hashes, líneas ni conteos): editar un test no las modifica.
+ *   - Muestra por consola las métricas volátiles (casos, líneas, tamaño), que no se versionan.
  *   - Valida paridad exacta sin drift con `--check`.
  *
  * Modos de ejecución:
@@ -22,16 +22,16 @@
  * ==============================================================================
  */
 
-import fs from 'node:fs';
 import { buildCatalog, checkDrift, writeCatalog } from './test-surface/catalog.js';
-import { JSON_FILE, MD_FILE } from './test-surface/paths.js';
 
 // API pública conservada: los consumidores importan desde este módulo.
-export { buildCatalog, checkDrift, writeCatalog } from './test-surface/catalog.js';
+export { buildCatalog, checkDrift, toPublishedCatalog, writeCatalog } from './test-surface/catalog.js';
 export { parseTestFile } from './test-surface/parser.js';
 export { generateMarkdownReport } from './test-surface/report.js';
 export type {
   DriftReport,
+  PublishedCatalog,
+  PublishedFileRecord,
   SuiteSummary,
   TestCaseRecord,
   TestFileRecord,
@@ -87,20 +87,17 @@ function main() {
       console.log(`  ➖ Archivos eliminados (${drift.removedFiles.length}):`);
       for (const f of drift.removedFiles) console.log(`     - ${f}`);
     }
-    if (drift.countChangedFiles.length > 0) {
-      console.log(`  🔢 Cambio en cantidad de tests (${drift.countChangedFiles.length}):`);
-      for (const c of drift.countChangedFiles) console.log(`     - ${c.path}: ${c.old} -> ${c.current} tests`);
-    }
-    if (drift.modifiedFiles.length > 0) {
-      console.log(`  📝 Archivos con contenido modificado (${drift.modifiedFiles.length}):`);
-      for (const f of drift.modifiedFiles) console.log(`     - ${f}`);
+    if (drift.changedFiles.length > 0) {
+      console.log(`  📝 Archivos con metadatos publicados distintos (${drift.changedFiles.length}):`);
+      for (const f of drift.changedFiles) console.log(`     - ${f}`);
     }
     if (drift.brokenTargetArtifacts.length > 0) {
       console.log(`  🔗 Referencias a artefactos inexistentes/rotos (${drift.brokenTargetArtifacts.length}):`);
       for (const b of drift.brokenTargetArtifacts) console.log(`     - [${b.testFile}] -> ${b.artifact}`);
     }
-    if (!fs.existsSync(JSON_FILE) || !fs.existsSync(MD_FILE)) {
-      console.log('  📄 Catálogos en docs/testing/ ausentes o incompletos.');
+    if (drift.staleDocuments.length > 0) {
+      console.log('  📄 Catálogos desactualizados, ausentes o incompletos:');
+      for (const f of drift.staleDocuments) console.log(`     - ${f}`);
     }
     console.log('\n💡 Para reconciliar la documentación ejecute:');
     console.log('   npm run test:surface:update');
