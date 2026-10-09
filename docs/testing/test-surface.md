@@ -15,11 +15,11 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 | **Archivos de Test Automatizados** | 132 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 58 |
-| **Total de Casos de Prueba Identificados** | **977** |
-| **Líneas de Código de Pruebas** | 26.234 |
-| **Tamaño Total de la Suite** | 1107.8 KB |
+| **Total de Casos de Prueba Identificados** | **975** |
+| **Líneas de Código de Pruebas** | 26.186 |
+| **Tamaño Total de la Suite** | 1105.4 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-09T14:32:00.202Z |
+| **Última Sincronización** | 2026-10-09T14:40:58.989Z |
 
 ---
 
@@ -27,7 +27,7 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 26 | 175 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 26 | 173 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
 | **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 11 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 40 | 309 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 9 | 43 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
@@ -234,7 +234,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/repo_tool_exec.test.ts`](../../tests/unit/repo_tool_exec.test.ts) | `unit` | Unit | `node:test (tsx)` | **18** | 379 | Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | `unit` | Unit | `node:test (tsx)` | **16** | 152 | Verifica SEED_DATASET (muestra o catálogo completo, valor desconocido falla) y que el catálogo completo tenga IDs contiguos y supere el validador del backend. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/startup_env_check.test.ts`](../../tests/unit/startup_env_check.test.ts) | `unit` | Unit | `node:test (tsx)` | **6** | 181 | Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
-| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | `unit` | Contract / Persistence | `node:test (tsx)` | **3** | 75 | Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | `unit` | Contract / Persistence | `node:test (tsx)` | **1** | 27 | Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/zod_resolution.test.ts`](../../tests/unit/zod_resolution.test.ts) | `unit` | Contract / Dependencies | `node:test (tsx)` | **2** | 61 | Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 106 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
 
@@ -246,7 +246,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 175
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 173
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -275,7 +275,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/repo_tool_exec.test.ts`](../../tests/unit/repo_tool_exec.test.ts) | **18** | 379 | Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex. | `.agents/skills/repo-tool-exec/scripts/tool-exec.ts`, `.agents/skills/repo-tool-exec/references/tool-catalog.yaml` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | **16** | 152 | Verifica SEED_DATASET (muestra o catálogo completo, valor desconocido falla) y que el catálogo completo tenga IDs contiguos y supere el validador del backend. | `apps/backend/src/data/seed-catalog.ts`, `apps/backend/src/data/initialPokemons.ts` |
 | [`tests/unit/startup_env_check.test.ts`](../../tests/unit/startup_env_check.test.ts) | **6** | 181 | Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción. | `apps/backend/src/config/startup-env-check.ts` |
-| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | **3** | 75 | Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002). | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
+| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | **1** | 27 | Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002). | `apps/backend/server.ts` |
 | [`tests/unit/zod_resolution.test.ts`](../../tests/unit/zod_resolution.test.ts) | **2** | 61 | Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001). | `apps/backend/package.json`, `package.json` |
 
 ### Suite: Pruebas de Integración de API y Servicios (`integration`)

@@ -188,9 +188,9 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/unit/startup_fail_closed_contract.test.ts': {
     type: 'Contract / Persistence',
     targetDomain: 'Arranque Fail-Closed',
-    targetArtifacts: ['apps/backend/src/services/postgres.ts', 'apps/backend/server.ts'],
+    targetArtifacts: ['apps/backend/server.ts'],
     description:
-      'Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002).',
+      'Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002).',
   },
   'tests/ci/workflow_run_parity.test.ts': {
     type: 'Contract / CI',
