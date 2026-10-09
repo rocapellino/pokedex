@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T15:01:35.706Z",
+  "generatedAt": "2026-10-09T15:12:16.179Z",
   "summary": {
     "totalFiles": 191,
     "testFiles": 132,
@@ -8,7 +8,7 @@
     "performanceScripts": 1,
     "totalTestCases": 976,
     "totalLines": 26161,
-    "totalSizeBytes": 1130612,
+    "totalSizeBytes": 1130614,
     "suitesCount": 10
   },
   "suites": [
@@ -5497,9 +5497,9 @@
       "testCount": 3,
       "describeCount": 0,
       "assertionCountEst": 6,
-      "sizeBytes": 2462,
+      "sizeBytes": 2464,
       "lineCount": 49,
-      "sha256": "c7ce718d7075a742c14f31c24253dba92e1fc16f2500e04ad92b2ca7e2d16800",
+      "sha256": "8af5b6ab8f495807989916a8afbac03e430594aab57b66823c405f5831c0ab5a",
       "targetDomain": "Conformidad ADR / Registro",
       "targetArtifacts": [
         "docs/decisions/"
@@ -5521,7 +5521,7 @@
           "line": 19
         },
         {
-          "name": "🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico está indexado en docs/decisions/README.md",
+          "name": "🗂️ Registro de ADRs: todo ADR activo tiene nombre canónico y está indexado en docs/decisions/README.md",
           "line": 33
         },
         {
