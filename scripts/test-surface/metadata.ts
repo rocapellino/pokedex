@@ -139,6 +139,33 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida cabeceras Helmet (HSTS, CSP, X-Frame-Options), CORS restrictivo, prevención de fuga de información y manejo seguro de errores.',
   },
+  'tests/integration/routes_pokemons.test.ts': {
+    type: 'Integration',
+    targetDomain: 'API / CRUD de Pokémon',
+    targetArtifacts: ['apps/backend/src/routes/pokemons.ts', 'apps/backend/src/middleware/auth.ts'],
+    description:
+      'Valida sobre la app Express real la lectura paginada con filtros y ETag, la autenticación de las mutaciones (clave y sesión con CSRF) y el alta, edición y baja de Pokémon.',
+  },
+  'tests/integration/routes_auth.test.ts': {
+    type: 'Integration',
+    targetDomain: 'API / Sesión de Administración',
+    targetArtifacts: ['apps/backend/src/routes/auth.ts', 'apps/backend/src/services/auth.ts'],
+    description:
+      'Valida la emisión de la cookie de sesión HttpOnly, su lectura por cookie, Bearer y cabecera, el logout con revocación del token y el límite de intentos por IP.',
+  },
+  'tests/integration/routes_ai.test.ts': {
+    type: 'Integration',
+    targetDomain: 'API / Endpoints de IA',
+    targetArtifacts: ['apps/backend/src/routes/ai.ts', 'apps/backend/src/services/ai.ts'],
+    description:
+      'Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen y el límite de 10 peticiones por minuto. Incluye un hallazgo marcado como todo.',
+  },
+  'tests/integration/routes_health.test.ts': {
+    type: 'Integration',
+    targetDomain: 'API / Sondas de Salud',
+    targetArtifacts: ['apps/backend/src/routes/health.ts', 'apps/backend/src/utils/lifecycle.ts'],
+    description: 'Valida /healthz, /readyz sin PostgreSQL conectado y /readyz durante el apagado grácil.',
+  },
   'tests/integration/storage.test.ts': {
     type: 'Integration',
     targetDomain: 'Capa de Persistencia',
