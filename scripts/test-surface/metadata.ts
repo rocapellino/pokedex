@@ -19,12 +19,12 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas.',
   },
-  'tests/integration/api-limits.test.ts': {
-    type: 'Integration',
-    targetDomain: 'Backend HTTP API / Rate Limiting',
-    targetArtifacts: ['apps/backend/src/middleware/rate-limiter.ts', 'apps/backend/server.ts'],
+  'tests/unit/pagination_limits.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Límites de Paginación de la API',
+    targetArtifacts: ['apps/backend/src/utils/pagination.ts'],
     description:
-      'Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429.',
+      'Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000.',
   },
   'tests/audit_freshness.test.ts': {
     type: 'Contract / Governance',
@@ -135,9 +135,16 @@ export const FILE_METADATA_CATALOG: Record<
   },
   'tests/integration/storage.test.ts': {
     type: 'Integration',
-    targetDomain: 'Capa de Persistencia y Caché',
-    targetArtifacts: ['apps/backend/src/services/db.ts', 'apps/backend/src/services/cache.ts'],
-    description: 'Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos.',
+    targetDomain: 'Capa de Persistencia',
+    targetArtifacts: ['apps/backend/src/services/db.ts'],
+    description:
+      'Valida salud del almacenamiento, paginación, lectura, escritura y generación de IDs continuos de Pokémon.',
+  },
+  'tests/unit/drizzle_contract.test.ts': {
+    type: 'Contract / Persistence',
+    targetDomain: 'Contrato Estático de Drizzle',
+    targetArtifacts: ['apps/backend/src/db/', 'apps/backend/drizzle.config.ts'],
+    description: 'Comprueba el esquema, las migraciones en disco y la política fail-closed de drizzle.config.ts.',
   },
   'tests/version_consistency.test.ts': {
     type: 'Contract / Release',
@@ -151,12 +158,33 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm).',
   },
-  'tests/integration/version.test.ts': {
+  'tests/integration/version_endpoint.test.ts': {
     type: 'Integration',
-    targetDomain: 'Endpoint de Telemetría /version',
+    targetDomain: 'Endpoint /version',
     targetArtifacts: ['apps/backend/server.ts'],
     description:
-      'Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime.',
+      'Valida que /version exponga metadata segura, la versión semántica de la SSOT y degrade a unknown sin versión ficticia.',
+  },
+  'tests/integration/http_middleware.test.ts': {
+    type: 'Integration',
+    targetDomain: 'Middleware HTTP de Express',
+    targetArtifacts: ['apps/backend/server.ts'],
+    description:
+      'Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id.',
+  },
+  'tests/unit/startup_env_check.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Verificación de Entorno al Arrancar',
+    targetArtifacts: ['apps/backend/src/config/startup-env-check.ts'],
+    description:
+      'Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción.',
+  },
+  'tests/unit/startup_fail_closed_contract.test.ts': {
+    type: 'Contract / Persistence',
+    targetDomain: 'Arranque Fail-Closed',
+    targetArtifacts: ['apps/backend/src/services/postgres.ts', 'apps/backend/server.ts'],
+    description:
+      'Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002).',
   },
   'tests/ci/workflow_run_parity.test.ts': {
     type: 'Contract / CI',

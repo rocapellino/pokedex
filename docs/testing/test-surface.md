@@ -11,15 +11,15 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Métrica | Valor Registrado |
 | :--- | :--- |
-| **Total de Archivos en `tests/`** | **187** |
-| **Archivos de Test Automatizados** | 128 |
+| **Total de Archivos en `tests/`** | **191** |
+| **Archivos de Test Automatizados** | 132 |
 | **Scripts de Carga / Rendimiento (k6)** | 1 |
 | **Archivos de Soporte / Entorno (Fixtures)** | 58 |
 | **Total de Casos de Prueba Identificados** | **976** |
-| **Líneas de Código de Pruebas** | 26.207 |
-| **Tamaño Total de la Suite** | 1107.0 KB |
+| **Líneas de Código de Pruebas** | 26.223 |
+| **Tamaño Total de la Suite** | 1107.4 KB |
 | **Suites Especializadas Gobernadas** | 10 |
-| **Última Sincronización** | 2026-10-09T14:02:44.437Z |
+| **Última Sincronización** | 2026-10-09T14:13:04.672Z |
 
 ---
 
@@ -27,8 +27,8 @@ Este catálogo proporciona el inventario exhaustivo, auditable y granular de tod
 
 | Suite | Nombre | Runner | Comando Principal | Archivos | Casos | Propósito |
 | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
-| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 22 | 160 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
-| **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 26 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
+| **`unit`** | Pruebas Unitarias de Aplicación | `node:test (tsx)` | `npm run test:unit` | 26 | 175 | Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios. |
+| **`integration`** | Pruebas de Integración de API y Servicios | `node:test (tsx)` | `npm run test:integration` | 4 | 11 | Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión. |
 | **`security`** | Seguridad, Hardening y DevSecOps | `node:test (tsx)` | `npm run test:security` | 40 | 310 | Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC. |
 | **`gitops`** | Contratos de GitOps y Despliegue | `node:test (tsx)` | `npm run test:gitops` | 9 | 43 | Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod. |
 | **`frontend`** | Componentes y Controladores Frontend | `node:test + JSDOM` | `npm test` | 86 | 278 | Pruebas sobre controladores DOM de backoffice, toasts interactivos y componentes modales accesibles. |
@@ -160,10 +160,10 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/helpers/docs-portal.ts`](../../tests/helpers/docs-portal.ts) | `helpers` | Helper | `none` | **0** | 25 | Suite de pruebas helpers: docs-portal.ts. | *(Helper)* |
 | [`tests/helpers/repo.ts`](../../tests/helpers/repo.ts) | `helpers` | Helper | `none` | **0** | 8 | Suite de pruebas helpers: repo.ts. | *(Helper)* |
 | [`tests/helpers/taskfile.ts`](../../tests/helpers/taskfile.ts) | `helpers` | Helper | `none` | **0** | 30 | Suite de pruebas helpers: taskfile.ts. | *(Helper)* |
-| [`tests/integration/api-limits.test.ts`](../../tests/integration/api-limits.test.ts) | `integration` | Integration | `node:test (tsx)` | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
 | [`tests/integration/concurrency.test.ts`](../../tests/integration/concurrency.test.ts) | `integration` | Integration | `node:test (tsx)` | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
-| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | `integration` | Integration | `node:test (tsx)` | **8** | 123 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
-| [`tests/integration/version.test.ts`](../../tests/integration/version.test.ts) | `integration` | Integration | `node:test (tsx)` | **14** | 401 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/http_middleware.test.ts`](../../tests/integration/http_middleware.test.ts) | `integration` | Integration | `node:test (tsx)` | **2** | 50 | Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | `integration` | Integration | `node:test (tsx)` | **5** | 72 | Valida salud del almacenamiento, paginación, lectura, escritura y generación de IDs continuos de Pokémon. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
+| [`tests/integration/version_endpoint.test.ts`](../../tests/integration/version_endpoint.test.ts) | `integration` | Integration | `node:test (tsx)` | **3** | 108 | Valida que /version exponga metadata segura, la versión semántica de la SSOT y degrade a unknown sin versión ficticia. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:integration` |
 | [`tests/markdown_gate.test.ts`](../../tests/markdown_gate.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **7** | 73 | Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix. | `npm test`, `npm run test:all`, `npm run test:coverage` |
 | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) | `performance` | Load / Stress | `k6` | **4** | 167 | Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios. | `k6 run tests/performance/k6_stress_test.js` |
 | [`tests/pr_template_governance.test.ts`](../../tests/pr_template_governance.test.ts) | `governance` | Contract / Governance | `node:test (tsx)` | **6** | 248 | Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake. | `npm test`, `npm run test:all`, `npm run test:coverage` |
@@ -217,6 +217,7 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | `unit` | Unit | `node:test (tsx)` | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 40 | Suite de pruebas unit: compose_postgres_tls.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/drizzle_contract.test.ts`](../../tests/unit/drizzle_contract.test.ts) | `unit` | Contract / Persistence | `node:test (tsx)` | **3** | 54 | Comprueba el esquema, las migraciones en disco y la política fail-closed de drizzle.config.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **7** | 104 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **8** | 249 | Suite de pruebas unit: mega_evolution_generator.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
@@ -226,11 +227,14 @@ A continuación se inventarían todos los archivos que componen la superficie de
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **5** | 90 | Suite de pruebas unit: migrate_baseline.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **4** | 206 | Suite de pruebas unit: monolith_guardrails.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/node_version_consistency.test.ts`](../../tests/unit/node_version_consistency.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **1** | 36 | Suite de pruebas unit: node_version_consistency.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/pagination_limits.test.ts`](../../tests/unit/pagination_limits.test.ts) | `unit` | Unit | `node:test (tsx)` | **3** | 43 | Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **6** | 270 | Suite de pruebas unit: pokemon_mapper.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | `unit` | Unit | `node:test (tsx)` | **8** | 191 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | `unit` | Unit | `node:test (tsx)` | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/repo_tool_exec.test.ts`](../../tests/unit/repo_tool_exec.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **18** | 379 | Suite de pruebas unit: repo_tool_exec.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **16** | 152 | Suite de pruebas unit: seed_catalog.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/startup_env_check.test.ts`](../../tests/unit/startup_env_check.test.ts) | `unit` | Unit | `node:test (tsx)` | **6** | 181 | Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
+| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | `unit` | Contract / Persistence | `node:test (tsx)` | **3** | 75 | Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002). | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/unit/zod_resolution.test.ts`](../../tests/unit/zod_resolution.test.ts) | `unit` | Automated Test | `node:test (tsx)` | **2** | 61 | Suite de pruebas unit: zod_resolution.test.ts. | `npm test`, `npm run test:all`, `npm run test:coverage`, `npm run test:unit` |
 | [`tests/version_consistency.test.ts`](../../tests/version_consistency.test.ts) | `governance` | Contract / Release | `node:test (tsx)` | **3** | 106 | Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm). | `npm test`, `npm run test:all`, `npm run test:coverage` |
 
@@ -242,7 +246,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 
 ### Suite: Pruebas Unitarias de Aplicación (`unit`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 160
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:unit` | **Total Casos:** 175
 - **Propósito:** Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
@@ -254,6 +258,7 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/cache_service.test.ts`](../../tests/unit/cache_service.test.ts) | **5** | 81 | Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red. | `apps/backend/src/services/cache.ts` |
 | [`tests/unit/classification_legendary.test.ts`](../../tests/unit/classification_legendary.test.ts) | **14** | 182 | Suite de pruebas unit: classification_legendary.test.ts. | *(General)* |
 | [`tests/unit/compose_postgres_tls.test.ts`](../../tests/unit/compose_postgres_tls.test.ts) | **1** | 40 | Suite de pruebas unit: compose_postgres_tls.test.ts. | *(General)* |
+| [`tests/unit/drizzle_contract.test.ts`](../../tests/unit/drizzle_contract.test.ts) | **3** | 54 | Comprueba el esquema, las migraciones en disco y la política fail-closed de drizzle.config.ts. | `apps/backend/src/db/`, `apps/backend/drizzle.config.ts` |
 | [`tests/unit/error_helpers.test.ts`](../../tests/unit/error_helpers.test.ts) | **3** | 29 | Suite de pruebas unit: error_helpers.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_catalog.test.ts`](../../tests/unit/mega_evolution_catalog.test.ts) | **7** | 104 | Suite de pruebas unit: mega_evolution_catalog.test.ts. | *(General)* |
 | [`tests/unit/mega_evolution_generator.test.ts`](../../tests/unit/mega_evolution_generator.test.ts) | **8** | 249 | Suite de pruebas unit: mega_evolution_generator.test.ts. | *(General)* |
@@ -263,24 +268,27 @@ Para facilitar la inspección humana de la cobertura, las pruebas se agrupan por
 | [`tests/unit/migrate_baseline.test.ts`](../../tests/unit/migrate_baseline.test.ts) | **5** | 90 | Suite de pruebas unit: migrate_baseline.test.ts. | *(General)* |
 | [`tests/unit/monolith_guardrails.test.ts`](../../tests/unit/monolith_guardrails.test.ts) | **4** | 206 | Suite de pruebas unit: monolith_guardrails.test.ts. | *(General)* |
 | [`tests/unit/node_version_consistency.test.ts`](../../tests/unit/node_version_consistency.test.ts) | **1** | 36 | Suite de pruebas unit: node_version_consistency.test.ts. | *(General)* |
+| [`tests/unit/pagination_limits.test.ts`](../../tests/unit/pagination_limits.test.ts) | **3** | 43 | Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000. | `apps/backend/src/utils/pagination.ts` |
 | [`tests/unit/pokemon_mapper.test.ts`](../../tests/unit/pokemon_mapper.test.ts) | **6** | 270 | Suite de pruebas unit: pokemon_mapper.test.ts. | *(General)* |
 | [`tests/unit/pokemon_repository.test.ts`](../../tests/unit/pokemon_repository.test.ts) | **8** | 191 | Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos. | `apps/backend/src/services/pokemon.repository.ts` |
 | [`tests/unit/postgres_fail_closed.test.ts`](../../tests/unit/postgres_fail_closed.test.ts) | **9** | 242 | Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores. | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
 | [`tests/unit/repo_tool_exec.test.ts`](../../tests/unit/repo_tool_exec.test.ts) | **18** | 379 | Suite de pruebas unit: repo_tool_exec.test.ts. | *(General)* |
 | [`tests/unit/seed_catalog.test.ts`](../../tests/unit/seed_catalog.test.ts) | **16** | 152 | Suite de pruebas unit: seed_catalog.test.ts. | *(General)* |
+| [`tests/unit/startup_env_check.test.ts`](../../tests/unit/startup_env_check.test.ts) | **6** | 181 | Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción. | `apps/backend/src/config/startup-env-check.ts` |
+| [`tests/unit/startup_fail_closed_contract.test.ts`](../../tests/unit/startup_fail_closed_contract.test.ts) | **3** | 75 | Comprueba que un fallo de migración en producción aborta el arranque y no degrada a memoria (APPS-002). | `apps/backend/src/services/postgres.ts`, `apps/backend/server.ts` |
 | [`tests/unit/zod_resolution.test.ts`](../../tests/unit/zod_resolution.test.ts) | **2** | 61 | Suite de pruebas unit: zod_resolution.test.ts. | *(General)* |
 
 ### Suite: Pruebas de Integración de API y Servicios (`integration`)
 
-- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:integration` | **Total Casos:** 26
+- **Runner:** `node:test (tsx)` | **Comando:** `npm run test:integration` | **Total Casos:** 11
 - **Propósito:** Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión.
 
 | Archivo de Prueba | Casos | Líneas | Dominio / Qué Verifica | Artefactos Bajo Prueba |
 | :--- | :---: | :---: | :--- | :--- |
-| [`tests/integration/api-limits.test.ts`](../../tests/integration/api-limits.test.ts) | **3** | 43 | Verifica rate limiting global y por endpoint, manejo de peticiones concurrentes y cabeceras X-RateLimit-* con código 429. | `apps/backend/src/middleware/rate-limiter.ts`, `apps/backend/server.ts` |
 | [`tests/integration/concurrency.test.ts`](../../tests/integration/concurrency.test.ts) | **1** | 24 | Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon. | `apps/backend/src/services/db.ts` |
-| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | **8** | 123 | Valida operaciones CRUD del repositorio, serialización y resiliencia de la capa de datos. | `apps/backend/src/services/db.ts`, `apps/backend/src/services/cache.ts` |
-| [`tests/integration/version.test.ts`](../../tests/integration/version.test.ts) | **14** | 401 | Valida que el endpoint /version retorne deterministamente metadatos de build, commit SHA, entorno y uptime. | `apps/backend/server.ts` |
+| [`tests/integration/http_middleware.test.ts`](../../tests/integration/http_middleware.test.ts) | **2** | 50 | Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id. | `apps/backend/server.ts` |
+| [`tests/integration/storage.test.ts`](../../tests/integration/storage.test.ts) | **5** | 72 | Valida salud del almacenamiento, paginación, lectura, escritura y generación de IDs continuos de Pokémon. | `apps/backend/src/services/db.ts` |
+| [`tests/integration/version_endpoint.test.ts`](../../tests/integration/version_endpoint.test.ts) | **3** | 108 | Valida que /version exponga metadata segura, la versión semántica de la SSOT y degrade a unknown sin versión ficticia. | `apps/backend/server.ts` |
 
 ### Suite: Seguridad, Hardening y DevSecOps (`security`)
 
