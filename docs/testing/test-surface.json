@@ -1280,8 +1280,9 @@
       "status": "ACTIVE",
       "targetDomain": "GitOps / Inmutabilidad de Despliegues",
       "targetArtifacts": [
-        "gitops/values-*.yaml",
-        "scripts/verify-image-digest-parity.ts"
+        "scripts/update-gitops-pin.ts",
+        ".github/workflows/release-tag.yaml",
+        "gitops/apps/"
       ],
       "npmCommands": [
         "npm test",
@@ -1292,7 +1293,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod."
+      "description": "Valida el pin de targetRevision de ArgoCD a un tag SemVer y el pipeline de promoción sobre release-tag.yaml parseado: fases promote y tag, PR atómico desde rama bot, tag anclado al commit de promoción, concurrencia y tareas de Taskfile."
     },
     {
       "path": "tests/gitops/environment_http_contract.test.ts",

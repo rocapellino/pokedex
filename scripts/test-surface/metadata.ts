@@ -306,9 +306,9 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/gitops/argocd_pinning.test.ts': {
     type: 'Contract / GitOps',
     targetDomain: 'GitOps / Inmutabilidad de Despliegues',
-    targetArtifacts: ['gitops/values-*.yaml', 'scripts/verify-image-digest-parity.ts'],
+    targetArtifacts: ['scripts/update-gitops-pin.ts', '.github/workflows/release-tag.yaml', 'gitops/apps/'],
     description:
-      'Valida pinning estricto por digest SHA-256 en manifiestos de ArgoCD y prohíbe tags mutables (:latest) en dev, preprod y prod.',
+      'Valida el pin de targetRevision de ArgoCD a un tag SemVer y el pipeline de promoción sobre release-tag.yaml parseado: fases promote y tag, PR atómico desde rama bot, tag anclado al commit de promoción, concurrencia y tareas de Taskfile.',
   },
   'tests/performance/k6_stress_test.js': {
     type: 'Load / Stress',
