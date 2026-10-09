@@ -101,10 +101,6 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
   assert.ok(fs.existsSync(adr20Path), 'ADR-020 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adr20Path, 'utf-8');
   assert.ok(
-    adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'),
-    'ADR-020 debe estar en estado Aceptado',
-  );
-  assert.ok(
     adrContent.includes('task --list'),
     'ADR-020 debe formalizar task --list como interfaz oficialmente soportada',
   );

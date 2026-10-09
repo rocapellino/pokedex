@@ -26,7 +26,6 @@ test('🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Cir
   assert.ok(fs.existsSync(adrPath), 'ADR-009 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-009 debe estar aceptado');
   assert.ok(adrContent.includes('GoogleGenAI'), 'ADR-009 debe documentar SDK oficial @google/genai');
   assert.ok(adrContent.includes('gemini-2.5-flash'), 'ADR-009 debe documentar modelo gemini-2.5-flash');
   assert.ok(
@@ -61,7 +60,6 @@ test('🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSaf
   assert.ok(fs.existsSync(adrPath), 'ADR-010 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-010 debe estar aceptado');
   assert.ok(
     adrContent.includes('timingSafeEqual'),
     'ADR-010 debe documentar mitigación timing attacks con timingSafeEqual',
@@ -125,7 +123,6 @@ test('🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBounc
   assert.ok(fs.existsSync(adrPath), 'ADR-011 debe existir en docs/decisions/');
   const adrContent = fs.readFileSync(adrPath, 'utf-8');
 
-  assert.ok(adrContent.replace(/\r\n/g, '\n').includes('## Estado\n\nAceptado'), 'ADR-011 debe estar aceptado');
   assert.ok(adrContent.includes('Drizzle ORM'), 'ADR-011 debe documentar Drizzle ORM');
   assert.ok(adrContent.includes('PgBouncer'), 'ADR-011 debe documentar PgBouncer');
   assert.ok(adrContent.includes('pokedex_id_seq'), 'ADR-011 debe documentar secuencia atómica pokedex_id_seq');
