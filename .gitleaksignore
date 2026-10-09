@@ -1,6 +1,0 @@
-# Excepciones puntuales de Gitleaks por huella (commit:archivo:regla:línea).
-# El escaneo de CI recorre el historial completo; una corrección posterior no borra un hallazgo ya commiteado.
-
-# Literal de prueba (no es una credencial) en el commit ec49324 del PR #694. El commit siguiente lo reemplaza por
-# claves generadas con randomSecret(). Se excepciona solo esta huella, no la regla ni el archivo.
-ec4932428af68b165c5b896737d9124f8c1e9058:tests/integration/routes_ai.test.ts:generic-api-key:5
