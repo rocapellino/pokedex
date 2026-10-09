@@ -2,21 +2,46 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import yaml from 'js-yaml';
-const yamlSafeLoad = (yaml as unknown as { load: typeof yaml.load }).load ?? yaml.load;
 import { ROOT_DIR } from './helpers/repo.js';
+import { readYaml } from './helpers/yaml.js';
+
+// Los workflows se verifican parseados (triggers, jobs, pasos, permisos): una clave comentada o una mención en un
+// comentario siguen "apareciendo" en el texto sin que GitHub Actions las evalúe. Solo se leen como texto los
+// comentarios de gobernanza (que son lo que se verifica) y los archivos que no son YAML.
+
+const WORKFLOWS = '.github/workflows';
+const workflow = (file: string): any => readYaml(`${WORKFLOWS}/${file}`);
+const workflowText = (file: string) => fs.readFileSync(path.join(ROOT_DIR, WORKFLOWS, file), 'utf8');
+const workflowFiles = () =>
+  fs.readdirSync(path.join(ROOT_DIR, WORKFLOWS)).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+/** Triggers de un workflow (`on`; YAML 1.1 puede interpretar la clave como el booleano `true`). */
+const triggersOf = (doc: any): Record<string, unknown> => (doc.on ?? doc.true ?? {}) as Record<string, unknown>;
+const jobsOf = (doc: any): Array<[string, any]> => Object.entries(doc.jobs ?? {});
+const stepsOf = (doc: any): any[] => jobsOf(doc).flatMap(([, job]) => job.steps ?? []);
+const usesAction = (step: any, action: string) => String(step.uses ?? '').startsWith(`${action}@`);
+/** Scripts `run:` de un conjunto de pasos, sin las líneas de shell comentadas. */
+const scriptsOf = (steps: any[]): string[] =>
+  steps
+    .filter((s) => typeof s.run === 'string')
+    .map((s) =>
+      s.run
+        .split('\n')
+        .filter((line: string) => !line.trimStart().startsWith('#'))
+        .join('\n'),
+    );
 
 // ==============================================================================
 // Topología de CI / Orquestación Reutilizable
 // ==============================================================================
 
 test('🎯 CI topology: workflows condicionales delegan la decisión a change-impact.yaml', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
-  for (const workflow of ['web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml']) {
-    const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
-    assert.match(content, /workflow_call:/, `${workflow} debe ser reutilizable`);
-    assert.doesNotMatch(content, /pull_request:/, `${workflow} no debe decidir por paths en PR`);
-    assert.match(orchestrator, new RegExp(`uses: \\.\\/.github/workflows/${workflow.replace('.', '\\.')}\\b`));
+  const orchestrator = workflow('change-impact.yaml');
+  const invoked = jobsOf(orchestrator).map(([, job]) => job.uses);
+  for (const file of ['web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml']) {
+    const triggers = triggersOf(workflow(file));
+    assert.ok('workflow_call' in triggers, `${file} debe ser reutilizable`);
+    assert.ok(!('pull_request' in triggers), `${file} no debe decidir por paths en PR`);
+    assert.ok(invoked.includes(`./.github/workflows/${file}`), `change-impact.yaml debe invocar ${file}`);
   }
 });
 
@@ -30,39 +55,48 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
   // La serialización por PR ya la aplica `change-impact.yaml` a nivel superior.
   const reusables = ['ci.yaml', 'infra.yaml', 'web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml'];
 
-  for (const workflow of reusables) {
-    const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', workflow), 'utf8');
-    assert.doesNotMatch(
-      content,
-      /^concurrency:/m,
-      `${workflow} no debe declarar concurrency: colisiona con los demás reusables y cancela jobs`,
+  for (const file of reusables) {
+    assert.equal(
+      workflow(file).concurrency,
+      undefined,
+      `${file} no debe declarar concurrency: colisiona con los demás reusables y cancela jobs`,
     );
   }
 });
 
 test('⚙️ CI topology: el orquestador conserva la serialización por PR', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
-  assert.match(orchestrator, /^concurrency:/m, 'change-impact.yaml debe mantener su concurrency');
-  assert.match(orchestrator, /cancel-in-progress:\s*true/, 'debe cancelar corridas previas del mismo PR');
+  const { concurrency } = workflow('change-impact.yaml');
+  assert.ok(concurrency?.group, 'change-impact.yaml debe mantener su concurrency');
+  assert.equal(concurrency['cancel-in-progress'], true, 'debe cancelar corridas previas del mismo PR');
 });
 
 test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
+  const orchestrator = workflow('change-impact.yaml');
+  const ci = workflow('ci.yaml');
 
-  assert.match(orchestrator, /agent_governance:\s*\$\{\{ steps\.impact\.outputs\.agent_governance \}\}/);
-  assert.match(
-    orchestrator,
-    /agent_governance:\s*\$\{\{ needs\.detect-impact\.outputs\.agent_governance == 'true' \}\}/,
+  assert.equal(
+    orchestrator.jobs['detect-impact'].outputs.agent_governance,
+    '${{ steps.impact.outputs.agent_governance }}',
+    'detect-impact debe exponer la salida agent_governance',
   );
-  assert.match(ci, /agent_governance:[\s\S]*?type:\s*boolean/);
-  assert.match(ci, /aas-governance:[\s\S]*?npm run aas:verify[\s\S]*?tests\/aas_governance\.test\.ts/);
+  assert.equal(
+    orchestrator.jobs['ci-core'].with.agent_governance,
+    "${{ needs.detect-impact.outputs.agent_governance == 'true' }}",
+    'ci-core debe recibir agent_governance como entrada',
+  );
+  assert.equal(
+    triggersOf(ci).workflow_call && (triggersOf(ci).workflow_call as any).inputs.agent_governance.type,
+    'boolean',
+  );
+
+  const aas = scriptsOf(ci.jobs['aas-governance'].steps).join('\n');
+  assert.match(aas, /npm run aas:verify/);
+  assert.match(aas, /tests\/aas_governance\.test\.ts/);
 });
 
 test('⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea', () => {
-  const linters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
-
-  // La decision debe estar documentada en el propio workflow, no solo implicita.
+  // La decisión está documentada en el propio workflow (comentarios), por eso se lee como texto.
+  const linters = workflowText('config-linters.yaml');
   assert.match(linters, /CI-002/, 'config-linters.yaml debe referenciar la decisión CI-002');
   assert.match(
     linters,
@@ -73,11 +107,15 @@ test('⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo s�
 
   // Sin continue-on-error: el fallo debe ser una señal real, no silenciada (MegaLinter
   // corría con continue-on-error y DISABLE_ERRORS y por eso no aportaba señal).
-  assert.doesNotMatch(linters, /continue-on-error:\s*true/, 'El job de Config Linters no debe usar continue-on-error');
+  const doc = workflow('config-linters.yaml');
+  const silenced = [...jobsOf(doc).map(([, job]) => job), ...stepsOf(doc)].filter(
+    (node) => node['continue-on-error'] === true || node['continue-on-error'] === 'true',
+  );
+  assert.deepEqual(silenced, [], 'El job de Config Linters no debe usar continue-on-error');
 
   // La imagen de actionlint se fija por digest (supply chain).
   assert.match(
-    linters,
+    scriptsOf(stepsOf(doc)).join('\n'),
     /rhysd\/actionlint:[\d.]+@sha256:[a-f0-9]{64}/,
     'actionlint debe ejecutarse desde una imagen fijada por digest',
   );
@@ -132,118 +170,133 @@ test('🛡️ El ruleset declarativo debe registrar los tres required checks', (
 });
 
 test('🚦 Quality Gate: el agregador existe y es fail-closed con if: always()', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
+  const orchestrator = workflow('change-impact.yaml');
+  const gate = orchestrator.jobs['quality-gate'];
 
   // El gate existe para que el ruleset pueda declarar UN solo required check.
-  assert.match(orchestrator, /quality-gate:/, 'change-impact.yaml debe definir el job quality-gate');
+  assert.ok(gate, 'change-impact.yaml debe definir el job quality-gate');
 
-  // `needs` debe cubrir TODOS los pipelines del orquestador: si falta alguno,
+  // `needs` debe cubrir TODOS los demás jobs del orquestador: si falta alguno,
   // un fallo en ese pipeline no bloquearia el merge.
-  const needsMatch = orchestrator.match(/quality-gate:[\s\S]*?needs:\s*\[([^\]]*)\]/);
-  assert.ok(needsMatch, 'quality-gate debe declarar needs');
-  const needs = needsMatch[1]
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  for (const pipeline of [
-    'detect-impact',
-    'ci-core',
-    'infra',
-    'frontend-web',
-    'config-linters',
-    'security-code-scanning',
-  ]) {
-    assert.ok(needs.includes(pipeline), `quality-gate debe depender de ${pipeline}`);
-  }
+  const needs: string[] = gate.needs;
+  assert.ok(Array.isArray(needs), 'quality-gate debe declarar needs');
+  const others = jobsOf(orchestrator)
+    .map(([id]) => id)
+    .filter((id) => id !== 'quality-gate');
+  assert.deepEqual(
+    others.filter((id) => !needs.includes(id)),
+    [],
+    'quality-gate debe depender de todos los demás jobs del orquestador',
+  );
 
   // Sin `if: always()` el gate no se ejecuta cuando un job previo falla u se omite,
   // que es justamente el escenario que debe bloquear.
-  const gateBlock = orchestrator.slice(orchestrator.indexOf('quality-gate:'));
-  assert.match(
-    gateBlock.slice(0, 400),
-    /if:\s*always\(\)/,
-    'quality-gate debe usar if: always() para ejecutarse aunque sus dependencias no corran',
-  );
+  assert.equal(String(gate.if).trim(), 'always()', 'quality-gate debe ejecutarse aunque sus dependencias no corran');
 
   // La semántica: `skipped` no bloquea (el radio de impacto no lo requería),
   // cualquier otro resultado distinto de success sí bloquea.
+  const script = scriptsOf(gate.steps).join('\n');
   assert.match(
-    gateBlock,
+    script,
     /success\|skipped\)/,
     'El gate debe tratar `skipped` como no bloqueante (evita deadlocks por jobs condicionales)',
   );
-  assert.match(gateBlock, /exit 1/, 'El gate debe salir con error cuando un pipeline no cumple');
+  assert.match(script, /exit 1/, 'El gate debe salir con error cuando un pipeline no cumple');
 });
 
 test('🚦 Quality Gate: el check del gate tiene el nombre que espera el ruleset', () => {
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8');
   // El ruleset referencia los checks por su nombre mostrado. Este job no es
   // reusable, por lo que el context es exactamente el `name:` del job.
-  assert.match(
-    orchestrator,
-    /name:\s*"🚦 Quality Gate"/,
-    'El nombre visible del gate debe ser "🚦 Quality Gate" para referenciarlo en branch protection',
-  );
+  const ruleset = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, '.github/rulesets/main-protection.json'), 'utf-8'));
+  const contexts: string[] = ruleset.rules
+    .filter((r: { type: string }) => r.type === 'required_status_checks')
+    .flatMap((r: any) => r.parameters.required_status_checks.map((c: { context: string }) => c.context));
+
+  const name = workflow('change-impact.yaml').jobs['quality-gate'].name;
+  assert.equal(name, '🚦 Quality Gate', 'El nombre visible del gate debe ser "🚦 Quality Gate" para branch protection');
+  assert.ok(contexts.includes(name), 'el nombre del job quality-gate debe coincidir con un required check del ruleset');
 });
 
 test('⚙️ CI topology: change-impact.yaml es el único propietario de Trivy para imágenes de aplicación', () => {
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
-  const scheduledTrivy = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-trivy.yaml'), 'utf8');
-  assert.match(ci, /^ {2}trivy-scan:/m);
-  assert.doesNotMatch(scheduledTrivy, /pull_request:|\n {2}push:/);
-  assert.doesNotMatch(scheduledTrivy, /docker build|pokedex-server:test|pokedex-web:test/);
-  assert.match(scheduledTrivy, /schedule:/);
-  assert.match(scheduledTrivy, /infra-images-scan:/);
+  const ci = workflow('ci.yaml');
+  const scheduled = workflow('security-trivy.yaml');
+  assert.ok(ci.jobs['trivy-scan'], 'ci.yaml debe definir el job trivy-scan');
+
+  const triggers = triggersOf(scheduled);
+  assert.ok(!('pull_request' in triggers) && !('push' in triggers), 'el Trivy programado no debe correr en PR ni push');
+  assert.ok('schedule' in triggers, 'el Trivy programado debe correr por schedule');
+  assert.ok(scheduled.jobs['infra-images-scan'], 'el Trivy programado debe escanear las imágenes de infraestructura');
+  assert.doesNotMatch(
+    scriptsOf(stepsOf(scheduled)).join('\n'),
+    /docker build|pokedex-server:test|pokedex-web:test/,
+    'el Trivy programado no debe construir imágenes de aplicación',
+  );
 });
 
 test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis real', () => {
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
+  const ci = workflow('ci.yaml');
+  const orchestrator = workflow('change-impact.yaml');
+  const sync = workflow('sonar-linear-sync.yaml');
   const sonarProperties = fs.readFileSync(path.join(ROOT_DIR, 'sonar-project.properties'), 'utf-8');
-  const orchestrator = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf-8');
-  const sync = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/sonar-linear-sync.yaml'), 'utf-8');
 
-  assert.equal(
-    ci.match(/SonarSource\/sonarqube-scan-action@/g)?.length,
-    1,
-    'ci.yaml debe contener exactamente un scanner SonarQube Cloud',
-  );
+  const scanners = stepsOf(ci).filter((s) => usesAction(s, 'SonarSource/sonarqube-scan-action'));
+  assert.equal(scanners.length, 1, 'ci.yaml debe contener exactamente un scanner SonarQube Cloud');
   assert.match(
-    ci,
-    /SonarSource\/sonarqube-scan-action@[a-f0-9]{40} # v\d+\.\d+\.\d+/,
-    'La acción Sonar debe estar fijada por SHA completo con versión documentada',
+    scanners[0].uses,
+    /^SonarSource\/sonarqube-scan-action@[a-f0-9]{40}$/,
+    'La acción Sonar debe estar fijada por SHA completo',
   );
-  assert.ok(ci.includes('run: npm run test:coverage'), 'Sonar debe recibir cobertura LCOV actualizada');
+  // La versión documentada es un comentario al lado del SHA: se lee como texto.
+  assert.match(
+    workflowText('ci.yaml'),
+    /SonarSource\/sonarqube-scan-action@[a-f0-9]{40} # v\d+\.\d+\.\d+/,
+    'La acción Sonar debe llevar su versión documentada junto al SHA',
+  );
+
+  const steps: any[] = ci.jobs.sonarcloud.steps;
+  const indexOfStep = (predicate: (step: any) => boolean) => steps.findIndex(predicate);
+  const scan = indexOfStep((s) => usesAction(s, 'SonarSource/sonarqube-scan-action'));
+  const coverage = indexOfStep((s) => s.run === 'npm run test:coverage');
+  assert.ok(coverage >= 0 && coverage < scan, 'Sonar debe recibir cobertura LCOV actualizada');
+  const credential = indexOfStep((s) => (s.run ?? '').includes('test -n "$SONAR_TOKEN"'));
   assert.ok(
-    ci.includes('test -n "$SONAR_TOKEN"'),
+    credential >= 0 && credential < scan,
     'El análisis debe fallar cerrado cuando SONAR_TOKEN no está disponible',
   );
-  assert.ok(
-    orchestrator.includes('SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}'),
+  assert.equal(
+    orchestrator.jobs['ci-core'].secrets.SONAR_TOKEN,
+    '${{ secrets.SONAR_TOKEN }}',
     'change-impact.yaml debe propagar SONAR_TOKEN al reusable workflow',
   );
+
+  const version = steps.find((s) => s.id === 'project-version');
+  assert.ok(version?.run, 'Sonar debe resolver la versión en un paso project-version');
+  const script = scriptsOf([version])[0];
   assert.ok(
-    ci.includes("readFileSync('package.json', 'utf8')).version"),
+    script.includes("readFileSync('package.json', 'utf8')).version"),
     'La versión de Sonar debe derivarse del package.json canónico',
   );
+  const validation = script.indexOf('.test(process.argv[1])) process.exit(1)');
   assert.ok(
-    ci.includes('id: project-version') &&
-      ci.includes('-Dsonar.projectVersion=${{ steps.project-version.outputs.version }}'),
+    script.includes('node -e "if (!/^(0|[1-9]\\\\d*)') &&
+      script.includes('.test(process.argv[1])) process.exit(1)" "$VERSION"') &&
+      validation !== -1 &&
+      validation < script.indexOf('echo "version=$VERSION" >> "$GITHUB_OUTPUT"'),
+    'El workflow debe rechazar versiones que no cumplan SemVer antes de publicar el output',
+  );
+  const args = String(steps[scan].with?.args);
+  assert.ok(
+    args.includes('-Dsonar.projectVersion=${{ steps.project-version.outputs.version }}'),
     'Sonar debe recibir la versión SemVer validada mediante un output del job',
   );
   assert.ok(
-    ci.includes('node -e "if (!/^(0|[1-9]\\\\d*)') &&
-      ci.includes('.test(process.argv[1])) process.exit(1)" "$VERSION"') &&
-      ci.indexOf('.test(process.argv[1])) process.exit(1)') < ci.indexOf('echo "version=$VERSION" >> "$GITHUB_OUTPUT"'),
-    'El workflow debe rechazar versiones que no cumplan SemVer antes de publicar el output',
-  );
-  assert.ok(
-    ci.includes('-Dsonar.qualitygate.wait=true'),
+    args.includes('-Dsonar.qualitygate.wait=true'),
     'El scanner debe esperar y propagar el resultado del Quality Gate',
   );
-  assert.equal(
-    sync.match(/SonarSource\/sonarqube-scan-action@/g)?.length ?? 0,
-    0,
+
+  assert.deepEqual(
+    stepsOf(sync).filter((s) => usesAction(s, 'SonarSource/sonarqube-scan-action')),
+    [],
     'sonar-linear-sync.yaml solo debe consumir resultados, no ejecutar otro scanner',
   );
   assert.doesNotMatch(
@@ -262,17 +315,18 @@ test('📊 CI topology: SonarQube Cloud tiene un único propietario de análisis
     'La versión de Sonar no debe fijarse estáticamente en sonar-project.properties',
   );
   assert.doesNotMatch(
-    `${ci}\n${sonarProperties}`,
+    `${JSON.stringify(ci)}\n${sonarProperties}`,
     /data[ ._-]?dictionary|sonar\.plsql/i,
     'El repositorio no debe configurar un Data Dictionary de Oracle para migraciones PostgreSQL',
   );
 });
 
 test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin filtros', () => {
-  const gitleaks = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yaml'), 'utf8');
-  assert.match(gitleaks, /pull_request:/);
-  assert.doesNotMatch(gitleaks, /paths(?:-ignore)?:/);
-  assert.doesNotMatch(gitleaks, /workflow_call:/);
+  const triggers = triggersOf(workflow('security-gitleaks.yaml')) as Record<string, any>;
+  assert.ok('pull_request' in triggers, 'Gitleaks debe correr en todo PR');
+  assert.equal(triggers.pull_request?.paths, undefined, 'Gitleaks no debe filtrar por paths');
+  assert.equal(triggers.pull_request?.['paths-ignore'], undefined, 'Gitleaks no debe filtrar por paths-ignore');
+  assert.ok(!('workflow_call' in triggers), 'Gitleaks no debe ser reusable: su check debe ser independiente');
 });
 
 // ==============================================================================
@@ -280,8 +334,7 @@ test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin 
 // ==============================================================================
 
 test('🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all', () => {
-  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
-  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
+  const files = workflowFiles();
 
   assert.equal(
     files.length,
@@ -290,28 +343,22 @@ test('🛡️ Workflow Governance: los 18 workflows declaran permisos explícito
   );
 
   for (const file of files) {
-    const filePath = path.join(workflowsDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-
-    // Ningún workflow debe usar permisos globales inseguros como write-all
-    assert.doesNotMatch(
-      content,
-      /permissions:\s*write-all/i,
-      `El workflow ${file} no debe definir 'permissions: write-all'`,
-    );
+    const doc = workflow(file);
+    const blocks = [doc.permissions, ...jobsOf(doc).map(([, job]) => job.permissions)].filter((p) => p !== undefined);
 
     // Debe existir declaración de permisos a nivel workflow o de jobs
-    assert.match(content, /permissions:/, `El workflow ${file} debe declarar un bloque de 'permissions:' explícito`);
+    assert.ok(blocks.length > 0, `El workflow ${file} debe declarar un bloque de 'permissions:' explícito`);
+    // Ningún workflow debe usar permisos globales inseguros como write-all
+    assert.ok(
+      blocks.every((permissions) => String(permissions).toLowerCase() !== 'write-all'),
+      `El workflow ${file} no debe definir 'permissions: write-all'`,
+    );
   }
 });
 
 test('🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de los jobs declara permisos explícitos)', () => {
-  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
-  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
-
-  for (const file of files) {
-    const filePath = path.join(workflowsDir, file);
-    const parsed = yamlSafeLoad(fs.readFileSync(filePath, 'utf-8')) as any;
+  for (const file of workflowFiles()) {
+    const parsed = workflow(file);
 
     // 1. Debe declarar permisos a nivel de workflow (top-level)
     assert.ok(
@@ -321,8 +368,7 @@ test('🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de 
 
     // 2. Cada job que no delegue en otro workflow (uses:) debe declarar su propio bloque permissions
     if (parsed.jobs && typeof parsed.jobs === 'object') {
-      for (const [jobId, jobDef] of Object.entries(parsed.jobs)) {
-        const job = jobDef as any;
+      for (const [jobId, job] of jobsOf(parsed)) {
         if (job.uses) continue; // reusable invocations manejan sus permisos en el caller/callee
         assert.ok(
           job.permissions && typeof job.permissions === 'object',
@@ -334,8 +380,7 @@ test('🛡️ Workflow Governance: Zero-Trust Job-Level Permissions (el 100% de 
 });
 
 test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issues: write innecesario)', () => {
-  const zapPath = path.join(ROOT_DIR, '.github', 'workflows', 'security-dast-zap.yaml');
-  const parsed = yamlSafeLoad(fs.readFileSync(zapPath, 'utf-8')) as any;
+  const parsed = workflow('security-dast-zap.yaml');
 
   assert.equal(
     parsed.permissions?.issues,
@@ -350,15 +395,11 @@ test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issu
 });
 
 test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows', () => {
-  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
-  const files = fs.readdirSync(workflowsDir).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
-
   const ALLOWED_SECRETS = new Set(['GITHUB_TOKEN', 'SONAR_TOKEN', 'LINEAR_API_KEY', 'RULESET_ADMIN_TOKEN']);
 
-  for (const file of files) {
-    const filePath = path.join(workflowsDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const secretMatches = [...content.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((m) => m[1]);
+  for (const file of workflowFiles()) {
+    // Se audita el workflow parseado: lo que se evalúa, no lo que se menciona en un comentario.
+    const secretMatches = [...JSON.stringify(workflow(file)).matchAll(/secrets\.([A-Z0-9_]+)/g)].map((m) => m[1]);
 
     for (const secret of secretMatches) {
       assert.ok(
@@ -370,17 +411,14 @@ test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en
 });
 
 test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_request independiente', () => {
-  const workflowsDir = path.join(ROOT_DIR, '.github', 'workflows');
   const reusableWorkflows = ['ci.yaml', 'infra.yaml', 'web.yaml', 'config-linters.yaml', 'security-code-scanning.yaml'];
 
   for (const file of reusableWorkflows) {
-    const filePath = path.join(workflowsDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const triggers = triggersOf(workflow(file));
 
-    assert.match(content, /workflow_call:/, `${file} debe declarar trigger workflow_call`);
-    assert.doesNotMatch(
-      content,
-      /^\s*pull_request:\s*$/m,
+    assert.ok('workflow_call' in triggers, `${file} debe declarar trigger workflow_call`);
+    assert.ok(
+      !('pull_request' in triggers),
       `El workflow reusable ${file} no debe declarar trigger 'pull_request:' propio; debe ser orquestado por change-impact.yaml`,
     );
   }
@@ -391,12 +429,10 @@ test('🛡️ Workflow Governance: workflows reusables no declaran trigger pull_
 // corría en CI. Cada control `always` declara aquí su ejecutor; agregar uno nuevo sin
 // ejecutor hace fallar el test.
 test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene un ejecutor real', () => {
-  const contract = yamlSafeLoad(fs.readFileSync(path.join(ROOT_DIR, '.github/ci-impact.yaml'), 'utf8')) as {
-    always: Array<{ id: string }>;
+  const contract = readYaml<{ always: Array<{ id: string }> }>('.github/ci-impact.yaml');
+  const orchestrator = workflow('change-impact.yaml') as {
+    jobs: Record<string, { if?: string; needs?: string[]; steps?: Array<{ run?: string }> }>;
   };
-  const orchestrator = yamlSafeLoad(
-    fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/change-impact.yaml'), 'utf8'),
-  ) as { jobs: Record<string, { if?: string; needs?: string[]; steps?: Array<{ run?: string }> }> };
 
   const executors: Record<string, { job?: string; output?: string; workflow?: string }> = {
     // Job del orquestador que consume el output y bloquea vía quality-gate.
@@ -422,8 +458,10 @@ test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene 
       );
     }
     if (executor.workflow) {
-      const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', executor.workflow), 'utf8');
-      assert.match(content, /pull_request:/, `${executor.workflow} debe ejecutarse en todo PR`);
+      assert.ok(
+        'pull_request' in triggersOf(workflow(executor.workflow)),
+        `${executor.workflow} debe ejecutarse en todo PR`,
+      );
     }
   }
 
@@ -438,21 +476,15 @@ test('🛡️ AUD-WF-GOV-001: cada control always del contrato de impacto tiene 
 });
 
 test('⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusables declaran concurrency', () => {
-  const dir = path.join(ROOT_DIR, '.github/workflows');
   const missingTimeout: string[] = [];
   const missingConcurrency: string[] = [];
 
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
-    const doc = yamlSafeLoad(fs.readFileSync(path.join(dir, file), 'utf-8')) as {
-      on?: unknown;
-      concurrency?: unknown;
-      jobs?: Record<string, { uses?: string; 'timeout-minutes'?: number }>;
-    };
-    const triggers = (doc.on ?? (doc as Record<string, unknown>).true ?? {}) as Record<string, unknown>;
-    const isReusable = typeof triggers === 'object' && 'workflow_call' in triggers;
+  for (const file of workflowFiles().filter((f) => f.endsWith('.yaml'))) {
+    const doc = workflow(file);
+    const isReusable = 'workflow_call' in triggersOf(doc);
 
     // Un job que invoca un reusable (`uses:`) no admite timeout-minutes: lo declaran los jobs del reusable.
-    for (const [id, job] of Object.entries(doc.jobs ?? {})) {
+    for (const [id, job] of jobsOf(doc)) {
       if (!job.uses && typeof job['timeout-minutes'] !== 'number') {
         missingTimeout.push(`${file}:${id}`);
       }
@@ -470,17 +502,13 @@ test('⏱️ CI-003: todo job declara timeout-minutes y los workflows no reusabl
 test('🔐 CI-004: todo actions/checkout declara persist-credentials: false salvo los jobs que empujan a git', () => {
   // Con persist-credentials activo el GITHUB_TOKEN queda en .git/config y lo puede leer
   // cualquier step posterior. Solo release-tag.yaml necesita credenciales (git push de tags y ramas).
-  const dir = path.join(ROOT_DIR, '.github/workflows');
   const allowCredentials = new Set(['release-tag.yaml']);
   const offenders: string[] = [];
 
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml') && !allowCredentials.has(f))) {
-    const doc = yamlSafeLoad(fs.readFileSync(path.join(dir, file), 'utf-8')) as {
-      jobs?: Record<string, { steps?: Array<{ uses?: string; with?: Record<string, unknown> }> }>;
-    };
-    for (const [id, job] of Object.entries(doc.jobs ?? {})) {
+  for (const file of workflowFiles().filter((f) => f.endsWith('.yaml') && !allowCredentials.has(f))) {
+    for (const [id, job] of jobsOf(workflow(file))) {
       for (const step of job.steps ?? []) {
-        if (step.uses?.startsWith('actions/checkout@') && step.with?.['persist-credentials'] !== false) {
+        if (usesAction(step, 'actions/checkout') && step.with?.['persist-credentials'] !== false) {
           offenders.push(`${file}:${id}`);
         }
       }
@@ -491,29 +519,44 @@ test('🔐 CI-004: todo actions/checkout declara persist-credentials: false salv
 });
 
 test('📌 CI-005: cada action se usa con un único SHA pineado en todos los workflows', () => {
-  const dir = path.join(ROOT_DIR, '.github/workflows');
   const pins = new Map<string, Set<string>>();
+  const unpinned: string[] = [];
 
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
-    const content = fs.readFileSync(path.join(dir, file), 'utf-8');
-    for (const match of content.matchAll(/uses:\s*([\w.-]+\/[\w./-]+)@([0-9a-f]{40})/g)) {
+  for (const file of workflowFiles().filter((f) => f.endsWith('.yaml'))) {
+    const doc = workflow(file);
+    // `uses:` de pasos y de jobs que invocan otro workflow; las llamadas locales (./) no llevan SHA.
+    const uses = [...stepsOf(doc).map((s) => s.uses), ...jobsOf(doc).map(([, job]) => job.uses)].filter(
+      (value): value is string =>
+        typeof value === 'string' && !value.startsWith('./') && !value.startsWith('docker://'),
+    );
+    for (const ref of uses) {
+      const match = ref.match(/^([\w.-]+\/[\w./-]+)@([0-9a-f]{40})$/);
+      if (!match) {
+        unpinned.push(`${file}: ${ref}`);
+        continue;
+      }
       pins.set(match[1], (pins.get(match[1]) ?? new Set()).add(match[2]));
     }
   }
 
   const drift = [...pins].filter(([, shas]) => shas.size > 1).map(([action]) => action);
   assert.deepEqual(drift, [], 'Actions con más de un SHA pineado (versiones divergentes)');
+  assert.deepEqual(unpinned, [], 'Actions externas sin SHA completo pineado');
 });
 
 test('🔎 CI-006: Zizmor corre en Config Linters con imagen fijada por digest y sin continue-on-error', () => {
-  const linters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf8');
+  const doc = workflow('config-linters.yaml');
+  const scripts = scriptsOf(stepsOf(doc)).join('\n');
   assert.match(
-    linters,
+    scripts,
     /ghcr\.io\/zizmorcore\/zizmor:[\w.-]+@sha256:[0-9a-f]{64}/,
     'Zizmor debe fijarse por tag y digest',
   );
-  assert.match(linters, /--min-severity=medium/, 'Zizmor debe bloquear desde severidad medium');
-  assert.doesNotMatch(linters, /continue-on-error:\s*true/, 'Zizmor no debe ignorar sus fallos');
+  assert.match(scripts, /--min-severity=medium/, 'Zizmor debe bloquear desde severidad medium');
+  const silenced = [...jobsOf(doc).map(([, job]) => job), ...stepsOf(doc)].filter(
+    (node) => node['continue-on-error'] === true || node['continue-on-error'] === 'true',
+  );
+  assert.deepEqual(silenced, [], 'Zizmor no debe ignorar sus fallos');
   assert.ok(
     fs.existsSync(path.join(ROOT_DIR, '.github/zizmor.yaml')),
     'Debe existir .github/zizmor.yaml con las excepciones justificadas',
@@ -524,9 +567,7 @@ test('📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate
   // `docs:validate` y el lint de `.agents/` solo se ejercían a través de `npm test`
   // y de rutas fijas, así que un PR puramente documental (que omite `npm test`)
   // podía pasar CI sin que nadie los ejecutara.
-  const ci = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf8');
-  const doc = yamlSafeLoad(ci) as { jobs?: Record<string, { steps?: { run?: string }[] }> };
-  const runs = (doc.jobs?.['docs-gate']?.steps ?? []).map((step) => step.run ?? '');
+  const runs = scriptsOf(workflow('ci.yaml').jobs['docs-gate']?.steps ?? []);
 
   const lint = runs.find((run) => run.includes('lint:md'));
   assert.ok(lint, 'docs-gate debe ejecutar el Markdown Quality Gate');
@@ -542,14 +583,11 @@ test('📚 CI-008: docs-gate lintea AGENTS.md y .agents/ y ejecuta docs:validate
 test('🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TOKEN', () => {
   // pull_request_target corre con secretos en el contexto del repo base. El token de
   // administracion solo se admite en workflows disparados por push/schedule/dispatch.
-  const dir = path.join(ROOT_DIR, '.github/workflows');
   const offenders: string[] = [];
 
-  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.yaml'))) {
-    const content = fs.readFileSync(path.join(dir, file), 'utf8');
-    const doc = yamlSafeLoad(content) as { on?: unknown; true?: unknown };
-    const triggers = (doc.on ?? doc.true ?? {}) as Record<string, unknown>;
-    if (typeof triggers === 'object' && 'pull_request_target' in triggers && /RULESET_ADMIN_TOKEN/.test(content)) {
+  for (const file of workflowFiles().filter((f) => f.endsWith('.yaml'))) {
+    const doc = workflow(file);
+    if ('pull_request_target' in triggersOf(doc) && /RULESET_ADMIN_TOKEN/.test(JSON.stringify(doc))) {
       offenders.push(file);
     }
   }

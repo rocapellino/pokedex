@@ -10,7 +10,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'Topología de CI / Workflows',
     targetArtifacts: ['.github/workflows/ci.yaml', '.github/workflows/change-impact.yaml', '.github/ci-impact.yaml'],
     description:
-      'Verifica la topología de CI: workflows condicionales gobernados por change-impact.yaml, reusable workflows sin concurrency, serialización por PR y gate de resultados.',
+      'Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs.',
   },
   'tests/ci/lighthouse.test.ts': {
     type: 'Contract / CI',
