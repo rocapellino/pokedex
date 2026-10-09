@@ -239,6 +239,28 @@
       "description": "Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs."
     },
     {
+      "path": "tests/ci/db_integration_services.test.ts",
+      "suite": "ci",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Servicios de las Pruebas de Base de Datos en CI",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        "docker-compose.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que los jobs que ejecutan la suite definan POKEDEX_TEST_*, levanten PostgreSQL y Redis con healthcheck y usen las imágenes por digest del compose, para que las suites de base de datos no se omitan en silencio."
+    },
+    {
       "path": "tests/ci/lighthouse.test.ts",
       "suite": "ci",
       "type": "Contract / CI",
@@ -1547,6 +1569,22 @@
       "description": "Exporta ROOT_DIR resuelto desde la ubicación del helper, para que las suites no dependan del directorio de trabajo."
     },
     {
+      "path": "tests/helpers/services.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "status": "HELPER",
+      "targetDomain": "Servicios Reales para Pruebas de Integración",
+      "targetArtifacts": [
+        "docker-compose.yaml",
+        ".github/workflows/ci.yaml"
+      ],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Activa las suites de base de datos solo si existen POKEDEX_TEST_DATABASE_URL y POKEDEX_TEST_REDIS_URL, crea y elimina una base PostgreSQL aleatoria por suite y reserva una base lógica de Redis por suite."
+    },
+    {
       "path": "tests/helpers/taskfile.ts",
       "suite": "helpers",
       "type": "Helper",
@@ -1598,6 +1636,97 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon."
+    },
+    {
+      "path": "tests/integration/db/pokemon_repository_postgres.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Persistencia / Repositorio de Pokémon",
+      "targetArtifacts": [
+        "apps/backend/src/services/pokemon.repository.ts",
+        "apps/backend/src/services/postgres.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Ejecuta contra un PostgreSQL real la siembra, el listado paginado con filtros, el upsert, el borrado, la secuencia de IDs, jsonb_set de megaevoluciones y clasificación, y el fail-closed sin conexión."
+    },
+    {
+      "path": "tests/integration/db/postgres_migrations.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Persistencia / Migraciones Drizzle",
+      "targetArtifacts": [
+        "apps/backend/src/db/migrate.ts",
+        "apps/backend/src/db/migrations/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base y rechazo del esquema incompleto."
+    },
+    {
+      "path": "tests/integration/db/redis_cache.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Caché / Coordinación con Redis",
+      "targetArtifacts": [
+        "apps/backend/src/services/cache.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Ejecuta contra un Redis real la revocación de jti con TTL, el limitador distribuido atómico, la invalidación de caché por versión y la degradación sin conexión."
+    },
+    {
+      "path": "tests/integration/db/repository_cache.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Persistencia / Caché de Lectura",
+      "targetArtifacts": [
+        "apps/backend/src/services/pokemon.repository.ts",
+        "apps/backend/src/services/cache.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba con PostgreSQL y Redis reales que listados e ítems se sirven de la caché, que guardar o borrar la invalida y que, sin Redis, el repositorio sigue leyendo de PostgreSQL."
     },
     {
       "path": "tests/integration/http_middleware.test.ts",

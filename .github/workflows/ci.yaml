@@ -112,6 +112,33 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+    # PostgreSQL y Redis reales para tests/integration/db/ (activadas por las variables POKEDEX_TEST_*).
+    # Mismas imágenes, fijadas por digest, que docker-compose.yaml; lo comprueba
+    # tests/ci/db_integration_services.test.ts. Las credenciales son de un servicio efímero del runner.
+    env:
+      POKEDEX_TEST_DATABASE_URL: postgresql://postgres:pokedex_test@127.0.0.1:5432/postgres
+      POKEDEX_TEST_REDIS_URL: redis://127.0.0.1:6379
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+        env:
+          POSTGRES_PASSWORD: pokedex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -167,8 +194,32 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    # PostgreSQL y Redis reales para tests/integration/db/ (ver el job code-quality).
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      POKEDEX_TEST_DATABASE_URL: postgresql://postgres:pokedex_test@127.0.0.1:5432/postgres
+      POKEDEX_TEST_REDIS_URL: redis://127.0.0.1:6379
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+        env:
+          POSTGRES_PASSWORD: pokedex_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: 1. Descargar Código Fuente con Historial Completo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

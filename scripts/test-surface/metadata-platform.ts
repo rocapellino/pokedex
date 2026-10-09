@@ -125,6 +125,13 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Renderiza el chart con helm template (local o en contenedor) para los perfiles default, prod y pre-prod, con caché, y expone los documentos y los workloads con su especificación de pod.',
   },
+  'tests/helpers/services.ts': {
+    type: 'Helper',
+    targetDomain: 'Servicios Reales para Pruebas de Integración',
+    targetArtifacts: ['docker-compose.yaml', '.github/workflows/ci.yaml'],
+    description:
+      'Activa las suites de base de datos solo si existen POKEDEX_TEST_DATABASE_URL y POKEDEX_TEST_REDIS_URL, crea y elimina una base PostgreSQL aleatoria por suite y reserva una base lógica de Redis por suite.',
+  },
   'tests/helpers/hcl.ts': {
     type: 'Helper',
     targetDomain: 'Lectura de HCL de OpenTofu',
