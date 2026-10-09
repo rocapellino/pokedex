@@ -125,7 +125,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'Lectura de YAML del Repositorio',
     targetArtifacts: ['.github/workflows/'],
     description:
-      'Lee y parsea YAML del repo y extrae los scripts run: de un workflow sin las líneas de shell comentadas, para comprobar estructura y no texto.',
+      'Lee y parsea YAML del repo; expone los jobs y pasos de un workflow con los scripts run: sin las líneas de shell comentadas, para comprobar estructura y no texto.',
   },
   'tests/helpers/repo.ts': {
     type: 'Helper',

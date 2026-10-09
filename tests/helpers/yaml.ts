@@ -13,18 +13,53 @@ export function readYamlDocs<T = any>(relativePath: string): T[] {
   return (yaml.loadAll(fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf-8')) as T[]).filter(Boolean);
 }
 
+export interface WorkflowStep {
+  name?: string;
+  id?: string;
+  uses?: string;
+  if?: string;
+  run?: string;
+  env?: Record<string, string>;
+  with?: Record<string, any>;
+}
+
+export interface WorkflowJob {
+  permissions?: Record<string, string>;
+  strategy?: { matrix?: Record<string, any> };
+  env?: Record<string, string>;
+  steps: WorkflowStep[];
+}
+
+const withoutShellComments = (script: string) =>
+  script
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('#'))
+    .join('\n');
+
 /**
- * Scripts (`run:`) de todos los pasos de un workflow de GitHub Actions, ya parseado y sin las líneas de shell
- * comentadas: un comando comentado o el nombre de un paso no cuentan como si se ejecutaran.
+ * Jobs de un workflow de GitHub Actions ya parseados, con los `run:` sin las líneas de shell comentadas: un comando
+ * comentado o el nombre de un paso no cuentan como si se ejecutaran.
  */
+export function workflowJobs(relativePath: string): Record<string, WorkflowJob> {
+  const workflow = readYaml<{ jobs?: Record<string, Omit<WorkflowJob, 'steps'> & { steps?: WorkflowStep[] }> }>(
+    relativePath,
+  );
+  return Object.fromEntries(
+    Object.entries(workflow.jobs ?? {}).map(([name, job]) => [
+      name,
+      {
+        ...job,
+        steps: (job.steps ?? []).map((step) =>
+          typeof step.run === 'string' ? { ...step, run: withoutShellComments(step.run) } : step,
+        ),
+      },
+    ]),
+  );
+}
+
+/** Scripts (`run:`) de todos los pasos de un workflow, sin las líneas de shell comentadas. */
 export function workflowScripts(relativePath: string): string[] {
-  const workflow = readYaml<{ jobs?: Record<string, { steps?: Array<{ run?: string }> }> }>(relativePath);
-  const withoutShellComments = (script: string) =>
-    script
-      .split('\n')
-      .filter((line) => !line.trimStart().startsWith('#'))
-      .join('\n');
-  return Object.values(workflow.jobs ?? {}).flatMap((job) =>
-    (job.steps ?? []).flatMap((step) => (typeof step.run === 'string' ? [withoutShellComments(step.run)] : [])),
+  return Object.values(workflowJobs(relativePath)).flatMap((job) =>
+    job.steps.flatMap((step) => (typeof step.run === 'string' ? [step.run] : [])),
   );
 }
