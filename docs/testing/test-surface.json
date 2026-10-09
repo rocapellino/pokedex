@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T18:34:28.585Z",
+  "generatedAt": "2026-10-09T18:43:02.236Z",
   "summary": {
-    "totalFiles": 154,
-    "testFiles": 136,
-    "helperFiles": 17,
+    "totalFiles": 156,
+    "testFiles": 137,
+    "helperFiles": 18,
     "performanceScripts": 1,
-    "totalTestCases": 1012,
-    "totalLines": 26945,
-    "totalSizeBytes": 1162142,
+    "totalTestCases": 1015,
+    "totalLines": 27150,
+    "totalSizeBytes": 1169443,
     "suitesCount": 10
   },
   "suites": [
@@ -18,8 +18,8 @@
       "path": "tests/unit",
       "runner": "node:test (tsx)",
       "command": "npm run test:unit",
-      "files": 26,
-      "testCases": 173,
+      "files": 27,
+      "testCases": 176,
       "description": "Pruebas de alta velocidad y aislamiento sobre servicios de dominio, autenticación, caché y repositorios."
     },
     {
@@ -3836,6 +3836,28 @@
       "testCases": []
     },
     {
+      "path": "tests/helpers/hcl.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 5536,
+      "lineCount": 167,
+      "sha256": "accdba4f65731927962bd2d04d7b72233c291e674aa9ec88bb07ff3fac5aaf52",
+      "targetDomain": "Lectura de HCL de OpenTofu",
+      "targetArtifacts": [
+        "infra/opentofu/"
+      ],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Lee archivos .tf y .tfvars como bloques y atributos, sin comentarios y respetando llaves anidadas e interpolaciones, para comprobar la IaC sobre su estructura y no sobre el texto.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
       "path": "tests/helpers/helm-render.ts",
       "suite": "helpers",
       "type": "Helper",
@@ -6523,10 +6545,10 @@
       "runner": "node:test (tsx)",
       "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 64,
-      "sizeBytes": 15767,
-      "lineCount": 333,
-      "sha256": "cd3b746ab687d8b9eff9edc96ffa62a440440996cf3cd15e6b527095997da2df",
+      "assertionCountEst": 65,
+      "sizeBytes": 15296,
+      "lineCount": 308,
+      "sha256": "a0d3f1b958934f4b777d325a04d9192aa679bd35e14d24fa6f483b430bb30301",
       "targetDomain": "Hardening de OpenTofu, Cloud Design y Estado IaC",
       "targetArtifacts": [
         "infra/opentofu/"
@@ -6540,44 +6562,44 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud.",
+      "description": "Verifica sobre HCL parseado los checksums de las imágenes descargadas, los defaults de las variables, la ausencia de variables muertas o sin declarar en los tres entornos, y los escaneos de IaC; y la estructura multi-cloud y los contratos de ADR-012.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key",
-          "line": 57
+          "line": 29
         },
         {
           "name": "🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)",
-          "line": 69
+          "line": 38
         },
         {
           "name": "🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runtime universal y multi-backend",
-          "line": 85
+          "line": 54
         },
         {
           "name": "🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable",
-          "line": 103
+          "line": 72
         },
         {
           "name": "🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado",
-          "line": 151
+          "line": 119
         },
         {
-          "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor",
-          "line": 191
+          "name": "🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor ni usarse sin declarar",
+          "line": 147
         },
         {
           "name": "🛡️ IaC Architecture: OpenTofu módulos, entorno lab y roles de Ansible estructurados correctamente",
-          "line": 220
+          "line": 191
         },
         {
           "name": "🛡️ IaC State Security: ADR-012 formaliza backend remoto, bloqueo de concurrencia y cifrado nativo",
-          "line": 266
+          "line": 237
         },
         {
           "name": "🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws (ADR-030)",
-          "line": 312
+          "line": 283
         }
       ]
     },
@@ -7652,6 +7674,48 @@
         {
           "name": "errorStatus: devuelve el código HTTP solo si el error lo expone como número",
           "line": 20
+        }
+      ]
+    },
+    {
+      "path": "tests/unit/hcl_parser.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 3,
+      "describeCount": 0,
+      "assertionCountEst": 12,
+      "sizeBytes": 2236,
+      "lineCount": 63,
+      "sha256": "becb0cb80cab9852f6f6de8a75d54112eeda7e91b9b18c1713993057c9ea6184",
+      "targetDomain": "Lector de HCL para Pruebas de IaC",
+      "targetArtifacts": [
+        "tests/helpers/hcl.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🧩 HCL: los comentarios de línea y de bloque no forman parte de la estructura, pero las cadenas conservan # y //",
+          "line": 5
+        },
+        {
+          "name": "🧩 HCL: un bloque con sub-bloques conserva atributos posteriores a la llave anidada",
+          "line": 22
+        },
+        {
+          "name": "🧩 HCL: respeta interpolaciones con comillas y llaves, listas multilínea y las etiquetas de los recursos",
+          "line": 44
         }
       ]
     },

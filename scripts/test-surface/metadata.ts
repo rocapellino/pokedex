@@ -205,6 +205,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id.',
   },
+  'tests/unit/hcl_parser.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Lector de HCL para Pruebas de IaC',
+    targetArtifacts: ['tests/helpers/hcl.ts'],
+    description:
+      'Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas.',
+  },
   'tests/unit/startup_env_check.test.ts': {
     type: 'Unit',
     targetDomain: 'Verificación de Entorno al Arrancar',
@@ -419,7 +426,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Hardening de OpenTofu, Cloud Design y Estado IaC',
     targetArtifacts: ['infra/opentofu/'],
     description:
-      'Valida OpenTofu: cifrado de estado (ADR-012), checksums de imágenes descargadas, ausencia de variables muertas y estructura multi-cloud.',
+      'Verifica sobre HCL parseado los checksums de las imágenes descargadas, los defaults de las variables, la ausencia de variables muertas o sin declarar en los tres entornos, y los escaneos de IaC; y la estructura multi-cloud y los contratos de ADR-012.',
   },
   'tests/security/operation_dr_benchmarks.test.ts': {
     type: 'Security / DR Benchmarks',

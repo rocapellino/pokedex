@@ -2,6 +2,10 @@
  * ==============================================================================
  * Test de Seguridad y Arquitectura: OpenTofu Baseline, IaC State y Cloud Design
  * ==============================================================================
+ *
+ * Los `.tf` y `.tfvars` se leen con `helpers/hcl.ts` (bloques y atributos, sin comentarios), no con expresiones
+ * regulares sobre el texto: un `[^}]*` se corta en la primera llave anidada y un atributo comentado seguía
+ * contando como si estuviera activo.
  */
 
 import { test } from 'node:test';
@@ -9,61 +13,26 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
+import { blocksOf, readHcl, readHclDir, stringAttr } from '../helpers/hcl.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml } from '../helpers/yaml.js';
 
-/**
- * Extrae los nombres de variable declarados en un archivo `.tf` de OpenTofu.
- *
- * Se usa una expresion literal (no dinamica) por dos motivos: el conjunto de
- * archivos es finito y conocido, y Semgrep SAST marca `new RegExp()` con
- * argumento no literal como potencial ReDoS.
- */
-function declaredVariables(source: string): string[] {
-  return [...source.matchAll(/^variable\s+"([a-z0-9_]+)"/gim)].map((m) => m[1]);
-}
+const PROXMOX_ENV = 'infra/opentofu/environments/proxmox';
 
-/**
- * Cuenta las referencias a una variable fuera de su propia declaracion.
- *
- * La busqueda es por comparacion de cadenas, no por RegExp construida en
- * runtime: Semgrep SAST marca `new RegExp()` con argumento no literal como
- * potencial ReDoS, y los nombres de variable de OpenTofu son identificadores
- * `[a-z0-9_]` que no contienen metacaracteres, de modo que un conteo por
- * comparacion de subcadena es exacto.
- */
-function referenceCount(sources: string[], name: string): number {
-  let count = 0;
-  for (const src of sources) {
-    for (const line of src.split('\n')) {
-      // Se excluye la linea `variable "<name>"` y las claves `default`, para que
-      // la propia declaracion no cuente como consumo de si misma.
-      if (line.includes(`variable "${name}"`)) continue;
-      if (line.trimStart().startsWith('default')) continue;
-
-      const from = 0;
-      let at = line.indexOf(name, from);
-      while (at !== -1) {
-        const before = at === 0 ? '' : line[at - 1];
-        const after = line[at + name.length] ?? '';
-        const isWord = !/[A-Za-z0-9_]/.test(before) && !/[A-Za-z0-9_]/.test(after);
-        if (isWord) count++;
-        at = line.indexOf(name, at + name.length);
-      }
-    }
-  }
-  return count;
-}
+/** Variable declarada en `variables.tf` del entorno Proxmox. */
+const proxmoxVariable = (name: string) => {
+  const variable = blocksOf(readHcl(`${PROXMOX_ENV}/variables.tf`), 'variable', name)[0];
+  assert.ok(variable, `variables.tf de Proxmox debe declarar la variable ${name}`);
+  return variable;
+};
 
 test('🛡️ Infra Security: OpenTofu Proxmox variables.tf no tiene default hardcodeado en ssh_public_key', () => {
-  const filePath = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf');
-  assert.ok(fs.existsSync(filePath), 'variables.tf de Proxmox debe existir');
-  const content = fs.readFileSync(filePath, 'utf-8');
-
-  // Extraer el bloque de la variable ssh_public_key
-  const match = content.match(/variable\s+"ssh_public_key"\s*\{([\s\S]*?)\}/);
-  assert.ok(match, 'Debe existir la variable ssh_public_key');
-  const varBlock = match[1];
-  assert.ok(!varBlock.includes('default'), 'variable "ssh_public_key" no debe tener un valor default hardcodeado');
+  const variable = proxmoxVariable('ssh_public_key');
+  assert.equal(
+    'default' in variable.attrs,
+    false,
+    'variable "ssh_public_key" no debe tener un valor default hardcodeado',
+  );
 });
 
 test('🛡️ Infra Multi-Cloud: OpenTofu mantiene proxmox y cloud-template, sin entornos atados a un proveedor (ADR-030)', () => {
@@ -101,33 +70,36 @@ test('🛡️ Architecture Policy: CLOUD_INFRASTRUCTURE_DESIGN.md formaliza runt
 });
 
 test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar checksum y URL inmutable', () => {
-  const mainTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf'), 'utf-8');
-  const varsTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'), 'utf-8');
-  const tfvars = fs.readFileSync(
-    path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/terraform.tfvars.example'),
-    'utf-8',
+  const mainTf = readHcl(`${PROXMOX_ENV}/main.tf`);
+
+  // 1. Todo recurso `proxmox_download_file` debe declarar checksum + checksum_algorithm (variables, no literales).
+  //    ADR-030 retiró la imagen de la VM de prod; queda la plantilla LXC de pre-prod.
+  const downloads = blocksOf(mainTf, 'resource', 'proxmox_download_file');
+  assert.ok(downloads.length >= 1, 'Debe existir el recurso de descarga de la plantilla LXC');
+  assert.deepEqual(
+    blocksOf(mainTf, 'resource', 'proxmox_virtual_environment_vm'),
+    [],
+    'ADR-030: el entorno proxmox no aprovisiona VMs KVM',
   );
 
-  // 1. Todo recurso `proxmox_download_file` debe declarar checksum + checksum_algorithm.
-  //    ADR-030 retiró la imagen de la VM de prod; queda la plantilla LXC de pre-prod.
-  const downloadBlocks = [...mainTf.matchAll(/resource\s+"proxmox_download_file"\s+"([\w.]+)"\s*\{([^}]*)\}/g)];
-  assert.ok(downloadBlocks.length >= 1, 'Debe existir el recurso de descarga de la plantilla LXC');
-  assert.ok(!/proxmox_virtual_environment_vm/.test(mainTf), 'ADR-030: el entorno proxmox no aprovisiona VMs KVM');
-
-  for (const [, name, body] of downloadBlocks) {
-    assert.ok(
-      /checksum\s*=\s*var\.\w+/.test(body),
+  for (const download of downloads) {
+    const name = download.labels[1];
+    assert.match(
+      download.attrs.checksum ?? '',
+      /^var\.\w+$/,
       `INFRA-007: el recurso proxmox_download_file.${name} no verifica checksum; una imagen sustituta pasaria desapercibida`,
     );
-    assert.ok(
-      /checksum_algorithm\s*=\s*var\.\w+/.test(body),
+    assert.match(
+      download.attrs.checksum_algorithm ?? '',
+      /^var\.\w+$/,
       `INFRA-007: el recurso proxmox_download_file.${name} no declara checksum_algorithm`,
     );
+    assert.equal(download.attrs.url, 'var.lxc_template_url', `INFRA-007: ${name} debe descargar la URL verificada`);
   }
 
   // 2. La URL por defecto de la plantilla LXC debe apuntar a un artefacto versionado,
   //    nunca a un alias mutable: un checksum sobre una URL cambiante no garantiza nada.
-  const defaultUrl = varsTf.match(/variable\s+"lxc_template_url"[\s\S]*?default\s*=\s*"([^"]+)"/)?.[1];
+  const defaultUrl = stringAttr(proxmoxVariable('lxc_template_url'), 'default');
   assert.ok(defaultUrl, 'lxc_template_url debe declarar un valor por defecto');
   assert.ok(!/latest/.test(defaultUrl), `INFRA-007: lxc_template_url no debe usar un alias mutable (${defaultUrl})`);
   assert.match(defaultUrl, /^https:\/\//, 'INFRA-007: la plantilla LXC debe descargarse por HTTPS');
@@ -137,35 +109,19 @@ test('🛡️ INFRA-007: toda imagen descargada por OpenTofu debe verificar chec
     'INFRA-007: lxc_template_url debe fijar la versión de la plantilla',
   );
 
-  // 3. El ejemplo de variables debe documentar el checksum de la plantilla.
-  assert.ok(
-    /lxc_template_checksum\s*=/.test(tfvars),
-    'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum',
-  );
-  assert.ok(
-    /lxc_template_checksum_algorithm\s*=/.test(tfvars),
-    'INFRA-007: terraform.tfvars.example debe documentar lxc_template_checksum_algorithm',
-  );
+  // 3. El ejemplo de variables debe documentar (de forma activa, no comentada) el checksum de la plantilla.
+  const tfvars = readHcl(`${PROXMOX_ENV}/terraform.tfvars.example`);
+  for (const name of ['lxc_template_checksum', 'lxc_template_checksum_algorithm']) {
+    assert.ok(name in tfvars.attrs, `INFRA-007: terraform.tfvars.example debe documentar ${name}`);
+  }
 });
 
 test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algoritmo declarado', () => {
-  const varsTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/variables.tf'), 'utf-8');
-
-  const tfSource = varsTf.replace(/\r\n/g, '\n');
-  const readDefault = (name: string): string | undefined => {
-    const start = tfSource.indexOf(`variable "${name}" {`);
-    if (start === -1) return undefined;
-    const rest = tfSource.slice(start);
-    const end = rest.slice(1).search(/\n(?=variable |#)/);
-    const block = end === -1 ? rest : rest.slice(0, end + 1);
-    return block.match(/default\s*=\s*"([^"]+)"/)?.[1];
-  };
-
   const cases: Array<[string, string, number]> = [['lxc_template_checksum', 'lxc_template_checksum_algorithm', 64]];
 
   for (const [checksumVar, algVar, expectedLen] of cases) {
-    const checksum = readDefault(checksumVar);
-    const algorithm = readDefault(algVar);
+    const checksum = stringAttr(proxmoxVariable(checksumVar), 'default');
+    const algorithm = stringAttr(proxmoxVariable(algVar), 'default');
     assert.ok(checksum, `${checksumVar} debe declarar un checksum por defecto`);
     assert.ok(algorithm, `${algVar} debe declarar el algoritmo por defecto`);
 
@@ -188,30 +144,45 @@ test('🛡️ INFRA-007: el checksum por defecto debe tener la longitud del algo
   }
 });
 
-test('🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor', () => {
-  const envDir = path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox');
+test('🧹 INFRA-008: ninguna variable de OpenTofu puede quedar sin consumidor ni usarse sin declarar', () => {
+  /** Variables declaradas sin ninguna referencia `var.<nombre>` fuera de su propio bloque, y referencias huérfanas. */
+  function audit(envDir: string) {
+    const files = readHclDir(envDir);
+    const declared = blocksOf(files, 'variable').map((b) => b.labels[0]);
+    const referencedBy = new Map<string, Set<string>>();
+    for (const file of files) {
+      for (const block of file.blocks) {
+        const owner = block.type === 'variable' ? block.labels[0] : '';
+        for (const [, name] of block.raw.matchAll(/\bvar\.([a-z0-9_]+)\b/g)) {
+          if (name === owner) continue; // la propia declaración (p. ej. su `validation`) no cuenta como consumo
+          referencedBy.set(name, (referencedBy.get(name) ?? new Set()).add(owner || '<recurso>'));
+        }
+      }
+    }
+    return {
+      declared,
+      dead: declared.filter((name) => !referencedBy.has(name)),
+      undeclared: [...referencedBy.keys()].filter((name) => !declared.includes(name)),
+    };
+  }
 
-  const tfFiles = fs
-    .readdirSync(envDir)
-    .filter((f) => f.endsWith('.tf'))
-    .map((f) => fs.readFileSync(path.join(envDir, f), 'utf-8'));
+  const envs = [PROXMOX_ENV, 'infra/opentofu/environments/lab', 'infra/opentofu/environments/cloud-template'];
+  for (const envDir of envs) {
+    const { declared, dead, undeclared } = audit(envDir);
+    assert.ok(declared.length > 0, `${envDir}/variables.tf debe declarar variables`);
+    assert.deepEqual(
+      dead,
+      [],
+      `INFRA-008: variables declaradas y nunca consumidas en ${envDir}: ${dead.join(', ')}. ` +
+        'Eliminalas o conectalas a un recurso: una variable muerta sugiere un control inexistente.',
+    );
+    assert.deepEqual(undeclared, [], `INFRA-008: ${envDir} usa variables no declaradas: ${undeclared.join(', ')}`);
+  }
 
-  const varsTf = fs.readFileSync(path.join(envDir, 'variables.tf'), 'utf-8');
-  const declared = declaredVariables(varsTf);
-
-  assert.ok(declared.length > 0, 'variables.tf debe declarar variables');
-
-  const dead = declared.filter((name) => referenceCount(tfFiles, name) === 0);
-
-  assert.deepEqual(
-    dead,
-    [],
-    `INFRA-008: variables declaradas y nunca consumidas: ${dead.join(', ')}. ` +
-      'Eliminalas o conectalas a un recurso: una variable muerta sugiere un control inexistente.',
-  );
-
-  assert.ok(
-    !varsTf.includes('image_file_id'),
+  assert.equal(
+    'image_file_id' in
+      Object.fromEntries(blocksOf(readHcl(`${PROXMOX_ENV}/variables.tf`), 'variable').map((b) => [b.labels[0], 1])),
+    false,
     'INFRA-008: `image_file_id` no debe volver a declararse; los recursos LXC consumen ' +
       'proxmox_download_file.debian_lxc_template[0].id',
   );
@@ -320,13 +291,17 @@ test('🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws 
     );
   }
 
-  const workflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-code-scanning.yaml'), 'utf-8');
+  const workflow = readYaml<{
+    jobs: Record<string, { steps?: Array<{ uses?: string; with?: Record<string, string> }> }>;
+  }>('.github/workflows/security-code-scanning.yaml');
+  const trivySteps = Object.values(workflow.jobs)
+    .flatMap((job) => job.steps ?? [])
+    .filter((step) => String(step.uses ?? '').startsWith('aquasecurity/trivy-action'));
+  const iacScan = trivySteps.filter((step) => step.with?.['scan-ref'] === 'infra/opentofu');
+  assert.equal(iacScan.length, 1, 'El escaneo Trivy IaC debe seguir cubriendo infra/opentofu');
+  assert.equal(iacScan[0].with?.['scan-type'], 'config', 'El escaneo de IaC debe ser de configuración');
   assert.ok(
-    workflow.includes("scan-ref: 'infra/opentofu'"),
-    'El escaneo Trivy IaC debe seguir cubriendo infra/opentofu',
-  );
-  assert.ok(
-    !workflow.includes('trivyignores:'),
-    'El escaneo Trivy IaC no debe consumir archivos de exclusión retirados',
+    trivySteps.every((step) => !('trivyignores' in (step.with ?? {}))),
+    'Ningún escaneo Trivy debe consumir archivos de exclusión retirados',
   );
 });
