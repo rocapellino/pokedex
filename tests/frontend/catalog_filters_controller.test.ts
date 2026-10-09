@@ -1,4 +1,4 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -15,8 +15,6 @@ import {
   toggleTypeFilter,
 } from '../../apps/frontend/src/pokedex.js';
 import type { MegaEvolution, Pokemon } from '../../apps/frontend/src/types.js';
-
-const doc = dom.window.document;
 
 const mega: MegaEvolution = {
   clave: 'charizard-mega-x',
@@ -52,7 +50,7 @@ const catalog: Pokemon[] = [
   mk(152, 'Chikorita', ['Planta'], stats(45, 45)),
 ];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const box = (type: string) => doc.querySelector(`#typeFilterList input[value="${type}"]`) as HTMLInputElement;
 const typeSummary = () => doc.getElementById('typeFilterSummary')?.textContent;
@@ -64,36 +62,9 @@ const input = () => doc.getElementById('searchInput') as HTMLInputElement;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 before(async () => {
-  await wait(20);
-
-  doc.body.innerHTML = `
-    <input id="searchInput">
-    <select id="generationFilter">
-      <option value="all">Todas</option>
-      <option value="1">Gen I</option>
-      <option value="2">Gen II</option>
-    </select>
-    <input type="checkbox" id="megaFilter">
-    <select id="sortFilter"><option value="id">Número</option><option value="name">Nombre</option><option value="speed">Velocidad</option></select>
-    <button type="button" id="sortDirection">↑ Ascendente</button>
-    <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option><option value="total">Total</option></select>
-    <input type="number" id="statMin">
-    <div id="typeFilterField">
-      <button type="button" id="typeFilterToggle" aria-expanded="false"><span id="typeFilterSummary">Cualquier tipo</span></button>
-      <div id="typeFilterList" hidden>
-        <label><input type="checkbox" value="Fuego">Fuego</label>
-        <label><input type="checkbox" value="Volador">Volador</label>
-        <label><input type="checkbox" value="Planta">Planta</label>
-      </div>
-    </div>
-    <div id="activeFilters">
-      <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
-      <button id="btnClearFilters" hidden>Limpiar filtros</button>
-    </div>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage();
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
@@ -116,7 +87,7 @@ beforeEach(() => {
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  restoreFetch();
 });
 
 test('🔎 Controlador: sin filtros muestra todo el catálogo y oculta "Limpiar filtros"', () => {
