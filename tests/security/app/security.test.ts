@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validatePokemonPayload, validateImageUrl } from '../apps/backend/src/validation/pokemon.js';
+import { validatePokemonPayload, validateImageUrl } from '../../../apps/backend/src/validation/pokemon.js';
 import {
   generateSessionToken,
   verifySessionToken,
   revokeSessionToken,
   getSessionSecret,
   verifyTokenSignature,
-} from '../apps/backend/src/services/auth.js';
-import { buildSessionCookie, extractSessionTokenFromRequest } from '../apps/backend/server.js';
+} from '../../../apps/backend/src/services/auth.js';
+import { buildSessionCookie, extractSessionTokenFromRequest } from '../../../apps/backend/server.js';
 import crypto from 'node:crypto';
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza inyecciones XSS en nombre', () => {

@@ -60,7 +60,7 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios.',
   },
-  'tests/fuzzing.test.ts': {
+  'tests/fuzz/fuzzing.test.ts': {
     type: 'Fuzz',
     targetDomain: 'Fuzz Testing / Seguridad de Payloads',
     targetArtifacts: ['apps/backend/src/routes/pokemons.ts', 'apps/backend/src/validation/schemas.ts'],
@@ -74,7 +74,7 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix.',
   },
-  'tests/pentest.test.ts': {
+  'tests/security/app/pentest.test.ts': {
     type: 'Security / Pentest',
     targetDomain: 'Pruebas de Penetración de API',
     targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/routes/'],
@@ -102,7 +102,7 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub.',
   },
-  'tests/security.test.ts': {
+  'tests/security/app/security.test.ts': {
     type: 'Security / Application',
     targetDomain: 'Seguridad Integral de Aplicación y Headers',
     targetArtifacts: ['apps/backend/server.ts', 'apps/backend/src/middleware/'],
@@ -445,7 +445,7 @@ export const SUITES_DEFINITION: Record<
   },
   fuzz: {
     name: 'API Fuzzing y Pruebas Adversariales',
-    path: 'tests/fuzzing.test.ts',
+    path: 'tests/fuzz',
     runner: 'node:test (tsx)',
     command: 'npm run test:fuzz',
     description:

@@ -352,7 +352,7 @@ rules:
     paths:
       - "tests/unit/**"
       - "tests/contracts.test.ts"
-      - "tests/fuzzing.test.ts"
+      - "tests/fuzz/**"
       - "tests/version_consistency.test.ts"
     triggers:
       backend: true
@@ -376,8 +376,6 @@ rules:
     description: "Pruebas de políticas de seguridad, pentest y hardening"
     paths:
       - "tests/security/**"
-      - "tests/security.test.ts"
-      - "tests/pentest.test.ts"
     triggers:
       security:
         iac: true
