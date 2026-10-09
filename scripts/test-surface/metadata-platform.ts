@@ -12,6 +12,18 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs.',
   },
+  'tests/node_strip_types_entrypoints.test.ts': {
+    type: 'Contract / CI',
+    targetDomain: 'Scripts ejecutados con node --experimental-strip-types',
+    targetArtifacts: [
+      'package.json',
+      '.github/workflows/ci.yaml',
+      'scripts/verify-image-digest-parity.ts',
+      'scripts/lib/helm.ts',
+    ],
+    description:
+      'Verifica que los scripts que CI y package.json ejecutan con node --experimental-strip-types importen sus dependencias con extensión .ts y que los módulos compartidos se carguen realmente con Node sin tsx.',
+  },
   'tests/ci/lighthouse.test.ts': {
     type: 'Contract / CI',
     targetDomain: 'Lighthouse / Pila de Medición',
