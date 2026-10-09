@@ -1,4 +1,4 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mk, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -11,19 +11,6 @@ import {
 } from '../../apps/frontend/src/pokedex.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
 
-const doc = dom.window.document;
-
-const mk = (id: number, nombre: string, tipo: string, extra: Partial<Pokemon> = {}): Pokemon => ({
-  id,
-  nombre,
-  tipo,
-  tipos: [tipo],
-  fuerza: 50,
-  imagen: '',
-  caracteristicas: { peso: 6, altura: 0.4, habitat: 'Bosque' },
-  ...extra,
-});
-
 const catalog: Pokemon[] = [
   mk(25, 'Pikachu', 'Eléctrico'),
   mk(145, 'Zapdos', 'Eléctrico', { clasificacion: 'legendario' }),
@@ -31,7 +18,7 @@ const catalog: Pokemon[] = [
   mk(151, 'Mew', 'Psíquico', { clasificacion: 'mitico' }),
 ];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const names = () => [...doc.querySelectorAll('.pokemon-card')].map((c) => c.getAttribute('data-pokemon-id'));
 const chips = () => [...doc.querySelectorAll('#activeFilterChips .filter-chip')].map((c) => c.textContent);
@@ -44,33 +31,9 @@ function choose(value: string): void {
 }
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
-
-  doc.body.innerHTML = `
-    <input id="searchInput">
-    <select id="generationFilter"><option value="all">Todas</option></select>
-    <input type="checkbox" id="megaFilter">
-    <select id="sortFilter"><option value="id">Número</option></select>
-    <button type="button" id="filtersToggle" aria-expanded="false"><span class="filters-toggle-icon">+</span><span>Filtros</span><span id="moreFiltersCount" hidden></span></button>
-    <div id="moreFilters" hidden>
-      <select id="classFilter">
-        <option value="">Todas</option>
-        <option value="legendario">Legendarios</option>
-        <option value="mitico">Míticos</option>
-        <option value="especial">Legendarios y míticos</option>
-      </select>
-      <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option></select>
-      <input type="number" id="statMin">
-    </div>
-    <div id="typePillsContainer"><button class="type-pill active" data-type="all" aria-pressed="true">Todos</button></div>
-    <div id="activeFilters">
-      <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
-      <button id="btnClearFilters" hidden>Limpiar filtros</button>
-    </div>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage();
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
@@ -78,9 +41,7 @@ before(async () => {
 
 beforeEach(() => clearAllFilters());
 
-after(() => {
-  globalThis.fetch = originalFetch;
-});
+after(() => restoreFetch());
 
 test('🌟 Controlador: sin clasificación se muestra todo el catálogo', () => {
   assert.deepEqual(names(), ['25', '145', '150', '151']);

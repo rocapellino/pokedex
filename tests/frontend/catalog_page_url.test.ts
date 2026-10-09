@@ -1,8 +1,6 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 import {
   applyFilters,
   changePage,
@@ -12,17 +10,13 @@ import {
   toggleTypeFilter,
 } from '../../apps/frontend/src/pokedex.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * La página del catálogo viaja en la URL (`?pagina=`): recargar o compartir el enlace conserva la
  * página, «atrás» y «adelante» la recorren y cualquier cambio de filtros vuelve a la primera. Antes
  * `filter-url.ts` solo guardaba filtros y recargar en la página 3 devolvía a la 1.
  */
-const INDEX = fs.readFileSync(path.join(ROOT, 'apps/frontend/index.html'), 'utf-8');
-const doc = dom.window.document;
 const win = dom.window;
-const indexDoc = new win.DOMParser().parseFromString(INDEX, 'text/html');
 
 const mk = (id: number): Pokemon => ({
   id,
@@ -34,7 +28,7 @@ const mk = (id: number): Pokemon => ({
   caracteristicas: { peso: 1, altura: 1, habitat: 'x' },
 });
 const catalog = Array.from({ length: 100 }, (_, i) => mk(i + 1));
-const realFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const firstId = (): string | null => doc.querySelector('.pokemon-card')?.getAttribute('data-pokemon-id') ?? null;
 // jsdom no implementa `innerText` (lo asigna como propiedad corriente), que es lo que escribe el catálogo.
@@ -65,13 +59,12 @@ function traverse(direction: 'back' | 'forward'): Promise<void> {
 }
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
-  const fragment = ['#pokemonGrid', '#paginationBar', '#pageAnnouncer']
-    .map((selector) => indexDoc.querySelector(selector)?.outerHTML ?? '')
-    .join('');
-  doc.body.innerHTML = `${fragment}<div id="typePillsContainer"></div><div id="toastContainer"></div>`;
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': '100' } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage(
+    ['#pokemonGrid', '#paginationBar', '#pageAnnouncer'],
+    '<div id="typePillsContainer"></div><div id="toastContainer"></div>',
+  );
+  restoreFetch = serveCatalog(catalog, 100);
   await loadPokemons();
   initInteractiveListeners();
   // jsdom no implementa `scrollIntoView`, que usa el cambio de página.
@@ -79,7 +72,7 @@ before(async () => {
 });
 
 after(() => {
-  globalThis.fetch = realFetch;
+  restoreFetch();
 });
 
 test('📄 Página en la URL: abrir con ?pagina=2 muestra la segunda página', () => {

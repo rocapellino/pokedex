@@ -1,4 +1,4 @@
-import { dom } from './mega_env.js';
+import { documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -37,7 +37,7 @@ const catalog: Pokemon[] = [
   mk(150, 'Mewtwo', ['Psíquico'], { clasificacion: 'legendario' }),
 ];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const search = () => win.location.search;
@@ -66,32 +66,9 @@ function traverse(direction: 'back' | 'forward'): Promise<void> {
 }
 
 before(async () => {
-  await wait(20);
-
-  doc.body.innerHTML = `
-    <input id="searchInput">
-    <select id="generationFilter"><option value="all">Todas</option></select>
-    <input type="checkbox" id="megaFilter">
-    <select id="sortFilter">
-      <option value="id">Número de Pokédex</option>
-      <option value="speed">Velocidad</option>
-    </select>
-    <button type="button" id="sortDirection"></button>
-    <select id="classFilter">
-      <option value="">Todas</option>
-      <option value="legendario">Legendarios</option>
-    </select>
-    <select id="statFilter"><option value="">Sin filtro</option><option value="speed">Velocidad</option></select>
-    <input type="number" id="statMin">
-    <div id="typePillsContainer"></div>
-    <div id="activeFilters">
-      <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
-      <button id="btnClearFilters" hidden>Limpiar filtros</button>
-    </div>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage();
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
@@ -106,7 +83,7 @@ beforeEach(() => {
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  restoreFetch();
 });
 
 test('⏪ Historial: cada cambio discreto de filtro crea una entrada', () => {

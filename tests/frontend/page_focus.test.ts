@@ -1,12 +1,9 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, indexDoc, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 import { applyFilters, changePage, initInteractiveListeners, loadPokemons } from '../../apps/frontend/src/pokedex.js';
 import { pageAnnouncement } from '../../apps/frontend/src/shared/page-focus.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * Tras cambiar de página, el foco, la vista y el anuncio deben seguir al contenido nuevo. Antes el
@@ -14,9 +11,6 @@ import { ROOT_DIR as ROOT } from '../helpers/repo.js';
  * desplazamiento era un `scrollTo` fijo de 350 px (a ~1.000 px de las tarjetas en pantallas estrechas)
  * y un lector de pantalla no recibía ninguna señal de que el catálogo había cambiado.
  */
-const INDEX = fs.readFileSync(path.join(ROOT, 'apps/frontend/index.html'), 'utf-8');
-const doc = dom.window.document;
-const indexDoc = new dom.window.DOMParser().parseFromString(INDEX, 'text/html');
 
 const mk = (id: number): Pokemon => ({
   id,
@@ -27,7 +21,7 @@ const mk = (id: number): Pokemon => ({
   caracteristicas: { peso: 1, altura: 1, habitat: 'x' },
 });
 const catalogOf = (n: number): Pokemon[] => Array.from({ length: n }, (_, i) => mk(i + 1));
-const realFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const grid = (): HTMLElement => doc.getElementById('pokemonGrid') as HTMLElement;
 const announcer = (): string => doc.getElementById('pageAnnouncer')?.textContent?.trim() ?? '';
@@ -43,13 +37,9 @@ const setReducedMotion = (reduce: boolean | undefined): void => {
 };
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
-  const fragment = ['#pokemonGrid', '#paginationBar', '#pageAnnouncer']
-    .map((selector) => indexDoc.querySelector(selector)?.outerHTML ?? '')
-    .join('');
-  doc.body.innerHTML = `${fragment}<div id="toastContainer"></div>`;
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalogOf(100)), { headers: { 'X-Total-Count': '100' } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage(['#pokemonGrid', '#paginationBar', '#pageAnnouncer'], '<div id="toastContainer"></div>');
+  restoreFetch = serveCatalog(catalogOf(100));
   await loadPokemons();
   initInteractiveListeners();
   // jsdom no implementa `scrollIntoView`: se sustituye por un espía en el contenedor del catálogo.
@@ -65,7 +55,7 @@ beforeEach(() => {
 });
 
 after(() => {
-  globalThis.fetch = realFetch;
+  restoreFetch();
 });
 
 test('♿ Estructura: el catálogo se puede enfocar por programa y el anunciador es una región viva oculta', () => {

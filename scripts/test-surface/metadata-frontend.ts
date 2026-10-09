@@ -56,6 +56,13 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Valida el parámetro ?pagina: apertura directa, ajuste de páginas fuera de rango, valores inválidos y navegación atrás/adelante.',
   },
+  'tests/frontend/catalog_page.ts': {
+    type: 'Helper / Environment',
+    targetDomain: 'Página del Catálogo para Pruebas',
+    targetArtifacts: ['apps/frontend/index.html'],
+    description:
+      'Monta el marcado real de index.html en el JSDOM compartido y ofrece documentReady, serveCatalog y mk, en lugar de esqueletos de DOM escritos a mano en cada test.',
+  },
   'tests/frontend/catalog_sort_chip_controller.test.ts': {
     type: 'Component / DOM',
     targetDomain: 'Catálogo / Chip de Orden',

@@ -1,21 +1,15 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, indexDoc, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 import { changePage, initInteractiveListeners, loadPokemons, renderPokemons } from '../../apps/frontend/src/pokedex.js';
 import { focusFirstEnabledControl } from '../../apps/frontend/src/shared/skip-link.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 
 /**
  * Enlace "Saltar a la paginación": con 48 tarjetas por página, llegar a "Siguiente" con el teclado
  * costaba hasta 48 pulsaciones de Tab. El enlace mueve el foco a la barra sin tocar la URL (la
  * aplicación conserva `location.hash` al guardar los filtros, así que un ancla real lo contaminaría).
  */
-const INDEX = fs.readFileSync(path.join(ROOT, 'apps/frontend/index.html'), 'utf-8');
-const doc = dom.window.document;
-const indexDoc = new dom.window.DOMParser().parseFromString(INDEX, 'text/html');
 
 const mk = (id: number): Pokemon => ({
   id,
@@ -26,11 +20,7 @@ const mk = (id: number): Pokemon => ({
   caracteristicas: { peso: 1, altura: 1, habitat: 'x' },
 });
 const catalogOf = (n: number): Pokemon[] => Array.from({ length: n }, (_, i) => mk(i + 1));
-const realFetch = globalThis.fetch;
-const serve = (items: Pokemon[]): void => {
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(items), { headers: { 'X-Total-Count': String(items.length) } })) as typeof fetch;
-};
+let restoreFetch: () => void;
 
 const link = (): HTMLAnchorElement => doc.getElementById('skipToPagination') as HTMLAnchorElement;
 const click = (): MouseEvent => {
@@ -40,13 +30,10 @@ const click = (): MouseEvent => {
 };
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  await documentReady();
   // Marcado real de `index.html`: el enlace, el catálogo y la barra de paginación.
-  const fragment = ['#skipToPagination', '#pokemonGrid', '#paginationBar']
-    .map((selector) => indexDoc.querySelector(selector)?.outerHTML ?? '')
-    .join('');
-  doc.body.innerHTML = `${fragment}<div id="toastContainer"></div>`;
-  serve(catalogOf(96));
+  mountIndexPage(['#skipToPagination', '#pokemonGrid', '#paginationBar'], '<div id="toastContainer"></div>');
+  restoreFetch = serveCatalog(catalogOf(96));
   await loadPokemons();
   initInteractiveListeners();
   // `changePage` lleva la vista al catálogo con `scrollIntoView`, que jsdom no implementa.
@@ -55,7 +42,7 @@ before(async () => {
 });
 
 after(() => {
-  globalThis.fetch = realFetch;
+  restoreFetch();
 });
 
 test('♿ Estructura: el enlace precede al catálogo y la barra es una navegación con nombre', () => {
@@ -105,16 +92,16 @@ test('♿ El enlace sobrevive a un nuevo render del catálogo (está fuera del c
 });
 
 test('♿ Con una sola página o sin resultados el enlace queda oculto', async () => {
-  serve(catalogOf(3));
+  serveCatalog(catalogOf(3));
   await loadPokemons();
   assert.equal(link().hidden, true, 'una página: no hay nada que saltar');
   assert.equal(doc.getElementById('paginationBar')?.classList.contains('hidden'), true);
 
-  serve([]);
+  serveCatalog([]);
   await loadPokemons();
   assert.equal(link().hidden, true, 'sin resultados');
 
-  serve(catalogOf(96));
+  serveCatalog(catalogOf(96));
   await loadPokemons();
   assert.equal(link().hidden, false, 'vuelve a mostrarse cuando hay paginación');
 });

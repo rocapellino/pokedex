@@ -1,10 +1,8 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initInteractiveListeners, loadPokemons, openDetailModal } from '../../apps/frontend/src/pokedex.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-
-const doc = dom.window.document;
 
 const mk = (id: number, nombre: string, extra: Partial<Pokemon> = {}): Pokemon => ({
   id,
@@ -28,7 +26,7 @@ const catalog: Pokemon[] = [
   mk(26, 'Raichu'),
 ];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 function title(): string {
   return doc.querySelector('#detailContent .pokedex-notched-title')?.textContent?.trim() ?? '';
@@ -41,22 +39,16 @@ function press(target: Element, key: string): KeyboardEvent {
 }
 
 before(async () => {
-  // Deja que se dispare el DOMContentLoaded de la carga inicial del módulo antes de montar el DOM de la prueba.
-  await new Promise((resolve) => setTimeout(resolve, 20));
-
-  doc.body.innerHTML = `
-    <dialog id="detailModal"><div><h3 id="detailTitle"></h3></div><div id="detailContent"></div></dialog>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage(['#detailModal', '#pokemonGrid', '#paginationBar'], '<div id="toastContainer"></div>');
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  restoreFetch();
 });
 
 test('⌨️ Ficha: la primera apertura no roba el foco al título', () => {

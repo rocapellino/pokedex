@@ -1,4 +1,4 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -10,8 +10,6 @@ import {
   toggleTypeFilter,
 } from '../../apps/frontend/src/pokedex.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-
-const doc = dom.window.document;
 
 const mk = (id: number, nombre: string, tipo: string, habilidades: string[]): Pokemon => ({
   id,
@@ -32,7 +30,7 @@ const catalog: Pokemon[] = [
   mk(150, 'Mewtwo', 'Psíquico', ['Presión', 'Ímpetu']),
 ];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const names = () => [...doc.querySelectorAll('.pokemon-card')].map((c) => c.getAttribute('data-pokemon-id'));
 const chips = () => [...doc.querySelectorAll('#activeFilterChips .filter-chip')].map((c) => c.textContent);
@@ -48,30 +46,9 @@ function type(value: string): void {
 }
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
-
-  doc.body.innerHTML = `
-    <input id="searchInput">
-    <select id="generationFilter"><option value="all">Todas</option></select>
-    <input type="checkbox" id="megaFilter">
-    <select id="sortFilter"><option value="id">Número</option></select>
-    <button type="button" id="filtersToggle" aria-expanded="false"><span class="filters-toggle-icon">+</span><span>Filtros</span><span id="moreFiltersCount" hidden></span></button>
-    <div id="moreFilters" hidden>
-      <input type="text" id="abilityFilter" list="abilityOptions">
-      <datalist id="abilityOptions"></datalist>
-    </div>
-    <div id="typePillsContainer">
-      <button class="type-pill active" data-type="all" aria-pressed="true">Todos</button>
-      <button class="type-pill" data-type="Fuego" aria-pressed="false">Fuego</button>
-    </div>
-    <div id="activeFilters">
-      <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
-      <button id="btnClearFilters" hidden>Limpiar filtros</button>
-    </div>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage();
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
@@ -83,7 +60,7 @@ beforeEach(() => {
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  restoreFetch();
 });
 
 test('🧪 Habilidad: el autocompletado lista cada habilidad del catálogo una vez y ordenadas', () => {

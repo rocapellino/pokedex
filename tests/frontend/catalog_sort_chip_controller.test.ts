@@ -1,4 +1,4 @@
-import { dom } from './mega_env.js';
+import { doc, documentReady, dom, mountIndexPage, serveCatalog } from './catalog_page.js';
 import { after, before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -10,8 +10,6 @@ import {
   loadPokemons,
 } from '../../apps/frontend/src/pokedex.js';
 import type { Pokemon } from '../../apps/frontend/src/types.js';
-
-const doc = dom.window.document;
 
 const mk = (id: number, nombre: string, speed: number): Pokemon => ({
   id,
@@ -26,7 +24,7 @@ const mk = (id: number, nombre: string, speed: number): Pokemon => ({
 
 const catalog: Pokemon[] = [mk(1, 'Bulbasaur', 45), mk(2, 'Ivysaur', 60), mk(3, 'Venusaur', 80)];
 
-const originalFetch = globalThis.fetch;
+let restoreFetch: () => void;
 
 const ids = () => [...doc.querySelectorAll('.pokemon-card')].map((c) => c.getAttribute('data-pokemon-id'));
 const chips = () => [...doc.querySelectorAll('#activeFilterChips .filter-chip')].map((c) => c.firstChild?.textContent);
@@ -47,26 +45,9 @@ function removeChip(label: string): void {
 }
 
 before(async () => {
-  await new Promise((resolve) => setTimeout(resolve, 20));
-
-  doc.body.innerHTML = `
-    <input id="searchInput">
-    <select id="generationFilter"><option value="all">Todas</option></select>
-    <input type="checkbox" id="megaFilter">
-    <select id="sortFilter">
-      <option value="id">Número de Pokédex</option>
-      <option value="name">Nombre</option>
-      <option value="speed">Velocidad</option>
-    </select>
-    <button type="button" id="sortDirection"></button>
-    <div id="activeFilters">
-      <p id="resultsSummary"></p><ul id="activeFilterChips"></ul>
-      <button id="btnClearFilters" hidden>Limpiar filtros</button>
-    </div>
-    <div id="pokemonGrid"></div><div id="paginationBar" class="hidden"></div><div id="toastContainer"></div>`;
-
-  globalThis.fetch = (async () =>
-    new Response(JSON.stringify(catalog), { headers: { 'X-Total-Count': String(catalog.length) } })) as typeof fetch;
+  await documentReady();
+  mountIndexPage();
+  restoreFetch = serveCatalog(catalog);
 
   await loadPokemons();
   initInteractiveListeners();
@@ -82,7 +63,7 @@ beforeEach(() => {
 });
 
 after(() => {
-  globalThis.fetch = originalFetch;
+  restoreFetch();
 });
 
 test('🔀 Chip de orden: el orden natural no muestra chip', () => {
