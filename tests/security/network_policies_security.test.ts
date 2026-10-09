@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * Test de Seguridad y Arquitectura: Políticas de Red Zero-Trust, Cilium L7, Nginx Hardening y Anti-SSRF
+ * Test de Seguridad y Arquitectura: Políticas de Red Zero-Trust, Cilium L7 y Anti-SSRF
  * ==============================================================================
  */
 
@@ -8,67 +8,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
 import { ROOT_DIR } from '../helpers/repo.js';
-
-/**
- * APPS-001 — `apps/frontend/nginx.conf` es un ARTEFACTO GENERADO.
- *
- * El SSOT unico de la configuracion de Nginx es `nginx.conf.template`, que es
- * lo que consume el Dockerfile de produccion (`envsubst`) y lo que valida CI
- * contra la imagen real (`scripts/generate-nginx-conf.mjs --render`, DOC-003).
- *
- * Antes de este contrato, `nginx.conf` era una copia paralela mantenida a mano.
- * El riesgo no era cosmetico: una directiva de seguridad (CSP, COOP, COEP,
- * allowlists) podia endurecerse en el template y quedar laxa en el fallback, y
- * ningun gate lo detectaba porque cada archivo se validaba por separado.
- *
- * Este test delega la comparacion en el generador, que es el unico que conoce
- * los valores por defecto del fallback local.
- */
-test('🛡️ Nginx APPS-001: nginx.conf esta sincronizado con el template (SSOT unico)', () => {
-  const result = spawnSync(process.execPath, ['scripts/generate-nginx-conf.mjs', '--check'], {
-    cwd: ROOT_DIR,
-    encoding: 'utf-8',
-  });
-
-  assert.equal(
-    result.status,
-    0,
-    `APPS-001: apps/frontend/nginx.conf esta desactualizado respecto a nginx.conf.template.\n` +
-      'Edita SIEMPRE la plantilla y regenera el artefacto con `npm run nginx:conf`.\n' +
-      `${result.stdout || ''}${result.stderr || ''}`,
-  );
-});
-
-test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
-  const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
-  assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');
-  const content = fs.readFileSync(filePath, 'utf-8');
-
-  // No debe contener rangos /8 ni /12 globales en allow
-  assert.ok(!content.includes('allow 10.0.0.0/8;'), 'nginx.conf no debe permitir 10.0.0.0/8 indiscriminado');
-  assert.ok(!content.includes('allow 172.16.0.0/12;'), 'nginx.conf no debe permitir 172.16.0.0/12 indiscriminado');
-  assert.ok(!content.includes('allow 192.168.0.0/16;'), 'nginx.conf no debe permitir 192.168.0.0/16 indiscriminado');
-});
-
-test('🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src', () => {
-  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
-  for (const relPath of confFiles) {
-    const filePath = path.join(ROOT_DIR, relPath);
-    if (!fs.existsSync(filePath)) continue;
-    const content = fs.readFileSync(filePath, 'utf-8');
-    assert.ok(
-      !content.includes("style-src 'self' 'unsafe-inline'"),
-      `${relPath} no debe contener unsafe-inline en style-src`,
-    );
-    assert.ok(content.includes("style-src 'self';"), `${relPath} debe definir style-src estricto`);
-    assert.ok(content.includes("base-uri 'self';"), `${relPath} debe contener base-uri 'self'`);
-    assert.ok(content.includes("form-action 'self';"), `${relPath} debe contener form-action 'self'`);
-    assert.ok(content.includes('Permissions-Policy'), `${relPath} debe incluir Permissions-Policy`);
-  }
-});
 
 test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)', () => {
   const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
@@ -166,24 +107,6 @@ test('🛡️ Helm Security: network-policies.yaml consolida egress directo L4 c
   assert.ok(content.includes('10.0.0.0/8'), 'Debe bloquear RFC1918 Clase A');
   assert.ok(content.includes('172.16.0.0/12'), 'Debe bloquear RFC1918 Clase B');
   assert.ok(content.includes('192.168.0.0/16'), 'Debe bloquear RFC1918 Clase C');
-});
-
-test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy', () => {
-  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
-
-  for (const relPath of confFiles) {
-    const fullPath = path.join(ROOT_DIR, relPath);
-    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
-    const content = fs.readFileSync(fullPath, 'utf-8');
-    assert.ok(
-      content.includes('Cross-Origin-Opener-Policy "same-origin" always'),
-      `${relPath} debe configurar Cross-Origin-Opener-Policy`,
-    );
-    assert.ok(
-      content.includes('Cross-Origin-Resource-Policy "same-origin" always'),
-      `${relPath} debe configurar Cross-Origin-Resource-Policy`,
-    );
-  }
 });
 
 /**

@@ -137,3 +137,49 @@ test('🛡️ Nginx efectivo: las locations de proxy ocultan las cabeceras del u
     }
   }
 });
+
+test('🛡️ Nginx Security: apps/frontend/nginx.conf no contiene allowlists masivas RFC 1918 en /metrics ni /admin', () => {
+  const filePath = path.join(ROOT_DIR, 'apps/frontend/nginx.conf');
+  assert.ok(fs.existsSync(filePath), 'nginx.conf debe existir');
+  const content = fs.readFileSync(filePath, 'utf-8');
+
+  // No debe contener rangos /8 ni /12 globales en allow
+  assert.ok(!content.includes('allow 10.0.0.0/8;'), 'nginx.conf no debe permitir 10.0.0.0/8 indiscriminado');
+  assert.ok(!content.includes('allow 172.16.0.0/12;'), 'nginx.conf no debe permitir 172.16.0.0/12 indiscriminado');
+  assert.ok(!content.includes('allow 192.168.0.0/16;'), 'nginx.conf no debe permitir 192.168.0.0/16 indiscriminado');
+});
+
+test('🛡️ Nginx Security: CSP en nginx.conf y nginx.conf.template no permite unsafe-inline en style-src', () => {
+  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
+  for (const relPath of confFiles) {
+    const filePath = path.join(ROOT_DIR, relPath);
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    assert.ok(
+      !content.includes("style-src 'self' 'unsafe-inline'"),
+      `${relPath} no debe contener unsafe-inline en style-src`,
+    );
+    assert.ok(content.includes("style-src 'self';"), `${relPath} debe definir style-src estricto`);
+    assert.ok(content.includes("base-uri 'self';"), `${relPath} debe contener base-uri 'self'`);
+    assert.ok(content.includes("form-action 'self';"), `${relPath} debe contener form-action 'self'`);
+    assert.ok(content.includes('Permissions-Policy'), `${relPath} debe incluir Permissions-Policy`);
+  }
+});
+
+test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener-Policy y Cross-Origin-Resource-Policy', () => {
+  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
+
+  for (const relPath of confFiles) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    assert.ok(
+      content.includes('Cross-Origin-Opener-Policy "same-origin" always'),
+      `${relPath} debe configurar Cross-Origin-Opener-Policy`,
+    );
+    assert.ok(
+      content.includes('Cross-Origin-Resource-Policy "same-origin" always'),
+      `${relPath} debe configurar Cross-Origin-Resource-Policy`,
+    );
+  }
+});
