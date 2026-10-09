@@ -50,9 +50,10 @@ test('🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks
   const rootApp = readYaml<ArgoApplication>('gitops/apps/root-application.yaml');
   assert.equal(rootApp.metadata.name, 'pokedex-root', 'root-application.yaml debe nombrar la app pokedex-root');
   assert.equal(rootApp.spec.source.path, 'gitops/apps', 'root-application.yaml debe apuntar a gitops/apps');
-  assert.ok(
-    rootApp.metadata.finalizers?.includes('resources-finalizer.argocd.argoproj.io'),
-    'root-application.yaml debe incluir finalizer',
+  assert.deepEqual(
+    rootApp.metadata.finalizers,
+    ['resources-finalizer.argocd.argoproj.io'],
+    'root-application.yaml debe declarar exactamente el finalizer de ArgoCD',
   );
 
   // 3. Health checks existen y cubren CRDs críticos (ExternalSecret y ClusterPolicy; SealedSecret purgado)
