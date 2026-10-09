@@ -28,8 +28,8 @@
  * ==============================================================================
  */
 
-import { runHelm } from './lib/helm.js';
-import { REPO_ROOT } from './lib/repo-root.js';
+import { runHelm } from './lib/helm.ts';
+import { REPO_ROOT } from './lib/repo-root.ts';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import yaml from 'js-yaml';

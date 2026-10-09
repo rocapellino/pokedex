@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import { runHelm } from '../../scripts/lib/helm.js';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { runHelm } from '../../scripts/lib/helm.ts';
+import { ROOT_DIR } from '../helpers/repo.ts';
 
 interface EgressTarget {
   name: string;

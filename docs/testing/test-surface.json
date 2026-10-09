@@ -1780,6 +1780,30 @@
       "description": "Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix."
     },
     {
+      "path": "tests/node_strip_types_entrypoints.test.ts",
+      "suite": "governance",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Scripts ejecutados con node --experimental-strip-types",
+      "targetArtifacts": [
+        "package.json",
+        ".github/workflows/ci.yaml",
+        "scripts/verify-image-digest-parity.ts",
+        "scripts/lib/helm.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que los scripts que CI y package.json ejecutan con node --experimental-strip-types importen sus dependencias con extensión .ts y que los módulos compartidos se carguen realmente con Node sin tsx."
+    },
+    {
       "path": "tests/performance/k6_stress_test.js",
       "suite": "performance",
       "type": "Load / Stress",
