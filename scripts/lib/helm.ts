@@ -8,8 +8,9 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { REPO_ROOT } from './repo-root.js';
 
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
+const ROOT_DIR = REPO_ROOT;
 const MAX_BUFFER = 32 * 1024 * 1024;
 
 type HelmRuntime = 'local' | 'docker' | 'none';
