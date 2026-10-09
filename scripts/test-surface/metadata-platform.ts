@@ -99,6 +99,13 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Helper assertDocsPortalLinksAdrIndex: exige que el portal enlace el índice docs/decisions/README.md en lugar de citar rangos numéricos de ADRs.',
   },
+  'tests/helpers/http-app.ts': {
+    type: 'Helper',
+    targetDomain: 'Pruebas de Integración HTTP',
+    targetArtifacts: ['apps/backend/server.ts'],
+    description:
+      'Levanta la app Express en un puerto efímero y ofrece api() con IP de cliente simulada para que cada test tenga su propio cupo en los limitadores de tasa.',
+  },
   'tests/helpers/repo.ts': {
     type: 'Helper',
     targetDomain: 'Raíz del Repositorio',

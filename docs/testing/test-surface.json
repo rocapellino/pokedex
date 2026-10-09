@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T15:12:16.179Z",
+  "generatedAt": "2026-10-09T16:30:36.138Z",
   "summary": {
-    "totalFiles": 191,
-    "testFiles": 132,
-    "helperFiles": 58,
+    "totalFiles": 196,
+    "testFiles": 136,
+    "helperFiles": 59,
     "performanceScripts": 1,
-    "totalTestCases": 976,
-    "totalLines": 26161,
-    "totalSizeBytes": 1130614,
+    "totalTestCases": 1012,
+    "totalLines": 26840,
+    "totalSizeBytes": 1158509,
     "suitesCount": 10
   },
   "suites": [
@@ -28,8 +28,8 @@
       "path": "tests/integration",
       "runner": "node:test (tsx)",
       "command": "npm run test:integration",
-      "files": 4,
-      "testCases": 11,
+      "files": 8,
+      "testCases": 47,
       "description": "Pruebas de persistencia PostgreSQL/Drizzle, concurrencia transaccional, rate limits y endpoint de versión."
     },
     {
@@ -4810,6 +4810,28 @@
       "testCases": []
     },
     {
+      "path": "tests/helpers/http-app.ts",
+      "suite": "helpers",
+      "type": "Helper",
+      "role": "HELPER_OR_FIXTURE",
+      "runner": "none",
+      "testCount": 0,
+      "describeCount": 0,
+      "assertionCountEst": 0,
+      "sizeBytes": 2586,
+      "lineCount": 77,
+      "sha256": "7021062fbff620ea73f36f72f43cbc802b17d2a040cd993b964d929ff9f1089e",
+      "targetDomain": "Pruebas de Integración HTTP",
+      "targetArtifacts": [
+        "apps/backend/server.ts"
+      ],
+      "npmCommands": [],
+      "ciWorkflows": [],
+      "description": "Levanta la app Express en un puerto efímero y ofrece api() con IP de cliente simulada para que cada test tenga su propio cupo en los limitadores de tasa.",
+      "status": "HELPER",
+      "testCases": []
+    },
+    {
       "path": "tests/helpers/repo.ts",
       "suite": "helpers",
       "type": "Helper",
@@ -4921,6 +4943,274 @@
         {
           "name": "🔍 Observabilidad: requestTracer genera y propaga X-Request-Id para correlación de trazas",
           "line": 27
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/routes_ai.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 29,
+      "sizeBytes": 6724,
+      "lineCount": 153,
+      "sha256": "974abd388dd266f6e79428db7196e9c17c38b0d55114de519a98697c583bbcd4",
+      "targetDomain": "API / Endpoints de IA",
+      "targetArtifacts": [
+        "apps/backend/src/routes/ai.ts",
+        "apps/backend/src/services/ai.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen y el límite de 10 peticiones por minuto. Incluye un hallazgo marcado como todo.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🤖 IA: sin clave en la petición responde 401 en los tres endpoints",
+          "line": 37
+        },
+        {
+          "name": "🤖 IA: una clave incorrecta responde 401",
+          "line": 45
+        },
+        {
+          "name": "🤖 IA: sin AI_API_KEY ni GEMINI_API_KEY en el servidor responde 503 (fail-closed)",
+          "line": 51
+        },
+        {
+          "name": "🤖 IA: la clave de administración también autoriza el acceso",
+          "line": 62
+        },
+        {
+          "name": "🤖 IA: un prompt ausente, vacío o no textual responde 400",
+          "line": 70
+        },
+        {
+          "name": "🤖 POST /ai/diagram: devuelve un diagrama Mermaid y normaliza un tipo desconocido a flowchart",
+          "line": 83
+        },
+        {
+          "name": "🤖 POST /ai/mock: devuelve la plantilla local con el prompt y normaliza un framework desconocido",
+          "line": 94
+        },
+        {
+          "name": "🤖 POST /ai/mock: el HTML de la plantilla local no contiene etiquetas script del prompt",
+          "line": 105
+        },
+        {
+          "name": "🤖 POST /ai/image: devuelve la imagen de fallback con la proporción pedida",
+          "line": 113
+        },
+        {
+          "name": "🤖 IA: la longitud del prompt se acota (la ruta a 1000 y sanitizePrompt a 500 caracteres)",
+          "line": 121
+        },
+        {
+          "name": "🤖 IA: el limitador corta con 429 tras 10 peticiones por minuto desde la misma IP",
+          "line": 132
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/routes_auth.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 10,
+      "describeCount": 0,
+      "assertionCountEst": 35,
+      "sizeBytes": 6897,
+      "lineCount": 160,
+      "sha256": "765fc449645569587876e8f97cc80a0dc54e92f0f37b526a39f76b8444a5f810",
+      "targetDomain": "API / Sesión de Administración",
+      "targetArtifacts": [
+        "apps/backend/src/routes/auth.ts",
+        "apps/backend/src/services/auth.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida la emisión de la cookie de sesión HttpOnly, su lectura por cookie, Bearer y cabecera, el logout con revocación del token y el límite de intentos por IP.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔑 POST /auth/session: la clave correcta emite una cookie de sesión HttpOnly sin exponer el token",
+          "line": 43
+        },
+        {
+          "name": "🔑 POST /auth/session: ignora espacios alrededor de la clave",
+          "line": 59
+        },
+        {
+          "name": "🔑 POST /auth/session: clave incorrecta, ausente o no textual responde 401 sin cookie",
+          "line": 64
+        },
+        {
+          "name": "🔑 POST /auth/session: sin ADMIN_API_KEY en el servidor responde 503 (fail-closed)",
+          "line": 73
+        },
+        {
+          "name": "🔑 POST /auth/session: el limitador corta con 429 tras 5 intentos desde la misma IP",
+          "line": 84
+        },
+        {
+          "name": "🔍 GET /auth/session: sin token o con token inválido informa authenticated=false",
+          "line": 105
+        },
+        {
+          "name": "🔍 GET /auth/session: la cookie emitida, el Bearer y X-Session-Token se reconocen como sesión vigente",
+          "line": 115
+        },
+        {
+          "name": "🚪 POST /auth/logout: limpia la cookie y revoca el token, que deja de ser válido",
+          "line": 133
+        },
+        {
+          "name": "🚪 POST /auth/logout: sin token responde 200 de forma idempotente",
+          "line": 146
+        },
+        {
+          "name": "🚪 POST /auth/logout: un token con firma apócrifa responde 400",
+          "line": 152
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/routes_health.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 13,
+      "sizeBytes": 1937,
+      "lineCount": 54,
+      "sha256": "52ba59973b6904fd79b0771266c809ed014aab5ecfbcb824bdc4c1333324ea81",
+      "targetDomain": "API / Sondas de Salud",
+      "targetArtifacts": [
+        "apps/backend/src/routes/health.ts",
+        "apps/backend/src/utils/lifecycle.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida /healthz, /readyz sin PostgreSQL conectado y /readyz durante el apagado grácil.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🩺 GET /healthz: responde 200 \"healthy\" en texto plano",
+          "line": 17
+        },
+        {
+          "name": "🩺 GET /readyz: sin PostgreSQL conectado responde 503 \"unready\" con el estado del almacenamiento",
+          "line": 24
+        },
+        {
+          "name": "🩺 GET /readyz: durante el apagado grácil responde 503 \"shutting_down\" y se recupera después",
+          "line": 33
+        },
+        {
+          "name": "🩺 La sonda de liveness no depende del apagado: /healthz sigue en 200 mientras /readyz da 503",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/routes_pokemons.test.ts",
+      "suite": "integration",
+      "type": "Integration",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 11,
+      "describeCount": 0,
+      "assertionCountEst": 59,
+      "sizeBytes": 9751,
+      "lineCount": 235,
+      "sha256": "b3c17504d27657b0331108428ea60b25d4963bdac2587a15b43396e355252b9e",
+      "targetDomain": "API / CRUD de Pokémon",
+      "targetArtifacts": [
+        "apps/backend/src/routes/pokemons.ts",
+        "apps/backend/src/middleware/auth.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:integration"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida sobre la app Express real la lectura paginada con filtros y ETag, la autenticación de las mutaciones (clave y sesión con CSRF) y el alta, edición y baja de Pokémon.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🌐 GET /pokemons: lista paginada con X-Total-Count, ETag y Cache-Control",
+          "line": 39
+        },
+        {
+          "name": "🌐 GET /pokemons: limit se acota al máximo de la API y offset avanza la página",
+          "line": 51
+        },
+        {
+          "name": "🌐 GET /pokemons: filtra por tipo y por nombre; \"all\" no restringe",
+          "line": 67
+        },
+        {
+          "name": "🌐 GET /pokemons: If-None-Match con el ETag vigente responde 304 sin cuerpo",
+          "line": 83
+        },
+        {
+          "name": "🌐 GET /pokemons/:id: devuelve el Pokémon, 304 con ETag, 400 si el id no es entero y 404 si no existe",
+          "line": 92
+        },
+        {
+          "name": "🔐 Mutaciones: sin credencial o con clave incorrecta responden 401 y no crean nada",
+          "line": 113
+        },
+        {
+          "name": "🔐 Mutaciones: sin ADMIN_API_KEY configurada el servidor responde 503 (fail-closed)",
+          "line": 126
+        },
+        {
+          "name": "🔐 Mutaciones: una sesión emitida por /api/v1/auth/session (cookie) autoriza la edición con un Origin permitido",
+          "line": 137
+        },
+        {
+          "name": "✏️ POST /pokemons: valida el payload (422) y crea el Pokémon (201) disponible en la lectura",
+          "line": 176
+        },
+        {
+          "name": "✏️ PUT /pokemons/:id: fusiona los campos enviados, conserva el resto y valida el resultado",
+          "line": 196
+        },
+        {
+          "name": "🗑️ DELETE /pokemons/:id: elimina el Pokémon y la lectura posterior responde 404",
+          "line": 218
         }
       ]
     },
