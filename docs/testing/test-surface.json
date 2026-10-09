@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T12:54:51.694Z",
+  "generatedAt": "2026-10-09T13:35:55.590Z",
   "summary": {
-    "totalFiles": 175,
-    "testFiles": 117,
+    "totalFiles": 185,
+    "testFiles": 127,
     "helperFiles": 57,
     "performanceScripts": 1,
     "totalTestCases": 974,
-    "totalLines": 26360,
-    "totalSizeBytes": 1140226,
+    "totalLines": 26461,
+    "totalSizeBytes": 1143403,
     "suitesCount": 10
   },
   "suites": [
@@ -38,7 +38,7 @@
       "path": "tests/security",
       "runner": "node:test (tsx)",
       "command": "npm run test:security",
-      "files": 33,
+      "files": 39,
       "testCases": 308,
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
@@ -48,7 +48,7 @@
       "path": "tests/gitops",
       "runner": "node:test (tsx)",
       "command": "npm run test:gitops",
-      "files": 8,
+      "files": 9,
       "testCases": 43,
       "description": "Inmutabilidad de imágenes por digest SHA-256 en ArgoCD y paridad estricta entre entornos dev/preprod/prod."
     },
@@ -108,7 +108,7 @@
       "path": "tests/",
       "runner": "node:test (tsx)",
       "command": "npm test",
-      "files": 12,
+      "files": 15,
       "testCases": 112,
       "description": "Contratos de tipos, gobernanza documental, reglas de protección de rama, pentesting e impacto de CI."
     }
@@ -238,20 +238,129 @@
       ]
     },
     {
-      "path": "tests/ci_impact.test.ts",
+      "path": "tests/ci_impact_always_matrix.test.ts",
       "suite": "governance",
       "type": "Contract / CI Matrix",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 36,
+      "testCount": 7,
       "describeCount": 0,
-      "assertionCountEst": 265,
-      "sizeBytes": 38745,
-      "lineCount": 853,
-      "sha256": "f6af3a2fb2f2950f59fa8bc466a1eb1a667e0b79d6747d82f23bef354d0a0bec",
-      "targetDomain": "Pipeline CI / Detección de Impacto",
+      "assertionCountEst": 59,
+      "sizeBytes": 9491,
+      "lineCount": 212,
+      "sha256": "4f59722ec1f8f302975f478a1991ad7eb7045f78b6fee8c01dc2a59552db548c",
+      "targetDomain": "Pipeline CI / Controles Always y Matriz",
       "targetArtifacts": [
         "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida los controles Always en todos los caminos de retorno y la combinación acumulativa de dominios en cambios multi-dominio.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
+          "line": 19
+        },
+        {
+          "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
+          "line": 46
+        },
+        {
+          "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
+          "line": 68
+        },
+        {
+          "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
+          "line": 111
+        },
+        {
+          "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
+          "line": 127
+        },
+        {
+          "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
+          "line": 165
+        },
+        {
+          "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
+          "line": 192
+        }
+      ]
+    },
+    {
+      "path": "tests/ci_impact_contract.test.ts",
+      "suite": "governance",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 5,
+      "describeCount": 0,
+      "assertionCountEst": 23,
+      "sizeBytes": 5046,
+      "lineCount": 123,
+      "sha256": "7a0c8ad235ca0c5a2590b804738bfaf5fdfe6fb78203f3b591e2e9af7e47d3e7",
+      "targetDomain": "Pipeline CI / Contrato de Impacto",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente",
+          "line": 24
+        },
+        {
+          "name": "🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml",
+          "line": 66
+        },
+        {
+          "name": "🎯 Change Impact: Contrato declarativo ci-impact.yaml existe y es válido",
+          "line": 79
+        },
+        {
+          "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
+          "line": 98
+        },
+        {
+          "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "path": "tests/ci_impact_domains.test.ts",
+      "suite": "governance",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 18,
+      "describeCount": 0,
+      "assertionCountEst": 134,
+      "sizeBytes": 20208,
+      "lineCount": 441,
+      "sha256": "ed97a12ae0dc30950671f4faadfb5927338bbf854543ed2257bd81590ed10309",
+      "targetDomain": "Pipeline CI / Dominios de Impacto",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml",
         ".agents/skills/_shared/change-impact-matrix.md"
       ],
       "npmCommands": [
@@ -262,152 +371,134 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed.",
+      "description": "Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI.",
       "status": "ACTIVE",
       "testCases": [
         {
-          "name": "🎯 Change Impact: la tabla generada cita workflows con la extensión .yaml vigente",
-          "line": 29
-        },
-        {
-          "name": "🎯 Change Impact: el template del PR no reintroduce la nomenclatura .yml",
-          "line": 71
-        },
-        {
-          "name": "🎯 Change Impact: Contrato declarativo ci-impact.yaml existe y es válido",
-          "line": 84
-        },
-        {
           "name": "🎯 Change Impact: Cambio puramente documental activa solo Fast Track de docs",
-          "line": 103
+          "line": 14
         },
         {
           "name": "🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 123
+          "line": 34
         },
         {
           "name": "🤖 Change Impact: validador y tests AAS activan el dominio canónico",
-          "line": 136
+          "line": 47
         },
         {
           "name": "🤖 Change Impact: SKILL.md local activa gobierno de agentes sin fuga a aplicación o infraestructura",
-          "line": 146
+          "line": 57
         },
         {
           "name": "🎯 CI-001: Taskfile.yaml está clasificado y no dispara fail-closed",
-          "line": 176
+          "line": 87
         },
         {
           "name": "🎯 CI-001: renovate.json está clasificado, activa SAST y documentación y no dispara fail-closed",
-          "line": 230
+          "line": 141
         },
         {
           "name": "🎯 CI-001: la configuración del motor es global, igual que el motor",
-          "line": 278
+          "line": 189
         },
         {
           "name": "🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud",
-          "line": 295
+          "line": 206
         },
         {
           "name": "🎯 Change Impact: Cambio en backend activa backend, tests, security granular (sast, sca, container) y docker",
-          "line": 315
+          "line": 226
         },
         {
           "name": "🎯 Change Impact: Cambio en GitOps activa kubernetes, security_iac y supply_chain pero omite sast/sca/container",
-          "line": 338
+          "line": 249
         },
         {
           "name": "🎯 Change Impact: Cambio en Helm activa helm, kubernetes, security_iac y supply_chain",
-          "line": 357
+          "line": 268
         },
         {
           "name": "🎯 Change Impact: Cambio en OpenTofu activa solo opentofu, security_secrets y security_iac",
-          "line": 375
+          "line": 286
         },
         {
           "name": "🎯 Change Impact: Cambio en Ansible activa solo ansible, security_secrets y security_iac",
-          "line": 392
+          "line": 303
         },
         {
           "name": "🎯 Change Impact: Archivo global transversal (package.json y detect-change-impact.ts) activa Full CI",
-          "line": 407
+          "line": 318
         },
         {
           "name": "🎯 CI-004: un cambio en workflows activa los linters de configuración (linting)",
-          "line": 433
+          "line": 344
         },
         {
           "name": "🎯 Change Impact: Script documental (scripts/lint-markdown.ts) activa únicamente documentation Fast Track",
-          "line": 445
+          "line": 356
         },
         {
           "name": "🎯 Change Impact: Script de plataforma (scripts/k8s-rollout-restart.ts) activa kubernetes y security_iac pero omite backend/frontend",
-          "line": 462
-        },
-        {
-          "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
-          "line": 478
-        },
-        {
-          "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
-          "line": 494
-        },
-        {
-          "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
-          "line": 509
-        },
-        {
-          "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
-          "line": 525
-        },
-        {
-          "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
-          "line": 540
-        },
-        {
-          "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
-          "line": 555
-        },
-        {
-          "name": "🎯 Change Impact: Markdown format genera tabla limpia con iconos de estado",
-          "line": 575
-        },
-        {
-          "name": "🔒 Change Impact Always: PR documental sigue activando security_secrets y pr_governance",
-          "line": 594
-        },
-        {
-          "name": "🔒 Change Impact Always: los controles se aplican en los 4 caminos de retorno",
-          "line": 621
-        },
-        {
-          "name": "🔒 Change Impact Always: applyAlwaysTriggers es funcional y fail-closed ante ids desconocidos",
-          "line": 643
-        },
-        {
-          "name": "🎯 Change Impact: el contrato declara always con ids mapeados en el motor",
-          "line": 686
-        },
-        {
-          "name": "🎯 Change Impact Matrix: cambio multi-dominio heterogéneo combina triggers acumulativamente sin solapamiento destructivo",
-          "line": 702
-        },
-        {
-          "name": "🎯 Change Impact Matrix: archivo anidado no mapeado en subdirectorio arbitrario activa fail-closed",
-          "line": 740
-        },
-        {
-          "name": "🎯 Change Impact Matrix: combinación de archivos modificados, eliminados y renombrados preserva la suma de dominios",
-          "line": 767
-        },
-        {
-          "name": "🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a scripts podados",
-          "line": 788
+          "line": 373
         },
         {
           "name": "🎯 CI Impact: scripts de soporte mapeados activan sus dominios correspondientes sin caer en unknown",
-          "line": 801
+          "line": 389
+        }
+      ]
+    },
+    {
+      "path": "tests/ci_impact_test_paths.test.ts",
+      "suite": "governance",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 49,
+      "sizeBytes": 5351,
+      "lineCount": 109,
+      "sha256": "53f571bcf4303200e383d64ca1f21db71774f5096aef12c122e51be50b1209a7",
+      "targetDomain": "Pipeline CI / Impacto en tests y fail-closed",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🎯 Change Impact: Tests unitarios (tests/unit/**) activan tests y backend sin Docker ni Kubernetes",
+          "line": 13
+        },
+        {
+          "name": "🎯 Change Impact: Tests de frontend/e2e (tests/e2e/**) activan tests y frontend sin backend",
+          "line": 29
+        },
+        {
+          "name": "🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y security_iac",
+          "line": 44
+        },
+        {
+          "name": "🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain",
+          "line": 60
+        },
+        {
+          "name": "🎯 Change Impact: Test genérico nuevo en tests/** activa tests base sin activar Fail-Closed (unknown)",
+          "line": 75
+        },
+        {
+          "name": "🎯 Change Impact: Archivo desconocido activa política Fail-Closed (Unknown -> Full CI)",
+          "line": 90
         }
       ]
     },
@@ -4128,17 +4219,53 @@
       ]
     },
     {
+      "path": "tests/gitops/gitops_adr_contracts.test.ts",
+      "suite": "gitops",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 67,
+      "sizeBytes": 15591,
+      "lineCount": 303,
+      "sha256": "15985bebc13beea6ab82136d2f464701169ef690cb1c9a45738e1fb2ae423665",
+      "targetDomain": "Suite gitops",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Suite de pruebas gitops: gitops_adr_contracts.test.ts.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)",
+          "line": 14
+        },
+        {
+          "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
+          "line": 200
+        }
+      ]
+    },
+    {
       "path": "tests/gitops/gitops_architecture.test.ts",
       "suite": "gitops",
       "type": "Automated Test",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 6,
+      "testCount": 4,
       "describeCount": 0,
-      "assertionCountEst": 101,
-      "sizeBytes": 27485,
-      "lineCount": 551,
-      "sha256": "5812c72dbae054361213712c473f6971a57458a5951e8c54616c0b1424376a19",
+      "assertionCountEst": 34,
+      "sizeBytes": 11957,
+      "lineCount": 254,
+      "sha256": "e768e1d34eab96392bb1248e3a8dc88a19d8dade98e26e307c1f661fe7baae28",
       "targetDomain": "Suite gitops",
       "targetArtifacts": [],
       "npmCommands": [
@@ -4155,27 +4282,19 @@
       "testCases": [
         {
           "name": "🗂️ GITOPS-003: el árbol GitOps está documentado y sus afirmaciones son ciertas",
-          "line": 33
+          "line": 26
         },
         {
           "name": "🛡️ GITOPS-005: todo entorno GitOps activo debe renderizarse en CI",
-          "line": 89
+          "line": 82
         },
         {
           "name": "🔒 GITOPS-001: la referencia inactiva de Cloud queda excluida del App-of-Apps",
-          "line": 152
+          "line": 145
         },
         {
           "name": "🔒 ADR-030: el blueprint prod cloud hereda values.prod.yaml y no fija un proveedor",
-          "line": 210
-        },
-        {
-          "name": "🛡️ Orquestación GitOps Avanzada: ADR-003 formaliza Sync Waves, Hooks de Siembra, Health Checks y App-of-Apps (consolida ADR-021)",
-          "line": 262
-        },
-        {
-          "name": "🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refreshInterval acotado y auditoría (consolida ADR-022)",
-          "line": 448
+          "line": 203
         }
       ]
     },
@@ -4974,19 +5093,20 @@
       ]
     },
     {
-      "path": "tests/security/adr_compliance_contracts.test.ts",
+      "path": "tests/security/adr_application_contracts.test.ts",
       "suite": "security",
       "type": "Contract / Architecture",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 19,
+      "testCount": 5,
       "describeCount": 0,
-      "assertionCountEst": 192,
-      "sizeBytes": 40254,
-      "lineCount": 833,
-      "sha256": "a2ea670041b5b4cb04d0a9b05638ca7b999fb8ed126fed6038af3be1d9700ad0",
-      "targetDomain": "Conformidad con ADRs de Arquitectura",
+      "assertionCountEst": 42,
+      "sizeBytes": 8640,
+      "lineCount": 181,
+      "sha256": "893e8a0142fc27f90ea83b03bcba3a744c020296d988fd7665971668145ab6ea",
+      "targetDomain": "Conformidad ADR / Aplicación",
       "targetArtifacts": [
+        "apps/backend/src/",
         "docs/decisions/"
       ],
       "npmCommands": [
@@ -4998,84 +5118,177 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).",
+      "description": "Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011).",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini",
+          "line": 13
+        },
+        {
+          "name": "🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista",
+          "line": 26
+        },
+        {
+          "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
+          "line": 69
+        },
+        {
+          "name": "🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)",
+          "line": 122
+        },
+        {
+          "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
+          "line": 141
+        }
+      ]
+    },
+    {
+      "path": "tests/security/adr_ci_tooling_contracts.test.ts",
+      "suite": "security",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 16,
+      "sizeBytes": 3880,
+      "lineCount": 83,
+      "sha256": "2669e30253f1af7350c50219897c95fa0f4b9dead47569c5f0445ad3810646af",
+      "targetDomain": "Conformidad ADR / CI y Tooling",
+      "targetArtifacts": [
+        ".github/workflows/",
+        "lighthouserc.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegiados (sin --exclude scripts)",
-          "line": 19
+          "line": 12
         },
         {
           "name": "🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)",
-          "line": 30
-        },
-        {
-          "name": "🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini",
-          "line": 35
+          "line": 23
         },
         {
           "name": "🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals",
-          "line": 48
-        },
-        {
-          "name": "🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml",
-          "line": 62
-        },
-        {
-          "name": "🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad",
-          "line": 115
+          "line": 28
         },
         {
           "name": "🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta de versión de Helm en todos sus jobs",
-          "line": 142
-        },
-        {
-          "name": "🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml",
-          "line": 184
-        },
+          "line": 42
+        }
+      ]
+    },
+    {
+      "path": "tests/security/adr_governance_contracts.test.ts",
+      "suite": "security",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 89,
+      "sizeBytes": 18380,
+      "lineCount": 376,
+      "sha256": "5686875af0a83c9b6024ae91c2b526c7f736341522a32e183cb89b923a8575c9",
+      "targetDomain": "Conformidad ADR / Gobernanza",
+      "targetArtifacts": [
+        "docs/decisions/",
+        "docs/operations/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027).",
+      "status": "ACTIVE",
+      "testCases": [
         {
           "name": "🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs",
-          "line": 206
+          "line": 14
         },
         {
           "name": "🛡️ Supply Chain Security: ADR-008 formaliza inmutabilidad, Cosign Keyless, SLSA L3 y Kyverno",
-          "line": 243
-        },
-        {
-          "name": "🛡️ AI Resilience & Contratos: ADR-009 formaliza Gemini 2.5 Flash, Circuit Breaker y fallback determinista",
-          "line": 266
-        },
-        {
-          "name": "🛡️ Autenticación & Sesiones: ADR-010 formaliza doble capa, timingSafeEqual y revocación fail-closed",
-          "line": 309
-        },
-        {
-          "name": "🛡️ Persistencia: el tamaño del pool de pg declarado en ADR-011 coincide con el código (AUD-ARCH-ADR-001)",
-          "line": 362
-        },
-        {
-          "name": "🛡️ Persistencia & Migraciones: ADR-011 formaliza Drizzle ORM, PgBouncer y secuencias atómicas",
-          "line": 381
+          "line": 51
         },
         {
           "name": "🛡️ Excelencia Operacional & Gobernanza: docs/operations/ contiene 7 SOPs estandarizados e indexados en docs/README.md",
-          "line": 422
-        },
-        {
-          "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
-          "line": 465
+          "line": 74
         },
         {
           "name": "🛡️ Orquestación de Monorepo: ADR-019 (Turborepo) está retirado y no quedan restos de la herramienta",
-          "line": 574
+          "line": 117
         },
         {
           "name": "🛡️ Gobernanza de Despliegue: ADR-020 formaliza CLI canónico con Taskfile, retiro de scripts legados y lista blanca",
-          "line": 618
+          "line": 161
         },
         {
           "name": "🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en frontend y contratos Fail-Open vs Fail-Closed",
-          "line": 730
+          "line": 273
+        }
+      ]
+    },
+    {
+      "path": "tests/security/adr_observability_contracts.test.ts",
+      "suite": "security",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 45,
+      "sizeBytes": 10175,
+      "lineCount": 223,
+      "sha256": "306ba75a2aea24c1a23022327c4161b080c87cbf2899c0acf78d6af088429f60",
+      "targetDomain": "Conformidad ADR / Observabilidad",
+      "targetArtifacts": [
+        "infra/monitoring/",
+        "docs/decisions/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018).",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml",
+          "line": 13
+        },
+        {
+          "name": "🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documenta arquitectura de observabilidad",
+          "line": 66
+        },
+        {
+          "name": "🛡️ Excelencia Operacional: docs/operations/observability-alerts.md cubre todas las alertas de alerts.yaml",
+          "line": 93
+        },
+        {
+          "name": "🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C Trace Context y correlación con Loki",
+          "line": 115
         }
       ]
     },
@@ -6901,22 +7114,22 @@
       ]
     },
     {
-      "path": "tests/security/supply_chain_security.test.ts",
+      "path": "tests/security/supply_chain_images_signing.test.ts",
       "suite": "security",
       "type": "Security / Supply Chain",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
-      "testCount": 21,
+      "testCount": 9,
       "describeCount": 0,
-      "assertionCountEst": 114,
-      "sizeBytes": 33654,
-      "lineCount": 785,
-      "sha256": "080f08f7713388195abfa7d203272b9d50bb83118afad862517864db8a9c6a5e",
-      "targetDomain": "Seguridad de Cadena de Suministro y SBOM",
+      "assertionCountEst": 57,
+      "sizeBytes": 14455,
+      "lineCount": 359,
+      "sha256": "c84af67943c4409c266cbc9d9833619e83a2ae537a31a627dd8c86c761db8261",
+      "targetDomain": "Imágenes, SBOM y Firma",
       "targetArtifacts": [
-        "package.json",
-        "package-lock.json",
-        ".github/workflows/ci.yaml"
+        "apps/backend/Dockerfile",
+        ".github/workflows/ci.yaml",
+        "gitops/"
       ],
       "npmCommands": [
         "npm test",
@@ -6927,92 +7140,185 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes.",
+      "description": "Comprueba etiquetas OCI, build-args, SBOM CycloneDX, firma Cosign, política Kyverno y digest pinning en GitOps.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build",
+          "line": 12
+        },
+        {
+          "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
+          "line": 52
+        },
+        {
+          "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
+          "line": 80
+        },
+        {
+          "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
+          "line": 118
+        },
+        {
+          "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
+          "line": 131
+        },
+        {
+          "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
+          "line": 202
+        },
+        {
+          "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
+          "line": 223
+        },
+        {
+          "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
+          "line": 243
+        },
+        {
+          "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
+          "line": 340
+        }
+      ]
+    },
+    {
+      "path": "tests/security/supply_chain_tooling_pinning.test.ts",
+      "suite": "security",
+      "type": "Security / Supply Chain",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 4,
+      "describeCount": 0,
+      "assertionCountEst": 36,
+      "sizeBytes": 9624,
+      "lineCount": 222,
+      "sha256": "5f5615076ede0216387ec014380138958f09c4b3822d87f77aeda4d260cc04af",
+      "targetDomain": "Fijación de Tooling",
+      "targetArtifacts": [
+        ".pre-commit-config.yaml",
+        ".github/workflows/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba Gitsign verificado, hooks fijados por SHA y exclusiones justificadas de Terraform y Semgrep.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse",
+          "line": 14
+        },
+        {
+          "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
+          "line": 172
+        },
+        {
+          "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
+          "line": 196
+        },
+        {
+          "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
+          "line": 210
+        }
+      ]
+    },
+    {
+      "path": "tests/security/supply_chain_trivy_scan.test.ts",
+      "suite": "security",
+      "type": "Security / Supply Chain",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 2,
+      "describeCount": 0,
+      "assertionCountEst": 7,
+      "sizeBytes": 3714,
+      "lineCount": 91,
+      "sha256": "9ec8f9c3b8a8df9cc7aba7b862be8310af57fceff4b159f951c8931bc0761e79",
+      "targetDomain": "Cobertura del Scan de Trivy",
+      "targetArtifacts": [
+        ".github/workflows/security-trivy.yaml",
+        "infra/helm/pokedex/values.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba que el scan de Trivy cubre las imágenes del Chart y que están fijadas por digest.",
+      "status": "ACTIVE",
+      "testCases": [
+        {
+          "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
+          "line": 44
+        },
+        {
+          "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
+          "line": 73
+        }
+      ]
+    },
+    {
+      "path": "tests/security/supply_chain_workflow_hygiene.test.ts",
+      "suite": "security",
+      "type": "Security / Supply Chain",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "testCount": 6,
+      "describeCount": 0,
+      "assertionCountEst": 14,
+      "sizeBytes": 6803,
+      "lineCount": 146,
+      "sha256": "f56ade1b7017053fbb6973e7083c37ae656c3bb479258bbdc4ac0bf0469ff39e",
+      "targetDomain": "Higiene de Workflows",
+      "targetArtifacts": [
+        ".github/workflows/",
+        ".gitattributes"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba runtimes de Node vigentes, quoting de cabeceras, fin de línea LF y extensión .yaml en workflows.",
       "status": "ACTIVE",
       "testCases": [
         {
           "name": "🔒 Supply Chain: las actions del release no usan runtimes de Node retirados",
-          "line": 22
+          "line": 20
         },
         {
           "name": "🏷️ Release Tag: el header de la API de GitHub tiene el quoting balanceado",
-          "line": 53
+          "line": 51
         },
         {
           "name": "🔤 Workflows: los archivos usan fin de línea LF (relacionado con REL-002)",
-          "line": 67
+          "line": 65
         },
         {
           "name": "🔤 Workflows: .gitattributes fuerza LF en los workflows",
-          "line": 80
+          "line": 78
         },
         {
           "name": "🔒 INFRA-005: toda imagen del Chart debe soportar fijacion por digest",
-          "line": 87
+          "line": 85
         },
         {
           "name": "🐚 Workflows: ningun reusable workflow se invoca con la extension .yml obsoleta",
-          "line": 139
-        },
-        {
-          "name": "🛡️ Supply Chain Security: Dockerfile declara etiquetas OCI y argumentos de trazabilidad de build",
-          "line": 149
-        },
-        {
-          "name": "🛡️ Supply Chain Security: CI inyecta APP_VERSION y GIT_SHA como build-args independientes (VER-002)",
-          "line": 189
-        },
-        {
-          "name": "🛡️ SEC-001: el binario de Gitsign se verifica antes de instalarse y ejecutarse",
-          "line": 217
-        },
-        {
-          "name": "🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y build-args en build-docker",
-          "line": 375
-        },
-        {
-          "name": "🛡️ Supply Chain Security: SBOM CycloneDX es obligatorio y validado en CI",
-          "line": 413
-        },
-        {
-          "name": "🛡️ Supply Chain Security: Publish job implementa firma Cosign, atestación de SBOM y SLSA Provenance",
-          "line": 426
-        },
-        {
-          "name": "🛡️ Supply Chain Security: Política Kyverno verify-image-signature existe y define reglas estrictas",
-          "line": 497
-        },
-        {
-          "name": "🛡️ Supply Chain Security: los manifiestos de GitOps y el perfil de referencia aplican OCI digest pinning inmutable (sha256)",
-          "line": 518
-        },
-        {
-          "name": "🛡️ Supply Chain Security: Manifiestos de GitOps mantienen paridad estricta inter-entornos y modelan imágenes como digest inmutable único (SSOT)",
-          "line": 538
-        },
-        {
-          "name": "🛡️ Supply Chain Security: CI Workflow valida consistencia de digests (CI Published == GitOps Pinning == Cosign Signed)",
-          "line": 635
-        },
-        {
-          "name": "🔒 SEC-001: los hooks de pre-commit se fijan por SHA, no por tag mutable",
-          "line": 655
-        },
-        {
-          "name": "🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas",
-          "line": 679
-        },
-        {
-          "name": "🔒 SEC-002: la exclusion de Semgrep sobre infra/ esta justificada",
-          "line": 693
-        },
-        {
-          "name": "🚨 WF-001: el scan de Trivy cubre exactamente las imágenes que el Chart despliega",
-          "line": 738
-        },
-        {
-          "name": "🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable",
-          "line": 767
+          "line": 137
         }
       ]
     },

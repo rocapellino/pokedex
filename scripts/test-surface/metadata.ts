@@ -33,12 +33,36 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente.',
   },
-  'tests/ci_impact.test.ts': {
+  'tests/ci_impact_contract.test.ts': {
     type: 'Contract / CI Matrix',
-    targetDomain: 'Pipeline CI / Detección de Impacto',
-    targetArtifacts: ['scripts/detect-change-impact.ts', '.agents/skills/_shared/change-impact-matrix.md'],
+    targetDomain: 'Pipeline CI / Contrato de Impacto',
+    targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
     description:
-      'Verifica la matriz de cambio y despacho condicional en CI para PRs, asegurando cobertura por tipo de archivo y modo fail-closed.',
+      'Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados.',
+  },
+  'tests/ci_impact_domains.test.ts': {
+    type: 'Contract / CI Matrix',
+    targetDomain: 'Pipeline CI / Dominios de Impacto',
+    targetArtifacts: [
+      'scripts/detect-change-impact.ts',
+      '.github/ci-impact.yaml',
+      '.agents/skills/_shared/change-impact-matrix.md',
+    ],
+    description:
+      'Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI.',
+  },
+  'tests/ci_impact_test_paths.test.ts': {
+    type: 'Contract / CI Matrix',
+    targetDomain: 'Pipeline CI / Impacto en tests y fail-closed',
+    targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
+    description: 'Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos.',
+  },
+  'tests/ci_impact_always_matrix.test.ts': {
+    type: 'Contract / CI Matrix',
+    targetDomain: 'Pipeline CI / Controles Always y Matriz',
+    targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
+    description:
+      'Valida los controles Always en todos los caminos de retorno y la combinación acumulativa de dominios en cambios multi-dominio.',
   },
   'tests/integration/concurrency.test.ts': {
     type: 'Integration',
@@ -190,12 +214,31 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios.',
   },
-  'tests/security/adr_compliance_contracts.test.ts': {
+  'tests/security/adr_ci_tooling_contracts.test.ts': {
     type: 'Contract / Architecture',
-    targetDomain: 'Conformidad con ADRs de Arquitectura',
-    targetArtifacts: ['docs/decisions/'],
+    targetDomain: 'Conformidad ADR / CI y Tooling',
+    targetArtifacts: ['.github/workflows/', 'lighthouserc.json'],
     description:
-      'Comprueba el cumplimiento de decisiones de arquitectura registradas en ADR-001 a ADR-015 (topología, RBAC, ingress y secrets).',
+      'Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows.',
+  },
+  'tests/security/adr_observability_contracts.test.ts': {
+    type: 'Contract / Architecture',
+    targetDomain: 'Conformidad ADR / Observabilidad',
+    targetArtifacts: ['infra/monitoring/', 'docs/decisions/'],
+    description: 'Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018).',
+  },
+  'tests/security/adr_application_contracts.test.ts': {
+    type: 'Contract / Architecture',
+    targetDomain: 'Conformidad ADR / Aplicación',
+    targetArtifacts: ['apps/backend/src/', 'docs/decisions/'],
+    description: 'Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011).',
+  },
+  'tests/security/adr_governance_contracts.test.ts': {
+    type: 'Contract / Architecture',
+    targetDomain: 'Conformidad ADR / Gobernanza',
+    targetArtifacts: ['docs/decisions/', 'docs/operations/'],
+    description:
+      'Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027).',
   },
   'tests/security/ansible_baseline_security.test.ts': {
     type: 'Security / Ansible',
@@ -318,12 +361,32 @@ export const FILE_METADATA_CATALOG: Record<
     description:
       'Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias.',
   },
-  'tests/security/supply_chain_security.test.ts': {
+  'tests/security/supply_chain_workflow_hygiene.test.ts': {
     type: 'Security / Supply Chain',
-    targetDomain: 'Seguridad de Cadena de Suministro y SBOM',
-    targetArtifacts: ['package.json', 'package-lock.json', '.github/workflows/ci.yaml'],
+    targetDomain: 'Higiene de Workflows',
+    targetArtifacts: ['.github/workflows/', '.gitattributes'],
     description:
-      'Comprueba inmutabilidad de dependencias, bloqueo de scripts arbitrarios en npm ci, SBOM y firma de imágenes.',
+      'Comprueba runtimes de Node vigentes, quoting de cabeceras, fin de línea LF y extensión .yaml en workflows.',
+  },
+  'tests/security/supply_chain_images_signing.test.ts': {
+    type: 'Security / Supply Chain',
+    targetDomain: 'Imágenes, SBOM y Firma',
+    targetArtifacts: ['apps/backend/Dockerfile', '.github/workflows/ci.yaml', 'gitops/'],
+    description:
+      'Comprueba etiquetas OCI, build-args, SBOM CycloneDX, firma Cosign, política Kyverno y digest pinning en GitOps.',
+  },
+  'tests/security/supply_chain_tooling_pinning.test.ts': {
+    type: 'Security / Supply Chain',
+    targetDomain: 'Fijación de Tooling',
+    targetArtifacts: ['.pre-commit-config.yaml', '.github/workflows/'],
+    description:
+      'Comprueba Gitsign verificado, hooks fijados por SHA y exclusiones justificadas de Terraform y Semgrep.',
+  },
+  'tests/security/supply_chain_trivy_scan.test.ts': {
+    type: 'Security / Supply Chain',
+    targetDomain: 'Cobertura del Scan de Trivy',
+    targetArtifacts: ['.github/workflows/security-trivy.yaml', 'infra/helm/pokedex/values.yaml'],
+    description: 'Comprueba que el scan de Trivy cubre las imágenes del Chart y que están fijadas por digest.',
   },
   'tests/security/vault_redeploy_contract.test.ts': {
     type: 'Security / Secrets',
