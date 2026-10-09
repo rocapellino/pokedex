@@ -29,6 +29,7 @@
  */
 
 import { runHelm } from './lib/helm.js';
+import { REPO_ROOT } from './lib/repo-root.js';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import yaml from 'js-yaml';
@@ -141,8 +142,8 @@ export function extractRenderedImage(
   options: { strict?: boolean; skipCache?: boolean } = {},
 ): string {
   const spec = COMPONENTS[component];
-  const resolvedValues = path.resolve(process.cwd(), valuesPath);
-  const resolvedChart = path.resolve(process.cwd(), chartPath);
+  const resolvedValues = path.resolve(REPO_ROOT, valuesPath);
+  const resolvedChart = path.resolve(REPO_ROOT, chartPath);
   const isStrict = options.strict ?? process.env.STRICT_HELM === 'true';
 
   if (!fs.existsSync(resolvedValues)) {

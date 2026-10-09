@@ -13,9 +13,9 @@ function withFixture(
   const root = join(tmpdir(), `pokedex-aas-${process.pid}-${Math.random().toString(16).slice(2)}`);
   const directory = join(root, '.agents', 'aas');
   mkdirSync(directory, { recursive: true });
-  cpSync('.agents/aas/aas-stack.json', join(directory, 'aas-stack.json'));
-  cpSync('.agents/aas/reviewed-selection.json', join(directory, 'reviewed-selection.json'));
-  cpSync('.agents/skills', join(root, '.agents', 'skills'), { recursive: true });
+  cpSync(join(ROOT_DIR, '.agents/aas/aas-stack.json'), join(directory, 'aas-stack.json'));
+  cpSync(join(ROOT_DIR, '.agents/aas/reviewed-selection.json'), join(directory, 'reviewed-selection.json'));
+  cpSync(join(ROOT_DIR, '.agents/skills'), join(root, '.agents', 'skills'), { recursive: true });
   const stackPath = join(directory, 'aas-stack.json');
   const reviewPath = join(directory, 'reviewed-selection.json');
   const stack = JSON.parse(readFileSync(stackPath, 'utf8')) as Record<string, any>;
@@ -31,7 +31,7 @@ function withFixture(
 }
 
 test('la selección AAS cumple el contrato local', () => {
-  assert.deepEqual(validateAasGovernance(), []);
+  assert.deepEqual(validateAasGovernance(ROOT_DIR), []);
 });
 
 test('AAS está fijado por versión y digest', () => {
@@ -140,10 +140,10 @@ test('📚 SKILL-001: las skills no citan workflows con la extensión .yml obsol
     return out;
   };
 
-  for (const file of walk('.agents')) {
+  for (const file of walk(join(ROOT_DIR, '.agents'))) {
     const content = readFileSync(file, 'utf-8');
     const match = content.match(/workflows\/\*\.yml|workflows\/[a-z0-9-]+\.yml/);
-    if (match) offenders.push(`${relative('.', file)} -> ${match[0]}`);
+    if (match) offenders.push(`${relative(ROOT_DIR, file)} -> ${match[0]}`);
   }
 
   assert.deepEqual(offenders, [], `Skills con referencias .yml obsoletas: ${offenders.join('; ')}`);

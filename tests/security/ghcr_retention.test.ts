@@ -236,7 +236,7 @@ test('📦 GHCR Retention: nunca purga un digest fijado en GitOps aunque quede f
 });
 
 test('📦 GHCR Retention: protege los digests api y web declarados en GitOps y gestiona ambos paquetes', () => {
-  const pinned = collectPinnedDigests();
+  const pinned = collectPinnedDigests(ROOT_DIR);
   for (const file of ['gitops/environments/proxmox-preprod/values.yaml']) {
     const values = fs.readFileSync(path.join(ROOT_DIR, file), 'utf8');
     for (const digest of values.match(/sha256:[a-f0-9]{64}/g) ?? []) {
