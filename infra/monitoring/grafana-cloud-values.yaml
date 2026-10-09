@@ -9,10 +9,10 @@ cluster:
   name: "pokedex-k8s-cluster"
 
 # ------------------------------------------------------------------------------
-# Destinos declarados en el repo (SSOT). Los pipelines remotos de Fleet Management
-# (logs de pods y receptor OTLP) siguen activos hasta migrarlos a este archivo. El scrape de
-# /metrics de la API ya vive aquí (`collectors.alloy.extraConfig`, AUD-SEC-OBS-001): hay que
-# borrar su pipeline en Fleet Management para no duplicar las series.
+# Destinos declarados en el repo (SSOT). El receptor OTLP se replica tal cual desde
+# `collectors.alloy.extraConfig` (misma configuración que corría en pre-prod con el chart simple
+# `alloy`) para no renombrar las series que usan dashboards y alertas. Los logs de pods usan la
+# función nativa `podLogsViaLoki`: los dashboards solo filtran por `namespace` y `container`.
 # ------------------------------------------------------------------------------
 destinations:
   grafana-cloud-metrics:
@@ -24,6 +24,16 @@ destinations:
       username: "3589862"
       # El token (Access Policy con metrics:write) se inyecta con --set-file desde
       # scripts/deploy-grafana-cloud.mjs; nunca se versiona.
+  # Logs de pods y OTLP. El chart emite `loki.write.grafana_cloud_logs` porque `podLogsViaLoki` lo usa;
+  # el receptor OTLP del extraConfig reenvía sus logs a ese mismo componente.
+  grafana-cloud-logs:
+    type: loki
+    url: "https://logs-prod-024.grafana.net/loki/api/v1/push"
+    auth:
+      type: basic
+      # ID de la instancia Loki del stack (GRAFANA_CLOUD_LOKI_USER).
+      username: "1790605"
+      # Se inyecta con --set-file; el token necesita además el scope logs:write.
 
 # ------------------------------------------------------------------------------
 # Metricas del cluster: cAdvisor, kubelet y kube-state-metrics.
@@ -42,6 +52,17 @@ clusterMetrics:
       includeMetrics:
         - kube_job_status_failed
         - kube_cronjob_status_last_successful_time
+
+# Logs de los pods de la aplicación y del propio stack de monitoreo (los mismos namespaces que
+# recolectaba el Alloy previo). Etiquetas resultantes: namespace, pod, container, app_kubernetes_io_name.
+podLogsViaLoki:
+  enabled: true
+  collector: alloy
+  destinations:
+    - grafana-cloud-logs
+  namespaces:
+    - pokemon-app
+    - monitoring
 
 # Metricas de host del nodo K3s (node-exporter desplegado en telemetryServices).
 hostMetrics:
@@ -97,8 +118,39 @@ collectors:
         forward_to      = [prometheus.remote_write.grafana_cloud_metrics.receiver]
         scrape_interval = "15s"
       }
+
+      // Receptor OTLP (gRPC :4317 / HTTP :4318). La API envía aquí métricas y logs; las trazas
+      // no se reenvían (igual que en el despliegue previo con el chart `alloy`).
+      otelcol.receiver.otlp "pokedex_otlp" {
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        http {
+          endpoint = "0.0.0.0:4318"
+        }
+        output {
+          metrics = [otelcol.exporter.prometheus.pokedex_otlp.input]
+          logs    = [otelcol.exporter.loki.pokedex_otlp.input]
+        }
+      }
+
+      otelcol.exporter.prometheus "pokedex_otlp" {
+        forward_to = [prometheus.remote_write.grafana_cloud_metrics.receiver]
+      }
+
+      otelcol.exporter.loki "pokedex_otlp" {
+        forward_to = [loki.write.grafana_cloud_logs.receiver]
+      }
     alloy:
       alloy:
+        # El preset `large` reserva 1 GiB y 2 CPU; un nodo único de laboratorio (5 GiB) no lo necesita.
+        resources:
+          requests:
+            cpu: 200m
+            memory: 384Mi
+          limits:
+            cpu: "1"
+            memory: 1Gi
         extraEnv:
           - name: METRICS_BEARER_TOKEN
             valueFrom:
@@ -123,10 +175,10 @@ telemetryServices:
   kube-state-metrics:
     deploy: true
 
+  # Beyla (eBPF) queda apagado: el nodo K3s de pre-prod es un LXC sin privilegios de host
+  # (kernel compartido con Proxmox), donde eBPF no está garantizado. Reactivar solo tras probarlo.
   beyla:
-    deploy: true
-    k8sCache:
-      replicas: 1
+    deploy: false
 
 # ------------------------------------------------------------------------------
 # Token de /metrics (AUD-SEC-OBS-001). El Secret `pokemon-secrets` vive en `pokemon-app` y un pod no

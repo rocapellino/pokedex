@@ -158,6 +158,8 @@ try {
     // El token viaja por archivo, nunca por línea de comandos.
     '--set-file', `collectorCommon.alloy.remoteConfig.auth.password=${tokenFile}`,
     '--set-file', `destinations.grafana-cloud-metrics.auth.password=${metricsTokenFile}`,
+    // Loki usa el mismo token (Access Policy con metrics:write y logs:write).
+    '--set-file', `destinations.grafana-cloud-logs.auth.password=${metricsTokenFile}`,
   ]);
 
   console.log('[Grafana Cloud] k8s-monitoring instalado exitosamente.');
