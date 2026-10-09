@@ -5,11 +5,16 @@
  */
 
 import { test } from 'node:test';
+import yaml from 'js-yaml';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
+import { readTaskfiles, taskCommands } from '../helpers/taskfile.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml, workflowScripts } from '../helpers/yaml.js';
+
+/** Tareas efectivas de Task (raíz y submódulos `flatten`), ya parseadas: los comentarios no cuentan. */
+const { tasks, documents } = readTaskfiles(ROOT_DIR);
 
 test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor de IaC declarativa', () => {
   const legacyScript = path.join(ROOT_DIR, 'scripts/proxmox_deploy.sh');
@@ -21,66 +26,90 @@ test('🛡️ Deploy Security: scripts/proxmox_deploy.sh está retirado en favor
 });
 
 test('🛡️ Local K8s: infra/k8s/kind-cluster.yaml existe y expone puertos Ingress correctamente', () => {
-  const kindPath = path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml');
-  assert.ok(fs.existsSync(kindPath), 'kind-cluster.yaml debe existir');
-  const content = fs.readFileSync(kindPath, 'utf-8');
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'infra/k8s/kind-cluster.yaml')), 'kind-cluster.yaml debe existir');
+  const cluster = readYaml<{
+    kind: string;
+    name: string;
+    nodes: Array<{ kubeadmConfigPatches?: string[]; extraPortMappings?: Array<{ containerPort: number }> }>;
+  }>('infra/k8s/kind-cluster.yaml');
 
-  assert.ok(content.includes('kind: Cluster'), 'Debe definir kind: Cluster');
-  assert.ok(content.includes('name: pokedex-local'), 'Debe definir el clúster pokedex-local');
-  assert.ok(content.includes('ingress-ready=true'), 'Debe etiquetar el nodo con ingress-ready=true');
-  assert.ok(content.includes('containerPort: 80'), 'Debe mapear el puerto Ingress HTTP 80');
-  assert.ok(content.includes('containerPort: 443'), 'Debe mapear el puerto Ingress HTTPS 443');
+  assert.equal(cluster.kind, 'Cluster', 'Debe definir kind: Cluster');
+  assert.equal(cluster.name, 'pokedex-local', 'Debe definir el clúster pokedex-local');
+  const node = cluster.nodes[0];
+  // Cada parche de kubeadm es a su vez un documento YAML dentro de un escalar de bloque: un `#` ahí es texto, no
+  // comentario, así que se parsea el parche y se lee la etiqueta efectiva.
+  const nodeLabels = (node.kubeadmConfigPatches ?? []).map(
+    (patch) =>
+      (yaml.load(patch) as { nodeRegistration?: { kubeletExtraArgs?: Record<string, string> } }).nodeRegistration
+        ?.kubeletExtraArgs?.['node-labels'] ?? '',
+  );
+  assert.ok(
+    nodeLabels.some((labels) => labels.split(',').includes('ingress-ready=true')),
+    'Debe etiquetar el nodo con ingress-ready=true',
+  );
+  const containerPorts = (node.extraPortMappings ?? []).map((mapping) => mapping.containerPort);
+  assert.ok(containerPorts.includes(80), 'Debe mapear el puerto Ingress HTTP 80');
+  assert.ok(containerPorts.includes(443), 'Debe mapear el puerto Ingress HTTPS 443');
 });
 
 test('🛡️ Dev DX: Taskfile.yaml define perfil rápido (dev:compose) y perfil Kubernetes (dev:k8s:*)', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
-  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
-  const content = getCompleteTaskfileContent(ROOT_DIR);
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'Taskfile.yaml')), 'Taskfile.yaml debe existir');
 
-  assert.ok(content.includes('dev:compose:'), 'Taskfile debe definir tarea dev:compose');
-  assert.ok(content.includes('dev:k8s:up:'), 'Taskfile debe definir tarea dev:k8s:up');
-  assert.ok(content.includes('dev:k8s:down:'), 'Taskfile debe definir tarea dev:k8s:down');
-  assert.ok(content.includes('dev:k8s:status:'), 'Taskfile debe definir tarea dev:k8s:status');
+  for (const name of ['dev:compose', 'dev:k8s:up', 'dev:k8s:down', 'dev:k8s:status']) {
+    assert.ok(tasks[name], `Taskfile debe definir tarea ${name}`);
+  }
 });
 
 test('🛡️ DevSecOps Tooling: .tool-versions define versiones inmutables del stack de desarrollo e IaC', () => {
   const toolVersionsPath = path.join(ROOT_DIR, '.tool-versions');
   assert.ok(fs.existsSync(toolVersionsPath), '.tool-versions debe existir en la raíz');
-  const content = fs.readFileSync(toolVersionsPath, 'utf-8');
-
-  assert.ok(content.includes('nodejs'), '.tool-versions debe fijar nodejs');
-  assert.ok(content.includes('opentofu'), '.tool-versions debe fijar opentofu');
-  assert.ok(content.includes('helm'), '.tool-versions debe fijar helm');
-  assert.ok(content.includes('kubectl'), '.tool-versions debe fijar kubectl');
-  assert.ok(content.includes('ansible-core'), '.tool-versions debe fijar ansible-core');
-
-  const infraWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
-  assert.ok(
-    infraWorkflow.includes('--only-binary :all:'),
-    'infra.yaml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables',
+  // Formato `herramienta versión` por línea; las líneas de comentario no cuentan y cada herramienta lleva versión.
+  const pinned = new Map(
+    fs
+      .readFileSync(toolVersionsPath, 'utf-8')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith('#'))
+      .map((line) => {
+        const [tool, version] = line.split(/\s+/);
+        return [tool, version] as const;
+      }),
   );
-  assert.match(infraWorkflow, /ansible-core==\d+\.\d+\.\d+/, 'infra.yaml debe fijar la versión exacta de ansible-core');
+
+  for (const tool of ['nodejs', 'opentofu', 'helm', 'kubectl', 'ansible-core']) {
+    assert.match(pinned.get(tool) ?? '', /^\d+\.\d+/, `.tool-versions debe fijar ${tool} a una versión`);
+  }
+
+  // Los comandos del workflow, sin los comentados: un `pip install` solo mencionado en un comentario no se ejecuta.
+  const pipInstalls = workflowScripts('.github/workflows/infra.yaml')
+    .flatMap((script) => script.replace(/\\\r?\n/g, ' ').split('\n'))
+    .filter((line) => /\bpip3? install\b/.test(line) && line.includes('ansible-core'));
+  assert.ok(pipInstalls.length > 0, 'infra.yaml debe instalar ansible-core con pip');
+  for (const line of pipInstalls) {
+    assert.ok(
+      line.includes('--only-binary :all:'),
+      'infra.yaml debe ejecutar pip install con --only-binary :all: para mitigar scripts de setup no confiables',
+    );
+    assert.match(line, /ansible-core==\d+\.\d+\.\d+/, 'infra.yaml debe fijar la versión exacta de ansible-core');
+  }
 });
 
 test('🛡️ Dev DX & Resiliencia: Taskfile.yaml define observabilidad unificada (Grafana Cloud / Dev Alloy) sin deuda legacy', () => {
-  const taskfilePath = path.join(ROOT_DIR, 'Taskfile.yaml');
-  assert.ok(fs.existsSync(taskfilePath), 'Taskfile.yaml debe existir');
-  const content = getCompleteTaskfileContent(ROOT_DIR);
+  assert.ok(fs.existsSync(path.join(ROOT_DIR, 'Taskfile.yaml')), 'Taskfile.yaml debe existir');
 
-  assert.ok(!content.includes('MONITORING_DIR:'), 'Taskfile.yaml no debe incluir la variable obsoleta MONITORING_DIR');
+  // Sobre el contenido parseado: ni como variable, ni como referencia en un comando o una ruta.
+  const parsed = JSON.stringify(documents);
+  assert.ok(!parsed.includes('MONITORING_DIR'), 'Taskfile.yaml no debe incluir la variable obsoleta MONITORING_DIR');
   assert.ok(
-    !content.includes('docker_monitoreo'),
+    !parsed.includes('docker_monitoreo'),
     'Taskfile.yaml no debe incluir referencias al stack legacy docker_monitoreo',
   );
   assert.ok(
-    content.includes('monitoring:grafana-cloud:install:'),
+    tasks['monitoring:grafana-cloud:install'],
     'Taskfile.yaml debe incluir la tarea de instalación de Grafana Cloud',
   );
-  assert.ok(
-    content.includes('monitoring:dev:status:'),
-    'Taskfile.yaml debe incluir la tarea de diagnóstico dev:status',
-  );
-  assert.ok(content.includes('monitoring:dev:logs:'), 'Taskfile.yaml debe incluir la tarea de logs de dev');
+  assert.ok(tasks['monitoring:dev:status'], 'Taskfile.yaml debe incluir la tarea de diagnóstico dev:status');
+  assert.ok(tasks['monitoring:dev:logs'], 'Taskfile.yaml debe incluir la tarea de logs de dev');
 });
 
 test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para aliases y task --list como interfaz soportada (consolida ADR-026)', () => {
@@ -132,9 +161,11 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
   assert.ok(cliRefContent.includes('Fase 4: Eliminar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 4');
 
   // 3. Taskfile.yaml define default con task --list y start como tarea canónica
-  const taskfileContent = getCompleteTaskfileContent(ROOT_DIR);
-  assert.ok(taskfileContent.includes('task --list'), 'Taskfile.yaml debe ejecutar task --list en tarea default');
-  assert.ok(taskfileContent.includes('start:'), 'Taskfile.yaml debe incluir la tarea start canónica');
+  assert.ok(
+    taskCommands(tasks.default ?? {}).includes('task --list'),
+    'Taskfile.yaml debe ejecutar task --list en tarea default',
+  );
+  assert.ok(tasks.start, 'Taskfile.yaml debe incluir la tarea start canónica');
 
   // 4. Fase 4 de ADR-026/ADR-020: Los 18 aliases legados fueron retirados definitivamente de Taskfile.yaml
   const retiredAliases = [
@@ -158,11 +189,14 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
     'deploy:proxmox',
   ];
 
+  const allCommands = Object.values(tasks).flatMap(taskCommands);
   for (const alias of retiredAliases) {
-    const hasAlias = taskfileContent.split('\n').some((line: string) => line.startsWith(`  ${alias}:`));
-    assert.strictEqual(hasAlias, false, `Taskfile.yaml no debe contener el alias retirado ${alias}`);
+    assert.strictEqual(alias in tasks, false, `Taskfile.yaml no debe contener el alias retirado ${alias}`);
+    // `task <alias>` como comando completo o seguido de argumentos, no como prefijo de otra tarea.
+    // Los alias solo contienen letras, `:` y `-`, así que se pueden interpolar en la expresión sin escapar.
+    const reference = new RegExp(`(^|\\s)task ${alias}(\\s|$)`);
     assert.strictEqual(
-      taskfileContent.includes(`task ${alias}`),
+      allCommands.some((command) => reference.test(command)),
       false,
       `Taskfile.yaml no debe referenciar el alias retirado ${alias}`,
     );

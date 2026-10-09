@@ -166,7 +166,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'Taskfile / Contenido Efectivo',
     targetArtifacts: ['Taskfile.yaml', 'taskfiles/'],
     description:
-      'Helper getCompleteTaskfileContent: concatena el Taskfile raíz y los submódulos de taskfiles/ de forma determinista.',
+      'Helpers del Taskfile efectivo: getCompleteTaskfileContent concatena la raíz y los submódulos de taskfiles/; readTaskfiles y taskCommands devuelven las tareas parseadas y sus comandos, sin comentarios.',
   },
   'tests/security/docs_governance_gate.test.ts': {
     type: 'Contract / Governance',
