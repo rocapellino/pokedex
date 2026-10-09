@@ -82,7 +82,7 @@ Documentación y Guías Operativas
 > La igualdad `package.json` == `package-lock.json` (`packages[""].version`) == `Chart.yaml` (`version`/`appVersion`) == GitOps `targetRevision` está institucionalizada como **gate automático** en `tests/version_consistency.test.ts` (VER-001), no como inspección manual. El flujo de release sincroniza el lockfile con `npm version --no-git-tag-version`.
 >
 > [!WARNING]
-> **Conflación de metadatos (VER-002):** `APP_VERSION` y `GIT_SHA` son conceptualmente distintos (versión semántica de la release frente al commit exacto que la compila) y **deben viajar como build-args independientes** en la construcción de la imagen. Está prohibido derivar `APP_VERSION` de `GIT_SHA`. El endpoint `/version` expone ambos campos por separado; ante ausencia de metadatos de build degrada a `unknown` en lugar de anunciar una versión ficticia. Gates: `tests/version.test.ts` y `tests/security/supply_chain_security.test.ts`.
+> **Conflación de metadatos (VER-002):** `APP_VERSION` y `GIT_SHA` son conceptualmente distintos (versión semántica de la release frente al commit exacto que la compila) y **deben viajar como build-args independientes** en la construcción de la imagen. Está prohibido derivar `APP_VERSION` de `GIT_SHA`. El endpoint `/version` expone ambos campos por separado; ante ausencia de metadatos de build degrada a `unknown` en lugar de anunciar una versión ficticia. Gates: `tests/version.test.ts` y `tests/security/supply_chain_images_signing.test.ts`.
 
 ### Reglas de Evaluación
 
