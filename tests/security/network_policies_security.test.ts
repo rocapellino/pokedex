@@ -2,6 +2,10 @@
  * ==============================================================================
  * Test de Seguridad y Arquitectura: Políticas de Red Zero-Trust, Cilium L7 y Anti-SSRF
  * ==============================================================================
+ *
+ * Las políticas se verifican sobre el chart renderizado con `helm template` (default, prod y pre-prod), no sobre el
+ * texto de la plantilla: una regla dentro de un `{{ if }}` que no se cumple, o una clave mal indentada, siguen
+ * "apareciendo" en el texto pero no llegan al clúster.
  */
 
 import { test } from 'node:test';
@@ -9,104 +13,133 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
+import { type K8sDoc, PROFILES, renderChart } from '../helpers/helm-render.js';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml } from '../helpers/yaml.js';
 
-test('🛡️ Helm Security: NetworkPolicies de PostgreSQL y Redis implementan Zero-Trust Egress (default-deny)', () => {
-  const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
-  assert.ok(fs.existsSync(npPath), 'network-policies.yaml debe existir');
-  const content = fs.readFileSync(npPath, 'utf-8');
+const IMDS = '169.254.169.254/32';
+const SSRF_BLOCKED_CIDRS = [IMDS, '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '127.0.0.0/8'];
+const FQDN_ALLOWLIST = [
+  { matchName: 'generativelanguage.googleapis.com' },
+  { matchPattern: '*.githubusercontent.com' },
+  { matchPattern: '*.pokeapi.co' },
+];
 
-  // Asegurar que PostgreSQL y Redis declaran Egress en policyTypes y tienen default-deny egress: []
-  assert.ok(content.includes('allow-postgres-ingress'), 'Debe definir allow-postgres-ingress');
-  assert.ok(content.includes('allow-redis-ingress'), 'Debe definir allow-redis-ingress');
-
-  // Ambas deben incluir Egress en policyTypes
-  const postgresSection = content.split('allow-postgres-ingress')[1]?.split('---')[0] || '';
-  assert.ok(postgresSection.includes('- Egress'), 'PostgreSQL NetworkPolicy debe incluir Egress en policyTypes');
-  assert.ok(
-    postgresSection.includes('egress: []'),
-    'PostgreSQL NetworkPolicy debe definir egress: [] (aislamiento total de salida)',
+const networkPolicies = (docs: K8sDoc[]) => docs.filter((d) => d.kind === 'NetworkPolicy');
+const policyNamed = (docs: K8sDoc[], suffix: string) =>
+  networkPolicies(docs).find((d) => d.metadata.name.endsWith(suffix));
+const hasKubeDnsRule = (rules: any[]) =>
+  rules.some((r) =>
+    (r.to ?? r.toEndpoints ?? []).some(
+      (peer: any) => (peer.podSelector ?? peer).matchLabels?.['k8s-app'] === 'kube-dns',
+    ),
   );
 
-  const redisSection = content.split('allow-redis-ingress')[1] || '';
-  assert.ok(redisSection.includes('- Egress'), 'Redis NetworkPolicy debe incluir Egress en policyTypes');
-  assert.ok(
-    redisSection.includes('egress: []'),
-    'Redis NetworkPolicy debe definir egress: [] (aislamiento total de salida)',
-  );
+test('🛡️ Helm Security: default-deny de Ingress y NetworkPolicies de PostgreSQL y Redis con Egress aislado (egress: [])', () => {
+  for (const [profile, files] of Object.entries(PROFILES)) {
+    const docs = renderChart(files);
+
+    const denyAll = policyNamed(docs, '-default-deny-all-ingress');
+    assert.ok(denyAll, `[${profile}] debe renderizarse el default-deny de Ingress`);
+    assert.deepEqual(denyAll.spec.podSelector, {}, `[${profile}] el default-deny debe seleccionar todos los pods`);
+    assert.deepEqual(denyAll.spec.policyTypes, ['Ingress']);
+    assert.equal(denyAll.spec.ingress, undefined, `[${profile}] default-deny no puede declarar reglas de entrada`);
+
+    for (const [suffix, component] of [
+      ['-allow-postgres-ingress', 'database'],
+      ['-allow-redis-ingress', 'redis'],
+    ]) {
+      const policy = policyNamed(docs, suffix);
+      assert.ok(policy, `[${profile}] debe renderizarse ${suffix}`);
+      assert.equal(policy.spec.podSelector.matchLabels['app.kubernetes.io/component'], component);
+      assert.ok(
+        policy.spec.policyTypes.includes('Egress'),
+        `[${profile}] ${suffix} debe incluir Egress en policyTypes`,
+      );
+      assert.deepEqual(policy.spec.egress, [], `[${profile}] ${suffix} debe aislar totalmente la salida (egress: [])`);
+    }
+  }
 });
 
-test('🛡️ Helm Security: CiliumNetworkPolicy implementa aislamiento L7 FQDN con allowlist estricta', () => {
-  const ciliumNpPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
-  assert.ok(fs.existsSync(ciliumNpPath), 'cilium-network-policies.yaml debe existir');
-  const content = fs.readFileSync(ciliumNpPath, 'utf-8');
+test('🛡️ Helm Security: la API resuelve DNS y ninguna política depende de egress-gateway', () => {
+  for (const [profile, files] of Object.entries(PROFILES)) {
+    const docs = renderChart(files);
+    const api = policyNamed(docs, '-allow-api-ingress');
+    assert.ok(api, `[${profile}] debe renderizarse la política de la API`);
+    assert.ok(hasKubeDnsRule(api.spec.egress), `[${profile}] la API debe poder resolver DNS en CoreDNS`);
 
-  assert.ok(content.includes('cilium.io/v2'), 'Debe utilizar la API cilium.io/v2');
-  assert.ok(content.includes('kind: CiliumNetworkPolicy'), 'Debe definir un recurso CiliumNetworkPolicy');
-  assert.ok(content.includes('toFQDNs:'), 'Debe definir reglas de salida L7 toFQDNs');
-
-  const templateLines = content.split(/\r?\n/).map((line) => line.trim());
-  assert.ok(
-    templateLines.some((line) => line.includes('matchName') && line.includes('generativelanguage')),
-    'Debe incluir en la allowlist a Google Gemini API',
-  );
-  assert.ok(
-    templateLines.some((line) => line.includes('matchPattern') && line.includes('githubusercontent')),
-    'Debe incluir en la allowlist el dominio de assets de GitHub',
-  );
-  assert.ok(
-    templateLines.some((line) => line.includes('matchPattern') && line.includes('pokeapi')),
-    'Debe incluir en la allowlist el dominio de PokeAPI',
-  );
-  assert.ok(content.includes('k8s-app: kube-dns'), 'Debe permitir resolución DNS interna hacia CoreDNS');
+    const policies = docs.filter((d) => d.kind === 'NetworkPolicy' || d.kind === 'CiliumNetworkPolicy');
+    assert.ok(
+      !JSON.stringify(policies).includes('egress-gateway'),
+      `[${profile}] ninguna política puede depender de egress-gateway tras la poda`,
+    );
+  }
 });
 
-test('🛡️ Helm Security: CiliumNetworkPolicy implementa filtrado L7 FQDN eBPF (Gemini, PokeAPI, GitHub)', () => {
-  const cnpPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
-  assert.ok(fs.existsSync(cnpPath), 'cilium-network-policies.yaml debe existir');
-  const lines = fs
-    .readFileSync(cnpPath, 'utf-8')
-    .split(/\r?\n/)
-    .map((l) => l.trim());
+test('🛡️ Helm Security: todo egress abierto a 0.0.0.0/0 excluye IMDS, RFC1918 y loopback (Anti-SSRF)', () => {
+  // Pre-prod no tiene Cilium y habilita externalHttps: es el perfil que sí renderiza el ipBlock abierto.
+  const preprodApi = policyNamed(renderChart(PROFILES.preprod), '-allow-api-ingress');
+  assert.ok(preprodApi);
+  const openRule = preprodApi.spec.egress.find((r: any) => r.to?.some((p: any) => p.ipBlock?.cidr === '0.0.0.0/0'));
+  assert.ok(openRule, 'pre-prod debe renderizar el egress HTTPS externo');
+  assert.deepEqual(openRule.ports, [{ protocol: 'TCP', port: 443 }], 'el egress externo solo puede ser TCP/443');
 
-  assert.ok(
-    lines.some((l) => l === 'kind: CiliumNetworkPolicy'),
-    'Debe ser de tipo CiliumNetworkPolicy',
-  );
-  assert.ok(
-    lines.some((l) => l.includes('matchName') && l.includes('generativelanguage')),
-    'Debe permitir generativelanguage',
-  );
-  assert.ok(
-    lines.some((l) => l.includes('matchPattern') && l.includes('pokeapi')),
-    'Debe permitir pokeapi',
-  );
-  assert.ok(
-    lines.some((l) => l.includes('matchPattern') && l.includes('githubusercontent')),
-    'Debe permitir githubusercontent',
-  );
-  assert.ok(
-    lines.some((l) => l.includes('port: "443"')),
-    'Debe permitir puerto HTTPS 443',
-  );
-  assert.ok(
-    lines.some((l) => l.includes('k8s-app: kube-dns')),
-    'Debe permitir DNS interno en CoreDNS',
-  );
+  // Invariante general: en cualquier perfil, un ipBlock de egress abierto lleva siempre la lista de exclusión.
+  let openBlocks = 0;
+  for (const files of Object.values(PROFILES)) {
+    for (const policy of networkPolicies(renderChart(files))) {
+      for (const rule of policy.spec.egress ?? []) {
+        for (const peer of rule.to ?? []) {
+          if (peer.ipBlock?.cidr !== '0.0.0.0/0') continue;
+          openBlocks += 1;
+          assert.deepEqual(
+            SSRF_BLOCKED_CIDRS.filter((cidr) => !peer.ipBlock.except?.includes(cidr)),
+            [],
+            `${policy.metadata.name}: el egress a 0.0.0.0/0 debe excluir IMDS, RFC1918 y loopback`,
+          );
+        }
+      }
+    }
+  }
+  assert.ok(openBlocks > 0, 'debe evaluarse al menos un egress abierto (si no, el invariante no se comprueba)');
+
+  // Con Cilium activo (default y prod) el egress externo lo gobierna la allowlist FQDN: no debe quedar nada abierto.
+  for (const files of [PROFILES.default, PROFILES.prod]) {
+    const api = policyNamed(renderChart(files), '-allow-api-ingress');
+    assert.ok(api);
+    assert.ok(
+      !api.spec.egress.some((r: any) => r.to?.some((p: any) => p.ipBlock)),
+      'con Cilium activo no debe renderizarse egress por ipBlock',
+    );
+  }
 });
 
-test('🛡️ Helm Security: network-policies.yaml consolida egress directo L4 con Anti-SSRF estricto', () => {
-  const npPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/network-policies.yaml');
-  const content = fs.readFileSync(npPath, 'utf-8');
+test('🛡️ Helm Security: CiliumNetworkPolicy aísla la API en L7 con una allowlist FQDN estricta (Gemini, PokeAPI, GitHub)', () => {
+  for (const files of [PROFILES.default, PROFILES.prod]) {
+    const cnp = renderChart(files).find(
+      (d) => d.kind === 'CiliumNetworkPolicy' && d.metadata.name.endsWith('-api-cilium-l7-policy'),
+    );
+    assert.ok(cnp, 'debe renderizarse la CiliumNetworkPolicy');
+    assert.equal(cnp.apiVersion, 'cilium.io/v2');
+    assert.equal(cnp.spec.endpointSelector.matchLabels['app.kubernetes.io/component'], 'api');
+
+    const fqdnRules = cnp.spec.egress.filter((r: any) => r.toFQDNs);
+    assert.equal(fqdnRules.length, 1, 'debe existir exactamente una regla de salida por FQDN');
+    assert.deepEqual(fqdnRules[0].toFQDNs, FQDN_ALLOWLIST, 'la allowlist FQDN debe ser exactamente la autorizada');
+    assert.deepEqual(fqdnRules[0].toPorts, [{ ports: [{ port: '443', protocol: 'TCP' }] }], 'solo HTTPS (443/TCP)');
+
+    assert.ok(hasKubeDnsRule(cnp.spec.egress), 'debe permitir DNS hacia CoreDNS');
+    const dnsRule = cnp.spec.egress.find((r: any) => r.toEndpoints?.[0]?.matchLabels?.['k8s-app'] === 'kube-dns');
+    assert.deepEqual(dnsRule.toPorts[0].rules.dns, [{ matchPattern: '*' }], 'el DNS pasa por inspección de nombres');
+
+    const openRules = cnp.spec.egress.filter((r: any) => r.toCIDR || r.toCIDRSet || r.toEntities);
+    assert.deepEqual(openRules, [], 'la política no puede abrir CIDR ni entidades (world) sin pasar por FQDN');
+  }
 
   assert.ok(
-    !content.includes('egress-gateway'),
-    'network-policies.yaml no debe contener dependencias de egress-gateway tras la poda',
+    !renderChart(PROFILES.preprod).some((d) => d.kind === 'CiliumNetworkPolicy'),
+    'pre-prod (sin Cilium) no debe renderizar CiliumNetworkPolicy',
   );
-  assert.ok(content.includes('169.254.169.254/32'), 'Debe bloquear IMDS Cloud Metadata');
-  assert.ok(content.includes('10.0.0.0/8'), 'Debe bloquear RFC1918 Clase A');
-  assert.ok(content.includes('172.16.0.0/12'), 'Debe bloquear RFC1918 Clase B');
-  assert.ok(content.includes('192.168.0.0/16'), 'Debe bloquear RFC1918 Clase C');
 });
 
 /**
@@ -118,16 +151,19 @@ test('🛡️ Helm Security: network-policies.yaml consolida egress directo L4 c
  * perfil HA (PgBouncer, Reloader, HPA) que el perfil Lean de Proxmox descarta.
  */
 test('🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml', () => {
-  const gitopsAppsDir = path.join(ROOT_DIR, 'gitops/apps');
-  const appFiles = fs.readdirSync(gitopsAppsDir).filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
-
+  const appsDir = 'gitops/apps';
+  const appFiles = fs
+    .readdirSync(path.join(ROOT_DIR, appsDir))
+    .filter((f) => f.startsWith('app-') && f.endsWith('.yaml'));
   assert.ok(appFiles.length >= 2, 'Deben existir Applications de ArgoCD en gitops/apps');
 
-  const consumers = appFiles.filter((f) => {
-    const content = fs.readFileSync(path.join(gitopsAppsDir, f), 'utf-8');
-    return /^\s+- values\.prod\.yaml\s*$/m.test(content);
-  });
+  const valueFilesOf = (file: string): string[] => {
+    const app = readYaml(`${appsDir}/${file}`);
+    const sources = app.spec.sources ?? [app.spec.source];
+    return sources.flatMap((source: any) => source?.helm?.valueFiles ?? []);
+  };
 
+  const consumers = appFiles.filter((f) => valueFilesOf(f).includes('values.prod.yaml'));
   assert.deepEqual(
     consumers,
     ['app-cloud.yaml'],
@@ -135,10 +171,8 @@ test('🗂️ INFRA-011: solo el blueprint prod cloud consume values.prod.yaml',
       'Las Applications activas usan values.yaml + su override de gitops/environments/.',
   );
 
-  const preprodApp = fs.readFileSync(path.join(gitopsAppsDir, 'app-proxmox-preprod.yaml'), 'utf-8');
-  assert.match(
-    preprodApp,
-    /gitops\/environments\/proxmox-preprod\/values\.yaml/,
+  assert.ok(
+    valueFilesOf('app-proxmox-preprod.yaml').some((f) => f.endsWith('gitops/environments/proxmox-preprod/values.yaml')),
     'INFRA-011: pre-prod debe usar su override de gitops/environments/proxmox-preprod',
   );
 });
@@ -171,69 +205,51 @@ test('🗂️ INFRA-011: la cabecera declara que es la base del blueprint inacti
   );
 });
 
-test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN o Egress Gateway) sin fallback permisivo', () => {
-  // INFRA-011: `values.prod.yaml` es la base del blueprint prod cloud (inactivo,
-  // ADR-030). El test verifica que mantiene la postura Zero-Trust L7 para que la
-  // activación de prod cloud parta de un perfil endurecido.
-  const prodValuesPath = path.join(ROOT_DIR, 'infra/helm/pokedex/values.prod.yaml');
-  assert.ok(fs.existsSync(prodValuesPath), 'values.prod.yaml debe existir');
-  const content = fs.readFileSync(prodValuesPath, 'utf-8');
-
-  assert.ok(
-    content.includes('externalHttps: false'),
-    'values.prod.yaml debe deshabilitar externalHttps para evitar 0.0.0.0/0 abierto',
+test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium FQDN) sin fallback permisivo', () => {
+  // INFRA-011: `values.prod.yaml` es la base del blueprint prod cloud (inactivo, ADR-030). Se verifica que
+  // mantiene la postura Zero-Trust L7 para que su activación parta de un perfil endurecido.
+  const prod = readYaml('infra/helm/pokedex/values.prod.yaml');
+  assert.equal(
+    prod.networkPolicies.egress.externalHttps,
+    false,
+    'externalHttps debe ser false (sin 0.0.0.0/0 abierto)',
   );
-  assert.ok(content.includes('ciliumNetworkPolicy:'), 'values.prod.yaml debe configurar ciliumNetworkPolicy');
-  assert.ok(content.includes('enabled: true'), 'values.prod.yaml debe habilitar ciliumNetworkPolicy');
+  assert.equal(prod.networkPolicies.egress.antiSsrf, true);
+  assert.equal(prod.ciliumNetworkPolicy.enabled, true, 'ciliumNetworkPolicy debe estar habilitada');
+  assert.deepEqual(prod.ciliumNetworkPolicy.fqdnAllowlist, FQDN_ALLOWLIST);
 });
 
 test('🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host', () => {
-  // Variante CONSERVADORA aplicada: en lugar de eliminar la segunda regla, se
-  // restringe a un host explicito de acceso directo. Asi se cierra la exposicion
-  // por `Host` arbitrario sin romper el acceso por IP que hacian las pruebas.
-  const deployableEnvs: Array<[string, string]> = [
-    ['proxmox-preprod', 'gitops/environments/proxmox-preprod/values.yaml'],
+  // Variante CONSERVADORA aplicada: en lugar de eliminar la segunda regla, se restringe a un host explícito.
+  // Así se cierra la exposición por `Host` arbitrario sin romper el acceso que hacían las pruebas.
+  const deployableEnvs: Array<[string, string, readonly string[]]> = [
+    ['proxmox-preprod', 'gitops/environments/proxmox-preprod/values.yaml', PROFILES.preprod],
   ];
 
-  for (const [, relPath] of deployableEnvs) {
-    const valuesPath = path.join(ROOT_DIR, relPath);
-    assert.ok(fs.existsSync(valuesPath), `${relPath} debe existir`);
-
-    const content = fs.readFileSync(valuesPath, 'utf-8');
-
-    // 1. Prohibido el wildcard: `- host: ""` renderiza en ingress.yaml:29-34
-    //    una regla SIN `host:`, que actua como catch-all para cualquier Host.
-    assert.ok(
-      !/^\s*-\s*host:\s*""\s*$/m.test(content),
-      `GITOPS-002: ${relPath} declara una regla de Ingress sin host (catch-all). ` +
-        'Cualquier peticion con Host arbitrario se enruta a la aplicacion.',
-    );
-
-    // 2. Toda regla declarada debe tener un host NO VACIO. Se recorren todas las
-    //    entradas de `ingress.hosts` y se exige un valor real.
-    const ingressBlock = content.split(/^ingress:/m)[1] ?? '';
-    const hostEntries = [...ingressBlock.matchAll(/^\s*-\s*host:\s*(.*)$/gm)].map((m) => m[1].trim());
-    assert.ok(hostEntries.length > 0, `${relPath} debe declarar al menos un host de Ingress`);
-
-    const emptyHosts = hostEntries.filter((h) => h === '""' || h === "''" || h === '');
+  for (const [env, valuesPath, profile] of deployableEnvs) {
+    // 1. Valores parseados: toda entrada de `ingress.hosts` debe tener un FQDN (un `host: ""` es un catch-all).
+    const hosts: string[] = (readYaml(valuesPath).ingress?.hosts ?? []).map((h: any) => h.host);
+    assert.ok(hosts.length > 0, `${valuesPath} debe declarar al menos un host de Ingress`);
     assert.deepEqual(
-      emptyHosts,
+      hosts.filter((h) => typeof h !== 'string' || !h.includes('.')),
       [],
-      `GITOPS-002: ${relPath} declara ${emptyHosts.length} host(s) vacio(s) en ingress.hosts`,
+      `GITOPS-002: ${valuesPath} declara host(s) vacío(s) o sin dominio explícito (FQDN)`,
     );
 
-    // 3. Postura Zero-Trust: ningun entorno desplegable puede abrir el trafico
-    //    sin restricting a un dominio declarado. La coherencia con la postura
-    //    Zero-Trust L7 de Egress (Cilium FQDN) exige simetria en el perimetro.
-    assert.ok(
-      hostEntries.every((h) => h.includes('.')),
-      `GITOPS-002: ${relPath} debe declarar hosts con dominio explicito (FQDN), no wildcard`,
+    // 2. Lo que llega al clúster: ninguna regla del Ingress renderizado puede carecer de `host`.
+    const ingress = renderChart(profile).find((d) => d.kind === 'Ingress');
+    assert.ok(ingress, `[${env}] debe renderizarse un Ingress`);
+    const rules: any[] = ingress.spec.rules;
+    assert.ok(rules.length > 0);
+    assert.deepEqual(
+      rules.filter((rule) => !rule.host),
+      [],
+      `GITOPS-002: [${env}] el Ingress renderizado tiene reglas sin host (catch-all)`,
     );
   }
 
-  // 4. La plantilla del Chart debe seguir soportando la sintaxis condicional
-  //    (`if .host`) por retrocompatibilidad con `values.dev.yaml`, pero ningun
-  //    entorno desplegable debe depender de ella.
+  // 3. La plantilla debe seguir soportando el render condicional (`if .host`) por retrocompatibilidad con
+  //    `values.dev.yaml`, pero ningún entorno desplegable depende de él.
   const ingressTemplate = fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/templates/ingress.yaml'), 'utf-8');
   assert.ok(
     ingressTemplate.includes('{{- if .host }}'),
