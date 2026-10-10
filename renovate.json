@@ -35,9 +35,41 @@
         "repository: (?<depName>postgres|redis|pgbouncer/pgbouncer|rclone/rclone)\\s+tag: \"(?<currentValue>[^\"]+)\"[ \\t]*(?:#[^\\n]*)?\\s+(?:#[^\\n]*\\s+)*digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\"[ \\t]*(?:#[^\\n]*)?"
       ],
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Imágenes con digest fijadas dentro de pasos run de Config Linters (actionlint, zizmor y el validador de Renovate). Ningún gestor nativo las ve; este lee tag y digest juntos para que Renovate cambie ambos en el mismo PR",
+      "managerFilePatterns": ["/^\\.github/workflows/config-linters\\.yaml$/"],
+      "matchStrings": [
+        "(?<depName>[a-z0-9./-]+/[a-z0-9./-]+):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Versiones de herramientas fijadas dentro de los workflows (Helm, OpenTofu, kubeconform, kube-linter, Kyverno CLI, Gitleaks y Gitsign). Helm y OpenTofu también figuran en `.tool-versions`. Cada una lleva encima un comentario `# renovate: datasource=... depName=...` (y `extractVersion` si el tag lleva prefijo v) que indica de dónde sale la versión",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.yaml$/", "/^\\.tool-versions$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\n\\s*[A-Za-z_-]+[\\s:=]+['\"]?(?<currentValue>v?\\d+\\.\\d+\\.\\d+)['\"]?"
+      ]
     }
   ],
   "packageRules": [
+    {
+      "description": "Helm y OpenTofu viven en varios archivos (workflows y .tool-versions, que debe mantener paridad con ellos según tests/contracts/adr/adr_ci_tooling_contracts.test.ts): se agrupan para que Renovate abra un solo PR por herramienta",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["helm/helm", "opentofu/opentofu"],
+      "groupName": "herramientas CLI de IaC",
+      "groupSlug": "iac-cli-tools",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "kubeconform, kube-linter, Kyverno CLI, Gitleaks y Gitsign se descargan con su checksum SHA-256 fijado en el workflow (SEC-001): un PR que solo cambiara la versión fallaría en la verificación. Se anuncian en el Dependency Dashboard y se aprueban a mano cuando alguien va a actualizar versión y checksum juntos",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["yannh/kubeconform", "stackrox/kube-linter", "kyverno/kyverno", "gitleaks/gitleaks", "sigstore/gitsign"],
+      "dependencyDashboardApproval": true,
+      "minimumReleaseAge": "7 days"
+    },
     {
       "description": "Auto-merge estricto únicamente para parches de dependencias npm (semver patch)",
       "matchManagers": ["npm"],

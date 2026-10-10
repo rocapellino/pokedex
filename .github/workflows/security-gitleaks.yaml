@@ -47,6 +47,7 @@ jobs:
 
       - name: 2. Install Gitleaks CLI (con Verificación Criptográfica SHA256)
         env:
+          # renovate: datasource=github-releases depName=gitleaks/gitleaks extractVersion=^v(?<version>.+)$
           GITLEAKS_VERSION: "8.24.2"
           GITLEAKS_SHA256: "fa0500f6b7e41d28791ebc680f5dd9899cd42b58629218a5f041efa899151a8e"
         run: |

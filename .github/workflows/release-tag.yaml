@@ -145,6 +145,7 @@ jobs:
         # versión actual ya existe (PHASE=promote).
         if: steps.state.outputs.phase == 'tag' || inputs.gitsign_refresh == true
         env:
+          # renovate: datasource=github-releases depName=sigstore/gitsign extractVersion=^v(?<version>.+)$
           GITSIGN_VERSION: "0.17.1"
           # Anclas de confianza fijadas en el repositorio. Deben refrescarse
           # manualmente junto con GITSIGN_VERSION en cada actualización.

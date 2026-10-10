@@ -203,3 +203,113 @@ test('🛡️ RENOVATE-004: el gestor custom.regex encuentra tag y digest de cad
     );
   }
 });
+
+/**
+ * RENOVATE-005 — versiones fijadas dentro de los workflows.
+ *
+ * Ningún gestor nativo de Renovate ve una versión que vive dentro de un `run:` o de un `with:` (Helm, OpenTofu,
+ * kubeconform, kube-linter, Kyverno, Gitleaks, Gitsign) ni una imagen con digest dentro de un `docker run`. Un gestor
+ * `custom.regex` las lee gracias a un comentario `# renovate: datasource=... depName=...` colocado justo encima. Si
+ * alguien añade una herramienta sin comentario, o reformatea la línea, Renovate deja de verla sin ningún error: este
+ * test fija el inventario esperado.
+ */
+const ANNOTATED_TOOLS = [
+  'gitleaks/gitleaks',
+  'helm/helm',
+  'helm/helm',
+  'helm/helm',
+  'helm/helm', // .tool-versions
+  'kyverno/kyverno',
+  'opentofu/opentofu',
+  'opentofu/opentofu', // .tool-versions
+  'sigstore/gitsign',
+  'stackrox/kube-linter',
+  'yannh/kubeconform',
+];
+
+/** Herramientas que se descargan con un SHA-256 fijado en el workflow: no pueden actualizarse solo con la versión. */
+const CHECKSUM_PINNED = [
+  'gitleaks/gitleaks',
+  'kyverno/kyverno',
+  'sigstore/gitsign',
+  'stackrox/kube-linter',
+  'yannh/kubeconform',
+];
+
+test('🛡️ RENOVATE-005: el gestor custom.regex encuentra todas las versiones anotadas en los workflows', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    customManagers: Array<{ managerFilePatterns: string[]; matchStrings: string[] }>;
+    packageRules: PackageRule[];
+  };
+  const manager = config.customManagers.find((candidate) =>
+    candidate.matchStrings.some((s) => s.includes('# renovate: datasource=')),
+  );
+  assert.ok(manager, 'RENOVATE-005: falta el gestor custom.regex de las versiones anotadas en los workflows');
+
+  const workflowsDir = path.join(ROOT_DIR, '.github/workflows');
+  const found: string[] = [];
+  const annotatedFiles = [
+    ...fs
+      .readdirSync(workflowsDir)
+      .filter((name) => name.endsWith('.yaml'))
+      .map((name) => path.join(workflowsDir, name)),
+    path.join(ROOT_DIR, '.tool-versions'),
+  ];
+  for (const file of annotatedFiles) {
+    const content = fs.readFileSync(file, 'utf-8');
+    // Comparación con el patrón literal del JSON: se compila solo para este contrato.
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+    for (const match of content.matchAll(new RegExp(manager.matchStrings[0], 'g'))) {
+      found.push(match.groups?.depName ?? '');
+    }
+  }
+  assert.deepEqual(
+    found.sort(),
+    [...ANNOTATED_TOOLS].sort(),
+    'RENOVATE-005: el regex no encuentra exactamente las herramientas anotadas. ¿Se añadió una versión fija sin ' +
+      'su comentario `# renovate:` encima, o se reformateó la línea? Renovate dejaría de verla sin avisar.',
+  );
+
+  // Cada setup-helm (ci.yaml e infra.yaml) debe llevar su anotación: si no, esa copia envejece sola.
+  let setupHelm = 0;
+  for (const file of fs.readdirSync(workflowsDir).filter((name) => name.endsWith('.yaml'))) {
+    setupHelm += (fs.readFileSync(path.join(workflowsDir, file), 'utf-8').match(/uses: azure\/setup-helm@/g) ?? [])
+      .length;
+  }
+  // Las copias de los workflows más la de .tool-versions (la SSOT con la que el contrato de paridad las compara).
+  assert.equal(
+    found.filter((name) => name === 'helm/helm').length,
+    setupHelm + 1,
+    'cada uso de azure/setup-helm y la línea de .tool-versions deben estar anotados',
+  );
+});
+
+test('🛡️ RENOVATE-005: las herramientas con checksum fijado no generan PRs que fallen la verificación', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    packageRules: PackageRule[];
+  };
+  const rule = config.packageRules.find(
+    (candidate) => (candidate as { dependencyDashboardApproval?: boolean }).dependencyDashboardApproval === true,
+  );
+  assert.ok(rule, 'RENOVATE-005: falta la regla con dependencyDashboardApproval para las herramientas con checksum');
+  const names = (rule as { matchPackageNames?: string[] }).matchPackageNames ?? [];
+  assert.deepEqual([...names].sort(), [...CHECKSUM_PINNED].sort());
+});
+
+test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters las ve el gestor custom.regex', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    customManagers: Array<{ managerFilePatterns: string[]; matchStrings: string[]; datasourceTemplate?: string }>;
+  };
+  const manager = config.customManagers.find((candidate) =>
+    candidate.managerFilePatterns.some((p) => p.includes('config-linters')),
+  );
+  assert.ok(manager, 'RENOVATE-005: falta el gestor de las imágenes de config-linters.yaml');
+  assert.equal(manager.datasourceTemplate, 'docker');
+
+  const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+  const images = [...content.matchAll(new RegExp(manager.matchStrings[0], 'g'))].map(
+    (match) => match.groups?.depName ?? '',
+  );
+  assert.deepEqual(images.sort(), ['ghcr.io/zizmorcore/zizmor', 'renovate/renovate', 'rhysd/actionlint']);
+});
