@@ -259,6 +259,13 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL.',
   },
+  'tests/frontend/sticky_autohide.test.ts': {
+    type: 'Component / DOM',
+    targetDomain: 'Catálogo / Zona Fija Superior en Móvil',
+    targetArtifacts: [`${SRC}/shared/sticky-autohide.ts`, 'apps/frontend/public/css/style.css'],
+    description:
+      'Valida que en móvil la zona fija se oculte al bajar y reaparezca al subir, que el panel abierto o el foco visible la mantengan y que fuera de móvil no se oculte.',
+  },
   'tests/frontend/sticky_header.test.ts': {
     type: 'Component / DOM',
     targetDomain: 'Catálogo / Zona Fija Superior',

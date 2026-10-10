@@ -372,6 +372,18 @@ body {
     top: -1rem;
     padding-top: 1.25rem;
     padding-bottom: 0.5rem;
+    transition: transform var(--transition-normal);
+  }
+
+  /* Al bajar por el catálogo se oculta del todo y reaparece al subir (shared/sticky-autohide.ts). */
+  .sticky-top.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sticky-top {
+      transition: none;
+    }
   }
 
   .navbar {
