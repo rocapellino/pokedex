@@ -46,6 +46,7 @@
     "test:contracts": "tsx --test \"tests/contracts/**/*.test.ts\"",
     "test:gitops": "tsx --test \"tests/gitops/**/*.test.ts\"",
     "test:coverage": "node -e \"fs.mkdirSync('coverage',{recursive:true})\" && tsx --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \"tests/**/!(*fuzzing*).test.ts\"",
+    "coverage:gate": "tsx scripts/check-coverage-threshold.ts",
     "test:fuzz": "tsx --test tests/fuzz/fuzzing.test.ts",
     "test:surface": "tsx scripts/test-surface.ts",
     "test:surface:check": "tsx scripts/test-surface.ts --check",
