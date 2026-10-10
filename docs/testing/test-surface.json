@@ -1893,6 +1893,28 @@
       "description": "Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL."
     },
     {
+      "path": "tests/frontend/sticky_autohide.test.ts",
+      "suite": "frontend",
+      "type": "Component / DOM",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Catálogo / Zona Fija Superior en Móvil",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/sticky-autohide.ts",
+        "apps/frontend/public/css/style.css"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida que en móvil la zona fija se oculte al bajar y reaparezca al subir, que el panel abierto o el foco visible la mantengan y que fuera de móvil no se oculte."
+    },
+    {
       "path": "tests/frontend/sticky_header.test.ts",
       "suite": "frontend",
       "type": "Component / DOM",
