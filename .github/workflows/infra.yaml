@@ -372,3 +372,95 @@ jobs:
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status"       || { echo "❌ /metrics sin storage_status"; exit 1; }
           curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ /metrics sin ai_circuit_breaker_open"; exit 1; }
           echo "✅ Integración canónica de Kubernetes verificada en Kind."
+
+      - name: 7. Habilitar PgBouncer y esperar el despliegue
+        # PgBouncer solo se activa en el blueprint de producción cloud (ADR-011), así que ningún otro
+        # entorno lo ejecutaba y su despliegue llegó a estar roto sin que nada lo detectara. Se activa
+        # sobre el mismo release: la API cambia de `postgres-service:5432` a `pgbouncer-service:6432`.
+        run: |
+          set -euo pipefail
+          # Sin `--wait`: así, si algo no arranca, el diagnóstico de abajo se imprime en lugar de
+          # quedar enterrado detrás de «context deadline exceeded».
+          helm upgrade pokedex infra/helm/pokedex \
+            --namespace pokemon-app \
+            --reuse-values \
+            --set pgbouncer.enabled=true
+
+          diagnose() {
+            echo "❌ $1. Diagnóstico:"
+            kubectl get pods,svc,events -n pokemon-app -o wide
+            kubectl describe deployment/pgbouncer -n pokemon-app || true
+            kubectl describe pods -n pokemon-app -l app=pgbouncer || true
+            echo "--- logs de PgBouncer (initContainer y contenedor) ---"
+            kubectl logs -n pokemon-app -l app=pgbouncer --all-containers --tail=100 || true
+            echo "--- logs del initContainer render-userlist ---"
+            kubectl logs -n pokemon-app -l app=pgbouncer -c render-userlist --tail=50 || true
+            echo "--- API ---"
+            kubectl describe pods -n pokemon-app -l app=pokemon-api || true
+            kubectl logs -n pokemon-app -l app=pokemon-api --tail=80 || true
+            exit 1
+          }
+
+          kubectl rollout status deployment/pgbouncer --namespace pokemon-app --timeout=120s || diagnose "PgBouncer no quedó disponible"
+          kubectl rollout status deployment/pokemon-api --namespace pokemon-app --timeout=180s || diagnose "la API no quedó disponible tras cambiar a PgBouncer"
+          kubectl get pods,svc -n pokemon-app -o wide
+
+      - name: 8. Validar la ruta API → PgBouncer → PostgreSQL y su autenticación
+        run: |
+          set -euo pipefail
+          NS=pokemon-app
+          fail() {
+            echo "❌ $1"
+            kubectl get pods -n "${NS}" -o wide
+            kubectl logs -n "${NS}" -l app=pgbouncer --all-containers --tail=100 || true
+            kubectl logs -n "${NS}" -l app=pokemon-api --tail=50 || true
+            exit 1
+          }
+
+          echo "=== LA API APUNTA A PGBOUNCER ==="
+          API_HOST="$(kubectl exec -n "${NS}" deploy/pokemon-api -- printenv POSTGRES_HOST)"
+          API_PORT="$(kubectl exec -n "${NS}" deploy/pokemon-api -- printenv POSTGRES_PORT)"
+          echo "POSTGRES_HOST=${API_HOST} POSTGRES_PORT=${API_PORT}"
+          [ "${API_HOST}" = "pgbouncer-service" ] && [ "${API_PORT}" = "6432" ] || fail "la API no usa pgbouncer-service:6432"
+
+          echo "=== LA API CONECTA A POSTGRESQL A TRAVÉS DE PGBOUNCER ==="
+          for i in $(seq 1 15); do
+            if curl -s -f http://127.0.0.1:3000/readyz > /dev/null; then break; fi
+            echo "Aguardando /readyz... reintento ${i}"
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3000/readyz || fail "/readyz no responde 200 con PgBouncer (la API no llega a PostgreSQL)"
+          echo
+          curl -fsS http://127.0.0.1:3000/metrics | grep -q '^pokedex_storage_status 1' || fail "pokedex_storage_status no es 1 con PgBouncer"
+          # El log de PgBouncer registra cada login de cliente: la API debe figurar entre ellos.
+          LOGINS="$(kubectl logs -n "${NS}" -l app=pgbouncer --tail=500 | grep -c 'login attempt' || true)"
+          echo "logins registrados por PgBouncer: ${LOGINS}"
+          [ "${LOGINS}" -gt 0 ] || fail "PgBouncer no registró ninguna conexión de la API"
+
+          echo "=== AUTENTICACIÓN scram-sha-256 CON UN CLIENTE psql ==="
+          PG_IMAGE="$(kubectl get statefulset postgres -n "${NS}" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+          PG_USER="$(kubectl get configmap pokemon-config -n "${NS}" -o jsonpath='{.data.POSTGRES_USER}')"
+          PG_DB="$(kubectl get configmap pokemon-config -n "${NS}" -o jsonpath='{.data.POSTGRES_DB}')"
+          probe() { # probe <contraseña> <base> <consulta>
+            kubectl run "pgb-probe-${RANDOM}" -n "${NS}" --rm -i --quiet --restart=Never --image="${PG_IMAGE}" \
+              --env="PGPASSWORD=$1" --command -- \
+              psql -h pgbouncer-service -p 6432 -U "${PG_USER}" -d "$2" -tAc "$3" 2>&1
+          }
+
+          OUT="$(probe 'ci-canonical-test-pass' "${PG_DB}" 'select current_user' || true)"
+          echo "credenciales correctas -> ${OUT}"
+          [ "${OUT}" = "${PG_USER}" ] || fail "la consulta con credenciales correctas debía devolver ${PG_USER}"
+
+          OUT="$(probe 'clave-incorrecta' "${PG_DB}" 'select 1' || true)"
+          echo "contraseña incorrecta -> ${OUT}"
+          echo "${OUT}" | grep -q 'authentication failed' || fail "PgBouncer debía rechazar la contraseña incorrecta"
+
+          OUT="$(probe 'ci-canonical-test-pass' postgres 'select 1' || true)"
+          echo "otra base de datos -> ${OUT}"
+          echo "${OUT}" | grep -q 'no such database' || fail "PgBouncer solo debe exponer la base de la aplicación"
+
+          OUT="$(probe 'ci-canonical-test-pass' pgbouncer 'show pools' || true)"
+          echo "consola de administración -> ${OUT}"
+          echo "${OUT}" | grep -q 'not allowed' || fail "la consola de administración de PgBouncer debe estar inhabilitada"
+
+          echo "✅ PgBouncer desplegado, autenticado con scram-sha-256 y en la ruta de la API."

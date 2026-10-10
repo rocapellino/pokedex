@@ -12,6 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { type K8sDoc, PROFILES, podSpecOf, renderChart } from '../helpers/helm-render.js';
+import { readYaml } from '../helpers/yaml.js';
 
 const COMPONENT = 'app.kubernetes.io/component';
 
@@ -143,4 +144,19 @@ test('🌐 PgBouncer: Service, ConfigMap y políticas de red usan el puerto en e
     }
   }
   assert.ok(checked >= 3, `se esperaban al menos 3 reglas hacia/desde PgBouncer; verificadas: ${checked}`);
+});
+
+test('☸️ PgBouncer: el job de Kind lo habilita y valida la ruta API → PgBouncer → PostgreSQL y su autenticación', () => {
+  const steps = readYaml<{ jobs: Record<string, { steps: Array<{ name?: string; run?: string }> }> }>(
+    '.github/workflows/infra.yaml',
+  ).jobs['kind-integration'].steps;
+  const script = steps.map((step) => step.run ?? '').join('\n');
+
+  assert.match(script, /--set pgbouncer\.enabled=true/, 'el job debe habilitar PgBouncer sobre el release');
+  assert.match(script, /POSTGRES_HOST/, 'debe comprobar que la API apunta a pgbouncer-service');
+  assert.match(script, /\/readyz/, 'debe comprobar que la API llega a PostgreSQL a través de PgBouncer');
+  assert.match(script, /login attempt/, 'debe comprobar que PgBouncer registra la conexión de la API');
+  for (const rejected of ['authentication failed', 'no such database', 'not allowed']) {
+    assert.ok(script.includes(rejected), `debe verificar el rechazo «${rejected}»`);
+  }
 });
