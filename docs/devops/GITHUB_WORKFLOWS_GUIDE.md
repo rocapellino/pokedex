@@ -138,7 +138,7 @@ flowchart TD
 
 - **Archivo:** [`infra.yaml`](../../.github/workflows/infra.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
-- **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**.
+- **Pasos:** Helm CLI lint (`helm lint`), renderizado de plantillas Zero-Trust (`helm template`), validación estricta de esquemas OpenAPI con **Kubeconform**, auditoría de buenas prácticas con **Kube-Linter**, pruebas de admisión con **Kyverno CLI**, formateo y validación de **OpenTofu**, syntax-check de **Ansible**, auditoría de seguridad IaC con **Checkov** e integración end-to-end sobre clúster efímero **KinD**. En ese mismo job, tras validar los endpoints, se habilita **PgBouncer** sobre el mismo release (solo lo activa el blueprint de producción cloud, ADR-011) y se comprueba que la API conecta a PostgreSQL a través de `pgbouncer-service:6432`, que el cliente se autentica con `scram-sha-256` y que se rechazan la contraseña incorrecta, otras bases y la consola de administración.
 
 ### 3.5. 🧹 `config-linters.yaml` (Reusable Config Linters CI)
 
