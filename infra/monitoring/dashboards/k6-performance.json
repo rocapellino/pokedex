@@ -86,7 +86,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "k6_http_req_duration{job=\"pokedex-k6-load-test\", commit=~\"$commit\", quantile=\"0.95\"} or histogram_quantile(0.95, sum(rate(k6_http_req_duration_bucket{job=\"pokedex-k6-load-test\", commit=~\"$commit\"}[1m])) by (le))",
+          "expr": "max(k6_http_req_duration_p95{job=\"pokedex-k6-load-test\", commit=~\"$commit\"}) * 1000 or max(k6_http_req_duration{job=\"pokedex-k6-load-test\", commit=~\"$commit\", quantile=\"0.95\"})",
           "instant": true,
           "legendFormat": "p95",
           "range": false,
@@ -159,7 +159,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "k6_http_req_duration{job=\"pokedex-k6-load-test\", commit=~\"$commit\", quantile=\"0.99\"} or histogram_quantile(0.99, sum(rate(k6_http_req_duration_bucket{job=\"pokedex-k6-load-test\", commit=~\"$commit\"}[1m])) by (le))",
+          "expr": "max(k6_http_req_duration_p99{job=\"pokedex-k6-load-test\", commit=~\"$commit\"}) * 1000 or max(k6_http_req_duration{job=\"pokedex-k6-load-test\", commit=~\"$commit\", quantile=\"0.99\"})",
           "instant": true,
           "legendFormat": "p99",
           "range": false,
@@ -409,7 +409,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "k6_http_req_duration{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\", quantile=\"0.95\"}",
+          "expr": "max by (commit) (k6_http_req_duration_p95{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\"}) * 1000 or (k6_http_req_duration{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\", quantile=\"0.95\"})",
           "legendFormat": "p95 - commit: {{commit}}",
           "refId": "A"
         },
@@ -419,7 +419,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "k6_http_req_duration{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\", quantile=\"0.99\"}",
+          "expr": "max by (commit) (k6_http_req_duration_p99{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\"}) * 1000 or (k6_http_req_duration{job=\"pokedex-k6-load-test\", branch=~\"$branch\", commit=~\"$commit\", quantile=\"0.99\"})",
           "legendFormat": "p99 - commit: {{commit}}",
           "refId": "B"
         }
