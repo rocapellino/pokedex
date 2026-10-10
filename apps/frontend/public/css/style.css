@@ -175,6 +175,11 @@
   border: 0;
 }
 
+html {
+  /* Anclas y foco no quedan tapados por la zona fija (su altura la publica shared/sticky-header.ts). */
+  scroll-padding-top: calc(var(--sticky-top-height, 0px) + 0.5rem);
+}
+
 body {
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-primary);
@@ -205,9 +210,33 @@ body {
 }
 
 .app-container {
+  --page-gutter: 1.5rem;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  /* El relleno superior vive en .sticky-top para que la zona fija lo conserve al pegarse. */
+  padding: 0 var(--page-gutter) 4rem;
+}
+
+/* Cabecera, búsqueda y filtros quedan a la vista al desplazarse: cambiar el tema o un filtro no obliga a
+   volver arriba. `top` negativo esconde parte del relleno superior al pegarse y deja una franja de 0,5rem. */
+.sticky-top {
+  position: sticky;
+  top: -1.5rem;
+  z-index: 50;
+  margin: 0 calc(var(--page-gutter) * -1) 1rem;
+  padding: 2rem var(--page-gutter) 0.75rem;
+  /* Mismo fondo fijo que el body: las tarjetas se ocultan limpiamente por debajo y la banda no se distingue. */
+  background-color: var(--bg-primary);
+  background-image: var(--body-bg-gradient);
+  background-attachment: fixed;
+}
+
+/* Con el panel abierto la zona fija no puede ocupar toda la ventana: el panel se desplaza por dentro. */
+.sticky-top .filters-panel {
+  max-height: 60vh;
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .navbar {
@@ -220,7 +249,7 @@ body {
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   box-shadow: var(--shadow-sm);
 }
 
@@ -334,6 +363,31 @@ body {
 }
 
 @media (max-width: 600px) {
+  .app-container {
+    --page-gutter: 1rem;
+  }
+
+  /* La zona fija ocupa menos pantalla en móvil. */
+  .sticky-top {
+    top: -1rem;
+    padding-top: 1.25rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .navbar {
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .pokeball-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-title {
+    font-size: 1.25rem;
+  }
+
   .theme-btn .theme-label {
     display: none;
   }
@@ -454,7 +508,6 @@ body {
   flex-wrap: nowrap;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .search-box {
@@ -530,8 +583,8 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
-  /* Al cambiar de página la vista se alinea con el catálogo (page-focus.ts), con un pequeño margen. */
-  scroll-margin-top: 1rem;
+  /* Al cambiar de página la vista se alinea con el catálogo (page-focus.ts), por debajo de la zona fija. */
+  scroll-margin-top: calc(var(--sticky-top-height, 0px) + 1rem);
 }
 
 /* El catálogo recibe el foco por programa tras cambiar de página; no es interactivo, así que no lleva
@@ -973,7 +1026,7 @@ body {
 }
 
 .filters-panel {
-  margin: 0 0 1rem;
+  margin: 0.75rem 0 0;
   padding: 1rem;
   background: var(--bg-card);
   -webkit-backdrop-filter: blur(16px);

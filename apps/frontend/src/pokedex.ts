@@ -30,6 +30,7 @@ import {
   type ClassificationFilter,
 } from './shared/catalog-filters.js';
 import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
+import { trackStickyHeight } from './shared/sticky-header.js';
 import { parseFilterParams, type FilterState } from './shared/filter-url.js';
 import {
   defaultSortDirection,
@@ -619,6 +620,7 @@ function handleHistoryNavigation(): void {
 export function initInteractiveListeners(): void {
   // La misma referencia: registrar los listeners más de una vez no duplica el manejador.
   window.addEventListener('popstate', handleHistoryNavigation);
+  trackStickyHeight();
 
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
