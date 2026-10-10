@@ -30,6 +30,8 @@ spec:
     metadata:
       labels:
         app: pgbouncer
+        # Las NetworkPolicy (y la de Cilium) seleccionan a PgBouncer por este componente.
+        app.kubernetes.io/component: pgbouncer
         {{- include "pokedex.selectorLabels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false
@@ -40,6 +42,50 @@ spec:
         fsGroup: 70
         seccompProfile:
           type: RuntimeDefault
+      # Autenticación real de los clientes (scram-sha-256): el `userlist` se genera al arrancar
+      # a partir del usuario y la contraseña de PostgreSQL y vive solo en un emptyDir en memoria.
+      # Así no hay un segundo secreto que mantener ni contraseñas en el archivo de configuración.
+      initContainers:
+        - name: render-userlist
+          image: "{{ .Values.pgbouncer.image.repository }}{{ if .Values.pgbouncer.image.digest }}{{ if .Values.pgbouncer.image.tag }}:{{ .Values.pgbouncer.image.tag }}{{ end }}@{{ .Values.pgbouncer.image.digest }}{{ else }}:{{ .Values.pgbouncer.image.tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.pgbouncer.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              umask 077
+              # En un userlist de PgBouncer las comillas dobles se escapan duplicándolas.
+              esc() { printf '%s' "$1" | sed 's/"/""/g'; }
+              printf '"%s" "%s"\n' "$(esc "${PGB_USER}")" "$(esc "${PGB_PASSWORD}")" > /auth/userlist.txt
+          env:
+            - name: PGB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: pokemon-config
+                  key: POSTGRES_USER
+            - name: PGB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pokedex.secretName" . }}
+                  key: POSTGRES_PASSWORD
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
+              ephemeral-storage: "16Mi"
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+              ephemeral-storage: "16Mi"
+          volumeMounts:
+            - mountPath: /auth
+              name: auth-volume
       containers:
         - name: pgbouncer
           image: "{{ .Values.pgbouncer.image.repository }}{{ if .Values.pgbouncer.image.digest }}{{ if .Values.pgbouncer.image.tag }}:{{ .Values.pgbouncer.image.tag }}{{ end }}@{{ .Values.pgbouncer.image.digest }}{{ else }}:{{ .Values.pgbouncer.image.tag }}{{ end }}"
@@ -63,31 +109,44 @@ spec:
           ports:
             - containerPort: 6432
               name: pgbouncer
+          # Variables de la imagen oficial `pgbouncer/pgbouncer`: DATABASES_* define el servidor y
+          # PGBOUNCER_* el archivo de configuración (/opt/pgbouncer/entrypoint.sh).
           env:
-            - name: DB_HOST
+            - name: DATABASES_HOST
               value: "postgres-service"
-            - name: DB_PORT
+            - name: DATABASES_PORT
               value: {{ .Values.postgresql.port | quote }}
-            - name: DB_USER
+            - name: DATABASES_USER
               valueFrom:
                 configMapKeyRef:
                   name: pokemon-config
                   key: POSTGRES_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "pokedex.secretName" . }}
-                  key: POSTGRES_PASSWORD
-            - name: DB_NAME
+            # Sin DATABASES_PASSWORD: PgBouncer usa para el servidor la contraseña del `userlist`.
+            - name: DATABASES_DBNAME
               valueFrom:
                 configMapKeyRef:
                   name: pokemon-config
                   key: POSTGRES_DB
-            - name: POOL_MODE
+            # Los clientes solo pueden pedir la base de la aplicación (por defecto sería `*`).
+            - name: DATABASES_CLIENT_SIDE_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: pokemon-config
+                  key: POSTGRES_DB
+            - name: PGBOUNCER_LISTEN_PORT
+              value: "6432"
+            - name: PGBOUNCER_AUTH_TYPE
+              value: "scram-sha-256"
+            - name: PGBOUNCER_AUTH_FILE
+              value: "/auth/userlist.txt"
+            # Sin consola de administración: ningún usuario del `userlist` figura como admin.
+            - name: PGBOUNCER_ADMIN_USERS
+              value: "pgbouncer_admin"
+            - name: PGBOUNCER_POOL_MODE
               value: {{ .Values.pgbouncer.poolMode | quote }}
-            - name: MAX_CLIENT_CONN
+            - name: PGBOUNCER_MAX_CLIENT_CONN
               value: {{ .Values.pgbouncer.maxClientConn | quote }}
-            - name: DEFAULT_POOL_SIZE
+            - name: PGBOUNCER_DEFAULT_POOL_SIZE
               value: {{ .Values.pgbouncer.defaultPoolSize | quote }}
           resources:
             limits:
@@ -101,7 +160,19 @@ spec:
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume
+            # El entrypoint genera aquí pgbouncer.ini (sin contraseñas).
+            - mountPath: /etc/pgbouncer
+              name: config-volume
+            - mountPath: /auth
+              name: auth-volume
+              readOnly: true
       volumes:
         - name: tmp-volume
           emptyDir: {}
+        - name: config-volume
+          emptyDir: {}
+        - name: auth-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
 {{- end }}

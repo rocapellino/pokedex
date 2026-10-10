@@ -3028,6 +3028,31 @@
       "description": "Verifica sobre el clúster Kind y los workflows parseados la integración con Kind, el escaneo ZAP, los umbrales de k6 por métrica y el simulacro semanal de DR; el script de restauración y los documentos de DR se comprueban como texto."
     },
     {
+      "path": "tests/security/pgbouncer_contract.test.ts",
+      "suite": "security",
+      "type": "Security / Kubernetes",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Contrato del Despliegue de PgBouncer",
+      "targetArtifacts": [
+        "infra/helm/pokedex/templates/pgbouncer-deployment.yaml",
+        "infra/helm/pokedex/templates/network-policies.yaml",
+        "infra/helm/pokedex/templates/cilium-network-policies.yaml",
+        "infra/helm/pokedex/values.prod.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:security"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica sobre el perfil prod renderizado que PgBouncer usa solo las variables de la imagen oficial, autentica a los clientes con scram-sha-256 con el userlist en memoria, puede escribir su configuración con el sistema de archivos de solo lectura, lleva la etiqueta de componente y que Service, ConfigMap y políticas de red usan su puerto de escucha."
+    },
+    {
       "path": "tests/security/supply_chain_images_signing.test.ts",
       "suite": "security",
       "type": "Security / Supply Chain",

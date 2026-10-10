@@ -109,7 +109,7 @@ spec:
               app.kubernetes.io/component: pgbouncer
       ports:
         - protocol: TCP
-          port: 5432
+          port: 6432
     {{- else }}
     - to:
         - podSelector:
@@ -185,7 +185,7 @@ spec:
               app.kubernetes.io/component: db-seeder
       ports:
         - protocol: TCP
-          port: 5432
+          port: 6432
   egress:
     - to:
         - namespaceSelector: {}

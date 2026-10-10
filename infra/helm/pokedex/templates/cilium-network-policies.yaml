@@ -38,7 +38,7 @@ spec:
             app.kubernetes.io/component: pgbouncer
       toPorts:
         - ports:
-            - port: "5432"
+            - port: "6432"
               protocol: TCP
     {{- else }}
     - toEndpoints:
