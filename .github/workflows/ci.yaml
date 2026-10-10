@@ -256,7 +256,12 @@ jobs:
           persist-credentials: false
 
       - name: Escanear código fuente
-        run: semgrep scan --config auto --error . --exclude node_modules --exclude dist --exclude coverage --exclude infra
+        # Configuración explícita en lugar de `--config auto`: `auto` elige las reglas del
+        # registro según el contenido del repo y exige enviar métricas a semgrep.dev. `p/default`
+        # es el conjunto base que `auto` expande (1073 reglas, entre ellas las de Renovate) y,
+        # con `--metrics=off`, no se envía telemetría. Las reglas se siguen descargando del
+        # registro, así que el contenido puede evolucionar entre corridas.
+        run: semgrep scan --config p/default --metrics=off --error . --exclude node_modules --exclude dist --exclude coverage --exclude infra
 
   dependency-review:
     name: "🛡️ Dependency Review (SCA Gate en PR)"
