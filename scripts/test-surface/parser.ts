@@ -145,10 +145,10 @@ export function parseTestFile(fullPath: string): TestFileRecord {
   if (relativePath.includes('k6_stress_test')) {
     ciWorkflows.push('.github/workflows/performance-k6.yaml (k6-load-test)');
   }
-  if (relativePath === 'tests/aas_governance.test.ts') {
+  if (relativePath === 'tests/contracts/governance/aas_governance.test.ts') {
     ciWorkflows.push('.github/workflows/ci.yaml (aas-governance)');
   }
-  if (relativePath === 'tests/ruleset_parity.test.ts') {
+  if (relativePath === 'tests/contracts/governance/ruleset_parity.test.ts') {
     ciWorkflows.push('.github/workflows/governance-ruleset-parity.yaml');
   }
 

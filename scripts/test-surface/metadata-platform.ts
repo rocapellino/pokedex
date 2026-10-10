@@ -5,14 +5,14 @@
 import type { FileMetadata } from './metadata.js';
 
 export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
-  'tests/ci_workflow_governance.test.ts': {
+  'tests/contracts/governance/ci_workflow_governance.test.ts': {
     type: 'Contract / CI',
     targetDomain: 'Topología de CI / Workflows',
     targetArtifacts: ['.github/workflows/ci.yaml', '.github/workflows/change-impact.yaml', '.github/ci-impact.yaml'],
     description:
       'Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs.',
   },
-  'tests/node_strip_types_entrypoints.test.ts': {
+  'tests/contracts/governance/node_strip_types_entrypoints.test.ts': {
     type: 'Contract / CI',
     targetDomain: 'Scripts ejecutados con node --experimental-strip-types',
     targetArtifacts: [
@@ -200,7 +200,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba el mínimo privilegio del operador de Vault: solo rutas de pre-prod, sin sudo ni borrado, metadatos de solo lectura y política de ESO distinta.',
   },
-  'tests/skills_frontmatter.test.ts': {
+  'tests/contracts/governance/skills_frontmatter.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Skills / Frontmatter',
     targetArtifacts: ['.agents/skills/'],

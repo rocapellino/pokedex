@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
-import { analyzeChangeImpact } from '../scripts/detect-change-impact.js';
-import { ROOT_DIR } from './helpers/repo.js';
+import { analyzeChangeImpact } from '../../../scripts/detect-change-impact.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
 

@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { analyzeChangeImpact } from '../scripts/detect-change-impact.js';
-import { ROOT_DIR } from './helpers/repo.js';
+import { analyzeChangeImpact } from '../../../scripts/detect-change-impact.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
 
@@ -42,7 +42,10 @@ test('🤖 Change Impact: manifest AAS activa gobierno de agentes sin fuga a apl
 
 test('🤖 Change Impact: validador y tests AAS activan el dominio canónico', () => {
   const validator = analyzeChangeImpact({ files: ['scripts/aas-governance.ts'], configPath: CONFIG_PATH });
-  const contract = analyzeChangeImpact({ files: ['tests/aas_governance.test.ts'], configPath: CONFIG_PATH });
+  const contract = analyzeChangeImpact({
+    files: ['tests/contracts/governance/aas_governance.test.ts'],
+    configPath: CONFIG_PATH,
+  });
 
   assert.equal(validator.triggers.agent_governance, true);
   assert.equal(validator.triggers.linting, true);

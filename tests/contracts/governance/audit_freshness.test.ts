@@ -8,8 +8,8 @@ import {
   evaluateAuditFreshness,
   findLatestBaseline,
   readRepositoryState,
-} from '../.agents/skills/repo-lifecycle/scripts/audit-freshness.ts';
-import { ROOT_DIR } from './helpers/repo.js';
+} from '../../../.agents/skills/repo-lifecycle/scripts/audit-freshness.ts';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const SCRIPT = path.join('.agents', 'skills', 'repo-lifecycle', 'scripts', 'audit-freshness.ts');
 

@@ -92,161 +92,6 @@
   ],
   "files": [
     {
-      "path": "tests/aas_governance.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
-      "targetArtifacts": [
-        ".agents/aas/aas-stack.json"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
-        ".github/workflows/ci.yaml (aas-governance)"
-      ],
-      "description": "Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas."
-    },
-    {
-      "path": "tests/audit_freshness.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza Documental / Auditorías Históricas",
-      "targetArtifacts": [
-        "docs/audits/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente."
-    },
-    {
-      "path": "tests/ci_impact_always_matrix.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI Matrix",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Pipeline CI / Controles Always y Matriz",
-      "targetArtifacts": [
-        "scripts/detect-change-impact.ts",
-        ".github/ci-impact.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida los controles Always en todos los caminos de retorno y la combinación acumulativa de dominios en cambios multi-dominio."
-    },
-    {
-      "path": "tests/ci_impact_contract.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI Matrix",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Pipeline CI / Contrato de Impacto",
-      "targetArtifacts": [
-        "scripts/detect-change-impact.ts",
-        ".github/ci-impact.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados."
-    },
-    {
-      "path": "tests/ci_impact_domains.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI Matrix",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Pipeline CI / Dominios de Impacto",
-      "targetArtifacts": [
-        "scripts/detect-change-impact.ts",
-        ".github/ci-impact.yaml",
-        ".agents/skills/_shared/change-impact-matrix.md"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI."
-    },
-    {
-      "path": "tests/ci_impact_test_paths.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI Matrix",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Pipeline CI / Impacto en tests y fail-closed",
-      "targetArtifacts": [
-        "scripts/detect-change-impact.ts",
-        ".github/ci-impact.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos."
-    },
-    {
-      "path": "tests/ci_workflow_governance.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Topología de CI / Workflows",
-      "targetArtifacts": [
-        ".github/workflows/ci.yaml",
-        ".github/workflows/change-impact.yaml",
-        ".github/ci-impact.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs."
-    },
-    {
       "path": "tests/ci/db_integration_services.test.ts",
       "suite": "ci",
       "type": "Contract / CI",
@@ -311,28 +156,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI."
-    },
-    {
-      "path": "tests/contracts.test.ts",
-      "suite": "governance",
-      "type": "Contract / Types",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Interoperabilidad Backend-Frontend",
-      "targetArtifacts": [
-        "apps/backend/src/types.ts",
-        "apps/frontend/src/types.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
     },
     {
       "path": "tests/contracts/adr/adr_application_contracts.test.ts",
@@ -588,6 +411,192 @@
       "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart."
     },
     {
+      "path": "tests/contracts/governance/aas_governance.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza AAS (Agentic Awesome Skills)",
+      "targetArtifacts": [
+        ".agents/aas/aas-stack.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
+        ".github/workflows/ci.yaml (aas-governance)"
+      ],
+      "description": "Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas."
+    },
+    {
+      "path": "tests/contracts/governance/audit_freshness.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza Documental / Auditorías Históricas",
+      "targetArtifacts": [
+        "docs/audits/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente."
+    },
+    {
+      "path": "tests/contracts/governance/ci_impact_always_matrix.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Pipeline CI / Controles Always y Matriz",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida los controles Always en todos los caminos de retorno y la combinación acumulativa de dominios en cambios multi-dominio."
+    },
+    {
+      "path": "tests/contracts/governance/ci_impact_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Pipeline CI / Contrato de Impacto",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados."
+    },
+    {
+      "path": "tests/contracts/governance/ci_impact_domains.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Pipeline CI / Dominios de Impacto",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml",
+        ".agents/skills/_shared/change-impact-matrix.md"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI."
+    },
+    {
+      "path": "tests/contracts/governance/ci_impact_test_paths.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI Matrix",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Pipeline CI / Impacto en tests y fail-closed",
+      "targetArtifacts": [
+        "scripts/detect-change-impact.ts",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos."
+    },
+    {
+      "path": "tests/contracts/governance/ci_workflow_governance.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Topología de CI / Workflows",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        ".github/workflows/change-impact.yaml",
+        ".github/ci-impact.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs."
+    },
+    {
+      "path": "tests/contracts/governance/doc_governance.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza Documental / ADRs",
+      "targetArtifacts": [
+        "docs/decisions/",
+        "docs/audits/",
+        ".agents/rules/documentation-governance.md"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Asegura la convención de IDs de hallazgo, el contrato documental de repo-docs y la retención de docs/audits (un baseline, informes auxiliares solo posteriores a él y todos con Estado: Histórico)."
+    },
+    {
       "path": "tests/contracts/governance/docs_governance_gate.test.ts",
       "suite": "contracts",
       "type": "Contract / Governance",
@@ -657,6 +666,170 @@
       "description": "Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos."
     },
     {
+      "path": "tests/contracts/governance/markdown_gate.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Markdown Quality Gate",
+      "targetArtifacts": [
+        "scripts/lint-markdown.ts",
+        ".markdownlint.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix."
+    },
+    {
+      "path": "tests/contracts/governance/node_strip_types_entrypoints.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Scripts ejecutados con node --experimental-strip-types",
+      "targetArtifacts": [
+        "package.json",
+        ".github/workflows/ci.yaml",
+        "scripts/verify-image-digest-parity.ts",
+        "scripts/lib/helm.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que los scripts que CI y package.json ejecutan con node --experimental-strip-types importen sus dependencias con extensión .ts y que los módulos compartidos se carguen realmente con Node sin tsx."
+    },
+    {
+      "path": "tests/contracts/governance/pr_template_governance.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza de Pull Request Template",
+      "targetArtifacts": [
+        ".github/pull_request_template.md",
+        "scripts/validate-pr-body.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake."
+    },
+    {
+      "path": "tests/contracts/governance/ruleset_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza de GitHub Rulesets",
+      "targetArtifacts": [
+        ".github/rulesets/main-protection.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub."
+    },
+    {
+      "path": "tests/contracts/governance/ruleset_parity.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Paridad Declarativa de Rulesets",
+      "targetArtifacts": [
+        ".github/rulesets/main-protection.json",
+        "scripts/check-ruleset-parity.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
+        ".github/workflows/governance-ruleset-parity.yaml"
+      ],
+      "description": "Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub."
+    },
+    {
+      "path": "tests/contracts/governance/skills_frontmatter.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Skills / Frontmatter",
+      "targetArtifacts": [
+        ".agents/skills/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba que cada SKILL.md de .agents/skills/ tenga frontmatter YAML válido con name y description."
+    },
+    {
+      "path": "tests/contracts/governance/version_consistency.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Release",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Consistencia de Versiones SemVer",
+      "targetArtifacts": [
+        "package.json",
+        "apps/backend/package.json",
+        "apps/frontend/package.json",
+        "infra/helm/pokedex/Chart.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm)."
+    },
+    {
       "path": "tests/contracts/governance/yaml_extension_governance.test.ts",
       "suite": "contracts",
       "type": "Contract / Governance",
@@ -722,29 +895,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos."
-    },
-    {
-      "path": "tests/doc_governance.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza Documental / ADRs",
-      "targetArtifacts": [
-        "docs/decisions/",
-        "docs/audits/",
-        ".agents/rules/documentation-governance.md"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Asegura la convención de IDs de hallazgo, el contrato documental de repo-docs y la retención de docs/audits (un baseline, informes auxiliares solo posteriores a él y todos con Estado: Histórico)."
     },
     {
       "path": "tests/e2e/backoffice.spec.ts",
@@ -2301,52 +2451,6 @@
       "description": "Valida que /version exponga metadata segura, la versión semántica de la SSOT y degrade a unknown sin versión ficticia."
     },
     {
-      "path": "tests/markdown_gate.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Markdown Quality Gate",
-      "targetArtifacts": [
-        "scripts/lint-markdown.ts",
-        ".markdownlint.json"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix."
-    },
-    {
-      "path": "tests/node_strip_types_entrypoints.test.ts",
-      "suite": "governance",
-      "type": "Contract / CI",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Scripts ejecutados con node --experimental-strip-types",
-      "targetArtifacts": [
-        "package.json",
-        ".github/workflows/ci.yaml",
-        "scripts/verify-image-digest-parity.ts",
-        "scripts/lib/helm.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica que los scripts que CI y package.json ejecutan con node --experimental-strip-types importen sus dependencias con extensión .ts y que los módulos compartidos se carguen realmente con Node sin tsx."
-    },
-    {
       "path": "tests/performance/k6_stress_test.js",
       "suite": "performance",
       "type": "Load / Stress",
@@ -2367,16 +2471,16 @@
       "description": "Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios."
     },
     {
-      "path": "tests/pr_template_governance.test.ts",
+      "path": "tests/repo_contracts.test.ts",
       "suite": "governance",
-      "type": "Contract / Governance",
+      "type": "Contract / Types",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "status": "ACTIVE",
-      "targetDomain": "Gobernanza de Pull Request Template",
+      "targetDomain": "Interoperabilidad Backend-Frontend",
       "targetArtifacts": [
-        ".github/pull_request_template.md",
-        "scripts/validate-pr-body.ts"
+        "apps/backend/src/types.ts",
+        "apps/frontend/src/types.ts"
       ],
       "npmCommands": [
         "npm test",
@@ -2386,51 +2490,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake."
-    },
-    {
-      "path": "tests/ruleset_contract.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza de GitHub Rulesets",
-      "targetArtifacts": [
-        ".github/rulesets/main-protection.json"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub."
-    },
-    {
-      "path": "tests/ruleset_parity.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Paridad Declarativa de Rulesets",
-      "targetArtifacts": [
-        ".github/rulesets/main-protection.json",
-        "scripts/check-ruleset-parity.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
-        ".github/workflows/governance-ruleset-parity.yaml"
-      ],
-      "description": "Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub."
+      "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
     },
     {
       "path": "tests/security/ansible_baseline_security.test.ts",
@@ -2968,27 +3028,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Verifica sobre los YAML y las tareas de Ansible parseados que el store de ESO, los values de pre-prod, la política y el rol de Vault, la custodia de las credenciales de init y la auditoría del Bastion mantienen su contrato, y la documentación de DR y break-glass como texto."
-    },
-    {
-      "path": "tests/skills_frontmatter.test.ts",
-      "suite": "governance",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Skills / Frontmatter",
-      "targetArtifacts": [
-        ".agents/skills/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba que cada SKILL.md de .agents/skills/ tenga frontmatter YAML válido con name y description."
     },
     {
       "path": "tests/unit/admin_ip_allowlist.test.ts",
@@ -3668,30 +3707,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001)."
-    },
-    {
-      "path": "tests/version_consistency.test.ts",
-      "suite": "governance",
-      "type": "Contract / Release",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Consistencia de Versiones SemVer",
-      "targetArtifacts": [
-        "package.json",
-        "apps/backend/package.json",
-        "apps/frontend/package.json",
-        "infra/helm/pokedex/Chart.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm)."
     }
   ]
 }

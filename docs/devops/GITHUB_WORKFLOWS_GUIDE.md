@@ -218,7 +218,7 @@ Conforme a las recomendaciones de OpenSSF y CIS Benchmarks para GitHub Actions:
 - **Top-Level Permissions:** Los 18 workflows declaran un bloque restrictivo inicial (`permissions: { contents: read }` o el mínimo estricto requerido).
 - **Job-Level Permissions:** Cada job individual dentro de los 18 workflows declara explícitamente sus propios permisos granulares, evitando que jobs de ejecución o compilación hereden permisos de escritura innecesarios.
 - **Auditoría de Sobre-Privilegios:** Se auditaron y eliminaron permisos no operativos (por ejemplo `issues: write` en escaneos DAST donde la emisión de issues está desactivada).
-- **Guardrail Automatizado de CI:** La suite de pruebas de gobernanza [`tests/ci_workflow_governance.test.ts`](../../tests/ci_workflow_governance.test.ts) valida automáticamente en cada PR que ningún workflow use `write-all` y que el 100% de los jobs declare sus permisos de forma explícita.
+- **Guardrail Automatizado de CI:** La suite de pruebas de gobernanza [`tests/contracts/governance/ci_workflow_governance.test.ts`](../../tests/contracts/governance/ci_workflow_governance.test.ts) valida automáticamente en cada PR que ningún workflow use `write-all` y que el 100% de los jobs declare sus permisos de forma explícita.
 
 ---
 

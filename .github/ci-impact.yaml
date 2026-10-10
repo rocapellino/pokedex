@@ -35,7 +35,7 @@ global:
     - ".github/pull_request_template.md"
     - "scripts/detect-change-impact.ts"
     - "scripts/validate-pr-body.ts"
-    - "tests/pr_template_governance.test.ts"
+    - "tests/contracts/governance/pr_template_governance.test.ts"
     - "scripts/declarations.d.ts"
   triggers:
     backend: true
@@ -67,7 +67,7 @@ rules:
       - ".agents/aas/**"
       - ".agents/skills/*/SKILL.md"
       - "scripts/aas-governance.ts"
-      - "tests/aas_governance.test.ts"
+      - "tests/contracts/governance/aas_governance.test.ts"
     triggers:
       agent_governance: true
       linting: true
@@ -351,9 +351,9 @@ rules:
     description: "Pruebas unitarias, contratos y fuzzing de backend"
     paths:
       - "tests/unit/**"
-      - "tests/contracts.test.ts"
+      - "tests/repo_contracts.test.ts"
       - "tests/fuzz/**"
-      - "tests/version_consistency.test.ts"
+      - "tests/contracts/governance/version_consistency.test.ts"
     triggers:
       backend: true
 

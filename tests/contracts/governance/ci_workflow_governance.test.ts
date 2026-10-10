@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { ROOT_DIR } from './helpers/repo.js';
-import { readYaml } from './helpers/yaml.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
+import { readYaml } from '../../helpers/yaml.js';
 
 // Los workflows se verifican parseados (triggers, jobs, pasos, permisos): una clave comentada o una mención en un
 // comentario siguen "apareciendo" en el texto sin que GitHub Actions las evalúe. Solo se leen como texto los
@@ -91,7 +91,7 @@ test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', 
 
   const aas = scriptsOf(ci.jobs['aas-governance'].steps).join('\n');
   assert.match(aas, /npm run aas:verify/);
-  assert.match(aas, /tests\/aas_governance\.test\.ts/);
+  assert.match(aas, /tests\/contracts\/governance\/aas_governance\.test\.ts/);
 });
 
 test('⚡ CI-002: los Config Linters no son un Quality Gate propio y su fallo sí bloquea', () => {

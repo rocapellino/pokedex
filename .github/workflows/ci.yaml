@@ -95,7 +95,7 @@ jobs:
         run: npm run aas:verify
 
       - name: 5. Ejecutar Contratos AAS
-        run: npm exec --no -- tsx --test tests/aas_governance.test.ts
+        run: npm exec --no -- tsx --test tests/contracts/governance/aas_governance.test.ts
 
   # =======================================================
   # 1. QUALITY GATES (Ejecución en paralelo condicional)
