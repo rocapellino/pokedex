@@ -64,10 +64,19 @@ test('⚙️ CI topology (REGRESIÓN): los reusable workflows no deben declarar 
   }
 });
 
-test('⚙️ CI topology: el orquestador conserva la serialización por PR', () => {
+test('⚙️ CI topology: el orquestador serializa por PR y no cancela las corridas de push a main', () => {
   const { concurrency } = workflow('change-impact.yaml');
   assert.ok(concurrency?.group, 'change-impact.yaml debe mantener su concurrency');
-  assert.equal(concurrency['cancel-in-progress'], true, 'debe cancelar corridas previas del mismo PR');
+  // En un PR cancela la corrida previa del mismo PR (mismo `github.ref`).
+  assert.match(concurrency.group, /github\.ref/, 'el grupo de un PR se calcula por ref');
+  assert.equal(
+    concurrency['cancel-in-progress'],
+    "${{ github.event_name == 'pull_request' }}",
+    'solo los PR cancelan corridas previas',
+  );
+  // En un push a main el grupo es único por commit: release-tag.yaml espera la imagen firmada de ese SHA
+  // por `publish`, y una corrida cancelada por una fusión posterior la dejaría sin publicar.
+  assert.match(concurrency.group, /github\.event_name == 'push' && github\.sha/, 'un push usa su SHA como grupo');
 });
 
 test('🤖 CI topology: agent_governance se propaga hasta un job AAS dedicado', () => {
