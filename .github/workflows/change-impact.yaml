@@ -285,15 +285,18 @@ jobs:
 
           # Un job OMITIDO no es un fallo: significa que el radio de impacto del
           # cambio no lo requeria. Un job CANCELLED o FALLURE si bloquea el merge.
+          PIPELINES=(
+            "detect-impact=${DETECT_IMPACT}"
+            "ci-core=${CI_CORE}"
+            "infra=${INFRA}"
+            "frontend-web=${FRONTEND_WEB}"
+            "config-linters=${CONFIG_LINTERS}"
+            "security-code-scanning=${SECURITY_CODE_SCANNING}"
+            "pr-governance=${PR_GOVERNANCE}"
+          )
+
           FAILED=""
-          for pair in \
-            "detect-impact=${DETECT_IMPACT}" \
-            "ci-core=${CI_CORE}" \
-            "infra=${INFRA}" \
-            "frontend-web=${FRONTEND_WEB}" \
-            "config-linters=${CONFIG_LINTERS}" \
-            "security-code-scanning=${SECURITY_CODE_SCANNING}" \
-            "pr-governance=${PR_GOVERNANCE}"; do
+          for pair in "${PIPELINES[@]}"; do
             JOB="${pair%%=*}"
             RESULT="${pair#*=}"
             case "${RESULT}" in
@@ -316,14 +319,7 @@ jobs:
             echo
             echo "| Pipeline | Resultado |"
             echo "| :--- | :--- |"
-            for pair in \
-              "detect-impact=${DETECT_IMPACT}" \
-              "ci-core=${CI_CORE}" \
-              "infra=${INFRA}" \
-              "frontend-web=${FRONTEND_WEB}" \
-              "config-linters=${CONFIG_LINTERS}" \
-              "security-code-scanning=${SECURITY_CODE_SCANNING}" \
-              "pr-governance=${PR_GOVERNANCE}"; do
+            for pair in "${PIPELINES[@]}"; do
               JOB="${pair%%=*}"
               RESULT="${pair#*=}"
               echo "| \`${JOB}\` | \`${RESULT}\` |"
