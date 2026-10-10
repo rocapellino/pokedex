@@ -43,7 +43,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
     - *Test de Constante Local:* Una aserción cuyo valor sale de una constante declarada en el propio test (`const activo = false; assert(!activo)`) no puede fallar. El valor se lee del artefacto.
     - *Test Suelto en la Raíz (`AUD-TST-DIR-001`):* Un `*.test.ts` directamente en `tests/` no dice qué área verifica y obliga a abrirlo para saberlo. Se ubica en el subdirectorio de su área (ver la pauta siguiente).
 - **Pauta de Ubicación de los Tests:**
-  - **Regla:** todo test vive dentro de un subdirectorio de `tests/` asociado al área que verifica. La raíz de `tests/` no contiene archivos de test; solo directorios.
+  - **Regla:** todo test vive dentro de un subdirectorio de `tests/` asociado al área que verifica. La raíz de `tests/` no contiene archivos de test; solo directorios. `tests/contracts/governance/tests_layout.test.ts` lo hace cumplir y es donde se registra, con su justificación, cualquier excepción.
   - **Elegir el subdirectorio por lo que se verifica, no por cómo se ejecuta:**
     - `unit/`, `integration/`, `frontend/`, `e2e/`, `fuzz/`, `performance/`: comportamiento de la aplicación, por nivel de la pirámide.
     - `security/`: postura de seguridad del código y de la infraestructura.

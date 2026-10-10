@@ -452,6 +452,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto.',
   },
+  'tests/contracts/governance/tests_layout.test.ts': {
+    type: 'Contract / Governance',
+    targetDomain: 'Ubicación de los Tests (raíz de tests/)',
+    targetArtifacts: ['tests/', '.agents/skills/repo-testing/SKILL.md'],
+    description:
+      'Exige que la raíz de tests/ no contenga archivos de test sueltos salvo excepciones justificadas por escrito (AUD-TST-DIR-001).',
+  },
   'tests/contracts/governance/ignore_hygiene.test.ts': {
     type: 'Contract / Hygiene',
     targetDomain: 'Higiene de Archivos de Exclusión (.gitignore)',

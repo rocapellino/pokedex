@@ -898,6 +898,29 @@
       "description": "Verifica que el catálogo test-surface no tenga drift, no versione datos volátiles y que cada archivo de tests/ tenga una descripción propia."
     },
     {
+      "path": "tests/contracts/governance/tests_layout.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Ubicación de los Tests (raíz de tests/)",
+      "targetArtifacts": [
+        "tests/",
+        ".agents/skills/repo-testing/SKILL.md"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Exige que la raíz de tests/ no contenga archivos de test sueltos salvo excepciones justificadas por escrito (AUD-TST-DIR-001)."
+    },
+    {
       "path": "tests/contracts/governance/version_consistency.test.ts",
       "suite": "contracts",
       "type": "Contract / Release",
