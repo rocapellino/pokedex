@@ -54,11 +54,11 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 
 | Dominio / Calidad | Impacto | Pipeline / Quality Gate |
 | :--- | :---: | :--- |
-| **Documentation** | — | `docs-ci (Fast Track)` |
+| **Documentation** | — | `ci.yaml (docs-gate)` |
 | **Agent Governance** | — | `ci.yaml (aas-governance)` |
 | **Backend Core** | — | `ci.yaml (code-quality)` |
 | **Frontend SPA** | — | `ci.yaml & web.yaml` |
-| **Unit & Integration Tests** | — | `npm test & fuzzing` |
+| **Unit & Integration Tests** | — | `ci.yaml (sonarcloud) & fuzzing` |
 | **Docker Images** | — | `build-docker & Cosign` |
 | **Kubernetes & GitOps** | — | `infra.yaml & Kind` |
 | **Helm Packaging** | — | `helm lint & parity` |
@@ -67,10 +67,10 @@ npx tsx scripts/detect-change-impact.ts --base origin/main --format markdown
 | **Linting & Configuration Hygiene** | — | `Config Linters & npm run lint:ignore` |
 | **PR Governance (always)** | — | `PR template & políticas de calidad` |
 | **Security: Secrets Scan (always)** | — | `Gitleaks Detector` |
-| **Security: SAST Code** | — | `Semgrep` |
+| **Security: SAST Code** | — | `Semgrep & njsscan` |
 | **Security: Dependencies SCA** | — | `Dependency Review` |
 | **Security: Container Scan** | — | `Trivy Image Scan` |
-| **Security: IaC & K8s Scan** | — | `Checkov IaC` |
+| **Security: IaC & K8s Scan** | — | `Checkov & Trivy IaC` |
 | **Security: Supply Chain / SBOM** | — | `Cosign, SBOM & Digest` |
 
 <!-- FIN TABLA GENERADA. -->

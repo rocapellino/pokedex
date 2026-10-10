@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { loadImpactConfig, analyzeChangeImpact, formatImpactMarkdown } from '../../../scripts/detect-change-impact.js';
 import { ROOT_DIR } from '../../helpers/repo.js';
+import { readYaml } from '../../helpers/yaml.js';
 
 const CONFIG_PATH = path.join(ROOT_DIR, '.github', 'ci-impact.yaml');
 
@@ -114,5 +115,22 @@ test('🎯 CI Impact Governance: ci-impact.yaml no contiene referencias a script
 
   for (const script of prunedScripts) {
     assert.ok(!rawYaml.includes(script), `ci-impact.yaml contiene referencia al script podado: ${script}`);
+  }
+});
+
+test('🎯 Tabla de impacto: cada `ci.yaml (<job>)` citado en la columna Pipeline es un job real de ci.yaml', () => {
+  const source = fs.readFileSync(path.join(ROOT_DIR, 'scripts/detect-change-impact.ts'), 'utf-8');
+  const template = fs.readFileSync(path.join(ROOT_DIR, '.github/pull_request_template.md'), 'utf-8');
+  const ci = readYaml<{ jobs: Record<string, unknown> }>('.github/workflows/ci.yaml');
+
+  for (const [origin, text] of [
+    ['scripts/detect-change-impact.ts', source],
+    ['.github/pull_request_template.md', template],
+  ]) {
+    const referenced = [...text.matchAll(/ci\.yaml \(([a-z][a-z0-9-]*)\)/g)].map((m) => m[1]);
+    assert.ok(referenced.length > 0, `${origin} debe citar al menos un job de ci.yaml`);
+    for (const job of referenced) {
+      assert.ok(job in ci.jobs, `${origin}: «ci.yaml (${job})» no es un job de ci.yaml (¿se renombró o se eliminó?)`);
+    }
   }
 });
