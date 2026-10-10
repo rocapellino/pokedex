@@ -41,6 +41,18 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
     - *Fixtures Huérfanos:* Archivos de datos o mocks en `tests/` que ningún test consume.
     - *Contrato por Texto (`AUD-TST-CTR-001`, `AUD-TST-CTR-002`):* `includes` o regex sobre el contenido crudo de un YAML, HCL, JSON, workflow, Taskfile o plantilla. Un valor comentado, el nombre de otro paso o la clave equivocada lo satisfacen sin que nada lo aplique. Se verifica la estructura (ver la pauta siguiente).
     - *Test de Constante Local:* Una aserción cuyo valor sale de una constante declarada en el propio test (`const activo = false; assert(!activo)`) no puede fallar. El valor se lee del artefacto.
+    - *Test Suelto en la Raíz (`AUD-TST-DIR-001`):* Un `*.test.ts` directamente en `tests/` no dice qué área verifica y obliga a abrirlo para saberlo. Se ubica en el subdirectorio de su área (ver la pauta siguiente).
+- **Pauta de Ubicación de los Tests:**
+  - **Regla:** todo test vive dentro de un subdirectorio de `tests/` asociado al área que verifica. La raíz de `tests/` no contiene archivos de test; solo directorios.
+  - **Elegir el subdirectorio por lo que se verifica, no por cómo se ejecuta:**
+    - `unit/`, `integration/`, `frontend/`, `e2e/`, `fuzz/`, `performance/`: comportamiento de la aplicación, por nivel de la pirámide.
+    - `security/`: postura de seguridad del código y de la infraestructura.
+    - `gitops/`, `ci/`: paridad GitOps y topología de CI.
+    - `contracts/<área>/`: contratos del repositorio (no del comportamiento de la aplicación). Áreas existentes: `adr/`, `app/` (tipos compartidos entre backend y frontend), `delivery/` (entrega, imágenes, versiones), `governance/` (documentación, CI, skills, catálogo de pruebas) y `observability/`.
+  - **Si ninguna área existente encaja, se crea un subdirectorio nuevo con nombre del área** y se actualizan en el mismo cambio la regla de `.github/ci-impact.yaml`, el comando de ejecución y el catálogo (`npm run test:surface:update`). No se deja el archivo en la raíz por comodidad.
+  - **Excepción:** solo se admite un test en la raíz si no pertenece a ninguna área y crear un subdirectorio para un único archivo no aporta información. La excepción se justifica por escrito en el PR y en la descripción del archivo dentro de `scripts/test-surface/metadata*.ts`. Sin esa justificación, el archivo se mueve.
+  - **Un archivo, un tema.** Si un archivo cubre áreas distintas (el caso de `repo_contracts.test.ts`, que mezclaba tipos, catálogo de pruebas y commits), se parte por tema en lugar de elegir una carpeta aproximada.
+  - **Los helpers y fixtures** viven en `tests/helpers/` (o junto al área que los usa), nunca como archivos sueltos en la raíz.
 - **Pauta de Contratos sobre Archivos del Repositorio:**
   - **Configuración y manifiestos: se parsean, no se leen como texto.** Se usan los helpers de `tests/helpers/`:
     - `readYaml` / `readYamlDocs` para YAML y manifiestos multidocumento; `workflowJobs` / `workflowScripts` para workflows (los `run:` llegan sin las líneas de shell comentadas).
