@@ -110,7 +110,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que el job sonarcloud ejecute npm run coverage:gate después de generar el LCOV y antes del análisis de Sonar, y que el script npm apunte al verificador."
     },
@@ -132,7 +132,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que los jobs que ejecutan la suite definan POKEDEX_TEST_*, levanten PostgreSQL y Redis con healthcheck y usen las imágenes por digest del compose, para que las suites de base de datos no se omitan en silencio."
     },
@@ -155,7 +155,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la API simulada de Lighthouse (paginación como el backend, X-Total-Count, imágenes locales) y la carga de extremo a extremo del catálogo."
     },
@@ -176,7 +176,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la consistencia estructural de steps, versiones de acciones, timeouts y flags de Node en todos los workflows de CI."
     },
@@ -199,7 +199,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011)."
     },
@@ -222,7 +222,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows."
     },
@@ -245,7 +245,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027)."
     },
@@ -268,7 +268,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018)."
     },
@@ -290,7 +290,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
     },
@@ -313,7 +313,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
     },
@@ -336,7 +336,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Exige que commitlint y conventional-pre-commit permitan exactamente los mismos tipos de commit."
     },
@@ -359,7 +359,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas."
     },
@@ -382,7 +382,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear."
     },
@@ -405,7 +405,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod."
     },
@@ -429,7 +429,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que CI publique todas las imágenes que GitOps despliega (api y web), con el SHA completo del commit, y el Chart una sola vez."
     },
@@ -451,7 +451,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias."
     },
@@ -475,7 +475,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart."
     },
@@ -497,7 +497,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
+        ".github/workflows/ci.yaml (sonarcloud)",
         ".github/workflows/ci.yaml (aas-governance)"
       ],
       "description": "Valida contratos de gobernanza de skills y agents en aas-stack.json, stacks requeridos y catálogo de herramientas."
@@ -520,7 +520,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente."
     },
@@ -543,7 +543,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida los controles Always en todos los caminos de retorno y la combinación acumulativa de dominios en cambios multi-dominio."
     },
@@ -566,7 +566,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados."
     },
@@ -590,7 +590,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI."
     },
@@ -613,7 +613,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos."
     },
@@ -637,7 +637,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre los workflows parseados la topología de CI (reusables sin concurrency ni pull_request, serialización por PR, Quality Gate fail-closed que depende de todos los jobs y coincide con el ruleset), permisos mínimos, secretos permitidos, SHA pineados y los gates de Sonar, Gitleaks, Trivy, Zizmor y docs."
     },
@@ -661,7 +661,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Asegura la convención de IDs de hallazgo, el contrato documental de repo-docs y la retención de docs/audits (un baseline, informes auxiliares solo posteriores a él y todos con Estado: Histórico)."
     },
@@ -684,7 +684,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que el gate de gobernanza documental detecte enlaces rotos en .agents/ y AGENTS.md y que la documentación vigente no tenga enlaces rotos ni drift."
     },
@@ -706,7 +706,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental."
     },
@@ -730,7 +730,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos."
     },
@@ -753,7 +753,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el comportamiento del motor de linting de Markdown, reporte de errores MDxxx y mecanismos de auto-fix."
     },
@@ -778,7 +778,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que los scripts que CI y package.json ejecutan con node --experimental-strip-types importen sus dependencias con extensión .ts y que los módulos compartidos se carguen realmente con Node sin tsx."
     },
@@ -801,7 +801,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake."
     },
@@ -823,7 +823,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub."
     },
@@ -846,7 +846,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
+        ".github/workflows/ci.yaml (sonarcloud)",
         ".github/workflows/governance-ruleset-parity.yaml"
       ],
       "description": "Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub."
@@ -869,7 +869,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que cada SKILL.md de .agents/skills/ tenga frontmatter YAML válido con name y description."
     },
@@ -893,7 +893,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que el catálogo test-surface no tenga drift, no versione datos volátiles y que cada archivo de tests/ tenga una descripción propia."
     },
@@ -916,7 +916,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Exige que la raíz de tests/ no contenga archivos de test sueltos salvo excepciones justificadas por escrito (AUD-TST-DIR-001)."
     },
@@ -941,7 +941,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Asegura paridad estricta de versiones SemVer en todo el monorepo (root, workspaces de apps y chart Helm)."
     },
@@ -963,7 +963,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio."
     },
@@ -986,7 +986,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados."
     },
@@ -1008,7 +1008,7 @@
         "npm run test:contracts"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos."
     },
@@ -1086,7 +1086,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida eventos de DOM, renderizado de tablas, modales interactivos y toasts en el backoffice usando entorno JSDOM."
     },
@@ -1123,7 +1123,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida con JSDOM el autocompletado de habilidades: lista única ordenada, filtro, chip, URL, normalización de tildes y campo no válido."
     },
@@ -1145,7 +1145,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida con JSDOM el filtro de legendarios y míticos: selector, chip, URL y restablecimiento con «Limpiar filtros»."
     },
@@ -1166,7 +1166,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Regresión del catálogo nacional: fetchAllPokemons descarga todas las páginas hasta X-Total-Count y termina aunque el total cambie."
     },
@@ -1188,7 +1188,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida con JSDOM el controlador de filtros: tipos múltiples, búsqueda, generación, megaevolución, chips y botón «Limpiar filtros»."
     },
@@ -1209,7 +1209,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el filtrado puro del catálogo: tipos combinados, búsqueda sin tildes por nombre, habilidad, hábitat e ID, generación y megaevolución."
     },
@@ -1231,7 +1231,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida que cada cambio de filtro cree una entrada de historial, que escribir reescriba la actual y que atrás/adelante restauren el estado."
     },
@@ -1253,7 +1253,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el parámetro ?pagina: apertura directa, ajuste de páginas fuera de rango, valores inválidos y navegación atrás/adelante."
     },
@@ -1290,7 +1290,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el chip «Orden: criterio» con JSDOM: aparición al cambiar de criterio, flecha de sentido y ocultamiento al volver al orden natural."
     },
@@ -1311,7 +1311,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el orden por número, nombre y estadística: tildes, empates por número, datos ausentes al final y entrada sin mutar."
     },
@@ -1334,7 +1334,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que la versión del enlace al CSS derive de su contenido, que no se toquen otros enlaces y que las páginas no la fijen a mano."
     },
@@ -1355,7 +1355,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la lectura y escritura del estado de filtros en la URL: búsqueda, tipos, generación, megaevolución, página y descarte de valores inválidos."
     },
@@ -1376,7 +1376,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el panel de filtros: apertura y cierre accesibles, contador de filtros activos y resumen del desplegable de tipos."
     },
@@ -1398,7 +1398,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que no se dependa de Google Fonts, que los .woff2 declarados existan y sean válidos, y que style-src y font-src sean solo self."
     },
@@ -1450,7 +1450,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Guarda textual de que solo shared/html.ts asigne HTML al DOM y de que escapeText, sanitizeHtml y trustedHtml se usen únicamente donde corresponde."
     },
@@ -1473,7 +1473,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que los modales de detalle, evolución y megaevolución neutralicen campos hostiles en nombre, método, imagen, tipos y estadísticas."
     },
@@ -1495,7 +1495,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que tarjetas, tabla del backoffice, insignias y estados vacíos neutralicen campos hostiles sin doble escapado de datos legítimos."
     },
@@ -1516,7 +1516,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Compara el HTML de los modales (detalle, evolución, megaevolución) con su instantánea nativa, capturada con la versión anterior del render."
     },
@@ -1550,7 +1550,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Compara el HTML de los estados (vacío, error, carga, sin resultados) con su instantánea nativa, capturada con la versión anterior."
     },
@@ -1584,7 +1584,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Compara el HTML de tarjetas, insignias y filas con su instantánea nativa, capturada con la versión anterior del render."
     },
@@ -1618,7 +1618,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que setHtml inserte fragmentos legítimos, sanee los marcados como confiables por error, escape datos interpolados y reemplace el contenido."
     },
@@ -1654,7 +1654,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la etiqueta html: escape por defecto (también en atributos), valores nulos y numéricos, y fragmentos SafeHtml sin doble escape."
     },
@@ -1676,7 +1676,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que el nombre de la tarjeta sea un botón nativo, la pista táctil decorativa y los nodos de evolución operables con teclado y aria-current."
     },
@@ -1698,7 +1698,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el foco del modal de detalle y la navegación entre evoluciones con Enter y barra espaciadora."
     },
@@ -1735,7 +1735,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida la sección de megaevoluciones del modal: comparación de estadísticas con la forma base, alternancia entre formas y ausencia de sección."
     },
@@ -1757,7 +1757,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el ciclo de vida de modales accesibles, trampa de foco para teclado (Tab/Shift+Tab), tecla Escape y cierre por backdrop."
     },
@@ -1780,7 +1780,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que los modales sean dialog con nombre accesible, botón de cierre con nombre y que no dependan de la clase .active."
     },
@@ -1803,7 +1803,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el SSOT de nginx: nginx.conf sincronizado con la plantilla (APPS-001), generador unificado, labels OCI de la imagen y que cada ruta /api/ llegue a una ruta registrada del backend."
     },
@@ -1824,7 +1824,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el anunciador de región viva y que el foco pase al catálogo al cambiar de página, sin caer en BODY en la última."
     },
@@ -1846,7 +1846,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba la meta description, un robots.txt válido y que gzip esté activo para texto y desactivado en /api/ y /metrics."
     },
@@ -1867,7 +1867,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Calcula el contraste del enlace de salto con los colores de la hoja de estilos (4,5:1 de texto y 3:1 frente al fondo) y su tamaño mínimo WCAG 2.5.8."
     },
@@ -1888,7 +1888,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL."
     },
@@ -1909,7 +1909,7 @@
         "npm run test:coverage"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba las 18 reglas de tipo con sus cuatro colores y el cumplimiento WCAG AA de cada insignia y del degradado Mega."
     },
@@ -1930,7 +1930,7 @@
         "npm run test:all"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)",
+        ".github/workflows/ci.yaml (sonarcloud)",
         ".github/workflows/ci.yaml (code-quality)"
       ],
       "description": "Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST."
@@ -1955,7 +1955,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida el pin de targetRevision de ArgoCD a un tag SemVer y el pipeline de promoción sobre release-tag.yaml parseado: fases promote y tag, PR atómico desde rama bot, tag anclado al commit de promoción, concurrencia y tareas de Taskfile."
     },
@@ -1979,7 +1979,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba por entorno activo que los orígenes CORS no sean de ejemplo y coincidan con el ingress, que se sirva por TLS con cookie Secure y que el certificado tenga fuente declarada."
     },
@@ -2002,7 +2002,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba ADR-003 (Sync Waves, hook de siembra y startupProbe sobre el chart renderizado; health checks y App-of-Apps sobre los manifiestos parseados) y ADR-005 (Reloader y refreshInterval en los values parseados, tareas de Task); los ADR y runbooks se verifican como texto."
     },
@@ -2025,7 +2025,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba sobre los manifiestos de ArgoCD, los values y los comandos del workflow parseados que cada entorno activo se renderice y valide en CI, que la referencia cloud inactiva quede fuera del App-of-Apps y el blueprint prod (ADR-030); el README se verifica como texto."
     },
@@ -2048,7 +2048,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la promoción de digests: reemplaza solo el del componente, conserva CRLF, rechaza digests mutables y fija los verificados con Cosign en el PR de promoción."
     },
@@ -2071,7 +2071,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que pre-prod sincronice METRICS_BEARER_TOKEN desde Vault al Secret de la API (AUD-SEC-OBS-001)."
     },
@@ -2095,7 +2095,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el bootstrap de pre-prod (ADR-030): ESO y ArgoCD con versiones fijadas, ClusterSecretStore, auth de Vault, health checks y pasaje de CronJobs de backup."
     },
@@ -2118,7 +2118,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que cada clave de Secret exigida por un workload esté sincronizada por el ExternalSecret en proxmox-preprod."
     },
@@ -2141,7 +2141,7 @@
         "npm run test:gitops"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que pre-prod siembre el catálogo completo con la imagen de la API, después de la sincronización, y que los demás entornos no siembren por defecto."
     },
@@ -2313,7 +2313,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon."
     },
@@ -2336,7 +2336,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Ejecuta contra un PostgreSQL real la siembra, el listado paginado con filtros, el upsert, el borrado, la secuencia de IDs, jsonb_set de megaevoluciones y clasificación, y el fail-closed sin conexión."
     },
@@ -2359,7 +2359,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base y rechazo del esquema incompleto."
     },
@@ -2381,7 +2381,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Ejecuta contra un Redis real la revocación de jti con TTL, el limitador distribuido atómico, la invalidación de caché por versión y la degradación sin conexión."
     },
@@ -2404,7 +2404,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba con PostgreSQL y Redis reales que listados e ítems se sirven de la caché, que guardar o borrar la invalida y que, sin Redis, el repositorio sigue leyendo de PostgreSQL."
     },
@@ -2426,7 +2426,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id."
     },
@@ -2449,7 +2449,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida la autenticación por clave, la validación del prompt, las respuestas de fallback de diagrama, maqueta e imagen, el escape del prompt en la plantilla local de maqueta (AUD-SEC-AI-001) y el límite de 10 peticiones por minuto."
     },
@@ -2472,7 +2472,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida la emisión de la cookie de sesión HttpOnly, su lectura por cookie, Bearer y cabecera, el logout con revocación del token y el límite de intentos por IP."
     },
@@ -2495,7 +2495,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida /healthz, /readyz sin PostgreSQL conectado y /readyz durante el apagado grácil."
     },
@@ -2518,7 +2518,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida sobre la app Express real la lectura paginada con filtros y ETag, la autenticación de las mutaciones (clave y sesión con CSRF) y el alta, edición y baja de Pokémon."
     },
@@ -2540,7 +2540,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida salud del almacenamiento, paginación, lectura, escritura y generación de IDs continuos de Pokémon."
     },
@@ -2562,7 +2562,7 @@
         "npm run test:integration"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida que /version exponga metadata segura, la versión semántica de la SSOT y degrade a unknown sin versión ficticia."
     },
@@ -2604,7 +2604,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre YAML parseado el baseline de Ansible: tareas y roles sin ignore_errors, UFW con deny por defecto y orígenes restringidos, red del clúster contenida en la de gestión, política SSH accept-new, ansible_user por host alineado con los LXC, inventario sin hosts fantasma ni IPs repetidas y colecciones fijadas a versión exacta."
     },
@@ -2627,7 +2627,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el HMAC de los backups: detección de clave incorrecta y manipulación, derivación de clave, formato sha256sum e interoperabilidad con openssl."
     },
@@ -2649,7 +2649,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que un origen no autorizado reciba 403 con código propio y no un error genérico (AUD-SEC-CORS-002)."
     },
@@ -2671,7 +2671,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la validación de Origin y Referer en mutaciones autenticadas por cookie: rechaza subcadenas y ausencia de ambos, acepta el mismo host (AUD-SEC-CSRF-001)."
     },
@@ -2693,7 +2693,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica X-XSS-Protection desactivado con CSP presente y que el fallback SPA consuma un solo cupo del limitador global."
     },
@@ -2716,7 +2716,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que /metrics exija el token Bearer (401 sin credenciales o con token incorrecto), lo acepte si es correcto y no afecte a /healthz ni /readyz (AUD-SEC-OBS-001)."
     },
@@ -2739,7 +2739,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba la seguridad de nginx: cabeceras efectivas (nivel server, herencia de add_header por location, ocultamiento del upstream), valores de COOP y CORP, CSP sin unsafe-inline en style-src y sin allowlists RFC 1918 masivas."
     },
@@ -2763,7 +2763,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Reproduce escenarios de ataque: falsificación y replay de sesiones, fail-closed ante caída de Redis, rate limiting, prototype pollution, mass assignment, XSS, SSRF y DoS por entrada."
     },
@@ -2785,7 +2785,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que validatePokemonPayload y validateImageUrl rechacen XSS, pseudo-protocolos, IPs privadas (anti-SSRF), campos desconocidos y valores fuera de rango."
     },
@@ -2811,7 +2811,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre el chart renderizado (default, prod y pre-prod) los CronJob de backup, verificación de restauración y sync a Drive: cifrado AES-256-CBC con PBKDF2, clave obligatoria, hardening del pod, PVC real, rclone fijado por digest y red Zero-Trust; y el script de verificación, el runbook DR, las alertas y los blueprints off-site."
     },
@@ -2833,7 +2833,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Evalúa la ejecución completa del simulacro de desastre automatizado, restauración limpia y verificación de RTO/RPO."
     },
@@ -2857,7 +2857,7 @@
         "npm run test:security:egress"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta."
     },
@@ -2881,7 +2881,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto."
     },
@@ -2905,7 +2905,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre el chart renderizado con Helm y sobre YAML parseado el hardening de los workloads (readOnlyRootFilesystem con emptyDir, token de ServiceAccount, ephemeral-storage, topología, sin :latest), las políticas Kyverno y los gates de CI; y los ADR-014, 015 y 017."
     },
@@ -2928,7 +2928,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre el chart renderizado (default, prod y pre-prod) el default-deny, el egress aislado de PostgreSQL y Redis, la allowlist FQDN de Cilium L7 y el egress anti-SSRF; sobre YAML parseado, el aislamiento del blueprint prod y los Ingress sin host; y los contratos ADR-013 y ADR-016."
     },
@@ -2950,7 +2950,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre HCL parseado los checksums de las imágenes descargadas, los defaults de las variables, la ausencia de variables muertas o sin declarar en los tres entornos, y los escaneos de IaC; y la estructura multi-cloud y los contratos de ADR-012."
     },
@@ -2978,7 +2978,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre el clúster Kind y los workflows parseados la integración con Kind, el escaneo ZAP, los umbrales de k6 por métrica y el simulacro semanal de DR; el script de restauración y los documentos de DR se comprueban como texto."
     },
@@ -3002,7 +3002,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre los pasos parseados de ci.yaml y los recursos de Kyverno y values: etiquetas OCI y build-args, SBOM CycloneDX, firma, atestación y verificación de Cosign por digest, SLSA provenance, políticas de firma (Audit y Enforce) y digest pinning con paridad entre entornos."
     },
@@ -3025,7 +3025,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba sobre los pasos parseados de release-tag.yaml que Gitsign se verifica (firma, digests, orden y guardas del modo refresco) antes de instalarse, que los hooks de pre-commit se fijan por SHA y que las exclusiones de Terraform y Semgrep están justificadas."
     },
@@ -3048,7 +3048,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que el scan de Trivy cubre las imágenes del Chart y que están fijadas por digest."
     },
@@ -3071,7 +3071,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba runtimes de Node vigentes, quoting de cabeceras, fin de línea LF y extensión .yaml en workflows."
     },
@@ -3094,7 +3094,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el mínimo privilegio del operador de Vault: solo rutas de pre-prod, sin sudo ni borrado, metadatos de solo lectura y política de ESO distinta."
     },
@@ -3119,7 +3119,7 @@
         "npm run test:security"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica sobre los YAML y las tareas de Ansible parseados que el store de ESO, los values de pre-prod, la política y el rol de Vault, la custodia de las credenciales de init y la auditoría del Bastion mantienen su contrato, y la documentación de DR y break-glass como texto."
     },
@@ -3141,7 +3141,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la lista blanca de IP de administración: coincidencia exacta y por CIDR (IPv4 e IPv6), normalización de IPv4 mapeada y loopback siempre permitido."
     },
@@ -3163,7 +3163,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que getSemanticCacheKey normalice espacios y mayúsculas y distinga prompts distintos."
     },
@@ -3186,7 +3186,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la sanitización del HTML y del prompt de IA, y el circuit breaker y el timeout con reloj simulado."
     },
@@ -3208,7 +3208,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida ciclo de vida de tokens HMAC-SHA256, expiración con reloj simulado, verificación de firma y límites del payload, revocación y fail-closed de secretos."
     },
@@ -3231,7 +3231,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que closeStorage y setShuttingDownForTest gestionen el estado de apagado grácil."
     },
@@ -3253,7 +3253,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red."
     },
@@ -3275,7 +3275,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, el umbral exacto del 80 % y que un prefijo sin archivos falle."
     },
@@ -3299,7 +3299,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el generador y el catálogo: classificationOf (el mítico prevalece), enriquecimiento del catálogo, validación y propagación del campo al backend."
     },
@@ -3322,7 +3322,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Regresión: el API en Compose no debe exigir TLS a un PostgreSQL local que no lo ofrece."
     },
@@ -3345,7 +3345,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el esquema, las migraciones en disco y la política fail-closed de drizzle.config.ts."
     },
@@ -3368,7 +3368,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica errorMessage (backend y frontend) y errorStatus, que extrae el código HTTP solo si el error lo expone como número."
     },
@@ -3390,7 +3390,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas."
     },
@@ -3413,7 +3413,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el catálogo de megaevoluciones: cobertura de PokeAPI, sin número de Pokédex propio, claves únicas y datos completos (arte, tipos, estadísticas)."
     },
@@ -3435,7 +3435,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica el generador: reconocimiento de formas mega, nombres oficiales en español, calificativos desconocidos y slugs tratados como texto literal."
     },
@@ -3457,7 +3457,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que las megaevoluciones sean de solo lectura: editar un Pokémon las conserva y un cuerpo del cliente no las crea ni las reemplaza."
     },
@@ -3480,7 +3480,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica canonicalJson y planMegaEnrichment: solo actualiza filas existentes sin megaevoluciones o con datos cambiados, de forma idempotente."
     },
@@ -3503,7 +3503,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la validación de megaevoluciones: forma válida, campo opcional, lista blanca de claves (mass assignment) y rechazo de datos mal formados."
     },
@@ -3525,7 +3525,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la línea base de migraciones: no toca bases vacías o con journal, registra la migración inicial en esquemas heredados y falla sin escribir si el esquema difiere."
     },
@@ -3547,7 +3547,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba umbrales de LOC e imports de archivos clave (APPS-008), el desacople de network-security y las reglas anti-SSRF de IP e imágenes."
     },
@@ -3571,7 +3571,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que .nvmrc, engines, Dockerfiles y workflows usen la misma versión mayor de Node."
     },
@@ -3593,7 +3593,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000."
     },
@@ -3617,7 +3617,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica calculateETag, sanitizeLogString contra log injection y los mappers buildPokemonFromPayload y applyPokemonUpdates."
     },
@@ -3639,7 +3639,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida operaciones de consulta, filtrado por tipo, búsqueda por nombre, paginación y transformaciones de atributos."
     },
@@ -3662,7 +3662,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores."
     },
@@ -3685,7 +3685,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex."
     },
@@ -3707,7 +3707,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida ok, err, tryCatch y fromPromise: desenvoltura, valor por defecto y transformación con map."
     },
@@ -3730,7 +3730,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica SEED_DATASET (muestra o catálogo completo, valor desconocido falla) y que el catálogo completo tenga IDs contiguos y supere el validador del backend."
     },
@@ -3753,7 +3753,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la extracción del token desde la cookie y que la cookie emitida lleve HttpOnly, Secure, SameSite y Max-Age."
     },
@@ -3775,7 +3775,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica variables requeridas en producción, la alternativa POSTGRES_* y que SKIP_ENV_CHECK solo omite fuera de producción."
     },
@@ -3797,7 +3797,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002)."
     },
@@ -3820,7 +3820,7 @@
         "npm run test:unit"
       ],
       "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+        ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001)."
     }
