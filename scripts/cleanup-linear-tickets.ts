@@ -283,3 +283,4 @@ main().catch((err) => {
   console.error('💥 Error inesperado en la limpieza de Linear:', err);
   process.exit(1);
 });
+
