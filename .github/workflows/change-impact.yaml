@@ -16,9 +16,13 @@ permissions:
   pull-requests: read
   actions: read
 
+# En un PR, un push nuevo cancela la corrida anterior del mismo PR. En `main` NO: cada push tiene su
+# propio grupo (por SHA) y corre completo, porque `release-tag.yaml` espera hasta 45 min a que el job
+# `publish` de este workflow deje firmada la imagen de ese commit; si una fusión posterior cancelara la
+# corrida, esa promoción abortaría sin imagen que resolver.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # =======================================================
