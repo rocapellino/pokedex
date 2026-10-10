@@ -379,20 +379,30 @@ jobs:
         # sobre el mismo release: la API cambia de `postgres-service:5432` a `pgbouncer-service:6432`.
         run: |
           set -euo pipefail
+          # Sin `--wait`: así, si algo no arranca, el diagnóstico de abajo se imprime en lugar de
+          # quedar enterrado detrás de «context deadline exceeded».
           helm upgrade pokedex infra/helm/pokedex \
             --namespace pokemon-app \
             --reuse-values \
-            --set pgbouncer.enabled=true \
-            --wait --timeout 180s
+            --set pgbouncer.enabled=true
 
-          if ! kubectl rollout status deployment/pgbouncer --namespace pokemon-app --timeout=120s; then
-            echo "❌ PgBouncer no quedó disponible. Diagnóstico:"
-            kubectl get pods,events -n pokemon-app -o wide
-            kubectl describe pods -n pokemon-app -l app=pgbouncer
+          diagnose() {
+            echo "❌ $1. Diagnóstico:"
+            kubectl get pods,svc,events -n pokemon-app -o wide
+            kubectl describe deployment/pgbouncer -n pokemon-app || true
+            kubectl describe pods -n pokemon-app -l app=pgbouncer || true
+            echo "--- logs de PgBouncer (initContainer y contenedor) ---"
             kubectl logs -n pokemon-app -l app=pgbouncer --all-containers --tail=100 || true
+            echo "--- logs del initContainer render-userlist ---"
+            kubectl logs -n pokemon-app -l app=pgbouncer -c render-userlist --tail=50 || true
+            echo "--- API ---"
+            kubectl describe pods -n pokemon-app -l app=pokemon-api || true
+            kubectl logs -n pokemon-app -l app=pokemon-api --tail=80 || true
             exit 1
-          fi
-          kubectl rollout status deployment/pokemon-api --namespace pokemon-app --timeout=120s
+          }
+
+          kubectl rollout status deployment/pgbouncer --namespace pokemon-app --timeout=120s || diagnose "PgBouncer no quedó disponible"
+          kubectl rollout status deployment/pokemon-api --namespace pokemon-app --timeout=180s || diagnose "la API no quedó disponible tras cambiar a PgBouncer"
           kubectl get pods,svc -n pokemon-app -o wide
 
       - name: 8. Validar la ruta API → PgBouncer → PostgreSQL y su autenticación
