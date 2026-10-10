@@ -9,3 +9,5 @@ apps/frontend/dist/
 .tools/
 scratch/
 tmp/
+.semgrepignore
+LICENSE

@@ -70,3 +70,15 @@ test('📚 Markdown Gate: findMarkdownFiles respeta el directorio .markdownlinti
     'Solo debe devolver archivos .md',
   );
 });
+
+test('📚 Markdown Gate: .markdownlintignore excluye explícitamente .semgrepignore y LICENSE', () => {
+  const patterns = parseIgnorePatterns(path.join(ROOT_DIR, '.markdownlintignore'));
+  assert.ok(
+    patterns.includes('.semgrepignore'),
+    '.markdownlintignore debe incluir .semgrepignore para evitar falsos positivos de markdownlint',
+  );
+  assert.ok(
+    patterns.includes('LICENSE'),
+    '.markdownlintignore debe incluir LICENSE para evitar que markdownlint lo trate como markdown',
+  );
+});
