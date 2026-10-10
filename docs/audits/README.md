@@ -13,6 +13,9 @@ De acuerdo con la especificación de ciclo de vida documental gobernada por la s
    - El directorio de fecha más reciente no implica vigencia: `repo-lifecycle` lo clasifica como `CURRENT` o `AUDIT_STALE` comparando sus metadatos con las fuentes actuales.
    - `AUDIT_STALE` es informativo y no bloqueante; ningún baseline fechado constituye evidencia del estado actual (ver la Regla de Oro más abajo).
    - Cualquier referencia a versiones concretas (por ejemplo `v1.78.3`) en este README se considera obsoleta: la versión vigente se lee en `package.json` y en `infra/helm/pokedex/Chart.yaml`.
+   - `max_active_snapshots: 1` (`documentation-contract.yaml`) cuenta **baselines**, es decir, directorios con `baseline.md`. Los informes auxiliares de un ciclo no cuentan.
+   - **Informes auxiliares de un ciclo** (plan de mejora, informe de remediación): viven en el directorio de su fecha, junto al baseline o sin él, y se conservan solo hasta que **el siguiente baseline los absorba**. Ese baseline refleja sus resultados; entonces se podan. Un directorio sin `baseline.md` debe ser **posterior** al baseline vigente: si es anterior o de la misma fecha, ya fue absorbido y debe podarse. Todo documento de este directorio lleva `Estado: Histórico`.
+   - `tests/doc_governance.test.ts` hace cumplir estas tres reglas.
 2. **Ciclo de Consolidación y Poda:**
    - Una vez que los hallazgos de un ciclo de auditoría han sido remediados, consolidados en la documentación canónica activa (`docs/architecture/`, `docs/runbooks/`, etc.) y reflejados en el nuevo baseline, los snapshots intermedios y reportes auxiliares cerrados se podan del árbol de trabajo activo.
    - Esto previene la sobrecarga cognitiva y el desperdicio de tokens de contexto en los agentes de IA, garantizando que el análisis automatizado se enfoque en la arquitectura vigente.
