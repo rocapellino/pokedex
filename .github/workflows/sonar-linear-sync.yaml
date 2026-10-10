@@ -50,7 +50,12 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    # El `schedule` (red de seguridad WF-004) debe poder ejecutar el job: con la condicion
+    # anterior (solo workflow_dispatch o workflow_run) el cron diario salia siempre `skipped`.
+    # workflow_run solo sincroniza si el orquestador termino bien.
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: 1. Descargar Código Fuente
