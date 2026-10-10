@@ -76,7 +76,15 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
         run: npx --no-install tsx scripts/sonar-linear-sync.ts
 
-      - name: 5. Listar Tickets Abiertos de Linear
+      - name: 5. Limpieza de Tickets Obsoletos / Duplicados en Linear
+        if: always()
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_KEY: ${{ inputs.team_key || 'PEX' }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: npx --no-install tsx scripts/cleanup-linear-tickets.ts
+
+      - name: 6. Listar Tickets Abiertos de Linear (Verificación Post-Limpieza)
         if: always()
         env:
           LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
