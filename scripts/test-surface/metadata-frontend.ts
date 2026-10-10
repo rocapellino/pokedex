@@ -259,6 +259,17 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL.',
   },
+  'tests/frontend/sticky_header.test.ts': {
+    type: 'Component / DOM',
+    targetDomain: 'Catálogo / Zona Fija Superior',
+    targetArtifacts: [
+      `${SRC}/shared/sticky-header.ts`,
+      'apps/frontend/index.html',
+      'apps/frontend/public/css/style.css',
+    ],
+    description:
+      'Verifica que la zona fija publique su altura al cambiar de tamaño, que el HTML la componga de cabecera, búsqueda y filtros, y que el CSS la pegue arriba y reserve su altura.',
+  },
   'tests/frontend/type_badge_contrast.test.ts': {
     type: 'Accessibility',
     targetDomain: 'Contraste de Insignias de Tipo',
