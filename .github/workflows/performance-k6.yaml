@@ -56,16 +56,47 @@ jobs:
       - name: 6. Ejecutar Pruebas de Carga con Grafana k6 y Validar Umbrales de SLA
         env:
           TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
+          GRAFANA_CLOUD_METRICS_TOKEN: ${{ secrets.GRAFANA_CLOUD_METRICS_TOKEN }}
+          K6_PROMETHEUS_RW_SERVER_URL: "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
+          K6_PROMETHEUS_RW_USERNAME: "3589862"
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
+          K6_EXTRA_ARGS=()
+          if [ -n "$GRAFANA_CLOUD_METRICS_TOKEN" ]; then
+            echo "🚀 Grafana Cloud Prometheus token detectado: habilitando remote write..."
+            export K6_PROMETHEUS_RW_PASSWORD="$GRAFANA_CLOUD_METRICS_TOKEN"
+            K6_EXTRA_ARGS+=(
+              "-o" "experimental-prometheus-rw"
+              "--tag" "commit=${GITHUB_SHA}"
+              "--tag" "branch=${GITHUB_REF_NAME}"
+              "--tag" "run_id=${GITHUB_RUN_ID}"
+              "--tag" "job=pokedex-k6-load-test"
+              "--tag" "environment=ci"
+            )
+          else
+            echo "ℹ️ GRAFANA_CLOUD_METRICS_TOKEN no configurado: ejecutando k6 en modo local."
+          fi
+
           k6 run tests/performance/k6_stress_test.js \
             --env TARGET_URL="$TARGET_URL" \
-            --summary-export=/tmp/k6-summary.json
+            --summary-export=/tmp/k6-summary.json \
+            "${K6_EXTRA_ARGS[@]}"
+
           echo "✅ Pruebas de carga finalizadas y umbrales de SLA (p95 < 200ms, error < 1%) validados."
 
       - name: 7. Generar Resumen de Rendimiento en Step Summary
         if: always()
+        env:
+          HAS_METRICS_TOKEN: ${{ secrets.GRAFANA_CLOUD_METRICS_TOKEN != '' }}
+          COMMIT_SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           if [ -f /tmp/k6-summary.json ]; then
-            echo "### ⚡ Resumen de Pruebas de Carga k6" >> $GITHUB_STEP_SUMMARY
-            echo "SLAs validados con éxito: p(95) < 200ms, p(99) < 500ms, tasa de error < 1%." >> $GITHUB_STEP_SUMMARY
+            echo "### ⚡ Resumen de Pruebas de Carga k6" >> "$GITHUB_STEP_SUMMARY"
+            echo "SLAs validados con éxito: p(95) < 200ms, p(99) < 500ms, tasa de error < 1%." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$HAS_METRICS_TOKEN" = "true" ]; then
+              echo "- 📊 **Métricas remotas:** exportadas exitosamente a Grafana Cloud Prometheus con etiquetas \`commit: ${COMMIT_SHA}\` y \`branch: ${REF_NAME}\`." >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi

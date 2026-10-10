@@ -2,6 +2,7 @@
   "annotations": {
     "list": []
   },
+  "description": "Salud de infraestructura, hosts del clúster (Node Exporter), métricas de recursos en Kubernetes/K3s (cAdvisor) y logs centralizados (Loki).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -18,13 +19,14 @@
         "y": 0
       },
       "id": 100,
+      "panels": [],
       "title": "Salud General del Stack & Aplicaciones",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -59,7 +61,8 @@
               }
             ]
           }
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -84,7 +87,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "up",
@@ -106,13 +109,14 @@
         "y": 7
       },
       "id": 200,
+      "panels": [],
       "title": "Métricas de Host & Sistema Operativo (Node Exporter)",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -140,7 +144,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -167,7 +172,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
           "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
           "legendFormat": "CPU Host",
@@ -180,13 +185,14 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -207,7 +213,8 @@
             ]
           },
           "unit": "percent"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -231,7 +238,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
           "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
           "legendFormat": "Memoria Host",
@@ -244,7 +251,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -257,7 +264,8 @@
             "lineWidth": 2
           },
           "unit": "Bps"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 6,
@@ -280,7 +288,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
           "expr": "sum(rate(node_network_receive_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\"}[1m]))",
           "legendFormat": "Entrada (Rx)",
@@ -289,7 +297,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
           "expr": "sum(rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|docker.*|br-.*\"}[1m]))",
           "legendFormat": "Salida (Tx)",
@@ -308,13 +316,14 @@
         "y": 14
       },
       "id": 300,
-      "title": "Monitoreo de Contenedores Docker (cAdvisor)",
+      "panels": [],
+      "title": "Monitoreo de Recursos en Kubernetes (cAdvisor)",
       "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -327,7 +336,8 @@
             "lineWidth": 2
           },
           "unit": "percentunit"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -350,20 +360,20 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
-          "expr": "sum(rate(container_cpu_usage_seconds_total{name!=\"\"}[1m])) by (name) or sum(rate(container_cpu_usage_seconds_total{id=~\"/docker/.*\"}[1m])) by (id)",
-          "legendFormat": "{{name}}{{id}}",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"pokemon-app|monitoring\", container!=\"\"}[1m])) by (namespace, pod, container) or sum(rate(container_cpu_usage_seconds_total{name!=\"\"}[1m])) by (name)",
+          "legendFormat": "{{namespace}}/{{pod}}/{{container}}{{name}}",
           "refId": "A"
         }
       ],
-      "title": "Uso de CPU por Contenedor",
+      "title": "Uso de CPU por Contenedor / Pod",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": ""
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -376,7 +386,8 @@
             "lineWidth": 2
           },
           "unit": "bytes"
-        }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -399,14 +410,14 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": ""
+            "uid": "${datasource}"
           },
-          "expr": "sum(container_memory_working_set_bytes{name!=\"\"}) by (name) or sum(container_memory_working_set_bytes{id=~\"/docker/.*\"}) by (id)",
-          "legendFormat": "{{name}}{{id}}",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"pokemon-app|monitoring\", container!=\"\"}) by (namespace, pod, container) or sum(container_memory_working_set_bytes{name!=\"\"}) by (name)",
+          "legendFormat": "{{namespace}}/{{pod}}/{{container}}{{name}}",
           "refId": "A"
         }
       ],
-      "title": "Uso de RAM por Contenedor",
+      "title": "Uso de RAM por Contenedor / Pod",
       "type": "timeseries"
     },
     {
@@ -418,13 +429,14 @@
         "y": 23
       },
       "id": 400,
-      "title": "Logs Centralizados de Todos los Contenedores (Loki)",
+      "panels": [],
+      "title": "Logs Centralizados de Contenedores y Pods (Loki)",
       "type": "row"
     },
     {
       "datasource": {
         "type": "loki",
-        "uid": ""
+        "uid": "${logs_datasource}"
       },
       "gridPos": {
         "h": 10,
@@ -446,25 +458,67 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": ""
+            "uid": "${logs_datasource}"
           },
           "editorMode": "code",
-          "expr": "{container=~\".+\"}",
+          "expr": "{namespace=~\"pokemon-app|monitoring\"} or {container=~\".+\"}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Flujo de Logs en Vivo (Todos los Contenedores)",
+      "title": "Flujo de Logs en Vivo (Pods & Contenedores)",
       "type": "logs"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
+  "style": "dark",
   "tags": [
     "observability",
     "infrastructure",
+    "kubernetes",
     "global"
   ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "grafanacloud-prom",
+          "value": "grafanacloud-prom"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Prometheus",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "grafanacloud-logs",
+          "value": "grafanacloud-logs"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Loki",
+        "multi": false,
+        "name": "logs_datasource",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
   "time": {
     "from": "now-15m",
     "to": "now"
@@ -481,36 +535,5 @@
   "timezone": "browser",
   "title": "Infraestructura & Observabilidad Global (Multi-App)",
   "uid": "global-observability",
-  "templating": {
-    "list": [
-      {
-        "current": {},
-        "hide": 0,
-        "includeAll": false,
-        "label": "Prometheus",
-        "multi": false,
-        "name": "datasource",
-        "options": [],
-        "query": "prometheus",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "type": "datasource"
-      },
-      {
-        "current": {},
-        "hide": 0,
-        "includeAll": false,
-        "label": "Loki",
-        "multi": false,
-        "name": "logs_datasource",
-        "options": [],
-        "query": "loki",
-        "refresh": 1,
-        "regex": "/.*logs.*/",
-        "skipUrlSync": false,
-        "type": "datasource"
-      }
-    ]
-  }
+  "version": 2
 }

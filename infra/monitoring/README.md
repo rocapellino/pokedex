@@ -11,7 +11,7 @@
 | [`grafana-cloud-values.yaml`](grafana-cloud-values.yaml) | Values canónicos (esquema v4 de `k8s-monitoring`): destino de métricas, métricas de clúster y de host, Grafana Alloy, Beyla eBPF, Node Exporter y Kube-State-Metrics | [`scripts/deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) |
 | [`alerts.yaml`](alerts.yaml) | Reglas de alerta unificadas (infraestructura, base de datos, API) | Prometheus / Grafana Cloud |
 | [`alloy/config.alloy`](alloy/config.alloy) | Configuración del Alloy en modo local (Docker Compose de desarrollo) | [`docker-compose.dev.yaml`](../../docker-compose.dev.yaml) |
-| [`dashboards/`](dashboards/) | Tableros canónicos de la API Pokédex y de la salud del clúster | Import manual a Grafana Cloud |
+| [`dashboards/`](dashboards/) | Tableros canónicos: API Pokédex, salud del clúster y rendimiento k6 por commit | Import manual a Grafana Cloud |
 
 ## Despliegue
 
