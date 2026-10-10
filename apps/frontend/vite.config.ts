@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 import { resolve } from 'path';
-import { versionStylesheetLinks } from './css-version';
+import { versionStylesheetLinks } from './css-version.js';
 
 const currentDir = import.meta.dirname || process.cwd();
 
