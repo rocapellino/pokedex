@@ -46,6 +46,10 @@ jobs:
     permissions:
       contents: read
     strategy:
+      # Cada imagen se escanea siempre: con el `fail-fast` por defecto, el fallo de una
+      # cancelaba el resto y esa semana quedaban sin escanear (5-oct-2026: redis falló y
+      # se cancelaron las dos de postgres y pgbouncer).
+      fail-fast: false
       # NOTA (WF-001): estas referencias DEBEN coincidir con las imágenes que el
       # Chart despliega realmente, incluidas en infra/helm/pokedex/values.yaml.
       #
@@ -63,7 +67,7 @@ jobs:
         image:
           - 'postgres@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685'
           - 'postgres@sha256:efedf3595f1d6f415c08568ba171029bf54052e754cc9f030e3f2412b21f3d67' # backup.image (16-bookworm)
-          - 'redis@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf'
+          - 'redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499'
           - 'pgbouncer/pgbouncer@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516'
     steps:
       - name: Escanear imagen base de infraestructura
