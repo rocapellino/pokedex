@@ -94,13 +94,13 @@ test('🧬 Promoción: los values reales tienen un digest api y uno web reemplaz
 test('🧬 Promoción: release-tag fija digests verificados con Cosign en el PR de promoción', () => {
   const workflowText = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/release-tag.yaml'), 'utf8');
   const workflow = yaml.load(workflowText) as {
-    permissions: Record<string, string>;
-    jobs: Record<string, { steps: Array<Record<string, any>> }>;
+    jobs: Record<string, { permissions: Record<string, string>; steps: Array<Record<string, any>> }>;
   };
   const steps = Object.values(workflow.jobs).flatMap((job) => job.steps);
 
+  // Los permisos de escritura viven en el job (el bloque global es solo `contents: read`).
   assert.equal(
-    workflow.permissions.packages,
+    workflow.jobs['auto-tag-and-release'].permissions.packages,
     'read',
     'release-tag necesita packages: read para resolver digests en GHCR',
   );
