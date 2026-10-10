@@ -16,6 +16,7 @@ import {
 import { median, summarize, type Lhr } from '../../scripts/lighthouse-summary.js';
 import { fetchAllPokemons } from '../../apps/frontend/src/shared/api.js';
 import { ROOT_DIR as ROOT } from '../helpers/repo.js';
+import { readYaml } from '../helpers/yaml.js';
 
 const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf-8');
 
@@ -156,6 +157,20 @@ test('📈 Lighthouse: el workflow publica el resumen y los informes como artefa
   const upload = workflow.slice(workflow.indexOf('actions/upload-artifact@'));
   assert.match(upload, /include-hidden-files: true/, 'sin esto el artefacto queda vacío');
   assert.match(upload, /if-no-files-found: (warn|error)/, 'la ausencia de informes no puede pasar en silencio');
+});
+
+test('📈 Lighthouse: corre en su propio job, en paralelo con las pruebas E2E', () => {
+  const { jobs } = readYaml<{ jobs: Record<string, { needs?: unknown; steps: Array<{ run?: string }> }> }>(
+    '.github/workflows/web.yaml',
+  );
+  const commands = (job: string) => jobs[job].steps.map((step) => step.run ?? '').join('\n');
+
+  assert.ok(jobs.lighthouse, 'web.yaml debe definir el job lighthouse');
+  assert.match(commands('lighthouse'), /perf:lighthouse/);
+  assert.doesNotMatch(commands('validate-web'), /perf:lighthouse/, 'Lighthouse no debe sumarse al job de E2E');
+  assert.match(commands('validate-web'), /test:e2e/);
+  assert.equal(jobs.lighthouse.needs, undefined, 'Lighthouse no depende de las pruebas E2E: corren a la vez');
+  assert.equal(jobs['validate-web'].needs, undefined);
 });
 
 test('📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed', () => {
