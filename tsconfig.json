@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
-    "outDir": "./dist"
+    "noEmit": true
   },
-  "include": ["apps/backend/server.ts", "apps/backend/src/**/*", "scripts/**/*", "tests/**/*"]
+  "include": ["apps/backend/server.ts", "apps/backend/src/**/*", "scripts/**/*", "tests/**/*", "playwright.config.ts"]
 }

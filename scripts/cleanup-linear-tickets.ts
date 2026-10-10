@@ -45,6 +45,26 @@ interface LinearIssueNode {
   };
 }
 
+interface TeamResolution {
+  team: LinearTeamNode;
+  doneState?: LinearState;
+  canceledState?: LinearState;
+}
+
+interface CategorizedIssues {
+  sonarBugsToClose: LinearIssueNode[];
+  codeqlDuplicatesToCancel: LinearIssueNode[];
+  otherTickets: LinearIssueNode[];
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
 async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -100,33 +120,22 @@ async function updateIssueBatch(ids: [string, ...string[]], stateId: string): Pr
         }
       }
     `;
-    let allOk = true;
-    for (const id of ids) {
+    const updatePromises = ids.map(async (id) => {
       try {
         const res = await fetchLinear<{ issueUpdate: { success: boolean } }>(singleMutation, { id, stateId });
-        if (!res.issueUpdate?.success) allOk = false;
+        return res.issueUpdate?.success ?? false;
       } catch (e) {
-        console.warn(`⚠️ Error actualizando ticket ${id}:`, e);
-        allOk = false;
+        console.warn('⚠️ Error actualizando ticket:', id, e);
+        return false;
       }
-    }
-    return allOk;
+    });
+
+    const results = await Promise.all(updatePromises);
+    return results.every(Boolean);
   }
 }
 
-async function main(): Promise<void> {
-  console.log('======================================================');
-  console.log('🧹 Limpieza y Cierre Masivo de Tickets en Linear');
-  console.log(`🏷️ Equipo objetivo: ${TARGET_TEAM_KEY}`);
-  console.log(`⚠️ Modo DRY_RUN: ${IS_DRY_RUN}`);
-  console.log('======================================================');
-
-  if (!LINEAR_API_KEY) {
-    console.error('❌ Error: LINEAR_API_KEY no está configurada.');
-    process.exit(1);
-  }
-
-  // 1. Obtener equipo y sus estados
+async function resolveTeamAndStates(targetTeamKey: string): Promise<TeamResolution> {
   const teamsQuery = `
     query GetTeams {
       teams {
@@ -147,11 +156,11 @@ async function main(): Promise<void> {
   `;
 
   const teamsData = await fetchLinear<{ teams: { nodes: LinearTeamNode[] } }>(teamsQuery);
-  const matched = teamsData.teams.nodes.find((t) => t.key.toUpperCase() === TARGET_TEAM_KEY.toUpperCase());
+  const matched = teamsData.teams.nodes.find((t) => t.key.toUpperCase() === targetTeamKey.toUpperCase());
   const selectedTeam = matched || teamsData.teams.nodes[0];
 
   if (!selectedTeam) {
-    console.error(`❌ No se encontró ningún equipo en Linear (buscado: ${TARGET_TEAM_KEY}).`);
+    console.error(`❌ No se encontró ningún equipo en Linear (buscado: ${targetTeamKey}).`);
     process.exit(1);
   }
 
@@ -162,22 +171,20 @@ async function main(): Promise<void> {
     console.log(`   - ${s.name} (tipo: ${s.type}) [ID: ${s.id}]`);
   }
 
-  const doneState = states.find((s) => s.type === 'completed') || states.find((s) => s.name.toLowerCase() === 'done');
-  const canceledState =
-    states.find((s) => s.type === 'canceled') ||
-    states.find((s) => s.name.toLowerCase() === 'canceled' || s.name.toLowerCase() === 'cancelled');
+  const doneState = states.find((s) => s.type === 'completed' || s.name.toLowerCase() === 'done');
+  const canceledState = states.find(
+    (s) => s.type === 'canceled' || s.name.toLowerCase() === 'canceled' || s.name.toLowerCase() === 'cancelled',
+  );
 
   if (!doneState && !canceledState) {
     console.error('❌ No se encontró ningún estado de tipo completed o canceled en el equipo.');
     process.exit(1);
   }
 
-  console.log(`\n🎯 Estado objetivo para resueltos (Done): ${doneState?.name} [${doneState?.id}]`);
-  console.log(
-    `🎯 Estado objetivo para duplicados (Canceled): ${canceledState?.name || doneState?.name} [${canceledState?.id || doneState?.id}]`,
-  );
+  return { team: selectedTeam, doneState, canceledState };
+}
 
-  // 2. Consultar tickets abiertos en el equipo
+async function fetchOpenIssues(teamId: string): Promise<LinearIssueNode[]> {
   const issuesQuery = `
     query GetTeamIssues($teamId: String!) {
       team(id: $teamId) {
@@ -198,13 +205,13 @@ async function main(): Promise<void> {
   `;
 
   const issuesData = await fetchLinear<{ team: { issues: { nodes: LinearIssueNode[] } } }>(issuesQuery, {
-    teamId: selectedTeam.id,
+    teamId,
   });
 
-  const openIssues = issuesData.team?.issues?.nodes || [];
-  console.log(`\n📊 Total de tickets abiertos a evaluar: ${openIssues.length}`);
+  return issuesData.team?.issues?.nodes || [];
+}
 
-  // Clasificar tickets
+function categorizeIssues(openIssues: LinearIssueNode[]): CategorizedIssues {
   const sonarBugsToClose: LinearIssueNode[] = [];
   const codeqlDuplicatesToCancel: LinearIssueNode[] = [];
   const otherTickets: LinearIssueNode[] = [];
@@ -219,7 +226,71 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log(`\n📦 Tickets identificados para limpieza:`);
+  return { sonarBugsToClose, codeqlDuplicatesToCancel, otherTickets };
+}
+
+async function updateIssuesInChunks(issues: LinearIssueNode[], stateId: string, actionLabel: string): Promise<void> {
+  if (issues.length === 0 || !stateId) {
+    return;
+  }
+
+  console.log(`\n🚀 ${actionLabel} ${issues.length} tickets...`);
+  const chunkSize = 50;
+  const chunks = chunkArray(issues, chunkSize);
+
+  const chunkPromises = chunks.map(async (chunk, index) => {
+    const ids = chunk.map((c) => c.id) as [string, ...string[]];
+    const start = index * chunkSize + 1;
+    const end = index * chunkSize + chunk.length;
+    console.log(`   Enviando bloque ${start} - ${end} (${chunk.map((c) => c.identifier).join(', ')})...`);
+    const success = await updateIssueBatch(ids, stateId);
+    console.log(`   Resultado bloque ${start} - ${end}: ${success ? '✅ OK' : '⚠️ Falló algún ticket'}`);
+  });
+
+  await Promise.all(chunkPromises);
+}
+
+function writeStepSummary(summaryMarkdown: string): void {
+  const stepSummaryFile = process.env.GITHUB_STEP_SUMMARY;
+  if (!stepSummaryFile) {
+    return;
+  }
+
+  try {
+    fs.appendFileSync(stepSummaryFile, summaryMarkdown, 'utf-8');
+    console.log('📝 Resumen añadido a GITHUB_STEP_SUMMARY.');
+  } catch (err) {
+    console.warn('⚠️ No se pudo escribir en GITHUB_STEP_SUMMARY:', err);
+  }
+}
+
+async function main(): Promise<void> {
+  console.log('======================================================');
+  console.log('🧹 Limpieza y Cierre Masivo de Tickets en Linear');
+  console.log(`🏷️ Equipo objetivo: ${TARGET_TEAM_KEY}`);
+  console.log(`⚠️ Modo DRY_RUN: ${IS_DRY_RUN}`);
+  console.log('======================================================');
+
+  if (!LINEAR_API_KEY) {
+    console.error('❌ Error: LINEAR_API_KEY no está configurada.');
+    process.exit(1);
+  }
+
+  // 1. Obtener equipo y sus estados
+  const { team, doneState, canceledState } = await resolveTeamAndStates(TARGET_TEAM_KEY);
+
+  console.log(`\n🎯 Estado objetivo para resueltos (Done): ${doneState?.name} [${doneState?.id}]`);
+  console.log(
+    `🎯 Estado objetivo para duplicados (Canceled): ${canceledState?.name || doneState?.name} [${canceledState?.id || doneState?.id}]`,
+  );
+
+  // 2. Consultar y clasificar tickets abiertos
+  const openIssues = await fetchOpenIssues(team.id);
+  console.log(`\n📊 Total de tickets abiertos a evaluar: ${openIssues.length}`);
+
+  const { sonarBugsToClose, codeqlDuplicatesToCancel, otherTickets } = categorizeIssues(openIssues);
+
+  console.log('\n📦 Tickets identificados para limpieza:');
   console.log(`   - SonarCloud (obsoletos/resueltos): ${sonarBugsToClose.length}`);
   console.log(`   - CodeQL Duplicados: ${codeqlDuplicatesToCancel.length}`);
   console.log(`   - Otros tickets preservados: ${otherTickets.length}`);
@@ -231,41 +302,15 @@ async function main(): Promise<void> {
     }
   }
 
-  // 3. Ejecutar actualizaciones por bloques de 50
-  const chunkSize = 50;
-
-  // 3.1 Cierre de SonarCloud -> Done (o Canceled)
+  // 3. Ejecutar actualizaciones
   const targetSonarStateId = doneState?.id ?? canceledState?.id ?? '';
-  if (sonarBugsToClose.length > 0) {
-    console.log(`\n🚀 Cerrando ${sonarBugsToClose.length} tickets de SonarCloud...`);
-    for (let i = 0; i < sonarBugsToClose.length; i += chunkSize) {
-      const chunk = sonarBugsToClose.slice(i, i + chunkSize);
-      const ids = chunk.map((c) => c.id) as [string, ...string[]];
-      console.log(
-        `   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`,
-      );
-      const success = await updateIssueBatch(ids, targetSonarStateId);
-      console.log(`   Resultado bloque: ${success ? '✅ OK' : '⚠️ Falló algún ticket'}`);
-    }
-  }
+  await updateIssuesInChunks(sonarBugsToClose, targetSonarStateId, 'Cerrando');
 
-  // 3.2 Cierre de CodeQL Duplicados -> Canceled (o Done)
   const targetCodeqlStateId = canceledState?.id ?? doneState?.id ?? '';
-  if (codeqlDuplicatesToCancel.length > 0) {
-    console.log(`\n🚀 Cancelando ${codeqlDuplicatesToCancel.length} tickets duplicados de CodeQL...`);
-    for (let i = 0; i < codeqlDuplicatesToCancel.length; i += chunkSize) {
-      const chunk = codeqlDuplicatesToCancel.slice(i, i + chunkSize);
-      const ids = chunk.map((c) => c.id) as [string, ...string[]];
-      console.log(
-        `   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`,
-      );
-      const success = await updateIssueBatch(ids, targetCodeqlStateId);
-      console.log(`   Resultado bloque: ${success ? '✅ OK' : '⚠️ Falló algún ticket'}`);
-    }
-  }
+  await updateIssuesInChunks(codeqlDuplicatesToCancel, targetCodeqlStateId, 'Cancelando');
 
   // 4. Reporte final
-  const summaryMarkdown = `## 🧹 Limpieza Masiva de Tickets en Linear (${selectedTeam.name} - ${selectedTeam.key})
+  const summaryMarkdown = `## 🧹 Limpieza Masiva de Tickets en Linear (${team.name} - ${team.key})
 
 - **Modo:** ${IS_DRY_RUN ? '`DRY_RUN` (Simulación)' : '`LIVE` (Mutación real)'}
 - **Tickets SonarCloud cerrados:** ${sonarBugsToClose.length} ➔ \`${doneState?.name || 'Done'}\`
@@ -274,21 +319,14 @@ async function main(): Promise<void> {
 `;
 
   console.log(`\n${summaryMarkdown}`);
-
-  const stepSummaryFile = process.env.GITHUB_STEP_SUMMARY;
-  if (stepSummaryFile) {
-    try {
-      fs.appendFileSync(stepSummaryFile, summaryMarkdown, 'utf-8');
-      console.log('📝 Resumen añadido a GITHUB_STEP_SUMMARY.');
-    } catch (err) {
-      console.warn('⚠️ No se pudo escribir en GITHUB_STEP_SUMMARY:', err);
-    }
-  }
+  writeStepSummary(summaryMarkdown);
 
   console.log('🏁 Proceso de limpieza finalizado con éxito.');
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error('💥 Error inesperado en la limpieza de Linear:', err);
   process.exit(1);
-});
+}

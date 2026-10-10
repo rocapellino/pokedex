@@ -54,6 +54,10 @@ interface LinearIssueNode {
   };
 }
 
+function sanitizeMarkdownCell(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+}
+
 async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -180,7 +184,7 @@ async function main(): Promise<void> {
       console.log(`  Etiquetas: ${labels}`);
       console.log(`  URL: ${issue.url}`);
 
-      summaryMarkdown += `| [${issue.identifier}](${issue.url}) | ${issue.title.replace(/\|/g, '\\|')} | \`${stateName}\` | ${priority} | ${assigneeName} | ${labels} | [Link](${issue.url}) |\n`;
+      summaryMarkdown += `| [${issue.identifier}](${issue.url}) | ${sanitizeMarkdownCell(issue.title)} | \`${stateName}\` | ${priority} | ${assigneeName} | ${labels} | [Link](${issue.url}) |\n`;
     }
   }
 
@@ -198,7 +202,9 @@ async function main(): Promise<void> {
   console.log('\n🏁 Consulta finalizada con éxito.');
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error('💥 Error inesperado durante la consulta de Linear:', err);
   process.exit(1);
-});
+}
