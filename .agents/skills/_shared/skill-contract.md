@@ -21,7 +21,7 @@ Una skill **no copia** datos que cambian con el código: versiones, UIDs, nombre
 | En lugar de escribir | Escribir |
 | :--- | :--- |
 | `USER 10001:10001` | "`USER` numérico no privilegiado verificado en `apps/*/Dockerfile`" |
-| `tests/repo_contracts.test.ts` como ejemplo canónico | "la suite que corresponda según `npm run test:surface`" |
+| `tests/contracts/governance/test_surface_contract.test.ts` como ejemplo canónico | "la suite que corresponda según `npm run test:surface`" |
 | "Observabilidad con OpenTelemetry" | La capacidad verificable y el archivo que la implementa |
 
 Motivo: el análisis del 2026-10-03 encontró en las skills un UID, una ruta (`infra/tofu/`) y una afirmación de OpenTelemetry que ya no correspondían al código. Un dato copiado se desactualiza sin que ningún gate lo detecte; un enlace roto sí lo detecta `docs:validate`.
