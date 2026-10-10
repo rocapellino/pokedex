@@ -77,3 +77,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
+          # Mismo criterio que el escaneo de imágenes de la aplicación (ci.yaml): solo cuentan
+          # las vulnerabilidades con corrección disponible, que son las accionables. Sin esto
+          # el job reportaba cientos de hallazgos sin parche (97 en postgres-bookworm).
+          ignore-unfixed: true
