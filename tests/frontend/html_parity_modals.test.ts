@@ -1,5 +1,6 @@
 import { dom } from './mega_env.js';
 import { assertHtmlSnapshot } from './html_snapshot.js';
+import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   renderBaseStats,
@@ -80,6 +81,8 @@ const CASES: Record<string, () => unknown> = {
 
 for (const [name, render] of Object.entries(CASES)) {
   test(`🧪 Paridad de render (modal): ${name} produce la misma salida que la versión anterior`, (t) => {
-    assertHtmlSnapshot(t, render());
+    const html = render();
+    assert.notStrictEqual(html, undefined, 'el renderizador debe devolver una salida definida');
+    assertHtmlSnapshot(t, html);
   });
 }
