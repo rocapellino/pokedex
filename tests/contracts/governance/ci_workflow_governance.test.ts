@@ -404,7 +404,13 @@ test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issu
 });
 
 test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows', () => {
-  const ALLOWED_SECRETS = new Set(['GITHUB_TOKEN', 'SONAR_TOKEN', 'LINEAR_API_KEY', 'RULESET_ADMIN_TOKEN']);
+  const ALLOWED_SECRETS = new Set([
+    'GITHUB_TOKEN',
+    'SONAR_TOKEN',
+    'LINEAR_API_KEY',
+    'RULESET_ADMIN_TOKEN',
+    'GRAFANA_CLOUD_METRICS_TOKEN',
+  ]);
 
   for (const file of workflowFiles()) {
     // Se audita el workflow parseado: lo que se evalúa, no lo que se menciona en un comentario.
