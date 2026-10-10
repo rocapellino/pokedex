@@ -274,6 +274,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica que los jobs que ejecutan la suite definan POKEDEX_TEST_*, levanten PostgreSQL y Redis con healthcheck y usen las imágenes por digest del compose, para que las suites de base de datos no se omitan en silencio.',
   },
+  'tests/ci/coverage_gate.test.ts': {
+    type: 'Contract / CI',
+    targetDomain: 'Gate de Cobertura de Rutas HTTP en CI',
+    targetArtifacts: ['.github/workflows/ci.yaml', 'package.json', 'scripts/check-coverage-threshold.ts'],
+    description:
+      'Verifica que el job sonarcloud ejecute npm run coverage:gate después de generar el LCOV y antes del análisis de Sonar, y que el script npm apunte al verificador.',
+  },
   'tests/ci/workflow_run_parity.test.ts': {
     type: 'Contract / CI',
     targetDomain: 'Paridad Estructural de Workflows de CI',
@@ -550,6 +557,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetArtifacts: ['apps/backend/src/services/auth.ts'],
     description:
       'Valida ciclo de vida de tokens HMAC-SHA256, expiración con reloj simulado, verificación de firma y límites del payload, revocación y fail-closed de secretos.',
+  },
+  'tests/unit/check_coverage_threshold.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gate de Cobertura por Directorio',
+    targetArtifacts: ['scripts/check-coverage-threshold.ts'],
+    description:
+      'Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, el umbral exacto del 80 % y que un prefijo sin archivos falle.',
   },
   'tests/unit/session_cookie.test.ts': {
     type: 'Unit',

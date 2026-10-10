@@ -70,6 +70,7 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
 - **Relación Tests vs. Código Fuente:**
   - Mapeo bidireccional entre módulos en `apps/backend/src/` y sus suites asociadas.
   - Identificación de brechas de cobertura (`TEST_COVERAGE_GAP`) en flujos críticos no testeados.
+  - **Gate de cobertura por directorio:** `npm run coverage:gate` (`scripts/check-coverage-threshold.ts`) exige un mínimo de líneas cubiertas por directorio sobre `coverage/lcov.info`; hoy, 80 % en `apps/backend/src/routes/`. Se ejecuta en el job `sonarcloud`, entre la generación del LCOV y el análisis. Un directorio nuevo se protege añadiendo su entrada a `COVERAGE_GATES`.
 - **Protocolo de Depuración:** Toda eliminación, fusión o movimiento de tests sigue el [protocolo único de depuración](../_shared/cleanup-protocol.md) con el vocabulario de 12 estados de esta skill.
   *Regla estricta:* Ningún test se elimina automáticamente en primera pasada ni únicamente porque no se ejecute (primero se investiga si obedece a un pipeline desconfigurado o test abandonado).
 - **Gobernanza de Superficie de Testing (Test Surface Inventory):**
