@@ -70,7 +70,7 @@ if [[ -z "${BACKUP_FILE}" || ! -f "${BACKUP_FILE}" ]]; then
     echo "ℹ️ [DR Verification: Dry-Run] No se detectó dump previo. Generando muestra cifrada efímera para prueba de ciclo completo..."
     TEST_TMP_DIR=$(mktemp -d)
     trap 'rm -rf "${TEST_TMP_DIR}"' EXIT
-    
+
     RAW_SAMPLE="${TEST_TMP_DIR}/sample.sql"
     cat <<'EOF' > "${RAW_SAMPLE}"
 CREATE TABLE IF NOT EXISTS pokedex_entries (
@@ -238,7 +238,7 @@ if [[ -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
 # Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero con imagen inmutable fijada por digest
 elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   # Imagen oficial PostgreSQL 16 Alpine fijada por digest SHA-256 criptográficamente verificable
-  POSTGRES_IMAGE="postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685"
+  POSTGRES_IMAGE="postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
   echo "🐳 [DR Verification] Creando contenedor PostgreSQL efímero (${POSTGRES_IMAGE}) vía Docker..."
   EPHEMERAL_CONTAINER="pokedex_dr_verify_$$"
   docker run -d --name "${EPHEMERAL_CONTAINER}" \
