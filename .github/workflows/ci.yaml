@@ -112,33 +112,11 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-    # PostgreSQL y Redis reales para tests/integration/db/ (activadas por las variables POKEDEX_TEST_*).
-    # Mismas imágenes, fijadas por digest, que docker-compose.yaml; lo comprueba
-    # tests/ci/db_integration_services.test.ts. Las credenciales son de un servicio efímero del runner.
-    env:
-      POKEDEX_TEST_DATABASE_URL: postgresql://postgres:pokedex_test@127.0.0.1:5432/postgres
-      POKEDEX_TEST_REDIS_URL: redis://127.0.0.1:6379
-    services:
-      postgres:
-        image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
-        env:
-          POSTGRES_PASSWORD: pokedex_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
+    # La suite de pruebas NO corre aquí: la ejecuta una sola vez el job `sonarcloud` con
+    # `npm run test:coverage` (la misma suite que `npm test`, más el LCOV), que levanta
+    # PostgreSQL y Redis. Duplicarla costaba un segundo runner con servicios por PR y el
+    # resultado ya bloquea el merge a través de `🚦 Quality Gate`. Este job conserva los
+    # gates estáticos, el build, el fuzzing y la auditoría SCA.
     steps:
       - name: 1. Descargar Código Fuente
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -172,13 +150,10 @@ jobs:
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 
-      - name: 6. Ejecutar Tests de Unidad, Pentest y Seguridad
-        run: npm test
-
-      - name: 7. Ejecutar Suite Dinámica de API Fuzzing (DAST)
+      - name: 6. Ejecutar Suite Dinámica de API Fuzzing (DAST)
         run: npm run test:fuzz
 
-      - name: 8. Auditoría de Vulnerabilidades de Dependencias (SCA)
+      - name: 7. Auditoría de Vulnerabilidades de Dependencias (SCA)
         run: npm audit --audit-level=high --omit=dev
 
   sonarcloud:
@@ -356,14 +331,13 @@ jobs:
   # =======================================================
   build-docker:
     name: "🐳 Compilar Imagen Docker"
-    needs: [code-quality, semgrep]
+    # Sin `needs`: compilar la imagen no depende de los Quality Gates, así que corre en
+    # paralelo con ellos. Que nada se publique sin haberlos pasado lo garantiza `publish`.
     if: |
-      (inputs.docker ||
-       inputs.security_container ||
-       inputs.is_unknown ||
-       github.event_name == 'push') &&
-      (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') &&
-      (needs.semgrep.result == 'success' || needs.semgrep.result == 'skipped')
+      inputs.docker ||
+      inputs.security_container ||
+      inputs.is_unknown ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
@@ -515,7 +489,9 @@ jobs:
   # =======================================================
   publish:
     name: "📦 Publicar Imagen y Helm Chart a GHCR"
-    needs: [build-docker, trivy-scan]
+    # code-quality y semgrep se declaran aquí porque build-docker ya no los espera: en push a
+    # main ambos corren siempre, y si alguno falla no se publica ni firma nada.
+    needs: [code-quality, semgrep, build-docker, trivy-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20

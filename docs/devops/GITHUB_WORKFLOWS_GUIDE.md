@@ -118,10 +118,10 @@ flowchart TD
 - **Archivo:** [`ci.yaml`](../../.github/workflows/ci.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y ejecutable manualmente (`workflow_dispatch`).
 - **Etapas:**
-  1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm test` (unit, pentest, contratos), `npm run test:fuzz` (fuzzing DAST) y `npm audit --audit-level=high --omit=dev`.
+  1. **Auditoría de Calidad:** `tsc --noEmit`, compilación `esbuild`, `npm run test:fuzz` (fuzzing DAST) y `npm audit --audit-level=high --omit=dev`. La suite de pruebas (unit, pentest, contratos e integración con PostgreSQL y Redis) corre una sola vez en el job `sonarcloud` con `npm run test:coverage`, que además genera el LCOV.
   2. **Análisis Estático SAST (Bloqueante):** **Semgrep** analiza el código contra reglas de OWASP Top 10 y detiene el pipeline ante fallos de seguridad.
   3. **Dependency Review Gate (Bloqueante, solo PR):** Bloquea automáticamente PRs que introduzcan vulnerabilidades `HIGH` o `CRITICAL` en dependencias nuevas o modificadas. La acción requiere contexto de Pull Request (`base_ref`/`head_ref`); en `push` y `workflow_dispatch` la cobertura SCA la aporta `npm audit`.
-  4. **Construcción y Escaneo de Contenedores:** Construcción multi-stage de la imagen Docker y escaneo con **Trivy** (SCA y OS CVEs).
+  4. **Construcción y Escaneo de Contenedores:** Construcción multi-stage de la imagen Docker, en paralelo con los gates anteriores, y escaneo con **Trivy** (SCA y OS CVEs). `publish` espera a `code-quality`, `semgrep`, `build-docker` y `trivy-scan`.
   5. **Firmado Criptográfico y Publicación OCI (Solo en `main`):**
      - Generación del **SBOM CycloneDX** con **Trivy**.
      - Firma Keyless de la imagen y del Helm Chart OCI con **Cosign** usando OIDC de GitHub Actions (`ci.yaml@refs/heads/main`).

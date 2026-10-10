@@ -5,8 +5,8 @@ import pg from 'pg';
  * Servicios reales (PostgreSQL y Redis) para las pruebas de integración de `tests/integration/db/`.
  *
  * Las suites son opt-in, igual que `RULESET_LIVE_CHECK`: sin las variables siguientes se omiten con un motivo
- * explícito y `npm test` sigue funcionando sin Docker. El job `code-quality` y el de cobertura de CI las
- * definen y levantan los servicios con las mismas imágenes (por digest) que `docker-compose.yaml`;
+ * explícito y `npm test` sigue funcionando sin Docker. El job `sonarcloud` de CI (que ejecuta la suite con cobertura) las
+ * define y levanta los servicios con las mismas imágenes (por digest) que `docker-compose.yaml`;
  * `tests/ci/db_integration_services.test.ts` impide que esa configuración se pierda sin que nadie lo note.
  *
  * Local, con las imágenes del compose (el puerto 55432 y el 56379 son arbitrarios):

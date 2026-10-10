@@ -134,7 +134,7 @@ export function parseTestFile(fullPath: string): TestFileRecord {
   // Workflows de CI asociados
   const ciWorkflows: string[] = [];
   if (npmCommands.some((c) => c.includes('npm test') || c.includes('test:all'))) {
-    ciWorkflows.push('.github/workflows/ci.yaml (code-quality, sonarcloud)');
+    ciWorkflows.push('.github/workflows/ci.yaml (sonarcloud)');
   }
   if (npmCommands.some((c) => c.includes('test:fuzz'))) {
     ciWorkflows.push('.github/workflows/ci.yaml (code-quality)');
