@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import yaml from 'js-yaml';
 import { ROOT_DIR } from './helpers/repo.js';
 
 /**
@@ -128,4 +129,50 @@ test('📚 Gobernanza Documental: validación contractual de la regla transversa
     !agentsContent.includes('`repo-doc-governance`'),
     'AGENTS.md no debe contener la skill retirada repo-doc-governance',
   );
+});
+
+/**
+ * Retención de `docs/audits/`.
+ *
+ * `max_active_snapshots` cuenta baselines (directorios con `baseline.md`). Los informes auxiliares de un ciclo
+ * (plan, remediación) solo se conservan hasta que el siguiente baseline los absorba, así que un directorio sin
+ * `baseline.md` debe ser posterior al baseline vigente. Sin esto, el límite de 1 se leería como violado por cada
+ * plan de mejora, o se ignoraría y los informes ya absorbidos se acumularían.
+ */
+test('📚 Gobernanza Documental: docs/audits conserva un baseline y solo informes posteriores a él', () => {
+  const auditsDir = path.join(ROOT_DIR, 'docs', 'audits');
+  const contract = yaml.load(
+    fs.readFileSync(path.join(ROOT_DIR, '.agents/skills/repo-docs/references/documentation-contract.yaml'), 'utf-8'),
+  ) as { budget: { audits: { max_active_snapshots: number; auxiliary_reports: string } } };
+
+  const cycles = fs.readdirSync(auditsDir).filter((entry) => /^\d{4}-\d{2}-\d{2}$/.test(entry));
+  const baselines = cycles.filter((cycle) => fs.existsSync(path.join(auditsDir, cycle, 'baseline.md'))).sort();
+  const auxiliary = cycles.filter((cycle) => !baselines.includes(cycle));
+
+  assert.equal(contract.budget.audits.auxiliary_reports, 'until-next-baseline');
+  assert.ok(baselines.length >= 1, 'debe haber un baseline vigente en docs/audits/');
+  assert.ok(
+    baselines.length <= contract.budget.audits.max_active_snapshots,
+    `docs/audits conserva ${baselines.length} baselines (${baselines.join(', ')}); el contrato permite ${contract.budget.audits.max_active_snapshots}`,
+  );
+
+  const current = baselines[baselines.length - 1];
+  const absorbed = auxiliary.filter((cycle) => cycle <= current);
+  assert.deepEqual(
+    absorbed,
+    [],
+    `los informes de ${absorbed.join(', ')} son anteriores o de la fecha del baseline vigente (${current}): ya fueron absorbidos y deben podarse`,
+  );
+
+  // Todo documento del directorio es evidencia histórica y lo declara.
+  for (const cycle of cycles) {
+    for (const file of fs.readdirSync(path.join(auditsDir, cycle)).filter((f) => f.endsWith('.md'))) {
+      const content = fs.readFileSync(path.join(auditsDir, cycle, file), 'utf-8');
+      assert.match(
+        content,
+        /^> \*\*Estado:\*\* Histórico/m,
+        `docs/audits/${cycle}/${file} debe declarar Estado: Histórico`,
+      );
+    }
+  }
 });

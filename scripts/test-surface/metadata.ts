@@ -86,9 +86,9 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/doc_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / ADRs',
-    targetArtifacts: ['docs/decisions/', '.agents/rules/documentation-governance.md'],
+    targetArtifacts: ['docs/decisions/', 'docs/audits/', '.agents/rules/documentation-governance.md'],
     description:
-      'Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios.',
+      'Asegura la convención de IDs de hallazgo, el contrato documental de repo-docs y la retención de docs/audits (un baseline, informes auxiliares solo posteriores a él y todos con Estado: Histórico).',
   },
   'tests/fuzz/fuzzing.test.ts': {
     type: 'Fuzz',

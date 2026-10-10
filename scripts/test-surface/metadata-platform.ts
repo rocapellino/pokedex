@@ -50,7 +50,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     targetDomain: 'GitOps / ADR-003 y ADR-005',
     targetArtifacts: ['docs/decisions/', 'infra/helm/pokedex/values.yaml'],
     description:
-      'Comprueba ADR-003 (Sync Waves, hooks de siembra, health checks, App-of-Apps) y ADR-005 (Stakater Reloader, refreshInterval acotado, auditoría).',
+      'Comprueba ADR-003 (Sync Waves, hook de siembra y startupProbe sobre el chart renderizado; health checks y App-of-Apps sobre los manifiestos parseados) y ADR-005 (Reloader y refreshInterval en los values parseados, tareas de Task); los ADR y runbooks se verifican como texto.',
   },
   'tests/gitops/gitops_architecture.test.ts': {
     type: 'Contract / GitOps',
