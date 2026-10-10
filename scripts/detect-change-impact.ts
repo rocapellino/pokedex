@@ -388,11 +388,11 @@ export function formatImpactMarkdown(
   unmappedFiles?: string[],
 ): string {
   const rows: { domain: string; affected: boolean; pipeline: string }[] = [
-    { domain: 'Documentation', affected: triggers.documentation, pipeline: 'docs-ci (Fast Track)' },
+    { domain: 'Documentation', affected: triggers.documentation, pipeline: 'ci.yaml (docs-gate)' },
     { domain: 'Agent Governance', affected: triggers.agent_governance, pipeline: 'ci.yaml (aas-governance)' },
     { domain: 'Backend Core', affected: triggers.backend, pipeline: 'ci.yaml (code-quality)' },
     { domain: 'Frontend SPA', affected: triggers.frontend, pipeline: 'ci.yaml & web.yaml' },
-    { domain: 'Unit & Integration Tests', affected: triggers.tests, pipeline: 'npm test & fuzzing' },
+    { domain: 'Unit & Integration Tests', affected: triggers.tests, pipeline: 'ci.yaml (sonarcloud) & fuzzing' },
     { domain: 'Docker Images', affected: triggers.docker, pipeline: 'build-docker & Cosign' },
     { domain: 'Kubernetes & GitOps', affected: triggers.kubernetes, pipeline: 'infra.yaml & Kind' },
     { domain: 'Helm Packaging', affected: triggers.helm, pipeline: 'helm lint & parity' },
@@ -409,10 +409,10 @@ export function formatImpactMarkdown(
       pipeline: 'PR template & políticas de calidad',
     },
     { domain: 'Security: Secrets Scan (always)', affected: triggers.security_secrets, pipeline: 'Gitleaks Detector' },
-    { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep' },
+    { domain: 'Security: SAST Code', affected: triggers.security_sast, pipeline: 'Semgrep & njsscan' },
     { domain: 'Security: Dependencies SCA', affected: triggers.security_dependencies, pipeline: 'Dependency Review' },
     { domain: 'Security: Container Scan', affected: triggers.security_container, pipeline: 'Trivy Image Scan' },
-    { domain: 'Security: IaC & K8s Scan', affected: triggers.security_iac, pipeline: 'Checkov IaC' },
+    { domain: 'Security: IaC & K8s Scan', affected: triggers.security_iac, pipeline: 'Checkov & Trivy IaC' },
     {
       domain: 'Security: Supply Chain / SBOM',
       affected: triggers.security_supply_chain,
