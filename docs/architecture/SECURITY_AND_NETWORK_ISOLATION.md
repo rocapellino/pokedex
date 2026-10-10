@@ -213,7 +213,7 @@ Para evitar descargas no deterministas, colisiones de tags y ataques de sustituc
 1. **Eliminación del tag `latest`:** Los valores por defecto de Helm fijan tags semánticos explícitos (`1.9.5`).
 2. **Soporte de Digest Criptográfico:** Los despliegues de Helm permiten parametrizar `digest: "sha256:..."` garantizando que Kubernetes verifique el hash inmutable antes de la ejecución.
 3. **Imágenes de Infraestructura Fijadas por Digest:**
-   - PgBouncer está anclado a `1.22.0@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516`.
+   - PgBouncer está anclado a `1.22.0@sha256:b736de2483bfb5263f3ba243415b20d1d2e1246e5f408e6ff53cd8e07b2d4164`.
    - Frontend Nginx está anclado a `1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3`. La **fuente única de verdad** es la línea `FROM` de `apps/frontend/Dockerfile`: el job *Frontend Web CI* extrae de ahí la versión y el digest para validar la configuración de Nginx, de modo que la versión validada nunca puede divergir de la desplegada.
 
 ---

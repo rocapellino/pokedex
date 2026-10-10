@@ -68,7 +68,7 @@ jobs:
           - 'postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea'
           - 'postgres@sha256:0ea6700a3b4f0ae6ce746519073558aed4d88a79d8d07622a9a644946c7319c4' # backup.image (16-bookworm)
           - 'redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499'
-          - 'pgbouncer/pgbouncer@sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516'
+          - 'pgbouncer/pgbouncer@sha256:b736de2483bfb5263f3ba243415b20d1d2e1246e5f408e6ff53cd8e07b2d4164'
     steps:
       - name: Escanear imagen base de infraestructura
         uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
