@@ -39,6 +39,22 @@ Gobernar la estrategia integral de pruebas automatizadas en `rocapellino/pokedex
     - *Dependencia de Estado Externo / Temporal:* Tests acoplados a fechas u horas del sistema en lugar de mocks deterministas.
     - *Mocks No Herméticos:* Mocks que no limpian su estado residual entre tests.
     - *Fixtures Huérfanos:* Archivos de datos o mocks en `tests/` que ningún test consume.
+    - *Contrato por Texto (`AUD-TST-CTR-001`, `AUD-TST-CTR-002`):* `includes` o regex sobre el contenido crudo de un YAML, HCL, JSON, workflow, Taskfile o plantilla. Un valor comentado, el nombre de otro paso o la clave equivocada lo satisfacen sin que nada lo aplique. Se verifica la estructura (ver la pauta siguiente).
+    - *Test de Constante Local:* Una aserción cuyo valor sale de una constante declarada en el propio test (`const activo = false; assert(!activo)`) no puede fallar. El valor se lee del artefacto.
+- **Pauta de Contratos sobre Archivos del Repositorio:**
+  - **Configuración y manifiestos: se parsean, no se leen como texto.** Se usan los helpers de `tests/helpers/`:
+    - `readYaml` / `readYamlDocs` para YAML y manifiestos multidocumento; `workflowJobs` / `workflowScripts` para workflows (los `run:` llegan sin las líneas de shell comentadas).
+    - `renderChart` / `PROFILES` para el chart de Helm: las Sync Waves, anotaciones y sondas se leen del recurso renderizado, no de la plantilla Go.
+    - `readHcl` / `blocksOf` para OpenTofu; `readTaskfiles` / `taskCommands` para Task; `playbookTasks` / `taskNamed` / `moduleArgs` para Ansible.
+  - **Se ata cada aserción a su campo.** Un umbral se comprueba contra la métrica que lo contiene, un permiso contra el job que lo usa, una condición contra el `if` del paso que protege. Si el campo se repite con el mismo valor en otro sitio (`custom_error_rate` y `http_req_failed`), la aserción debe distinguir ambos. Un localizador de pasos o tareas falla si encuentra cero o varios (`taskNamed`, `stepNamed`).
+  - **Scripts y lenguajes sin parser (Bash, k6, River):** se comprueban como texto, pero sin sus líneas de comentario y con expresiones ancladas (`/p\(95\)<200'/`, no `/p\(95\)<200/`, que acepta `p(95)<2000`). Un comando multilínea se une antes de buscar dentro de él.
+  - **Documentos Markdown (`AUD-TST-DOC-001`): se comprueban identificadores, no frases.** Un párrafo reescrito sin cambiar ninguna garantía no debe romper un test. Se exige:
+    - que el archivo exista y que sus enlaces relativos resuelvan;
+    - los encabezados esperados (`## Decisión`, una sección numerada) y los identificadores que lo conectan al resto del repositorio (ID de ADR, nombre de tarea, ruta de archivo, nombre de variable o de flag);
+    - los valores de una tabla leída por columnas cuando el documento es la fuente de una cifra (SLA, RPO, RTO).
+    No se exigen frases completas ni adjetivos. Si una cifra se comprueba con regex (`/99\.5%\s*mensual/`), debe poder cambiar de redacción sin cambiar de valor. Los gates documentales (`validate-docs-governance`, `lint:docs:refs`, `docs_portal_integrity`) ya cubren enlaces rotos e índices: no se repiten en cada contrato.
+  - **Qué se queda como texto aunque sea YAML:** los comentarios que son la garantía (por ejemplo, la mención de `kindnet` en `kind-cluster.yaml` o el tag legible junto al SHA en `.pre-commit-config.yaml`) y los escalares de bloque que embeben otro formato. Un `#` dentro de un escalar de bloque es texto, no comentario: el contenido embebido se parsea con su propio parser.
+  - **Prueba de la prueba.** Al crear o reescribir un contrato se aplica cada defecto al artefacto real, se comprueba que el test nuevo falla y se compara con el test anterior (`git show origin/main:<archivo>`). Se incluyen siempre dos tipos de defecto: el valor cambiado con el original conservado en un comentario, y el comando o la opción desactivados con su texto aún presente en otra parte. Un mutante que sobrevive indica una aserción demasiado laxa o una mutación equivalente (se documenta cuál).
 - **Relación Tests vs. Código Fuente:**
   - Mapeo bidireccional entre módulos en `apps/backend/src/` y sus suites asociadas.
   - Identificación de brechas de cobertura (`TEST_COVERAGE_GAP`) en flujos críticos no testeados.
