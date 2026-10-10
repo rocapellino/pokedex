@@ -59,7 +59,9 @@ global:
       iac: true
       supply_chain: true
 
-# Reglas de impacto condicional por dominio
+# Reglas de impacto condicional por dominio.
+# Cada regla declara solo los disparadores que ACTIVA: `applyTriggers` (scripts/detect-change-impact.ts) parte de
+# todo en `false` y únicamente enciende los `true`, así que listar un dominio como `false` no tenía efecto.
 rules:
   agent_governance:
     description: "Gobernanza del catálogo externo AAS y sus contratos locales"
@@ -74,11 +76,6 @@ rules:
       documentation: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   documentation:
     description: "Modificaciones puramente documentales y políticas de gobernanza"
@@ -98,21 +95,6 @@ rules:
       - "taskfiles/**.yaml"
     triggers:
       documentation: true
-      backend: false
-      frontend: false
-      tests: false
-      docker: false
-      kubernetes: false
-      helm: false
-      opentofu: false
-      ansible: false
-      security:
-        secrets: false
-        sast: false
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   backend:
     description: "API Express, lógica de negocio, migraciones DB y esquemas"
@@ -127,7 +109,6 @@ rules:
         sast: true
         dependencies: true
         container: true
-        iac: false
         supply_chain: true
 
   frontend:
@@ -147,7 +128,6 @@ rules:
         sast: true
         dependencies: true
         container: true
-        iac: false
         supply_chain: true
 
   kubernetes:
@@ -174,9 +154,6 @@ rules:
       tests: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
         iac: true
         supply_chain: true
 
@@ -192,9 +169,6 @@ rules:
       kubernetes: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
         iac: true
         supply_chain: true
 
@@ -209,11 +183,7 @@ rules:
       opentofu: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
         iac: true
-        supply_chain: false
 
   ansible:
     description: "Playbooks, roles e inventarios de hardening de sistemas base"
@@ -226,11 +196,7 @@ rules:
       ansible: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
         iac: true
-        supply_chain: false
 
   docker:
     description: "Definiciones de contenedores, retención OCI y orquestación multi-servicio"
@@ -246,8 +212,6 @@ rules:
       tests: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
         container: true
         iac: true
         supply_chain: true
@@ -275,11 +239,6 @@ rules:
       tests: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   catalog_tooling:
     description: "Generador del catálogo nacional de Pokémon (PokeAPI a JSON versionado del backend)"
@@ -291,10 +250,6 @@ rules:
       security:
         secrets: true
         sast: true
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   sync_tooling:
     description: "Scripts de sincronización y telemetría externa (Linear, SonarQube)"
@@ -305,11 +260,6 @@ rules:
       tests: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   dependency_management:
     description: "Política de actualización de dependencias (Renovate): cooldown, automerge y gestores habilitados"
@@ -326,10 +276,6 @@ rules:
       security:
         secrets: true
         sast: true
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   tests:
     description: "Suites de pruebas automatizadas del monorepo"
@@ -341,11 +287,6 @@ rules:
       tests: true
       security:
         secrets: true
-        sast: false
-        dependencies: false
-        container: false
-        iac: false
-        supply_chain: false
 
   tests_unit:
     description: "Pruebas unitarias, contratos y fuzzing de backend"
