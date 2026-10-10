@@ -378,9 +378,25 @@ test('📈 OBS-001: el dashboard de aplicacion solo consulta metricas que la API
 });
 
 test('📈 OBS-001: los paneles resuelven el datasource por variable, no por UID vacio', () => {
-  for (const t of dashboardTargets()) {
-    const expected = t.type === 'loki' ? '${logs_datasource}' : '${datasource}';
-    assert.equal(t.uid, expected, `${t.panel}: el datasource debe ser ${expected}`);
+  const dashboards = ['pokedex-application.json', 'cluster-observability.json', 'k6-performance.json'];
+  for (const file of dashboards) {
+    const filePath = path.join(ROOT_DIR, 'infra/monitoring/dashboards', file);
+    const dashboard = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const walk = (panels: DashboardPanel[]) => {
+      for (const p of panels) {
+        for (const t of p.targets ?? []) {
+          const ds = t.datasource ?? p.datasource ?? {};
+          const expected = ds.type === 'loki' ? '${logs_datasource}' : '${datasource}';
+          assert.equal(
+            ds.uid,
+            expected,
+            `En ${file} (${p.title}): el datasource debe ser ${expected} y no '${ds.uid ?? ''}'`,
+          );
+        }
+        if (p.panels) walk(p.panels);
+      }
+    };
+    walk(dashboard.panels ?? []);
   }
 });
 
