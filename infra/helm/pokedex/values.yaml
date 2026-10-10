@@ -159,7 +159,7 @@ pgbouncer:
     repository: pgbouncer/pgbouncer
     tag: "1.22.0"
     # INFRA-005: digest en campo dedicado (antes incrustado en `tag`).
-    digest: "sha256:aa8a38b7b33e5fe70c679053f97a8e55c74d52b00c195f0880845e52b50ce516"
+    digest: "sha256:b736de2483bfb5263f3ba243415b20d1d2e1246e5f408e6ff53cd8e07b2d4164"
     pullPolicy: IfNotPresent
   port: 5432
   poolMode: transaction
