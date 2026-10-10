@@ -1893,6 +1893,29 @@
       "description": "Valida el enlace de salto: precede al catálogo, es visible con varias páginas, lleva el foco a «Siguiente» o «Anterior» y no deja rastro en la URL."
     },
     {
+      "path": "tests/frontend/sticky_header.test.ts",
+      "suite": "frontend",
+      "type": "Component / DOM",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Catálogo / Zona Fija Superior",
+      "targetArtifacts": [
+        "apps/frontend/src/shared/sticky-header.ts",
+        "apps/frontend/index.html",
+        "apps/frontend/public/css/style.css"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica que la zona fija publique su altura al cambiar de tamaño, que el HTML la componga de cabecera, búsqueda y filtros, y que el CSS la pegue arriba y reserve su altura."
+    },
+    {
       "path": "tests/frontend/type_badge_contrast.test.ts",
       "suite": "frontend",
       "type": "Accessibility",
