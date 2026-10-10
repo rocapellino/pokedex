@@ -272,6 +272,52 @@
       "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
     },
     {
+      "path": "tests/contracts/app/api_types_compat.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Types",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Interoperabilidad Backend-Frontend",
+      "targetArtifacts": [
+        "apps/backend/src/types.ts",
+        "apps/frontend/src/types.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
+    },
+    {
+      "path": "tests/contracts/delivery/commit_types_parity.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Delivery",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Convención de Commits",
+      "targetArtifacts": [
+        "commitlint.config.js",
+        ".pre-commit-config.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Exige que commitlint y conventional-pre-commit permitan exactamente los mismos tipos de commit."
+    },
+    {
       "path": "tests/contracts/delivery/ghcr_retention.test.ts",
       "suite": "contracts",
       "type": "Contract / OCI",
@@ -803,6 +849,30 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Comprueba que cada SKILL.md de .agents/skills/ tenga frontmatter YAML válido con name y description."
+    },
+    {
+      "path": "tests/contracts/governance/test_surface_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Superficie de Pruebas (test-surface)",
+      "targetArtifacts": [
+        "docs/testing/test-surface.json",
+        "docs/testing/test-surface.md",
+        "scripts/test-surface/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que el catálogo test-surface no tenga drift, no versione datos volátiles y que cada archivo de tests/ tenga una descripción propia."
     },
     {
       "path": "tests/contracts/governance/version_consistency.test.ts",
@@ -2469,28 +2539,6 @@
         ".github/workflows/performance-k6.yaml (k6-load-test)"
       ],
       "description": "Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios."
-    },
-    {
-      "path": "tests/repo_contracts.test.ts",
-      "suite": "governance",
-      "type": "Contract / Types",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Interoperabilidad Backend-Frontend",
-      "targetArtifacts": [
-        "apps/backend/src/types.ts",
-        "apps/frontend/src/types.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
     },
     {
       "path": "tests/security/ansible_baseline_security.test.ts",
