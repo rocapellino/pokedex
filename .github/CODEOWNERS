@@ -1,33 +1,10 @@
 # ==============================================================================
-# GitHub CODEOWNERS - Asignación de Responsabilidades por Capas (DevSecOps)
+# GitHub CODEOWNERS
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 # ==============================================================================
-
-# Ownership global por defecto
+# Hay un único mantenedor, así que una sola regla cubre todo el repositorio. El ruleset
+# `main-protection` no exige revisión de code owners (`require_code_owner_review: false`):
+# este archivo solo asigna el propietario por defecto (solicitud automática de revisión y
+# validación de autoría). Si se suman mantenedores, conviene volver a separar por dominio
+# (`.github/`, `infra/`, `gitops/`, `apps/`, `tests/`) y activar esa exigencia en el ruleset.
 * @rocapellino
-
-# 1. DevSecOps, Seguridad de la Cadena de Suministro y CI/CD
-.github/ @rocapellino
-SECURITY.md @rocapellino
-docs/security/ @rocapellino
-.gitleaks.toml @rocapellino
-renovate.json @rocapellino
-sonar-project.properties @rocapellino
-
-# 2. Infraestructura, Helm Charts, Políticas Kubernetes (IaC / GitOps)
-infra/ @rocapellino
-gitops/ @rocapellino
-Dockerfile @rocapellino
-docker-compose*.yaml @rocapellino
-
-# 3. Aplicación Backend, Lógica de Dominio y Contratos
-apps/backend/ @rocapellino
-package.json @rocapellino
-package-lock.json @rocapellino
-tsconfig.json @rocapellino
-
-# 4. Frontend Web SPA & Configuración Nginx
-apps/frontend/ @rocapellino
-
-# 5. Suite de Pruebas Unitarias, Integración y Pentest Lógico
-tests/ @rocapellino

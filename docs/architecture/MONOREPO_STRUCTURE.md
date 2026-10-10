@@ -34,7 +34,7 @@ El monorepo está organizado siguiendo una separación estricta de responsabilid
 pokedex/
 ├── .github/                      # Automatizaciones de CI/CD y gobernanza en GitHub
 │   ├── workflows/                # Pipelines de build, test, SAST, SBOM, Cosign y release
-│   ├── CODEOWNERS                # Asignación obligatoria de revisores por dominio
+│   ├── CODEOWNERS                # Propietario por defecto del repo (un único mantenedor)
 │   └── pull_request_template.md  # Plantilla estándar para Pull Requests
 ├── apps/                         # Workspaces de Aplicaciones
 │   ├── backend/                  # API RESTful TypeScript (@pokedex/backend)
