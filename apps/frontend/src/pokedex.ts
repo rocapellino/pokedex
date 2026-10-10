@@ -131,7 +131,6 @@ export function applyFilters(history: HistoryMode = 'push', page = 1): void {
 
   currentPage = Math.min(page, Math.max(1, Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE)));
   renderPokemons();
-  updateStats(filteredPokemons);
   renderActiveFilters();
   renderSortDirection();
   commitFiltersToUrl(currentFilterState(), history);
@@ -563,33 +562,6 @@ export function changePage(delta: number): void {
       announcer.textContent = pageAnnouncement(currentPage, totalPages, shown);
     }
   }
-}
-
-export function updateStats(list: Pokemon[]): void {
-  const elTotal = document.getElementById('statTotal');
-  const elMaxForce = document.getElementById('statMaxForce');
-  const elAvgWeight = document.getElementById('statAvgWeight');
-  const elTypesCount = document.getElementById('statTypesCount');
-
-  if (elTotal) elTotal.innerText = String(list.length);
-  if (list.length === 0) {
-    if (elMaxForce) elMaxForce.innerText = '0';
-    if (elAvgWeight) elAvgWeight.innerText = '0 kg';
-    if (elTypesCount) elTypesCount.innerText = '0';
-    return;
-  }
-
-  const maxForce = list.reduce((max, p) => {
-    const val = p.fuerza || (p.caracteristicas?.fuerza as number) || p.stats?.attack || 0;
-    return Math.max(max, val);
-  }, 0);
-  const totalWeight = list.reduce((acc, p) => acc + ((p.caracteristicas?.peso as number) || 0), 0);
-  const avgWeight = (totalWeight / list.length).toFixed(1);
-  const uniqueTypes = new Set(list.map((p) => p.tipo).filter(Boolean));
-
-  if (elMaxForce) elMaxForce.innerText = String(maxForce);
-  if (elAvgWeight) elAvgWeight.innerText = `${avgWeight} kg`;
-  if (elTypesCount) elTypesCount.innerText = String(uniqueTypes.size);
 }
 
 window.addEventListener(
