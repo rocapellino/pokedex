@@ -47,7 +47,7 @@ jobs:
 
       - name: 6. Validar Configuración de Nginx
         # DOC-003/CI-004: la versión se extrae del Dockerfile del frontend, que es
-        # la única SSOT de la imagen productiva. Repetir el número aquí تسمح que
+        # la única SSOT de la imagen productiva. Repetir el número aquí permitiría que
         # CI validara la configuración contra una versión distinta de la que se
         # despliega. Se mantiene además el digest pinning del Dockerfile.
         run: |

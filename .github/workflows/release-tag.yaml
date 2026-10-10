@@ -26,12 +26,9 @@ on:
         type: string
         default: ""
 
+# Mínimo privilegio: el único job declara sus propios permisos de escritura.
 permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
-  actions: write
-  packages: read
+  contents: read
 
 # Serializa las corridas sobre main para evitar carreras entre la fase de
 # promoción y la creación del tag (REL-001).
