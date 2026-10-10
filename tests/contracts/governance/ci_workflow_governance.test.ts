@@ -594,3 +594,30 @@ test('🔑 CI-007: los workflows pull_request_target no reciben RULESET_ADMIN_TO
 
   assert.deepEqual(offenders, [], 'pull_request_target con RULESET_ADMIN_TOKEN expone un token de admin');
 });
+
+test('🔐 Checkov: el job de IaC sigue bloqueando y además sube su SARIF a Code Scanning', () => {
+  const job = workflow('infra.yaml').jobs['validate-checkov'];
+  const checkov = job.steps.find((step: any) => String(step.uses ?? '').startsWith('bridgecrewio/checkov-action@'));
+  assert.ok(checkov, 'validate-checkov debe ejecutar checkov-action');
+  assert.equal(checkov.with.soft_fail, false, 'el SARIF no debe volver no bloqueante al gate');
+  assert.match(String(checkov.with.output_format), /\bsarif\b/);
+  assert.match(String(checkov.with.output_file_path), /checkov\.sarif/);
+
+  const upload = job.steps.find((step: any) =>
+    String(step.uses ?? '').startsWith('github/codeql-action/upload-sarif@'),
+  );
+  assert.ok(upload, 'debe subir el SARIF con upload-sarif');
+  assert.match(String(upload.uses), /@[a-f0-9]{40}$/, 'la acción se fija por SHA completo');
+  assert.equal(upload.if, 'always()', 'el SARIF se sube aunque Checkov falle');
+  assert.equal(upload.with.sarif_file, 'checkov.sarif');
+  assert.equal(upload.with.category, 'checkov');
+  assert.equal(job.permissions['security-events'], 'write');
+
+  // Un reusable workflow no puede exceder los permisos que le concede el job invocador.
+  const caller = workflow('change-impact.yaml').jobs.infra;
+  assert.equal(
+    caller.permissions['security-events'],
+    'write',
+    'el orquestador debe conceder security-events: write a infra',
+  );
+});

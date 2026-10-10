@@ -132,7 +132,7 @@ flowchart TD
 
 - **Archivo:** [`web.yaml`](../../.github/workflows/web.yaml)
 - **Triggers:** Invocado por `change-impact.yaml` (`workflow_call`) y `workflow_dispatch`.
-- **Pasos:** Compilación de assets con Vite, linter de configuración Nginx y ejecución de tests E2E y auditoría de accesibilidad Axe-core con Playwright y Lighthouse CI.
+- **Jobs en paralelo:** `validate-web` compila los assets con Vite, valida la configuración de Nginx contra la imagen productiva y ejecuta los tests E2E y de accesibilidad Axe-core con Playwright; `lighthouse` mide los Core Web Vitals con Lighthouse CI (5 ejecuciones por URL) y publica el resumen y los informes como artefacto. El lint y el typecheck del frontend no se repiten aquí: los ejecuta `code-quality` en `ci.yaml`.
 
 ### 3.4. ⚙️ `infra.yaml` (Reusable Infrastructure & IaC CI)
 

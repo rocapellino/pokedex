@@ -146,6 +146,9 @@ jobs:
       github.event_name == 'push'
     permissions:
       contents: read
+      # Checkov sube su SARIF a Code Scanning; un reusable no puede exceder los permisos del invocador.
+      security-events: write
+      actions: read
     uses: ./.github/workflows/infra.yaml
     with:
       helm: ${{ needs.detect-impact.outputs.helm == 'true' }}
