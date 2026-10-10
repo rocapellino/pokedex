@@ -28,7 +28,7 @@ flowchart TD
 
 ### Nivel 1 retirado: retención inline en `ci.yaml`
 
-Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](../../.github/workflows/ci.yaml) ejecutaba `dataaxiom/ghcr-cleanup-action` con `keep-n-tagged: 3` y `delete-untagged: true`. Se retiró por dos motivos: purgaba digests que GitOps seguía fijando en cuanto se publicaban tres imágenes más nuevas, y `delete-untagged` eliminaba los referrers sin tag de firmas y atestaciones SLSA. `tests/security/ghcr_retention.test.ts` impide reintroducirlo.
+Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](../../.github/workflows/ci.yaml) ejecutaba `dataaxiom/ghcr-cleanup-action` con `keep-n-tagged: 3` y `delete-untagged: true`. Se retiró por dos motivos: purgaba digests que GitOps seguía fijando en cuanto se publicaban tres imágenes más nuevas, y `delete-untagged` eliminaba los referrers sin tag de firmas y atestaciones SLSA. `tests/contracts/delivery/ghcr_retention.test.ts` impide reintroducirlo.
 
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 

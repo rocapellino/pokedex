@@ -11,7 +11,7 @@ Para garantizar la navegabilidad y la portabilidad del repositorio entre diferen
 1. **Prohibición Terminante de URLs con Esquema Local (`file://`):**
    - Queda estrictamente prohibido commitear archivos Markdown con esquemas de archivo local (ej. rutas absolutas de estación de trabajo o de usuario).
    - Todos los enlaces internos entre documentos o archivos de código deben emplear **rutas relativas** (ej. `../architecture/SECRETS_MANAGEMENT.md` o `../../package.json`).
-   - Los tests de validación (`tests/security/docs_governance_gate.test.ts`) y el gate `scripts/validate-docs-governance.ts` auditan activamente la ausencia de esquemas de archivo local en todos los archivos `.md`.
+   - Los tests de validación (`tests/contracts/governance/docs_governance_gate.test.ts`) y el gate `scripts/validate-docs-governance.ts` auditan activamente la ausencia de esquemas de archivo local en todos los archivos `.md`.
 2. **Validación de Fragmentos de Ancla (MD051):**
    - Todo enlace interno a una sección `#encabezado` debe corresponder de manera exacta con un heading existente en el archivo destino.
    - Al modificar encabezados de secciones, deben actualizarse concurrentemente todas las Tablas de Contenidos (TOC) y referencias externas.

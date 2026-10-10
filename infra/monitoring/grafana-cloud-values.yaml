@@ -2,7 +2,7 @@
 # Grafana Cloud: k8s-monitoring Values (esquema v4)
 # Chart: https://grafana.github.io/helm-charts (k8s-monitoring)
 # La version del chart se fija en scripts/deploy-grafana-cloud.mjs (DEFAULTS.chartVersion)
-# y el contrato de render lo valida tests/security/grafana_cloud_collection.test.ts.
+# y el contrato de render lo valida tests/contracts/observability/grafana_cloud_collection.test.ts.
 # ==============================================================================
 
 cluster:

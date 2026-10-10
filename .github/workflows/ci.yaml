@@ -62,7 +62,7 @@ env:
   REGISTRY: ghcr.io
   # Las imágenes de aplicación se publican como <registry>/<owner>/pokedex-{api,web}
   # (matriz de build-docker, trivy-scan y publish), los mismos repositorios que
-  # despliega GitOps. Ver tests/security/image_publication_contract.test.ts.
+  # despliega GitOps. Ver tests/contracts/delivery/image_publication_contract.test.ts.
   CHART_PATH: infra/helm/pokedex
 
 jobs:

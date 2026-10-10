@@ -107,7 +107,7 @@ test('🛡️ Supply Chain Security: CI Workflow configura trazabilidad OCI y bu
     'build-docker debe generar metadatos con docker/metadata-action',
   );
 
-  // El título lo aporta la matriz (pokedex-api / pokedex-web): image_publication_contract.test.ts
+  // El título lo aporta la matriz (pokedex-api / pokedex-web): contracts/delivery/image_publication_contract.test.ts
   // verifica que ambas entradas existan.
   const labels = keyValueLines(meta.with?.labels);
   assert.equal(labels['org.opencontainers.image.title'], '${{ matrix.image }}');

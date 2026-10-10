@@ -32,9 +32,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import { isHelmAvailable, runHelm } from '../../scripts/lib/helm.js';
-import { ROOT_DIR } from '../helpers/repo.js';
-import { readYaml } from '../helpers/yaml.js';
+import { isHelmAvailable, runHelm } from '../../../scripts/lib/helm.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
+import { readYaml } from '../../helpers/yaml.js';
 
 const DEPLOY_SCRIPT = path.join(ROOT_DIR, 'scripts/deploy-grafana-cloud.mjs');
 const VALUES_PATH = path.join(ROOT_DIR, 'infra/monitoring/grafana-cloud-values.yaml');

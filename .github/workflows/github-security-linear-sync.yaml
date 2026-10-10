@@ -16,7 +16,7 @@ on:
   # alertas de seguridad. Se incluyen (a) los productores de SARIF hacia Code
   # Scanning, (b) CodeQL, y (c) el pipeline principal como latido post-merge.
   #
-  # Verificado con `tests/security/github_security_linear_sync.test.ts`, que valida
+  # Verificado con `tests/contracts/delivery/github_security_linear_sync.test.ts`, que valida
   # cada nombre contra el `name:` real de los workflows del repositorio.
   workflow_run:
     workflows:

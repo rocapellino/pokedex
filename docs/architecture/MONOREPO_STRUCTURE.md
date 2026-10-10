@@ -112,6 +112,7 @@ pokedex/
 ├── tests/                        # Suite de pruebas automatizadas
 │   ├── unit/                     # Pruebas unitarias de modelos y validaciones
 │   ├── security/                 # Pentests lógicos, evasión de auth y validación fail-closed
+│   ├── contracts/                # Contratos de repositorio: ADR, gobernanza documental, entrega y observabilidad
 │   └── fuzz/                     # Fuzzing de endpoints con payloads malformados
 └── scripts/                      # Utilidades de DX, auditoría y pruebas de estrés concurrentes
 ```
@@ -165,7 +166,7 @@ La convención no es una recomendación documental: es un **Quality Gate fail-cl
 | Integración en `validate` | `npm run validate` |
 | Paso de CI | `.github/workflows/ci.yaml`, job *Auditoría de Calidad y Complejidad* |
 | Contrato de impacto | `.github/ci-impact.yaml`, regla `linting` |
-| Suite de pruebas | `tests/security/yaml_extension_governance.test.ts` |
+| Suite de pruebas | `tests/contracts/governance/yaml_extension_governance.test.ts` |
 
 El gate opera con dos listas:
 

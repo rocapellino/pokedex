@@ -98,7 +98,7 @@ Para garantizar que la promoción no dependa exclusivamente de disciplina manual
      - `gitops/environments/cloud/values.yaml`
      - `gitops/environments/proxmox-preprod/values.yaml`
      - `infra/helm/pokedex/values.prod.yaml`
-   - El CI del PR de promoción certifica la paridad entre entornos (`tests/security/gitops_image_parity.test.ts`); localmente: `npm run gitops:verify-parity:strict`.
+   - El CI del PR de promoción certifica la paridad entre entornos (`tests/contracts/delivery/gitops_image_parity.test.ts`); localmente: `npm run gitops:verify-parity:strict`.
 
    > [!IMPORTANT]
    > Hasta esta automatización la etapa dependía del operador y nunca se ejecutó: entre el 2026-09-23 y el 2026-10-03 cada release movió versión y `targetRevision` pero desplegó las mismas imágenes, y `ci.yaml` publicaba un repositorio (`ghcr.io/rocapellino/pokedex`) distinto del que GitOps desplegaba.

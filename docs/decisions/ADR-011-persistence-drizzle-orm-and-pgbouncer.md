@@ -90,7 +90,7 @@ Decisión: **se mantiene `max: 10`** y se corrige el ADR, sin modificar el códi
 - Perfil de producción cloud (blueprint): HPA hasta 10 réplicas con PgBouncer activo, que multiplexa las conexiones.
 - Con `max: 20`, el máximo del HPA por defecto (5 réplicas) ya agotaría las 100 conexiones.
 
-El contrato lo fija el test `AUD-ARCH-ADR-001` en `tests/security/adr_application_contracts.test.ts`: el
+El contrato lo fija el test `AUD-ARCH-ADR-001` en `tests/contracts/adr/adr_application_contracts.test.ts`: el
 `max` declarado en este ADR debe coincidir con el del código.
 
 ---

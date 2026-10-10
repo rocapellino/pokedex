@@ -15,8 +15,8 @@ import {
   type GitHubDependabotAlert,
   type GitHubSecretScanningAlert,
   type LinearIssueNode,
-} from '../../scripts/github-security-linear-sync.js';
-import { ROOT_DIR } from '../helpers/repo.js';
+} from '../../../scripts/github-security-linear-sync.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🛡️ GitHub Security Linear Sync: mapSeverityToPriority mapea severidades a prioridades de Linear', () => {
   assert.equal(mapSeverityToPriority('critical'), 1);
