@@ -201,4 +201,3 @@ main().catch((err) => {
   console.error('💥 Error inesperado durante la consulta de Linear:', err);
   process.exit(1);
 });
-

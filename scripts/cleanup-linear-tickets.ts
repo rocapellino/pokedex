@@ -162,7 +162,9 @@ async function main(): Promise<void> {
   }
 
   const doneState = states.find((s) => s.type === 'completed') || states.find((s) => s.name.toLowerCase() === 'done');
-  const canceledState = states.find((s) => s.type === 'canceled') || states.find((s) => s.name.toLowerCase() === 'canceled' || s.name.toLowerCase() === 'cancelled');
+  const canceledState =
+    states.find((s) => s.type === 'canceled') ||
+    states.find((s) => s.name.toLowerCase() === 'canceled' || s.name.toLowerCase() === 'cancelled');
 
   if (!doneState && !canceledState) {
     console.error('❌ No se encontró ningún estado de tipo completed o canceled en el equipo.');
@@ -170,7 +172,9 @@ async function main(): Promise<void> {
   }
 
   console.log(`\n🎯 Estado objetivo para resueltos (Done): ${doneState?.name} [${doneState?.id}]`);
-  console.log(`🎯 Estado objetivo para duplicados (Canceled): ${canceledState?.name || doneState?.name} [${canceledState?.id || doneState?.id}]`);
+  console.log(
+    `🎯 Estado objetivo para duplicados (Canceled): ${canceledState?.name || doneState?.name} [${canceledState?.id || doneState?.id}]`,
+  );
 
   // 2. Consultar tickets abiertos en el equipo
   const issuesQuery = `
@@ -230,26 +234,30 @@ async function main(): Promise<void> {
   const chunkSize = 50;
 
   // 3.1 Cierre de SonarCloud -> Done (o Canceled)
-  const targetSonarStateId = doneState?.id || canceledState?.id!;
+  const targetSonarStateId = doneState?.id ?? canceledState?.id ?? '';
   if (sonarBugsToClose.length > 0) {
     console.log(`\n🚀 Cerrando ${sonarBugsToClose.length} tickets de SonarCloud...`);
     for (let i = 0; i < sonarBugsToClose.length; i += chunkSize) {
       const chunk = sonarBugsToClose.slice(i, i + chunkSize);
       const ids = chunk.map((c) => c.id) as [string, ...string[]];
-      console.log(`   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`);
+      console.log(
+        `   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`,
+      );
       const success = await updateIssueBatch(ids, targetSonarStateId);
       console.log(`   Resultado bloque: ${success ? '✅ OK' : '⚠️ Falló algún ticket'}`);
     }
   }
 
   // 3.2 Cierre de CodeQL Duplicados -> Canceled (o Done)
-  const targetCodeqlStateId = canceledState?.id || doneState?.id!;
+  const targetCodeqlStateId = canceledState?.id ?? doneState?.id ?? '';
   if (codeqlDuplicatesToCancel.length > 0) {
     console.log(`\n🚀 Cancelando ${codeqlDuplicatesToCancel.length} tickets duplicados de CodeQL...`);
     for (let i = 0; i < codeqlDuplicatesToCancel.length; i += chunkSize) {
       const chunk = codeqlDuplicatesToCancel.slice(i, i + chunkSize);
       const ids = chunk.map((c) => c.id) as [string, ...string[]];
-      console.log(`   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`);
+      console.log(
+        `   Enviando bloque ${i + 1} - ${i + chunk.length} (${chunk.map((c) => c.identifier).join(', ')})...`,
+      );
       const success = await updateIssueBatch(ids, targetCodeqlStateId);
       console.log(`   Resultado bloque: ${success ? '✅ OK' : '⚠️ Falló algún ticket'}`);
     }
@@ -264,7 +272,7 @@ async function main(): Promise<void> {
 - **Tickets preservados intactos:** ${otherTickets.length}
 `;
 
-  console.log('\n' + summaryMarkdown);
+  console.log(`\n${summaryMarkdown}`);
 
   const stepSummaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (stepSummaryFile) {
@@ -283,4 +291,3 @@ main().catch((err) => {
   console.error('💥 Error inesperado en la limpieza de Linear:', err);
   process.exit(1);
 });
-
