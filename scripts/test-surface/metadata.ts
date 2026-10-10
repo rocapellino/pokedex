@@ -77,11 +77,24 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.',
   },
-  'tests/repo_contracts.test.ts': {
+  'tests/contracts/app/api_types_compat.test.ts': {
     type: 'Contract / Types',
     targetDomain: 'Interoperabilidad Backend-Frontend',
     targetArtifacts: ['apps/backend/src/types.ts', 'apps/frontend/src/types.ts'],
     description: 'Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend.',
+  },
+  'tests/contracts/governance/test_surface_contract.test.ts': {
+    type: 'Contract / Governance',
+    targetDomain: 'Superficie de Pruebas (test-surface)',
+    targetArtifacts: ['docs/testing/test-surface.json', 'docs/testing/test-surface.md', 'scripts/test-surface/'],
+    description:
+      'Verifica que el catálogo test-surface no tenga drift, no versione datos volátiles y que cada archivo de tests/ tenga una descripción propia.',
+  },
+  'tests/contracts/delivery/commit_types_parity.test.ts': {
+    type: 'Contract / Delivery',
+    targetDomain: 'Convención de Commits',
+    targetArtifacts: ['commitlint.config.js', '.pre-commit-config.yaml'],
+    description: 'Exige que commitlint y conventional-pre-commit permitan exactamente los mismos tipos de commit.',
   },
   'tests/contracts/governance/doc_governance.test.ts': {
     type: 'Contract / Governance',
