@@ -20,7 +20,11 @@ budget:
       max_lines: 180
   audits:
     retention: "current-baseline-only"
+    # Cuenta baselines (directorios con baseline.md), no los informes auxiliares de un ciclo.
     max_active_snapshots: 1
+    # Plan e informes de remediación de un ciclo posterior al baseline vigente: se conservan hasta que el
+    # siguiente baseline los absorba; entonces se podan (Git preserva la historia).
+    auxiliary_reports: "until-next-baseline"
   adr:
     retention: "permanent"
   runbooks:

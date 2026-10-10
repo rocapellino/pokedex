@@ -336,6 +336,7 @@
       "targetDomain": "Gobernanza Documental / ADRs",
       "targetArtifacts": [
         "docs/decisions/",
+        "docs/audits/",
         ".agents/rules/documentation-governance.md"
       ],
       "npmCommands": [
@@ -346,7 +347,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
-      "description": "Asegura que los ADRs y especificaciones técnicas cumplan con el formato canónico, encabezados y metadatos obligatorios."
+      "description": "Asegura la convención de IDs de hallazgo, el contrato documental de repo-docs y la retención de docs/audits (un baseline, informes auxiliares solo posteriores a él y todos con Estado: Histórico)."
     },
     {
       "path": "tests/e2e/backoffice.spec.ts",

@@ -103,6 +103,7 @@ HISTORICAL
 | **Runbook Operativo** | Permanente mientras esté vigente | `KEEP` / `UPDATE` |
 | **Baseline Activo Vigente** (`docs/audits/<fecha-actual>/baseline.md`) | Conservar en árbol activo | `KEEP` |
 | **Auditoría con hallazgos o tareas abiertas** | Conservar mientras no se cierren | `KEEP` |
+| **Informe de un ciclo cerrado aún no absorbido por un baseline** (plan, remediación; fecha posterior al baseline vigente) | Conservar hasta el siguiente baseline | `KEEP` |
 | **Auditoría cerrada y consolidada en baseline** | Eliminar del árbol activo | `DELETE` (Git preserva historial) |
 | **Auditorías intermedias, duplicadas o borradores** | Eliminar / Consolidar | `DELETE` |
 | **Prompts de scaffold o scripts auxiliares de auditoría** | Eliminar | `DELETE` |
