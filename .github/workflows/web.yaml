@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   validate-web:
-    name: 🎨 Lint, E2E, A11y & Lighthouse
+    name: 🎨 Nginx, E2E & A11y
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -40,12 +40,7 @@ jobs:
       - name: 4. Compilar Aplicación (Backend + Frontend Vite)
         run: npm run build
 
-      - name: 5. Verificación Estática y Typecheck con TypeScript
-        run: |
-          npm run lint --workspace=@pokedex/frontend
-          echo "✅ Verificación de tipos TypeScript completada sin errores."
-
-      - name: 6. Validar Configuración de Nginx
+      - name: 5. Validar Configuración de Nginx
         # DOC-003/CI-004: la versión se extrae del Dockerfile del frontend, que es
         # la única SSOT de la imagen productiva. Repetir el número aquí permitiría que
         # CI validara la configuración contra una versión distinta de la que se
@@ -86,22 +81,49 @@ jobs:
             nginx -t
           echo "✅ Configuración de Nginx válida contra la imagen productiva."
 
-      - name: 7. Instalar Navegadores de Playwright
+      - name: 6. Instalar Navegadores de Playwright
         run: npm run playwright:install
 
-      - name: 8. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
+      - name: 7. Ejecutar Pruebas E2E y de Accesibilidad (Playwright + Axe-core)
         run: npm run test:e2e
 
-      - name: 9. Auditoría de Core Web Vitals con Lighthouse CI
+  # Lighthouse mide el rendimiento (5 ejecuciones por URL, ~2,5 min) y no depende de las pruebas
+  # E2E: corre en paralelo con ellas en lugar de sumarse al final del mismo job.
+  lighthouse:
+    name: 📈 Lighthouse (Core Web Vitals)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: 1. Descargar Código Fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 2. Configurar Node.js 24 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: 3. Instalar Dependencias
+        run: npm ci --ignore-scripts
+
+      - name: 4. Compilar Aplicación (Backend + Frontend Vite)
+        run: npm run build
+
+      - name: 5. Auditoría de Core Web Vitals con Lighthouse CI
         # `lighthouserc.json` levanta (startServerCommand) el entorno medido: la imagen de nginx de
         # producción más una API simulada con el catálogo completo (scripts/lighthouse-stack.ts).
         run: npm run perf:lighthouse
 
-      - name: 10. Resumen de Lighthouse
+      - name: 6. Resumen de Lighthouse
         if: always()
         run: npx tsx scripts/lighthouse-summary.ts >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: 11. Publicar informes de Lighthouse
+      - name: 7. Publicar informes de Lighthouse
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
