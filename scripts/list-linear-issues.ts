@@ -11,6 +11,7 @@
  */
 
 import * as fs from 'node:fs';
+import process from 'node:process';
 
 const LINEAR_API_URL = 'https://api.linear.app/graphql';
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
