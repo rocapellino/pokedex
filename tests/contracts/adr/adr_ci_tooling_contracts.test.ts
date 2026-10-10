@@ -61,13 +61,16 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
   const toolVersionsContent = fs.readFileSync(toolVersionsPath, 'utf-8');
 
   // Extraer versión de Helm esperada de .tool-versions (ej. 3.17.0)
-  const helmVersionMatch = toolVersionsContent.match(/helm\s+(\S+)/);
+  // Se ancla al inicio de línea: los comentarios `# renovate:` también mencionan `helm`.
+  const helmVersionMatch = toolVersionsContent.match(/^helm\s+(\S+)/m);
   assert.ok(helmVersionMatch, 'Debe encontrarse versión de Helm en .tool-versions');
   const expectedHelmVersion = `v${helmVersionMatch[1]}`;
 
   // Extraer todas las versiones configuradas para setup-helm en infra.yaml y ci.yaml
   const infraVersions = Array.from(
-    infraContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g),
+    infraContent.matchAll(
+      /uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n(?:\s*#[^\n]*\n)*\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g,
+    ),
   ).map((m) => m[1]);
   assert.ok(
     infraVersions.length >= 2,
@@ -75,7 +78,9 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
   );
 
   const ciVersions = Array.from(
-    ciContent.matchAll(/uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g),
+    ciContent.matchAll(
+      /uses:\s*azure\/setup-helm[^\n]*\n\s+with:\s*\n(?:\s*#[^\n]*\n)*\s+version:\s*['"]?(v\d+\.\d+\.\d+)['"]?/g,
+    ),
   ).map((m) => m[1]);
   assert.ok(ciVersions.length >= 1, 'ci.yaml debe configurar Helm en el job publish');
 
@@ -86,5 +91,18 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
       expectedHelmVersion,
       `Cada workflow de CI (infra.yaml, ci.yaml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`,
     );
+  }
+});
+
+test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml coincide con .tool-versions', () => {
+  const infra = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
+  const toolVersions = fs.readFileSync(path.join(ROOT_DIR, '.tool-versions'), 'utf-8');
+  const expected = toolVersions.match(/^opentofu\s+(\S+)/m)?.[1];
+  assert.ok(expected, 'Debe encontrarse la versión de OpenTofu en .tool-versions');
+
+  const versions = [...infra.matchAll(/tofu_version:\s*['"]?(\d+\.\d+\.\d+)['"]?/g)].map((m) => m[1]);
+  assert.ok(versions.length >= 1, 'infra.yaml debe fijar tofu_version');
+  for (const version of versions) {
+    assert.equal(version, expected, 'infra.yaml y .tool-versions deben usar la misma versión de OpenTofu');
   }
 });

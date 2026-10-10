@@ -572,6 +572,7 @@ jobs:
       - name: Configurar Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
+          # renovate: datasource=github-releases depName=helm/helm
           version: 'v3.17.0'
 
       - name: Validar consistencia criptográfica de Digest en Manifiestos Renderizados (Helm Template Estricto)
