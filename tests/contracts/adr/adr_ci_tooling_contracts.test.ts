@@ -15,6 +15,19 @@ test('🛡️ CI SAST Security: ci.yaml ejecuta Semgrep sobre scripts privilegia
   );
 });
 
+test('🛡️ CI SAST Security: Semgrep usa un conjunto de reglas explícito y sin telemetría (sin --config auto)', () => {
+  const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');
+  const command = content.split('\n').find((line) => line.includes('semgrep scan'));
+  assert.ok(command, 'ci.yaml debe ejecutar `semgrep scan`');
+  assert.ok(
+    !command.includes('--config auto'),
+    '`--config auto` elige reglas según el repo y obliga a enviar métricas',
+  );
+  assert.match(command, /--config p\/default/, 'Semgrep debe fijar el conjunto de reglas con --config p/default');
+  assert.match(command, /--metrics=off/, 'Semgrep no debe enviar métricas a semgrep.dev');
+  assert.match(command, /--error/, 'Semgrep debe fallar el job ante hallazgos');
+});
+
 test('🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ESO y Vault (CLN-002)', () => {
   const scriptPath = path.join(ROOT_DIR, 'scripts/seal-secret.ts');
   assert.ok(!fs.existsSync(scriptPath), 'seal-secret.ts debe estar retirado tras adopción de ESO (ADR-005)');
