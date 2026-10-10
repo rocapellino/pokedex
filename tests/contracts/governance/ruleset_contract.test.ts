@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { ROOT_DIR } from '../../helpers/repo.js';
+import { readYaml } from '../../helpers/yaml.js';
 
 const RULESET_PATH = path.join(ROOT_DIR, '.github/rulesets/main-protection.json');
 
@@ -90,4 +91,45 @@ test('🔤 RULESET-001: el archivo de reglas se serializa en UTF-8 real', () => 
   // Debe ser decodificable como UTF-8 estricto sin replacement chars.
   const text = new TextDecoder('utf-8', { fatal: true }).decode(raw);
   assert.doesNotMatch(text, /\uFFFD/, 'main-protection.json debe ser UTF-8 valido');
+});
+
+/**
+ * Nombres de check que GitHub Actions reporta de verdad, calculados desde los workflows:
+ *  - un job propio de un workflow con trigger directo se reporta con su `name`;
+ *  - un job que invoca un reusable (`uses:`) se reporta como `<name del invocador> / <name del job reusado>`.
+ */
+function reportedCheckNames(): Set<string> {
+  const names = new Set<string>();
+  const dir = path.join(ROOT_DIR, '.github/workflows');
+  type Job = { name?: string; uses?: string };
+  const load = (file: string) => readYaml<{ jobs: Record<string, Job> }>(`.github/workflows/${file}`);
+
+  for (const file of fs.readdirSync(dir).filter((f) => /\.ya?ml$/.test(f))) {
+    for (const job of Object.values(load(file).jobs)) {
+      if (!job.uses) {
+        if (job.name) names.add(job.name);
+        continue;
+      }
+      const reused = load(path.basename(job.uses));
+      for (const inner of Object.values(reused.jobs)) {
+        if (job.name && inner.name) names.add(`${job.name} / ${inner.name}`);
+      }
+    }
+  }
+  return names;
+}
+
+test('🔤 RULESET-002: cada required check del ruleset existe como job real en los workflows', () => {
+  const { rules } = readRuleset();
+  const rsc = rules.find((r) => r.type === 'required_status_checks');
+  const contexts: string[] = rsc!.parameters.required_status_checks.map((c: { context: string }) => c.context);
+  const reported = reportedCheckNames();
+
+  const huérfanos = contexts.filter((context) => !reported.has(context));
+  assert.deepEqual(
+    huérfanos,
+    [],
+    `Required checks sin job que los emita: ${huérfanos.join(' | ')}. Si se renombró un job o un workflow, ` +
+      'el ruleset quedaría esperando eternamente un check que nunca se reporta (PR bloqueado).',
+  );
 });
