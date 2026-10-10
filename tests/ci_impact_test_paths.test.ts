@@ -53,6 +53,23 @@ test('🎯 Change Impact: Tests de seguridad (tests/security/**) activan tests y
   assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
 });
 
+test('🎯 Change Impact: Contratos de repositorio (tests/contracts/**) activan tests y security_iac como antes de moverlos', () => {
+  // Estos archivos vivían en tests/security/: reubicarlos no debe cambiar qué pipelines corren al tocarlos.
+  const result = analyzeChangeImpact({
+    files: ['tests/contracts/adr/adr_registry_contract.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'No debe caer en unknown');
+  assert.equal(result.triggers.tests, true, 'tests debe estar activo');
+  assert.equal(result.triggers.security_iac, true, 'security_iac debe estar activo');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets debe estar activo');
+  assert.equal(result.triggers.backend, false, 'backend no debe activarse');
+  assert.equal(result.triggers.docker, false, 'docker no debe activarse');
+  assert.equal(result.triggers.kubernetes, false, 'kubernetes no debe activarse');
+});
+
 test('🎯 Change Impact: Tests de GitOps (tests/gitops/**) activan tests, kubernetes y supply_chain', () => {
   const result = analyzeChangeImpact({
     files: ['tests/gitops/verify-sync.test.ts'],

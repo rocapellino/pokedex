@@ -317,33 +317,33 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Prueba de carga k6 que valida umbrales p95/p99 de latencia, tasa de error y respeto de rate limits sin generar 429 espurios.',
   },
-  'tests/security/adr_ci_tooling_contracts.test.ts': {
+  'tests/contracts/adr/adr_ci_tooling_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / CI y Tooling',
     targetArtifacts: ['.github/workflows/', 'lighthouserc.json'],
     description:
       'Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows.',
   },
-  'tests/security/adr_registry_contract.test.ts': {
+  'tests/contracts/adr/adr_registry_contract.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / Registro',
     targetArtifacts: ['docs/decisions/'],
     description:
       'Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md.',
   },
-  'tests/security/adr_observability_contracts.test.ts': {
+  'tests/contracts/adr/adr_observability_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / Observabilidad',
     targetArtifacts: ['infra/monitoring/', 'docs/decisions/'],
     description: 'Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018).',
   },
-  'tests/security/adr_application_contracts.test.ts': {
+  'tests/contracts/adr/adr_application_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / Aplicación',
     targetArtifacts: ['apps/backend/src/', 'docs/decisions/'],
     description: 'Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011).',
   },
-  'tests/security/adr_governance_contracts.test.ts': {
+  'tests/contracts/adr/adr_governance_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / Gobernanza',
     targetArtifacts: ['docs/decisions/', 'docs/operations/'],
@@ -357,7 +357,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica sobre YAML parseado el baseline de Ansible: tareas y roles sin ignore_errors, UFW con deny por defecto y orígenes restringidos, red del clúster contenida en la de gestión, política SSH accept-new, ansible_user por host alineado con los LXC, inventario sin hosts fantasma ni IPs repetidas y colecciones fijadas a versión exacta.',
   },
-  'tests/security/docs_portal_integrity.test.ts': {
+  'tests/contracts/governance/docs_portal_integrity.test.ts': {
     type: 'Contract / Docs',
     targetDomain: 'Integridad del Portal de Documentación',
     targetArtifacts: ['docs/'],
@@ -390,35 +390,35 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta.',
   },
-  'tests/security/ghcr_retention.test.ts': {
+  'tests/contracts/delivery/ghcr_retention.test.ts': {
     type: 'Contract / OCI',
     targetDomain: 'Retención y Ciclo de Vida en GHCR',
     targetArtifacts: ['scripts/ghcr-retention.ts', '.github/workflows/ghcr-retention.yaml'],
     description:
       'Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas.',
   },
-  'tests/security/github_security_linear_sync.test.ts': {
+  'tests/contracts/delivery/github_security_linear_sync.test.ts': {
     type: 'Contract / SecOps',
     targetDomain: 'Sincronización de Seguridad GitHub-Linear',
     targetArtifacts: ['scripts/github-security-linear-sync.ts', '.github/workflows/github-security-linear-sync.yaml'],
     description:
       'Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear.',
   },
-  'tests/security/gitops_image_parity.test.ts': {
+  'tests/contracts/delivery/gitops_image_parity.test.ts': {
     type: 'Contract / GitOps',
     targetDomain: 'Paridad de Imágenes en GitOps',
     targetArtifacts: ['scripts/verify-image-digest-parity.ts', 'gitops/'],
     description:
       'Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod.',
   },
-  'tests/security/grafana_cloud_collection.test.ts': {
+  'tests/contracts/observability/grafana_cloud_collection.test.ts': {
     type: 'Contract / Observability',
     targetDomain: 'Recolección de Métricas del Clúster hacia Grafana Cloud',
     targetArtifacts: ['infra/monitoring/grafana-cloud-values.yaml', 'scripts/deploy-grafana-cloud.mjs'],
     description:
       'Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados.',
   },
-  'tests/security/grafana_portability.test.ts': {
+  'tests/contracts/observability/grafana_portability.test.ts': {
     type: 'Contract / Observability',
     targetDomain: 'Portabilidad de Dashboards Grafana',
     targetArtifacts: ['infra/monitoring/dashboards/'],
@@ -432,7 +432,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto.',
   },
-  'tests/security/ignore_hygiene.test.ts': {
+  'tests/contracts/governance/ignore_hygiene.test.ts': {
     type: 'Contract / Hygiene',
     targetDomain: 'Higiene de Archivos de Exclusión (.gitignore)',
     targetArtifacts: ['scripts/check-ignore-hygiene.ts', '.gitignore', '.dockerignore'],
@@ -478,7 +478,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica sobre el clúster Kind y los workflows parseados la integración con Kind, el escaneo ZAP, los umbrales de k6 por métrica y el simulacro semanal de DR; el script de restauración y los documentos de DR se comprueban como texto.',
   },
-  'tests/security/promote_auto_approve_contracts.test.ts': {
+  'tests/contracts/delivery/promote_auto_approve_contracts.test.ts': {
     type: 'Contract / CI-CD',
     targetDomain: 'Promoción Automatizada Segura',
     targetArtifacts: ['.github/workflows/promote-auto-approve.yaml'],
@@ -524,7 +524,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica sobre los YAML y las tareas de Ansible parseados que el store de ESO, los values de pre-prod, la política y el rol de Vault, la custodia de las credenciales de init y la auditoría del Bastion mantienen su contrato, y la documentación de DR y break-glass como texto.',
   },
-  'tests/security/yaml_extension_governance.test.ts': {
+  'tests/contracts/governance/yaml_extension_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza de Extensiones YAML',
     targetArtifacts: ['scripts/check-yaml-extension.ts'],
@@ -614,6 +614,14 @@ export const SUITES_DEFINITION: Record<
     command: 'npm run test:security',
     description:
       'Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC.',
+  },
+  contracts: {
+    name: 'Contratos de Repositorio',
+    path: 'tests/contracts',
+    runner: 'node:test (tsx)',
+    command: 'npm run test:contracts',
+    description:
+      'Contratos sobre ADR, gobernanza documental, entrega de imágenes y dependencias, y observabilidad; verifican archivos del repositorio, no la seguridad de la aplicación.',
   },
   gitops: {
     name: 'Contratos de GitOps y Despliegue',

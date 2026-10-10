@@ -168,14 +168,14 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Helpers del Taskfile efectivo: getCompleteTaskfileContent concatena la raíz y los submódulos de taskfiles/; readTaskfiles y taskCommands devuelven las tareas parseadas y sus comandos, sin comentarios.',
   },
-  'tests/security/docs_governance_gate.test.ts': {
+  'tests/contracts/governance/docs_governance_gate.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / Gate de Enlaces',
     targetArtifacts: ['scripts/validate-docs-governance.ts', 'docs/'],
     description:
       'Comprueba que el gate de gobernanza documental detecte enlaces rotos en .agents/ y AGENTS.md y que la documentación vigente no tenga enlaces rotos ni drift.',
   },
-  'tests/security/image_publication_contract.test.ts': {
+  'tests/contracts/delivery/image_publication_contract.test.ts': {
     type: 'Contract / Supply Chain',
     targetDomain: 'Publicación de Imágenes',
     targetArtifacts: [
@@ -186,7 +186,7 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba que CI publique todas las imágenes que GitOps despliega (api y web), con el SHA completo del commit, y el Chart una sola vez.',
   },
-  'tests/security/renovate_config_contract.test.ts': {
+  'tests/contracts/delivery/renovate_config_contract.test.ts': {
     type: 'Contract / Dependencies',
     targetDomain: 'Renovate / Configuración',
     targetArtifacts: ['renovate.json', '.github/workflows/config-linters.yaml', 'infra/helm/pokedex/values.yaml'],

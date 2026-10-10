@@ -8,8 +8,8 @@ import {
   parseImmutableDigest,
   verifyImageDigestParity,
   clearRenderCache,
-} from '../../scripts/verify-image-digest-parity.ts';
-import { ROOT_DIR } from '../helpers/repo.js';
+} from '../../../scripts/verify-image-digest-parity.ts';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante Helm y extrae la imagen del contenedor api', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
@@ -165,6 +165,7 @@ test('🔒 GitOps Parity: extractRenderedImage extrae también el contenedor web
 
 test('🔒 GitOps Parity: verifyImageDigestParity detecta divergencia del digest web entre entornos', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');
+  fs.mkdirSync(path.join(ROOT_DIR, 'tmp'), { recursive: true });
   const tmp = fs.mkdtempSync(path.join(ROOT_DIR, 'tmp', 'parity-web-'));
   try {
     const source = fs.readFileSync(path.join(ROOT_DIR, 'gitops/environments/proxmox-preprod/values.yaml'), 'utf8');

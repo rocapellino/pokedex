@@ -125,7 +125,7 @@ test('🧬 Promoción: release-tag fija digests verificados con Cosign en el PR 
   assert.match(promoteRun, /scripts\/update-image-digests\.ts --api "\$\{API_DIGEST\}" --web "\$\{WEB_DIGEST\}"/);
   assert.match(promoteRun, /git add [^\n]*gitops\/environments\/[^\n]*infra\/helm\/pokedex\/values\.prod\.yaml/);
   // La paridad entre entornos la certifica el CI del propio PR de promoción
-  // (tests/security/gitops_image_parity.test.ts).
+  // (tests/contracts/delivery/gitops_image_parity.test.ts).
 });
 
 test('🧬 Promoción: el script corre en release-tag sin npm ci (solo módulos nativos)', () => {

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🚀 Release Promote Auto-Approve: Contrato de auto-aprobación de checks para PRs de release', () => {
   const autoApproveWfPath = path.join(ROOT_DIR, '.github/workflows/promote-auto-approve.yaml');

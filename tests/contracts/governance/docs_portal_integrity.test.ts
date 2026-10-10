@@ -37,7 +37,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const DOCS_DIR = path.join(ROOT_DIR, 'docs');
 const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');

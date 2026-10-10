@@ -30,7 +30,7 @@ Variables de entorno del despliegue:
 | `GRAFANA_CLOUD_METRICS_TOKEN` | Token con `metrics:write` para el destino de métricas; si falta, se reutiliza `GRAFANA_CLOUD_TOKEN` |
 
 La versión del chart vive en `DEFAULTS.chartVersion` del script y debe coincidir con el
-esquema de los values. `tests/security/grafana_cloud_collection.test.ts` (OBS-002) renderiza
+esquema de los values. `tests/contracts/observability/grafana_cloud_collection.test.ts` (OBS-002) renderiza
 el chart con esa versión y falla si el render se rompe, si falta un scrape de clúster, si una
 allowlist descarta una métrica que usan las alertas o si desaparece el endpoint OTLP de la API.
 
@@ -77,7 +77,7 @@ Sobre el script de despliegue:
 
 > El script [`deploy-grafana-cloud.mjs`](../../scripts/deploy-grafana-cloud.mjs) sustituyó a un
 > `.ps1` que ataba el despliegue a Windows. El contrato está blindado por
-> `tests/security/grafana_portability.test.ts` (PORT-001), que falla si alguien reintroduce
+> `tests/contracts/observability/grafana_portability.test.ts` (PORT-001), que falla si alguien reintroduce
 > PowerShell o rompe la cadena `Taskfile → script`.
 
 ## Registro de retiradas
@@ -96,7 +96,7 @@ Su configuración equivalente y vigente vive en
 despliegue de telemetría está parametrizado por ese archivo cuando no lo está, e invita a
 editar configuración que nada aplica.
 
-El gate `INFRA-006` en `tests/security/grafana_portability.test.ts` impide que reaparezca y
+El gate `INFRA-006` en `tests/contracts/observability/grafana_portability.test.ts` impide que reaparezca y
 exige que cualquier values YAML nuevo en esta ruta tenga un consumidor declarado.
 
 ## Regla de higiene

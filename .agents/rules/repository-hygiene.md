@@ -61,4 +61,4 @@ El almacenamiento bajo `tmp/` comprende, entre otros:
 | **`.gitignore`** | **Enforcement en VCS** | Bloquea la inclusión accidental de `/tmp/` en el árbol de Git. |
 | **`repo-maintenance`** | **Detección e Higiene** | Detecta archivos temporales dispersos fuera de `tmp/` y residuos en working tree. |
 | **`repo-lifecycle`** | **Orquestación y Gate** | Valida el ciclo: operación ➔ `tmp/` ➔ limpieza ➔ `git status --short` limpio. |
-| **Suites de Pruebas** | **Enforcement Automatizado** | `tests/security/ignore_hygiene.test.ts` certifica la regla `/tmp/` y las directivas. |
+| **Suites de Pruebas** | **Enforcement Automatizado** | `tests/contracts/governance/ignore_hygiene.test.ts` certifica la regla `/tmp/` y las directivas. |

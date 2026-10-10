@@ -259,7 +259,7 @@ rules:
       - 'Dockerfile'
       - 'apps/**/Dockerfile'
       - 'infra/**/*.yaml'
-      # Dashboards de Grafana: contrato validado por tests/security/grafana_portability.test.ts
+      # Dashboards de Grafana: contrato validado por tests/contracts/observability/grafana_portability.test.ts
       - 'infra/monitoring/dashboards/*.json'
       # Documentación operacional de soporte a infraestructura
       - 'infra/**/README.md'
@@ -376,6 +376,16 @@ rules:
     description: "Pruebas de políticas de seguridad, pentest y hardening"
     paths:
       - "tests/security/**"
+    triggers:
+      security:
+        iac: true
+
+  # Contratos de repositorio (ADR, gobernanza documental, entrega, observabilidad). Hasta el reordenamiento de
+  # tests/ vivían en tests/security/ y heredaban su disparador de IaC; se conserva para no cambiar qué corre en CI.
+  tests_contracts:
+    description: "Contratos de repositorio: ADR, gobernanza documental, entrega y observabilidad"
+    paths:
+      - "tests/contracts/**"
     triggers:
       security:
         iac: true

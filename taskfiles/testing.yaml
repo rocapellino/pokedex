@@ -34,6 +34,11 @@ tasks:
     cmds:
       - npm run test:security
 
+  test:contracts:
+    desc: "Ejecuta los contratos de repositorio: ADR, gobernanza documental, entrega y observabilidad"
+    cmds:
+      - npm run test:contracts
+
   test:gitops:
     desc: "Ejecuta las pruebas de contratos de GitOps y despliegue"
     cmds:

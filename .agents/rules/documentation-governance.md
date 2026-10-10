@@ -52,5 +52,5 @@ npm run lint:md -- <archivos-modificados>
 
 - **Tolerancia cero:** No se considera terminada ninguna tarea ni se aprueba ningún Pull Request que introduzca violaciones `MDxxx`.
 - **Enforcement en CI:** el job `docs-gate` de `.github/workflows/ci.yaml` ejecuta `npm run lint:md -- README.md SECURITY.md AGENTS.md docs/ .agents/` de forma fail-closed.
-- **Gobernanza de enlaces:** el mismo job ejecuta `npm run docs:validate` (enlaces relativos, ausencia de esquemas de archivo local e indexación en `docs/README.md`). `tests/security/docs_governance_gate.test.ts` lo cubre además dentro de `npm test`, y el test CI-008 de `tests/ci_workflow_governance.test.ts` impide que `docs-gate` deje de cubrir ambos.
+- **Gobernanza de enlaces:** el mismo job ejecuta `npm run docs:validate` (enlaces relativos, ausencia de esquemas de archivo local e indexación en `docs/README.md`). `tests/contracts/governance/docs_governance_gate.test.ts` lo cubre además dentro de `npm test`, y el test CI-008 de `tests/ci_workflow_governance.test.ts` impide que `docs-gate` deje de cubrir ambos.
 - **Presupuestos:** los límites de la sección 2 (líneas, secciones, tablas y diagramas) y `documentation-contract.yaml` los verifica `repo-docs`; ningún gate de CI los impone hoy. La Tabla de Contenidos no cuenta como sección.
