@@ -92,6 +92,29 @@
   ],
   "files": [
     {
+      "path": "tests/ci/coverage_gate.test.ts",
+      "suite": "ci",
+      "type": "Contract / CI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gate de Cobertura de Rutas HTTP en CI",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        "package.json",
+        "scripts/check-coverage-threshold.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica que el job sonarcloud ejecute npm run coverage:gate después de generar el LCOV y antes del análisis de Sonar, y que el script npm apunte al verificador."
+    },
+    {
       "path": "tests/ci/db_integration_services.test.ts",
       "suite": "ci",
       "type": "Contract / CI",
@@ -3233,6 +3256,28 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Valida almacenamiento en caché Redis con fallback transparente a memoria local, TTL y resiliencia ante cortes de red."
+    },
+    {
+      "path": "tests/unit/check_coverage_threshold.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gate de Cobertura por Directorio",
+      "targetArtifacts": [
+        "scripts/check-coverage-threshold.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, el umbral exacto del 80 % y que un prefijo sin archivos falle."
     },
     {
       "path": "tests/unit/classification_legendary.test.ts",
