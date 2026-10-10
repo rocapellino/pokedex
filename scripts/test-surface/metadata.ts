@@ -18,7 +18,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   ...FRONTEND_FILE_METADATA,
   ...BACKEND_FILE_METADATA,
   ...PLATFORM_FILE_METADATA,
-  'tests/aas_governance.test.ts': {
+  'tests/contracts/governance/aas_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza AAS (Agentic Awesome Skills)',
     targetArtifacts: ['.agents/aas/aas-stack.json'],
@@ -32,21 +32,21 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000.',
   },
-  'tests/audit_freshness.test.ts': {
+  'tests/contracts/governance/audit_freshness.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / Auditorías Históricas',
     targetArtifacts: ['docs/audits/'],
     description:
       'Comprueba la política de demarcación de auditorías históricas en docs/audits/ y asegura que no sean interpretadas como SSOT vigente.',
   },
-  'tests/ci_impact_contract.test.ts': {
+  'tests/contracts/governance/ci_impact_contract.test.ts': {
     type: 'Contract / CI Matrix',
     targetDomain: 'Pipeline CI / Contrato de Impacto',
     targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
     description:
       'Valida el contrato declarativo ci-impact.yaml, la nomenclatura .yaml, la salida Markdown y la ausencia de referencias a scripts podados.',
   },
-  'tests/ci_impact_domains.test.ts': {
+  'tests/contracts/governance/ci_impact_domains.test.ts': {
     type: 'Contract / CI Matrix',
     targetDomain: 'Pipeline CI / Dominios de Impacto',
     targetArtifacts: [
@@ -57,13 +57,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica que cada tipo de archivo (docs, agentes, backend, GitOps, Helm, IaC, scripts, config global) active sus dominios en CI.',
   },
-  'tests/ci_impact_test_paths.test.ts': {
+  'tests/contracts/governance/ci_impact_test_paths.test.ts': {
     type: 'Contract / CI Matrix',
     targetDomain: 'Pipeline CI / Impacto en tests y fail-closed',
     targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
     description: 'Verifica el impacto de cambios bajo tests/ y la política fail-closed ante archivos desconocidos.',
   },
-  'tests/ci_impact_always_matrix.test.ts': {
+  'tests/contracts/governance/ci_impact_always_matrix.test.ts': {
     type: 'Contract / CI Matrix',
     targetDomain: 'Pipeline CI / Controles Always y Matriz',
     targetArtifacts: ['scripts/detect-change-impact.ts', '.github/ci-impact.yaml'],
@@ -77,13 +77,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Evalúa mutaciones concurrentes, aislamiento transaccional y prevención de race conditions en actualizaciones del catálogo Pokémon.',
   },
-  'tests/contracts.test.ts': {
+  'tests/repo_contracts.test.ts': {
     type: 'Contract / Types',
     targetDomain: 'Interoperabilidad Backend-Frontend',
     targetArtifacts: ['apps/backend/src/types.ts', 'apps/frontend/src/types.ts'],
     description: 'Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend.',
   },
-  'tests/doc_governance.test.ts': {
+  'tests/contracts/governance/doc_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / ADRs',
     targetArtifacts: ['docs/decisions/', 'docs/audits/', '.agents/rules/documentation-governance.md'],
@@ -97,7 +97,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Ejecuta fuzzing adversarial con mutaciones caóticas de JSON, delimitadores y límites de buffer en endpoints REST.',
   },
-  'tests/markdown_gate.test.ts': {
+  'tests/contracts/governance/markdown_gate.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Markdown Quality Gate',
     targetArtifacts: ['scripts/lint-markdown.ts', '.markdownlint.json'],
@@ -111,21 +111,21 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Reproduce escenarios de ataque: falsificación y replay de sesiones, fail-closed ante caída de Redis, rate limiting, prototype pollution, mass assignment, XSS, SSRF y DoS por entrada.',
   },
-  'tests/pr_template_governance.test.ts': {
+  'tests/contracts/governance/pr_template_governance.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza de Pull Request Template',
     targetArtifacts: ['.github/pull_request_template.md', 'scripts/validate-pr-body.ts'],
     description:
       'Valida conformidad estricta del cuerpo de PR contra el template físico oficial, impidiendo estructuras arbitrarias o mojibake.',
   },
-  'tests/ruleset_contract.test.ts': {
+  'tests/contracts/governance/ruleset_contract.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza de GitHub Rulesets',
     targetArtifacts: ['.github/rulesets/main-protection.json'],
     description:
       'Valida la estructura declarativa y restricciones de protección de rama del ruleset main-protection.json contra el esquema de GitHub.',
   },
-  'tests/ruleset_parity.test.ts': {
+  'tests/contracts/governance/ruleset_parity.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Paridad Declarativa de Rulesets',
     targetArtifacts: ['.github/rulesets/main-protection.json', 'scripts/check-ruleset-parity.ts'],
@@ -207,7 +207,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetArtifacts: ['apps/backend/src/db/', 'apps/backend/drizzle.config.ts'],
     description: 'Comprueba el esquema, las migraciones en disco y la política fail-closed de drizzle.config.ts.',
   },
-  'tests/version_consistency.test.ts': {
+  'tests/contracts/governance/version_consistency.test.ts': {
     type: 'Contract / Release',
     targetDomain: 'Consistencia de Versiones SemVer',
     targetArtifacts: [

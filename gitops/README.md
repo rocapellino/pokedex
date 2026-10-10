@@ -87,7 +87,7 @@ task gitops:verify-parity:strict   # paridad de digests OCI entre entornos
 ```
 
 La igualdad `package.json` == `Chart.yaml` == `targetRevision` está institucionalizada en
-`tests/version_consistency.test.ts` (VER-001).
+`tests/contracts/governance/version_consistency.test.ts` (VER-001).
 
 ```bash
 task gitops:pin TAG=vX.Y.Z   # actualiza el targetRevision tras una promoción

@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { discoverPrTemplate, extractHeadings, validatePrBody } from '../scripts/validate-pr-body.js';
-import { ROOT_DIR } from './helpers/repo.js';
+import { discoverPrTemplate, extractHeadings, validatePrBody } from '../../../scripts/validate-pr-body.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 /**
  * ==============================================================================
- * tests/pr_template_governance.test.ts
+ * tests/contracts/governance/pr_template_governance.test.ts
  * ==============================================================================
  * Suite contractual de gobernanza del Pull Request Template:
  *   - Verifica que el PR Template físico exista y actúe como SSOT.

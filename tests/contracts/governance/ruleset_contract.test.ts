@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { ROOT_DIR } from './helpers/repo.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const RULESET_PATH = path.join(ROOT_DIR, '.github/rulesets/main-protection.json');
 

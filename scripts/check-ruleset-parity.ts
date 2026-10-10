@@ -33,7 +33,7 @@
  *   - `bypass_mode` canonico: `always` | `pull_request` | `exempt`. El valor
  *     legacy `pull_requests_only` fue retirado de la API.
  *
- * Los tests que blindan estos invariantes viven en `tests/ruleset_parity.test.ts`.
+ * Los tests que blindan estos invariantes viven en `tests/contracts/governance/ruleset_parity.test.ts`.
  *
  * Contrato CLI:
  *   --json      Emite el reporte estructurado en stdout.

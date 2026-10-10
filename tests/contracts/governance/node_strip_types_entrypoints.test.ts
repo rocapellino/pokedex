@@ -12,8 +12,8 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT_DIR } from './helpers/repo.js';
-import { workflowScripts } from './helpers/yaml.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
+import { workflowScripts } from '../../helpers/yaml.js';
 
 const STRIP_TYPES_ENTRYPOINT = /node\s+--experimental-strip-types\s+(?:--test\s+)?((?:scripts|tests)\/[\w./-]+\.ts)/g;
 const RELATIVE_IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)['"](\.{1,2}\/[^'"]+)['"]/g;

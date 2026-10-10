@@ -10,8 +10,8 @@ import {
   fetchLiveRuleset,
   loadDeclarativeRuleset,
   normalizeRuleset,
-} from '../scripts/check-ruleset-parity.js';
-import { ROOT_DIR } from './helpers/repo.js';
+} from '../../../scripts/check-ruleset-parity.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 const RULESET_PATH = path.join(ROOT_DIR, '.github', 'rulesets', 'main-protection.json');
 

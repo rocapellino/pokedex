@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import { ROOT_DIR } from './helpers/repo.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 /**
  * AUD-GOV-ID-001 — Los identificadores de hallazgo deben llevar namespace.

@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { test } from 'node:test';
 
-import { AAS_INTEGRITY, AAS_VERSION, validateAasGovernance } from '../scripts/aas-governance.js';
-import { ROOT_DIR } from './helpers/repo.js';
+import { AAS_INTEGRITY, AAS_VERSION, validateAasGovernance } from '../../../scripts/aas-governance.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 function withFixture(
   mutate: (stack: Record<string, any>, review: Record<string, any>, root: string) => void,
