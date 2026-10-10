@@ -68,6 +68,7 @@ jobs:
       - name: 2. Configurar Helm CLI
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
+          # renovate: datasource=github-releases depName=helm/helm
           version: v3.17.0
 
       - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
@@ -111,6 +112,7 @@ jobs:
 
       - name: 5. Instalar y Ejecutar Kubeconform (Validación de esquemas OpenAPI K8s)
         run: |
+          # renovate: datasource=github-releases depName=yannh/kubeconform
           KUBECONFORM_VERSION="v0.6.7"
           KUBECONFORM_SHA256="95f14e87aa28c09d5941f11bd024c1d02fdc0303ccaa23f61cef67bc92619d73"
           curl -sL --proto '=https' --tlsv1.2 \
@@ -124,6 +126,7 @@ jobs:
 
       - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)
         run: |
+          # renovate: datasource=github-releases depName=stackrox/kube-linter
           KUBELINTER_VERSION="v0.7.2"
           KUBELINTER_SHA256="8a0f8ba6c28910acd4886cc4d501ed32f3d404a53ac5e72c45a0dd893fcadb03"
           curl -sL --proto '=https' --tlsv1.2 \
@@ -139,6 +142,7 @@ jobs:
 
       - name: 7. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
+          # renovate: datasource=github-releases depName=kyverno/kyverno
           KYVERNO_VERSION="v1.12.5"
           KYVERNO_SHA256="962c396cdb149eadc7d6cc0cb345d3c01b6980d5265c8bb585c55ecd4b8a76b9"
           curl -sL --proto '=https' --tlsv1.2 \
@@ -172,6 +176,7 @@ jobs:
       - name: 2. Configurar OpenTofu CLI
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
+          # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
           tofu_version: 1.8.8
 
       - name: 3. Format Check y Validate (Proxmox, Lab, Cloud-Template y AWS)
@@ -295,6 +300,7 @@ jobs:
       - name: 4. Configurar Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
+          # renovate: datasource=github-releases depName=helm/helm
           version: v3.17.0
 
       - name: 5. Desplegar Helm Chart en Kind
