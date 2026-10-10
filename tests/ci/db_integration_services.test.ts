@@ -26,8 +26,8 @@ interface JobDefinition {
 const workflow = readYaml<{ jobs: Record<string, JobDefinition> }>('.github/workflows/ci.yaml');
 const compose = readYaml<{ services: Record<string, { image: string }> }>('docker-compose.yaml');
 
-/** Jobs que ejecutan la suite completa: `npm test` y `npm run test:coverage`. */
-const JOBS_WITH_SERVICES = ['code-quality', 'sonarcloud'];
+/** Job que ejecuta la suite completa (`npm run test:coverage`); es el único que necesita los servicios. */
+const JOBS_WITH_SERVICES = ['sonarcloud'];
 
 for (const jobName of JOBS_WITH_SERVICES) {
   test(`🧪 CI-DB-001: el job ${jobName} define las variables y los servicios de las pruebas de base de datos`, () => {
