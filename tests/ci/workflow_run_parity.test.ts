@@ -18,6 +18,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT_DIR } from '../helpers/repo.js';
+import { readYaml } from '../helpers/yaml.js';
 
 const WORKFLOWS_DIR = path.join(ROOT_DIR, '.github/workflows');
 
@@ -184,5 +185,50 @@ test('🚨 WF-002: cada consumidor de workflow_run mantiene un red de seguridad'
     [],
     `Workflows con trigger workflow_run sin red de seguridad (ni schedule ni workflow_dispatch): ` +
       `${sinSchedule.join(' | ')}. Si el nombre del productor cambia, nunca se ejecutan.`,
+  );
+});
+
+/**
+ * Evalúa la condición `if:` de un job para un evento `schedule`, o devuelve `undefined` si usa
+ * contextos que no se pueden resolver aquí (`needs`, `matrix`, `github.ref`…). Solo entiende
+ * `github.event_name`, `github.event.workflow_run.conclusion` e `inputs.*` (falsos en un cron).
+ */
+function evaluateForSchedule(condition: string): boolean | undefined {
+  const expression = condition
+    .replace(/\$\{\{|\}\}/g, '')
+    .replace(/github\.event\.workflow_run\.conclusion/g, "''")
+    .replace(/github\.event_name/g, "'schedule'")
+    .replace(/\binputs\.\w+/g, 'false')
+    .replace(/==/g, '===')
+    .replace(/!=/g, '!==');
+  if (
+    !/^[\s()'\w!=&|-]*$/.test(expression) ||
+    /\b(github|needs|matrix|env|vars|secrets|steps|job)\b/.test(expression)
+  ) {
+    return undefined;
+  }
+  return Boolean(new Function(`return (${expression});`)());
+}
+
+test('🚨 WF-004: ningún job de un workflow con cron excluye el evento schedule en su `if`', () => {
+  const muertos: string[] = [];
+
+  for (const file of workflowFiles()) {
+    const workflow = readYaml<{ on?: Record<string, unknown>; jobs?: Record<string, { if?: string | boolean }> }>(
+      `.github/workflows/${file}`,
+    );
+    if (!workflow.on || !('schedule' in workflow.on)) continue;
+
+    for (const [jobId, job] of Object.entries(workflow.jobs ?? {})) {
+      if (typeof job.if !== 'string') continue;
+      if (evaluateForSchedule(job.if) === false) muertos.push(`${file}#${jobId}`);
+    }
+  }
+
+  assert.deepEqual(
+    muertos,
+    [],
+    `Jobs que nunca se ejecutan por schedule aunque el workflow declare un cron: ${muertos.join(' | ')}. ` +
+      'El cron saldría siempre `skipped` sin que nada lo delatara.',
   );
 });
