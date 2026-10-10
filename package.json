@@ -74,6 +74,8 @@
     "pr:validate": "tsx scripts/validate-pr-body.ts",
     "linear:sonar-sync": "node --experimental-strip-types scripts/sonar-linear-sync.ts",
     "linear:security-sync": "tsx scripts/github-security-linear-sync.ts",
+    "linear:list": "tsx scripts/list-linear-issues.ts",
+    "linear:cleanup": "tsx scripts/cleanup-linear-tickets.ts",
     "aas:governance": "tsx scripts/aas-governance.ts",
     "aas:validate": "npm exec --yes --ignore-scripts --package=agentic-awesome-skills@18.6.0 -- aas stack validate --manifest .agents/aas/aas-stack.json",
     "aas:verify": "npm run aas:governance && npm run aas:validate",
