@@ -162,7 +162,7 @@ Si la llamada `redisClient.incr` fallara por un micro-corte de red:
 
 ## 4. Auditoría de Cumplimiento y Verificación
 
-El cumplimiento de estos contratos se valida tanto en tiempo de compilación (TypeScript estricto) como en la suite automatizada de pruebas (`tests/security/adr_governance_contracts.test.ts`):
+El cumplimiento de estos contratos se valida tanto en tiempo de compilación (TypeScript estricto) como en la suite automatizada de pruebas (`tests/contracts/adr/adr_governance_contracts.test.ts`):
 
 - **Fail-Closed en Escrituras**: Test unitario e integración validando retorno `503` al invocar `requireWritableStorage` con DB inactiva.
 - **Fail-Closed en Revocación**: Test validando rechazo de sesión cuando Redis retorna estado inaccesible.

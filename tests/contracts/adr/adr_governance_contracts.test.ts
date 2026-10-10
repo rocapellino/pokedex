@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
-import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { getCompleteTaskfileContent } from '../../helpers/taskfile.js';
+import { assertDocsPortalLinksAdrIndex } from '../../helpers/docs-portal.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🛡️ Gobernanza & Documentación: README.md y docs/README.md documentan Matriz de Estado y enlazan Runbooks y ADRs', () => {
   const readmePath = path.join(ROOT_DIR, 'README.md');

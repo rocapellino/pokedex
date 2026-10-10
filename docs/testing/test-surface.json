@@ -26,6 +26,14 @@
       "description": "Evaluación de políticas de admisión, Network Policies Cilium L7, cifrado DR, secretos Vault y contratos IaC."
     },
     {
+      "id": "contracts",
+      "name": "Contratos de Repositorio",
+      "path": "tests/contracts",
+      "runner": "node:test (tsx)",
+      "command": "npm run test:contracts",
+      "description": "Contratos sobre ADR, gobernanza documental, entrega de imágenes y dependencias, y observabilidad; verifican archivos del repositorio, no la seguridad de la aplicación."
+    },
+    {
       "id": "gitops",
       "name": "Contratos de GitOps y Despliegue",
       "path": "tests/gitops",
@@ -325,6 +333,395 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Valida compatibilidad estructural estricta entre las interfaces de tipos de backend y frontend."
+    },
+    {
+      "path": "tests/contracts/adr/adr_application_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Conformidad ADR / Aplicación",
+      "targetArtifacts": [
+        "apps/backend/src/",
+        "docs/decisions/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011)."
+    },
+    {
+      "path": "tests/contracts/adr/adr_ci_tooling_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Conformidad ADR / CI y Tooling",
+      "targetArtifacts": [
+        ".github/workflows/",
+        "lighthouserc.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows."
+    },
+    {
+      "path": "tests/contracts/adr/adr_governance_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Conformidad ADR / Gobernanza",
+      "targetArtifacts": [
+        "docs/decisions/",
+        "docs/operations/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027)."
+    },
+    {
+      "path": "tests/contracts/adr/adr_observability_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Conformidad ADR / Observabilidad",
+      "targetArtifacts": [
+        "infra/monitoring/",
+        "docs/decisions/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018)."
+    },
+    {
+      "path": "tests/contracts/adr/adr_registry_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Conformidad ADR / Registro",
+      "targetArtifacts": [
+        "docs/decisions/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
+    },
+    {
+      "path": "tests/contracts/delivery/ghcr_retention.test.ts",
+      "suite": "contracts",
+      "type": "Contract / OCI",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Retención y Ciclo de Vida en GHCR",
+      "targetArtifacts": [
+        "scripts/ghcr-retention.ts",
+        ".github/workflows/ghcr-retention.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas."
+    },
+    {
+      "path": "tests/contracts/delivery/github_security_linear_sync.test.ts",
+      "suite": "contracts",
+      "type": "Contract / SecOps",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Sincronización de Seguridad GitHub-Linear",
+      "targetArtifacts": [
+        "scripts/github-security-linear-sync.ts",
+        ".github/workflows/github-security-linear-sync.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear."
+    },
+    {
+      "path": "tests/contracts/delivery/gitops_image_parity.test.ts",
+      "suite": "contracts",
+      "type": "Contract / GitOps",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Paridad de Imágenes en GitOps",
+      "targetArtifacts": [
+        "scripts/verify-image-digest-parity.ts",
+        "gitops/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod."
+    },
+    {
+      "path": "tests/contracts/delivery/image_publication_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Supply Chain",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Publicación de Imágenes",
+      "targetArtifacts": [
+        ".github/workflows/ci.yaml",
+        "gitops/environments/proxmox-preprod/values.yaml",
+        "infra/helm/pokedex/values.prod.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba que CI publique todas las imágenes que GitOps despliega (api y web), con el SHA completo del commit, y el Chart una sola vez."
+    },
+    {
+      "path": "tests/contracts/delivery/promote_auto_approve_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / CI-CD",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Promoción Automatizada Segura",
+      "targetArtifacts": [
+        ".github/workflows/promote-auto-approve.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias."
+    },
+    {
+      "path": "tests/contracts/delivery/renovate_config_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Dependencies",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Renovate / Configuración",
+      "targetArtifacts": [
+        "renovate.json",
+        ".github/workflows/config-linters.yaml",
+        "infra/helm/pokedex/values.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart."
+    },
+    {
+      "path": "tests/contracts/governance/docs_governance_gate.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza Documental / Gate de Enlaces",
+      "targetArtifacts": [
+        "scripts/validate-docs-governance.ts",
+        "docs/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Comprueba que el gate de gobernanza documental detecte enlaces rotos en .agents/ y AGENTS.md y que la documentación vigente no tenga enlaces rotos ni drift."
+    },
+    {
+      "path": "tests/contracts/governance/docs_portal_integrity.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Docs",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Integridad del Portal de Documentación",
+      "targetArtifacts": [
+        "docs/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental."
+    },
+    {
+      "path": "tests/contracts/governance/ignore_hygiene.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Hygiene",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
+      "targetArtifacts": [
+        "scripts/check-ignore-hygiene.ts",
+        ".gitignore",
+        ".dockerignore"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos."
+    },
+    {
+      "path": "tests/contracts/governance/yaml_extension_governance.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Governance",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza de Extensiones YAML",
+      "targetArtifacts": [
+        "scripts/check-yaml-extension.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio."
+    },
+    {
+      "path": "tests/contracts/observability/grafana_cloud_collection.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Observability",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
+      "targetArtifacts": [
+        "infra/monitoring/grafana-cloud-values.yaml",
+        "scripts/deploy-grafana-cloud.mjs"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados."
+    },
+    {
+      "path": "tests/contracts/observability/grafana_portability.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Observability",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Portabilidad de Dashboards Grafana",
+      "targetArtifacts": [
+        "infra/monitoring/dashboards/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
+      ],
+      "description": "Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos."
     },
     {
       "path": "tests/doc_governance.test.ts",
@@ -2036,120 +2433,6 @@
       "description": "Verifica la paridad e identifica drift entre el ruleset declarativo local y las reglas activas en la API remota de GitHub."
     },
     {
-      "path": "tests/security/adr_application_contracts.test.ts",
-      "suite": "security",
-      "type": "Contract / Architecture",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Conformidad ADR / Aplicación",
-      "targetArtifacts": [
-        "apps/backend/src/",
-        "docs/decisions/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba IA con Gemini (ADR-009), autenticación y sesiones (ADR-010) y persistencia (ADR-011)."
-    },
-    {
-      "path": "tests/security/adr_ci_tooling_contracts.test.ts",
-      "suite": "security",
-      "type": "Contract / Architecture",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Conformidad ADR / CI y Tooling",
-      "targetArtifacts": [
-        ".github/workflows/",
-        "lighthouserc.json"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows."
-    },
-    {
-      "path": "tests/security/adr_governance_contracts.test.ts",
-      "suite": "security",
-      "type": "Contract / Architecture",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Conformidad ADR / Gobernanza",
-      "targetArtifacts": [
-        "docs/decisions/",
-        "docs/operations/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027)."
-    },
-    {
-      "path": "tests/security/adr_observability_contracts.test.ts",
-      "suite": "security",
-      "type": "Contract / Architecture",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Conformidad ADR / Observabilidad",
-      "targetArtifacts": [
-        "infra/monitoring/",
-        "docs/decisions/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba métricas y alertas, ServiceMonitor (ADR-007) y OpenTelemetry (ADR-018)."
-    },
-    {
-      "path": "tests/security/adr_registry_contract.test.ts",
-      "suite": "security",
-      "type": "Contract / Architecture",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Conformidad ADR / Registro",
-      "targetArtifacts": [
-        "docs/decisions/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
-    },
-    {
       "path": "tests/security/ansible_baseline_security.test.ts",
       "suite": "security",
       "type": "Security / Ansible",
@@ -2353,51 +2636,6 @@
       "description": "Verifica que validatePokemonPayload y validateImageUrl rechacen XSS, pseudo-protocolos, IPs privadas (anti-SSRF), campos desconocidos y valores fuera de rango."
     },
     {
-      "path": "tests/security/docs_governance_gate.test.ts",
-      "suite": "security",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza Documental / Gate de Enlaces",
-      "targetArtifacts": [
-        "scripts/validate-docs-governance.ts",
-        "docs/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba que el gate de gobernanza documental detecte enlaces rotos en .agents/ y AGENTS.md y que la documentación vigente no tenga enlaces rotos ni drift."
-    },
-    {
-      "path": "tests/security/docs_portal_integrity.test.ts",
-      "suite": "security",
-      "type": "Contract / Docs",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Integridad del Portal de Documentación",
-      "targetArtifacts": [
-        "docs/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida vínculos internos, anclas, sintaxis y consistencia de navegación en el portal documental."
-    },
-    {
       "path": "tests/security/dr_backup_security.test.ts",
       "suite": "security",
       "type": "Security / Backup",
@@ -2470,120 +2708,6 @@
       "description": "Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta."
     },
     {
-      "path": "tests/security/ghcr_retention.test.ts",
-      "suite": "security",
-      "type": "Contract / OCI",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Retención y Ciclo de Vida en GHCR",
-      "targetArtifacts": [
-        "scripts/ghcr-retention.ts",
-        ".github/workflows/ghcr-retention.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas."
-    },
-    {
-      "path": "tests/security/github_security_linear_sync.test.ts",
-      "suite": "security",
-      "type": "Contract / SecOps",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Sincronización de Seguridad GitHub-Linear",
-      "targetArtifacts": [
-        "scripts/github-security-linear-sync.ts",
-        ".github/workflows/github-security-linear-sync.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida sincronización bidireccional idempotente de vulnerabilidades y alertas de seguridad hacia issues de Linear."
-    },
-    {
-      "path": "tests/security/gitops_image_parity.test.ts",
-      "suite": "security",
-      "type": "Contract / GitOps",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Paridad de Imágenes en GitOps",
-      "targetArtifacts": [
-        "scripts/verify-image-digest-parity.ts",
-        "gitops/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba el script de verificación de paridad de imagen asegurando inmutabilidad entre entornos dev, preprod y prod."
-    },
-    {
-      "path": "tests/security/grafana_cloud_collection.test.ts",
-      "suite": "security",
-      "type": "Contract / Observability",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Recolección de Métricas del Clúster hacia Grafana Cloud",
-      "targetArtifacts": [
-        "infra/monitoring/grafana-cloud-values.yaml",
-        "scripts/deploy-grafana-cloud.mjs"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Renderiza k8s-monitoring con la versión y flags del script y verifica scrapes de clúster, allowlists de las alertas y el endpoint OTLP de la API; los recursos renderizados (Alloy, ExternalSecret), los values y las reglas de alerta se leen parseados."
-    },
-    {
-      "path": "tests/security/grafana_portability.test.ts",
-      "suite": "security",
-      "type": "Contract / Observability",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Portabilidad de Dashboards Grafana",
-      "targetArtifacts": [
-        "infra/monitoring/dashboards/"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida esquemas JSON declarativos de dashboards Grafana, portabilidad de datasources y ausencia de UIDs fijos."
-    },
-    {
       "path": "tests/security/iac_baseline_security.test.ts",
       "suite": "security",
       "type": "Security / DevDX",
@@ -2606,54 +2730,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Gobernanza Dev DX: sobre las tareas de Task, Kind y el workflow parseados valida alias retirados, tareas canónicas, versiones fijadas y pip con ansible-core exacto; los documentos de ADR-020 y los README se comprueban como texto."
-    },
-    {
-      "path": "tests/security/ignore_hygiene.test.ts",
-      "suite": "security",
-      "type": "Contract / Hygiene",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Higiene de Archivos de Exclusión (.gitignore)",
-      "targetArtifacts": [
-        "scripts/check-ignore-hygiene.ts",
-        ".gitignore",
-        ".dockerignore"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida el linter de higiene de archivos .ignore, previniendo exclusión indebida, duplicados o fuga de secretos."
-    },
-    {
-      "path": "tests/security/image_publication_contract.test.ts",
-      "suite": "security",
-      "type": "Contract / Supply Chain",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Publicación de Imágenes",
-      "targetArtifacts": [
-        ".github/workflows/ci.yaml",
-        "gitops/environments/proxmox-preprod/values.yaml",
-        "infra/helm/pokedex/values.prod.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba que CI publique todas las imágenes que GitOps despliega (api y web), con el SHA completo del commit, y el Chart una sola vez."
     },
     {
       "path": "tests/security/k8s_workload_hardening.test.ts",
@@ -2751,52 +2827,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Verifica sobre el clúster Kind y los workflows parseados la integración con Kind, el escaneo ZAP, los umbrales de k6 por métrica y el simulacro semanal de DR; el script de restauración y los documentos de DR se comprueban como texto."
-    },
-    {
-      "path": "tests/security/promote_auto_approve_contracts.test.ts",
-      "suite": "security",
-      "type": "Contract / CI-CD",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Promoción Automatizada Segura",
-      "targetArtifacts": [
-        ".github/workflows/promote-auto-approve.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Valida políticas de auto-aprobación de PRs de dependencias patch/minor con suites de seguridad obligatorias."
-    },
-    {
-      "path": "tests/security/renovate_config_contract.test.ts",
-      "suite": "security",
-      "type": "Contract / Dependencies",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Renovate / Configuración",
-      "targetArtifacts": [
-        "renovate.json",
-        ".github/workflows/config-linters.yaml",
-        "infra/helm/pokedex/values.yaml"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart."
     },
     {
       "path": "tests/security/supply_chain_images_signing.test.ts",
@@ -2938,28 +2968,6 @@
         ".github/workflows/ci.yaml (code-quality, sonarcloud)"
       ],
       "description": "Verifica sobre los YAML y las tareas de Ansible parseados que el store de ESO, los values de pre-prod, la política y el rol de Vault, la custodia de las credenciales de init y la auditoría del Bastion mantienen su contrato, y la documentación de DR y break-glass como texto."
-    },
-    {
-      "path": "tests/security/yaml_extension_governance.test.ts",
-      "suite": "security",
-      "type": "Contract / Governance",
-      "role": "TEST_FILE",
-      "runner": "node:test (tsx)",
-      "status": "ACTIVE",
-      "targetDomain": "Gobernanza de Extensiones YAML",
-      "targetArtifacts": [
-        "scripts/check-yaml-extension.ts"
-      ],
-      "npmCommands": [
-        "npm test",
-        "npm run test:all",
-        "npm run test:coverage",
-        "npm run test:security"
-      ],
-      "ciWorkflows": [
-        ".github/workflows/ci.yaml (code-quality, sonarcloud)"
-      ],
-      "description": "Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio."
     },
     {
       "path": "tests/skills_frontmatter.test.ts",

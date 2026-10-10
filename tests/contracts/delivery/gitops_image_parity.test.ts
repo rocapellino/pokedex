@@ -8,8 +8,8 @@ import {
   parseImmutableDigest,
   verifyImageDigestParity,
   clearRenderCache,
-} from '../../scripts/verify-image-digest-parity.ts';
-import { ROOT_DIR } from '../helpers/repo.js';
+} from '../../../scripts/verify-image-digest-parity.ts';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🔒 GitOps Parity: extractRenderedApiImage compila el Deployment mediante Helm y extrae la imagen del contenedor api', () => {
   const chartPath = path.join(ROOT_DIR, 'infra/helm/pokedex');

@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { assertDocsPortalLinksAdrIndex } from '../../helpers/docs-portal.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🛡️ AI Contracts: apps/backend/src/services/ai.ts fuerza salida estructurada JSON en Gemini', () => {
   const aiServicePath = path.join(ROOT_DIR, 'apps/backend/src/services/ai.ts');

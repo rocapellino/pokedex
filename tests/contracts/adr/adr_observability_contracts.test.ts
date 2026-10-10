@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { assertDocsPortalLinksAdrIndex } from '../helpers/docs-portal.js';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { assertDocsPortalLinksAdrIndex } from '../../helpers/docs-portal.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🛡️ Observabilidad & Prometheus: apps/backend expone métricas coherentes con infra/monitoring/alerts.yaml', () => {
   const metricsPath = path.join(ROOT_DIR, 'apps/backend/src/middleware/metrics.ts');
@@ -161,8 +161,8 @@ test('🛡️ Observabilidad Distribuida: ADR-018 formaliza OpenTelemetry, W3C T
 
   // 5. Test funcional de requestTracer con W3C Trace Context
   const tracerMod: any = fs.existsSync(path.join(ROOT_DIR, 'apps/backend/src/middleware/request-tracer.js'))
-    ? await import('../../apps/backend/src/middleware/request-tracer.js')
-    : await import('../../apps/backend/src/middleware/request-tracer.ts');
+    ? await import('../../../apps/backend/src/middleware/request-tracer.js')
+    : await import('../../../apps/backend/src/middleware/request-tracer.ts');
   const { requestTracer } = tracerMod;
   let nextCalled = false;
   const mockReq: any = {

@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const DECISIONS_DIR = path.resolve(import.meta.dirname, '../../docs/decisions');
+const DECISIONS_DIR = path.resolve(import.meta.dirname, '../../../docs/decisions');
 const RETIRED_ADRS = new Set([19]); // ADR-019 (Turborepo) retirado: no conserva archivo.
 const LAST_CONTIGUOUS_ADR = 20; // ADR-001..020 son contiguos salvo los retirados.
 

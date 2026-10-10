@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { validateDocsGovernance } from '../../scripts/validate-docs-governance.ts';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { validateDocsGovernance } from '../../../scripts/validate-docs-governance.ts';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('📚 Gobernanza Documental: el gate detecta enlaces rotos dentro de .agents/ y AGENTS.md', () => {
   // Regresión: la consolidación de ADR-022 en ADR-005 (#483) dejó un enlace roto en

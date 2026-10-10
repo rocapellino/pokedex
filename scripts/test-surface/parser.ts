@@ -120,6 +120,9 @@ export function parseTestFile(fullPath: string): TestFileRecord {
           npmCommands.push('npm run test:security:egress');
         }
       }
+      if (relativePath.startsWith('tests/contracts/')) {
+        npmCommands.push('npm run test:contracts');
+      }
       if (relativePath.startsWith('tests/gitops/')) {
         npmCommands.push('npm run test:gitops');
       }

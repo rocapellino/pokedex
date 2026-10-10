@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import { ROOT_DIR } from '../helpers/repo.js';
+import { ROOT_DIR } from '../../helpers/repo.js';
 
 test('🧹 Configuration Hygiene: check-ignore-hygiene.ts existe y está registrado en package.json', () => {
   const scriptPath = path.join(ROOT_DIR, 'scripts/check-ignore-hygiene.ts');
