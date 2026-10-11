@@ -4,10 +4,12 @@
  *
  * Pruebas de integración y contrato para la capa de API remota de retención de tags:
  *   - Desreferenciación y borrado seguro de tags anotados vs tags ligeros.
- *   - Verificación de precondiciones y detección de mutaciones concurrentes de SHA.
+ *   - Verificación estricta de precondiciones y detección de mutaciones concurrentes de SHA.
+ *   - Rechazo estricto de prefijos o hashes incompletos/vacíos (sin startsWith, FAIL-CLOSED).
+ *   - Detección de desfase entre el commit del inventario evaluado y el commit remoto previo a la purga.
  *   - Paginación estricta y corte de seguridad FAIL-CLOSED ante inventario truncado.
- *   - Manejo de códigos de estado HTTP (404, 403, 500).
- *   - Garantía determinista de que el modo dry-run nunca invoca el método DELETE.
+ *   - Manejo de códigos de estado HTTP (404, 401/403, 500).
+ *   - Garantía determinista de que el modo dry-run y las fallas de precondición NUNCA invocan DELETE.
  *   - Verificación de integridad previa de los tags conservados antes de purgar.
  * ==============================================================================
  */
@@ -21,6 +23,17 @@ import {
   fetchRemoteTags,
 } from '../../../scripts/tag-retention.js';
 
+// Constantes de hashes SHA-1 válidos (40 caracteres hexadecimales) para pruebas reproducibles
+const SHA_TAG_ANNOTATED_1 = '1111111111111111111111111111111111111111';
+const SHA_COMMIT_TARGET_2 = '2222222222222222222222222222222222222222';
+const SHA_COMMIT_LIGHTWEIGHT_3 = '3333333333333333333333333333333333333333';
+const SHA_TAG_ANNOTATED_4 = '4444444444444444444444444444444444444444';
+const SHA_COMMIT_TARGET_5 = '5555555555555555555555555555555555555555';
+const SHA_TAG_MUTATED_7 = '7777777777777777777777777777777777777777';
+const SHA_COMMIT_MUTATED_9 = '9999999999999999999999999999999999999999';
+const SHA_VALID_FALLBACK_A = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const SHA_VALID_FALLBACK_B = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
 test('🏷️ Remoto [P1]: fetchRemoteTagRef desreferencia tags anotados a su commit destino', async () => {
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
@@ -31,9 +44,9 @@ test('🏷️ Remoto [P1]: fetchRemoteTagRef desreferencia tags anotados a su co
         JSON.stringify({
           ref: 'refs/tags/v3.0.0',
           object: {
-            sha: 'tag-object-sha-1111111111111111111111111111111111111111',
+            sha: SHA_TAG_ANNOTATED_1,
             type: 'tag',
-            url: 'https://api.github.com/repos/rocapellino/pokedex/git/tags/tag-object-sha-1111111111111111111111111111111111111111',
+            url: `https://api.github.com/repos/rocapellino/pokedex/git/tags/${SHA_TAG_ANNOTATED_1}`,
           },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
@@ -41,12 +54,12 @@ test('🏷️ Remoto [P1]: fetchRemoteTagRef desreferencia tags anotados a su co
     }
 
     // 2. Consulta del objeto tag para resolver el commit SHA
-    if (url.includes('/git/tags/tag-object-sha-1111111111111111111111111111111111111111')) {
+    if (url.includes(`/git/tags/${SHA_TAG_ANNOTATED_1}`)) {
       return new Response(
         JSON.stringify({
-          sha: 'tag-object-sha-1111111111111111111111111111111111111111',
+          sha: SHA_TAG_ANNOTATED_1,
           object: {
-            sha: 'commit-target-sha-2222222222222222222222222222222222222222',
+            sha: SHA_COMMIT_TARGET_2,
             type: 'commit',
           },
           tag: 'v3.0.0',
@@ -63,8 +76,8 @@ test('🏷️ Remoto [P1]: fetchRemoteTagRef desreferencia tags anotados a su co
 
   assert.ok(refDetail, 'Debe devolver el detalle de la referencia');
   assert.equal(refDetail.isAnnotated, true, 'Debe identificar el tag como anotado');
-  assert.equal(refDetail.refSha, 'tag-object-sha-1111111111111111111111111111111111111111');
-  assert.equal(refDetail.targetCommitSha, 'commit-target-sha-2222222222222222222222222222222222222222');
+  assert.equal(refDetail.refSha, SHA_TAG_ANNOTATED_1);
+  assert.equal(refDetail.targetCommitSha, SHA_COMMIT_TARGET_2);
 });
 
 test('🏷️ Remoto [P1]: fetchRemoteTagRef procesa tags ligeros sin llamadas secundarias innecesarias', async () => {
@@ -78,7 +91,7 @@ test('🏷️ Remoto [P1]: fetchRemoteTagRef procesa tags ligeros sin llamadas s
         JSON.stringify({
           ref: 'refs/tags/v2.1.0',
           object: {
-            sha: 'lightweight-commit-sha-3333333333333333333333333333333333333333',
+            sha: SHA_COMMIT_LIGHTWEIGHT_3,
             type: 'commit',
           },
         }),
@@ -93,12 +106,12 @@ test('🏷️ Remoto [P1]: fetchRemoteTagRef procesa tags ligeros sin llamadas s
 
   assert.ok(refDetail);
   assert.equal(refDetail.isAnnotated, false, 'Tag ligero no es anotado');
-  assert.equal(refDetail.refSha, 'lightweight-commit-sha-3333333333333333333333333333333333333333');
-  assert.equal(refDetail.targetCommitSha, 'lightweight-commit-sha-3333333333333333333333333333333333333333');
+  assert.equal(refDetail.refSha, SHA_COMMIT_LIGHTWEIGHT_3);
+  assert.equal(refDetail.targetCommitSha, SHA_COMMIT_LIGHTWEIGHT_3);
   assert.equal(callCount, 1, 'Solo debe realizar una única consulta HTTP');
 });
 
-test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando expectedSha coincide con el commit destino', async () => {
+test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando coinciden commitSha y refSha exactos', async () => {
   let deletedMethod: string | null = null;
   let deletedUrl: string | null = null;
 
@@ -116,7 +129,7 @@ test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando e
         JSON.stringify({
           ref: 'refs/tags/v1.0.0',
           object: {
-            sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+            sha: SHA_TAG_ANNOTATED_4,
             type: 'tag',
           },
         }),
@@ -124,12 +137,12 @@ test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando e
       );
     }
 
-    if (url.includes('/git/tags/annotated-tag-obj-sha-4444444444444444444444444444444444444444')) {
+    if (url.includes(`/git/tags/${SHA_TAG_ANNOTATED_4}`)) {
       return new Response(
         JSON.stringify({
-          sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+          sha: SHA_TAG_ANNOTATED_4,
           object: {
-            sha: 'commit-sha-from-tags-api-5555555555555555555555555555555555555555',
+            sha: SHA_COMMIT_TARGET_5,
             type: 'commit',
           },
         }),
@@ -140,15 +153,14 @@ test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando e
     return new Response('Not Found', { status: 404 });
   };
 
-  // Precondición completa para tag anotado: commitSha y refSha
   const result = await deleteRemoteTag(
     'mock-token',
     'rocapellino',
     'pokedex',
     'v1.0.0',
     {
-      commitSha: 'commit-sha-from-tags-api-5555555555555555555555555555555555555555',
-      refSha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+      commitSha: SHA_COMMIT_TARGET_5,
+      refSha: SHA_TAG_ANNOTATED_4,
     },
     mockFetch,
   );
@@ -163,13 +175,13 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta cuando un tag anotado muta de
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
 
-    // La referencia ahora apunta a otro objeto tag 'mutated-tag-obj-sha-7777...'
+    // La referencia ahora apunta a otro objeto tag
     if (url.includes('/git/ref/tags/v1.0.0')) {
       return new Response(
         JSON.stringify({
           ref: 'refs/tags/v1.0.0',
           object: {
-            sha: 'mutated-tag-obj-sha-7777777777777777777777777777777777777777',
+            sha: SHA_TAG_MUTATED_7,
             type: 'tag',
           },
         }),
@@ -178,12 +190,12 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta cuando un tag anotado muta de
     }
 
     // Pero el commit destino sigue siendo el mismo commit original
-    if (url.includes('/git/tags/mutated-tag-obj-sha-7777777777777777777777777777777777777777')) {
+    if (url.includes(`/git/tags/${SHA_TAG_MUTATED_7}`)) {
       return new Response(
         JSON.stringify({
-          sha: 'mutated-tag-obj-sha-7777777777777777777777777777777777777777',
+          sha: SHA_TAG_MUTATED_7,
           object: {
-            sha: 'commit-original-sha-5555555555555555555555555555555555555555',
+            sha: SHA_COMMIT_TARGET_5,
             type: 'commit',
           },
         }),
@@ -194,7 +206,7 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta cuando un tag anotado muta de
     return new Response('Not Found', { status: 404 });
   };
 
-  // Se intenta borrar con el refSha original 'annotated-tag-obj-sha-4444...'
+  // Se intenta borrar con el refSha original
   await assert.rejects(
     async () => {
       await deleteRemoteTag(
@@ -203,8 +215,8 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta cuando un tag anotado muta de
         'pokedex',
         'v1.0.0',
         {
-          commitSha: 'commit-original-sha-5555555555555555555555555555555555555555',
-          refSha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+          commitSha: SHA_COMMIT_TARGET_5,
+          refSha: SHA_TAG_ANNOTATED_4,
         },
         mockFetch,
       );
@@ -225,7 +237,7 @@ test('🏷️ Remoto [P1]: deleteRemoteTag aborta si para un tag anotado no se s
         JSON.stringify({
           ref: 'refs/tags/v1.0.0',
           object: {
-            sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+            sha: SHA_TAG_ANNOTATED_4,
             type: 'tag',
           },
         }),
@@ -233,12 +245,12 @@ test('🏷️ Remoto [P1]: deleteRemoteTag aborta si para un tag anotado no se s
       );
     }
 
-    if (url.includes('/git/tags/annotated-tag-obj-sha-4444444444444444444444444444444444444444')) {
+    if (url.includes(`/git/tags/${SHA_TAG_ANNOTATED_4}`)) {
       return new Response(
         JSON.stringify({
-          sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+          sha: SHA_TAG_ANNOTATED_4,
           object: {
-            sha: 'commit-sha-5555555555555555555555555555555555555555',
+            sha: SHA_COMMIT_TARGET_5,
             type: 'commit',
           },
         }),
@@ -257,7 +269,9 @@ test('🏷️ Remoto [P1]: deleteRemoteTag aborta si para un tag anotado no se s
         'rocapellino',
         'pokedex',
         'v1.0.0',
-        'commit-sha-5555555555555555555555555555555555555555',
+        {
+          commitSha: SHA_COMMIT_TARGET_5,
+        },
         mockFetch,
       );
     },
@@ -277,7 +291,7 @@ test('🏷️ Remoto [P2]: fetchRemoteTagRef falla con error explícito si el en
         JSON.stringify({
           ref: 'refs/tags/v1.0.0',
           object: {
-            sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+            sha: SHA_TAG_ANNOTATED_4,
             type: 'tag',
           },
         }),
@@ -313,7 +327,7 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta mutaciones de SHA y aborta po
         JSON.stringify({
           ref: 'refs/tags/v1.0.0',
           object: {
-            sha: 'mutated-commit-sha-9999999999999999999999999999999999999999',
+            sha: SHA_COMMIT_MUTATED_9,
             type: 'commit',
           },
         }),
@@ -331,7 +345,9 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta mutaciones de SHA y aborta po
         'rocapellino',
         'pokedex',
         'v1.0.0',
-        'expected-original-sha-0000000000000000000000000000000000000000',
+        {
+          commitSha: SHA_COMMIT_TARGET_5,
+        },
         mockFetch,
       );
     },
@@ -342,17 +358,186 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta mutaciones de SHA y aborta po
   );
 });
 
+test('🏷️ Remoto [P1]: deleteRemoteTag rechaza prefijos y cadenas vacías o incompletas de SHA sin ejecutar DELETE', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    return new Response(
+      JSON.stringify({
+        ref: 'refs/tags/v1.0.0',
+        object: { sha: SHA_COMMIT_TARGET_5, type: 'commit' },
+      }),
+      { status: 200 },
+    );
+  };
+
+  // 1. commitSha vacío
+  await assert.rejects(
+    async () => {
+      await deleteRemoteTag('token', 'owner', 'repo', 'v1.0.0', { commitSha: '' }, mockFetch);
+    },
+    { name: 'Error', message: /commitSha \(''\) no es un hash de Git de 40 hex válido/ },
+  );
+
+  // 2. commitSha con prefijo corto (no 40 caracteres)
+  await assert.rejects(
+    async () => {
+      await deleteRemoteTag('token', 'owner', 'repo', 'v1.0.0', { commitSha: '55555555' }, mockFetch);
+    },
+    { name: 'Error', message: /commitSha \('55555555'\) no es un hash de Git de 40 hex válido/ },
+  );
+
+  // 3. refSha con prefijo corto
+  await assert.rejects(
+    async () => {
+      await deleteRemoteTag(
+        'token',
+        'owner',
+        'repo',
+        'v1.0.0',
+        { commitSha: SHA_COMMIT_TARGET_5, refSha: '4444' },
+        mockFetch,
+      );
+    },
+    { name: 'Error', message: /refSha \('4444'\) no es un hash de Git de 40 hex válido/ },
+  );
+
+  assert.equal(deleteCalled, false, 'DELETE nunca debe ejecutarse ante SHAs incompletos o prefijos');
+});
+
+test('🏷️ Remoto [P2]: deleteRemoteTag exige precondición estructurada obligatoria y no ejecuta DELETE', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (_input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    return new Response(
+      JSON.stringify({
+        ref: 'refs/tags/v1.0.0',
+        object: { sha: SHA_COMMIT_TARGET_5, type: 'commit' },
+      }),
+      { status: 200 },
+    );
+  };
+
+  await assert.rejects(
+    async () => {
+      // @ts-expect-error falta de parámetro intencional
+      await deleteRemoteTag('token', 'owner', 'repo', 'v1.0.0', undefined, mockFetch);
+    },
+    {
+      name: 'Error',
+      message: /Precondición obligatoria ausente para tag v1.0.0/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'DELETE nunca debe ser llamado si falta la precondición');
+});
+
+test('🏷️ Remoto [P1]: fetchRemoteTagRef aborta si la API devuelve un SHA inválido o ausente', async () => {
+  const mockFetchEmptySha: typeof fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        ref: 'refs/tags/v1.0.0',
+        object: { sha: '', type: 'commit' },
+      }),
+      { status: 200 },
+    );
+  };
+
+  await assert.rejects(
+    async () => {
+      await fetchRemoteTagRef('token', 'owner', 'repo', 'v1.0.0', mockFetchEmptySha);
+    },
+    {
+      name: 'Error',
+      message:
+        /Estructura inválida o SHA malformado para refs\/tags\/v1.0.0: object.sha .* no es un hash de Git válido/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: applyTagRetention aborta si un tag a purgar muta su commit respecto al inventario evaluado', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    // 1. Inventario: v3.2.1 (retiene), v3.2.0 (purga con commit TARGET_2)
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
+          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // 2. Chequeo de integridad del retenido v3.2.1
+    if (url.includes('/git/ref/tags/v3.2.1')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.1',
+          object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    // 3. Captura previa de precondición para v3.2.0: ahora apunta a un commit DISTINTO (MUTATED_9)
+    if (url.includes('/git/ref/tags/v3.2.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.0',
+          object: { sha: SHA_COMMIT_MUTATED_9, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Conflicto concurrente en tag v3.2.0: el commit destino remoto .* difiere del SHA evaluado en el inventario/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'El método DELETE nunca debe llamarse ante mutación de commit');
+});
+
 test('🏷️ Remoto [P1]: fetchRemoteTags aborta de forma FAIL-CLOSED si se supera el límite de seguridad de páginas', async () => {
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
     const pageMatch = url.match(/page=(\d+)/);
     const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
 
-    // Simular un lote de 2 items por página con link rel="next"
+    // Simular un lote de 2 items por página con link rel="next" y SHAs válidos
     return new Response(
       JSON.stringify([
-        { name: `v1.${page}.0`, commit: { sha: `sha-${page}-0` } },
-        { name: `v1.${page}.1`, commit: { sha: `sha-${page}-1` } },
+        { name: `v1.${page}.0`, commit: { sha: SHA_VALID_FALLBACK_A } },
+        { name: `v1.${page}.1`, commit: { sha: SHA_VALID_FALLBACK_B } },
       ]),
       {
         status: 200,
@@ -411,7 +596,16 @@ test('🏷️ Remoto [P2]: deleteRemoteTag devuelve false si el tag ya no existe
     return new Response('Not Found', { status: 404 });
   };
 
-  const result = await deleteRemoteTag('mock-token', 'rocapellino', 'pokedex', 'v9.9.9', undefined, mockFetch);
+  const result = await deleteRemoteTag(
+    'mock-token',
+    'rocapellino',
+    'pokedex',
+    'v9.9.9',
+    {
+      commitSha: SHA_COMMIT_TARGET_5,
+    },
+    mockFetch,
+  );
   assert.equal(result, false);
 });
 
@@ -423,7 +617,7 @@ test('🏷️ Remoto [P2]: deleteRemoteTag maneja fallos HTTP 500 del endpoint D
     return new Response(
       JSON.stringify({
         ref: 'refs/tags/v1.0.0',
-        object: { sha: 'sha-1.0.0', type: 'commit' },
+        object: { sha: SHA_COMMIT_TARGET_5, type: 'commit' },
       }),
       { status: 200 },
     );
@@ -431,7 +625,16 @@ test('🏷️ Remoto [P2]: deleteRemoteTag maneja fallos HTTP 500 del endpoint D
 
   await assert.rejects(
     async () => {
-      await deleteRemoteTag('mock-token', 'rocapellino', 'pokedex', 'v1.0.0', 'sha-1.0.0', mockFetch);
+      await deleteRemoteTag(
+        'mock-token',
+        'rocapellino',
+        'pokedex',
+        'v1.0.0',
+        {
+          commitSha: SHA_COMMIT_TARGET_5,
+        },
+        mockFetch,
+      );
     },
     {
       name: 'Error',
@@ -452,9 +655,9 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=true garantiza que NUNCA
     if (url.includes('/tags?')) {
       return new Response(
         JSON.stringify([
-          { name: 'v3.2.0', commit: { sha: 'sha-v320' } },
-          { name: 'v3.2.1', commit: { sha: 'sha-v321' } }, // se retiene
-          { name: 'v1.0.0', commit: { sha: 'sha-v100' } }, // candidato a purga por Major
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_A } },
+          { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_B } }, // se retiene
+          { name: 'v1.0.0', commit: { sha: SHA_COMMIT_TARGET_5 } }, // candidato a purga por Major
         ]),
         { status: 200 },
       );
@@ -484,9 +687,9 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag r
     if (url.includes('/tags?')) {
       return new Response(
         JSON.stringify([
-          { name: 'v3.2.1', commit: { sha: 'sha-v321' } }, // Retenido (último patch)
-          { name: 'v3.2.0', commit: { sha: 'sha-v320' } }, // Candidato a purga (superado por v3.2.1)
-          { name: 'v1.0.0', commit: { sha: 'sha-v100' } }, // Retenido
+          { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_A } }, // Retenido (último patch)
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } }, // Candidato a purga (superado por v3.2.1)
+          { name: 'v1.0.0', commit: { sha: SHA_COMMIT_TARGET_5 } }, // Retenido
         ]),
         { status: 200 },
       );

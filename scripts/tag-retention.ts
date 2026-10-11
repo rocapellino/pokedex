@@ -123,6 +123,28 @@ export const DEFAULT_REPO = 'pokedex';
 export const SEMVER_TAG_REGEX =
   /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
+/** Expresión regular canónica para Git SHA-1 (40 caracteres hexadecimales completos). */
+export const GIT_SHA_REGEX = /^[0-9a-f]{40}$/i;
+
+/**
+ * Valida de forma estricta que una cadena sea un hash de Git completo y válido.
+ * Rechaza cadenas vacías, incompletas, prefijos o con caracteres no hexadecimales.
+ */
+export function isValidGitSha(sha: unknown): sha is string {
+  return typeof sha === 'string' && GIT_SHA_REGEX.test(sha.trim());
+}
+
+/**
+ * Compara dos hashes de Git utilizando igualdad exacta insensible a mayúsculas.
+ * Aborta devolviendo false si cualquiera de los dos valores no es un hash canónico completo de 40 hex.
+ */
+export function areShasEqual(a: unknown, b: unknown): boolean {
+  if (!isValidGitSha(a) || !isValidGitSha(b)) {
+    return false;
+  }
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 /** Manifiestos de GitOps y Helm inspeccionados para proteger versiones activas. */
 export const PROTECTED_MANIFEST_FILES = [
   'gitops/apps/app-proxmox-preprod.yaml',
@@ -626,11 +648,17 @@ export async function fetchRemoteTagRef(
     object?: { sha?: string; type?: string; url?: string };
   };
 
-  const refSha = data.object?.sha || '';
+  const refSha = data.object?.sha;
   const objType = data.object?.type || 'commit';
 
+  if (!refSha || !isValidGitSha(refSha)) {
+    throw new Error(
+      `Estructura inválida o SHA malformado para refs/tags/${tagName}: object.sha ('${refSha}') no es un hash de Git válido.`,
+    );
+  }
+
   // Si es un tag anotado ("type": "tag"), desreferenciarlo para obtener el commit SHA destino
-  if (objType === 'tag' && refSha) {
+  if (objType === 'tag') {
     const tagUrl =
       data.object?.url ||
       `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/tags/${encodeURIComponent(refSha)}`;
@@ -653,9 +681,9 @@ export async function fetchRemoteTagRef(
 
     const tagData = (await tagResponse.json()) as { object?: { sha?: string } };
     const targetCommitSha = tagData.object?.sha;
-    if (!targetCommitSha) {
+    if (!targetCommitSha || !isValidGitSha(targetCommitSha)) {
       throw new Error(
-        `Estructura inválida en objeto tag anotado ${refSha} para ${tagName}: no contiene commit destino (object.sha).`,
+        `Estructura inválida en objeto tag anotado ${refSha} para ${tagName}: commit destino ('${targetCommitSha}') malformado o ausente.`,
       );
     }
 
@@ -679,65 +707,66 @@ export async function fetchRemoteTagRef(
 
 /**
  * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición estricta.
- * Exige que coincidan tanto el refSha (objeto al que apunta la ref) como el commitSha destino.
+ * Exige una precondición obligatoria con hashes de Git válidos (40 hex).
+ * Comprueba igualdad exacta (===) tanto del refSha (objeto al que apunta la ref) como del commitSha destino.
  * Esto previene eliminaciones erróneas si la referencia fue re-apuntada a otro objeto tag
- * aunque dicho nuevo objeto apunte al mismo commit destino.
+ * o si el commit mutó concurrentemente entre la consulta y el borrado.
  */
 export async function deleteRemoteTag(
   token: string,
   owner: string,
   repo: string,
   tagName: string,
-  precondition?: TagDeletePrecondition | string,
+  precondition: TagDeletePrecondition,
   fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
+  if (!precondition || typeof precondition !== 'object') {
+    throw new Error(
+      `Precondición obligatoria ausente para tag ${tagName}: se requiere un objeto TagDeletePrecondition con hashes válidos para autorizar el borrado seguro.`,
+    );
+  }
+
+  if (!isValidGitSha(precondition.commitSha)) {
+    throw new Error(
+      `Precondición inválida para tag ${tagName}: commitSha ('${precondition.commitSha}') no es un hash de Git de 40 hex válido.`,
+    );
+  }
+
+  if (precondition.refSha !== undefined && !isValidGitSha(precondition.refSha)) {
+    throw new Error(
+      `Precondición inválida para tag ${tagName}: refSha ('${precondition.refSha}') no es un hash de Git de 40 hex válido.`,
+    );
+  }
+
   const current = await fetchRemoteTagRef(token, owner, repo, tagName, fetchFn);
   if (!current) {
     console.warn(`   ⚠️ Tag refs/tags/${tagName} ya no existe en el remoto. Nada que eliminar.`);
     return false;
   }
 
-  if (precondition) {
-    const expected: TagDeletePrecondition =
-      typeof precondition === 'string'
-        ? {
-            commitSha: precondition,
-            refSha: current.isAnnotated ? undefined : precondition,
-          }
-        : precondition;
-
-    if (!expected.commitSha && !expected.refSha) {
+  // 1. Verificación obligatoria de refSha para tags anotados o cuando se especifique refSha
+  if (current.isAnnotated) {
+    if (!precondition.refSha) {
       throw new Error(
-        `Precondición no fiable para tag ${tagName}: no se suministraron SHAs válidos para verificar. Operación cancelada por seguridad.`,
+        `Precondición no fiable para tag anotado ${tagName}: se requiere el SHA de referencia (refSha) además del commitSha para autorizar el borrado seguro.`,
       );
     }
-
-    // 1. Verificación obligatoria de refSha para tags anotados o cuando se especifique refSha
-    if (expected.refSha) {
-      const matchesRef = current.refSha.startsWith(expected.refSha) || expected.refSha.startsWith(current.refSha);
-      if (!matchesRef) {
-        throw new Error(
-          `Conflicto concurrente en tag ${tagName}: el SHA de la referencia (${current.refSha}) difiere del esperado (${expected.refSha}). La referencia mutó a otro objeto tag/commit. Operación cancelada por seguridad.`,
-        );
-      }
-    } else if (current.isAnnotated) {
-      // Si el tag es anotado pero el llamador no proveyó refSha, abortar porque la referencia pudo mutar a otro objeto tag
+    if (!areShasEqual(current.refSha, precondition.refSha)) {
       throw new Error(
-        `Precondición no fiable para tag anotado ${tagName}: se requiere el SHA de referencia (refSha) además del commit para autorizar el borrado seguro.`,
+        `Conflicto concurrente en tag ${tagName}: el SHA de la referencia (${current.refSha}) difiere del esperado (${precondition.refSha}). La referencia mutó a otro objeto tag/commit. Operación cancelada por seguridad.`,
       );
     }
+  } else if (precondition.refSha && !areShasEqual(current.refSha, precondition.refSha)) {
+    throw new Error(
+      `Conflicto concurrente en tag ${tagName}: el SHA de la referencia (${current.refSha}) difiere del esperado (${precondition.refSha}). Operación cancelada por seguridad.`,
+    );
+  }
 
-    // 2. Verificación obligatoria de commitSha
-    if (expected.commitSha) {
-      const matchesCommit =
-        current.targetCommitSha.startsWith(expected.commitSha) ||
-        expected.commitSha.startsWith(current.targetCommitSha);
-      if (!matchesCommit) {
-        throw new Error(
-          `Conflicto concurrente en tag ${tagName}: el commit destino (${current.targetCommitSha}) difiere del esperado (${expected.commitSha}). Operación cancelada por seguridad.`,
-        );
-      }
-    }
+  // 2. Verificación obligatoria exacta de commitSha
+  if (!areShasEqual(current.targetCommitSha, precondition.commitSha)) {
+    throw new Error(
+      `Conflicto concurrente en tag ${tagName}: el commit destino (${current.targetCommitSha}) difiere del esperado (${precondition.commitSha}). Operación cancelada por seguridad.`,
+    );
   }
 
   const deleteUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/refs/tags/${encodeURIComponent(tagName)}`;
@@ -787,12 +816,15 @@ export function generateMockTags(): GitTagRef[] {
     'custom-test-build', // inválido
   ];
 
-  return names.map((name, i) => ({
-    name,
-    sha: `sha-${name.replace(/[^a-zA-Z0-9]/g, '')}-${i.toString().padStart(4, '0')}`.padEnd(40, '0'),
-    date: new Date(Date.now() - (names.length - i) * 86400000).toISOString(),
-    isAnnotated: true,
-  }));
+  return names.map((name, i) => {
+    const hex = (i + 1).toString(16).padStart(4, '0');
+    return {
+      name,
+      sha: `${hex.repeat(10)}`,
+      date: new Date(Date.now() - (names.length - i) * 86400000).toISOString(),
+      isAnnotated: true,
+    };
+  });
 }
 
 /**
@@ -917,11 +949,20 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
       console.log('🔒 Capturando precondiciones atómicas de referencia para los tags candidatos a purga...');
       for (const item of pruned) {
         const checkPruned = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
-        if (checkPruned) {
-          item.tag.refSha = checkPruned.refSha;
-          item.tag.sha = checkPruned.targetCommitSha;
-          item.tag.isAnnotated = checkPruned.isAnnotated;
+        if (!checkPruned) {
+          throw new Error(
+            `Inconsistencia crítica: El tag candidato a purga ${item.tag.name} no se encontró en el remoto al capturar precondiciones. Abortando purga por seguridad.`,
+          );
         }
+        const inventoryCommitSha = item.tag.sha;
+        if (!areShasEqual(checkPruned.targetCommitSha, inventoryCommitSha)) {
+          throw new Error(
+            `Conflicto concurrente en tag ${item.tag.name}: el commit destino remoto (${checkPruned.targetCommitSha}) difiere del SHA evaluado en el inventario (${inventoryCommitSha}). La referencia mutó entre el cálculo y la purga. Operación cancelada por seguridad.`,
+          );
+        }
+        item.tag.refSha = checkPruned.refSha;
+        item.tag.sha = checkPruned.targetCommitSha;
+        item.tag.isAnnotated = checkPruned.isAnnotated;
       }
       console.log('✅ Precondiciones fijadas. Procediendo a eliminar tags candidatos:');
     }
