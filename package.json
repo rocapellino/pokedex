@@ -70,6 +70,8 @@
     "k8s:verify-vault-architecture": "node --experimental-strip-types scripts/k8s-rollout-restart.ts --simulate",
     "ghcr:retention": "node --experimental-strip-types scripts/ghcr-retention.ts",
     "ghcr:retention:dry-run": "node --experimental-strip-types scripts/ghcr-retention.ts --dry-run",
+    "tags:retention": "node --experimental-strip-types scripts/tag-retention.ts",
+    "tags:retention:dry-run": "node --experimental-strip-types scripts/tag-retention.ts --dry-run",
     "ci:detect-impact": "tsx scripts/detect-change-impact.ts",
     "pr:validate": "tsx scripts/validate-pr-body.ts",
     "linear:sonar-sync": "node --experimental-strip-types scripts/sonar-linear-sync.ts",

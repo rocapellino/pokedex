@@ -104,6 +104,16 @@ tasks:
     cmds:
       - npm run ghcr:retention:dry-run
 
+  tags:retention:
+    desc: "Aplica la política de retención de tags remotos en GitHub conservando los últimos 5"
+    cmds:
+      - npm run tags:retention
+
+  tags:retention:dry-run:
+    desc: "Inspecciona los tags remotos en GitHub y simula la purga sin mutaciones (Dry-Run)"
+    cmds:
+      - npm run tags:retention:dry-run
+
   linear:sonar-sync:
     desc: "Sincroniza el estado de SonarCloud y genera tickets en Linear ante Quality Gate fallido o vulnerabilidades"
     cmds:

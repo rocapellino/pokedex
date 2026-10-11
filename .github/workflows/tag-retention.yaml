@@ -1,0 +1,69 @@
+name: 🧹 Git Tag Retention - Prune Older Release Tags
+
+on:
+  schedule:
+    - cron: '0 5 * * 0' # Semanal los domingos a las 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Modo Dry-Run (solo simular, no eliminar)'
+        type: boolean
+        required: false
+        default: true
+      keep_count:
+        description: 'Número de tags de versión a conservar'
+        type: number
+        required: false
+        default: 5
+  workflow_run:
+    # WF-002: el trigger resuelve por `name:` exacto del workflow de release,
+    # no por ruta de archivo.
+    workflows: ["🏷️ Automated Semantic Release & Tag"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: tag-retention-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prune-tags:
+    name: "🧹 Purgar tags antiguos de release (Retención: 5)"
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Instalar dependencias del monorepo
+        run: npm ci --ignore-scripts
+
+      - name: Aplicar política de retención de tags vía script tipado
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_KEEP_COUNT: ${{ inputs.keep_count }}
+        run: |
+          # Dry-run por defecto: seguro durante la puesta en marcha inicial
+          DRY_RUN_FLAG="--dry-run"
+          if [ "$INPUT_DRY_RUN" = "false" ]; then
+            DRY_RUN_FLAG="--no-dry-run"
+          fi
+          KEEP_COUNT="${INPUT_KEEP_COUNT:-5}"
+          echo "Ejecutando retención de tags (keep=$KEEP_COUNT, flag=$DRY_RUN_FLAG)..."
+          node --experimental-strip-types scripts/tag-retention.ts --keep="$KEEP_COUNT" $DRY_RUN_FLAG

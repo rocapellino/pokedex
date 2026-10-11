@@ -432,6 +432,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica la política de retención de imágenes OCI en GHCR, preservación de releases semver y limpieza de imágenes huérfanas.',
   },
+  'tests/contracts/delivery/tag_retention.test.ts': {
+    type: 'Contract / Delivery',
+    targetDomain: 'Retención y Ciclo de Vida de Tags en GitHub',
+    targetArtifacts: ['scripts/tag-retention.ts', '.github/workflows/tag-retention.yaml'],
+    description:
+      'Verifica la política de retención de tags en GitHub, ordenación SemVer 2.0 determinista, salvaguarda de GitOps/Helm y purga segura.',
+  },
   'tests/contracts/delivery/github_security_linear_sync.test.ts': {
     type: 'Contract / SecOps',
     targetDomain: 'Sincronización de Seguridad GitHub-Linear',

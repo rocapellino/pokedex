@@ -66,6 +66,7 @@ flowchart TD
     OPS --> OP10["📥 GDRIVE_BACKUP_GUIDE.md"]
     OPS --> OP11["🗄️ OFFSITE_BACKUP_BLUEPRINTS.md"]
     OPS --> OP12["📐 capacity-and-quotas.md"]
+    OPS --> OP13["🏷️ TAG_RETENTION_POLICY.md"]
     TEST --> T1["🧪 test-surface.md"]
 
     classDef main fill:#2563eb,stroke:#1d4ed8,color:#fff;
@@ -74,7 +75,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS,TEST section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,T1 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,OP13,T1 doc;
 ```
 
 ---
@@ -183,6 +184,7 @@ flowchart TD
 - 📈 [**capacity-and-quotas.md**](./operations/capacity-and-quotas.md): Dimensionamiento de recursos, límites y cuotas operacionales por namespace.
 - 🛠️ [**TASKFILE_CLI_REFERENCE.md**](./operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI unificado con Taskfile, catálogo canónico y estrategia en 4 fases de ciclo de vida de aliases.
 - 📦 [**GHCR_RETENTION_POLICY.md**](./operations/GHCR_RETENTION_POLICY.md): Política de retención en GitHub Container Registry, purgado automático y garantía de 3 versiones activas.
+- 🏷️ [**TAG_RETENTION_POLICY.md**](./operations/TAG_RETENTION_POLICY.md): Política de retención de tags en GitHub, purgado automatizado y preservación de los últimos 5 tags de versión.
 - 📥 [**GDRIVE_BACKUP_GUIDE.md**](./operations/GDRIVE_BACKUP_GUIDE.md): Réplica off-site a Google Drive mediante CronJob, cifrado AES-256 y sincronización con Rclone, incluida la dependencia de promoción en GitOps.
 - 🗄️ [**OFFSITE_BACKUP_BLUEPRINTS.md**](./operations/OFFSITE_BACKUP_BLUEPRINTS.md): Blueprints de respaldo off-site alternos (Object Storage S3-compatible y Proxmox Backup Server), hoy en estado esqueletal inactivo por decisión de [ADR-006](./decisions/ADR-006-disaster-recovery-strategy.md).
 
