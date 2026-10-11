@@ -3993,6 +3993,34 @@
       "description": "Comprueba el cableado del arranque: server.ts encadena un catch sobre initStorage() que termina el proceso con process.exit(1) (APPS-002)."
     },
     {
+      "path": "tests/unit/worktree_governance.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza de Git Worktrees",
+      "targetArtifacts": [
+        "scripts/worktree/resolver.ts",
+        "scripts/worktree/naming.ts",
+        "scripts/worktree/manager.ts",
+        "scripts/worktree/creator.ts",
+        "scripts/worktree/doctor.ts",
+        "scripts/worktree/cli.ts",
+        ".agents/rules/worktree-governance.md"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica la resolución canónica de raíz, sanitización y nomenclatura, bloqueo de path traversal, creación determinista, listado y diagnóstico de worktrees."
+    },
+    {
       "path": "tests/unit/zod_resolution.test.ts",
       "suite": "unit",
       "type": "Contract / Dependencies",

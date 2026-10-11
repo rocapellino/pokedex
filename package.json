@@ -86,6 +86,12 @@
     "mcp:setup": "tsx scripts/mcp/setup.ts",
     "mcp:doctor": "tsx scripts/mcp/doctor.ts",
     "mcp:test": "tsx --test \"tests/**/mcp/**/*.test.ts\"",
+    "worktree": "tsx scripts/worktree/cli.ts",
+    "worktree:create": "tsx scripts/worktree/cli.ts create",
+    "worktree:list": "tsx scripts/worktree/cli.ts list",
+    "worktree:doctor": "tsx scripts/worktree/cli.ts doctor",
+    "worktree:cleanup": "tsx scripts/worktree/cli.ts cleanup",
+    "worktree:prune": "tsx scripts/worktree/cli.ts prune",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"

@@ -59,3 +59,18 @@ tasks:
     cmds:
       - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
       - kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+
+  worktree:list:
+    desc: "Gobernanza: Lista los Git worktrees registrados y su estado de cumplimiento"
+    cmds:
+      - npm run worktree:list
+
+  worktree:doctor:
+    desc: "Gobernanza: Diagnostica worktrees fuera de política y referencias huérfanas"
+    cmds:
+      - npm run worktree:doctor
+
+  worktree:prune:
+    desc: "Gobernanza: Limpia referencias huérfanas de worktrees eliminados en Git"
+    cmds:
+      - npm run worktree:prune

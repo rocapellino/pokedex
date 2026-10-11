@@ -25,6 +25,7 @@ Este documento define el radio de impacto esperado y la cascada de dependencias 
 | **Ingress por entorno (`ingress.*` en values)** | `className` del entorno; anotaciones compatibles con ese controlador; `tls`; cookies `Secure` y HSTS del backend; ADR-016 | Una anotación renderizada no es efectiva si el controlador del entorno no la interpreta ([methodology.md](methodology.md) §1). Verificar la configuración efectiva por entorno, no el chart base. |
 | **ADR consolidado, retirado o renombrado (`docs/decisions/`)** | `docs/decisions/README.md`; `.agents/**`; `AGENTS.md`; `docs/**`; comentarios en código y tests que citen el ADR | Aplicar la regla de referencias inversas (§1.1). La consolidación de ADR-022 (#483) dejó un enlace roto en una skill. |
 | **Skills y reglas de agente (`.agents/**`, `AGENTS.md`)** | `.agents/README.md`; catálogo de `AGENTS.md`; tests de gobernanza (`tests/contracts/governance/doc_governance.test.ts`, `tests/contracts/governance/aas_governance.test.ts`); `docs:validate` | Las skills enlazan las fuentes de verdad; no copian versiones, UIDs ni nombres de archivo volátiles. |
+| **Git Worktrees y Tooling (`scripts/worktree/`, rules)** | `.agents/rules/worktree-governance.md`; `AGENTS.md`; `package.json`; `tests/unit/worktree_governance.test.ts`; `taskfiles/dev.yaml` | Todo cambio en la resolución de base o nomenclatura impacta la creación y ciclo de vida de los worktrees en todos los agentes. |
 
 ### 1.1 Regla de Referencias Inversas
 

@@ -38,7 +38,7 @@ El ciclo de vida del repositorio es un bucle de seis fases. Cada fase tiene **un
 | 3. Ejecutar | Plan aprobado | Test nuevo en verde, regresión confirmada (falla sin el fix) y gates del plan con estado real |
 | 4. Actualizar | Commits de la fase 3 | Artefactos derivados sincronizados y estado del hallazgo registrado (ver abajo) |
 | 5. Documentar | Diff completo | 0 errores `MDxxx`, `docs:validate` en verde y ADR enmendado si hubo `ADR Drift` |
-| 6. Depurar | Rama lista | Sin código, scripts ni referencias huérfanas introducidas; `git status --short` sin sorpresas fuera de `tmp/` |
+| 6. Depurar | Rama lista | Sin código, scripts ni referencias huérfanas introducidas; `git status --short` sin sorpresas fuera de `tmp/`; worktrees de la tarea gestionados conforme a [worktree-governance.md](../../rules/worktree-governance.md) |
 
 Las fases son secuenciales dentro de un cambio, pero no todas aplican siempre: el *Fast Track* documental salta la fase 3, y un cambio sin hallazgo previo entra por la fase 2.
 
