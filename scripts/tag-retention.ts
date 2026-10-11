@@ -37,6 +37,11 @@ export interface GitRemoteRefDetail {
   isAnnotated: boolean;
 }
 
+export interface TagDeletePrecondition {
+  commitSha: string;
+  refSha?: string;
+}
+
 export interface ParsedSemver {
   raw: string;
   hasVPrefix: boolean;
@@ -639,17 +644,28 @@ export async function fetchRemoteTagRef(
       },
     });
 
-    if (tagResponse.ok) {
-      const tagData = (await tagResponse.json()) as { object?: { sha?: string } };
-      const targetCommitSha = tagData.object?.sha || refSha;
-      return {
-        tagName,
-        refSha,
-        targetCommitSha,
-        type: 'tag',
-        isAnnotated: true,
-      };
+    if (!tagResponse.ok) {
+      const errorText = await tagResponse.text();
+      throw new Error(
+        `Error ${tagResponse.status} al resolver objeto tag anotado ${refSha} para ${tagName}: ${errorText}`,
+      );
     }
+
+    const tagData = (await tagResponse.json()) as { object?: { sha?: string } };
+    const targetCommitSha = tagData.object?.sha;
+    if (!targetCommitSha) {
+      throw new Error(
+        `Estructura inválida en objeto tag anotado ${refSha} para ${tagName}: no contiene commit destino (object.sha).`,
+      );
+    }
+
+    return {
+      tagName,
+      refSha,
+      targetCommitSha,
+      type: 'tag',
+      isAnnotated: true,
+    };
   }
 
   return {
@@ -662,15 +678,17 @@ export async function fetchRemoteTagRef(
 }
 
 /**
- * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición.
- * Soporta tanto tags ligeros como tags anotados, validando expectedSha contra targetCommitSha y refSha.
+ * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición estricta.
+ * Exige que coincidan tanto el refSha (objeto al que apunta la ref) como el commitSha destino.
+ * Esto previene eliminaciones erróneas si la referencia fue re-apuntada a otro objeto tag
+ * aunque dicho nuevo objeto apunte al mismo commit destino.
  */
 export async function deleteRemoteTag(
   token: string,
   owner: string,
   repo: string,
   tagName: string,
-  expectedSha?: string,
+  precondition?: TagDeletePrecondition | string,
   fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
   const current = await fetchRemoteTagRef(token, owner, repo, tagName, fetchFn);
@@ -679,17 +697,46 @@ export async function deleteRemoteTag(
     return false;
   }
 
-  if (expectedSha) {
-    const matchesCommit =
-      current.targetCommitSha &&
-      (current.targetCommitSha.startsWith(expectedSha) || expectedSha.startsWith(current.targetCommitSha));
-    const matchesRef =
-      current.refSha && (current.refSha.startsWith(expectedSha) || expectedSha.startsWith(current.refSha));
+  if (precondition) {
+    const expected: TagDeletePrecondition =
+      typeof precondition === 'string'
+        ? {
+            commitSha: precondition,
+            refSha: current.isAnnotated ? undefined : precondition,
+          }
+        : precondition;
 
-    if (!matchesCommit && !matchesRef) {
+    if (!expected.commitSha && !expected.refSha) {
       throw new Error(
-        `Conflicto concurrente en tag ${tagName}: SHA actual (ref: ${current.refSha}, commit: ${current.targetCommitSha}) difiere del evaluado (${expectedSha}). Operación cancelada por seguridad.`,
+        `Precondición no fiable para tag ${tagName}: no se suministraron SHAs válidos para verificar. Operación cancelada por seguridad.`,
       );
+    }
+
+    // 1. Verificación obligatoria de refSha para tags anotados o cuando se especifique refSha
+    if (expected.refSha) {
+      const matchesRef = current.refSha.startsWith(expected.refSha) || expected.refSha.startsWith(current.refSha);
+      if (!matchesRef) {
+        throw new Error(
+          `Conflicto concurrente en tag ${tagName}: el SHA de la referencia (${current.refSha}) difiere del esperado (${expected.refSha}). La referencia mutó a otro objeto tag/commit. Operación cancelada por seguridad.`,
+        );
+      }
+    } else if (current.isAnnotated) {
+      // Si el tag es anotado pero el llamador no proveyó refSha, abortar porque la referencia pudo mutar a otro objeto tag
+      throw new Error(
+        `Precondición no fiable para tag anotado ${tagName}: se requiere el SHA de referencia (refSha) además del commit para autorizar el borrado seguro.`,
+      );
+    }
+
+    // 2. Verificación obligatoria de commitSha
+    if (expected.commitSha) {
+      const matchesCommit =
+        current.targetCommitSha.startsWith(expected.commitSha) ||
+        expected.commitSha.startsWith(current.targetCommitSha);
+      if (!matchesCommit) {
+        throw new Error(
+          `Conflicto concurrente en tag ${tagName}: el commit destino (${current.targetCommitSha}) difiere del esperado (${expected.commitSha}). Operación cancelada por seguridad.`,
+        );
+      }
     }
   }
 
@@ -865,7 +912,18 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
           );
         }
       }
-      console.log('✅ Verificación de integridad completada. Procediendo a eliminar tags candidatos:');
+      console.log('✅ Verificación de integridad completada.');
+
+      console.log('🔒 Capturando precondiciones atómicas de referencia para los tags candidatos a purga...');
+      for (const item of pruned) {
+        const checkPruned = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
+        if (checkPruned) {
+          item.tag.refSha = checkPruned.refSha;
+          item.tag.sha = checkPruned.targetCommitSha;
+          item.tag.isAnnotated = checkPruned.isAnnotated;
+        }
+      }
+      console.log('✅ Precondiciones fijadas. Procediendo a eliminar tags candidatos:');
     }
 
     for (const item of pruned) {
@@ -875,7 +933,17 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         deletedTags.push(tagName);
       } else {
         try {
-          const ok = await deleteRemoteTag(token, owner, repo, tagName, item.tag.sha, fetchFn);
+          const ok = await deleteRemoteTag(
+            token,
+            owner,
+            repo,
+            tagName,
+            {
+              commitSha: item.tag.sha,
+              refSha: item.tag.refSha,
+            },
+            fetchFn,
+          );
           if (ok) {
             console.log(`    [ELIMINADO] ${tagName} purgado exitosamente del remoto.`);
             deletedTags.push(tagName);
