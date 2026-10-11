@@ -215,3 +215,81 @@ test('🧹 Repository Hygiene: la regla transversal repository-hygiene.md existe
   const lifecycleSkill = fs.readFileSync(path.join(ROOT_DIR, '.agents/skills/repo-lifecycle/SKILL.md'), 'utf-8');
   assert.match(lifecycleSkill, /repository-hygiene\.md/, 'repo-lifecycle debe referenciar repository-hygiene.md');
 });
+
+test('🧹 Repository Hygiene: política obligatoria universal cubre todos los agentes de IA y mecanismos', () => {
+  const ruleContent = fs.readFileSync(path.join(ROOT_DIR, '.agents/rules/repository-hygiene.md'), 'utf-8');
+  const agentsMd = fs.readFileSync(path.join(ROOT_DIR, 'AGENTS.md'), 'utf-8');
+
+  // Cobertura universal de agentes
+  for (const agent of ['Antigravity', 'Claude Code', 'Cursor', 'Copilot']) {
+    assert.match(ruleContent, new RegExp(agent, 'i'), `repository-hygiene.md debe cubrir explícitamente a ${agent}`);
+    assert.match(agentsMd, new RegExp(agent, 'i'), `AGENTS.md debe cubrir explícitamente a ${agent}`);
+  }
+
+  // Mecanismos de ejecución cubiertos
+  for (const mechanism of ['IDE', 'terminal', 'scripts', 'shell', 'MCP', 'APIs', 'contenedores', 'CI']) {
+    assert.match(
+      ruleContent,
+      new RegExp(mechanism, 'i'),
+      `repository-hygiene.md debe cubrir el mecanismo de ejecución ${mechanism}`,
+    );
+    assert.match(agentsMd, new RegExp(mechanism, 'i'), `AGENTS.md debe cubrir el mecanismo de ejecución ${mechanism}`);
+  }
+});
+
+test('🧹 Repository Hygiene: directivas de herramientas, scripts y Model Context Protocol (MCP)', () => {
+  const ruleContent = fs.readFileSync(path.join(ROOT_DIR, '.agents/rules/repository-hygiene.md'), 'utf-8');
+  const agentsMd = fs.readFileSync(path.join(ROOT_DIR, 'AGENTS.md'), 'utf-8');
+  const mcpRule = fs.readFileSync(path.join(ROOT_DIR, '.agents/rules/mcp-governance.md'), 'utf-8');
+
+  // Mínimo directorio en filesystem para MCP
+  assert.match(
+    ruleContent,
+    /mínimo directorio necesario/i,
+    'repository-hygiene.md debe exigir mínimo directorio para MCP',
+  );
+  assert.match(agentsMd, /mínimo directorio necesario/i, 'AGENTS.md debe exigir mínimo directorio para MCP');
+  assert.match(
+    mcpRule,
+    /mínimo directorio necesario/i,
+    'mcp-governance.md debe exigir mínimo directorio en filesystem',
+  );
+
+  // Principio de no asunción pasiva en MCP
+  assert.match(
+    ruleContent,
+    /asumir que un servidor MCP cumple/i,
+    'repository-hygiene.md debe declarar no asunción pasiva',
+  );
+  assert.match(agentsMd, /asumir que un servidor MCP cumple/i, 'AGENTS.md debe declarar no asunción pasiva');
+  assert.match(mcpRule, /asumir que un servidor MCP cumple/i, 'mcp-governance.md debe declarar no asunción pasiva');
+
+  // Excepción de temporales del SO
+  assert.match(
+    ruleContent,
+    /sistema operativo/i,
+    'repository-hygiene.md debe contemplar directorios temporales del SO',
+  );
+  assert.match(agentsMd, /sistema operativo/i, 'AGENTS.md debe contemplar directorios temporales del SO');
+});
+
+test('🧹 Repository Hygiene: excepciones formalizadas y protocolo obligatorio de verificación final', () => {
+  const ruleContent = fs.readFileSync(path.join(ROOT_DIR, '.agents/rules/repository-hygiene.md'), 'utf-8');
+  const agentsMd = fs.readFileSync(path.join(ROOT_DIR, 'AGENTS.md'), 'utf-8');
+
+  // Excepciones funcionales (permanentes en ubicación definitiva, sin mover cachés de paquetes)
+  assert.match(
+    ruleContent,
+    /ubicación definitiva/i,
+    'repository-hygiene.md debe formalizar archivos en ubicación definitiva',
+  );
+  assert.match(agentsMd, /ubicación definitiva/i, 'AGENTS.md debe formalizar archivos en ubicación definitiva');
+  assert.match(ruleContent, /gestores de paquetes/i, 'repository-hygiene.md no debe mover cachés de paquetes');
+  assert.match(agentsMd, /gestores de paquetes/i, 'AGENTS.md no debe mover cachés de paquetes');
+
+  // Protocolo de verificación al finalizar
+  assert.match(ruleContent, /git status --short/, 'repository-hygiene.md debe exigir verificar git status --short');
+  assert.match(agentsMd, /git status --short/, 'AGENTS.md debe exigir verificar git status --short');
+  assert.match(ruleContent, /reporte final/i, 'repository-hygiene.md debe exigir reportar excepciones');
+  assert.match(agentsMd, /reporte final/i, 'AGENTS.md debe exigir reportar excepciones');
+});
