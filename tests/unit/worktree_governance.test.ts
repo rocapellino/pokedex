@@ -5,9 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { createWorktree } from '../../scripts/worktree/creator.js';
-import { runWorktreeDoctor } from '../../scripts/worktree/doctor.js';
+import { checkUngovernedWorktreeCalls, runWorktreeDoctor } from '../../scripts/worktree/doctor.js';
 import { listWorktrees, pruneWorktrees, removeWorktreeSafely } from '../../scripts/worktree/manager.js';
-import { generateCanonicalNaming, sanitizeSlug, sanitizeTicketId } from '../../scripts/worktree/naming.js';
+import {
+  ALLOWED_TASK_TYPES,
+  generateCanonicalNaming,
+  sanitizeSlug,
+  sanitizeTicketId,
+  validateGitRef,
+} from '../../scripts/worktree/naming.js';
 import {
   isWithinCanonicalBase,
   resolveCanonicalWorktreeBase,
@@ -175,4 +181,142 @@ test('🌲 Worktree Governance: operaciones aisladas en un repositorio Git simul
   pruneWorktrees(testRepoDir);
   const wtsAfter = listWorktrees(testRepoDir);
   assert.equal(wtsAfter.length, 1);
+});
+
+test('🌲 Worktree Governance: validateGitRef valida referencias legales y bloquea inyecciones de flags y metacaracteres', () => {
+  // Referencias legales
+  assert.equal(validateGitRef('main'), 'main');
+  assert.equal(validateGitRef('feat/nueva-pantalla'), 'feat/nueva-pantalla');
+  assert.equal(validateGitRef('chore/aud-sec-001'), 'chore/aud-sec-001');
+  assert.equal(validateGitRef('v1.0.0'), 'v1.0.0');
+
+  // Bloqueo de flag injection (comienzo con '-')
+  assert.throws(() => validateGitRef('--upload-pack=exploit'), /no puede comenzar con '-'/);
+  assert.throws(() => validateGitRef('-b'), /no puede comenzar con '-'/);
+  assert.throws(() => validateGitRef('--force'), /no puede comenzar con '-'/);
+
+  // Bloqueo de metacaracteres de shell y comandos concatenados
+  assert.throws(() => validateGitRef('main; touch /tmp/pwn'), /contiene caracteres no permitidos/);
+  assert.throws(() => validateGitRef('main && whoami'), /contiene caracteres no permitidos/);
+  assert.throws(() => validateGitRef('main | cat'), /contiene caracteres no permitidos/);
+  assert.throws(() => validateGitRef('main$(id)'), /contiene caracteres no permitidos/);
+  assert.throws(() => validateGitRef('branch with spaces'), /contiene caracteres no permitidos/);
+
+  // Bloqueo de reglas canónicas de Git
+  assert.throws(() => validateGitRef('bad..ref'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef('branch//nested'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef('ref@{1}'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef('branch/'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef('/branch'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef('branch.lock'), /viola las reglas canónicas de Git/);
+  assert.throws(() => validateGitRef(''), /el valor no puede estar vacío/);
+});
+
+test('🌲 Worktree Governance: createWorktree rechaza inyección de argumentos mediante baseBranch', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-inj-'));
+  const testRepoDir = path.join(tempDir, 'pokedex');
+  fs.mkdirSync(testRepoDir, { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  // Intento de inyectar comandos de shell o flags
+  assert.throws(
+    () =>
+      createWorktree(
+        { type: 'feat', slug: 'injection-test' },
+        { cwd: testRepoDir, baseBranch: 'main; touch injected.txt' },
+      ),
+    /Referencia Git inválida para baseBranch/,
+  );
+
+  assert.throws(
+    () =>
+      createWorktree(
+        { type: 'feat', slug: 'injection-test' },
+        { cwd: testRepoDir, baseBranch: '--upload-pack=dangerous' },
+      ),
+    /Referencia Git inválida para baseBranch/,
+  );
+
+  // Verificar que ningún archivo inyectado haya sido creado
+  assert.equal(fs.existsSync(path.join(testRepoDir, 'injected.txt')), false);
+});
+
+test('🌲 Worktree Governance: isWithinCanonicalBase detecta y bloquea escapes mediante enlaces simbólicos', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-symlink-'));
+  const canonicalBase = path.join(tempDir, '.worktrees', 'pokedex');
+  const externalDir = path.join(tempDir, 'external-secret-dir');
+
+  fs.mkdirSync(canonicalBase, { recursive: true });
+  fs.mkdirSync(externalDir, { recursive: true });
+
+  const linkInside = path.join(canonicalBase, 'symlink-escape');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(externalDir, linkInside, symlinkType);
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  // 1. Apuntar directamente a un enlace que apunta afuera
+  assert.equal(isWithinCanonicalBase(linkInside, canonicalBase), false);
+
+  // 2. Apuntar a una subcarpeta dentro del enlace que apunta afuera
+  const targetViaLink = path.join(linkInside, 'feat--stolen');
+  assert.equal(isWithinCanonicalBase(targetViaLink, canonicalBase), false);
+
+  // 3. Carpeta normal no vinculada debe ser permitida
+  const validPath = path.join(canonicalBase, 'feat--normal-task');
+  assert.equal(isWithinCanonicalBase(validPath, canonicalBase), true);
+});
+
+test('🌲 Worktree Governance: nomenclatura está alineada con el hook conventional-pre-commit de .pre-commit-config.yaml', () => {
+  const root = resolveMainRepoRoot(process.cwd());
+  const preCommitConfigPath = path.join(root, '.pre-commit-config.yaml');
+
+  assert.ok(fs.existsSync(preCommitConfigPath), 'El archivo .pre-commit-config.yaml debe existir');
+  const content = fs.readFileSync(preCommitConfigPath, 'utf-8');
+
+  // Extraer los args del hook conventional-pre-commit
+  const match = content.match(/id:\s*conventional-pre-commit[\s\S]*?args:\s*\[([^\]]+)\]/);
+  assert.ok(match, 'Debe encontrarse la sección del hook conventional-pre-commit con sus args');
+
+  const configuredTypes = match[1]
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  // Verificar que todos los tipos de ALLOWED_TASK_TYPES coincidan con el hook de pre-commit
+  assert.deepEqual(
+    [...ALLOWED_TASK_TYPES].sort(),
+    [...configuredTypes].sort(),
+    'Los tipos de ALLOWED_TASK_TYPES deben ser idénticos a los del hook conventional-pre-commit',
+  );
+});
+
+test('🌲 Worktree Governance: cumplimiento de puntos de entrada y ausencia de regresiones en scripts y skills', () => {
+  const root = resolveMainRepoRoot(process.cwd());
+  const regressions = checkUngovernedWorktreeCalls(root);
+
+  assert.equal(
+    regressions.length,
+    0,
+    `Se detectaron llamadas directas no autorizadas a 'git worktree add': ${JSON.stringify(regressions)}`,
+  );
 });

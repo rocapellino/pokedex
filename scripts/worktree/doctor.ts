@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { inspectWorktreeStatus, listWorktrees, type WorktreeStatusDetails } from './manager.js';
 import { resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
 
@@ -23,6 +24,60 @@ export interface DoctorReport {
   }[];
   globalFindings: DoctorFinding[];
   isValid: boolean;
+}
+
+/**
+ * Detecta llamadas o directivas desreguladas a 'git worktree add' en scripts y skills,
+ * asegurando que no existan regresiones de gobernanza en el repositorio.
+ */
+export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] {
+  const findings: DoctorFinding[] = [];
+  const searchDirs = [path.join(mainRoot, 'scripts'), path.join(mainRoot, '.agents', 'skills')];
+
+  function scanDir(dir: string) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === '.git' || fullPath.includes(path.join('scripts', 'worktree'))) {
+          continue;
+        }
+        scanDir(fullPath);
+      } else if (entry.isFile() && /\.(ts|js|mjs|sh|bash|md)$/i.test(entry.name)) {
+        try {
+          const content = fs.readFileSync(fullPath, 'utf-8');
+          const lines = content.split(/\r?\n/);
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (
+              /git\s+worktree\s+add/i.test(line) &&
+              !line.toLowerCase().includes('prohib') &&
+              !line.toLowerCase().includes('impide') &&
+              !line.includes('WT-REGRESSION')
+            ) {
+              findings.push({
+                code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
+                severity: 'HIGH',
+                worktreePath: fullPath,
+                message: `Llamada no gobernada o directiva directa a 'git worktree add' en línea ${i + 1}.`,
+                remediation:
+                  'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
+              });
+            }
+          }
+        } catch {
+          // Ignorar archivos no legibles
+        }
+      }
+    }
+  }
+
+  for (const sDir of searchDirs) {
+    scanDir(sDir);
+  }
+
+  return findings;
 }
 
 /**
@@ -115,7 +170,11 @@ export function runWorktreeDoctor(cwd: string = process.cwd()): DoctorReport {
     });
   }
 
-  const isValid = nonCompliantCount === 0 && prunableCount === 0;
+  // Comprobar regresiones de llamadas desreguladas en scripts y skills
+  const regressionFindings = checkUngovernedWorktreeCalls(mainRoot);
+  globalFindings.push(...regressionFindings);
+
+  const isValid = nonCompliantCount === 0 && prunableCount === 0 && regressionFindings.length === 0;
 
   return {
     mainRepoRoot: mainRoot,
