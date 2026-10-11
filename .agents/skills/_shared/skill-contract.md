@@ -36,3 +36,11 @@ Si una skill necesita una herramienta que no existe en el entorno local o cuya v
 4. **Seguridad y Menor Privilegio:** Montaje del repositorio en solo lectura (`:ro`) por defecto, sin `--privileged`, sin socket de Docker y con aislamiento en Windows (`MSYS_NO_PATHCONV=1`).
 5. **Artefactos Temporales:** Todo archivo temporal, log o reporte intermedio generado por cualquier agente o mecanismo de ejecución debe dirigirse exclusivamente a `tmp/` anclado a la raíz del repositorio, siguiendo el protocolo obligatorio de verificación final ([repository-hygiene.md](../../rules/repository-hygiene.md)).
 6. **Evidencia Estructurada:** El resultado reporta `PASS`, `FAIL`, `UNAVAILABLE`, `NOT_CONFIGURED` o `NOT_APPLICABLE` junto al modo (`local` o `container`), comando e imagen utilizada. `UNAVAILABLE` nunca equivale a `PASS`.
+
+## Gestión de Entornos de Trabajo: Gobernanza de Git Worktrees
+
+Si una skill o agente necesita aislar cambios, evaluar ramas o realizar revisiones en un entorno de trabajo paralelo, **nunca crea directorios o worktrees arbitrarios**: utiliza la gobernanza centralizada definida en [worktree-governance.md](../../rules/worktree-governance.md).
+
+- Toda creación se efectúa invocando el comando canónico `npm run worktree:create`.
+- Prohibido el uso de rutas ad-hoc o nombres inventados sin respetar los tipos y sanitización centralizados.
+- La limpieza e inspección se realizan mediante `npm run worktree:cleanup`, `npm run worktree:doctor` y `npm run worktree:prune`.

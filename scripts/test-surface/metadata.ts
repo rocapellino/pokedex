@@ -246,6 +246,21 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida las cabeceras CSP, Permissions-Policy, nosniff y Referrer-Policy y la propagación de X-Request-Id.',
   },
+  'tests/unit/worktree_governance.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gobernanza de Git Worktrees',
+    targetArtifacts: [
+      'scripts/worktree/resolver.ts',
+      'scripts/worktree/naming.ts',
+      'scripts/worktree/manager.ts',
+      'scripts/worktree/creator.ts',
+      'scripts/worktree/doctor.ts',
+      'scripts/worktree/cli.ts',
+      '.agents/rules/worktree-governance.md',
+    ],
+    description:
+      'Verifica la resolución canónica de raíz, sanitización y nomenclatura, bloqueo de path traversal, creación determinista, listado y diagnóstico de worktrees.',
+  },
   'tests/unit/hcl_parser.test.ts': {
     type: 'Unit',
     targetDomain: 'Lector de HCL para Pruebas de IaC',

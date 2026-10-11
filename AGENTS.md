@@ -134,3 +134,11 @@ Al concluir cualquier tarea, es obligatorio ejecutar el protocolo de verificaci�
 El catálogo de servidores MCP autorizados, sus políticas de seguridad, perfiles y adaptadores se rigen por la regla transversal [`.agents/rules/mcp-governance.md`](.agents/rules/mcp-governance.md) y la arquitectura canónica en [`.mcp/README.md`](.mcp/README.md).
 
 Queda estrictamente prohibido utilizar herramientas MCP para eludir el flujo declarativo de GitOps, solicitar credenciales operativas o introducir servidores fuera del catálogo aprobado. Todo cambio en el catálogo se valida mediante `npm run mcp:validate`.
+
+---
+
+## 8. Gobernanza Centralizada de Git Worktrees
+
+La creación, nomenclatura, ubicación, diagnóstico y limpieza de Git worktrees se rigen estrictamente por la regla transversal [`.agents/rules/worktree-governance.md`](.agents/rules/worktree-governance.md).
+
+Queda terminantemente prohibido que un agente de IA o herramienta elija de forma arbitraria la ruta o la nomenclatura de un worktree. Todos los worktrees residen bajo el directorio base canónico `../.worktrees/<repo-slug>/` y se gestionan exclusivamente mediante los puntos de entrada centralizados: `npm run worktree:create`, `npm run worktree:list`, `npm run worktree:doctor`, `npm run worktree:cleanup` y `npm run worktree:prune`.
