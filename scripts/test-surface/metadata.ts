@@ -437,7 +437,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Retención y Ciclo de Vida de Tags en GitHub',
     targetArtifacts: ['scripts/tag-retention.ts', '.github/workflows/tag-retention.yaml'],
     description:
-      'Verifica la política de retención de tags en GitHub, ordenación SemVer 2.0 determinista, salvaguarda de GitOps/Helm y purga segura.',
+      'Verifica la política jerárquica de retención de tags SemVer 2.0 (Opción B: 2 Majors, 3 Minors, 1 Patch), salvaguarda de GitOps/Helm y purga segura.',
   },
   'tests/contracts/delivery/github_security_linear_sync.test.ts': {
     type: 'Contract / SecOps',

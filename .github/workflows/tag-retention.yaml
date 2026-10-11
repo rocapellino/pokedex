@@ -1,4 +1,4 @@
-name: 🧹 Git Tag Retention - Prune Older Release Tags
+name: 🧹 Git Tag Retention - Hierarchical SemVer Pruning
 
 on:
   schedule:
@@ -10,11 +10,21 @@ on:
         type: boolean
         required: false
         default: true
-      keep_count:
-        description: 'Número de tags de versión a conservar'
+      major_count:
+        description: 'Número de líneas Major a conservar'
         type: number
         required: false
-        default: 5
+        default: 2
+      minor_count:
+        description: 'Número de líneas Minor por Major a conservar'
+        type: number
+        required: false
+        default: 3
+      patch_count:
+        description: 'Número de patches por Minor a conservar (último patch)'
+        type: number
+        required: false
+        default: 1
   workflow_run:
     # WF-002: el trigger resuelve por `name:` exacto del workflow de release,
     # no por ruta de archivo.
@@ -31,7 +41,7 @@ permissions:
 
 jobs:
   prune-tags:
-    name: "🧹 Purgar tags antiguos de release (Retención: 5)"
+    name: "🧹 Purgar tags antiguos de release (Jerarquía SemVer: 2 Majors, 3 Minors, 1 Patch)"
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -52,18 +62,22 @@ jobs:
       - name: Instalar dependencias del monorepo
         run: npm ci --ignore-scripts
 
-      - name: Aplicar política de retención de tags vía script tipado
+      - name: Aplicar política jerárquica de retención de tags vía script tipado
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
-          INPUT_KEEP_COUNT: ${{ inputs.keep_count }}
+          INPUT_MAJOR_COUNT: ${{ inputs.major_count }}
+          INPUT_MINOR_COUNT: ${{ inputs.minor_count }}
+          INPUT_PATCH_COUNT: ${{ inputs.patch_count }}
         run: |
           # Dry-run por defecto: seguro durante la puesta en marcha inicial
           DRY_RUN_FLAG="--dry-run"
           if [ "$INPUT_DRY_RUN" = "false" ]; then
             DRY_RUN_FLAG="--no-dry-run"
           fi
-          KEEP_COUNT="${INPUT_KEEP_COUNT:-5}"
-          echo "Ejecutando retención de tags (keep=$KEEP_COUNT, flag=$DRY_RUN_FLAG)..."
-          node --experimental-strip-types scripts/tag-retention.ts --keep="$KEEP_COUNT" $DRY_RUN_FLAG
+          MAJOR_COUNT="${INPUT_MAJOR_COUNT:-2}"
+          MINOR_COUNT="${INPUT_MINOR_COUNT:-3}"
+          PATCH_COUNT="${INPUT_PATCH_COUNT:-1}"
+          echo "Ejecutando retención jerárquica de tags (majors=$MAJOR_COUNT, minors=$MINOR_COUNT, patches=$PATCH_COUNT, flag=$DRY_RUN_FLAG)..."
+          node --experimental-strip-types scripts/tag-retention.ts --major="$MAJOR_COUNT" --minor="$MINOR_COUNT" --patch="$PATCH_COUNT" $DRY_RUN_FLAG

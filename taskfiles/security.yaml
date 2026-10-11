@@ -105,7 +105,7 @@ tasks:
       - npm run ghcr:retention:dry-run
 
   tags:retention:
-    desc: "Aplica la política de retención de tags remotos en GitHub conservando los últimos 5"
+    desc: "Aplica la política de retención jerárquica de tags en GitHub (Opción B: SemVer Major/Minor/Patch)"
     cmds:
       - npm run tags:retention
 

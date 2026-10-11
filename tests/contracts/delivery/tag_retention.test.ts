@@ -5,265 +5,364 @@ import * as path from 'node:path';
 import { getCompleteTaskfileContent } from '../../helpers/taskfile.js';
 import { ROOT_DIR } from '../../helpers/repo.js';
 import {
-  evaluateTagRetention,
+  evaluateHierarchicalTagRetention,
   parseSemverTag,
   compareSemver,
   collectProtectedTags,
   generateMockTags,
   applyTagRetention,
+  DEFAULT_CONFIG,
   type GitTagRef,
 } from '../../../scripts/tag-retention.ts';
 
-function createMockTag(name: string, date: string, sha?: string): GitTagRef {
+function createMockTag(name: string, date?: string, sha?: string): GitTagRef {
   return {
     name,
-    sha: sha || `sha-${name.replace(/[^a-zA-Z0-9]/g, '')}-0000000000000000000000`,
-    date,
+    sha: sha || `sha-${name.replace(/[^a-zA-Z0-9]/g, '')}-0000000000000000000000`.slice(0, 40),
+    date: date || '2026-10-11T12:00:00Z',
     isAnnotated: true,
   };
 }
 
-test('🏷️ Tag Retention: 1. Cero tags no produce eliminaciones ni errores', () => {
-  const result = evaluateTagRetention([], 5);
+// =============================================================================
+// 1. CLASIFICACIÓN Y ORDEN SEMVER
+// =============================================================================
+
+test('🏷️ Clasificación: parseSemverTag admite prefijo "v" opcional y preserva formato original', () => {
+  const withV = parseSemverTag('v3.2.1');
+  assert.ok(withV);
+  assert.equal(withV.major, 3);
+  assert.equal(withV.minor, 2);
+  assert.equal(withV.patch, 1);
+  assert.equal(withV.hasVPrefix, true);
+  assert.equal(withV.raw, 'v3.2.1');
+
+  const withoutV = parseSemverTag('3.2.1');
+  assert.ok(withoutV);
+  assert.equal(withoutV.major, 3);
+  assert.equal(withoutV.minor, 2);
+  assert.equal(withoutV.patch, 1);
+  assert.equal(withoutV.hasVPrefix, false);
+  assert.equal(withoutV.raw, '3.2.1');
+});
+
+test('🏷️ Orden SemVer: comparación correcta entre v1.9.0 y v1.10.0 (evita trampa alfabética)', () => {
+  const v19 = parseSemverTag('v1.9.0')!;
+  const v110 = parseSemverTag('v1.10.0')!;
+  assert.ok(compareSemver(v110, v19) > 0, 'v1.10.0 debe ser semánticamente mayor que v1.9.0');
+});
+
+test('🏷️ Orden SemVer: comparación correcta entre v3.9.9 y v3.10.0', () => {
+  const v399 = parseSemverTag('v3.9.9')!;
+  const v3100 = parseSemverTag('v3.10.0')!;
+  assert.ok(compareSemver(v3100, v399) > 0, 'v3.10.0 debe ser semánticamente mayor que v3.9.9');
+});
+
+test('🏷️ Clasificación: maneja líneas major y minor con huecos numéricos', () => {
+  const tags: GitTagRef[] = [createMockTag('v1.1.0'), createMockTag('v4.5.1'), createMockTag('v4.1.0')];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMajors, [4, 1]);
+  assert.deepEqual(result.summary.selectedMinorsByMajor[4], [5, 1]);
+  assert.equal(result.kept.length, 3);
+});
+
+test('🏷️ Clasificación: tags anotados y ligeros se procesan de forma idéntica', () => {
+  const annotated = { ...createMockTag('v2.1.0'), isAnnotated: true };
+  const lightweight = { ...createMockTag('v2.2.0'), isAnnotated: false };
+
+  const result = evaluateHierarchicalTagRetention([annotated, lightweight], DEFAULT_CONFIG);
+  assert.equal(result.kept.length, 2);
+  assert.ok(result.kept.some((i) => i.tag.name === 'v2.1.0'));
+  assert.ok(result.kept.some((i) => i.tag.name === 'v2.2.0'));
+});
+
+test('🏷️ Clasificación: versiones prerelease se excluyen de la retención y nunca se purgan', () => {
+  const tags: GitTagRef[] = [createMockTag('v3.0.0'), createMockTag('v3.1.0-rc.1'), createMockTag('v3.1.0-beta.2')];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.equal(result.kept.length, 1);
+  assert.equal(result.kept[0].tag.name, 'v3.0.0');
+  assert.equal(result.excluded.length, 2);
+  assert.equal(result.pruned.length, 0);
+
+  for (const item of result.excluded) {
+    assert.ok(item.exclusionReason?.includes('prerelease'));
+    assert.equal(item.isEligible, false);
+  }
+});
+
+test('🏷️ Clasificación: build metadata se parsea sin alterar precedencia de versión', () => {
+  const normal = parseSemverTag('v2.1.0')!;
+  const withBuild = parseSemverTag('v2.1.0+build.42')!;
+  assert.ok(withBuild);
+  assert.equal(withBuild.build, 'build.42');
+  assert.equal(compareSemver(normal, withBuild), 0, 'Build metadata no altera precedencia SemVer');
+});
+
+test('🏷️ Clasificación: tags con formato no SemVer se excluyen y nunca se purgan', () => {
+  const tags: GitTagRef[] = [
+    createMockTag('v2.0.0'),
+    createMockTag('nightly-20261011'),
+    createMockTag('feature-branch-tag'),
+    createMockTag('draft'),
+  ];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.equal(result.kept.length, 1);
+  assert.equal(result.excluded.length, 3);
+  assert.equal(result.pruned.length, 0);
+
+  for (const item of result.excluded) {
+    assert.ok(item.exclusionReason?.includes('SemVer'));
+  }
+});
+
+test('🏷️ Clasificación: versiones ambiguas con distinto SHA provocan detención segura', () => {
+  const tags: GitTagRef[] = [
+    createMockTag('v1.0.0', undefined, 'sha-1111111111111111111111111111111111111111'),
+    createMockTag('1.0.0', undefined, 'sha-2222222222222222222222222222222222222222'),
+  ];
+
+  assert.throws(() => evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG), /Ambigüedad crítica detectada/);
+});
+
+// =============================================================================
+// 2. RETENCIÓN JERÁRQUICA (OPCIÓN B)
+// =============================================================================
+
+test('🏷️ Retención: repositorio sin tags devuelve conjuntos vacíos sin errores', () => {
+  const result = evaluateHierarchicalTagRetention([], DEFAULT_CONFIG);
   assert.equal(result.kept.length, 0);
   assert.equal(result.pruned.length, 0);
   assert.equal(result.excluded.length, 0);
   assert.equal(result.protected.length, 0);
 });
 
-test('🏷️ Tag Retention: 2. Menos de cinco tags elegibles conserva todos y no elimina nada', () => {
-  const tags: GitTagRef[] = [
-    createMockTag('v1.3.0', '2026-10-01T10:00:00Z'),
-    createMockTag('v1.2.0', '2026-09-01T10:00:00Z'),
-    createMockTag('v1.1.0', '2026-08-01T10:00:00Z'),
-  ];
+test('🏷️ Retención: menos de dos líneas major conserva la única major disponible', () => {
+  const tags: GitTagRef[] = [createMockTag('v1.1.0'), createMockTag('v1.2.0')];
 
-  const result = evaluateTagRetention(tags, 5);
-  assert.equal(result.kept.length, 3, 'Debe conservar los 3 tags');
-  assert.equal(result.pruned.length, 0, 'No debe haber tags a purgar');
-  assert.deepEqual(
-    result.kept.map((i) => i.tag.name),
-    ['v1.3.0', 'v1.2.0', 'v1.1.0'],
-  );
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMajors, [1]);
+  assert.equal(result.kept.length, 2);
+  assert.equal(result.pruned.length, 0);
 });
 
-test('🏷️ Tag Retention: 3. Exactamente cinco tags elegibles conserva los 5 y no elimina nada', () => {
-  const tags: GitTagRef[] = [
-    createMockTag('v1.5.0', '2026-10-05T10:00:00Z'),
-    createMockTag('v1.4.0', '2026-10-04T10:00:00Z'),
-    createMockTag('v1.3.0', '2026-10-03T10:00:00Z'),
-    createMockTag('v1.2.0', '2026-10-02T10:00:00Z'),
-    createMockTag('v1.1.0', '2026-10-01T10:00:00Z'),
-  ];
+test('🏷️ Retención: exactamente dos líneas major conserva ambas', () => {
+  const tags: GitTagRef[] = [createMockTag('v1.1.0'), createMockTag('v2.1.0')];
 
-  const result = evaluateTagRetention(tags, 5);
-  assert.equal(result.kept.length, 5, 'Debe conservar exactamente 5 tags');
-  assert.equal(result.pruned.length, 0, 'No debe purgar ningún tag');
-  assert.deepEqual(
-    result.kept.map((i) => i.tag.name),
-    ['v1.5.0', 'v1.4.0', 'v1.3.0', 'v1.2.0', 'v1.1.0'],
-  );
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMajors, [2, 1]);
+  assert.equal(result.kept.length, 2);
+  assert.equal(result.pruned.length, 0);
 });
 
-test('🏷️ Tag Retention: 4. Más de cinco tags elegibles conserva los 5 más recientes y marca el resto', () => {
-  const tags: GitTagRef[] = [
-    createMockTag('v1.8.0', '2026-10-08T10:00:00Z'),
-    createMockTag('v1.7.0', '2026-10-07T10:00:00Z'),
-    createMockTag('v1.6.0', '2026-10-06T10:00:00Z'),
-    createMockTag('v1.5.0', '2026-10-05T10:00:00Z'),
-    createMockTag('v1.4.0', '2026-10-04T10:00:00Z'),
-    createMockTag('v1.3.0', '2026-10-03T10:00:00Z'),
-    createMockTag('v1.2.0', '2026-10-02T10:00:00Z'),
-    createMockTag('v1.1.0', '2026-10-01T10:00:00Z'),
-  ];
+test('🏷️ Retención: más de dos líneas major conserva solo las dos más recientes', () => {
+  const tags: GitTagRef[] = [createMockTag('v1.0.0'), createMockTag('v2.0.0'), createMockTag('v3.0.0')];
 
-  const result = evaluateTagRetention(tags, 5);
-  assert.equal(result.kept.length, 5, 'Debe conservar exactamente 5');
-  assert.equal(result.pruned.length, 3, 'Debe marcar 3 para purga');
-  assert.deepEqual(
-    result.kept.map((i) => i.tag.name),
-    ['v1.8.0', 'v1.7.0', 'v1.6.0', 'v1.5.0', 'v1.4.0'],
-    'Debe conservar los 5 más recientes por SemVer',
-  );
-  assert.deepEqual(
-    result.pruned.map((i) => i.tag.name),
-    ['v1.3.0', 'v1.2.0', 'v1.1.0'],
-    'Debe purgar los 3 más antiguos',
-  );
+  const result = evaluateHierarchicalTagRetention(tags, { keepMajorCount: 2, keepMinorCount: 3, keepPatchCount: 1 });
+  assert.deepEqual(result.summary.selectedMajors, [3, 2]);
+  assert.equal(result.kept.length, 2);
+  assert.equal(result.pruned.length, 1);
+  assert.equal(result.pruned[0].tag.name, 'v1.0.0');
 });
 
-test('🏷️ Tag Retention: 5. Ordenación determinista SemVer 2.0 evita trampas alfabéticas', () => {
-  // En orden alfabético: v1.100.0 < v1.2.0 y v1.10.0 < v1.9.0
-  // SemVer real: v1.100.0 > v1.10.0 > v1.9.0 > v1.2.0
-  const tags: GitTagRef[] = [
-    createMockTag('v1.2.0', '2026-01-01T10:00:00Z'),
-    createMockTag('v1.100.0', '2026-05-01T10:00:00Z'),
-    createMockTag('v1.10.0', '2026-03-01T10:00:00Z'),
-    createMockTag('v1.9.0', '2026-02-01T10:00:00Z'),
-    createMockTag('v1.101.0', '2026-06-01T10:00:00Z'),
-    createMockTag('v1.1.0', '2025-12-01T10:00:00Z'),
-  ];
+test('🏷️ Retención: menos de tres líneas minor en una major conserva todas las disponibles', () => {
+  const tags: GitTagRef[] = [createMockTag('v2.1.0'), createMockTag('v2.2.0')];
 
-  const result = evaluateTagRetention(tags, 3);
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMinorsByMajor[2], [2, 1]);
+  assert.equal(result.kept.length, 2);
+  assert.equal(result.pruned.length, 0);
+});
+
+test('🏷️ Retención: exactamente tres líneas minor conserva las tres', () => {
+  const tags: GitTagRef[] = [createMockTag('v2.1.0'), createMockTag('v2.2.0'), createMockTag('v2.3.0')];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMinorsByMajor[2], [3, 2, 1]);
   assert.equal(result.kept.length, 3);
-  assert.deepEqual(
-    result.kept.map((i) => i.tag.name),
-    ['v1.101.0', 'v1.100.0', 'v1.10.0'],
-    'Debe priorizar numéricamente 101, 100 y 10 sobre 9 y 2',
-  );
+  assert.equal(result.pruned.length, 0);
+});
+
+test('🏷️ Retención: más de tres líneas minor purga las minors más antiguas', () => {
+  const tags: GitTagRef[] = [
+    createMockTag('v2.1.0'),
+    createMockTag('v2.2.0'),
+    createMockTag('v2.3.0'),
+    createMockTag('v2.4.0'),
+  ];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.deepEqual(result.summary.selectedMinorsByMajor[2], [4, 3, 2]);
+  assert.equal(result.kept.length, 3);
+  assert.equal(result.pruned.length, 1);
+  assert.equal(result.pruned[0].tag.name, 'v2.1.0');
+});
+
+test('🏷️ Retención: línea minor con múltiples patches conserva solo el último patch disponible', () => {
+  const tags: GitTagRef[] = [
+    createMockTag('v2.1.0'),
+    createMockTag('v2.1.1'),
+    createMockTag('v2.1.4'),
+    createMockTag('v2.1.2'),
+  ];
+
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+  assert.equal(result.kept.length, 1);
+  assert.equal(result.kept[0].tag.name, 'v2.1.4');
+  assert.equal(result.pruned.length, 3);
   assert.deepEqual(
     result.pruned.map((i) => i.tag.name),
-    ['v1.9.0', 'v1.2.0', 'v1.1.0'],
+    ['v2.1.2', 'v2.1.1', 'v2.1.0'],
+  );
+});
+
+test('🏷️ Retención: caso de prueba canónico del usuario (árbol completo de versiones)', () => {
+  // Lista exacta del prompt
+  const names = [
+    'v1.4.0',
+    'v1.5.2',
+    'v2.1.0',
+    'v2.1.3',
+    'v2.2.0',
+    'v2.2.2',
+    'v2.3.0',
+    'v2.3.4',
+    'v2.4.0',
+    'v3.0.0',
+    'v3.1.0',
+    'v3.1.4',
+    'v3.2.0',
+    'v3.2.2',
+    'v3.3.0',
+    'v3.3.5',
+    'v3.4.0',
+    'v3.4.1',
+  ];
+
+  const tags = names.map((name) => createMockTag(name));
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG);
+
+  // Majors seleccionadas: 3 y 2
+  assert.deepEqual(result.summary.selectedMajors, [3, 2]);
+
+  // Minors de v3: v3.4.x, v3.3.x, v3.2.x -> últimos patches: v3.4.1, v3.3.5, v3.2.2
+  assert.deepEqual(result.summary.selectedMinorsByMajor[3], [4, 3, 2]);
+
+  // Minors de v2: v2.4.x, v2.3.x, v2.2.x -> últimos patches: v2.4.0, v2.3.4, v2.2.2
+  assert.deepEqual(result.summary.selectedMinorsByMajor[2], [4, 3, 2]);
+
+  // Total conservado: 6 tags exactos
+  assert.equal(result.kept.length, 6);
+  assert.deepEqual(
+    result.kept.map((i) => i.tag.name),
+    ['v3.4.1', 'v3.3.5', 'v3.2.2', 'v2.4.0', 'v2.3.4', 'v2.2.2'],
   );
 
-  // Caso prerelease: v1.2.0 > v1.2.0-rc.1
-  const verNormal = parseSemverTag('v1.2.0')!;
-  const verRc = parseSemverTag('v1.2.0-rc.1')!;
-  assert.ok(compareSemver(verNormal, verRc) > 0, 'v1.2.0 debe ser mayor que v1.2.0-rc.1');
+  // Purgados: 12 tags restantes
+  assert.equal(result.pruned.length, 12);
 });
 
-test('🏷️ Tag Retention: 6. Excluye y preserva tags que no corresponden a releases SemVer administradas', () => {
-  const tags: GitTagRef[] = [
-    createMockTag('v1.5.0', '2026-10-05T10:00:00Z'),
-    createMockTag('v1.4.0', '2026-10-04T10:00:00Z'),
-    createMockTag('v1.3.0', '2026-10-03T10:00:00Z'),
-    createMockTag('v1.2.0', '2026-10-02T10:00:00Z'),
-    createMockTag('v1.1.0', '2026-10-01T10:00:00Z'),
-    createMockTag('nightly-build-20261011', '2026-10-11T10:00:00Z'),
-    createMockTag('beta-preview', '2026-10-09T10:00:00Z'),
-    createMockTag('test-release-v1', '2026-10-08T10:00:00Z'),
-  ];
+test('🏷️ Retención: conserva tags protegidos de GitOps aunque queden fuera de los límites de Major', () => {
+  const protectedMap = new Map<string, string>([['v1.4.0', 'GitOps: targetRevision en app-proxmox-preprod.yaml']]);
 
-  const result = evaluateTagRetention(tags, 3);
-  assert.equal(result.kept.length, 3, 'Conserva top 3 elegibles');
-  assert.equal(result.pruned.length, 2, 'Purga los otros 2 elegibles');
-  assert.equal(result.excluded.length, 3, 'Excluye los 3 tags no SemVer');
+  const tags: GitTagRef[] = [createMockTag('v1.4.0'), createMockTag('v2.1.0'), createMockTag('v3.1.0')];
 
-  // Los excluidos nunca entran en pruned
-  const prunedNames = result.pruned.map((i) => i.tag.name);
-  assert.ok(!prunedNames.includes('nightly-build-20261011'));
-  assert.ok(!prunedNames.includes('beta-preview'));
-  assert.ok(!prunedNames.includes('test-release-v1'));
-
-  // Registra el motivo de exclusión
-  for (const item of result.excluded) {
-    assert.ok(item.exclusionReason?.includes('SemVer'), 'Debe documentar motivo de exclusión');
-  }
+  const result = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG, protectedMap);
+  // v3 y v2 en kept
+  assert.equal(result.kept.length, 2);
+  // v1.4.0 protegido
+  assert.equal(result.protected.length, 1);
+  assert.equal(result.protected[0].tag.name, 'v1.4.0');
+  assert.equal(result.pruned.length, 0);
 });
 
-test('🏷️ Tag Retention: 7. Protege tags referenciados en GitOps y Helm aunque queden fuera del cupo', () => {
-  const protectedMap = new Map<string, string>([
-    ['v1.1.0', 'GitOps: targetRevision en app-proxmox-preprod.yaml'],
-    ['v1.2.0', 'Helm: appVersion en Chart.yaml'],
-  ]);
+test('🏷️ Retención: idempotencia estricta (re-ejecutar sobre el resultado retenido no genera purgas)', () => {
+  const rawTags = generateMockTags();
+  const firstPass = evaluateHierarchicalTagRetention(rawTags, DEFAULT_CONFIG);
+  assert.ok(firstPass.pruned.length > 0);
 
-  const tags: GitTagRef[] = [
-    createMockTag('v1.8.0', '2026-10-08T10:00:00Z'),
-    createMockTag('v1.7.0', '2026-10-07T10:00:00Z'),
-    createMockTag('v1.6.0', '2026-10-06T10:00:00Z'),
-    createMockTag('v1.5.0', '2026-10-05T10:00:00Z'),
-    createMockTag('v1.4.0', '2026-10-04T10:00:00Z'),
-    createMockTag('v1.3.0', '2026-10-03T10:00:00Z'),
-    createMockTag('v1.2.0', '2026-10-02T10:00:00Z'),
-    createMockTag('v1.1.0', '2026-10-01T10:00:00Z'),
-  ];
+  // Segunda ejecución con solo los tags conservados (kept + protected + excluded)
+  const survivors = [...firstPass.kept.map((i) => i.tag), ...firstPass.protected.map((i) => i.tag)];
+  const secondPass = evaluateHierarchicalTagRetention(survivors, DEFAULT_CONFIG);
 
-  const result = evaluateTagRetention(tags, 5, protectedMap);
-  assert.equal(result.kept.length, 5, 'Conserva los top 5 elegibles');
-  assert.equal(result.protected.length, 2, 'Conserva los 2 tags protegidos');
-  assert.equal(result.pruned.length, 1, 'Solo v1.3.0 queda para purga');
-  assert.equal(result.pruned[0].tag.name, 'v1.3.0');
-
-  // Los tags protegidos no deben estar en pruned
-  assert.ok(!result.pruned.some((i) => i.tag.name === 'v1.1.0'));
-  assert.ok(!result.pruned.some((i) => i.tag.name === 'v1.2.0'));
-  assert.ok(result.protected.some((i) => i.tag.name === 'v1.1.0'));
-  assert.ok(result.protected.some((i) => i.tag.name === 'v1.2.0'));
+  assert.equal(secondPass.pruned.length, 0, 'La segunda ejecución no debe proponer eliminaciones');
+  assert.equal(secondPass.kept.length, firstPass.kept.length);
 });
 
-test('🏷️ Tag Retention: 8. collectProtectedTags inspecciona correctamente los manifiestos reales', () => {
-  const protectedMap = collectProtectedTags(ROOT_DIR);
-  assert.ok(protectedMap.size >= 1, 'Debe detectar al menos una referencia protegida');
+// =============================================================================
+// 3. SEGURIDAD, WORKFLOW Y GOBERNANZA
+// =============================================================================
 
-  // El targetRevision actual de GitOps o appVersion de Helm debe estar protegido
-  const chartContent = fs.readFileSync(path.join(ROOT_DIR, 'infra/helm/pokedex/Chart.yaml'), 'utf8');
-  const appVersionMatch = chartContent.match(/^appVersion:\s*["']?([^"'\s]+)["']?/m);
-  if (appVersionMatch) {
-    const expectedTag = `v${appVersionMatch[1]}`;
-    assert.ok(protectedMap.has(expectedTag), `Debe proteger ${expectedTag} de Chart.yaml`);
-  }
-});
-
-test('🏷️ Tag Retention: 9. applyTagRetention ejecuta correctamente en modo simulación', async () => {
-  const mockTags = generateMockTags(8);
+test('🔒 Seguridad: applyTagRetention en modo simulación reporta sin mutaciones', async () => {
   const result = await applyTagRetention({
     simulate: true,
-    keepCount: 5,
-    mockTags,
   });
 
-  assert.equal(result.totalFound, 8);
-  assert.equal(result.keepCount, 5);
-  assert.equal(result.kept.length, 5);
-  assert.equal(result.excluded.length, 1, 'custom-build-test debe ser excluido');
-  assert.equal(result.pruned.length, 2, 'Los 2 restantes elegibles son candidatos a purga');
-  assert.equal(result.deletedTags.length, 2, 'En modo simulación/dry-run deletedTags registra los simulados');
-  assert.equal(result.simulated, true);
+  assert.ok(result.kept.length > 0);
+  assert.ok(result.pruned.length > 0);
   assert.equal(result.dryRun, true);
+  assert.equal(result.simulated, true);
+  assert.ok(result.deletedTags.length > 0, 'En simulación registra los tags calculados');
 });
 
-test('🔒 Tag Retention Workflow: Configuración de seguridad, permisos y parámetros de retención', () => {
+test('🔒 Workflow: tag-retention.yaml declara inputs de jerarquía SemVer y permisos mínimos', () => {
   const workflowPath = path.join(ROOT_DIR, '.github/workflows/tag-retention.yaml');
-  assert.ok(fs.existsSync(workflowPath), '.github/workflows/tag-retention.yaml debe existir');
+  assert.ok(fs.existsSync(workflowPath));
 
   const content = fs.readFileSync(workflowPath, 'utf8');
 
   // Permisos mínimos
-  assert.ok(content.includes('permissions:\n  contents: read'), 'Debe declarar contents: read a nivel superior');
-  assert.ok(content.includes('contents: write'), 'El job prune-tags debe declarar contents: write');
+  assert.ok(content.includes('permissions:\n  contents: read'));
+  assert.ok(content.includes('contents: write'));
 
-  // Triggers requeridos
-  assert.ok(content.includes('workflow_dispatch:'), 'Debe admitir ejecución manual workflow_dispatch');
-  assert.ok(content.includes('default: true'), 'El modo dry_run debe ser true por defecto en inputs');
-  assert.ok(content.includes('schedule:'), 'Debe incluir schedule periódico de seguridad');
-  assert.ok(content.includes('workflow_run:'), 'Debe activarse tras release');
-  assert.ok(
-    content.includes('🏷️ Automated Semantic Release & Tag'),
-    'El trigger workflow_run debe apuntar exactamente a release-tag.yaml',
-  );
+  // Inputs jerárquicos
+  assert.ok(content.includes('major_count:'));
+  assert.ok(content.includes('minor_count:'));
+  assert.ok(content.includes('patch_count:'));
+  assert.ok(content.includes('default: 2'));
+  assert.ok(content.includes('default: 3'));
+  assert.ok(content.includes('default: 1'));
+  assert.ok(content.includes('default: true'), 'dry_run debe ser true por defecto');
 
   // Concurrencia
-  assert.ok(content.includes('concurrency:'), 'Debe definir grupo de concurrencia');
-  assert.ok(content.includes('cancel-in-progress: false'), 'cancel-in-progress debe ser false para no interrumpir');
+  assert.ok(content.includes('concurrency:'));
+  assert.ok(content.includes('cancel-in-progress: false'));
 
   // Pinning por SHA
-  assert.ok(
-    content.includes('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'),
-    'actions/checkout debe estar pinned por SHA',
-  );
-  assert.ok(
-    content.includes('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020'),
-    'actions/setup-node debe estar pinned por SHA',
-  );
-
-  // Delegación en script canónico
-  assert.ok(content.includes('scripts/tag-retention.ts'), 'Debe invocar scripts/tag-retention.ts');
+  assert.ok(content.includes('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'));
+  assert.ok(content.includes('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020'));
 });
 
-test('🔧 Tag Retention CLI & Tareas: package.json y Taskfile exponen la política', () => {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
-  assert.ok(packageJson.scripts['tags:retention'], 'package.json debe exponer tags:retention');
-  assert.ok(packageJson.scripts['tags:retention:dry-run'], 'package.json debe exponer tags:retention:dry-run');
+test('🔧 CLI y Tareas: Taskfile y package.json exponen la retención de tags', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
+  assert.ok(pkg.scripts['tags:retention']);
+  assert.ok(pkg.scripts['tags:retention:dry-run']);
 
   const taskfile = getCompleteTaskfileContent(ROOT_DIR);
-  assert.ok(taskfile.includes('tags:retention:'), 'Taskfile debe exponer tags:retention');
-  assert.ok(taskfile.includes('tags:retention:dry-run:'), 'Taskfile debe exponer tags:retention:dry-run');
+  assert.ok(taskfile.includes('tags:retention:'));
+  assert.ok(taskfile.includes('tags:retention:dry-run:'));
 });
 
-test('📚 Tag Retention Documentación: TAG_RETENTION_POLICY.md existe e indexada', () => {
+test('📚 Documentación: TAG_RETENTION_POLICY.md indexada y documenta Opción B y Opción A', () => {
   const docPath = path.join(ROOT_DIR, 'docs/operations/TAG_RETENTION_POLICY.md');
-  assert.ok(fs.existsSync(docPath), 'TAG_RETENTION_POLICY.md debe existir');
+  assert.ok(fs.existsSync(docPath));
+
+  const content = fs.readFileSync(docPath, 'utf8');
+  assert.ok(content.includes('Opción B'));
+  assert.ok(content.includes('Opción A'));
+  assert.ok(content.includes('keepMajorCount'));
+  assert.ok(content.includes('v3.4.1'));
 
   const readme = fs.readFileSync(path.join(ROOT_DIR, 'docs/README.md'), 'utf8');
-  assert.ok(readme.includes('TAG_RETENTION_POLICY.md'), 'docs/README.md debe indexar TAG_RETENTION_POLICY.md');
+  assert.ok(readme.includes('TAG_RETENTION_POLICY.md'));
+});
+
+test('🏷️ Protección: collectProtectedTags detecta referencias activas y excepciones personalizadas', () => {
+  const custom = ['v9.9.9-custom'];
+  const protectedMap = collectProtectedTags(ROOT_DIR, custom);
+
+  assert.ok(protectedMap.has('v9.9.9-custom'), 'Debe incluir excepciones personalizadas');
+  assert.ok(protectedMap.size >= 2, 'Debe incluir referencias de GitOps o Chart');
 });

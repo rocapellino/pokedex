@@ -500,7 +500,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Verifica la política de retención de tags en GitHub, ordenación SemVer 2.0 determinista, salvaguarda de GitOps/Helm y purga segura."
+      "description": "Verifica la política jerárquica de retención de tags SemVer 2.0 (Opción B: 2 Majors, 3 Minors, 1 Patch), salvaguarda de GitOps/Helm y purga segura."
     },
     {
       "path": "tests/contracts/governance/aas_governance.test.ts",
