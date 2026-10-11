@@ -4,8 +4,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { createWorktree } from '../../scripts/worktree/creator.js';
-import { checkUngovernedWorktreeCalls, runWorktreeDoctor } from '../../scripts/worktree/doctor.js';
+import { createWorktree, safeRollbackWorktree } from '../../scripts/worktree/creator.js';
+import {
+  auditAutomationSurface,
+  checkUngovernedWorktreeCalls,
+  runWorktreeDoctor,
+} from '../../scripts/worktree/doctor.js';
 import { listWorktrees, pruneWorktrees, removeWorktreeSafely } from '../../scripts/worktree/manager.js';
 import {
   ALLOWED_TASK_TYPES,
@@ -575,4 +579,98 @@ test('🌲 Worktree Governance: checkUngovernedWorktreeCalls cubre la superficie
   assert.ok(basenames.includes('Taskfile.dist.yaml'));
   assert.ok(basenames.includes('deploy.sh'));
   assert.ok(basenames.includes('package.json'));
+});
+
+test('🌲 Worktree Governance: safeRollbackWorktree valida identidad antes de eliminar, no borra symlinks recursivamente y preserva evidencia', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-test-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+  const outsideDir = path.join(tempDir, 'precious_outside_files');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  // Archivo valioso fuera de la base que NUNCA debe ser eliminado
+  const preciousFile = path.join(outsideDir, 'important.txt');
+  fs.writeFileSync(preciousFile, 'DATOS IMPORTANTES');
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
+  fs.mkdirSync(canonicalBase, { recursive: true });
+
+  // Caso A: targetPath es un symlink/junction apuntando a outsideDir
+  const symlinkTargetPath = path.join(canonicalBase, 'feat--symlink-attack');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, symlinkTargetPath, symlinkType);
+
+  const reportA = safeRollbackWorktree(symlinkTargetPath, canonicalBase, testRepoDir);
+  assert.equal(reportA.residualCleaned, true, 'El symlink debe haber sido eliminado');
+  assert.equal(fs.existsSync(symlinkTargetPath), false, 'La ruta del enlace ya no debe existir');
+  assert.equal(
+    fs.existsSync(preciousFile),
+    true,
+    'El archivo en outsideDir DEBE seguir existiendo (sin borrado recursivo)',
+  );
+  assert.equal(fs.readFileSync(preciousFile, 'utf-8'), 'DATOS IMPORTANTES');
+
+  // Caso B: targetPath es un directorio legal dentro de canonicalBase
+  const legitDir = path.join(canonicalBase, 'feat--legit-dir');
+  fs.mkdirSync(legitDir, { recursive: true });
+  fs.writeFileSync(path.join(legitDir, 'file.txt'), 'test');
+
+  const reportB = safeRollbackWorktree(legitDir, canonicalBase, testRepoDir);
+  assert.equal(reportB.residualCleaned, true);
+  assert.equal(fs.existsSync(legitDir), false, 'El directorio legal dentro de canonicalBase debe ser eliminado');
+
+  // Caso C: targetPath no reside dentro de canonicalBase (ej. fuera de la base canónica)
+  // safeRollbackWorktree debe negarse a borrar recursivamente y preservar evidencia
+  const outsideTarget = path.join(outsideDir, 'sub-danger');
+  fs.mkdirSync(outsideTarget, { recursive: true });
+  fs.writeFileSync(path.join(outsideTarget, 'evidence.log'), 'evidencia de ataque');
+
+  const reportC = safeRollbackWorktree(outsideTarget, canonicalBase, testRepoDir);
+  assert.equal(reportC.residualPreservedForEvidence, true, 'Debe preservar evidencia');
+  assert.equal(reportC.residualCleaned, false, 'No debe reportar residuo limpio');
+  assert.equal(
+    fs.existsSync(outsideTarget),
+    true,
+    'El directorio externo no verificado NO debe ser borrado recursivamente',
+  );
+  assert.equal(fs.existsSync(path.join(outsideTarget, 'evidence.log')), true);
+});
+
+test('🌲 Worktree Governance: auditAutomationSurface registra cobertura y distingue auditoría completa de parcial', (t) => {
+  const tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-unreadable-test-'));
+  const scriptsDir = path.join(tempRepo, 'scripts');
+  fs.mkdirSync(scriptsDir, { recursive: true });
+
+  // Archivo legítimo
+  const scriptPath = path.join(scriptsDir, 'legit-script.sh');
+  fs.writeFileSync(scriptPath, '#!/bin/bash\necho "ok"\n');
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempRepo, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const audit = auditAutomationSurface(tempRepo);
+  assert.equal(audit.coverage.isComplete, true, 'La auditoría sobre archivos legibles debe ser completa');
+  assert.equal(audit.coverage.unreadableFiles.length, 0);
+  assert.ok(audit.coverage.scannedFilesCount >= 1);
 });

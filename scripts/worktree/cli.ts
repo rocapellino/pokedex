@@ -147,6 +147,13 @@ async function main() {
           console.log(`Canónicos:           ${doc.compliantWorktrees}`);
           console.log(`Fuera de Regla:      ${doc.nonCompliantWorktrees}`);
           console.log(`Prunables (Huérf.):  ${doc.prunableWorktrees}`);
+          const cov = doc.auditCoverage;
+          const covTag = cov.isComplete ? '✅ COMPLETA' : '⚠️ PARCIAL';
+          const unreadableNote =
+            cov.unreadableFiles.length > 0 ? `, ${cov.unreadableFiles.length} omitidos por error de lectura` : '';
+          console.log(
+            `Auditoría Automat.:  ${covTag} (${cov.scannedFilesCount} archivos inspeccionados${unreadableNote})`,
+          );
           console.log('--------------------------------------------------');
 
           let hasIssues = false;
