@@ -20,6 +20,16 @@ profiles:
     requires_explicit_approval: false
     allow_production_secrets: false
 
+  code-quality:
+    description: "Análisis de calidad de código, deuda técnica y severidad de issues en SonarQube"
+    default_enabled: true
+    network: "outbound-allowed"
+    filesystem: "read-only-repo"
+    write_access: false
+    infra_access: "none"
+    requires_explicit_approval: false
+    allow_production_secrets: false
+
   github:
     description: "Acceso autorizado a repositorios, issues y pull requests del proyecto"
     default_enabled: true

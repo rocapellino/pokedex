@@ -968,6 +968,32 @@
       "description": "Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio."
     },
     {
+      "path": "tests/contracts/mcp/mcp_adapters_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Platform",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza MCP / Adaptadores por Cliente",
+      "targetArtifacts": [
+        "scripts/mcp/adapters/antigravity.ts",
+        "scripts/mcp/adapters/claude.ts",
+        "scripts/mcp/adapters/cursor.ts",
+        "scripts/mcp/adapters/vscode.ts",
+        "scripts/mcp/adapters/generic.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica contratos específicos de adaptadores MCP: serverUrl en Antigravity, .mcp.json con type sse en Claude Code y despacho de adaptadores."
+    },
+    {
       "path": "tests/contracts/mcp/mcp_clients_contract.test.ts",
       "suite": "contracts",
       "type": "Contract / Platform",

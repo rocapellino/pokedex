@@ -6,10 +6,11 @@
  * Generador idempotente y reproducible de configuraciones MCP para clientes soportados.
  *
  * Traduce el registro canónico (.mcp/registry.yaml) y sus políticas (.mcp/policies.yaml)
- * a los formatos nativos esperados por Cursor, VS Code, Claude Code y clientes genéricos.
+ * a los formatos nativos esperados por Cursor, VS Code, Claude Code, Antigravity y
+ * clientes estándar/genéricos utilizando adaptadores modulares dedicados.
  *
  * Opciones:
- *   --client <id>    Genera únicamente para un cliente específico (cursor, vscode, claude, generic).
+ *   --client <id>    Genera únicamente para un cliente específico (cursor, vscode, claude, antigravity, generic).
  *   --profile <id>   Filtra los servidores por perfil (ej. development, github).
  *   --check          Verifica que las configuraciones generadas sean idénticas y estén sincronizadas.
  *   --dry-run        Imprime las configuraciones en stdout sin escribir en disco.
@@ -21,6 +22,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { validateMcpArchitecture } from './validate.js';
+import { getAdapterForClient } from './adapters/index.js';
+import { loadLocalEnv } from './env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = process.cwd();
@@ -45,10 +48,17 @@ export interface ClientConfigResult {
 }
 
 export function generateAllClientConfigs(options: GenerateOptions = {}): ClientConfigResult[] {
-  // 1. Validar la arquitectura antes de generar
+  // Cargar entorno local para resolución determinista de endpoints sin fugar secretos
+  loadLocalEnv(ROOT_DIR);
+
+  // 1. Validar la arquitectura y gobernanza antes de generar
   const validation = validateMcpArchitecture();
   if (!validation.valid) {
-    throw new Error('La validación de .mcp falló. Corrija los errores antes de generar configuraciones.');
+    const errorMsgs = validation.issues
+      .filter((i) => i.severity === 'error')
+      .map((i) => ` - [${i.file}] ${i.message}`)
+      .join('\n');
+    throw new Error(`La validación de .mcp falló. Corrija los errores antes de generar configuraciones:\n${errorMsgs}`);
   }
 
   const registry: any = yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
@@ -56,6 +66,7 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
   const clientsSpec: any = yaml.load(fs.readFileSync(CLIENTS_PATH, 'utf-8'));
 
   const servers: any[] = registry.servers || [];
+  const profiles: Record<string, any> = policies.profiles || {};
   const clients = clientsSpec.clients || {};
 
   const targetClients = options.client ? [options.client] : Object.keys(clients);
@@ -71,14 +82,31 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
     const targetRelPath = clientDef.config_path;
     const targetAbsPath = path.join(ROOT_DIR, targetRelPath);
 
-    // Filtrar servidores aplicables
+    // Filtrar servidores aplicables y hacer cumplir las políticas de permisos
     const activeServers = servers.filter((s) => {
       if (!s.enabled) return false;
       if (options.profile && s.profile !== options.profile) return false;
+
+      // Hacer cumplir las políticas de permisos del perfil
+      const prof = profiles[s.profile];
+      if (prof) {
+        if (prof.write_access === false && s.permissions?.write === true) {
+          throw new Error(
+            `El servidor '${s.id}' viola la política del perfil '${s.profile}': write_access no está permitido.`,
+          );
+        }
+        if (prof.network === 'none' && s.permissions?.network && s.permissions.network !== 'none') {
+          throw new Error(
+            `El servidor '${s.id}' viola la política del perfil '${s.profile}': network no está permitida.`,
+          );
+        }
+      }
+
       return true;
     });
 
-    const configObject = buildConfigForClient(clientId, clientDef, activeServers);
+    const adapter = getAdapterForClient(clientId, clientDef.format);
+    const configObject = adapter.generateConfig(activeServers, clientDef);
     const formattedContent = `${JSON.stringify(configObject, null, 2)}\n`;
 
     let inSync = false;
@@ -109,50 +137,6 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
   }
 
   return results;
-}
-
-function buildConfigForClient(clientId: string, clientDef: any, servers: any[]): any {
-  const mcpServers: Record<string, any> = {};
-
-  for (const server of servers) {
-    if (server.transport === 'stdio') {
-      const serverConfig: any = {
-        command: server.command,
-        args: server.args || [],
-      };
-
-      if (server.env && Object.keys(server.env).length > 0) {
-        serverConfig.env = server.env;
-      }
-
-      mcpServers[server.id] = serverConfig;
-    } else if (server.transport === 'sse' || server.transport === 'http') {
-      const serverConfig: any = {
-        url: server.url,
-      };
-
-      if (server.headers) {
-        serverConfig.headers = server.headers;
-      }
-
-      mcpServers[server.id] = serverConfig;
-    }
-  }
-
-  // Estructura según cliente
-  switch (clientDef.format) {
-    case 'cursor-mcp-json':
-    case 'vscode-mcp-json':
-    case 'claude-mcp-json':
-    case 'standard-mcp-json':
-    default:
-      return {
-        // Marcador canónico para trazabilidad
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        description: `Configuración generada automáticamente para ${clientDef.name} desde .mcp/registry.yaml. NO EDITAR DIRECTAMENTE.`,
-        mcpServers,
-      };
-  }
 }
 
 // Ejecución CLI

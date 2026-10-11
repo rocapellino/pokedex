@@ -73,9 +73,9 @@ export function testAllMcpConfigs(): ConfigTestResult[] {
       }
     }
 
-    // 3. Verificar transportes frente a soportados por cliente
+    // 3. Verificar transportes y esquemas específicos por cliente
     const supportedTransports = clientDef.supported_transports || [];
-    for (const [srvId, _srvConfig] of Object.entries<any>(mcpServers)) {
+    for (const [srvId, srvConfig] of Object.entries<any>(mcpServers)) {
       const serverDef = servers.find((s) => s.id === srvId);
       if (!serverDef) continue;
 
@@ -83,6 +83,37 @@ export function testAllMcpConfigs(): ConfigTestResult[] {
         errors.push(
           `Servidor '${srvId}' utiliza transporte '${serverDef.transport}' no soportado por el cliente (${supportedTransports.join(', ')}).`,
         );
+      }
+
+      // Validar esquema específico del adaptador
+      if (serverDef.transport === 'sse' || serverDef.transport === 'http') {
+        if (cfg.clientId === 'antigravity') {
+          if (!srvConfig.serverUrl) {
+            errors.push(`Antigravity exige 'serverUrl' para transporte ${serverDef.transport} en servidor '${srvId}'.`);
+          }
+          if (srvConfig.url) {
+            errors.push(`Antigravity prohíbe 'url' directa en favor de 'serverUrl' en servidor '${srvId}'.`);
+          }
+        } else if (cfg.clientId === 'claude') {
+          if (!srvConfig.url) {
+            errors.push(`Claude Code exige 'url' para transporte ${serverDef.transport} en servidor '${srvId}'.`);
+          }
+          if (srvConfig.type !== 'sse' && srvConfig.type !== 'http') {
+            errors.push(`Claude Code exige 'type: "${serverDef.transport}"' explícito en servidor '${srvId}'.`);
+          }
+        } else {
+          if (!srvConfig.url) {
+            errors.push(
+              `Cliente '${cfg.clientId}' exige 'url' para transporte ${serverDef.transport} en servidor '${srvId}'.`,
+            );
+          }
+        }
+
+        // Verificar que no queden expresiones shell sin resolver en URLs
+        const activeUrl = srvConfig.url || srvConfig.serverUrl || '';
+        if (activeUrl.includes('${')) {
+          errors.push(`URL sin resolver detectada en servidor '${srvId}': '${activeUrl}'.`);
+        }
       }
     }
 

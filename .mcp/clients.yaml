@@ -40,14 +40,26 @@ clients:
     supported_transports:
       - "stdio"
       - "sse"
-    config_path: ".claude/mcp.json"
+    config_path: ".mcp.json"
     format: "claude-mcp-json"
     env_variable_expansion: true
     verified: true
-    limitations: "Requiere que .claude/mcp.json resida en una ruta local ignorada. En caso de no existir .claude/, se genera el directorio con protección de permisos."
+    limitations: "Configuración de proyecto compartida en la raíz del repositorio (.mcp.json) según el estándar oficial de Claude Code. Ignorada por Git para prevenir fugas de credenciales."
+
+  antigravity:
+    name: "Google Antigravity"
+    description: "Agente autónomo y entorno de desarrollo Antigravity (Google DeepMind / Gemini Code Assist)"
+    supported_transports:
+      - "stdio"
+      - "sse"
+    config_path: ".agents/mcp_config.json"
+    format: "antigravity-mcp-json"
+    env_variable_expansion: false
+    verified: true
+    limitations: "Configuración nativa de workspace en .agents/mcp_config.json. Requiere 'serverUrl' en lugar de 'url' para servidores remotos SSE/HTTP."
 
   generic:
-    name: "Generic / Antigravity"
+    name: "Generic / Portable"
     description: "Configuración normalizada y exportable compatible con la especificación de referencia MCP"
     supported_transports:
       - "stdio"

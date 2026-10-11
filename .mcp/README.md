@@ -20,24 +20,28 @@ Clientes Soportados"] --> VAL
 
     VAL --> GEN["scripts/mcp/generate.ts
 Generador Idempotente"]
+    GEN --> ADP["scripts/mcp/adapters/
+Adaptadores Específicos"]
 
-    GEN --> OUT_CUR[".cursor/mcp.json
-(Ignorado por Git)"]
-    GEN --> OUT_VSC[".vscode/mcp.json
-(Ignorado por Git)"]
-    GEN --> OUT_CLA[".claude/mcp.json
-(Ignorado por Git)"]
-    GEN --> OUT_GEN[".mcp/generated/mcp-config.json
-(Ignorado por Git)"]
+    ADP --> OUT_CUR[".cursor/mcp.json
+(Cursor IDE)"]
+    ADP --> OUT_VSC[".vscode/mcp.json
+(VS Code)"]
+    ADP --> OUT_CLA[".mcp.json
+(Claude Code Project)"]
+    ADP --> OUT_AGY[".agents/mcp_config.json
+(Google Antigravity)"]
+    ADP --> OUT_GEN[".mcp/generated/mcp-config.json
+(Generic / Portable)"]
 ```
 
 ### Separación Estricta de Responsabilidades
 
 1. **Registro Canónico ([`registry.yaml`](registry.yaml)):** Fuente única de verdad de servidores autorizados, versiones fijas y metadatos.
-2. **Políticas de Seguridad ([`policies.yaml`](policies.yaml)):** Definición de perfiles (`development`, `github`, `infrastructure-readonly`, `infrastructure-write`, `ci`).
+2. **Políticas de Seguridad ([`policies.yaml`](policies.yaml)):** Definición de perfiles (`development`, `code-quality`, `github`, `infrastructure-readonly`, `infrastructure-write`, `ci`).
 3. **Especificación de Clientes ([`clients.yaml`](clients.yaml)):** Declaración de clientes verificados y rutas de destino.
 4. **Validación y Contratos ([`schema.json`](schema.json)):** Validación determinista y prevención de configuraciones inseguras.
-5. **Generador de Adaptadores ([`scripts/mcp/generate.ts`](../scripts/mcp/generate.ts)):** Emisión reproducible e idempotente de configuraciones locales.
+5. **Generador y Adaptadores ([`scripts/mcp/generate.ts`](../scripts/mcp/generate.ts)):** Emisión reproducible e idempotente de configuraciones locales vía adaptadores especializados (`claude.ts`, `antigravity.ts`, `cursor.ts`, `vscode.ts`, `generic.ts`).
 
 ---
 
@@ -46,9 +50,10 @@ Generador Idempotente"]
 | Perfil | Propósito | Red | Filesystem | Escritura | Estado por Defecto |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `development` | Herramientas locales de análisis y memoria contextual | none | `repo-root-only` | No | Habilitado |
+| `code-quality` | Análisis estático de código y calidad en SonarQube | outbound | `read-only-repo` | No | Habilitado |
 | `github` | Repositorios, issues y PRs autorizados (`rocapellino/pokedex`) | outbound | none | No | Habilitado |
 | `infrastructure-readonly` | Consulta de métricas, telemetría y observabilidad | outbound | none | No | Habilitado |
-| `infrastructure-write` | Operaciones de escritura en K8s o cloud | outbound | temp-only | Sí | **Deshabilitado** |
+| `infrastructure-write` | Operaciones de escritura en K8s o cloud | none | none | Sí | **Deshabilitado** |
 | `ci` | Validación en GitHub Actions sin secretos operativos | isolated | `read-only-repo` | No | Habilitado |
 
 > [!IMPORTANT]
@@ -63,7 +68,7 @@ Generador Idempotente"]
 | `github` | GitHub Official | `stdio` | `local` | `@modelcontextprotocol/server-github` | `2025.4.8` | `github` |
 | `filesystem` | Filesystem | `stdio` | `local` | `@modelcontextprotocol/server-filesystem` | `2026.8.31` | `development` |
 | `memory` | Memory Graph | `stdio` | `local` | `@modelcontextprotocol/server-memory` | `2026.8.31` | `development` |
-| `sonarqube` | SonarQube Launcher | `stdio` | `local` | `mcp-sonarqube-launcher` | `1.1.2` | `development` |
+| `sonarqube` | SonarQube Launcher | `stdio` | `local` | `mcp-sonarqube-launcher` | `1.1.2` | `code-quality` |
 | `observability-readonly` | Grafana Observability | `sse` | `remote` | Endpoint HTTPS con TLS | `1.0.0` | `infrastructure-readonly` |
 | `k8s-platform-write` | K8s Platform Write | `stdio` | `container` | `alpine/k8s` (fijado por SHA256) | `1.32.0` | `infrastructure-write` (Inactivo) |
 

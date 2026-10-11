@@ -30,7 +30,7 @@ Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor y 
 ## 3. Gestión Segura de Credenciales y Secretos
 
 1. **Cero Secretos en Repositorio (Zero Credentials in Git):**
-   - Las configuraciones de clientes generadas (`.cursor/mcp.json`, `.vscode/mcp.json`, `.claude/mcp.json`, `.mcp/generated/`) están estrictamente ignoradas por `.gitignore`.
+   - Las configuraciones de clientes generadas (`.cursor/mcp.json`, `.vscode/mcp.json`, `.mcp.json`, `.agents/mcp_config.json`, `.mcp/generated/`) están estrictamente ignoradas por `.gitignore`.
    - Jamás se deben versionar tokens (`GITHUB_PERSONAL_ACCESS_TOKEN`, `SONAR_TOKEN`, `GRAFANA_SERVICE_ACCOUNT_TOKEN`) ni contraseñas reales.
    - Los diagnósticos de salud (`npm run mcp:doctor`) operan en modo ciego a valores: solo reportan presencia o ausencia de variables requeridas.
 

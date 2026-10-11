@@ -189,7 +189,6 @@ export function validateMcpArchitecture(): ValidationReport {
 
   for (let i = 0; i < servers.length; i++) {
     const s = servers[i];
-    const serverIdentifier = s.id || `servers[${i}]`;
 
     if (!s.id) {
       issues.push({
@@ -239,6 +238,55 @@ export function validateMcpArchitecture(): ValidationReport {
         field: `servers[${s.id}].profile`,
         message: `El servidor '${s.id}' referencia un perfil inexistente: '${s.profile}'.`,
       });
+    }
+
+    // Validación de coherencia estricta entre permisos del servidor y su perfil
+    const assignedProfile = profiles[s.profile];
+    if (assignedProfile) {
+      // 1. Verificación de permisos de escritura
+      if (assignedProfile.write_access === false && s.permissions?.write === true) {
+        issues.push({
+          severity: 'error',
+          file: '.mcp/registry.yaml',
+          field: `servers[${s.id}].permissions.write`,
+          message: `El servidor '${s.id}' declara 'permissions.write: true', pero su perfil '${s.profile}' prohíbe la escritura ('write_access: false').`,
+        });
+      }
+
+      // 2. Verificación de restricciones de red
+      if (assignedProfile.network === 'none' && s.permissions?.network && s.permissions.network !== 'none') {
+        issues.push({
+          severity: 'error',
+          file: '.mcp/registry.yaml',
+          field: `servers[${s.id}].permissions.network`,
+          message: `El servidor '${s.id}' declara 'permissions.network: ${s.permissions.network}', pero su perfil '${s.profile}' prohíbe el acceso a red ('network: none').`,
+        });
+      }
+
+      // 3. Verificación de contradicción interna de red en argumentos
+      if (
+        Array.isArray(s.args) &&
+        s.args.includes('--network=none') &&
+        s.permissions?.network &&
+        s.permissions.network === 'outbound-allowed'
+      ) {
+        issues.push({
+          severity: 'error',
+          file: '.mcp/registry.yaml',
+          field: `servers[${s.id}].permissions.network`,
+          message: `Contradicción en servidor '${s.id}': args especifican '--network=none', pero permissions.network declara 'outbound-allowed'.`,
+        });
+      }
+
+      // 4. Verificación de restricciones de filesystem
+      if (assignedProfile.filesystem === 'none' && s.permissions?.filesystem && s.permissions.filesystem !== 'none') {
+        issues.push({
+          severity: 'error',
+          file: '.mcp/registry.yaml',
+          field: `servers[${s.id}].permissions.filesystem`,
+          message: `El servidor '${s.id}' declara acceso a filesystem ('${s.permissions.filesystem}'), pero su perfil '${s.profile}' prohíbe el acceso al sistema de archivos ('filesystem: none').`,
+        });
+      }
     }
 
     // Regla de infraestructura de escritura deshabilitada por defecto
@@ -323,6 +371,8 @@ export function validateMcpArchitecture(): ValidationReport {
   // 5. Validación de Clientes
   const clients = clientsData?.clients || {};
   const clientKeys = Object.keys(clients);
+  const gitignorePath = path.join(ROOT_DIR, '.gitignore');
+  const gitignoreContent = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf-8') : '';
 
   if (clientKeys.length === 0) {
     issues.push({
@@ -332,6 +382,14 @@ export function validateMcpArchitecture(): ValidationReport {
     });
   }
 
+  const validFormats = [
+    'cursor-mcp-json',
+    'vscode-mcp-json',
+    'claude-mcp-json',
+    'antigravity-mcp-json',
+    'standard-mcp-json',
+  ];
+
   for (const [cKey, cVal] of Object.entries<any>(clients)) {
     if (!cVal.config_path) {
       issues.push({
@@ -340,6 +398,25 @@ export function validateMcpArchitecture(): ValidationReport {
         field: `clients.${cKey}.config_path`,
         message: `El cliente '${cKey}' debe declarar config_path.`,
       });
+    } else {
+      // Verificar protección en .gitignore
+      const configRelPath = cVal.config_path;
+      const parentDir = path.dirname(configRelPath).replace(/\\/g, '/');
+      const isIgnored =
+        gitignoreContent.includes(configRelPath) ||
+        gitignoreContent.includes(`/${configRelPath}`) ||
+        (parentDir !== '.' && gitignoreContent.includes(`${parentDir}/`)) ||
+        (parentDir !== '.' && gitignoreContent.includes(`/${parentDir}/`)) ||
+        gitignoreContent.includes(path.basename(configRelPath));
+
+      if (!isIgnored) {
+        issues.push({
+          severity: 'error',
+          file: '.mcp/clients.yaml',
+          field: `clients.${cKey}.config_path`,
+          message: `La ruta '${configRelPath}' del cliente '${cKey}' debe estar ignorada en .gitignore para prevenir exposición de secretos.`,
+        });
+      }
     }
 
     if (!Array.isArray(cVal.supported_transports) || cVal.supported_transports.length === 0) {
@@ -348,6 +425,15 @@ export function validateMcpArchitecture(): ValidationReport {
         file: '.mcp/clients.yaml',
         field: `clients.${cKey}.supported_transports`,
         message: `El cliente '${cKey}' debe declarar al menos un transporte soportado.`,
+      });
+    }
+
+    if (!cVal.format || !validFormats.includes(cVal.format)) {
+      issues.push({
+        severity: 'error',
+        file: '.mcp/clients.yaml',
+        field: `clients.${cKey}.format`,
+        message: `El cliente '${cKey}' declara un formato no soportado '${cVal.format}'. Permitidos: ${validFormats.join(', ')}.`,
       });
     }
   }

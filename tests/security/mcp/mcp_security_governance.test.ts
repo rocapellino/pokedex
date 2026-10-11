@@ -94,3 +94,64 @@ test('🔒 MCP Seguridad: Configuraciones generadas no exponen secretos en disco
     assert.ok(!cfg.content.includes('sk-'), 'No debe haber claves API en la configuración generada');
   }
 });
+
+test('🔒 MCP Seguridad: Ningún servidor habilitado excede los permisos de su perfil de seguridad', () => {
+  const registry: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'registry.yaml'), 'utf-8'));
+  const policies: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'policies.yaml'), 'utf-8'));
+
+  const servers = registry.servers || [];
+  const profiles = policies.profiles || {};
+
+  for (const s of servers) {
+    const prof = profiles[s.profile];
+    assert.ok(prof, `El perfil '${s.profile}' del servidor '${s.id}' debe existir`);
+
+    // 1. Escritura
+    if (prof.write_access === false) {
+      assert.notStrictEqual(
+        s.permissions?.write,
+        true,
+        `El servidor '${s.id}' no puede tener permissions.write: true en el perfil '${s.profile}' (write_access: false)`,
+      );
+    }
+
+    // 2. Red
+    if (prof.network === 'none') {
+      assert.strictEqual(
+        s.permissions?.network,
+        'none',
+        `El servidor '${s.id}' no puede tener red en el perfil '${s.profile}' (network: none)`,
+      );
+    }
+
+    // 3. Contradicción interna en argumentos vs permisos
+    if (Array.isArray(s.args) && s.args.includes('--network=none')) {
+      assert.strictEqual(
+        s.permissions?.network,
+        'none',
+        `El servidor '${s.id}' tiene --network=none en args, por lo que su permiso de red debe ser 'none'`,
+      );
+    }
+  }
+});
+
+test('🔒 MCP Seguridad: URLs remotas en configuraciones generadas están completamente resueltas', () => {
+  const configs = generateAllClientConfigs({ dryRun: true });
+
+  for (const cfg of configs) {
+    const parsed = JSON.parse(cfg.content);
+    for (const [srvId, srvConfig] of Object.entries<any>(parsed.mcpServers || {})) {
+      const url = srvConfig.url || srvConfig.serverUrl;
+      if (url) {
+        assert.ok(
+          !url.includes('${'),
+          `La URL del servidor '${srvId}' en el cliente '${cfg.clientId}' contiene una expresión sin resolver: '${url}'`,
+        );
+        assert.ok(
+          url.startsWith('https://') || url.startsWith('http://localhost'),
+          `La URL del servidor '${srvId}' debe ser un endpoint HTTP/HTTPS válido`,
+        );
+      }
+    }
+  }
+});
