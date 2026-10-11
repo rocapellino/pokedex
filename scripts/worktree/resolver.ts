@@ -64,7 +64,7 @@ function normalizeForComparison(p: string): string {
 /**
  * Valida si child reside dentro de parent o coincide con parent.
  */
-function isContainedWithin(parent: string, child: string): boolean {
+export function isContainedWithin(parent: string, child: string): boolean {
   const normParent = normalizeForComparison(parent);
   const normChild = normalizeForComparison(child);
   if (normParent === normChild) {
@@ -234,4 +234,65 @@ export function isWithinCanonicalBase(targetPath: string, baseDir: string): bool
   }
 
   return true;
+}
+
+/**
+ * Verificación post-creación contra condiciones de carrera (TOCTOU) y desvíos por enlaces simbólicos.
+ * Garantiza de forma síncrona que el worktree recién materializado en disco:
+ * 1. Exista y sea un directorio legítimo (rechazando que sea un enlace simbólico o junction).
+ * 2. Ninguno de sus componentes intermedios sea un symlink que desvíe fuera de la base canónica.
+ * 3. La ruta física real (realpath) resida estrictamente dentro de la base canónica resuelta.
+ * 4. La raíz de Git reconocida por `git rev-parse --show-toplevel` coincida con la ruta asignada.
+ */
+export function verifyWorktreePostCreation(targetPath: string, canonicalBase: string, _mainRepoRoot?: string): void {
+  const normTarget = path.resolve(targetPath);
+  const normBase = path.resolve(canonicalBase);
+
+  // 1. Verificar existencia y tipo de entrada
+  const lstat = fs.lstatSync(normTarget, { throwIfNoEntry: false });
+  if (!lstat) {
+    throw new Error(`El worktree en '${normTarget}' no fue creado físicamente.`);
+  }
+
+  if (lstat.isSymbolicLink()) {
+    throw new Error(
+      `Violación de seguridad (TOCTOU): el worktree en '${normTarget}' es un enlace simbólico o junction no permitido.`,
+    );
+  }
+
+  if (!lstat.isDirectory()) {
+    throw new Error(`El destino del worktree '${normTarget}' no es un directorio válido.`);
+  }
+
+  // 2. Verificar jerarquía contra enlaces simbólicos que escapen
+  assertNoEscapingSymlinks(normTarget, normBase);
+
+  // 3. Verificar contención estricta en el sistema de archivos real
+  const realTarget = fs.realpathSync(normTarget);
+  const realBase = fs.realpathSync(normBase);
+
+  if (!isContainedWithin(realBase, realTarget)) {
+    throw new Error(
+      `Violación de seguridad (TOCTOU): la ruta real resuelta '${realTarget}' escapa de la base canónica '${realBase}'.`,
+    );
+  }
+
+  // 4. Verificar que Git reconozca la raíz correcta desde el propio worktree
+  try {
+    const gitTopLevel = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: normTarget,
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+
+    const realGitTop = fs.realpathSync(gitTopLevel);
+    if (normalizeForComparison(realGitTop) !== normalizeForComparison(realTarget)) {
+      throw new Error(
+        `Violación de seguridad: la raíz de Git reportada '${realGitTop}' no coincide con la ruta del worktree '${realTarget}'.`,
+      );
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Fallo de verificación de Git en el worktree recién creado: ${msg}`);
+  }
 }

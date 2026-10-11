@@ -27,22 +27,34 @@ export interface DoctorReport {
 }
 
 /**
- * Detecta llamadas o directivas desreguladas a 'git worktree add' en scripts, skills,
- * workflows y Taskfiles, asegurando que no existan regresiones de gobernanza en el repositorio.
+ * Superficie delimitada de automatización del repositorio auditada contra llamadas no gobernadas.
+ * Cubre scripts ejecutables, automatizaciones de agentes/skills, pipelines de CI/CD,
+ * infraestructura/IaC, definiciones de tareas (Makefiles, Justfiles, Taskfiles, package.json).
+ */
+export const GOVERNED_AUTOMATION_SURFACE_DIRS = ['scripts', '.agents', '.github', 'apps', 'infra', 'gitops'];
+
+export const GOVERNED_AUTOMATION_FILENAMES =
+  /^(Makefile|GNUmakefile|justfile|\.justfile|Taskfile(\.[a-z0-9_-]+)?(\.ya?ml|\.json|\.dist)?|package\.json)$/i;
+
+export const GOVERNED_AUTOMATION_EXTENSIONS = /\.(ts|js|mjs|cjs|sh|bash|zsh|ya?ml|json|mk)$/i;
+
+/**
+ * Detecta llamadas o directivas desreguladas a 'git worktree add' en la superficie delimitada de
+ * automatización del repositorio (scripts, skills, workflows, Taskfiles, Makefiles, Justfiles y configs).
  */
 export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] {
   const findings: DoctorFinding[] = [];
-  const searchDirs = [
-    path.join(mainRoot, 'scripts'),
-    path.join(mainRoot, '.agents'),
-    path.join(mainRoot, '.github', 'workflows'),
-  ];
 
   function isCodeOrConfig(filePath: string): boolean {
-    return /\.(ts|js|mjs|sh|bash|ya?ml|json)$/i.test(filePath) || /Taskfile/i.test(filePath);
+    const base = path.basename(filePath);
+    return GOVERNED_AUTOMATION_FILENAMES.test(base) || GOVERNED_AUTOMATION_EXTENSIONS.test(base);
   }
 
   function checkFile(fullPath: string) {
+    if (path.basename(fullPath) === 'worktree_governance.test.ts') {
+      return;
+    }
+
     try {
       const content = fs.readFileSync(fullPath, 'utf-8');
       const lines = content.split(/\r?\n/);
@@ -98,7 +110,14 @@ export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] 
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name === '.git' || fullPath.includes(path.join('scripts', 'worktree'))) {
+        if (
+          entry.name === '.git' ||
+          entry.name === 'node_modules' ||
+          entry.name === 'dist' ||
+          entry.name === 'tmp' ||
+          entry.name === 'coverage' ||
+          fullPath.includes(path.join('scripts', 'worktree'))
+        ) {
           continue;
         }
         scanDir(fullPath);
@@ -108,16 +127,22 @@ export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] 
     }
   }
 
-  for (const sDir of searchDirs) {
-    scanDir(sDir);
+  for (const sDir of GOVERNED_AUTOMATION_SURFACE_DIRS) {
+    scanDir(path.join(mainRoot, sDir));
   }
 
-  // Escaneo de archivos de automatización en la raíz
-  const rootFiles = ['Taskfile.yml', 'Taskfile.yaml', 'package.json'].map((f) => path.join(mainRoot, f));
-  for (const rf of rootFiles) {
-    if (fs.existsSync(rf)) {
-      checkFile(rf);
+  // Escaneo exhaustivo de archivos de automatización y configuración en la raíz
+  try {
+    const rootEntries = fs.readdirSync(mainRoot, { withFileTypes: true });
+    for (const entry of rootEntries) {
+      if (entry.isFile()) {
+        if (isCodeOrConfig(entry.name) || /\.md$/i.test(entry.name)) {
+          checkFile(path.join(mainRoot, entry.name));
+        }
+      }
     }
+  } catch {
+    // Si no se puede leer la raíz, continuar
   }
 
   return findings;

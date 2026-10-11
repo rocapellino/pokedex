@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { listWorktrees } from './manager.js';
 import { generateCanonicalNaming, type TaskNamingInput, validateGitRef } from './naming.js';
-import { isWithinCanonicalBase, resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
+import {
+  assertNoEscapingSymlinks,
+  isWithinCanonicalBase,
+  resolveCanonicalWorktreeBase,
+  resolveMainRepoRoot,
+  verifyWorktreePostCreation,
+} from './resolver.js';
 
 export interface CreateWorktreeOptions {
   baseBranch?: string; // Rama base para bifurcar (por defecto: 'main')
@@ -75,8 +81,9 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     branchExists = false;
   }
 
-  // 6. Asegurar directorio base canónico
+  // 6. Asegurar directorio base canónico y verificar ausencia de desvíos tras mkdir
   fs.mkdirSync(canonicalBase, { recursive: true });
+  assertNoEscapingSymlinks(canonicalBase, path.dirname(mainRoot));
 
   // 7. Ejecutar git worktree add de forma segura sin shell
   const gitArgs = ['worktree', 'add'];
@@ -93,7 +100,34 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     throw new Error(`Error al crear worktree con 'git ${gitArgs.join(' ')}': ${errorMsg}`);
   }
 
-  // 8. Crear junction de node_modules si procede (Windows / entorno local con node_modules en main)
+  // 8. Mitigación TOCTOU: Verificación post-creación con rollback inmediato si se detecta compromiso
+  try {
+    verifyWorktreePostCreation(targetPath, canonicalBase, mainRoot);
+  } catch (postErr: unknown) {
+    // Rollback de emergencia: remover el worktree comprometido y purgar metadatos
+    try {
+      execFileSync('git', ['worktree', 'remove', '--force', targetPath], { cwd: mainRoot, stdio: 'ignore' });
+    } catch {
+      if (fs.existsSync(targetPath) || fs.lstatSync(targetPath, { throwIfNoEntry: false })) {
+        try {
+          fs.rmSync(targetPath, { recursive: true, force: true });
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    try {
+      execFileSync('git', ['worktree', 'prune'], { cwd: mainRoot, stdio: 'ignore' });
+    } catch {
+      // ignore
+    }
+
+    const postMsg = postErr instanceof Error ? postErr.message : String(postErr);
+    throw new Error(`Violación de seguridad post-creación detectada (rollback ejecutado): ${postMsg}`);
+  }
+
+  // 9. Crear junction de node_modules si procede (Windows / entorno local con node_modules en main)
   const mainNodeModules = path.join(mainRoot, 'node_modules');
   const targetNodeModules = path.join(targetPath, 'node_modules');
   const shouldLink = options.createNodeModulesJunction !== false;

@@ -19,6 +19,7 @@ import {
   isWithinCanonicalBase,
   resolveCanonicalWorktreeBase,
   resolveMainRepoRoot,
+  verifyWorktreePostCreation,
 } from '../../scripts/worktree/resolver.js';
 
 test('🌲 Worktree Governance: sanitizeSlug normaliza caracteres, acentos y espacios', () => {
@@ -450,4 +451,128 @@ test('🌲 Worktree Governance: checkUngovernedWorktreeCalls detecta infraccione
   assert.ok(paths.includes('bad-script.sh'));
   assert.ok(paths.includes('bad-pipeline.yaml'));
   assert.ok(paths.includes('Taskfile.yml'));
+});
+
+test('🌲 Worktree Governance: verifyWorktreePostCreation detecta TOCTOU/symlink post-creación y asegura validación estricta', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-toctou-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+  const outsideDir = path.join(tempDir, 'outside_evil');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
+  fs.mkdirSync(canonicalBase, { recursive: true });
+
+  // 1. Simular un targetPath que es un symlink/junction apuntando hacia outsideDir
+  const fakeTargetPath = path.join(canonicalBase, 'feat--toctou-attack');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, fakeTargetPath, symlinkType);
+
+  // verifyWorktreePostCreation debe arrojar violación de seguridad TOCTOU
+  assert.throws(
+    () => verifyWorktreePostCreation(fakeTargetPath, canonicalBase, testRepoDir),
+    /Violación de seguridad.*TOCTOU/,
+  );
+
+  // 2. Comprobar que verifyWorktreePostCreation falle si targetPath no existe
+  assert.throws(
+    () => verifyWorktreePostCreation(path.join(canonicalBase, 'non-existent'), canonicalBase, testRepoDir),
+    /no fue creado físicamente/,
+  );
+
+  // 3. Crear un worktree legítimo y verificar que pase sin errores
+  const created = createWorktree(
+    { type: 'feat', slug: 'legit-post-check' },
+    { cwd: testRepoDir, createNodeModulesJunction: false },
+  );
+  assert.ok(fs.existsSync(created.path));
+  assert.doesNotThrow(() => verifyWorktreePostCreation(created.path, canonicalBase, testRepoDir));
+});
+
+test('🌲 Worktree Governance: checkUngovernedWorktreeCalls cubre la superficie de automatización completa (Makefile, Justfile, Taskfile, infra, CI)', (t) => {
+  const tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-scanner-surface-'));
+
+  const scriptsDir = path.join(tempRepo, 'scripts');
+  const workflowsDir = path.join(tempRepo, '.github', 'workflows');
+  const actionsDir = path.join(tempRepo, '.github', 'actions', 'custom-action');
+  const infraDir = path.join(tempRepo, 'infra', 'ansible');
+  const appsDir = path.join(tempRepo, 'apps', 'backend');
+
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  fs.mkdirSync(workflowsDir, { recursive: true });
+  fs.mkdirSync(actionsDir, { recursive: true });
+  fs.mkdirSync(infraDir, { recursive: true });
+  fs.mkdirSync(appsDir, { recursive: true });
+
+  // 1. Script shell en scripts/
+  fs.writeFileSync(path.join(scriptsDir, 'bad-script.sh'), '#!/bin/bash\ngit worktree add ../temp-wt feature/bad\n');
+
+  // 2. Workflow en .github/workflows/
+  fs.writeFileSync(
+    path.join(workflowsDir, 'bad-pipeline.yaml'),
+    'name: Bad\njobs:\n  run:\n    steps:\n      - run: git worktree add ../dir branch\n',
+  );
+
+  // 3. Composite action en .github/actions/
+  fs.writeFileSync(
+    path.join(actionsDir, 'action.yaml'),
+    'name: Custom\nruns:\n  using: composite\n  steps:\n    - run: git worktree add ../dir branch\n      shell: bash\n',
+  );
+
+  // 4. Makefile en la raíz
+  fs.writeFileSync(path.join(tempRepo, 'Makefile'), 'wt:\n\tgit worktree add ../custom feat\n');
+
+  // 5. justfile en la raíz
+  fs.writeFileSync(path.join(tempRepo, 'justfile'), 'wt:\n    git worktree add ../custom feat\n');
+
+  // 6. Taskfile.dist.yaml en la raíz
+  fs.writeFileSync(
+    path.join(tempRepo, 'Taskfile.dist.yaml'),
+    'version: "3"\ntasks:\n  wt:\n    cmds:\n      - git worktree add ../custom feat\n',
+  );
+
+  // 7. Configuración en infra/
+  fs.writeFileSync(path.join(infraDir, 'deploy.sh'), '#!/bin/bash\ngit worktree add ../infra-wt main\n');
+
+  // 8. package.json en apps/
+  fs.writeFileSync(
+    path.join(appsDir, 'package.json'),
+    JSON.stringify({ scripts: { 'bad:wt': 'git worktree add ../dir feat' } }),
+  );
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempRepo, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const findings = checkUngovernedWorktreeCalls(tempRepo);
+  assert.equal(findings.length, 8, `Se esperaban 8 infracciones detectadas, encontradas: ${findings.length}`);
+  const basenames = findings.map((f) => path.basename(f.worktreePath));
+  assert.ok(basenames.includes('bad-script.sh'));
+  assert.ok(basenames.includes('bad-pipeline.yaml'));
+  assert.ok(basenames.includes('action.yaml'));
+  assert.ok(basenames.includes('Makefile'));
+  assert.ok(basenames.includes('justfile'));
+  assert.ok(basenames.includes('Taskfile.dist.yaml'));
+  assert.ok(basenames.includes('deploy.sh'));
+  assert.ok(basenames.includes('package.json'));
 });
