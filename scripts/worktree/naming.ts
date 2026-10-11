@@ -1,6 +1,8 @@
 /**
  * Tipos de prefijo canónicos para ramas y tareas de pokédex.
- * Basados en Conventional Commits y las convenciones del repositorio.
+ * Alineados estrictamente con el hook 'conventional-pre-commit' configurado en .pre-commit-config.yaml.
+ * Al no existir un hook nativo de Git para la creación o nomenclatura de worktrees,
+ * este módulo constituye la Fuente Única de Verdad (SSOT) programática para nombres de ramas y carpetas.
  */
 export const ALLOWED_TASK_TYPES = ['feat', 'fix', 'chore', 'ci', 'docs', 'test', 'refactor', 'perf', 'revert'] as const;
 
@@ -125,4 +127,38 @@ export function parseExistingBranchOrFolder(identifier: string): Partial<Canonic
     branchName: safe,
     folderName: safe,
   };
+}
+
+/**
+ * Valida que una referencia Git (ej. rama base o nombre de rama) sea segura y sintácticamente válida,
+ * bloqueando inyección de flags (comienzo con '-') y caracteres/secuencias peligrosas.
+ */
+export function validateGitRef(ref: string, fieldName = 'Git reference'): string {
+  if (!ref || typeof ref !== 'string') {
+    throw new Error(`Referencia Git inválida para ${fieldName}: el valor no puede estar vacío.`);
+  }
+  const trimmed = ref.trim();
+  if (trimmed.length === 0 || trimmed.length > 255) {
+    throw new Error(`Referencia Git inválida para ${fieldName}: longitud no permitida (${trimmed.length}).`);
+  }
+  if (trimmed.startsWith('-')) {
+    throw new Error(`Referencia Git inválida para ${fieldName}: no puede comenzar con '-' ('${trimmed}').`);
+  }
+  if (/[\s;`$|&><\\*?^~:]/.test(trimmed)) {
+    throw new Error(`Referencia Git inválida para ${fieldName}: contiene caracteres no permitidos ('${trimmed}').`);
+  }
+  if (
+    trimmed.includes('..') ||
+    trimmed.includes('//') ||
+    trimmed.includes('@{') ||
+    trimmed.endsWith('/') ||
+    trimmed.startsWith('/') ||
+    trimmed.endsWith('.lock')
+  ) {
+    throw new Error(`Referencia Git inválida para ${fieldName}: viola las reglas canónicas de Git ('${trimmed}').`);
+  }
+  if (!/^[a-zA-Z0-9_\-./]+$/.test(trimmed)) {
+    throw new Error(`Referencia Git inválida para ${fieldName}: formato no permitido ('${trimmed}').`);
+  }
+  return trimmed;
 }

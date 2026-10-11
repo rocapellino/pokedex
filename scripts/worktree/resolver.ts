@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -13,7 +13,7 @@ import path from 'node:path';
  */
 export function resolveMainRepoRoot(cwd: string = process.cwd()): string {
   try {
-    const rawCommonDir = execSync('git rev-parse --path-format=absolute --git-common-dir', {
+    const rawCommonDir = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
       cwd,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -63,12 +63,35 @@ export function resolveCanonicalWorktreeBase(cwd: string = process.cwd()): strin
   const mainRoot = resolveMainRepoRoot(cwd);
   const slug = resolveRepoSlug(mainRoot);
   const parentDir = path.dirname(mainRoot);
-  return path.normalize(path.join(parentDir, '.worktrees', slug));
+  const canonicalBase = path.normalize(path.join(parentDir, '.worktrees', slug));
+
+  // Si canonicalBase existe, verificar que no sea un enlace simbólico que escape de parentDir
+  const lstat = fs.lstatSync(canonicalBase, { throwIfNoEntry: false });
+  if (lstat) {
+    try {
+      const realCanonical = fs.realpathSync(canonicalBase);
+      const realParent = fs.realpathSync(parentDir);
+      const normParent = process.platform === 'win32' ? realParent.toLowerCase() : realParent;
+      const normCanonical = process.platform === 'win32' ? realCanonical.toLowerCase() : realCanonical;
+      const rel = path.relative(normParent, normCanonical);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        throw new Error(
+          `Violación de seguridad: la base canónica '${canonicalBase}' es un enlace que resuelve fuera de '${parentDir}'.`,
+        );
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('Violación de seguridad')) {
+        throw err;
+      }
+    }
+  }
+
+  return canonicalBase;
 }
 
 /**
  * Valida que una ruta resuelta resida estrictamente dentro del directorio base canónico.
- * Previene ataques de path traversal.
+ * Previene ataques de path traversal léxico y desvíos mediante enlaces simbólicos (symlinks / junctions).
  */
 export function isWithinCanonicalBase(targetPath: string, baseDir: string): boolean {
   const normalizedTarget = path.resolve(targetPath);
@@ -78,6 +101,62 @@ export function isWithinCanonicalBase(targetPath: string, baseDir: string): bool
     return false;
   }
 
+  // 1. Verificación léxica de contención
   const relative = path.relative(normalizedBase, normalizedTarget);
-  return !relative.startsWith('..') && !path.isAbsolute(relative);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    return false;
+  }
+
+  // 2. Verificación de enlaces simbólicos mediante realpath
+  // Resolver la ruta real de baseDir si existe, o de su ancestro existente más cercano
+  let realBase = normalizedBase;
+  if (fs.existsSync(normalizedBase)) {
+    try {
+      realBase = fs.realpathSync(normalizedBase);
+    } catch {
+      return false;
+    }
+  } else {
+    let ancestor = path.dirname(normalizedBase);
+    while (!fs.existsSync(ancestor) && ancestor !== path.dirname(ancestor)) {
+      ancestor = path.dirname(ancestor);
+    }
+    if (fs.existsSync(ancestor)) {
+      try {
+        realBase = fs.realpathSync(ancestor);
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  // Encontrar el componente existente más profundo de targetPath
+  let checkPath = normalizedTarget;
+  let entryFound = false;
+
+  while (checkPath !== path.dirname(checkPath)) {
+    const lstat = fs.lstatSync(checkPath, { throwIfNoEntry: false });
+    if (lstat) {
+      entryFound = true;
+      break;
+    }
+    checkPath = path.dirname(checkPath);
+  }
+
+  if (entryFound) {
+    try {
+      const realCheck = fs.realpathSync(checkPath);
+      const normRealBase = process.platform === 'win32' ? realBase.toLowerCase() : realBase;
+      const normRealCheck = process.platform === 'win32' ? realCheck.toLowerCase() : realCheck;
+      const relReal = path.relative(normRealBase, normRealCheck);
+      if (relReal.startsWith('..') || path.isAbsolute(relReal)) {
+        return false;
+      }
+    } catch {
+      // Si falla realpath (por ejemplo un enlace roto o inaccesible), se rechaza por seguridad
+      return false;
+    }
+  }
+
+  return true;
 }

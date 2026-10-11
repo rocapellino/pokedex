@@ -22,8 +22,8 @@ Queda estrictamente prohibido que un agente seleccione carpetas arbitrarias en e
 2. **Aislamiento y Demarcación respecto a `tmp/`:**
    - Los Git worktrees **no** son archivos temporales y nunca deben crearse dentro de `<repository-root>/tmp/`.
    - Los archivos temporales, logs de depuración y reportes transitorios generados durante una tarea deben seguir estrictamente la regla [repository-hygiene.md](repository-hygiene.md) bajo `tmp/`.
-3. **Protección Anti-Path Traversal:**
-   - Todo comando de creación valida que la ruta resuelta pertenezca inequívocamente al directorio base canónico, bloqueando cualquier intento de escape o traversal.
+3. **Protección Anti-Path Traversal y Enlaces Simbólicos:**
+   - Todo comando de creación y resolución valida que la ruta resuelta pertenezca inequívocamente al directorio base canónico, bloqueando tanto traversal léxico (`..`) como escapes mediante enlaces simbólicos (*symlinks* / *junctions*) inspeccionando los componentes reales mediante `fs.realpathSync`.
 
 ---
 
@@ -45,6 +45,9 @@ Los nombres de ramas y de carpetas se derivan de forma centralizada y determinis
 4. **Saneamiento Estricto:**
    - Todos los slugs se convierten a minúsculas, se eliminan tildes/diacríticos y se reemplazan caracteres especiales por un único guión medio (`-`).
    - Los identificadores de ticket se normalizan en mayúsculas (`AUD-SEC-001`).
+5. **Relación con Hooks y SSOT de Nomenclatura:**
+   - Los tipos permitidos en `ALLOWED_TASK_TYPES` están alineados de forma idéntica con el hook `conventional-pre-commit` declarado en `.pre-commit-config.yaml`.
+   - Dado que Git no proporciona un hook de cliente nativo que intercepte la creación de worktrees (e.g. no existe `pre-worktree-add` en Git ni en pre-commit), no se generan hooks artificiales. `scripts/worktree/naming.ts` actúa como la Fuente Única de Verdad (SSOT) programática para la nomenclatura y validación de referencias de Git (`validateGitRef`).
 
 ---
 
@@ -56,9 +59,13 @@ Toda interacción con worktrees debe realizarse a través de la CLI canónica de
 | :--- | :--- | :--- |
 | **Crear** | `npm run worktree:create -- --type <tipo> --slug <slug> [--scope <scope>] [--ticket <id>]` | Valida parámetros, genera nomenclatura canónica, verifica colisiones y crea el worktree en la base aprobada. |
 | **Listar** | `npm run worktree:list` | Inspecciona todos los worktrees registrados, su HEAD, rama y estado de cumplimiento. |
-| **Diagnosticar** | `npm run worktree:doctor` | Audita worktrees fuera de política, detecta metadatos huérfanos (*prunables*) y candidatos a limpieza. |
+| **Diagnosticar** | `npm run worktree:doctor` | Audita worktrees fuera de política, detecta metadatos huérfanos (*prunables*), regresiones y candidatos a limpieza. |
 | **Limpiar** | `npm run worktree:cleanup -- --target <path/rama/id>` | Elimina de forma segura un worktree, bloqueando si hay cambios sin confirmar o commits sin integrar. |
 | **Prunar** | `npm run worktree:prune` | Limpia referencias en Git de worktrees cuyos directorios ya no existen en disco. |
+
+### Ejecución Segura de Comandos (Sin Invocación de Shell)
+
+El motor de worktrees invoca directamente ejecutables binarios (`execFileSync('git', [...])`) pasando argumentos discretos como listas de cadenas. Queda terminantemente prohibida la interpolación de comandos o parámetros en un intérprete de shell (`sh`, `bash`, `cmd`, `powershell`). Todas las referencias de Git externas (e.g. `--base-branch`) se validan previamente mediante `validateGitRef` para impedir la inyección de flags (argumentos que inicien con `-`) o secuencias de escape.
 
 ---
 
@@ -78,12 +85,23 @@ Toda interacción con worktrees debe realizarse a través de la CLI canónica de
 
 ---
 
-## 6. Matriz de Responsabilidades y Cumplimiento
+## 6. Límites Técnicos y Enforcement en Puntos de Entrada
+
+Por diseño de la arquitectura interna de Git, el cliente no expone hooks previos para bloquear o condicionar la ejecución de `git worktree add` si una herramienta externa o proceso con acceso directo a terminal o filesystem decide invocarlo por fuera de la CLI. Para garantizar el cumplimiento efectivo:
+
+1. **Obligación Operativa en `AGENTS.md`:** Ningún agente de IA puede invocar `git worktree add` de manera desregulada.
+2. **Detección Preventiva de Regresiones:** `npm run worktree:doctor` escanea el repositorio y reporta hallazgos `WT-REGRESSION-UNGOVERNED-WORKTREE-CALL` si detecta scripts o directivas de skills invocando `git worktree add` sin pasar por la CLI centralizada.
+3. **Auditoría Post-Facto:** `npm run worktree:doctor` etiqueta inmediatamente cualquier checkout fuera de la base canónica como `WT-NON-CANONICAL-LOCATION`.
+4. **Verificación Automatizada:** La suite `tests/unit/worktree_governance.test.ts` valida en CI y localmente la estricta ausencia de regresiones en scripts y skills.
+
+---
+
+## 7. Matriz de Responsabilidades y Cumplimiento
 
 | Componente | Rol en la Gobernanza | Responsabilidad |
 | :--- | :--- | :--- |
-| **`.agents/rules/worktree-governance.md`** | **Normativa (SSOT)** | Especificación formal de ubicación, nomenclatura y directivas. |
+| **`.agents/rules/worktree-governance.md`** | **Normativa (SSOT)** | Especificación formal de ubicación, nomenclatura, seguridad de ejecución y directivas. |
 | **`AGENTS.md`** | **Directiva Operativa** | Obligación vinculante para todos los agentes de utilizar el CLI centralizado. |
-| **`scripts/worktree/`** | **Motor de Ejecución** | Validador determinista, sanitizador y ejecutor de `git worktree`. |
+| **`scripts/worktree/`** | **Motor de Ejecución** | Validador determinista, ejecutor seguro sin shell y sanitizador de rutas y refs. |
 | **`repo-lifecycle` / `repo-maintenance`** | **Skills Operativas** | Invocan `worktree:create` y `worktree:cleanup` en los flujos de ciclo de vida. |
-| **`tests/unit/worktree_governance.test.ts`** | **Enforcement Automatizado** | Certifica la resolución de rutas, rechazo de path traversal y nomenclatura. |
+| **`tests/unit/worktree_governance.test.ts`** | **Enforcement Automatizado** | Certifica la resolución de rutas, rechazo de path traversal/symlinks, nomenclatura y ausencia de regresiones. |
