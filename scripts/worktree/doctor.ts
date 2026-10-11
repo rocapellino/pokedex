@@ -132,8 +132,42 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
     }
   }
 
-  function scanDir(dir: string) {
-    if (!fs.existsSync(dir)) return;
+  function scanDir(dir: string, isTopLevelSurfaceDir = false) {
+    let stat: fs.Stats | undefined;
+    try {
+      stat = fs.statSync(dir, { throwIfNoEntry: false });
+    } catch (accessErr: unknown) {
+      const errMsg = accessErr instanceof Error ? accessErr.message : String(accessErr);
+      unreadableFiles.push({ path: dir, error: errMsg });
+      findings.push({
+        code: 'WT-AUDIT-UNREADABLE-DIR',
+        severity: 'MEDIUM',
+        worktreePath: dir,
+        message: `No se pudo acceder al directorio de automatización '${dir}' por error de permisos o E/S: ${errMsg}.`,
+        remediation: 'Verificar permisos y accesibilidad del directorio para permitir una auditoría completa.',
+      });
+      return;
+    }
+
+    if (!stat) {
+      // La ruta no existe físicamente (ENOENT genuino)
+      return;
+    }
+
+    if (!stat.isDirectory()) {
+      if (isTopLevelSurfaceDir) {
+        unreadableFiles.push({ path: dir, error: 'La ruta configurada no es un directorio' });
+        findings.push({
+          code: 'WT-AUDIT-UNREADABLE-DIR',
+          severity: 'MEDIUM',
+          worktreePath: dir,
+          message: `La ruta de automatización '${dir}' existe pero no es un directorio válido.`,
+          remediation: 'Verificar la estructura de directorios del repositorio.',
+        });
+      }
+      return;
+    }
+
     let entries: fs.Dirent[];
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -171,7 +205,7 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
   }
 
   for (const sDir of GOVERNED_AUTOMATION_SURFACE_DIRS) {
-    scanDir(path.join(mainRoot, sDir));
+    scanDir(path.join(mainRoot, sDir), true);
   }
 
   // Escaneo exhaustivo de archivos de automatización y configuración en la raíz
@@ -187,6 +221,13 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
   } catch (rootErr: unknown) {
     const errMsg = rootErr instanceof Error ? rootErr.message : String(rootErr);
     unreadableFiles.push({ path: mainRoot, error: errMsg });
+    findings.push({
+      code: 'WT-AUDIT-UNREADABLE-DIR',
+      severity: 'HIGH',
+      worktreePath: mainRoot,
+      message: `No se pudo leer el directorio raíz del repositorio '${mainRoot}': ${errMsg}.`,
+      remediation: 'Verificar permisos y accesibilidad del directorio raíz para permitir la auditoría de gobernanza.',
+    });
   }
 
   return {
