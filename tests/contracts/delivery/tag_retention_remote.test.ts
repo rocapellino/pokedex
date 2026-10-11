@@ -19,8 +19,10 @@ import { test } from 'node:test';
 import {
   applyTagRetention,
   deleteRemoteTag,
+  enrichTagsWithRemoteRefs,
   fetchRemoteTagRef,
   fetchRemoteTags,
+  type GitTagRef,
 } from '../../../scripts/tag-retention.js';
 
 // Constantes de hashes SHA-1 válidos (40 caracteres hexadecimales) para pruebas reproducibles
@@ -720,4 +722,239 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag r
         /Inconsistencia crítica: El tag retenido v3.2.1 no se encontró en el remoto. Abortando purga por seguridad./,
     },
   );
+});
+
+test('🏷️ Remoto [P1]: applyTagRetention aborta si un tag anotado a purgar muta su refSha aunque preserve el commit', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    // 1. Inventario: v3.2.1 (retiene), v3.2.0 (purga)
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
+          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // 2. matching-refs enriquece el inventario inicial con refSha original
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // 3. Verificación de integridad de v3.2.1
+    if (url.includes('/git/ref/tags/v3.2.1')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.1',
+          object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    // 4. Verificación previa de v3.2.0: el commit sigue siendo SHA_COMMIT_TARGET_2,
+    // pero el refSha mutó a SHA_TAG_MUTATED_7
+    if (url.includes('/git/ref/tags/v3.2.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.0',
+          object: { sha: SHA_TAG_MUTATED_7, type: 'tag' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes(`/git/tags/${SHA_TAG_MUTATED_7}`)) {
+      return new Response(
+        JSON.stringify({
+          sha: SHA_TAG_MUTATED_7,
+          object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'valid-test-token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Conflicto concurrente en tag v3.2.0: el SHA de la referencia remota .* difiere del objeto evaluado en el inventario inicial/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'DELETE nunca debe ejecutarse ante mutación del objeto tag anotado');
+});
+
+test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag retenido muta de commit en el remoto', async () => {
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_A } }, // Retenido
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } }, // A purgar
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // El tag retenido v3.2.1 ahora apunta a un commit distinto
+    if (url.includes('/git/ref/tags/v3.2.1')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.1',
+          object: { sha: SHA_COMMIT_MUTATED_9, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'valid-test-token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message: /Inconsistencia crítica: El tag retenido v3.2.1 mutó de commit en el remoto/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag retenido muta de objeto de referencia', async () => {
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // Inventario inicial: v3.2.1 tiene objeto SHA_TAG_ANNOTATED_1
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // Al verificar integridad: el tag retenido v3.2.1 ahora tiene refSha MUTATED_7
+    if (url.includes('/git/ref/tags/v3.2.1')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.1',
+          object: { sha: SHA_TAG_MUTATED_7, type: 'tag' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes(`/git/tags/${SHA_TAG_MUTATED_7}`)) {
+      return new Response(
+        JSON.stringify({
+          sha: SHA_TAG_MUTATED_7,
+          object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'valid-test-token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message: /Inconsistencia crítica: El tag retenido v3.2.1 mutó de objeto de referencia en el remoto/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs captura refSha de matching-refs y se degrada de forma segura', async () => {
+  const mockFetchSuccess: typeof fetch = async () => {
+    return new Response(
+      JSON.stringify([
+        { ref: 'refs/tags/v1.0.0', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } },
+        { ref: 'refs/tags/v2.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+      ]),
+      { status: 200 },
+    );
+  };
+
+  const tags: GitTagRef[] = [
+    { name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 },
+    { name: 'v2.0.0', sha: SHA_COMMIT_TARGET_2 },
+    { name: 'v3.0.0', sha: SHA_COMMIT_TARGET_2 },
+  ];
+
+  await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, mockFetchSuccess);
+
+  assert.equal(tags[0].refSha, SHA_TAG_ANNOTATED_1);
+  assert.equal(tags[0].isAnnotated, true);
+  assert.equal(tags[1].refSha, SHA_COMMIT_TARGET_2);
+  assert.equal(tags[1].isAnnotated, false);
+  assert.equal(tags[2].refSha, undefined);
+
+  // Degradación segura ante error HTTP
+  const mockFetchError: typeof fetch = async () => {
+    return new Response('Internal Server Error', { status: 500 });
+  };
+  await assert.doesNotReject(async () => {
+    await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, mockFetchError);
+  });
 });
