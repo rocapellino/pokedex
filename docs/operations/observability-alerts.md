@@ -285,6 +285,7 @@ Las métricas y alertas recolectadas por Grafana Alloy y Beyla se integran con G
 
 - **Métricas de Aplicación Pokédex:** [`infra/monitoring/dashboards/pokedex-application.json`](../../infra/monitoring/dashboards/pokedex-application.json)
 - **Observabilidad Global del Clúster:** [`infra/monitoring/dashboards/cluster-observability.json`](../../infra/monitoring/dashboards/cluster-observability.json)
+- **Rendimiento k6 por Commit:** [`infra/monitoring/dashboards/k6-performance.json`](../../infra/monitoring/dashboards/k6-performance.json)
 
 Para importar estos tableros en la instancia de Grafana Cloud:
 
