@@ -448,7 +448,7 @@
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
-        "prettifyLogMessage": false,
+        "prettifyLogMessage": true,
         "showCommonLabels": false,
         "showLabels": true,
         "sortOrder": "Descending",
@@ -461,9 +461,29 @@
             "uid": "${logs_datasource}"
           },
           "editorMode": "code",
-          "expr": "{namespace=~\"pokemon-app|monitoring\"} or {container=~\".+\"}",
+          "expr": "{namespace=~\"pokemon-app|monitoring\", container=\"web\"} | pattern `<ip> - - [<_>] \"<method> <uri> <_>\" <status> <size> <_>` | line_format \"[{{.container}}] {{.method}} {{.uri}} -> {{.status}} ({{.size}} bytes)\"",
           "queryType": "range",
-          "refId": "A"
+          "refId": "Web"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${logs_datasource}"
+          },
+          "editorMode": "code",
+          "expr": "{namespace=~\"pokemon-app|monitoring\", container=\"api\"} | json | line_format \"[{{.container}}] {{if .level}}[{{.level}}] {{end}}{{.msg}}\"",
+          "queryType": "range",
+          "refId": "API"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${logs_datasource}"
+          },
+          "editorMode": "code",
+          "expr": "{namespace=~\"pokemon-app|monitoring\", container!~\"web|api\"}",
+          "queryType": "range",
+          "refId": "Otros"
         }
       ],
       "title": "Flujo de Logs en Vivo (Pods & Contenedores)",
