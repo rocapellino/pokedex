@@ -480,6 +480,29 @@
       "description": "Comprueba renovate.json: major de postgres y redis bloqueados, sin claves de comentario inválidas, validado por digest en modo strict y exclusiones de imágenes del chart."
     },
     {
+      "path": "tests/contracts/delivery/tag_retention_remote.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Delivery",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Operaciones Remotas de Retención de Tags en GitHub",
+      "targetArtifacts": [
+        "scripts/tag-retention.ts",
+        ".github/workflows/tag-retention.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida contratos remotos de la API de GitHub: desreferenciación de tags anotados, precondiciones SHA, paginación FAIL-CLOSED y garantía dry-run."
+    },
+    {
       "path": "tests/contracts/delivery/tag_retention.test.ts",
       "suite": "contracts",
       "type": "Contract / Delivery",

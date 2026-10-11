@@ -83,6 +83,7 @@ La política jerárquica aplica la siguiente resolución determinista:
 - **Tratamiento de Prereleases (`-rc.1`, `-beta.2`):** Como medida preventiva fundamental, los tags con prerelease **no desplazan versiones estables** ni se eliminan automáticamente. Se clasifican como `excluded` con registro del motivo.
 - **Build Metadata (`+build.5`):** Se parsea conforme a SemVer 2.0 sin alterar la precedencia de versión. Si existen tags duplicados que apuntan a commits distintos (ambigüedad), la ejecución se aborta de forma segura.
 - **Tags no SemVer:** Tags arbitrarios o experimentales (e.g. `nightly-2026`, `test-build`) se registran como `excluded` y se conservan sin mutaciones.
+- **Tags Anotados vs Ligeros:** El script distingue entre el SHA del objeto de referencia Git (`refs/tags/X`) y el SHA del commit destino. Para tags anotados y firmados (generados por `release-tag.yaml`), el objeto tag se desreferencia automáticamente hacia su commit subyacente, garantizando que las precondiciones de SHA se comparen de forma fidedigna y sin falsos conflictos concurrentes.
 
 ---
 
@@ -92,20 +93,35 @@ Workflow oficial: [`.github/workflows/tag-retention.yaml`](../../.github/workflo
 
 ### Triggers y Modos de Ejecución
 
-- **Post-Release (`workflow_run`):** Se dispara reactivamente tras el merge exitoso de una versión en `main` mediante `🏷️ Automated Semantic Release & Tag` (`release-tag.yaml`).
-- **Manual (`workflow_dispatch`):** Permite auditorías bajo demanda con parámetros configurables:
-  - `dry_run`: `true` (por defecto).
+- **Post-Release (`workflow_run`):** Se dispara reactivamente tras el merge exitoso de una versión en `main` mediante `🏷️ Automated Semantic Release & Tag` (`release-tag.yaml`). Ejecuta exclusivamente la fase de planificación y auditoría en modo `dry-run` (solo lectura).
+- **Semanal (`schedule`):** Domingos a las 05:00 UTC. Opera deliberadamente en modo `dry-run` como telemetría continua para auditar el estado del repositorio sin riesgo de mutación no supervisada.
+- **Manual (`workflow_dispatch`):** Permite auditorías bajo demanda o la ejecución de purgas reales explícitamente autorizadas:
+  - `dry_run`: `true` (por defecto). Para habilitar la eliminación real, el operador debe seleccionar explícitamente `dry_run: false`.
   - `major_count`: `2` (por defecto).
   - `minor_count`: `3` (por defecto).
   - `patch_count`: `1` (por defecto).
-- **Semanal (`schedule`):** Domingos a las 05:00 UTC como red de seguridad.
+
+### Arquitectura de Dos Jobs y Menor Privilegio (Zero-Trust)
+
+Para aislar de manera estricta las operaciones destructivas, el workflow divide la ejecución en dos jobs independientes:
+
+1. **`plan-retention` (Solo Lectura):**
+   - Declarado con `permissions: { contents: read }`.
+   - Se ejecuta en todos los disparos (`workflow_run`, `schedule`, `workflow_dispatch`).
+   - Descarga el repositorio (`persist-credentials: false`), ejecuta `scripts/tag-retention.ts` con `--dry-run` e imprime el plan y balance jerárquico.
+   - En ejecuciones automáticas (`workflow_run` y `schedule`), el pipeline concluye aquí, garantizando que nunca se instancian credenciales de escritura en corridas desatendidas.
+2. **`prune-tags` (Operación Destructiva Autorizada):**
+   - Declarado con `permissions: { contents: write }`.
+   - Condicionado estrictamente a `github.event_name == 'workflow_dispatch' && needs.plan-retention.outputs.dry_run == 'false'`.
+   - Ejecuta la purga con doble verificación de SHA y precondiciones de integridad.
 
 ### Protocolo de Borrado Seguro
 
 1. **Re-consulta del inventario:** Justo antes de ejecutar mutaciones remotas, se consulta el estado de GitHub en tiempo real.
-2. **Validación de presencia y SHA:** Comprueba que los tags a conservar continúan existiendo y que el commit SHA del tag a borrar coincide exactamente con el evaluado previamente.
-3. **Mínimo privilegio:** Permiso global `contents: read`, elevando a `contents: write` en el runner únicamente autenticado con `GITHUB_TOKEN`.
-4. **Concurrencia serializada:** Grupo `tag-retention-${{ github.ref }}` con `cancel-in-progress: false`.
+2. **Control FAIL-CLOSED de paginación:** Si el inventario de tags supera el tope de seguridad de 3.000 tags (30 páginas) y aún existen páginas pendientes en la API, la ejecución se detiene de inmediato mediante excepción para evitar formular planes de retención sobre un inventario parcial o truncado.
+3. **Validación previa de integridad:** Comprueba que todos los tags conservados (`kept`) continúen existiendo en el repositorio remoto antes de realizar cualquier eliminación. Si se detecta una discrepancia, la ejecución se aborta antes de borrar ningún tag.
+4. **Verificación atómica de SHA:** Para cada tag a purgar, compara el commit SHA actual (desreferenciado) y el ref SHA contra el evaluado. Si el tag fue re-apuntado a otro commit, la eliminación se detiene por conflicto concurrente.
+5. **Concurrencia serializada:** Grupo `tag-retention-${{ github.ref }}` con `cancel-in-progress: false` para evitar colisiones entre corridas simultáneas.
 
 ---
 

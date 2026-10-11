@@ -23,9 +23,18 @@ import path from 'node:path';
 export interface GitTagRef {
   name: string;
   sha: string;
+  refSha?: string;
   date?: string;
   peeledSha?: string;
   isAnnotated?: boolean;
+}
+
+export interface GitRemoteRefDetail {
+  tagName: string;
+  refSha: string;
+  targetCommitSha: string;
+  type: 'tag' | 'commit' | string;
+  isAnnotated: boolean;
 }
 
 export interface ParsedSemver {
@@ -89,6 +98,8 @@ export interface TagRetentionOptions {
   protectedTags?: Map<string, string>;
   customProtectedTags?: string[];
   repoRoot?: string;
+  fetchFn?: typeof fetch;
+  maxPages?: number;
 }
 
 export const DEFAULT_CONFIG: HierarchicalRetentionConfig = {
@@ -495,16 +506,32 @@ export function evaluateHierarchicalTagRetention(
 
 /**
  * Consulta los tags remotos de GitHub vía REST API paginada.
+ * Implementa control estricto FAIL-CLOSED: si se alcanza el límite máximo de páginas
+ * y todavía hay datos pendientes en el remoto, aborta inmediatamente para evitar
+ * cálculos de retención o planes de purga sobre un inventario incompleto.
  */
-export async function fetchRemoteTags(token: string, owner: string, repo: string): Promise<GitTagRef[]> {
+export async function fetchRemoteTags(
+  token: string,
+  owner: string,
+  repo: string,
+  options: { maxPages?: number; perPage?: number; fetchFn?: typeof fetch } = {},
+): Promise<GitTagRef[]> {
   const tags: GitTagRef[] = [];
   let page = 1;
-  const perPage = 100;
+  const perPage = options.perPage ?? 100;
+  const maxPages = options.maxPages ?? 30; // 3.000 tags máximo por defecto
+  const fetchFn = options.fetchFn ?? fetch;
 
   while (true) {
+    if (page > maxPages) {
+      throw new Error(
+        `Límite de seguridad alcanzado: el inventario excede el tope de ${maxPages * perPage} tags (${maxPages} páginas). Detención de seguridad FAIL-CLOSED para evitar purgas destructivas sobre un inventario incompleto.`,
+      );
+    }
+
     const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/tags?per_page=${perPage}&page=${page}`;
 
-    const response = await fetch(url, {
+    const response = await fetchFn(url, {
       method: 'GET',
       headers: {
         Accept: 'application/vnd.github+json',
@@ -536,15 +563,21 @@ export async function fetchRemoteTags(token: string, owner: string, repo: string
       });
     }
 
-    if (data.length < perPage) {
+    const linkHeader = response.headers?.get?.('link') || '';
+    const hasNextPage = linkHeader.includes('rel="next"') || data.length === perPage;
+
+    if (!hasNextPage) {
       break;
     }
 
-    page++;
-    if (page > 30) {
-      // Límite de seguridad de 3000 tags por ejecución
-      break;
+    // Si alcanzamos la última página permitida y todavía quedan más resultados pendientes
+    if (page === maxPages && hasNextPage) {
+      throw new Error(
+        `Límite de seguridad superado: el repositorio contiene más de ${maxPages * perPage} tags (${maxPages} páginas). Detención de seguridad FAIL-CLOSED para evitar purgas destructivas sobre un inventario incompleto.`,
+      );
     }
+
+    page++;
   }
 
   return tags;
@@ -552,16 +585,19 @@ export async function fetchRemoteTags(token: string, owner: string, repo: string
 
 /**
  * Consulta un tag específico en el remoto para verificar existencia y precondición de SHA.
+ * Desreferencia automáticamente tags anotados ("type": "tag") para resolver el SHA
+ * del commit destino y permitir comparaciones correctas contra el inventario.
  */
 export async function fetchRemoteTagRef(
   token: string,
   owner: string,
   repo: string,
   tagName: string,
-): Promise<{ sha: string } | null> {
+  fetchFn: typeof fetch = fetch,
+): Promise<GitRemoteRefDetail | null> {
   const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/ref/tags/${encodeURIComponent(tagName)}`;
 
-  const response = await fetch(url, {
+  const response = await fetchFn(url, {
     method: 'GET',
     headers: {
       Accept: 'application/vnd.github+json',
@@ -580,12 +616,54 @@ export async function fetchRemoteTagRef(
     throw new Error(`Error ${response.status} al verificar tag refs/tags/${tagName}: ${errorText}`);
   }
 
-  const data = (await response.json()) as { object?: { sha?: string } };
-  return { sha: data.object?.sha || '' };
+  const data = (await response.json()) as {
+    ref?: string;
+    object?: { sha?: string; type?: string; url?: string };
+  };
+
+  const refSha = data.object?.sha || '';
+  const objType = data.object?.type || 'commit';
+
+  // Si es un tag anotado ("type": "tag"), desreferenciarlo para obtener el commit SHA destino
+  if (objType === 'tag' && refSha) {
+    const tagUrl =
+      data.object?.url ||
+      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/tags/${encodeURIComponent(refSha)}`;
+    const tagResponse = await fetchFn(tagUrl, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'pokedex-tag-retention-script',
+      },
+    });
+
+    if (tagResponse.ok) {
+      const tagData = (await tagResponse.json()) as { object?: { sha?: string } };
+      const targetCommitSha = tagData.object?.sha || refSha;
+      return {
+        tagName,
+        refSha,
+        targetCommitSha,
+        type: 'tag',
+        isAnnotated: true,
+      };
+    }
+  }
+
+  return {
+    tagName,
+    refSha,
+    targetCommitSha: refSha,
+    type: objType,
+    isAnnotated: false,
+  };
 }
 
 /**
  * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición.
+ * Soporta tanto tags ligeros como tags anotados, validando expectedSha contra targetCommitSha y refSha.
  */
 export async function deleteRemoteTag(
   token: string,
@@ -593,22 +671,31 @@ export async function deleteRemoteTag(
   repo: string,
   tagName: string,
   expectedSha?: string,
+  fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
-  const current = await fetchRemoteTagRef(token, owner, repo, tagName);
+  const current = await fetchRemoteTagRef(token, owner, repo, tagName, fetchFn);
   if (!current) {
     console.warn(`   ⚠️ Tag refs/tags/${tagName} ya no existe en el remoto. Nada que eliminar.`);
     return false;
   }
 
-  if (expectedSha && current.sha && !current.sha.startsWith(expectedSha) && !expectedSha.startsWith(current.sha)) {
-    throw new Error(
-      `Conflicto concurrente en tag ${tagName}: SHA actual (${current.sha}) difiere del evaluado (${expectedSha}). Operación cancelada por seguridad.`,
-    );
+  if (expectedSha) {
+    const matchesCommit =
+      current.targetCommitSha &&
+      (current.targetCommitSha.startsWith(expectedSha) || expectedSha.startsWith(current.targetCommitSha));
+    const matchesRef =
+      current.refSha && (current.refSha.startsWith(expectedSha) || expectedSha.startsWith(current.refSha));
+
+    if (!matchesCommit && !matchesRef) {
+      throw new Error(
+        `Conflicto concurrente en tag ${tagName}: SHA actual (ref: ${current.refSha}, commit: ${current.targetCommitSha}) difiere del evaluado (${expectedSha}). Operación cancelada por seguridad.`,
+      );
+    }
   }
 
   const deleteUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/refs/tags/${encodeURIComponent(tagName)}`;
 
-  const response = await fetch(deleteUrl, {
+  const response = await fetchFn(deleteUrl, {
     method: 'DELETE',
     headers: {
       Accept: 'application/vnd.github+json',
@@ -693,7 +780,8 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
     console.warn('   Activando modo simulación automático (--simulate) para diagnóstico seguro.');
   }
 
-  const effectiveSimulate = simulate || !token;
+  const fetchFn = options.fetchFn ?? fetch;
+  const effectiveSimulate = simulate || (!token && !options.fetchFn);
   const protectedTagsMap = options.protectedTags ?? collectProtectedTags(repoRoot, options.customProtectedTags || []);
   console.log(`• Referencias protegidas     : ${protectedTagsMap.size}`);
   for (const [pTag, pReason] of protectedTagsMap.entries()) {
@@ -709,7 +797,10 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
   } else {
     try {
       console.log('🔍 Consultando inventario de tags remotos en GitHub...');
-      rawTags = await fetchRemoteTags(token, owner, repo);
+      rawTags = await fetchRemoteTags(token, owner, repo, {
+        fetchFn,
+        maxPages: options.maxPages,
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`❌ Error al consultar tags de ${owner}/${repo}: ${msg}`);
@@ -767,7 +858,7 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
     if (!dryRun && !effectiveSimulate) {
       console.log('\n🔒 Verificando que los tags conservados siguen existiendo en el remoto antes de proceder...');
       for (const item of kept) {
-        const check = await fetchRemoteTagRef(token, owner, repo, item.tag.name);
+        const check = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
         if (!check) {
           throw new Error(
             `Inconsistencia crítica: El tag retenido ${item.tag.name} no se encontró en el remoto. Abortando purga por seguridad.`,
@@ -784,7 +875,7 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         deletedTags.push(tagName);
       } else {
         try {
-          const ok = await deleteRemoteTag(token, owner, repo, tagName, item.tag.sha);
+          const ok = await deleteRemoteTag(token, owner, repo, tagName, item.tag.sha, fetchFn);
           if (ok) {
             console.log(`    [ELIMINADO] ${tagName} purgado exitosamente del remoto.`);
             deletedTags.push(tagName);

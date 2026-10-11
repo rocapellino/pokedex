@@ -2,7 +2,7 @@ name: 🧹 Git Tag Retention - Hierarchical SemVer Pruning
 
 on:
   schedule:
-    - cron: '0 5 * * 0' # Semanal los domingos a las 05:00 UTC
+    - cron: '0 5 * * 0' # Semanal los domingos a las 05:00 UTC (solo dry-run / auditoría continua)
   workflow_dispatch:
     inputs:
       dry_run:
@@ -40,9 +40,65 @@ permissions:
   contents: read
 
 jobs:
-  prune-tags:
-    name: "🧹 Purgar tags antiguos de release (Jerarquía SemVer: 2 Majors, 3 Minors, 1 Patch)"
+  plan-retention:
+    name: "🔍 Planificar y Auditar Retención de Tags (Solo Lectura)"
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      dry_run: ${{ steps.export-params.outputs.dry_run }}
+      major_count: ${{ steps.export-params.outputs.major_count }}
+      minor_count: ${{ steps.export-params.outputs.minor_count }}
+      patch_count: ${{ steps.export-params.outputs.patch_count }}
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24 LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Instalar dependencias del monorepo
+        run: npm ci --ignore-scripts
+
+      - name: Exportar parámetros evaluados
+        id: export-params
+        env:
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_MAJOR_COUNT: ${{ inputs.major_count }}
+          INPUT_MINOR_COUNT: ${{ inputs.minor_count }}
+          INPUT_PATCH_COUNT: ${{ inputs.patch_count }}
+        run: |
+          IS_DRY_RUN="true"
+          if [ "$INPUT_DRY_RUN" = "false" ]; then
+            IS_DRY_RUN="false"
+          fi
+          echo "dry_run=$IS_DRY_RUN" >> "$GITHUB_OUTPUT"
+          echo "major_count=${INPUT_MAJOR_COUNT:-2}" >> "$GITHUB_OUTPUT"
+          echo "minor_count=${INPUT_MINOR_COUNT:-3}" >> "$GITHUB_OUTPUT"
+          echo "patch_count=${INPUT_PATCH_COUNT:-1}" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluar retención jerárquica en modo Dry-Run (Solo Lectura)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          MAJOR_COUNT: ${{ steps.export-params.outputs.major_count }}
+          MINOR_COUNT: ${{ steps.export-params.outputs.minor_count }}
+          PATCH_COUNT: ${{ steps.export-params.outputs.patch_count }}
+        run: |
+          echo "Ejecutando plan de retención jerárquica de tags (majors=$MAJOR_COUNT, minors=$MINOR_COUNT, patches=$PATCH_COUNT, mode=dry-run)..."
+          node --experimental-strip-types scripts/tag-retention.ts --major="$MAJOR_COUNT" --minor="$MINOR_COUNT" --patch="$PATCH_COUNT" --dry-run
+
+  prune-tags:
+    name: "🧹 Aplicar Purga Remota Autorizada de Tags (contents: write)"
+    needs: [plan-retention]
+    if: github.event_name == 'workflow_dispatch' && needs.plan-retention.outputs.dry_run == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -62,22 +118,13 @@ jobs:
       - name: Instalar dependencias del monorepo
         run: npm ci --ignore-scripts
 
-      - name: Aplicar política jerárquica de retención de tags vía script tipado
+      - name: Ejecutar purga destructiva autorizada
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          INPUT_DRY_RUN: ${{ inputs.dry_run }}
-          INPUT_MAJOR_COUNT: ${{ inputs.major_count }}
-          INPUT_MINOR_COUNT: ${{ inputs.minor_count }}
-          INPUT_PATCH_COUNT: ${{ inputs.patch_count }}
+          MAJOR_COUNT: ${{ needs.plan-retention.outputs.major_count }}
+          MINOR_COUNT: ${{ needs.plan-retention.outputs.minor_count }}
+          PATCH_COUNT: ${{ needs.plan-retention.outputs.patch_count }}
         run: |
-          # Dry-run por defecto: seguro durante la puesta en marcha inicial
-          DRY_RUN_FLAG="--dry-run"
-          if [ "$INPUT_DRY_RUN" = "false" ]; then
-            DRY_RUN_FLAG="--no-dry-run"
-          fi
-          MAJOR_COUNT="${INPUT_MAJOR_COUNT:-2}"
-          MINOR_COUNT="${INPUT_MINOR_COUNT:-3}"
-          PATCH_COUNT="${INPUT_PATCH_COUNT:-1}"
-          echo "Ejecutando retención jerárquica de tags (majors=$MAJOR_COUNT, minors=$MINOR_COUNT, patches=$PATCH_COUNT, flag=$DRY_RUN_FLAG)..."
-          node --experimental-strip-types scripts/tag-retention.ts --major="$MAJOR_COUNT" --minor="$MINOR_COUNT" --patch="$PATCH_COUNT" $DRY_RUN_FLAG
+          echo "ADVERTENCIA: Ejecutando purga remota autorizada de tags en GitHub..."
+          node --experimental-strip-types scripts/tag-retention.ts --major="$MAJOR_COUNT" --minor="$MINOR_COUNT" --patch="$PATCH_COUNT" --no-dry-run
