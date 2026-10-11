@@ -59,6 +59,7 @@
           "type": "string",
           "enum": [
             "development",
+            "code-quality",
             "github",
             "infrastructure-readonly",
             "infrastructure-write",
@@ -197,6 +198,7 @@
             "cursor-mcp-json",
             "vscode-mcp-json",
             "claude-mcp-json",
+            "antigravity-mcp-json",
             "standard-mcp-json"
           ]
         },

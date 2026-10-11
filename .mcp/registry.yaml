@@ -35,7 +35,7 @@ servers:
       write: false
       filesystem: "none"
       network: "outbound-allowed"
-    notes: "Restringido al repositorio autorizado rocapellino/pokedex."
+    notes: "Restringido declarativamente al repositorio autorizado rocapellino/pokedex. Requiere validación de comportamiento en ejecución."
 
   - id: "filesystem"
     name: "Filesystem MCP Server"
@@ -75,10 +75,10 @@ servers:
       - "@modelcontextprotocol/server-memory@2026.8.31"
     permissions:
       read: true
-      write: true
+      write: false
       filesystem: "temp-only"
       network: "none"
-    notes: "Memoria contextual local efímera para la sesión del asistente."
+    notes: "Memoria contextual local efímera para la sesión del asistente en modo consulta de grafo."
 
   - id: "sonarqube"
     name: "SonarQube Quality Analysis MCP Server"
@@ -88,7 +88,7 @@ servers:
     package: "mcp-sonarqube-launcher"
     version: "1.1.2"
     license: "MIT"
-    profile: "development"
+    profile: "code-quality"
     enabled: true
     command: "npx"
     args:
@@ -147,5 +147,5 @@ servers:
       read: true
       write: true
       filesystem: "none"
-      network: "outbound-allowed"
-    notes: "DESHABILITADO POR DEFECTO. Requiere aprobación explícita de arquitectura para evitar eludir GitOps."
+      network: "none"
+    notes: "DESHABILITADO POR DEFECTO. Servidor placeholder aislado (--network=none) que requiere runtime de servidor MCP y aprobación explícita de arquitectura para evitar eludir GitOps."

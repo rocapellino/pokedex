@@ -113,6 +113,10 @@ backups/
 # Claude Code: junction local hacia .agents/skills y configuración local MCP
 /.claude/skills
 /.claude/mcp.json
+/.mcp.json
+
+# Antigravity: configuración local MCP de workspace
+/.agents/mcp_config.json
 
 # Configuraciones MCP generadas localmente (scripts/mcp/generate.ts)
 .mcp/generated/
