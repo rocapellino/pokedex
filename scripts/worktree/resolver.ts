@@ -56,7 +56,7 @@ export function resolveRepoSlug(mainRepoRoot: string): string {
 /**
  * Normaliza una ruta para comparación determinista de rutas según el sistema operativo.
  */
-function normalizeForComparison(p: string): string {
+export function normalizeForComparison(p: string): string {
   const resolved = path.resolve(p);
   return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }

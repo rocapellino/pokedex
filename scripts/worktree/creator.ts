@@ -5,7 +5,9 @@ import { listWorktrees } from './manager.js';
 import { generateCanonicalNaming, type TaskNamingInput, validateGitRef } from './naming.js';
 import {
   assertNoEscapingSymlinks,
+  isContainedWithin,
   isWithinCanonicalBase,
+  normalizeForComparison,
   resolveCanonicalWorktreeBase,
   resolveMainRepoRoot,
   verifyWorktreePostCreation,
@@ -23,6 +25,142 @@ export interface CreatedWorktreeResult {
   folderName: string;
   mainRepoRoot: string;
   canonicalBase: string;
+}
+
+export interface WorktreeRollbackReport {
+  gitWorktreeRemoved: boolean;
+  gitMetadataPruned: boolean;
+  residualCleaned: boolean;
+  residualPreservedForEvidence: boolean;
+  errors: string[];
+  stepsSummary: string;
+}
+
+/**
+ * Ejecuta un rollback seguro del worktree ante un fallo de verificación post-creación.
+ * 1. Intenta retirar el worktree formalmente con Git (`git worktree remove --force`).
+ * 2. Comprueba la identidad y contención estricta del destino en disco:
+ *    - Si es un enlace simbólico o junction, elimina ÚNICAMENTE el enlace sin borrado recursivo.
+ *    - Si es un directorio, verifica que su realpath resida estrictamente dentro de canonicalBase
+ *      antes de cualquier borrado recursivo.
+ *    - Si no se puede probar que reside dentro de canonicalBase, PRESERVA la evidencia intacta
+ *      y solicita inspección manual sin ejecutar un borrado indiscriminado.
+ * 3. Purga metadatos huérfanos con `git worktree prune`.
+ */
+export function safeRollbackWorktree(
+  targetPath: string,
+  canonicalBase: string,
+  mainRoot: string,
+): WorktreeRollbackReport {
+  const report: WorktreeRollbackReport = {
+    gitWorktreeRemoved: false,
+    gitMetadataPruned: false,
+    residualCleaned: false,
+    residualPreservedForEvidence: false,
+    errors: [],
+    stepsSummary: '',
+  };
+
+  const steps: string[] = [];
+
+  // 1. Retirar formalmente el worktree con Git
+  try {
+    execFileSync('git', ['worktree', 'remove', '--force', targetPath], {
+      cwd: mainRoot,
+      stdio: 'ignore',
+    });
+    report.gitWorktreeRemoved = true;
+    steps.push('git worktree remove: ÉXITO');
+  } catch (gitErr: unknown) {
+    const msg = gitErr instanceof Error ? gitErr.message : String(gitErr);
+    report.errors.push(`git worktree remove falló: ${msg}`);
+    steps.push('git worktree remove: FALLÓ');
+  }
+
+  // 2. Limpieza segura y validada del destino físico
+  const lstat = fs.lstatSync(targetPath, { throwIfNoEntry: false });
+  if (!lstat) {
+    report.residualCleaned = true;
+    steps.push('limpieza residual: NO REQUERIDA (ruta no existe)');
+  } else if (lstat.isSymbolicLink()) {
+    // Si es symlink o junction: eliminar estrictamente el enlace, NUNCA recursivo
+    try {
+      if (process.platform === 'win32') {
+        try {
+          fs.unlinkSync(targetPath);
+        } catch {
+          fs.rmdirSync(targetPath);
+        }
+      } else {
+        fs.unlinkSync(targetPath);
+      }
+      report.residualCleaned = true;
+      steps.push('limpieza residual: ÉXITO (enlace simbólico removido sin borrado recursivo)');
+    } catch (unlinkErr: unknown) {
+      const msg = unlinkErr instanceof Error ? unlinkErr.message : String(unlinkErr);
+      report.errors.push(`no se pudo desvincular enlace simbólico residual: ${msg}`);
+      steps.push('limpieza residual: FALLÓ al desvincular enlace');
+    }
+  } else if (lstat.isDirectory()) {
+    // Es un directorio: comprobar identidad y contención estricta antes de borrar
+    let safeToDelete = false;
+    try {
+      const realTarget = fs.realpathSync(targetPath);
+      const realBase = fs.realpathSync(canonicalBase);
+
+      if (
+        isContainedWithin(realBase, realTarget) &&
+        normalizeForComparison(realBase) !== normalizeForComparison(realTarget)
+      ) {
+        safeToDelete = true;
+      }
+    } catch {
+      safeToDelete = false;
+    }
+
+    if (safeToDelete) {
+      try {
+        fs.rmSync(targetPath, { recursive: true, force: true });
+        report.residualCleaned = true;
+        steps.push('limpieza residual: ÉXITO (directorio verificado eliminado dentro de la base)');
+      } catch (rmErr: unknown) {
+        const msg = rmErr instanceof Error ? rmErr.message : String(rmErr);
+        report.errors.push(`falló eliminación de directorio verificado: ${msg}`);
+        steps.push('limpieza residual: FALLÓ al eliminar directorio');
+      }
+    } else {
+      // PRESERVACIÓN DE EVIDENCIA: No se puede validar la ubicación de forma segura
+      report.residualPreservedForEvidence = true;
+      const warnMsg = `ADVERTENCIA DE SEGURIDAD: la ruta '${targetPath}' no se eliminó recursivamente porque su ubicación no pudo ser validada de forma segura dentro de '${canonicalBase}'. Se preserva la evidencia intacta para inspección manual.`;
+      report.errors.push(warnMsg);
+      steps.push('limpieza residual: OMITIDA (evidencia preservada para inspección manual)');
+    }
+  } else {
+    // Archivo suelto
+    try {
+      fs.unlinkSync(targetPath);
+      report.residualCleaned = true;
+      steps.push('limpieza residual: ÉXITO (archivo residual eliminado)');
+    } catch (unlErr: unknown) {
+      const msg = unlErr instanceof Error ? unlErr.message : String(unlErr);
+      report.errors.push(`falló eliminación de archivo residual: ${msg}`);
+      steps.push('limpieza residual: FALLÓ');
+    }
+  }
+
+  // 3. Purgar metadatos de Git
+  try {
+    execFileSync('git', ['worktree', 'prune'], { cwd: mainRoot, stdio: 'ignore' });
+    report.gitMetadataPruned = true;
+    steps.push('git worktree prune: ÉXITO');
+  } catch (pruneErr: unknown) {
+    const msg = pruneErr instanceof Error ? pruneErr.message : String(pruneErr);
+    report.errors.push(`git worktree prune falló: ${msg}`);
+    steps.push('git worktree prune: FALLÓ');
+  }
+
+  report.stepsSummary = steps.join(' | ');
+  return report;
 }
 
 /**
@@ -100,31 +238,25 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     throw new Error(`Error al crear worktree con 'git ${gitArgs.join(' ')}': ${errorMsg}`);
   }
 
-  // 8. Mitigación TOCTOU: Verificación post-creación con rollback inmediato si se detecta compromiso
+  // 8. Mitigación TOCTOU: Verificación post-creación con rollback seguro e informado si se detecta compromiso
   try {
     verifyWorktreePostCreation(targetPath, canonicalBase, mainRoot);
   } catch (postErr: unknown) {
-    // Rollback de emergencia: remover el worktree comprometido y purgar metadatos
-    try {
-      execFileSync('git', ['worktree', 'remove', '--force', targetPath], { cwd: mainRoot, stdio: 'ignore' });
-    } catch {
-      if (fs.existsSync(targetPath) || fs.lstatSync(targetPath, { throwIfNoEntry: false })) {
-        try {
-          fs.rmSync(targetPath, { recursive: true, force: true });
-        } catch {
-          // ignore
-        }
-      }
-    }
-
-    try {
-      execFileSync('git', ['worktree', 'prune'], { cwd: mainRoot, stdio: 'ignore' });
-    } catch {
-      // ignore
-    }
-
+    const rollback = safeRollbackWorktree(targetPath, canonicalBase, mainRoot);
     const postMsg = postErr instanceof Error ? postErr.message : String(postErr);
-    throw new Error(`Violación de seguridad post-creación detectada (rollback ejecutado): ${postMsg}`);
+
+    const isFullyCleaned = rollback.residualCleaned && rollback.gitMetadataPruned;
+    const statusLabel = isFullyCleaned ? 'rollback completado' : 'rollback parcial / manual requerido';
+
+    const errLines = [
+      `Violación de seguridad post-creación detectada (${statusLabel}): ${postMsg}`,
+      `Estado del rollback: [${rollback.stepsSummary}]`,
+    ];
+    if (rollback.errors.length > 0) {
+      errLines.push(`Detalles: ${rollback.errors.join('; ')}`);
+    }
+
+    throw new Error(errLines.join('\n'));
   }
 
   // 9. Crear junction de node_modules si procede (Windows / entorno local con node_modules en main)

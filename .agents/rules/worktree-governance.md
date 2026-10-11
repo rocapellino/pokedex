@@ -24,11 +24,15 @@ Queda estrictamente prohibido que un agente seleccione carpetas arbitrarias en e
    - Los archivos temporales, logs de depuración y reportes transitorios generados durante una tarea deben seguir estrictamente la regla [repository-hygiene.md](repository-hygiene.md) bajo `tmp/`.
 3. **Protección Anti-Path Traversal y Enlaces Simbólicos:**
    - Todo comando de creación y resolución valida exhaustivamente que cada componente existente de la ruta (incluyendo el directorio intermedio `.worktrees/` y el directorio del slug) resida físicamente dentro del directorio padre aprobado (`parentDir`), bloqueando traversal léxico (`..`), desvíos mediante enlaces simbólicos (*symlinks* / *junctions*) y enlaces rotos o inaccesibles antes de crear subdirectorios.
-4. **Mitigación contra Condiciones de Carrera (TOCTOU):**
-   - Para proteger la creación de worktrees frente a condiciones de carrera (*Time-Of-Check to Time-Of-Use*) o modificaciones concurrentes del filesystem durante la ventana entre la validación previa y la invocación de `git worktree add`, el motor aplica una estrategia de doble verificación:
+4. **Mitigación contra Condiciones de Carrera (TOCTOU) y Protocolo de Rollback Seguro:**
+   - Para proteger la creación de worktrees frente a condiciones de carrera (*Time-Of-Check to Time-Of-Use*) o modificaciones concurrentes del filesystem durante la ventana entre la validación previa y la invocación de `git worktree add`, el motor aplica una estrategia de doble verificación con rollback seguro:
      - **Pre-flight check:** Valida la contención léxica, colisiones previas y ausencia de desvíos en ancestros antes de `mkdirSync`.
      - **Post-creation audit (`verifyWorktreePostCreation`):** Inmediatamente después de `git worktree add`, valida síncronamente que el worktree creado sea un directorio real (rechazando symlinks/junctions), valida nuevamente la cadena de componentes en disco mediante `realpath`, y consulta a Git (`git rev-parse --show-toplevel`) desde el worktree para asegurar que la raíz registrada coincida con la ruta aprobada.
-     - **Rollback Atómico en Fallo:** Si cualquier verificación post-creación detecta una anomalía, se ejecuta inmediatamente una limpieza de emergencia (`git worktree remove --force`, purga de metadatos con `git worktree prune` y eliminación de residuos) antes de propagar el error de seguridad.
+     - **Protocolo de Rollback Seguro (`safeRollbackWorktree`):** Si cualquier verificación post-creación detecta una anomalía, se ejecuta una recuperación controlada:
+       1. Intenta retirar el worktree formalmente con Git (`git worktree remove --force`).
+       2. Valida la identidad y ubicación del destino antes de intervenir en el filesystem: si es un enlace simbólico o junction, elimina **únicamente el enlace** sin borrado recursivo; si es un directorio, solo lo elimina recursivamente tras comprobar que su `realpath` reside estrictamente dentro de la base canónica; si no puede validarse con seguridad, **no se ejecuta borrado recursivo**, se preserva la evidencia intacta para inspección manual y se documenta la advertencia de seguridad.
+       3. Purga metadatos huérfanos con `git worktree prune`.
+       4. Informa por separado el estado de cada paso del rollback y prohíbe presentar el rollback como completado si algún paso falló o si se preservaron residuos no verificables.
 
 ---
 
@@ -95,9 +99,11 @@ El motor de worktrees invoca directamente ejecutables binarios (`execFileSync('g
 Por diseño de la arquitectura interna de Git, el cliente no expone hooks previos para bloquear o condicionar la ejecución de `git worktree add` si una herramienta externa o proceso con acceso directo a terminal o filesystem decide invocarlo por fuera de la CLI. Para garantizar el cumplimiento efectivo:
 
 1. **Obligación Operativa en `AGENTS.md`:** Ningún agente de IA puede invocar `git worktree add` de manera desregulada.
-2. **Detección Preventiva en la Superficie Delimitada de Automatización:**
-   `npm run worktree:doctor` audita estáticamente la superficie delimitada de automatización del repositorio (`scripts/`, `.agents/`, `.github/`, `infra/`, `apps/`, `gitops/` y archivos de tareas como `Makefile`, `GNUmakefile`, `justfile`, `Taskfile*` y `package.json`), reportando hallazgos `WT-REGRESSION-UNGOVERNED-WORKTREE-CALL` si detecta llamadas directas o instrucciones ejecutables a `git worktree add`.
-   *Alcance y modelo de amenazas:* La auditoría estática cubre exhaustivamente el código versionado, flujos de CI/CD, agentes y herramientas gobernadas del proyecto. No sustituye ni pretende ser una intercepción a nivel de kernel del sistema operativo para procesos externos no controlados.
+2. **Detección Preventiva y Observabilidad en la Superficie Delimitada:**
+   `npm run worktree:doctor` audita estáticamente la superficie delimitada de automatización del repositorio (`scripts/`, `.agents/`, `.github/`, `infra/`, `apps/`, `gitops/` y archivos de tareas como `Makefile`, `GNUmakefile`, `justfile`, `Taskfile*` y `package.json`).
+   - Reporta hallazgos `WT-REGRESSION-UNGOVERNED-WORKTREE-CALL` si detecta llamadas directas o instrucciones ejecutables a `git worktree add`.
+   - **Observabilidad y Auditoría Completa vs. Parcial:** Registra explícitamente el recuento de archivos inspeccionados e identifica como `WT-AUDIT-UNREADABLE-FILE` cualquier archivo que no pueda ser leído por errores de E/S o permisos, garantizando que el diagnóstico distinga con precisión entre «auditoría completa sin infracciones» y «auditoría parcial con omisiones».
+   - *Alcance y modelo de amenazas:* La auditoría estática cubre exhaustivamente el código versionado, flujos de CI/CD, agentes y herramientas gobernadas del proyecto. No sustituye ni pretende ser una intercepción a nivel de kernel del sistema operativo para procesos externos no controlados.
 3. **Auditoría Post-Facto:** `npm run worktree:doctor` etiqueta inmediatamente cualquier checkout fuera de la base canónica como `WT-NON-CANONICAL-LOCATION`.
 4. **Verificación Automatizada:** La suite `tests/unit/worktree_governance.test.ts` valida en CI y localmente la estricta ausencia de regresiones en todos los puntos de entrada automatizados y la cobertura de los distintos formatos de tareas.
 

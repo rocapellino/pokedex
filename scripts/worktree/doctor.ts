@@ -11,6 +11,17 @@ export interface DoctorFinding {
   remediation: string;
 }
 
+export interface AutomationAuditCoverage {
+  isComplete: boolean;
+  scannedFilesCount: number;
+  unreadableFiles: { path: string; error: string }[];
+}
+
+export interface AutomationAuditResult {
+  findings: DoctorFinding[];
+  coverage: AutomationAuditCoverage;
+}
+
 export interface DoctorReport {
   mainRepoRoot: string;
   canonicalBase: string;
@@ -23,6 +34,7 @@ export interface DoctorReport {
     findings: DoctorFinding[];
   }[];
   globalFindings: DoctorFinding[];
+  auditCoverage: AutomationAuditCoverage;
   isValid: boolean;
 }
 
@@ -39,11 +51,14 @@ export const GOVERNED_AUTOMATION_FILENAMES =
 export const GOVERNED_AUTOMATION_EXTENSIONS = /\.(ts|js|mjs|cjs|sh|bash|zsh|ya?ml|json|mk)$/i;
 
 /**
- * Detecta llamadas o directivas desreguladas a 'git worktree add' en la superficie delimitada de
- * automatización del repositorio (scripts, skills, workflows, Taskfiles, Makefiles, Justfiles y configs).
+ * Audita exhaustivamente la superficie delimitada de automatización del repositorio.
+ * Registra explícitamente cualquier archivo que no pueda leerse para advertir si la auditoría
+ * fue completa o parcial, diferenciando entre «sin infracciones» y «auditoría incompleta».
  */
-export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] {
+export function auditAutomationSurface(mainRoot: string): AutomationAuditResult {
   const findings: DoctorFinding[] = [];
+  const unreadableFiles: { path: string; error: string }[] = [];
+  let scannedFilesCount = 0;
 
   function isCodeOrConfig(filePath: string): boolean {
     const base = path.basename(filePath);
@@ -55,58 +70,86 @@ export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] 
       return;
     }
 
+    let content: string;
     try {
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      const lines = content.split(/\r?\n/);
-      const isCode = isCodeOrConfig(fullPath);
+      content = fs.readFileSync(fullPath, 'utf-8');
+      scannedFilesCount++;
+    } catch (readErr: unknown) {
+      const errMsg = readErr instanceof Error ? readErr.message : String(readErr);
+      unreadableFiles.push({ path: fullPath, error: errMsg });
+      findings.push({
+        code: 'WT-AUDIT-UNREADABLE-FILE',
+        severity: 'MEDIUM',
+        worktreePath: fullPath,
+        message: `No se pudo leer el archivo de automatización '${fullPath}' durante la auditoría: ${errMsg}.`,
+        remediation:
+          'Verificar permisos, codificación y disponibilidad del archivo para asegurar una auditoría de gobernanza completa.',
+      });
+      return;
+    }
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (/git\s+worktree\s+add/i.test(line)) {
-          const lower = line.toLowerCase();
-          if (
-            lower.includes('prohib') ||
-            lower.includes('impide') ||
-            lower.includes('desregulad') ||
-            lower.includes('no expone') ||
-            lower.includes('no provee') ||
-            line.includes('WT-REGRESSION')
-          ) {
-            continue;
-          }
+    const lines = content.split(/\r?\n/);
+    const isCode = isCodeOrConfig(fullPath);
 
-          if (isCode) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (/git\s+worktree\s+add/i.test(line)) {
+        const lower = line.toLowerCase();
+        if (
+          lower.includes('prohib') ||
+          lower.includes('impide') ||
+          lower.includes('desregulad') ||
+          lower.includes('no expone') ||
+          lower.includes('no provee') ||
+          line.includes('WT-REGRESSION')
+        ) {
+          continue;
+        }
+
+        if (isCode) {
+          findings.push({
+            code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
+            severity: 'HIGH',
+            worktreePath: fullPath,
+            message: `Llamada no gobernada o instrucción directa a 'git worktree add' en línea ${i + 1}.`,
+            remediation:
+              'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
+          });
+        } else {
+          // En archivos Markdown, solo alertar si es una instrucción de comando ejecutable
+          if (/^\s*(```|`|\$|run:|command:)?\s*git\s+worktree\s+add/i.test(line)) {
             findings.push({
               code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
               severity: 'HIGH',
               worktreePath: fullPath,
-              message: `Llamada no gobernada o instrucción directa a 'git worktree add' en línea ${i + 1}.`,
+              message: `Instrucción de ejecución directa a 'git worktree add' en línea ${i + 1}.`,
               remediation:
                 'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
             });
-          } else {
-            // En archivos Markdown, solo alertar si es una instrucción de comando ejecutable
-            if (/^\s*(```|`|\$|run:|command:)?\s*git\s+worktree\s+add/i.test(line)) {
-              findings.push({
-                code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
-                severity: 'HIGH',
-                worktreePath: fullPath,
-                message: `Instrucción de ejecución directa a 'git worktree add' en línea ${i + 1}.`,
-                remediation:
-                  'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
-              });
-            }
           }
         }
       }
-    } catch {
-      // Ignorar archivos no legibles
     }
   }
 
   function scanDir(dir: string) {
     if (!fs.existsSync(dir)) return;
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (readDirErr: unknown) {
+      const errMsg = readDirErr instanceof Error ? readDirErr.message : String(readDirErr);
+      unreadableFiles.push({ path: dir, error: errMsg });
+      findings.push({
+        code: 'WT-AUDIT-UNREADABLE-DIR',
+        severity: 'MEDIUM',
+        worktreePath: dir,
+        message: `No se pudo listar el directorio de automatización '${dir}': ${errMsg}.`,
+        remediation: 'Verificar permisos y accesibilidad del directorio para permitir una auditoría completa.',
+      });
+      return;
+    }
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
@@ -141,11 +184,27 @@ export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] 
         }
       }
     }
-  } catch {
-    // Si no se puede leer la raíz, continuar
+  } catch (rootErr: unknown) {
+    const errMsg = rootErr instanceof Error ? rootErr.message : String(rootErr);
+    unreadableFiles.push({ path: mainRoot, error: errMsg });
   }
 
-  return findings;
+  return {
+    findings,
+    coverage: {
+      isComplete: unreadableFiles.length === 0,
+      scannedFilesCount,
+      unreadableFiles,
+    },
+  };
+}
+
+/**
+ * Detecta llamadas o directivas desreguladas a 'git worktree add' en la superficie delimitada de
+ * automatización del repositorio (scripts, skills, workflows, Taskfiles, Makefiles, Justfiles y configs).
+ */
+export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] {
+  return auditAutomationSurface(mainRoot).findings;
 }
 
 /**
@@ -238,11 +297,15 @@ export function runWorktreeDoctor(cwd: string = process.cwd()): DoctorReport {
     });
   }
 
-  // Comprobar regresiones de llamadas desreguladas en scripts y skills
-  const regressionFindings = checkUngovernedWorktreeCalls(mainRoot);
-  globalFindings.push(...regressionFindings);
+  // Comprobar regresiones y cobertura de auditoría en la superficie de automatización
+  const auditResult = auditAutomationSurface(mainRoot);
+  globalFindings.push(...auditResult.findings);
 
-  const isValid = nonCompliantCount === 0 && prunableCount === 0 && regressionFindings.length === 0;
+  const hasHighSeverityRegression = auditResult.findings.some(
+    (f) => f.severity === 'HIGH' || f.severity === 'CRITICAL',
+  );
+  const isValid =
+    nonCompliantCount === 0 && prunableCount === 0 && !hasHighSeverityRegression && auditResult.coverage.isComplete;
 
   return {
     mainRepoRoot: mainRoot,
@@ -253,6 +316,7 @@ export function runWorktreeDoctor(cwd: string = process.cwd()): DoctorReport {
     prunableWorktrees: prunableCount,
     worktrees: reports,
     globalFindings,
+    auditCoverage: auditResult.coverage,
     isValid,
   };
 }
