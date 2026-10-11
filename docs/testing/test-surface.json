@@ -968,6 +968,26 @@
       "description": "Verifica cumplimiento estricto del uso exclusivo de la extensión .yaml (prohibiendo .yml) en todo el repositorio."
     },
     {
+      "path": "tests/contracts/mcp/mcp_adapters_contract.test.ts",
+      "suite": "contracts",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Suite contracts",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Suite de pruebas contracts: mcp_adapters_contract.test.ts."
+    },
+    {
       "path": "tests/contracts/mcp/mcp_clients_contract.test.ts",
       "suite": "contracts",
       "type": "Contract / Platform",
