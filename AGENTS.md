@@ -98,3 +98,11 @@ en UTF-8 durante su generación y publicación.
 Todo archivo temporal, log de depuración, reporte intermedio o artefacto transitorio generado durante operaciones sobre el repositorio debe almacenarse exclusivamente bajo `tmp/` en la raíz del repositorio (`<repository-root>/tmp/`), conforme a la regla transversal [`.agents/rules/repository-hygiene.md`](.agents/rules/repository-hygiene.md).
 
 Queda prohibido dispersar archivos efímeros en otras rutas del repositorio o commitear cualquier contenido de `tmp/`.
+
+---
+
+## 7. Gobernanza de Model Context Protocol (MCP)
+
+El catálogo de servidores MCP autorizados, sus políticas de seguridad, perfiles y adaptadores se rigen por la regla transversal [`.agents/rules/mcp-governance.md`](.agents/rules/mcp-governance.md) y la arquitectura canónica en [`.mcp/README.md`](.mcp/README.md).
+
+Queda estrictamente prohibido utilizar herramientas MCP para eludir el flujo declarativo de GitOps, solicitar credenciales operativas o introducir servidores fuera del catálogo aprobado. Todo cambio en el catálogo se valida mediante `npm run mcp:validate`.

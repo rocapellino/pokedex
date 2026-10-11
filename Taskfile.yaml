@@ -38,6 +38,10 @@ includes:
   ci:
     taskfile: ./taskfiles/ci.yaml
     flatten: true
+  mcp:
+    taskfile: ./taskfiles/mcp.yaml
+    flatten: true
+
 
 tasks:
   default:

@@ -47,3 +47,10 @@ repos:
         entry: npx --no-install biome check --no-errors-on-unmatched
         language: system
         types: [ts]
+
+      - id: mcp-validate
+        name: Validación de Arquitectura MCP
+        entry: npx --no-install tsx scripts/mcp/validate.ts
+        language: system
+        files: '^\.mcp/.*\.yaml$'
+        pass_filenames: false

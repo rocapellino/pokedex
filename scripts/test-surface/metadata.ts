@@ -624,6 +624,39 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores.',
   },
+  'tests/unit/mcp/mcp_schema_validation.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gobernanza MCP / Validación de Esquema',
+    targetArtifacts: ['.mcp/schema.json', 'scripts/mcp/validate.ts'],
+    description:
+      'Valida que el catálogo MCP canónico y el esquema JSON rechacen identificadores inválidos, versiones mutables y configuraciones no conformes.',
+  },
+  'tests/contracts/mcp/mcp_registry_contract.test.ts': {
+    type: 'Contract / Platform',
+    targetDomain: 'Gobernanza MCP / Contratos de Registro y Adaptadores',
+    targetArtifacts: [
+      '.mcp/registry.yaml',
+      '.mcp/policies.yaml',
+      'scripts/mcp/generate.ts',
+      'scripts/mcp/test-config.ts',
+    ],
+    description:
+      'Comprueba integridad referencial entre servidores y perfiles, unicidad de IDs e idempotencia total en la generación de configuraciones.',
+  },
+  'tests/contracts/mcp/mcp_clients_contract.test.ts': {
+    type: 'Contract / Platform',
+    targetDomain: 'Gobernanza MCP / Clientes y Exclusión Git',
+    targetArtifacts: ['.mcp/clients.yaml', '.gitignore'],
+    description:
+      'Verifica que todas las rutas de configuración de clientes soportados estén estrictamente ignoradas por .gitignore y documenten limitaciones.',
+  },
+  'tests/security/mcp/mcp_security_governance.test.ts': {
+    type: 'Security / Compliance',
+    targetDomain: 'Gobernanza MCP / Seguridad y Zero-Trust',
+    targetArtifacts: ['.mcp/policies.yaml', '.mcp/registry.yaml', 'scripts/mcp/doctor.ts'],
+    description:
+      'Verifica que infrastructure-write esté deshabilitado por defecto, ausencia de secretos en disco, uso de digests inmutables y delimitación de filesystem.',
+  },
 };
 
 // Definición canónica de suites del repositorio

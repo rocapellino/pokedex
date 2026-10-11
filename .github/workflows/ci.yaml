@@ -147,6 +147,13 @@ jobs:
       - name: 4e. Test Surface Governance Gate
         run: npm run test:surface:check
 
+      - name: 4f. Validación de Arquitectura y Paridad MCP
+        run: |
+          npm run mcp:validate
+          npm run mcp:generate
+          npm run mcp:generate:check
+          npm run mcp:test
+
       - name: 5. Compilación y Build con esbuild
         run: npm run build
 
@@ -323,7 +330,7 @@ jobs:
         # CI-008: el árbol incluye AGENTS.md y .agents/, que `ci-impact.yaml` clasifica
         # como documentación y que antes ningún job lintaba.
         # `scripts/lint-markdown.ts` ahora falla si se le pasa una ruta inexistente.
-        run: npm run lint:md -- README.md SECURITY.md AGENTS.md docs/ .agents/
+        run: npm run lint:md -- README.md SECURITY.md AGENTS.md docs/ .agents/ .mcp/
 
       - name: 5. Validar Gobernanza Documental
         # CI-008: `docs:validate` (enlaces relativos, esquemas de archivo local e

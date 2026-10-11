@@ -1,0 +1,151 @@
+# ==============================================================================
+# .mcp/registry.yaml
+# ==============================================================================
+# Catálogo Canónico de Servidores MCP Aprobados para rocapellino/pokedex
+#
+# Define los servidores autorizados, sus versiones fijas, modos de ejecución,
+# transportes, variables de entorno requeridas y perfiles de seguridad.
+# ==============================================================================
+
+version: "1.0.0"
+
+servers:
+  - id: "github"
+    name: "GitHub Official MCP Server"
+    description: "Servidor oficial de integración con GitHub para repositorios, issues y PRs"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "@modelcontextprotocol/server-github"
+    version: "2025.4.8"
+    license: "MIT"
+    profile: "github"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-github@2025.4.8"
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+    required_env_vars:
+      - "GITHUB_PERSONAL_ACCESS_TOKEN"
+    allowed_repositories:
+      - "rocapellino/pokedex"
+    permissions:
+      read: true
+      write: false
+      filesystem: "none"
+      network: "outbound-allowed"
+    notes: "Restringido al repositorio autorizado rocapellino/pokedex."
+
+  - id: "filesystem"
+    name: "Filesystem MCP Server"
+    description: "Acceso seguro y delimitado al sistema de archivos local del repositorio"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "@modelcontextprotocol/server-filesystem"
+    version: "2026.8.31"
+    license: "MIT"
+    profile: "development"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem@2026.8.31"
+      - "."
+    permissions:
+      read: true
+      write: false
+      filesystem: "repo-root-only"
+      network: "none"
+    notes: "Acotado estrictamente a la raíz del monorepo (.) para prevenir accesos externos."
+
+  - id: "memory"
+    name: "Memory Graph MCP Server"
+    description: "Gestión de memoria y grafo de conocimiento contextual para asistencia de código"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "@modelcontextprotocol/server-memory"
+    version: "2026.8.31"
+    license: "MIT"
+    profile: "development"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-memory@2026.8.31"
+    permissions:
+      read: true
+      write: true
+      filesystem: "temp-only"
+      network: "none"
+    notes: "Memoria contextual local efímera para la sesión del asistente."
+
+  - id: "sonarqube"
+    name: "SonarQube Quality Analysis MCP Server"
+    description: "Análisis estático de código, deuda técnica y consulta de issues en SonarQube"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "mcp-sonarqube-launcher"
+    version: "1.1.2"
+    license: "MIT"
+    profile: "development"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "mcp-sonarqube-launcher@1.1.2"
+    env:
+      SONAR_TOKEN: "${SONAR_TOKEN}"
+      SONAR_HOST_URL: "${SONAR_HOST_URL}"
+    required_env_vars:
+      - "SONAR_TOKEN"
+    permissions:
+      read: true
+      write: false
+      filesystem: "read-only-repo"
+      network: "outbound-allowed"
+    notes: "Consumido por repo-quality para análisis de snippets y severidad de issues."
+
+  - id: "observability-readonly"
+    name: "Grafana & Prometheus Observability MCP Server"
+    description: "Consulta de dashboards, métricas de Prometheus y logs de Loki en modo solo lectura"
+    transport: "sse"
+    execution_mode: "remote"
+    version: "1.0.0"
+    license: "Apache-2.0"
+    profile: "infrastructure-readonly"
+    enabled: true
+    url: "${GRAFANA_MCP_ENDPOINT:-https://monitoring.pokedex.internal/mcp}"
+    required_env_vars:
+      - "GRAFANA_SERVICE_ACCOUNT_TOKEN"
+    permissions:
+      read: true
+      write: false
+      filesystem: "none"
+      network: "outbound-allowed"
+    notes: "Endpoint remoto seguro con TLS y token de service account con permisos de lectura estricta."
+
+  - id: "k8s-platform-write"
+    name: "Kubernetes Platform Write MCP Server"
+    description: "Operaciones de escritura y mutación sobre clúster K8s (DESHABILITADO POR DEFECTO)"
+    transport: "stdio"
+    execution_mode: "container"
+    image: "alpine/k8s:1.32.0@sha256:4b48d2bc00155694a973347b7aaebca8159b951475c7541f92e34fa5efb0e791"
+    version: "1.32.0"
+    license: "Apache-2.0"
+    profile: "infrastructure-write"
+    enabled: false
+    command: "docker"
+    args:
+      - "run"
+      - "--rm"
+      - "-i"
+      - "--read-only"
+      - "--network=none"
+      - "alpine/k8s:1.32.0@sha256:4b48d2bc00155694a973347b7aaebca8159b951475c7541f92e34fa5efb0e791"
+    permissions:
+      read: true
+      write: true
+      filesystem: "none"
+      network: "outbound-allowed"
+    notes: "DESHABILITADO POR DEFECTO. Requiere aprobación explícita de arquitectura para evitar eludir GitOps."

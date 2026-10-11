@@ -1,0 +1,36 @@
+# ==============================================================================
+# Pokédex Platform CLI - Arquitectura y Gobernanza MCP (Model Context Protocol)
+# Submódulo de Taskfile v3 incluido por Taskfile.yaml
+# ==============================================================================
+version: '3'
+
+tasks:
+  mcp:validate:
+    desc: "Valida la integridad del catálogo, esquema y políticas de seguridad MCP"
+    cmds:
+      - npm run mcp:validate
+
+  mcp:generate:
+    desc: "Genera configuraciones reproducibles e idempotentes para todos los clientes MCP"
+    cmds:
+      - npm run mcp:generate -- {{.CLI_ARGS}}
+
+  mcp:generate:check:
+    desc: "Verifica que las configuraciones de los clientes estén sincronizadas con el registro"
+    cmds:
+      - npm run mcp:generate:check
+
+  mcp:setup:
+    desc: "Prepara el entorno local de MCP y audita variables requeridas sin exponer secretos"
+    cmds:
+      - npm run mcp:setup
+
+  mcp:doctor:
+    desc: "Diagnostica de forma segura el estado de conectividad, clientes y herramientas MCP"
+    cmds:
+      - npm run mcp:doctor -- {{.CLI_ARGS}}
+
+  mcp:test:
+    desc: "Ejecuta la suite integral de pruebas unitarias, de contratos y seguridad MCP"
+    cmds:
+      - npm run mcp:test

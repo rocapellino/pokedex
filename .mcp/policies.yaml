@@ -1,0 +1,63 @@
+# ==============================================================================
+# .mcp/policies.yaml
+# ==============================================================================
+# Políticas y Perfiles de Seguridad de la Integración MCP Gobernada
+#
+# Define los perfiles de ejecución, las restricciones de red y filesystem,
+# y los controles de acceso a infraestructura.
+# ==============================================================================
+
+version: "1.0.0"
+
+profiles:
+  development:
+    description: "Herramientas locales de análisis estático, memoria contextual y desarrollo dentro del monorepo"
+    default_enabled: true
+    network: "none"
+    filesystem: "repo-root-only"
+    write_access: false
+    infra_access: "none"
+    requires_explicit_approval: false
+    allow_production_secrets: false
+
+  github:
+    description: "Acceso autorizado a repositorios, issues y pull requests del proyecto"
+    default_enabled: true
+    network: "outbound-allowed"
+    filesystem: "none"
+    write_access: false
+    infra_access: "none"
+    allowed_repositories:
+      - "rocapellino/pokedex"
+    requires_explicit_approval: false
+    allow_production_secrets: false
+
+  infrastructure-readonly:
+    description: "Consulta de telemetría, métricas y observabilidad sin alteración de estado"
+    default_enabled: true
+    network: "outbound-allowed"
+    filesystem: "none"
+    write_access: false
+    infra_access: "readonly"
+    requires_explicit_approval: false
+    allow_production_secrets: false
+
+  infrastructure-write:
+    description: "Operaciones de escritura sobre plataforma K8s o cloud. DESHABILITADO POR DEFECTO para preservar GitOps"
+    default_enabled: false
+    network: "outbound-allowed"
+    filesystem: "temp-only"
+    write_access: true
+    infra_access: "readwrite"
+    requires_explicit_approval: true
+    allow_production_secrets: false
+
+  ci:
+    description: "Validación automatizada en GitHub Actions sin credenciales operativas ni acceso a producción"
+    default_enabled: true
+    network: "isolated"
+    filesystem: "read-only-repo"
+    write_access: false
+    infra_access: "none"
+    requires_explicit_approval: false
+    allow_production_secrets: false
