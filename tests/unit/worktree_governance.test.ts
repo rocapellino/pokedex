@@ -15,6 +15,7 @@ import {
   validateGitRef,
 } from '../../scripts/worktree/naming.js';
 import {
+  assertNoEscapingSymlinks,
   isWithinCanonicalBase,
   resolveCanonicalWorktreeBase,
   resolveMainRepoRoot,
@@ -319,4 +320,134 @@ test('🌲 Worktree Governance: cumplimiento de puntos de entrada y ausencia de 
     0,
     `Se detectaron llamadas directas no autorizadas a 'git worktree add': ${JSON.stringify(regressions)}`,
   );
+});
+
+test('🌲 Worktree Governance: detecta y bloquea cuando .worktrees es un enlace simbólico que desvía fuera del padre antes de existir el slug', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-parent-symlink-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+  const outsideDir = path.join(tempDir, 'outside_forbidden');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  // Crear .worktrees como un symlink hacia outsideDir ANTES de que exista .worktrees/pokedex
+  const wtSymlinkPath = path.join(parentDir, '.worktrees');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, wtSymlinkPath, symlinkType);
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBaseExpected = path.join(wtSymlinkPath, 'pokedex');
+  assert.equal(fs.existsSync(canonicalBaseExpected), false, 'El directorio del slug pokedex no debe existir aún');
+
+  // 1. assertNoEscapingSymlinks debe detectar que .worktrees desvía fuera de parentDir
+  assert.throws(
+    () => assertNoEscapingSymlinks(canonicalBaseExpected, parentDir),
+    /Violación de seguridad.*es un enlace simbólico que resuelve.*fuera de la ubicación aprobada/,
+  );
+
+  // 2. resolveCanonicalWorktreeBase debe fallar al resolver la base
+  assert.throws(
+    () => resolveCanonicalWorktreeBase(testRepoDir),
+    /Violación de seguridad.*es un enlace simbólico que resuelve.*fuera de la ubicación aprobada/,
+  );
+
+  // 3. isWithinCanonicalBase debe rechazar el destino
+  const targetPath = path.join(canonicalBaseExpected, 'feat--stolen-task');
+  assert.equal(isWithinCanonicalBase(targetPath, canonicalBaseExpected), false);
+
+  // 4. createWorktree debe bloquear la creación
+  assert.throws(
+    () => createWorktree({ type: 'feat', slug: 'stolen-task' }, { cwd: testRepoDir, createNodeModulesJunction: false }),
+    /Violación de seguridad/,
+  );
+
+  // 5. Verificar que nada fue creado dentro de outsideDir
+  assert.equal(fs.readdirSync(outsideDir).length, 0);
+});
+
+test('🌲 Worktree Governance: componentes con enlaces simbólicos rotos o inaccesibles son rechazados', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-broken-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const outsideDir = path.join(tempDir, 'outside_target');
+
+  fs.mkdirSync(parentDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+
+  const brokenLinkPath = path.join(parentDir, '.worktrees');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, brokenLinkPath, symlinkType);
+  // Borrar el destino para convertirlo en un enlace roto
+  fs.rmdirSync(outsideDir);
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const targetPath = path.join(brokenLinkPath, 'pokedex', 'feat--broken');
+
+  // assertNoEscapingSymlinks debe fallar con error de enlace roto o inaccesible
+  assert.throws(
+    () => assertNoEscapingSymlinks(targetPath, parentDir),
+    /Violación de seguridad.*contiene un enlace simbólico roto o inaccesible/,
+  );
+
+  // isWithinCanonicalBase debe rechazar
+  assert.equal(isWithinCanonicalBase(targetPath, path.join(brokenLinkPath, 'pokedex')), false);
+});
+
+test('🌲 Worktree Governance: checkUngovernedWorktreeCalls detecta infracciones en workflows, Taskfiles y scripts temporales', (t) => {
+  const tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-scanner-test-'));
+
+  const scriptsDir = path.join(tempRepo, 'scripts');
+  const workflowsDir = path.join(tempRepo, '.github', 'workflows');
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  fs.mkdirSync(workflowsDir, { recursive: true });
+
+  // Crear archivo con transgresión en script
+  fs.writeFileSync(path.join(scriptsDir, 'bad-script.sh'), '#!/bin/bash\ngit worktree add ../temp-wt feature/bad\n');
+
+  // Crear archivo con transgresión en workflow
+  fs.writeFileSync(
+    path.join(workflowsDir, 'bad-pipeline.yaml'),
+    'name: Bad\njobs:\n  run:\n    steps:\n      - run: git worktree add ../dir branch\n',
+  );
+
+  // Crear Taskfile con transgresión
+  fs.writeFileSync(
+    path.join(tempRepo, 'Taskfile.yml'),
+    'version: "3"\ntasks:\n  wt:\n    cmds:\n      - git worktree add ../custom feat\n',
+  );
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempRepo, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const findings = checkUngovernedWorktreeCalls(tempRepo);
+  assert.equal(findings.length, 3, `Se esperaban 3 infracciones detectadas, encontradas: ${findings.length}`);
+  const paths = findings.map((f) => path.basename(f.worktreePath));
+  assert.ok(paths.includes('bad-script.sh'));
+  assert.ok(paths.includes('bad-pipeline.yaml'));
+  assert.ok(paths.includes('Taskfile.yml'));
 });

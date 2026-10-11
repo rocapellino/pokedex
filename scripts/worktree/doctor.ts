@@ -27,12 +27,70 @@ export interface DoctorReport {
 }
 
 /**
- * Detecta llamadas o directivas desreguladas a 'git worktree add' en scripts y skills,
- * asegurando que no existan regresiones de gobernanza en el repositorio.
+ * Detecta llamadas o directivas desreguladas a 'git worktree add' en scripts, skills,
+ * workflows y Taskfiles, asegurando que no existan regresiones de gobernanza en el repositorio.
  */
 export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] {
   const findings: DoctorFinding[] = [];
-  const searchDirs = [path.join(mainRoot, 'scripts'), path.join(mainRoot, '.agents', 'skills')];
+  const searchDirs = [
+    path.join(mainRoot, 'scripts'),
+    path.join(mainRoot, '.agents'),
+    path.join(mainRoot, '.github', 'workflows'),
+  ];
+
+  function isCodeOrConfig(filePath: string): boolean {
+    return /\.(ts|js|mjs|sh|bash|ya?ml|json)$/i.test(filePath) || /Taskfile/i.test(filePath);
+  }
+
+  function checkFile(fullPath: string) {
+    try {
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      const lines = content.split(/\r?\n/);
+      const isCode = isCodeOrConfig(fullPath);
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (/git\s+worktree\s+add/i.test(line)) {
+          const lower = line.toLowerCase();
+          if (
+            lower.includes('prohib') ||
+            lower.includes('impide') ||
+            lower.includes('desregulad') ||
+            lower.includes('no expone') ||
+            lower.includes('no provee') ||
+            line.includes('WT-REGRESSION')
+          ) {
+            continue;
+          }
+
+          if (isCode) {
+            findings.push({
+              code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
+              severity: 'HIGH',
+              worktreePath: fullPath,
+              message: `Llamada no gobernada o instrucción directa a 'git worktree add' en línea ${i + 1}.`,
+              remediation:
+                'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
+            });
+          } else {
+            // En archivos Markdown, solo alertar si es una instrucción de comando ejecutable
+            if (/^\s*(```|`|\$|run:|command:)?\s*git\s+worktree\s+add/i.test(line)) {
+              findings.push({
+                code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
+                severity: 'HIGH',
+                worktreePath: fullPath,
+                message: `Instrucción de ejecución directa a 'git worktree add' en línea ${i + 1}.`,
+                remediation:
+                  'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
+              });
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignorar archivos no legibles
+    }
+  }
 
   function scanDir(dir: string) {
     if (!fs.existsSync(dir)) return;
@@ -44,37 +102,22 @@ export function checkUngovernedWorktreeCalls(mainRoot: string): DoctorFinding[] 
           continue;
         }
         scanDir(fullPath);
-      } else if (entry.isFile() && /\.(ts|js|mjs|sh|bash|md)$/i.test(entry.name)) {
-        try {
-          const content = fs.readFileSync(fullPath, 'utf-8');
-          const lines = content.split(/\r?\n/);
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (
-              /git\s+worktree\s+add/i.test(line) &&
-              !line.toLowerCase().includes('prohib') &&
-              !line.toLowerCase().includes('impide') &&
-              !line.includes('WT-REGRESSION')
-            ) {
-              findings.push({
-                code: 'WT-REGRESSION-UNGOVERNED-WORKTREE-CALL',
-                severity: 'HIGH',
-                worktreePath: fullPath,
-                message: `Llamada no gobernada o directiva directa a 'git worktree add' en línea ${i + 1}.`,
-                remediation:
-                  'Migrar la operación a la CLI canónica `npm run worktree:create` o la API `scripts/worktree/creator.ts`.',
-              });
-            }
-          }
-        } catch {
-          // Ignorar archivos no legibles
-        }
+      } else if (entry.isFile() && (isCodeOrConfig(entry.name) || /\.md$/i.test(entry.name))) {
+        checkFile(fullPath);
       }
     }
   }
 
   for (const sDir of searchDirs) {
     scanDir(sDir);
+  }
+
+  // Escaneo de archivos de automatización en la raíz
+  const rootFiles = ['Taskfile.yml', 'Taskfile.yaml', 'package.json'].map((f) => path.join(mainRoot, f));
+  for (const rf of rootFiles) {
+    if (fs.existsSync(rf)) {
+      checkFile(rf);
+    }
   }
 
   return findings;
