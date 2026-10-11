@@ -650,6 +650,19 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica que todas las rutas de configuración de clientes soportados estén estrictamente ignoradas por .gitignore y documenten limitaciones.',
   },
+  'tests/contracts/mcp/mcp_adapters_contract.test.ts': {
+    type: 'Contract / Platform',
+    targetDomain: 'Gobernanza MCP / Adaptadores por Cliente',
+    targetArtifacts: [
+      'scripts/mcp/adapters/antigravity.ts',
+      'scripts/mcp/adapters/claude.ts',
+      'scripts/mcp/adapters/cursor.ts',
+      'scripts/mcp/adapters/vscode.ts',
+      'scripts/mcp/adapters/generic.ts',
+    ],
+    description:
+      'Verifica contratos específicos de adaptadores MCP: serverUrl en Antigravity, .mcp.json con type sse en Claude Code y despacho de adaptadores.',
+  },
   'tests/security/mcp/mcp_security_governance.test.ts': {
     type: 'Security / Compliance',
     targetDomain: 'Gobernanza MCP / Seguridad y Zero-Trust',
