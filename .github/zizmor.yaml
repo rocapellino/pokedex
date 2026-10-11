@@ -15,6 +15,7 @@ rules:
       - ghcr-retention.yaml
       - github-security-linear-sync.yaml
       - sonar-linear-sync.yaml
+      - tag-retention.yaml
   artipacked:
     ignore:
       # release-tag.yaml necesita las credenciales persistidas: hace `git push` de
