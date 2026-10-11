@@ -34,5 +34,5 @@ Si una skill necesita una herramienta que no existe en el entorno local o cuya v
 2. **Cero Instalaciones Globales:** No instalar paquetes globales (`apt`, `brew`, `npm -g`, `pip`, `go install`) ni modificar el host; la ejecución recurre a un contenedor efímero con `--rm`.
 3. **Detección Dinámica de Runtimes:** Soporte agnóstico para `docker`, `podman` o `nerdctl` verificado dinámicamente.
 4. **Seguridad y Menor Privilegio:** Montaje del repositorio en solo lectura (`:ro`) por defecto, sin `--privileged`, sin socket de Docker y con aislamiento en Windows (`MSYS_NO_PATHCONV=1`).
-5. **Artefactos Temporales:** Todo log o salida transitoria debe dirigirse exclusivamente a `tmp/` ([repository-hygiene.md](../../rules/repository-hygiene.md)).
+5. **Artefactos Temporales:** Todo archivo temporal, log o reporte intermedio generado por cualquier agente o mecanismo de ejecución debe dirigirse exclusivamente a `tmp/` anclado a la raíz del repositorio, siguiendo el protocolo obligatorio de verificación final ([repository-hygiene.md](../../rules/repository-hygiene.md)).
 6. **Evidencia Estructurada:** El resultado reporta `PASS`, `FAIL`, `UNAVAILABLE`, `NOT_CONFIGURED` o `NOT_APPLICABLE` junto al modo (`local` o `container`), comando e imagen utilizada. `UNAVAILABLE` nunca equivale a `PASS`.

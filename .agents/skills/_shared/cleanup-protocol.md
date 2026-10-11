@@ -57,4 +57,4 @@ El protocolo es común; los estados no. Cada dominio conserva su vocabulario seg
 
 - Gates del dominio en `PASS` y `npm run docs:validate` sin enlaces rotos.
 - Ninguna referencia huérfana nueva (regla de referencias inversas, [change-impact-matrix.md](change-impact-matrix.md) §1.1).
-- `git status --short` sin archivos inesperados fuera de `tmp/` ([repository-hygiene.md](../../rules/repository-hygiene.md)).
+- Cumplimiento estricto del protocolo de verificación final ([repository-hygiene.md](../../rules/repository-hygiene.md)): temporales bajo `tmp/` o excepción documentada, eliminación de residuos innecesarios y `git status --short` sin archivos inesperados fuera de `tmp/`.

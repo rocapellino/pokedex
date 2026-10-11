@@ -1,6 +1,6 @@
 # Gobernanza Transversal de Model Context Protocol (`mcp-governance.md`)
 
-Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor y asistentes automatizados) que interactúen con el repositorio `rocapellino/pokedex`.
+Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor, VS Code/Copilot, asistentes autónomos y cualquier agente incorporado) que interactúen con el repositorio `rocapellino/pokedex`.
 
 ---
 
@@ -36,7 +36,7 @@ Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor y 
 
 ---
 
-## 4. Despacho y Ejecución Híbrida
+## 4. Despacho, Ejecución Híbrida y Gobernanza de Filesystem
 
 1. **Interacción con `repo-tool-exec`:**
    - Las herramientas de CLI o linters locales y en contenedor se resuelven mediante la skill [`repo-tool-exec`](../skills/repo-tool-exec/SKILL.md).
@@ -44,3 +44,8 @@ Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor y 
 
 2. **Ejecución en Contenedores:**
    - Las imágenes de servidores MCP en contenedor deben utilizar exclusivamente imágenes fijadas por digest SHA256 inmutable (`@sha256:`), con filesystem de solo lectura (`--read-only`), sin privilegios (`--privileged` prohibido) y sin montar el socket de Docker (`docker.sock`).
+
+3. **Acceso al Filesystem e Higiene de Archivos Temporales:**
+   - Todo servidor MCP con acceso al filesystem debe restringir sus operaciones al mínimo directorio necesario.
+   - Cuando un servidor MCP genere artefactos temporales, debe configurarse para usar `<repository-root>/tmp/`, conforme a la regla transversal [`repository-hygiene.md`](repository-hygiene.md).
+   - **Principio de No Asunción Pasiva:** Ningún agente puede asumir que un servidor MCP cumple esta política solo porque la instrucción esté documentada; las capacidades de escritura, rutas de trabajo y destinos temporales deben verificarse activamente cuando sean controlables.

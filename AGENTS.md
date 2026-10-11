@@ -95,9 +95,37 @@ en UTF-8 durante su generación y publicación.
 
 ## 6. Higiene del Repositorio y Gestión de Archivos Temporales
 
-Todo archivo temporal, log de depuración, reporte intermedio o artefacto transitorio generado durante operaciones sobre el repositorio debe almacenarse exclusivamente bajo `tmp/` en la raíz del repositorio (`<repository-root>/tmp/`), conforme a la regla transversal [`.agents/rules/repository-hygiene.md`](.agents/rules/repository-hygiene.md).
+Esta política aplica a **todos los agentes de IA, sin excepción**, incluidos Antigravity, Claude Code, Cursor, VS Code/Copilot, agentes autónomos y cualquier agente incorporado posteriormente, y es independiente del mecanismo utilizado para realizar una operación (herramientas nativas del IDE, terminal, scripts, comandos de shell, MCP, APIs, contenedores, automatizaciones, CI o herramientas auxiliares), conforme a la regla transversal [`.agents/rules/repository-hygiene.md`](.agents/rules/repository-hygiene.md).
 
-Queda prohibido dispersar archivos efímeros en otras rutas del repositorio o commitear cualquier contenido de `tmp/`.
+### A. Ubicación Canónica e Identificación de Raíz
+
+- Todo archivo temporal, borrador, log, reporte intermedio, patch, diff auxiliar, resultado de diagnóstico, descarga transitoria o artefacto de depuración generado por una tarea debe almacenarse bajo `<repository-root>/tmp/`.
+- Los agentes deben identificar la raíz real del repositorio antes de crear estos archivos y usar rutas ancladas a ella.
+- Si `tmp/` no existe, debe crearse bajo demanda.
+- Queda prohibido dispersar artefactos temporales en la raíz del repositorio, directorios de código, documentación, infraestructura, metadatos de Git u otras ubicaciones del repositorio.
+- Ningún contenido de `tmp/` debe incorporarse a commits.
+
+### B. Aplicación a Herramientas y MCP
+
+- Antes de ejecutar una herramienta, el agente debe determinar si generará archivos auxiliares, logs o resultados transitorios y configurar su destino dentro de `tmp/` cuando la herramienta lo permita.
+- Los scripts del repositorio deben utilizar `tmp/` para sus artefactos temporales, salvo que exista una excepción técnica documentada.
+- Las configuraciones de servidores MCP con acceso al filesystem deben restringir sus operaciones al mínimo directorio necesario. Cuando un servidor genere artefactos temporales, debe configurarse para usar `tmp/` siempre que lo admita.
+- Ningún agente puede asumir que un servidor MCP cumple esta política solo porque la instrucción esté documentada. Las capacidades de escritura, rutas de trabajo y destinos temporales deben verificarse cuando sean controlables.
+- Si una herramienta utiliza obligatoriamente un directorio temporal gestionado por el sistema operativo, el agente debe documentar la excepción cuando sea relevante, evitar copiar artefactos innecesarios al repositorio y no modificar permisos globales para forzar la política.
+
+### C. Excepciones
+
+- Esta política no obliga a guardar en `tmp/` archivos permanentes cuyo destino funcional sea el código fuente, las pruebas, la documentación o la configuración del proyecto. Estos archivos deben crearse directamente en su ubicación definitiva.
+- Tampoco se debe mover indiscriminadamente a `tmp/` la caché interna de gestores de paquetes, el almacenamiento del sistema operativo o datos internos de herramientas que no sean artefactos de la tarea.
+
+### D. Verificación al Finalizar
+
+Al concluir cualquier tarea, es obligatorio ejecutar el protocolo de verificación:
+
+- Confirmar que los archivos temporales generados por la tarea estén bajo `tmp/` o correspondan a una excepción documentada.
+- Eliminar los residuos temporales que ya no sean necesarios.
+- Verificar `git status --short` y asegurar que ningún artefacto temporal se incluya en el cambio propuesto.
+- Si una tarea requiere una excepción, informar su motivo y alcance en el reporte final.
 
 ---
 
