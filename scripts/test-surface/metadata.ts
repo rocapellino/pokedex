@@ -439,6 +439,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica la política jerárquica de retención de tags SemVer 2.0 (Opción B: 2 Majors, 3 Minors, 1 Patch), salvaguarda de GitOps/Helm y purga segura.',
   },
+  'tests/contracts/delivery/tag_retention_remote.test.ts': {
+    type: 'Contract / Delivery',
+    targetDomain: 'Operaciones Remotas de Retención de Tags en GitHub',
+    targetArtifacts: ['scripts/tag-retention.ts', '.github/workflows/tag-retention.yaml'],
+    description:
+      'Valida contratos remotos de la API de GitHub: desreferenciación de tags anotados, precondiciones SHA, paginación FAIL-CLOSED y garantía dry-run.',
+  },
   'tests/contracts/delivery/github_security_linear_sync.test.ts': {
     type: 'Contract / SecOps',
     targetDomain: 'Sincronización de Seguridad GitHub-Linear',
