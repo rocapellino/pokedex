@@ -342,13 +342,13 @@ test('🔒 CI topology: Gitleaks conserva el Required Check independiente y sin 
 // GH-006: Gobernanza Integral de Workflows (Zero-Trust, Permissions & Secrets)
 // ==============================================================================
 
-test('🛡️ Workflow Governance: los 18 workflows declaran permisos explícitos y ninguno utiliza write-all', () => {
+test('🛡️ Workflow Governance: los 19 workflows declaran permisos explícitos y ninguno utiliza write-all', () => {
   const files = workflowFiles();
 
   assert.equal(
     files.length,
-    18,
-    `Se esperan exactamente 18 workflows en .github/workflows/, encontrados ${files.length}`,
+    19,
+    `Se esperan exactamente 19 workflows en .github/workflows/, encontrados ${files.length}`,
   );
 
   for (const file of files) {
@@ -403,7 +403,7 @@ test('🛡️ Workflow Governance: Least Privilege en ZAP DAST (no solicita issu
   );
 });
 
-test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 18 workflows', () => {
+test('🛡️ Workflow Governance: Auditoría de Secretos conocidos y tipados en los 19 workflows', () => {
   const ALLOWED_SECRETS = new Set([
     'GITHUB_TOKEN',
     'SONAR_TOKEN',
