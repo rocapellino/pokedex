@@ -91,6 +91,9 @@ El motor de worktrees invoca directamente ejecutables binarios (`execFileSync('g
    - Prohibido eliminar automáticamente un worktree solo porque su PR se haya fusionado sin antes verificar el estado local del checkout.
 3. **Preservación de Tareas Ajenas:**
    Ningún agente debe modificar o eliminar worktrees pertenecientes a otras tareas sin autorización expresa.
+4. **Modelo de Amenazas y Mitigación TOCTOU en Rollback:**
+   - La función `safeRollbackWorktree` aplica defensa en profundidad comprobando el destino (`lstatSync` y `realpathSync`) inmediatamente antes de `rmSync()`, seguido de post-verificación de ausencia. Si el destino no puede probarse dentro de la base canónica, o muta a enlace simbólico, la eliminación recursiva se aborta y se preserva la evidencia intacta (`residualPreservedForEvidence: true`).
+   - *Límites técnicos:* En Node.js sobre sistemas operativos convencionales, esta secuencia mitiga la ventana de carrera (TOCTOU), pero no constituye una garantía atómica a nivel de kernel (e.g. primitivas `*at` con descriptores de archivo abiertos sin seguir symlinks). El proyecto asume este modelo de amenazas: ante anomalías o interferencias locales concurrentes, se preserva la evidencia y se exige intervención manual en lugar de ejecutar limpiezas destructivas inciertas.
 
 ---
 

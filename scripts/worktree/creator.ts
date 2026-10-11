@@ -36,22 +36,45 @@ export interface WorktreeRollbackReport {
   stepsSummary: string;
 }
 
+export interface RollbackFileSystemOps {
+  lstatSync?: (path: string, options?: { throwIfNoEntry?: boolean }) => fs.Stats | undefined;
+  realpathSync?: (path: string) => string;
+  rmSync?: (path: string, options?: { recursive?: boolean; force?: boolean }) => void;
+  unlinkSync?: (path: string) => void;
+  rmdirSync?: (path: string) => void;
+}
+
 /**
  * Ejecuta un rollback seguro del worktree ante un fallo de verificación post-creación.
+ *
+ * NOTA DE SEGURIDAD Y MODELO DE AMENAZAS (Mitigación TOCTOU):
+ * Esta función aplica una defensa en profundidad y mitigación TOCTOU (Time-of-Check to Time-of-Use):
  * 1. Intenta retirar el worktree formalmente con Git (`git worktree remove --force`).
  * 2. Comprueba la identidad y contención estricta del destino en disco:
  *    - Si es un enlace simbólico o junction, elimina ÚNICAMENTE el enlace sin borrado recursivo.
- *    - Si es un directorio, verifica que su realpath resida estrictamente dentro de canonicalBase
- *      antes de cualquier borrado recursivo.
+ *    - Si es un directorio, verifica pre-lstat y realpath dentro de canonicalBase inmediatamente
+ *      antes de rmSync(), seguido de post-verificación de ausencia.
  *    - Si no se puede probar que reside dentro de canonicalBase, PRESERVA la evidencia intacta
  *      y solicita inspección manual sin ejecutar un borrado indiscriminado.
  * 3. Purga metadatos huérfanos con `git worktree prune`.
+ *
+ * Límite técnico: Constituye una mitigación conservadora para minimizar la ventana entre
+ * comprobación y borrado en Node.js estándar. No representa una primitiva atómica a nivel de kernel
+ * (e.g. unlinkat/openat con O_NOFOLLOW), por lo que ante procesos locales hostiles con privilegios concurrentes
+ * la estrategia de seguridad prioriza preservar la evidencia ante la menor anomalía detectada.
  */
 export function safeRollbackWorktree(
   targetPath: string,
   canonicalBase: string,
   mainRoot: string,
+  fsOps: RollbackFileSystemOps = {},
 ): WorktreeRollbackReport {
+  const customLstat = fsOps.lstatSync || fs.lstatSync;
+  const customRealpath = fsOps.realpathSync || fs.realpathSync;
+  const customRm = fsOps.rmSync || fs.rmSync;
+  const customUnlink = fsOps.unlinkSync || fs.unlinkSync;
+  const customRmdir = fsOps.rmdirSync || fs.rmdirSync;
+
   const report: WorktreeRollbackReport = {
     gitWorktreeRemoved: false,
     gitMetadataPruned: false,
@@ -81,7 +104,7 @@ export function safeRollbackWorktree(
   try {
     let lstat: fs.Stats | undefined;
     try {
-      lstat = fs.lstatSync(targetPath, { throwIfNoEntry: false });
+      lstat = customLstat(targetPath, { throwIfNoEntry: false });
     } catch (lstatErr: unknown) {
       const msg = lstatErr instanceof Error ? lstatErr.message : String(lstatErr);
       report.errors.push(`error al inspeccionar destino '${targetPath}': ${msg}`);
@@ -95,12 +118,12 @@ export function safeRollbackWorktree(
         try {
           if (process.platform === 'win32') {
             try {
-              fs.unlinkSync(targetPath);
+              customUnlink(targetPath);
             } catch {
-              fs.rmdirSync(targetPath);
+              customRmdir(targetPath);
             }
           } else {
-            fs.unlinkSync(targetPath);
+            customUnlink(targetPath);
           }
           report.residualCleaned = true;
           steps.push('limpieza residual: ÉXITO (enlace simbólico removido sin borrado recursivo)');
@@ -113,13 +136,13 @@ export function safeRollbackWorktree(
         // Es un directorio: comprobar identidad y contención estricta antes de borrar
         let safeToDelete = false;
         try {
-          const preLstat = fs.lstatSync(targetPath);
-          if (preLstat.isSymbolicLink()) {
+          const preLstat = customLstat(targetPath);
+          if (preLstat?.isSymbolicLink()) {
             // Si mutó a enlace simbólico justo antes de validar, abortar borrado recursivo
             safeToDelete = false;
           } else {
-            const realTarget = fs.realpathSync(targetPath);
-            const realBase = fs.realpathSync(canonicalBase);
+            const realTarget = customRealpath(targetPath);
+            const realBase = customRealpath(canonicalBase);
 
             if (
               isContainedWithin(realBase, realTarget) &&
@@ -134,9 +157,9 @@ export function safeRollbackWorktree(
 
         if (safeToDelete) {
           try {
-            fs.rmSync(targetPath, { recursive: true, force: true });
+            customRm(targetPath, { recursive: true, force: true });
             // Post-verificación síncrona: confirmar que el directorio ya no existe
-            const postCheck = fs.lstatSync(targetPath, { throwIfNoEntry: false });
+            const postCheck = customLstat(targetPath, { throwIfNoEntry: false });
             if (!postCheck) {
               report.residualCleaned = true;
               steps.push('limpieza residual: ÉXITO (directorio verificado eliminado dentro de la base)');
@@ -159,7 +182,7 @@ export function safeRollbackWorktree(
       } else {
         // Archivo suelto
         try {
-          fs.unlinkSync(targetPath);
+          customUnlink(targetPath);
           report.residualCleaned = true;
           steps.push('limpieza residual: ÉXITO (archivo residual eliminado)');
         } catch (unlErr: unknown) {

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { inspectWorktreeStatus, listWorktrees, type WorktreeStatusDetails } from './manager.js';
-import { resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
+import { isContainedWithin, resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
 
 export interface DoctorFinding {
   code: string;
@@ -70,6 +70,40 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
       return;
     }
 
+    try {
+      const lstat = fs.lstatSync(fullPath, { throwIfNoEntry: false });
+      if (lstat?.isSymbolicLink()) {
+        const realTarget = fs.realpathSync(fullPath);
+        const realMainRoot = fs.realpathSync(mainRoot);
+        if (!isContainedWithin(realMainRoot, realTarget)) {
+          unreadableFiles.push({
+            path: fullPath,
+            error: `Enlace simbólico apunta a archivo fuera del repositorio principal: '${realTarget}'`,
+          });
+          findings.push({
+            code: 'WT-AUDIT-EXTERNAL-SYMLINK',
+            severity: 'HIGH',
+            worktreePath: fullPath,
+            message: `El archivo de automatización '${fullPath}' es un enlace simbólico que apunta fuera de la raíz del repositorio ('${realTarget}').`,
+            remediation:
+              'No utilizar enlaces simbólicos que apunten a archivos fuera de la raíz en la superficie gobernada del repositorio.',
+          });
+          return;
+        }
+      }
+    } catch (lstatErr: unknown) {
+      const errMsg = lstatErr instanceof Error ? lstatErr.message : String(lstatErr);
+      unreadableFiles.push({ path: fullPath, error: errMsg });
+      findings.push({
+        code: 'WT-AUDIT-UNREADABLE-FILE',
+        severity: 'MEDIUM',
+        worktreePath: fullPath,
+        message: `No se pudo inspeccionar el enlace o metadatos de '${fullPath}': ${errMsg}.`,
+        remediation: 'Verificar permisos y accesibilidad del archivo.',
+      });
+      return;
+    }
+
     let content: string;
     try {
       content = fs.readFileSync(fullPath, 'utf-8');
@@ -133,6 +167,64 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
   }
 
   function scanDir(dir: string, isTopLevelSurfaceDir = false) {
+    let lstat: fs.Stats | undefined;
+    try {
+      lstat = fs.lstatSync(dir, { throwIfNoEntry: false });
+    } catch (accessErr: unknown) {
+      const errMsg = accessErr instanceof Error ? accessErr.message : String(accessErr);
+      unreadableFiles.push({ path: dir, error: errMsg });
+      findings.push({
+        code: 'WT-AUDIT-UNREADABLE-DIR',
+        severity: 'MEDIUM',
+        worktreePath: dir,
+        message: `No se pudo acceder al directorio de automatización '${dir}' por error de permisos o E/S: ${errMsg}.`,
+        remediation: 'Verificar permisos y accesibilidad del directorio para permitir una auditoría completa.',
+      });
+      return;
+    }
+
+    if (!lstat) {
+      // La ruta no existe físicamente (ENOENT genuino)
+      return;
+    }
+
+    // Si es un enlace simbólico, verificar que no escape del repositorio principal
+    if (lstat.isSymbolicLink()) {
+      let targetRealPath: string;
+      try {
+        targetRealPath = fs.realpathSync(dir);
+      } catch (linkErr: unknown) {
+        const errMsg = linkErr instanceof Error ? linkErr.message : String(linkErr);
+        unreadableFiles.push({ path: dir, error: errMsg });
+        findings.push({
+          code: 'WT-AUDIT-UNREADABLE-DIR',
+          severity: 'HIGH',
+          worktreePath: dir,
+          message: `Enlace simbólico roto o inaccesible en superficie de automatización '${dir}': ${errMsg}.`,
+          remediation: 'Reparar o eliminar el enlace simbólico para asegurar la integridad de la auditoría.',
+        });
+        return;
+      }
+
+      const realMainRoot = fs.realpathSync(mainRoot);
+      if (!isContainedWithin(realMainRoot, targetRealPath)) {
+        unreadableFiles.push({
+          path: dir,
+          error: `Enlace simbólico apunta fuera del repositorio principal: '${targetRealPath}'`,
+        });
+        findings.push({
+          code: 'WT-AUDIT-EXTERNAL-SYMLINK',
+          severity: 'HIGH',
+          worktreePath: dir,
+          message: `La ruta de automatización '${dir}' es un enlace simbólico que apunta fuera de la raíz del repositorio ('${targetRealPath}').`,
+          remediation:
+            'No utilizar enlaces simbólicos que apunten a ubicaciones externas en la superficie gobernada del repositorio.',
+        });
+        return;
+      }
+    }
+
+    // Obtener información del archivo/directorio (resolviendo enlace si es local válido)
     let stat: fs.Stats | undefined;
     try {
       stat = fs.statSync(dir, { throwIfNoEntry: false });
@@ -149,13 +241,8 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
       return;
     }
 
-    if (!stat) {
-      // La ruta no existe físicamente (ENOENT genuino)
-      return;
-    }
-
-    if (!stat.isDirectory()) {
-      if (isTopLevelSurfaceDir) {
+    if (!stat?.isDirectory()) {
+      if (isTopLevelSurfaceDir && stat) {
         unreadableFiles.push({ path: dir, error: 'La ruta configurada no es un directorio' });
         findings.push({
           code: 'WT-AUDIT-UNREADABLE-DIR',
@@ -186,7 +273,7 @@ export function auditAutomationSurface(mainRoot: string): AutomationAuditResult 
 
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
+      if (entry.isDirectory() || entry.isSymbolicLink()) {
         if (
           entry.name === '.git' ||
           entry.name === 'node_modules' ||
