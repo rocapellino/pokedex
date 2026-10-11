@@ -140,13 +140,16 @@ test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando e
     return new Response('Not Found', { status: 404 });
   };
 
-  // En el flujo real, GET /tags entrega el commit.sha ('commit-sha-from-tags-api-5555...')
+  // Precondición completa para tag anotado: commitSha y refSha
   const result = await deleteRemoteTag(
     'mock-token',
     'rocapellino',
     'pokedex',
     'v1.0.0',
-    'commit-sha-from-tags-api-5555555555555555555555555555555555555555',
+    {
+      commitSha: 'commit-sha-from-tags-api-5555555555555555555555555555555555555555',
+      refSha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+    },
     mockFetch,
   );
 
@@ -154,6 +157,151 @@ test('🏷️ Remoto [P1]: deleteRemoteTag permite borrar tags anotados cuando e
   assert.equal(deletedMethod, 'DELETE');
   const finalDeletedUrl = deletedUrl as unknown as string;
   assert.ok(typeof finalDeletedUrl === 'string' && finalDeletedUrl.includes('/git/refs/tags/v1.0.0'));
+});
+
+test('🏷️ Remoto [P1]: deleteRemoteTag detecta cuando un tag anotado muta de objeto tag aunque apunte al mismo commit', async () => {
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    // La referencia ahora apunta a otro objeto tag 'mutated-tag-obj-sha-7777...'
+    if (url.includes('/git/ref/tags/v1.0.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v1.0.0',
+          object: {
+            sha: 'mutated-tag-obj-sha-7777777777777777777777777777777777777777',
+            type: 'tag',
+          },
+        }),
+        { status: 200 },
+      );
+    }
+
+    // Pero el commit destino sigue siendo el mismo commit original
+    if (url.includes('/git/tags/mutated-tag-obj-sha-7777777777777777777777777777777777777777')) {
+      return new Response(
+        JSON.stringify({
+          sha: 'mutated-tag-obj-sha-7777777777777777777777777777777777777777',
+          object: {
+            sha: 'commit-original-sha-5555555555555555555555555555555555555555',
+            type: 'commit',
+          },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  // Se intenta borrar con el refSha original 'annotated-tag-obj-sha-4444...'
+  await assert.rejects(
+    async () => {
+      await deleteRemoteTag(
+        'mock-token',
+        'rocapellino',
+        'pokedex',
+        'v1.0.0',
+        {
+          commitSha: 'commit-original-sha-5555555555555555555555555555555555555555',
+          refSha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+        },
+        mockFetch,
+      );
+    },
+    {
+      name: 'Error',
+      message: /Conflicto concurrente en tag v1.0.0: el SHA de la referencia .* difiere del esperado/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: deleteRemoteTag aborta si para un tag anotado no se suministra el refSha esperado', async () => {
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    if (url.includes('/git/ref/tags/v1.0.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v1.0.0',
+          object: {
+            sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+            type: 'tag',
+          },
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes('/git/tags/annotated-tag-obj-sha-4444444444444444444444444444444444444444')) {
+      return new Response(
+        JSON.stringify({
+          sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+          object: {
+            sha: 'commit-sha-5555555555555555555555555555555555555555',
+            type: 'commit',
+          },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  // Solo se pasa commitSha sin refSha para un tag que en el remoto es anotado
+  await assert.rejects(
+    async () => {
+      await deleteRemoteTag(
+        'mock-token',
+        'rocapellino',
+        'pokedex',
+        'v1.0.0',
+        'commit-sha-5555555555555555555555555555555555555555',
+        mockFetch,
+      );
+    },
+    {
+      name: 'Error',
+      message: /Precondición no fiable para tag anotado v1.0.0: se requiere el SHA de referencia/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P2]: fetchRemoteTagRef falla con error explícito si el endpoint del objeto tag devuelve error', async () => {
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    if (url.includes('/git/ref/tags/v1.0.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v1.0.0',
+          object: {
+            sha: 'annotated-tag-obj-sha-4444444444444444444444444444444444444444',
+            type: 'tag',
+          },
+        }),
+        { status: 200 },
+      );
+    }
+
+    // Falla la resolución del objeto tag con 500
+    if (url.includes('/git/tags/')) {
+      return new Response('Internal Server Error', { status: 500 });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await fetchRemoteTagRef('mock-token', 'rocapellino', 'pokedex', 'v1.0.0', mockFetch);
+    },
+    {
+      name: 'Error',
+      message: /Error 500 al resolver objeto tag anotado/,
+    },
+  );
 });
 
 test('🏷️ Remoto [P1]: deleteRemoteTag detecta mutaciones de SHA y aborta por seguridad (FAIL-CLOSED)', async () => {
@@ -189,7 +337,7 @@ test('🏷️ Remoto [P1]: deleteRemoteTag detecta mutaciones de SHA y aborta po
     },
     {
       name: 'Error',
-      message: /Conflicto concurrente en tag v1.0.0: SHA actual/,
+      message: /Conflicto concurrente en tag v1.0.0:/,
     },
   );
 });
