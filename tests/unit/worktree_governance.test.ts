@@ -674,3 +674,98 @@ test('🌲 Worktree Governance: auditAutomationSurface registra cobertura y dist
   assert.equal(audit.coverage.unreadableFiles.length, 0);
   assert.ok(audit.coverage.scannedFilesCount >= 1);
 });
+
+test('🌲 Worktree Governance: safeRollbackWorktree no declara éxito completo si falla git worktree remove', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-failgit-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
+  fs.mkdirSync(canonicalBase, { recursive: true });
+
+  // Pasamos una ruta que NO está registrada como worktree en Git
+  const unregDir = path.join(canonicalBase, 'feat--unregistered');
+  fs.mkdirSync(unregDir, { recursive: true });
+
+  const report = safeRollbackWorktree(unregDir, canonicalBase, testRepoDir);
+  // git worktree remove debe fallar porque unregDir no es un worktree registrado
+  assert.equal(report.gitWorktreeRemoved, false, 'gitWorktreeRemoved debe ser false si git worktree remove falla');
+  assert.equal(report.residualCleaned, true, 'El directorio físico dentro de canonicalBase sí se limpió');
+  assert.equal(report.gitMetadataPruned, true, 'El prune siempre se ejecuta');
+  assert.ok(report.errors.length > 0, 'Debe registrar el error de git worktree remove');
+});
+
+test('🌲 Worktree Governance: safeRollbackWorktree protege contra fallos de lstat y mutación TOCTOU', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-toctou-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+  const outsideDir = path.join(tempDir, 'outside_target');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
+  fs.mkdirSync(canonicalBase, { recursive: true });
+
+  // Simular una ruta donde se coloca un symlink/junction apuntando a outsideDir
+  const attackPath = path.join(canonicalBase, 'feat--attack-junction');
+  const symType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, attackPath, symType);
+
+  const report = safeRollbackWorktree(attackPath, canonicalBase, testRepoDir);
+  assert.equal(report.residualCleaned, true, 'El junction/symlink debe eliminarse de forma segura');
+  assert.equal(fs.existsSync(outsideDir), true, 'El directorio objetivo fuera de la base no debe ser afectado');
+});
+
+test('🌲 Worktree Governance: auditAutomationSurface detecta cuando una superficie gobernada es un archivo en lugar de directorio', (t) => {
+  const tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-surface-invalid-'));
+
+  // Creamos un archivo regular en la ruta de scripts/ en lugar de un directorio
+  const fakeScriptsFile = path.join(tempRepo, 'scripts');
+  fs.writeFileSync(fakeScriptsFile, 'no soy un directorio');
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempRepo, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const audit = auditAutomationSurface(tempRepo);
+  assert.equal(
+    audit.coverage.isComplete,
+    false,
+    'La cobertura debe ser parcial al encontrar un archivo en lugar de directorio',
+  );
+  assert.ok(audit.findings.some((f) => f.code === 'WT-AUDIT-UNREADABLE-DIR'));
+  assert.ok(audit.coverage.unreadableFiles.some((u) => u.path === fakeScriptsFile));
+});

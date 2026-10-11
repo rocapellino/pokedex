@@ -78,74 +78,104 @@ export function safeRollbackWorktree(
   }
 
   // 2. Limpieza segura y validada del destino físico
-  const lstat = fs.lstatSync(targetPath, { throwIfNoEntry: false });
-  if (!lstat) {
-    report.residualCleaned = true;
-    steps.push('limpieza residual: NO REQUERIDA (ruta no existe)');
-  } else if (lstat.isSymbolicLink()) {
-    // Si es symlink o junction: eliminar estrictamente el enlace, NUNCA recursivo
+  try {
+    let lstat: fs.Stats | undefined;
     try {
-      if (process.platform === 'win32') {
+      lstat = fs.lstatSync(targetPath, { throwIfNoEntry: false });
+    } catch (lstatErr: unknown) {
+      const msg = lstatErr instanceof Error ? lstatErr.message : String(lstatErr);
+      report.errors.push(`error al inspeccionar destino '${targetPath}': ${msg}`);
+      steps.push('limpieza residual: FALLÓ (inspección inaccesible)');
+      report.residualPreservedForEvidence = true;
+    }
+
+    if (lstat) {
+      if (lstat.isSymbolicLink()) {
+        // Si es symlink o junction: eliminar estrictamente el enlace, NUNCA recursivo
         try {
-          fs.unlinkSync(targetPath);
+          if (process.platform === 'win32') {
+            try {
+              fs.unlinkSync(targetPath);
+            } catch {
+              fs.rmdirSync(targetPath);
+            }
+          } else {
+            fs.unlinkSync(targetPath);
+          }
+          report.residualCleaned = true;
+          steps.push('limpieza residual: ÉXITO (enlace simbólico removido sin borrado recursivo)');
+        } catch (unlinkErr: unknown) {
+          const msg = unlinkErr instanceof Error ? unlinkErr.message : String(unlinkErr);
+          report.errors.push(`no se pudo desvincular enlace simbólico residual: ${msg}`);
+          steps.push('limpieza residual: FALLÓ al desvincular enlace');
+        }
+      } else if (lstat.isDirectory()) {
+        // Es un directorio: comprobar identidad y contención estricta antes de borrar
+        let safeToDelete = false;
+        try {
+          const preLstat = fs.lstatSync(targetPath);
+          if (preLstat.isSymbolicLink()) {
+            // Si mutó a enlace simbólico justo antes de validar, abortar borrado recursivo
+            safeToDelete = false;
+          } else {
+            const realTarget = fs.realpathSync(targetPath);
+            const realBase = fs.realpathSync(canonicalBase);
+
+            if (
+              isContainedWithin(realBase, realTarget) &&
+              normalizeForComparison(realBase) !== normalizeForComparison(realTarget)
+            ) {
+              safeToDelete = true;
+            }
+          }
         } catch {
-          fs.rmdirSync(targetPath);
+          safeToDelete = false;
+        }
+
+        if (safeToDelete) {
+          try {
+            fs.rmSync(targetPath, { recursive: true, force: true });
+            // Post-verificación síncrona: confirmar que el directorio ya no existe
+            const postCheck = fs.lstatSync(targetPath, { throwIfNoEntry: false });
+            if (!postCheck) {
+              report.residualCleaned = true;
+              steps.push('limpieza residual: ÉXITO (directorio verificado eliminado dentro de la base)');
+            } else {
+              report.errors.push(`el directorio '${targetPath}' aún persiste tras rmSync`);
+              steps.push('limpieza residual: INCOMPLETA');
+            }
+          } catch (rmErr: unknown) {
+            const msg = rmErr instanceof Error ? rmErr.message : String(rmErr);
+            report.errors.push(`falló eliminación de directorio verificado: ${msg}`);
+            steps.push('limpieza residual: FALLÓ al eliminar directorio');
+          }
+        } else {
+          // PRESERVACIÓN DE EVIDENCIA: No se puede validar la ubicación de forma segura o mutó
+          report.residualPreservedForEvidence = true;
+          const warnMsg = `ADVERTENCIA DE SEGURIDAD: la ruta '${targetPath}' no se eliminó recursivamente porque su ubicación no pudo ser validada de forma segura dentro de '${canonicalBase}'. Se preserva la evidencia intacta para inspección manual.`;
+          report.errors.push(warnMsg);
+          steps.push('limpieza residual: OMITIDA (evidencia preservada para inspección manual)');
         }
       } else {
-        fs.unlinkSync(targetPath);
+        // Archivo suelto
+        try {
+          fs.unlinkSync(targetPath);
+          report.residualCleaned = true;
+          steps.push('limpieza residual: ÉXITO (archivo residual eliminado)');
+        } catch (unlErr: unknown) {
+          const msg = unlErr instanceof Error ? unlErr.message : String(unlErr);
+          report.errors.push(`falló eliminación de archivo residual: ${msg}`);
+          steps.push('limpieza residual: FALLÓ');
+        }
       }
+    } else if (lstat === null || (lstat === undefined && report.errors.length === 0)) {
       report.residualCleaned = true;
-      steps.push('limpieza residual: ÉXITO (enlace simbólico removido sin borrado recursivo)');
-    } catch (unlinkErr: unknown) {
-      const msg = unlinkErr instanceof Error ? unlinkErr.message : String(unlinkErr);
-      report.errors.push(`no se pudo desvincular enlace simbólico residual: ${msg}`);
-      steps.push('limpieza residual: FALLÓ al desvincular enlace');
+      steps.push('limpieza residual: NO REQUERIDA (ruta no existe)');
     }
-  } else if (lstat.isDirectory()) {
-    // Es un directorio: comprobar identidad y contención estricta antes de borrar
-    let safeToDelete = false;
-    try {
-      const realTarget = fs.realpathSync(targetPath);
-      const realBase = fs.realpathSync(canonicalBase);
-
-      if (
-        isContainedWithin(realBase, realTarget) &&
-        normalizeForComparison(realBase) !== normalizeForComparison(realTarget)
-      ) {
-        safeToDelete = true;
-      }
-    } catch {
-      safeToDelete = false;
-    }
-
-    if (safeToDelete) {
-      try {
-        fs.rmSync(targetPath, { recursive: true, force: true });
-        report.residualCleaned = true;
-        steps.push('limpieza residual: ÉXITO (directorio verificado eliminado dentro de la base)');
-      } catch (rmErr: unknown) {
-        const msg = rmErr instanceof Error ? rmErr.message : String(rmErr);
-        report.errors.push(`falló eliminación de directorio verificado: ${msg}`);
-        steps.push('limpieza residual: FALLÓ al eliminar directorio');
-      }
-    } else {
-      // PRESERVACIÓN DE EVIDENCIA: No se puede validar la ubicación de forma segura
-      report.residualPreservedForEvidence = true;
-      const warnMsg = `ADVERTENCIA DE SEGURIDAD: la ruta '${targetPath}' no se eliminó recursivamente porque su ubicación no pudo ser validada de forma segura dentro de '${canonicalBase}'. Se preserva la evidencia intacta para inspección manual.`;
-      report.errors.push(warnMsg);
-      steps.push('limpieza residual: OMITIDA (evidencia preservada para inspección manual)');
-    }
-  } else {
-    // Archivo suelto
-    try {
-      fs.unlinkSync(targetPath);
-      report.residualCleaned = true;
-      steps.push('limpieza residual: ÉXITO (archivo residual eliminado)');
-    } catch (unlErr: unknown) {
-      const msg = unlErr instanceof Error ? unlErr.message : String(unlErr);
-      report.errors.push(`falló eliminación de archivo residual: ${msg}`);
-      steps.push('limpieza residual: FALLÓ');
-    }
+  } catch (fsErr: unknown) {
+    const msg = fsErr instanceof Error ? fsErr.message : String(fsErr);
+    report.errors.push(`excepción imprevista en limpieza del sistema de archivos: ${msg}`);
+    steps.push('limpieza residual: FALLÓ por excepción inesperada');
   }
 
   // 3. Purgar metadatos de Git
@@ -245,8 +275,13 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     const rollback = safeRollbackWorktree(targetPath, canonicalBase, mainRoot);
     const postMsg = postErr instanceof Error ? postErr.message : String(postErr);
 
-    const isFullyCleaned = rollback.residualCleaned && rollback.gitMetadataPruned;
-    const statusLabel = isFullyCleaned ? 'rollback completado' : 'rollback parcial / manual requerido';
+    const isFullyRecovered =
+      rollback.gitWorktreeRemoved &&
+      rollback.gitMetadataPruned &&
+      rollback.residualCleaned &&
+      !rollback.residualPreservedForEvidence &&
+      rollback.errors.length === 0;
+    const statusLabel = isFullyRecovered ? 'rollback completado' : 'rollback parcial / manual requerido';
 
     const errLines = [
       `Violación de seguridad post-creación detectada (${statusLabel}): ${postMsg}`,
