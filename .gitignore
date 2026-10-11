@@ -107,9 +107,15 @@ backups/
 *.bak
 *~
 
-# Claude Code: junction local hacia .agents/skills (ver .agents/README.md).
-# Las skills se versionan solo en .agents/; el enlace se crea por clon.
+# Cursor IDE: configuraciones locales y servidores MCP
+.cursor/
+
+# Claude Code: junction local hacia .agents/skills y configuración local MCP
 /.claude/skills
+/.claude/mcp.json
+
+# Configuraciones MCP generadas localmente (scripts/mcp/generate.ts)
+.mcp/generated/
 
 # ==============================================================================
 # Archivos del Sistema Operativo (Windows / macOS / Linux)

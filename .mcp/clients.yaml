@@ -1,0 +1,59 @@
+# ==============================================================================
+# .mcp/clients.yaml
+# ==============================================================================
+# Clientes Soportados y Capacidades de Integración MCP en rocapellino/pokedex
+#
+# Declara los clientes validados por el equipo, las rutas canónicas donde
+# esperan su configuración (ignoradas por Git) y los formatos específicos.
+# ==============================================================================
+
+version: "1.0.0"
+
+clients:
+  cursor:
+    name: "Cursor"
+    description: "Editor Cursor IDE con soporte nativo de servidores MCP stdio y SSE"
+    supported_transports:
+      - "stdio"
+      - "sse"
+    config_path: ".cursor/mcp.json"
+    format: "cursor-mcp-json"
+    env_variable_expansion: true
+    verified: true
+    limitations: "Delega la ejecución en los comandos nativos de la máquina host. No sobrescribe configuraciones personales preexistentes sin confirmación."
+
+  vscode:
+    name: "Visual Studio Code"
+    description: "VS Code con GitHub Copilot y extensiones MCP oficiales"
+    supported_transports:
+      - "stdio"
+      - "sse"
+    config_path: ".vscode/mcp.json"
+    format: "vscode-mcp-json"
+    env_variable_expansion: true
+    verified: true
+    limitations: ".vscode/ permanece estrictamente ignorado por .gitignore para impedir la exposición accidental de credenciales o configuraciones locales."
+
+  claude:
+    name: "Claude Code"
+    description: "Cliente CLI y agente oficial de Claude Code (Anthropic)"
+    supported_transports:
+      - "stdio"
+      - "sse"
+    config_path: ".claude/mcp.json"
+    format: "claude-mcp-json"
+    env_variable_expansion: true
+    verified: true
+    limitations: "Requiere que .claude/mcp.json resida en una ruta local ignorada. En caso de no existir .claude/, se genera el directorio con protección de permisos."
+
+  generic:
+    name: "Generic / Antigravity"
+    description: "Configuración normalizada y exportable compatible con la especificación de referencia MCP"
+    supported_transports:
+      - "stdio"
+      - "sse"
+    config_path: ".mcp/generated/mcp-config.json"
+    format: "standard-mcp-json"
+    env_variable_expansion: false
+    verified: true
+    limitations: "Formato portable para tooling agnóstico o pipelines de validación CI."

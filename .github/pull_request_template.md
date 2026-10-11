@@ -37,6 +37,7 @@
 - [ ] `scripts` (Scripts de sincronización Linear/Sonar, auditoría o seeders)
 - [ ] `tests` (Suites unitarias, integración, seguridad, GitOps, E2E y rendimiento)
 - [ ] `.agents` (Skills, reglas y gobernanza de agentes)
+- [ ] `.mcp` (Arquitectura, catálogo canónico y políticas MCP)
 - [ ] `docs` / `.github` (Documentación técnica, Workflows CI/CD, Templates)
 
 ---

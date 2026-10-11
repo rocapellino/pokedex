@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pokedex MCP Canonical Governance Schema",
+  "description": "Esquema unificado de validación para el registro, políticas y clientes de la arquitectura MCP gobernada en rocapellino/pokedex.",
+  "type": "object",
+  "definitions": {
+    "server": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "description",
+        "transport",
+        "execution_mode",
+        "version",
+        "license",
+        "profile",
+        "enabled"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10
+        },
+        "transport": {
+          "type": "string",
+          "enum": ["stdio", "sse", "http"]
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": ["local", "container", "remote"]
+        },
+        "package": {
+          "type": "string",
+          "description": "Nombre de paquete npm o módulo verificable"
+        },
+        "image": {
+          "type": "string",
+          "description": "Imagen OCI fijada por versión o digest inmutable"
+        },
+        "version": {
+          "type": "string",
+          "description": "Versión semver explícita del servidor"
+        },
+        "license": {
+          "type": "string",
+          "description": "Licencia del servidor (ej. MIT, Apache-2.0, LGPL-3.0)"
+        },
+        "profile": {
+          "type": "string",
+          "enum": [
+            "development",
+            "github",
+            "infrastructure-readonly",
+            "infrastructure-write",
+            "ci"
+          ]
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "command": {
+          "type": "string",
+          "description": "Comando base ejecutable (npx, node, docker, etc.)"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "required_env_vars": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]+$"
+          }
+        },
+        "allowed_repositories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "permissions": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "read": { "type": "boolean" },
+            "write": { "type": "boolean" },
+            "filesystem": { "type": "string" },
+            "network": { "type": "string" }
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "description",
+        "default_enabled",
+        "write_access",
+        "infra_access"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 5
+        },
+        "default_enabled": {
+          "type": "boolean"
+        },
+        "network": {
+          "type": "string",
+          "enum": ["none", "loopback", "outbound-allowed", "isolated"]
+        },
+        "filesystem": {
+          "type": "string",
+          "enum": ["none", "repo-root-only", "read-only-repo", "temp-only"]
+        },
+        "write_access": {
+          "type": "boolean"
+        },
+        "infra_access": {
+          "type": "string",
+          "enum": ["none", "readonly", "readwrite"]
+        },
+        "allowed_repositories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires_explicit_approval": {
+          "type": "boolean"
+        },
+        "allow_production_secrets": {
+          "type": "boolean"
+        }
+      }
+    },
+    "client": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "supported_transports",
+        "config_path",
+        "format",
+        "env_variable_expansion",
+        "verified"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "supported_transports": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["stdio", "sse", "http"]
+          }
+        },
+        "config_path": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "cursor-mcp-json",
+            "vscode-mcp-json",
+            "claude-mcp-json",
+            "standard-mcp-json"
+          ]
+        },
+        "env_variable_expansion": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "limitations": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

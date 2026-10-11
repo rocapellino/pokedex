@@ -77,6 +77,23 @@ rules:
       security:
         secrets: true
 
+  mcp_governance:
+    description: "Arquitectura, catálogo, políticas, adaptadores y pruebas de gobernanza MCP"
+    paths:
+      - ".mcp/**"
+      - "scripts/mcp/**"
+      - "taskfiles/mcp.yaml"
+      - "tests/unit/mcp/**"
+      - "tests/contracts/mcp/**"
+      - "tests/security/mcp/**"
+      - ".agents/rules/mcp-governance.md"
+    triggers:
+      tests: true
+      linting: true
+      documentation: true
+      security:
+        secrets: true
+
   documentation:
     description: "Modificaciones puramente documentales y políticas de gobernanza"
     paths:
