@@ -1,6 +1,7 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { validateGitRef } from './naming.js';
 import { isWithinCanonicalBase, resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
 
 export interface RegisteredWorktree {
@@ -32,7 +33,7 @@ export function listWorktrees(cwd: string = process.cwd()): RegisteredWorktree[]
   const mainRoot = resolveMainRepoRoot(cwd);
   const baseDir = resolveCanonicalWorktreeBase(cwd);
 
-  const stdout = execSync('git worktree list --porcelain', {
+  const stdout = execFileSync('git', ['worktree', 'list', '--porcelain'], {
     cwd: mainRoot,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'ignore'],
@@ -119,7 +120,7 @@ export function inspectWorktreeStatus(worktree: RegisteredWorktree, mainRoot: st
   let hasUncommitted = false;
   let untrackedCount = 0;
   try {
-    const statusOut = execSync('git status --porcelain', {
+    const statusOut = execFileSync('git', ['status', '--porcelain'], {
       cwd: worktree.path,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -144,8 +145,9 @@ export function inspectWorktreeStatus(worktree: RegisteredWorktree, mainRoot: st
 
   if (worktree.branch) {
     try {
+      validateGitRef(worktree.branch, 'worktree.branch');
       // Comparar contra main
-      const revListOut = execSync(`git rev-list --count main..${worktree.branch}`, {
+      const revListOut = execFileSync('git', ['rev-list', '--count', `main..${worktree.branch}`], {
         cwd: mainRoot,
         encoding: 'utf-8',
         stdio: ['ignore', 'pipe', 'ignore'],
@@ -155,12 +157,12 @@ export function inspectWorktreeStatus(worktree: RegisteredWorktree, mainRoot: st
         isMerged = true;
       }
     } catch {
-      // Ignorar
+      // Ignorar si falla la comparación o si la ref no existe
     }
 
     try {
       // Comparar contra upstream remoto si existe
-      const upstreamRev = execSync(`git rev-list --count @{u}..HEAD`, {
+      const upstreamRev = execFileSync('git', ['rev-list', '--count', '@{u}..HEAD'], {
         cwd: worktree.path,
         encoding: 'utf-8',
         stdio: ['ignore', 'pipe', 'ignore'],
@@ -238,14 +240,17 @@ export function removeWorktreeSafely(
     }
   }
 
-  const forceFlag = options.force ? '--force' : '';
-  const cmd = `git worktree remove ${forceFlag} "${target.path}"`;
+  const gitArgs = ['worktree', 'remove'];
+  if (options.force) {
+    gitArgs.push('--force');
+  }
+  gitArgs.push(target.path);
 
   try {
-    execSync(cmd, { cwd: mainRoot, stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync('git', gitArgs, { cwd: mainRoot, stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    throw new Error(`Fallo al ejecutar '${cmd}': ${errorMsg}`);
+    throw new Error(`Fallo al ejecutar 'git ${gitArgs.join(' ')}': ${errorMsg}`);
   }
 
   return {
@@ -259,7 +264,7 @@ export function removeWorktreeSafely(
  */
 export function pruneWorktrees(cwd: string = process.cwd()): string {
   const mainRoot = resolveMainRepoRoot(cwd);
-  return execSync('git worktree prune -v', {
+  return execFileSync('git', ['worktree', 'prune', '-v'], {
     cwd: mainRoot,
     encoding: 'utf-8',
     stdio: ['ignore', 'pipe', 'pipe'],

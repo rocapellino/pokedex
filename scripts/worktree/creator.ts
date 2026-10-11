@@ -1,8 +1,8 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { listWorktrees } from './manager.js';
-import { generateCanonicalNaming, type TaskNamingInput } from './naming.js';
+import { generateCanonicalNaming, type TaskNamingInput, validateGitRef } from './naming.js';
 import { isWithinCanonicalBase, resolveCanonicalWorktreeBase, resolveMainRepoRoot } from './resolver.js';
 
 export interface CreateWorktreeOptions {
@@ -30,6 +30,9 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
   // 1. Generar nomenclatura canónica
   const naming = generateCanonicalNaming(input);
 
+  // Validar rama base recibida (previene inyección de opciones y sintaxis Git inválida)
+  const baseBranch = options.baseBranch ? validateGitRef(options.baseBranch, 'baseBranch') : 'main';
+
   // 2. Resolver y validar ruta destino
   const targetPath = path.normalize(path.join(canonicalBase, naming.folderName));
 
@@ -39,9 +42,9 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     );
   }
 
-  // 3. Comprobar colisiones de directorio
-  if (fs.existsSync(targetPath)) {
-    throw new Error(`Colisión detectada: el directorio '${targetPath}' ya existe en el sistema de archivos.`);
+  // 3. Comprobar colisiones de directorio o enlaces existentes
+  if (fs.existsSync(targetPath) || fs.lstatSync(targetPath, { throwIfNoEntry: false })) {
+    throw new Error(`Colisión detectada: el directorio o enlace '${targetPath}' ya existe en el sistema de archivos.`);
   }
 
   // 4. Comprobar colisiones con worktrees registrados
@@ -63,7 +66,7 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
   // 5. Comprobar si la rama existe localmente en Git
   let branchExists = false;
   try {
-    execSync(`git show-ref --verify --quiet refs/heads/${naming.branchName}`, {
+    execFileSync('git', ['show-ref', '--verify', '--quiet', `refs/heads/${naming.branchName}`], {
       cwd: mainRoot,
       stdio: 'ignore',
     });
@@ -75,20 +78,19 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
   // 6. Asegurar directorio base canónico
   fs.mkdirSync(canonicalBase, { recursive: true });
 
-  // 7. Ejecutar git worktree add
-  const baseBranch = options.baseBranch || 'main';
-  let cmd = '';
+  // 7. Ejecutar git worktree add de forma segura sin shell
+  const gitArgs = ['worktree', 'add'];
   if (branchExists) {
-    cmd = `git worktree add "${targetPath}" "${naming.branchName}"`;
+    gitArgs.push(targetPath, naming.branchName);
   } else {
-    cmd = `git worktree add -b "${naming.branchName}" "${targetPath}" "${baseBranch}"`;
+    gitArgs.push('-b', naming.branchName, targetPath, baseBranch);
   }
 
   try {
-    execSync(cmd, { cwd: mainRoot, stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync('git', gitArgs, { cwd: mainRoot, stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    throw new Error(`Error al crear worktree con '${cmd}': ${errorMsg}`);
+    throw new Error(`Error al crear worktree con 'git ${gitArgs.join(' ')}': ${errorMsg}`);
   }
 
   // 8. Crear junction de node_modules si procede (Windows / entorno local con node_modules en main)
@@ -98,11 +100,8 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
 
   if (shouldLink && fs.existsSync(mainNodeModules) && !fs.existsSync(targetNodeModules)) {
     try {
-      // Usar junction en Windows para evitar requerir permisos de administrador
       if (process.platform === 'win32') {
-        execSync(`cmd /c mklink /J "${targetNodeModules}" "${mainNodeModules}"`, {
-          stdio: 'ignore',
-        });
+        fs.symlinkSync(mainNodeModules, targetNodeModules, 'junction');
       }
     } catch {
       // Si falla la unión, el usuario o agente puede ejecutar npm install manualmente
