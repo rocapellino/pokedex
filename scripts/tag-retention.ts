@@ -706,11 +706,79 @@ export async function fetchRemoteTagRef(
 }
 
 /**
- * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición estricta.
- * Exige una precondición obligatoria con hashes de Git válidos (40 hex).
- * Comprueba igualdad exacta (===) tanto del refSha (objeto al que apunta la ref) como del commitSha destino.
- * Esto previene eliminaciones erróneas si la referencia fue re-apuntada a otro objeto tag
- * o si el commit mutó concurrentemente entre la consulta y el borrado.
+ * Enriquece el inventario de tags con el SHA exacto del objeto de referencia (refSha)
+ * consultando git/matching-refs/tags en una única llamada eficiente.
+ * Esto permite capturar la identidad original de los tags anotados en la fase inicial del inventario.
+ * Si la consulta falla (p.ej. por permisos o entorno simulado restringido), se degrada
+ * de forma segura preservando los SHAs de commit ya obtenidos.
+ */
+export async function enrichTagsWithRemoteRefs(
+  token: string,
+  owner: string,
+  repo: string,
+  tags: GitTagRef[],
+  fetchFn: typeof fetch = fetch,
+): Promise<void> {
+  if (!token || tags.length === 0) return;
+
+  try {
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/matching-refs/tags`;
+    const response = await fetchFn(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'pokedex-tag-retention-script',
+      },
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const data = (await response.json()) as Array<{
+      ref: string;
+      object?: { sha?: string; type?: string };
+    }>;
+
+    if (!Array.isArray(data)) return;
+
+    const refsMap = new Map<string, { refSha: string; type: string }>();
+    for (const item of data) {
+      if (item.ref?.startsWith('refs/tags/') && item.object?.sha && isValidGitSha(item.object.sha)) {
+        const tagName = item.ref.slice('refs/tags/'.length);
+        refsMap.set(tagName, {
+          refSha: item.object.sha,
+          type: item.object.type || 'commit',
+        });
+      }
+    }
+
+    for (const tag of tags) {
+      const refDetail = refsMap.get(tag.name);
+      if (refDetail) {
+        tag.refSha = refDetail.refSha;
+        tag.isAnnotated = refDetail.type === 'tag';
+      }
+    }
+  } catch {
+    // Degradación segura no bloqueante si matching-refs no está disponible
+  }
+}
+
+/**
+ * Elimina una referencia de tag de Git en GitHub vía API REST con verificación de precondición estricta en dos fases.
+ *
+ * LIMITACIÓN ARQUITECTURAL TOCTOU DE LA API DE GITHUB:
+ * La API Git Data de GitHub ('DELETE /repos/{owner}/{repo}/git/refs/tags/{tagName}') no soporta
+ * primitivas de exclusión mutua condicional ni transacciones Compare-And-Swap (CAS)
+ * mediante cabeceras condicionales (como 'If-Match') para referencias Git.
+ * Por consiguiente, esta función implementa una verificación en dos fases inmediatamente contigua:
+ * consulta el estado actual ('fetchRemoteTagRef'), valida la igualdad estricta ('===')
+ * tanto del 'refSha' como del 'commitSha', y si coinciden, emite el 'DELETE'.
+ * La ventana temporal de carrera (TOCTOU) queda minimizada a la latencia de red entre ambas peticiones,
+ * pero no puede considerarse formalmente atómica a nivel de protocolo de GitHub.
  */
 export async function deleteRemoteTag(
   token: string,
@@ -817,10 +885,12 @@ export function generateMockTags(): GitTagRef[] {
   ];
 
   return names.map((name, i) => {
-    const hex = (i + 1).toString(16).padStart(4, '0');
+    const hexCommit = (i + 1).toString(16).padStart(4, '0');
+    const hexRef = (i + 101).toString(16).padStart(4, '0');
     return {
       name,
-      sha: `${hex.repeat(10)}`,
+      sha: `${hexCommit.repeat(10)}`,
+      refSha: `${hexRef.repeat(10)}`,
       date: new Date(Date.now() - (names.length - i) * 86400000).toISOString(),
       isAnnotated: true,
     };
@@ -880,6 +950,8 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         fetchFn,
         maxPages: options.maxPages,
       });
+      // Capturar identidades de referencia (refSha) iniciales desde matching-refs si es posible
+      await enrichTagsWithRemoteRefs(token, owner, repo, rawTags, fetchFn);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`❌ Error al consultar tags de ${owner}/${repo}: ${msg}`);
@@ -935,7 +1007,7 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
   } else {
     // Si es borrado real, realizar comprobación previa de seguridad
     if (!dryRun && !effectiveSimulate) {
-      console.log('\n🔒 Verificando que los tags conservados siguen existiendo en el remoto antes de proceder...');
+      console.log('\n🔒 Verificando existencia e identidad de los tags conservados antes de proceder...');
       for (const item of kept) {
         const check = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
         if (!check) {
@@ -943,10 +1015,20 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
             `Inconsistencia crítica: El tag retenido ${item.tag.name} no se encontró en el remoto. Abortando purga por seguridad.`,
           );
         }
+        if (!areShasEqual(check.targetCommitSha, item.tag.sha)) {
+          throw new Error(
+            `Inconsistencia crítica: El tag retenido ${item.tag.name} mutó de commit en el remoto (esperado ${item.tag.sha}, encontrado ${check.targetCommitSha}). Abortando purga por seguridad.`,
+          );
+        }
+        if (item.tag.refSha && !areShasEqual(check.refSha, item.tag.refSha)) {
+          throw new Error(
+            `Inconsistencia crítica: El tag retenido ${item.tag.name} mutó de objeto de referencia en el remoto (esperado ${item.tag.refSha}, encontrado ${check.refSha}). Abortando purga por seguridad.`,
+          );
+        }
       }
-      console.log('✅ Verificación de integridad completada.');
+      console.log('✅ Verificación de integridad e identidad de tags conservados completada.');
 
-      console.log('🔒 Capturando precondiciones atómicas de referencia para los tags candidatos a purga...');
+      console.log('🔒 Verificando precondiciones de referencia en dos fases para los tags candidatos a purga...');
       for (const item of pruned) {
         const checkPruned = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
         if (!checkPruned) {
@@ -958,6 +1040,11 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         if (!areShasEqual(checkPruned.targetCommitSha, inventoryCommitSha)) {
           throw new Error(
             `Conflicto concurrente en tag ${item.tag.name}: el commit destino remoto (${checkPruned.targetCommitSha}) difiere del SHA evaluado en el inventario (${inventoryCommitSha}). La referencia mutó entre el cálculo y la purga. Operación cancelada por seguridad.`,
+          );
+        }
+        if (item.tag.refSha && !areShasEqual(checkPruned.refSha, item.tag.refSha)) {
+          throw new Error(
+            `Conflicto concurrente en tag ${item.tag.name}: el SHA de la referencia remota (${checkPruned.refSha}) difiere del objeto evaluado en el inventario inicial (${item.tag.refSha}). El objeto tag anotado mutó aunque apunte al mismo commit. Operación cancelada por seguridad.`,
           );
         }
         item.tag.refSha = checkPruned.refSha;
