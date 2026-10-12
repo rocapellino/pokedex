@@ -48,7 +48,7 @@ export interface McpClientDefinition {
 export interface McpAdapter {
   clientId: string;
   format: string;
-  generateConfig(servers: McpServerDefinition[], clientDef: McpClientDefinition): Record<string, any>;
+  generateConfig(servers: McpServerDefinition[], clientDef: McpClientDefinition): Record<string, unknown>;
 }
 
 /**
