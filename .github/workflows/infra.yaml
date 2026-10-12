@@ -69,7 +69,7 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # renovate: datasource=github-releases depName=helm/helm
-          version: v3.17.0
+          version: v3.22.0
 
       - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
         run: |
@@ -177,7 +177,7 @@ jobs:
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
           # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
-          tofu_version: 1.8.8
+          tofu_version: 1.13.1
 
       - name: 3. Format Check y Validate (Proxmox, Lab, Cloud-Template y AWS)
         run: |
@@ -301,7 +301,7 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # renovate: datasource=github-releases depName=helm/helm
-          version: v3.17.0
+          version: v3.22.0
 
       - name: 5. Desplegar Helm Chart en Kind
         run: |
