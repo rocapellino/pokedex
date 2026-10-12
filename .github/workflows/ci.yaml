@@ -236,7 +236,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: 8. Analizar Calidad, Cobertura y Deuda Técnica
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         with:
           args: >
             -Dsonar.projectVersion=${{ steps.project-version.outputs.version }}
@@ -409,7 +409,7 @@ jobs:
           echo "::notice title=VER-002::APP_VERSION=${APP_VERSION} | GIT_SHA=${GIT_SHA}"
 
       - name: Compilar y exportar imagen local
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -429,7 +429,7 @@ jobs:
           docker save "${IMAGE_REF}" -o /tmp/image.tar
 
       - name: Subir artefacto de imagen para escaneo
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: docker-image-${{ matrix.component }}
           path: /tmp/image.tar
@@ -467,7 +467,7 @@ jobs:
           docker load -i /tmp/image.tar
 
       - name: Escanear imagen con Trivy
-        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0 (master pinned)
         with:
           image-ref: ${{ env.IMAGE_REF }}:${{ github.sha }}
           format: 'table'
@@ -477,14 +477,14 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Generar SBOM (Software Bill of Materials) con Trivy
-        uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # v0.36.0 (master pinned)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0 (master pinned)
         with:
           image-ref: ${{ env.IMAGE_REF }}:${{ github.sha }}
           format: 'cyclonedx'
           output: 'pokedex-sbom.json'
 
       - name: Subir artefacto SBOM
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-cyclonedx-${{ matrix.component }}
           path: pokedex-sbom.json
