@@ -14,7 +14,7 @@ RUN npm run build --workspace=@pokedex/frontend
 # ==============================================================================
 # Etapa de Ejecución (Nginx Alpine Ligero y Seguro)
 # ==============================================================================
-FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
+FROM nginx:1.31-alpine@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2 AS runner
 
 # OCI-001: los metadatos de version y revision se inyectan desde CI como
 # build-args. El `version="1.0.0"` generico anterior era ficticio y no
