@@ -51,7 +51,7 @@ jobs:
           curl -f http://127.0.0.1:3000/healthz
 
       - name: 5. Instalar Grafana k6 CLI
-        uses: grafana/setup-k6-action@db07bd9765aac508ef18982e52ab937fe633a065 # v1.2.1
+        uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1 # v1.2.2
 
       - name: 6. Ejecutar Pruebas de Carga con Grafana k6 y Validar Umbrales de SLA
         env:
