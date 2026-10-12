@@ -108,7 +108,7 @@ El template [`infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml`](../../in
 
 1. **CronJob `pokedex-gdrive-sync`:**
    - **Horario:** Diario a las 03:00 UTC (1 hora posterior al snapshot local de K8s a las 02:00).
-   - **Imagen:** `rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b` (Rclone 1.68.2 fijado por digest SHA-256 inmutable).
+   - **Imagen:** `rclone/rclone` fijada por etiqueta y digest SHA-256 inmutable desde [`infra/helm/pokedex/values.yaml`](../../infra/helm/pokedex/values.yaml) (`backup.gdrive.image`).
    - **Volumen:** `claimName: pokedex-backup-pvc` montado en `/backups` con **`readOnly: true`** (garantiza inmutabilidad física del almacenamiento de copias).
    - **Credenciales:** `GDRIVE_TOKEN` se lee del Secret `pokemon-secrets` (`optional: false`). En entornos con External Secrets Operator solo llega ahí si `externalSecrets.gdriveToken: true` y la propiedad existe en Vault (véase "Activación del token en Vault").
    - **Aislamiento de Red (Zero-Trust L7):** CiliumNetworkPolicy dedicada (`pokedex-gdrive-sync-cilium-l7-policy`) con eBPF y FQDN Allowlist (`*.googleapis.com`, `accounts.google.com`) sobre TCP 443 y resolución interna DNS en `kube-dns` (puerto 53), eliminando la salida permisiva a destinos HTTPS arbitrarios. En clústeres sin Cilium, se aplica fallback de NetworkPolicy con Anti-SSRF (bloqueo estricto de IMDS `169.254.169.254/32` y RFC1918).

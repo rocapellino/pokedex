@@ -18,11 +18,12 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { generateAllClientConfigs } from './generate.js';
 import { loadLocalEnv } from './env.js';
+import type { McpRegistrySpec, McpServerDefinition } from './adapters/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = process.cwd();
@@ -49,68 +50,104 @@ export interface DoctorReport {
   recommendations: string[];
 }
 
+export function probeCliTool(binary: string): { available: boolean; version?: string } {
+  try {
+    const output = execFileSync(binary, ['--version'], {
+      // NOSONAR: S4036 - sonda read-only de versión de herramientas CLI locales
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const firstLine = output.trim().split('\n')[0];
+    return { available: true, version: firstLine };
+  } catch {
+    return { available: false };
+  }
+}
+
+function detectSystemTools(): Record<string, { available: boolean; version?: string }> {
+  return {
+    node: { available: true, version: process.version },
+    docker: probeCliTool('docker'),
+    vscode: probeCliTool('code'),
+    cursor: probeCliTool('cursor'),
+    claude: probeCliTool('claude'),
+  };
+}
+
+function getMissingEnvVars(requiredVars: string[] | undefined): string[] {
+  if (!Array.isArray(requiredVars)) return [];
+  const missing: string[] = [];
+  for (const envVar of requiredVars) {
+    const envVal = process.env[envVar];
+    if (!envVal || envVal.trim().length === 0) {
+      missing.push(envVar);
+    }
+  }
+  return missing;
+}
+
+function isPlainHttpRemoteUrl(s: McpServerDefinition): boolean {
+  if (s.transport !== 'sse' && s.transport !== 'http') return false;
+  const url = s.url ?? '';
+  return (
+    !url.startsWith('https://') && !url.includes('localhost') && !url.includes('127.0.0.1') && !url.startsWith('${')
+  );
+}
+
+function diagnoseServer(s: McpServerDefinition, dockerAvailable: boolean, recommendations: string[]): ServerDiagnosis {
+  if (!s.enabled) {
+    return {
+      id: s.id,
+      name: s.name,
+      profile: s.profile,
+      transport: s.transport,
+      executionMode: s.execution_mode,
+      state: 'DISABLED',
+      details: ['Deshabilitado explícitamente en el registro.'],
+    };
+  }
+
+  let state: ServerHealthState = 'READY';
+  const details: string[] = [];
+
+  const missingVars = getMissingEnvVars(s.required_env_vars);
+  if (missingVars.length > 0) {
+    state = 'CONFIG_MISSING';
+    details.push(`Variables faltantes: ${missingVars.join(', ')}.`);
+    recommendations.push(`Defina localmente las variables para '${s.id}': ${missingVars.join(', ')}.`);
+  }
+
+  if (s.execution_mode === 'container' && !dockerAvailable) {
+    state = 'DEPENDENCY_MISSING';
+    details.push('Docker no está disponible en PATH para ejecutar este contenedor.');
+    recommendations.push(`Instale o inicie Docker para habilitar la ejecución del servidor '${s.id}'.`);
+  }
+
+  if (isPlainHttpRemoteUrl(s)) {
+    details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
+  }
+
+  if (details.length === 0) {
+    details.push('Listo para su consumo.');
+  }
+
+  return {
+    id: s.id,
+    name: s.name,
+    profile: s.profile,
+    transport: s.transport,
+    executionMode: s.execution_mode,
+    state,
+    details,
+  };
+}
+
 export function runMcpDoctor(): DoctorReport {
   loadLocalEnv(ROOT_DIR);
   const recommendations: string[] = [];
 
   // 1. Diagnóstico de herramientas del sistema
-  const systemTools: Record<string, { available: boolean; version?: string }> = {};
-
-  // Node
-  systemTools.node = {
-    available: true,
-    version: process.version,
-  };
-
-  // Docker
-  try {
-    const dockerVer = execSync('docker --version', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-    systemTools.docker = { available: true, version: dockerVer };
-  } catch {
-    systemTools.docker = { available: false };
-  }
-
-  // VS Code
-  try {
-    const codeVer = execSync('code --version', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .trim()
-      .split('\n')[0];
-    systemTools.vscode = { available: true, version: codeVer };
-  } catch {
-    systemTools.vscode = { available: false };
-  }
-
-  // Cursor
-  try {
-    const cursorVer = execSync('cursor --version', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .trim()
-      .split('\n')[0];
-    systemTools.cursor = { available: true, version: cursorVer };
-  } catch {
-    systemTools.cursor = { available: false };
-  }
-
-  // Claude Code
-  try {
-    const claudeVer = execSync('claude --version', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .trim()
-      .split('\n')[0];
-    systemTools.claude = { available: true, version: claudeVer };
-  } catch {
-    systemTools.claude = { available: false };
-  }
+  const systemTools = detectSystemTools();
 
   // 2. Diagnóstico de sincronización de clientes
   const genCheck = generateAllClientConfigs({ check: true });
@@ -128,89 +165,76 @@ export function runMcpDoctor(): DoctorReport {
   }
 
   // 3. Diagnóstico por servidor en registro
-  const registry: any = yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
-  const serversList: any[] = registry.servers || [];
-  const serverDiagnoses: ServerDiagnosis[] = [];
-
-  for (const s of serversList) {
-    const details: string[] = [];
-
-    if (!s.enabled) {
-      serverDiagnoses.push({
-        id: s.id,
-        name: s.name,
-        profile: s.profile,
-        transport: s.transport,
-        executionMode: s.execution_mode,
-        state: 'DISABLED',
-        details: ['Deshabilitado explícitamente en el registro.'],
-      });
-      continue;
-    }
-
-    let state: ServerHealthState = 'READY';
-
-    // Comprobar variables de entorno requeridas
-    if (s.required_env_vars && Array.isArray(s.required_env_vars)) {
-      const missingVars: string[] = [];
-      for (const envVar of s.required_env_vars) {
-        if (!process.env[envVar] || process.env[envVar]!.trim().length === 0) {
-          missingVars.push(envVar);
-        }
-      }
-      if (missingVars.length > 0) {
-        state = 'CONFIG_MISSING';
-        details.push(`Variables faltantes: ${missingVars.join(', ')}.`);
-        recommendations.push(`Defina localmente las variables para '${s.id}': ${missingVars.join(', ')}.`);
-      }
-    }
-
-    // Comprobar runtime de contenedores si aplica
-    if (s.execution_mode === 'container') {
-      if (!systemTools.docker.available) {
-        state = 'DEPENDENCY_MISSING';
-        details.push('Docker no está disponible en PATH para ejecutar este contenedor.');
-        recommendations.push(`Instale o inicie Docker para habilitar la ejecución del servidor '${s.id}'.`);
-      }
-    }
-
-    // Comprobar URL y TLS en servidores remotos
-    if (s.transport === 'sse' || s.transport === 'http') {
-      const url = s.url || '';
-      if (
-        !url.startsWith('https://') &&
-        !url.includes('localhost') &&
-        !url.includes('127.0.0.1') &&
-        !url.startsWith('${')
-      ) {
-        details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
-      }
-    }
-
-    if (details.length === 0) {
-      details.push('Listo para su consumo.');
-    }
-
-    serverDiagnoses.push({
-      id: s.id,
-      name: s.name,
-      profile: s.profile,
-      transport: s.transport,
-      executionMode: s.execution_mode,
-      state,
-      details,
-    });
-  }
-
-  const overallValid = outOfSyncClients.length === 0;
+  const registry = (yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
+  const serversList: McpServerDefinition[] = registry.servers ?? [];
+  const dockerAvailable = Boolean(systemTools.docker?.available);
+  const serverDiagnoses = serversList.map((s) => diagnoseServer(s, dockerAvailable, recommendations));
 
   return {
-    overallValid,
+    overallValid: outOfSyncClients.length === 0,
     systemTools,
     clientConfigs,
     servers: serverDiagnoses,
     recommendations,
   };
+}
+
+function getServerStateIcon(state: ServerHealthState): string {
+  if (state === 'CONFIG_MISSING') return '⚠️';
+  if (state === 'DEPENDENCY_MISSING') return '❌';
+  if (state === 'DISABLED') return '○';
+  return '✔';
+}
+
+function printSystemAndClientsSection(report: DoctorReport): void {
+  console.log('1. Herramientas del Sistema:');
+  for (const [tool, info] of Object.entries(report.systemTools)) {
+    const icon = info.available ? '✔' : '○';
+    const ver = info.version ? ` (${info.version})` : ' [no detectado en PATH]';
+    console.log(`   ${icon} ${tool.padEnd(10)}: ${ver}`);
+  }
+
+  console.log('\n2. Sincronización de Clientes:');
+  for (const c of report.clientConfigs) {
+    const icon = c.inSync ? '✔' : '❌';
+    const syncLabel = c.inSync ? 'Sincronizado' : 'DESACTUALIZADO';
+    console.log(`   ${icon} ${c.client.padEnd(10)} ➔ ${c.path} [${syncLabel}]`);
+  }
+}
+
+function printServersSection(servers: ServerDiagnosis[]): void {
+  console.log('\n3. Estado de Servidores en Catálogo:');
+  for (const s of servers) {
+    const icon = getServerStateIcon(s.state);
+    console.log(`   ${icon} ${s.id.padEnd(24)} [${s.state.padEnd(18)}] (${s.transport}/${s.executionMode})`);
+    for (const d of s.details) {
+      console.log(`      └─ ${d}`);
+    }
+  }
+}
+
+function printDoctorReport(report: DoctorReport): void {
+  console.log('\n======================================================');
+  console.log('🩺 MCP Doctor — Diagnóstico del Entorno');
+  console.log('======================================================\n');
+
+  printSystemAndClientsSection(report);
+  printServersSection(report.servers);
+
+  if (report.recommendations.length > 0) {
+    console.log('\n------------------------------------------------------');
+    console.log('💡 Recomendaciones y Pasos Accionables:');
+    console.log('------------------------------------------------------');
+    for (const rec of report.recommendations) {
+      console.log(`   • ${rec}`);
+    }
+  }
+
+  console.log('\n------------------------------------------------------');
+  const summaryMsg = report.overallValid
+    ? '✨ Diagnóstico completado sin bloqueos de sincronización.\n'
+    : '⚠️ Diagnóstico completado: se encontraron elementos para resolver.\n';
+  console.log(summaryMsg);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
@@ -220,50 +244,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename
   if (isJson) {
     console.log(JSON.stringify(report, null, 2));
   } else {
-    console.log('\n======================================================');
-    console.log('🩺 MCP Doctor — Diagnóstico del Entorno');
-    console.log('======================================================\n');
-
-    console.log('1. Herramientas del Sistema:');
-    for (const [tool, info] of Object.entries(report.systemTools)) {
-      const icon = info.available ? '✔' : '○';
-      const ver = info.version ? ` (${info.version})` : ' [no detectado en PATH]';
-      console.log(`   ${icon} ${tool.padEnd(10)}: ${ver}`);
-    }
-
-    console.log('\n2. Sincronización de Clientes:');
-    for (const c of report.clientConfigs) {
-      const icon = c.inSync ? '✔' : '❌';
-      console.log(`   ${icon} ${c.client.padEnd(10)} ➔ ${c.path} [${c.inSync ? 'Sincronizado' : 'DESACTUALIZADO'}]`);
-    }
-
-    console.log('\n3. Estado de Servidores en Catálogo:');
-    for (const s of report.servers) {
-      let icon = '✔';
-      if (s.state === 'CONFIG_MISSING') icon = '⚠️';
-      if (s.state === 'DEPENDENCY_MISSING') icon = '❌';
-      if (s.state === 'DISABLED') icon = '○';
-
-      console.log(`   ${icon} ${s.id.padEnd(24)} [${s.state.padEnd(18)}] (${s.transport}/${s.executionMode})`);
-      for (const d of s.details) {
-        console.log(`      └─ ${d}`);
-      }
-    }
-
-    if (report.recommendations.length > 0) {
-      console.log('\n------------------------------------------------------');
-      console.log('💡 Recomendaciones y Pasos Accionables:');
-      console.log('------------------------------------------------------');
-      for (const rec of report.recommendations) {
-        console.log(`   • ${rec}`);
-      }
-    }
-
-    console.log('\n------------------------------------------------------');
-    if (report.overallValid) {
-      console.log('✨ Diagnóstico completado sin bloqueos de sincronización.\n');
-    } else {
-      console.log('⚠️ Diagnóstico completado: se encontraron elementos para resolver.\n');
-    }
+    printDoctorReport(report);
   }
 }

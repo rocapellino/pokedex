@@ -462,6 +462,35 @@ test('🛡️ Disaster Recovery: la imagen de rclone es la misma (versión y dig
     mainContainer(job).image.endsWith(`@${composeDigest}`),
     `el CronJob renderizado debe desplegar rclone con el digest ${composeDigest}`,
   );
+
+  // AUD-DOC-DRIFT-001: ni el template ni la documentación deben fijar digests o versiones obsoletas de rclone.
+  const cronjobTpl = fs.readFileSync(
+    path.join(ROOT_DIR, 'infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml'),
+    'utf-8',
+  );
+  const tplDefaultTag = cronjobTpl.match(/\.Values\.backup\.gdrive\.image\.tag\s*\|\s*default\s*"([^"]+)"/)?.[1];
+  if (tplDefaultTag) {
+    assert.equal(
+      tplDefaultTag,
+      composeTag,
+      `AUD-DOC-DRIFT-001: el fallback default tag de backup-gdrive-cronjob.yaml (${tplDefaultTag}) no coincide con values.yaml (${composeTag})`,
+    );
+  }
+
+  for (const docRel of [
+    'docs/decisions/ADR-006-disaster-recovery-strategy.md',
+    'docs/operations/GDRIVE_BACKUP_GUIDE.md',
+  ]) {
+    const docText = fs.readFileSync(path.join(ROOT_DIR, docRel), 'utf-8');
+    const docDigests = [...docText.matchAll(/rclone\/rclone(?:[:\w.-]*)?@(sha256:[a-f0-9]{64})/g)].map((m) => m[1]);
+    for (const digest of docDigests) {
+      assert.equal(
+        digest,
+        composeDigest,
+        `AUD-DOC-DRIFT-001: ${docRel} cita un digest obsoleto de rclone (${digest} !== ${composeDigest}); referencia values.yaml como SSOT`,
+      );
+    }
+  }
 });
 
 test('🔔 Disaster Recovery: las alertas cubren el sync a Drive y los Jobs atascados', () => {

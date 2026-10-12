@@ -18,6 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { generateAllClientConfigs } from './generate.js';
+import type { McpClientsSpec, McpRegistrySpec, McpServerDefinition } from './adapters/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = process.cwd();
@@ -31,12 +32,86 @@ export interface ConfigTestResult {
   errors: string[];
 }
 
-export function testAllMcpConfigs(): ConfigTestResult[] {
-  const registry: any = yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
-  const clientsSpec: any = yaml.load(fs.readFileSync(CLIENTS_PATH, 'utf-8'));
+interface GeneratedServerConfig {
+  url?: string;
+  serverUrl?: string;
+  type?: string;
+}
 
-  const servers: any[] = registry.servers || [];
-  const clients = clientsSpec.clients || {};
+function validateRemoteAdapterSchema(
+  clientId: string,
+  srvId: string,
+  transport: string,
+  srvConfig: GeneratedServerConfig,
+  errors: string[],
+): void {
+  if (clientId === 'antigravity') {
+    if (!srvConfig.serverUrl) {
+      errors.push(`Antigravity exige 'serverUrl' para transporte ${transport} en servidor '${srvId}'.`);
+    }
+    if (srvConfig.url) {
+      errors.push(`Antigravity prohíbe 'url' directa en favor de 'serverUrl' en servidor '${srvId}'.`);
+    }
+  } else if (clientId === 'claude') {
+    if (!srvConfig.url) {
+      errors.push(`Claude Code exige 'url' para transporte ${transport} en servidor '${srvId}'.`);
+    }
+    if (srvConfig.type !== 'sse' && srvConfig.type !== 'http') {
+      errors.push(`Claude Code exige 'type: "${transport}"' explícito en servidor '${srvId}'.`);
+    }
+  } else if (!srvConfig.url) {
+    errors.push(`Cliente '${clientId}' exige 'url' para transporte ${transport} en servidor '${srvId}'.`);
+  }
+
+  const activeUrl = srvConfig.url || srvConfig.serverUrl || '';
+  if (activeUrl.includes('${')) {
+    errors.push(`URL sin resolver detectada en servidor '${srvId}': '${activeUrl}'.`);
+  }
+}
+
+function validateGeneratedServersForClient(
+  clientId: string,
+  supportedTransports: string[],
+  mcpServers: Record<string, GeneratedServerConfig>,
+  servers: McpServerDefinition[],
+  enabledServerIds: Set<string>,
+  disabledServerIds: Set<string>,
+  errors: string[],
+): void {
+  for (const enabledId of enabledServerIds) {
+    if (!mcpServers[enabledId]) {
+      errors.push(`Servidor habilitado '${enabledId}' ausente en la configuración del cliente.`);
+    }
+  }
+
+  for (const disabledId of disabledServerIds) {
+    if (mcpServers[disabledId]) {
+      errors.push(`Servidor deshabilitado '${disabledId}' presente indebidamente en la configuración.`);
+    }
+  }
+
+  for (const [srvId, srvConfig] of Object.entries(mcpServers)) {
+    const serverDef = servers.find((s) => s.id === srvId);
+    if (!serverDef) continue;
+
+    if (!supportedTransports.includes(serverDef.transport)) {
+      errors.push(
+        `Servidor '${srvId}' utiliza transporte '${serverDef.transport}' no soportado por el cliente (${supportedTransports.join(', ')}).`,
+      );
+    }
+
+    if (serverDef.transport === 'sse' || serverDef.transport === 'http') {
+      validateRemoteAdapterSchema(clientId, srvId, serverDef.transport, srvConfig, errors);
+    }
+  }
+}
+
+export function testAllMcpConfigs(): ConfigTestResult[] {
+  const registry = (yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
+  const clientsSpec = (yaml.load(fs.readFileSync(CLIENTS_PATH, 'utf-8')) as McpClientsSpec | undefined) ?? {};
+
+  const servers: McpServerDefinition[] = registry.servers ?? [];
+  const clients = clientsSpec.clients ?? {};
 
   const enabledServerIds = new Set(servers.filter((s) => s.enabled).map((s) => s.id));
   const disabledServerIds = new Set(servers.filter((s) => !s.enabled).map((s) => s.id));
@@ -48,76 +123,29 @@ export function testAllMcpConfigs(): ConfigTestResult[] {
     const errors: string[] = [];
     const clientDef = clients[cfg.clientId];
 
-    let parsed: any;
+    let parsed: { mcpServers?: Record<string, GeneratedServerConfig> };
     try {
-      parsed = JSON.parse(cfg.content);
-    } catch (err: any) {
-      errors.push(`JSON no parseable: ${err.message}`);
+      parsed = JSON.parse(cfg.content) as { mcpServers?: Record<string, GeneratedServerConfig> };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`JSON no parseable: ${msg}`);
       results.push({ client: cfg.clientId, passed: false, errors });
       continue;
     }
 
-    const mcpServers = parsed.mcpServers || {};
-
-    // 1. Verificar presencia de servidores habilitados
-    for (const enabledId of enabledServerIds) {
-      if (!mcpServers[enabledId]) {
-        errors.push(`Servidor habilitado '${enabledId}' ausente en la configuración del cliente.`);
-      }
-    }
-
-    // 2. Verificar ausencia de servidores deshabilitados
-    for (const disabledId of disabledServerIds) {
-      if (mcpServers[disabledId]) {
-        errors.push(`Servidor deshabilitado '${disabledId}' presente indebidamente en la configuración.`);
-      }
-    }
-
-    // 3. Verificar transportes y esquemas específicos por cliente
+    const mcpServers: Record<string, GeneratedServerConfig> = parsed.mcpServers ?? {};
     const supportedTransports = clientDef.supported_transports || [];
-    for (const [srvId, srvConfig] of Object.entries<any>(mcpServers)) {
-      const serverDef = servers.find((s) => s.id === srvId);
-      if (!serverDef) continue;
 
-      if (!supportedTransports.includes(serverDef.transport)) {
-        errors.push(
-          `Servidor '${srvId}' utiliza transporte '${serverDef.transport}' no soportado por el cliente (${supportedTransports.join(', ')}).`,
-        );
-      }
+    validateGeneratedServersForClient(
+      cfg.clientId,
+      supportedTransports,
+      mcpServers,
+      servers,
+      enabledServerIds,
+      disabledServerIds,
+      errors,
+    );
 
-      // Validar esquema específico del adaptador
-      if (serverDef.transport === 'sse' || serverDef.transport === 'http') {
-        if (cfg.clientId === 'antigravity') {
-          if (!srvConfig.serverUrl) {
-            errors.push(`Antigravity exige 'serverUrl' para transporte ${serverDef.transport} en servidor '${srvId}'.`);
-          }
-          if (srvConfig.url) {
-            errors.push(`Antigravity prohíbe 'url' directa en favor de 'serverUrl' en servidor '${srvId}'.`);
-          }
-        } else if (cfg.clientId === 'claude') {
-          if (!srvConfig.url) {
-            errors.push(`Claude Code exige 'url' para transporte ${serverDef.transport} en servidor '${srvId}'.`);
-          }
-          if (srvConfig.type !== 'sse' && srvConfig.type !== 'http') {
-            errors.push(`Claude Code exige 'type: "${serverDef.transport}"' explícito en servidor '${srvId}'.`);
-          }
-        } else {
-          if (!srvConfig.url) {
-            errors.push(
-              `Cliente '${cfg.clientId}' exige 'url' para transporte ${serverDef.transport} en servidor '${srvId}'.`,
-            );
-          }
-        }
-
-        // Verificar que no queden expresiones shell sin resolver en URLs
-        const activeUrl = srvConfig.url || srvConfig.serverUrl || '';
-        if (activeUrl.includes('${')) {
-          errors.push(`URL sin resolver detectada en servidor '${srvId}': '${activeUrl}'.`);
-        }
-      }
-    }
-
-    // 4. Verificar ausencia de secretos en la salida generada
     if (cfg.content.includes('ghp_') || cfg.content.includes('sk-') || cfg.content.includes('glpat-')) {
       errors.push('Posible token o secreto detectado en la configuración generada.');
     }
