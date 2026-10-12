@@ -71,7 +71,7 @@ services:
   # forma nativa en :10250 sin contenedor satélite.
   # ============================================================================
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1@sha256:3cde6faf0791ebf7b41d6f8ae7145466fed712ea6f252c935294d2608b1af388 # cadvisor v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.55.1@sha256:3de2bd5203120b866d74a9b283b2ffb8ec382fbf9dc321814700c6ea6f44ec57 # cadvisor v0.49.1
     container_name: pokemon-cadvisor
     restart: unless-stopped
     volumes:
