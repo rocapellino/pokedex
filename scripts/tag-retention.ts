@@ -590,8 +590,8 @@ export async function fetchRemoteTags(
       });
     }
 
-    const linkHeader = response.headers?.get?.('link') || '';
-    const hasNextPage = linkHeader.includes('rel="next"') || data.length === perPage;
+    const linkHeader = response.headers?.get?.('link');
+    const hasNextPage = typeof linkHeader === 'string' ? linkHeader.includes('rel="next"') : data.length === perPage;
 
     if (!hasNextPage) {
       break;
@@ -799,8 +799,8 @@ export async function enrichTagsWithRemoteRefs(
         }
       }
 
-      const linkHeader = response.headers?.get?.('link') || '';
-      const hasNextPage = linkHeader.includes('rel="next"') || data.length === perPage;
+      const linkHeader = response.headers?.get?.('link');
+      const hasNextPage = typeof linkHeader === 'string' ? linkHeader.includes('rel="next"') : data.length === perPage;
 
       if (!hasNextPage) {
         break;
@@ -827,7 +827,9 @@ export async function enrichTagsWithRemoteRefs(
     return;
   }
 
-  // Mapeo y validación de cobertura de tags
+  // Mapeo y validación de cobertura de tags (consistencia bidireccional estricta)
+  const initialTagNames = new Set(tags.map((t) => t.name));
+
   for (const tag of tags) {
     const refDetail = refsMap.get(tag.name);
     if (refDetail) {
@@ -842,6 +844,23 @@ export async function enrichTagsWithRemoteRefs(
     } else if (strict) {
       throw new Error(
         `Inventario incompleto: el tag ${tag.name} no se encontró en las referencias remotas de GitHub (git/matching-refs/tags). Abortando operación destructiva por seguridad (FAIL-CLOSED).`,
+      );
+    }
+  }
+
+  // Validación inversa: en modo estricto, comprobar que NO existan referencias adicionales
+  // en matching-refs que no estuvieran en el inventario inicial (ej. publicación concurrente de tags)
+  if (strict) {
+    const extraneousRefs: string[] = [];
+    for (const remoteTagName of refsMap.keys()) {
+      if (!initialTagNames.has(remoteTagName)) {
+        extraneousRefs.push(remoteTagName);
+      }
+    }
+
+    if (extraneousRefs.length > 0) {
+      throw new Error(
+        `Inconsistencia bidireccional de inventario: se detectaron ${extraneousRefs.length} referencias remotas en matching-refs que no existían en el inventario inicial (${extraneousRefs.slice(0, 5).join(', ')}${extraneousRefs.length > 5 ? '...' : ''}). Posible publicación concurrente de tags durante la ejecución. Cancelando operación destructiva por seguridad (FAIL-CLOSED).`,
       );
     }
   }
@@ -1238,6 +1257,16 @@ if (process.argv[1]?.endsWith('tag-retention.ts')) {
   const protectArg = args.find((a) => a.startsWith('--protect='));
   const customProtectedTags = protectArg ? protectArg.split('=')[1].split(',') : undefined;
 
+  let maxPages: number | undefined;
+  const maxPagesArg = args.find((a) => a.startsWith('--max-pages='));
+  if (maxPagesArg) {
+    const parsed = parseInt(maxPagesArg.split('=')[1], 10);
+    if (!Number.isNaN(parsed) && parsed > 0) maxPages = parsed;
+  } else if (process.env.TAG_RETENTION_MAX_PAGES) {
+    const parsed = parseInt(process.env.TAG_RETENTION_MAX_PAGES, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) maxPages = parsed;
+  }
+
   applyTagRetention({
     dryRun: isDryRun,
     simulate: isSimulate,
@@ -1249,6 +1278,7 @@ if (process.argv[1]?.endsWith('tag-retention.ts')) {
     owner,
     repo,
     customProtectedTags,
+    maxPages,
   }).catch((err) => {
     console.error('❌ Error fatal en retención jerárquica de tags:', err);
     process.exit(1);

@@ -1168,3 +1168,124 @@ test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs aborta de forma FAIL-CLOSED 
     },
   );
 });
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs aborta de forma FAIL-CLOSED si matching-refs contiene referencias no existentes en el inventario inicial (inconsistencia bidireccional)', async () => {
+  const mockFetchExtraneous: typeof fetch = async () => {
+    return new Response(
+      JSON.stringify([
+        { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        { ref: 'refs/tags/v1.1.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } }, // Referencia extra no presente en tags
+      ]),
+      { status: 200 },
+    );
+  };
+
+  const tags: GitTagRef[] = [{ name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 }];
+
+  await assert.rejects(
+    async () => {
+      await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, {
+        fetchFn: mockFetchExtraneous,
+        strict: true,
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Inconsistencia bidireccional de inventario: se detectaron 1 referencias remotas en matching-refs que no existían en el inventario inicial/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: fetchRemoteTags y enrichTagsWithRemoteRefs completan con éxito cuando el inventario es exactamente igual al límite de páginas sin más resultados (prueba de frontera)', async () => {
+  // Simular exactamente 2 páginas completas de 2 elementos = 4 tags en total, y la página 2 NO tiene rel="next"
+  const mockBoundaryFetch: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+    const pageMatch = url.match(/[?&]page=(\d+)/);
+    const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
+
+    if (url.includes('/git/matching-refs/tags')) {
+      if (page === 1) {
+        return new Response(
+          JSON.stringify([
+            { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+            { ref: 'refs/tags/v1.1.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+          ]),
+          {
+            status: 200,
+            headers: {
+              Link: '<https://api.github.com/repos/rocapellino/pokedex/git/matching-refs/tags?page=2>; rel="next"',
+            },
+          },
+        );
+      }
+      if (page === 2) {
+        return new Response(
+          JSON.stringify([
+            { ref: 'refs/tags/v2.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+            { ref: 'refs/tags/v2.1.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+          ]),
+          {
+            status: 200,
+            headers: {
+              Link: '<https://api.github.com/repos/rocapellino/pokedex/git/matching-refs/tags?page=1>; rel="prev"',
+            },
+          },
+        );
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    }
+
+    // fetchRemoteTags
+    if (page === 1) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v1.0.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v1.1.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        {
+          status: 200,
+          headers: {
+            Link: '<https://api.github.com/repos/rocapellino/pokedex/tags?page=2>; rel="next"',
+          },
+        },
+      );
+    }
+    if (page === 2) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v2.0.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v2.1.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        {
+          status: 200,
+          headers: {
+            Link: '<https://api.github.com/repos/rocapellino/pokedex/tags?page=1>; rel="prev"',
+          },
+        },
+      );
+    }
+
+    return new Response(JSON.stringify([]), { status: 200 });
+  };
+
+  const remoteTags = await fetchRemoteTags('token', 'rocapellino', 'pokedex', {
+    fetchFn: mockBoundaryFetch,
+    maxPages: 2,
+    perPage: 2,
+  });
+
+  assert.equal(remoteTags.length, 4, 'Debe procesar exactamente 4 tags en el límite de frontera sin fallar');
+
+  await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', remoteTags, {
+    fetchFn: mockBoundaryFetch,
+    maxPages: 2,
+    perPage: 2,
+    strict: true,
+  });
+
+  assert.equal(
+    remoteTags.every((t) => t.refSha === SHA_COMMIT_TARGET_2),
+    true,
+  );
+});
