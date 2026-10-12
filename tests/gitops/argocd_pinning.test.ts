@@ -171,6 +171,10 @@ test('🚀 ArgoCD Pinning Automation: Workflow release-tag.yaml, package.json y 
     promoteScript.includes('git push -u --force-with-lease origin "$BRANCH"'),
     'Solo la rama bot de promoción puede actualizarse mediante force-with-lease',
   );
+  assert.ok(
+    promoteScript.includes('git update-ref -d "refs/remotes/origin/$BRANCH"'),
+    'REL-004: si la rama remota fue eliminada tras el checkout inicial, debe purgarse refs/remotes/origin/$BRANCH antes de --force-with-lease',
+  );
   assert.doesNotMatch(
     allScripts(),
     /git push[^\n]*--force(?!-with-lease)/,

@@ -99,21 +99,16 @@ jobs:
   # =======================================================
   # 2. CI CORE (Aplicación, Quality Gates, SAST & Release)
   # =======================================================
+  # Sin `if:` en el job invocador: cada job dentro de `ci.yaml` declara su propio
+  # `if:` granular. Si `ci-core` se omitiera aquí afuera (p. ej. en PRs puros de
+  # OpenTofu o Ansible), GitHub Actions no expandiría `ci.yaml` y jamás emitiría el
+  # check `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad` (ni siquiera como
+  # `SKIPPED`), dejando el PR en `BLOCKED` por el ruleset `main-protection`. Al
+  # expandir siempre `ci.yaml`, cuando todas las entradas son `false` no arranca
+  # ningún runner (0s de cómputo) y los jobs hijos se reportan como `SKIPPED`.
   ci-core:
     name: "🚀 Core CI"
     needs: [detect-impact]
-    if: |
-      needs.detect-impact.outputs.backend == 'true' ||
-      needs.detect-impact.outputs.frontend == 'true' ||
-      needs.detect-impact.outputs.tests == 'true' ||
-      needs.detect-impact.outputs.docker == 'true' ||
-      needs.detect-impact.outputs.security_sast == 'true' ||
-      needs.detect-impact.outputs.security_dependencies == 'true' ||
-      needs.detect-impact.outputs.security_container == 'true' ||
-      needs.detect-impact.outputs.docs == 'true' ||
-      needs.detect-impact.outputs.agent_governance == 'true' ||
-      needs.detect-impact.outputs.is_unknown == 'true' ||
-      github.event_name == 'push'
     permissions:
       contents: read
       packages: write
