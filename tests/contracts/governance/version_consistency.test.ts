@@ -103,3 +103,27 @@ test('VER-001 🔒 Fase promote del workflow sincroniza package-lock.json junto 
   );
   assert.ok(wf.includes('l.packages[""].version'), 'La fase tag debe leer packages[""].version de package-lock.json');
 });
+
+test('AUD-DEP-LOCK-001 🔒 Paridad de descriptores: cada workspace de package-lock.json coincide con su package.json', () => {
+  const lock = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package-lock.json'), 'utf-8')) as {
+    packages: Record<string, { dependencies?: Record<string, string>; devDependencies?: Record<string, string> }>;
+  };
+
+  for (const workspace of ['', 'apps/backend', 'apps/frontend']) {
+    const manifestRel = workspace ? `${workspace}/package.json` : 'package.json';
+    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, manifestRel), 'utf-8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const lockEntry = lock.packages[workspace];
+    assert.ok(lockEntry, `package-lock.json debe contener la entrada packages["${workspace}"]`);
+
+    for (const section of ['dependencies', 'devDependencies'] as const) {
+      assert.deepEqual(
+        lockEntry[section] ?? {},
+        manifest[section] ?? {},
+        `AUD-DEP-LOCK-001: ${manifestRel} (${section}) diverge de package-lock.json packages["${workspace}"].${section}`,
+      );
+    }
+  }
+});
