@@ -52,7 +52,7 @@ Su objetivo es responder con precisión:
 - **En debates de arquitectura:** Se suele listar a cAdvisor como un componente a desplegar o evaluar en Kubernetes.
 - **En el render real:** **No existe ningún manifiesto ni Helm template para cAdvisor en Kubernetes**.
 - **Realidad Técnica:** Kubelet incluye cAdvisor compilado en su propio binario (`/metrics/cadvisor` en el puerto 10250). Grafana Alloy hace scraping directamente desde Kubelet.
-- **Origen de la Confusión:** En desarrollo local (`docker-compose.dev.yaml`), Docker Engine no expone métricas de cgroups nativamente en formato Prometheus, por lo que se requiere el contenedor satélite `gcr.io/cadvisor/cadvisor:v0.49.1`.
+- **Origen de la Confusión:** En desarrollo local (`docker-compose.dev.yaml`), Docker Engine no expone métricas de cgroups nativamente en formato Prometheus, por lo que se requiere el contenedor satélite `gcr.io/cadvisor/cadvisor`.
 - **Conclusión:** cAdvisor es **herencia de desarrollo local**; en Kubernetes su presencia es nativa e invisible.
 
 ---

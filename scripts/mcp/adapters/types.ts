@@ -45,6 +45,33 @@ export interface McpClientDefinition {
   limitations?: string;
 }
 
+export interface McpProfileDefinition {
+  description?: string;
+  default_enabled?: boolean;
+  network?: string;
+  filesystem?: string;
+  write_access?: boolean;
+  infra_access?: string;
+  allowed_repositories?: string[];
+  requires_explicit_approval?: boolean;
+  allow_production_secrets?: boolean;
+}
+
+export interface McpRegistrySpec {
+  version?: string;
+  servers?: McpServerDefinition[];
+}
+
+export interface McpPoliciesSpec {
+  version?: string;
+  profiles?: Record<string, McpProfileDefinition>;
+}
+
+export interface McpClientsSpec {
+  version?: string;
+  clients?: Record<string, McpClientDefinition>;
+}
+
 export interface McpAdapter {
   clientId: string;
   format: string;

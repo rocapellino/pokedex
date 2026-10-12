@@ -17,12 +17,13 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { validateMcpArchitecture } from './validate.js';
 import { generateAllClientConfigs } from './generate.js';
+import { probeCliTool } from './doctor.js';
 import { loadLocalEnv } from './env.js';
+import type { McpRegistrySpec, McpServerDefinition } from './adapters/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = process.cwd();
@@ -37,6 +38,25 @@ export interface SetupStatus {
   requiredEnvVars: { name: string; isSet: boolean; serverId: string }[];
 }
 
+function collectRequiredEnvVars(servers: McpServerDefinition[]): { name: string; isSet: boolean; serverId: string }[] {
+  const requiredEnvVars: { name: string; isSet: boolean; serverId: string }[] = [];
+
+  for (const s of servers) {
+    if (!s.enabled || !Array.isArray(s.required_env_vars)) continue;
+    for (const envVar of s.required_env_vars) {
+      const envVal = process.env[envVar];
+      const isSet = Boolean(envVal && envVal.trim().length > 0);
+      requiredEnvVars.push({
+        name: envVar,
+        isSet,
+        serverId: s.id,
+      });
+    }
+  }
+
+  return requiredEnvVars;
+}
+
 export function runMcpSetup(): SetupStatus {
   loadLocalEnv(ROOT_DIR);
 
@@ -46,7 +66,7 @@ export function runMcpSetup(): SetupStatus {
 
   // 1. Verificación de Node.js
   const nodeVersion = process.version;
-  const majorNode = parseInt(nodeVersion.replace(/^v/, '').split('.')[0], 10);
+  const majorNode = Number.parseInt(nodeVersion.replace(/^v/, '').split('.')[0], 10);
   console.log(`[1/4] Verificando runtime Node.js: ${nodeVersion}`);
   if (majorNode < 24) {
     throw new Error(`Node.js >= 24 es obligatorio (versión actual: ${nodeVersion}).`);
@@ -54,15 +74,11 @@ export function runMcpSetup(): SetupStatus {
   console.log('      ✔ Node.js cumple con el estándar del monorepo (>= 24).\n');
 
   // 2. Detección no bloqueante de Docker
-  let dockerAvailable = false;
-  try {
-    const dockerCheck = execSync('docker --version', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-    dockerAvailable = true;
-    console.log(`[2/4] Runtime de Contenedores OCI: detectado (${dockerCheck.trim()})`);
-  } catch {
+  const dockerProbe = probeCliTool('docker');
+  const dockerAvailable = dockerProbe.available;
+  if (dockerAvailable) {
+    console.log(`[2/4] Runtime de Contenedores OCI: detectado (${dockerProbe.version ?? 'docker'})`);
+  } else {
     console.log(
       '[2/4] Runtime de Contenedores OCI: no detectado en PATH (los servidores en contenedor requerirán Docker cuando se habiliten).',
     );
@@ -89,23 +105,9 @@ export function runMcpSetup(): SetupStatus {
   }
 
   // 5. Auditoría segura de variables de entorno requeridas
-  const registry: any = yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
-  const servers: any[] = registry.servers || [];
-  const requiredEnvVars: { name: string; isSet: boolean; serverId: string }[] = [];
-
-  for (const s of servers) {
-    if (!s.enabled) continue;
-    if (s.required_env_vars && Array.isArray(s.required_env_vars)) {
-      for (const envVar of s.required_env_vars) {
-        const isSet = Boolean(process.env[envVar] && process.env[envVar]?.trim().length > 0);
-        requiredEnvVars.push({
-          name: envVar,
-          isSet,
-          serverId: s.id,
-        });
-      }
-    }
-  }
+  const registry = (yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
+  const servers: McpServerDefinition[] = registry.servers ?? [];
+  const requiredEnvVars = collectRequiredEnvVars(servers);
 
   console.log('\n------------------------------------------------------');
   console.log('🔒 Auditoría Segura de Variables de Entorno (Sin Valores)');
@@ -132,8 +134,9 @@ export function runMcpSetup(): SetupStatus {
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   try {
     runMcpSetup();
-  } catch (err: any) {
-    console.error(`\n❌ Error durante el setup: ${err.message}\n`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`\n❌ Error durante el setup: ${msg}\n`);
     process.exit(1);
   }
 }
