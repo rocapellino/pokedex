@@ -403,6 +403,15 @@ jobs:
 
           kubectl rollout status deployment/pgbouncer --namespace pokemon-app --timeout=120s || diagnose "PgBouncer no quedó disponible"
           kubectl rollout status deployment/pokemon-api --namespace pokemon-app --timeout=180s || diagnose "la API no quedó disponible tras cambiar a PgBouncer"
+          # Esperar a que el pod saliente en estado Terminating (ventana de drain de 2s tras SIGTERM)
+          # termine de retirarse antes de consultar el NodePort, evitando que kube-proxy balancee
+          # peticiones hacia el pod antiguo que responde HTTP 503 shutting_down.
+          for i in $(seq 1 30); do
+            TERMINATING="$(kubectl get pods -n pokemon-app -l app=pokemon-api -o jsonpath='{range .items[*]}{.metadata.deletionTimestamp}{"\n"}{end}' | grep -c . || true)"
+            if [ "${TERMINATING}" -eq 0 ]; then break; fi
+            echo "Aguardando retiro de pod saliente pokemon-api en Terminating... (${i}/30)"
+            sleep 1
+          done
           kubectl get pods,svc -n pokemon-app -o wide
 
       - name: 8. Validar la ruta API → PgBouncer → PostgreSQL y su autenticación
@@ -424,13 +433,17 @@ jobs:
           [ "${API_HOST}" = "pgbouncer-service" ] && [ "${API_PORT}" = "6432" ] || fail "la API no usa pgbouncer-service:6432"
 
           echo "=== LA API CONECTA A POSTGRESQL A TRAVÉS DE PGBOUNCER ==="
+          READYZ_OK=0
           for i in $(seq 1 15); do
-            if curl -s -f http://127.0.0.1:3000/readyz > /dev/null; then break; fi
+            if READYZ_OUT="$(curl -fsS http://127.0.0.1:3000/readyz 2>/dev/null)"; then
+              echo "${READYZ_OUT}"
+              READYZ_OK=1
+              break
+            fi
             echo "Aguardando /readyz... reintento ${i}"
             sleep 2
           done
-          curl -fsS http://127.0.0.1:3000/readyz || fail "/readyz no responde 200 con PgBouncer (la API no llega a PostgreSQL)"
-          echo
+          [ "${READYZ_OK}" -eq 1 ] || fail "/readyz no responde 200 con PgBouncer (la API no llega a PostgreSQL)"
           curl -fsS http://127.0.0.1:3000/metrics | grep -q '^pokedex_storage_status 1' || fail "pokedex_storage_status no es 1 con PgBouncer"
           # El log de PgBouncer registra cada login de cliente: la API debe figurar entre ellos.
           LOGINS="$(kubectl logs -n "${NS}" -l app=pgbouncer --tail=500 | grep -c 'login attempt' || true)"

@@ -153,6 +153,11 @@ test('☸️ PgBouncer: el job de Kind lo habilita y valida la ruta API → PgBo
   const script = steps.map((step) => step.run ?? '').join('\n');
 
   assert.match(script, /--set pgbouncer\.enabled=true/, 'el job debe habilitar PgBouncer sobre el release');
+  assert.match(
+    script,
+    /deletionTimestamp/,
+    'debe esperar a que el pod saliente de pokemon-api en estado Terminating se retire antes de consultar el NodePort',
+  );
   assert.match(script, /POSTGRES_HOST/, 'debe comprobar que la API apunta a pgbouncer-service');
   assert.match(script, /\/readyz/, 'debe comprobar que la API llega a PostgreSQL a través de PgBouncer');
   assert.match(script, /login attempt/, 'debe comprobar que PgBouncer registra la conexión de la API');

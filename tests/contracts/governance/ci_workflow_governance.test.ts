@@ -164,6 +164,17 @@ test('🛡️ El ruleset declarativo debe registrar los tres required checks', (
     'main-protection.json debe conservar el check nativo de Core CI',
   );
 
+  // Regresión (PR #850): si `ci-core` declara `if:` en el workflow invocador y se
+  // omite por completo (p. ej. en PRs de OpenTofu o Ansible), GitHub Actions no
+  // expande `ci.yaml` y jamás emite `🚀 Core CI / 🔍 Auditoría de Calidad y Complejidad`
+  // (ni siquiera como `SKIPPED`), dejando el PR bloqueado en `main-protection`.
+  const orchestrator = workflow('change-impact.yaml');
+  assert.equal(
+    orchestrator.jobs['ci-core'].if,
+    undefined,
+    'ci-core no debe declarar `if:` en change-impact.yaml; cada job de ci.yaml evalúa su propio `if:` para emitir `SKIPPED` sin bloquear el ruleset',
+  );
+
   // La documentacion de arquitectura no debe seguir marcando el gate como pendiente.
   const lifecycle = fs.readFileSync(path.join(ROOT_DIR, 'docs/architecture/APPLICATION_LIFECYCLE.md'), 'utf-8');
   assert.doesNotMatch(
