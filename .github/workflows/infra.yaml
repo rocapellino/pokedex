@@ -127,7 +127,7 @@ jobs:
       - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)
         run: |
           # renovate: datasource=github-releases depName=stackrox/kube-linter
-          KUBELINTER_VERSION="v0.7.2"
+          KUBELINTER_VERSION="v0.8.3"
           KUBELINTER_SHA256="8a0f8ba6c28910acd4886cc4d501ed32f3d404a53ac5e72c45a0dd893fcadb03"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/stackrox/kube-linter/releases/download/${KUBELINTER_VERSION}/kube-linter-linux.tar.gz" \
