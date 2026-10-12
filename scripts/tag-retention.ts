@@ -145,6 +145,33 @@ export function areShasEqual(a: unknown, b: unknown): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
+/**
+ * Parsea y valida de forma estricta que una cadena represente un número entero positivo (> 0).
+ * Rechaza cadenas con caracteres no numéricos o sufijos (e.g. '3abc'), números con decimales,
+ * negativos, cero o valores vacíos/malformados.
+ */
+export function parseStrictPositiveInt(value: unknown, paramName: string): number {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    throw new Error(
+      `Valor inválido para '${paramName}': se esperaba una cadena numérica o entero positivo, recibido ${typeof value}.`,
+    );
+  }
+
+  const str = String(value).trim();
+  if (!/^[1-9]\d*$/.test(str)) {
+    throw new Error(
+      `Valor malformado para '${paramName}': '${str}' no es un entero positivo válido (> 0). Se rechazan sufijos alfanuméricos, decimales, negativos o cero.`,
+    );
+  }
+
+  const parsed = Number.parseInt(str, 10);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`Valor fuera de rango seguro para '${paramName}': '${str}'.`);
+  }
+
+  return parsed;
+}
+
 /** Manifiestos de GitOps y Helm inspeccionados para proteger versiones activas. */
 export const PROTECTED_MANIFEST_FILES = [
   'gitops/apps/app-proxmox-preprod.yaml',
@@ -790,12 +817,52 @@ export async function enrichTagsWithRemoteRefs(
       }
 
       for (const item of data) {
-        if (item.ref?.startsWith('refs/tags/') && item.object?.sha && isValidGitSha(item.object.sha)) {
-          const tagName = item.ref.slice('refs/tags/'.length);
+        if (!item || typeof item !== 'object') {
+          if (strict) {
+            throw new Error(
+              `Respuesta remota malformada en matching-refs de ${owner}/${repo}: elemento inválido recibido de la API.`,
+            );
+          }
+          continue;
+        }
+
+        const rawRef = item.ref;
+        const rawSha = item.object?.sha;
+
+        if (strict) {
+          if (typeof rawRef !== 'string' || !rawRef.startsWith('refs/tags/')) {
+            throw new Error(
+              `Referencia remota malformada en matching-refs de ${owner}/${repo}: 'ref' ('${String(rawRef)}') no tiene el formato esperado 'refs/tags/*'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+            );
+          }
+
+          const tagName = rawRef.slice('refs/tags/'.length);
+          if (!tagName || tagName.trim() === '') {
+            throw new Error(
+              `Referencia remota malformada en matching-refs de ${owner}/${repo}: nombre de tag vacío en ref '${rawRef}'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+            );
+          }
+
+          if (typeof rawSha !== 'string' || !isValidGitSha(rawSha)) {
+            throw new Error(
+              `Referencia remota inválida o malformada en matching-refs de ${owner}/${repo} para '${rawRef}': object.sha ('${String(rawSha)}') ausente o no es un hash de Git válido. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+            );
+          }
+
           refsMap.set(tagName, {
-            refSha: item.object.sha,
-            type: item.object.type || 'commit',
+            refSha: rawSha,
+            type: item.object?.type || 'commit',
           });
+        } else {
+          if (rawRef?.startsWith('refs/tags/') && rawSha && isValidGitSha(rawSha)) {
+            const tagName = rawRef.slice('refs/tags/'.length);
+            if (tagName && tagName.trim() !== '') {
+              refsMap.set(tagName, {
+                refSha: rawSha,
+                type: item.object?.type || 'commit',
+              });
+            }
+          }
         }
       }
 
@@ -957,6 +1024,82 @@ export async function deleteRemoteTag(
 }
 
 /**
+ * Revalida exhaustivamente el inventario global de tags remotos inmediatamente antes de iniciar
+ * las eliminaciones destructivas, reduciendo la ventana de carrera concurrente (TOCTOU) al mínimo.
+ *
+ * Compara el inventario remoto fresco contra el inventario evaluado inicialmente y aborta (FAIL-CLOSED) si:
+ *   - El número total de referencias remotas difiere (indicando publicación o eliminación concurrente).
+ *   - Cualquier tag evaluado ha desaparecido o mutado de commit/refSha.
+ *   - Ha aparecido cualquier tag nuevo que no existía en el inventario inicial.
+ */
+export async function revalidateGlobalRemoteInventory(
+  token: string,
+  owner: string,
+  repo: string,
+  expectedTags: GitTagRef[],
+  options: {
+    fetchFn?: typeof fetch;
+    maxPages?: number;
+    perPage?: number;
+  } = {},
+): Promise<void> {
+  const fetchFn = options.fetchFn ?? fetch;
+  const freshTags = await fetchRemoteTags(token, owner, repo, {
+    fetchFn,
+    maxPages: options.maxPages,
+    perPage: options.perPage,
+  });
+
+  await enrichTagsWithRemoteRefs(token, owner, repo, freshTags, {
+    fetchFn,
+    maxPages: options.maxPages,
+    perPage: options.perPage,
+    strict: true,
+  });
+
+  if (freshTags.length !== expectedTags.length) {
+    throw new Error(
+      `Inconsistencia concurrente en revalidación global: el número de tags remotos cambió de ${expectedTags.length} a ${freshTags.length} inmediatamente antes de iniciar la purga. Posible publicación o mutación de tags concurrente. Operación cancelada por seguridad (FAIL-CLOSED).`,
+    );
+  }
+
+  const freshMap = new Map<string, GitTagRef>(freshTags.map((t) => [t.name, t]));
+
+  for (const expected of expectedTags) {
+    const fresh = freshMap.get(expected.name);
+    if (!fresh) {
+      throw new Error(
+        `Inconsistencia concurrente en revalidación global: el tag ${expected.name} ya no existe en el remoto inmediatamente antes de iniciar la purga. Operación cancelada por seguridad (FAIL-CLOSED).`,
+      );
+    }
+    if (!areShasEqual(fresh.sha, expected.sha)) {
+      throw new Error(
+        `Inconsistencia concurrente en revalidación global: el commit de ${expected.name} mutó en el remoto (esperado ${expected.sha}, obtenido ${fresh.sha}). Operación cancelada por seguridad (FAIL-CLOSED).`,
+      );
+    }
+    if (expected.refSha && fresh.refSha && !areShasEqual(fresh.refSha, expected.refSha)) {
+      throw new Error(
+        `Inconsistencia concurrente en revalidación global: la referencia ${expected.name} mutó en el remoto (esperado ${expected.refSha}, obtenido ${fresh.refSha}). Operación cancelada por seguridad (FAIL-CLOSED).`,
+      );
+    }
+  }
+
+  const expectedSet = new Set(expectedTags.map((t) => t.name));
+  const newTags: string[] = [];
+  for (const fresh of freshTags) {
+    if (!expectedSet.has(fresh.name)) {
+      newTags.push(fresh.name);
+    }
+  }
+
+  if (newTags.length > 0) {
+    throw new Error(
+      `Inconsistencia concurrente en revalidación global: se detectaron nuevos tags publicados en el remoto inmediatamente antes de iniciar la purga (${newTags.join(', ')}). Operación cancelada por seguridad (FAIL-CLOSED).`,
+    );
+  }
+}
+
+/**
  * Genera un conjunto representativo de tags sintéticos para pruebas y simulación.
  */
 export function generateMockTags(): GitTagRef[] {
@@ -1001,10 +1144,22 @@ export function generateMockTags(): GitTagRef[] {
  */
 export async function applyTagRetention(options: TagRetentionOptions = {}): Promise<TagRetentionResult> {
   const config: HierarchicalRetentionConfig = {
-    keepMajorCount: options.config?.keepMajorCount ?? DEFAULT_CONFIG.keepMajorCount,
-    keepMinorCount: options.config?.keepMinorCount ?? DEFAULT_CONFIG.keepMinorCount,
-    keepPatchCount: options.config?.keepPatchCount ?? DEFAULT_CONFIG.keepPatchCount,
+    keepMajorCount:
+      options.config?.keepMajorCount !== undefined
+        ? parseStrictPositiveInt(options.config.keepMajorCount, 'config.keepMajorCount')
+        : DEFAULT_CONFIG.keepMajorCount,
+    keepMinorCount:
+      options.config?.keepMinorCount !== undefined
+        ? parseStrictPositiveInt(options.config.keepMinorCount, 'config.keepMinorCount')
+        : DEFAULT_CONFIG.keepMinorCount,
+    keepPatchCount:
+      options.config?.keepPatchCount !== undefined
+        ? parseStrictPositiveInt(options.config.keepPatchCount, 'config.keepPatchCount')
+        : DEFAULT_CONFIG.keepPatchCount,
   };
+
+  const validatedMaxPages =
+    options.maxPages !== undefined ? parseStrictPositiveInt(options.maxPages, 'options.maxPages') : undefined;
 
   const dryRun = options.dryRun ?? true; // Dry-run por defecto
   const simulate = options.simulate ?? false;
@@ -1047,13 +1202,13 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
       console.log('🔍 Consultando inventario de tags remotos en GitHub...');
       rawTags = await fetchRemoteTags(token, owner, repo, {
         fetchFn,
-        maxPages: options.maxPages,
+        maxPages: validatedMaxPages,
       });
       // Capturar identidades de referencia (refSha) iniciales desde matching-refs con control FAIL-CLOSED
       const isDestructive = !dryRun && !effectiveSimulate;
       await enrichTagsWithRemoteRefs(token, owner, repo, rawTags, {
         fetchFn,
-        maxPages: options.maxPages,
+        maxPages: validatedMaxPages,
         strict: isDestructive,
       });
     } catch (err: unknown) {
@@ -1164,7 +1319,16 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         item.tag.sha = checkPruned.targetCommitSha;
         item.tag.isAnnotated = checkPruned.isAnnotated;
       }
-      console.log('✅ Precondiciones fijadas. Procediendo a eliminar tags candidatos:');
+      console.log('✅ Precondiciones fijadas.');
+
+      console.log('\n🔒 Revalidando inventario global en remoto inmediatamente antes del primer borrado...');
+      await revalidateGlobalRemoteInventory(token, owner, repo, rawTags, {
+        fetchFn,
+        maxPages: options.maxPages,
+      });
+      console.log(
+        '✅ Revalidación global del inventario completada sin discrepancias concurrentes. Procediendo a eliminar tags candidatos:',
+      );
     }
 
     for (const item of pruned) {
@@ -1230,22 +1394,19 @@ if (process.argv[1]?.endsWith('tag-retention.ts')) {
   let keepMajorCount = DEFAULT_CONFIG.keepMajorCount;
   const majorArg = args.find((a) => a.startsWith('--major='));
   if (majorArg) {
-    const parsed = parseInt(majorArg.split('=')[1], 10);
-    if (!Number.isNaN(parsed) && parsed > 0) keepMajorCount = parsed;
+    keepMajorCount = parseStrictPositiveInt(majorArg.split('=')[1], '--major');
   }
 
   let keepMinorCount = DEFAULT_CONFIG.keepMinorCount;
   const minorArg = args.find((a) => a.startsWith('--minor='));
   if (minorArg) {
-    const parsed = parseInt(minorArg.split('=')[1], 10);
-    if (!Number.isNaN(parsed) && parsed > 0) keepMinorCount = parsed;
+    keepMinorCount = parseStrictPositiveInt(minorArg.split('=')[1], '--minor');
   }
 
   let keepPatchCount = DEFAULT_CONFIG.keepPatchCount;
   const patchArg = args.find((a) => a.startsWith('--patch='));
   if (patchArg) {
-    const parsed = parseInt(patchArg.split('=')[1], 10);
-    if (!Number.isNaN(parsed) && parsed > 0) keepPatchCount = parsed;
+    keepPatchCount = parseStrictPositiveInt(patchArg.split('=')[1], '--patch');
   }
 
   const ownerArg = args.find((a) => a.startsWith('--owner='));
@@ -1260,11 +1421,9 @@ if (process.argv[1]?.endsWith('tag-retention.ts')) {
   let maxPages: number | undefined;
   const maxPagesArg = args.find((a) => a.startsWith('--max-pages='));
   if (maxPagesArg) {
-    const parsed = parseInt(maxPagesArg.split('=')[1], 10);
-    if (!Number.isNaN(parsed) && parsed > 0) maxPages = parsed;
+    maxPages = parseStrictPositiveInt(maxPagesArg.split('=')[1], '--max-pages');
   } else if (process.env.TAG_RETENTION_MAX_PAGES) {
-    const parsed = parseInt(process.env.TAG_RETENTION_MAX_PAGES, 10);
-    if (!Number.isNaN(parsed) && parsed > 0) maxPages = parsed;
+    maxPages = parseStrictPositiveInt(process.env.TAG_RETENTION_MAX_PAGES, 'TAG_RETENTION_MAX_PAGES');
   }
 
   applyTagRetention({
@@ -1280,7 +1439,7 @@ if (process.argv[1]?.endsWith('tag-retention.ts')) {
     customProtectedTags,
     maxPages,
   }).catch((err) => {
-    console.error('❌ Error fatal en retención jerárquica de tags:', err);
+    console.error('❌ Error fatal en retención jerárquica de tags:', err instanceof Error ? err.message : err);
     process.exit(1);
   });
 }

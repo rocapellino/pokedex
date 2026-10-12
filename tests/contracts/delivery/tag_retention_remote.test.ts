@@ -22,6 +22,8 @@ import {
   enrichTagsWithRemoteRefs,
   fetchRemoteTagRef,
   fetchRemoteTags,
+  parseStrictPositiveInt,
+  revalidateGlobalRemoteInventory,
   type GitTagRef,
 } from '../../../scripts/tag-retention.js';
 
@@ -1287,5 +1289,320 @@ test('🏷️ Remoto [P1]: fetchRemoteTags y enrichTagsWithRemoteRefs completan 
   assert.equal(
     remoteTags.every((t) => t.refSha === SHA_COMMIT_TARGET_2),
     true,
+  );
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs con strict=true aborta ante referencia malformada con object.sha ausente o inválido (FAIL-CLOSED)', async () => {
+  const mockFetchMalformedSha: typeof fetch = async () => {
+    return new Response(
+      JSON.stringify([
+        { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        { ref: 'refs/tags/v2.0.0', object: { sha: 'sha-invalido', type: 'commit' } },
+      ]),
+      { status: 200 },
+    );
+  };
+
+  const tags: GitTagRef[] = [
+    { name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 },
+    { name: 'v2.0.0', sha: SHA_COMMIT_TARGET_2 },
+  ];
+
+  await assert.rejects(
+    async () => {
+      await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, {
+        fetchFn: mockFetchMalformedSha,
+        strict: true,
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Fallo crítico en enriquecimiento de referencias remotas: Referencia remota inválida o malformada .* object.sha .* ausente o no es un hash de Git válido/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs con strict=true aborta ante referencia con ref inválido o nombre vacío (FAIL-CLOSED)', async () => {
+  const mockFetchMalformedRef: typeof fetch = async () => {
+    return new Response(
+      JSON.stringify([
+        { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        { ref: 'refs/heads/feature', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+      ]),
+      { status: 200 },
+    );
+  };
+
+  const tags: GitTagRef[] = [{ name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 }];
+
+  await assert.rejects(
+    async () => {
+      await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, {
+        fetchFn: mockFetchMalformedRef,
+        strict: true,
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Fallo crítico en enriquecimiento de referencias remotas: Referencia remota malformada .* 'ref' .* no tiene el formato esperado/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: applyTagRetention con dryRun=false nunca ejecuta DELETE si matching-refs contiene una referencia malformada', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+          // Referencia adicional malformada sin SHA válido
+          { ref: 'refs/tags/v9.9.9', object: { sha: 'corrupt-sha', type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_A } },
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message: /Fallo crítico en enriquecimiento de referencias remotas: Referencia remota inválida o malformada/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'DELETE nunca debe ejecutarse ante respuestas malformadas en matching-refs');
+});
+
+test('🏷️ Remoto [P1]: revalidateGlobalRemoteInventory detecta alteraciones concurrentes del inventario global y aborta de forma FAIL-CLOSED', async () => {
+  // Simular que en la revalidación el remoto devuelve un tag extra que no existía
+  const mockFetchConcurrentChange: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+          { ref: 'refs/tags/v2.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+          // Tag nuevo publicado concurrentemente
+          { ref: 'refs/tags/v3.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v1.0.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v2.0.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v3.0.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  const expectedTags: GitTagRef[] = [
+    { name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2, refSha: SHA_COMMIT_TARGET_2 },
+    { name: 'v2.0.0', sha: SHA_COMMIT_TARGET_2, refSha: SHA_COMMIT_TARGET_2 },
+  ];
+
+  await assert.rejects(
+    async () => {
+      await revalidateGlobalRemoteInventory('token', 'rocapellino', 'pokedex', expectedTags, {
+        fetchFn: mockFetchConcurrentChange,
+      });
+    },
+    {
+      name: 'Error',
+      message: /Inconsistencia concurrente en revalidación global: el número de tags remotos cambió de 2 a 3/,
+    },
+  );
+});
+
+test('🏷️ Remoto [P1]: applyTagRetention con dryRun=false ejecuta la revalidación global antes del primer borrado y aborta si el inventario mutó concurrentemente', async () => {
+  let deleteCalled = false;
+  let tagsCallsCount = 0;
+
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    if (url.includes('/git/matching-refs/tags')) {
+      if (tagsCallsCount === 1) {
+        return new Response(
+          JSON.stringify([
+            { ref: 'refs/tags/v3.2.1', object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' } },
+            { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+          ]),
+          { status: 200 },
+        );
+      }
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+          { ref: 'refs/tags/v3.3.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // Contador de llamadas a /tags? (inventario)
+    if (url.includes('/tags?') && !url.includes('/git/')) {
+      tagsCallsCount++;
+      if (tagsCallsCount === 1) {
+        // Primera consulta: inventario inicial (v3.2.1 retenido, v3.2.0 candidato a purga)
+        return new Response(
+          JSON.stringify([
+            { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_A } },
+            { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
+          ]),
+          { status: 200 },
+        );
+      }
+      // Segunda consulta (revalidación global pre-borrado): apareció un nuevo tag v3.3.0 concurrentemente
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_VALID_FALLBACK_A } },
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
+          { name: 'v3.3.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // Precondiciones individuales para v3.2.1 y v3.2.0
+    if (url.includes('/git/ref/tags/v3.2.1')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.1',
+          object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes('/git/ref/tags/v3.2.0')) {
+      return new Response(
+        JSON.stringify({
+          ref: 'refs/tags/v3.2.0',
+          object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' },
+        }),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message:
+        /Inconsistencia concurrente en revalidación global: el número de tags remotos cambió de 2 a 3 inmediatamente antes de iniciar la purga/,
+    },
+  );
+
+  assert.equal(
+    deleteCalled,
+    false,
+    'DELETE nunca debe ejecutarse si la revalidación global detecta cambio concurrente',
+  );
+});
+
+test('🏷️ Validación [P1]: parseStrictPositiveInt valida enteros positivos estrictos y rechaza valores malformados', () => {
+  // Valores válidos
+  assert.equal(parseStrictPositiveInt('1', '--major'), 1);
+  assert.equal(parseStrictPositiveInt('30', '--max-pages'), 30);
+  assert.equal(parseStrictPositiveInt(42, 'customParam'), 42);
+
+  // Valores malformados con sufijos alfanuméricos (caso del hallazgo: '3abc')
+  assert.throws(
+    () => parseStrictPositiveInt('3abc', '--max-pages'),
+    /Valor malformado para '--max-pages': '3abc' no es un entero positivo válido/,
+  );
+
+  // Decimales, negativos, cero y caracteres extraños
+  assert.throws(() => parseStrictPositiveInt('3.14', '--minor'), /Valor malformado para '--minor'/);
+  assert.throws(() => parseStrictPositiveInt('0', '--patch'), /Valor malformado para '--patch'/);
+  assert.throws(() => parseStrictPositiveInt('-5', '--major'), /Valor malformado para '--major'/);
+  assert.throws(() => parseStrictPositiveInt('', '--max-pages'), /Valor malformado para '--max-pages'/);
+  assert.throws(() => parseStrictPositiveInt('abc', '--max-pages'), /Valor malformado para '--max-pages'/);
+  assert.throws(() => parseStrictPositiveInt(null, '--max-pages'), /Valor inválido para '--max-pages'/);
+});
+
+test('🏷️ Validación [P1]: applyTagRetention rechaza valores no numéricos o malformados en maxPages y configuración jerárquica', async () => {
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        maxPages: '3abc' as unknown as number,
+      });
+    },
+    {
+      name: 'Error',
+      message: /Valor malformado para 'options.maxPages': '3abc' no es un entero positivo válido/,
+    },
+  );
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        config: {
+          keepMajorCount: 'invalid' as unknown as number,
+        },
+      });
+    },
+    {
+      name: 'Error',
+      message: /Valor malformado para 'config.keepMajorCount': 'invalid' no es un entero positivo válido/,
+    },
   );
 });
