@@ -3,12 +3,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  LEGACY_SAMPLE_TEXTS,
   loadSeedCatalog,
+  planSampleTextAlignment,
   planSeed,
   resolveSeedDataset,
   PRODUCTION_FORCE_SEED_TOKEN,
 } from '../../apps/backend/src/data/seed-catalog.js';
 import { initialPokemons } from '../../apps/backend/src/data/initialPokemons.js';
+import {
+  getPokemonById,
+  listPersistedSampleTexts,
+  savePokemon,
+  setPokemonSampleTexts,
+} from '../../apps/backend/src/services/pokemon.repository.js';
 import { syncPokedexIdSequence } from '../../apps/backend/src/services/postgres.js';
 import type { EvolutionNode, Pokemon } from '../../apps/backend/src/types.js';
 import { TYPE_COLORS } from '../../apps/frontend/src/shared/constants.js';
@@ -148,4 +156,154 @@ test('🌱 Generator: normaliza el flavor text y las categorías', () => {
   assert.equal(normalizeFlavorText('Lanza\fllamas\npor la­cola.'), 'Lanza llamas por la cola.');
   assert.equal(stripGenusPrefix('Pokémon Semilla'), 'Semilla');
   assert.equal(stripGenusSuffixEn('Big Horn Pokémon'), 'Big Horn');
+});
+
+// ------------------------------------------------------------------------------
+// Alineación de textos entre la muestra y el catálogo completo
+// ------------------------------------------------------------------------------
+
+test('🌱 SeedCatalog: la muestra coincide con el catálogo completo en descripción, categoría y habilidades en español', () => {
+  const fullById = new Map(fullCatalog.map((p) => [p.id, p]));
+  for (const sample of initialPokemons) {
+    const target = fullById.get(sample.id);
+    assert.ok(target, `#${sample.id} debe existir en el catálogo completo`);
+    assert.equal(
+      sample.caracteristicas.descripcion,
+      target.caracteristicas.descripcion,
+      `#${sample.id} ${sample.nombre} descripción desalineada`,
+    );
+    assert.equal(
+      sample.caracteristicas.categoria,
+      target.caracteristicas.categoria,
+      `#${sample.id} ${sample.nombre} categoría desalineada`,
+    );
+    assert.deepEqual(sample.habilidades, target.habilidades, `#${sample.id} ${sample.nombre} habilidades desalineadas`);
+    assert.doesNotMatch(
+      target.caracteristicas.categoria ?? '',
+      /^(Grass Cat|Paradox)$/,
+      `#${sample.id} ${sample.nombre} no debe caer a categoría en inglés`,
+    );
+    assert.doesNotMatch(
+      target.caracteristicas.descripcion ?? '',
+      /\b(the sweet scent|this pokémon resembles|this seems to be the iron serpent)\b/i,
+      `#${sample.id} ${sample.nombre} no debe caer a descripción en inglés`,
+    );
+  }
+});
+
+test('🌱 SeedAlign: planSampleTextAlignment actualiza solo campos con valor heredado y respeta ediciones manuales', () => {
+  const persisted = new Map([
+    [
+      1,
+      {
+        descripcion: LEGACY_SAMPLE_TEXTS.get(1)?.descripcion?.[0],
+        categoria: 'Semilla',
+        habilidades: ['Espesura', 'Clorofila'],
+      },
+    ],
+    [
+      25,
+      {
+        descripcion: 'Descripción editada manualmente en el backoffice',
+        categoria: 'Ratón',
+        habilidades: LEGACY_SAMPLE_TEXTS.get(25)?.habilidades?.[0]
+          ? [...(LEGACY_SAMPLE_TEXTS.get(25)?.habilidades?.[0] ?? [])]
+          : [],
+      },
+    ],
+    [
+      1007,
+      {
+        descripcion: LEGACY_SAMPLE_TEXTS.get(1007)?.descripcion?.[0],
+        categoria: LEGACY_SAMPLE_TEXTS.get(1007)?.categoria?.[0],
+        habilidades: ['Latido paleo'],
+      },
+    ],
+  ]);
+
+  const plan = planSampleTextAlignment(fullCatalog, persisted, new Set([1, 25, 1007]));
+  const byId = new Map(plan.map((item) => [item.id, item]));
+
+  // #1 Bulbasaur: solo cambió la descripción heredada
+  assert.equal(
+    byId.get(1)?.descripcion,
+    'Desde que nace, crece alimentándose de los nutrientes que contiene la semilla de su lomo.',
+  );
+  assert.equal(byId.get(1)?.categoria, undefined);
+  assert.equal(byId.get(1)?.habilidades, undefined);
+
+  // #25 Pikachu: descripción editada a mano se conserva (undefined en el plan); habilidades heredadas sí se alinean
+  assert.equal(byId.get(25)?.descripcion, undefined);
+  assert.deepEqual(byId.get(25)?.habilidades, ['Electricidad Estática', 'Pararrayos']);
+
+  // #1007 Koraidon: corrige tanto fallback en inglés como habilidad heredada
+  assert.equal(byId.get(1007)?.categoria, 'Paradoja');
+  assert.match(byId.get(1007)?.descripcion ?? '', /Rey Alado/);
+  assert.deepEqual(byId.get(1007)?.habilidades, ['Latido Oricalco']);
+});
+
+test('🌱 SeedAlign: es idempotente sobre el catálogo ya alineado e ignora IDs no persistidos', () => {
+  const alreadyAligned = new Map(
+    initialPokemons.map((p) => [
+      p.id,
+      {
+        descripcion: p.caracteristicas.descripcion,
+        categoria: p.caracteristicas.categoria,
+        habilidades: p.habilidades,
+      },
+    ]),
+  );
+  const existingIds = new Set(initialPokemons.map((p) => p.id));
+
+  assert.deepEqual(planSampleTextAlignment(fullCatalog, alreadyAligned, existingIds), []);
+  assert.deepEqual(
+    planSampleTextAlignment(
+      fullCatalog,
+      new Map([[1, { descripcion: LEGACY_SAMPLE_TEXTS.get(1)?.descripcion?.[0] }]]),
+      new Set(),
+    ),
+    [],
+  );
+});
+
+test('🌱 Repositorio: setPokemonSampleTexts modifica solo los campos indicados y conserva las ediciones', async () => {
+  const id = 882001;
+  await savePokemon({
+    id,
+    nombre: 'Bulbasaur Editado',
+    imagen: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
+    tipo: 'Planta',
+    fuerza: 77,
+    caracteristicas: {
+      peso: 6.9,
+      altura: 0.7,
+      fuerza: 77,
+      categoria: 'Categoría previa',
+      descripcion: 'Descripción previa',
+    },
+    habilidades: ['Habilidad previa'],
+  });
+
+  const updated = await setPokemonSampleTexts({
+    id,
+    descripcion: 'Descripción canónica',
+    habilidades: ['Espesura', 'Clorofila'],
+  });
+  const stored = await getPokemonById(id);
+  const snapshot = (await listPersistedSampleTexts()).get(id);
+
+  assert.equal(updated, true);
+  assert.equal(stored?.nombre, 'Bulbasaur Editado');
+  assert.equal(stored?.fuerza, 77);
+  assert.equal(stored?.caracteristicas.categoria, 'Categoría previa', 'la categoría no incluida no se toca');
+  assert.equal(stored?.caracteristicas.descripcion, 'Descripción canónica');
+  assert.deepEqual(stored?.habilidades, ['Espesura', 'Clorofila']);
+  assert.deepEqual(snapshot, {
+    descripcion: 'Descripción canónica',
+    categoria: 'Categoría previa',
+    habilidades: ['Espesura', 'Clorofila'],
+  });
+
+  assert.equal(await setPokemonSampleTexts({ id: 882999, descripcion: 'No existe' }), false);
+  assert.equal(await setPokemonSampleTexts({ id }), false);
 });
