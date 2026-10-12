@@ -241,7 +241,7 @@ jobs:
           persist-credentials: false
 
       - name: 2. Auditoría de Seguridad IaC con Checkov
-        uses: bridgecrewio/checkov-action@7b1bd992e2c40a3404e3511944aeb8d014703d9a # v12.3129.0
+        uses: bridgecrewio/checkov-action@29be5868bfa968f099ae80169f61f42887494b8f # v12.3133.0
         with:
           framework: terraform,kubernetes,helm
           directory: infra/
@@ -255,7 +255,7 @@ jobs:
 
       - name: 3. Subir reporte SARIF de Checkov a GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: checkov.sarif
           category: checkov
