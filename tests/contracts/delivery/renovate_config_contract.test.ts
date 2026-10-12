@@ -22,7 +22,7 @@ interface PackageRule {
  * de modo que el chart seguía recibiendo propuestas de 16 a 18 y de 7 a 8. Este test fija que el
  * bloqueo cubre ambos gestores para ambos paquetes, para que no se vuelva a estrechar.
  */
-test('🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose, helm-values y custom.regex', () => {
+test('🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en docker-compose, helm-values, custom.regex y github-actions', () => {
   const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
     packageRules: PackageRule[];
   };
@@ -30,7 +30,7 @@ test('🛡️ RENOVATE-001: los major de postgres y redis están bloqueados en d
     (rule) => rule.enabled === false && rule.matchUpdateTypes?.includes('major'),
   );
 
-  for (const manager of ['docker-compose', 'helm-values', 'custom.regex']) {
+  for (const manager of ['docker-compose', 'helm-values', 'custom.regex', 'github-actions']) {
     for (const pkg of ['postgres', 'redis']) {
       assert.ok(
         blockers.some((rule) => rule.matchManagers?.includes(manager) && rule.matchPackageNames?.includes(pkg)),
