@@ -31,7 +31,7 @@ services:
   # 5. Agente de Telemetría Grafana Alloy (Envío de Métricas a Grafana Cloud)
   # ============================================================================
   alloy:
-    image: grafana/alloy:v1.7.1@sha256:da938bc7dc6a96be31d3c93badc445aed115ca39357734de7a338f78fa342cf7 # alloy v1.7.1
+    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f # alloy v1.7.1
     container_name: pokemon-alloy
     restart: unless-stopped
     command:
