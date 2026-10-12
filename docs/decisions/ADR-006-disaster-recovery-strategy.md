@@ -29,7 +29,7 @@ Se cumple estrictamente la regla 3-2-1: tres copias de datos, dos medios físico
 - **Montaje de Solo Lectura**: El pod montador de Rclone monta el PVC local con **`readOnly: true`**, garantizando la inmutabilidad física del almacenamiento local y previniendo alteraciones accidentales o destructivas.
 - **Hardening de Pod Rclone**: Opera bajo `runAsNonRoot: true`, `readOnlyRootFilesystem: true`, `automountServiceAccountToken: false` y revocación total de capacidades Linux (`drop: [ALL]`).
 - **Aislamiento de Red Zero-Trust en Capa 7 (Cilium eBPF)**: Política de red `CiliumNetworkPolicy` (`pokedex-gdrive-sync-cilium-l7-policy`) con filtrado estricto L7 a nivel de kernel mediante allowlist de FQDNs (`*.googleapis.com`, `accounts.google.com`), bloqueando terminantemente tráfico HTTPS arbitrario, redes privadas RFC1918 y servicios de metadata de nube (`169.254.169.254/32`).
-- **Fijación Criptográfica de Imagen**: Rclone se fija por digest inmutable SHA-256 (`rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b`).
+- **Fijación Criptográfica de Imagen**: Rclone se fija por digest inmutable SHA-256 (`rclone/rclone@sha256:...` en [`infra/helm/pokedex/values.yaml`](../../infra/helm/pokedex/values.yaml) y [`docker-compose.dev.yaml`](../../docker-compose.dev.yaml)).
 - **Contrato Fail-Closed**: Si `RCLONE_CONFIG_GDRIVE_TOKEN` no está inyectado o está vacío, el contenedor finaliza con error explícito (`exit 1`) en la fase de pre-vuelo.
 
 ### 3. Preservación de Blueprints Agnósticos S3 y PBS

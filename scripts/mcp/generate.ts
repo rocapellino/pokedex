@@ -23,6 +23,13 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { validateMcpArchitecture } from './validate.js';
 import { getAdapterForClient } from './adapters/index.js';
+import type {
+  McpClientsSpec,
+  McpPoliciesSpec,
+  McpProfileDefinition,
+  McpRegistrySpec,
+  McpServerDefinition,
+} from './adapters/types.js';
 import { loadLocalEnv } from './env.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +54,57 @@ export interface ClientConfigResult {
   written: boolean;
 }
 
+function enforceServerProfilePolicy(s: McpServerDefinition, prof: McpProfileDefinition | undefined): void {
+  if (!prof) return;
+  if (prof.write_access === false && s.permissions?.write === true) {
+    throw new Error(
+      `El servidor '${s.id}' viola la política del perfil '${s.profile}': write_access no está permitido.`,
+    );
+  }
+  if (prof.network === 'none' && s.permissions?.network && s.permissions.network !== 'none') {
+    throw new Error(`El servidor '${s.id}' viola la política del perfil '${s.profile}': network no está permitida.`);
+  }
+}
+
+function filterActiveServers(
+  servers: McpServerDefinition[],
+  profiles: Record<string, McpProfileDefinition>,
+  profileFilter?: string,
+): McpServerDefinition[] {
+  return servers.filter((s) => {
+    if (!s.enabled) return false;
+    if (profileFilter && s.profile !== profileFilter) return false;
+    enforceServerProfilePolicy(s, profiles[s.profile]);
+    return true;
+  });
+}
+
+function syncOrWriteClientConfig(
+  targetAbsPath: string,
+  formattedContent: string,
+  options: GenerateOptions,
+): { inSync: boolean; written: boolean } {
+  let inSync = false;
+  let written = false;
+
+  if (fs.existsSync(targetAbsPath)) {
+    const existingContent = fs.readFileSync(targetAbsPath, 'utf-8');
+    inSync = existingContent.replaceAll('\r\n', '\n') === formattedContent.replaceAll('\r\n', '\n');
+  }
+
+  if (!options.check && !options.dryRun) {
+    const parentDir = path.dirname(targetAbsPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    fs.writeFileSync(targetAbsPath, formattedContent, 'utf-8');
+    written = true;
+    inSync = true;
+  }
+
+  return { inSync, written };
+}
+
 export function generateAllClientConfigs(options: GenerateOptions = {}): ClientConfigResult[] {
   // Cargar entorno local para resolución determinista de endpoints sin fugar secretos
   loadLocalEnv(ROOT_DIR);
@@ -61,16 +119,16 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
     throw new Error(`La validación de .mcp falló. Corrija los errores antes de generar configuraciones:\n${errorMsgs}`);
   }
 
-  const registry: any = yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8'));
-  const policies: any = yaml.load(fs.readFileSync(POLICIES_PATH, 'utf-8'));
-  const clientsSpec: any = yaml.load(fs.readFileSync(CLIENTS_PATH, 'utf-8'));
+  const registry = (yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
+  const policies = (yaml.load(fs.readFileSync(POLICIES_PATH, 'utf-8')) as McpPoliciesSpec | undefined) ?? {};
+  const clientsSpec = (yaml.load(fs.readFileSync(CLIENTS_PATH, 'utf-8')) as McpClientsSpec | undefined) ?? {};
 
-  const servers: any[] = registry.servers || [];
-  const profiles: Record<string, any> = policies.profiles || {};
-  const clients = clientsSpec.clients || {};
+  const servers: McpServerDefinition[] = registry.servers ?? [];
+  const profiles: Record<string, McpProfileDefinition> = policies.profiles ?? {};
+  const clients = clientsSpec.clients ?? {};
 
   const targetClients = options.client ? [options.client] : Object.keys(clients);
-
+  const activeServers = filterActiveServers(servers, profiles, options.profile);
   const results: ClientConfigResult[] = [];
 
   for (const clientId of targetClients) {
@@ -82,50 +140,11 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
     const targetRelPath = clientDef.config_path;
     const targetAbsPath = path.join(ROOT_DIR, targetRelPath);
 
-    // Filtrar servidores aplicables y hacer cumplir las políticas de permisos
-    const activeServers = servers.filter((s) => {
-      if (!s.enabled) return false;
-      if (options.profile && s.profile !== options.profile) return false;
-
-      // Hacer cumplir las políticas de permisos del perfil
-      const prof = profiles[s.profile];
-      if (prof) {
-        if (prof.write_access === false && s.permissions?.write === true) {
-          throw new Error(
-            `El servidor '${s.id}' viola la política del perfil '${s.profile}': write_access no está permitido.`,
-          );
-        }
-        if (prof.network === 'none' && s.permissions?.network && s.permissions.network !== 'none') {
-          throw new Error(
-            `El servidor '${s.id}' viola la política del perfil '${s.profile}': network no está permitida.`,
-          );
-        }
-      }
-
-      return true;
-    });
-
     const adapter = getAdapterForClient(clientId, clientDef.format);
     const configObject = adapter.generateConfig(activeServers, clientDef);
     const formattedContent = `${JSON.stringify(configObject, null, 2)}\n`;
 
-    let inSync = false;
-    let written = false;
-
-    if (fs.existsSync(targetAbsPath)) {
-      const existingContent = fs.readFileSync(targetAbsPath, 'utf-8');
-      inSync = existingContent.replace(/\r\n/g, '\n') === formattedContent.replace(/\r\n/g, '\n');
-    }
-
-    if (!options.check && !options.dryRun) {
-      const parentDir = path.dirname(targetAbsPath);
-      if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir, { recursive: true });
-      }
-      fs.writeFileSync(targetAbsPath, formattedContent, 'utf-8');
-      written = true;
-      inSync = true;
-    }
+    const { inSync, written } = syncOrWriteClientConfig(targetAbsPath, formattedContent, options);
 
     results.push({
       clientId,
@@ -139,23 +158,34 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
   return results;
 }
 
-// Ejecución CLI
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
-  const args = process.argv.slice(2);
+function getFlagValue(args: string[], flag: string): string | undefined {
+  const idx = args.indexOf(flag);
+  return idx !== -1 && args[idx + 1] ? args[idx + 1] : undefined;
+}
+
+function printCheckResults(results: ClientConfigResult[]): void {
+  let allInSync = true;
+  for (const res of results) {
+    if (!res.inSync) {
+      console.log(`❌ ${res.clientId} (${res.targetPath}): Desactualizado o no generado.`);
+      allInSync = false;
+    } else {
+      console.log(`✅ ${res.clientId} (${res.targetPath}): Sincronizado.`);
+    }
+  }
+
+  if (!allInSync) {
+    console.log('\n❌ Las configuraciones no están sincronizadas. Ejecute npm run mcp:generate.\n');
+    process.exit(1);
+  }
+  console.log('\n✅ Todas las configuraciones generadas coinciden exactamente con el registro.\n');
+}
+
+function runGenerateCli(args: string[]): void {
   const isCheck = args.includes('--check');
   const isDryRun = args.includes('--dry-run');
-
-  let clientArg: string | undefined;
-  const clientIdx = args.indexOf('--client');
-  if (clientIdx !== -1 && args[clientIdx + 1]) {
-    clientArg = args[clientIdx + 1];
-  }
-
-  let profileArg: string | undefined;
-  const profileIdx = args.indexOf('--profile');
-  if (profileIdx !== -1 && args[profileIdx + 1]) {
-    profileArg = args[profileIdx + 1];
-  }
+  const clientArg = getFlagValue(args, '--client');
+  const profileArg = getFlagValue(args, '--profile');
 
   console.log('\n======================================================');
   console.log('⚙️  Generador de Configuraciones MCP por Cliente');
@@ -178,30 +208,22 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename
     }
 
     if (isCheck) {
-      let allInSync = true;
-      for (const res of results) {
-        if (!res.inSync) {
-          console.log(`❌ ${res.clientId} (${res.targetPath}): Desactualizado o no generado.`);
-          allInSync = false;
-        } else {
-          console.log(`✅ ${res.clientId} (${res.targetPath}): Sincronizado.`);
-        }
-      }
-
-      if (!allInSync) {
-        console.log('\n❌ Las configuraciones no están sincronizadas. Ejecute npm run mcp:generate.\n');
-        process.exit(1);
-      } else {
-        console.log('\n✅ Todas las configuraciones generadas coinciden exactamente con el registro.\n');
-      }
-    } else {
-      for (const res of results) {
-        console.log(`✅ ${res.clientId} ➔ ${res.targetPath} (generado correctamente)`);
-      }
-      console.log('\n🎉 Generación completada con éxito.\n');
+      printCheckResults(results);
+      return;
     }
-  } catch (err: any) {
-    console.error(`\n❌ Error: ${err.message}\n`);
+
+    for (const res of results) {
+      console.log(`✅ ${res.clientId} ➔ ${res.targetPath} (generado correctamente)`);
+    }
+    console.log('\n🎉 Generación completada con éxito.\n');
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`\n❌ Error: ${msg}\n`);
     process.exit(1);
   }
+}
+
+// Ejecución CLI
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
+  runGenerateCli(process.argv.slice(2));
 }
