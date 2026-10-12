@@ -317,18 +317,31 @@ export function createWorktree(input: TaskNamingInput, options: CreateWorktreeOp
     throw new Error(errLines.join('\n'));
   }
 
-  // 9. Crear junction de node_modules si procede (Windows / entorno local con node_modules en main)
-  const mainNodeModules = path.join(mainRoot, 'node_modules');
-  const targetNodeModules = path.join(targetPath, 'node_modules');
+  // 9. Crear junctions de node_modules si procede (Windows / entorno local con node_modules en main)
   const shouldLink = options.createNodeModulesJunction !== false;
 
-  if (shouldLink && fs.existsSync(mainNodeModules) && !fs.existsSync(targetNodeModules)) {
-    try {
-      if (process.platform === 'win32') {
-        fs.symlinkSync(mainNodeModules, targetNodeModules, 'junction');
+  if (shouldLink && process.platform === 'win32') {
+    const junctionCandidates = [
+      { src: path.join(mainRoot, 'node_modules'), dest: path.join(targetPath, 'node_modules') },
+      {
+        src: path.join(mainRoot, 'apps', 'backend', 'node_modules'),
+        dest: path.join(targetPath, 'apps', 'backend', 'node_modules'),
+      },
+      {
+        src: path.join(mainRoot, 'apps', 'frontend', 'node_modules'),
+        dest: path.join(targetPath, 'apps', 'frontend', 'node_modules'),
+      },
+    ];
+
+    for (const candidate of junctionCandidates) {
+      if (fs.existsSync(candidate.src) && !fs.existsSync(candidate.dest)) {
+        try {
+          fs.mkdirSync(path.dirname(candidate.dest), { recursive: true });
+          fs.symlinkSync(candidate.src, candidate.dest, 'junction');
+        } catch {
+          // Si falla la unión, el usuario o agente puede ejecutar npm install manualmente
+        }
       }
-    } catch {
-      // Si falla la unión, el usuario o agente puede ejecutar npm install manualmente
     }
   }
 
