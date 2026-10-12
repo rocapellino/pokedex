@@ -84,6 +84,13 @@ export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba que la versión del enlace al CSS derive de su contenido, que no se toquen otros enlaces y que las páginas no la fijen a mano.',
   },
+  'tests/frontend/evolution_panel_theme.test.ts': {
+    type: 'Unit / CSS Contract',
+    targetDomain: 'Detalle / Tema del Panel de Evoluciones',
+    targetArtifacts: ['apps/frontend/public/css/style.css'],
+    description:
+      'Verifica que el panel de evoluciones tome su paleta de variables --evo-*, que el tema claro redefina todas y que los selectores del panel no usen colores fijos.',
+  },
   'tests/frontend/filter_url.test.ts': {
     type: 'Unit',
     targetDomain: 'Catálogo / Estado de Filtros en la URL',

@@ -1461,12 +1461,14 @@
     {
       "path": "tests/frontend/evolution_panel_theme.test.ts",
       "suite": "frontend",
-      "type": "Automated Test",
+      "type": "Unit / CSS Contract",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "status": "ACTIVE",
-      "targetDomain": "Suite frontend",
-      "targetArtifacts": [],
+      "targetDomain": "Detalle / Tema del Panel de Evoluciones",
+      "targetArtifacts": [
+        "apps/frontend/public/css/style.css"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -1475,7 +1477,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Suite de pruebas frontend: evolution_panel_theme.test.ts."
+      "description": "Verifica que el panel de evoluciones tome su paleta de variables --evo-*, que el tema claro redefina todas y que los selectores del panel no usen colores fijos."
     },
     {
       "path": "tests/frontend/filter_url.test.ts",
