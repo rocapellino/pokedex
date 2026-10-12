@@ -472,7 +472,18 @@ test('🏷️ Remoto [P1]: applyTagRetention aborta si un tag a purgar muta su c
     }
     const url = input.toString();
 
-    // 1. Inventario: v3.2.1 (retiene), v3.2.0 (purga con commit TARGET_2)
+    // 1. matching-refs para enriquecimiento del inventario inicial
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // 2. Inventario: v3.2.1 (retiene), v3.2.0 (purga con commit TARGET_2)
     if (url.includes('/tags?')) {
       return new Response(
         JSON.stringify([
@@ -686,6 +697,17 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag r
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
 
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+          { ref: 'refs/tags/v1.0.0', object: { sha: SHA_COMMIT_TARGET_5, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
     if (url.includes('/tags?')) {
       return new Response(
         JSON.stringify([
@@ -733,23 +755,23 @@ test('🏷️ Remoto [P1]: applyTagRetention aborta si un tag anotado a purgar m
     }
     const url = input.toString();
 
-    // 1. Inventario: v3.2.1 (retiene), v3.2.0 (purga)
-    if (url.includes('/tags?')) {
-      return new Response(
-        JSON.stringify([
-          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
-          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
-        ]),
-        { status: 200 },
-      );
-    }
-
-    // 2. matching-refs enriquece el inventario inicial con refSha original
+    // 1. matching-refs enriquece el inventario inicial con refSha original
     if (url.includes('/git/matching-refs/tags')) {
       return new Response(
         JSON.stringify([
           { ref: 'refs/tags/v3.2.1', object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' } },
           { ref: 'refs/tags/v3.2.0', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    // 2. Inventario: v3.2.1 (retiene), v3.2.0 (purga)
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
+          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
         ]),
         { status: 200 },
       );
@@ -816,6 +838,16 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag r
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
 
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([
+          { ref: 'refs/tags/v3.2.1', object: { sha: SHA_VALID_FALLBACK_A, type: 'commit' } },
+          { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
     if (url.includes('/tags?')) {
       return new Response(
         JSON.stringify([
@@ -862,22 +894,22 @@ test('🏷️ Remoto [P2]: applyTagRetention con dryRun=false aborta si un tag r
   const mockFetch: typeof fetch = async (input: RequestInfo | URL) => {
     const url = input.toString();
 
-    if (url.includes('/tags?')) {
-      return new Response(
-        JSON.stringify([
-          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_TARGET_2 } },
-          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
-        ]),
-        { status: 200 },
-      );
-    }
-
     // Inventario inicial: v3.2.1 tiene objeto SHA_TAG_ANNOTATED_1
     if (url.includes('/git/matching-refs/tags')) {
       return new Response(
         JSON.stringify([
           { ref: 'refs/tags/v3.2.1', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } },
           { ref: 'refs/tags/v3.2.0', object: { sha: SHA_VALID_FALLBACK_B, type: 'commit' } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_TARGET_2 } },
+          { name: 'v3.2.0', commit: { sha: SHA_VALID_FALLBACK_B } },
         ]),
         { status: 200 },
       );
@@ -950,11 +982,189 @@ test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs captura refSha de matching-r
   assert.equal(tags[1].isAnnotated, false);
   assert.equal(tags[2].refSha, undefined);
 
-  // Degradación segura ante error HTTP
+  // Degradación segura ante error HTTP en modo no estricto
   const mockFetchError: typeof fetch = async () => {
     return new Response('Internal Server Error', { status: 500 });
   };
   await assert.doesNotReject(async () => {
     await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, mockFetchError);
   });
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs con strict=true aborta ante error HTTP y nunca ejecuta DELETE', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    // 1. matching-refs falla con 500
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response('Internal Server Error', { status: 500 });
+    }
+
+    // 2. tags devuelve inventario
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
+          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'valid-test-token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message: /Fallo crítico en enriquecimiento de referencias remotas: Error 500 al consultar matching-refs/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'El método DELETE nunca debe ejecutarse ante fallo en matching-refs');
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs con strict=true aborta si un tag del inventario falta en matching-refs y nunca ejecuta DELETE', async () => {
+  let deleteCalled = false;
+  const mockFetch: typeof fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === 'DELETE') {
+      deleteCalled = true;
+      return new Response(null, { status: 204 });
+    }
+    const url = input.toString();
+
+    // 1. matching-refs devuelve SOLO v3.2.1 (falta v3.2.0)
+    if (url.includes('/git/matching-refs/tags')) {
+      return new Response(
+        JSON.stringify([{ ref: 'refs/tags/v3.2.1', object: { sha: SHA_COMMIT_LIGHTWEIGHT_3, type: 'commit' } }]),
+        { status: 200 },
+      );
+    }
+
+    // 2. tags devuelve v3.2.1 y v3.2.0
+    if (url.includes('/tags?')) {
+      return new Response(
+        JSON.stringify([
+          { name: 'v3.2.1', commit: { sha: SHA_COMMIT_LIGHTWEIGHT_3 } },
+          { name: 'v3.2.0', commit: { sha: SHA_COMMIT_TARGET_2 } },
+        ]),
+        { status: 200 },
+      );
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+
+  await assert.rejects(
+    async () => {
+      await applyTagRetention({
+        token: 'valid-test-token',
+        owner: 'rocapellino',
+        repo: 'pokedex',
+        dryRun: false,
+        fetchFn: mockFetch,
+        protectedTags: new Map(),
+      });
+    },
+    {
+      name: 'Error',
+      message: /Inventario incompleto: el tag v3.2.0 no se encontró en las referencias remotas de GitHub/,
+    },
+  );
+
+  assert.equal(deleteCalled, false, 'El método DELETE nunca debe ejecutarse ante inventario incompleto');
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs soporta paginación múltiple y acumula referencias de varias páginas', async () => {
+  const mockFetchPaged: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+    const pageMatch = url.match(/[?&]page=(\d+)/);
+    const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
+
+    if (page === 1) {
+      return new Response(
+        JSON.stringify([{ ref: 'refs/tags/v1.0.0', object: { sha: SHA_TAG_ANNOTATED_1, type: 'tag' } }]),
+        {
+          status: 200,
+          headers: {
+            Link: '<https://api.github.com/repos/rocapellino/pokedex/git/matching-refs/tags?page=2>; rel="next"',
+          },
+        },
+      );
+    }
+
+    if (page === 2) {
+      return new Response(
+        JSON.stringify([{ ref: 'refs/tags/v2.0.0', object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } }]),
+        { status: 200 },
+      );
+    }
+
+    return new Response(JSON.stringify([]), { status: 200 });
+  };
+
+  const tags: GitTagRef[] = [
+    { name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 },
+    { name: 'v2.0.0', sha: SHA_COMMIT_TARGET_2 },
+  ];
+
+  await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, {
+    fetchFn: mockFetchPaged,
+    strict: true,
+  });
+
+  assert.equal(tags[0].refSha, SHA_TAG_ANNOTATED_1);
+  assert.equal(tags[0].isAnnotated, true);
+  assert.equal(tags[1].refSha, SHA_COMMIT_TARGET_2);
+  assert.equal(tags[1].isAnnotated, false);
+});
+
+test('🏷️ Remoto [P1]: enrichTagsWithRemoteRefs aborta de forma FAIL-CLOSED si se supera maxPages', async () => {
+  const mockFetchInfinite: typeof fetch = async (input: RequestInfo | URL) => {
+    const url = input.toString();
+    const pageMatch = url.match(/[?&]page=(\d+)/);
+    const page = pageMatch ? parseInt(pageMatch[1], 10) : 1;
+
+    return new Response(
+      JSON.stringify([{ ref: `refs/tags/v${page}.0.0`, object: { sha: SHA_COMMIT_TARGET_2, type: 'commit' } }]),
+      {
+        status: 200,
+        headers: {
+          Link: `<https://api.github.com/repos/rocapellino/pokedex/git/matching-refs/tags?page=${page + 1}>; rel="next"`,
+        },
+      },
+    );
+  };
+
+  const tags: GitTagRef[] = [{ name: 'v1.0.0', sha: SHA_COMMIT_TARGET_2 }];
+
+  await assert.rejects(
+    async () => {
+      await enrichTagsWithRemoteRefs('token', 'rocapellino', 'pokedex', tags, {
+        fetchFn: mockFetchInfinite,
+        maxPages: 2,
+        perPage: 1,
+        strict: true,
+      });
+    },
+    {
+      name: 'Error',
+      message: /Límite de seguridad superado en matching-refs: el repositorio contiene más de 2 referencias/,
+    },
+  );
 });
