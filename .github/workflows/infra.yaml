@@ -143,7 +143,7 @@ jobs:
       - name: 7. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
           # renovate: datasource=github-releases depName=kyverno/kyverno
-          KYVERNO_VERSION="v1.12.5"
+          KYVERNO_VERSION="v1.19.1"
           KYVERNO_SHA256="962c396cdb149eadc7d6cc0cb345d3c01b6980d5265c8bb585c55ecd4b8a76b9"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" \
