@@ -893,3 +893,53 @@ test('🌲 Worktree Governance: auditAutomationSurface detecta cuando una superf
   assert.ok(audit.findings.some((f) => f.code === 'WT-AUDIT-UNREADABLE-DIR'));
   assert.ok(audit.coverage.unreadableFiles.some((u) => u.path === fakeScriptsFile));
 });
+
+test('🌲 Worktree Governance: createWorktree enlaza node_modules de workspaces en Windows', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-workspaces-'));
+  const testRepoDir = path.join(tempDir, 'pokedex');
+  fs.mkdirSync(testRepoDir, { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test Repository\n');
+  fs.mkdirSync(path.join(testRepoDir, 'apps', 'backend'), { recursive: true });
+  fs.mkdirSync(path.join(testRepoDir, 'apps', 'frontend'), { recursive: true });
+  fs.writeFileSync(path.join(testRepoDir, 'apps', 'backend', 'package.json'), '{}');
+  fs.writeFileSync(path.join(testRepoDir, 'apps', 'frontend', 'package.json'), '{}');
+
+  fs.mkdirSync(path.join(testRepoDir, 'node_modules'), { recursive: true });
+  fs.mkdirSync(path.join(testRepoDir, 'apps', 'backend', 'node_modules'), { recursive: true });
+  fs.mkdirSync(path.join(testRepoDir, 'apps', 'frontend', 'node_modules'), { recursive: true });
+
+  execSync('git add . && git commit -m "chore: initial commit"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const created = createWorktree(
+    {
+      type: 'feat',
+      slug: 'workspace-modules-test',
+    },
+    { cwd: testRepoDir, createNodeModulesJunction: true },
+  );
+
+  if (process.platform === 'win32') {
+    assert.ok(fs.existsSync(path.join(created.path, 'node_modules')), 'Debe enlazar node_modules raíz en Windows');
+    assert.ok(
+      fs.existsSync(path.join(created.path, 'apps', 'backend', 'node_modules')),
+      'Debe enlazar apps/backend/node_modules en Windows',
+    );
+    assert.ok(
+      fs.existsSync(path.join(created.path, 'apps', 'frontend', 'node_modules')),
+      'Debe enlazar apps/frontend/node_modules en Windows',
+    );
+  }
+});
