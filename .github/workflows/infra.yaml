@@ -241,7 +241,7 @@ jobs:
           persist-credentials: false
 
       - name: 2. Auditoría de Seguridad IaC con Checkov
-        uses: bridgecrewio/checkov-action@7b1bd992e2c40a3404e3511944aeb8d014703d9a # v12.3129.0
+        uses: bridgecrewio/checkov-action@29be5868bfa968f099ae80169f61f42887494b8f # v12.3133.0
         with:
           framework: terraform,kubernetes,helm
           directory: infra/
