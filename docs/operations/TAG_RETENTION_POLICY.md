@@ -117,10 +117,10 @@ Para aislar de manera estricta las operaciones destructivas, el workflow divide 
 
 ### Protocolo de Borrado Seguro
 
-1. **Re-consulta del inventario:** Justo antes de ejecutar mutaciones remotas, se consulta el estado de GitHub en tiempo real.
+1. **Re-consulta del inventario:** Justo antes de ejecutar mutaciones remotas, se consulta el estado de GitHub en tiempo real y se enriquece con las referencias exactas (`refSha`) mediante `git/matching-refs/tags`.
 2. **Control FAIL-CLOSED de paginación:** Si el inventario de tags supera el tope de seguridad de 3.000 tags (30 páginas) y aún existen páginas pendientes en la API, la ejecución se detiene de inmediato mediante excepción para evitar formular planes de retención sobre un inventario parcial o truncado.
-3. **Validación previa de integridad:** Comprueba que todos los tags conservados (`kept`) continúen existiendo en el repositorio remoto antes de realizar cualquier eliminación. Si se detecta una discrepancia, la ejecución se aborta antes de borrar ningún tag.
-4. **Verificación atómica de SHA:** Para cada tag a purgar, compara el commit SHA actual (desreferenciado) y el ref SHA contra el evaluado. Si el tag fue re-apuntado a otro commit, la eliminación se detiene por conflicto concurrente.
+3. **Validación previa de integridad e identidad:** Comprueba que todos los tags conservados (`kept`) continúen existiendo en el repositorio remoto y que tanto su commit destino como su objeto de referencia (`refSha`) coincidan de forma idéntica con el inventario evaluado. Si un tag retenido muta o desaparece, la ejecución se aborta antes de borrar ningún tag.
+4. **Verificación de precondición en dos fases y delimitación TOCTOU:** Para cada tag a purgar, compara el commit SHA actual (desreferenciado) y el objeto de referencia (`refSha`) contra los evaluados inicialmente en el inventario. Dado que la API Git Data de GitHub (`DELETE /repos/{owner}/{repo}/git/refs/tags/{tag}`) no soporta transacciones atómicas Compare-And-Swap (CAS) ni cabeceras condicionales `If-Match` para referencias Git, el proceso minimiza la ventana de carrera ejecutando la comprobación y la eliminación de forma contigua e inmediata; no obstante, se documenta formalmente la existencia de esta ventana TOCTOU inherente a la arquitectura de la API ante modificaciones remotas concurrentes.
 5. **Concurrencia serializada:** Grupo `tag-retention-${{ github.ref }}` con `cancel-in-progress: false` para evitar colisiones entre corridas simultáneas.
 
 ---
