@@ -710,14 +710,12 @@ test('🌲 Worktree Governance: safeRollbackWorktree no declara éxito completo 
   assert.ok(report.errors.length > 0, 'Debe registrar el error de git worktree remove');
 });
 
-test('🌲 Worktree Governance: safeRollbackWorktree protege contra fallos de lstat y mutación TOCTOU', (t) => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-toctou-'));
+test('🌲 Worktree Governance: safeRollbackWorktree maneja fallos de lstat preservando evidencia sin abortar prune', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-lstat-err-'));
   const parentDir = path.join(tempDir, 'repo_parent');
   const testRepoDir = path.join(parentDir, 'pokedex');
-  const outsideDir = path.join(tempDir, 'outside_target');
 
   fs.mkdirSync(testRepoDir, { recursive: true });
-  fs.mkdirSync(outsideDir, { recursive: true });
   execSync('git init -b main', { cwd: testRepoDir });
   execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
   execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
@@ -734,15 +732,141 @@ test('🌲 Worktree Governance: safeRollbackWorktree protege contra fallos de ls
 
   const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
   fs.mkdirSync(canonicalBase, { recursive: true });
+  const targetPath = path.join(canonicalBase, 'feat--lstat-failure');
+  fs.mkdirSync(targetPath, { recursive: true });
 
-  // Simular una ruta donde se coloca un symlink/junction apuntando a outsideDir
-  const attackPath = path.join(canonicalBase, 'feat--attack-junction');
-  const symType = process.platform === 'win32' ? 'junction' : 'dir';
-  fs.symlinkSync(outsideDir, attackPath, symType);
+  // Simular fallo inyectado en lstatSync (ej. error EACCES de permisos)
+  const report = safeRollbackWorktree(targetPath, canonicalBase, testRepoDir, {
+    lstatSync: () => {
+      throw new Error('EACCES: permission denied, lstat');
+    },
+  });
 
-  const report = safeRollbackWorktree(attackPath, canonicalBase, testRepoDir);
-  assert.equal(report.residualCleaned, true, 'El junction/symlink debe eliminarse de forma segura');
-  assert.equal(fs.existsSync(outsideDir), true, 'El directorio objetivo fuera de la base no debe ser afectado');
+  assert.equal(report.residualPreservedForEvidence, true, 'Debe preservar evidencia ante fallo de inspección');
+  assert.equal(report.residualCleaned, false, 'No debe declarar residuo limpio');
+  assert.equal(report.gitMetadataPruned, true, 'El prune de metadatos de Git debe continuar ejecutándose');
+  assert.ok(
+    report.errors.some((e) => e.includes('EACCES: permission denied, lstat')),
+    'El error de permisos debe quedar registrado',
+  );
+  assert.equal(fs.existsSync(targetPath), true, 'El directorio debe permanecer intacto para auditoría');
+});
+
+test('🌲 Worktree Governance: safeRollbackWorktree aborta borrado recursivo si la ruta muta a symlink/junction antes de eliminar (carrera TOCTOU)', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-rollback-toctou-sim-'));
+  const parentDir = path.join(tempDir, 'repo_parent');
+  const testRepoDir = path.join(parentDir, 'pokedex');
+  const outsideDir = path.join(tempDir, 'outside_data');
+
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+  const safeFile = path.join(outsideDir, 'do_not_delete.txt');
+  fs.writeFileSync(safeFile, 'INTACTO');
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test\n');
+  execSync('git add README.md && git commit -m "chore: init"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  const canonicalBase = path.join(parentDir, '.worktrees', 'pokedex');
+  fs.mkdirSync(canonicalBase, { recursive: true });
+  const targetPath = path.join(canonicalBase, 'feat--toctou-race');
+  fs.mkdirSync(targetPath, { recursive: true });
+
+  // Simular carrera TOCTOU:
+  // Inicialmente aparece como directorio, pero en la pre-verificación inmediata `preLstat`
+  // mutó a un enlace simbólico que apunta hacia outsideDir.
+  let lstatCalls = 0;
+  let rmCalled = false;
+  const mockLstat = (_p: string, _opts?: { throwIfNoEntry?: boolean }) => {
+    lstatCalls++;
+    if (lstatCalls === 1) {
+      // Primera llamada: parece un directorio legítimo
+      return {
+        isDirectory: () => true,
+        isSymbolicLink: () => false,
+        isFile: () => false,
+      } as unknown as fs.Stats;
+    }
+    // Segunda llamada (preLstat): mutó a symlink
+    return {
+      isDirectory: () => false,
+      isSymbolicLink: () => true,
+      isFile: () => false,
+    } as unknown as fs.Stats;
+  };
+
+  const report = safeRollbackWorktree(targetPath, canonicalBase, testRepoDir, {
+    lstatSync: mockLstat,
+    rmSync: () => {
+      rmCalled = true;
+      throw new Error('rmSync NO DEBIÓ SER INVOCADO sobre ruta mutada');
+    },
+  });
+
+  assert.equal(rmCalled, false, 'rmSync recursivo NUNCA debe ejecutarse si la ruta mutó a symlink');
+  assert.equal(report.residualPreservedForEvidence, true, 'Debe preservar evidencia intacta');
+  assert.equal(report.residualCleaned, false);
+  assert.equal(fs.existsSync(safeFile), true, 'El archivo externo no debe verse afectado');
+});
+
+test('🌲 Worktree Governance: auditAutomationSurface detecta y bloquea symlinks que apuntan fuera del repositorio', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-symlink-audit-'));
+  const tempRepo = path.join(tempDir, 'repo');
+  const outsideDir = path.join(tempDir, 'outside_target');
+
+  fs.mkdirSync(tempRepo, { recursive: true });
+  fs.mkdirSync(outsideDir, { recursive: true });
+
+  // Archivo externo con instrucción no gobernada
+  const outsideBadScript = path.join(outsideDir, 'external-bad.sh');
+  fs.writeFileSync(outsideBadScript, '#!/bin/bash\ngit worktree add ../bad feat\n');
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  // Caso 1: Superficie de primer nivel (scripts) es un symlink apuntando fuera del repo
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  fs.symlinkSync(outsideDir, path.join(tempRepo, 'scripts'), symlinkType);
+
+  const audit1 = auditAutomationSurface(tempRepo);
+  assert.equal(audit1.coverage.isComplete, false, 'La auditoría con symlink externo debe ser incompleta');
+  assert.ok(
+    audit1.findings.some((f) => f.code === 'WT-AUDIT-EXTERNAL-SYMLINK'),
+    'Debe emitir hallazgo WT-AUDIT-EXTERNAL-SYMLINK',
+  );
+
+  // Limpiar el symlink de scripts para probar un symlink anidado
+  if (process.platform === 'win32') {
+    fs.rmdirSync(path.join(tempRepo, 'scripts'));
+  } else {
+    fs.unlinkSync(path.join(tempRepo, 'scripts'));
+  }
+
+  // Caso 2: Directorio legítimo pero con subdirectorio anidado como symlink externo
+  fs.mkdirSync(path.join(tempRepo, 'scripts'), { recursive: true });
+  fs.symlinkSync(outsideDir, path.join(tempRepo, 'scripts', 'external_nested'), symlinkType);
+
+  const audit2 = auditAutomationSurface(tempRepo);
+  assert.equal(audit2.coverage.isComplete, false);
+  assert.ok(
+    audit2.findings.some((f) => f.code === 'WT-AUDIT-EXTERNAL-SYMLINK'),
+    'Debe detectar symlink externo anidado',
+  );
 });
 
 test('🌲 Worktree Governance: auditAutomationSurface detecta cuando una superficie gobernada es un archivo en lugar de directorio', (t) => {
