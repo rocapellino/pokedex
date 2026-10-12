@@ -126,9 +126,19 @@ export function inspectWorktreeStatus(worktree: RegisteredWorktree, mainRoot: st
       stdio: ['ignore', 'pipe', 'ignore'],
     });
 
+    const managedJunctionRels = ['node_modules', 'apps/backend/node_modules', 'apps/frontend/node_modules'];
     const statusLines = statusOut.split(/\r?\n/).filter((l) => l.trim().length > 0);
     for (const l of statusLines) {
       if (l.startsWith('??')) {
+        const relRaw = l.slice(3).trim().replace(/\/+$/, '').replace(/\\/g, '/');
+        const matchedJunction = managedJunctionRels.find((jRel) => relRaw === jRel || relRaw.startsWith(`${jRel}/`));
+        if (matchedJunction) {
+          const candidatePath = path.join(worktree.path, matchedJunction);
+          const lstat = fs.lstatSync(candidatePath, { throwIfNoEntry: false });
+          if (lstat?.isSymbolicLink()) {
+            continue;
+          }
+        }
         untrackedCount++;
       } else {
         hasUncommitted = true;
@@ -194,6 +204,38 @@ export function inspectWorktreeStatus(worktree: RegisteredWorktree, mainRoot: st
 }
 
 /**
+ * Desvincula de forma segura los enlaces simbólicos o junctions de `node_modules` creados
+ * dentro de un worktree (sin ejecutar borrado recursivo sobre el destino).
+ * Esto evita que `git worktree remove` falle en Windows por directorios ignorados o deje junctions huérfanas.
+ */
+export function unlinkWorktreeNodeModulesJunctions(worktreePath: string): void {
+  const candidates = [
+    path.join(worktreePath, 'apps', 'backend', 'node_modules'),
+    path.join(worktreePath, 'apps', 'frontend', 'node_modules'),
+    path.join(worktreePath, 'node_modules'),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const lstat = fs.lstatSync(candidate, { throwIfNoEntry: false });
+      if (lstat?.isSymbolicLink()) {
+        if (process.platform === 'win32') {
+          try {
+            fs.unlinkSync(candidate);
+          } catch {
+            fs.rmdirSync(candidate);
+          }
+        } else {
+          fs.unlinkSync(candidate);
+        }
+      }
+    } catch {
+      // Ignorar si no existe o no puede desvincularse previamente
+    }
+  }
+}
+
+/**
  * Elimina de forma segura un worktree mediante `git worktree remove`.
  * Bloquea la eliminación si contiene cambios sin confirmar o commits no publicados, salvo `force: true`.
  */
@@ -240,6 +282,9 @@ export function removeWorktreeSafely(
     }
   }
 
+  // Desvincular junctions de node_modules antes de invocar git worktree remove
+  unlinkWorktreeNodeModulesJunctions(target.path);
+
   const gitArgs = ['worktree', 'remove'];
   if (options.force) {
     gitArgs.push('--force');
@@ -249,14 +294,64 @@ export function removeWorktreeSafely(
   try {
     execFileSync('git', gitArgs, { cwd: mainRoot, stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : String(err);
-    throw new Error(`Fallo al ejecutar 'git ${gitArgs.join(' ')}': ${errorMsg}`);
+    // En Windows, `git worktree remove` puede desregistrar exitosamente el worktree en `.git/worktrees/`
+    // y borrar todos los archivos rastreados, pero fallar con `Permission denied` o `Directory not empty`
+    // en el `rmdir` final del contenedor. Comprobamos si ya fue desregistrado de Git:
+    const remaining = listWorktrees(mainRoot);
+    const stillRegistered = remaining.some(
+      (w) => path.resolve(w.path).toLowerCase() === path.resolve(target.path).toLowerCase(),
+    );
+
+    if (stillRegistered) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Fallo al ejecutar 'git ${gitArgs.join(' ')}': ${errorMsg}`);
+    }
+
+    // Si Git ya lo desregistró, limpiar de forma segura cualquier carpeta contenedora vacía/residual
+    try {
+      unlinkWorktreeNodeModulesJunctions(target.path);
+      const lstat = fs.lstatSync(target.path, { throwIfNoEntry: false });
+      if (lstat && !lstat.isSymbolicLink() && lstat.isDirectory()) {
+        fs.rmSync(target.path, { recursive: true, force: true });
+      }
+    } catch {
+      // Si el descriptor de directorio sigue retenido por el proceso host en Windows, Git ya lo desregistró
+    }
   }
 
   return {
     success: true,
     message: `Worktree '${target.path}' eliminado exitosamente.`,
   };
+}
+
+/**
+ * Limpia de forma segura todos los worktrees registrados que se encuentren fuera de la base canónica.
+ * Respeta las mismas garantías de seguridad que `removeWorktreeSafely` (no elimina worktrees con
+ * trabajo pendiente salvo `force: true`).
+ */
+export function cleanupNonCanonicalWorktrees(options: { force?: boolean; cwd?: string } = {}): {
+  removed: string[];
+  skipped: { path: string; reason: string }[];
+} {
+  const cwd = options.cwd || process.cwd();
+  const worktrees = listWorktrees(cwd);
+  const nonCanonical = worktrees.filter((w) => !w.isMainCheckout && !w.isCompliant);
+
+  const removed: string[] = [];
+  const skipped: { path: string; reason: string }[] = [];
+
+  for (const wt of nonCanonical) {
+    try {
+      removeWorktreeSafely(wt.path, options);
+      removed.push(wt.path);
+    } catch (err: unknown) {
+      const reason = err instanceof Error ? err.message : String(err);
+      skipped.push({ path: wt.path, reason });
+    }
+  }
+
+  return { removed, skipped };
 }
 
 /**

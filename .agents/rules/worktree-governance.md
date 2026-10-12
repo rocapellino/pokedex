@@ -69,7 +69,7 @@ Toda interacción con worktrees debe realizarse a través de la CLI canónica de
 | **Crear** | `npm run worktree:create -- --type <tipo> --slug <slug> [--scope <scope>] [--ticket <id>]` | Valida parámetros, genera nomenclatura canónica, verifica colisiones y crea el worktree en la base aprobada. |
 | **Listar** | `npm run worktree:list` | Inspecciona todos los worktrees registrados, su HEAD, rama y estado de cumplimiento. |
 | **Diagnosticar** | `npm run worktree:doctor` | Audita worktrees fuera de política, detecta metadatos huérfanos (*prunables*), regresiones y candidatos a limpieza. |
-| **Limpiar** | `npm run worktree:cleanup -- --target <path/rama/id>` | Elimina de forma segura un worktree, bloqueando si hay cambios sin confirmar o commits sin integrar. |
+| **Limpiar** | `npm run worktree:cleanup -- --target <path/rama/id>` o `--non-canonical` | Elimina de forma segura un worktree (o todos los worktrees fuera de la base canónica), desvinculando junctions previas y bloqueando si hay cambios sin confirmar. |
 | **Prunar** | `npm run worktree:prune` | Limpia referencias en Git de worktrees cuyos directorios ya no existen en disco. |
 
 ### Ejecución Segura de Comandos (Sin Invocación de Shell)
@@ -85,8 +85,9 @@ El motor de worktrees invoca directamente ejecutables binarios (`execFileSync('g
    - Cambios sin confirmar en el working tree (`git status --porcelain`).
    - Archivos sin seguimiento (*untracked*).
    - Commits locales no integrados en `main` ni publicados en upstream remoto.
-2. **Protección contra Pérdida de Trabajo:**
+2. **Protección contra Pérdida de Trabajo y Desvinculación de Junctions:**
    - La eliminación falla automáticamente si se detecta trabajo pendiente, a menos que el usuario o agente especifique explícitamente `--force`.
+   - Antes de retirar el worktree en Git, `removeWorktreeSafely` desvincula de forma segura los enlaces simbólicos/junctions de `node_modules` (`unlinkWorktreeNodeModulesJunctions`) sin borrado recursivo sobre el destino, evitando errores de directorio no vacío en Windows.
    - Prohibido el uso de `rm -rf` directo o manipulación manual del directorio `.git/worktrees/`.
    - Prohibido eliminar automáticamente un worktree solo porque su PR se haya fusionado sin antes verificar el estado local del checkout.
 3. **Preservación de Tareas Ajenas:**
@@ -102,13 +103,18 @@ El motor de worktrees invoca directamente ejecutables binarios (`execFileSync('g
 Por diseño de la arquitectura interna de Git, el cliente no expone hooks previos para bloquear o condicionar la ejecución de `git worktree add` si una herramienta externa o proceso con acceso directo a terminal o filesystem decide invocarlo por fuera de la CLI. Para garantizar el cumplimiento efectivo:
 
 1. **Obligación Operativa en `AGENTS.md`:** Ningún agente de IA puede invocar `git worktree add` de manera desregulada.
-2. **Detección Preventiva y Observabilidad en la Superficie Delimitada:**
+2. **Intercepción Activa (`PreToolUse` / `PreInvocation`) y Redirección Obligatoria (`.agents/hooks.json`):**
+   Si la aplicación host o el IDE inicia una conversación situando el `Cwd` del agente dentro de un worktree fuera de la base canónica (`../.worktrees/<repo-slug>/`, como `.gemini/antigravity/worktrees/`):
+   - Queda **terminantemente prohibido** trabajar, cambiar de rama (`git checkout -B`), enlazar `node_modules` o realizar commits dentro de ese directorio no canónico.
+   - El hook [`.agents/hooks.json`](../hooks.json) (`scripts/worktree/agy-hook.mjs`) intercepta en tiempo real las herramientas del agente (`PreToolUse`): bloquea (`deny`) cualquier invocación desregulada a `git worktree add`, bloquea ediciones u operaciones mutables de Git en `.gemini/antigravity/worktrees/`, y redirige automáticamente (`overwrite`) el `Cwd` de lecturas hacia la raíz principal.
+   - Si la tarea requiere un worktree aislado, el agente debe crear inmediatamente el worktree gobernado mediante `npm run worktree:create -- --type <tipo> --slug <slug>` (que reside en `../.worktrees/pokedex/`), dirigir todas las lecturas, ediciones y comandos hacia esa ruta canónica, y eliminar el worktree no canónico mediante `npm run worktree:cleanup -- --non-canonical`.
+3. **Detección Preventiva y Observabilidad en la Superficie Delimitada:**
    `npm run worktree:doctor` audita estáticamente la superficie delimitada de automatización del repositorio (`scripts/`, `.agents/`, `.github/`, `infra/`, `apps/`, `gitops/` y archivos de tareas como `Makefile`, `GNUmakefile`, `justfile`, `Taskfile*` y `package.json`).
    - Reporta hallazgos `WT-REGRESSION-UNGOVERNED-WORKTREE-CALL` si detecta llamadas directas o instrucciones ejecutables a `git worktree add`.
    - **Observabilidad y Auditoría Completa vs. Parcial:** Registra explícitamente el recuento de archivos inspeccionados e identifica como `WT-AUDIT-UNREADABLE-FILE` cualquier archivo que no pueda ser leído por errores de E/S o permisos, garantizando que el diagnóstico distinga con precisión entre «auditoría completa sin infracciones» y «auditoría parcial con omisiones».
    - *Alcance y modelo de amenazas:* La auditoría estática cubre exhaustivamente el código versionado, flujos de CI/CD, agentes y herramientas gobernadas del proyecto. No sustituye ni pretende ser una intercepción a nivel de kernel del sistema operativo para procesos externos no controlados.
-3. **Auditoría Post-Facto:** `npm run worktree:doctor` etiqueta inmediatamente cualquier checkout fuera de la base canónica como `WT-NON-CANONICAL-LOCATION`.
-4. **Verificación Automatizada:** La suite `tests/unit/worktree_governance.test.ts` valida en CI y localmente la estricta ausencia de regresiones en todos los puntos de entrada automatizados y la cobertura de los distintos formatos de tareas.
+4. **Auditoría Post-Facto:** `npm run worktree:doctor` etiqueta inmediatamente cualquier checkout fuera de la base canónica como `WT-NON-CANONICAL-LOCATION`.
+5. **Verificación Automatizada:** La suite `tests/unit/worktree_governance.test.ts` valida en CI y localmente la estricta ausencia de regresiones en todos los puntos de entrada automatizados y la cobertura de los distintos formatos de tareas.
 
 ---
 
@@ -118,6 +124,7 @@ Por diseño de la arquitectura interna de Git, el cliente no expone hooks previo
 | :--- | :--- | :--- |
 | **`.agents/rules/worktree-governance.md`** | **Normativa (SSOT)** | Especificación formal de ubicación, nomenclatura, seguridad de ejecución y directivas. |
 | **`AGENTS.md`** | **Directiva Operativa** | Obligación vinculante para todos los agentes de utilizar el CLI centralizado. |
+| **`.agents/hooks.json` / `agy-hook.mjs`** | **Guardia en Tiempo de Ejecución** | Bloquea en `PreToolUse` llamadas directas desreguladas y operaciones en `.gemini/antigravity/worktrees/`. |
 | **`scripts/worktree/`** | **Motor de Ejecución** | Validador determinista, ejecutor seguro sin shell y sanitizador de rutas y refs. |
 | **`repo-lifecycle` / `repo-maintenance`** | **Skills Operativas** | Invocan `worktree:create` y `worktree:cleanup` en los flujos de ciclo de vida. |
 | **`tests/unit/worktree_governance.test.ts`** | **Enforcement Automatizado** | Certifica la resolución de rutas, rechazo de path traversal/symlinks, nomenclatura y ausencia de regresiones. |

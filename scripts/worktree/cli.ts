@@ -17,7 +17,7 @@
 
 import { createWorktree } from './creator.js';
 import { runWorktreeDoctor } from './doctor.js';
-import { listWorktrees, pruneWorktrees, removeWorktreeSafely } from './manager.js';
+import { cleanupNonCanonicalWorktrees, listWorktrees, pruneWorktrees, removeWorktreeSafely } from './manager.js';
 import { ALLOWED_TASK_TYPES, type TaskType } from './naming.js';
 
 function printHelp() {
@@ -48,6 +48,7 @@ Subcomandos:
   cleanup   Elimina de forma segura un worktree con comprobación de cambios y commits.
             Opciones:
               --target <id/path>   Ruta, rama o nombre del worktree a eliminar
+              --non-canonical      Limpia todos los worktrees fuera de la base canónica
               --force              (Opcional) Fuerza la eliminación si hay cambios/untracked
 
   prune     Ejecuta git worktree prune para eliminar referencias huérfanas.
@@ -185,9 +186,28 @@ async function main() {
 
       case 'cleanup': {
         const target = (flags.target as string) || (flags.path as string);
+        const nonCanonical = Boolean(flags['non-canonical']);
         const force = Boolean(flags.force);
+
+        if (nonCanonical) {
+          const res = cleanupNonCanonicalWorktrees({ force });
+          for (const r of res.removed) {
+            console.log(`✅ Worktree no canónico eliminado: ${r}`);
+          }
+          for (const s of res.skipped) {
+            console.error(`⚠️ Omitido (${s.path}): ${s.reason}`);
+          }
+          if (res.removed.length === 0 && res.skipped.length === 0) {
+            console.log('✨ No hay worktrees fuera de la base canónica para limpiar.');
+          }
+          if (res.skipped.length > 0) {
+            process.exit(1);
+          }
+          break;
+        }
+
         if (!target) {
-          console.error('❌ Error: Debe especificar --target <ruta/rama/carpeta> para limpiar.');
+          console.error('❌ Error: Debe especificar --target <ruta/rama/carpeta> o --non-canonical para limpiar.');
           process.exit(1);
         }
 
