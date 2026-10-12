@@ -705,65 +705,145 @@ export async function fetchRemoteTagRef(
   };
 }
 
+export interface EnrichTagsOptions {
+  fetchFn?: typeof fetch;
+  maxPages?: number;
+  perPage?: number;
+  strict?: boolean;
+}
+
 /**
  * Enriquece el inventario de tags con el SHA exacto del objeto de referencia (refSha)
- * consultando git/matching-refs/tags en una única llamada eficiente.
- * Esto permite capturar la identidad original de los tags anotados en la fase inicial del inventario.
- * Si la consulta falla (p.ej. por permisos o entorno simulado restringido), se degrada
- * de forma segura preservando los SHAs de commit ya obtenidos.
+ * consultando git/matching-refs/tags con paginación completa y control FAIL-CLOSED.
+ *
+ * En modo estricto (strict=true, obligatorio en purga destructiva real):
+ *   - Falla inmediatamente ante cualquier error HTTP o excepción de red.
+ *   - Falla inmediatamente si se supera el límite de páginas de seguridad (maxPages).
+ *   - Falla inmediatamente si algún tag del inventario no se encuentra en las referencias remotas.
+ *   - Falla inmediatamente si se detecta inconsistencia entre el commit del inventario y la referencia ligera.
+ *
+ * En modo no estricto (dry-run o diagnóstico):
+ *   - Registra advertencias y degrada de forma segura si la API no está disponible.
  */
 export async function enrichTagsWithRemoteRefs(
   token: string,
   owner: string,
   repo: string,
   tags: GitTagRef[],
-  fetchFn: typeof fetch = fetch,
+  optionsOrFetchFn: EnrichTagsOptions | typeof fetch = {},
 ): Promise<void> {
-  if (!token || tags.length === 0) return;
+  const options: EnrichTagsOptions =
+    typeof optionsOrFetchFn === 'function' ? { fetchFn: optionsOrFetchFn } : optionsOrFetchFn;
+
+  if (tags.length === 0) return;
+
+  const fetchFn = options.fetchFn ?? fetch;
+  const strict = options.strict ?? false;
+  const perPage = options.perPage ?? 100;
+  const maxPages = options.maxPages ?? 30;
+
+  if (!token) {
+    if (strict) {
+      throw new Error(
+        'Token de GitHub no configurado para enriquecer referencias en modo destructivo. Operación cancelada por seguridad.',
+      );
+    }
+    return;
+  }
+
+  const refsMap = new Map<string, { refSha: string; type: string }>();
+  let page = 1;
 
   try {
-    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/matching-refs/tags`;
-    const response = await fetchFn(url, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'pokedex-tag-retention-script',
-      },
-    });
-
-    if (!response.ok) {
-      return;
-    }
-
-    const data = (await response.json()) as Array<{
-      ref: string;
-      object?: { sha?: string; type?: string };
-    }>;
-
-    if (!Array.isArray(data)) return;
-
-    const refsMap = new Map<string, { refSha: string; type: string }>();
-    for (const item of data) {
-      if (item.ref?.startsWith('refs/tags/') && item.object?.sha && isValidGitSha(item.object.sha)) {
-        const tagName = item.ref.slice('refs/tags/'.length);
-        refsMap.set(tagName, {
-          refSha: item.object.sha,
-          type: item.object.type || 'commit',
-        });
+    while (true) {
+      if (page > maxPages) {
+        throw new Error(
+          `Límite de seguridad alcanzado en matching-refs: excede el tope de ${maxPages * perPage} referencias (${maxPages} páginas). Detención de seguridad FAIL-CLOSED.`,
+        );
       }
-    }
 
-    for (const tag of tags) {
-      const refDetail = refsMap.get(tag.name);
-      if (refDetail) {
-        tag.refSha = refDetail.refSha;
-        tag.isAnnotated = refDetail.type === 'tag';
+      const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/matching-refs/tags?per_page=${perPage}&page=${page}`;
+      const response = await fetchFn(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${token}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': 'pokedex-tag-retention-script',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Error ${response.status} al consultar matching-refs de ${owner}/${repo} (página ${page}): ${errorText}`,
+        );
       }
+
+      const data = (await response.json()) as Array<{
+        ref: string;
+        object?: { sha?: string; type?: string };
+      }>;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        break;
+      }
+
+      for (const item of data) {
+        if (item.ref?.startsWith('refs/tags/') && item.object?.sha && isValidGitSha(item.object.sha)) {
+          const tagName = item.ref.slice('refs/tags/'.length);
+          refsMap.set(tagName, {
+            refSha: item.object.sha,
+            type: item.object.type || 'commit',
+          });
+        }
+      }
+
+      const linkHeader = response.headers?.get?.('link') || '';
+      const hasNextPage = linkHeader.includes('rel="next"') || data.length === perPage;
+
+      if (!hasNextPage) {
+        break;
+      }
+
+      if (page === maxPages && hasNextPage) {
+        throw new Error(
+          `Límite de seguridad superado en matching-refs: el repositorio contiene más de ${maxPages * perPage} referencias (${maxPages} páginas). Detención de seguridad FAIL-CLOSED.`,
+        );
+      }
+
+      page++;
     }
-  } catch {
-    // Degradación segura no bloqueante si matching-refs no está disponible
+  } catch (err: unknown) {
+    if (strict) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Fallo crítico en enriquecimiento de referencias remotas: ${msg}. En modo destructivo se requiere inventario completo y validado. Purga cancelada por seguridad.`,
+      );
+    }
+    console.warn(
+      `⚠️  Advertencia: No se pudieron enriquecer las referencias remotas: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return;
+  }
+
+  // Mapeo y validación de cobertura de tags
+  for (const tag of tags) {
+    const refDetail = refsMap.get(tag.name);
+    if (refDetail) {
+      tag.refSha = refDetail.refSha;
+      tag.isAnnotated = refDetail.type === 'tag';
+
+      if (strict && !tag.isAnnotated && !areShasEqual(tag.refSha, tag.sha)) {
+        throw new Error(
+          `Inconsistencia de inventario en tag ligero ${tag.name}: el SHA de la referencia (${tag.refSha}) difiere del commit devuelto por la API de tags (${tag.sha}). Abortando operación destructiva por seguridad.`,
+        );
+      }
+    } else if (strict) {
+      throw new Error(
+        `Inventario incompleto: el tag ${tag.name} no se encontró en las referencias remotas de GitHub (git/matching-refs/tags). Abortando operación destructiva por seguridad (FAIL-CLOSED).`,
+      );
+    }
   }
 }
 
@@ -950,8 +1030,13 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
         fetchFn,
         maxPages: options.maxPages,
       });
-      // Capturar identidades de referencia (refSha) iniciales desde matching-refs si es posible
-      await enrichTagsWithRemoteRefs(token, owner, repo, rawTags, fetchFn);
+      // Capturar identidades de referencia (refSha) iniciales desde matching-refs con control FAIL-CLOSED
+      const isDestructive = !dryRun && !effectiveSimulate;
+      await enrichTagsWithRemoteRefs(token, owner, repo, rawTags, {
+        fetchFn,
+        maxPages: options.maxPages,
+        strict: isDestructive,
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`❌ Error al consultar tags de ${owner}/${repo}: ${msg}`);
@@ -1007,6 +1092,15 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
   } else {
     // Si es borrado real, realizar comprobación previa de seguridad
     if (!dryRun && !effectiveSimulate) {
+      console.log('\n🔒 Validando completitud de identidad del inventario antes de proceder...');
+      for (const item of [...kept, ...pruned]) {
+        if (!item.tag.refSha || !isValidGitSha(item.tag.refSha)) {
+          throw new Error(
+            `Inconsistencia crítica de seguridad: el tag ${item.tag.name} no posee refSha inicial capturado en el inventario. Abortando purga por seguridad (FAIL-CLOSED).`,
+          );
+        }
+      }
+
       console.log('\n🔒 Verificando existencia e identidad de los tags conservados antes de proceder...');
       for (const item of kept) {
         const check = await fetchRemoteTagRef(token, owner, repo, item.tag.name, fetchFn);
