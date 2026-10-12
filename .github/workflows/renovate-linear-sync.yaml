@@ -64,7 +64,7 @@ jobs:
           # 2. Manejo de Evento: PR Cerrado / Fusionado
           if [ "$EVENT_ACTION" = "closed" ]; then
             echo "Cerrando o cancelando ticket en Linear para PR #$PR_NUMBER (Merged: $IS_MERGED)..."
-            
+
             SEARCH_PAYLOAD=$(jq -n \
               --arg term "PR #$PR_NUMBER" \
               --arg teamId "$TEAM_ID" \
@@ -141,6 +141,12 @@ jobs:
 
           LINEAR_IDENTIFIER=$(echo "$ISSUE_RESPONSE" | jq -r '.data.issueCreate.issue.identifier // empty')
           LINEAR_URL=$(echo "$ISSUE_RESPONSE" | jq -r '.data.issueCreate.issue.url // empty')
+          ERROR_CODE=$(echo "$ISSUE_RESPONSE" | jq -r '.errors[0].extensions.code // empty')
+
+          if [ "$ERROR_CODE" = "USAGE_LIMIT_EXCEEDED" ]; then
+            echo "::warning::Límite de cuota de Linear alcanzado (USAGE_LIMIT_EXCEEDED). Omitiendo creación de ticket sin fallar el workflow."
+            exit 0
+          fi
 
           if [ -z "$LINEAR_IDENTIFIER" ] || [ -z "$LINEAR_URL" ]; then
             echo "❌ Error creando el ticket en Linear. Respuesta: $ISSUE_RESPONSE"
