@@ -3,7 +3,7 @@
   "version": "1.113.3",
   "private": true,
   "type": "module",
-  "packageManager": "npm@11.17.0",
+  "packageManager": "npm@12.2.0",
   "engines": {
     "node": ">=24"
   },
@@ -42,6 +42,7 @@
     "test:unit": "tsx --test \"tests/unit/**/*.test.ts\"",
     "test:integration": "tsx --test \"tests/integration/**/*.test.ts\"",
     "test:integration:db": "tsx --test \"tests/integration/db/**/*.test.ts\"",
+    "test:frontend": "tsx --test \"tests/frontend/**/*.test.ts\"",
     "test:security": "tsx --test \"tests/security/**/*.test.ts\"",
     "test:contracts": "tsx --test \"tests/contracts/**/*.test.ts\"",
     "test:gitops": "tsx --test \"tests/gitops/**/*.test.ts\"",
@@ -100,7 +101,7 @@
   },
   "overrides": {
     "qs": "^6.16.0",
-    "uuid": "^11.1.1",
+    "uuid": "^14.0.0",
     "tmp": "^0.2.6",
     "cookie": "^2.0.1",
     "esbuild": "^0.28.2",
