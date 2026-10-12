@@ -444,7 +444,8 @@ jobs:
           probe() { # probe <contraseña> <base> <consulta>
             kubectl run "pgb-probe-${RANDOM}" -n "${NS}" --rm -i --quiet --restart=Never --image="${PG_IMAGE}" \
               --env="PGPASSWORD=$1" --command -- \
-              psql -h pgbouncer-service -p 6432 -U "${PG_USER}" -d "$2" -tAc "$3" 2>&1
+              psql -h pgbouncer-service -p 6432 -U "${PG_USER}" -d "$2" -tAc "$3" 2>&1 \
+              | grep -v '^warning: couldn'\''t attach to pod/' || true
           }
 
           OUT="$(probe 'ci-canonical-test-pass' "${PG_DB}" 'select current_user' || true)"
