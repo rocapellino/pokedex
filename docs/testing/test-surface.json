@@ -1459,6 +1459,25 @@
       "description": "Comprueba que la versión del enlace al CSS derive de su contenido, que no se toquen otros enlaces y que las páginas no la fijen a mano."
     },
     {
+      "path": "tests/frontend/evolution_panel_theme.test.ts",
+      "suite": "frontend",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Suite frontend",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Suite de pruebas frontend: evolution_panel_theme.test.ts."
+    },
+    {
       "path": "tests/frontend/filter_url.test.ts",
       "suite": "frontend",
       "type": "Unit",

@@ -1570,20 +1570,59 @@ body {
 
 /* Panel Inferior de Evoluciones Oficial */
 .pokedex-evolutions-official-panel {
-  background-color: #424242;
-  background-image: repeating-linear-gradient(45deg, #383838, #383838 12px, #424242 12px, #424242 24px);
+  /* Paleta propia del panel: oscura por defecto (estilo Pokédex oficial) y clara en el tema claro. */
+  --evo-bg: #424242;
+  --evo-stripe: #383838;
+  --evo-text: #ffffff;
+  --evo-text-muted: #a4acaf;
+  --evo-border: rgba(255, 255, 255, 0.1);
+  --evo-inset-shadow: rgba(0, 0, 0, 0.4);
+  --evo-frame-border: #ffffff;
+  --evo-frame-inner: #5a5a5a;
+  --evo-frame-outer: #2b2b2b;
+  --evo-frame-shadow: rgba(0, 0, 0, 0.4);
+  --evo-accent: #30a7d7;
+  --evo-accent-text: #30a7d7;
+  --evo-fork-bg: rgba(0, 0, 0, 0.4);
+  --evo-fork-border: rgba(255, 255, 255, 0.3);
+
+  background-color: var(--evo-bg);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--evo-stripe),
+    var(--evo-stripe) 12px,
+    var(--evo-bg) 12px,
+    var(--evo-bg) 24px
+  );
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+  color: var(--evo-text);
+  border: 1px solid var(--evo-border);
+  box-shadow: inset 0 2px 10px var(--evo-inset-shadow);
+}
+
+[data-theme="light"] .pokedex-evolutions-official-panel {
+  --evo-bg: #e3ebf2;
+  --evo-stripe: #d9e3ec;
+  --evo-text: #0f172a;
+  --evo-text-muted: #475569;
+  --evo-border: rgba(15, 23, 42, 0.12);
+  --evo-inset-shadow: rgba(15, 23, 42, 0.12);
+  --evo-frame-border: #ffffff;
+  --evo-frame-inner: #ffffff;
+  --evo-frame-outer: #cbd8e3;
+  --evo-frame-shadow: rgba(15, 23, 42, 0.22);
+  --evo-accent: #1f8fbf;
+  --evo-accent-text: #0b5f82; /* contraste AA (≥4.5:1) sobre el fondo claro del panel */
+  --evo-fork-bg: rgba(255, 255, 255, 0.7);
+  --evo-fork-border: rgba(15, 23, 42, 0.3);
 }
 
 .evolutions-panel-header {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--evo-text);
   margin-bottom: 1.25rem;
 }
 
@@ -1610,7 +1649,7 @@ body {
 }
 
 .evolution-node-item:focus-visible {
-  outline: 3px solid #30a7d7;
+  outline: 3px solid var(--evo-accent);
   outline-offset: 6px;
   border-radius: var(--radius-sm);
 }
@@ -1619,24 +1658,24 @@ body {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 5px solid #ffffff;
-  background: radial-gradient(circle, #5a5a5a 0%, #2b2b2b 100%);
+  border: 5px solid var(--evo-frame-border);
+  background: radial-gradient(circle, var(--evo-frame-inner) 0%, var(--evo-frame-outer) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 20px var(--evo-frame-shadow);
   position: relative;
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .evolution-node-item:hover .evolution-circle-frame {
-  border-color: #30a7d7;
+  border-color: var(--evo-accent);
   box-shadow: 0 0 20px rgba(48, 167, 215, 0.6);
 }
 
 .evolution-node-item.active-current .evolution-circle-frame {
-  border-color: #30a7d7;
+  border-color: var(--evo-accent);
   box-shadow: 0 0 25px rgba(48, 167, 215, 0.8);
 }
 
@@ -1656,13 +1695,13 @@ body {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--evo-text);
   text-align: center;
 }
 
 .evolution-number-sub {
   font-size: 0.85rem;
-  color: #a4acaf;
+  color: var(--evo-text-muted);
   font-weight: 400;
   margin-left: 0.25rem;
 }
@@ -1697,7 +1736,7 @@ body {
   gap: 0.3rem;
   background: rgba(48, 167, 215, 0.18);
   border: 1px solid rgba(48, 167, 215, 0.45);
-  color: #30a7d7;
+  color: var(--evo-accent-text);
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
   font-size: 0.72rem;
@@ -1709,7 +1748,7 @@ body {
 }
 
 .evolution-chevron-arrow {
-  color: #ffffff;
+  color: var(--evo-text);
   font-size: 1.8rem;
   font-weight: 300;
   opacity: 0.85;
@@ -1740,12 +1779,12 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 1.2rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px dashed rgba(255, 255, 255, 0.3);
+  background: var(--evo-fork-bg);
+  border: 1px dashed var(--evo-fork-border);
   border-radius: var(--radius-full);
   font-size: 0.82rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--evo-text);
 }
 
 .fork-arrow-down {
@@ -1763,7 +1802,7 @@ body {
 .evolution-method-tag {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #30a7d7;
+  color: var(--evo-accent-text);
   background: rgba(48, 167, 215, 0.2);
   border: 1px solid rgba(48, 167, 215, 0.4);
   padding: 0.2rem 0.55rem;
