@@ -10,7 +10,12 @@ import {
   checkUngovernedWorktreeCalls,
   runWorktreeDoctor,
 } from '../../scripts/worktree/doctor.js';
-import { listWorktrees, pruneWorktrees, removeWorktreeSafely } from '../../scripts/worktree/manager.js';
+import {
+  cleanupNonCanonicalWorktrees,
+  listWorktrees,
+  pruneWorktrees,
+  removeWorktreeSafely,
+} from '../../scripts/worktree/manager.js';
 import {
   ALLOWED_TASK_TYPES,
   generateCanonicalNaming,
@@ -942,4 +947,156 @@ test('🌲 Worktree Governance: createWorktree enlaza node_modules de workspaces
       'Debe enlazar apps/frontend/node_modules en Windows',
     );
   }
+
+  // Verificar que removeWorktreeSafely funciona sin requerir --force cuando existen junctions de node_modules
+  // y que preserva intacto el contenido de node_modules del repositorio principal
+  const markerFile = path.join(testRepoDir, 'node_modules', 'keep.txt');
+  fs.writeFileSync(markerFile, 'safe');
+
+  const rmRes = removeWorktreeSafely(created.path, { cwd: testRepoDir, force: false });
+  assert.equal(rmRes.success, true);
+  assert.equal(fs.existsSync(created.path), false, 'El worktree debe eliminarse completamente');
+  assert.equal(fs.existsSync(markerFile), true, 'El contenido de node_modules en main debe permanecer intacto');
+});
+
+test('🌲 Worktree Governance: cleanupNonCanonicalWorktrees elimina worktrees fuera de la base canónica y preserva los canónicos', (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pokedex-wt-noncanonical-cleanup-'));
+  const testRepoDir = path.join(tempDir, 'pokedex');
+  const externalIdeDir = path.join(tempDir, 'external-ide-worktrees', 'non_canonical_chat');
+  fs.mkdirSync(testRepoDir, { recursive: true });
+  fs.mkdirSync(path.dirname(externalIdeDir), { recursive: true });
+
+  execSync('git init -b main', { cwd: testRepoDir });
+  execSync('git config user.email "test@pokedex.local"', { cwd: testRepoDir });
+  execSync('git config user.name "Pokedex Tester"', { cwd: testRepoDir });
+
+  fs.writeFileSync(path.join(testRepoDir, 'README.md'), '# Test Repository\n');
+  execSync('git add . && git commit -m "chore: initial commit"', { cwd: testRepoDir });
+
+  t.after(() => {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignorar fallos de limpieza
+    }
+  });
+
+  // 1. Crear un worktree canónico gobernado
+  const canonicalWt = createWorktree(
+    { type: 'fix', slug: 'canonical-task' },
+    { cwd: testRepoDir, createNodeModulesJunction: false },
+  );
+
+  // 2. Simular un worktree no canónico creado por un IDE externo (fuera de ../.worktrees/pokedex)
+  execSync(`git worktree add -b non_canonical_chat "${externalIdeDir}" main`, { cwd: testRepoDir });
+
+  const docBefore = runWorktreeDoctor(testRepoDir);
+  assert.equal(docBefore.compliantWorktrees, 1);
+  assert.equal(docBefore.nonCompliantWorktrees, 1);
+
+  // 3. Limpiar únicamente los worktrees fuera de regla
+  const cleanupRes = cleanupNonCanonicalWorktrees({ cwd: testRepoDir });
+  assert.equal(cleanupRes.removed.length, 1);
+  assert.equal(cleanupRes.skipped.length, 0);
+  assert.equal(path.resolve(cleanupRes.removed[0]).toLowerCase(), path.resolve(externalIdeDir).toLowerCase());
+
+  // 4. Verificar que el worktree canónico sigue intacto y doctor pasa al 100%
+  const docAfter = runWorktreeDoctor(testRepoDir);
+  assert.equal(docAfter.compliantWorktrees, 1);
+  assert.equal(docAfter.nonCompliantWorktrees, 0);
+  assert.equal(fs.existsSync(canonicalWt.path), true);
+});
+
+test('🌲 Worktree Governance: agy-hook.mjs bloquea llamadas no gobernadas y operaciones en .gemini/antigravity/worktrees/', async () => {
+  // @ts-expect-error Módulo ESM sin archivo .d.ts dedicado
+  const hookMod = await import('../../scripts/worktree/agy-hook.mjs');
+  const { evaluatePreToolUse, evaluatePreInvocation } = hookMod;
+  const fakeMainRoot = 'C:\\Users\\Dev\\Documents\\Git\\pokedex';
+
+  // 1. Bloquear git worktree add directo en run_command
+  const resDirectAdd = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'run_command',
+        args: {
+          CommandLine:
+            'git -C C:/Users/Dev/Documents/Git/pokedex worktree add -f -B review_pr "C:/Users/Dev/.gemini/antigravity/worktrees/pokedex/review_pr" origin/main',
+          Cwd: fakeMainRoot,
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resDirectAdd.decision, 'deny');
+
+  // 2. Permitir búsqueda de solo lectura (git grep)
+  const resGrep = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'run_command',
+        args: {
+          CommandLine: 'git grep "git worktree add"',
+          Cwd: fakeMainRoot,
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resGrep.decision, 'allow');
+
+  // 3. Bloquear edición de archivos dentro de .gemini/antigravity/worktrees/
+  const resEditNonCanonical = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'replace_file_content',
+        args: {
+          TargetFile: 'C:\\Users\\Dev\\.gemini\\antigravity\\worktrees\\pokedex\\some_chat\\README.md',
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resEditNonCanonical.decision, 'deny');
+
+  // 4. Bloquear git checkout/commit dentro de .gemini/antigravity/worktrees/
+  const resMutatingGit = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'run_command',
+        args: {
+          CommandLine: 'git checkout -B fix/test',
+          Cwd: 'C:\\Users\\Dev\\.gemini\\antigravity\\worktrees\\pokedex\\some_chat',
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resMutatingGit.decision, 'deny');
+
+  // 5. Redirigir Cwd automáticamente hacia mainRepoRoot en comandos de lectura si Cwd apunta a .gemini/antigravity/worktrees/
+  const resReadRedirect = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'run_command',
+        args: {
+          CommandLine: 'gh pr list',
+          Cwd: 'C:\\Users\\Dev\\.gemini\\antigravity\\worktrees\\pokedex\\some_chat',
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resReadRedirect.decision, 'allow');
+  assert.equal(resReadRedirect.overwrite?.Cwd, fakeMainRoot);
+
+  // 6. PreInvocation inyecta mensaje efímero si el workspace inicial está en .gemini/antigravity/worktrees/
+  const preInv = evaluatePreInvocation(
+    {
+      workspacePaths: ['C:\\Users\\Dev\\.gemini\\antigravity\\worktrees\\pokedex\\some_chat'],
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(Array.isArray(preInv.injectSteps), true);
+  assert.equal(preInv.injectSteps.length, 1);
+  assert.ok(preInv.injectSteps[0].ephemeralMessage.includes('.worktrees'));
 });

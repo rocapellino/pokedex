@@ -1,0 +1,23 @@
+{
+  "worktree-governance-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command|write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ../scripts/worktree/agy-hook.mjs pre-tool",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node ../scripts/worktree/agy-hook.mjs pre-invocation",
+        "timeout": 10
+      }
+    ]
+  }
+}

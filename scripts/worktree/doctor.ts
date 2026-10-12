@@ -372,7 +372,8 @@ export function runWorktreeDoctor(cwd: string = process.cwd()): DoctorReport {
         severity: 'HIGH',
         worktreePath: wt.path,
         message: `El worktree se encuentra fuera del directorio base canónico: ${canonicalBase}`,
-        remediation: 'Migrar o planificar el retiro de este worktree hacia la ubicación canónica aprobada.',
+        remediation:
+          'Migrar o planificar el retiro de este worktree hacia la ubicación canónica aprobada (`npm run worktree:cleanup -- --non-canonical`).',
       });
     } else if (!wt.isMainCheckout) {
       compliantCount++;
