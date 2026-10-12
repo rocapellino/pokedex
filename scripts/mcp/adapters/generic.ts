@@ -12,12 +12,12 @@ export const genericAdapter: McpAdapter = {
   clientId: 'generic',
   format: 'standard-mcp-json',
 
-  generateConfig(servers: McpServerDefinition[], clientDef: McpClientDefinition): Record<string, any> {
-    const mcpServers: Record<string, any> = {};
+  generateConfig(servers: McpServerDefinition[], clientDef: McpClientDefinition): Record<string, unknown> {
+    const mcpServers: Record<string, unknown> = {};
 
     for (const server of servers) {
       if (server.transport === 'stdio') {
-        const srvConfig: Record<string, any> = {
+        const srvConfig: Record<string, unknown> = {
           command: server.command,
           args: server.args || [],
         };
@@ -29,7 +29,7 @@ export const genericAdapter: McpAdapter = {
         mcpServers[server.id] = srvConfig;
       } else if (server.transport === 'sse' || server.transport === 'http') {
         const resolvedUrl = resolveEnvExpression(server.url);
-        const srvConfig: Record<string, any> = {
+        const srvConfig: Record<string, unknown> = {
           url: resolvedUrl,
         };
 
