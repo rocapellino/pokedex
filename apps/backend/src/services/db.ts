@@ -95,6 +95,8 @@ export {
   setPokemonMegaEvolutions,
   listPersistedClassifications,
   setPokemonClassification,
+  listPersistedSampleTexts,
+  setPokemonSampleTexts,
 } from './pokemon.repository.js';
 
 export {

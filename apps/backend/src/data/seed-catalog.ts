@@ -9,7 +9,10 @@
 // `dist/seed.cjs` y no en `dist/server.cjs`.
 import type { MegaEvolution, Pokemon, PokemonClassification } from '../types.js';
 import { initialPokemons } from './initialPokemons.js';
+import { LEGACY_SAMPLE_TEXTS, type LegacyTextCandidates } from './legacy-sample-texts.js';
 import fullCatalog from './pokemon-catalog.full.json' with { type: 'json' };
+
+export { LEGACY_SAMPLE_TEXTS, type LegacyTextCandidates };
 
 export const SEED_DATASETS = ['sample', 'full'] as const;
 export type SeedDataset = (typeof SEED_DATASETS)[number];
@@ -133,6 +136,71 @@ export function planClassificationEnrichment(
     if (!entry.clasificacion || !existingIds.has(entry.id)) continue;
     if (persisted.get(entry.id) === entry.clasificacion) continue;
     plan.push({ id: entry.id, clasificacion: entry.clasificacion });
+  }
+  return plan;
+}
+
+export interface SampleTextSnapshot {
+  descripcion?: string;
+  categoria?: string;
+  habilidades?: string[];
+}
+
+export interface SampleTextAlignment extends SampleTextSnapshot {
+  id: number;
+}
+
+function matchesLegacyString(
+  current: string | undefined,
+  target: string | undefined,
+  candidates: readonly string[] | undefined,
+): string | undefined {
+  if (!current || !target || !candidates || current === target) return undefined;
+  return candidates.includes(current) ? target : undefined;
+}
+
+function matchesLegacyStringList(
+  current: readonly string[] | undefined,
+  target: readonly string[] | undefined,
+  candidates: readonly (readonly string[])[] | undefined,
+): string[] | undefined {
+  if (!current || !target || !candidates) return undefined;
+  const currentJson = canonicalJson(current);
+  if (currentJson === canonicalJson(target)) return undefined;
+  return candidates.some((candidate) => canonicalJson(candidate) === currentJson) ? [...target] : undefined;
+}
+
+/**
+ * Decide qué filas YA persistidas aún conservan textos heredados de la muestra (`descripcion`,
+ * `categoria` o `habilidades`) y deben alinearse con el catálogo. Cada campo se evalúa por
+ * separado: si un administrador editó un campo en el backoffice, ya no coincide con el valor
+ * heredado y no se pisa. Es idempotente.
+ */
+export function planSampleTextAlignment(
+  catalog: Pokemon[],
+  persisted: ReadonlyMap<number, SampleTextSnapshot>,
+  existingIds: ReadonlySet<number>,
+  legacyCandidates: ReadonlyMap<number, LegacyTextCandidates> = LEGACY_SAMPLE_TEXTS,
+): SampleTextAlignment[] {
+  const plan: SampleTextAlignment[] = [];
+  for (const entry of catalog) {
+    if (!existingIds.has(entry.id)) continue;
+    const legacy = legacyCandidates.get(entry.id);
+    const current = persisted.get(entry.id);
+    if (!legacy || !current) continue;
+
+    const descripcion = matchesLegacyString(current.descripcion, entry.caracteristicas.descripcion, legacy.descripcion);
+    const categoria = matchesLegacyString(current.categoria, entry.caracteristicas.categoria, legacy.categoria);
+    const habilidades = matchesLegacyStringList(current.habilidades, entry.habilidades, legacy.habilidades);
+
+    if (descripcion !== undefined || categoria !== undefined || habilidades !== undefined) {
+      plan.push({
+        id: entry.id,
+        ...(descripcion !== undefined ? { descripcion } : {}),
+        ...(categoria !== undefined ? { categoria } : {}),
+        ...(habilidades !== undefined ? { habilidades } : {}),
+      });
+    }
   }
   return plan;
 }
