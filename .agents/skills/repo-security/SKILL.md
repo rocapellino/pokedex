@@ -49,3 +49,4 @@ Reglas propias de esta skill:
 
 - **Planes de Cambio:** Toda remediación de vulnerabilidad debe planificarse con [change-plan.md](../_shared/change-plan.md) y evaluarse con `repo-impact`.
 - **Referencias Externas Aprobadas (AAS):** para auditorías de hardening en K8s o análisis de supply chain, consultar las pautas de `kubernetes-hardening` y `dependency-scanning` en [aas-references.md](../_shared/aas-references.md).
+- **Integración MCP (`trivy`):** Para escaneos de vulnerabilidades en imágenes OCI, Dockerfiles y dependencias, apoyarse en el servidor gobernado `trivy` (`security-readonly`, `.mcp/registry.yaml`).

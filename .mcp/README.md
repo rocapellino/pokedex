@@ -55,6 +55,8 @@ Adaptadores Específicos"]
 | `infrastructure-readonly` | Consulta de métricas, telemetría y observabilidad | outbound | none | No | Habilitado |
 | `infrastructure-write` | Operaciones de escritura en K8s o cloud | none | none | Sí | **Deshabilitado** |
 | `ci` | Validación en GitHub Actions sin secretos operativos | isolated | `read-only-repo` | No | Habilitado |
+| `security-readonly` | Análisis de seguridad de dependencias, imágenes OCI e infra | outbound | `read-only-repo` | No | Habilitado |
+| `documentation-readonly` | Consulta de documentación técnica y APIs versionadas | outbound | none | No | Habilitado |
 
 > [!IMPORTANT]
 > El perfil `infrastructure-write` permanece deshabilitado por defecto. Ningún agente ni desarrollador debe utilizar servidores MCP para eludir el flujo formal de GitOps (ArgoCD) y Pull Requests.
@@ -71,6 +73,8 @@ Adaptadores Específicos"]
 | `sonarqube` | SonarQube Launcher | `stdio` | `local` | `mcp-sonarqube-launcher` | `1.1.2` | `code-quality` |
 | `observability-readonly` | Grafana Observability | `sse` | `remote` | Endpoint HTTPS con TLS | `1.0.0` | `infrastructure-readonly` |
 | `k8s-platform-write` | K8s Platform Write | `stdio` | `container` | `alpine/k8s` (fijado por SHA256) | `1.32.0` | `infrastructure-write` (Inactivo) |
+| `trivy` | Trivy Security Scanner | `stdio` | `local` | `trivy-mcp` | `0.1.0` | `security-readonly` |
+| `context7` | Context7 Documentation | `stdio` | `local` | `@upstash/context7-mcp` | `4.4.0` | `documentation-readonly` |
 
 ---
 

@@ -71,3 +71,23 @@ profiles:
     infra_access: "none"
     requires_explicit_approval: false
     allow_production_secrets: false
+
+  security-readonly:
+    description: "Análisis de seguridad de dependencias, imágenes OCI e infraestructura en modo solo lectura"
+    default_enabled: true
+    network: "outbound-allowed"
+    filesystem: "read-only-repo"
+    write_access: false
+    infra_access: "none"
+    requires_explicit_approval: false
+    allow_production_secrets: false
+
+  documentation-readonly:
+    description: "Consulta de documentación técnica versionada y APIs sin acceso a filesystem ni infraestructura"
+    default_enabled: true
+    network: "outbound-allowed"
+    filesystem: "none"
+    write_access: false
+    infra_access: "none"
+    requires_explicit_approval: false
+    allow_production_secrets: false

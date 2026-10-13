@@ -62,3 +62,20 @@ test('🛡️ MCP Contrato: El validador test-config aprueba todos los adaptador
     );
   }
 });
+
+test('🛡️ MCP Contrato: Servidores trivy y context7 están registrados con perfiles y permisos válidos', () => {
+  const registry: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'registry.yaml'), 'utf-8'));
+  const servers = registry.servers || [];
+
+  const trivy = servers.find((s: any) => s.id === 'trivy');
+  assert.ok(trivy, "El servidor 'trivy' debe estar registrado en registry.yaml");
+  assert.strictEqual(trivy.profile, 'security-readonly');
+  assert.strictEqual(trivy.permissions?.write, false);
+  assert.strictEqual(trivy.permissions?.filesystem, 'read-only-repo');
+
+  const context7 = servers.find((s: any) => s.id === 'context7');
+  assert.ok(context7, "El servidor 'context7' debe estar registrado en registry.yaml");
+  assert.strictEqual(context7.profile, 'documentation-readonly');
+  assert.strictEqual(context7.permissions?.write, false);
+  assert.strictEqual(context7.permissions?.filesystem, 'none');
+});
