@@ -31,7 +31,7 @@ const DEFAULT_ROOT_DIR = process.cwd();
 export type ServerHealthState = 'READY' | 'CONFIG_MISSING' | 'DEPENDENCY_MISSING' | 'DISABLED';
 export type ConfigurationStatus = 'VALID' | 'MISSING_ENV' | 'NOT_APPLICABLE';
 export type DependenciesStatus = 'MET' | 'MISSING_TOOL' | 'MISSING_PLUGIN' | 'NOT_APPLICABLE';
-export type ConnectivityStatus = 'SECURE' | 'INSECURE_REMOTE' | 'LOCAL' | 'INVALID_URL';
+export type ConnectivityStatus = 'SECURE' | 'INSECURE_REMOTE' | 'UNRESOLVED_URL' | 'LOCAL' | 'INVALID_URL';
 
 export interface ServerDiagnosis {
   id: string;
@@ -231,12 +231,32 @@ function getMissingEnvVars(
   return missing;
 }
 
-function isPlainHttpRemoteUrl(s: McpServerDefinition): boolean {
-  if (s.transport !== 'sse' && s.transport !== 'http') return false;
-  const url = s.url ?? '';
-  return (
-    !url.startsWith('https://') && !url.includes('localhost') && !url.includes('127.0.0.1') && !url.startsWith('${')
-  );
+export function resolveServerUrl(
+  url: string | undefined,
+  envSource: Record<string, string | undefined> = process.env,
+): { resolvedUrl: string; hasUnresolvedVars: boolean; missingVars: string[] } {
+  if (!url) {
+    return { resolvedUrl: '', hasUnresolvedVars: false, missingVars: [] };
+  }
+
+  const missingVars: string[] = [];
+  const resolvedUrl = url.replace(/\$\{([A-Z0-9_]+)(?::-([^}]*))?\}/g, (match, varName, fallback) => {
+    const envVal = envSource[varName];
+    if (envVal && envVal.trim().length > 0) {
+      return envVal.trim();
+    }
+    if (fallback !== undefined) {
+      return fallback;
+    }
+    missingVars.push(varName);
+    return match;
+  });
+
+  return {
+    resolvedUrl,
+    hasUnresolvedVars: missingVars.length > 0,
+    missingVars,
+  };
 }
 
 function diagnoseServer(
@@ -304,15 +324,34 @@ function diagnoseServer(
     }
   }
 
-  // 3. Evaluación segregada de conectividad y transporte seguro (TLS)
+  // 3. Evaluación segregada de transporte y esquema seguro (inspección estática)
   let connectivityStatus: ConnectivityStatus = 'LOCAL';
   if (s.transport === 'sse' || s.transport === 'http') {
-    if (isPlainHttpRemoteUrl(s)) {
-      connectivityStatus = 'INSECURE_REMOTE';
-      details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
-      recommendations.push(`Configure endpoint seguro con HTTPS (TLS) para el servidor remoto '${s.id}'.`);
+    const urlResolution = resolveServerUrl(s.url, envSource);
+
+    if (urlResolution.hasUnresolvedVars) {
+      connectivityStatus = 'UNRESOLVED_URL';
+      details.push(
+        `Endpoint remoto contiene variables de entorno sin definir en la URL: ${urlResolution.missingVars.join(', ')}.`,
+      );
+      recommendations.push(
+        `Defina las variables para resolver la URL remota de '${s.id}': ${urlResolution.missingVars.join(', ')}.`,
+      );
     } else {
-      connectivityStatus = 'SECURE';
+      const targetUrl = urlResolution.resolvedUrl;
+      const isLocal = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
+
+      if (isLocal) {
+        connectivityStatus = 'LOCAL';
+        details.push('Transporte remoto local (localhost/127.0.0.1).');
+      } else if (targetUrl.startsWith('https://')) {
+        connectivityStatus = 'SECURE';
+        details.push('Transporte HTTPS declarado (esquema TLS conforme en inspección estática).');
+      } else {
+        connectivityStatus = 'INSECURE_REMOTE';
+        details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
+        recommendations.push(`Configure endpoint seguro con HTTPS (TLS) para el servidor remoto '${s.id}'.`);
+      }
     }
   }
 
@@ -320,7 +359,7 @@ function diagnoseServer(
   let state: ServerHealthState = 'READY';
   if (dependenciesStatus !== 'MET') {
     state = 'DEPENDENCY_MISSING';
-  } else if (configurationStatus !== 'VALID') {
+  } else if (configurationStatus !== 'VALID' || connectivityStatus === 'UNRESOLVED_URL') {
     state = 'CONFIG_MISSING';
   }
 
@@ -383,7 +422,9 @@ export function runMcpDoctor(options: McpDoctorOptions = {}): DoctorReport {
   const enabledServers = serverDiagnoses.filter((s) => s.state !== 'DISABLED');
   const hasConfigIssues = enabledServers.some((s) => s.configurationStatus === 'MISSING_ENV');
   const hasDependencyIssues = enabledServers.some((s) => s.dependenciesStatus.startsWith('MISSING_'));
-  const hasInsecureRemote = enabledServers.some((s) => s.connectivityStatus === 'INSECURE_REMOTE');
+  const hasTransportIssues = enabledServers.some(
+    (s) => s.connectivityStatus === 'INSECURE_REMOTE' || s.connectivityStatus === 'UNRESOLVED_URL',
+  );
 
   const readyServers = enabledServers.filter((s) => s.state === 'READY');
   const blockingServers = enabledServers.filter((s) => s.state !== 'READY');
@@ -392,14 +433,14 @@ export function runMcpDoctor(options: McpDoctorOptions = {}): DoctorReport {
     clientsInSync,
     dependenciesMet: !hasDependencyIssues,
     configurationsMet: !hasConfigIssues,
-    connectivityMet: !hasInsecureRemote,
+    connectivityMet: !hasTransportIssues,
     totalServers: serverDiagnoses.length,
     enabledServers: enabledServers.length,
     readyServers: readyServers.length,
     blockingServers: blockingServers.length,
   };
 
-  const overallValid = clientsInSync && !hasConfigIssues && !hasDependencyIssues && !hasInsecureRemote;
+  const overallValid = clientsInSync && !hasConfigIssues && !hasDependencyIssues && !hasTransportIssues;
 
   return {
     overallValid,
@@ -434,7 +475,9 @@ function printSummarySection(summary: DoctorSummary): void {
   );
   const connIcon = summary.connectivityMet ? '✔' : '⚠️';
   console.log(
-    `   ${connIcon} Conectividad y Transporte:        ${summary.connectivityMet ? 'Seguro (TLS verificado)' : 'Inseguro (Requiere HTTPS)'}`,
+    `   ${connIcon} Transporte y Esquema Seguro:      ${
+      summary.connectivityMet ? 'Conforme (HTTPS declarado / Local)' : 'Requiere HTTPS o resolución de variables en URL'
+    }`,
   );
   console.log(
     `   📊 Servidores Habilitados:            ${summary.readyServers}/${summary.enabledServers} listos (${summary.blockingServers} pendientes)`,

@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { probeCliTool, probeTrivyPlugin, runMcpDoctor, type ServerDiagnosis } from '../../../scripts/mcp/doctor.js';
+import {
+  probeCliTool,
+  probeTrivyPlugin,
+  resolveServerUrl,
+  runMcpDoctor,
+  type ServerDiagnosis,
+} from '../../../scripts/mcp/doctor.js';
 import { ROOT_DIR } from '../../helpers/repo.js';
 
 /**
@@ -132,4 +138,53 @@ test('🧪 MCP Doctor Unit: Diagnóstico exitoso cuando todas las dependencias y
       `El servidor ${server.id} debería estar READY pero está en ${server.state}: ${server.details.join('; ')}`,
     );
   }
+});
+
+test('🧪 MCP Doctor Unit: resolveServerUrl resuelve variables, fallback y detecta variables pendientes', () => {
+  const env = {
+    CUSTOM_HOST: 'https://monitoring.corp.internal',
+    EMPTY_VAR: '',
+  };
+
+  // 1. Variable existente resuelta
+  const res1 = resolveServerUrl('${CUSTOM_HOST}/mcp', env);
+  assert.strictEqual(res1.resolvedUrl, 'https://monitoring.corp.internal/mcp');
+  assert.strictEqual(res1.hasUnresolvedVars, false);
+  assert.deepStrictEqual(res1.missingVars, []);
+
+  // 2. Variable ausente pero con fallback predeterminado
+  const res2 = resolveServerUrl('${NON_EXISTENT_VAR:-https://fallback.domain/mcp}', env);
+  assert.strictEqual(res2.resolvedUrl, 'https://fallback.domain/mcp');
+  assert.strictEqual(res2.hasUnresolvedVars, false);
+  assert.deepStrictEqual(res2.missingVars, []);
+
+  // 3. Variable ausente sin fallback
+  const res3 = resolveServerUrl('${PENDING_VAR}/mcp', env);
+  assert.strictEqual(res3.resolvedUrl, '${PENDING_VAR}/mcp');
+  assert.strictEqual(res3.hasUnresolvedVars, true);
+  assert.deepStrictEqual(res3.missingVars, ['PENDING_VAR']);
+});
+
+test('🧪 MCP Doctor Unit: Servidor remoto con URL sin resolver reporta UNRESOLVED_URL y bloquea overallValid', () => {
+  const env: Record<string, string | undefined> = {
+    GITHUB_PERSONAL_ACCESS_TOKEN: 'mock-token',
+    SONAR_TOKEN: 'mock-token',
+    GRAFANA_SERVICE_ACCOUNT_TOKEN: 'mock-token',
+    // Inyectamos explícitamente una variable que resuelva a endpoint inseguro plain http
+    GRAFANA_MCP_ENDPOINT: 'http://insecure-remote-host.example.com/mcp',
+  };
+
+  const report = runMcpDoctor({
+    rootDir: ROOT_DIR,
+    env,
+    cliProbeFn: () => ({ available: true, version: '1.0.0' }),
+    trivyPluginProbeFn: () => ({ installed: true }),
+  });
+
+  const obsServer = report.servers.find((s) => s.id === 'observability-readonly');
+  assert.ok(obsServer);
+  assert.strictEqual(obsServer.connectivityStatus, 'INSECURE_REMOTE');
+  assert.ok(obsServer.details.some((d) => d.includes('sin TLS')));
+  assert.strictEqual(report.summary.connectivityMet, false);
+  assert.strictEqual(report.overallValid, false);
 });
