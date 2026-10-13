@@ -1063,6 +1063,28 @@
       "description": "Verifica que todas las rutas de configuración de clientes soportados estén estrictamente ignoradas por .gitignore y documenten limitaciones."
     },
     {
+      "path": "tests/contracts/mcp/mcp_doctor_contract.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Platform",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza MCP / Contrato de Diagnóstico",
+      "targetArtifacts": [
+        "scripts/mcp/doctor.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Garantiza el esquema estructural del reporte de diagnóstico, determinismo de overallValid y aislamiento de servidores deshabilitados."
+    },
+    {
       "path": "tests/contracts/mcp/mcp_registry_contract.test.ts",
       "suite": "contracts",
       "type": "Contract / Platform",
@@ -3628,6 +3650,28 @@
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas."
+    },
+    {
+      "path": "tests/unit/mcp/mcp_doctor.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza MCP / Diagnóstico y Zero-Trust",
+      "targetArtifacts": [
+        "scripts/mcp/doctor.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica evaluación segregada de configuración, dependencias locales, plugins de Trivy y preservación estricta de Zero-Trust."
     },
     {
       "path": "tests/unit/mcp/mcp_schema_validation.test.ts",

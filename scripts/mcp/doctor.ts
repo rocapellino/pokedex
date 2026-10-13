@@ -3,16 +3,16 @@
  * ==============================================================================
  * scripts/mcp/doctor.ts
  * ==============================================================================
- * Diagnóstico seguro y accionable del entorno MCP en rocapellino/pokedex.
+ * Diagnóstico seguro, desacoplado y accionable del entorno MCP en rocapellino/pokedex.
  *
- * Evalúa:
- *   1. Integridad del catálogo y políticas de seguridad (.mcp).
- *   2. Sincronización de configuraciones de clientes.
- *   3. Disponibilidad de herramientas del sistema (Node.js, Docker, clientes IDE).
- *   4. Estado por servidor: READY, CONFIG_MISSING, DEPENDENCY_MISSING, DISABLED.
+ * Evalúa por separado:
+ *   1. Integridad y sincronización de configuraciones de clientes.
+ *   2. Dependencias de herramientas del sistema (Node.js, Docker, CLI local y plugins).
+ *   3. Variables de entorno requeridas por servidor (presencia estricta sin filtrar valores).
+ *   4. Seguridad de conectividad y transporte (obligatoriedad de TLS en endpoints remotos).
  *
  * Principio Zero-Trust:
- *   NUNCA imprime ni filtra valores de secretos, tokens ni contraseñas.
+ *   NUNCA imprime, expone ni registra en disco valores de secretos, tokens ni contraseñas.
  * ==============================================================================
  */
 
@@ -26,11 +26,12 @@ import { loadLocalEnv } from './env.js';
 import type { McpRegistrySpec, McpServerDefinition } from './adapters/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const ROOT_DIR = process.cwd();
-const MCP_DIR = path.join(ROOT_DIR, '.mcp');
-const REGISTRY_PATH = path.join(MCP_DIR, 'registry.yaml');
+const DEFAULT_ROOT_DIR = process.cwd();
 
 export type ServerHealthState = 'READY' | 'CONFIG_MISSING' | 'DEPENDENCY_MISSING' | 'DISABLED';
+export type ConfigurationStatus = 'VALID' | 'MISSING_ENV' | 'NOT_APPLICABLE';
+export type DependenciesStatus = 'MET' | 'MISSING_TOOL' | 'MISSING_PLUGIN' | 'NOT_APPLICABLE';
+export type ConnectivityStatus = 'SECURE' | 'INSECURE_REMOTE' | 'LOCAL' | 'INVALID_URL';
 
 export interface ServerDiagnosis {
   id: string;
@@ -39,21 +40,47 @@ export interface ServerDiagnosis {
   transport: string;
   executionMode: string;
   state: ServerHealthState;
+  configurationStatus: ConfigurationStatus;
+  dependenciesStatus: DependenciesStatus;
+  connectivityStatus: ConnectivityStatus;
   details: string[];
+}
+
+export interface DoctorSummary {
+  clientsInSync: boolean;
+  dependenciesMet: boolean;
+  configurationsMet: boolean;
+  connectivityMet: boolean;
+  totalServers: number;
+  enabledServers: number;
+  readyServers: number;
+  blockingServers: number;
 }
 
 export interface DoctorReport {
   overallValid: boolean;
+  summary: DoctorSummary;
   systemTools: Record<string, { available: boolean; version?: string }>;
   clientConfigs: { client: string; path: string; inSync: boolean }[];
   servers: ServerDiagnosis[];
   recommendations: string[];
 }
 
-export function probeCliTool(binary: string): { available: boolean; version?: string } {
+export interface McpDoctorOptions {
+  rootDir?: string;
+  env?: Record<string, string | undefined>;
+  cliProbeFn?: (binary: string, args?: string[]) => { available: boolean; version?: string };
+  trivyPluginProbeFn?: (pluginName?: string) => { installed: boolean; version?: string; error?: string };
+}
+
+/**
+ * Sonda segura de comandos de línea de comandos locales.
+ * En Windows, incluye fallback a cmd.exe para scripts por lotes (.cmd/.bat).
+ */
+export function probeCliTool(binary: string, args: string[] = ['--version']): { available: boolean; version?: string } {
   // 1. Intento directo con execFileSync sin shell
   try {
-    const output = execFileSync(binary, ['--version'], {
+    const output = execFileSync(binary, args, {
       // NOSONAR: S4036 - sonda read-only de versión de herramientas CLI locales
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -65,7 +92,8 @@ export function probeCliTool(binary: string): { available: boolean; version?: st
     // 2. En Windows, herramientas empaquetadas como .cmd/.bat (ej. npx) requieren invocación vía cmd.exe
     if (process.platform === 'win32') {
       try {
-        const output = execFileSync('cmd.exe', ['/d', '/s', '/c', `${binary} --version`], {
+        const cmdArgs = ['/d', '/s', '/c', `${binary} ${args.join(' ')}`];
+        const output = execFileSync('cmd.exe', cmdArgs, {
           // NOSONAR: S4036 - sonda controlada de versión en Windows
           encoding: 'utf-8',
           stdio: ['ignore', 'pipe', 'ignore'],
@@ -83,23 +111,119 @@ export function probeCliTool(binary: string): { available: boolean; version?: st
   }
 }
 
-function detectSystemTools(): Record<string, { available: boolean; version?: string }> {
+/**
+ * Sonda específica para comprobar que un plugin de Trivy (por defecto 'mcp') está instalado y operativo.
+ */
+export function probeTrivyPlugin(
+  pluginName = 'mcp',
+  cliProbeFn: (binary: string, args?: string[]) => { available: boolean; version?: string } = probeCliTool,
+): { installed: boolean; version?: string; error?: string } {
+  const cliProbe = cliProbeFn('trivy');
+  if (!cliProbe.available) {
+    return { installed: false, error: 'CLI trivy no encontrada en PATH' };
+  }
+
+  // 1. Intento primario: listar plugins instalados con `trivy plugin list`
+  try {
+    const listOutput = execFileSync('trivy', ['plugin', 'list'], {
+      // NOSONAR: S4036 - sonda read-only de plugins de trivy
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      windowsHide: true,
+    });
+    const lines = listOutput.split('\n');
+    const hasPlugin = lines.some((line) => {
+      const trimmed = line.trim();
+      return trimmed.startsWith(pluginName) || trimmed.split(/\s+/)[0] === pluginName;
+    });
+    if (hasPlugin) {
+      return { installed: true };
+    }
+  } catch {
+    if (process.platform === 'win32') {
+      try {
+        const listOutput = execFileSync('cmd.exe', ['/d', '/s', '/c', 'trivy plugin list'], {
+          // NOSONAR: S4036 - sonda de plugin en Windows
+          encoding: 'utf-8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+          windowsHide: true,
+        });
+        const lines = listOutput.split('\n');
+        const hasPlugin = lines.some((line) => {
+          const trimmed = line.trim();
+          return trimmed.startsWith(pluginName) || trimmed.split(/\s+/)[0] === pluginName;
+        });
+        if (hasPlugin) {
+          return { installed: true };
+        }
+      } catch {
+        // Continúa al fallback no destructivo
+      }
+    }
+  }
+
+  // 2. Fallback no destructivo: comprobar si `trivy <pluginName> --help` es reconocido
+  try {
+    const helpOutput = execFileSync('trivy', [pluginName, '--help'], {
+      // NOSONAR: S4036 - sonda no destructiva de subcomando
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      windowsHide: true,
+    });
+    if (helpOutput && !helpOutput.includes('unknown command')) {
+      return { installed: true };
+    }
+  } catch {
+    if (process.platform === 'win32') {
+      try {
+        const helpOutput = execFileSync('cmd.exe', ['/d', '/s', '/c', `trivy ${pluginName} --help`], {
+          // NOSONAR: S4036 - sonda no destructiva en Windows
+          encoding: 'utf-8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+          windowsHide: true,
+        });
+        if (helpOutput && !helpOutput.includes('unknown command')) {
+          return { installed: true };
+        }
+      } catch {
+        // Plugin no disponible
+      }
+    }
+  }
+
+  return { installed: false, error: `Plugin '${pluginName}' no detectado en 'trivy plugin list'` };
+}
+
+function detectSystemTools(
+  cliProbeFn: (binary: string, args?: string[]) => { available: boolean; version?: string },
+  trivyPluginProbeFn: (pluginName?: string) => { installed: boolean; version?: string; error?: string },
+): Record<string, { available: boolean; version?: string }> {
+  const trivyProbe = cliProbeFn('trivy');
+  const trivyMcpPlugin = trivyProbe.available ? trivyPluginProbeFn('mcp') : { installed: false };
+
   return {
     node: { available: true, version: process.version },
-    docker: probeCliTool('docker'),
-    trivy: probeCliTool('trivy'),
-    npx: probeCliTool('npx'),
-    vscode: probeCliTool('code'),
-    cursor: probeCliTool('cursor'),
-    claude: probeCliTool('claude'),
+    docker: cliProbeFn('docker'),
+    trivy: trivyProbe,
+    'trivy-mcp': {
+      available: trivyMcpPlugin.installed,
+      version: trivyMcpPlugin.installed ? 'instalado' : undefined,
+    },
+    npx: cliProbeFn('npx'),
+    vscode: cliProbeFn('code'),
+    cursor: cliProbeFn('cursor'),
+    claude: cliProbeFn('claude'),
   };
 }
 
-function getMissingEnvVars(requiredVars: string[] | undefined): string[] {
+function getMissingEnvVars(
+  requiredVars: string[] | undefined,
+  envSource: Record<string, string | undefined>,
+): string[] {
   if (!Array.isArray(requiredVars)) return [];
   const missing: string[] = [];
   for (const envVar of requiredVars) {
-    const envVal = process.env[envVar];
+    const envVal = envSource[envVar];
     if (!envVal || envVal.trim().length === 0) {
       missing.push(envVar);
     }
@@ -115,7 +239,16 @@ function isPlainHttpRemoteUrl(s: McpServerDefinition): boolean {
   );
 }
 
-function diagnoseServer(s: McpServerDefinition, dockerAvailable: boolean, recommendations: string[]): ServerDiagnosis {
+function diagnoseServer(
+  s: McpServerDefinition,
+  dockerAvailable: boolean,
+  recommendations: string[],
+  options: McpDoctorOptions,
+): ServerDiagnosis {
+  const cliProbe = options.cliProbeFn ?? probeCliTool;
+  const trivyPluginProbe = options.trivyPluginProbeFn ?? probeTrivyPlugin;
+  const envSource = options.env ?? process.env;
+
   if (!s.enabled) {
     return {
       id: s.id,
@@ -124,41 +257,71 @@ function diagnoseServer(s: McpServerDefinition, dockerAvailable: boolean, recomm
       transport: s.transport,
       executionMode: s.execution_mode,
       state: 'DISABLED',
+      configurationStatus: 'NOT_APPLICABLE',
+      dependenciesStatus: 'NOT_APPLICABLE',
+      connectivityStatus: s.transport === 'stdio' ? 'LOCAL' : 'SECURE',
       details: ['Deshabilitado explícitamente en el registro.'],
     };
   }
 
-  let state: ServerHealthState = 'READY';
   const details: string[] = [];
 
-  const missingVars = getMissingEnvVars(s.required_env_vars);
-  if (missingVars.length > 0) {
-    state = 'CONFIG_MISSING';
+  // 1. Evaluación segregada de variables de configuración requeridas
+  const missingVars = getMissingEnvVars(s.required_env_vars, envSource);
+  const configurationStatus: ConfigurationStatus = missingVars.length > 0 ? 'MISSING_ENV' : 'VALID';
+  if (configurationStatus === 'MISSING_ENV') {
     details.push(`Variables faltantes: ${missingVars.join(', ')}.`);
     recommendations.push(`Defina localmente las variables para '${s.id}': ${missingVars.join(', ')}.`);
   }
 
+  // 2. Evaluación segregada de dependencias locales (Docker, CLI, plugins)
+  let dependenciesStatus: DependenciesStatus = 'MET';
   if (s.execution_mode === 'container' && !dockerAvailable) {
-    state = 'DEPENDENCY_MISSING';
+    dependenciesStatus = 'MISSING_TOOL';
     details.push('Docker no está disponible en PATH para ejecutar este contenedor.');
     recommendations.push(`Instale o inicie Docker para habilitar la ejecución del servidor '${s.id}'.`);
   }
 
   if (s.execution_mode === 'local' && s.command) {
-    const cliProbe = probeCliTool(s.command);
-    if (!cliProbe.available) {
-      state = 'DEPENDENCY_MISSING';
+    const binaryProbe = cliProbe(s.command);
+    if (!binaryProbe.available) {
+      dependenciesStatus = 'MISSING_TOOL';
       details.push(`El comando ejecutable '${s.command}' no está disponible en PATH.`);
       recommendations.push(
         s.command === 'trivy'
           ? `Instale Trivy CLI (https://trivy.dev) y ejecute 'trivy plugin install mcp' para habilitar el servidor '${s.id}'.`
           : `Instale la herramienta CLI '${s.command}' para habilitar la ejecución del servidor '${s.id}'.`,
       );
+    } else if (s.command === 'trivy' && Array.isArray(s.args) && s.args.includes('mcp')) {
+      const pluginProbe = trivyPluginProbe('mcp');
+      if (!pluginProbe.installed) {
+        dependenciesStatus = 'MISSING_PLUGIN';
+        details.push("Plugin MCP de Trivy ('trivy-mcp') no instalado.");
+        recommendations.push(
+          `Ejecute 'trivy plugin install mcp' para habilitar las capacidades MCP del servidor '${s.id}'.`,
+        );
+      }
     }
   }
 
-  if (isPlainHttpRemoteUrl(s)) {
-    details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
+  // 3. Evaluación segregada de conectividad y transporte seguro (TLS)
+  let connectivityStatus: ConnectivityStatus = 'LOCAL';
+  if (s.transport === 'sse' || s.transport === 'http') {
+    if (isPlainHttpRemoteUrl(s)) {
+      connectivityStatus = 'INSECURE_REMOTE';
+      details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
+      recommendations.push(`Configure endpoint seguro con HTTPS (TLS) para el servidor remoto '${s.id}'.`);
+    } else {
+      connectivityStatus = 'SECURE';
+    }
+  }
+
+  // 4. Determinación determinista del estado general del servidor
+  let state: ServerHealthState = 'READY';
+  if (dependenciesStatus !== 'MET') {
+    state = 'DEPENDENCY_MISSING';
+  } else if (configurationStatus !== 'VALID') {
+    state = 'CONFIG_MISSING';
   }
 
   if (details.length === 0) {
@@ -172,16 +335,25 @@ function diagnoseServer(s: McpServerDefinition, dockerAvailable: boolean, recomm
     transport: s.transport,
     executionMode: s.execution_mode,
     state,
+    configurationStatus,
+    dependenciesStatus,
+    connectivityStatus,
     details,
   };
 }
 
-export function runMcpDoctor(): DoctorReport {
-  loadLocalEnv(ROOT_DIR);
-  const recommendations: string[] = [];
+export function runMcpDoctor(options: McpDoctorOptions = {}): DoctorReport {
+  const rootDir = options.rootDir ?? DEFAULT_ROOT_DIR;
+  if (!options.env) {
+    loadLocalEnv(rootDir);
+  }
 
-  // 1. Diagnóstico de herramientas del sistema
-  const systemTools = detectSystemTools();
+  const recommendations: string[] = [];
+  const cliProbe = options.cliProbeFn ?? probeCliTool;
+  const trivyPluginProbe = options.trivyPluginProbeFn ?? probeTrivyPlugin;
+
+  // 1. Diagnóstico de herramientas del sistema y plugins
+  const systemTools = detectSystemTools(cliProbe, trivyPluginProbe);
 
   // 2. Diagnóstico de sincronización de clientes
   const genCheck = generateAllClientConfigs({ check: true });
@@ -198,14 +370,40 @@ export function runMcpDoctor(): DoctorReport {
     );
   }
 
-  // 3. Diagnóstico por servidor en registro
-  const registry = (yaml.load(fs.readFileSync(REGISTRY_PATH, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
+  // 3. Diagnóstico granular por servidor registrado
+  const registryPath = path.join(rootDir, '.mcp', 'registry.yaml');
+  const registry = (yaml.load(fs.readFileSync(registryPath, 'utf-8')) as McpRegistrySpec | undefined) ?? {};
   const serversList: McpServerDefinition[] = registry.servers ?? [];
   const dockerAvailable = Boolean(systemTools.docker?.available);
-  const serverDiagnoses = serversList.map((s) => diagnoseServer(s, dockerAvailable, recommendations));
+
+  const serverDiagnoses = serversList.map((s) => diagnoseServer(s, dockerAvailable, recommendations, options));
+
+  // 4. Cálculo estructurado del resumen y del indicador general overallValid
+  const clientsInSync = outOfSyncClients.length === 0;
+  const enabledServers = serverDiagnoses.filter((s) => s.state !== 'DISABLED');
+  const hasConfigIssues = enabledServers.some((s) => s.configurationStatus === 'MISSING_ENV');
+  const hasDependencyIssues = enabledServers.some((s) => s.dependenciesStatus.startsWith('MISSING_'));
+  const hasInsecureRemote = enabledServers.some((s) => s.connectivityStatus === 'INSECURE_REMOTE');
+
+  const readyServers = enabledServers.filter((s) => s.state === 'READY');
+  const blockingServers = enabledServers.filter((s) => s.state !== 'READY');
+
+  const summary: DoctorSummary = {
+    clientsInSync,
+    dependenciesMet: !hasDependencyIssues,
+    configurationsMet: !hasConfigIssues,
+    connectivityMet: !hasInsecureRemote,
+    totalServers: serverDiagnoses.length,
+    enabledServers: enabledServers.length,
+    readyServers: readyServers.length,
+    blockingServers: blockingServers.length,
+  };
+
+  const overallValid = clientsInSync && !hasConfigIssues && !hasDependencyIssues && !hasInsecureRemote;
 
   return {
-    overallValid: outOfSyncClients.length === 0,
+    overallValid,
+    summary,
     systemTools,
     clientConfigs,
     servers: serverDiagnoses,
@@ -220,24 +418,47 @@ function getServerStateIcon(state: ServerHealthState): string {
   return '✔';
 }
 
+function printSummarySection(summary: DoctorSummary): void {
+  console.log('1. Resumen de Salud del Entorno (Zero-Trust):');
+  const syncIcon = summary.clientsInSync ? '✔' : '❌';
+  console.log(
+    `   ${syncIcon} Sincronización de Clientes:       ${summary.clientsInSync ? 'Óptima (todos en regla)' : 'Desincronizada'}`,
+  );
+  const depIcon = summary.dependenciesMet ? '✔' : '❌';
+  console.log(
+    `   ${depIcon} Dependencias y Herramientas:      ${summary.dependenciesMet ? 'Disponibles y operativas' : 'Faltantes en PATH o sin plugin'}`,
+  );
+  const cfgIcon = summary.configurationsMet ? '✔' : '⚠️';
+  console.log(
+    `   ${cfgIcon} Variables de Entorno:            ${summary.configurationsMet ? 'Completas' : 'Variables requeridas ausentes'}`,
+  );
+  const connIcon = summary.connectivityMet ? '✔' : '⚠️';
+  console.log(
+    `   ${connIcon} Conectividad y Transporte:        ${summary.connectivityMet ? 'Seguro (TLS verificado)' : 'Inseguro (Requiere HTTPS)'}`,
+  );
+  console.log(
+    `   📊 Servidores Habilitados:            ${summary.readyServers}/${summary.enabledServers} listos (${summary.blockingServers} pendientes)`,
+  );
+}
+
 function printSystemAndClientsSection(report: DoctorReport): void {
-  console.log('1. Herramientas del Sistema:');
+  console.log('\n2. Herramientas del Sistema y Plugins:');
   for (const [tool, info] of Object.entries(report.systemTools)) {
     const icon = info.available ? '✔' : '○';
     const ver = info.version ? ` (${info.version})` : ' [no detectado en PATH]';
-    console.log(`   ${icon} ${tool.padEnd(10)}: ${ver}`);
+    console.log(`   ${icon} ${tool.padEnd(12)}: ${ver}`);
   }
 
-  console.log('\n2. Sincronización de Clientes:');
+  console.log('\n3. Sincronización de Clientes:');
   for (const c of report.clientConfigs) {
     const icon = c.inSync ? '✔' : '❌';
     const syncLabel = c.inSync ? 'Sincronizado' : 'DESACTUALIZADO';
-    console.log(`   ${icon} ${c.client.padEnd(10)} ➔ ${c.path} [${syncLabel}]`);
+    console.log(`   ${icon} ${c.client.padEnd(12)} ➔ ${c.path} [${syncLabel}]`);
   }
 }
 
 function printServersSection(servers: ServerDiagnosis[]): void {
-  console.log('\n3. Estado de Servidores en Catálogo:');
+  console.log('\n4. Evaluación Segregada por Servidor (Catálogo MCP):');
   for (const s of servers) {
     const icon = getServerStateIcon(s.state);
     console.log(`   ${icon} ${s.id.padEnd(24)} [${s.state.padEnd(18)}] (${s.transport}/${s.executionMode})`);
@@ -252,6 +473,7 @@ function printDoctorReport(report: DoctorReport): void {
   console.log('🩺 MCP Doctor — Diagnóstico del Entorno');
   console.log('======================================================\n');
 
+  printSummarySection(report.summary);
   printSystemAndClientsSection(report);
   printServersSection(report.servers);
 
@@ -266,8 +488,8 @@ function printDoctorReport(report: DoctorReport): void {
 
   console.log('\n------------------------------------------------------');
   const summaryMsg = report.overallValid
-    ? '✨ Diagnóstico completado sin bloqueos de sincronización.\n'
-    : '⚠️ Diagnóstico completado: se encontraron elementos para resolver.\n';
+    ? '✨ Diagnóstico completado: entorno MCP 100% operativo y seguro.\n'
+    : '⚠️ Diagnóstico completado: se encontraron elementos para resolver antes de operar.\n';
   console.log(summaryMsg);
 }
 
