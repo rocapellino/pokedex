@@ -13,10 +13,10 @@ El Chart empaqueta de forma modular y estandarizada todos los componentes cloud-
 
 | Componente | Tipo de Recurso | Puerto(s) | Descripción |
 | :--- | :--- | :--- | :--- |
-| **API Backend** | `Deployment`, `Service`, `HPA` | `3000` | Node.js 24 LTS / Express 4.21, TypeScript, Prometheus metrics y probes `/healthz`, `/readyz`. |
-| **Frontend Web** | `Deployment`, `Service` | `80`, `8080` | Nginx SPA con reverse proxy hardening, compresión gzip y probes de salud. |
+| **API Backend** | `Deployment`, `Service`, `HPA` | `3000` | Node.js 24 LTS / Express 5.x, TypeScript, Prometheus metrics y probes `/healthz`, `/readyz`. |
+| **Frontend Web** | `Deployment`, `Service` | `8080` | Nginx MPA con reverse proxy hardening, compresión gzip y probes de salud. |
 | **PostgreSQL** | `StatefulSet`, `Service` Headless | `5432` | Base de datos relacional con migraciones Drizzle ORM versionadas y persistencia PVC. |
-| **PgBouncer** | `Deployment`, `Service` | `5432` | Connection pooler transaccional obligatorio en producción para mitigar saturación de sockets de base de datos. |
+| **PgBouncer** | `Deployment`, `Service` | `6432` | Connection pooler transaccional obligatorio en producción para mitigar saturación de sockets de base de datos. |
 | **Redis** | `Deployment`, `Service` | `6379` | Caché de alta velocidad para endpoints, revocación distribuida de sesiones y rate limiting en Lua. |
 | **Ingress** | `Ingress` | `80`, `443` | Enrutamiento perimetral L7 (`/` -> web, `/api` -> api) con terminación TLS. |
 | **Seguridad de Red** | `NetworkPolicy`, `PDB` | — | Zero-Trust NetworkPolicies (anti-SSRF, PgBouncer enforced isolation, CoreDNS restriction) y PodDisruptionBudgets. |
@@ -78,7 +78,7 @@ infra/helm/
 ## 3. Requisitos Previos
 
 - **Kubernetes Cluster**: Versión `1.28+` (Kind, Minikube, K3s, AKS, EKS, GKE o Proxmox).
-- **Helm CLI**: Versión `3.14+` instalada en host o ejecución mediante contenedor inmutable `alpine/helm:3.17.0@sha256:93aaa4b514d91720861dd6c9af51359013b178963a47ab421b7fa648ccc7de80`.
+- **Helm CLI**: Versión `3.22.0` instalada en host o ejecución mediante contenedor inmutable `alpine/helm:3.22.0@sha256:70ed3f7b02ab2eee12aa520ad6870305db8a82516b07aff62f5656c657a26e2a`.
 - **Ingress Controller** (Opcional, recomendado): `ingress-nginx`.
 - **cert-manager** (Opcional para TLS automático en producción).
 
@@ -135,17 +135,17 @@ En producción, **nunca se pasan contraseñas por línea de comandos mediante `-
 1. `secrets.existingSecret: "pokedex-prod-secrets"` (o `externalSecrets.enabled: true`).
 2. `pgbouncer.enabled: true` (mediador obligatorio; bloquea tráfico directo API -> PostgreSQL).
 3. `networkPolicies.egress.antiSsrf.enabled: true` (bloquea IMDS `169.254.169.254/32`, RFC1918 y loopback).
-4. Inmutabilidad de imágenes con tags semánticos fijos (`1.9.5`) y digests criptográficos.
+4. Inmutabilidad de imágenes con tags semánticos fijos (`1.114.0`) y digests criptográficos.
 
 ```bash
 # 1. Crear previamente el secreto en el clúster (o dejar que External Secrets Operator lo cree):
 kubectl create secret generic pokedex-prod-secrets \
   --namespace pokemon-app \
-  --from-literal=admin-api-key="<CLAVE_ADMIN_PROD>" \
-  --from-literal=admin-session-secret="<HMAC_SECRET_PROD>" \
-  --from-literal=ai-api-key="<GEMINI_KEY_PROD>" \
-  --from-literal=postgres-password="<PG_PASS_PROD>" \
-  --from-literal=redis-password="<REDIS_PASS_PROD>"
+  --from-literal=ADMIN_API_KEY="<CLAVE_ADMIN_PROD>" \
+  --from-literal=ADMIN_SESSION_SECRET="<HMAC_SECRET_PROD>" \
+  --from-literal=AI_API_KEY="<GEMINI_KEY_PROD>" \
+  --from-literal=POSTGRES_PASSWORD="<PG_PASS_PROD>" \
+  --from-literal=REDIS_PASSWORD="<REDIS_PASS_PROD>"
 
 # 2. Desplegar con values.prod.yaml:
 helm install pokedex ./infra/helm/pokedex \
@@ -211,7 +211,7 @@ kubectl get pods,svc,hpa,ingress,pdb,networkpolicy -n pokemon-app
 
 # Acceso local vía Port-Forwarding (si Ingress no está configurado):
 # Frontend Web (Nginx):
-kubectl port-forward svc/pokedex-web-svc 8080:80 -n pokemon-app
+kubectl port-forward svc/pokemon-web-svc 8080:8080 -n pokemon-app
 
 # API Backend (Node.js):
 kubectl port-forward svc/pokemon-api-svc 3000:3000 -n pokemon-app

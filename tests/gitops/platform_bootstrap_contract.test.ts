@@ -71,18 +71,24 @@ test('🔐 Bootstrap: ESO y ArgoCD se instalan con versiones fijadas y verificac
   );
 });
 
-test('🔐 Bootstrap & Tooling: Taskfile fija imagen de Helm con digest sha256 inmutable', () => {
+test('🔐 Bootstrap & Tooling: Taskfile raíz fija imagen de Helm con digest sha256 inmutable como única fuente de verdad', () => {
+  const rootTaskfile = read('Taskfile.yaml');
   const k8sContent = read('taskfiles/k8s.yaml');
   const infraContent = read('taskfiles/infra.yaml');
   assert.match(
-    k8sContent,
+    rootTaskfile,
     /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/,
-    'k8s.yaml debe fijar HELM_IMAGE por digest sha256',
+    'Taskfile.yaml debe fijar HELM_IMAGE por digest sha256',
   );
-  assert.match(
+  assert.doesNotMatch(
+    k8sContent,
+    /^\s*HELM_IMAGE:/m,
+    'k8s.yaml no debe duplicar HELM_IMAGE (hereda del Taskfile.yaml raíz)',
+  );
+  assert.doesNotMatch(
     infraContent,
-    /HELM_IMAGE:\s*['"]alpine\/helm:[0-9.]+@sha256:[a-f0-9]{64}['"]/,
-    'infra.yaml debe fijar HELM_IMAGE por digest sha256',
+    /^\s*HELM_IMAGE:/m,
+    'infra.yaml no debe duplicar HELM_IMAGE (hereda del Taskfile.yaml raíz)',
   );
 });
 

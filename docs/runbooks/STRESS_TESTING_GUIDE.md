@@ -75,9 +75,9 @@ task perf
 
 | Recurso | Métrica Monitoreada | Umbral Objetivo (Target) | Comportamiento del HPA |
 | :--- | :--- | :--- | :--- |
-| **`pokemon-api`** | CPU | **75%** de los Requests | Si CPU > 75%, escala hasta 15 réplicas. |
+| **`pokemon-api`** | CPU | **70%** de los Requests | Si CPU > 70%, escala hasta 6 réplicas (`maxReplicas: 6`). |
 | **`pokemon-api`** | Memoria | **80%** de los Requests | Si RAM > 80%, escala preventivamente. |
-| **`pokemon-web`** | CPU | **70%** de los Requests | Si CPU > 70%, escala hasta 10 réplicas. |
+| **`pokemon-web`** | CPU | **70%** de los Requests | Si CPU > 70%, escala hasta 5 réplicas (`maxReplicas: 5`). |
 | **`pokemon-web`** | Memoria | **80%** de los Requests | Si RAM > 80%, escala preventivamente. |
 
 ---
@@ -101,8 +101,8 @@ En la validación oficial realizada sobre el clúster local, se obtuvieron los s
 
 ### Reacción de Kubernetes (Autoescalado en Vivo)
 
-- **`pokemon-api`:** Creció dinámicamente de **2 pods** a **8 pods** al alcanzar 145% de CPU.
-- **`pokemon-web`:** Creció dinámicamente de **2 pods** a **6 pods** al alcanzar 80% de CPU.
+- **`pokemon-api`:** Creció dinámicamente de **2 pods** a **6 pods** al superar el umbral de CPU.
+- **`pokemon-web`:** Creció dinámicamente de **2 pods** a **5 pods** al alcanzar 80% de CPU.
 - **Persistencia:** Todos los pods canalizaron sus transacciones mediante **PgBouncer**, manteniendo la base de datos PostgreSQL estable y sin saturación.
 
 ---
@@ -112,5 +112,5 @@ En la validación oficial realizada sobre el clúster local, se obtuvieron los s
 | Problema Potencial | Causa Raíz | Solución Implementada |
 | :--- | :--- | :--- |
 | **Error `too many connections` en DB** | Cada pod abre múltiples conexiones directas a PostgreSQL | Implementación de **PgBouncer** como capa intermedia de pooling de conexiones. |
-| **HPA muestra `<unknown>/75%`** | Falta de `metrics-server` o falta de `requests` definidos en el pod | Despliegue de `metrics-server` y especificación de `resources.requests` en los manifiestos. |
+| **HPA muestra `<unknown>/70%`** | Falta de `metrics-server` o falta de `requests` definidos en el pod | Despliegue de `metrics-server` y especificación de `resources.requests` en los manifiestos. |
 | **Flapping / Oscilación rápida de réplicas** | HPA reduce réplicas inmediatamente al bajar un pico momentáneo | Configuración de ventana de estabilización (`scaleDown.stabilizationWindowSeconds: 300`). |

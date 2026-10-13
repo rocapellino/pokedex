@@ -70,13 +70,13 @@ Para evitar confusiones en agentes autónomos y análisis automatizados:
 Toda skill de análisis debe asumir como punto de partida el stack real y la topología operativa del repositorio:
 
 - **Estructura:** Monorepo con workspaces npm (`apps/backend` y `apps/frontend`).
-- **Runtime & Lenguajes:** Node.js 24 (LTS), npm 11+, TypeScript estricto. Fuentes de verdad de las versiones: `.tool-versions` (Node.js y herramientas de plataforma), `packageManager` en `package.json` (npm) y las imágenes base de `apps/*/Dockerfile`. Ante discrepancia prevalecen esas fuentes, no este resumen.
+- **Runtime & Lenguajes:** Node.js 24 (LTS), npm 12+, TypeScript estricto. Fuentes de verdad de las versiones: `.tool-versions` (Node.js y herramientas de plataforma), `packageManager` en `package.json` (npm) y las imágenes base de `apps/*/Dockerfile`. Ante discrepancia prevalecen esas fuentes, no este resumen.
 - **Backend:** Express, Drizzle ORM, PostgreSQL (con pool nativo y soporte PgBouncer), Redis distribuido (rate limiting / caché).
 - **Frontend:** Vanilla TypeScript puro empaquetado con Vite, saneamiento estricto con DOMPurify, servido mediante contenedor Nginx Alpine. *(No utiliza React ni JSX)*.
 - **Entorno de Desarrollo:** Docker Compose (`docker-compose.dev.yaml`) con persistencia local y soporte de backup.
 - **Orquestación & Cómputo:**
   - **Kind:** Clúster local para validación rápida y pruebas en CI.
-  - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800, único entorno Proxmox, ADR-030). Traefik Ingress Controller nativo, Cilium CNI / L7 NetworkPolicies.
+  - **Proxmox VE (On-Prem):** K3s sobre Pre-producción (LXC 800, único entorno Proxmox, ADR-030) con Traefik Ingress Controller nativo y NetworkPolicies estándar sobre Flannel (`ciliumNetworkPolicy.enabled: false`; Cilium L7 se activa en el blueprint prod cloud).
   - **Prod cloud (blueprint agnóstico, ADR-030):** `values.prod.yaml` + `gitops/environments/cloud/`, con backend de secretos a elegir y Reloader Stakater.
 - **GitOps:** ArgoCD bajo patrón App-of-Apps (`root-application.yaml` reconciliando `pokedex-preprod`, in-cluster en el LXC 800). `pokedex-cloud` (prod cloud agnóstico) es un **blueprint inactivo**, excluida del App-of-Apps (GITOPS-001) y activable solo de forma explícita.
 - **Secretos:** HashiCorp Vault CE con External Secrets Operator (ESO) y roles segregados por entorno (`pokedex/preprod` operativo; `pokedex/prod` reservado al blueprint prod cloud inactivo, ADR-030).

@@ -9,7 +9,7 @@ version: '3'
 
 vars:
   HELM_TEST_SECRETS: '--set postgresql.auth.password=secret,secrets.adminApiKey=secret,secrets.adminSessionSecret=secret,secrets.backupEncryptionKey=secret,redis.auth.password=secret'
-  HELM_IMAGE: 'alpine/helm:3.17.0@sha256:93aaa4b514d91720861dd6c9af51359013b178963a47ab421b7fa648ccc7de80'
+  HELM_IMAGE: 'alpine/helm:3.22.0@sha256:70ed3f7b02ab2eee12aa520ad6870305db8a82516b07aff62f5656c657a26e2a'
 
 # ------------------------------------------------------------------------------
 # Submódulos Especializados (Modularización Taskfile v3)

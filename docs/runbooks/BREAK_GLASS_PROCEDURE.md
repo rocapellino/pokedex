@@ -88,8 +88,8 @@ Cada comando genera una entrada estructurada en `/var/log/bastion/audit.log` y u
 
 ```text
 [2026-09-18T17:15:02-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl get nodes -o wide
-[2026-09-18T17:16:30-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl rollout restart deployment pokedex-api -n pokemon-app
-[2026-09-18T17:20:12-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=1 CMD=helm rollback pokedex-app 3 -n pokemon-app
+[2026-09-18T17:16:30-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=0 CMD=kubectl rollout restart deployment pokemon-api -n pokemon-app
+[2026-09-18T17:20:12-03:00] [BREAK-GLASS] USER=sysadmin UID=1000 IP=192.168.1.50 PWD=/home/sysadmin EXIT=1 CMD=helm rollback pokedex-preprod 3 -n pokemon-app
 ```
 
 ### Inspección de Logs por el Equipo de Seguridad
@@ -146,10 +146,10 @@ Si los pods se encuentran bloqueados o una rotación de secretos en Vault no ha 
 kubectl get pods -n pokemon-app -o wide
 
 # 2. Reiniciar deployment de forma progresiva
-kubectl rollout restart deployment/pokedex-api -n pokemon-app
+kubectl rollout restart deployment/pokemon-api -n pokemon-app
 
 # 3. Monitorear estado de actualización
-kubectl rollout status deployment/pokedex-api -n pokemon-app --timeout=60s
+kubectl rollout status deployment/pokemon-api -n pokemon-app --timeout=60s
 ```
 
 ### Escenario B: Unseal Manual de Vault tras Reinicio de Proxmox
@@ -175,10 +175,10 @@ Si ArgoCD está inoperativo y se requiere aplicar un Hotfix urgente:
 
 ```bash
 # 1. Realizar backup del manifiesto vivo
-kubectl get deployment pokedex-api -n pokemon-app -o yaml > /tmp/pokedex-api-backup.yaml
+kubectl get deployment pokemon-api -n pokemon-app -o yaml > /tmp/pokemon-api-backup.yaml
 
 # 2. Aplicar corrección de emergencia
-kubectl patch deployment pokedex-api -n pokemon-app -p '{"spec":{"replicas":3}}'
+kubectl patch deployment pokemon-api -n pokemon-app -p '{"spec":{"replicas":3}}'
 ```
 
 ---

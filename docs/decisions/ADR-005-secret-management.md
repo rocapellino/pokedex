@@ -40,11 +40,12 @@ La infraestructura activa en Proxmox VE opera bajo un **Perfil Lean** ([ADR-030]
   - Autenticación Kubernetes mediante ServiceAccount con rol `pokedex-preprod-role`.
   - Reconciliación declarativa en el clúster vía `ClusterSecretStore/vault-backend-preprod`.
 - **Ausencia Deliberada de Stakater Reloader**: Para preservar recursos de memoria y reducir la superficie de permisos RBAC del clúster, Stakater Reloader se encuentra **desactivado** (`reloader.enabled: false`, `reloader.stakater.com/auto: null` en `values.yaml`).
-- **Ausencia de PgBouncer**: Siguiendo la simplificación de ADR-030 para entornos monocontenedor/mononodo, no se despliega el pooler PgBouncer; la aplicación conecta de forma directa a la instancia PostgreSQL en LXC 820.
+- **Ausencia de PgBouncer**: Siguiendo la simplificación de ADR-030 para entornos monocontenedor/mononodo, no se despliega el pooler PgBouncer; la aplicación conecta de forma directa al StatefulSet de PostgreSQL dentro del clúster K3s (LXC 800).
 - **Protocolo de Rotación y Reinicio Progresivo**: Las rotaciones de credenciales en Vault se sincronizan hacia `v1/Secret pokemon-secrets` en runtime a través de ESO (`refreshInterval: 1h`). Para refrescar las credenciales inyectadas en los pods en ejecución sin necesidad de un controlador daemon pesado, el operador ejecuta un reinicio progresivo ordenado mediante [`scripts/k8s-rollout-restart.ts`](../../scripts/k8s-rollout-restart.ts) o el comando canónico:
 
   ```bash
-  task k8s:restart
+  task k8s:rollout-restart -- --live
+  # (o el alias: task k8s:restart -- --live)
   ```
 
 ### 3. Cloud Blueprint Inactivo (ADR-030)

@@ -97,7 +97,7 @@ En cumplimiento estricto del [ADR-020](../decisions/ADR-020-unified-deployment-g
 | `scripts/update-image-digests.ts` | TypeScript | Fija los digests de `pokedex-api` y `pokedex-web` en los values de despliegue durante la promoción. | **Sí** (fase `promote` de `release-tag.yaml`). |
 | `scripts/ghcr-retention.ts` | TypeScript | Poda de imágenes de release en GHCR protegiendo los digests fijados en GitOps y artefactos Cosign. | **Sí** (`npm run ghcr:retention`, workflow programado). |
 | `scripts/generate-nginx-conf.mjs` | Node.js (ESM) | Generador y verificador determinista de configuración Nginx desde template único (`nginx.conf.template`). | **Sí** (`npm run nginx:conf`, `npm run nginx:conf:check`, `web.yaml`). |
-| `scripts/deploy-grafana-cloud.mjs` | Node.js (ESM) | Generador de configuración de observabilidad para Grafana Cloud Alloy. | **Sí** (`task obs:cloud:setup`). |
+| `scripts/deploy-grafana-cloud.mjs` | Node.js (ESM) | Generador de configuración de observabilidad para Grafana Cloud Alloy. | **Sí** (`task monitoring:grafana-cloud:install`). |
 
 ### B. DevSecOps, Resiliencia y Disaster Recovery (DR)
 

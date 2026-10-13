@@ -60,13 +60,12 @@ flowchart LR
 
 | Componente | Nivel / Entorno | Estado Renderizado / Operacional | Destino de los Datos |
 | :--- | :--- | :---: | :--- |
-| **Respaldo Local PostgreSQL** | Proxmox Pre-prod (LXC 800 K3s) | **ACTIVO (Renderizado)** | PVC dedicado `pokedex-backup-pvc` (`5Gi`, montado solo en pods de backup) |
-| **Respaldo Local Pre-prod** | Proxmox Pre-prod (LXC 800) | **INACTIVO (`enabled: false`)** | Desactivado intencionalmente para evitar saturación de I/O en LXC de lab |
+| **Respaldo Local PostgreSQL** | Proxmox Pre-prod (LXC 800 K3s) | **ACTIVO (Renderizado)** | PVC dedicado `<release>-backup-pvc` (`5Gi`, montado solo en pods de backup) |
 | **Respaldo Local Dev** | Local (Docker / Kind) | **INACTIVO (`enabled: false`)** | Base de datos efímera; respaldos puntuales vía script `dev-backup-gdrive.ts` |
-| **Restore Verification Semanal** | Proxmox Prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |
+| **Restore Verification Semanal** | Proxmox Pre-prod (`dr-restore-verify`) | **ACTIVO (Renderizado)** | Verificación en contenedor efímero aislado semanal (domingos 04:00 UTC) |
 | **Off-Site Cloud Backup (S3-compat)** | Object Storage Agnóstico | **ESQUELETO (INACTIVO)** | Endpoint remoto S3/R2/B2/MinIO (Documentado en [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md)) |
 | **Off-Site PBS Remote Sync** | Hipervisor (Proxmox VE) | **ESQUELETO (INACTIVO)** | Sync Job hacia PBS secundario (Documentado en [setup_pbs_backup_blueprint.yaml](../../infra/ansible/playbooks/setup_pbs_backup_blueprint.yaml)) |
-| **Off-Site Google Drive (Proxmox)** | Proxmox Prod (K8s / K3s) | **ACTIVO EN GITOPS / RENDERIZADO** | CronJob `pokedex-gdrive-sync` montando `pokedex-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
+| **Off-Site Google Drive (Proxmox)** | Proxmox Pre-prod (K8s / K3s) | **ACTIVO EN GITOPS / RENDERIZADO** | CronJob `<release>-gdrive-sync` montando `<release>-backup-pvc` en `readOnly: true` (Ver [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md)) |
 | **Off-Site Google Drive (Dev)** | Local (Docker) | **ACTIVO (Orquestado)** | Orquestado end-to-end con `dev-backup-gdrive.ts` (`pg_dump` -> cifrado -> Rclone) |
 
 > [!NOTE]
@@ -76,18 +75,18 @@ flowchart LR
 > 2. [GDRIVE_BACKUP_GUIDE.md](../operations/GDRIVE_BACKUP_GUIDE.md): Especificación e instrucciones de la implementación off-site actualmente soportada en el repositorio.
 > 3. [OFFSITE_BACKUP_BLUEPRINTS.md](../operations/OFFSITE_BACKUP_BLUEPRINTS.md): Blueprints declarativos para alternativas futuras agnósticas (S3-compatible y Proxmox Backup Server).
 >
-> **Ciclo de Vida y Estado Operacional en Proxmox:** El CronJob de sincronización hacia Google Drive (`pokedex-gdrive-sync`) se encuentra renderizado y gestionado vía GitOps en `main` bajo [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md). En clústeres reconciliados por ArgoCD, opera según el schedule programado (03:00 UTC) tras completarse el respaldo local nocturno.
+> **Ciclo de Vida y Estado Operacional en Proxmox:** El CronJob de sincronización hacia Google Drive (`<release>-gdrive-sync`) se encuentra renderizado y gestionado vía GitOps en `main` bajo [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md). En clústeres reconciliados por ArgoCD, opera según el schedule programado (03:00 UTC) tras completarse el respaldo local nocturno.
 
 ---
 
 ## 3. Procedimiento de Restauración Paso a Paso
 
 > [!NOTE]
-> **Aislamiento de Privilegios:** Por principios de Least Privilege, el Pod de PostgreSQL (`statefulset/pokedex-postgres`) **no** tiene montado el PVC de copias de seguridad (`pokedex-backup-pvc`). El PVC de backups es accedido exclusivamente por el CronJob de volcado, los jobs de verificación de DR o un pod auxiliar de inspección.
+> **Aislamiento de Privilegios:** Por principios de Least Privilege, el Pod de PostgreSQL (`statefulset/postgres`) **no** tiene montado el PVC de copias de seguridad (`<release>-backup-pvc`). El PVC de backups es accedido exclusivamente por el CronJob de volcado, los jobs de verificación de DR o un pod auxiliar de inspección.
 
 ### Escenario A: Restauración sobre Clúster Operativo
 
-1. **Obtener el último backup cifrado desde el PVC `pokedex-backup-pvc`:**
+1. **Obtener el último backup cifrado desde el PVC `<release>-backup-pvc` (ej. `pokedex-preprod-backup-pvc`):**
 
    Ejecutar un pod auxiliar efímero que monte el PVC de backups para listar o extraer el archivo más reciente:
 
@@ -96,7 +95,7 @@ flowchart LR
      --image=alpine:3.20 --overrides='
      {
        "spec": {
-         "volumes": [{"name": "backup-vol", "persistentVolumeClaim": {"claimName": "pokedex-backup-pvc"}}],
+         "volumes": [{"name": "backup-vol", "persistentVolumeClaim": {"claimName": "pokedex-preprod-backup-pvc"}}],
          "containers": [{"name": "inspector", "image": "alpine:3.20", "command": ["sh", "-c", "find /backups -name \"pokedex_*.sql.gz.enc\" | sort -r | head -n 1"], "volumeMounts": [{"name": "backup-vol", "mountPath": "/backups"}]}]
        }
      }' 2>/dev/null)
@@ -121,18 +120,18 @@ flowchart LR
    [ "${ACTUAL}" = "${EXPECTED}" ] && echo "HMAC OK" || { echo "HMAC NO COINCIDE: no restaurar"; exit 1; }
    ```
 
-   Con el HMAC verificado, inyectarlo mediante pipe seguro hacia el StatefulSet de PostgreSQL (`pod/pokedex-postgres-0`). Los backups anteriores a `backup.hmac.requiredFrom` no tienen `.hmac`:
+   Con el HMAC verificado, inyectarlo mediante pipe seguro hacia el StatefulSet de PostgreSQL (`pod/postgres-0`). Los backups anteriores a `backup.hmac.requiredFrom` no tienen `.hmac`:
 
    ```bash
    openssl enc -d -aes-256-cbc -pbkdf2 -in "${LOCAL_BACKUP_FILE}" -k "${BACKUP_ENCRYPTION_KEY}" | \
      gzip -d | \
-     kubectl exec -i -n pokemon-app statefulset/pokedex-postgres -c postgresql -- psql -U pokedex_app -d pokedex_db
+     kubectl exec -i -n pokemon-app statefulset/postgres -c postgres -- psql -U pokedex_app -d pokedex_db
    ```
 
 4. **Validar conteo y consistencia en PostgreSQL:**
 
    ```bash
-   kubectl exec -i -n pokemon-app statefulset/pokedex-postgres -c postgresql -- \
+   kubectl exec -i -n pokemon-app statefulset/postgres -c postgres -- \
      psql -U pokedex_app -d pokedex_db -c "SELECT COUNT(*) FROM pokedex_entries;"
    ```
 

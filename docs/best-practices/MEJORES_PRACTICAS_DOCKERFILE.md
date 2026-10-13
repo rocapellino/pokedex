@@ -73,8 +73,8 @@ Thumbs.db
 
 ### 4.1. Usuario sin Privilegios
 
-- **Backend**: Utiliza el usuario predeterminado de Alpine `node` (`USER node`, UID 1000).
-- **Frontend**: Utiliza el usuario `nginx` (`USER nginx`, UID 101) asignando capacidades mínimas (`setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx`) para enlazar el puerto 80 sin requerir permisos de `root`.
+- **Backend**: Utiliza el usuario sin privilegios por UID:GID numérico (`USER 1000:1000`, correspondiente a `node` en Alpine; en Kubernetes se refuerza con `runAsUser: 10001`).
+- **Frontend**: Utiliza el usuario sin privilegios por UID:GID numérico (`USER 101:101`, correspondiente a `nginx` en Alpine) escuchando directamente en el puerto no privilegiado `8080` sin requerir permisos de `root` ni `libcap`.
 
 ### 4.2. Principio de Mínimo Privilegio en Kubernetes / Docker
 
@@ -95,10 +95,10 @@ Para garantizar un resultado limpio en auditorías de SCA y escaneos de **Trivy*
 
 ## 6. Manejo de Señales y Healthchecks Nativos
 
-Ambos contenedores implementan directivas `HEALTHCHECK` que no dependen de herramientas pesadas como `curl`:
+Ambos contenedores implementan directivas `HEALTHCHECK` en formato JSON array (cumpliendo Hadolint `DL3025`) que no dependen de herramientas pesadas como `curl`:
 
-- **Backend**: `CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/healthz || exit 1`
-- **Frontend**: `CMD wget --no-verbose --tries=1 --spider http://localhost/healthz || exit 1`
+- **Backend**: `CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/healthz || exit 1"]`
+- **Frontend**: `CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1"]`
 
 Permiten a Docker y Kubernetes orquestar reinicios automáticos y evitar enviar tráfico a pods degradados.
 
@@ -107,34 +107,39 @@ Permiten a Docker y Kubernetes orquestar reinicios automáticos y evitar enviar 
 ## 7. Dockerfile de Referencia: Backend Node.js / TypeScript
 
 ```dockerfile
-# Etapa 1: Builder
+# Etapa 1: Builder (Compilación con esbuild)
 FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
 WORKDIR /app
-COPY package.json package-lock.json tsconfig.json ./
-COPY apps/backend/package.json ./apps/backend/
+COPY package*.json ./
+COPY apps/backend/package*.json ./apps/backend/
 COPY apps/backend/tsconfig.json ./apps/backend/
-RUN npm ci
-COPY apps/backend/ ./apps/backend/
-COPY apps/frontend/public/ ./apps/frontend/public/
-RUN npm run lint && npm run build
+RUN npm ci --workspace=@pokedex/backend --ignore-scripts
+COPY apps/backend/server.ts ./apps/backend/
+COPY apps/backend/src/ ./apps/backend/src/
+RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@pokedex/backend
 
-# Etapa 2: Runner
+# Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
 FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runner
+ARG APP_VERSION=unknown
+ARG GIT_SHA=unknown
 WORKDIR /app
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production \
+    PORT=3000 \
+    NODE_PATH=/app/apps/backend/node_modules:/app/node_modules \
+    APP_VERSION=$APP_VERSION \
+    GIT_SHA=$GIT_SHA
 RUN apk upgrade --no-cache
-COPY package.json package-lock.json ./
-COPY apps/backend/package.json ./apps/backend/
-RUN npm ci --omit=dev \
+COPY package*.json ./
+COPY apps/backend/package*.json ./apps/backend/
+RUN npm ci --workspace=@pokedex/backend --omit=dev --ignore-scripts \
     && npm cache clean --force \
-    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm
-COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
-COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
-USER node
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
+COPY --from=builder /app/apps/backend/dist ./dist
+USER 1000:1000
 HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/healthz || exit 1
+  CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/healthz || exit 1"]
 EXPOSE 3000
-CMD ["node", "apps/backend/dist/server.cjs"]
+CMD ["node", "dist/server.cjs"]
 ```
 
 ---
@@ -153,23 +158,32 @@ RUN npm run build --workspace=@pokedex/frontend
 
 # Etapa 2: Runner (Nginx 1.31-alpine — versión actual de producción)
 FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
-RUN apk upgrade --no-cache
-RUN rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
-COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY apps/frontend/public/ /usr/share/nginx/html/
-RUN apk add --no-cache libcap && \
-    setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx && \
-    apk del --no-cache libcap
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
+ARG APP_VERSION=unknown
+ARG GIT_SHA=unknown
+RUN apk upgrade --no-cache && \
+    apk add --no-cache gettext && \
+    rm -rf /etc/nginx/conf.d/* /usr/share/nginx/html/*
+ENV BACKOFFICE_ALLOWED_IP_1=10.42.0.1/32 \
+    BACKOFFICE_ALLOWED_IP_2=192.168.1.50/32 \
+    METRICS_ALLOWED_CIDR=10.42.0.0/24
+COPY apps/frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=builder /app/apps/frontend/dist/ /usr/share/nginx/html/
+RUN envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
+        < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /etc/nginx/templates && \
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
-USER nginx
+USER 101:101
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/healthz || exit 1
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+    CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1"]
+EXPOSE 8080
+CMD ["/bin/sh", "-c", \
+    "if [ -w /etc/nginx/conf.d ]; then \
+      envsubst '${BACKOFFICE_ALLOWED_IP_1} ${BACKOFFICE_ALLOWED_IP_2} ${METRICS_ALLOWED_CIDR}' \
+      < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf; \
+    fi && nginx -g 'daemon off;'"]
 ```
 
 ---

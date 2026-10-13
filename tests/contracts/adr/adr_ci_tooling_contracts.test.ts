@@ -92,11 +92,44 @@ test('🛡️ CI Tooling Parity: infra.yaml y ci.yaml mantienen paridad estricta
       `Cada workflow de CI (infra.yaml, ci.yaml) debe utilizar Helm ${expectedHelmVersion} para garantizar paridad inmutable`,
     );
   }
+
+  // Paridad con Taskfile.yaml (HELM_IMAGE), tool-catalog.yaml y HELM_DEPLOYMENT_GUIDE.md (AUD-TOOL-HELM-001)
+  const expectedHelmSemver = helmVersionMatch[1];
+  const taskfileContent = fs.readFileSync(path.join(ROOT_DIR, 'Taskfile.yaml'), 'utf-8');
+  const taskfileHelmMatch = taskfileContent.match(
+    /HELM_IMAGE:\s*['"]alpine\/helm:(\d+\.\d+\.\d+)@sha256:([a-f0-9]{64})['"]/,
+  );
+  assert.ok(taskfileHelmMatch, 'Taskfile.yaml debe declarar HELM_IMAGE con tag y digest sha256');
+  assert.equal(
+    taskfileHelmMatch[1],
+    expectedHelmSemver,
+    `Taskfile.yaml HELM_IMAGE (${taskfileHelmMatch[1]}) debe coincidir con .tool-versions (${expectedHelmSemver})`,
+  );
+
+  const toolCatalogContent = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents/skills/repo-tool-exec/references/tool-catalog.yaml'),
+    'utf-8',
+  );
+  assert.ok(
+    toolCatalogContent.includes(`alpine/helm:${expectedHelmSemver}@sha256:${taskfileHelmMatch[2]}`),
+    `tool-catalog.yaml debe fijar alpine/helm:${expectedHelmSemver}@sha256:${taskfileHelmMatch[2]} en paridad con Taskfile.yaml y .tool-versions`,
+  );
+
+  const helmRunbookContent = fs.readFileSync(path.join(ROOT_DIR, 'docs/runbooks/HELM_DEPLOYMENT_GUIDE.md'), 'utf-8');
+  assert.ok(
+    helmRunbookContent.includes(`alpine/helm:${expectedHelmSemver}@sha256:${taskfileHelmMatch[2]}`),
+    `HELM_DEPLOYMENT_GUIDE.md debe documentar la imagen vigente alpine/helm:${expectedHelmSemver}@sha256:${taskfileHelmMatch[2]}`,
+  );
 });
 
-test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml coincide con .tool-versions', () => {
+test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml y tool-catalog.yaml coincide con .tool-versions, y renovate coincide con config-linters.yaml', () => {
   const infra = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
+  const configLinters = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
   const toolVersions = fs.readFileSync(path.join(ROOT_DIR, '.tool-versions'), 'utf-8');
+  const toolCatalog = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents/skills/repo-tool-exec/references/tool-catalog.yaml'),
+    'utf-8',
+  );
   const expected = toolVersions.match(/^opentofu\s+(\S+)/m)?.[1];
   assert.ok(expected, 'Debe encontrarse la versión de OpenTofu en .tool-versions');
 
@@ -105,4 +138,15 @@ test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml coincide 
   for (const version of versions) {
     assert.equal(version, expected, 'infra.yaml y .tool-versions deben usar la misma versión de OpenTofu');
   }
+  assert.ok(
+    toolCatalog.includes(`ghcr.io/opentofu/opentofu:${expected}`),
+    `tool-catalog.yaml debe usar ghcr.io/opentofu/opentofu:${expected}`,
+  );
+
+  const renovateMatch = configLinters.match(/renovate\/renovate:\d[\w.-]*@sha256:[a-f0-9]{64}/);
+  assert.ok(renovateMatch, 'config-linters.yaml debe fijar renovate/renovate por digest');
+  assert.ok(
+    toolCatalog.includes(renovateMatch[0]),
+    `tool-catalog.yaml debe mantener paridad con config-linters.yaml (${renovateMatch[0]})`,
+  );
 });

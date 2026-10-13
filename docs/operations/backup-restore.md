@@ -16,8 +16,8 @@ Describir el ciclo de vida operativo de las copias de seguridad locales de Postg
 - **Algoritmo de cifrado**: AES-256-CBC con derivación PBKDF2 y salt criptográfico.
 - **Integridad**: Suma de comprobación SHA-256 generada simultáneamente (`.sha256`). Detecta corrupción, no manipulación: quien altera el backup también puede recalcularla.
 - **Autenticidad (Encrypt-then-MAC)**: cada `.enc` lleva un `.enc.hmac` con un HMAC-SHA256 del archivo completo, calculado con una clave derivada de `BACKUP_ENCRYPTION_KEY`. AES-256-CBC no autentica, así que sin él una clave incorrecta puede descifrar "bien" por azar (~0,4 %) y quien escriba en el almacenamiento puede alterar el volcado. La verificación lo comprueba ANTES de descifrar y falla ante manipulación o clave incorrecta. El `.enc` no cambia: sigue siendo legible con `openssl enc -d`.
-- **Retención local**: 30 días en volúmenes dedicados (`pokedex-backup-pvc`).
-- **Retención remota/offsite**: Replicación automatizada hacia Google Drive (formalizada en [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
+- **Retención local**: 7 días en volúmenes dedicados (`<release>-backup-pvc`, `backup.retentionDays: 7`).
+- **Retención remota/offsite**: Replicación automatizada hacia Google Drive con retención de 30 días (formalizada en [ADR-006](../decisions/ADR-006-disaster-recovery-strategy.md) y documentada en [GDRIVE_BACKUP_GUIDE.md](GDRIVE_BACKUP_GUIDE.md)), manteniendo esqueletos agnósticos en [OFFSITE_BACKUP_BLUEPRINTS.md](OFFSITE_BACKUP_BLUEPRINTS.md).
 
 ## 3. Procedimientos Operativos
 

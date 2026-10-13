@@ -4,11 +4,11 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 [![CI/CD Pipeline](https://github.com/rocapellino/pokedex/actions/workflows/change-impact.yaml/badge.svg?branch=main)](https://github.com/rocapellino/pokedex/actions/workflows/change-impact.yaml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=rocapellino_pokedex&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rocapellino_pokedex)
-[![Node.js](https://img.shields.io/badge/Node.js-22_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-24_LTS-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-24+-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-326CE5?style=flat&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Helm](https://img.shields.io/badge/Helm-3.17-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/)
+[![Helm](https://img.shields.io/badge/Helm-3.22-0F1689?style=flat&logo=helm&logoColor=white)](https://helm.sh/)
 [![Security: Gitleaks](https://img.shields.io/badge/Security-Gitleaks_Protected-green?style=flat&logo=shield)](https://github.com/gitleaks/gitleaks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -16,23 +16,25 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 ## 📑 Tabla de Contenidos
 
-- [1. Propósito y Visión General](#1-propósito-y-visión-general)
-- [2. Características Principales](#2-características-principales)
-- [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
-- [4. Stack Tecnológico](#4-stack-tecnológico)
-- [5. Requisitos Previos](#5-requisitos-previos)
-- [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
-  - [1. Clonar el repositorio y configurar entorno](#1-clonar-el-repositorio-y-configurar-entorno)
-  - [2. Instalar dependencias](#2-instalar-dependencias)
-  - [3. Iniciar servicios con Docker Compose](#3-iniciar-servicios-con-docker-compose)
-- [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
-- [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
-  - [Matriz de Estado y Nivel de Soporte de Componentes](#matriz-de-estado-y-nivel-de-soporte-de-componentes)
-- [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
-- [10. Observabilidad y SRE](#10-observabilidad-y-sre)
-- [11. Índice de Documentación](#11-índice-de-documentación)
-  - [Decisiones de Arquitectura Relevantes (ADR) y CLI](#decisiones-de-arquitectura-relevantes-adr-y-cli)
-- [12. Licencia y Contribución](#12-licencia-y-contribución)
+- [Pokémon DevOps Platform](#-pokémon-devops-platform)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [1. Propósito y Visión General](#1-propósito-y-visión-general)
+  - [2. Características Principales](#2-características-principales)
+  - [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
+  - [4. Stack Tecnológico](#4-stack-tecnológico)
+  - [5. Requisitos Previos](#5-requisitos-previos)
+  - [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
+    - [1. Clonar el repositorio y configurar entorno](#1-clonar-el-repositorio-y-configurar-entorno)
+    - [2. Instalar dependencias](#2-instalar-dependencias)
+    - [3. Iniciar servicios con Docker Compose](#3-iniciar-servicios-con-docker-compose)
+  - [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
+  - [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
+    - [Matriz de Estado y Nivel de Soporte de Componentes](#matriz-de-estado-y-nivel-de-soporte-de-componentes)
+  - [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
+  - [10. Observabilidad y SRE](#10-observabilidad-y-sre)
+  - [11. Índice de Documentación](#11-índice-de-documentación)
+    - [Decisiones de Arquitectura Relevantes (ADR) y CLI](#decisiones-de-arquitectura-relevantes-adr-y-cli)
+  - [12. Licencia y Contribución](#12-licencia-y-contribución)
 
 ---
 
@@ -58,7 +60,7 @@ La solución implementa una arquitectura desacoplada y orientada a contenedores 
 
 ```mermaid
 flowchart TD
-    Client(["👤 Usuario / Cliente"]) -->|HTTP 8080| Web["🌐 Frontend SPA (Vite + Nginx)"]
+    Client(["👤 Usuario / Cliente"]) -->|HTTP 8080| Web["🌐 Frontend MPA (Vite + Nginx)"]
     Web -->|API Proxy /pokemons| API["⚙️ API REST (Node.js 24 + Express)"]
     API -->|SQL :5432| DB[("🗄️ PostgreSQL 16\npokedex_entries")]
     API -->|RESP :6379| Cache[("⚡ Redis 7\nCaché & Rate Limit")]
@@ -89,7 +91,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 
 ## 5. Requisitos Previos
 
-- [Node.js](https://nodejs.org/) 22 LTS y npm 11.17.x
+- [Node.js](https://nodejs.org/) 24 LTS y npm 12.2.x
 - [Docker](https://www.docker.com/) 24+ y Docker Compose v2
 - [Task](https://taskfile.dev/) (opcional, para ejecución simplificada de comandos)
 
@@ -159,7 +161,7 @@ La infraestructura está modelada de forma declarativa e interoperable:
 | Kubernetes (K3s on-premise / cloud gestionado) | Activo |
 | Helm 3 (OCI Artifacts) | Activo |
 | ArgoCD (GitOps) | Activo |
-| OpenTofu 1.8+ (Proxmox VE & Cloud Template) | Activo |
+| OpenTofu 1.13+ (Proxmox VE & Cloud Template) | Activo |
 
 ---
 
@@ -214,8 +216,8 @@ La documentación técnica detallada se organiza en:
 - [ADR-025: Separación de Planos de Gestión, Runtime y Preparación Cloud](docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)
 - [ADR-027: Resiliencia Fail-Open vs Fail-Closed](docs/decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)
 - [ADR-030: Modelo de Entornos (Dev Local, Pre-Prod Proxmox y Prod Cloud)](docs/decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)
-- [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md): Catálogo de las 23 decisiones activas y registro de decisiones consolidadas (ADR-019, ADR-021, ADR-022, ADR-024, ADR-026, ADR-028, ADR-029).
-- [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md): Referencia oficial del CLI con Taskfile.
+- [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md)
+- [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md)
 
 ---
 

@@ -11,13 +11,14 @@ Proveer las instrucciones de emergencia para revertir de manera inmediata una ve
 1. Conectar con la interfaz o CLI de ArgoCD:
 
    ```bash
-   argocd app history pokedex-cloud
+   # En Proxmox Pre-prod (activo, ADR-030) — o pokedex-cloud si el blueprint cloud está activo:
+   argocd app history pokedex-preprod
    ```
 
 2. Revertir a la revisión estable previa (ID N):
 
    ```bash
-   argocd app rollback pokedex-cloud <REVISION_ID>
+   argocd app rollback pokedex-preprod <REVISION_ID>
    ```
 
 3. Comprobar la estabilización de los pods:

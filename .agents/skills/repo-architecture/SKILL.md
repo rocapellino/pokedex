@@ -21,7 +21,7 @@ Analizar integralmente la arquitectura de la aplicación, plataforma e infraestr
   - Promoción de artefactos mediante OCI digest pinning inmutable (`sha256`) y paridad estricta 1:1 en `targetRevision` por tag.
   - Modelo de release desacoplado: `root-application.yaml` sigue `main` y las Applications hijas se anclan a tags de release inmutables (ADR-003).
 - **Aislamiento de Red:** Políticas Ingress (Traefik), Cilium L7 NetworkPolicies, bloqueo Egress anti-SSRF y service boundaries.
-- **Trazado de Rutas por Entorno (`route-trace`):** Para cada entorno activo (compose, `proxmox-preprod`, `proxmox`) seguir cada ruta que invoca el cliente hasta su handler, verificando en cada salto la **configuración efectiva** ([methodology.md](../_shared/methodology.md) §1):
+- **Trazado de Rutas por Entorno (`route-trace`):** Para cada entorno activo (`compose`, `proxmox-preprod`) y el blueprint `cloud`, seguir cada ruta que invoca el cliente hasta su handler, verificando en cada salto la **configuración efectiva** ([methodology.md](../_shared/methodology.md) §1):
   1. **Inventario de rutas del cliente:** `fetch(...)` en `apps/frontend/src/` y formularios.
   2. **Borde del entorno:** `ingress.className` y `hosts[].paths` del values del entorno; anotaciones que ese controlador realmente interpreta; `tls` y entrypoints.
   3. **Proxy web:** `location`, `rewrite` y `proxy_pass` en `apps/frontend/nginx.conf.template`, incluida la herencia de `add_header`.
