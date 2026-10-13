@@ -56,17 +56,17 @@ jobs:
       - name: 6. Ejecutar Pruebas de Carga con Grafana k6 y Validar Umbrales de SLA
         env:
           TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:3000' }}
-          GRAFANA_CLOUD_METRICS_TOKEN: ${{ secrets.GRAFANA_CLOUD_METRICS_TOKEN }}
           K6_PROMETHEUS_RW_SERVER_URL: "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
           K6_PROMETHEUS_RW_USERNAME: "3589862"
+          K6_PROMETHEUS_RW_PASSWORD: ${{ secrets.GRAFANA_CLOUD_METRICS_TOKEN }}
+          HAS_METRICS_TOKEN: ${{ secrets.GRAFANA_CLOUD_METRICS_TOKEN != '' }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           K6_EXTRA_ARGS=()
-          if [ -n "$GRAFANA_CLOUD_METRICS_TOKEN" ]; then
+          if [ "$HAS_METRICS_TOKEN" = "true" ]; then
             echo "🚀 Grafana Cloud Prometheus token detectado: habilitando remote write..."
-            export K6_PROMETHEUS_RW_PASSWORD="$GRAFANA_CLOUD_METRICS_TOKEN"
             K6_EXTRA_ARGS+=(
               "-o" "experimental-prometheus-rw"
               "--tag" "commit=${GITHUB_SHA}"
