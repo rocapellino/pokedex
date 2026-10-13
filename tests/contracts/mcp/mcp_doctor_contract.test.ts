@@ -50,7 +50,7 @@ test('🛡️ MCP Contrato: El reporte de diagnóstico cumple con el esquema est
   const validStates = ['READY', 'CONFIG_MISSING', 'DEPENDENCY_MISSING', 'DISABLED'];
   const validConfigStatuses = ['VALID', 'MISSING_ENV', 'NOT_APPLICABLE'];
   const validDepStatuses = ['MET', 'MISSING_TOOL', 'MISSING_PLUGIN', 'NOT_APPLICABLE'];
-  const validConnStatuses = ['SECURE', 'INSECURE_REMOTE', 'LOCAL', 'INVALID_URL'];
+  const validConnStatuses = ['SECURE', 'INSECURE_REMOTE', 'UNRESOLVED_URL', 'LOCAL', 'INVALID_URL'];
 
   for (const srv of report.servers) {
     assert.ok(validStates.includes(srv.state), `Estado inválido en servidor ${srv.id}: ${srv.state}`);
