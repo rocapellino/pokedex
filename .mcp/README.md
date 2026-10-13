@@ -109,13 +109,20 @@ export SONAR_TOKEN="..."
 
 ### Paso 3: Diagnóstico del Entorno
 
-Compruebe la salud de sus servidores y clientes sin exponer valores de secretos:
+Compruebe la salud integral de sus servidores, clientes y dependencias sin exponer secretos ni alterar el sistema:
 
 ```bash
 npm run mcp:doctor
 # O mediante Task:
 task mcp:doctor
 ```
+
+El diagnóstico evalúa de forma desacoplada y bajo principio Zero-Trust cuatro pilares:
+
+1. **Sincronización de Clientes:** Verifica que las configuraciones locales de Cursor, VS Code, Claude Code, Antigravity y Generic coincidan con el catálogo canónico.
+2. **Dependencias y Plugins:** Inspecciona Node.js, Docker, ejecutables locales y valida que plugins requeridos (como `trivy-mcp` mediante `trivy plugin list`) estén operativos.
+3. **Variables de Entorno:** Audita la presencia de variables obligatorias (`CONFIG_MISSING`) sin imprimir jamás tokens ni secretos.
+4. **Conectividad y Transporte:** Certifica que endpoints remotos utilicen HTTPS con TLS obligatorio.
 
 ---
 

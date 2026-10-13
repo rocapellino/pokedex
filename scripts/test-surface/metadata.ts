@@ -660,6 +660,20 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida que el catálogo MCP canónico y el esquema JSON rechacen identificadores inválidos, versiones mutables y configuraciones no conformes.',
   },
+  'tests/unit/mcp/mcp_doctor.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gobernanza MCP / Diagnóstico y Zero-Trust',
+    targetArtifacts: ['scripts/mcp/doctor.ts'],
+    description:
+      'Verifica evaluación segregada de configuración, dependencias locales, plugins de Trivy y preservación estricta de Zero-Trust.',
+  },
+  'tests/contracts/mcp/mcp_doctor_contract.test.ts': {
+    type: 'Contract / Platform',
+    targetDomain: 'Gobernanza MCP / Contrato de Diagnóstico',
+    targetArtifacts: ['scripts/mcp/doctor.ts'],
+    description:
+      'Garantiza el esquema estructural del reporte de diagnóstico, determinismo de overallValid y aislamiento de servidores deshabilitados.',
+  },
   'tests/contracts/mcp/mcp_registry_contract.test.ts': {
     type: 'Contract / Platform',
     targetDomain: 'Gobernanza MCP / Contratos de Registro y Adaptadores',
