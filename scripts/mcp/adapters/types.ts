@@ -110,3 +110,53 @@ export function resolveEnvExpression(value: string | undefined): string | undefi
 
   return value;
 }
+
+/**
+ * Resuelve y adapta el mapa de variables de entorno según las capacidades del cliente:
+ * - Si clientDef.env_variable_expansion === true: preserva las expresiones ${VAR}
+ *   para que el cliente las resuelva dinámicamente en tiempo de ejecución.
+ * - Si clientDef.env_variable_expansion === false (ej. Antigravity o Generic):
+ *   omite variables opcionales que no estén definidas localmente para evitar inyectar
+ *   placeholders literales como "${VAR}" que bloqueen el modo anónimo de servidores como
+ *   Context7 o Trivy.
+ */
+export function resolveClientEnv(
+  server: McpServerDefinition,
+  clientDef: McpClientDefinition,
+): Record<string, string> | undefined {
+  if (!server.env || Object.keys(server.env).length === 0) {
+    return undefined;
+  }
+
+  const result: Record<string, string> = {};
+  const requiredVars = new Set(server.required_env_vars || []);
+
+  for (const [key, rawValue] of Object.entries(server.env)) {
+    const match = rawValue.match(/^\$\{([A-Z0-9_]+)\}$/);
+    if (match) {
+      const varName = match[1];
+      const isRequired = requiredVars.has(varName);
+
+      if (clientDef.env_variable_expansion) {
+        result[key] = rawValue;
+      } else {
+        // En clientes sin soporte de expansión de variables en runtime:
+        // Si la variable es opcional (no requerida) y no está definida en process.env,
+        // se omite para no enviar un literal sintético ${VAR} que rompa la autenticación anónima.
+        if (!isRequired) {
+          const envVal = process.env[varName];
+          if (envVal && envVal.trim().length > 0) {
+            result[key] = envVal.trim();
+          }
+          // Si no está definida, se omite intencionalmente.
+        } else {
+          result[key] = rawValue;
+        }
+      }
+    } else {
+      result[key] = rawValue;
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}

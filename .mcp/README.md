@@ -61,6 +61,11 @@ Adaptadores Específicos"]
 > [!IMPORTANT]
 > El perfil `infrastructure-write` permanece deshabilitado por defecto. Ningún agente ni desarrollador debe utilizar servidores MCP para eludir el flujo formal de GitOps (ArgoCD) y Pull Requests.
 
+Respecto a los límites de ejecución en modo local frente a contenedores:
+
+> [!NOTE]
+> **Frontera de Aislamiento:** En servidores con ejecución `local` (`stdio`), las restricciones de `filesystem` y `network` actúan como límites declarativos de gobernanza del catálogo y contrato para los clientes; el subproceso se ejecuta bajo los privilegios del sistema operativo del usuario. Cuando se requiera aislamiento estricto por sandbox de kernel (ej. `--network=none` o filesystem inmutable de solo lectura a nivel SO), debe configurarse el modo `container` con imagen fijada por digest SHA256 (como en `k8s-platform-write`).
+
 ---
 
 ## 3. Servidores Registrados y Estado

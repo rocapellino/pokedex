@@ -170,7 +170,7 @@ servers:
       write: false
       filesystem: "read-only-repo"
       network: "outbound-allowed"
-    notes: "Ejecutado localmente mediante el plugin oficial 'trivy mcp' (Aqua Security). Análisis reproducible de dependencias, Dockerfiles e infra/."
+    notes: "Ejecutado localmente mediante el plugin 'trivy mcp' (Aqua Security). Requiere Trivy CLI y plugin en el host verificado por mcp:doctor. La delimitación de filesystem (read-only-repo) y red es un contrato declarativo de catálogo y gobernanza del cliente; la ejecución stdio local hereda los privilegios del usuario del host."
 
   - id: "context7"
     name: "Context7 Documentation MCP Server"
@@ -193,4 +193,4 @@ servers:
       write: false
       filesystem: "none"
       network: "outbound-allowed"
-    notes: "Provee contexto técnico oficial y documentación actualizada para reducir alucinaciones en librerías y tooling."
+    notes: "Provee contexto técnico oficial y documentación actualizada (Upstash). La delimitación de filesystem (none) es contractual del catálogo; el subproceso npx se ejecuta bajo los permisos del entorno local."

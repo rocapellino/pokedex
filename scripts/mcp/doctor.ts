@@ -51,15 +51,34 @@ export interface DoctorReport {
 }
 
 export function probeCliTool(binary: string): { available: boolean; version?: string } {
+  // 1. Intento directo con execFileSync sin shell
   try {
     const output = execFileSync(binary, ['--version'], {
       // NOSONAR: S4036 - sonda read-only de versión de herramientas CLI locales
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
+      windowsHide: true,
     });
     const firstLine = output.trim().split('\n')[0];
     return { available: true, version: firstLine };
   } catch {
+    // 2. En Windows, herramientas empaquetadas como .cmd/.bat (ej. npx) requieren invocación vía cmd.exe
+    if (process.platform === 'win32') {
+      try {
+        const output = execFileSync('cmd.exe', ['/d', '/s', '/c', `${binary} --version`], {
+          // NOSONAR: S4036 - sonda controlada de versión en Windows
+          encoding: 'utf-8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+          windowsHide: true,
+        });
+        const firstLine = output.trim().split('\n')[0];
+        if (firstLine && !firstLine.includes('no se reconoce') && !firstLine.includes('is not recognized')) {
+          return { available: true, version: firstLine };
+        }
+      } catch {
+        return { available: false };
+      }
+    }
     return { available: false };
   }
 }
@@ -68,6 +87,8 @@ function detectSystemTools(): Record<string, { available: boolean; version?: str
   return {
     node: { available: true, version: process.version },
     docker: probeCliTool('docker'),
+    trivy: probeCliTool('trivy'),
+    npx: probeCliTool('npx'),
     vscode: probeCliTool('code'),
     cursor: probeCliTool('cursor'),
     claude: probeCliTool('claude'),
@@ -121,6 +142,19 @@ function diagnoseServer(s: McpServerDefinition, dockerAvailable: boolean, recomm
     state = 'DEPENDENCY_MISSING';
     details.push('Docker no está disponible en PATH para ejecutar este contenedor.');
     recommendations.push(`Instale o inicie Docker para habilitar la ejecución del servidor '${s.id}'.`);
+  }
+
+  if (s.execution_mode === 'local' && s.command) {
+    const cliProbe = probeCliTool(s.command);
+    if (!cliProbe.available) {
+      state = 'DEPENDENCY_MISSING';
+      details.push(`El comando ejecutable '${s.command}' no está disponible en PATH.`);
+      recommendations.push(
+        s.command === 'trivy'
+          ? `Instale Trivy CLI (https://trivy.dev) y ejecute 'trivy plugin install mcp' para habilitar el servidor '${s.id}'.`
+          : `Instale la herramienta CLI '${s.command}' para habilitar la ejecución del servidor '${s.id}'.`,
+      );
+    }
   }
 
   if (isPlainHttpRemoteUrl(s)) {
