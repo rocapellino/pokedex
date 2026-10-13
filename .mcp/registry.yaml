@@ -163,6 +163,8 @@ servers:
     command: "trivy"
     args:
       - "mcp"
+    env:
+      GITHUB_TOKEN: "${TRIVY_GITHUB_TOKEN}"
     permissions:
       read: true
       write: false
@@ -184,6 +186,8 @@ servers:
     args:
       - "-y"
       - "@upstash/context7-mcp@4.4.0"
+    env:
+      CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
     permissions:
       read: true
       write: false
