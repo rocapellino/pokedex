@@ -38,10 +38,13 @@
     },
     {
       "customType": "regex",
-      "description": "Imágenes con digest fijadas dentro de pasos run de Config Linters (actionlint, zizmor y el validador de Renovate). Ningún gestor nativo las ve; este lee tag y digest juntos para que Renovate cambie ambos en el mismo PR",
-      "managerFilePatterns": ["/^\\.github/workflows/config-linters\\.yaml$/"],
+      "description": "Imágenes con digest fijadas dentro de pasos run de Config Linters y el catálogo canónico de herramientas (.agents/skills/repo-tool-exec/references/tool-catalog.yaml: actionlint, zizmor y el validador de Renovate). Ningún gestor nativo las ve; este lee tag y digest juntos para que Renovate cambie ambos en el mismo PR manteniendo paridad estricta",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/config-linters\\.yaml$/",
+        "/^\\.agents/skills/repo-tool-exec/references/tool-catalog\\.yaml$/"
+      ],
       "matchStrings": [
-        "(?<depName>[a-z0-9./-]+/[a-z0-9./-]+):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+        "(?<depName>rhysd/actionlint|ghcr\\.io/zizmorcore/zizmor|renovate/renovate):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker"
     },
